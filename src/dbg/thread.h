@@ -23,5 +23,6 @@ HANDLE ThreadGetHandle(DWORD ThreadId);
 DWORD ThreadGetId(HANDLE Thread);
 int ThreadSuspendAll();
 int ThreadResumeAll();
+ULONG_PTR ThreadGetLocalBase(DWORD ThreadId);
 
 #endif // _THREAD_H

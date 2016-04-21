@@ -5,9 +5,10 @@
  */
 
 #include "disasm_helper.h"
-#include "value.h"
+#include "thread.h"
 #include "console.h"
 #include "memory.h"
+#include "debugger.h"
 #include <capstone_wrapper.h>
 
 duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
@@ -119,29 +120,80 @@ const char* disasmtext(duint addr)
     return instruction;
 }
 
+static size_t ResolveReg(x86_reg reg)
+{
+    DWORD titReg = 0;
+    switch(reg)
+    {
+#ifdef _WIN64
+    case X86_REG_RAX:
+        return GetContextDataEx(hActiveThread, UE_RAX);
+    case X86_REG_RBX:
+        return GetContextDataEx(hActiveThread, UE_RBX);
+    case X86_REG_RCX:
+        return GetContextDataEx(hActiveThread, UE_RCX);
+    case X86_REG_RDX:
+        return GetContextDataEx(hActiveThread, UE_RDX);
+    case X86_REG_RBP:
+        return GetContextDataEx(hActiveThread, UE_RBP);
+    case X86_REG_RSP:
+        return GetContextDataEx(hActiveThread, UE_RSP);
+    case X86_REG_RSI:
+        return GetContextDataEx(hActiveThread, UE_RSI);
+    case X86_REG_RDI:
+        return GetContextDataEx(hActiveThread, UE_RDI);
+    case X86_REG_R8:
+        return GetContextDataEx(hActiveThread, UE_R8);
+    case X86_REG_R9:
+        return GetContextDataEx(hActiveThread, UE_R9);
+    case X86_REG_R10:
+        return GetContextDataEx(hActiveThread, UE_R10);
+    case X86_REG_R11:
+        return GetContextDataEx(hActiveThread, UE_R11);
+    case X86_REG_R12:
+        return GetContextDataEx(hActiveThread, UE_R12);
+    case X86_REG_R13:
+        return GetContextDataEx(hActiveThread, UE_R13);
+    case X86_REG_R14:
+        return GetContextDataEx(hActiveThread, UE_R14);
+    case X86_REG_R15:
+        return GetContextDataEx(hActiveThread, UE_R15);
+#else //x32
+    case X86_REG_EAX:
+        return GetContextDataEx(hActiveThread, UE_EAX);
+    case X86_REG_EBX:
+        return GetContextDataEx(hActiveThread, UE_EBX);
+    case X86_REG_ECX:
+        return GetContextDataEx(hActiveThread, UE_ECX);
+    case X86_REG_EDX:
+        return GetContextDataEx(hActiveThread, UE_EDX);
+    case X86_REG_EBP:
+        return GetContextDataEx(hActiveThread, UE_EBP);
+    case X86_REG_ESP:
+        return GetContextDataEx(hActiveThread, UE_ESP);
+    case X86_REG_ESI:
+        return GetContextDataEx(hActiveThread, UE_ESI);
+    case X86_REG_EDI:
+        return GetContextDataEx(hActiveThread, UE_EDI);
+#endif //_WIN64
+    default:
+        return 0;
+    }
+}
+
 static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
 {
-    const cs_x86 & x86 = cp.x86();
-    const cs_x86_op & op = x86.operands[opindex];
+    auto value = cp.ResolveOpValue(opindex, ResolveReg);
+    const auto & op = cp[opindex];
     arg->segment = SEG_DEFAULT;
     strcpy_s(arg->mnemonic, cp.OperandText(opindex).c_str());
     switch(op.type)
     {
     case X86_OP_REG:
-    {
-        const char* regname = cp.RegName((x86_reg)op.reg);
-        arg->type = arg_normal;
-        duint value;
-        if(!valfromstring(regname, &value, true, true))
-            value = 0;
-        arg->constant = arg->value = value;
-    }
-    break;
-
     case X86_OP_IMM:
     {
         arg->type = arg_normal;
-        arg->constant = arg->value = (duint)op.imm;
+        arg->constant = arg->value = value;
     }
     break;
 
@@ -149,13 +201,21 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
     {
         arg->type = arg_memory;
         const x86_op_mem & mem = op.mem;
-        if(mem.base == X86_REG_RIP)  //rip-relative
-            arg->constant = cp.Address() + (duint)mem.disp + cp.Size();
+        if(mem.base == X86_REG_RIP) //rip-relative
+            arg->constant = cp.Address() + duint(mem.disp) + cp.Size();
         else
-            arg->constant = (duint)mem.disp;
-        duint value;
-        if(!valfromstring(arg->mnemonic, &value, true, true))
-            return;
+            arg->constant = duint(mem.disp);
+#ifdef _WIN64
+        if(mem.segment == X86_REG_GS)
+        {
+            arg->segment = SEG_GS;
+#else //x86
+        if(mem.segment == X86_REG_FS)
+        {
+            arg->segment = SEG_FS;
+#endif
+            value += ThreadGetLocalBase(ThreadGetId(hActiveThread));
+        }
         arg->value = value;
         if(DbgMemIsValidReadPtr(value))
         {
@@ -177,6 +237,9 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
         }
     }
     break;
+
+    default:
+        break;
     }
 }
 

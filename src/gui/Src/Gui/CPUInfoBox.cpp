@@ -163,6 +163,14 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 break;
             }
 
+#ifdef _WIN64
+            if(arg.segment == SEG_GS)
+                sizeName += "gs:";
+#else //x32
+            if(arg.segment == SEG_FS)
+                sizeName += "fs:";
+#endif
+
             if(bUpper)
                 sizeName = sizeName.toUpper();
 
@@ -272,8 +280,16 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, dsint wVA)
         const DISASM_ARG arg = instr.arg[i];
         if(arg.type == arg_memory)
         {
+            QString segment = "";
+#ifdef _WIN64
+            if(arg.segment == SEG_GS)
+                segment = "gs:";
+#else //x32
+            if(arg.segment == SEG_FS)
+                segment = "fs:";
+#endif //_WIN64
             if(DbgMemIsValidReadPtr(arg.value))
-                addFollowMenuItem(menu, "&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
+                addFollowMenuItem(menu, "&Address: " + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
             if(arg.value != arg.constant)
             {
                 QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
@@ -281,7 +297,7 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, dsint wVA)
                     addFollowMenuItem(menu, "&Constant: " + constant, arg.constant);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowMenuItem(menu, "&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue);
+                addFollowMenuItem(menu, "&Value: " + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue);
         }
         else
         {
