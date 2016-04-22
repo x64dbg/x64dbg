@@ -8,7 +8,7 @@
 #else
 
 #ifdef __GNUC__
-#include "dbghelp\dbghelp.h"
+#include "dbghelp/dbghelp.h"
 #else
 #include <dbghelp.h>
 #endif // __GNUC__
