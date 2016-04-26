@@ -459,6 +459,8 @@ void CPUDump::setupContextMenu()
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
     mCopyMenu->addAction(mCopyRva);
 
+    mEncoding = Config()->createMenu_Encoding(this);
+    connect(Config(), SIGNAL(encodingUpdated()), this, SLOT(reloadData()));
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -623,6 +625,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addMenu(mFloatMenu);
     wMenu->addAction(mAddressAction);
     wMenu->addAction(mDisassemblyAction);
+    wMenu->addMenu(mEncoding);
 
     QList<QString> tabNames;
     mMultiDump->getTabNames(tabNames);

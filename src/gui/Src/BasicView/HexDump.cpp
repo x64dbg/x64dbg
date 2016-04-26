@@ -392,7 +392,7 @@ void HexDump::getString(int col, dsint rva, QList<RichTextPainter::CustomRichTex
 
     if(mDescriptor.at(col).data.itemSize == Byte && mDescriptor.at(col).data.byteMode == AsciiByte)
     {
-        curData.text = Config()->mSystemCodec->toUnicode((const char*)wData, wBufferByteCount).replace(QChar::ReplacementCharacter, QChar('.')).replace(QChar('\0'), QChar('.'));
+        curData.text = Config()->mDocCodec->toUnicode((const char*)wData, wBufferByteCount).replace(QChar::ReplacementCharacter, QChar('.')).replace(QChar('\0'), QChar('.'));
         dsint start = rvaToVa(rva);
         dsint end = start + wBufferByteCount - 1;
         curData.textColor = DbgFunctions()->PatchInRange(start, end) ? highlightColor : textColor;

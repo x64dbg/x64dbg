@@ -68,7 +68,7 @@ void HexEditDialog::on_btnAscii2Hex_clicked()
 {
     QString text = ui->lineEditAscii->text();
     QByteArray data;
-    data = Config()->mSystemCodec->fromUnicode(text);
+    data = Config()->mDocCodec->fromUnicode(text);
     //    for(int i = 0; i < text.length(); i++)
     //        data.append(text[i].toLatin1());
     if(ui->chkKeepSize->isChecked()) //keep size
@@ -119,7 +119,7 @@ void HexEditDialog::dataChangedSlot()
 {
     QByteArray data = mHexEdit->data();
     QString ascii;
-    ascii = Config()->mSystemCodec->toUnicode(data);
+    ascii = Config()->mDocCodec->toUnicode(data);
     //    for(int i = 0; i < data.size(); i++)
     //    {
     //        QChar ch(data.constData()[i]);
