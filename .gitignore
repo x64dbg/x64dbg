@@ -80,3 +80,4 @@ pin.log
 /bin/x32/x32gui.dll
 /bin/x32/x32gui.lib
 /usrenv.bat
+/deps
