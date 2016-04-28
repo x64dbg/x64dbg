@@ -18,6 +18,11 @@
     TARGET = x64gui                  # Build x64gui
 }
 
+CONFIG(debug,debug|release) {
+    X64_BIN_DIR = $${X64_BIN_DIR}_debug
+    X64_GEN_DIR = $${X64_GEN_DIR}_debug
+}
+
 ##
 ## QMake output directories
 ##
@@ -262,13 +267,22 @@ LIBS += -luser32
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
     LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x86
-    LIBS += -L"$$PWD/../capstone_wrapper/bin/x32" -lcapstone_wrapper
+    CONFIG(debug,debug|release) {
+        LIBS += -L"$$PWD/../capstone_wrapper/bin/x32_debug" -lcapstone_wrapper
+    } else {
+        LIBS += -L"$$PWD/../capstone_wrapper/bin/x32" -lcapstone_wrapper
+    }
+
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x86
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x64
-    LIBS += -L"$$PWD/../capstone_wrapper/bin/x64" -lcapstone_wrapper
+    CONFIG(debug,debug|release) {
+        LIBS += -L"$$PWD/../capstone_wrapper/bin/x64_debug" -lcapstone_wrapper
+    } else {
+        LIBS += -L"$$PWD/../capstone_wrapper/bin/x64" -lcapstone_wrapper
+    }
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x64
     LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
 }
