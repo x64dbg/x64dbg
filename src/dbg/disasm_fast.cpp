@@ -81,6 +81,9 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
             }
         }
         break;
+
+        default:
+            break;
         }
     }
 }
