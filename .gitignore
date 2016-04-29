@@ -1,5 +1,5 @@
 # Ignored directories
-bin/x32/db/
+bin/*/
 obj/
 ipch/
 Win32/
@@ -28,6 +28,7 @@ minidump/
 *.suo
 *.autosave
 *.~vsd
+*.dll
 *.exe
 *.pro.user.*
 *.orig
@@ -38,8 +39,6 @@ ui_*
 *.pro.user
 .DS_Store
 *.ipgset
-*.ilk
-*.exp
 
 # Project to ignore
 help/x64*dbg.chm
@@ -67,16 +66,4 @@ src/build-*/
 !/bin/x64dbg_shell_remove.reg
 !*.lib
 pin.log
-/bin/x32/Qt5Cored.dll
-/bin/x32/Qt5Guid.dll
-/bin/x32/Qt5Networkd.dll
-/bin/x32/Qt5Widgetsd.dll
-/bin/x32/capstone.dll
-/bin/x32/snowman.dll
-/bin/x32/x32bridge.dll
-/bin/x32/x32bridge.lib
-/bin/x32/x32dbg.dll
-/bin/x32/x32dbg.lib
-/bin/x32/x32gui.dll
-/bin/x32/x32gui.lib
 /usrenv.bat

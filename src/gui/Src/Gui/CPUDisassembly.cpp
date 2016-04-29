@@ -10,6 +10,7 @@
 #include "HexEditDialog.h"
 #include "YaraRuleSelectionDialog.h"
 #include "AssembleDialog.h"
+#include "StringUtil.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -343,13 +344,19 @@ void CPUDisassembly::setupRightClickContextMenu()
     labelMenu->addAction(labelAddress, [this, labelAddress](QMenu*)
     {
         BASIC_INSTRUCTION_INFO instr_info;
-        duint wVA = rvaToVa(getInitialSelection());
+        DbgDisasmFastAt(rvaToVa(getInitialSelection()), &instr_info);
 
-        DbgDisasmFastAt(wVA, &instr_info);
-        QString targetAddress = "0x" + QString::number(instr_info.addr, 16).toUpper();
-        labelAddress->setText("Label " + targetAddress);
+        duint addr;
+        if(instr_info.type & TYPE_MEMORY)
+            addr = instr_info.memory.value;
+        else if(instr_info.type & TYPE_VALUE)
+            addr = instr_info.addr;
+        else
+            return false;
 
-        return (instr_info.branch || instr_info.call);
+        labelAddress->setText("Label " + ToPtrString(addr));
+
+        return instr_info.branch;
     });
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/label.png"), "Label"), labelMenu);
 
@@ -601,20 +608,25 @@ void CPUDisassembly::setLabelAddressSlot()
     if(!DbgIsDebugging())
         return;
     BASIC_INSTRUCTION_INFO instr_info;
-    duint wVA = rvaToVa(getInitialSelection());
+    DbgDisasmFastAt(rvaToVa(getInitialSelection()), &instr_info);
 
-    DbgDisasmFastAt(wVA, &instr_info);
-    wVA = instr_info.addr;
+    duint addr;
+    if(instr_info.type & TYPE_MEMORY)
+        addr = instr_info.memory.value;
+    else if(instr_info.type & TYPE_VALUE)
+        addr = instr_info.addr;
+    else
+        return;
 
     LineEditDialog mLineEdit(this);
-    QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(addr);
     char label_text[MAX_COMMENT_SIZE] = "";
-    if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
+    if(DbgGetLabelAt(addr, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle("Add label at " + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    if(!DbgSetLabelAt(addr, mLineEdit.editText.toUtf8().constData()))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));

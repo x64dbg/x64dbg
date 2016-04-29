@@ -11,8 +11,7 @@ Configuration::Configuration() : QObject()
 {
     CPINFOEX   cpinfo = {0};
     GetCPInfoEx(CP_ACP, 0, &cpinfo);
-    OutputDebugString(cpinfo.CodePageName);
-    mSystemCodec = QTextCodec::codecForName("CP936");
+    mDocCodec = QTextCodec::codecForName(QString("cp%1").arg(cpinfo.CodePage).toLatin1());
 
     QString str = QTextCodec::availableCodecs().join("\n");
     qDebug() << str;
@@ -789,4 +788,116 @@ bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortc
     else
         _key = "NOT_SET";
     return BridgeSettingSet("Shortcuts", _id.toUtf8().constData(), _key.toUtf8().constData());
+}
+
+QMenu* Configuration::createMenu_Encoding(QWidget* parent)
+{
+    QActionGroup* grp = new QActionGroup(parent);
+    grp->setExclusive(TRUE);
+
+    QMenu* menuEncoding = new QMenu("Ascii Encoding", parent);
+
+    CPINFOEX   cpinfo = {0};
+    GetCPInfoEx(CP_ACP, 0, &cpinfo);
+    QAction* action = new QAction(QString("System (cp%1)").arg(cpinfo.CodePage), grp);
+    action->setCheckable(true);
+    connect(action, SIGNAL(triggered()), this, SLOT(changeEncodingSlot()));
+    menuEncoding->addAction(action);
+    menuEncoding->addSeparator();
+
+    const char* names[] =
+    {
+        "West European",
+        "Western|ISO-8859-15|CP-437|CP-850|MacRoman|CP-1252|Windows-1252",
+        "Celtic|ISO-8859-14",
+        "Greek|ISO-8859-14|ISO-8859-7|CP-737|CP-869|MacGreek|CP-1253|Windows-1253",
+        "Icelandic|MacIceland|MacIcelandic|CP-861",
+        "Nordic|ISO-8859-10|CP-865",
+        "Portuguese|CP-860",
+        "South European|ISO-8859-3",
+
+        "East European",
+        "Baltic|CP-775|ISO-8859-4|ISO-8859-13|CP-1257|Windows-1257",
+        "Central European|CP-852|ISO-8859-2|MacCE|CP-1250|Windows-1250",
+        "Croatian|MacCroatian",
+        "Cyrillic|CP-855|ISO-8859-5|ISO-IR-111|KOI8-R|MacCyrillic|CP-1251|Windows-1251",
+        "Russian|CP-866",
+        "Ukrainian|KOI8-U|MacUkraine|MacUkrainian",
+        "Romanian|ISO-8859-16|MacRomania|MacRomanian",
+
+        "East Asian",
+        "Generic|ISO-2022",
+        "Chinese Simplified|GB2312|GB1988|GB12345|GB2312-RAW|GBK|EUC-CN|GB18030|HZ|ISO-2022-CN",
+        "Chinese Traditional|Big5|Big5-HKSCS|EUC-TW|CP-950",
+        "Japanese|EUC-JP|ISO-2022-JP|Shift-JIS|JIS-0212|JIS-0208|JIS-0201|CP-932|MacJapan",
+        "Korean|EUC-KR|UHC|JOHAB|ISO-2022-KR|CP-949|KSC5601",
+
+        "SE & SW Asian",
+        "Armenian|ARMSCII-8",
+        "Georgian|GEOSTD8",
+        "Thai|TIS-620|ISO-8859-11|CP-874|Windows-874|MacThai",
+        "Turkish|CP-857|CP857|ISO-8859-9|MacTurkish|CP-1254|Windows-1254",
+        "Vietnamese|TCVN|VISCII|VPS|CP-1258|Windows-1258",
+        "Hindi|MacDevanagari",
+        "Gujarati|MacGujarati",
+        "Gurmukhi|MacGurmukhi",
+
+        "Middle Eastern",
+        "Arabic|ISO-8859-6|Windows-1256|CP-1256|CP-864|MacArabic",
+        "Farsi|MacFarsi",
+        "Hebrew|ISO-8859-8-I|Windows-1255|CP-1255|ISO-8859-8|CP-862|MacHebrew",
+
+        NULL
+    };
+
+    QMenu* menu = NULL;
+    for(const char** name = names; *name; ++name)
+    {
+        QStringList codenames = QString(*name).split('|');
+        if(codenames.size() == 1)
+        {
+            menu = new QMenu(codenames[0], parent);
+        }
+        else
+        {
+            bool bAddMenu = false;
+            for(int i = 1; i < codenames.size(); ++i)
+            {
+                QString cname = QString("%1 (%2)").arg(codenames[0], codenames[i]);
+                if(QTextCodec::codecForName(codenames[i].toLatin1()))
+                {
+                    QAction* action = new QAction(cname, grp);
+                    action->setCheckable(true);
+                    connect(action, SIGNAL(triggered()), this, SLOT(changeEncodingSlot()));
+                    menu->addAction(action);
+
+                    bAddMenu = true;
+                }
+            }
+            if(bAddMenu)
+                menuEncoding->addMenu(menu);
+        }
+    }
+
+    return menuEncoding;
+}
+
+void Configuration::changeEncodingSlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action != NULL)
+    {
+        QString text = action->text();
+
+        int start = text.indexOf("(", 0);
+        int end = text.indexOf(")", start);
+        QString codename = text.mid(start + 1, end - start - 1);
+
+        QTextCodec* c = QTextCodec::codecForName(codename.toLatin1());
+        if(c)
+        {
+            mDocCodec = c;
+            emit encodingUpdated();
+        }
+    }
 }
