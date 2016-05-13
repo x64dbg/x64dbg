@@ -6,6 +6,7 @@
 #include <QIcon>
 #include <QDateTime>
 #include "Bridge.h"
+#include "StringUtil.h"
 
 UpdateChecker::UpdateChecker(QWidget* parent)
     : QNetworkAccessManager(parent),
@@ -47,15 +48,14 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
         return;
     }
     auto server = QDateTime::fromTime_t(timestamp).date();
-    auto build = QDateTime::fromString(QString(__DATE__).simplified(), "MMM d yyyy").date();
+    auto build = GetCompileDate();
     QString info;
-    auto dateFormat = "MMM d yyyy";
     if(server > build)
-        info = QString("New build %1 available!<br>Download <a href=\"http://releases.x64dbg.com\">here</a><br><br>You are now on build %2").arg(server.toString(dateFormat), build.toString(dateFormat));
+        info = QString("New build %1 available!<br>Download <a href=\"http://releases.x64dbg.com\">here</a><br><br>You are now on build %2").arg(ToDateString(server), ToDateString(build));
     else if(server < build)
-        info = QString("You have a development build (%1) of x64dbg!").arg(build.toString(dateFormat));
+        info = QString("You have a development build (%1) of x64dbg!").arg(ToDateString(build));
     else
-        info = QString("You have the latest build (%1) of x64dbg!").arg(build.toString(dateFormat));
+        info = QString("You have the latest build (%1) of x64dbg!").arg(ToDateString(build));
     QMessageBox msg(QMessageBox::Information, "Information", info);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(mParent, Qt::Dialog);

@@ -94,9 +94,9 @@ bool apienumimports(duint base, IMPORTENUMCALLBACK cbEnum)
 {
     // Variables
     bool readSuccess;
-    char importName[MAX_IMPORT_SIZE];
-    char importModuleName[MAX_MODULE_SIZE];
-    duint regionSize, importNameLen;
+    Memory<char*> importName(MAX_IMPORT_SIZE + 1, "apienumimports:buffer");
+    char importModuleName[MAX_MODULE_SIZE] = "";
+    duint regionSize;
     ULONG_PTR importTableRva, importTableSize;
     MEMORY_BASIC_INFORMATION mbi;
     PIMAGE_IMPORT_DESCRIPTOR importTableVa;
@@ -142,20 +142,16 @@ bool apienumimports(duint base, IMPORTENUMCALLBACK cbEnum)
             return false;
 
         // Loop through all imported function in this dll
-        while(imageFtThunkData.u1.Function)
+        while(imageFtThunkData.u1.AddressOfData)
         {
             pImageImportByNameVa = (PIMAGE_IMPORT_BY_NAME)(base + imageOftThunkData.u1.AddressOfData);
 
             // Read every IMPORT_BY_NAME.name
-            if(!MemRead((duint)pImageImportByNameVa + sizeof(WORD), buffer(), regionSize))
+            if(!MemRead((duint)pImageImportByNameVa + sizeof(WORD), importName(), MAX_IMPORT_SIZE))
                 return false;
 
-            // Alloc buffer for name and copy name import name to buffer
-            importNameLen = strlen((char*)buffer());
-            strcpy_s(importName, MAX_IMPORT_SIZE, (char*)buffer());
-
             // Callback
-            cbEnum(base, imageFtThunkData.u1.Function, importName, importModuleName);
+            cbEnum(base, imageFtThunkData.u1.Function, importName(), importModuleName);
 
             // Move to next address in the INT
             imageINTVa++;

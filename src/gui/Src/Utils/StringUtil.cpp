@@ -167,3 +167,23 @@ QString ToLongDoubleString(void* buffer)
         return sigStr + expStr;
     }
 }
+
+QString ToDateString(const QDate & date)
+{
+    static const char* months[] =
+    {
+        "Jan",
+        "Feb",
+        "Mar",
+        "Arp",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+    };
+    return QString().sprintf("%s %d %d", months[date.month() - 1], date.day(), date.year());
+}

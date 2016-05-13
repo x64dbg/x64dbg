@@ -349,14 +349,14 @@ void CPUDisassembly::setupRightClickContextMenu()
         duint addr;
         if(instr_info.type & TYPE_MEMORY)
             addr = instr_info.memory.value;
-        else if(instr_info.type & TYPE_VALUE)
+        else if(instr_info.type & TYPE_VALUE || instr_info.type & TYPE_ADDR)
             addr = instr_info.addr;
         else
             return false;
 
         labelAddress->setText("Label " + ToPtrString(addr));
 
-        return instr_info.branch;
+        return DbgMemIsValidReadPtr(addr);
     });
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/label.png"), "Label"), labelMenu);
 
@@ -613,7 +613,7 @@ void CPUDisassembly::setLabelAddressSlot()
     duint addr;
     if(instr_info.type & TYPE_MEMORY)
         addr = instr_info.memory.value;
-    else if(instr_info.type & TYPE_VALUE)
+    else if(instr_info.type & TYPE_VALUE || instr_info.type & TYPE_ADDR)
         addr = instr_info.addr;
     else
         return;

@@ -4,6 +4,8 @@
 #include <sstream>
 #include <iomanip>
 #include <QString>
+#include <QDateTime>
+#include <QLocale>
 #include "Imports.h"
 
 static QString ToPtrString(duint Address)
@@ -72,5 +74,12 @@ static QString ToDoubleString(void* buffer)
 }
 
 QString ToLongDoubleString(void* buffer);
+
+QString ToDateString(const QDate & date);
+
+static QDate GetCompileDate()
+{
+    return QLocale("en_US").toDate(QString(__DATE__).simplified(), "MMM d yyyy");
+}
 
 #endif // STRINGUTIL_H

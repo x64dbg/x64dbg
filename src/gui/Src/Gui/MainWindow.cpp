@@ -12,6 +12,7 @@
 #include "ShortcutsDialog.h"
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
+#include "StringUtil.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -20,8 +21,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
 
     // Build information
-    QString buildText = QString(__DATE__).simplified();
-    QAction* buildInfo = new QAction(buildText, this);
+    QAction* buildInfo = new QAction(ToDateString(GetCompileDate()), this);
     buildInfo->setEnabled(false);
     ui->menuBar->addAction(buildInfo);
 
@@ -584,7 +584,7 @@ void MainWindow::displayAboutWidget()
     QString title = "About x32dbg";
 #endif
     title += QString().sprintf(" v%d", BridgeGetDbgVersion());
-    QMessageBox msg(QMessageBox::Information, title, "Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>" + QString(__DATE__).simplified() + ", " __TIME__);
+    QMessageBox msg(QMessageBox::Information, title, "Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>" + ToDateString(GetCompileDate()) + ", " __TIME__);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setTextFormat(Qt::RichText);
     msg.setParent(this, Qt::Dialog);
