@@ -95,8 +95,8 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
 
 bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 {
-	if (!DbgIsDebugging())
-		return false;
+    if(!DbgIsDebugging())
+        return false;
 
     ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockBreakpoints);

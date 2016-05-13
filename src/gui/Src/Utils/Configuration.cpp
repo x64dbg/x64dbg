@@ -787,10 +787,10 @@ bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortc
     return BridgeSettingSet("Shortcuts", _id.toUtf8().constData(), _key.toUtf8().constData());
 }
 
-QMenu* Configuration::createMenu_Encoding(QWidget *parent)
+QMenu* Configuration::createMenu_Encoding(QWidget* parent)
 {
-    QActionGroup *grp = new QActionGroup( parent );
-    grp->setExclusive( TRUE );
+    QActionGroup* grp = new QActionGroup(parent);
+    grp->setExclusive(TRUE);
 
     QMenu* menuEncoding = new QMenu("Ascii Encoding", parent);
 
@@ -802,7 +802,8 @@ QMenu* Configuration::createMenu_Encoding(QWidget *parent)
     menuEncoding->addAction(action);
     menuEncoding->addSeparator();
 
-    const char* names[]={
+    const char* names[] =
+    {
         "West European",
         "Western|ISO-8859-15|CP-437|CP-850|MacRoman|CP-1252|Windows-1252",
         "Celtic|ISO-8859-14",
@@ -846,11 +847,11 @@ QMenu* Configuration::createMenu_Encoding(QWidget *parent)
         NULL
     };
 
-    QMenu* menu=NULL;
-    for(const char** name=names; *name; ++name)
+    QMenu* menu = NULL;
+    for(const char** name = names; *name; ++name)
     {
         QStringList codenames = QString(*name).split('|');
-        if(codenames.size()==1)
+        if(codenames.size() == 1)
         {
             menu = new QMenu(codenames[0], parent);
         }
@@ -881,7 +882,7 @@ QMenu* Configuration::createMenu_Encoding(QWidget *parent)
 void Configuration::changeEncodingSlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
-    if( action != NULL )
+    if(action != NULL)
     {
         QString text = action->text();
 
