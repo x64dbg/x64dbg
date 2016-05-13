@@ -13,9 +13,6 @@ Configuration::Configuration() : QObject()
     GetCPInfoEx(CP_ACP, 0, &cpinfo);
     mDocCodec = QTextCodec::codecForName(QString("cp%1").arg(cpinfo.CodePage).toLatin1());
 
-    QString str = QTextCodec::availableCodecs().join("\n");
-    qDebug() << str;
-
     //setup default color map
     defaultColors.clear();
     defaultColors.insert("AbstractTableViewSeparatorColor", QColor("#808080"));

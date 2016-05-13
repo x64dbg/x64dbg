@@ -58,7 +58,7 @@ SafeSymRegisterCallback64(
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-    return SymRegisterCallback64(hProcess, CallbackFunction, UserContext);
+    return SymRegisterCallbackW64(hProcess, CallbackFunction, UserContext);
 }
 DWORD64
 SafeSymLoadModuleEx(

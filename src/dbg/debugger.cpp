@@ -472,7 +472,8 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
     case CBA_EVENT:
     {
         evt = (PIMAGEHLP_CBA_EVENT)CallbackData;
-        const char* text = (const char*)evt->desc;
+		String strText = StringUtils::Utf16ToUtf8((const wchar_t*)evt->desc);
+		const char* text = strText.c_str();
         if(strstr(text, "Successfully received a response from the server."))
             break;
         if(strstr(text, "Waiting for the server to respond to a request."))
