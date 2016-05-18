@@ -7,7 +7,7 @@ SCRIPT_EXPORT bool Script::Function::Add(duint start, duint end, bool manual, du
     return FunctionAdd(start, end, manual, instructionCount);
 }
 
-bool Script::Function::Add(const FunctionInfo* info)
+SCRIPT_EXPORT bool Script::Function::Add(const FunctionInfo* info)
 {
     if(!info)
         return false;

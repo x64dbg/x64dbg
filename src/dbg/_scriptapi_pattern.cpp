@@ -40,7 +40,7 @@ SCRIPT_EXPORT bool Script::Pattern::SearchAndReplaceMem(duint start, duint size,
     Memory<unsigned char*> data(size, "Script::Pattern::SearchAndReplaceMem::data");
     if(!MemRead(start, data(), size))
         return false;
-    duint found = patternfind(data(), data.size(), searchpattern);
+    auto found = patternfind(data(), data.size(), searchpattern);
     if(found == -1)
         return false;
     patternwrite(data() + found, data.size() - found, replacepattern);
