@@ -43,6 +43,24 @@ public slots:
     void binaryFillSlot();
     void binaryCopySlot();
     void binaryPasteSlot();
+    void memoryAccessSingleshootSlot();
+    void memoryAccessRestoreSlot();
+    void memoryWriteSingleshootSlot();
+    void memoryWriteRestoreSlot();
+    void memoryRemoveSlot();
+    void hardwareAccess1Slot();
+    void hardwareAccess2Slot();
+    void hardwareAccess4Slot();
+#ifdef _WIN64
+    void hardwareAccess8Slot();
+#endif //_WIN64
+    void hardwareWrite1Slot();
+    void hardwareWrite2Slot();
+    void hardwareWrite4Slot();
+#ifdef _WIN64
+    void hardwareWrite8Slot();
+#endif //_WIN64
+    void hardwareRemoveSlot();
     void findPattern();
     void binaryPasteIgnoreSizeSlot();
     void undoSelectionSlot();
@@ -60,6 +78,29 @@ private:
     QAction* mBinaryCopyAction;
     QAction* mBinaryPasteAction;
     QAction* mBinaryPasteIgnoreSizeAction;
+    QMenu* mBreakpointMenu;
+    QMenu* mBreakpointHardwareAccessMenu;
+    QAction* mBreakpointHardwareAccess1;
+    QAction* mBreakpointHardwareAccess2;
+    QAction* mBreakpointHardwareAccess4;
+#ifdef _WIN64
+    QAction* mBreakpointHardwareAccess8;
+#endif //_WIN64
+    QMenu* mBreakpointHardwareWriteMenu;
+    QAction* mBreakpointHardwareWrite1;
+    QAction* mBreakpointHardwareWrite2;
+    QAction* mBreakpointHardwareWrite4;
+#ifdef _WIN64
+    QAction* mBreakpointHardwareWrite8;
+#endif //_WIN64
+    QAction* mBreakpointHardwareRemove;
+    QMenu* mBreakpointMemoryAccessMenu;
+    QMenu* mBreakpointMemoryWriteMenu;
+    QAction* mBreakpointMemoryAccessSingleshoot;
+    QAction* mBreakpointMemoryAccessRestore;
+    QAction* mBreakpointMemoryWriteSingleShoot;
+    QAction* mBreakpointMemoryWriteRestore;
+    QAction* mBreakpointMemoryRemove;
     QAction* mModifyAction;
     QAction* mUndoSelection;
     QAction* mGotoSp;
