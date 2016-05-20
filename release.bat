@@ -111,10 +111,12 @@ copy bin\x64\x64dbg.lib %RELEASEDIR%\pluginsdk\x64dbg.lib
 echo release
 
 mkdir %RELEASEDIR%\release
+mkdir %RELEASEDIR%\release\translations
 mkdir %RELEASEDIR%\release\x32
 mkdir %RELEASEDIR%\release\x64
 
 copy bin\x96dbg.exe %RELEASEDIR%\release\x96dbg.exe
+xcopy src\gui\Translations\*.qm %RELEASEDIR%\release\translations /S /Y
 copy bin\x32\x32bridge.dll %RELEASEDIR%\release\x32\x32bridge.dll
 copy bin\x32\x32bridge.pdb %RELEASEDIR%\release\x32\x32bridge.pdb
 copy bin\x32\x32dbg.dll %RELEASEDIR%\release\x32\x32dbg.dll
