@@ -16,5 +16,5 @@ void TimeWastedCounter::updateTimeWastedCounter()
     int hours = (timeWasted / (60 * 60)) % 24;
     int minutes = (timeWasted / 60) % 60;
     int seconds = timeWasted % 60;
-    mLabel->setText(QString().sprintf("Time Wasted Debugging: %d:%02d:%02d:%02d", days, hours, minutes, seconds));
+    mLabel->setText(tr("Time Wasted Debugging:") + QString().sprintf(" %d:%02d:%02d:%02d", days, hours, minutes, seconds));
 }

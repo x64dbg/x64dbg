@@ -5,10 +5,10 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
 {
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * sizeof(dsint) * 2, "Address", true); //address in the stack
-    addColumnAt(8 + charwidth * sizeof(dsint) * 2, "To", true); //return to
-    addColumnAt(8 + charwidth * sizeof(dsint) * 2, "From", true); //return from
-    addColumnAt(0, "Comment", true);
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Address"), true); //address in the stack
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), true); //return to
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), true); //return from
+    addColumnAt(0, tr("Comment"), true);
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -19,14 +19,14 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
 
 void CallStackView::setupContextMenu()
 {
-    mFollowAddress = new QAction("Follow &Address", this);
+    mFollowAddress = new QAction(tr("Follow &Address"), this);
     connect(mFollowAddress, SIGNAL(triggered()), this, SLOT(followAddress()));
-    mFollowTo = new QAction("Follow &To", this);
+    mFollowTo = new QAction(tr("Follow &To"), this);
     mFollowTo->setShortcutContext(Qt::WidgetShortcut);
     mFollowTo->setShortcut(QKeySequence("enter"));
     connect(mFollowTo, SIGNAL(triggered()), this, SLOT(followTo()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followTo()));
-    mFollowFrom = new QAction("Follow &From", this);
+    mFollowFrom = new QAction(tr("Follow &From"), this);
     connect(mFollowFrom, SIGNAL(triggered()), this, SLOT(followFrom()));
 }
 

@@ -254,6 +254,9 @@ FORMS += \
     Src/Gui/EntropyDialog.ui \
     Src/Gui/AssembleDialog.ui
 
+TRANSLATIONS = \
+    Translations/x64dbg_zh_CN.ts
+
 ##
 ## Libraries
 ##

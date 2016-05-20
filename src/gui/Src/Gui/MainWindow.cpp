@@ -51,9 +51,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->showMaximized();
 
 #ifdef _WIN64
-    mWindowMainTitle = "x64dbg";
+    mWindowMainTitle = tr("x64dbg");
 #else
-    mWindowMainTitle = "x32dbg";
+    mWindowMainTitle = tr("x32dbg");
 #endif
 
     // Set window title
@@ -78,20 +78,20 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // Symbol view
     mSymbolView = new SymbolView();
-    mSymbolView->setWindowTitle("Symbols");
+    mSymbolView->setWindowTitle(tr("Symbols"));
     mSymbolView->setWindowIcon(QIcon(":/icons/images/pdb.png"));
     mSymbolView->hide();
 
     // Source view
     mSourceViewManager = new SourceViewerManager();
-    mSourceViewManager->setWindowTitle("Source");
+    mSourceViewManager->setWindowTitle(tr("Source"));
     mSourceViewManager->setWindowIcon(QIcon(":/icons/images/source.png"));
     mSourceViewManager->hide();
     connect(mSourceViewManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
-    mBreakpointsView->setWindowTitle("Breakpoints");
+    mBreakpointsView->setWindowTitle(tr("Breakpoints"));
     mBreakpointsView->setWindowIcon(QIcon(":/icons/images/breakpoint.png"));
     mBreakpointsView->hide();
     connect(mBreakpointsView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
@@ -100,31 +100,31 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mMemMapView = new MemoryMapView();
     connect(mMemMapView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(mMemMapView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
-    mMemMapView->setWindowTitle("Memory Map");
+    mMemMapView->setWindowTitle(tr("Memory Map"));
     mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
     mMemMapView->hide();
 
     // Callstack view
     mCallStackView = new CallStackView();
-    mCallStackView->setWindowTitle("Call Stack");
+    mCallStackView->setWindowTitle(tr("Call Stack"));
     mCallStackView->setWindowIcon(QIcon(":/icons/images/callstack.png"));
     connect(mCallStackView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // SEH Chain view
     mSEHChainView = new SEHChainView();
-    mSEHChainView->setWindowTitle("SEH");
+    mSEHChainView->setWindowTitle(tr("SEH"));
     mSEHChainView->setWindowIcon(QIcon(":/icons/images/seh-chain.png"));
     connect(mSEHChainView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Script view
     mScriptView = new ScriptView();
-    mScriptView->setWindowTitle("Script");
+    mScriptView->setWindowTitle(tr("Script"));
     mScriptView->setWindowIcon(QIcon(":/icons/images/script-code.png"));
     mScriptView->hide();
 
     // CPU view
     mCpuWidget = new CPUWidget();
-    mCpuWidget->setWindowTitle("CPU");
+    mCpuWidget->setWindowTitle(tr("CPU"));
 #ifdef _WIN64
     mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor64.png"));
 #else
@@ -135,23 +135,23 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Reference manager
     mReferenceManager = new ReferenceManager(this);
     Bridge::getBridge()->referenceManager = mReferenceManager;
-    mReferenceManager->setWindowTitle("References");
+    mReferenceManager->setWindowTitle(tr("References"));
     mReferenceManager->setWindowIcon(QIcon(":/icons/images/search.png"));
 
     // Thread view
     mThreadView = new ThreadView();
     connect(mThreadView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
-    mThreadView->setWindowTitle("Threads");
+    mThreadView->setWindowTitle(tr("Threads"));
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
 
     // Snowman view (decompiler)
     mSnowmanView = CreateSnowman(this);
-    mSnowmanView->setWindowTitle("Snowman");
+    mSnowmanView->setWindowTitle(tr("Snowman"));
     mSnowmanView->setWindowIcon(QIcon(":/icons/images/snowman.png"));
 
     // Notes manager
     mNotesManager = new NotesManager(this);
-    mNotesManager->setWindowTitle("Notes");
+    mNotesManager->setWindowTitle(tr("Notes"));
     mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
 
     // Create the tab widget
@@ -282,7 +282,7 @@ MainWindow::~MainWindow()
 void MainWindow::setupCommandBar()
 {
     mCmdLineEdit = new CommandLineEdit(ui->cmdBar);
-    ui->cmdBar->addWidget(new QLabel("Command: "));
+    ui->cmdBar->addWidget(new QLabel(tr("Command: ")));
     ui->cmdBar->addWidget(mCmdLineEdit);
     ui->cmdBar->addWidget(mCmdLineEdit->selectorWidget());
 }
@@ -291,7 +291,7 @@ void MainWindow::setupStatusBar()
 {
     // Status label (Ready, Paused, ...)
     mStatusLabel = new StatusLabel(ui->statusBar);
-    mStatusLabel->setText("Ready");
+    mStatusLabel->setText(tr("Ready"));
     ui->statusBar->addWidget(mStatusLabel);
 
     // Log line
@@ -579,10 +579,10 @@ void MainWindow::displayScriptWidget()
 void MainWindow::displayAboutWidget()
 {
 #ifdef _WIN64
-    QString title = "About x64dbg";
+    QString title = tr("About x64dbg");
 #else
-    QString title = "About x32dbg";
-#endif
+    QString title = tr("About x32dbg");
+#endif //_WIN64
     title += QString().sprintf(" v%d", BridgeGetDbgVersion());
     QMessageBox msg(QMessageBox::Information, title, "Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>" + ToDateString(GetCompileDate()) + ", " __TIME__);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
@@ -1028,7 +1028,7 @@ void MainWindow::patchWindow()
 {
     if(!DbgIsDebugging())
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", QString("Patches cannot be shown when not debugging..."));
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Patches cannot be shown when not debugging..."));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
@@ -1088,7 +1088,7 @@ void MainWindow::displaySEHChain()
 
 void MainWindow::donate()
 {
-    QMessageBox msg(QMessageBox::Information, "Donate", "All the money will go to x64dbg development.");
+    QMessageBox msg(QMessageBox::Information, tr("Donate"), tr("All the money will go to x64dbg development."));
     msg.setWindowIcon(QIcon(":/icons/images/donate.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -1101,7 +1101,7 @@ void MainWindow::donate()
 
 void MainWindow::reportBug()
 {
-    QMessageBox msg(QMessageBox::Information, "Report Bug", "You will be taken to a website where you can report a bug.\nMake sure to fill in as much information as possible.");
+    QMessageBox msg(QMessageBox::Information, tr("Report Bug"), tr("You will be taken to a website where you can report a bug.\nMake sure to fill in as much information as possible."));
     msg.setWindowIcon(QIcon(":/icons/images/bug-report.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -1132,13 +1132,13 @@ void MainWindow::changeCommandLine()
 
     LineEditDialog mLineEdit(this);
     mLineEdit.setText("");
-    mLineEdit.setWindowTitle("Change Command Line");
+    mLineEdit.setWindowTitle(tr("Change Command Line"));
     mLineEdit.setWindowIcon(QIcon(":/icons/images/changeargs.png"));
 
     size_t cbsize = 0;
     char* cmdline = 0;
     if(!DbgFunctions()->GetCmdline(0, &cbsize))
-        mLineEdit.setText("Cannot get remote command line, use the 'getcmdline' command for more information.");
+        mLineEdit.setText(tr("Cannot get remote command line, use the 'getcmdline' command for more information."));
     else
     {
         cmdline = new char[cbsize];
@@ -1154,7 +1154,7 @@ void MainWindow::changeCommandLine()
 
     if(!DbgFunctions()->SetCmdline((char*)mLineEdit.editText.toUtf8().constData()))
     {
-        QMessageBox msg(QMessageBox::Warning, "Error", "Could not set command line!");
+        QMessageBox msg(QMessageBox::Warning, tr("Error!"), tr("Could not set command line!"));
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));

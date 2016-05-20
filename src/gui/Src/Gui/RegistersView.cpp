@@ -1261,9 +1261,9 @@ void RegistersView::paintEvent(QPaintEvent* event)
     if(mChangeViewButton != NULL)
     {
         if(mShowFpu)
-            mChangeViewButton->setText("Hide FPU");
+            mChangeViewButton->setText(tr("Hide FPU"));
         else
-            mChangeViewButton->setText("Show FPU");
+            mChangeViewButton->setText(tr("Show FPU"));
     }
 
     QPainter wPainter(this->viewport());

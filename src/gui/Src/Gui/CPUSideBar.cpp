@@ -236,7 +236,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     if(registerLines[4] != -1) drawLabel(&painter, registerLines[4], "EDX");
     if(registerLines[5] != -1) drawLabel(&painter, registerLines[5], "ESI");
     if(registerLines[6] != -1) drawLabel(&painter, registerLines[6], "EDI");
-#endif
+#endif //_WIN64
 }
 
 void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
@@ -316,13 +316,13 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
     switch(Breakpoints::BPState(bp_normal, wVA))
     {
     case bp_enabled:
-        QToolTip::showText(globalMousePos, "Breakpoint Enabled");
+        QToolTip::showText(globalMousePos, tr("Breakpoint Enabled"));
         break;
     case bp_disabled:
-        QToolTip::showText(globalMousePos, "Breakpoint Disabled");
+        QToolTip::showText(globalMousePos, tr("Breakpoint Disabled"));
         break;
     case bp_non_existent:
-        QToolTip::showText(globalMousePos, "Breakpoint Not Set");
+        QToolTip::showText(globalMousePos, tr("Breakpoint Not Set"));
         break;
     }
 }
