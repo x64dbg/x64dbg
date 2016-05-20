@@ -44,6 +44,15 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
 
 static Configuration* mConfiguration;
 
+static bool isValidLocale(const QString & locale)
+{
+    auto allLocales = QLocale::matchingLocales(QLocale::AnyLanguage, QLocale::AnyScript, QLocale::AnyCountry);
+    for(auto & l : allLocales)
+        if(l.name() == locale)
+            return true;
+    return false;
+}
+
 int main(int argc, char* argv[])
 {
     MyApplication application(argc, argv);
@@ -53,16 +62,24 @@ int main(int argc, char* argv[])
     x64GlobalFilter* filter = new x64GlobalFilter();
     QAbstractEventDispatcher::instance(application.thread())->installNativeEventFilter(filter);
 #endif
-    QTranslator qtTranslator;
-    // TODO: set language in preferences
+
+    // Get the hidden language setting (for testers)
+    char locale[MAX_SETTING_SIZE] = "";
+    if(!BridgeSettingGet("Engine", "Language", locale) || !isValidLocale(locale))
+    {
+        strcpy_s(locale, QLocale::system().name().toUtf8().constData());
+        BridgeSettingSet("Engine", "Language", locale);
+    }
+
     // Load translations for Qt
-    qtTranslator.load("qt_" + QLocale::system().name(), QLibraryInfo::location(QLibraryInfo::TranslationsPath));
-    application.installTranslator(&qtTranslator);
+    QTranslator qtTranslator;
+    if(qtTranslator.load(QString("qt_%1").arg(locale), QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+        application.installTranslator(&qtTranslator);
 
     //x64dbg and x32dbg can share the same translation
     QTranslator x64dbgTranslator;
-    x64dbgTranslator.load("x64dbg_" + QLocale::system().name(), "./../translations");
-    application.installTranslator(&x64dbgTranslator);
+    if(x64dbgTranslator.load(QString("x64dbg_%1").arg(locale), "./../translations"))
+        application.installTranslator(&x64dbgTranslator);
 
     // initialize capstone
     Capstone::GlobalInitialize();
