@@ -195,6 +195,7 @@ void ExpressionParser::tokenize(const String & expression)
                     addOperatorToken(ch, Token::Type::OperatorOr);
                     break;
                 case ' ': //ignore spaces
+                case '\x09': //ignore tabs
                     break;
                 default:
                     _curToken += ch;
