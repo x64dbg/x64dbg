@@ -116,7 +116,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
         // If there was an error
         if(error.length())
         {
-            this->setKeepSizeLabel("<font color='orange'><b>Instruction decoding error : " + error + "</b></font>");
+            this->setKeepSizeLabel(tr("<font color='orange'><b>Instruction decoding error : %1</b></font>").arg(error));
             return;
         }
         // No error
@@ -126,11 +126,9 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
             // SizeDifference >  0 <=> Typed instruction is bigger
             if(sizeDifference > 0)
             {
-                QString message = "<font color='red'><b>Instruction bigger by " + QString::number(sizeDifference);
-                if(sizeDifference == 1)
-                    message += QString(" byte</b></font>");
-                else
-                    message += QString(" bytes</b></font>");
+                QString message = tr("<font color='red'><b>Instruction bigger by %1 %2</b></font>")
+                        .arg(sizeDifference)
+                        .arg(sizeDifference == 1 ? tr("byte") : tr("bytes"));
 
                 this->setKeepSizeLabel(message);
                 this->setOkButtonEnabled(false);
@@ -138,11 +136,9 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
             // SizeDifference < 0 <=> Typed instruction is smaller
             else if(sizeDifference < 0)
             {
-                QString message = "<font color='#00cc00'><b>Instruction smaller by " + QString::number(sizeDifference);
-                if(sizeDifference == -1)
-                    message += QString(" byte</b></font>");
-                else
-                    message += QString(" bytes</b></font>");
+                QString message = tr("<font color='#00cc00'><b>Instruction smaller by %1 %2</b></font>")
+                        .arg(-sizeDifference)
+                        .arg(sizeDifference == -1 ? tr("byte") : tr("bytes"));
 
                 this->setKeepSizeLabel(message);
                 this->setOkButtonEnabled(true);
@@ -150,7 +146,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
             // SizeDifference == 0 <=> Both instruction have same size
             else
             {
-                QString message = "<font color='#00cc00'><b>Instruction is same size</b></font>";
+                QString message = tr("<font color='#00cc00'><b>Instruction is same size</b></font>");
 
                 this->setKeepSizeLabel(message);
                 this->setOkButtonEnabled(true);
