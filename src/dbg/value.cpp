@@ -611,10 +611,10 @@ bool setflag(const char* string, bool set)
 /**
 \brief Gets a register from a string.
 \param [out] size This function can store the register size in bytes in this parameter. Can be null, in that case it will be ignored.
-\param string The name of the register to get.
+\param string The name of the register to get. Cannot be null.
 \return The register value.
 */
-static duint getregister(int* size, const char* string)
+duint getregister(int* size, const char* string)
 {
     if(size)
         *size = 4;
