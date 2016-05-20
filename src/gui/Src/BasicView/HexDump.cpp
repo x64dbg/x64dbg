@@ -273,7 +273,11 @@ QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
         QList<RichTextPainter::CustomRichText_t> richText;
         getString(col - 1, wRva, &richText);
-        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText, getCharWidth());
+        for(auto & ix : richText)
+        {
+            ix.charwidth = getCharWidth(ix.text);
+        }
+        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText);
     }
 
     return wStr;
@@ -376,7 +380,6 @@ void HexDump::getString(int col, dsint rva, QList<RichTextPainter::CustomRichTex
     wBufferByteCount = wBufferByteCount > (dsint)(mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : wBufferByteCount;
 
     byte_t* wData = new byte_t[wBufferByteCount];
-    //byte_t wData[mDescriptor.at(col).itemCount * wByteCount];
 
     mMemPage->read(wData, rva, wBufferByteCount);
 
@@ -386,22 +389,31 @@ void HexDump::getString(int col, dsint rva, QList<RichTextPainter::CustomRichTex
 
     QColor highlightColor = ConfigColor("HexDumpModifiedBytesColor");
 
-    for(wI = 0; wI < mDescriptor.at(col).itemCount && (rva + wI) < (dsint)mMemPage->getSize(); wI++)
+    if(mDescriptor.at(col).data.itemSize == Byte && mDescriptor.at(col).data.byteMode == AsciiByte)
     {
-        int maxLen = getStringMaxLength(mDescriptor.at(col).data);
-        QString append = " ";
-        if(!maxLen)
-            append = "";
-        if((rva + wI + wByteCount - 1) < (dsint)mMemPage->getSize())
-            wStr = toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
-        else
-            wStr = QString("?").rightJustified(maxLen, ' ') + append;
-        curData.text = wStr;
-        dsint start = rvaToVa(rva + wI * wByteCount);
-        dsint end = start + wByteCount - 1;
+        curData.text = Config()->mDocCodec->toUnicode((const char*)wData, wBufferByteCount).replace(QChar::ReplacementCharacter, QChar('.')).replace(QChar('\0'), QChar('.'));
+        dsint start = rvaToVa(rva);
+        dsint end = start + wBufferByteCount - 1;
         curData.textColor = DbgFunctions()->PatchInRange(start, end) ? highlightColor : textColor;
         richText->push_back(curData);
     }
+    else
+        for(wI = 0; wI < mDescriptor.at(col).itemCount && (rva + wI) < (dsint)mMemPage->getSize(); wI++)
+        {
+            int maxLen = getStringMaxLength(mDescriptor.at(col).data);
+            QString append = " ";
+            if(!maxLen)
+                append = "";
+            if((rva + wI + wByteCount - 1) < (dsint)mMemPage->getSize())
+                wStr = toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
+            else
+                wStr = QString("?").rightJustified(maxLen, ' ') + append;
+            curData.text = wStr;
+            dsint start = rvaToVa(rva + wI * wByteCount);
+            dsint end = start + wByteCount - 1;
+            curData.textColor = DbgFunctions()->PatchInRange(start, end) ? highlightColor : textColor;
+            richText->push_back(curData);
+        }
 
     delete[] wData;
 }
@@ -512,8 +524,8 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
 
     case UnicodeWord:
     {
-        QChar wChar = QChar::fromLatin1((char)word & 0xFF);
-        if(wChar.isPrint() == true && (word >> 8) == 0)
+        QChar wChar = word/*QChar::fromLatin1((char)word & 0xFF)*/;
+        if(wChar.isPrint() == true /*&& (word >> 8) == 0*/)
             wStr = QString(wChar);
         else
             wStr = ".";

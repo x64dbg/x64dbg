@@ -22,13 +22,14 @@ public:
         QString text;
         QColor textColor;
         QColor textBackground;
+        int charwidth;
         CustomRichTextFlags flags;
         bool highlight;
         QColor highlightColor;
     } CustomRichText_t;
 
     //functions
-    static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<RichTextPainter::CustomRichText_t>* richText, int charwidth);
+    static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<RichTextPainter::CustomRichText_t>* richText);
 };
 
 #endif // RICHTEXTPAINTER_H

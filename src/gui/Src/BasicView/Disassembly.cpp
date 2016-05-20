@@ -386,7 +386,11 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 curByte.textColor = mBytesColor;
             richBytes.push_back(curByte);
         }
-        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, &richBytes, getCharWidth());
+        for(auto & ix : richBytes)
+        {
+            ix.charwidth = getCharWidth(ix.text);
+        }
+        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, &richBytes);
     }
     break;
 
@@ -431,7 +435,11 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         else
             CapstoneTokenizer::TokenToRichText(token, richText, 0);
         int xinc = 4;
-        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, &richText, getCharWidth());
+        for(auto & ix : richText)
+        {
+            ix.charwidth = getCharWidth(ix.text);
+        }
+        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, &richText);
         token.x = x + loopsize + xinc;
     }
     break;

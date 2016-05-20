@@ -260,7 +260,11 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
             }
 
             //paint the rich text
-            RichTextPainter::paintRichText(painter, x + 1, y, w, h, xadd, &richText, charwidth);
+            for(auto & ix : richText)
+            {
+                ix.charwidth = getCharWidth(ix.text);
+            }
+            RichTextPainter::paintRichText(painter, x + 1, y, w, h, xadd, &richText);
             returnString = "";
         }
         else //no syntax highlighting

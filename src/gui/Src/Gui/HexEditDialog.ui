@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>272</height>
+    <height>325</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>130</y>
+     <y>180</y>
      <width>361</width>
      <height>101</height>
     </rect>
@@ -126,7 +126,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>110</y>
+     <y>160</y>
      <width>31</width>
      <height>16</height>
     </rect>
@@ -168,7 +168,7 @@
    <property name="geometry">
     <rect>
      <x>216</x>
-     <y>240</y>
+     <y>290</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -181,7 +181,7 @@
    <property name="geometry">
     <rect>
      <x>297</x>
-     <y>240</y>
+     <y>290</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -194,7 +194,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>240</y>
+     <y>290</y>
      <width>71</width>
      <height>17</height>
     </rect>
@@ -207,13 +207,64 @@
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>240</y>
+     <y>290</y>
      <width>81</width>
      <height>17</height>
     </rect>
    </property>
    <property name="text">
     <string>&amp;Entire Block</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEditUtf8">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>131</y>
+     <width>361</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
+   </property>
+   <property name="inputMask">
+    <string/>
+   </property>
+   <property name="maxLength">
+    <number>32767</number>
+   </property>
+   <property name="frame">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnUtf8Hex">
+   <property name="geometry">
+    <rect>
+     <x>271</x>
+     <y>154</y>
+     <width>101</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Utf8Hex</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="labelUtf8">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>110</y>
+     <width>50</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>U&amp;TF-8:</string>
+   </property>
+   <property name="buddy">
+    <cstring>lineEditUnicode</cstring>
    </property>
   </widget>
  </widget>

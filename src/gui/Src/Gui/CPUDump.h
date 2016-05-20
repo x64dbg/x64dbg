@@ -211,6 +211,8 @@ private:
     QMenu* mFollowInDumpMenu;
     QList<QAction*> mFollowInDumpActions;
 
+    QMenu*  mEncoding;
+
     GotoDialog* mGoto;
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;

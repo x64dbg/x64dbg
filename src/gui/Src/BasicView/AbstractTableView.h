@@ -102,6 +102,7 @@ public:
     void setNbrOfLineToPrint(int parNbrOfLineToPrint);
     void setShowHeader(bool show);
     int getCharWidth();
+    int getCharWidth(const QString & text);
 
     // Content drawing control
     bool getDrawDebugOnly();

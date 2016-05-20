@@ -9,12 +9,8 @@ mkdir %RELEASEDIR%\qt_base
 mkdir %RELEASEDIR%\qt_base\x32
 mkdir %RELEASEDIR%\qt_base\x64
 
-copy bin\x32\QtCore4.dll %RELEASEDIR%\qt_base\x32\QtCore4.dll
-copy bin\x32\QtGui4.dll %RELEASEDIR%\qt_base\x32\QtGui4.dll
-copy bin\x32\QtNetwork4.dll %RELEASEDIR%\qt_base\x32\QtNetwork4.dll
-copy bin\x64\QtCore4.dll %RELEASEDIR%\qt_base\x64\QtCore4.dll
-copy bin\x64\QtGui4.dll %RELEASEDIR%\qt_base\x64\QtGui4.dll
-copy bin\x64\QtNetwork4.dll %RELEASEDIR%\qt_base\x64\QtNetwork4.dll
+copy bin\x32\Qt*.dll %RELEASEDIR%\qt_base\x32\
+copy bin\x64\Qt*.dll %RELEASEDIR%\qt_base\x64\
 
 echo bin_base
 

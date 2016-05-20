@@ -18,6 +18,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     font.setStyleHint(QFont::Monospace);
     ui->lineEditAscii->setFont(font);
     ui->lineEditUnicode->setFont(font);
+    ui->lineEditUtf8->setFont(font);
     ui->chkEntireBlock->hide();
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(updateStyle()));
     updateStyle();
@@ -60,14 +61,16 @@ void HexEditDialog::updateStyle()
     QString style = QString("QLineEdit { border-style: outset; border-width: 1px; border-color: %1; color: %1; background-color: %2 }").arg(ConfigColor("HexEditTextColor").name(), ConfigColor("HexEditBackgroundColor").name());
     ui->lineEditAscii->setStyleSheet(style);
     ui->lineEditUnicode->setStyleSheet(style);
+    ui->lineEditUtf8->setStyleSheet(style);
 }
 
 void HexEditDialog::on_btnAscii2Hex_clicked()
 {
     QString text = ui->lineEditAscii->text();
     QByteArray data;
-    for(int i = 0; i < text.length(); i++)
-        data.append(text[i].toLatin1());
+    data = Config()->mDocCodec->fromUnicode(text);
+    //    for(int i = 0; i < text.length(); i++)
+    //        data.append(text[i].toLatin1());
     if(ui->chkKeepSize->isChecked()) //keep size
     {
         int dataSize = mHexEdit->data().size();
@@ -93,6 +96,20 @@ void HexEditDialog::on_btnUnicode2Hex_clicked()
     mHexEdit->setData(data);
 }
 
+void HexEditDialog::on_btnUtf8Hex_clicked()
+{
+    QByteArray data =  QTextCodec::codecForName("UTF-8")->makeEncoder(QTextCodec::IgnoreHeader)->fromUnicode(ui->lineEditUtf8->text());
+    if(ui->chkKeepSize->isChecked()) //keep size
+    {
+        int dataSize = mHexEdit->data().size();
+        if(dataSize < data.size())
+            data.resize(dataSize);
+        else if(dataSize > data.size())
+            data.append(QByteArray(dataSize - data.size(), 0));
+    }
+    mHexEdit->setData(data);
+}
+
 void HexEditDialog::on_chkKeepSize_toggled(bool checked)
 {
     mHexEdit->setKeepSize(checked);
@@ -102,14 +119,15 @@ void HexEditDialog::dataChangedSlot()
 {
     QByteArray data = mHexEdit->data();
     QString ascii;
-    for(int i = 0; i < data.size(); i++)
-    {
-        QChar ch(data.constData()[i]);
-        if(ch.isPrint())
-            ascii += ch.toLatin1();
-        else
-            ascii += '.';
-    }
+    ascii = Config()->mDocCodec->toUnicode(data);
+    //    for(int i = 0; i < data.size(); i++)
+    //    {
+    //        QChar ch(data.constData()[i]);
+    //        if(ch.isPrint())
+    //            ascii += ch.toLatin1();
+    //        else
+    //            ascii += '.';
+    //    }
     QString unicode;
     for(int i = 0, j = 0; i < data.size(); i += 2, j++)
     {
@@ -119,8 +137,19 @@ void HexEditDialog::dataChangedSlot()
         else
             unicode += '.';
     }
+    QString utf8 = QTextCodec::codecForName("UTF-8")->makeDecoder(QTextCodec::IgnoreHeader)->toUnicode(data);
+
+    int n1 = ui->lineEditAscii->cursorPosition();
+    int n2 = ui->lineEditUnicode->cursorPosition();
+    int n3 = ui->lineEditUtf8->cursorPosition();
+
     ui->lineEditAscii->setText(ascii);
     ui->lineEditUnicode->setText(unicode);
+    ui->lineEditUtf8->setText(utf8);
+
+    ui->lineEditAscii->setCursorPosition(n1);
+    ui->lineEditUnicode->setCursorPosition(n2);
+    ui->lineEditUtf8->setCursorPosition(n3);
 }
 
 void HexEditDialog::on_lineEditAscii_textEdited(const QString & arg1)
@@ -134,3 +163,10 @@ void HexEditDialog::on_lineEditUnicode_textEdited(const QString & arg1)
     Q_UNUSED(arg1);
     on_btnUnicode2Hex_clicked();
 }
+
+void HexEditDialog::on_lineEditUtf8_textEdited(const QString & arg1)
+{
+    Q_UNUSED(arg1);
+    on_btnUtf8Hex_clicked();
+}
+

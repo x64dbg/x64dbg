@@ -6,6 +6,8 @@
 #include <QMap>
 #include <QColor>
 #include <QFont>
+#include <QTextCodec>
+#include <QMenu>
 #include "Imports.h"
 
 #define Config() (Configuration::instance())
@@ -77,10 +79,17 @@ public:
 
     static Configuration* mPtr;
 
+    QTextCodec* mDocCodec;
+    QMenu* createMenu_Encoding(QWidget* parent);
+
+public slots:
+    void changeEncodingSlot();
+
 signals:
     void colorsUpdated();
     void fontsUpdated();
     void shortcutsUpdated();
+    void encodingUpdated();
 
 private:
     QColor colorFromConfig(const QString id);

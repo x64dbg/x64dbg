@@ -936,6 +936,11 @@ int AbstractTableView::getCharWidth()
     return QFontMetrics(this->font()).width(QChar(' '));
 }
 
+int AbstractTableView::getCharWidth(const QString & text)
+{
+    return QFontMetrics(this->font()).width(text);
+}
+
 /************************************************************************************
                            Content drawing control
 ************************************************************************************/
