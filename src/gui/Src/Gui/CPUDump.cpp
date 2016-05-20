@@ -1404,13 +1404,13 @@ void CPUDump::hardwareAccess4Slot()
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("bphws " + addr_text + ", r, 4").toUtf8().constData());
 }
-#ifdef _WIN64
+
 void CPUDump::hardwareAccess8Slot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("bphws " + addr_text + ", r, 8").toUtf8().constData());
 }
-#endif //_WIN64
+
 void CPUDump::hardwareWrite1Slot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
@@ -1428,13 +1428,13 @@ void CPUDump::hardwareWrite4Slot()
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("bphws " + addr_text + ", w, 4").toUtf8().constData());
 }
-#ifdef _WIN64
+
 void CPUDump::hardwareWrite8Slot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("bphws " + addr_text + ", w, 8").toUtf8().constData());
 }
-#endif //_WIN64
+
 void CPUDump::hardwareExecuteSlot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
