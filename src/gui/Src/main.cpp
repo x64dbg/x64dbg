@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 
     //x64dbg and x32dbg can share the same translation
     QTranslator x64dbgTranslator;
-    x64dbgTranslator.load("x64dbg_"+QLocale::system().name(), "./../translations");
+    x64dbgTranslator.load("x64dbg_" + QLocale::system().name(), "./../translations");
     application.installTranslator(&x64dbgTranslator);
 
     // initialize capstone

@@ -1510,8 +1510,8 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         return true;
     }
     else if(string[0] == '['
-        || (isdigit(string[0]) && string[1] == ':' && string[2] == '[')
-        || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[')) //memory location
+            || (isdigit(string[0]) && string[1] == ':' && string[2] == '[')
+            || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[')) //memory location
     {
         if(!DbgIsDebugging())
         {
@@ -1536,18 +1536,19 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             if(new_size < read_size)
                 read_size = new_size;
         }
-        else if (string[1] == 's' && string[2] == ':')
+        else if(string[1] == 's' && string[2] == ':')
         {
             prefix_size = 4;
-            if (string[0] == 'f') // fs:[...]
-            { // TODO: get real segment offset instead of assuming them
+            if(string[0] == 'f')  // fs:[...]
+            {
+                // TODO: get real segment offset instead of assuming them
 #ifdef _WIN64
                 seg_offset = 0;
 #else //x86
                 seg_offset = (size_t)GetTEBLocation(hActiveThread);
 #endif //_WIN64
             }
-            else if (string[0] == 'g') // gs:[...]
+            else if(string[0] == 'g')  // gs:[...]
             {
 #ifdef _WIN64
                 seg_offset = (size_t)GetTEBLocation(hActiveThread);
@@ -1558,7 +1559,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         }
 
         String ptrstring;
-        for (auto i = prefix_size, depth = 1; i < len; i++)
+        for(auto i = prefix_size, depth = 1; i < len; i++)
         {
             if(string[i] == '[')
                 depth++;

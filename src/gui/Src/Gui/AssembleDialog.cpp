@@ -127,8 +127,8 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
             if(sizeDifference > 0)
             {
                 QString message = tr("<font color='red'><b>Instruction bigger by %1 %2</b></font>")
-                        .arg(sizeDifference)
-                        .arg(sizeDifference == 1 ? tr("byte") : tr("bytes"));
+                                  .arg(sizeDifference)
+                                  .arg(sizeDifference == 1 ? tr("byte") : tr("bytes"));
 
                 this->setKeepSizeLabel(message);
                 this->setOkButtonEnabled(false);
@@ -137,8 +137,8 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
             else if(sizeDifference < 0)
             {
                 QString message = tr("<font color='#00cc00'><b>Instruction smaller by %1 %2</b></font>")
-                        .arg(-sizeDifference)
-                        .arg(sizeDifference == -1 ? tr("byte") : tr("bytes"));
+                                  .arg(-sizeDifference)
+                                  .arg(sizeDifference == -1 ? tr("byte") : tr("bytes"));
 
                 this->setKeepSizeLabel(message);
                 this->setOkButtonEnabled(true);
