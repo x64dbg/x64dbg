@@ -35,7 +35,7 @@ SafeSymInitializeW(
     __in BOOL fInvadeProcess
 );
 BOOL
-SafeSymRegisterCallback64(
+SafeSymRegisterCallbackW64(
     __in HANDLE hProcess,
     __in PSYMBOL_REGISTERED_CALLBACK64 CallbackFunction,
     __in ULONG64 UserContext

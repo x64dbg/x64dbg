@@ -472,7 +472,8 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
     case CBA_EVENT:
     {
         evt = (PIMAGEHLP_CBA_EVENT)CallbackData;
-        const char* text = (const char*)evt->desc;
+        auto strText = StringUtils::Utf16ToUtf8((const wchar_t*)evt->desc);
+        const char* text = strText.c_str();
         if(strstr(text, "Successfully received a response from the server."))
             break;
         if(strstr(text, "Waiting for the server to respond to a request."))
@@ -690,7 +691,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     char szServerSearchPath[MAX_PATH * 2] = "";
     sprintf_s(szServerSearchPath, "SRV*%s", szSymbolCachePath);
     SafeSymInitializeW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(szServerSearchPath).c_str(), false); //initialize symbols
-    SafeSymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
+    SafeSymRegisterCallbackW64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SafeSymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
 
     IMAGEHLP_MODULE64 modInfo;
@@ -1779,7 +1780,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     plugincbcall(CB_STOPDEBUG, &stopInfo);
 
     //cleanup dbghelp
-    SafeSymRegisterCallback64(hProcess, nullptr, 0);
+    SafeSymRegisterCallbackW64(hProcess, nullptr, 0);
     SafeSymCleanup(hProcess);
 
     //message the user/do final stuff

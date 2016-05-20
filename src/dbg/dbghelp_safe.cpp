@@ -51,14 +51,14 @@ SafeSymInitializeW(
     return SymInitializeW(hProcess, UserSearchPath, fInvadeProcess);
 }
 BOOL
-SafeSymRegisterCallback64(
+SafeSymRegisterCallbackW64(
     __in HANDLE hProcess,
     __in PSYMBOL_REGISTERED_CALLBACK64 CallbackFunction,
     __in ULONG64 UserContext
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-    return SymRegisterCallback64(hProcess, CallbackFunction, UserContext);
+    return SymRegisterCallbackW64(hProcess, CallbackFunction, UserContext);
 }
 DWORD64
 SafeSymLoadModuleEx(
