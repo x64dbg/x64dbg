@@ -109,6 +109,80 @@ void CPUStack::setupContextMenu()
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
 
+    //Breakpoint menu
+    mBreakpointMenu = new QMenu("Brea&kpoint", this);
+
+    //Breakpoint (hardware access) menu
+    mBreakpointHardwareAccessMenu = new QMenu("Hardware, Access", this);
+    mBreakpointHardwareAccess1 = new QAction("&Byte", this);
+    connect(mBreakpointHardwareAccess1, SIGNAL(triggered()), this, SLOT(hardwareAccess1Slot()));
+    mBreakpointHardwareAccessMenu->addAction(mBreakpointHardwareAccess1);
+
+    mBreakpointHardwareAccess2 = new QAction("&Word", this);
+    connect(mBreakpointHardwareAccess2, SIGNAL(triggered()), this, SLOT(hardwareAccess2Slot()));
+    mBreakpointHardwareAccessMenu->addAction(mBreakpointHardwareAccess2);
+
+    mBreakpointHardwareAccess4 = new QAction("&Dword", this);
+    connect(mBreakpointHardwareAccess4, SIGNAL(triggered()), this, SLOT(hardwareAccess4Slot()));
+    mBreakpointHardwareAccessMenu->addAction(mBreakpointHardwareAccess4);
+
+#ifdef _WIN64
+    mBreakpointHardwareAccess8 = new QAction("&Qword", this);
+    connect(mBreakpointHardwareAccess8, SIGNAL(triggered()), this, SLOT(hardwareAccess8Slot()));
+    mBreakpointHardwareAccessMenu->addAction(mBreakpointHardwareAccess8);
+#endif //_WIN64
+    mBreakpointMenu->addMenu(mBreakpointHardwareAccessMenu);
+
+    //Breakpoint (hardware write) menu
+    mBreakpointHardwareWriteMenu = new QMenu("Hardware, Write", this);
+    mBreakpointHardwareWrite1 = new QAction("&Byte", this);
+    connect(mBreakpointHardwareWrite1, SIGNAL(triggered()), this, SLOT(hardwareWrite1Slot()));
+    mBreakpointHardwareWriteMenu->addAction(mBreakpointHardwareWrite1);
+
+    mBreakpointHardwareWrite2 = new QAction("&Word", this);
+    connect(mBreakpointHardwareWrite2, SIGNAL(triggered()), this, SLOT(hardwareWrite2Slot()));
+    mBreakpointHardwareWriteMenu->addAction(mBreakpointHardwareWrite2);
+
+    mBreakpointHardwareWrite4 = new QAction("&Dword", this);
+    connect(mBreakpointHardwareWrite4, SIGNAL(triggered()), this, SLOT(hardwareWrite4Slot()));
+    mBreakpointHardwareWriteMenu->addAction(mBreakpointHardwareWrite4);
+
+#ifdef _WIN64
+    mBreakpointHardwareWrite8 = new QAction("&Qword", this);
+    connect(mBreakpointHardwareWrite8, SIGNAL(triggered()), this, SLOT(hardwareWrite8Slot()));
+    mBreakpointHardwareWriteMenu->addAction(mBreakpointHardwareWrite8);
+#endif //_WIN64
+    mBreakpointMenu->addMenu(mBreakpointHardwareWriteMenu);
+    mBreakpointHardwareRemove = new QAction("Remove &Hardware", this);
+    connect(mBreakpointHardwareRemove, SIGNAL(triggered()), this, SLOT(hardwareRemoveSlot()));
+    mBreakpointMenu->addAction(mBreakpointHardwareRemove);
+    mBreakpointMenu->addSeparator();
+
+    //Breakpoint memory menu
+    mBreakpointMemoryAccessMenu = new QMenu("Memory, Access", this);
+    mBreakpointMemoryWriteMenu = new QMenu("Memory, Write", this);
+
+    mBreakpointMemoryAccessSingleshoot = new QAction("&Singleshoot", this);
+    connect(mBreakpointMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
+    mBreakpointMemoryAccessMenu->addAction(mBreakpointMemoryAccessSingleshoot);
+
+    mBreakpointMemoryAccessRestore = new QAction("&Restore on hit", this);
+    connect(mBreakpointMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
+    mBreakpointMemoryAccessMenu->addAction(mBreakpointMemoryAccessRestore);
+
+    mBreakpointMemoryWriteSingleShoot = new QAction("&Singleshoot", this);
+    connect(mBreakpointMemoryWriteSingleShoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
+    mBreakpointMemoryWriteMenu->addAction(mBreakpointMemoryWriteSingleShoot);
+
+    mBreakpointMemoryWriteRestore = new QAction("&Restore on hit", this);
+    connect(mBreakpointMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
+    mBreakpointMemoryWriteMenu->addAction(mBreakpointMemoryWriteRestore);
+    mBreakpointMenu->addMenu(mBreakpointMemoryAccessMenu);
+    mBreakpointMemoryRemove = new QAction("Remove &Memory", this);
+    connect(mBreakpointMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
+    mBreakpointMenu->addAction(mBreakpointMemoryRemove);
+    mBreakpointMenu->addMenu(mBreakpointMemoryWriteMenu);
+
     // Restore Selection
     mUndoSelection = new QAction("&Restore selection", this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
@@ -141,17 +215,21 @@ void CPUStack::setupContextMenu()
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
+    //Expression
     mGotoExpression = new QAction("&Expression", this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
 
+    //Follow in Disassembler
     mFollowDisasm = new QAction("&Follow in Disassembler", this);
     mFollowDisasm->setShortcutContext(Qt::WidgetShortcut);
     mFollowDisasm->setShortcut(QKeySequence("enter"));
     this->addAction(mFollowDisasm);
     connect(mFollowDisasm, SIGNAL(triggered()), this, SLOT(followDisasmSlot()));
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
+
+    //Follow in Dump
     mFollowDump = new QAction("Follow in &Dump", this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
@@ -353,12 +431,15 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
 
 void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 {
+    dsint selectedAddr = rvaToVa(getInitialSelection());
+
     if(!DbgIsDebugging())
         return;
 
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mModifyAction);
     wMenu->addMenu(mBinaryMenu);
+    wMenu->addMenu(mBreakpointMenu);
     dsint start = rvaToVa(getSelectionStart());
     dsint end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
@@ -384,6 +465,32 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 
     wMenu->addSeparator();
     wMenu->addActions(mPluginMenu->actions());
+
+
+    if(DbgGetBpxTypeAt(selectedAddr) & bp_hardware) //hardware breakpoint set
+    {
+        mBreakpointHardwareAccessMenu->menuAction()->setVisible(false);
+        mBreakpointHardwareWriteMenu->menuAction()->setVisible(false);
+        mBreakpointHardwareRemove->setVisible(true);
+    }
+    else //hardware breakpoint not set
+    {
+        mBreakpointHardwareAccessMenu->menuAction()->setVisible(true);
+        mBreakpointHardwareWriteMenu->menuAction()->setVisible(true);
+        mBreakpointHardwareRemove->setVisible(false);
+    }
+    if(DbgGetBpxTypeAt(selectedAddr) & bp_memory) //memory breakpoint set
+    {
+        mBreakpointMemoryAccessMenu->menuAction()->setVisible(false);
+        mBreakpointMemoryWriteMenu->menuAction()->setVisible(false);
+        mBreakpointMemoryRemove->setVisible(true);
+    }
+    else //memory breakpoint not set
+    {
+        mBreakpointMemoryAccessMenu->menuAction()->setVisible(true);
+        mBreakpointMemoryWriteMenu->menuAction()->setVisible(true);
+        mBreakpointMemoryRemove->setVisible(false);
+    }
 
     wMenu->exec(event->globalPos());
 }
@@ -643,6 +750,92 @@ void CPUStack::binaryPasteIgnoreSizeSlot()
     delete [] data;
     mMemPage->write(patched.constData(), selStart, patched.size());
     GuiUpdateAllViews();
+}
+
+// Copied from "CPUDump.cpp".
+void CPUStack::hardwareAccess1Slot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 1").toUtf8().constData());
+}
+
+void CPUStack::hardwareAccess2Slot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 2").toUtf8().constData());
+}
+
+void CPUStack::hardwareAccess4Slot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 4").toUtf8().constData());
+}
+#ifdef _WIN64
+void CPUStack::hardwareAccess8Slot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 8").toUtf8().constData());
+}
+#endif //_WIN64
+void CPUStack::hardwareWrite1Slot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 1").toUtf8().constData());
+}
+
+void CPUStack::hardwareWrite2Slot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 2").toUtf8().constData());
+}
+
+void CPUStack::hardwareWrite4Slot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 4").toUtf8().constData());
+}
+#ifdef _WIN64
+void CPUStack::hardwareWrite8Slot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 8").toUtf8().constData());
+}
+#endif //_WIN64
+
+void CPUStack::hardwareRemoveSlot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphwc " + addr_text).toUtf8().constData());
+}
+
+void CPUStack::memoryAccessSingleshootSlot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, r").toUtf8().constData());
+}
+
+void CPUStack::memoryAccessRestoreSlot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, r").toUtf8().constData());
+}
+
+void CPUStack::memoryWriteSingleshootSlot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, w").toUtf8().constData());
+}
+
+void CPUStack::memoryWriteRestoreSlot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, w").toUtf8().constData());
+}
+
+void CPUStack::memoryRemoveSlot()
+{
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpmc " + addr_text).toUtf8().constData());
 }
 
 void CPUStack::findPattern()

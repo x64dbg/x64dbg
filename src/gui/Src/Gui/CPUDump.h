@@ -40,11 +40,15 @@ public slots:
     void hardwareAccess1Slot();
     void hardwareAccess2Slot();
     void hardwareAccess4Slot();
+#ifdef _WIN64
     void hardwareAccess8Slot();
+#endif //_WIN64
     void hardwareWrite1Slot();
     void hardwareWrite2Slot();
     void hardwareWrite4Slot();
+#ifdef _WIN64
     void hardwareWrite8Slot();
+#endif //_WIN64
     void hardwareExecuteSlot();
     void hardwareRemoveSlot();
 
