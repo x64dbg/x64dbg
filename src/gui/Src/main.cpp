@@ -53,6 +53,16 @@ int main(int argc, char* argv[])
     x64GlobalFilter* filter = new x64GlobalFilter();
     QAbstractEventDispatcher::instance(application.thread())->installNativeEventFilter(filter);
 #endif
+    QTranslator qtTranslator;
+    // TODO: set language in preferences
+    // Load translations for Qt
+    qtTranslator.load("qt_" + QLocale::system().name(), QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+    application.installTranslator(&qtTranslator);
+
+    //x64dbg and x32dbg can share the same translation
+    QTranslator x64dbgTranslator;
+    x64dbgTranslator.load("x64dbg_"+QLocale::system().name(), "./../translations");
+    application.installTranslator(&x64dbgTranslator);
 
     // initialize capstone
     Capstone::GlobalInitialize();
@@ -92,7 +102,7 @@ int main(int argc, char* argv[])
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
-        ExitProcess(1);
+        exit(1);
     }
 
     //execute the application
