@@ -754,6 +754,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     PLUG_CB_CREATEPROCESS callbackInfo;
     callbackInfo.CreateProcessInfo = CreateProcessInfo;
     IMAGEHLP_MODULE64 modInfoUtf8;
+    memset(&modInfoUtf8, 0, sizeof(modInfoUtf8));
     modInfoUtf8.SizeOfStruct = sizeof(modInfoUtf8);
     modInfoUtf8.BaseOfImage = modInfo.BaseOfImage;
     modInfoUtf8.ImageSize = modInfo.ImageSize;
@@ -992,6 +993,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     PLUG_CB_LOADDLL callbackInfo;
     callbackInfo.LoadDll = LoadDll;
     IMAGEHLP_MODULE64 modInfoUtf8;
+    memset(&modInfoUtf8, 0, sizeof(modInfoUtf8));
     modInfoUtf8.SizeOfStruct = sizeof(modInfoUtf8);
     modInfoUtf8.BaseOfImage = modInfo.BaseOfImage;
     modInfoUtf8.ImageSize = modInfo.ImageSize;
