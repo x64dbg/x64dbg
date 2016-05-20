@@ -1521,8 +1521,6 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         dputs("GetModuleFileNameExA failed!");
         return STATUS_ERROR;
     }
-    char szModulePath[MAX_PATH] = "";
-    strcpy_s(szModulePath, StringUtils::Utf16ToUtf8(wszModulePath).c_str());
     wchar_t szOldSearchPath[MAX_PATH] = L"";
     if(!SafeSymGetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
     {
@@ -1544,7 +1542,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         dputs("SymUnloadModule64 failed!");
         return STATUS_ERROR;
     }
-    if(!SafeSymLoadModuleEx(fdProcessInfo->hProcess, 0, szModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
+    if(!SafeSymLoadModuleExW(fdProcessInfo->hProcess, 0, wszModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
     {
         dputs("SymLoadModuleEx failed!");
         SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath);

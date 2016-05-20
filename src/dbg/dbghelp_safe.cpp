@@ -61,11 +61,11 @@ SafeSymRegisterCallbackW64(
     return SymRegisterCallbackW64(hProcess, CallbackFunction, UserContext);
 }
 DWORD64
-SafeSymLoadModuleEx(
+SafeSymLoadModuleExW(
     __in HANDLE hProcess,
     __in_opt HANDLE hFile,
-    __in_opt PCSTR ImageName,
-    __in_opt PCSTR ModuleName,
+    __in_opt PCWSTR ImageName,
+    __in_opt PCWSTR ModuleName,
     __in DWORD64 BaseOfDll,
     __in DWORD DllSize,
     __in_opt PMODLOAD_DATA Data,
@@ -73,17 +73,17 @@ SafeSymLoadModuleEx(
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-    return SymLoadModuleEx(hProcess, hFile, ImageName, ModuleName, BaseOfDll, DllSize, Data, Flags);
+    return SymLoadModuleExW(hProcess, hFile, ImageName, ModuleName, BaseOfDll, DllSize, Data, Flags);
 }
 BOOL
-SafeSymGetModuleInfo64(
+SafeSymGetModuleInfoW64(
     __in HANDLE hProcess,
     __in DWORD64 qwAddr,
-    __out PIMAGEHLP_MODULE64 ModuleInfo
+    __out PIMAGEHLP_MODULEW64 ModuleInfo
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-    return SymGetModuleInfo64(hProcess, qwAddr, ModuleInfo);
+    return SymGetModuleInfoW64(hProcess, qwAddr, ModuleInfo);
 }
 BOOL
 SafeSymGetSearchPathW(
