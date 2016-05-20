@@ -429,7 +429,7 @@ void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
                  * Scenario 2: the JIT in Windows registry its NOT this debugger, if the database of the debugger
                  * was removed and the user in MISC tab wants check and uncheck the JIT checkbox: he can (this block its NOT executed then).
                 */
-                QMessageBox msg(QMessageBox::Warning, "ERROR NOT FOUND OLD JIT", "NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND");
+                QMessageBox msg(QMessageBox::Warning, tr("ERROR NOT FOUND OLD JIT"), tr("NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND"));
                 msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
                 msg.setParent(this, Qt::Dialog);
                 msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -568,7 +568,7 @@ void SettingsDialog::on_btnDeleteRange_clicked()
 
 void SettingsDialog::on_btnAddLast_clicked()
 {
-    QMessageBox msg(QMessageBox::Question, "Question", QString().sprintf("Are you sure you want to add %.8X?", lastException));
+    QMessageBox msg(QMessageBox::Question, tr("Question"), QString().sprintf("Are you sure you want to add %.8X?", lastException));
     msg.setWindowIcon(QIcon(":/icons/images/question.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
