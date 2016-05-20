@@ -844,6 +844,7 @@ typedef struct
 } SCRIPTTYPEINFO;
 
 //GUI functions
+// TODO: Most of these functions are not unicode-aware. Rewrite them.
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state);
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg);
