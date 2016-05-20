@@ -31,9 +31,9 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
 
 void CPUInfoBox::setupContextMenu()
 {
-    mCopyAddressAction = makeAction("Address", SLOT(copyAddress()));
-    mCopyRvaAction = makeAction("RVA", SLOT(copyRva()));
-    mCopyOffsetAction = makeAction("File Offset", SLOT(copyOffset()));
+    mCopyAddressAction = makeAction(tr("Address"), SLOT(copyAddress()));
+    mCopyRvaAction = makeAction(tr("RVA"), SLOT(copyRva()));
+    mCopyOffsetAction = makeAction(tr("File Offset"), SLOT(copyOffset()));
 }
 
 int CPUInfoBox::getHeight()
@@ -129,9 +129,9 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
     {
         bool taken = DbgIsJumpGoingToExecute(parVA);
         if(taken)
-            setInfoLine(0, "Jump is taken");
+            setInfoLine(0, tr("Jump is taken"));
         else
-            setInfoLine(0, "Jump is not taken");
+            setInfoLine(0, tr("Jump is not taken"));
         start = 1;
     }
 
@@ -269,7 +269,7 @@ void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, dsint value)
 void CPUInfoBox::setupFollowMenu(QMenu* menu, dsint wVA)
 {
     //most basic follow action
-    addFollowMenuItem(menu, "&Selected Address", wVA);
+    addFollowMenuItem(menu, tr("&Selected Address"), wVA);
 
     //add follow actions
     DISASM_INSTR instr;
@@ -289,15 +289,15 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, dsint wVA)
                 segment = "fs:";
 #endif //_WIN64
             if(DbgMemIsValidReadPtr(arg.value))
-                addFollowMenuItem(menu, "&Address: " + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
+                addFollowMenuItem(menu, tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
             if(arg.value != arg.constant)
             {
                 QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
                 if(DbgMemIsValidReadPtr(arg.constant))
-                    addFollowMenuItem(menu, "&Constant: " + constant, arg.constant);
+                    addFollowMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowMenuItem(menu, "&Value: " + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue);
+                addFollowMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue);
         }
         else
         {
@@ -355,10 +355,10 @@ int CPUInfoBox::followInDump(dsint wVA)
 void CPUInfoBox::contextMenuSlot(QPoint pos)
 {
     QMenu* wMenu = new QMenu(this); //create context menu
-    QMenu* wFollowMenu = new QMenu("&Follow in Dump", this);
+    QMenu* wFollowMenu = new QMenu(tr("&Follow in Dump"), this);
     setupFollowMenu(wFollowMenu, curAddr);
     wMenu->addMenu(wFollowMenu);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(DbgIsDebugging())
     {
