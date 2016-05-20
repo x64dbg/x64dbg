@@ -150,7 +150,7 @@ private:
     UpdateChecker* mUpdateChecker;
     TimeWastedCounter* mTimeWastedCounter;
 
-    const char* mWindowMainTitle;
+    QString mWindowMainTitle;
 
     QStringList mMRUList;
     int mMaxMRU;
