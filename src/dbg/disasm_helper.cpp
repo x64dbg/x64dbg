@@ -9,6 +9,7 @@
 #include "console.h"
 #include "memory.h"
 #include "debugger.h"
+#include "value.h"
 #include <capstone_wrapper.h>
 
 duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
@@ -120,70 +121,13 @@ const char* disasmtext(duint addr)
     return instruction;
 }
 
-static size_t ResolveReg(x86_reg reg)
-{
-    DWORD titReg = 0;
-    switch(reg)
-    {
-#ifdef _WIN64
-    case X86_REG_RAX:
-        return GetContextDataEx(hActiveThread, UE_RAX);
-    case X86_REG_RBX:
-        return GetContextDataEx(hActiveThread, UE_RBX);
-    case X86_REG_RCX:
-        return GetContextDataEx(hActiveThread, UE_RCX);
-    case X86_REG_RDX:
-        return GetContextDataEx(hActiveThread, UE_RDX);
-    case X86_REG_RBP:
-        return GetContextDataEx(hActiveThread, UE_RBP);
-    case X86_REG_RSP:
-        return GetContextDataEx(hActiveThread, UE_RSP);
-    case X86_REG_RSI:
-        return GetContextDataEx(hActiveThread, UE_RSI);
-    case X86_REG_RDI:
-        return GetContextDataEx(hActiveThread, UE_RDI);
-    case X86_REG_R8:
-        return GetContextDataEx(hActiveThread, UE_R8);
-    case X86_REG_R9:
-        return GetContextDataEx(hActiveThread, UE_R9);
-    case X86_REG_R10:
-        return GetContextDataEx(hActiveThread, UE_R10);
-    case X86_REG_R11:
-        return GetContextDataEx(hActiveThread, UE_R11);
-    case X86_REG_R12:
-        return GetContextDataEx(hActiveThread, UE_R12);
-    case X86_REG_R13:
-        return GetContextDataEx(hActiveThread, UE_R13);
-    case X86_REG_R14:
-        return GetContextDataEx(hActiveThread, UE_R14);
-    case X86_REG_R15:
-        return GetContextDataEx(hActiveThread, UE_R15);
-#else //x32
-    case X86_REG_EAX:
-        return GetContextDataEx(hActiveThread, UE_EAX);
-    case X86_REG_EBX:
-        return GetContextDataEx(hActiveThread, UE_EBX);
-    case X86_REG_ECX:
-        return GetContextDataEx(hActiveThread, UE_ECX);
-    case X86_REG_EDX:
-        return GetContextDataEx(hActiveThread, UE_EDX);
-    case X86_REG_EBP:
-        return GetContextDataEx(hActiveThread, UE_EBP);
-    case X86_REG_ESP:
-        return GetContextDataEx(hActiveThread, UE_ESP);
-    case X86_REG_ESI:
-        return GetContextDataEx(hActiveThread, UE_ESI);
-    case X86_REG_EDI:
-        return GetContextDataEx(hActiveThread, UE_EDI);
-#endif //_WIN64
-    default:
-        return 0;
-    }
-}
-
 static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
 {
-    auto value = cp.ResolveOpValue(opindex, ResolveReg);
+    auto value = cp.ResolveOpValue(opindex, [&](x86_reg reg)
+    {
+        auto regName = cp.RegName(reg);
+        return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
+    });
     const auto & op = cp[opindex];
     arg->segment = SEG_DEFAULT;
     strcpy_s(arg->mnemonic, cp.OperandText(opindex).c_str());
