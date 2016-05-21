@@ -422,23 +422,25 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     wCM_SetToOne = new QAction(tr("Set to 1"), this);
     wCM_SetToOne->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_SetToOne);
-    wCM_Modify = new QAction(tr("Modify Value"), this);
+    wCM_Modify = new QAction(tr("Modify value"), this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
     wCM_ToggleValue = new QAction(tr("Toggle"), this);
     wCM_ToggleValue->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_ToggleValue);
-    wCM_CopyToClipboard = new QAction(tr("Copy Value to Clipboard"), this);
+    wCM_CopyToClipboard = new QAction(tr("Copy value to clipboard"), this);
     wCM_CopyToClipboard->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopyToClipboard);
     wCM_CopySymbolToClipboard = new QAction(tr("Copy Symbol Value to Clipboard"), this);
     wCM_CopySymbolToClipboard->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopySymbolToClipboard);
+    wCM_CopyAll = new QAction(tr("Copy all registers"), this);
+    this->addAction(wCM_CopyAll);
     wCM_FollowInDisassembly = new QAction(tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(tr("Follow in Dump"), this);
     wCM_FollowInStack = new QAction("Follow in Stack", this);
     wCM_Incrementx87Stack = new QAction(tr("Increment x87 Stack"), this);
-    wCM_Decrementx87Stack = new QAction("Decrement x87 Stack", this);
-    wCM_ChangeFPUView = new QAction("Change View", this);
+    wCM_Decrementx87Stack = new QAction(tr("Decrement x87 Stack"), this);
+    wCM_ChangeFPUView = new QAction(tr("Change view"), this);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1125,6 +1127,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(wCM_ToggleValue, SIGNAL(triggered()), this, SLOT(onToggleValueAction()));
     connect(wCM_CopyToClipboard, SIGNAL(triggered()), this, SLOT(onCopyToClipboardAction()));
     connect(wCM_CopySymbolToClipboard, SIGNAL(triggered()), this, SLOT(onCopySymbolToClipboardAction()));
+    connect(wCM_CopyAll, SIGNAL(triggered()), this, SLOT(onCopyAllAction()));
     connect(wCM_FollowInDisassembly, SIGNAL(triggered()), this, SLOT(onFollowInDisassembly()));
     connect(wCM_FollowInDump, SIGNAL(triggered()), this, SLOT(onFollowInDump()));
     connect(wCM_FollowInStack, SIGNAL(triggered()), this, SLOT(onFollowInStack()));
@@ -2023,6 +2026,1448 @@ void RegistersView::onCopySymbolToClipboardAction()
     }
 }
 
+void RegistersView::onCopyAllAction()
+{
+    QString text;
+    QClipboard* clipboard;
+    REGISTER_NAME i;
+    QString symbol;
+    // Auto generated code
+    i = REGISTER_NAME::CAX;
+#ifdef _WIN64
+    text.append("RAX : ");
+#else //x86
+    text.append("EAX : ");
+#endif //_WIN64
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::CCX;
+#ifdef _WIN64
+    text.append("RCX : ");
+#else //x86
+    text.append("ECX : ");
+#endif //_WIN64
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::CDX;
+#ifdef _WIN64
+    text.append("RDX : ");
+#else //x86
+    text.append("EDX : ");
+#endif //_WIN64
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::CBX;
+#ifdef _WIN64
+    text.append("RBX : ");
+#else //x86
+    text.append("EBX : ");
+#endif //_WIN64
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::CDI;
+#ifdef _WIN64
+    text.append("RDI : ");
+#else //x86
+    text.append("EDI : ");
+#endif //_WIN64
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::CBP;
+#ifdef _WIN64
+    text.append("RBP : ");
+#else //x86
+    text.append("EBP : ");
+#endif //_WIN64
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::CSI;
+#ifdef _WIN64
+    text.append("RSI : ");
+#else //x86
+    text.append("ESI : ");
+#endif //_WIN64
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::CSP;
+#ifdef _WIN64
+    text.append("RSP : ");
+#else //x86
+    text.append("ESP : ");
+#endif //_WIN64
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+#ifdef _WIN64
+    i = REGISTER_NAME::R8;
+    text.append("R8  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::R9;
+    text.append("R9  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::R10;
+    text.append("R10 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::R11;
+    text.append("R11 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::R12;
+    text.append("R12 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::R13;
+    text.append("R13 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::R14;
+    text.append("R14 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::R15;
+    text.append("R15 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+#endif
+    i = REGISTER_NAME::CIP;
+#ifdef _WIN64
+    text.append("RIP : ");
+#else //x86
+    text.append("EIP : ");
+#endif //_WIN64
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::EFLAGS;
+    text.append("EFLAGS : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::CF;
+    text.append("CF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::PF;
+    text.append("PF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::AF;
+    text.append("AF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::ZF;
+    text.append("ZF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::SF;
+    text.append("SF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::TF;
+    text.append("TF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::IF;
+    text.append("IF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::DF;
+    text.append("DF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::OF;
+    text.append("OF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::GS;
+    text.append("GS : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::FS;
+    text.append("FS : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::ES;
+    text.append("ES : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::DS;
+    text.append("DS : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::CS;
+    text.append("CS : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::SS;
+    text.append("SS : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::LastError;
+    text.append("LastError : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::DR0;
+    text.append("DR0 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::DR1;
+    text.append("DR1 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::DR2;
+    text.append("DR2 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::DR3;
+    text.append("DR3 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::DR6;
+    text.append("DR6 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::DR7;
+    text.append("DR7 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87r0;
+    text.append("x87r0 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87r1;
+    text.append("x87r1 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87r2;
+    text.append("x87r2 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87r3;
+    text.append("x87r3 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87r4;
+    text.append("x87r4 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87r5;
+    text.append("x87r5 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87r6;
+    text.append("x87r6 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87r7;
+    text.append("x87r7 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87TagWord;
+    text.append("x87TagWord : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87ControlWord;
+    text.append("x87ControlWord : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87StatusWord;
+    text.append("x87StatusWord : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87TW_0;
+    text.append("x87TW_0 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87TW_1;
+    text.append("x87TW_1 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87TW_2;
+    text.append("x87TW_2 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87TW_3;
+    text.append("x87TW_3 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87TW_4;
+    text.append("x87TW_4 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87TW_5;
+    text.append("x87TW_5 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87TW_6;
+    text.append("x87TW_6 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87TW_7;
+    text.append("x87TW_7 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_B;
+    text.append("x87SW_B : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_C3;
+    text.append("x87SW_C3 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_TOP;
+    text.append("x87SW_TOP : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_C2;
+    text.append("x87SW_C2 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_C1;
+    text.append("x87SW_C1 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_O;
+    text.append("x87SW_O : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_IR;
+    text.append("x87SW_IR : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_SF;
+    text.append("x87SW_SF : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_P;
+    text.append("x87SW_P : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_U;
+    text.append("x87SW_U : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_Z;
+    text.append("x87SW_Z : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_D;
+    text.append("x87SW_D : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_I;
+    text.append("x87SW_I : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87SW_C0;
+    text.append("x87SW_C0 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_IC;
+    text.append("x87CW_IC : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_RC;
+    text.append("x87CW_RC : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_PC;
+    text.append("x87CW_PC : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_IEM;
+    text.append("x87CW_IEM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_PM;
+    text.append("x87CW_PM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_UM;
+    text.append("x87CW_UM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_OM;
+    text.append("x87CW_OM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_ZM;
+    text.append("x87CW_ZM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_DM;
+    text.append("x87CW_DM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::x87CW_IM;
+    text.append("x87CW_IM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr;
+    text.append("MxCsr : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_FZ;
+    text.append("MxCsr_FZ : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_PM;
+    text.append("MxCsr_PM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_UM;
+    text.append("MxCsr_UM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_OM;
+    text.append("MxCsr_OM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_ZM;
+    text.append("MxCsr_ZM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_IM;
+    text.append("MxCsr_IM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_DM;
+    text.append("MxCsr_DM : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_DAZ;
+    text.append("MxCsr_DAZ : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_PE;
+    text.append("MxCsr_PE : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_UE;
+    text.append("MxCsr_UE : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_OE;
+    text.append("MxCsr_OE : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_ZE;
+    text.append("MxCsr_ZE : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_DE;
+    text.append("MxCsr_DE : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_IE;
+    text.append("MxCsr_IE : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MxCsr_RC;
+    text.append("MxCsr_RC : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MM0;
+    text.append("MM0 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MM1;
+    text.append("MM1 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MM2;
+    text.append("MM2 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MM3;
+    text.append("MM3 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MM4;
+    text.append("MM4 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MM5;
+    text.append("MM5 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MM6;
+    text.append("MM6 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::MM7;
+    text.append("MM7 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM0;
+    text.append("XMM0  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM1;
+    text.append("XMM1  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM2;
+    text.append("XMM2  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM3;
+    text.append("XMM3  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM4;
+    text.append("XMM4  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM5;
+    text.append("XMM5  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM6;
+    text.append("XMM6  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM7;
+    text.append("XMM7  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+#ifdef _WIN64
+    i = REGISTER_NAME::XMM8;
+    text.append("XMM8  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM9;
+    text.append("XMM9  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM10;
+    text.append("XMM10 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM11;
+    text.append("XMM11 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM12;
+    text.append("XMM12 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM13;
+    text.append("XMM13 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM14;
+    text.append("XMM14 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::XMM15;
+    text.append("XMM15 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM0;
+    text.append("YMM0  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM1;
+    text.append("YMM1  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM2;
+    text.append("YMM2  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM3;
+    text.append("YMM3  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM4;
+    text.append("YMM4  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM5;
+    text.append("YMM5  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM6;
+    text.append("YMM6  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM7;
+    text.append("YMM7  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM8;
+    text.append("YMM8  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM9;
+    text.append("YMM9  : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM10;
+    text.append("YMM10 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM11;
+    text.append("YMM11 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM12;
+    text.append("YMM12 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM13;
+    text.append("YMM13 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM14;
+    text.append("YMM14 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+    i = REGISTER_NAME::YMM15;
+    text.append("YMM15 : ");
+    text.append(GetRegStringValueFromValue(i, registerValue(&wRegDumpStruct, i)));
+    symbol = getRegisterLabel(i);
+    if(symbol != "")
+    {
+        text.append("     ");
+        text.append(getRegisterLabel(i));
+    }
+    text.append("\r\n");
+#endif
+    // Auto generated code end
+    clipboard = QApplication::clipboard();
+    clipboard->setText(text);
+}
+
 void RegistersView::onFollowInDisassembly()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
@@ -2117,6 +3562,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         }
 
         wMenu.addAction(wCM_CopyToClipboard);
+        wMenu.addAction(wCM_CopyAll);
 
         wMenu.exec(this->mapToGlobal(pos));
     }
