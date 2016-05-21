@@ -123,7 +123,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
         if(isReferences)
             menu->addAction(mReferenceSelectedAddressAction);
         else
-            addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences, isFollowInCPU);
+            addFollowReferenceMenuItem(tr("&Selected Address"), wVA, menu, isReferences, isFollowInCPU);
     }
 
     //add follow actions
@@ -146,15 +146,15 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
                     segment = "fs:";
 #endif //_WIN64
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem("&Address: " + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem(tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
                 if(arg.value != arg.constant)
                 {
                     QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
                     if(DbgMemIsValidReadPtr(arg.constant))
-                        addFollowReferenceMenuItem("&Constant: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
+                        addFollowReferenceMenuItem(tr("&Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
                 }
                 if(DbgMemIsValidReadPtr(arg.memvalue))
-                    addFollowReferenceMenuItem("&Value: " + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem(tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
             }
             else //arg_normal
             {
@@ -170,9 +170,9 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
             const DISASM_ARG arg = instr.arg[i];
             QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
             if(DbgMemIsValidReadPtr(arg.constant))
-                addFollowReferenceMenuItem("Address: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
+                addFollowReferenceMenuItem(tr("Address: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
             else if(arg.constant)
-                addFollowReferenceMenuItem("Constant: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
+                addFollowReferenceMenuItem(tr("Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
         }
     }
 }

@@ -482,6 +482,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("NOPs", "InstructionNopColor", "InstructionNopBackgroundColor");
     colorInfoListAppend("FAR", "InstructionFarColor", "InstructionFarBackgroundColor");
     colorInfoListAppend("INT3s", "InstructionInt3Color", "InstructionInt3BackgroundColor");
+    colorInfoListAppend("Unusual Instructions", "InstructionUnusualColor", "InstructionUnusualBackgroundColor");
     colorInfoListAppend("General Registers", "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
     colorInfoListAppend("FPU Registers", "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
     colorInfoListAppend("MMX Registers", "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");
