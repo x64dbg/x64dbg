@@ -22,6 +22,7 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     mRefreshAction->setShortcut(QKeySequence("F5"));
     connect(mRefreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
     this->addAction(mRefreshAction);
+    connect(ui->btnRefresh, SIGNAL(clicked()), this, SLOT(refresh()));
 
     // Create search view (regex disabled)
     mSearchListView = new SearchListView(false);
