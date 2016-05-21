@@ -69,17 +69,17 @@ void CPUStack::updateFonts()
 void CPUStack::setupContextMenu()
 {
     //Binary menu
-    mBinaryMenu = new QMenu("B&inary", this);
+    mBinaryMenu = new QMenu(tr("B&inary"), this);
 
     //Binary->Edit
-    mBinaryEditAction = new QAction("&Edit", this);
+    mBinaryEditAction = new QAction(tr("&Edit"), this);
     mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryEditAction);
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
     mBinaryMenu->addAction(mBinaryEditAction);
 
     //Binary->Fill
-    mBinaryFillAction = new QAction("&Fill...", this);
+    mBinaryFillAction = new QAction(tr("&Fill..."), this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
@@ -89,140 +89,140 @@ void CPUStack::setupContextMenu()
     mBinaryMenu->addSeparator();
 
     //Binary->Copy
-    mBinaryCopyAction = new QAction("&Copy", this);
+    mBinaryCopyAction = new QAction(tr("&Copy"), this);
     mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryCopyAction);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
     mBinaryMenu->addAction(mBinaryCopyAction);
 
     //Binary->Paste
-    mBinaryPasteAction = new QAction("&Paste", this);
+    mBinaryPasteAction = new QAction(tr("&Paste"), this);
     mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteAction);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
     //Binary->Paste (Ignore Size)
-    mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
+    mBinaryPasteIgnoreSizeAction = new QAction(tr("Paste (&Ignore Size)"), this);
     mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
 
     //Breakpoint menu
-    mBreakpointMenu = new QMenu("Brea&kpoint", this);
+    mBreakpointMenu = new QMenu(tr("Brea&kpoint"), this);
 
     //Breakpoint (hardware access) menu
-    mBreakpointHardwareAccessMenu = new QMenu("Hardware, Access", this);
-    mBreakpointHardwareAccess1 = new QAction("&Byte", this);
+    mBreakpointHardwareAccessMenu = new QMenu(tr("Hardware, Access"), this);
+    mBreakpointHardwareAccess1 = new QAction(tr("&Byte"), this);
     connect(mBreakpointHardwareAccess1, SIGNAL(triggered()), this, SLOT(hardwareAccess1Slot()));
     mBreakpointHardwareAccessMenu->addAction(mBreakpointHardwareAccess1);
 
-    mBreakpointHardwareAccess2 = new QAction("&Word", this);
+    mBreakpointHardwareAccess2 = new QAction(tr("&Word"), this);
     connect(mBreakpointHardwareAccess2, SIGNAL(triggered()), this, SLOT(hardwareAccess2Slot()));
     mBreakpointHardwareAccessMenu->addAction(mBreakpointHardwareAccess2);
 
-    mBreakpointHardwareAccess4 = new QAction("&Dword", this);
+    mBreakpointHardwareAccess4 = new QAction(tr("&Dword"), this);
     connect(mBreakpointHardwareAccess4, SIGNAL(triggered()), this, SLOT(hardwareAccess4Slot()));
     mBreakpointHardwareAccessMenu->addAction(mBreakpointHardwareAccess4);
 
 #ifdef _WIN64
-    mBreakpointHardwareAccess8 = new QAction("&Qword", this);
+    mBreakpointHardwareAccess8 = new QAction(tr("&Qword"), this);
     connect(mBreakpointHardwareAccess8, SIGNAL(triggered()), this, SLOT(hardwareAccess8Slot()));
     mBreakpointHardwareAccessMenu->addAction(mBreakpointHardwareAccess8);
 #endif //_WIN64
     mBreakpointMenu->addMenu(mBreakpointHardwareAccessMenu);
 
     //Breakpoint (hardware write) menu
-    mBreakpointHardwareWriteMenu = new QMenu("Hardware, Write", this);
-    mBreakpointHardwareWrite1 = new QAction("&Byte", this);
+    mBreakpointHardwareWriteMenu = new QMenu(tr("Hardware, Write"), this);
+    mBreakpointHardwareWrite1 = new QAction(tr("&Byte"), this);
     connect(mBreakpointHardwareWrite1, SIGNAL(triggered()), this, SLOT(hardwareWrite1Slot()));
     mBreakpointHardwareWriteMenu->addAction(mBreakpointHardwareWrite1);
 
-    mBreakpointHardwareWrite2 = new QAction("&Word", this);
+    mBreakpointHardwareWrite2 = new QAction(tr("&Word"), this);
     connect(mBreakpointHardwareWrite2, SIGNAL(triggered()), this, SLOT(hardwareWrite2Slot()));
     mBreakpointHardwareWriteMenu->addAction(mBreakpointHardwareWrite2);
 
-    mBreakpointHardwareWrite4 = new QAction("&Dword", this);
+    mBreakpointHardwareWrite4 = new QAction(tr("&Dword"), this);
     connect(mBreakpointHardwareWrite4, SIGNAL(triggered()), this, SLOT(hardwareWrite4Slot()));
     mBreakpointHardwareWriteMenu->addAction(mBreakpointHardwareWrite4);
 
 #ifdef _WIN64
-    mBreakpointHardwareWrite8 = new QAction("&Qword", this);
+    mBreakpointHardwareWrite8 = new QAction(tr("&Qword"), this);
     connect(mBreakpointHardwareWrite8, SIGNAL(triggered()), this, SLOT(hardwareWrite8Slot()));
     mBreakpointHardwareWriteMenu->addAction(mBreakpointHardwareWrite8);
 #endif //_WIN64
     mBreakpointMenu->addMenu(mBreakpointHardwareWriteMenu);
-    mBreakpointHardwareRemove = new QAction("Remove &Hardware", this);
+    mBreakpointHardwareRemove = new QAction(tr("Remove &Hardware"), this);
     connect(mBreakpointHardwareRemove, SIGNAL(triggered()), this, SLOT(hardwareRemoveSlot()));
     mBreakpointMenu->addAction(mBreakpointHardwareRemove);
     mBreakpointMenu->addSeparator();
 
     //Breakpoint memory menu
-    mBreakpointMemoryAccessMenu = new QMenu("Memory, Access", this);
-    mBreakpointMemoryWriteMenu = new QMenu("Memory, Write", this);
+    mBreakpointMemoryAccessMenu = new QMenu(tr("Memory, Access"), this);
+    mBreakpointMemoryWriteMenu = new QMenu(tr("Memory, Write"), this);
 
-    mBreakpointMemoryAccessSingleshoot = new QAction("&Singleshoot", this);
+    mBreakpointMemoryAccessSingleshoot = new QAction(tr("&Singleshoot"), this);
     connect(mBreakpointMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
     mBreakpointMemoryAccessMenu->addAction(mBreakpointMemoryAccessSingleshoot);
 
-    mBreakpointMemoryAccessRestore = new QAction("&Restore on hit", this);
+    mBreakpointMemoryAccessRestore = new QAction(tr("&Restore on hit"), this);
     connect(mBreakpointMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
     mBreakpointMemoryAccessMenu->addAction(mBreakpointMemoryAccessRestore);
 
-    mBreakpointMemoryWriteSingleShoot = new QAction("&Singleshoot", this);
+    mBreakpointMemoryWriteSingleShoot = new QAction(tr("&Singleshoot"), this);
     connect(mBreakpointMemoryWriteSingleShoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
     mBreakpointMemoryWriteMenu->addAction(mBreakpointMemoryWriteSingleShoot);
 
-    mBreakpointMemoryWriteRestore = new QAction("&Restore on hit", this);
+    mBreakpointMemoryWriteRestore = new QAction(tr("&Restore on hit"), this);
     connect(mBreakpointMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
     mBreakpointMemoryWriteMenu->addAction(mBreakpointMemoryWriteRestore);
     mBreakpointMenu->addMenu(mBreakpointMemoryAccessMenu);
-    mBreakpointMemoryRemove = new QAction("Remove &Memory", this);
+    mBreakpointMemoryRemove = new QAction(tr("Remove &Memory"), this);
     connect(mBreakpointMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
     mBreakpointMenu->addAction(mBreakpointMemoryRemove);
     mBreakpointMenu->addMenu(mBreakpointMemoryWriteMenu);
 
     // Restore Selection
-    mUndoSelection = new QAction("&Restore selection", this);
+    mUndoSelection = new QAction(tr("&Restore selection"), this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Modify
-    mModifyAction = new QAction("Modify", this);
+    mModifyAction = new QAction(tr("Modify"), this);
     connect(mModifyAction, SIGNAL(triggered()), this, SLOT(modifySlot()));
 
 #ifdef _WIN64
-    mGotoSp = new QAction("Follow R&SP", this);
-    mGotoBp = new QAction("Follow R&BP", this);
+    mGotoSp = new QAction(tr("Follow R&SP"), this);
+    mGotoBp = new QAction(tr("Follow R&BP"), this);
 #else
-    mGotoSp = new QAction("Follow E&SP", this);
-    mGotoBp = new QAction("Follow E&BP", this);
+    mGotoSp = new QAction(tr("Follow E&SP"), this);
+    mGotoBp = new QAction(tr("Follow E&BP"), this);
 #endif //_WIN64
     mGotoSp->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoSp);
     connect(mGotoSp, SIGNAL(triggered()), this, SLOT(gotoSpSlot()));
     connect(mGotoBp, SIGNAL(triggered()), this, SLOT(gotoBpSlot()));
 
-    mFreezeStack = new QAction("Freeze stack", this);
+    mFreezeStack = new QAction(tr("Freeze the stack"), this);
     this->addAction(mFreezeStack);
     connect(mFreezeStack, SIGNAL(triggered()), this, SLOT(freezeStackSlot()));
 
     //Find Pattern
-    mFindPatternAction = new QAction("&Find Pattern...", this);
+    mFindPatternAction = new QAction(tr("&Find Pattern..."), this);
     mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
     //Expression
-    mGotoExpression = new QAction("&Expression", this);
+    mGotoExpression = new QAction(tr("&Expression"), this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
 
     //Follow in Disassembler
-    mFollowDisasm = new QAction("&Follow in Disassembler", this);
+    mFollowDisasm = new QAction(tr("&Follow in Disassembler"), this);
     mFollowDisasm->setShortcutContext(Qt::WidgetShortcut);
     mFollowDisasm->setShortcut(QKeySequence("enter"));
     this->addAction(mFollowDisasm);
@@ -230,25 +230,25 @@ void CPUStack::setupContextMenu()
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     //Follow in Dump
-    mFollowDump = new QAction("Follow in &Dump", this);
+    mFollowDump = new QAction(tr("Follow in &Dump"), this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
 #ifdef _WIN64
-    mFollowInDumpMenu = new QMenu("&Follow QWORD in Dump", this);
+    mFollowInDumpMenu = new QMenu(tr("&Follow QWORD in Dump"), this);
 #else //x86
-    mFollowInDumpMenu = new QMenu("&Follow DWORD in Dump", this);
+    mFollowInDumpMenu = new QMenu(tr("&Follow DWORD in Dump"), this);
 #endif //_WIN64
 
     int maxDumps = mMultiDump->getMaxCPUTabs();
     for(int i = 0; i < maxDumps; i++)
     {
-        QAction* action = new QAction(QString("Dump %1)").arg(i + 1), this);
+        QAction* action = new QAction(tr("Dump %1)").arg(i + 1), this);
         connect(action, SIGNAL(triggered()), this, SLOT(followinDumpNSlot()));
         mFollowInDumpMenu->addAction(action);
         mFollowInDumpActions.push_back(action);
     }
 
-    mFollowStack = new QAction("Follow in &Stack", this);
+    mFollowStack = new QAction(tr("Follow in &Stack"), this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     mPluginMenu = new QMenu(this);
@@ -266,13 +266,13 @@ void CPUStack::updateFreezeStackAction()
     {
         font.setBold(true);
         mFreezeStack->setFont(font);
-        mFreezeStack->setText("Unfreeze the stack");
+        mFreezeStack->setText(tr("Unfreeze the stack"));
     }
     else
     {
         font.setBold(false);
         mFreezeStack->setFont(font);
-        mFreezeStack->setText("Freeze the stack");
+        mFreezeStack->setText(tr("Freeze the stack"));
     }
 }
 
@@ -560,7 +560,7 @@ void CPUStack::gotoExpressionSlot()
         mGoto = new GotoDialog(this);
     mGoto->validRangeStart = base;
     mGoto->validRangeEnd = base + size;
-    mGoto->setWindowTitle("Enter expression to follow in Stack...");
+    mGoto->setWindowTitle(tr("Enter expression to follow in Stack..."));
     if(mGoto->exec() == QDialog::Accepted)
     {
         QString cmd;
@@ -675,7 +675,7 @@ void CPUStack::binaryEditSlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    hexEdit.setWindowTitle("Edit data at " + QString("%1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Edit data at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     dsint dataSize = hexEdit.mHexEdit->data().size();
@@ -692,7 +692,7 @@ void CPUStack::binaryFillSlot()
     HexEditDialog hexEdit(this);
     hexEdit.mHexEdit->setOverwriteMode(false);
     dsint selStart = getSelectionStart();
-    hexEdit.setWindowTitle("Fill data at " + QString("%1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Fill data at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     QString pattern = hexEdit.mHexEdit->pattern();
@@ -869,7 +869,7 @@ void CPUStack::modifySlot()
     WordEditDialog wEditDialog(this);
     dsint value = 0;
     mMemPage->read(&value, addr, sizeof(dsint));
-    wEditDialog.setup("Modify", value, sizeof(dsint));
+    wEditDialog.setup(tr("Modify"), value, sizeof(dsint));
     if(wEditDialog.exec() != QDialog::Accepted)
         return;
     value = wEditDialog.getVal();

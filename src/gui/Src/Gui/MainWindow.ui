@@ -23,7 +23,7 @@
      <x>0</x>
      <y>0</y>
      <width>868</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -89,6 +89,8 @@
     <addaction name="actionSkipNextInstruction"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
+    <addaction name="separator"/>
+    <addaction name="actionHideDebugger"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -706,6 +708,11 @@
    </property>
    <property name="text">
     <string>SEH Chain</string>
+   </property>
+  </action>
+  <action name="actionHideDebugger">
+   <property name="text">
+    <string>Hide debugger</string>
    </property>
   </action>
  </widget>
