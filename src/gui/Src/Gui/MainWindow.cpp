@@ -212,6 +212,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionSkipNextInstruction, SIGNAL(triggered()), this, SLOT(execSkip()));
     connect(ui->actionScript, SIGNAL(triggered()), this, SLOT(displayScriptWidget()));
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
+    connect(ui->actionHideDebugger, SIGNAL(triggered()), this, SLOT(hideDebugger()));
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
     connect(ui->actionSource, SIGNAL(triggered()), this, SLOT(displaySourceViewWidget()));
@@ -756,6 +757,11 @@ void MainWindow::displayThreadsWidget()
 void MainWindow::displaySnowmanWidget()
 {
     showQWidgetTab(mSnowmanView);
+}
+
+void MainWindow::hideDebugger()
+{
+    DbgCmdExec("hide");
 }
 
 void MainWindow::openSettings()
