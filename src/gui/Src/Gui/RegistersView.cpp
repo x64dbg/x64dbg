@@ -2048,7 +2048,6 @@ void RegistersView::onCopyAllAction()
 {
     QString text;
     QClipboard* clipboard;
-    QString symbol;
     // Auto generated code
     appendRegister(text, REGISTER_NAME::CAX, "RAX : ", "EAX : ");
     appendRegister(text, REGISTER_NAME::CCX, "RCX : ", "ECX : ");
