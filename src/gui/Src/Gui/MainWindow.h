@@ -78,6 +78,7 @@ public slots:
     void displayReferencesWidget();
     void displayThreadsWidget();
     void displaySnowmanWidget();
+    void hideDebugger();
     void openSettings();
     void openAppearance();
     void openCalculator();
