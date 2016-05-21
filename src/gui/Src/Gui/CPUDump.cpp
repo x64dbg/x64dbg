@@ -663,6 +663,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addActions(mPluginMenu->actions());
 
     wMenu->exec(event->globalPos()); //execute context menu
+    delete wMenu;
 }
 
 void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
