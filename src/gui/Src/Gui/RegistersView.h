@@ -137,6 +137,7 @@ protected slots:
     void onToggleValueAction();
     void onCopyToClipboardAction();
     void onCopySymbolToClipboardAction();
+    void onCopyAllAction();
     void onFollowInDisassembly();
     void onFollowInDump();
     void onFollowInStack();
@@ -211,6 +212,7 @@ private:
     QAction* wCM_ToggleValue;
     QAction* wCM_CopyToClipboard;
     QAction* wCM_CopySymbolToClipboard;
+    QAction* wCM_CopyAll;
     QAction* wCM_FollowInDisassembly;
     QAction* wCM_FollowInDump;
     QAction* wCM_FollowInStack;
