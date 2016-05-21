@@ -23,6 +23,7 @@ ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() 
     {
     case Type::OperatorUnarySub:
     case Type::OperatorNot:
+    case Type::OperatorLogicalNot:
         return Associativity::RightToLeft;
     case Type::OperatorMul:
     case Type::OperatorHiMul:
@@ -35,6 +36,14 @@ ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() 
     case Type::OperatorAnd:
     case Type::OperatorXor:
     case Type::OperatorOr:
+    case Type::OperatorEqual:
+    case Type::OperatorNotEqual:
+    case Type::OperatorBigger:
+    case Type::OperatorSmaller:
+    case Type::OperatorBiggerEqual:
+    case Type::OperatorSmallerEqual:
+    case Type::OperatorLogicalAnd:
+    case Type::OperatorLogicalOr:
         return Associativity::LeftToRight;
     default:
         return Associativity::Unspecified;
@@ -47,26 +56,38 @@ int ExpressionParser::Token::precedence() const
     {
     case Type::OperatorUnarySub:
     case Type::OperatorNot:
-        return 7;
+        return 2;
     case Type::OperatorMul:
     case Type::OperatorHiMul:
     case Type::OperatorDiv:
     case Type::OperatorMod:
-        return 6;
+        return 3;
     case Type::OperatorAdd:
     case Type::OperatorSub:
-        return 5;
+        return 4;
     case Type::OperatorShl:
     case Type::OperatorShr:
-        return 4;
+        return 5;
+    case Type::OperatorSmaller:
+    case Type::OperatorSmallerEqual:
+    case Type::OperatorBigger:
+    case Type::OperatorBiggerEqual:
+        return 6;
+    case Type::OperatorEqual:
+    case Type::OperatorNotEqual:
+        return 7;
     case Type::OperatorAnd:
-        return 3;
+        return 8;
     case Type::OperatorXor:
-        return 2;
+        return 9;
     case Type::OperatorOr:
-        return 1;
+        return 10;
+    case Type::OperatorLogicalAnd:
+        return 11;
+    case Type::OperatorLogicalOr:
+        return 12;
     default:
-        return 0;
+        return 16;
     }
 }
 
@@ -167,35 +188,75 @@ void ExpressionParser::tokenize(const String & expression)
                     else
                         addOperatorToken(ch, Token::Type::OperatorSub);
                     break;
+                case '=':
+                    if(i + 1 < len && expression[i + 1] == '=')
+                    {
+                        addOperatorToken(ch, Token::Type::OperatorEqual);
+                        i++;
+                    }
+                    else
+                        addOperatorToken(ch, Token::Type::Error);
+                    break;
                 case '<':
-                    if(i + 1 < len && expression[i + 1] == ch)
+                    if(i + 1 < len && expression[i + 1] == '=')
+                    {
+                        addOperatorToken(ch, Token::Type::OperatorSmallerEqual);
+                        i++;
+                    }
+                    else if(i + 1 < len && expression[i + 1] == '<')
                     {
                         addOperatorToken(ch, Token::Type::OperatorShl);
                         i++;
                     }
                     else
-                        addOperatorToken(ch, Token::Type::Error);
+                        addOperatorToken(ch, Token::Type::OperatorSmaller);
                     break;
                 case '>':
-                    if(i + 1 < len && expression[i + 1] == ch)
+                    if(i + 1 < len && expression[i + 1] == '=')
+                    {
+                        addOperatorToken(ch, Token::Type::OperatorBiggerEqual);
+                        i++;
+                    }
+                    else if(i + 1 < len && expression[i + 1] == '>')
                     {
                         addOperatorToken(ch, Token::Type::OperatorShr);
                         i++;
                     }
                     else
-                        addOperatorToken(ch, Token::Type::Error);
+                        addOperatorToken(ch, Token::Type::OperatorBigger);
                     break;
                 case '&':
-                    addOperatorToken(ch, Token::Type::OperatorAnd);
+                    if(i + 1 < len && expression[i + 1] == '&')
+                    {
+                        addOperatorToken(ch, Token::Type::OperatorLogicalAnd);
+                        i++;
+                    }
+                    else
+                        addOperatorToken(ch, Token::Type::OperatorAnd);
                     break;
                 case '^':
                     addOperatorToken(ch, Token::Type::OperatorXor);
                     break;
                 case '|':
-                    addOperatorToken(ch, Token::Type::OperatorOr);
+                    if(i + 1 < len && expression[i + 1] == '|')
+                    {
+                        addOperatorToken(ch, Token::Type::OperatorLogicalOr);
+                        i++;
+                    }
+                    else
+                        addOperatorToken(ch, Token::Type::OperatorOr);
+                    break;
+                case '!':
+                    if(i + 1 < len && expression[i + 1] == '=')
+                    {
+                        addOperatorToken(ch, Token::Type::OperatorNotEqual);
+                        i++;
+                    }
+                    else
+                        addOperatorToken(ch, Token::Type::OperatorLogicalNot);
                     break;
                 case ' ': //ignore spaces
-                case '\x09': //ignore tabs
+                case '\t': //ignore tabs
                     break;
                 default:
                     _curToken += ch;
@@ -206,13 +267,13 @@ void ExpressionParser::tokenize(const String & expression)
         break;
         }
     }
-    if(_curToken.length() != 0)  //make sure the last token is added
+    if(_curToken.length() != 0) //make sure the last token is added
         _tokens.push_back(Token(_curToken, Token::Type::Data));
 }
 
 void ExpressionParser::addOperatorToken(const char ch, const Token::Type type)
 {
-    if(_curToken.length())  //add a new data token when there is data in the buffer
+    if(_curToken.length()) //add a new data token when there is data in the buffer
     {
         _tokens.push_back(Token(_curToken, Token::Type::Data));
         _curToken.clear();
@@ -224,9 +285,9 @@ void ExpressionParser::addOperatorToken(const char ch, const Token::Type type)
 
 bool ExpressionParser::isUnaryOperator()
 {
-    if(_curToken.length())  //data before the operator means it is no unary operator
+    if(_curToken.length()) //data before the operator means it is no unary operator
         return false;
-    if(!_tokens.size())  //no tokens before the operator means it is an unary operator
+    if(!_tokens.size()) //no tokens before the operator means it is an unary operator
         return true;
     Token lastToken = _tokens[_tokens.size() - 1];
     return lastToken.isOperator(); //if the previous operator is a token, the operator is an unary operator
@@ -268,8 +329,8 @@ void ExpressionParser::shuntingYard()
             {
                 Token o2 = stack.top();
                 if(o2.isOperator() &&
-                        (o1.associativity() == Token::Associativity::LeftToRight && o1.precedence() <= o2.precedence()) ||
-                        (o1.associativity() == Token::Associativity::RightToLeft && o1.precedence() < o2.precedence()))
+                        (o1.associativity() == Token::Associativity::LeftToRight && o1.precedence() >= o2.precedence()) ||
+                        (o1.associativity() == Token::Associativity::RightToLeft && o1.precedence() > o2.precedence()))
                 {
                     queue.push_back(o2);
                     stack.pop();
@@ -329,57 +390,81 @@ static bool operation(const ExpressionParser::Token::Type type, const T op1, con
     {
     case ExpressionParser::Token::Type::OperatorUnarySub:
         result = op1 * ~0;
-        return true;
+        break;
     case ExpressionParser::Token::Type::OperatorNot:
         result = ~op1;
-        return true;
+        break;
+    case ExpressionParser::Token::Type::OperatorLogicalNot:
+        result = !op1 ? 1 : 0;
+        break;
     case ExpressionParser::Token::Type::OperatorMul:
         result = op1 * op2;
-        return true;
+        break;
     case ExpressionParser::Token::Type::OperatorHiMul:
         if(signedcalc)
             result = mulhi(op1, op2);
         else
             result = umulhi(op1, op2);
-        return true;
+        break;
     case ExpressionParser::Token::Type::OperatorDiv:
-        if(op2 != 0)
-        {
-            result = op1 / op2;
-            return true;
-        }
-        return false;
+        if(op2 == 0)
+            return false;
+        result = op1 / op2;
+        break;
     case ExpressionParser::Token::Type::OperatorMod:
-        if(op2 != 0)
-        {
-            result = op1 % op2;
-            return true;
-        }
-        return false;
+        if(op2 == 0)
+            return false;
+        result = op1 % op2;
+        break;
     case ExpressionParser::Token::Type::OperatorAdd:
         result = op1 + op2;
-        return true;
+        break;
     case ExpressionParser::Token::Type::OperatorSub:
         result = op1 - op2;
-        return true;
+        break;
     case ExpressionParser::Token::Type::OperatorShl:
         result = op1 << op2;
-        return true;
+        break;
     case ExpressionParser::Token::Type::OperatorShr:
         result = op1 >> op2;
-        return true;
+        break;
     case ExpressionParser::Token::Type::OperatorAnd:
         result = op1 & op2;
-        return true;
+        break;
     case ExpressionParser::Token::Type::OperatorXor:
         result = op1 ^ op2;
-        return true;
+        break;
     case ExpressionParser::Token::Type::OperatorOr:
         result = op1 | op2;
-        return true;
+        break;
+    case ExpressionParser::Token::Type::OperatorEqual:
+        result = op1 == op2 ? 1 : 0;
+        break;
+    case ExpressionParser::Token::Type::OperatorNotEqual:
+        result = op1 != op2 ? 1 : 0;
+        break;
+    case ExpressionParser::Token::Type::OperatorBigger:
+        result = op1 > op2 ? 1 : 0;
+        break;
+    case ExpressionParser::Token::Type::OperatorSmaller:
+        result = op1 < op2 ? 1 : 0;
+        break;
+    case ExpressionParser::Token::Type::OperatorBiggerEqual:
+        result = op1 >= op2 ? 1 : 0;
+        break;
+    case ExpressionParser::Token::Type::OperatorSmallerEqual:
+        result = op1 <= op2 ? 1 : 0;
+        break;
+    case ExpressionParser::Token::Type::OperatorLogicalAnd:
+        result = op1 && op2 ? 1 : 0;
+        break;
+    case ExpressionParser::Token::Type::OperatorLogicalOr:
+        result = op1 || op2 ? 1 : 0;
+        break;
     default:
         return false;
     }
+    return true;
 }
 
 bool ExpressionParser::unsignedoperation(const Token::Type type, const duint op1, const duint op2, duint & result)
@@ -414,6 +499,7 @@ bool ExpressionParser::calculate(duint & value, bool signedcalc, bool silent, bo
             {
             case Token::Type::OperatorUnarySub:
             case Token::Type::OperatorNot:
+            case Token::Type::OperatorLogicalNot:
                 if(stack.size() < 1)
                     return false;
                 op1 = stack.top();
@@ -435,6 +521,14 @@ bool ExpressionParser::calculate(duint & value, bool signedcalc, bool silent, bo
             case Token::Type::OperatorAnd:
             case Token::Type::OperatorXor:
             case Token::Type::OperatorOr:
+            case Token::Type::OperatorEqual:
+            case Token::Type::OperatorNotEqual:
+            case Token::Type::OperatorBigger:
+            case Token::Type::OperatorSmaller:
+            case Token::Type::OperatorBiggerEqual:
+            case Token::Type::OperatorSmallerEqual:
+            case Token::Type::OperatorLogicalAnd:
+            case Token::Type::OperatorLogicalOr:
                 if(stack.size() < 2)
                     return false;
                 op2 = stack.top();

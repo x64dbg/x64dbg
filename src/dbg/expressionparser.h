@@ -30,6 +30,15 @@ public:
             OperatorAnd,
             OperatorXor,
             OperatorOr,
+            OperatorEqual,
+            OperatorNotEqual,
+            OperatorBigger,
+            OperatorSmaller,
+            OperatorBiggerEqual,
+            OperatorSmallerEqual,
+            OperatorLogicalAnd,
+            OperatorLogicalOr,
+            OperatorLogicalNot,
             Error
         };
 
@@ -53,7 +62,7 @@ public:
     };
 
 private:
-    String fixClosingBrackets(const String & expression);
+    static String fixClosingBrackets(const String & expression);
     bool isUnaryOperator();
     void tokenize(const String & expression);
     void shuntingYard();
