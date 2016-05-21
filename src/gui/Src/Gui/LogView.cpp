@@ -56,7 +56,7 @@ void LogView::refreshShortcutsSlot()
     // More shortcuts?
 }
 
-void LogView::contextMenuEvent(QContextMenuEvent *event)
+void LogView::contextMenuEvent(QContextMenuEvent* event)
 {
     QMenu* wMenu = new QMenu(this);
     wMenu->addAction(actionClear);
@@ -101,10 +101,10 @@ bool LogView::getLoggingEnabled()
 void LogView::saveSlot()
 {
     QString fileName;
-    fileName=QString("log-%1.txt").arg(QDateTime::currentDateTime().toString().replace(QChar(':'), QChar('-')));
+    fileName = QString("log-%1.txt").arg(QDateTime::currentDateTime().toString().replace(QChar(':'), QChar('-')));
     QFile savedLog(fileName);
     savedLog.open(QIODevice::Append | QIODevice::Text);
-    if(savedLog.error()!=QFile::NoError)
+    if(savedLog.error() != QFile::NoError)
     {
         addMsgToLogSlot(tr("Error, log have not been saved.\n"));
     }

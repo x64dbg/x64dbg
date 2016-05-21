@@ -2026,12 +2026,14 @@ void RegistersView::onCopySymbolToClipboardAction()
     }
 }
 
-void RegistersView::appendRegister(QString &text, REGISTER_NAME reg, const char *name64, const char *name32)
+void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32)
 {
     QString symbol;
 #ifdef _WIN64
+    Q_UNUSED(name32);
     text.append(name64);
 #else //x86
+    Q_UNUSED(name64);
     text.append(name32);
 #endif //_WIN64
     text.append(GetRegStringValueFromValue(reg, registerValue(&wRegDumpStruct, reg)));

@@ -496,7 +496,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             backgroundColor = mLabelBackgroundColor;
 
             int width = getCharWidth() * labelText.length() + 4;
-            if (width > w)
+            if(width > w)
                 width = w;
             if(width)
                 painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
