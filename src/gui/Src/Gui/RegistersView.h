@@ -157,7 +157,7 @@ protected slots:
     void ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZE_T size);
     unsigned int GetStatusWordTOPValueFromString(QString string);
     QString GetStatusWordTOPStateString(unsigned short state);
-
+    void appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32);
 private:
     QPushButton* mChangeViewButton;
     bool mShowFpu;
