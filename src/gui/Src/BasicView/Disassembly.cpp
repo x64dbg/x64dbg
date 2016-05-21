@@ -463,6 +463,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         }
 
         char comment[MAX_COMMENT_SIZE] = "";
+        char label[MAX_LABEL_SIZE] = "";
         if(DbgGetCommentAt(cur_addr, comment))
         {
             QString commentText;
@@ -486,6 +487,20 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             if(width)
                 painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
             painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, commentText);
+        }
+        else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
+        {
+            QString labelText(label);
+            QColor backgroundColor;
+            painter->setPen(mLabelColor);
+            backgroundColor = mLabelBackgroundColor;
+
+            int width = getCharWidth() * labelText.length() + 4;
+            if (width > w)
+                width = w;
+            if(width)
+                painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
+            painter->drawText(QRect(x + argsize + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
         }
     }
     break;
