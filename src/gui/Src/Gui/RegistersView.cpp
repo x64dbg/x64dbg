@@ -2039,7 +2039,7 @@ void RegistersView::appendRegister(QString &text, REGISTER_NAME reg, const char 
     if(symbol != "")
     {
         text.append("     ");
-        text.append(getRegisterLabel(reg));
+        text.append(symbol);
     }
     text.append("\r\n");
 }
