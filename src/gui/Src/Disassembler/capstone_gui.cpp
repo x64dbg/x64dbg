@@ -40,6 +40,7 @@ void CapstoneTokenizer::UpdateColors()
     addColorName(TokenType::MnemonicNop, "InstructionNopColor", "InstructionNopBackgroundColor");
     addColorName(TokenType::MnemonicFar, "InstructionFarColor", "InstructionFarBackgroundColor");
     addColorName(TokenType::MnemonicInt3, "InstructionInt3Color", "InstructionInt3BackgroundColor");
+    addColorName(TokenType::MnemonicUnusual, "InstructionUnusualColor", "InstructionUnusualBackgroundColor");
     //memory
     addColorName(TokenType::MemorySize, "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
     addColorName(TokenType::MemorySegment, "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
@@ -313,12 +314,24 @@ bool CapstoneTokenizer::tokenizeMnemonic()
         type = TokenType::MnemonicNop;
     else if(_cp.IsInt3())
         type = TokenType::MnemonicInt3;
+    else if(_cp.InGroup(CS_GRP_PRIVILEGE) || _cp.InGroup(CS_GRP_IRET) || _cp.InGroup(CS_GRP_INVALID))
+        type = TokenType::MnemonicUnusual;
     else
     {
         switch(id)
         {
         case X86_INS_PUSH:
+        case X86_INS_PUSHF:
+        case X86_INS_PUSHFD:
+        case X86_INS_PUSHFQ:
+        case X86_INS_PUSHAL:
+        case X86_INS_PUSHAW:
         case X86_INS_POP:
+        case X86_INS_POPF:
+        case X86_INS_POPFD:
+        case X86_INS_POPFQ:
+        case X86_INS_POPAL:
+        case X86_INS_POPAW:
             type = TokenType::MnemonicPushPop;
             break;
         default:
