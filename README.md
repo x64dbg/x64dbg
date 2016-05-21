@@ -87,3 +87,4 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - [Dreg](http://www.fr33project.org)
 - [Nukem](https://github.com/Nukem9)
 - [Herz3h](https://github.com/Herz3h)
+- [torusrxxx](https://github.com/torusrxxx)
