@@ -1702,7 +1702,7 @@ bool valfromstring(const char* string, duint* value, bool silent, bool baseonly,
     }
     ExpressionParser parser(string);
     duint result;
-    if(!parser.calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
+    if(!parser.Calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
         return false;
     *value = result;
     return true;

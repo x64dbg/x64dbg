@@ -7,8 +7,8 @@
 bool valuesignedcalc();
 void valuesetsignedcalc(bool a);
 bool valapifromstring(const char* name, duint* value, int* value_size, bool printall, bool silent, bool* hexonly);
-bool valfromstring_noexpr(const char* string, duint* value, bool silent = true, bool baseonly = false, int* value_size = 0, bool* isvar = 0, bool* hexonly = 0);
-bool valfromstring(const char* string, duint* value, bool silent = true, bool baseonly = false, int* value_size = 0, bool* isvar = 0, bool* hexonly = 0);
+bool valfromstring_noexpr(const char* string, duint* value, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr);
+bool valfromstring(const char* string, duint* value, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr);
 bool valflagfromstring(duint eflags, const char* string);
 bool valtostring(const char* string, duint value, bool silent);
 bool valmxcsrflagfromstring(duint mxcsrflags, const char* string);

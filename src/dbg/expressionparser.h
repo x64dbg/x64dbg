@@ -6,8 +6,18 @@
 class ExpressionParser
 {
 public:
-    ExpressionParser(const String & expression);
-    bool calculate(duint & value, bool signedcalc, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly);
+    explicit ExpressionParser(const String & expression);
+    bool Calculate(duint & value, bool signedcalc, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const;
+
+    const String & GetExpression() const
+    {
+        return mExpression;
+    }
+
+    bool IsValidExpression() const
+    {
+        return mIsValidExpression;
+    }
 
     class Token
     {
@@ -57,22 +67,24 @@ public:
         bool isOperator() const;
 
     private:
-        String _data;
-        Type _type;
+        String mData;
+        Type mType;
     };
 
 private:
     static String fixClosingBrackets(const String & expression);
-    bool isUnaryOperator();
-    void tokenize(const String & expression);
+    bool isUnaryOperator() const;
+    void tokenize();
     void shuntingYard();
     void addOperatorToken(const char ch, const Token::Type type);
-    bool unsignedoperation(const Token::Type type, const duint op1, const duint op2, duint & result);
-    bool signedoperation(const Token::Type type, const dsint op1, const dsint op2, duint & result);
+    bool unsignedOperation(const Token::Type type, const duint op1, const duint op2, duint & result) const;
+    bool signedOperation(const Token::Type type, const dsint op1, const dsint op2, duint & result) const;
 
-    std::vector<Token> _tokens;
-    std::vector<Token> _prefixTokens;
-    String _curToken;
+    String mExpression;
+    bool mIsValidExpression;
+    std::vector<Token> mTokens;
+    std::vector<Token> mPrefixTokens;
+    String mCurToken;
 };
 
 #endif //_EXPRESSION_PARSER_H
