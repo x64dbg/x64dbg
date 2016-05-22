@@ -269,7 +269,7 @@ void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
     GuiStackDumpAt(dumpAddr, csp);
 }
 
-void BreakpointProlog(duint condition, BREAKPOINT& bp, PLUG_CB_BREAKPOINT& bpInfo)
+void BreakpointProlog(duint condition, BREAKPOINT & bp, PLUG_CB_BREAKPOINT & bpInfo)
 {
     // update GUI
     if(condition != 0)
@@ -332,7 +332,7 @@ void cbUserBreakpoint()
         //if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
         //    bp.active = true;
         //else
-            bp.active = MemIsValidReadPtr(bp.addr);
+        bp.active = MemIsValidReadPtr(bp.addr);
 
         if(bpPtr->condition[0] != 0)
         {
@@ -341,7 +341,7 @@ void cbUserBreakpoint()
             else
                 valfromstring(bp.condition, &condition); // if this fails, condition remains 1
             if(bp.fastResume && condition == 0) // fast resume : ignore GUI/Script/Plugin/Singleshoot/Other
-                 return;
+                return;
         }
         if(bp.logText[0] == 0 && condition != 0)
         {
@@ -399,7 +399,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
         //setBpActive(bp);
 
         //if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
-              bp.active = true;
+        bp.active = true;
         //else
         //    bp.active = MemIsValidReadPtr(bp.addr);
 
@@ -414,7 +414,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
         }
         if(bp.logText[0] == 0 && condition != 0)
         {
-            switch (TITANGETSIZE(bp.titantype)) //size
+            switch(TITANGETSIZE(bp.titantype))  //size
             {
             case UE_HARDWARE_SIZE_1:
                 bpsize = "byte, ";
@@ -432,7 +432,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
 #endif //_WIN64
             }
             const char* bptype = "";
-            switch (TITANGETTYPE(bp.titantype)) //type
+            switch(TITANGETTYPE(bp.titantype))  //type
             {
             case UE_HARDWARE_EXECUTE:
                 bptype = "execute";
@@ -497,7 +497,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
         //if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
         //    bp.active = true;
         //else
-              bp.active = MemIsValidReadPtr(bp.addr);
+        bp.active = MemIsValidReadPtr(bp.addr);
 
         if(bpPtr->condition[0] != 0)
         {
@@ -508,10 +508,10 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
             if(bp.fastResume && condition == 0) // fast resume : ignore GUI/Script/Plugin/Singleshoot/Other
                 return;
         }
-        if(bp.logText[0] == 0 && condition!=0)
+        if(bp.logText[0] == 0 && condition != 0)
         {
             const char* bptype = "";
-            switch (bp.titantype)
+            switch(bp.titantype)
             {
             case UE_MEMORY_READ:
                 bptype = " (read)";
