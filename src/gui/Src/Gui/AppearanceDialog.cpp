@@ -441,11 +441,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Loop Lines", "DisassemblyLoopColor", "");
 
     colorInfoListAppend("SideBar:", "", "");
-#ifdef _WIN64
-    colorInfoListAppend("RIP Label", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
-#else //x86
-    colorInfoListAppend("EIP Label", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
-#endif //_WIN64
+    colorInfoListAppend("Register Labels", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
     colorInfoListAppend("Bullets", "SideBarBulletColor", "");
     colorInfoListAppend("Breakpoints", "SideBarBulletBreakpointColor", "");
     colorInfoListAppend("Disabled Breakpoints", "SideBarBulletDisabledBreakpointColor", "");
