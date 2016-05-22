@@ -63,7 +63,7 @@ private:
     StdTable* mMemBPTable;
     QMenu* mConditionalBreakpointMenu;
     // Conditional BP Context Menu
-    int CurrentType;
+    BPXTYPE CurrentType;
     QAction* mConditionalSetCondition;
     QAction* mConditionalSetFastResume;
     QAction* mConditionalSetLog;

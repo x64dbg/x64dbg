@@ -310,7 +310,7 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
             BridgeFree(wBPList.bp);
 
         // Conditional
-        CurrentType = 2;
+        CurrentType = bp_hardware;
         wMenu->addMenu(mConditionalBreakpointMenu);
         wMenu->addAction(mHardBPResetHitCountAction);
 
@@ -446,7 +446,7 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
             BridgeFree(wBPList.bp);
 
         // Conditional
-        CurrentType = 1;
+        CurrentType = bp_normal;
         wMenu->addMenu(mConditionalBreakpointMenu);
         wMenu->addAction(mSoftBPResetHitCountAction);
 
@@ -588,7 +588,7 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
             BridgeFree(wBPList.bp);
 
         // Conditional
-        CurrentType = 3;
+        CurrentType = bp_memory;
         wMenu->addMenu(mConditionalBreakpointMenu);
         wMenu->addAction(mMemBPResetHitCountAction);
 
@@ -679,20 +679,20 @@ void BreakpointsView::setConditionSlot()
     LineEditDialog mLineEdit(this);
     switch(CurrentType)
     {
-    case 1:
+    case bp_normal:
         addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
         currentText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 6);
         break;
-    case 2:
+    case bp_hardware:
         addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
         currentText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 6);
         break;
-    case 3:
+    case bp_memory:
         addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
         currentText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 6);
         break;
     default:
-        __debugbreak();
+        return;
     }
     mLineEdit.setText(currentText);
     mLineEdit.setWindowTitle(tr("Set break condition on ") + addrText);
@@ -701,15 +701,17 @@ void BreakpointsView::setConditionSlot()
     currentText = mLineEdit.editText;
     switch(CurrentType)
     {
-    case 1:
+    case bp_normal:
         DbgCmdExecDirect(QString("bpcond " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
         break;
-    case 2:
+    case bp_hardware:
         DbgCmdExecDirect(QString("bphwcond " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
         break;
-    case 3:
+    case bp_memory:
         DbgCmdExecDirect(QString("bpmcond " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
         break;
+    default:
+        return;
     }
     reloadData();
 }
@@ -721,20 +723,20 @@ void BreakpointsView::setLogSlot()
     LineEditDialog mLineEdit(this);
     switch(CurrentType)
     {
-    case 1:
+    case bp_normal:
         addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
         currentText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 5);
         break;
-    case 2:
+    case bp_hardware:
         addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
         currentText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 5);
         break;
-    case 3:
+    case bp_memory:
         addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
         currentText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 5);
         break;
     default:
-        __debugbreak();
+        return;
     }
     mLineEdit.setText(currentText);
     mLineEdit.setWindowTitle(tr("Set log string on ") + addrText);
@@ -743,15 +745,17 @@ void BreakpointsView::setLogSlot()
     currentText = mLineEdit.editText;
     switch(CurrentType)
     {
-    case 1:
+    case bp_normal:
         DbgCmdExecDirect(QString("bplog " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
         break;
-    case 2:
+    case bp_hardware:
         DbgCmdExecDirect(QString("bphwlog " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
         break;
-    case 3:
+    case bp_memory:
         DbgCmdExecDirect(QString("bpmlog " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
         break;
+    default:
+        return;
     }
     reloadData();
 }
@@ -763,20 +767,20 @@ void BreakpointsView::setCmdSlot()
     LineEditDialog mLineEdit(this);
     switch(CurrentType)
     {
-    case 1:
+    case bp_normal:
         addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
         currentText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 8);
         break;
-    case 2:
+    case bp_hardware:
         addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
         currentText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 8);
         break;
-    case 3:
+    case bp_memory:
         addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
         currentText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 8);
         break;
     default:
-        __debugbreak();
+        return;
     }
     mLineEdit.setText(currentText);
     mLineEdit.setWindowTitle(tr("Set command to execute when hitting on ") + addrText);
@@ -785,15 +789,17 @@ void BreakpointsView::setCmdSlot()
     currentText = mLineEdit.editText;
     switch(CurrentType)
     {
-    case 1:
+    case bp_normal:
         DbgCmdExecDirect(QString("SetBreakpointCommand " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
         break;
-    case 2:
+    case bp_hardware:
         DbgCmdExecDirect(QString("SetHardwareBreakpointCommand " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
         break;
-    case 3:
+    case bp_memory:
         DbgCmdExecDirect(QString("SetMemoryBreakpointCommand " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
         break;
+    default:
+        return;
     }
     reloadData();
 }
@@ -804,33 +810,35 @@ void BreakpointsView::setFastResumeSlot()
     QString currentText;
     switch(CurrentType)
     {
-    case 1:
+    case bp_normal:
         addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
         currentText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 7);
         break;
-    case 2:
+    case bp_hardware:
         addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
         currentText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 7);
         break;
-    case 3:
+    case bp_memory:
         addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
         currentText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 7);
         break;
     default:
-        __debugbreak();
+        return;
     }
     currentText = currentText == "X" ? "0" : "1";
     switch(CurrentType)
     {
-    case 1:
+    case bp_normal:
         DbgCmdExecDirect(QString("SetBreakpointFastResume " + addrText + " , " + currentText).toUtf8().constData());
         break;
-    case 2:
+    case bp_hardware:
         DbgCmdExecDirect(QString("SetHardwareBreakpointFastResume " + addrText + " , " + currentText).toUtf8().constData());
         break;
-    case 3:
+    case bp_memory:
         DbgCmdExecDirect(QString("SetMemoryBreakpointFastResume " + addrText + " , " + currentText).toUtf8().constData());
         break;
+    default:
+        return;
     }
     reloadData();
 }
