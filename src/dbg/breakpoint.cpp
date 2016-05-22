@@ -9,6 +9,7 @@
 #include "threading.h"
 #include "module.h"
 #include "value.h"
+#include "debugger.h"
 
 typedef std::pair<BP_TYPE, duint> BreakpointKey;
 std::map<BreakpointKey, BREAKPOINT> breakpoints;
@@ -398,6 +399,21 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         break;
     case BPHARDWARE:
         BridgeBp->type = bp_hardware;
+        switch(((DWORD)Bp->titantype) >> 8)
+        {
+        case UE_DR0:
+            BridgeBp->slot = 0;
+            break;
+        case UE_DR1:
+            BridgeBp->slot = 1;
+            break;
+        case UE_DR2:
+            BridgeBp->slot = 2;
+            break;
+        case UE_DR3:
+            BridgeBp->slot = 3;
+            break;
+        }
         break;
     case BPMEMORY:
         BridgeBp->type = bp_memory;
