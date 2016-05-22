@@ -8,6 +8,8 @@
 #include "memory.h"
 #include "threading.h"
 #include "module.h"
+#include "value.h"
+#include "debugger.h"
 
 typedef std::pair<BP_TYPE, duint> BreakpointKey;
 std::map<BreakpointKey, BREAKPOINT> breakpoints;
@@ -121,7 +123,7 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
     for(auto & i : breakpoints)
     {
         // Do the names match?
-        if(strcmp(Name, i.second.name) != 0)
+        if(_stricmp(Name, i.second.name) != 0)
             continue;
 
         // Fill out the optional user buffer
@@ -136,6 +138,17 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         return true;
     }
 
+    return false;
+}
+
+bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
+{
+    if(BpGet(0, Type, Name, Bp))
+        return true;
+    duint addr;
+    if(valfromstring(Name, &addr))
+        if(BpGet(addr, Type, 0, Bp))
+            return true;
     return false;
 }
 
@@ -201,6 +214,66 @@ bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType)
         return false;
 
     bpInfo->titantype = TitanType;
+    return true;
+}
+
+bool BpSetCondition(duint Address, BP_TYPE Type, const char* Condition)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set breakpoint condition
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    strcpy_s(bpInfo->condition, Condition);
+    return true;
+}
+
+bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set breakpoint log
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    strcpy_s(bpInfo->logText, MAX_CONDITIONAL_LOG_SIZE, Log);
+    return true;
+}
+
+bool BpSetHitCommand(duint Address, BP_TYPE Type, const char* Cmd)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set breakpoint hit command
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    strcpy_s(bpInfo->hitcmd, MAX_CONDITIONAL_EXPR_SIZE, Cmd);
+    return true;
+}
+
+bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set breakpoint fast resume
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    bpInfo->fastResume = fastResume;
     return true;
 }
 
@@ -270,6 +343,32 @@ int BpGetCount(BP_TYPE Type, bool EnabledOnly)
     return count;
 }
 
+
+uint32 BpGetHitCount(duint Address, BP_TYPE Type)
+{
+    SHARED_ACQUIRE(LockBreakpoints);
+
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    return bpInfo->hitcount;
+}
+
+bool BpResetHitCount(duint Address, BP_TYPE Type, uint32 newHitCount)
+{
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    bpInfo->hitcount = newHitCount;
+    return true;
+}
+
 void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
 {
     //
@@ -282,11 +381,16 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
     memset(BridgeBp, 0, sizeof(BRIDGEBP));
     strcpy_s(BridgeBp->mod, Bp->mod);
     strcpy_s(BridgeBp->name, Bp->name);
+    strcpy_s(BridgeBp->condition, Bp->condition);
+    strcpy_s(BridgeBp->log, Bp->logText);
+    strcpy_s(BridgeBp->hitCmd, Bp->hitcmd);
 
     BridgeBp->active = Bp->active;
     BridgeBp->addr = Bp->addr;
     BridgeBp->enabled = Bp->enabled;
     BridgeBp->singleshoot = Bp->singleshoot;
+    BridgeBp->fastResume = Bp->fastResume;
+    BridgeBp->hitCount = Bp->hitcount;
 
     switch(Bp->type)
     {
@@ -295,6 +399,21 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         break;
     case BPHARDWARE:
         BridgeBp->type = bp_hardware;
+        switch(((DWORD)Bp->titantype) >> 8)
+        {
+        case UE_DR0:
+            BridgeBp->slot = 0;
+            break;
+        case UE_DR1:
+            BridgeBp->slot = 1;
+            break;
+        case UE_DR2:
+            BridgeBp->slot = 2;
+            break;
+        case UE_DR3:
+            BridgeBp->slot = 3;
+            break;
+        }
         break;
     case BPMEMORY:
         BridgeBp->type = bp_memory;
@@ -333,6 +452,10 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "titantype", json_hex(breakpoint.titantype));
         json_object_set_new(jsonObj, "name", json_string(breakpoint.name));
         json_object_set_new(jsonObj, "module", json_string(breakpoint.mod));
+        json_object_set_new(jsonObj, "condition", json_string(breakpoint.condition));
+        json_object_set_new(jsonObj, "log", json_string(breakpoint.logText));
+        json_object_set_new(jsonObj, "hitcommand", json_string(breakpoint.hitcmd));
+        json_object_set_new(jsonObj, "fastresume", json_boolean(true));
         json_array_append_new(jsonBreakpoints, jsonObj);
     }
 
@@ -372,14 +495,32 @@ void BpCacheLoad(JSON Root)
         breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
 
         // Name
-        const char* name = json_string_value(json_object_get(value, "name"));
-        if(name)
-            strcpy_s(breakpoint.name, name);
+        const char* text = json_string_value(json_object_get(value, "name"));
+        if(text)
+            strcpy_s(breakpoint.name, text);
 
         // Module
         const char* mod = json_string_value(json_object_get(value, "module"));
         if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
             strcpy_s(breakpoint.mod, mod);
+
+        // Condition
+        text = json_string_value(json_object_get(value, "condition"));
+        if(text)
+            strcpy_s(breakpoint.condition, text);
+
+        // Log string
+        text = json_string_value(json_object_get(value, "log"));
+        if(text)
+            strcpy_s(breakpoint.logText, text);
+
+        // Hit command
+        text = json_string_value(json_object_get(value, "hitcommand"));
+        if(text)
+            strcpy_s(breakpoint.hitcmd, text);
+
+        // Fast resume
+        breakpoint.fastResume = json_boolean_value(json_object_get(value, "fastresume"));
 
         // Build the hash map key: MOD_HASH + ADDRESS
         duint key = ModHashFromName(breakpoint.mod) + breakpoint.addr;

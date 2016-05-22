@@ -14,6 +14,7 @@ public:
     void setupHardBPRightClickContextMenu();
     void setupSoftBPRightClickContextMenu();
     void setupMemBPRightClickContextMenu();
+    void setupCondBPRightClickContextMenu();
 
 signals:
     void showCpu();
@@ -28,6 +29,7 @@ public slots:
     void removeAllHardBPActionSlot();
     void enableDisableHardBPActionSlot();
     void doubleClickHardwareSlot();
+    void resetHardwareHitCountSlot();
 
     // Software
     void softwareBPContextMenuSlot(const QPoint & pos);
@@ -37,6 +39,7 @@ public slots:
     void enableAllSoftBPActionSlot();
     void disableAllSoftBPActionSlot();
     void doubleClickSoftwareSlot();
+    void resetSoftwareHitCountSlot();
 
     // Memory
     void memoryBPContextMenuSlot(const QPoint & pos);
@@ -44,6 +47,13 @@ public slots:
     void removeAllMemBPActionSlot();
     void enableDisableMemBPActionSlot();
     void doubleClickMemorySlot();
+    void resetMemoryHitCountSlot();
+
+    // Conditional
+    void setLogSlot();
+    void setCmdSlot();
+    void setFastResumeSlot();
+    void setConditionSlot();
 
 private:
     QVBoxLayout* mVertLayout;
@@ -51,11 +61,19 @@ private:
     StdTable* mHardBPTable;
     StdTable* mSoftBPTable;
     StdTable* mMemBPTable;
+    QMenu* mConditionalBreakpointMenu;
+    // Conditional BP Context Menu
+    int CurrentType;
+    QAction* mConditionalSetCondition;
+    QAction* mConditionalSetFastResume;
+    QAction* mConditionalSetLog;
+    QAction* mConditionalSetCmd;
 
     // Hardware BP Context Menu
     QAction* mHardBPRemoveAction;
     QAction* mHardBPRemoveAllAction;
     QAction* mHardBPEnableDisableAction;
+    QAction* mHardBPResetHitCountAction;
 
     // Software BP Context Menu
     QAction* mSoftBPRemoveAction;
@@ -63,11 +81,13 @@ private:
     QAction* mSoftBPEnableDisableAction;
     QAction* mSoftBPEnableAllAction;
     QAction* mSoftBPDisableAllAction;
+    QAction* mSoftBPResetHitCountAction;
 
     // Memory BP Context Menu
     QAction* mMemBPRemoveAction;
     QAction* mMemBPRemoveAllAction;
     QAction* mMemBPEnableDisableAction;
+    QAction* mMemBPResetHitCountAction;
 };
 
 #endif // BREAKPOINTSVIEW_H
