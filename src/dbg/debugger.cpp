@@ -303,6 +303,117 @@ void BreakpointProlog(duint condition, BREAKPOINT & bp, PLUG_CB_BREAKPOINT & bpI
     wait(WAITID_RUN);
 }
 
+static void printSoftBpInfo(const BREAKPOINT & bp)
+{
+    auto bptype = "INT3";
+    int titantype = bp.titantype;
+    if((titantype & UE_BREAKPOINT_TYPE_UD2) == UE_BREAKPOINT_TYPE_UD2)
+        bptype = "UD2";
+    else if((titantype & UE_BREAKPOINT_TYPE_LONG_INT3) == UE_BREAKPOINT_TYPE_LONG_INT3)
+        bptype = "LONG INT3";
+    const char* symbolicname = SymGetSymbolicName(bp.addr);
+    if(symbolicname)
+    {
+        if(*bp.name)
+            dprintf("%s breakpoint \"%s\" at %s (" fhex ")!\n", bptype, bp.name, symbolicname, bp.addr);
+        else
+            dprintf("%s breakpoint at %s (" fhex ")!\n", bptype, symbolicname, bp.addr);
+    }
+    else
+    {
+        if(*bp.name)
+            dprintf("%s breakpoint \"%s\" at " fhex "!\n", bptype, bp.name, bp.addr);
+        else
+            dprintf("%s breakpoint at " fhex "!\n", bptype, bp.addr);
+    }
+}
+
+static void printHwBpInfo(const BREAKPOINT & bp)
+{
+    auto bpsize = "";
+    switch(TITANGETSIZE(bp.titantype))   //size
+    {
+    case UE_HARDWARE_SIZE_1:
+        bpsize = "byte, ";
+        break;
+    case UE_HARDWARE_SIZE_2:
+        bpsize = "word, ";
+        break;
+    case UE_HARDWARE_SIZE_4:
+        bpsize = "dword, ";
+        break;
+#ifdef _WIN64
+    case UE_HARDWARE_SIZE_8:
+        bpsize = "qword, ";
+        break;
+#endif //_WIN64
+    }
+    auto bptype = "";
+    switch(TITANGETTYPE(bp.titantype))   //type
+    {
+    case UE_HARDWARE_EXECUTE:
+        bptype = "execute";
+        bpsize = "";
+        break;
+    case UE_HARDWARE_READWRITE:
+        bptype = "read/write";
+        break;
+    case UE_HARDWARE_WRITE:
+        bptype = "write";
+        break;
+    }
+    const char* symbolicname = SymGetSymbolicName(bp.addr);
+    if(symbolicname)
+    {
+        if(*bp.name)
+            dprintf("Hardware breakpoint (%s%s) \"%s\" at %s (" fhex ")!\n", bpsize, bptype, bp.name, symbolicname, bp.addr);
+        else
+            dprintf("Hardware breakpoint (%s%s) at %s (" fhex ")!\n", bpsize, bptype, symbolicname, bp.addr);
+    }
+    else
+    {
+        if(*bp.name)
+            dprintf("Hardware breakpoint (%s%s) \"%s\" at " fhex "!\n", bpsize, bptype, bp.name, bp.addr);
+        else
+            dprintf("Hardware breakpoint (%s%s) at " fhex "!\n", bpsize, bptype, bp.addr);
+    }
+}
+
+static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
+{
+    const char* bptype = "";
+    switch(bp.titantype)
+    {
+    case UE_MEMORY_READ:
+        bptype = " (read)";
+        break;
+    case UE_MEMORY_WRITE:
+        bptype = " (write)";
+        break;
+    case UE_MEMORY_EXECUTE:
+        bptype = " (execute)";
+        break;
+    case UE_MEMORY:
+        bptype = " (read/write/execute)";
+        break;
+    }
+    auto symbolicname = SymGetSymbolicName(bp.addr);
+    if(symbolicname)
+    {
+        if(*bp.name)
+            dprintf("Memory breakpoint%s \"%s\" at %s (" fhex ", " fhex ")!\n", bptype, bp.name, symbolicname, bp.addr, ExceptionAddress);
+        else
+            dprintf("Memory breakpoint%s at %s (" fhex ", " fhex ")!\n", bptype, symbolicname, bp.addr, ExceptionAddress);
+    }
+    else
+    {
+        if(*bp.name)
+            dprintf("Memory breakpoint%s \"%s\" at " fhex " (" fhex ")!\n", bptype, bp.name, bp.addr, ExceptionAddress);
+        else
+            dprintf("Memory breakpoint%s at " fhex " (" fhex ")!\n", bptype, bp.addr, ExceptionAddress);
+    }
+}
+
 void cbUserBreakpoint()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -320,7 +431,6 @@ void cbUserBreakpoint()
         dputs("Breakpoint reached not in list!");
     else
     {
-        const char* bptype = "INT3";
         // increment hit count
         InterlockedIncrement(&bpPtr->hitcount);
         // condition eval
@@ -345,26 +455,7 @@ void cbUserBreakpoint()
         }
         if(bp.logText[0] == 0 && condition != 0)
         {
-            int titantype = bp.titantype;
-            if((titantype & UE_BREAKPOINT_TYPE_UD2) == UE_BREAKPOINT_TYPE_UD2)
-                bptype = "UD2";
-            else if((titantype & UE_BREAKPOINT_TYPE_LONG_INT3) == UE_BREAKPOINT_TYPE_LONG_INT3)
-                bptype = "LONG INT3";
-            const char* symbolicname = SymGetSymbolicName(bp.addr);
-            if(symbolicname)
-            {
-                if(*bp.name)
-                    dprintf("%s breakpoint \"%s\" at %s (" fhex ")!\n", bptype, bp.name, symbolicname, bp.addr);
-                else
-                    dprintf("%s breakpoint at %s (" fhex ")!\n", bptype, symbolicname, bp.addr);
-            }
-            else
-            {
-                if(*bp.name)
-                    dprintf("%s breakpoint \"%s\" at " fhex "!\n", bptype, bp.name, bp.addr);
-                else
-                    dprintf("%s breakpoint at " fhex "!\n", bptype, bp.addr);
-            }
+            printSoftBpInfo(bp);
         } // else: BreakpointProlog outputs the log.
         if(bp.singleshoot)
             BpDelete(bp.addr, BPNORMAL);
@@ -391,7 +482,6 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
         dputs("Hardware breakpoint reached not in list!");
     else
     {
-        const char* bpsize = "";
         // increment hit count
         InterlockedIncrement(&bpPtr->hitcount);
         // condition eval
@@ -416,52 +506,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
         }
         if(bp.logText[0] == 0 && condition != 0)
         {
-            switch(TITANGETSIZE(bp.titantype))  //size
-            {
-            case UE_HARDWARE_SIZE_1:
-                bpsize = "byte, ";
-                break;
-            case UE_HARDWARE_SIZE_2:
-                bpsize = "word, ";
-                break;
-            case UE_HARDWARE_SIZE_4:
-                bpsize = "dword, ";
-                break;
-#ifdef _WIN64
-            case UE_HARDWARE_SIZE_8:
-                bpsize = "qword, ";
-                break;
-#endif //_WIN64
-            }
-            const char* bptype = "";
-            switch(TITANGETTYPE(bp.titantype))  //type
-            {
-            case UE_HARDWARE_EXECUTE:
-                bptype = "execute";
-                bpsize = "";
-                break;
-            case UE_HARDWARE_READWRITE:
-                bptype = "read/write";
-                break;
-            case UE_HARDWARE_WRITE:
-                bptype = "write";
-                break;
-            }
-            const char* symbolicname = SymGetSymbolicName(bp.addr);
-            if(symbolicname)
-            {
-                if(*bp.name)
-                    dprintf("Hardware breakpoint (%s%s) \"%s\" at %s (" fhex ")!\n", bpsize, bptype, bp.name, symbolicname, bp.addr);
-                else
-                    dprintf("Hardware breakpoint (%s%s) at %s (" fhex ")!\n", bpsize, bptype, symbolicname, bp.addr);
-            }
-            else
-            {
-                if(*bp.name)
-                    dprintf("Hardware breakpoint (%s%s) \"%s\" at " fhex "!\n", bpsize, bptype, bp.name, bp.addr);
-                else
-                    dprintf("Hardware breakpoint (%s%s) at " fhex "!\n", bpsize, bptype, bp.addr);
-            }
+            printHwBpInfo(bp);
         } // else: BreakpointProlog outputs the log.
         if(bp.singleshoot)
             BpDelete(bp.addr, BPHARDWARE);
@@ -474,7 +519,6 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
 void cbMemoryBreakpoint(void* ExceptionAddress)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    BREAKPOINT* bpPtr;
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
@@ -485,7 +529,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
     memset(&bpInfo, 0, sizeof(bpInfo));
     CIP = GetContextDataEx(hActiveThread, UE_CIP);
     SHARED_ACQUIRE(LockBreakpoints);
-    bpPtr = BpInfoFromAddr(BPMEMORY, base);
+    auto bpPtr = BpInfoFromAddr(BPMEMORY, base);
     if(!(bpPtr && bpPtr->enabled))
         dputs("Memory breakpoint reached not in list!");
     else
@@ -514,37 +558,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
         }
         if(bp.logText[0] == 0 && condition != 0)
         {
-            const char* bptype = "";
-            switch(bp.titantype)
-            {
-            case UE_MEMORY_READ:
-                bptype = " (read)";
-                break;
-            case UE_MEMORY_WRITE:
-                bptype = " (write)";
-                break;
-            case UE_MEMORY_EXECUTE:
-                bptype = " (execute)";
-                break;
-            case UE_MEMORY:
-                bptype = " (read/write/execute)";
-                break;
-            }
-            const char* symbolicname = SymGetSymbolicName(bp.addr);
-            if(symbolicname)
-            {
-                if(*bp.name)
-                    dprintf("Memory breakpoint%s \"%s\" at %s (" fhex ", " fhex ")!\n", bptype, bp.name, symbolicname, bp.addr, ExceptionAddress);
-                else
-                    dprintf("Memory breakpoint%s at %s (" fhex ", " fhex ")!\n", bptype, symbolicname, bp.addr, ExceptionAddress);
-            }
-            else
-            {
-                if(*bp.name)
-                    dprintf("Memory breakpoint%s \"%s\" at " fhex " (" fhex ")!\n", bptype, bp.name, bp.addr, ExceptionAddress);
-                else
-                    dprintf("Memory breakpoint%s at " fhex " (" fhex ")!\n", bptype, bp.addr, ExceptionAddress);
-            }
+            printMemBpInfo(bp, ExceptionAddress);
         } // else: BreakpointProlog outputs the log.
         BpToBridge(&bp, &pluginBp);
         bpInfo.breakpoint = &pluginBp;
