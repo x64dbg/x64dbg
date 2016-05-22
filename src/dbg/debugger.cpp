@@ -22,6 +22,7 @@
 #include "module.h"
 #include "commandline.h"
 #include "stackinfo.h"
+#include "stringformat.h"
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
@@ -286,10 +287,7 @@ void BreakpointProlog(duint condition, BREAKPOINT & bp, PLUG_CB_BREAKPOINT & bpI
     // conditional
     if(bp.logText[0] != 0)
     {
-        char logText2[MAX_CONDITIONAL_LOG_SIZE + 1];
-        memcpy(logText2, bp.logText, MAX_CONDITIONAL_LOG_SIZE);
-        strcat_s(logText2, "\n");
-        GuiAddLogMessage(logText2);
+        dprintf("%s\n", stringformatinline(bp.logText).c_str());
     }
     if(bp.hitcmd[0] != 0 && condition != 0)
     {

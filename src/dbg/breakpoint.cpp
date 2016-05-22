@@ -455,7 +455,7 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "condition", json_string(breakpoint.condition));
         json_object_set_new(jsonObj, "log", json_string(breakpoint.logText));
         json_object_set_new(jsonObj, "hitcommand", json_string(breakpoint.hitcmd));
-        json_object_set_new(jsonObj, "fastresume", json_boolean(true));
+        json_object_set_new(jsonObj, "fastresume", json_boolean(breakpoint.fastResume));
         json_array_append_new(jsonBreakpoints, jsonObj);
     }
 
