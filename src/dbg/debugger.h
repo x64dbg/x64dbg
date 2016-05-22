@@ -115,4 +115,7 @@ extern char szSymbolCachePath[MAX_PATH];
 extern bool bUndecorateSymbolNames;
 extern bool bEnableSourceDebugging;
 
+//private
+void BreakpointProlog(duint condition, BREAKPOINT& bp, PLUG_CB_BREAKPOINT& bpInfo);
+
 #endif // _DEBUGGER_H
