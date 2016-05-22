@@ -224,10 +224,10 @@ bool BpSetCondition(duint Address, BP_TYPE Type, const char* Condition)
     // Set breakpoint condition
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
-    if (!bpInfo)
+    if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->condition, MAX_CONDITIONAL_EXPR_SIZE, Condition);
+    strcpy_s(bpInfo->condition, Condition);
     return true;
 }
 
@@ -239,7 +239,7 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log)
     // Set breakpoint condition
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
-    if (!bpInfo)
+    if(!bpInfo)
         return false;
 
     strcpy_s(bpInfo->logText, MAX_CONDITIONAL_LOG_SIZE, Log);
@@ -254,7 +254,7 @@ bool BpSetHitCommand(duint Address, BP_TYPE Type, const char* Cmd)
     // Set breakpoint condition
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
-    if (!bpInfo)
+    if(!bpInfo)
         return false;
 
     strcpy_s(bpInfo->hitcmd, MAX_CONDITIONAL_EXPR_SIZE, Cmd);
@@ -269,7 +269,7 @@ bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume)
     // Set breakpoint condition
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
-    if (!bpInfo)
+    if(!bpInfo)
         return false;
 
     bpInfo->fastResume = fastResume;
@@ -349,7 +349,7 @@ uint32 BpGetHitCount(duint Address, BP_TYPE Type)
 
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
-    if (!bpInfo)
+    if(!bpInfo)
         return false;
 
     return bpInfo->hitcount;
@@ -361,7 +361,7 @@ bool BpResetHitCount(duint Address, BP_TYPE Type, uint32 newHitCount)
 
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
-    if (!bpInfo)
+    if(!bpInfo)
         return false;
 
     bpInfo->hitcount = newHitCount;
@@ -480,7 +480,7 @@ void BpCacheLoad(JSON Root)
 
         // Name
         const char* text = json_string_value(json_object_get(value, "name"));
-        if (text)
+        if(text)
             strcpy_s(breakpoint.name, text);
 
         // Module
