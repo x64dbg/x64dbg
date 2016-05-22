@@ -325,6 +325,7 @@ void cbUserBreakpoint()
         InterlockedIncrement(&bpPtr->hitcount);
         // condition eval
         bp = *bpPtr;
+        SHARED_RELEASE();
         bp.addr += ModBaseFromAddr(CIP);
         //setBpActive(bp);
 
@@ -333,7 +334,7 @@ void cbUserBreakpoint()
         //else
         bp.active = MemIsValidReadPtr(bp.addr);
 
-        if(bpPtr->condition[0] != 0)
+        if(bp.condition[0] != 0)
         {
             if(*(uint16*)bp.condition == 0x30) // short curcit for condition "0"
                 condition = 0;
@@ -395,6 +396,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
         InterlockedIncrement(&bpPtr->hitcount);
         // condition eval
         bp = *bpPtr;
+        SHARED_RELEASE();
         bp.addr += ModBaseFromAddr(CIP);
         //setBpActive(bp);
 
@@ -403,7 +405,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
         //else
         //    bp.active = MemIsValidReadPtr(bp.addr);
 
-        if(bpPtr->condition[0] != 0)
+        if(bp.condition[0] != 0)
         {
             if(*(uint16*)bp.condition == 0x30) // short curcit for condition "0"
                 condition = 0;
@@ -492,6 +494,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
         InterlockedIncrement(&bpPtr->hitcount);
         // condition eval
         bp = *bpPtr;
+        SHARED_RELEASE();
         bp.addr += ModBaseFromAddr(CIP);
         //setBpActive(bp);
 
@@ -500,7 +503,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
         //else
         bp.active = MemIsValidReadPtr(bp.addr);
 
-        if(bpPtr->condition[0] != 0)
+        if(bp.condition[0] != 0)
         {
             if(*(uint16*)bp.condition == 0x30) // short curcit for condition "0"
                 condition = 0;
