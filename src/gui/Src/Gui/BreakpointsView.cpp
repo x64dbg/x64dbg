@@ -2,6 +2,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "Breakpoints.h"
+#include "LineEditDialog.h"
 
 BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 {
@@ -13,6 +14,11 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
     mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module/Label"), false);
     mSoftBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 10, tr("Hit count"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Log text"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Condition"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 2, tr("Fast resume"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
     mSoftBPTable->addColumnAt(wCharWidth * 10, tr("Comment"), false);
 
     // Hardware
@@ -22,6 +28,11 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
     mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module/Label"), false);
     mHardBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 10, tr("Hit count"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Log text"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Condition"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 2, tr("Fast resume"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
     mHardBPTable->addColumnAt(wCharWidth * 10, tr("Comment"), false);
 
     // Memory
@@ -31,6 +42,11 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
     mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module/Label"), false);
     mMemBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 10, tr("Hit count"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Log text"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Condition"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 2, tr("Fast resume"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
     mMemBPTable->addColumnAt(wCharWidth * 10, tr("Comment"), false);
 
     // Splitter
@@ -48,6 +64,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     this->setLayout(mVertLayout);
 
     // Create the action list for the right click context menu
+    setupCondBPRightClickContextMenu();
     setupHardBPRightClickContextMenu();
     setupSoftBPRightClickContextMenu();
     setupMemBPRightClickContextMenu();
@@ -98,16 +115,23 @@ void BreakpointsView::reloadData()
         else
             mHardBPTable->setCellContent(wI, 3, tr("Disabled"));
 
-        char comment[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
+        mHardBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
+        mHardBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].log));
+        mHardBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].condition));
+        mHardBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
+        mHardBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].hitCmd));
+
+        char text[MAX_COMMENT_SIZE] = "";
+        if(DbgGetCommentAt(wBPList.bp[wI].addr, text))
         {
-            if(comment[0] == '\1') //automatic comment
-                mHardBPTable->setCellContent(wI, 4, QString(comment + 1));
+            if(text[0] == '\1') //automatic comment
+                mHardBPTable->setCellContent(wI, 9, QString(text + 1));
             else
-                mHardBPTable->setCellContent(wI, 4, comment);
+                mHardBPTable->setCellContent(wI, 9, QString().fromUtf8(text));
         }
         else
-            mHardBPTable->setCellContent(wI, 4, "");
+            mHardBPTable->setCellContent(wI, 9, "");
+
     }
     mHardBPTable->reloadData();
     if(wBPList.count)
@@ -137,16 +161,22 @@ void BreakpointsView::reloadData()
         else
             mSoftBPTable->setCellContent(wI, 3, tr("Disabled"));
 
+        mSoftBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
+        mSoftBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].log));
+        mSoftBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].condition));
+        mSoftBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
+        mSoftBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].hitCmd));
+
         char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
         {
             if(comment[0] == '\1') //automatic comment
-                mSoftBPTable->setCellContent(wI, 4, QString(comment + 1));
+                mSoftBPTable->setCellContent(wI, 9, QString(comment + 1));
             else
-                mSoftBPTable->setCellContent(wI, 4, comment);
+                mSoftBPTable->setCellContent(wI, 9, QString().fromUtf8(comment));
         }
         else
-            mSoftBPTable->setCellContent(wI, 4, "");
+            mSoftBPTable->setCellContent(wI, 9, "");
     }
     mSoftBPTable->reloadData();
     if(wBPList.count)
@@ -176,16 +206,22 @@ void BreakpointsView::reloadData()
         else
             mMemBPTable->setCellContent(wI, 3, tr("Disabled"));
 
+        mMemBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
+        mMemBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].log));
+        mMemBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].condition));
+        mMemBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
+        mMemBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].hitCmd));
+
         char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
         {
             if(comment[0] == '\1') //automatic comment
-                mMemBPTable->setCellContent(wI, 4, QString(comment + 1));
+                mMemBPTable->setCellContent(wI, 9, QString(comment + 1));
             else
-                mMemBPTable->setCellContent(wI, 4, comment);
+                mMemBPTable->setCellContent(wI, 9, QString().fromUtf8(comment));
         }
         else
-            mMemBPTable->setCellContent(wI, 4, "");
+            mMemBPTable->setCellContent(wI, 9, "");
     }
     mMemBPTable->reloadData();
 
@@ -214,6 +250,11 @@ void BreakpointsView::setupHardBPRightClickContextMenu()
     mHardBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mHardBPTable->addAction(mHardBPEnableDisableAction);
     connect(mHardBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableHardBPActionSlot()));
+
+    // Reset hit count
+    mHardBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
+    mHardBPTable->addAction(mHardBPResetHitCountAction);
+    connect(mHardBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetHardwareHitCountSlot()));
 }
 
 void BreakpointsView::refreshShortcutsSlot()
@@ -268,6 +309,11 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
         if(wBPList.count)
             BridgeFree(wBPList.bp);
 
+        // Conditional
+        CurrentType = 2;
+        wMenu->addMenu(mConditionalBreakpointMenu);
+        wMenu->addAction(mHardBPResetHitCountAction);
+
         // Separator
         wMenu->addSeparator();
 
@@ -314,6 +360,13 @@ void BreakpointsView::doubleClickHardwareSlot()
     emit showCpu();
 }
 
+void BreakpointsView::resetHardwareHitCountSlot()
+{
+    StdTable* table = mHardBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("ResetHardwareBreakpointHitCount " + addrText).toUtf8().constData());
+    reloadData();
+}
 
 /************************************************************************************
                          Software Context Menu Management
@@ -335,6 +388,11 @@ void BreakpointsView::setupSoftBPRightClickContextMenu()
     mSoftBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mSoftBPTable->addAction(mSoftBPEnableDisableAction);
     connect(mSoftBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableSoftBPActionSlot()));
+
+    // Reset hit count
+    mSoftBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
+    mSoftBPTable->addAction(mSoftBPResetHitCountAction);
+    connect(mSoftBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetSoftwareHitCountSlot()));
 
     // Enable All
     mSoftBPEnableAllAction = new QAction(tr("Enable All"), this);
@@ -386,6 +444,11 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
         }
         if(wBPList.count)
             BridgeFree(wBPList.bp);
+
+        // Conditional
+        CurrentType = 1;
+        wMenu->addMenu(mConditionalBreakpointMenu);
+        wMenu->addAction(mSoftBPResetHitCountAction);
 
         // Separator
         wMenu->addSeparator();
@@ -449,6 +512,13 @@ void BreakpointsView::doubleClickSoftwareSlot()
     emit showCpu();
 }
 
+void BreakpointsView::resetSoftwareHitCountSlot()
+{
+    StdTable* table = mSoftBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("ResetSoftwareBreakpointHitCount " + addrText).toUtf8().constData());
+    reloadData();
+}
 
 /************************************************************************************
                          Memory Context Menu Management
@@ -470,6 +540,11 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
     mMemBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mMemBPTable->addAction(mMemBPEnableDisableAction);
     connect(mMemBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableMemBPActionSlot()));
+
+    // Reset hit count
+    mMemBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
+    mMemBPTable->addAction(mMemBPResetHitCountAction);
+    connect(mMemBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetMemoryHitCountSlot()));
 }
 
 void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
@@ -511,6 +586,11 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
         }
         if(wBPList.count)
             BridgeFree(wBPList.bp);
+
+        // Conditional
+        CurrentType = 3;
+        wMenu->addMenu(mConditionalBreakpointMenu);
+        wMenu->addAction(mMemBPResetHitCountAction);
 
         // Separator
         wMenu->addSeparator();
@@ -556,4 +636,201 @@ void BreakpointsView::doubleClickMemorySlot()
     QString addrText = table->getCellContent(table->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     emit showCpu();
+}
+
+void BreakpointsView::resetMemoryHitCountSlot()
+{
+    StdTable* table = mMemBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("ResetMemoryBreakpointHitCount " + addrText).toUtf8().constData());
+    reloadData();
+}
+
+
+/************************************************************************************
+           Conditional Breakpoint Context Menu Management (Sub-menu only)
+************************************************************************************/
+
+void BreakpointsView::setupCondBPRightClickContextMenu()
+{
+    mConditionalBreakpointMenu = new QMenu(tr("&Conditional/Logging"), this);
+
+    mConditionalSetCondition = new QAction(tr("&Condition..."), this);
+    connect(mConditionalSetCondition, SIGNAL(triggered()), this, SLOT(setConditionSlot()));
+    mConditionalBreakpointMenu->addAction(mConditionalSetCondition);
+
+    mConditionalSetFastResume = new QAction(tr("&Fast Resume"), this);
+    connect(mConditionalSetFastResume, SIGNAL(triggered()), this, SLOT(setFastResumeSlot()));
+    mConditionalBreakpointMenu->addAction(mConditionalSetFastResume);
+
+    mConditionalSetLog = new QAction(tr("&Log on hit..."), this);
+    connect(mConditionalSetLog, SIGNAL(triggered()), this, SLOT(setLogSlot()));
+    mConditionalBreakpointMenu->addAction(mConditionalSetLog);
+
+    mConditionalSetCmd = new QAction(tr("&Run command on hit..."), this);
+    connect(mConditionalSetCmd, SIGNAL(triggered()), this, SLOT(setCmdSlot()));
+    mConditionalBreakpointMenu->addAction(mConditionalSetCmd);
+}
+
+void BreakpointsView::setConditionSlot()
+{
+    QString addrText;
+    QString currentText;
+    LineEditDialog mLineEdit(this);
+    switch(CurrentType)
+    {
+    case 1:
+        addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
+        currentText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 6);
+        break;
+    case 2:
+        addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
+        currentText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 6);
+        break;
+    case 3:
+        addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
+        currentText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 6);
+        break;
+    default:
+        __debugbreak();
+    }
+    mLineEdit.setText(currentText);
+    mLineEdit.setWindowTitle(tr("Set break condition on ") + addrText);
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    currentText = mLineEdit.editText;
+    switch(CurrentType)
+    {
+    case 1:
+        DbgCmdExecDirect(QString("bpcond " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
+        break;
+    case 2:
+        DbgCmdExecDirect(QString("bphwcond " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
+        break;
+    case 3:
+        DbgCmdExecDirect(QString("bpmcond " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
+        break;
+    }
+    reloadData();
+}
+
+void BreakpointsView::setLogSlot()
+{
+    QString addrText;
+    QString currentText;
+    LineEditDialog mLineEdit(this);
+    switch(CurrentType)
+    {
+    case 1:
+        addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
+        currentText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 5);
+        break;
+    case 2:
+        addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
+        currentText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 5);
+        break;
+    case 3:
+        addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
+        currentText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 5);
+        break;
+    default:
+        __debugbreak();
+    }
+    mLineEdit.setText(currentText);
+    mLineEdit.setWindowTitle(tr("Set log string on ") + addrText);
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    currentText = mLineEdit.editText;
+    switch(CurrentType)
+    {
+    case 1:
+        DbgCmdExecDirect(QString("bplog " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
+        break;
+    case 2:
+        DbgCmdExecDirect(QString("bphwlog " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
+        break;
+    case 3:
+        DbgCmdExecDirect(QString("bpmlog " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
+        break;
+    }
+    reloadData();
+}
+
+void BreakpointsView::setCmdSlot()
+{
+    QString addrText;
+    QString currentText;
+    LineEditDialog mLineEdit(this);
+    switch(CurrentType)
+    {
+    case 1:
+        addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
+        currentText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 8);
+        break;
+    case 2:
+        addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
+        currentText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 8);
+        break;
+    case 3:
+        addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
+        currentText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 8);
+        break;
+    default:
+        __debugbreak();
+    }
+    mLineEdit.setText(currentText);
+    mLineEdit.setWindowTitle(tr("Set command to execute when hitting on ") + addrText);
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    currentText = mLineEdit.editText;
+    switch(CurrentType)
+    {
+    case 1:
+        DbgCmdExecDirect(QString("SetBreakpointCommand " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
+        break;
+    case 2:
+        DbgCmdExecDirect(QString("SetHardwareBreakpointCommand " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
+        break;
+    case 3:
+        DbgCmdExecDirect(QString("SetMemoryBreakpointCommand " + addrText + " , \"" + currentText + "\"").toUtf8().constData());
+        break;
+    }
+    reloadData();
+}
+
+void BreakpointsView::setFastResumeSlot()
+{
+    QString addrText;
+    QString currentText;
+    switch(CurrentType)
+    {
+    case 1:
+        addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
+        currentText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 7);
+        break;
+    case 2:
+        addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
+        currentText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 7);
+        break;
+    case 3:
+        addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
+        currentText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 7);
+        break;
+    default:
+        __debugbreak();
+    }
+    currentText = currentText == "X" ? "0" : "1";
+    switch(CurrentType)
+    {
+    case 1:
+        DbgCmdExecDirect(QString("SetBreakpointFastResume " + addrText + " , " + currentText).toUtf8().constData());
+        break;
+    case 2:
+        DbgCmdExecDirect(QString("SetHardwareBreakpointFastResume " + addrText + " , " + currentText).toUtf8().constData());
+        break;
+    case 3:
+        DbgCmdExecDirect(QString("SetMemoryBreakpointFastResume " + addrText + " , " + currentText).toUtf8().constData());
+        break;
+    }
+    reloadData();
 }
