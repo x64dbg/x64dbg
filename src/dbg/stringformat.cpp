@@ -53,32 +53,45 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
     return result;
 }
 
+static const char* getArgExpressionType(const String & formatString, ValueType::ValueType & type)
+{
+    auto hasExplicitType = false;
+    type = ValueType::Hex;
+    if(formatString.size() > 2 && formatString[1] == ':')
+    {
+        switch(formatString[0])
+        {
+        case 'd':
+            type = ValueType::SignedDecimal;
+            hasExplicitType = true;
+            break;
+        case 'u':
+            type = ValueType::UnsignedDecimal;
+            hasExplicitType = true;
+            break;
+        case 'p':
+            type = ValueType::Pointer;
+            hasExplicitType = true;
+            break;
+        case 's':
+            type = ValueType::String;
+            hasExplicitType = true;
+            break;
+        default:
+            break;
+        }
+    }
+    auto expression = formatString.c_str();
+    if(hasExplicitType)
+        expression += 2;
+    return expression;
+}
+
 static unsigned int getArgNumType(const String & formatString, ValueType::ValueType & type)
 {
-    int add = 0;
-    switch(formatString[0])
-    {
-    case 'd':
-        type = ValueType::SignedDecimal;
-        add++;
-        break;
-    case 'u':
-        type = ValueType::UnsignedDecimal;
-        add++;
-        break;
-    case 'p':
-        type = ValueType::Pointer;
-        add++;
-        break;
-    case 's':
-        type = ValueType::String;
-        add++;
-        break;
-    default:
-        type = ValueType::Hex;
-    }
+    auto expression = getArgExpressionType(formatString, type);
     unsigned int argnum = 0;
-    if(sscanf(formatString.c_str() + add, "%u", &argnum) != 1)
+    if(!expression || sscanf(expression, "%u", &argnum) != 1)
         type = ValueType::Unknown;
     return argnum;
 }
@@ -139,45 +152,10 @@ String stringformat(String format, const FormatValueVector & values)
     return output;
 }
 
-static const char* getArgValueTypeInline(const String & formatString, ValueType::ValueType & type)
-{
-    auto hasExplicitType = false;
-    if(formatString.size() > 2 && formatString[1] == ':')
-    {
-        switch(formatString[0])
-        {
-        case 'd':
-            type = ValueType::SignedDecimal;
-            hasExplicitType = true;
-            break;
-        case 'u':
-            type = ValueType::UnsignedDecimal;
-            hasExplicitType = true;
-            break;
-        case 'p':
-            type = ValueType::Pointer;
-            hasExplicitType = true;
-            break;
-        case 's':
-            type = ValueType::String;
-            hasExplicitType = true;
-            break;
-        default:
-            break;
-        }
-    }
-    auto expression = formatString.c_str();
-    if(hasExplicitType)
-        expression += 2;
-    else
-        type = ValueType::Hex;
-    return expression;
-}
-
 static String handleFormatStringInline(const String & formatString)
 {
     auto type = ValueType::Unknown;
-    auto value = getArgValueTypeInline(formatString, type);
+    auto value = getArgExpressionType(formatString, type);
     if(value && *value)
         return printValue(value, type);
     return "[Formatting Error]";
