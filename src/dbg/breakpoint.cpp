@@ -236,7 +236,7 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log)
     ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    // Set breakpoint condition
+    // Set breakpoint log
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
     if(!bpInfo)
@@ -251,7 +251,7 @@ bool BpSetHitCommand(duint Address, BP_TYPE Type, const char* Cmd)
     ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    // Set breakpoint condition
+    // Set breakpoint hit command
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
     if(!bpInfo)
@@ -266,7 +266,7 @@ bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume)
     ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    // Set breakpoint condition
+    // Set breakpoint fast resume
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
     if(!bpInfo)
