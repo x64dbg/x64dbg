@@ -231,17 +231,7 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
     QString moduleText;
     duint addr = value.value;
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, label_);
-    if(!bHasLabel) //handle function+offset
-    {
-        duint start;
-        if(DbgFunctionGet(addr, &start, nullptr) && DbgGetLabelAt(start, SEG_DEFAULT, label_))
-        {
-            labelText = QString("%1+%2").arg(label_).arg(ToHexString(addr - start));
-            bHasLabel = true;
-        }
-    }
-    else
-        labelText = QString(label_);
+    labelText = QString(label_);
     bool bHasModule = (expandModule && DbgGetModuleAt(addr, module_) && !QString(labelText).startsWith("JMP.&"));
     moduleText = QString(module_);
     if(maxModuleLength != -1)
