@@ -1683,7 +1683,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
 /**
 \brief Gets a value from a string. This function can parse expressions, memory locations, registers, flags, API names, labels, symbols and variables.
 \param string The string to parse.
-\param [out] value The value of the expression. This value cannot be null.
+\param [out] value The value of the expression. This value cannot be null. When the expression is invalid, value is not changed.
 \param silent true to not output anything to the console.
 \param baseonly true to skip parsing API names, labels, symbols and variables (basic expressions only).
 \param [out] value_size This function can output the value size parsed (for example memory location size or register size). Can be null.
