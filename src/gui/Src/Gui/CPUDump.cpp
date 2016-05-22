@@ -802,12 +802,12 @@ void CPUDump::setLabelSlot()
     char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
-    mLineEdit.setWindowTitle("Add label at " + addr_text);
+    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetLabelAt failed!"));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -1697,5 +1697,4 @@ void CPUDump::gotoPrevSlot()
 {
     historyPrev();
 }
-
 
