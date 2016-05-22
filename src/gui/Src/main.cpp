@@ -1,8 +1,10 @@
 #include "main.h"
 #include "capstone_wrapper.h"
 #include <QTextCodec>
+#include <QFile>
 
-MyApplication::MyApplication(int & argc, char** argv) : QApplication(argc, argv)
+MyApplication::MyApplication(int & argc, char** argv)
+    : QApplication(argc, argv)
 {
 }
 
@@ -56,6 +58,14 @@ static bool isValidLocale(const QString & locale)
 int main(int argc, char* argv[])
 {
     MyApplication application(argc, argv);
+    QFile f(QString("%1/style.css").arg(QCoreApplication::applicationDirPath()));
+    if(f.open(QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream in(&f);
+        auto style = in.readAll();
+        f.close();
+        application.setStyleSheet(style);
+    }
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);
 #else
@@ -78,7 +88,8 @@ int main(int argc, char* argv[])
 
     //x64dbg and x32dbg can share the same translation
     QTranslator x64dbgTranslator;
-    if(x64dbgTranslator.load(QString("x64dbg_%1").arg(locale), "./../translations"))
+    auto path = QString("%1/../translations").arg(QCoreApplication::applicationDirPath());
+    if(x64dbgTranslator.load(QString("x64dbg_%1").arg(locale), path))
         application.installTranslator(&x64dbgTranslator);
 
     // initialize capstone
