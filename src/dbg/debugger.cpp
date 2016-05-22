@@ -314,6 +314,7 @@ void cbUserBreakpoint()
     duint condition = 1;
     memset(&bpInfo, 0, sizeof(bpInfo));
     CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    SHARED_ACQUIRE(LockBreakpoints);
     bpPtr = BpInfoFromAddr(BPNORMAL, CIP);
     if(!(bpPtr && bpPtr->enabled))
         dputs("Breakpoint reached not in list!");
@@ -383,6 +384,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
     duint condition = 1;
     memset(&bpInfo, 0, sizeof(bpInfo));
     CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    SHARED_ACQUIRE(LockBreakpoints);
     bpPtr = BpInfoFromAddr(BPHARDWARE, (duint)ExceptionAddress);
     if(!(bpPtr && bpPtr->enabled))
         dputs("Hardware breakpoint reached not in list!");
@@ -480,6 +482,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
     duint condition = 1;
     memset(&bpInfo, 0, sizeof(bpInfo));
     CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    SHARED_ACQUIRE(LockBreakpoints);
     bpPtr = BpInfoFromAddr(BPMEMORY, base);
     if(!(bpPtr && bpPtr->enabled))
         dputs("Memory breakpoint reached not in list!");
