@@ -16,7 +16,9 @@
 
 QString MainWindow::windowTitle = "";
 
-MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget* parent)
+    : QMainWindow(parent),
+      ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
@@ -1241,4 +1243,20 @@ void MainWindow::chkSaveloadTabSavedOrderStateChangedSlot(bool state)
 void MainWindow::on_actionFaq_triggered()
 {
     QDesktopServices::openUrl(QUrl("http://faq.x64dbg.com"));
+}
+
+void MainWindow::on_actionReloadStylesheet_triggered()
+{
+    QFile f(QString("%1/style.css").arg(QCoreApplication::applicationDirPath()));
+    if(f.open(QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream in(&f);
+        auto style = in.readAll();
+        f.close();
+        qApp->setStyleSheet(style);
+    }
+    else
+        qApp->setStyleSheet("");
+    ensurePolished();
+    update();
 }

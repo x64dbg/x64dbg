@@ -23,7 +23,7 @@
      <x>0</x>
      <y>0</y>
      <width>868</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -119,6 +119,7 @@
     <addaction name="actionAppearance"/>
     <addaction name="actionShortcuts"/>
     <addaction name="actionTopmost"/>
+    <addaction name="actionReloadStylesheet"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -711,8 +712,27 @@
    </property>
   </action>
   <action name="actionHideDebugger">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/hide-debugger.png</normaloff>:/icons/images/hide-debugger.png</iconset>
+   </property>
    <property name="text">
-    <string>Hide debugger</string>
+    <string>Hide debugger (PEB)</string>
+   </property>
+   <property name="toolTip">
+    <string>Hide debugger (PEB)</string>
+   </property>
+  </action>
+  <action name="actionReloadStylesheet">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/css.png</normaloff>:/icons/images/css.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reload style.css</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload style.css</string>
    </property>
   </action>
  </widget>
