@@ -90,13 +90,10 @@ void CPUSideBar::repaint()
 
 void CPUSideBar::changeTopmostAddress(dsint i)
 {
-    if(i != topVA)
-    {
-        topVA = i;
-        memset(&regDump, 0, sizeof(REGDUMP));
-        DbgGetRegDump(&regDump);
-        repaint();
-    }
+    topVA = i;
+    memset(&regDump, 0, sizeof(REGDUMP));
+    DbgGetRegDump(&regDump);
+    repaint();
 }
 
 void CPUSideBar::setViewableRows(int rows)
@@ -145,8 +142,42 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     if(mInstrBuffer->size() == 0)
         return;
 
-    // Line numbers to draw each register label
-    int registerLines[9] = { -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    QHash<duint, QString> regLabelMap;
+    auto appendReg = [&](duint value, const char* x32name, const char* x64name)
+    {
+#ifdef _WIN64
+        Q_UNUSED(x32name);
+        QString name = x64name;
+#else
+        Q_UNUSED(x64name);
+        QString name = x32name;
+#endif //_WIN64
+        auto found = regLabelMap.find(value);
+        if(found == regLabelMap.end())
+            regLabelMap.insert(value, name);
+        else
+            regLabelMap.insert(value, QString("%1 %2").arg(found.value()).arg(name));
+    };
+    const auto & regs = regDump.regcontext;
+    appendReg(regs.cip, "EIP", "RIP");
+    appendReg(regs.cax, "EAX", "RAX");
+    appendReg(regs.cbx, "EBX", "RBX");
+    appendReg(regs.ccx, "ECX", "RCX");
+    appendReg(regs.cdx, "EDX", "RDX");
+    appendReg(regs.cbp, "EBP", "RBP");
+    appendReg(regs.csp, "ESP", "RSP");
+    appendReg(regs.csi, "ESI", "RSI");
+    appendReg(regs.cdi, "EDI", "RDI");
+#ifdef _WIN64
+    appendReg(regs.r8, "", "R8");
+    appendReg(regs.r9, "", "R9");
+    appendReg(regs.r10, "", "R10");
+    appendReg(regs.r11, "", "R11");
+    appendReg(regs.r12, "", "R12");
+    appendReg(regs.r13, "", "R13");
+    appendReg(regs.r14, "", "R14");
+    appendReg(regs.r15, "", "R15");
+#endif //_WIN64
 
     int jumpoffset = 0;
 
@@ -205,38 +236,10 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             else if(destVA < first_va)
                 drawJump(&painter, line, -6, jumpoffset, isConditional, isJumpGoingToExecute, isSelected);
         }
-
-        // Register label line positions
-        const dsint cur_VA = mDisas->getBase() + mInstrBuffer->at(line).rva;
-
-        if(mInstrBuffer->at(line).rva == mDisas->currentEIP())
-            registerLines[0] = line;
-
-        if(cur_VA == regDump.regcontext.cax) registerLines[1] = line;
-        if(cur_VA == regDump.regcontext.cbx) registerLines[2] = line;
-        if(cur_VA == regDump.regcontext.ccx) registerLines[3] = line;
-        if(cur_VA == regDump.regcontext.cdx) registerLines[4] = line;
-        if(cur_VA == regDump.regcontext.csi) registerLines[5] = line;
-        if(cur_VA == regDump.regcontext.cdi) registerLines[6] = line;
+        auto found = regLabelMap.find(instrVA);
+        if(found != regLabelMap.end())
+            drawLabel(&painter, line, found.value());
     }
-
-#ifdef _WIN64
-    if(registerLines[0] != -1) drawLabel(&painter, registerLines[0], "RIP");
-    if(registerLines[1] != -1) drawLabel(&painter, registerLines[1], "RAX");
-    if(registerLines[2] != -1) drawLabel(&painter, registerLines[2], "RBX");
-    if(registerLines[3] != -1) drawLabel(&painter, registerLines[3], "RCX");
-    if(registerLines[4] != -1) drawLabel(&painter, registerLines[4], "RDX");
-    if(registerLines[5] != -1) drawLabel(&painter, registerLines[5], "RSI");
-    if(registerLines[6] != -1) drawLabel(&painter, registerLines[6], "RDI");
-#else //x86
-    if(registerLines[0] != -1) drawLabel(&painter, registerLines[0], "EIP");
-    if(registerLines[1] != -1) drawLabel(&painter, registerLines[1], "EAX");
-    if(registerLines[2] != -1) drawLabel(&painter, registerLines[2], "EBX");
-    if(registerLines[3] != -1) drawLabel(&painter, registerLines[3], "ECX");
-    if(registerLines[4] != -1) drawLabel(&painter, registerLines[4], "EDX");
-    if(registerLines[5] != -1) drawLabel(&painter, registerLines[5], "ESI");
-    if(registerLines[6] != -1) drawLabel(&painter, registerLines[6], "EDI");
-#endif //_WIN64
 }
 
 void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
@@ -484,7 +487,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
     painter->restore();
 }
 
-void CPUSideBar::drawLabel(QPainter* painter, int Line, QString Text)
+void CPUSideBar::drawLabel(QPainter* painter, int Line, const QString & Text)
 {
     painter->save();
     const int LineCoordinate = fontHeight * (1 + Line);
