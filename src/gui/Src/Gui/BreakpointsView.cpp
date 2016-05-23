@@ -85,7 +85,6 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     connect(mMemBPTable, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickMemorySlot()));
 }
 
-
 void BreakpointsView::reloadData()
 {
     BPMAP wBPList;
@@ -255,6 +254,16 @@ void BreakpointsView::setupHardBPRightClickContextMenu()
     mHardBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
     mHardBPTable->addAction(mHardBPResetHitCountAction);
     connect(mHardBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetHardwareHitCountSlot()));
+
+    // Enable All
+    mHardBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mHardBPTable->addAction(mHardBPEnableAllAction);
+    connect(mHardBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllHardBPActionSlot()));
+
+    // Disable All
+    mHardBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mHardBPTable->addAction(mHardBPDisableAllAction);
+    connect(mHardBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllHardBPActionSlot()));
 }
 
 void BreakpointsView::refreshShortcutsSlot()
@@ -317,6 +326,12 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
         // Separator
         wMenu->addSeparator();
 
+        // Enable All
+        wMenu->addAction(mHardBPEnableAllAction);
+
+        // Disable All
+        wMenu->addAction(mHardBPDisableAllAction);
+
         // Remove All
         wMenu->addAction(mHardBPRemoveAllAction);
 
@@ -350,6 +365,16 @@ void BreakpointsView::enableDisableHardBPActionSlot()
     StdTable* table = mHardBPTable;
     Breakpoints::toggleBPByDisabling(bp_hardware, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
     table->selectNext();
+}
+
+void BreakpointsView::enableAllHardBPActionSlot()
+{
+    DbgCmdExec("bphwe");
+}
+
+void BreakpointsView::disableAllHardBPActionSlot()
+{
+    DbgCmdExec("bphwd");
 }
 
 void BreakpointsView::doubleClickHardwareSlot()
@@ -496,12 +521,12 @@ void BreakpointsView::enableDisableSoftBPActionSlot()
 
 void BreakpointsView::enableAllSoftBPActionSlot()
 {
-    Breakpoints::toggleAllBP(bp_normal, true);
+    DbgCmdExec("bpe");
 }
 
 void BreakpointsView::disableAllSoftBPActionSlot()
 {
-    Breakpoints::toggleAllBP(bp_normal, false);
+    DbgCmdExec("bpd");
 }
 
 void BreakpointsView::doubleClickSoftwareSlot()
@@ -545,6 +570,16 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
     mMemBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
     mMemBPTable->addAction(mMemBPResetHitCountAction);
     connect(mMemBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetMemoryHitCountSlot()));
+
+    // Enable All
+    mMemBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mMemBPTable->addAction(mMemBPEnableAllAction);
+    connect(mMemBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllMemBPActionSlot()));
+
+    // Disable All
+    mMemBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mMemBPTable->addAction(mMemBPDisableAllAction);
+    connect(mMemBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllMemBPActionSlot()));
 }
 
 void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
@@ -595,6 +630,12 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
         // Separator
         wMenu->addSeparator();
 
+        // Enable All
+        wMenu->addAction(mMemBPEnableAllAction);
+
+        // Disable All
+        wMenu->addAction(mMemBPDisableAllAction);
+
         // Remove All
         wMenu->addAction(mMemBPRemoveAllAction);
 
@@ -628,6 +669,16 @@ void BreakpointsView::enableDisableMemBPActionSlot()
     StdTable* table = mMemBPTable;
     Breakpoints::toggleBPByDisabling(bp_memory, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
     table->selectNext();
+}
+
+void BreakpointsView::enableAllMemBPActionSlot()
+{
+    DbgCmdExec("bpme");
+}
+
+void BreakpointsView::disableAllMemBPActionSlot()
+{
+    DbgCmdExec("bpmd");
 }
 
 void BreakpointsView::doubleClickMemorySlot()

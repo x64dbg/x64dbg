@@ -28,6 +28,8 @@ public slots:
     void removeHardBPActionSlot();
     void removeAllHardBPActionSlot();
     void enableDisableHardBPActionSlot();
+    void enableAllHardBPActionSlot();
+    void disableAllHardBPActionSlot();
     void doubleClickHardwareSlot();
     void resetHardwareHitCountSlot();
 
@@ -46,6 +48,8 @@ public slots:
     void removeMemBPActionSlot();
     void removeAllMemBPActionSlot();
     void enableDisableMemBPActionSlot();
+    void enableAllMemBPActionSlot();
+    void disableAllMemBPActionSlot();
     void doubleClickMemorySlot();
     void resetMemoryHitCountSlot();
 
@@ -74,20 +78,24 @@ private:
     QAction* mHardBPRemoveAllAction;
     QAction* mHardBPEnableDisableAction;
     QAction* mHardBPResetHitCountAction;
+    QAction* mHardBPEnableAllAction;
+    QAction* mHardBPDisableAllAction;
 
     // Software BP Context Menu
     QAction* mSoftBPRemoveAction;
     QAction* mSoftBPRemoveAllAction;
     QAction* mSoftBPEnableDisableAction;
+    QAction* mSoftBPResetHitCountAction;
     QAction* mSoftBPEnableAllAction;
     QAction* mSoftBPDisableAllAction;
-    QAction* mSoftBPResetHitCountAction;
 
     // Memory BP Context Menu
     QAction* mMemBPRemoveAction;
     QAction* mMemBPRemoveAllAction;
     QAction* mMemBPEnableDisableAction;
     QAction* mMemBPResetHitCountAction;
+    QAction* mMemBPEnableAllAction;
+    QAction* mMemBPDisableAllAction;
 };
 
 #endif // BREAKPOINTSVIEW_H

@@ -2,7 +2,6 @@
 
 Breakpoints::Breakpoints(QObject* parent) : QObject(parent)
 {
-
 }
 
 /**
@@ -243,7 +242,7 @@ void Breakpoints::removeBP(BPXTYPE type, duint va)
  */
 void Breakpoints::toggleBPByDisabling(const BRIDGEBP & bp)
 {
-    if(bp.enabled == true)
+    if(bp.enabled)
         disableBP(bp);
     else
         enableBP(bp);
