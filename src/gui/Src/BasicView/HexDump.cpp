@@ -380,7 +380,6 @@ void HexDump::getString(int col, dsint rva, QList<RichTextPainter::CustomRichTex
     wBufferByteCount = wBufferByteCount > (dsint)(mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : wBufferByteCount;
 
     byte_t* wData = new byte_t[wBufferByteCount];
-    //byte_t wData[mDescriptor.at(col).itemCount * wByteCount];
 
     mMemPage->read(wData, rva, wBufferByteCount);
 
