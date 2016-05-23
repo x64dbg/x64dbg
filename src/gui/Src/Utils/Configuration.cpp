@@ -516,10 +516,7 @@ const QColor Configuration::getColor(const QString id) const
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1").arg(id).toUtf8().constData());
     return Qt::black;
 }
 
@@ -529,16 +526,10 @@ const bool Configuration::getBool(const QString category, const QString id) cons
     {
         if(Bools[category].contains(id))
             return Bools[category][id];
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
-        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1:%2").arg(category).arg(id).toUtf8().constData());
         return false;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1").arg(category));
     return false;
 }
 
@@ -551,16 +542,10 @@ void Configuration::setBool(const QString category, const QString id, const bool
             Bools[category][id] = b;
             return;
         }
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
-        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1:%2").arg(category).arg(id).toUtf8().constData());
         return;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1").arg(category).toUtf8().constData());
 }
 
 const duint Configuration::getUint(const QString category, const QString id) const
@@ -569,16 +554,10 @@ const duint Configuration::getUint(const QString category, const QString id) con
     {
         if(Uints[category].contains(id))
             return Uints[category][id];
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
-        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1:%2").arg(category).arg(id).toUtf8().constData());
         return 0;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1").arg(category).toUtf8().constData());
     return 0;
 }
 
@@ -591,16 +570,10 @@ void Configuration::setUint(const QString category, const QString id, const duin
             Uints[category][id] = i;
             return;
         }
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
-        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1:%2").arg(category).arg(id).toUtf8().constData());
         return;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1").arg(category).toUtf8().constData());
 }
 
 const QFont Configuration::getFont(const QString id) const
