@@ -367,7 +367,7 @@ void MainWindow::loadTabSavedOrder()
 {
     clearTabWidget();
 
-    QMap<duint, std::pair<QWidget*,QString> > tabIndexToWidget;
+    QMap<duint, std::pair<QWidget*, QString>> tabIndexToWidget;
 
     // Get tabIndex for each widget and add them to tabIndexToWidget
     for(int i = 0; i < mWidgetList.size(); i++)
@@ -1208,6 +1208,11 @@ void MainWindow::canClose()
 void MainWindow::addQWidgetTab(QWidget* qWidget, QString nativeName)
 {
     mTabWidget->addTabEx(qWidget, qWidget->windowIcon(), qWidget->windowTitle(), nativeName);
+}
+
+void MainWindow::addQWidgetTab(QWidget* qWidget)
+{
+    addQWidgetTab(qWidget, qWidget->windowTitle());
 }
 
 void MainWindow::showQWidgetTab(QWidget* qWidget)

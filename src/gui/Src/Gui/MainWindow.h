@@ -118,6 +118,7 @@ public slots:
     void decompileAt(dsint start, dsint end);
     void canClose();
     void addQWidgetTab(QWidget* qWidget, QString nativeName);
+    void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
     void executeOnGuiThread(void* cbGuiThread);
