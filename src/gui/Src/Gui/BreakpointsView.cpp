@@ -10,7 +10,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mSoftBPTable = new StdTable(this);
     int wCharWidth = mSoftBPTable->getCharWidth();
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mSoftBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Software"), false, "Address");
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Software"), false, tr("Address"));
     mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
     mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module/Label"), false);
     mSoftBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
@@ -24,7 +24,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     // Hardware
     mHardBPTable = new StdTable(this);
     mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Hardware"), false, "Address");
+    mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Hardware"), false, tr("Address"));
     mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
     mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module/Label"), false);
     mHardBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
@@ -38,7 +38,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     // Memory
     mMemBPTable = new StdTable(this);
     mMemBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Memory"), false, "Address");
+    mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Memory"), false, tr("Address"));
     mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
     mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module/Label"), false);
     mMemBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
