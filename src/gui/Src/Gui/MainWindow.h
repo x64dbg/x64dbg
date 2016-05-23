@@ -123,6 +123,7 @@ public slots:
     void executeOnGuiThread(void* cbGuiThread);
     void tabMovedSlot(int from, int to);
     void chkSaveloadTabSavedOrderStateChangedSlot(bool state);
+    void dbgStateChangedSlot(DBGSTATE state);
 
 private:
     Ui::MainWindow* ui;

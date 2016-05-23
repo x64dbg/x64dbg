@@ -45,6 +45,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(closeQWidgetTab(QWidget*)), this, SLOT(closeQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(executeOnGuiThread(void*)), this, SLOT(executeOnGuiThread(void*)));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
 
     // Setup menu API
     initMenuApi();
@@ -256,12 +257,10 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
-
     // Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException = 0;
     defaultSettings.SaveSettings();
-
 
     // Create updatechecker
     mUpdateChecker = new UpdateChecker(this);
@@ -1238,6 +1237,12 @@ void MainWindow::chkSaveloadTabSavedOrderStateChangedSlot(bool state)
         loadTabSavedOrder();
     else
         loadTabDefaultOrder();
+}
+
+void MainWindow::dbgStateChangedSlot(DBGSTATE state)
+{
+    if(state == initialized) //fixes a crash when restarting with certain settings in another tab
+        displayCpuWidget();
 }
 
 void MainWindow::on_actionFaq_triggered()
