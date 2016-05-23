@@ -394,24 +394,6 @@ static bool getConditionValue(const char* expression)
     return true;
 }
 
-static void getConditionValues(const BREAKPOINT & bp, bool & breakCondition, bool & logCondition, bool & commandCondition)
-{
-    if(*bp.breakCondition)
-        breakCondition = getConditionValue(bp.breakCondition);
-    else
-        breakCondition = true; //break if no condition is set
-    if(bp.fastResume)
-        return;
-    if(*bp.logCondition)
-        logCondition = getConditionValue(bp.logCondition);
-    else
-        logCondition = true; //log if no condition is set
-    if(*bp.commandCondition)
-        commandCondition = getConditionValue(bp.commandCondition);
-    else
-        commandCondition = breakCondition; //if no condition is set, execute the command when the debugger would break
-}
-
 static void BreakpointProlog(BREAKPOINT & bp, bool breakCondition, bool logCondition, bool commandCondition)
 {
     // update GUI
@@ -501,7 +483,20 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     bool breakCondition;
     bool logCondition;
     bool commandCondition;
-    getConditionValues(bp, breakCondition, logCondition, commandCondition);
+    if(*bp.breakCondition)
+        breakCondition = getConditionValue(bp.breakCondition);
+    else
+        breakCondition = true; //break if no condition is set
+    if(bp.fastResume && !breakCondition)  // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
+        return;
+    if(*bp.logCondition)
+        logCondition = getConditionValue(bp.logCondition);
+    else
+        logCondition = true; //log if no condition is set
+    if(*bp.commandCondition)
+        commandCondition = getConditionValue(bp.commandCondition);
+    else
+        commandCondition = breakCondition; //if no condition is set, execute the command when the debugger would break
 
     if(breakCondition)
     {
@@ -522,8 +517,6 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
             break;
         }
     }
-    else if(bp.fastResume)  // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
-        return;
 
     BreakpointProlog(bp, breakCondition, logCondition, commandCondition);
 }
