@@ -405,9 +405,12 @@ static void BreakpointProlog(BREAKPOINT & bp, bool breakCondition, bool logCondi
 
     // plugin interaction
     lock(WAITID_RUN);
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = nullptr;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    if(breakCondition)
+    {
+        PLUG_CB_PAUSEDEBUG pauseInfo;
+        pauseInfo.reserved = nullptr;
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    }
     PLUG_CB_BREAKPOINT bpInfo;
     BRIDGEBP bridgebp;
     bpInfo.breakpoint = &bridgebp;
@@ -457,6 +460,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     }
     if(!(bpPtr && bpPtr->enabled))  //invalid / disabled breakpoint hit (most likely a bug)
     {
+        SHARED_RELEASE();
         dputs("Breakpoint reached not in list!");
         GuiSetDebugState(paused);
         DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
