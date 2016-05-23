@@ -305,7 +305,9 @@ bool CapstoneTokenizer::tokenizeMnemonic()
     else if(_cp.IsInt3())
         type = TokenType::MnemonicInt3;
     else if(_cp.InGroup(CS_GRP_PRIVILEGE) || _cp.InGroup(CS_GRP_IRET) || _cp.InGroup(CS_GRP_INVALID)
-            || id == X86_INS_RDTSC || id == X86_INS_SYSCALL || id == X86_INS_SYSENTER || id == X86_INS_CPUID || id == X86_INS_RDRAND || id == X86_INS_RDTSCP)
+            || id == X86_INS_RDTSC || id == X86_INS_SYSCALL || id == X86_INS_SYSENTER || id == X86_INS_CPUID || id == X86_INS_RDRAND || id == X86_INS_RDTSCP
+            || id == X86_INS_OUT || id == X86_INS_OUTSB || id == X86_INS_OUTSD || id == X86_INS_OUTSW
+            || id == X86_INS_IN || id == X86_INS_INSB || id == X86_INS_INSD || id == X86_INS_INSW)
         type = TokenType::MnemonicUnusual;
     else
     {
