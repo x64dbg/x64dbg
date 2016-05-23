@@ -11,6 +11,7 @@
 #include "YaraRuleSelectionDialog.h"
 #include "AssembleDialog.h"
 #include "StringUtil.h"
+#include "Breakpoints.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -231,6 +232,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     QAction* toggleBreakpointAction = makeShortcutAction(tr("Toggle"), SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
+    QAction* editSoftwareBreakpointAction = makeAction(tr("Edit"), SLOT(editSoftBpActionSlot()));
     QAction* setHwBreakpointAction = makeAction(tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()));
     QAction* removeHwBreakpointAction = makeAction(tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()));
 
@@ -243,6 +245,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/breakpoint.png"), tr("Breakpoint")), [ = ](QMenu * menu)
     {
         BPXTYPE bpType = DbgGetBpxTypeAt(rvaToVa(getInitialSelection()));
+        if((bpType & bp_normal) == bp_normal)
+            menu->addAction(editSoftwareBreakpointAction);
 
         menu->addAction(toggleBreakpointAction);
 
@@ -1358,4 +1362,9 @@ void CPUDisassembly::labelHelpSlot()
     {
         QDesktopServices::openUrl(QUrl(fullUrl));
     }
+}
+
+void CPUDisassembly::editSoftBpActionSlot()
+{
+    Breakpoints::editBP(bp_normal, ToHexString(rvaToVa(getInitialSelection())), this);
 }
