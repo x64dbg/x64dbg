@@ -565,7 +565,7 @@ void BreakpointsView::resetSoftwareHitCountSlot()
 {
     StdTable* table = mSoftBPTable;
     QString addrText = table->getCellContent(table->getInitialSelection(), 0);
-    DbgCmdExecDirect(QString("ResetSoftwareBreakpointHitCount " + addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("ResetBreakpointHitCount " + addrText).toUtf8().constData());
     reloadData();
 }
 
