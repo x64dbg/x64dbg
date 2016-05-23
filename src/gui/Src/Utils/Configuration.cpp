@@ -529,7 +529,7 @@ const bool Configuration::getBool(const QString category, const QString id) cons
         GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1:%2").arg(category).arg(id).toUtf8().constData());
         return false;
     }
-    GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1").arg(category));
+    GuiAddLogMessage(QString("NOT FOUND IN CONFIG! %1").arg(category).toUtf8().constData());
     return false;
 }
 
