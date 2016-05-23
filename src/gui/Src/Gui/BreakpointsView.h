@@ -11,10 +11,10 @@ class BreakpointsView : public QWidget
     Q_OBJECT
 public:
     explicit BreakpointsView(QWidget* parent = 0);
+    void setupRightClickContextMenu();
     void setupHardBPRightClickContextMenu();
     void setupSoftBPRightClickContextMenu();
     void setupMemBPRightClickContextMenu();
-    void setupCondBPRightClickContextMenu();
 
 signals:
     void showCpu();
@@ -31,6 +31,7 @@ public slots:
     void enableAllHardBPActionSlot();
     void disableAllHardBPActionSlot();
     void doubleClickHardwareSlot();
+    void selectionChangedHardwareSlot();
     void resetHardwareHitCountSlot();
 
     // Software
@@ -41,6 +42,7 @@ public slots:
     void enableAllSoftBPActionSlot();
     void disableAllSoftBPActionSlot();
     void doubleClickSoftwareSlot();
+    void selectionChangedSoftwareSlot();
     void resetSoftwareHitCountSlot();
 
     // Memory
@@ -51,13 +53,11 @@ public slots:
     void enableAllMemBPActionSlot();
     void disableAllMemBPActionSlot();
     void doubleClickMemorySlot();
+    void selectionChangedMemorySlot();
     void resetMemoryHitCountSlot();
 
     // Conditional
-    void setLogSlot();
-    void setCmdSlot();
-    void setFastResumeSlot();
-    void setConditionSlot();
+    void editBreakpointSlot();
 
 private:
     QVBoxLayout* mVertLayout;
@@ -65,13 +65,9 @@ private:
     StdTable* mHardBPTable;
     StdTable* mSoftBPTable;
     StdTable* mMemBPTable;
-    QMenu* mConditionalBreakpointMenu;
     // Conditional BP Context Menu
-    BPXTYPE CurrentType;
-    QAction* mConditionalSetCondition;
-    QAction* mConditionalSetFastResume;
-    QAction* mConditionalSetLog;
-    QAction* mConditionalSetCmd;
+    BPXTYPE mCurrentType;
+    QAction* mEditBreakpointAction;
 
     // Hardware BP Context Menu
     QAction* mHardBPRemoveAction;
