@@ -6,14 +6,33 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>568</width>
-    <height>261</height>
+    <width>506</width>
+    <height>221</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Edit breakpoint</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../resource.qrc">
+    <normaloff>:/icons/images/breakpoint.png</normaloff>:/icons/images/breakpoint.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>6</number>
+   </property>
+   <property name="leftMargin">
+    <number>6</number>
+   </property>
+   <property name="topMargin">
+    <number>6</number>
+   </property>
+   <property name="rightMargin">
+    <number>6</number>
+   </property>
+   <property name="bottomMargin">
+    <number>6</number>
+   </property>
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <property name="leftMargin">
@@ -25,40 +44,7 @@
      <property name="horizontalSpacing">
       <number>6</number>
      </property>
-     <item row="0" column="0">
-      <widget class="QLabel" name="labelName">
-       <property name="text">
-        <string>&amp;Name:</string>
-       </property>
-       <property name="buddy">
-        <cstring>editName</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="editName"/>
-     </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="labelHitCount">
-       <property name="text">
-        <string>&amp;Hit Count:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="labelBreakCondition">
-       <property name="text">
-        <string>&amp;Break Condition:</string>
-       </property>
-       <property name="buddy">
-        <cstring>editBreakCondition</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="editBreakCondition"/>
-     </item>
-     <item row="3" column="0">
       <widget class="QLabel" name="labelLogText">
        <property name="text">
         <string>&amp;Log Text:</string>
@@ -68,10 +54,29 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelBreakCondition">
+       <property name="text">
+        <string>&amp;Break Condition:</string>
+       </property>
+       <property name="buddy">
+        <cstring>editBreakCondition</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="editBreakCondition"/>
+     </item>
+     <item row="1" column="1">
       <widget class="QLineEdit" name="editLogText"/>
      </item>
-     <item row="4" column="0">
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="editName"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="editLogCondition"/>
+     </item>
+     <item row="2" column="0">
       <widget class="QLabel" name="labelLogCondition">
        <property name="text">
         <string>Lo&amp;g Condition:</string>
@@ -81,17 +86,17 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
-      <widget class="QLineEdit" name="editLogCondition"/>
-     </item>
-     <item row="5" column="1">
-      <widget class="QCheckBox" name="checkBoxFastResume">
+     <item row="5" column="0">
+      <widget class="QLabel" name="labelName">
        <property name="text">
-        <string>&amp;Fast Resume</string>
+        <string>&amp;Name:</string>
+       </property>
+       <property name="buddy">
+        <cstring>editName</cstring>
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="labelCommandText">
        <property name="text">
         <string>&amp;Command Text:</string>
@@ -101,10 +106,30 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="1">
+     <item row="3" column="1">
       <widget class="QLineEdit" name="editCommandText"/>
      </item>
-     <item row="7" column="0">
+     <item row="6" column="1">
+      <widget class="QSpinBox" name="spinHitCount">
+       <property name="minimum">
+        <number>0</number>
+       </property>
+       <property name="maximum">
+        <number>2000000000</number>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="labelHitCount">
+       <property name="text">
+        <string>&amp;Hit Count:</string>
+       </property>
+       <property name="buddy">
+        <cstring>spinHitCount</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
       <widget class="QLabel" name="labelCommandCondition">
        <property name="text">
         <string>C&amp;ommand Condition:</string>
@@ -114,32 +139,8 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="1">
+     <item row="4" column="1">
       <widget class="QLineEdit" name="editCommandCondition"/>
-     </item>
-     <item row="1" column="1">
-      <layout class="QHBoxLayout" name="layoutHitCount">
-       <property name="spacing">
-        <number>3</number>
-       </property>
-       <property name="sizeConstraint">
-        <enum>QLayout::SetMinimumSize</enum>
-       </property>
-       <item>
-        <widget class="QLineEdit" name="editHitCount">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="buttonResetCount">
-         <property name="text">
-          <string>&amp;Reset</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </item>
     </layout>
    </item>
@@ -159,6 +160,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QCheckBox" name="checkBoxFastResume">
+       <property name="text">
+        <string>&amp;Fast Resume</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="buttonSave">
        <property name="text">
         <string>&amp;Save</string>
@@ -174,33 +182,17 @@
      </item>
     </layout>
    </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>editName</tabstop>
-  <tabstop>editBreakCondition</tabstop>
-  <tabstop>editLogText</tabstop>
-  <tabstop>editLogCondition</tabstop>
-  <tabstop>checkBoxFastResume</tabstop>
-  <tabstop>editCommandText</tabstop>
-  <tabstop>editCommandCondition</tabstop>
+  <tabstop>spinHitCount</tabstop>
   <tabstop>buttonSave</tabstop>
   <tabstop>buttonCancel</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../../resource.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonCancel</sender>

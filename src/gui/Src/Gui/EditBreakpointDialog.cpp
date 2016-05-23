@@ -1,5 +1,6 @@
 #include "EditBreakpointDialog.h"
 #include "ui_EditBreakpointDialog.h"
+#include "StringUtil.h"
 
 EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     : QDialog(parent),
@@ -7,6 +8,12 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
       mBp(bp)
 {
     ui->setupUi(this);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+    setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
+    setFixedSize(this->size()); //fixed size
+    setWindowTitle(QString("Edit Breakpoint %1").arg(ToHexString(bp.addr)));
+    loadFromBp();
 }
 
 EditBreakpointDialog::~EditBreakpointDialog()
@@ -17,7 +24,7 @@ EditBreakpointDialog::~EditBreakpointDialog()
 void EditBreakpointDialog::loadFromBp()
 {
     ui->editName->setText(mBp.name);
-    ui->editHitCount->setText(QString("%1").arg(mBp.hitCount));
+    ui->spinHitCount->setValue(mBp.hitCount);
     ui->editBreakCondition->setText(mBp.breakCondition);
     ui->checkBoxFastResume->setChecked(mBp.fastResume);
     ui->editLogText->setText(mBp.logText);
@@ -62,13 +69,12 @@ void EditBreakpointDialog::on_editCommandCondition_textEdited(const QString & ar
     copyTruncate(mBp.commandCondition, arg1);
 }
 
-void EditBreakpointDialog::on_buttonResetCount_clicked()
-{
-    mBp.hitCount = 0;
-    ui->editHitCount->setText(QString("%1").arg(mBp.hitCount));
-}
-
 void EditBreakpointDialog::on_checkBoxFastResume_toggled(bool checked)
 {
     mBp.fastResume = checked;
+}
+
+void EditBreakpointDialog::on_spinHitCount_valueChanged(int arg1)
+{
+    mBp.hitCount = arg1;
 }
