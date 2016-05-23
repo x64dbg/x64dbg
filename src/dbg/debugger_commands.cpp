@@ -445,8 +445,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-
-CMDRESULT cbDebugSetBPXConditionCommon(BP_TYPE Type, int argc, char* argv[])
+static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], const char* description, std::function<bool(duint, BP_TYPE, const char*)> setFunction)
 {
     BREAKPOINT bp;
     if(argc < 2)
@@ -454,123 +453,94 @@ CMDRESULT cbDebugSetBPXConditionCommon(BP_TYPE Type, int argc, char* argv[])
         dprintf("not enough arguments!\n");
         return STATUS_ERROR;
     }
-    else if(argc == 2)
+    auto value = "";
+    if(argc > 2)
+        value = argv[2];
+
+    if(!BpGetAny(Type, argv[1], &bp))
     {
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            if(!BpSetCondition(bp.addr, Type, ""))
-            {
-                dprintf("Can't set condition on breakpoint \"%s\"\n", argv[1]);
-                return STATUS_ERROR;
-            }
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
+        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
     }
-    else
+    if(!setFunction(bp.addr, Type, value))
     {
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            BpSetCondition(bp.addr, Type, argv[2]);
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
+        dprintf("Can't set %s on breakpoint \"%s\"\n", description, argv[1]);
+        return STATUS_ERROR;
     }
+    dprintf("%s set to \"%s\"!\n", description, value);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSetBPXConditionCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "break condition", BpSetBreakCondition);
 }
 
 CMDRESULT cbDebugSetBPXLogCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    BREAKPOINT bp;
-    if(argc < 2)
-    {
-        dprintf("not enough arguments!\n");
-        return STATUS_ERROR;
-    }
-    else if(argc == 2)
-    {
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            if(!(BpSetLogText(bp.addr, Type, "")))
-            {
-                dprintf("Can't set logging text on breakpoint \"%s\"\n", argv[1]);
-                return STATUS_ERROR;
-            }
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
-    }
-    else
-    {
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            BpSetLogText(bp.addr, Type, argv[2]);
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
-    }
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "logging text", BpSetLogText);
+}
+
+CMDRESULT cbDebugSetBPXLogConditionCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "logging condition", BpSetLogCondition);
 }
 
 CMDRESULT cbDebugSetBPXCommandCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    BREAKPOINT bp;
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "command on hit", BpSetCommandText);
+}
+
+CMDRESULT cbDebugSetBPXCommandConditionCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "command condition", BpSetCommandCondition);
+}
+
+static CMDRESULT cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
+{
     if(argc < 2)
     {
         dprintf("not enough arguments!\n");
         return STATUS_ERROR;
     }
-    else if(argc == 2)
+    BREAKPOINT bp;
+    if(!BpGetAny(Type, argv[1], &bp))
     {
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            if(!BpSetHitCommand(bp.addr, Type, ""))
-            {
-                dprintf("Can't set command on hit on breakpoint \"%s\"", argv[1]);
-                return STATUS_ERROR;
-            }
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
+        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
     }
-    else
-    {
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            if(!(BpSetHitCommand(bp.addr, Type, argv[2])))
-            {
-                dprintf("Can't set command on hit on breakpoint \"%s\"", argv[1]);
-                return STATUS_ERROR;
-            }
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
-    }
+    varset("$result", bp.hitcount, false);
+    return STATUS_CONTINUE;
+
 }
 
-CMDRESULT cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
+static CMDRESULT cbDebugResetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dprintf("not enough arguments!\n");
+        return STATUS_ERROR;
+    }
+    duint value = 0;
+    if(argc > 2)
+        if(!valfromstring(argv[2], &value, false))
+            return STATUS_ERROR;
+    BREAKPOINT bp;
+    if(!BpGetAny(Type, argv[1], &bp))
+    {
+        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!BpResetHitCount(bp.addr, Type, (uint32)value))
+    {
+        dprintf("Can't set hit count on breakpoint \"%s\"", argv[1]);
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+
+}
+
+static CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* argv[])
 {
     BREAKPOINT bp;
     if(argc < 2)
@@ -578,129 +548,25 @@ CMDRESULT cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
         dprintf("not enough arguments!\n");
         return STATUS_ERROR;
     }
-    else if(argc == 2)
-    {
-        duint result;
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            //result = BpGetHitCount(bp.addr, bp.type);
-            result = bp.hitcount; // improving performance
-            varset("$result", result, false);
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
-    }
-    else
-    {
-        dprintf("Too much arguments!\n");
-        return STATUS_ERROR;
-    }
-}
-
-CMDRESULT cbDebugResetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
-{
-    BREAKPOINT bp;
-    if(argc < 2)
-    {
-        dprintf("not enough arguments!\n");
-        return STATUS_ERROR;
-    }
-    else if(argc == 2)
-    {
-        duint result;
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            result = BpResetHitCount(bp.addr, bp.type, 0);
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
-    }
-    else
+    auto fastResume = true;
+    if(argc > 2)
     {
         duint value;
-        if(!(valfromstring(argv[2], &value)))
-        {
-            dprintf("Invalid expression \"%1\"", argv[2]);
-        }
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            if(!(BpResetHitCount(bp.addr, Type, (uint32)value)))
-            {
-                dprintf("Can't set command on hit on breakpoint \"%s\"", argv[1]);
-                return STATUS_ERROR;
-            }
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        if(!valfromstring(argv[2], &value, false))
             return STATUS_ERROR;
-        }
+        fastResume = value != 0;
     }
-}
-
-
-CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* argv[])
-{
-    BREAKPOINT bp;
-    if(argc < 2)
+    if(!BpGetAny(Type, argv[1], &bp))
     {
-        dprintf("not enough arguments!\n");
+        dprintf("No such breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
-    else if(argc == 2)
+    if(!BpSetFastResume(bp.addr, Type, fastResume))
     {
-        duint value;
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            if(!valfromstring(argv[2], &value))
-            {
-                dprintf("Invalid expression \"%1\"", argv[2]);
-                return STATUS_ERROR;
-            }
-            if(!(BpSetFastResume(bp.addr, Type, true)))
-            {
-                dprintf("Can't set fast resume on breakpoint \"%1\"", argv[1]);
-                return STATUS_ERROR;
-            }
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
+        dprintf("Can't set fast resume on breakpoint \"%1\"", argv[1]);
+        return STATUS_ERROR;
     }
-    else
-    {
-        duint result;
-        if(!(valfromstring(argv[2], &result)))
-        {
-            dprintf("Invalid expression \"%1\"", argv[2]);
-        }
-        if(BpGetAny(Type, argv[1], &bp))
-        {
-            if(!(BpSetFastResume(bp.addr, Type, result != 0)))
-            {
-                dprintf("Can't set fast resume on breakpoint \"%1\"", argv[1]);
-                return STATUS_ERROR;
-            }
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf("No such breakpoint \"%s\"\n", argv[1]);
-            return STATUS_ERROR;
-        }
-    }
+    return STATUS_CONTINUE;
 }
 
 CMDRESULT cbDebugSetBPXCondition(int argc, char* argv[])
@@ -713,9 +579,19 @@ CMDRESULT cbDebugSetBPXLog(int argc, char* argv[])
     return cbDebugSetBPXLogCommon(BPNORMAL, argc, argv);
 }
 
+CMDRESULT cbDebugSetBPXLogCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogConditionCommon(BPNORMAL, argc, argv);
+}
+
 CMDRESULT cbDebugSetBPXCommand(int argc, char* argv[])
 {
     return cbDebugSetBPXCommandCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXCommandCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXCommandConditionCommon(BPNORMAL, argc, argv);
 }
 
 CMDRESULT cbDebugSetBPXFastResume(int argc, char* argv[])
@@ -743,9 +619,19 @@ CMDRESULT cbDebugSetBPXHardwareLog(int argc, char* argv[])
     return cbDebugSetBPXLogCommon(BPHARDWARE, argc, argv);
 }
 
+CMDRESULT cbDebugSetBPXHardwareLogCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogConditionCommon(BPHARDWARE, argc, argv);
+}
+
 CMDRESULT cbDebugSetBPXHardwareCommand(int argc, char* argv[])
 {
     return cbDebugSetBPXCommandCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXHardwareCommandCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXCommandConditionCommon(BPHARDWARE, argc, argv);
 }
 
 CMDRESULT cbDebugSetBPXHardwareFastResume(int argc, char* argv[])
@@ -773,9 +659,19 @@ CMDRESULT cbDebugSetBPXMemoryLog(int argc, char* argv[])
     return cbDebugSetBPXLogCommon(BPMEMORY, argc, argv);
 }
 
+CMDRESULT cbDebugSetBPXMemoryLogCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogConditionCommon(BPMEMORY, argc, argv);
+}
+
 CMDRESULT cbDebugSetBPXMemoryCommand(int argc, char* argv[])
 {
     return cbDebugSetBPXCommandCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXMemoryCommandCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXCommandConditionCommon(BPMEMORY, argc, argv);
 }
 
 CMDRESULT cbDebugResetBPXMemoryHitCount(int argc, char* argv[])
@@ -792,6 +688,7 @@ CMDRESULT cbDebugGetBPXMemoryHitCount(int argc, char* argv[])
 {
     return cbDebugGetBPXHitCountCommon(BPMEMORY, argc, argv);
 }
+
 CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
 {
     if(argc < 2)

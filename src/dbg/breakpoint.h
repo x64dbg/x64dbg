@@ -19,20 +19,22 @@ enum BP_TYPE
 
 struct BREAKPOINT
 {
-    duint addr;
-    bool enabled;
-    bool singleshoot;
-    bool active;
-    unsigned short oldbytes;
-    BP_TYPE type;
-    DWORD titantype;
-    char name[MAX_BREAKPOINT_SIZE];
-    char mod[MAX_MODULE_SIZE];
-    char condition[MAX_CONDITIONAL_EXPR_SIZE]; // condition to stop. If true, debugger halts.
-    char logText[MAX_CONDITIONAL_LOG_SIZE];    // text to log.
-    char hitcmd[MAX_CONDITIONAL_EXPR_SIZE];    // script command to execute.
-    uint32 hitcount;                           // hit counter
-    bool fastResume;                           // if true, debugger resumes without any GUI/Script/Plugin interaction.
+    duint addr;                                       // address of the breakpoint (rva relative to base of mod)
+    bool enabled;                                     // whether the breakpoint is enabled
+    bool singleshoot;                                 // whether the breakpoint should be deleted on first hit
+    bool active;                                      // whether the breakpoint is active or not
+    unsigned short oldbytes;                          // original bytes (for software breakpoitns)
+    BP_TYPE type;                                     // breakpoint type
+    DWORD titantype;                                  // type passed to titanengine
+    char name[MAX_BREAKPOINT_SIZE];                   // breakpoint name
+    char mod[MAX_MODULE_SIZE];                        // module name
+    char breakCondition[MAX_CONDITIONAL_EXPR_SIZE];   // condition to stop. If true, debugger halts.
+    char logText[MAX_CONDITIONAL_TEXT_SIZE];          // text to log.
+    char logCondition[MAX_CONDITIONAL_EXPR_SIZE];     // condition to log
+    char commandText[MAX_CONDITIONAL_TEXT_SIZE];      // script command to execute.
+    char commandCondition[MAX_CONDITIONAL_EXPR_SIZE]; // condition to execute the command
+    uint32 hitcount;                                  // hit counter
+    bool fastResume;                                  // if true, debugger resumes without any GUI/Script/Plugin interaction.
 };
 
 // Breakpoint enumeration callback
@@ -47,9 +49,11 @@ bool BpDelete(duint Address, BP_TYPE Type);
 bool BpEnable(duint Address, BP_TYPE Type, bool Enable);
 bool BpSetName(duint Address, BP_TYPE Type, const char* Name);
 bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType);
-bool BpSetCondition(duint Address, BP_TYPE Type, const char* Condition);
+bool BpSetBreakCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log);
-bool BpSetHitCommand(duint Address, BP_TYPE Type, const char* Cmd);
+bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition);
+bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd);
+bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback);

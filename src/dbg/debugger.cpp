@@ -270,39 +270,6 @@ void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
     GuiStackDumpAt(dumpAddr, csp);
 }
 
-void BreakpointProlog(duint condition, BREAKPOINT & bp, PLUG_CB_BREAKPOINT & bpInfo)
-{
-    // update GUI
-    if(condition != 0)
-    {
-        GuiSetDebugState(paused);
-        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
-    }
-    // plugin interaction
-    lock(WAITID_RUN);
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    memset(&pauseInfo, 0, sizeof(pauseInfo));
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    plugincbcall(CB_BREAKPOINT, &bpInfo);
-    // conditional
-    if(bp.logText[0] != 0)
-    {
-        dprintf("%s\n", stringformatinline(bp.logText).c_str());
-    }
-    if(bp.hitcmd[0] != 0 && condition != 0)
-    {
-        DbgCmdExec(bp.hitcmd);
-    }
-    if(condition == 0)
-    {
-        unlock(WAITID_RUN);
-        SetForegroundWindow(GuiGetWindowHandle());
-        bSkipExceptions = false;
-    }
-    //lock
-    wait(WAITID_RUN);
-}
-
 static void printSoftBpInfo(const BREAKPOINT & bp)
 {
     auto bptype = "INT3";
@@ -414,158 +381,164 @@ static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
     }
 }
 
-void cbUserBreakpoint()
+static bool getConditionValue(const char* expression)
+{
+    auto word = *(uint16*)expression;
+    if(word == '0')  // short circuit for condition "0\0"
+        return false;
+    if(word == '1')  //short circuit for condition "1\0"
+        return true;
+    duint value;
+    if(valfromstring(expression, &value))
+        return value != 0;
+    return true;
+}
+
+static void getConditionValues(const BREAKPOINT & bp, bool & breakCondition, bool & logCondition, bool & commandCondition)
+{
+    if(*bp.breakCondition)
+        breakCondition = getConditionValue(bp.breakCondition);
+    else
+        breakCondition = true; //break if no condition is set
+    if(*bp.logCondition)
+        logCondition = getConditionValue(bp.logCondition);
+    else
+        logCondition = true; //log if no condition is set
+    if(*bp.commandCondition)
+        commandCondition = getConditionValue(bp.commandCondition);
+    else
+        commandCondition = breakCondition; //if no condition is set, execute the command when the debugger would break
+}
+
+static void BreakpointProlog(BREAKPOINT & bp, bool breakCondition, bool logCondition, bool commandCondition)
+{
+    // update GUI
+    if(breakCondition)
+    {
+        GuiSetDebugState(paused);
+        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+    }
+
+    // plugin interaction
+    lock(WAITID_RUN);
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved = nullptr;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    PLUG_CB_BREAKPOINT bpInfo;
+    BRIDGEBP bridgebp;
+    bpInfo.breakpoint = &bridgebp;
+    memset(&bpInfo, 0, sizeof(bpInfo));
+    BpToBridge(&bp, &bridgebp);
+    plugincbcall(CB_BREAKPOINT, &bpInfo);
+
+    if(*bp.logText && logCondition)  //log
+    {
+        dprintf("%s\n", stringformatinline(bp.logText).c_str());
+    }
+    if(*bp.commandText && commandCondition)  //command
+    {
+        //TODO: commands like run/step etc will fuck up your shit
+        DbgCmdExec(bp.commandText);
+    }
+    if(breakCondition)  //break the debugger
+    {
+        SetForegroundWindow(GuiGetWindowHandle());
+        bSkipExceptions = false;
+    }
+    else //resume immediately
+        unlock(WAITID_RUN);
+
+    //wait until the user resumes
+    wait(WAITID_RUN);
+}
+
+static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    BREAKPOINT* bpPtr;
-    BREAKPOINT bp;
-    BRIDGEBP pluginBp;
-    PLUG_CB_BREAKPOINT bpInfo;
-    ULONG_PTR CIP;
-    duint condition = 1;
-    memset(&bpInfo, 0, sizeof(bpInfo));
-    CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    BREAKPOINT* bpPtr = nullptr;
     SHARED_ACQUIRE(LockBreakpoints);
-    bpPtr = BpInfoFromAddr(BPNORMAL, CIP);
-    if(!(bpPtr && bpPtr->enabled))
-        dputs("Breakpoint reached not in list!");
-    else
+    switch(bptype)
     {
-        // increment hit count
-        InterlockedIncrement(&bpPtr->hitcount);
-        // condition eval
-        bp = *bpPtr;
-        SHARED_RELEASE();
-        bp.addr += ModBaseFromAddr(CIP);
-        //setBpActive(bp);
-
-        //if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
-        //    bp.active = true;
-        //else
-        bp.active = MemIsValidReadPtr(bp.addr);
-
-        if(bp.condition[0] != 0)
-        {
-            if(*(uint16*)bp.condition == 0x30) // short curcit for condition "0"
-                condition = 0;
-            else
-                valfromstring(bp.condition, &condition); // if this fails, condition remains 1
-            if(bp.fastResume && condition == 0) // fast resume : ignore GUI/Script/Plugin/Singleshoot/Other
-                return;
-        }
-        if(bp.logText[0] == 0 && condition != 0)
-        {
-            printSoftBpInfo(bp);
-        } // else: BreakpointProlog outputs the log.
-        if(bp.singleshoot)
-            BpDelete(bp.addr, BPNORMAL);
-        BpToBridge(&bp, &pluginBp);
-        bpInfo.breakpoint = &pluginBp;
+    case BPNORMAL:
+        bpPtr = BpInfoFromAddr(bptype, CIP);
+        break;
+    case BPHARDWARE:
+        bpPtr = BpInfoFromAddr(bptype, duint(ExceptionAddress));
+        break;
+    case BPMEMORY:
+        bpPtr = BpInfoFromAddr(bptype, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
+    default:
+        break;
     }
-    BreakpointProlog(condition, bp, bpInfo);
+    if(!(bpPtr && bpPtr->enabled))  //invalid / disabled breakpoint hit (most likely a bug)
+    {
+        dputs("Breakpoint reached not in list!");
+        GuiSetDebugState(paused);
+        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+        //lock
+        lock(WAITID_RUN);
+        SetForegroundWindow(GuiGetWindowHandle());
+        bSkipExceptions = false;
+        PLUG_CB_PAUSEDEBUG pauseInfo;
+        pauseInfo.reserved = nullptr;
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+        wait(WAITID_RUN);
+        return;
+    }
+
+    // increment hit count
+    InterlockedIncrement(&bpPtr->hitcount);
+
+    auto bp = *bpPtr;
+    SHARED_RELEASE();
+    bp.addr += ModBaseFromAddr(CIP);
+    bp.active = true; //a breakpoint that has been hit is active
+
+    //get condition values
+    bool breakCondition;
+    bool logCondition;
+    bool commandCondition;
+    getConditionValues(bp, breakCondition, logCondition, commandCondition);
+
+    if(breakCondition)
+    {
+        if(bp.singleshoot)
+            BpDelete(bp.addr, bptype);
+        switch(bptype)
+        {
+        case BPNORMAL:
+            printSoftBpInfo(bp);
+            break;
+        case BPHARDWARE:
+            printHwBpInfo(bp);
+            break;
+        case BPMEMORY:
+            printMemBpInfo(bp, ExceptionAddress);
+            break;
+        default:
+            break;
+        }
+    }
+    else if(bp.fastResume)  // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
+        return;
+
+    BreakpointProlog(bp, breakCondition, logCondition, commandCondition);
+}
+
+void cbUserBreakpoint()
+{
+    cbGenericBreakpoint(BPNORMAL);
 }
 
 void cbHardwareBreakpoint(void* ExceptionAddress)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    BREAKPOINT* bpPtr;
-    BREAKPOINT bp;
-    BRIDGEBP pluginBp;
-    PLUG_CB_BREAKPOINT bpInfo;
-    ULONG_PTR CIP;
-    duint condition = 1;
-    memset(&bpInfo, 0, sizeof(bpInfo));
-    CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    SHARED_ACQUIRE(LockBreakpoints);
-    bpPtr = BpInfoFromAddr(BPHARDWARE, (duint)ExceptionAddress);
-    if(!(bpPtr && bpPtr->enabled))
-        dputs("Hardware breakpoint reached not in list!");
-    else
-    {
-        // increment hit count
-        InterlockedIncrement(&bpPtr->hitcount);
-        // condition eval
-        bp = *bpPtr;
-        SHARED_RELEASE();
-        bp.addr += ModBaseFromAddr(CIP);
-        //setBpActive(bp);
-
-        //if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
-        bp.active = true;
-        //else
-        //    bp.active = MemIsValidReadPtr(bp.addr);
-
-        if(bp.condition[0] != 0)
-        {
-            if(*(uint16*)bp.condition == 0x30) // short curcit for condition "0"
-                condition = 0;
-            else
-                valfromstring(bp.condition, &condition); // if this fails, condition remains 1
-            if(bp.fastResume && condition == 0) // fast resume : ignore GUI/Script/Plugin/Singleshoot/Other
-                return;
-        }
-        if(bp.logText[0] == 0 && condition != 0)
-        {
-            printHwBpInfo(bp);
-        } // else: BreakpointProlog outputs the log.
-        if(bp.singleshoot)
-            BpDelete(bp.addr, BPHARDWARE);
-        BpToBridge(&bp, &pluginBp);
-        bpInfo.breakpoint = &pluginBp;
-    }
-    BreakpointProlog(condition, bp, bpInfo);
+    cbGenericBreakpoint(BPHARDWARE, ExceptionAddress);
 }
 
 void cbMemoryBreakpoint(void* ExceptionAddress)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    BREAKPOINT bp;
-    BRIDGEBP pluginBp;
-    PLUG_CB_BREAKPOINT bpInfo;
-    duint size;
-    duint base = MemFindBaseAddr((duint)ExceptionAddress, &size, true);
-    ULONG_PTR CIP;
-    duint condition = 1;
-    memset(&bpInfo, 0, sizeof(bpInfo));
-    CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    SHARED_ACQUIRE(LockBreakpoints);
-    auto bpPtr = BpInfoFromAddr(BPMEMORY, base);
-    if(!(bpPtr && bpPtr->enabled))
-        dputs("Memory breakpoint reached not in list!");
-    else
-    {
-        // increment hit count
-        InterlockedIncrement(&bpPtr->hitcount);
-        // condition eval
-        bp = *bpPtr;
-        SHARED_RELEASE();
-        bp.addr += ModBaseFromAddr(CIP);
-        //setBpActive(bp);
-
-        //if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
-        //    bp.active = true;
-        //else
-        bp.active = MemIsValidReadPtr(bp.addr);
-
-        if(bp.condition[0] != 0)
-        {
-            if(*(uint16*)bp.condition == 0x30) // short curcit for condition "0"
-                condition = 0;
-            else
-                valfromstring(bp.condition, &condition); // if this fails, condition remains 1
-            if(bp.fastResume && condition == 0) // fast resume : ignore GUI/Script/Plugin/Singleshoot/Other
-                return;
-        }
-        if(bp.logText[0] == 0 && condition != 0)
-        {
-            printMemBpInfo(bp, ExceptionAddress);
-        } // else: BreakpointProlog outputs the log.
-        BpToBridge(&bp, &pluginBp);
-        bpInfo.breakpoint = &pluginBp;
-    }
-    if(bp.singleshoot)
-        BpDelete(bp.addr, BPMEMORY); //delete from breakpoint list
-    BreakpointProlog(condition, bp, bpInfo);
+    cbGenericBreakpoint(BPMEMORY, ExceptionAddress);
 }
 
 void cbLibrarianBreakpoint(void* lpData)

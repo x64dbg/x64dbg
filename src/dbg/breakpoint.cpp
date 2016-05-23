@@ -217,18 +217,18 @@ bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType)
     return true;
 }
 
-bool BpSetCondition(duint Address, BP_TYPE Type, const char* Condition)
+bool BpSetBreakCondition(duint Address, BP_TYPE Type, const char* Condition)
 {
     ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    // Set breakpoint condition
+    // Set breakpoint breakCondition
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
     if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->condition, Condition);
+    strcpy_s(bpInfo->breakCondition, Condition);
     return true;
 }
 
@@ -237,17 +237,32 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log)
     ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    // Set breakpoint log
+    // Set breakpoint logText
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
     if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->logText, MAX_CONDITIONAL_LOG_SIZE, Log);
+    strcpy_s(bpInfo->logText, Log);
     return true;
 }
 
-bool BpSetHitCommand(duint Address, BP_TYPE Type, const char* Cmd)
+bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set breakpoint logText
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    strcpy_s(bpInfo->logCondition, Condition);
+    return true;
+}
+
+bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd)
 {
     ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
@@ -258,7 +273,22 @@ bool BpSetHitCommand(duint Address, BP_TYPE Type, const char* Cmd)
     if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->hitcmd, MAX_CONDITIONAL_EXPR_SIZE, Cmd);
+    strcpy_s(bpInfo->commandText, Cmd);
+    return true;
+}
+
+bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set breakpoint hit command
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    strcpy_s(bpInfo->commandCondition, Condition);
     return true;
 }
 
@@ -381,9 +411,11 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
     memset(BridgeBp, 0, sizeof(BRIDGEBP));
     strcpy_s(BridgeBp->mod, Bp->mod);
     strcpy_s(BridgeBp->name, Bp->name);
-    strcpy_s(BridgeBp->condition, Bp->condition);
-    strcpy_s(BridgeBp->log, Bp->logText);
-    strcpy_s(BridgeBp->hitCmd, Bp->hitcmd);
+    strcpy_s(BridgeBp->breakCondition, Bp->breakCondition);
+    strcpy_s(BridgeBp->logText, Bp->logText);
+    strcpy_s(BridgeBp->logCondition, Bp->logCondition);
+    strcpy_s(BridgeBp->commandText, Bp->commandText);
+    strcpy_s(BridgeBp->commandCondition, Bp->commandCondition);
 
     BridgeBp->active = Bp->active;
     BridgeBp->addr = Bp->addr;
@@ -452,10 +484,12 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "titantype", json_hex(breakpoint.titantype));
         json_object_set_new(jsonObj, "name", json_string(breakpoint.name));
         json_object_set_new(jsonObj, "module", json_string(breakpoint.mod));
-        json_object_set_new(jsonObj, "condition", json_string(breakpoint.condition));
-        json_object_set_new(jsonObj, "log", json_string(breakpoint.logText));
-        json_object_set_new(jsonObj, "hitcommand", json_string(breakpoint.hitcmd));
-        json_object_set_new(jsonObj, "fastresume", json_boolean(breakpoint.fastResume));
+        json_object_set_new(jsonObj, "breakCondition", json_string(breakpoint.breakCondition));
+        json_object_set_new(jsonObj, "logText", json_string(breakpoint.logText));
+        json_object_set_new(jsonObj, "logCondition", json_string(breakpoint.logCondition));
+        json_object_set_new(jsonObj, "commandText", json_string(breakpoint.commandText));
+        json_object_set_new(jsonObj, "commandCondition", json_string(breakpoint.commandCondition));
+        json_object_set_new(jsonObj, "fastResume", json_boolean(breakpoint.fastResume));
         json_array_append_new(jsonBreakpoints, jsonObj);
     }
 
@@ -464,6 +498,14 @@ void BpCacheSave(JSON Root)
 
     // Notify garbage collector
     json_decref(jsonBreakpoints);
+}
+
+template<typename T>
+static void loadStringValue(JSON value, T dest, const char* key)
+{
+    auto text = json_string_value(json_object_get(value, key));
+    if(text)
+        strcpy_s(dest, _TRUNCATE, text);
 }
 
 void BpCacheLoad(JSON Root)
@@ -494,33 +536,17 @@ void BpCacheLoad(JSON Root)
         breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
         breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
 
-        // Name
-        const char* text = json_string_value(json_object_get(value, "name"));
-        if(text)
-            strcpy_s(breakpoint.name, text);
-
-        // Module
-        const char* mod = json_string_value(json_object_get(value, "module"));
-        if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-            strcpy_s(breakpoint.mod, mod);
-
-        // Condition
-        text = json_string_value(json_object_get(value, "condition"));
-        if(text)
-            strcpy_s(breakpoint.condition, text);
-
-        // Log string
-        text = json_string_value(json_object_get(value, "log"));
-        if(text)
-            strcpy_s(breakpoint.logText, text);
-
-        // Hit command
-        text = json_string_value(json_object_get(value, "hitcommand"));
-        if(text)
-            strcpy_s(breakpoint.hitcmd, text);
+        // String values
+        loadStringValue(value, breakpoint.name, "name");
+        loadStringValue(value, breakpoint.mod, "module");
+        loadStringValue(value, breakpoint.breakCondition, "breakCondition");
+        loadStringValue(value, breakpoint.logText, "logText");
+        loadStringValue(value, breakpoint.logCondition, "logCondition");
+        loadStringValue(value, breakpoint.commandText, "commandText");
+        loadStringValue(value, breakpoint.commandCondition, "commandCondition");
 
         // Fast resume
-        breakpoint.fastResume = json_boolean_value(json_object_get(value, "fastresume"));
+        breakpoint.fastResume = json_boolean_value(json_object_get(value, "fastResume"));
 
         // Build the hash map key: MOD_HASH + ADDRESS
         duint key = ModHashFromName(breakpoint.mod) + breakpoint.addr;

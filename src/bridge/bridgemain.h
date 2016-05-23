@@ -62,7 +62,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_IMPORT_SIZE 65536
 #define MAX_BREAKPOINT_SIZE 256
 #define MAX_CONDITIONAL_EXPR_SIZE 256
-#define MAX_CONDITIONAL_LOG_SIZE 256
+#define MAX_CONDITIONAL_TEXT_SIZE 256
 #define MAX_SCRIPT_LINE_SIZE 2048
 #define MAX_THREAD_NAME_SIZE 256
 #define MAX_STRING_SIZE 512
@@ -326,9 +326,11 @@ typedef struct
     // extended part
     unsigned int hitCount;
     bool fastResume;
-    char condition[MAX_CONDITIONAL_EXPR_SIZE];
-    char log[MAX_CONDITIONAL_LOG_SIZE];
-    char hitCmd[MAX_CONDITIONAL_EXPR_SIZE];
+    char breakCondition[MAX_CONDITIONAL_EXPR_SIZE];
+    char logText[MAX_CONDITIONAL_TEXT_SIZE];
+    char logCondition[MAX_CONDITIONAL_EXPR_SIZE];
+    char commandText[MAX_CONDITIONAL_EXPR_SIZE];
+    char commandCondition[MAX_CONDITIONAL_TEXT_SIZE];
 } BRIDGEBP;
 
 typedef struct

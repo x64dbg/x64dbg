@@ -116,10 +116,10 @@ void BreakpointsView::reloadData()
             mHardBPTable->setCellContent(wI, 3, tr("Disabled"));
 
         mHardBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
-        mHardBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].log));
-        mHardBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].condition));
+        mHardBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].logText));
+        mHardBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].breakCondition));
         mHardBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
-        mHardBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].hitCmd));
+        mHardBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
 
         char text[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, text))
@@ -162,10 +162,10 @@ void BreakpointsView::reloadData()
             mSoftBPTable->setCellContent(wI, 3, tr("Disabled"));
 
         mSoftBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
-        mSoftBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].log));
-        mSoftBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].condition));
+        mSoftBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].logText));
+        mSoftBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].breakCondition));
         mSoftBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
-        mSoftBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].hitCmd));
+        mSoftBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
 
         char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
@@ -207,10 +207,10 @@ void BreakpointsView::reloadData()
             mMemBPTable->setCellContent(wI, 3, tr("Disabled"));
 
         mMemBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
-        mMemBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].log));
-        mMemBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].condition));
+        mMemBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].logText));
+        mMemBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].breakCondition));
         mMemBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
-        mMemBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].hitCmd));
+        mMemBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
 
         char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
