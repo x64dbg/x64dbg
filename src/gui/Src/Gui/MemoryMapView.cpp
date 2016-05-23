@@ -14,12 +14,12 @@ MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, "Address"); //addr
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, "Size"); //size
-    addColumnAt(8 + charwidth * 32, tr("Info"), false, "Page Information"); //page information
-    addColumnAt(8 + charwidth * 5, tr("Type"), false, "Allocation Type"); //allocation type
-    addColumnAt(8 + charwidth * 11, tr("Protection"), false, "Current Protection"); //current protection
-    addColumnAt(8 + charwidth * 8, tr("Initial"), false, "Allocation Protection"); //allocation protection
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, tr("Address")); //addr
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, tr("Size")); //size
+    addColumnAt(8 + charwidth * 32, tr("Info"), false, tr("Page Information")); //page information
+    addColumnAt(8 + charwidth * 5, tr("Type"), false, tr("Allocation Type")); //allocation type
+    addColumnAt(8 + charwidth * 11, tr("Protection"), false, tr("Current Protection")); //current protection
+    addColumnAt(8 + charwidth * 8, tr("Initial"), false, tr("Allocation Protection")); //allocation protection
     addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
@@ -143,7 +143,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu->addAction(mPageMemoryRights);
     wMenu->addSeparator();
     wMenu->addMenu(mBreakpointMenu);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {

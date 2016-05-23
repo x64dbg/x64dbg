@@ -117,7 +117,7 @@ public slots:
     void displayManual();
     void decompileAt(dsint start, dsint end);
     void canClose();
-    void addQWidgetTab(QWidget* qWidget);
+    void addQWidgetTab(QWidget* qWidget, QString nativeName);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
     void executeOnGuiThread(void* cbGuiThread);
@@ -201,6 +201,7 @@ private:
     bool bCanClose;
     MainWindowCloseThread* mCloseThread;
     QVector<QWidget*> mWidgetList;
+    QVector<QString> mWidgetNativeNameList;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

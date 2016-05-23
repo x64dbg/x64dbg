@@ -93,6 +93,8 @@ private:
     bool fontToConfig(const QString id, const QFont font);
     QString shortcutFromConfig(const QString id);
     bool shortcutToConfig(const QString id, const QKeySequence shortcut);
+
+    mutable bool noMoreMsgbox;
 };
 
 #endif // CONFIGURATION_H

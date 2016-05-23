@@ -6,7 +6,7 @@
 
 Configuration* Configuration::mPtr = NULL;
 
-Configuration::Configuration() : QObject()
+Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 {
     //setup default color map
     defaultColors.clear();
@@ -516,10 +516,13 @@ const QColor Configuration::getColor(const QString id) const
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id);
+    if(noMoreMsgbox)
+        return Qt::black;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
     return Qt::black;
 }
 
@@ -529,16 +532,22 @@ const bool Configuration::getBool(const QString category, const QString id) cons
     {
         if(Bools[category].contains(id))
             return Bools[category][id];
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
+        if(noMoreMsgbox)
+            return false;
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
         return false;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    if(noMoreMsgbox)
+        return false;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
     return false;
 }
 
@@ -551,16 +560,22 @@ void Configuration::setBool(const QString category, const QString id, const bool
             Bools[category][id] = b;
             return;
         }
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
+        if(noMoreMsgbox)
+            return;
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
         return;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    if(noMoreMsgbox)
+        return;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
 }
 
 const duint Configuration::getUint(const QString category, const QString id) const
@@ -569,16 +584,22 @@ const duint Configuration::getUint(const QString category, const QString id) con
     {
         if(Uints[category].contains(id))
             return Uints[category][id];
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
+        if(noMoreMsgbox)
+            return 0;
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
         return 0;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    if(noMoreMsgbox)
+        return 0;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
     return 0;
 }
 
@@ -591,29 +612,38 @@ void Configuration::setUint(const QString category, const QString id, const duin
             Uints[category][id] = i;
             return;
         }
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
+        if(noMoreMsgbox)
+            return;
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
         return;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    if(noMoreMsgbox)
+        return;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
 }
 
 const QFont Configuration::getFont(const QString id) const
 {
     if(Fonts.contains(id))
         return Fonts.constFind(id).value();
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
     QFont ret("Lucida Console", 8, QFont::Normal, false);
     ret.setFixedPitch(true);
     ret.setStyleHint(QFont::Monospace);
+    if(noMoreMsgbox)
+        return ret;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id, QMessageBox::Retry | QMessageBox::Cancel);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
     return ret;
 }
 
@@ -621,10 +651,14 @@ const Configuration::Shortcut Configuration::getShortcut(const QString key_id) c
 {
     if(Shortcuts.contains(key_id))
         return Shortcuts.constFind(key_id).value();
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(!noMoreMsgbox)
+    {
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id, QMessageBox::Retry | QMessageBox::Cancel);
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
+    }
     return Shortcut();
 }
 
@@ -635,10 +669,13 @@ void Configuration::setShortcut(const QString key_id, const QKeySequence key_seq
         Shortcuts[key_id].Hotkey = key_sequence;
         return;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id);
+    if(noMoreMsgbox)
+        return;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
 }
 
 QColor Configuration::colorFromConfig(const QString id)
