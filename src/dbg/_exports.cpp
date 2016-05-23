@@ -28,6 +28,7 @@
 #include "error.h"
 #include "x64_dbg.h"
 #include "threading.h"
+#include "stringformat.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -205,7 +206,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     {
         *addrinfo->comment = 0;
         if(CommentGet(addr, addrinfo->comment))
+        {
+            if(strstr(addrinfo->comment, "{"))  //comment with format string
+            {
+                auto formatted = stringformatinline(addrinfo->comment);
+                strcpy_s(addrinfo->comment, _TRUNCATE, formatted.c_str());
+            }
             retval = true;
+        }
         else
         {
             DWORD dwDisplacement;
