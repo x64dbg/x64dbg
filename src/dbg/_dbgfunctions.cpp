@@ -227,7 +227,10 @@ static bool _getbridgebp(BPXTYPE type, duint addr, BRIDGEBP* bp)
     if(!bpInfo)
         return false;
     if(bp)
+    {
         BpToBridge(bpInfo, bp);
+        bp->addr = addr;
+    }
     return true;
 }
 

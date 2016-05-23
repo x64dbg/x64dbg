@@ -400,6 +400,8 @@ static void getConditionValues(const BREAKPOINT & bp, bool & breakCondition, boo
         breakCondition = getConditionValue(bp.breakCondition);
     else
         breakCondition = true; //break if no condition is set
+    if(bp.fastResume)
+        return;
     if(*bp.logCondition)
         logCondition = getConditionValue(bp.logCondition);
     else

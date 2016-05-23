@@ -467,31 +467,35 @@ static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], c
         dprintf("Can't set %s on breakpoint \"%s\"\n", description, argv[1]);
         return STATUS_ERROR;
     }
-    dprintf("%s set to \"%s\"!\n", description, value);
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugSetBPXConditionCommon(BP_TYPE Type, int argc, char* argv[])
+static CMDRESULT cbDebugSetBPXNameCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "name", BpSetName);
+}
+
+static CMDRESULT cbDebugSetBPXConditionCommon(BP_TYPE Type, int argc, char* argv[])
 {
     return cbDebugSetBPXTextCommon(Type, argc, argv, "break condition", BpSetBreakCondition);
 }
 
-CMDRESULT cbDebugSetBPXLogCommon(BP_TYPE Type, int argc, char* argv[])
+static CMDRESULT cbDebugSetBPXLogCommon(BP_TYPE Type, int argc, char* argv[])
 {
     return cbDebugSetBPXTextCommon(Type, argc, argv, "logging text", BpSetLogText);
 }
 
-CMDRESULT cbDebugSetBPXLogConditionCommon(BP_TYPE Type, int argc, char* argv[])
+static CMDRESULT cbDebugSetBPXLogConditionCommon(BP_TYPE Type, int argc, char* argv[])
 {
     return cbDebugSetBPXTextCommon(Type, argc, argv, "logging condition", BpSetLogCondition);
 }
 
-CMDRESULT cbDebugSetBPXCommandCommon(BP_TYPE Type, int argc, char* argv[])
+static CMDRESULT cbDebugSetBPXCommandCommon(BP_TYPE Type, int argc, char* argv[])
 {
     return cbDebugSetBPXTextCommon(Type, argc, argv, "command on hit", BpSetCommandText);
 }
 
-CMDRESULT cbDebugSetBPXCommandConditionCommon(BP_TYPE Type, int argc, char* argv[])
+static CMDRESULT cbDebugSetBPXCommandConditionCommon(BP_TYPE Type, int argc, char* argv[])
 {
     return cbDebugSetBPXTextCommon(Type, argc, argv, "command condition", BpSetCommandCondition);
 }
@@ -567,6 +571,11 @@ static CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* arg
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSetBPXName(int argc, char* argv[])
+{
+    return cbDebugSetBPXNameCommon(BPNORMAL, argc, argv);
 }
 
 CMDRESULT cbDebugSetBPXCondition(int argc, char* argv[])
@@ -928,6 +937,11 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbDebugSetBPXHardwareName(int argc, char* argv[])
+{
+    return cbDebugSetBPXNameCommon(BPHARDWARE, argc, argv);
+}
+
 CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
 {
     if(argc < 2)
@@ -1140,6 +1154,11 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     dputs("Memory breakpoint disabled!");
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSetBPXMemoryName(int argc, char* argv[])
+{
+    return cbDebugSetBPXNameCommon(BPMEMORY, argc, argv);
 }
 
 CMDRESULT cbDebugBplist(int argc, char* argv[])
