@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>Edit breakpoint</string>
   </property>
-  <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/breakpoint.png</normaloff>:/icons/images/breakpoint.png</iconset>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
     <number>6</number>
@@ -190,9 +186,7 @@
   <tabstop>buttonSave</tabstop>
   <tabstop>buttonCancel</tabstop>
  </tabstops>
- <resources>
-  <include location="../../resource.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonCancel</sender>

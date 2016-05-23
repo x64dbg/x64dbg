@@ -13,6 +13,7 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
 #endif
     setFixedSize(this->size()); //fixed size
     setWindowTitle(QString("Edit Breakpoint %1").arg(ToHexString(bp.addr)));
+    setWindowIcon(QIcon(":/icons/images/breakpoint.png"));
     loadFromBp();
 }
 
