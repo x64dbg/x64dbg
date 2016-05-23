@@ -85,6 +85,7 @@ public slots:
     void decompileFunctionSlot();
     void displayWarningSlot(QString title, QString text);
     void labelHelpSlot();
+    void editSoftBpActionSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);

@@ -186,7 +186,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
             continue;
         }
 
-        if(!SafeSymLoadModuleEx(fdProcessInfo->hProcess, 0, StringUtils::Utf16ToUtf8(modulePath).c_str(), 0, (DWORD64)module.base, 0, 0, 0))
+        if(!SafeSymLoadModuleExW(fdProcessInfo->hProcess, 0, modulePath, 0, (DWORD64)module.base, 0, 0, 0))
         {
             dprintf("SymLoadModuleEx(" fhex ") failed!\n", module.base);
             continue;
@@ -303,21 +303,21 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line)
         }
 
         // Construct full path from pdb path
-        IMAGEHLP_MODULE64 modInfo;
+        IMAGEHLP_MODULEW64 modInfo;
         memset(&modInfo, 0, sizeof(IMAGEHLP_MODULE64));
         modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
 
-        if(!SafeSymGetModuleInfo64(fdProcessInfo->hProcess, Cip, &modInfo))
+        if(!SafeSymGetModuleInfoW64(fdProcessInfo->hProcess, Cip, &modInfo))
             return false;
 
         // Strip the name, leaving only the file directory
-        char* pdbFileName = strrchr(modInfo.LoadedPdbName, '\\');
+        wchar_t* pdbFileName = wcsrchr(modInfo.LoadedPdbName, L'\\');
 
         if(pdbFileName)
-            pdbFileName[1] = '\0';
+            pdbFileName[1] = L'\0';
 
         // Copy back to the caller's buffer
-        strcpy_s(FileName, MAX_STRING_SIZE, modInfo.LoadedPdbName);
+        strcpy_s(FileName, MAX_STRING_SIZE, StringUtils::Utf16ToUtf8(modInfo.LoadedPdbName).c_str());
         strcat_s(FileName, MAX_STRING_SIZE, NewFile.c_str());
     }
 

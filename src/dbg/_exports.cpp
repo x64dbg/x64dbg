@@ -28,6 +28,7 @@
 #include "error.h"
 #include "x64_dbg.h"
 #include "threading.h"
+#include "stringformat.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -205,7 +206,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     {
         *addrinfo->comment = 0;
         if(CommentGet(addr, addrinfo->comment))
+        {
+            if(strstr(addrinfo->comment, "{"))  //comment with format string
+            {
+                auto formatted = stringformatinline(addrinfo->comment);
+                strcpy_s(addrinfo->comment, _TRUNCATE, formatted.c_str());
+            }
             retval = true;
+        }
         else
         {
             DWORD dwDisplacement;
@@ -568,64 +576,27 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     int retcount = 0;
     std::vector<BRIDGEBP> bridgeList;
     BRIDGEBP curBp;
+    BP_TYPE currentBpType;
+    switch(type)
+    {
+    case bp_normal:
+        currentBpType = BPNORMAL;
+        break;
+    case bp_hardware:
+        currentBpType = BPHARDWARE;
+        break;
+    case bp_memory:
+        currentBpType = BPMEMORY;
+        break;
+    default:
+        return 0;
+    }
     unsigned short slot = 0;
     for(int i = 0; i < bpcount; i++)
     {
-        memset(&curBp, 0, sizeof(BRIDGEBP));
-        switch(type)
-        {
-        case bp_none: //all types
-            break;
-        case bp_normal: //normal
-            if(list[i].type != BPNORMAL)
-                continue;
-            break;
-        case bp_hardware: //hardware
-            if(list[i].type != BPHARDWARE)
-                continue;
-            break;
-        case bp_memory: //memory
-            if(list[i].type != BPMEMORY)
-                continue;
-            break;
-        default:
-            return 0;
-        }
-        switch(list[i].type)
-        {
-        case BPNORMAL:
-            curBp.type = bp_normal;
-            break;
-        case BPHARDWARE:
-            curBp.type = bp_hardware;
-            break;
-        case BPMEMORY:
-            curBp.type = bp_memory;
-            break;
-        }
-        switch(((DWORD)list[i].titantype) >> 8)
-        {
-        case UE_DR0:
-            slot = 0;
-            break;
-        case UE_DR1:
-            slot = 1;
-            break;
-        case UE_DR2:
-            slot = 2;
-            break;
-        case UE_DR3:
-            slot = 3;
-            break;
-        }
-        curBp.addr = list[i].addr;
-        curBp.enabled = list[i].enabled;
-        curBp.active = list[i].active;
-        strcpy_s(curBp.mod, list[i].mod);
-        strcpy_s(curBp.name, list[i].name);
-        curBp.singleshoot = list[i].singleshoot;
-        curBp.slot = slot;
-
+        if(list[i].type != currentBpType)
+            continue;
+        BpToBridge(&list[i], &curBp);
         bridgeList.push_back(curBp);
         retcount++;
     }

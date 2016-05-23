@@ -13,15 +13,16 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     // Setup actions/shortcuts
     //
     // Enter key as shortcut for "Attach"
-    mAttachAction = new QAction("Attach", this);
+    mAttachAction = new QAction(tr("Attach"), this);
     mAttachAction->setShortcut(QKeySequence("enter"));
     connect(mAttachAction, SIGNAL(triggered()), this, SLOT(on_btnAttach_clicked()));
 
     // F5 as shortcut to refresh view
-    mRefreshAction = new QAction("Refresh", this);
+    mRefreshAction = new QAction(tr("Refresh"), this);
     mRefreshAction->setShortcut(QKeySequence("F5"));
     connect(mRefreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
     this->addAction(mRefreshAction);
+    connect(ui->btnRefresh, SIGNAL(clicked()), this, SLOT(refresh()));
 
     // Create search view (regex disabled)
     mSearchListView = new SearchListView(false);
@@ -30,13 +31,13 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
 
     //setup process list
     int charwidth = mSearchListView->mList->getCharWidth();
-    mSearchListView->mList->addColumnAt(charwidth * sizeof(int) * 2 + 8, "PID", true);
-    mSearchListView->mList->addColumnAt(800, "Path", true);
+    mSearchListView->mList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->mList->addColumnAt(800, tr("Path"), true);
     mSearchListView->mList->setDrawDebugOnly(false);
 
     charwidth = mSearchListView->mSearchList->getCharWidth();
-    mSearchListView->mSearchList->addColumnAt(charwidth * sizeof(int) * 2 + 8, "PID", true);
-    mSearchListView->mSearchList->addColumnAt(800, "Path", true);
+    mSearchListView->mSearchList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->mSearchList->addColumnAt(800, tr("Path"), true);
     mSearchListView->mSearchList->setDrawDebugOnly(false);
 
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(on_btnAttach_clicked()));

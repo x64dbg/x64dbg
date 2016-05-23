@@ -67,23 +67,49 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - Interface icons by [Fugue](http://p.yusukekamiyamane.com)
 - Website by [tr4ceflow](http://tr4ceflow.com)
 
-## Special Thanks (in no particular order)
+## Special Thanks
 
+- All the donators!
+- Everybody adding issues!
+- People I forgot to add to this list
 - [EXETools community](http://forum.exetools.com)
 - [Tuts4You community](http://forum.tuts4you.com)
+- [ReSharper](https://www.jetbrains.com/resharper)
+- [Coverity](http://www.coverity.com)
 - acidflash
 - cyberbob
+- cypher
 - Teddy Rogers
 - TEAM DVT
 - DMichael
 - Artic
 - ahmadmansoor
+- _pusher_
+- firelegend
 
-## Developers (in order of joining)
+## Developers
 
-- [Mr. eXoDia](http://mrexodia.cf)
+- [mrexodia](http://mrexodia.cf)
 - Sigma
 - [tr4ceflow](http://blog.tr4ceflow.com)
 - [Dreg](http://www.fr33project.org)
 - [Nukem](https://github.com/Nukem9)
 - [Herz3h](https://github.com/Herz3h)
+
+## Contributers
+
+- [torusrxxx](https://github.com/torusrxxx)
+- [blaquee](https://github.com/blaquee)
+- [wk-952](https://github.com/wk-952)
+- [RaMMicHaeL](http://rammichael.com)
+- [lovrolu](https://github.com/lovrolu)
+- [fileoffset](https://github.com/fileoffset)
+- [SmilingWolf](https://github.com/SmilingWolf)
+- [ApertureSecurity](https://github.com/ApertureSecurity)
+- [mrgreywater](https://github.com/mrgreywater)
+- [Dither](https://github.com/Dither)
+- [zerosum0x0](https://github.com/zerosum0x0)
+- [RadicalRaccoon](https://github.com/RadicalRaccoon)
+- [fetzerms](https://github.com/RadicalRaccoon)
+- [muratsu](https://github.com/RadicalRaccoon)
+- [ForNeVeR](https://github.com/RadicalRaccoon)

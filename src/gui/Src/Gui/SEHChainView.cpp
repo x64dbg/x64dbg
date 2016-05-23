@@ -5,10 +5,10 @@ SEHChainView::SEHChainView(StdTable* parent) : StdTable(parent)
 {
     int charWidth = getCharWidth();
 
-    addColumnAt(8 + charWidth * sizeof(dsint) * 2, "Address", true); //address in the stack
-    addColumnAt(8 + charWidth * sizeof(dsint) * 2, "Handler", true); // Exception Handler
-    addColumnAt(8 + charWidth * 50, "Module/Label", false);
-    addColumnAt(charWidth * 10, "Comment", false);
+    addColumnAt(8 + charWidth * sizeof(dsint) * 2, tr("Address"), true); //address in the stack
+    addColumnAt(8 + charWidth * sizeof(dsint) * 2, tr("Handler"), true); // Exception Handler
+    addColumnAt(8 + charWidth * 50, tr("Module/Label"), false);
+    addColumnAt(charWidth * 10, tr("Comment"), false);
     connect(Bridge::getBridge(), SIGNAL(updateSEHChain()), this, SLOT(updateSEHChain()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
@@ -17,9 +17,9 @@ SEHChainView::SEHChainView(StdTable* parent) : StdTable(parent)
 
 void SEHChainView::setupContextMenu()
 {
-    mFollowAddress = new QAction("Follow &Address", this);
+    mFollowAddress = new QAction(tr("Follow &Address"), this);
     connect(mFollowAddress, SIGNAL(triggered()), this, SLOT(followAddress()));
-    mFollowHandler = new QAction("Follow Handler", this);
+    mFollowHandler = new QAction(tr("Follow Handler"), this);
     mFollowHandler->setShortcutContext(Qt::WidgetShortcut);
     mFollowHandler->setShortcut(QKeySequence("enter"));
     connect(mFollowHandler, SIGNAL(triggered()), this, SLOT(followHandler()));
@@ -69,7 +69,7 @@ void SEHChainView::contextMenuSlot(const QPoint pos)
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mFollowAddress);
     wMenu->addAction(mFollowHandler);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {

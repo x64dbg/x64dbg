@@ -96,6 +96,8 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("InstructionConditionalJumpBackgroundColor", QColor("#FFFF00"));
     defaultColors.insert("InstructionUnconditionalJumpColor", QColor("#000000"));
     defaultColors.insert("InstructionUnconditionalJumpBackgroundColor", QColor("#FFFF00"));
+    defaultColors.insert("InstructionUnusualColor", QColor("#000000"));
+    defaultColors.insert("InstructionUnusualBackgroundColor", QColor("#C00000"));
     defaultColors.insert("InstructionNopColor", QColor("#808080"));
     defaultColors.insert("InstructionNopBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionFarColor", QColor("#000000"));

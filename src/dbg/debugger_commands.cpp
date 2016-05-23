@@ -445,6 +445,259 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], const char* description, std::function<bool(duint, BP_TYPE, const char*)> setFunction)
+{
+    BREAKPOINT bp;
+    if(argc < 2)
+    {
+        dprintf("not enough arguments!\n");
+        return STATUS_ERROR;
+    }
+    auto value = "";
+    if(argc > 2)
+        value = argv[2];
+
+    if(!BpGetAny(Type, argv[1], &bp))
+    {
+        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!setFunction(bp.addr, Type, value))
+    {
+        dprintf("Can't set %s on breakpoint \"%s\"\n", description, argv[1]);
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+}
+
+static CMDRESULT cbDebugSetBPXNameCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "name", BpSetName);
+}
+
+static CMDRESULT cbDebugSetBPXConditionCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "break condition", BpSetBreakCondition);
+}
+
+static CMDRESULT cbDebugSetBPXLogCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "logging text", BpSetLogText);
+}
+
+static CMDRESULT cbDebugSetBPXLogConditionCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "logging condition", BpSetLogCondition);
+}
+
+static CMDRESULT cbDebugSetBPXCommandCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "command on hit", BpSetCommandText);
+}
+
+static CMDRESULT cbDebugSetBPXCommandConditionCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, "command condition", BpSetCommandCondition);
+}
+
+static CMDRESULT cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dprintf("not enough arguments!\n");
+        return STATUS_ERROR;
+    }
+    BREAKPOINT bp;
+    if(!BpGetAny(Type, argv[1], &bp))
+    {
+        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    varset("$result", bp.hitcount, false);
+    return STATUS_CONTINUE;
+
+}
+
+static CMDRESULT cbDebugResetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dprintf("not enough arguments!\n");
+        return STATUS_ERROR;
+    }
+    duint value = 0;
+    if(argc > 2)
+        if(!valfromstring(argv[2], &value, false))
+            return STATUS_ERROR;
+    BREAKPOINT bp;
+    if(!BpGetAny(Type, argv[1], &bp))
+    {
+        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!BpResetHitCount(bp.addr, Type, (uint32)value))
+    {
+        dprintf("Can't set hit count on breakpoint \"%s\"", argv[1]);
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+
+}
+
+static CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    BREAKPOINT bp;
+    if(argc < 2)
+    {
+        dprintf("not enough arguments!\n");
+        return STATUS_ERROR;
+    }
+    auto fastResume = true;
+    if(argc > 2)
+    {
+        duint value;
+        if(!valfromstring(argv[2], &value, false))
+            return STATUS_ERROR;
+        fastResume = value != 0;
+    }
+    if(!BpGetAny(Type, argv[1], &bp))
+    {
+        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!BpSetFastResume(bp.addr, Type, fastResume))
+    {
+        dprintf("Can't set fast resume on breakpoint \"%1\"", argv[1]);
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSetBPXName(int argc, char* argv[])
+{
+    return cbDebugSetBPXNameCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXConditionCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXLog(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXLogCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogConditionCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXCommand(int argc, char* argv[])
+{
+    return cbDebugSetBPXCommandCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXCommandCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXCommandConditionCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXFastResume(int argc, char* argv[])
+{
+    return cbDebugSetBPXFastResumeCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugResetBPXHitCount(int argc, char* argv[])
+{
+    return cbDebugResetBPXHitCountCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugGetBPXHitCount(int argc, char* argv[])
+{
+    return cbDebugGetBPXHitCountCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXHardwareCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXConditionCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXHardwareLog(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXHardwareLogCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogConditionCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXHardwareCommand(int argc, char* argv[])
+{
+    return cbDebugSetBPXCommandCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXHardwareCommandCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXCommandConditionCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXHardwareFastResume(int argc, char* argv[])
+{
+    return cbDebugSetBPXFastResumeCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugResetBPXHardwareHitCount(int argc, char* argv[])
+{
+    return cbDebugResetBPXHitCountCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugGetBPXHardwareHitCount(int argc, char* argv[])
+{
+    return cbDebugGetBPXHitCountCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXMemoryCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXConditionCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXMemoryLog(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXMemoryLogCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogConditionCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXMemoryCommand(int argc, char* argv[])
+{
+    return cbDebugSetBPXCommandCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXMemoryCommandCondition(int argc, char* argv[])
+{
+    return cbDebugSetBPXCommandConditionCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugResetBPXMemoryHitCount(int argc, char* argv[])
+{
+    return cbDebugSetBPXFastResumeCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXMemoryFastResume(int argc, char* argv[])
+{
+    return cbDebugResetBPXHitCountCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugGetBPXMemoryHitCount(int argc, char* argv[])
+{
+    return cbDebugGetBPXHitCountCommon(BPMEMORY, argc, argv);
+}
+
 CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
 {
     if(argc < 2)
@@ -684,6 +937,11 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbDebugSetBPXHardwareName(int argc, char* argv[])
+{
+    return cbDebugSetBPXNameCommon(BPHARDWARE, argc, argv);
+}
+
 CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
 {
     if(argc < 2)
@@ -896,6 +1154,11 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     dputs("Memory breakpoint disabled!");
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSetBPXMemoryName(int argc, char* argv[])
+{
+    return cbDebugSetBPXNameCommon(BPMEMORY, argc, argv);
 }
 
 CMDRESULT cbDebugBplist(int argc, char* argv[])
@@ -1521,8 +1784,6 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         dputs("GetModuleFileNameExA failed!");
         return STATUS_ERROR;
     }
-    char szModulePath[MAX_PATH] = "";
-    strcpy_s(szModulePath, StringUtils::Utf16ToUtf8(wszModulePath).c_str());
     wchar_t szOldSearchPath[MAX_PATH] = L"";
     if(!SafeSymGetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
     {
@@ -1544,7 +1805,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         dputs("SymUnloadModule64 failed!");
         return STATUS_ERROR;
     }
-    if(!SafeSymLoadModuleEx(fdProcessInfo->hProcess, 0, szModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
+    if(!SafeSymLoadModuleExW(fdProcessInfo->hProcess, 0, wszModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
     {
         dputs("SymLoadModuleEx failed!");
         SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath);

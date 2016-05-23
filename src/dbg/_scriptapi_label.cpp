@@ -7,7 +7,7 @@ SCRIPT_EXPORT bool Script::Label::Set(duint addr, const char* text, bool manual)
     return LabelSet(addr, text, manual);
 }
 
-bool Script::Label::Set(const LabelInfo* info)
+SCRIPT_EXPORT bool Script::Label::Set(const LabelInfo* info)
 {
     if(!info)
         return false;

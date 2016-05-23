@@ -7,7 +7,7 @@ SCRIPT_EXPORT bool Script::Comment::Set(duint addr, const char* text, bool manua
     return CommentSet(addr, text, manual);
 }
 
-bool Script::Comment::Set(const CommentInfo* info)
+SCRIPT_EXPORT bool Script::Comment::Set(const CommentInfo* info)
 {
     if(!info)
         return false;

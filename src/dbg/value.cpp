@@ -611,10 +611,10 @@ bool setflag(const char* string, bool set)
 /**
 \brief Gets a register from a string.
 \param [out] size This function can store the register size in bytes in this parameter. Can be null, in that case it will be ignored.
-\param string The name of the register to get.
+\param string The name of the register to get. Cannot be null.
 \return The register value.
 */
-static duint getregister(int* size, const char* string)
+duint getregister(int* size, const char* string)
 {
     if(size)
         *size = 4;
@@ -1509,7 +1509,9 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         *value = 0;
         return true;
     }
-    else if(string[0] == '[' || (isdigit(string[0]) && string[1] == ':' && string[2] == '[')) //memory location
+    else if(string[0] == '['
+            || (isdigit(string[0]) && string[1] == ':' && string[2] == '[')
+            || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[')) //memory location
     {
         if(!DbgIsDebugging())
         {
@@ -1525,17 +1527,39 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         int len = (int)strlen(string);
 
         int read_size = sizeof(duint);
-        int add = 1;
+        int prefix_size = 1;
+        size_t seg_offset = 0;
         if(string[1] == ':')   //n:[ (number of bytes to read)
         {
-            add += 2;
+            prefix_size = 3;
             int new_size = string[0] - '0';
             if(new_size < read_size)
                 read_size = new_size;
         }
+        else if(string[1] == 's' && string[2] == ':')
+        {
+            prefix_size = 4;
+            if(string[0] == 'f')  // fs:[...]
+            {
+                // TODO: get real segment offset instead of assuming them
+#ifdef _WIN64
+                seg_offset = 0;
+#else //x86
+                seg_offset = (size_t)GetTEBLocation(hActiveThread);
+#endif //_WIN64
+            }
+            else if(string[0] == 'g')  // gs:[...]
+            {
+#ifdef _WIN64
+                seg_offset = (size_t)GetTEBLocation(hActiveThread);
+#else //x86
+                seg_offset = 0;
+#endif //_WIN64
+            }
+        }
 
         String ptrstring;
-        for(auto i = add, depth = 1; i < len; i++)
+        for(auto i = prefix_size, depth = 1; i < len; i++)
         {
             if(string[i] == '[')
                 depth++;
@@ -1555,7 +1579,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         }
         duint addr = *value;
         *value = 0;
-        if(!MemRead(addr, value, read_size))
+        if(!MemRead(addr + seg_offset, value, read_size))
         {
             if(!silent)
                 dputs("failed to read memory");
@@ -1659,7 +1683,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
 /**
 \brief Gets a value from a string. This function can parse expressions, memory locations, registers, flags, API names, labels, symbols and variables.
 \param string The string to parse.
-\param [out] value The value of the expression. This value cannot be null.
+\param [out] value The value of the expression. This value cannot be null. When the expression is invalid, value is not changed.
 \param silent true to not output anything to the console.
 \param baseonly true to skip parsing API names, labels, symbols and variables (basic expressions only).
 \param [out] value_size This function can output the value size parsed (for example memory location size or register size). Can be null.
@@ -1678,7 +1702,7 @@ bool valfromstring(const char* string, duint* value, bool silent, bool baseonly,
     }
     ExpressionParser parser(string);
     duint result;
-    if(!parser.calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
+    if(!parser.Calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
         return false;
     *value = result;
     return true;

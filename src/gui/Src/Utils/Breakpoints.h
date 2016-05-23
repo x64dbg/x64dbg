@@ -29,6 +29,7 @@ public:
     static void toggleAllBP(BPXTYPE type, bool bEnable);
     static void toggleBPByRemoving(BPXTYPE type, duint va);
     static BPXSTATE BPState(BPXTYPE type, duint va);
+    static void editBP(BPXTYPE type, const QString & addrText, QWidget* widget);
 };
 
 #endif // BREAKPOINTS_H

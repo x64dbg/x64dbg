@@ -46,11 +46,11 @@ QString ToLongDoubleString(void* buffer)
     const uint64_t HIGHBIT    = (uint64_t)1 << 63;
     const uint64_t QUIETBIT   = (uint64_t)1 << 62;
 
-    // Swap endianness (buffer is an array of bytes; not a true variable)
+    // Don't swap endianness (data is represented in swapped endianness already)
     uint8_t bytes[10];
 
     for(size_t k = 0; k < 10; k++)
-        bytes[k] = ((uint8_t*)buffer)[10 - k - 1];
+        bytes[k] = ((uint8_t*)buffer)[k];
 
     // Extract exponent and mantissa
     uint16_t exponent = *(uint16_t*)&bytes[8];
@@ -166,4 +166,24 @@ QString ToLongDoubleString(void* buffer)
 
         return sigStr + expStr;
     }
+}
+
+QString ToDateString(const QDate & date)
+{
+    static const char* months[] =
+    {
+        "Jan",
+        "Feb",
+        "Mar",
+        "Arp",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+    };
+    return QString().sprintf("%s %d %d", months[date.month() - 1], date.day(), date.year());
 }

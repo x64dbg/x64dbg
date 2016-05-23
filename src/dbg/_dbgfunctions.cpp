@@ -16,6 +16,8 @@
 #include "symbolinfo.h"
 #include "module.h"
 #include "exhandlerinfo.h"
+#include "breakpoint.h"
+#include "threading.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -203,6 +205,35 @@ static bool _valfromstring(const char* string, duint* value)
     return valfromstring(string, value);
 }
 
+static bool _getbridgebp(BPXTYPE type, duint addr, BRIDGEBP* bp)
+{
+    BP_TYPE bptype;
+    switch(type)
+    {
+    case bp_normal:
+        bptype = BPNORMAL;
+        break;
+    case bp_hardware:
+        bptype = BPHARDWARE;
+        break;
+    case bp_memory:
+        bptype = BPMEMORY;
+        break;
+    default:
+        return false;
+    }
+    SHARED_ACQUIRE(LockBreakpoints);
+    auto bpInfo = BpInfoFromAddr(bptype, addr);
+    if(!bpInfo)
+        return false;
+    if(bp)
+    {
+        BpToBridge(bpInfo, bp);
+        bp->addr = addr;
+    }
+    return true;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -242,4 +273,5 @@ void dbgfunctionsinit()
     _dbgfunctions.GetSourceFromAddr = _getsourcefromaddr;
     _dbgfunctions.ValFromString = _valfromstring;
     _dbgfunctions.PatchGetEx = (PATCHGETEX)PatchGet;
+    _dbgfunctions.GetBridgeBp = _getbridgebp;
 }

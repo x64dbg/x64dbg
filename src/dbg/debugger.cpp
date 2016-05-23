@@ -22,6 +22,7 @@
 #include "module.h"
 #include "commandline.h"
 #include "stackinfo.h"
+#include "stringformat.h"
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
@@ -269,192 +270,270 @@ void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
     GuiStackDumpAt(dumpAddr, csp);
 }
 
-void cbUserBreakpoint()
+static void printSoftBpInfo(const BREAKPOINT & bp)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    BREAKPOINT bp;
-    BRIDGEBP pluginBp;
-    PLUG_CB_BREAKPOINT bpInfo;
-    bpInfo.breakpoint = 0;
-    if(!BpGet(GetContextDataEx(hActiveThread, UE_CIP), BPNORMAL, 0, &bp) && bp.enabled)
-        dputs("Breakpoint reached not in list!");
+    auto bptype = "INT3";
+    int titantype = bp.titantype;
+    if((titantype & UE_BREAKPOINT_TYPE_UD2) == UE_BREAKPOINT_TYPE_UD2)
+        bptype = "UD2";
+    else if((titantype & UE_BREAKPOINT_TYPE_LONG_INT3) == UE_BREAKPOINT_TYPE_LONG_INT3)
+        bptype = "LONG INT3";
+    const char* symbolicname = SymGetSymbolicName(bp.addr);
+    if(symbolicname)
+    {
+        if(*bp.name)
+            dprintf("%s breakpoint \"%s\" at %s (" fhex ")!\n", bptype, bp.name, symbolicname, bp.addr);
+        else
+            dprintf("%s breakpoint at %s (" fhex ")!\n", bptype, symbolicname, bp.addr);
+    }
     else
     {
-        const char* bptype = "INT3";
-        int titantype = bp.titantype;
-        if((titantype & UE_BREAKPOINT_TYPE_UD2) == UE_BREAKPOINT_TYPE_UD2)
-            bptype = "UD2";
-        else if((titantype & UE_BREAKPOINT_TYPE_LONG_INT3) == UE_BREAKPOINT_TYPE_LONG_INT3)
-            bptype = "LONG INT3";
-        const char* symbolicname = SymGetSymbolicName(bp.addr);
-        if(symbolicname)
-        {
-            if(*bp.name)
-                dprintf("%s breakpoint \"%s\" at %s (" fhex ")!\n", bptype, bp.name, symbolicname, bp.addr);
-            else
-                dprintf("%s breakpoint at %s (" fhex ")!\n", bptype, symbolicname, bp.addr);
-        }
+        if(*bp.name)
+            dprintf("%s breakpoint \"%s\" at " fhex "!\n", bptype, bp.name, bp.addr);
         else
-        {
-            if(*bp.name)
-                dprintf("%s breakpoint \"%s\" at " fhex "!\n", bptype, bp.name, bp.addr);
-            else
-                dprintf("%s breakpoint at " fhex "!\n", bptype, bp.addr);
-        }
-        if(bp.singleshoot)
-            BpDelete(bp.addr, BPNORMAL);
-        BpToBridge(&bp, &pluginBp);
-        bpInfo.breakpoint = &pluginBp;
+            dprintf("%s breakpoint at " fhex "!\n", bptype, bp.addr);
     }
-    GuiSetDebugState(paused);
-    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
-    //lock
+}
+
+static void printHwBpInfo(const BREAKPOINT & bp)
+{
+    auto bpsize = "";
+    switch(TITANGETSIZE(bp.titantype))   //size
+    {
+    case UE_HARDWARE_SIZE_1:
+        bpsize = "byte, ";
+        break;
+    case UE_HARDWARE_SIZE_2:
+        bpsize = "word, ";
+        break;
+    case UE_HARDWARE_SIZE_4:
+        bpsize = "dword, ";
+        break;
+#ifdef _WIN64
+    case UE_HARDWARE_SIZE_8:
+        bpsize = "qword, ";
+        break;
+#endif //_WIN64
+    }
+    auto bptype = "";
+    switch(TITANGETTYPE(bp.titantype))   //type
+    {
+    case UE_HARDWARE_EXECUTE:
+        bptype = "execute";
+        bpsize = "";
+        break;
+    case UE_HARDWARE_READWRITE:
+        bptype = "read/write";
+        break;
+    case UE_HARDWARE_WRITE:
+        bptype = "write";
+        break;
+    }
+    const char* symbolicname = SymGetSymbolicName(bp.addr);
+    if(symbolicname)
+    {
+        if(*bp.name)
+            dprintf("Hardware breakpoint (%s%s) \"%s\" at %s (" fhex ")!\n", bpsize, bptype, bp.name, symbolicname, bp.addr);
+        else
+            dprintf("Hardware breakpoint (%s%s) at %s (" fhex ")!\n", bpsize, bptype, symbolicname, bp.addr);
+    }
+    else
+    {
+        if(*bp.name)
+            dprintf("Hardware breakpoint (%s%s) \"%s\" at " fhex "!\n", bpsize, bptype, bp.name, bp.addr);
+        else
+            dprintf("Hardware breakpoint (%s%s) at " fhex "!\n", bpsize, bptype, bp.addr);
+    }
+}
+
+static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
+{
+    const char* bptype = "";
+    switch(bp.titantype)
+    {
+    case UE_MEMORY_READ:
+        bptype = " (read)";
+        break;
+    case UE_MEMORY_WRITE:
+        bptype = " (write)";
+        break;
+    case UE_MEMORY_EXECUTE:
+        bptype = " (execute)";
+        break;
+    case UE_MEMORY:
+        bptype = " (read/write/execute)";
+        break;
+    }
+    auto symbolicname = SymGetSymbolicName(bp.addr);
+    if(symbolicname)
+    {
+        if(*bp.name)
+            dprintf("Memory breakpoint%s \"%s\" at %s (" fhex ", " fhex ")!\n", bptype, bp.name, symbolicname, bp.addr, ExceptionAddress);
+        else
+            dprintf("Memory breakpoint%s at %s (" fhex ", " fhex ")!\n", bptype, symbolicname, bp.addr, ExceptionAddress);
+    }
+    else
+    {
+        if(*bp.name)
+            dprintf("Memory breakpoint%s \"%s\" at " fhex " (" fhex ")!\n", bptype, bp.name, bp.addr, ExceptionAddress);
+        else
+            dprintf("Memory breakpoint%s at " fhex " (" fhex ")!\n", bptype, bp.addr, ExceptionAddress);
+    }
+}
+
+static bool getConditionValue(const char* expression)
+{
+    auto word = *(uint16*)expression;
+    if(word == '0')  // short circuit for condition "0\0"
+        return false;
+    if(word == '1')  //short circuit for condition "1\0"
+        return true;
+    duint value;
+    if(valfromstring(expression, &value))
+        return value != 0;
+    return true;
+}
+
+static void BreakpointProlog(BREAKPOINT & bp, bool breakCondition, bool logCondition, bool commandCondition)
+{
+    // update GUI
+    if(breakCondition)
+    {
+        GuiSetDebugState(paused);
+        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+    }
+
+    // plugin interaction
     lock(WAITID_RUN);
-    SetForegroundWindow(GuiGetWindowHandle());
-    bSkipExceptions = false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = 0;
+    pauseInfo.reserved = nullptr;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    PLUG_CB_BREAKPOINT bpInfo;
+    BRIDGEBP bridgebp;
+    bpInfo.breakpoint = &bridgebp;
+    memset(&bpInfo, 0, sizeof(bpInfo));
+    BpToBridge(&bp, &bridgebp);
     plugincbcall(CB_BREAKPOINT, &bpInfo);
+
+    if(*bp.logText && logCondition)  //log
+    {
+        dprintf("%s\n", stringformatinline(bp.logText).c_str());
+    }
+    if(*bp.commandText && commandCondition)  //command
+    {
+        //TODO: commands like run/step etc will fuck up your shit
+        DbgCmdExec(bp.commandText);
+    }
+    if(breakCondition)  //break the debugger
+    {
+        SetForegroundWindow(GuiGetWindowHandle());
+        bSkipExceptions = false;
+    }
+    else //resume immediately
+        unlock(WAITID_RUN);
+
+    //wait until the user resumes
     wait(WAITID_RUN);
+}
+
+static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr)
+{
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    BREAKPOINT* bpPtr = nullptr;
+    SHARED_ACQUIRE(LockBreakpoints);
+    switch(bptype)
+    {
+    case BPNORMAL:
+        bpPtr = BpInfoFromAddr(bptype, CIP);
+        break;
+    case BPHARDWARE:
+        bpPtr = BpInfoFromAddr(bptype, duint(ExceptionAddress));
+        break;
+    case BPMEMORY:
+        bpPtr = BpInfoFromAddr(bptype, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
+    default:
+        break;
+    }
+    if(!(bpPtr && bpPtr->enabled))  //invalid / disabled breakpoint hit (most likely a bug)
+    {
+        dputs("Breakpoint reached not in list!");
+        GuiSetDebugState(paused);
+        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+        //lock
+        lock(WAITID_RUN);
+        SetForegroundWindow(GuiGetWindowHandle());
+        bSkipExceptions = false;
+        PLUG_CB_PAUSEDEBUG pauseInfo;
+        pauseInfo.reserved = nullptr;
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+        wait(WAITID_RUN);
+        return;
+    }
+
+    // increment hit count
+    InterlockedIncrement(&bpPtr->hitcount);
+
+    auto bp = *bpPtr;
+    SHARED_RELEASE();
+    bp.addr += ModBaseFromAddr(CIP);
+    bp.active = true; //a breakpoint that has been hit is active
+
+    //get condition values
+    bool breakCondition;
+    bool logCondition;
+    bool commandCondition;
+    if(*bp.breakCondition)
+        breakCondition = getConditionValue(bp.breakCondition);
+    else
+        breakCondition = true; //break if no condition is set
+    if(bp.fastResume && !breakCondition)  // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
+        return;
+    if(*bp.logCondition)
+        logCondition = getConditionValue(bp.logCondition);
+    else
+        logCondition = true; //log if no condition is set
+    if(*bp.commandCondition)
+        commandCondition = getConditionValue(bp.commandCondition);
+    else
+        commandCondition = breakCondition; //if no condition is set, execute the command when the debugger would break
+
+    if(breakCondition)
+    {
+        if(bp.singleshoot)
+            BpDelete(bp.addr, bptype);
+        switch(bptype)
+        {
+        case BPNORMAL:
+            printSoftBpInfo(bp);
+            break;
+        case BPHARDWARE:
+            printHwBpInfo(bp);
+            break;
+        case BPMEMORY:
+            printMemBpInfo(bp, ExceptionAddress);
+            break;
+        default:
+            break;
+        }
+    }
+
+    BreakpointProlog(bp, breakCondition, logCondition, commandCondition);
+}
+
+void cbUserBreakpoint()
+{
+    cbGenericBreakpoint(BPNORMAL);
 }
 
 void cbHardwareBreakpoint(void* ExceptionAddress)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    BREAKPOINT bp;
-    BRIDGEBP pluginBp;
-    PLUG_CB_BREAKPOINT bpInfo;
-    bpInfo.breakpoint = 0;
-    if(!BpGet((duint)ExceptionAddress, BPHARDWARE, 0, &bp))
-        dputs("Hardware breakpoint reached not in list!");
-    else
-    {
-        const char* bpsize = "";
-        switch(TITANGETSIZE(bp.titantype)) //size
-        {
-        case UE_HARDWARE_SIZE_1:
-            bpsize = "byte, ";
-            break;
-        case UE_HARDWARE_SIZE_2:
-            bpsize = "word, ";
-            break;
-        case UE_HARDWARE_SIZE_4:
-            bpsize = "dword, ";
-            break;
-#ifdef _WIN64
-        case UE_HARDWARE_SIZE_8:
-            bpsize = "qword, ";
-            break;
-#endif //_WIN64
-        }
-        const char* bptype = "";
-        switch(TITANGETTYPE(bp.titantype)) //type
-        {
-        case UE_HARDWARE_EXECUTE:
-            bptype = "execute";
-            bpsize = "";
-            break;
-        case UE_HARDWARE_READWRITE:
-            bptype = "read/write";
-            break;
-        case UE_HARDWARE_WRITE:
-            bptype = "write";
-            break;
-        }
-        const char* symbolicname = SymGetSymbolicName(bp.addr);
-        if(symbolicname)
-        {
-            if(*bp.name)
-                dprintf("Hardware breakpoint (%s%s) \"%s\" at %s (" fhex ")!\n", bpsize, bptype, bp.name, symbolicname, bp.addr);
-            else
-                dprintf("Hardware breakpoint (%s%s) at %s (" fhex ")!\n", bpsize, bptype, symbolicname, bp.addr);
-        }
-        else
-        {
-            if(*bp.name)
-                dprintf("Hardware breakpoint (%s%s) \"%s\" at " fhex "!\n", bpsize, bptype, bp.name, bp.addr);
-            else
-                dprintf("Hardware breakpoint (%s%s) at " fhex "!\n", bpsize, bptype, bp.addr);
-        }
-        BpToBridge(&bp, &pluginBp);
-        bpInfo.breakpoint = &pluginBp;
-    }
-    GuiSetDebugState(paused);
-    DebugUpdateGui(cip, true);
-    //lock
-    lock(WAITID_RUN);
-    SetForegroundWindow(GuiGetWindowHandle());
-    bSkipExceptions = false;
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = 0;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    plugincbcall(CB_BREAKPOINT, &bpInfo);
-    wait(WAITID_RUN);
+    cbGenericBreakpoint(BPHARDWARE, ExceptionAddress);
 }
 
 void cbMemoryBreakpoint(void* ExceptionAddress)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    duint size;
-    duint base = MemFindBaseAddr((duint)ExceptionAddress, &size, true);
-    BREAKPOINT bp;
-    BRIDGEBP pluginBp;
-    PLUG_CB_BREAKPOINT bpInfo;
-    bpInfo.breakpoint = 0;
-    if(!BpGet(base, BPMEMORY, 0, &bp))
-        dputs("Memory breakpoint reached not in list!");
-    else
-    {
-        const char* bptype = "";
-        switch(bp.titantype)
-        {
-        case UE_MEMORY_READ:
-            bptype = " (read)";
-            break;
-        case UE_MEMORY_WRITE:
-            bptype = " (write)";
-            break;
-        case UE_MEMORY_EXECUTE:
-            bptype = " (execute)";
-            break;
-        case UE_MEMORY:
-            bptype = " (read/write/execute)";
-            break;
-        }
-        const char* symbolicname = SymGetSymbolicName(bp.addr);
-        if(symbolicname)
-        {
-            if(*bp.name)
-                dprintf("Memory breakpoint%s \"%s\" at %s (" fhex ", " fhex ")!\n", bptype, bp.name, symbolicname, bp.addr, ExceptionAddress);
-            else
-                dprintf("Memory breakpoint%s at %s (" fhex ", " fhex ")!\n", bptype, symbolicname, bp.addr, ExceptionAddress);
-        }
-        else
-        {
-            if(*bp.name)
-                dprintf("Memory breakpoint%s \"%s\" at " fhex " (" fhex ")!\n", bptype, bp.name, bp.addr, ExceptionAddress);
-            else
-                dprintf("Memory breakpoint%s at " fhex " (" fhex ")!\n", bptype, bp.addr, ExceptionAddress);
-        }
-        BpToBridge(&bp, &pluginBp);
-        bpInfo.breakpoint = &pluginBp;
-    }
-    if(bp.singleshoot)
-        BpDelete(bp.addr, BPMEMORY); //delete from breakpoint list
-    GuiSetDebugState(paused);
-    DebugUpdateGui(cip, true);
-    //lock
-    lock(WAITID_RUN);
-    SetForegroundWindow(GuiGetWindowHandle());
-    bSkipExceptions = false;
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = 0;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    plugincbcall(CB_BREAKPOINT, &bpInfo);
-    wait(WAITID_RUN);
+    cbGenericBreakpoint(BPMEMORY, ExceptionAddress);
 }
 
 void cbLibrarianBreakpoint(void* lpData)
@@ -472,7 +551,8 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
     case CBA_EVENT:
     {
         evt = (PIMAGEHLP_CBA_EVENT)CallbackData;
-        const char* text = (const char*)evt->desc;
+        auto strText = StringUtils::Utf16ToUtf8((const wchar_t*)evt->desc);
+        const char* text = strText.c_str();
         if(strstr(text, "Successfully received a response from the server."))
             break;
         if(strstr(text, "Waiting for the server to respond to a request."))
@@ -690,14 +770,14 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     char szServerSearchPath[MAX_PATH * 2] = "";
     sprintf_s(szServerSearchPath, "SRV*%s", szSymbolCachePath);
     SafeSymInitializeW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(szServerSearchPath).c_str(), false); //initialize symbols
-    SafeSymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
-    SafeSymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
+    SafeSymRegisterCallbackW64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
+    SafeSymLoadModuleExW(fdProcessInfo->hProcess, CreateProcessInfo->hFile, StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, (DWORD64)base, 0, 0, 0);
 
-    IMAGEHLP_MODULE64 modInfo;
+    IMAGEHLP_MODULEW64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct = sizeof(modInfo);
-    if(SafeSymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        ModLoad((duint)base, modInfo.ImageSize, modInfo.ImageName);
+    if(SafeSymGetModuleInfoW64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
+        ModLoad((duint)base, modInfo.ImageSize, StringUtils::Utf16ToUtf8(modInfo.ImageName).c_str());
 
     char modname[256] = "";
     if(ModNameFromAddr((duint)base, modname, true))
@@ -752,7 +832,32 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     //call plugin callback
     PLUG_CB_CREATEPROCESS callbackInfo;
     callbackInfo.CreateProcessInfo = CreateProcessInfo;
-    callbackInfo.modInfo = &modInfo;
+    IMAGEHLP_MODULE64 modInfoUtf8;
+    memset(&modInfoUtf8, 0, sizeof(modInfoUtf8));
+    modInfoUtf8.SizeOfStruct = sizeof(modInfoUtf8);
+    modInfoUtf8.BaseOfImage = modInfo.BaseOfImage;
+    modInfoUtf8.ImageSize = modInfo.ImageSize;
+    modInfoUtf8.TimeDateStamp = modInfo.TimeDateStamp;
+    modInfoUtf8.CheckSum = modInfo.CheckSum;
+    modInfoUtf8.NumSyms = modInfo.NumSyms;
+    modInfoUtf8.SymType = modInfo.SymType;
+    strcpy_s(modInfoUtf8.ModuleName, StringUtils::Utf16ToUtf8(modInfo.ModuleName).c_str());
+    strcpy_s(modInfoUtf8.ImageName, StringUtils::Utf16ToUtf8(modInfo.ImageName).c_str());
+    strcpy_s(modInfoUtf8.LoadedImageName, StringUtils::Utf16ToUtf8(modInfo.LoadedImageName).c_str());
+    strcpy_s(modInfoUtf8.LoadedPdbName, StringUtils::Utf16ToUtf8(modInfo.LoadedPdbName).c_str());
+    modInfoUtf8.CVSig = modInfo.CVSig;
+    strcpy_s(modInfoUtf8.CVData, StringUtils::Utf16ToUtf8(modInfo.CVData).c_str());
+    modInfoUtf8.PdbSig = modInfo.PdbSig;
+    modInfoUtf8.PdbSig70 = modInfo.PdbSig70;
+    modInfoUtf8.PdbAge = modInfo.PdbAge;
+    modInfoUtf8.PdbUnmatched = modInfo.PdbUnmatched;
+    modInfoUtf8.DbgUnmatched = modInfo.DbgUnmatched;
+    modInfoUtf8.LineNumbers = modInfo.LineNumbers;
+    modInfoUtf8.GlobalSymbols = modInfo.GlobalSymbols;
+    modInfoUtf8.TypeInfo = modInfo.TypeInfo;
+    modInfoUtf8.SourceIndexed = modInfo.SourceIndexed;
+    modInfoUtf8.Publics = modInfo.Publics;
+    callbackInfo.modInfo = &modInfoUtf8;
     callbackInfo.DebugFileName = DebugFileName;
     callbackInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_CREATEPROCESS, &callbackInfo);
@@ -885,12 +990,12 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
         strcpy_s(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
 
-    SafeSymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
-    IMAGEHLP_MODULE64 modInfo;
+    SafeSymLoadModuleExW(fdProcessInfo->hProcess, LoadDll->hFile, StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, (DWORD64)base, 0, 0, 0);
+    IMAGEHLP_MODULEW64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
-    if(SafeSymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        ModLoad((duint)base, modInfo.ImageSize, modInfo.ImageName);
+    modInfo.SizeOfStruct = sizeof(modInfo);
+    if(SafeSymGetModuleInfoW64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
+        ModLoad((duint)base, modInfo.ImageSize, StringUtils::Utf16ToUtf8(modInfo.ImageName).c_str());
 
     // Update memory map
     MemUpdateMapAsync();
@@ -966,7 +1071,32 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     //plugin callback
     PLUG_CB_LOADDLL callbackInfo;
     callbackInfo.LoadDll = LoadDll;
-    callbackInfo.modInfo = &modInfo;
+    IMAGEHLP_MODULE64 modInfoUtf8;
+    memset(&modInfoUtf8, 0, sizeof(modInfoUtf8));
+    modInfoUtf8.SizeOfStruct = sizeof(modInfoUtf8);
+    modInfoUtf8.BaseOfImage = modInfo.BaseOfImage;
+    modInfoUtf8.ImageSize = modInfo.ImageSize;
+    modInfoUtf8.TimeDateStamp = modInfo.TimeDateStamp;
+    modInfoUtf8.CheckSum = modInfo.CheckSum;
+    modInfoUtf8.NumSyms = modInfo.NumSyms;
+    modInfoUtf8.SymType = modInfo.SymType;
+    strcpy_s(modInfoUtf8.ModuleName, StringUtils::Utf16ToUtf8(modInfo.ModuleName).c_str());
+    strcpy_s(modInfoUtf8.ImageName, StringUtils::Utf16ToUtf8(modInfo.ImageName).c_str());
+    strcpy_s(modInfoUtf8.LoadedImageName, StringUtils::Utf16ToUtf8(modInfo.LoadedImageName).c_str());
+    strcpy_s(modInfoUtf8.LoadedPdbName, StringUtils::Utf16ToUtf8(modInfo.LoadedPdbName).c_str());
+    modInfoUtf8.CVSig = modInfo.CVSig;
+    strcpy_s(modInfoUtf8.CVData, StringUtils::Utf16ToUtf8(modInfo.CVData).c_str());
+    modInfoUtf8.PdbSig = modInfo.PdbSig;
+    modInfoUtf8.PdbSig70 = modInfo.PdbSig70;
+    modInfoUtf8.PdbAge = modInfo.PdbAge;
+    modInfoUtf8.PdbUnmatched = modInfo.PdbUnmatched;
+    modInfoUtf8.DbgUnmatched = modInfo.DbgUnmatched;
+    modInfoUtf8.LineNumbers = modInfo.LineNumbers;
+    modInfoUtf8.GlobalSymbols = modInfo.GlobalSymbols;
+    modInfoUtf8.TypeInfo = modInfo.TypeInfo;
+    modInfoUtf8.SourceIndexed = modInfo.SourceIndexed;
+    modInfoUtf8.Publics = modInfo.Publics;
+    callbackInfo.modInfo = &modInfoUtf8;
     callbackInfo.modname = modname;
     plugincbcall(CB_LOADDLL, &callbackInfo);
 
@@ -1165,15 +1295,19 @@ static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 
 bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 {
+    if(bp->type != BPNORMAL)
+        return true;
     if(!BpDelete(bp->addr, BPNORMAL))
     {
         dprintf("Delete breakpoint failed (BpDelete): " fhex "\n", bp->addr);
         return false;
     }
-    if(!bp->enabled || DeleteBPX(bp->addr))
-        return true;
-    dprintf("Delete breakpoint failed (DeleteBPX): " fhex "\n", bp->addr);
-    return false;
+    if(bp->enabled && !DeleteBPX(bp->addr))
+    {
+        dprintf("Delete breakpoint failed (DeleteBPX): " fhex "\n", bp->addr);
+        return false;
+    }
+    return true;
 }
 
 bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
@@ -1242,14 +1376,14 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
 
 bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type != BPHARDWARE || !bp->enabled)
+    if(bp->type != BPHARDWARE)
         return true;
     if(!BpEnable(bp->addr, BPHARDWARE, false))
     {
         dprintf("Could not disable hardware breakpoint " fhex " (BpEnable)\n", bp->addr);
         return false;
     }
-    if(!DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    if(bp->enabled && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
         dprintf("Could not disable hardware breakpoint " fhex " (DeleteHardwareBreakPoint)\n", bp->addr);
         return false;
@@ -1317,7 +1451,7 @@ bool cbBreakpointList(const BREAKPOINT* bp)
 
 bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
-    if(!bp->enabled)
+    if(bp->type != BPMEMORY)
         return true;
     duint size;
     MemFindBaseAddr(bp->addr, &size);
@@ -1326,7 +1460,7 @@ bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
         dprintf("Delete memory breakpoint failed (BpDelete): " fhex "\n", bp->addr);
         return false;
     }
-    if(!RemoveMemoryBPX(bp->addr, size))
+    if(bp->enabled && !RemoveMemoryBPX(bp->addr, size))
     {
         dprintf("Delete memory breakpoint failed (RemoveMemoryBPX): " fhex "\n", bp->addr);
         return false;
@@ -1336,14 +1470,14 @@ bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
 
 bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
-    if(!bp->enabled)
+    if(bp->type != BPHARDWARE)
         return true;
     if(!BpDelete(bp->addr, BPHARDWARE))
     {
         dprintf("Delete hardware breakpoint failed (BpDelete): " fhex "\n", bp->addr);
         return false;
     }
-    if(!DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    if(bp->enabled && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
         dprintf("Delete hardware breakpoint failed (DeleteHardwareBreakPoint): " fhex "\n", bp->addr);
         return false;
@@ -1779,7 +1913,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     plugincbcall(CB_STOPDEBUG, &stopInfo);
 
     //cleanup dbghelp
-    SafeSymRegisterCallback64(hProcess, nullptr, 0);
+    SafeSymRegisterCallbackW64(hProcess, nullptr, 0);
     SafeSymCleanup(hProcess);
 
     //message the user/do final stuff

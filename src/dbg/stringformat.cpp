@@ -53,32 +53,45 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
     return result;
 }
 
+static const char* getArgExpressionType(const String & formatString, ValueType::ValueType & type)
+{
+    auto hasExplicitType = false;
+    type = ValueType::Hex;
+    if(formatString.size() > 2 && formatString[1] == ':')
+    {
+        switch(formatString[0])
+        {
+        case 'd':
+            type = ValueType::SignedDecimal;
+            hasExplicitType = true;
+            break;
+        case 'u':
+            type = ValueType::UnsignedDecimal;
+            hasExplicitType = true;
+            break;
+        case 'p':
+            type = ValueType::Pointer;
+            hasExplicitType = true;
+            break;
+        case 's':
+            type = ValueType::String;
+            hasExplicitType = true;
+            break;
+        default:
+            break;
+        }
+    }
+    auto expression = formatString.c_str();
+    if(hasExplicitType)
+        expression += 2;
+    return expression;
+}
+
 static unsigned int getArgNumType(const String & formatString, ValueType::ValueType & type)
 {
-    int add = 0;
-    switch(formatString[0])
-    {
-    case 'd':
-        type = ValueType::SignedDecimal;
-        add++;
-        break;
-    case 'u':
-        type = ValueType::UnsignedDecimal;
-        add++;
-        break;
-    case 'p':
-        type = ValueType::Pointer;
-        add++;
-        break;
-    case 's':
-        type = ValueType::String;
-        add++;
-        break;
-    default:
-        type = ValueType::Hex;
-    }
+    auto expression = getArgExpressionType(formatString, type);
     unsigned int argnum = 0;
-    if(sscanf(formatString.c_str() + add, "%u", &argnum) != 1)
+    if(!expression || sscanf(expression, "%u", &argnum) != 1)
         type = ValueType::Unknown;
     return argnum;
 }
@@ -108,7 +121,7 @@ String stringformat(String format, const FormatValueVector & values)
             i++;
             continue;
         }
-        else if(format[i] == '}' && (i + 1 < len && format[i + 1] == '}'))
+        if(format[i] == '}' && (i + 1 < len && format[i + 1] == '}'))
         {
             output += "}";
             i++;
@@ -136,5 +149,61 @@ String stringformat(String format, const FormatValueVector & values)
     }
     if(inFormatter && formatString.size())
         output += handleFormatString(formatString, values);
+    return output;
+}
+
+static String handleFormatStringInline(const String & formatString)
+{
+    auto type = ValueType::Unknown;
+    auto value = getArgExpressionType(formatString, type);
+    if(value && *value)
+        return printValue(value, type);
+    return "[Formatting Error]";
+}
+
+String stringformatinline(String format)
+{
+    StringUtils::ReplaceAll(format, "\\n", "\n");
+    int len = (int)format.length();
+    String output;
+    String formatString;
+    bool inFormatter = false;
+    for(int i = 0; i < len; i++)
+    {
+        //handle escaped format sequences "{{" and "}}"
+        if(format[i] == '{' && (i + 1 < len && format[i + 1] == '{'))
+        {
+            output += "{";
+            i++;
+            continue;
+        }
+        if(format[i] == '}' && (i + 1 < len && format[i + 1] == '}'))
+        {
+            output += "}";
+            i++;
+            continue;
+        }
+        //handle actual formatting
+        if(format[i] == '{' && !inFormatter)  //opening bracket
+        {
+            inFormatter = true;
+            formatString.clear();
+        }
+        else if(format[i] == '}' && inFormatter)  //closing bracket
+        {
+            inFormatter = false;
+            if(formatString.length())
+            {
+                output += handleFormatStringInline(formatString);
+                formatString.clear();
+            }
+        }
+        else if(inFormatter)  //inside brackets
+            formatString += format[i];
+        else //outside brackets
+            output += format[i];
+    }
+    if(inFormatter && formatString.size())
+        output += handleFormatStringInline(formatString);
     return output;
 }
