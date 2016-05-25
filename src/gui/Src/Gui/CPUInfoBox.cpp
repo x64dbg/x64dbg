@@ -13,7 +13,7 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     setCellContent(2, 0, "");
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    horizontalScrollBar()->setStyleSheet("QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}");
+    horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
 
     int height = getHeight();
     setMaximumHeight(height);

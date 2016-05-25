@@ -144,7 +144,8 @@ SOURCES += \
     Src/ThirdPartyLibs/float128/float128.cpp \
     Src/Utils/StringUtil.cpp \
     Src/Gui/SEHChainView.cpp \
-    Src/Gui/EditBreakpointDialog.cpp
+    Src/Gui/EditBreakpointDialog.cpp \
+    Src/Gui/CPUArgumentWidget.cpp
 
 
 HEADERS += \
@@ -229,7 +230,8 @@ HEADERS += \
     Src/Gui/AssembleDialog.h \
     Src/ThirdPartyLibs/float128/float128.h \
     Src/Gui/SEHChainView.h \
-    Src/Gui/EditBreakpointDialog.h
+    Src/Gui/EditBreakpointDialog.h \
+    Src/Gui/CPUArgumentWidget.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -255,7 +257,8 @@ FORMS += \
     Src/Gui/DataCopyDialog.ui \
     Src/Gui/EntropyDialog.ui \
     Src/Gui/AssembleDialog.ui \
-    Src/Gui/EditBreakpointDialog.ui
+    Src/Gui/EditBreakpointDialog.ui \
+    Src/Gui/CPUArgumentWidget.ui
 
 TRANSLATIONS = \
     Translations/x64dbg_zh_CN.ts
