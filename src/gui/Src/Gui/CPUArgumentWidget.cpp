@@ -100,24 +100,24 @@ void CPUArgumentWidget::refreshData()
 void CPUArgumentWidget::loadConfig()
 {
 #ifdef _WIN64
-    CallingConvention x64("Default (x64 fastcall)", 1);
+    CallingConvention x64(tr("Default (x64 fastcall)"), 1);
     x64.addArgument(Argument("", "", "rcx"));
     x64.addArgument(Argument("", "", "rdx"));
     x64.addArgument(Argument("", "", "r8"));
     x64.addArgument(Argument("", "", "r9"));
     mCallingConventions.push_back(x64);
 #else
-    CallingConvention x32("Default (stdcall)", 5);
+    CallingConvention x32(tr("Default (stdcall)"), 5);
     mCallingConventions.push_back(x32);
 
-    CallingConvention x32ebp("Default (stdcall, EBP stack)", 5, "ebp");
+    CallingConvention x32ebp(tr("Default (stdcall, EBP stack)"), 5, "ebp");
     mCallingConventions.push_back(x32ebp);
 
-    CallingConvention thiscall("thiscall", 4);
+    CallingConvention thiscall(tr("thiscall"), 4);
     thiscall.addArgument(Argument("this", "ecx", ""));
     mCallingConventions.push_back(thiscall);
 
-    CallingConvention delphi("Delphi (Borland fastcall)", 2);
+    CallingConvention delphi(tr("Delphi (Borland fastcall)"), 2);
     delphi.addArgument(Argument("", "eax", ""));
     delphi.addArgument(Argument("", "edx", ""));
     delphi.addArgument(Argument("", "ecx", ""));
@@ -157,20 +157,20 @@ void CPUArgumentWidget::on_checkBoxLock_stateChanged(int)
     {
     case Qt::Checked:
         refreshData(); //first refresh then lock
-        ui->checkBoxLock->setText("Locked");
+        ui->checkBoxLock->setText(tr("Locked"));
         ui->spinArgCount->setEnabled(false);
         ui->comboCallingConvention->setEnabled(false);
         mAllowUpdate = false;
         break;
     case Qt::PartiallyChecked:
         refreshData(); //first refresh then lock
-        ui->checkBoxLock->setText("Calls");
+        ui->checkBoxLock->setText(tr("Calls"));
         ui->spinArgCount->setEnabled(false);
         ui->comboCallingConvention->setEnabled(false);
         mAllowUpdate = false;
         break;
     case Qt::Unchecked:
-        ui->checkBoxLock->setText("Unlocked");
+        ui->checkBoxLock->setText(tr("Unlocked"));
         ui->spinArgCount->setEnabled(true);
         ui->comboCallingConvention->setEnabled(true);
         mAllowUpdate = true;

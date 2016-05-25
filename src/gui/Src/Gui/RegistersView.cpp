@@ -2301,11 +2301,12 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     {
         wMenu.addSeparator();
         wMenu.addAction(wCM_ChangeFPUView);
+        wMenu.addAction(wCM_CopyAll);
         wMenu.addSeparator();
 #ifdef _WIN64
-        QAction* wHwbpCsp = wMenu.addAction("HW Break on [RSP]");
+        QAction* wHwbpCsp = wMenu.addAction(tr("HW Break on [RSP]"));
 #else
-        QAction* wHwbpCsp = wMenu.addAction("HW Break on [ESP]");
+        QAction* wHwbpCsp = wMenu.addAction(tr("HW Break on [ESP]"));
 #endif
         QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
 
