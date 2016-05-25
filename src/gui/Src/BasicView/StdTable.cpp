@@ -420,14 +420,14 @@ void StdTable::contextMenuRequestedSlot(const QPoint & pos)
     }
     if(mCopyMenuDebugOnly && !DbgIsDebugging())
         return;
-    QMenu* wMenu = new QMenu(this);
+    QMenu wMenu(this);
     QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
-        wMenu->exec(mapToGlobal(pos));
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
+        wMenu.exec(mapToGlobal(pos));
     }
 }
 

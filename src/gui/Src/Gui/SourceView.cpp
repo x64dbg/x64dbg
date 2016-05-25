@@ -20,14 +20,14 @@ SourceView::SourceView(QString path, int line, StdTable* parent) : StdTable(pare
 
 void SourceView::contextMenuSlot(const QPoint & pos)
 {
-    QMenu* wMenu = new QMenu(this);
+    QMenu wMenu(this);
 
     int line = getInitialSelection() + 1;
     dsint addr = DbgFunctions()->GetAddrFromLine(mSourcePath.toUtf8().constData(), line);
     if(addr)
-        wMenu->addAction(mFollowInDisasm);
+        wMenu.addAction(mFollowInDisasm);
 
-    wMenu->exec(mapToGlobal(pos));
+    wMenu.exec(mapToGlobal(pos));
 }
 
 void SourceView::setupContextMenu()

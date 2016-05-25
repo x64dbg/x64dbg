@@ -131,24 +131,24 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 {
     if(!DbgIsDebugging())
         return;
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addAction(mDumpMemory);
-    wMenu->addAction(mFollowDisassembly);
-    wMenu->addAction(mFollowDump);
-    wMenu->addAction(mYara);
-    wMenu->addAction(mEntropy);
-    wMenu->addAction(mFindPattern);
-    wMenu->addAction(mSwitchView);
-    wMenu->addSeparator();
-    wMenu->addAction(mPageMemoryRights);
-    wMenu->addSeparator();
-    wMenu->addMenu(mBreakpointMenu);
+    QMenu wMenu(this); //create context menu
+    wMenu.addAction(mDumpMemory);
+    wMenu.addAction(mFollowDisassembly);
+    wMenu.addAction(mFollowDump);
+    wMenu.addAction(mYara);
+    wMenu.addAction(mEntropy);
+    wMenu.addAction(mFindPattern);
+    wMenu.addAction(mSwitchView);
+    wMenu.addSeparator();
+    wMenu.addAction(mPageMemoryRights);
+    wMenu.addSeparator();
+    wMenu.addMenu(mBreakpointMenu);
     QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
 
     QString wStr = getCellContent(getInitialSelection(), 0);
@@ -172,7 +172,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
         mMemoryRemove->setVisible(false);
     }
 
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
+    wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 QString MemoryMapView::getProtectionString(DWORD Protect)

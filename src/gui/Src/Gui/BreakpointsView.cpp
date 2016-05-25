@@ -298,12 +298,12 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
     if(table->getRowCount() != 0)
     {
         int wI = 0;
-        QMenu* wMenu = new QMenu(this);
+        QMenu wMenu(this);
         duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
-        wMenu->addAction(mHardBPRemoveAction);
+        wMenu.addAction(mHardBPRemoveAction);
 
         // Enable/Disable
         DbgGetBpList(bp_hardware, &wBPList);
@@ -315,17 +315,17 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
                 if(wBPList.bp[wI].active == false)
                 {
                     mHardBPEnableDisableAction->setText(tr("Enable"));
-                    wMenu->addAction(mHardBPEnableDisableAction);
+                    wMenu.addAction(mHardBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
                     mHardBPEnableDisableAction->setText(tr("Disable"));
-                    wMenu->addAction(mHardBPEnableDisableAction);
+                    wMenu.addAction(mHardBPEnableDisableAction);
                 }
                 else
                 {
                     mHardBPEnableDisableAction->setText(tr("Enable"));
-                    wMenu->addAction(mHardBPEnableDisableAction);
+                    wMenu.addAction(mHardBPEnableDisableAction);
                 }
             }
         }
@@ -334,31 +334,31 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
 
         // Conditional
         mCurrentType = bp_hardware;
-        wMenu->addAction(mEditBreakpointAction);
-        wMenu->addAction(mHardBPResetHitCountAction);
+        wMenu.addAction(mEditBreakpointAction);
+        wMenu.addAction(mHardBPResetHitCountAction);
 
         // Separator
-        wMenu->addSeparator();
+        wMenu.addSeparator();
 
         // Enable All
-        wMenu->addAction(mHardBPEnableAllAction);
+        wMenu.addAction(mHardBPEnableAllAction);
 
         // Disable All
-        wMenu->addAction(mHardBPDisableAllAction);
+        wMenu.addAction(mHardBPDisableAllAction);
 
         // Remove All
-        wMenu->addAction(mHardBPRemoveAllAction);
+        wMenu.addAction(mHardBPRemoveAllAction);
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
-            wMenu->addSeparator();
-            wMenu->addMenu(&wCopyMenu);
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
         }
 
-        wMenu->exec(table->mapToGlobal(pos));
+        wMenu.exec(table->mapToGlobal(pos));
     }
 }
 
@@ -455,12 +455,12 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
     if(table->getRowCount() != 0)
     {
         int wI = 0;
-        QMenu* wMenu = new QMenu(this);
+        QMenu wMenu(this);
         duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
-        wMenu->addAction(mSoftBPRemoveAction);
+        wMenu.addAction(mSoftBPRemoveAction);
 
         // Enable/Disable
         DbgGetBpList(bp_normal, &wBPList);
@@ -472,17 +472,17 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
                 if(wBPList.bp[wI].active == false)
                 {
                     mSoftBPEnableDisableAction->setText(tr("Enable"));
-                    wMenu->addAction(mSoftBPEnableDisableAction);
+                    wMenu.addAction(mSoftBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
                     mSoftBPEnableDisableAction->setText(tr("Disable"));
-                    wMenu->addAction(mSoftBPEnableDisableAction);
+                    wMenu.addAction(mSoftBPEnableDisableAction);
                 }
                 else
                 {
                     mSoftBPEnableDisableAction->setText(tr("Enable"));
-                    wMenu->addAction(mSoftBPEnableDisableAction);
+                    wMenu.addAction(mSoftBPEnableDisableAction);
                 }
             }
         }
@@ -491,31 +491,31 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
 
         // Conditional
         mCurrentType = bp_normal;
-        wMenu->addAction(mEditBreakpointAction);
-        wMenu->addAction(mSoftBPResetHitCountAction);
+        wMenu.addAction(mEditBreakpointAction);
+        wMenu.addAction(mSoftBPResetHitCountAction);
 
         // Separator
-        wMenu->addSeparator();
+        wMenu.addSeparator();
 
         // Enable All
-        wMenu->addAction(mSoftBPEnableAllAction);
+        wMenu.addAction(mSoftBPEnableAllAction);
 
         // Disable All
-        wMenu->addAction(mSoftBPDisableAllAction);
+        wMenu.addAction(mSoftBPDisableAllAction);
 
         // Remove All
-        wMenu->addAction(mSoftBPRemoveAllAction);
+        wMenu.addAction(mSoftBPRemoveAllAction);
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
-            wMenu->addSeparator();
-            wMenu->addMenu(&wCopyMenu);
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
         }
 
-        wMenu->exec(table->mapToGlobal(pos));
+        wMenu.exec(table->mapToGlobal(pos));
     }
 }
 
@@ -612,12 +612,12 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
     if(table->getRowCount() != 0)
     {
         int wI = 0;
-        QMenu* wMenu = new QMenu(this);
+        QMenu wMenu(this);
         duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
-        wMenu->addAction(mMemBPRemoveAction);
+        wMenu.addAction(mMemBPRemoveAction);
 
         // Enable/Disable
         DbgGetBpList(bp_memory, &wBPList);
@@ -629,17 +629,17 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
                 if(wBPList.bp[wI].active == false)
                 {
                     mMemBPEnableDisableAction->setText(tr("Enable"));
-                    wMenu->addAction(mMemBPEnableDisableAction);
+                    wMenu.addAction(mMemBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
                     mMemBPEnableDisableAction->setText(tr("Disable"));
-                    wMenu->addAction(mMemBPEnableDisableAction);
+                    wMenu.addAction(mMemBPEnableDisableAction);
                 }
                 else
                 {
                     mMemBPEnableDisableAction->setText(tr("Enable"));
-                    wMenu->addAction(mMemBPEnableDisableAction);
+                    wMenu.addAction(mMemBPEnableDisableAction);
                 }
             }
         }
@@ -648,31 +648,31 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
 
         // Conditional
         mCurrentType = bp_memory;
-        wMenu->addAction(mEditBreakpointAction);
-        wMenu->addAction(mMemBPResetHitCountAction);
+        wMenu.addAction(mEditBreakpointAction);
+        wMenu.addAction(mMemBPResetHitCountAction);
 
         // Separator
-        wMenu->addSeparator();
+        wMenu.addSeparator();
 
         // Enable All
-        wMenu->addAction(mMemBPEnableAllAction);
+        wMenu.addAction(mMemBPEnableAllAction);
 
         // Disable All
-        wMenu->addAction(mMemBPDisableAllAction);
+        wMenu.addAction(mMemBPDisableAllAction);
 
         // Remove All
-        wMenu->addAction(mMemBPRemoveAllAction);
+        wMenu.addAction(mMemBPRemoveAllAction);
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
-            wMenu->addSeparator();
-            wMenu->addMenu(&wCopyMenu);
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
         }
 
-        wMenu->exec(table->mapToGlobal(pos));
+        wMenu.exec(table->mapToGlobal(pos));
     }
 }
 

@@ -616,24 +616,24 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
 
     dsint selectedAddr = rvaToVa(getInitialSelection());
 
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addMenu(mBinaryMenu);
-    wMenu->addMenu(mCopyMenu);
+    QMenu wMenu(this); //create context menu
+    wMenu.addMenu(mBinaryMenu);
+    wMenu.addMenu(mCopyMenu);
     dsint start = rvaToVa(getSelectionStart());
     dsint end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
-        wMenu->addAction(mUndoSelection);
+        wMenu.addAction(mUndoSelection);
     if(DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0))
-        wMenu->addAction(mFollowStack);
-    wMenu->addAction(mFollowInDisasm);
+        wMenu.addAction(mFollowStack);
+    wMenu.addAction(mFollowInDisasm);
 
     duint ptr = 0;
     DbgMemRead(selectedAddr, (unsigned char*)&ptr, sizeof(duint));
     if(DbgMemIsValidReadPtr(ptr))
     {
-        wMenu->addAction(mFollowData);
-        wMenu->addAction(mFollowDataDump);
-        wMenu->addMenu(mFollowInDumpMenu);
+        wMenu.addAction(mFollowData);
+        wMenu.addAction(mFollowDataDump);
+        wMenu.addMenu(mFollowInDumpMenu);
     }
 
     mGotoMenu->removeAction(mGotoPrevious);
@@ -645,24 +645,24 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     if(historyHasNext())
         mGotoMenu->addAction(mGotoNext);
 
-    wMenu->addAction(mSetLabelAction);
+    wMenu.addAction(mSetLabelAction);
     if(getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint))
-        wMenu->addAction(mModifyValueAction);
-    wMenu->addMenu(mBreakpointMenu);
-    wMenu->addAction(mFindPatternAction);
-    wMenu->addAction(mFindReferencesAction);
-    wMenu->addAction(mYaraAction);
-    wMenu->addAction(mDataCopyAction);
-    wMenu->addAction(mSyncWithExpression);
-    wMenu->addAction(mEntropy);
-    wMenu->addMenu(mGotoMenu);
-    wMenu->addSeparator();
-    wMenu->addMenu(mHexMenu);
-    wMenu->addMenu(mTextMenu);
-    wMenu->addMenu(mIntegerMenu);
-    wMenu->addMenu(mFloatMenu);
-    wMenu->addAction(mAddressAction);
-    wMenu->addAction(mDisassemblyAction);
+        wMenu.addAction(mModifyValueAction);
+    wMenu.addMenu(mBreakpointMenu);
+    wMenu.addAction(mFindPatternAction);
+    wMenu.addAction(mFindReferencesAction);
+    wMenu.addAction(mYaraAction);
+    wMenu.addAction(mDataCopyAction);
+    wMenu.addAction(mSyncWithExpression);
+    wMenu.addAction(mEntropy);
+    wMenu.addMenu(mGotoMenu);
+    wMenu.addSeparator();
+    wMenu.addMenu(mHexMenu);
+    wMenu.addMenu(mTextMenu);
+    wMenu.addMenu(mIntegerMenu);
+    wMenu.addMenu(mFloatMenu);
+    wMenu.addAction(mAddressAction);
+    wMenu.addAction(mDisassemblyAction);
 
     QList<QString> tabNames;
     mMultiDump->getTabNames(tabNames);
@@ -698,11 +698,10 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         mMemoryRemove->setVisible(false);
     }
 
-    wMenu->addSeparator();
-    wMenu->addActions(mPluginMenu->actions());
+    wMenu.addSeparator();
+    wMenu.addActions(mPluginMenu->actions());
 
-    wMenu->exec(event->globalPos()); //execute context menu
-    delete wMenu;
+    wMenu.exec(event->globalPos()); //execute context menu
 }
 
 void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)

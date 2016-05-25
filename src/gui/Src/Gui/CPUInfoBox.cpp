@@ -360,10 +360,10 @@ int CPUInfoBox::followInDump(dsint wVA)
 
 void CPUInfoBox::contextMenuSlot(QPoint pos)
 {
-    QMenu* wMenu = new QMenu(this); //create context menu
-    QMenu* wFollowMenu = new QMenu(tr("&Follow in Dump"), this);
-    setupFollowMenu(wFollowMenu, curAddr);
-    wMenu->addMenu(wFollowMenu);
+    QMenu wMenu(this); //create context menu
+    QMenu wFollowMenu(tr("&Follow in Dump"), this);
+    setupFollowMenu(&wFollowMenu, curAddr);
+    wMenu.addMenu(&wFollowMenu);
     QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(DbgIsDebugging())
@@ -376,10 +376,10 @@ void CPUInfoBox::contextMenuSlot(QPoint pos)
     }
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
+    wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void CPUInfoBox::copyAddress()

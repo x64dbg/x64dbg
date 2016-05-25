@@ -456,23 +456,23 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     if(!DbgIsDebugging())
         return;
 
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addAction(mModifyAction);
-    wMenu->addMenu(mBinaryMenu);
-    wMenu->addMenu(mBreakpointMenu);
+    QMenu wMenu(this); //create context menu
+    wMenu.addAction(mModifyAction);
+    wMenu.addMenu(mBinaryMenu);
+    wMenu.addMenu(mBreakpointMenu);
     dsint start = rvaToVa(getSelectionStart());
     dsint end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
-        wMenu->addAction(mUndoSelection);
-    wMenu->addAction(mFindPatternAction);
-    wMenu->addAction(mGotoSp);
-    wMenu->addAction(mGotoBp);
-    wMenu->addAction(mFreezeStack);
-    wMenu->addAction(mGotoExpression);
+        wMenu.addAction(mUndoSelection);
+    wMenu.addAction(mFindPatternAction);
+    wMenu.addAction(mGotoSp);
+    wMenu.addAction(mGotoBp);
+    wMenu.addAction(mFreezeStack);
+    wMenu.addAction(mGotoExpression);
     if(historyHasPrev())
-        wMenu->addAction(mGotoPrevious);
+        wMenu.addAction(mGotoPrevious);
     if(historyHasNext())
-        wMenu->addAction(mGotoNext);
+        wMenu.addAction(mGotoNext);
 
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
@@ -481,14 +481,14 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
             duint stackBegin = mMemPage->getBase();
             duint stackEnd = stackBegin + mMemPage->getSize();
             if(selectedData >= stackBegin && selectedData < stackEnd)
-                wMenu->addAction(mFollowStack);
-            wMenu->addAction(mFollowDisasm);
-            wMenu->addAction(mFollowDump);
-            wMenu->addMenu(mFollowInDumpMenu);
+                wMenu.addAction(mFollowStack);
+            wMenu.addAction(mFollowDisasm);
+            wMenu.addAction(mFollowDump);
+            wMenu.addMenu(mFollowInDumpMenu);
         }
 
-    wMenu->addSeparator();
-    wMenu->addActions(mPluginMenu->actions());
+    wMenu.addSeparator();
+    wMenu.addActions(mPluginMenu->actions());
 
 
     if(DbgGetBpxTypeAt(selectedAddr) & bp_hardware) //hardware breakpoint set
@@ -516,7 +516,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
         mBreakpointMemoryRemove->setVisible(false);
     }
 
-    wMenu->exec(event->globalPos());
+    wMenu.exec(event->globalPos());
 }
 
 void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)

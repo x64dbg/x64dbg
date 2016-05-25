@@ -279,23 +279,23 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
 
 void ScriptView::contextMenuSlot(const QPoint & pos)
 {
-    QMenu* wMenu = new QMenu(this);
-    wMenu->addMenu(mLoadMenu);
+    QMenu wMenu(this);
+    wMenu.addMenu(mLoadMenu);
     if(getRowCount())
     {
-        wMenu->addAction(mScriptReload);
-        wMenu->addAction(mScriptUnload);
-        wMenu->addSeparator();
-        wMenu->addAction(mScriptBpToggle);
-        wMenu->addAction(mScriptRunCursor);
-        wMenu->addAction(mScriptStep);
-        wMenu->addAction(mScriptRun);
-        wMenu->addAction(mScriptAbort);
-        wMenu->addAction(mScriptNewIp);
+        wMenu.addAction(mScriptReload);
+        wMenu.addAction(mScriptUnload);
+        wMenu.addSeparator();
+        wMenu.addAction(mScriptBpToggle);
+        wMenu.addAction(mScriptRunCursor);
+        wMenu.addAction(mScriptStep);
+        wMenu.addAction(mScriptRun);
+        wMenu.addAction(mScriptAbort);
+        wMenu.addAction(mScriptNewIp);
     }
-    wMenu->addSeparator();
-    wMenu->addAction(mScriptCmdExec);
-    wMenu->exec(mapToGlobal(pos));
+    wMenu.addSeparator();
+    wMenu.addAction(mScriptCmdExec);
+    wMenu.exec(mapToGlobal(pos));
 }
 
 void ScriptView::mouseDoubleClickEvent(QMouseEvent* event)

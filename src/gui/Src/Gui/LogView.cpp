@@ -58,19 +58,18 @@ void LogView::refreshShortcutsSlot()
 
 void LogView::contextMenuEvent(QContextMenuEvent* event)
 {
-    QMenu* wMenu = new QMenu(this);
-    wMenu->addAction(actionClear);
-    wMenu->addAction(actionSelectAll);
-    wMenu->addAction(actionCopy);
-    wMenu->addAction(actionSave);
+    QMenu wMenu(this);
+    wMenu.addAction(actionClear);
+    wMenu.addAction(actionSelectAll);
+    wMenu.addAction(actionCopy);
+    wMenu.addAction(actionSave);
     if(getLoggingEnabled())
         actionToggleLogging->setText(tr("Disable &Logging"));
     else
         actionToggleLogging->setText(tr("Enable &Logging"));
-    wMenu->addAction(actionToggleLogging);
+    wMenu.addAction(actionToggleLogging);
 
-    wMenu->exec(event->globalPos());
-    delete wMenu;
+    wMenu.exec(event->globalPos());
 }
 
 void LogView::addMsgToLogSlot(QString msg)
