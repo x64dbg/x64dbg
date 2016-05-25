@@ -141,6 +141,7 @@ signals:
 public slots:
     void printDumpAt(dsint parVA);
     void debugStateChanged(DBGSTATE state);
+    void updateDumpSlot();
 
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
@@ -164,6 +165,7 @@ protected:
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;
+    QString mSyncAddrExpression;
 };
 
 #endif // _HEXDUMP_H

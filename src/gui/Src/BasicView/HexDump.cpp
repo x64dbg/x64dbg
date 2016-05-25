@@ -3,7 +3,8 @@
 #include "Bridge.h"
 #include "StringUtil.h"
 
-HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
+HexDump::HexDump(QWidget* parent)
+    : AbstractTableView(parent)
 {
     SelectionData_t data;
     memset(&data, 0, sizeof(SelectionData_t));
@@ -23,9 +24,10 @@ HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
     selectionColor = ConfigColor("HexDumpSelectionColor");
 
     mRvaDisplayEnabled = false;
+    mSyncAddrExpression = "";
 
     // Slots
-    connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
+    connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateDumpSlot()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
 
     Initialize();
@@ -49,6 +51,20 @@ void HexDump::updateColors()
 void HexDump::updateFonts()
 {
     setFont(ConfigFont("HexDump"));
+}
+
+void HexDump::updateDumpSlot()
+{
+    if(mSyncAddrExpression.length() && DbgFunctions()->ValFromString)
+    {
+        duint syncAddr;
+        if(DbgFunctions()->ValFromString(mSyncAddrExpression.toUtf8().constData(), &syncAddr)
+                && DbgMemIsValidReadPtr(syncAddr))
+        {
+            printDumpAt(syncAddr, false, false, true);
+        }
+    }
+    reloadData();
 }
 
 void HexDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset)
