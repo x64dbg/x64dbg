@@ -86,6 +86,10 @@ public slots:
     void displayWarningSlot(QString title, QString text);
     void labelHelpSlot();
     void editSoftBpActionSlot();
+    void ActionTraceRecordBitSlot();
+    void ActionTraceRecordByteSlot();
+    void ActionTraceRecordWordSlot();
+    void ActionTraceRecordDisableSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);
