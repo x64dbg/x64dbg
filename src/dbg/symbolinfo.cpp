@@ -304,8 +304,8 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line)
 
         // Construct full path from pdb path
         IMAGEHLP_MODULEW64 modInfo;
-        memset(&modInfo, 0, sizeof(IMAGEHLP_MODULE64));
-        modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+        memset(&modInfo, 0, sizeof(modInfo));
+        modInfo.SizeOfStruct = sizeof(modInfo);
 
         if(!SafeSymGetModuleInfoW64(fdProcessInfo->hProcess, Cip, &modInfo))
             return false;
