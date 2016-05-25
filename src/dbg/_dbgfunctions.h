@@ -45,6 +45,33 @@ typedef struct
     char szExeFile[MAX_PATH];
 } DBGPROCESSINFO;
 
+
+enum TRACERECORDBYTETYPE{
+    InstructionBody = 0,
+    InstructionHeading = 1,
+    InstructionTailing = 2,
+    InstructionOverlapped = 3, // The byte was executed with differing instruction base addresses
+    DataByte,  // This and the following is not implemented yet.
+    DataWord,
+    DataDWord,
+    DataQWord,
+    DataFloat,
+    DataDouble,
+    DataLongDouble,
+    DataXMM,
+    DataYMM,
+    DataMMX,
+    DataMixed, //the byte is accessed in multiple ways
+    InstructionDataMixed //the byte is both executed and written
+};
+
+enum TRACERECORDTYPE{
+    TraceRecordNone,
+    TraceRecordBitExec,
+    TraceRecordByteWithExecTypeAndCounter,
+    TraceRecordWordWithExecTypeAndCounter
+};
+
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
 typedef bool (*MODNAMEFROMADDR)(duint addr, char* modname, bool extension);
@@ -83,6 +110,10 @@ typedef bool (*GETSOURCEFROMADDR)(duint addr, char* szSourceFile, int* line);
 typedef bool (*VALFROMSTRING)(const char* string, duint* value);
 typedef bool (*PATCHGETEX)(duint addr, DBGPATCHINFO* info);
 typedef bool(*GETBRIDGEBP)(BPXTYPE type, duint addr, BRIDGEBP* bp);
+typedef unsigned int (*GETTRACERECORDHITCOUNT)(duint address);
+typedef TRACERECORDBYTETYPE (*GETTRACERECORDBYTETYPE)(duint address);
+typedef bool (*SETTRACERECORDTYPE)(duint pageAddress, TRACERECORDTYPE type);
+typedef TRACERECORDTYPE (*GETTRACERECORDTYPE)(duint pageAddress);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -124,6 +155,10 @@ typedef struct DBGFUNCTIONS_
     VALFROMSTRING ValFromString;
     PATCHGETEX PatchGetEx;
     GETBRIDGEBP GetBridgeBp;
+    GETTRACERECORDHITCOUNT GetTraceRecordHitCount;
+    GETTRACERECORDBYTETYPE GetTraceRecordByteType;
+    SETTRACERECORDTYPE SetTraceRecordType;
+    GETTRACERECORDTYPE GetTraceRecordType;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG
