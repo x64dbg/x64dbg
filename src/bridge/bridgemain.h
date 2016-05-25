@@ -329,8 +329,8 @@ typedef struct
     char breakCondition[MAX_CONDITIONAL_EXPR_SIZE];
     char logText[MAX_CONDITIONAL_TEXT_SIZE];
     char logCondition[MAX_CONDITIONAL_EXPR_SIZE];
-    char commandText[MAX_CONDITIONAL_EXPR_SIZE];
-    char commandCondition[MAX_CONDITIONAL_TEXT_SIZE];
+    char commandText[MAX_CONDITIONAL_TEXT_SIZE];
+    char commandCondition[MAX_CONDITIONAL_EXPR_SIZE];
 } BRIDGEBP;
 
 typedef struct
@@ -817,7 +817,8 @@ typedef enum
     GUI_DUMP_AT_N,                  // param1=int index,            param2=duint va
     GUI_DISPLAY_WARNING,            // param1=const char *text,     param2=unused
     GUI_REGISTER_SCRIPT_LANG,       // param1=SCRIPTTYPEINFO* info, param2=unused
-    GUI_UNREGISTER_SCRIPT_LANG      // param1=int id,               param2=unused
+    GUI_UNREGISTER_SCRIPT_LANG,     // param1=int id,               param2=unused
+    GUI_UPDATE_ARGUMENT_VIEW        // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -932,6 +933,7 @@ BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index);
 BRIDGE_IMPEXP void GuiDisplayWarning(const char* title, const char* text);
 BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info);
 BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id);
+BRIDGE_IMPEXP void GuiUpdateArgumentWidget();
 
 #ifdef __cplusplus
 }

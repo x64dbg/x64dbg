@@ -100,7 +100,7 @@ void PatchDialog::updatePatches()
 
     //get patches from DBG
     size_t cbsize;
-    if(!DbgFunctions()->PatchEnum(0, &cbsize))
+    if(!DbgFunctions()->PatchEnum || !DbgFunctions()->PatchEnum(0, &cbsize))
         return;
     int numPatches = (int)cbsize / sizeof(DBGPATCHINFO);
     if(!numPatches)

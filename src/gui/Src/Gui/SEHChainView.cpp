@@ -30,6 +30,8 @@ void SEHChainView::updateSEHChain()
 {
     DBGSEHCHAIN sehchain;
     memset(&sehchain, 0, sizeof(DBGSEHCHAIN));
+    if(!DbgFunctions()->GetSEHChain)
+        return;
     DbgFunctions()->GetSEHChain(&sehchain);
     setRowCount(sehchain.total);
     for(duint i = 0; i < sehchain.total; i++)

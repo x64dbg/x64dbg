@@ -875,7 +875,11 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateDumpView();
     GuiUpdateThreadView();
     GuiUpdateSideBar();
+    GuiUpdatePatches();
+    GuiUpdateCallStack();
     GuiRepaintTableView();
+    GuiUpdateSEHChain();
+    GuiUpdateArgumentWidget();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -1288,6 +1292,11 @@ BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info)
 BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id)
 {
     _gui_sendmessage(GUI_UNREGISTER_SCRIPT_LANG, (void*)id, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiUpdateArgumentWidget()
+{
+    _gui_sendmessage(GUI_UPDATE_ARGUMENT_VIEW, nullptr, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

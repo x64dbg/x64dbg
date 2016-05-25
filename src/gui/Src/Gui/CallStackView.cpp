@@ -34,6 +34,8 @@ void CallStackView::updateCallStack()
 {
     DBGCALLSTACK callstack;
     memset(&callstack, 0, sizeof(DBGCALLSTACK));
+    if(!DbgFunctions()->GetCallStack)
+        return;
     DbgFunctions()->GetCallStack(&callstack);
     setRowCount(callstack.total);
     for(int i = 0; i < callstack.total; i++)
