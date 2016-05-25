@@ -236,7 +236,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     QAction* setHwBreakpointAction = makeAction(tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()));
     QAction* removeHwBreakpointAction = makeAction(tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()));
 
-    QMenu* replaceSlotMenu = makeMenu("Set Hardware on Execution");
+    QMenu* replaceSlotMenu = makeMenu(tr("Set Hardware on Execution"));
     QAction* replaceSlot0Action = makeMenuAction(replaceSlotMenu, tr("Replace Slot 0 (Free)"), SLOT(setHwBpOnSlot0ActionSlot()));
     QAction* replaceSlot1Action  = makeMenuAction(replaceSlotMenu, tr("Replace Slot 1 (Free)"), SLOT(setHwBpOnSlot1ActionSlot()));
     QAction* replaceSlot2Action  = makeMenuAction(replaceSlotMenu, tr("Replace Slot 2 (Free)"), SLOT(setHwBpOnSlot2ActionSlot()));
@@ -358,11 +358,29 @@ void CPUDisassembly::setupRightClickContextMenu()
         else
             return false;
 
-        labelAddress->setText("Label " + ToPtrString(addr));
+        labelAddress->setText(tr("Label ") + ToPtrString(addr));
 
         return DbgMemIsValidReadPtr(addr);
     });
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/label.png"), tr("Label")), labelMenu);
+
+    QAction* traceRecordDisable = makeAction(tr("Disable"), SLOT(ActionTraceRecordDisableSlot()));
+    QAction* traceRecordEnableBit = makeAction(tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
+    QAction* traceRecordEnableByte = makeAction(tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
+    QAction* traceRecordEnableWord = makeAction(tr("Word"), SLOT(ActionTraceRecordWordSlot()));
+    //TODO: I can't get mMenuBuilder work without an icon. Please add an icon for trace record. --torusrxxx
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/breakpoint.png"), tr("Trace record")), [ = ](QMenu * menu)
+    {
+        if(DbgFunctions()->GetTraceRecordType(rvaToVa(getInitialSelection())) == TRACERECORDTYPE::TraceRecordNone)
+        {
+            menu->addAction(traceRecordEnableBit);
+            menu->addAction(traceRecordEnableByte);
+            menu->addAction(traceRecordEnableWord);
+        }
+        else
+            menu->addAction(traceRecordDisable);
+        return true;
+    });
 
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/comment.png"), tr("Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/bookmark.png"), tr("Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
@@ -1367,4 +1385,28 @@ void CPUDisassembly::labelHelpSlot()
 void CPUDisassembly::editSoftBpActionSlot()
 {
     Breakpoints::editBP(bp_normal, ToHexString(rvaToVa(getInitialSelection())), this);
+}
+
+void CPUDisassembly::ActionTraceRecordBitSlot()
+{
+    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordBitExec)))
+        GuiAddLogMessage("Failed to set trace record.\n");
+}
+
+void CPUDisassembly::ActionTraceRecordByteSlot()
+{
+    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordByteWithExecTypeAndCounter)))
+        GuiAddLogMessage("Failed to set trace record.\n");
+}
+
+void CPUDisassembly::ActionTraceRecordWordSlot()
+{
+    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordWordWithExecTypeAndCounter)))
+        GuiAddLogMessage("Failed to set trace record.\n");
+}
+
+void CPUDisassembly::ActionTraceRecordDisableSlot()
+{
+    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordNone)))
+        GuiAddLogMessage("Failed to set trace record.\n");
 }
