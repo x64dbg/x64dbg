@@ -23,6 +23,7 @@
 #include "commandline.h"
 #include "stackinfo.h"
 #include "stringformat.h"
+#include "TraceRecord.h"
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
@@ -394,51 +395,6 @@ static bool getConditionValue(const char* expression)
     return true;
 }
 
-static void BreakpointProlog(BREAKPOINT & bp, bool breakCondition, bool logCondition, bool commandCondition)
-{
-    // update GUI
-    if(breakCondition)
-    {
-        GuiSetDebugState(paused);
-        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
-    }
-
-    // plugin interaction
-    lock(WAITID_RUN);
-    if(breakCondition)
-    {
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = nullptr;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    }
-    PLUG_CB_BREAKPOINT bpInfo;
-    BRIDGEBP bridgebp;
-    bpInfo.breakpoint = &bridgebp;
-    memset(&bpInfo, 0, sizeof(bpInfo));
-    BpToBridge(&bp, &bridgebp);
-    plugincbcall(CB_BREAKPOINT, &bpInfo);
-
-    if(*bp.logText && logCondition)  //log
-    {
-        dprintf("%s\n", stringformatinline(bp.logText).c_str());
-    }
-    if(*bp.commandText && commandCondition)  //command
-    {
-        //TODO: commands like run/step etc will fuck up your shit
-        DbgCmdExec(bp.commandText);
-    }
-    if(breakCondition)  //break the debugger
-    {
-        SetForegroundWindow(GuiGetWindowHandle());
-        bSkipExceptions = false;
-    }
-    else //resume immediately
-        unlock(WAITID_RUN);
-
-    //wait until the user resumes
-    wait(WAITID_RUN);
-}
-
 static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -502,6 +458,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     else
         commandCondition = breakCondition; //if no condition is set, execute the command when the debugger would break
 
+    lock(WAITID_RUN);
     if(breakCondition)
     {
         if(bp.singleshoot)
@@ -520,9 +477,46 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         default:
             break;
         }
+        GuiSetDebugState(paused);
+        DebugUpdateGui(CIP, true);
     }
 
-    BreakpointProlog(bp, breakCondition, logCondition, commandCondition);
+    // plugin interaction
+    if(breakCondition)
+    {
+        PLUG_CB_PAUSEDEBUG pauseInfo;
+        pauseInfo.reserved = nullptr;
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    }
+    PLUG_CB_BREAKPOINT bpInfo;
+    BRIDGEBP bridgebp;
+    bpInfo.breakpoint = &bridgebp;
+    memset(&bpInfo, 0, sizeof(bpInfo));
+    BpToBridge(&bp, &bridgebp);
+    plugincbcall(CB_BREAKPOINT, &bpInfo);
+
+    // Trace record
+    _dbg_dbgtraceexecute(CIP);
+
+    if(*bp.logText && logCondition)  //log
+    {
+        dprintf("%s\n", stringformatinline(bp.logText).c_str());
+    }
+    if(*bp.commandText && commandCondition)  //command
+    {
+        //TODO: commands like run/step etc will fuck up your shit
+        DbgCmdExec(bp.commandText);
+    }
+    if(breakCondition)  //break the debugger
+    {
+        SetForegroundWindow(GuiGetWindowHandle());
+        bSkipExceptions = false;
+    }
+    else //resume immediately
+        unlock(WAITID_RUN);
+
+    //wait until the user resumes
+    wait(WAITID_RUN);
 }
 
 void cbUserBreakpoint()
@@ -705,7 +699,11 @@ void cbStep()
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     isStepping = false;
     GuiSetDebugState(paused);
-    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    DebugUpdateGui(CIP, true);
+    // Trace record
+    _dbg_dbgtraceexecute(CIP);
+    // Plugin interaction
     PLUG_CB_STEPPED stepInfo;
     stepInfo.reserved = 0;
     //lock
@@ -723,7 +721,10 @@ static void cbRtrFinalStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     GuiSetDebugState(paused);
-    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    DebugUpdateGui(CIP, true);
+    // Trace record
+    _dbg_dbgtraceexecute(CIP);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
@@ -882,7 +883,7 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
     //unload main module
     SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
-    ModUnload(pCreateProcessBase);
+    ModClear(); //clear all modules
 }
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
@@ -1529,9 +1530,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
     {
         if(pe32.th32ProcessID == GetCurrentProcessId())
             continue;
-        if(!_stricmp(pe32.szExeFile, "System"))
-            continue;
-        if(!_stricmp(pe32.szExeFile, "[System Process]"))
+        if(pe32.th32ProcessID == 0 || pe32.th32ProcessID == 4) // System process and Idle process have special PID.
             continue;
         Handle hProcess = TitanOpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, pe32.th32ProcessID);
         if(!hProcess)
@@ -1927,6 +1926,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     DbClose();
     ModClear();
     ThreadClear();
+    TraceRecord.clear();
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs("Debugging stopped!");
