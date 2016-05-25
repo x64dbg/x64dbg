@@ -106,6 +106,8 @@ TraceRecordManager::TraceRecordType TraceRecordManager::getTraceRecordType(duint
 void TraceRecordManager::TraceExecute(duint address, duint size)
 {
     SHARED_ACQUIRE(LockTraceRecord);
+    if(size == 0)
+        return;
     duint base = address & ~((duint)4096 - 1);
     auto pageInfoIterator = TraceRecord.find(ModHashFromAddr(base));
     if(pageInfoIterator == TraceRecord.end())
@@ -114,7 +116,7 @@ void TraceRecordManager::TraceExecute(duint address, duint size)
     pageInfo = pageInfoIterator->second;
     duint offset = address - base;
     bool isMixed;
-    if(offset + size >= 4096) // execution crossed page boundary, splitting into 2 sub calls. Noting that byte type may be mislabelled.
+    if((offset + size) > 4096) // execution crossed page boundary, splitting into 2 sub calls. Noting that byte type may be mislabelled.
     {
         SHARED_RELEASE();
         TraceExecute(address, 4096 - offset);
