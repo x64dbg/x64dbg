@@ -123,6 +123,10 @@ typedef struct DBGFUNCTIONS_
     MODBASEFROMADDR ModBaseFromAddr;
     MODBASEFROMNAME ModBaseFromName;
     MODSIZEFROMADDR ModSizeFromAddr;
+    GETTRACERECORDHITCOUNT GetTraceRecordHitCount;
+    GETTRACERECORDBYTETYPE GetTraceRecordByteType;
+    SETTRACERECORDTYPE SetTraceRecordType;
+    GETTRACERECORDTYPE GetTraceRecordType;
     ASSEMBLE Assemble;
     PATCHGET PatchGet;
     PATCHINRANGE PatchInRange;
@@ -155,10 +159,6 @@ typedef struct DBGFUNCTIONS_
     VALFROMSTRING ValFromString;
     PATCHGETEX PatchGetEx;
     GETBRIDGEBP GetBridgeBp;
-    GETTRACERECORDHITCOUNT GetTraceRecordHitCount;
-    GETTRACERECORDBYTETYPE GetTraceRecordByteType;
-    SETTRACERECORDTYPE SetTraceRecordType;
-    GETTRACERECORDTYPE GetTraceRecordType;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG
