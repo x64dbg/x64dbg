@@ -28,6 +28,7 @@ public slots:
     void dbgStateChangedSlot(DBGSTATE dbgState);
     void openChangeTabTitleDialogSlot(int tabIndex);
     void displayReferencesWidgetSlot();
+    void focusCurrentDumpSlot();
 
 private:
     CPUDump* mCurrentCPUDump;

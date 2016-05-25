@@ -18,12 +18,6 @@ public:
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
-    void addVaToHistory(dsint parVa);
-    bool historyHasPrev();
-    bool historyHasNext();
-    void historyPrev();
-    void historyNext();
-    void historyClear();
 
 signals:
     void displayReferencesWidget();
@@ -214,9 +208,6 @@ private:
     GotoDialog* mGoto;
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
-
-    QList<dsint> mVaHistory;
-    int mCurrentVa;
 
     enum ViewEnum_t
     {

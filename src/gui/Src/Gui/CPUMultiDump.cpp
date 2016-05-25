@@ -28,6 +28,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     connect(Bridge::getBridge(), SIGNAL(selectionDumpGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDumpSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
+    connect(Bridge::getBridge(), SIGNAL(focusDump()), this, SLOT(focusCurrentDumpSlot()));
 
     connect(mCurrentCPUDump, SIGNAL(selectionUpdated()), mCurrentCPUDump, SLOT(selectionUpdatedSlot()));
 }
@@ -96,6 +97,7 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
     {
         mCurrentCPUDump->printDumpAt(parVa);
         mCurrentCPUDump->addVaToHistory(parVa);
+        mCurrentCPUDump->setFocus();
     }
 }
 
@@ -142,4 +144,9 @@ void CPUMultiDump::openChangeTabTitleDialogSlot(int tabIndex)
 void CPUMultiDump::displayReferencesWidgetSlot()
 {
     emit displayReferencesWidget();
+}
+
+void CPUMultiDump::focusCurrentDumpSlot()
+{
+    mCurrentCPUDump->setFocus();
 }

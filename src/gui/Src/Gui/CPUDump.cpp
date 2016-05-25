@@ -16,7 +16,6 @@
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
     mDisas = disas;
-    mCurrentVa = 0;
     mMultiDump = multiDump;
 
     switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
@@ -331,20 +330,6 @@ void CPUDump::setupContextMenu()
     connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffsetSlot()));
     mGotoMenu->addAction(mGotoFileOffset);
 
-    // Goto->Previous
-    mGotoPrevious = new QAction(tr("Previous"), this);
-    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoPrevious);
-    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevSlot()));
-    mGotoMenu->addAction(mGotoPrevious);
-
-    // Goto->Next
-    mGotoNext = new QAction(tr("Next"), this);
-    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoNext);
-    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNextSlot()));
-    mGotoMenu->addAction(mGotoNext);
-
     // Goto->Start of page
     mGotoStart = new QAction(tr("Start of Page"), this);
     mGotoStart->setShortcutContext(Qt::WidgetShortcut);
@@ -358,6 +343,20 @@ void CPUDump::setupContextMenu()
     this->addAction(mGotoEnd);
     connect(mGotoEnd, SIGNAL(triggered()), this, SLOT(gotoEndSlot()));
     mGotoMenu->addAction(mGotoEnd);
+
+    // Goto->Previous
+    mGotoPrevious = new QAction(QIcon(":/icons/images/previous.png"), tr("Previous"), this);
+    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoPrevious);
+    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevSlot()));
+    mGotoMenu->addAction(mGotoPrevious);
+
+    // Goto->Next
+    mGotoNext = new QAction(QIcon(":/icons/images/next.png"), tr("Next"), this);
+    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoNext);
+    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNextSlot()));
+    mGotoMenu->addAction(mGotoNext);
 
     //Hex menu
     mHexMenu = new QMenu(tr("&Hex"), this);
@@ -614,15 +613,14 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addMenu(mFollowInDumpMenu);
     }
 
+    mGotoMenu->removeAction(mGotoPrevious);
+    mGotoMenu->removeAction(mGotoNext);
+
     if(historyHasPrev())
-        mGotoPrevious->setVisible(true);
-    else
-        mGotoPrevious->setVisible(false);
+        mGotoMenu->addAction(mGotoPrevious);
 
     if(historyHasNext())
-        mGotoNext->setVisible(true);
-    else
-        mGotoNext->setVisible(false);
+        mGotoMenu->addAction(mGotoNext);
 
     wMenu->addAction(mSetLabelAction);
     if(getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint))
@@ -759,57 +757,6 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
     }
 
     HexDump::mouseMoveEvent(event);
-}
-
-void CPUDump::addVaToHistory(dsint parVa)
-{
-    mVaHistory.push_back(parVa);
-    if(mVaHistory.size() > 1)
-        mCurrentVa++;
-}
-
-bool CPUDump::historyHasPrev()
-{
-    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
-        return false;
-    return true;
-}
-
-bool CPUDump::historyHasNext()
-{
-    int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
-        return false;
-    return true;
-}
-
-void CPUDump::historyPrev()
-{
-    if(!historyHasPrev())
-        return;
-
-    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
-        return;
-    mCurrentVa--;
-    printDumpAt(mVaHistory.at(mCurrentVa));
-}
-
-void CPUDump::historyNext()
-{
-    if(!historyHasNext())
-        return;
-
-    int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
-        return;
-    mCurrentVa++;
-    printDumpAt(mVaHistory.at(mCurrentVa));
-}
-
-void CPUDump::historyClear()
-{
-    mCurrentVa = 0;
-    mVaHistory.clear();
 }
 
 void CPUDump::setLabelSlot()
@@ -1740,11 +1687,13 @@ void CPUDump::followInDumpNSlot()
 
 void CPUDump::gotoNextSlot()
 {
+    DbgCmdExec(QString("log \"next\"").toUtf8().constData());
     historyNext();
 }
 
 void CPUDump::gotoPrevSlot()
 {
+    DbgCmdExec(QString("log \"previous\"").toUtf8().constData());
     historyPrev();
 }
 

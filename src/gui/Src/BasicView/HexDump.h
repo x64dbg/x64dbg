@@ -135,6 +135,13 @@ public:
     duint rvaToVa(dsint rva);
     duint getTableOffsetRva();
 
+    void addVaToHistory(dsint parVa);
+    bool historyHasPrev();
+    bool historyHasNext();
+    void historyPrev();
+    void historyNext();
+    void historyClear();
+
 signals:
     void selectionUpdated();
 
@@ -156,6 +163,9 @@ private:
     SelectionData_t mSelection;
 
     GuiState_t mGuiState;
+
+    QList<dsint> mVaHistory;
+    int mCurrentVa;
 
 protected:
     MemoryPage* mMemPage;

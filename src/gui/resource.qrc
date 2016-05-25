@@ -87,5 +87,7 @@
         <file>images/modify.png</file>
         <file>images/freeze.png</file>
         <file>images/cbp.png</file>
+        <file>images/next.png</file>
+        <file>images/previous.png</file>
     </qresource>
 </RCC>

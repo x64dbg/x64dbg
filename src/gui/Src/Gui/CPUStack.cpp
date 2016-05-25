@@ -47,6 +47,7 @@ CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(selectionStackGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
+    connect(Bridge::getBridge(), SIGNAL(focusStack()), this, SLOT(setFocus()));
 
     Initialize();
 }
@@ -218,11 +219,23 @@ void CPUStack::setupContextMenu()
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
-    //Expression
+    //Go to Expression
     mGotoExpression = new QAction(QIcon(":/icons/images/goto.png"), tr("Go to &Expression"), this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
+
+    //Go to Previous
+    mGotoPrevious = new QAction(QIcon(":/icons/images/previous.png"), tr("Go to Previous"), this);
+    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoPrevious);
+    connect(mGotoPrevious, SIGNAL(triggered(bool)), this, SLOT(gotoPreviousSlot()));
+
+    //Go to Next
+    mGotoNext = new QAction(QIcon(":/icons/images/next.png"), tr("Go to Next"), this);
+    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoNext);
+    connect(mGotoNext, SIGNAL(triggered(bool)), this, SLOT(gotoNextSlot()));
 
     //Follow in Disassembler
     auto disasmIcon = QIcon(QString(":/icons/images/") + ArchValue("processor32.png", "processor64.png"));
@@ -292,6 +305,8 @@ void CPUStack::refreshShortcutsSlot()
     mGotoSp->setShortcut(ConfigShortcut("ActionGotoOrigin"));
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
+    mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
 }
 
 QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -454,6 +469,10 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mGotoBp);
     wMenu->addAction(mFreezeStack);
     wMenu->addAction(mGotoExpression);
+    if(historyHasPrev())
+        wMenu->addAction(mGotoPrevious);
+    if(historyHasNext())
+        wMenu->addAction(mGotoNext);
 
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
@@ -535,6 +554,8 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPUStack::stackDumpAt(duint addr, duint csp)
 {
+    setFocus();
+    addVaToHistory(addr);
     mCsp = csp;
     printDumpAt(addr);
 }
@@ -571,6 +592,16 @@ void CPUStack::gotoExpressionSlot()
         QString cmd;
         DbgCmdExec(cmd.sprintf("sdump \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
     }
+}
+
+void CPUStack::gotoPreviousSlot()
+{
+    historyPrev();
+}
+
+void CPUStack::gotoNextSlot()
+{
+    historyNext();
 }
 
 void CPUStack::selectionGet(SELECTIONDATA* selection)

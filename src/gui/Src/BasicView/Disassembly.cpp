@@ -1352,11 +1352,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
         dsint selectionTableOffset = getTableOffset();
         if(selectionVA && mVaHistory.size() && mVaHistory.last().va != selectionVA) //do not have 2x the same va in a row
         {
-            if(mVaHistory.size() >= 1024) //max 1024 in the history
-            {
-                mCurrentVa--;
-                mVaHistory.erase(mVaHistory.begin()); //remove the oldest element
-            }
             mCurrentVa++;
             newHistory.va = selectionVA;
             newHistory.tableOffset = selectionTableOffset;
@@ -1467,12 +1462,11 @@ const dsint Disassembly::currentEIP() const
     return mCipRva;
 }
 
-
 void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
 {
+    setFocus();
     disassembleAt(parVA, parCIP, true, -1);
 }
-
 
 void Disassembly::disassembleClear()
 {
@@ -1483,7 +1477,6 @@ void Disassembly::disassembleClear()
     setRowCount(0);
     reloadData();
 }
-
 
 void Disassembly::debugStateChangedSlot(DBGSTATE state)
 {
@@ -1527,7 +1520,7 @@ void Disassembly::historyClear()
 
 void Disassembly::historyPrevious()
 {
-    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
+    if(!historyHasPrevious())
         return;
     mCurrentVa--;
     disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
@@ -1538,8 +1531,7 @@ void Disassembly::historyPrevious()
 
 void Disassembly::historyNext()
 {
-    int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
+    if(!historyHasNext())
         return;
     mCurrentVa++;
     disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);

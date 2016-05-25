@@ -28,6 +28,7 @@ CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
+    connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setFocus()));
 
     Initialize();
 }
@@ -384,11 +385,11 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
-    gotoMenu->addAction(makeShortcutAction(tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
         return historyHasPrevious();
     });
-    gotoMenu->addAction(makeShortcutAction(tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/next.png"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
     {
         return historyHasNext();
     });
