@@ -257,6 +257,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread));
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
+    GuiFocusView(GUI_DISASSEMBLY);
 }
 
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
