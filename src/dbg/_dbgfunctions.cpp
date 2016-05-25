@@ -18,6 +18,7 @@
 #include "exhandlerinfo.h"
 #include "breakpoint.h"
 #include "threading.h"
+#include "stringformat.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -234,6 +235,14 @@ static bool _getbridgebp(BPXTYPE type, duint addr, BRIDGEBP* bp)
     return true;
 }
 
+static bool _stringformatinline(const char* format, size_t resultSize, char* result)
+{
+    if(!format || !result)
+        return false;
+    strcpy_s(result, resultSize, stringformatinline(format).c_str());
+    return true;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -274,4 +283,5 @@ void dbgfunctionsinit()
     _dbgfunctions.ValFromString = _valfromstring;
     _dbgfunctions.PatchGetEx = (PATCHGETEX)PatchGet;
     _dbgfunctions.GetBridgeBp = _getbridgebp;
+    _dbgfunctions.StringFormatInline = _stringformatinline;
 }
