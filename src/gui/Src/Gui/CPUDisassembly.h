@@ -89,6 +89,10 @@ public slots:
     void editSoftBpActionSlot();
     void mnemonicHelpSlot();
     void mnemonicBriefSlot();
+    void ActionTraceRecordBitSlot();
+    void ActionTraceRecordByteSlot();
+    void ActionTraceRecordWordSlot();
+    void ActionTraceRecordDisableSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);

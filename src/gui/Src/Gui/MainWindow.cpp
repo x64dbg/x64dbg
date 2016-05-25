@@ -63,8 +63,8 @@ MainWindow::MainWindow(QWidget* parent)
     setWindowTitle(QString(mWindowMainTitle));
 
     // Load application icon
-    HICON hIcon = LoadIcon(GetModuleHandleA(0), MAKEINTRESOURCE(100));
-    SendMessageA((HWND)MainWindow::winId(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    HICON hIcon = LoadIcon(GetModuleHandleW(0), MAKEINTRESOURCE(100));
+    SendMessageW((HWND)MainWindow::winId(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
     DestroyIcon(hIcon);
 
     // Load recent files

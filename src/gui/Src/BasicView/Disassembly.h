@@ -161,6 +161,7 @@ protected:
     QColor mLabelBackgroundColor;
 
     QColor mSelectedAddressBackgroundColor;
+    QColor mTracedAddressBackgroundColor;
     QColor mSelectedAddressColor;
     QColor mAddressBackgroundColor;
     QColor mAddressColor;

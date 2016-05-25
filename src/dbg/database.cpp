@@ -17,6 +17,7 @@
 #include "database.h"
 #include "threading.h"
 #include "filehelper.h"
+#include "TraceRecord.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -49,6 +50,7 @@ void DbSave(DbLoadSaveType saveType)
         BookmarkCacheSave(root);
         FunctionCacheSave(root);
         LoopCacheSave(root);
+        TraceRecord.saveToDb(root);
         BpCacheSave(root);
 
         //save notes
@@ -158,6 +160,7 @@ void DbLoad(DbLoadSaveType loadType)
         BookmarkCacheLoad(root);
         FunctionCacheLoad(root);
         LoopCacheLoad(root);
+        TraceRecord.loadFromDb(root);
         BpCacheLoad(root);
 
         // Load notes

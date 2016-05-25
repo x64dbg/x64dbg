@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -70,6 +70,7 @@
     <ClCompile Include="symbolinfo.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
+    <ClCompile Include="TraceRecord.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="x64_dbg.cpp" />
@@ -148,6 +149,7 @@
     <ClInclude Include="patternfind.h" />
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
+    <ClInclude Include="TraceRecord.h" />
     <ClInclude Include="yara\yara\stream.h" />
     <ClInclude Include="_scriptapi.h" />
     <ClInclude Include="simplescript.h" />

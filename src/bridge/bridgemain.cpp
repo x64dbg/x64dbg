@@ -106,7 +106,7 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
     unsigned char* ptr = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!ptr)
     {
-        MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
+        MessageBoxW(0, L"Could not allocate memory", L"Error", MB_ICONERROR);
         ExitProcess(1);
     }
     memset(ptr, 0, size);

@@ -78,6 +78,7 @@ void Disassembly::updateColors()
     mLabelColor = ConfigColor("DisassemblyLabelColor");
     mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
     mSelectedAddressBackgroundColor = ConfigColor("DisassemblySelectedAddressBackgroundColor");
+    mTracedAddressBackgroundColor = ConfigColor("DisassemblyTracedBackgroundColor");
     mSelectedAddressColor = ConfigColor("DisassemblySelectedAddressColor");
     mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
     mAddressColor = ConfigColor("DisassemblyAddressColor");
@@ -133,6 +134,8 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 {
     Q_UNUSED(rowBase);
 
+    const DBGFUNCTIONS* dbgFuncs = DbgFunctions();
+    bool isTraced;
     if(mHighlightingMode)
     {
         QPen pen(mInstructionHighlightColor);
@@ -144,17 +147,20 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     }
     dsint wRVA = mInstBuffer.at(rowOffset).rva;
     bool wIsSelected = isSelected(&mInstBuffer, rowOffset);
+    dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
+    isTraced = dbgFuncs->GetTraceRecordHitCount(cur_addr) != 0;
 
     // Highlight if selected
     if(wIsSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
+    else if(isTraced)
+        painter->fillRect(QRect(x, y, w, h), QBrush(mTracedAddressBackgroundColor));
 
     switch(col)
     {
     case 0: // Draw address (+ label)
     {
         char label[MAX_LABEL_SIZE] = "";
-        dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         QString addrText = getAddrText(cur_addr, label);
         BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
@@ -202,12 +208,12 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             {
                 if(*label) //label
                 {
-                    if(bpxtype == bp_none) //label only
+                    if(bpxtype == bp_none) //label only : fill label background
                     {
                         painter->setPen(mLabelColor); //red -> address + label text
                         painter->fillRect(QRect(x, y, w, h), QBrush(mLabelBackgroundColor)); //fill label background
                     }
-                    else //label+breakpoint
+                    else //label + breakpoint
                     {
                         if(bpxtype & bp_normal) //label + normal breakpoint
                         {
@@ -284,7 +290,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                         painter->setPen(mLabelColor); //red -> address + label text
                         painter->fillRect(QRect(x, y, w, h), QBrush(mBookmarkBackgroundColor)); //fill label background
                     }
-                    else //label+breakpoint+bookmark
+                    else //label + breakpoint + bookmark
                     {
                         QColor color = mBookmarkBackgroundColor;
                         if(!color.alpha()) //we don't want transparent text
@@ -337,7 +343,6 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     case 1: //draw bytes (TODO: some spaces between bytes)
     {
         //draw functions
-        dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         Function_t funcType;
         FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
         FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
@@ -395,7 +400,6 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     case 2: //draw disassembly (with colours needed)
     {
-        dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         int loopsize = 0;
         int depth = 0;
 
@@ -442,7 +446,6 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     case 3: //draw comments
     {
         int argsize = 0;
-        duint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
 
         ARGTYPE argType = DbgGetArgTypeAt(cur_addr);
         if(argType != ARG_NONE)

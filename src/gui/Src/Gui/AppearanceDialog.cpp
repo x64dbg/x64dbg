@@ -438,6 +438,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Conditional Jump Lines (jump)", "DisassemblyConditionalJumpLineTrueColor", "");
     colorInfoListAppend("Conditional Jump Lines (no jump)", "DisassemblyConditionalJumpLineFalseColor", "");
     colorInfoListAppend("Unconditional Jump Lines", "DisassemblyUnconditionalJumpLineColor", "");
+    colorInfoListAppend(tr("Traced line"), "DisassemblyTracedBackgroundColor", "");
     colorInfoListAppend("Function Lines", "DisassemblyFunctionColor", "");
     colorInfoListAppend("Loop Lines", "DisassemblyLoopColor", "");
 

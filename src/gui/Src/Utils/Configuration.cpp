@@ -28,6 +28,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyLabelBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("DisassemblySelectionColor", QColor("#C0C0C0"));
+    defaultColors.insert("DisassemblyTracedBackgroundColor", QColor("#C0FFC0"));
     defaultColors.insert("DisassemblyAddressColor", QColor("#808080"));
     defaultColors.insert("DisassemblyAddressBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblySelectedAddressColor", QColor("#000000"));

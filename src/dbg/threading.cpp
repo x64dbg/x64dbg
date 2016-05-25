@@ -31,7 +31,7 @@ bool waitislocked(WAIT_ID id)
 void waitinitialize()
 {
     for(int i = 0; i < WAITID_LAST; i++)
-        waitArray[i] = CreateEventA(NULL, TRUE, TRUE, NULL);
+        waitArray[i] = CreateEventW(NULL, TRUE, TRUE, NULL);
 }
 
 void waitdeinitialize()

@@ -19,6 +19,7 @@
 #include "breakpoint.h"
 #include "threading.h"
 #include "stringformat.h"
+#include "TraceRecord.h"
 #include "mnemonichelp.h"
 
 static DBGFUNCTIONS _dbgfunctions;
@@ -293,4 +294,8 @@ void dbgfunctionsinit()
     _dbgfunctions.GetBridgeBp = _getbridgebp;
     _dbgfunctions.StringFormatInline = _stringformatinline;
     _dbgfunctions.GetMnemonicBrief = _getmnemonicbrief;
+    _dbgfunctions.GetTraceRecordHitCount = _dbg_dbggetTraceRecordHitCount;
+    _dbgfunctions.GetTraceRecordByteType = _dbg_dbggetTraceRecordByteType;
+    _dbgfunctions.SetTraceRecordType = _dbg_dbgsetTraceRecordType;
+    _dbgfunctions.GetTraceRecordType = _dbg_dbggetTraceRecordType;
 }
