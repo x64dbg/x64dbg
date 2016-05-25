@@ -10,7 +10,6 @@ namespace ValueType
         SignedDecimal,
         UnsignedDecimal,
         Hex,
-        LongHex,
         Pointer,
         String
     };
@@ -37,13 +36,9 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
         if(validval)
             sprintf_s(result, "%" fext "X", valuint);
         break;
-    case ValueType::LongHex:
-        if(validval)
-            sprintf_s(result, fhex, valuint);
-        break;
     case ValueType::Pointer:
         if(validval)
-            sprintf_s(result, "0x" fhex, valuint);
+            sprintf_s(result, fhex, valuint);
         break;
     case ValueType::String:
         if(validval)
@@ -64,7 +59,6 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
     type = ValueType::Hex;
     if(formatString.size() > 2 && formatString[1] == ':')
     {
-        hasExplicitType = true;
         switch(formatString[0])
         {
         case 'd':
@@ -80,16 +74,18 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
             type = ValueType::String;
             break;
         case 'x':
-            type = ValueType::LongHex;
+            type = ValueType::Hex;
             break;
-        default:
-            hasExplicitType = false;
-            break;
+        default: //invalid format
+            return nullptr;
         }
+        hasExplicitType = true;
     }
     auto expression = formatString.c_str();
     if(hasExplicitType)
         expression += 2;
+    else
+        type = ValueType::Hex;
     return expression;
 }
 
@@ -104,9 +100,9 @@ static unsigned int getArgNumType(const String & formatString, ValueType::ValueT
 
 static String handleFormatString(const String & formatString, const FormatValueVector & values)
 {
-    ValueType::ValueType type = ValueType::Unknown;
-    unsigned int argnum = getArgNumType(formatString, type);
-    if(argnum < values.size())
+    auto type = ValueType::Unknown;
+    auto argnum = getArgNumType(formatString, type);
+    if(type != ValueType::Unknown && argnum < values.size())
         return printValue(values.at(argnum), type);
     return "[Formatting Error]";
 }
