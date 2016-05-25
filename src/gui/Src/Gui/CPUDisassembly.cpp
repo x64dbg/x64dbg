@@ -344,6 +344,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     {
         if(mShowMnemonicBrief)
             mnemonicBrief->setText(tr("Hide mnemonic brief"));
+        else
+            mnemonicBrief->setText(tr("Show mnemonic brief"));
         return true;
     });
 
