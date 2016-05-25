@@ -101,6 +101,7 @@ signals:
     void updatePatches();
     void updateCallStack();
     void updateSEHChain();
+    void updateArgumentView();
     void symbolRefreshCurrent();
     void loadSourceFile(const QString path, int line, int selection);
     void setIconMenuEntry(int hEntry, QIcon icon);

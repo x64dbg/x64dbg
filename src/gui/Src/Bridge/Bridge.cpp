@@ -550,6 +550,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_UNREGISTER_SCRIPT_LANG:
         emit unregisterScriptLang((int)param1);
         break;
+
+    case GUI_UPDATE_ARGUMENT_VIEW:
+        emit updateArgumentView();
+        break;
     }
     return nullptr;
 }
