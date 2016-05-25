@@ -243,6 +243,10 @@ void dbgfunctionsinit()
     _dbgfunctions.ModBaseFromAddr = ModBaseFromAddr;
     _dbgfunctions.ModBaseFromName = ModBaseFromName;
     _dbgfunctions.ModSizeFromAddr = ModSizeFromAddr;
+    _dbgfunctions.GetTraceRecordHitCount = _dbg_dbggetTraceRecordHitCount;
+    _dbgfunctions.GetTraceRecordByteType = _dbg_dbggetTraceRecordByteType;
+    _dbgfunctions.SetTraceRecordType = _dbg_dbgsetTraceRecordType;
+    _dbgfunctions.GetTraceRecordType = _dbg_dbggetTraceRecordType;
     _dbgfunctions.Assemble = assemble;
     _dbgfunctions.PatchGet = _patchget;
     _dbgfunctions.PatchInRange = _patchinrange;
@@ -275,8 +279,4 @@ void dbgfunctionsinit()
     _dbgfunctions.ValFromString = _valfromstring;
     _dbgfunctions.PatchGetEx = (PATCHGETEX)PatchGet;
     _dbgfunctions.GetBridgeBp = _getbridgebp;
-    _dbgfunctions.GetTraceRecordHitCount = _dbg_dbggetTraceRecordHitCount;
-    _dbgfunctions.GetTraceRecordByteType = _dbg_dbggetTraceRecordByteType;
-    _dbgfunctions.SetTraceRecordType = _dbg_dbgsetTraceRecordType;
-    _dbgfunctions.GetTraceRecordType = _dbg_dbggetTraceRecordType;
 }
