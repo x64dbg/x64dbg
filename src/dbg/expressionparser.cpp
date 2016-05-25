@@ -50,12 +50,15 @@ ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() 
     }
 }
 
+//As defined in http://en.cppreference.com/w/c/language/operator_precedence
+
 int ExpressionParser::Token::precedence() const
 {
     switch(mType)
     {
     case Type::OperatorUnarySub:
     case Type::OperatorNot:
+    case Type::OperatorLogicalNot:
         return 2;
     case Type::OperatorMul:
     case Type::OperatorHiMul:
