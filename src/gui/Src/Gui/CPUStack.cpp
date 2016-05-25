@@ -247,14 +247,12 @@ void CPUStack::setupContextMenu()
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     //Follow in Dump
-    mFollowDump = new QAction(QIcon(":/icons/images/memory-map.png"), tr("Follow in &Dump"), this);
+    auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
+    mFollowDump = new QAction(QIcon(":/icons/images/memory-map.png"), followDumpName, this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
-#ifdef _WIN64
-    mFollowInDumpMenu = new QMenu(tr("&Follow QWORD in Dump"), this);
-#else //x86
-    mFollowInDumpMenu = new QMenu(tr("&Follow DWORD in Dump"), this);
-#endif //_WIN64
+    auto followDumpMenuName = ArchValue(tr("&Follow DWORD in Dump"), tr("&Follow QWORD in Dump"));
+    mFollowInDumpMenu = new QMenu(followDumpMenuName, this);
 
     int maxDumps = mMultiDump->getMaxCPUTabs();
     for(int i = 0; i < maxDumps; i++)
@@ -265,7 +263,8 @@ void CPUStack::setupContextMenu()
         mFollowInDumpActions.push_back(action);
     }
 
-    mFollowStack = new QAction(QIcon(":/icons/images/stack.png"), tr("Follow in &Stack"), this);
+    auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
+    mFollowStack = new QAction(QIcon(":/icons/images/stack.png"), followStackName, this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     mPluginMenu = new QMenu(this);
