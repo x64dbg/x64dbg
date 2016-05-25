@@ -317,28 +317,28 @@ void CPUDump::setupContextMenu()
     mGotoMenu->setIcon(QIcon(":/icons/images/goto.png"));
 
     //Goto->Expression
-    mGotoExpression = new QAction(tr("&Expression"), this);
+    mGotoExpression = new QAction(QIcon(":/icons/images/geolocation-goto.png"), tr("&Expression"), this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
     mGotoMenu->addAction(mGotoExpression);
 
     // Goto->File offset
-    mGotoFileOffset = new QAction(tr("File Offset"), this);
+    mGotoFileOffset = new QAction(QIcon(":/icons/images/fileoffset.png"), tr("File Offset"), this);
     mGotoFileOffset->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoFileOffset);
     connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffsetSlot()));
     mGotoMenu->addAction(mGotoFileOffset);
 
     // Goto->Start of page
-    mGotoStart = new QAction(tr("Start of Page"), this);
+    mGotoStart = new QAction(QIcon(":/icons/images/top.png"), tr("Start of Page"), this);
     mGotoStart->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoStart);
     connect(mGotoStart, SIGNAL(triggered()), this, SLOT(gotoStartSlot()));
     mGotoMenu->addAction(mGotoStart);
 
     // Goto->End of page
-    mGotoEnd = new QAction(tr("End of Page"), this);
+    mGotoEnd = new QAction(QIcon(":/icons/images/bottom.png"), tr("End of Page"), this);
     mGotoEnd->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoEnd);
     connect(mGotoEnd, SIGNAL(triggered()), this, SLOT(gotoEndSlot()));
@@ -578,6 +578,29 @@ QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
         char label_text[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
             wStr = QString(modname) + "." + QString(label_text);
+        if(!wStr.length()) //stack comments
+        {
+            auto va = rvaToVa(wRva);
+            duint stackSize;
+            duint csp = DbgValFromString("csp");
+            duint stackBase = DbgMemFindBaseAddr(csp, &stackSize);
+            STACK_COMMENT comment;
+            if(va >= stackBase && va < stackBase + stackSize && DbgStackCommentGet(rvaToVa(wRva), &comment))
+            {
+                painter->save();
+                if(va >= csp) //active stack
+                {
+                    if(*comment.color)
+                        painter->setPen(QPen(QColor(QString(comment.color))));
+                    else
+                        painter->setPen(QPen(textColor));
+                }
+                else
+                    painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
+                painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, comment.comment);
+                painter->restore();
+            }
+        }
     }
     else //data
     {

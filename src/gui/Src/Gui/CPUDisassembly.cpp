@@ -384,7 +384,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/neworigin.png"), tr("Set New Origin Here"), SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere"));
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
-    gotoMenu->addAction(makeShortcutAction(tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
     gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
         return historyHasPrevious();
@@ -393,14 +393,14 @@ void CPUDisassembly::setupRightClickContextMenu()
     {
         return historyHasNext();
     });
-    gotoMenu->addAction(makeShortcutAction(tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
-    gotoMenu->addAction(makeShortcutAction(tr("File Offset"), SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset"), [this](QMenu*)
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/fileoffset.png"), tr("File Offset"), SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset"), [this](QMenu*)
     {
         char modname[MAX_MODULE_SIZE] = "";
         return DbgGetModuleAt(rvaToVa(getInitialSelection()), modname);
     });
-    gotoMenu->addAction(makeShortcutAction(tr("Start of Page"), SLOT(gotoStartSlot()), "ActionGotoStart"));
-    gotoMenu->addAction(makeShortcutAction(tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/top.png"), tr("Start of Page"), SLOT(gotoStartSlot()), "ActionGotoStart"));
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/bottom.png"), tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/goto.png"), tr("Go to")), gotoMenu);
     mMenuBuilder->addSeparator();
 

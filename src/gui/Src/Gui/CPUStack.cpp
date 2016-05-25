@@ -220,7 +220,7 @@ void CPUStack::setupContextMenu()
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
     //Go to Expression
-    mGotoExpression = new QAction(QIcon(":/icons/images/goto.png"), tr("Go to &Expression"), this);
+    mGotoExpression = new QAction(QIcon(":/icons/images/geolocation-goto.png"), tr("Go to &Expression"), this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));

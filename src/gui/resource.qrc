@@ -89,5 +89,8 @@
         <file>images/cbp.png</file>
         <file>images/next.png</file>
         <file>images/previous.png</file>
+        <file>images/bottom.png</file>
+        <file>images/top.png</file>
+        <file>images/fileoffset.png</file>
     </qresource>
 </RCC>
