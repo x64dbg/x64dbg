@@ -33,6 +33,7 @@
 #include "exceptiondirectoryanalysis.h"
 #include "_scriptapi_stack.h"
 #include "threading.h"
+#include "mnemonichelp.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -2357,5 +2358,29 @@ CMDRESULT cbInstrSavedata(int argc, char* argv[])
 
     dprintf("%p[% " fext "X] written to \"%s\" !\n", addr, size, argv[1]);
 
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrMnemonichelp(int argc, char* argv[])
+{
+    if(argc < 2)
+        return STATUS_ERROR;
+    auto description = MnemonicHelp::getDescription(argv[1]);
+    if(!description.length())
+        dputs("no description or empty description");
+    else
+    {
+        auto padding = "================================================================";
+        auto logText = StringUtils::sprintf("%s%s%s", padding, description.c_str(), padding);
+        GuiAddLogMessage(logText.c_str());
+    }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[])
+{
+    if(argc < 2)
+        return STATUS_ERROR;
+    dputs(MnemonicHelp::getBriefDescription(argv[1]).c_str());
     return STATUS_CONTINUE;
 }

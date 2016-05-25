@@ -21,6 +21,7 @@
 #include "_scriptapi_gui.h"
 #include "filehelper.h"
 #include "database.h"
+#include "mnemonichelp.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -265,6 +266,8 @@ static void registercommands()
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
     dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
     dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
+    dbgcmdnew("mnemonichelp", cbInstrMnemonichelp, false); //mnemonic help
+    dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -413,6 +416,18 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcat_s(scriptDllDir, "\\scripts\\");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
+
+    // Load mnemonic help database
+    String mnemonicHelpData;
+    if(FileHelper::ReadAllText(StringUtils::sprintf("%s\\..\\mnemdb.json", dir), mnemonicHelpData))
+    {
+        if(MnemonicHelp::loadFromText(mnemonicHelpData.c_str()))
+            dputs("Mnemonic help database loaded!");
+        else
+            dputs("Failed to load mnemonic help database...");
+    }
+    else
+        dputs("Failed to read mnemonic help database...");
 
     // Create database directory in the local debugger folder
     DbSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);

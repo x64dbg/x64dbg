@@ -55,6 +55,7 @@
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory.cpp" />
+    <ClCompile Include="mnemonichelp.cpp" />
     <ClCompile Include="module.cpp" />
     <ClCompile Include="msgqueue.cpp" />
     <ClCompile Include="murmurhash.cpp" />
@@ -139,6 +140,7 @@
     <ClInclude Include="lz4\lz4file.h" />
     <ClInclude Include="lz4\lz4hc.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="mnemonichelp.h" />
     <ClInclude Include="module.h" />
     <ClInclude Include="msgqueue.h" />
     <ClInclude Include="murmurhash.h" />

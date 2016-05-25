@@ -54,6 +54,7 @@ enum SectionLock
     LockPluginCommandList,
     LockPluginMenuList,
     LockSehCache,
+    LockMnemonicHelp,
 
     // Number of elements in this enumeration. Must always be the last
     // index.

@@ -84,6 +84,7 @@ typedef bool (*VALFROMSTRING)(const char* string, duint* value);
 typedef bool (*PATCHGETEX)(duint addr, DBGPATCHINFO* info);
 typedef bool(*GETBRIDGEBP)(BPXTYPE type, duint addr, BRIDGEBP* bp);
 typedef bool(*STRINGFORMATINLINE)(const char* format, size_t resultSize, char* result);
+typedef void(*GETMNEMONICBRIEF)(const char* mnem, size_t resultSize, char* result);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -126,6 +127,7 @@ typedef struct DBGFUNCTIONS_
     PATCHGETEX PatchGetEx;
     GETBRIDGEBP GetBridgeBp;
     STRINGFORMATINLINE StringFormatInline;
+    GETMNEMONICBRIEF GetMnemonicBrief;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

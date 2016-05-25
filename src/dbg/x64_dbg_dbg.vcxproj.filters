@@ -296,6 +296,9 @@
     <ClCompile Include="exhandlerinfo.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="mnemonichelp.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -650,6 +653,9 @@
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
     <ClInclude Include="exhandlerinfo.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="mnemonichelp.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>

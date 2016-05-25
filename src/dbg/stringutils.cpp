@@ -183,3 +183,16 @@ WString StringUtils::sprintf(const wchar_t* format, ...)
     va_end(args);
     return WString(buffer());
 }
+
+String StringUtils::ToLower(const String & s)
+{
+    auto result = s;
+    for(size_t i = 0; i < result.size(); i++)
+        result[i] = tolower(result[i]);
+    return result;
+}
+
+bool StringUtils::StartsWith(const String & h, const String & n)
+{
+    return strstr(h.c_str(), n.c_str()) == h.c_str();
+}
