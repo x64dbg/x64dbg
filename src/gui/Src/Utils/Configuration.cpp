@@ -41,7 +41,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyRestoredBytesColor", QColor("#008000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
-    defaultColors.insert("DisassemblyAutoCommentColor", QColor("#808080"));
+    defaultColors.insert("DisassemblyAutoCommentColor", QColor("#008000"));
     defaultColors.insert("DisassemblyAutoCommentBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyMnemonicBriefColor", QColor("#717171"));
     defaultColors.insert("DisassemblyMnemonicBriefBackgroundColor", Qt::transparent);
