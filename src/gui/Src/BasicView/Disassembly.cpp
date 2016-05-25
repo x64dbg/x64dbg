@@ -20,6 +20,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 
     mHighlightToken.text = "";
     mHighlightingMode = false;
+    mShowMnemonicBrief = false;
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
     Config()->writeUints();
@@ -85,6 +86,8 @@ void Disassembly::updateColors()
     mRestoredBytesColor = ConfigColor("DisassemblyRestoredBytesColor");
     mAutoCommentColor = ConfigColor("DisassemblyAutoCommentColor");
     mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
+    mMnemonicBriefColor = ConfigColor("DisassemblyMnemonicBriefColor");
+    mMnemonicBriefBackgroundColor = ConfigColor("DisassemblyMnemonicBriefBackgroundColor");
     mCommentColor = ConfigColor("DisassemblyCommentColor");
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
     mUnconditionalJumpLineColor = ConfigColor("DisassemblyUnconditionalJumpLineColor");
@@ -485,6 +488,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             if(width)
                 painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
             painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, comment);
+            argsize += width;
         }
         else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
         {
@@ -499,6 +503,31 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             if(width)
                 painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
             painter->drawText(QRect(x + argsize + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
+            argsize += width;
+        }
+
+        if(mShowMnemonicBrief)
+        {
+            char brief[MAX_STRING_SIZE] = "";
+            QString mnem = mInstBuffer.at(rowOffset).instStr;
+            int index = mnem.indexOf(' ');
+            if(index != -1)
+                mnem.truncate(index);
+            DbgFunctions()->GetMnemonicBrief(mnem.toUtf8().constData(), MAX_STRING_SIZE, brief);
+
+            painter->setPen(mMnemonicBriefColor);
+
+            QString mnemBrief = brief;
+            if(mnemBrief.length())
+            {
+                int width = getCharWidth() * mnemBrief.length() + 4;
+                if(width > w)
+                    width = w;
+                if(width)
+                    painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(mMnemonicBriefBackgroundColor)); //mnemonic brief background color
+                painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
+            }
+            break;
         }
     }
     break;

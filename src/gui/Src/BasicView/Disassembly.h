@@ -172,6 +172,9 @@ protected:
     QColor mAutoCommentColor;
     QColor mAutoCommentBackgroundColor;
 
+    QColor mMnemonicBriefColor;
+    QColor mMnemonicBriefBackgroundColor;
+
     QColor mCommentColor;
     QColor mCommentBackgroundColor;
 
@@ -194,6 +197,7 @@ protected:
     dsint mRvaDisplayPageBase;
     bool mHighlightingMode;
     MemoryPage* mMemPage;
+    bool mShowMnemonicBrief;
 };
 
 #endif // DISASSEMBLY_H
