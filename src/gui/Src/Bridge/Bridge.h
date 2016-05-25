@@ -120,6 +120,9 @@ signals:
     void displayWarning(QString title, QString text);
     void registerScriptLang(SCRIPTTYPEINFO* info);
     void unregisterScriptLang(int id);
+    void focusDisasm();
+    void focusDump();
+    void focusStack();
 
 private:
     QMutex* mBridgeMutex;
