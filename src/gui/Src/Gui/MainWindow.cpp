@@ -1191,7 +1191,7 @@ void MainWindow::changeCommandLine()
 void MainWindow::displayManual()
 {
     // Open the Windows CHM in the upper directory
-    QDesktopServices::openUrl(QUrl(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath())));
+    QDesktopServices::openUrl(QUrl(QUrl::fromLocalFile(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath()))));
 }
 
 void MainWindow::decompileAt(dsint start, dsint end)
