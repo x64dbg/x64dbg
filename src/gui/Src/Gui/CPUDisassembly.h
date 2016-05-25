@@ -83,13 +83,13 @@ public slots:
     void openSourceSlot();
     void decompileSelectionSlot();
     void decompileFunctionSlot();
-    void displayWarningSlot(QString title, QString text);
-    void labelHelpSlot();
-    void editSoftBpActionSlot();
     void ActionTraceRecordBitSlot();
     void ActionTraceRecordByteSlot();
     void ActionTraceRecordWordSlot();
     void ActionTraceRecordDisableSlot();
+    void displayWarningSlot(QString title, QString text);
+    void labelHelpSlot();
+    void editSoftBpActionSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);
