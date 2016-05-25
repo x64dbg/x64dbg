@@ -1299,6 +1299,11 @@ BRIDGE_IMPEXP void GuiUpdateArgumentWidget()
     _gui_sendmessage(GUI_UPDATE_ARGUMENT_VIEW, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiFocusView(int hWindow)
+{
+    _gui_sendmessage(GUI_FOCUS_VIEW, (void*)hWindow, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

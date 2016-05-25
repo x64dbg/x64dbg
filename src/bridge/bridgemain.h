@@ -818,7 +818,8 @@ typedef enum
     GUI_DISPLAY_WARNING,            // param1=const char *text,     param2=unused
     GUI_REGISTER_SCRIPT_LANG,       // param1=SCRIPTTYPEINFO* info, param2=unused
     GUI_UNREGISTER_SCRIPT_LANG,     // param1=int id,               param2=unused
-    GUI_UPDATE_ARGUMENT_VIEW        // param1=unused,               param2=unused
+    GUI_UPDATE_ARGUMENT_VIEW,       // param1=unused,               param2=unused
+    GUI_FOCUS_VIEW,                 // param1=int hWindow,          param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -934,6 +935,7 @@ BRIDGE_IMPEXP void GuiDisplayWarning(const char* title, const char* text);
 BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info);
 BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id);
 BRIDGE_IMPEXP void GuiUpdateArgumentWidget();
+BRIDGE_IMPEXP void GuiFocusView(int hWindow);
 
 #ifdef __cplusplus
 }
