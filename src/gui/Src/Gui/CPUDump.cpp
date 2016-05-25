@@ -140,19 +140,19 @@ void CPUDump::setupContextMenu()
     connect(mBinarySaveToFile, SIGNAL(triggered()), this, SLOT(binarySaveToFileSlot()));
     mBinaryMenu->addAction(mBinarySaveToFile);
 
-
     // Restore Selection
-    mUndoSelection = new QAction(tr("&Restore selection"), this);
+    mUndoSelection = new QAction(QIcon(":/icons/images/eraser.png"), tr("&Restore selection"), this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Follow in Stack
-    mFollowStack = new QAction(tr("Follow in Stack"), this);
+    mFollowStack = new QAction(QIcon(":/icons/images/stack.png"), tr("Follow in Stack"), this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     // Follow in Disasm
-    mFollowInDisasm = new QAction(tr("Follow in Disassembler"), this);
+    auto disasmIcon = QIcon(QString(":/icons/images/") + ArchValue("processor32.png", "processor64.png"));
+    mFollowInDisasm = new QAction(disasmIcon, tr("Follow in Disassembler"), this);
     connect(mFollowInDisasm, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
 
     //Follow DWORD/QWORD
@@ -186,18 +186,23 @@ void CPUDump::setupContextMenu()
         mFollowInDumpActions.push_back(action);
     }
 
+    //Sync with expression
+    mSyncWithExpression = new QAction(QIcon(":/icons/images/sync.png"), tr("Sync with expression"), this);
+    connect(mSyncWithExpression, SIGNAL(triggered(bool)), this, SLOT(syncWithExpressionSlot()));
+
     //Entropy
     mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropySlot()));
 
     //Label
-    mSetLabelAction = new QAction(tr("Set Label"), this);
+    mSetLabelAction = new QAction(QIcon(":/icons/images/label.png"), tr("Set Label"), this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetLabelAction);
     connect(mSetLabelAction, SIGNAL(triggered()), this, SLOT(setLabelSlot()));
 
     //Breakpoint menu
     mBreakpointMenu = new QMenu(tr("&Breakpoint"), this);
+    mBreakpointMenu->setIcon(QIcon(":/icons/images/breakpoint.png"));
 
     //Breakpoint->Hardware, on access
     mHardwareAccessMenu = new QMenu(tr("Hardware, &Access"), this);
@@ -282,7 +287,7 @@ void CPUDump::setupContextMenu()
     mBreakpointMenu->addAction(mMemoryRemove);
 
     //Find Pattern
-    mFindPatternAction = new QAction(tr("&Find Pattern..."), this);
+    mFindPatternAction = new QAction(QIcon(":/icons/images/search-for.png"), tr("&Find Pattern..."), this);
     mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
@@ -298,13 +303,14 @@ void CPUDump::setupContextMenu()
     connect(mDataCopyAction, SIGNAL(triggered()), this, SLOT(dataCopySlot()));
 
     //Find References
-    mFindReferencesAction = new QAction(tr("Find &References"), this);
+    mFindReferencesAction = new QAction(QIcon(":/icons/images/find.png"), tr("Find &References"), this);
     mFindReferencesAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindReferencesAction);
     connect(mFindReferencesAction, SIGNAL(triggered()), this, SLOT(findReferencesSlot()));
 
     //Goto menu
-    mGotoMenu = new QMenu(tr("&Goto"), this);
+    mGotoMenu = new QMenu(tr("&Go to"), this);
+    mGotoMenu->setIcon(QIcon(":/icons/images/goto.png"));
 
     //Goto->Expression
     mGotoExpression = new QAction(tr("&Expression"), this);
@@ -334,7 +340,6 @@ void CPUDump::setupContextMenu()
     connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNextSlot()));
     mGotoMenu->addAction(mGotoNext);
 
-
     // Goto->Start of page
     mGotoStart = new QAction(tr("Start of Page"), this);
     mGotoStart->setShortcutContext(Qt::WidgetShortcut);
@@ -351,6 +356,7 @@ void CPUDump::setupContextMenu()
 
     //Hex menu
     mHexMenu = new QMenu(tr("&Hex"), this);
+    mHexMenu->setIcon(QIcon(":/icons/images/hex.png"));
     //Hex->Ascii
     mHexAsciiAction = new QAction("&Ascii", this);
     connect(mHexAsciiAction, SIGNAL(triggered()), this, SLOT(hexAsciiSlot()));
@@ -362,6 +368,7 @@ void CPUDump::setupContextMenu()
 
     //Text menu
     mTextMenu = new QMenu(tr("&Text"), this);
+    mTextMenu->setIcon(QIcon(":/icons/images/strings.png"));
     //Text->Ascii
     mTextAsciiAction = new QAction(tr("&Ascii"), this);
     connect(mTextAsciiAction, SIGNAL(triggered()), this, SLOT(textAsciiSlot()));
@@ -373,6 +380,7 @@ void CPUDump::setupContextMenu()
 
     //Integer menu
     mIntegerMenu = new QMenu(tr("&Integer"), this);
+    mIntegerMenu->setIcon(QIcon(":/icons/images/integer.png"));
     //Integer->Signed short
     mIntegerSignedShortAction = new QAction("Signed short (16-bit)", this);
     connect(mIntegerSignedShortAction, SIGNAL(triggered()), this, SLOT(integerSignedShortSlot()));
@@ -418,6 +426,7 @@ void CPUDump::setupContextMenu()
 
     //Float menu
     mFloatMenu = new QMenu(tr("&Float"), this);
+    mFloatMenu->setIcon(QIcon(":/icons/images/float.png"));
     //Float->float
     mFloatFloatAction = new QAction("&Float (32-bit)", this);
     connect(mFloatFloatAction, SIGNAL(triggered()), this, SLOT(floatFloatSlot()));
@@ -433,6 +442,7 @@ void CPUDump::setupContextMenu()
 
     //Address
     mAddressAction = new QAction(tr("&Address"), this);
+    mAddressAction->setIcon(QIcon(":/icons/images/address.png"));
     connect(mAddressAction, SIGNAL(triggered()), this, SLOT(addressSlot()));
 
     //Disassembly
@@ -459,7 +469,6 @@ void CPUDump::setupContextMenu()
     mCopyRva = new QAction("&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
     mCopyMenu->addAction(mCopyRva);
-
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -615,8 +624,9 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mFindReferencesAction);
     wMenu->addAction(mYaraAction);
     wMenu->addAction(mDataCopyAction);
-    wMenu->addMenu(mGotoMenu);
+    wMenu->addAction(mSyncWithExpression);
     wMenu->addAction(mEntropy);
+    wMenu->addMenu(mGotoMenu);
     wMenu->addSeparator();
     wMenu->addMenu(mHexMenu);
     wMenu->addMenu(mTextMenu);
@@ -1607,7 +1617,7 @@ void CPUDump::followDataSlot()
 void CPUDump::followDataDumpSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("dump [%1]").arg(addrText).toUtf8().constData());
+    DbgCmdExec(QString("dump \"[%1]\"").arg(addrText).toUtf8().constData());
 }
 
 void CPUDump::selectionUpdatedSlot()
@@ -1658,6 +1668,20 @@ void CPUDump::entropySlot()
     entropyDialog.exec();
 }
 
+void CPUDump::syncWithExpressionSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    GotoDialog gotoDialog(this, true);
+    gotoDialog.setWindowTitle("Enter expression to sync with...");
+    gotoDialog.setInitialExpression(mSyncAddrExpression);
+    if(gotoDialog.exec() != QDialog::Accepted)
+        return;
+    mSyncAddrExpression = gotoDialog.expressionText;
+    if(mSyncAddrExpression.length())
+        DbgCmdExec(QString("dump \"%1\"").arg(mSyncAddrExpression).toUtf8().constData());
+}
+
 void CPUDump::copyAddressSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
@@ -1683,7 +1707,7 @@ void CPUDump::followInDumpNSlot()
     {
         if(mFollowInDumpActions[i] == sender())
         {
-            DbgCmdExec(QString("dump [%1], %2").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i).toUtf8().constData());
+            DbgCmdExec(QString("dump \"[%1]\", \"%2\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i).toUtf8().constData());
         }
     }
 }

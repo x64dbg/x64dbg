@@ -98,6 +98,7 @@ public slots:
     void yaraSlot();
     void dataCopySlot();
     void entropySlot();
+    void syncWithExpressionSlot();
     void copyAddressSlot();
     void copyRvaSlot();
     void followInDumpNSlot();
@@ -196,6 +197,7 @@ private:
     QAction* mUndoSelection;
     QAction* mFollowData;
     QAction* mFollowDataDump;
+    QAction* mSyncWithExpression;
     QAction* mEntropy;
     QAction* mCopyAddress;
     QAction* mCopyRva;
