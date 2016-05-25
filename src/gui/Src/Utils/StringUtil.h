@@ -82,4 +82,16 @@ static QDate GetCompileDate()
     return QLocale("en_US").toDate(QString(__DATE__).simplified(), "MMM d yyyy");
 }
 
+template<typename T>
+static T & ArchValue(T & x32value, T & x64value)
+{
+#ifdef _WIN64
+    Q_UNUSED(x32value);
+    return x64value;
+#else
+    Q_UNUSED(x64value);
+    return x32value;
+#endif //_WIN64
+}
+
 #endif // STRINGUTIL_H
