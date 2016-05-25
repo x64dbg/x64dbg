@@ -92,5 +92,7 @@
         <file>images/bottom.png</file>
         <file>images/top.png</file>
         <file>images/fileoffset.png</file>
+        <file>images/helpbrief.png</file>
+        <file>images/helpmnemonic.png</file>
     </qresource>
 </RCC>

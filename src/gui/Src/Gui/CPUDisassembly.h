@@ -34,6 +34,7 @@ signals:
     void showPatches();
     void decompileAt(dsint start, dsint end);
     void displaySnowmanWidget();
+    void displayLogWidget();
 
 public slots:
     void toggleInt3BPActionSlot();
@@ -86,6 +87,8 @@ public slots:
     void displayWarningSlot(QString title, QString text);
     void labelHelpSlot();
     void editSoftBpActionSlot();
+    void mnemonicHelpSlot();
+    void mnemonicBriefSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);

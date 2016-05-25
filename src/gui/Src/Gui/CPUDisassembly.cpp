@@ -329,13 +329,21 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/snowman.png"), tr("Decompile")), decompileMenu);
 
-    mMenuBuilder->addMenu(makeMenu(QIcon(":icons/images/help.png"), tr("Help on Symbolic Name")), [this](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/help.png"), tr("Help on Symbolic Name")), [this](QMenu * menu)
     {
         QSet<QString> labels;
         if(!getLabelsFromInstruction(rvaToVa(getInitialSelection()), labels))
             return false;
         for(auto label : labels)
             menu->addAction(makeAction(label, SLOT(labelHelpSlot())));
+        return true;
+    });
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/helpmnemonic.png"), tr("Help on mnemonic"), SLOT(mnemonicHelpSlot()), "ActionHelpOnMnemonic"));
+    QAction* mnemonicBrief = makeShortcutAction(QIcon(":/icons/images/helpbrief.png"), tr("Show mnemonic brief"), SLOT(mnemonicBriefSlot()), "ActionToggleMnemonicBrief");
+    mMenuBuilder->addAction(mnemonicBrief, [this, mnemonicBrief](QMenu*)
+    {
+        if(mShowMnemonicBrief)
+            mnemonicBrief->setText(tr("Hide mnemonic brief"));
         return true;
     });
 
@@ -359,7 +367,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         else
             return false;
 
-        labelAddress->setText("Label " + ToPtrString(addr));
+        labelAddress->setText(tr("Label") + " " + ToPtrString(addr));
 
         return DbgMemIsValidReadPtr(addr);
     });
@@ -1363,4 +1371,23 @@ void CPUDisassembly::labelHelpSlot()
 void CPUDisassembly::editSoftBpActionSlot()
 {
     Breakpoints::editBP(bp_normal, ToHexString(rvaToVa(getInitialSelection())), this);
+}
+
+void CPUDisassembly::mnemonicHelpSlot()
+{
+    BASIC_INSTRUCTION_INFO disasm;
+    DbgDisasmFastAt(rvaToVa(getInitialSelection()), &disasm);
+    if(!*disasm.instruction)
+        return;
+    char* space = strstr(disasm.instruction, " ");
+    if(space)
+        *space = '\0';
+    DbgCmdExecDirect(QString("mnemonichelp %1").arg(disasm.instruction).toUtf8().constData());
+    emit displayLogWidget();
+}
+
+void CPUDisassembly::mnemonicBriefSlot()
+{
+    mShowMnemonicBrief = !mShowMnemonicBrief;
+    reloadData();
 }
