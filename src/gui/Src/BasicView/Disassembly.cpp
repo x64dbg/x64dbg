@@ -462,31 +462,29 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             argsize += paintFunctionGraphic(painter, x, y, funcType, true);
         }
 
-        char comment[MAX_COMMENT_SIZE] = "";
+        QString comment;
+        bool autoComment = false;
         char label[MAX_LABEL_SIZE] = "";
-        if(DbgGetCommentAt(cur_addr, comment))
+        if(GetCommentFormat(cur_addr, comment, &autoComment))
         {
-            QString commentText;
             QColor backgroundColor;
-            if(comment[0] == '\1') //automatic comment
+            if(autoComment)
             {
                 painter->setPen(mAutoCommentColor);
                 backgroundColor = mAutoCommentBackgroundColor;
-                commentText = QString(comment + 1);
             }
             else //user comment
             {
                 painter->setPen(mCommentColor);
                 backgroundColor = mCommentBackgroundColor;
-                commentText = comment;
             }
 
-            int width = getCharWidth() * commentText.length() + 4;
+            int width = getCharWidth() * comment.length() + 4;
             if(width > w)
                 width = w;
             if(width)
                 painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
-            painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, commentText);
+            painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, comment);
         }
         else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
         {

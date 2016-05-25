@@ -207,11 +207,6 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         *addrinfo->comment = 0;
         if(CommentGet(addr, addrinfo->comment))
         {
-            if(strstr(addrinfo->comment, "{"))  //comment with format string
-            {
-                auto formatted = stringformatinline(addrinfo->comment);
-                strcpy_s(addrinfo->comment, _TRUNCATE, formatted.c_str());
-            }
             retval = true;
         }
         else

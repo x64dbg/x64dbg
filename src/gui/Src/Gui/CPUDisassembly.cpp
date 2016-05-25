@@ -1161,15 +1161,10 @@ void CPUDisassembly::copySelectionSlot(bool copyBytes)
         QString disassembly;
         for(const auto & token : instBuffer.at(i).tokens.tokens)
             disassembly += token.text;
-        char comment[MAX_COMMENT_SIZE] = "";
         QString fullComment;
-        if(DbgGetCommentAt(cur_addr, comment))
-        {
-            if(comment[0] == '\1') //automatic comment
-                fullComment = " " + QString(comment + 1);
-            else
-                fullComment = " " + QString(comment);
-        }
+        QString comment;
+        if(GetCommentFormat(cur_addr, comment))
+            fullComment = " " + comment;
         clipboard += address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
             clipboard += " | " + bytes.leftJustified(bytesLen, QChar(' '), true);

@@ -122,14 +122,9 @@ void BreakpointsView::reloadData()
         mHardBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
         mHardBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
 
-        char text[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(wBPList.bp[wI].addr, text))
-        {
-            if(text[0] == '\1') //automatic comment
-                mHardBPTable->setCellContent(wI, 9, QString(text + 1));
-            else
-                mHardBPTable->setCellContent(wI, 9, QString().fromUtf8(text));
-        }
+        QString comment;
+        if(GetCommentFormat(wBPList.bp[wI].addr, comment))
+            mHardBPTable->setCellContent(wI, 9, comment);
         else
             mHardBPTable->setCellContent(wI, 9, "");
 
@@ -168,14 +163,9 @@ void BreakpointsView::reloadData()
         mSoftBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
         mSoftBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
 
-        char comment[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-        {
-            if(comment[0] == '\1') //automatic comment
-                mSoftBPTable->setCellContent(wI, 9, QString(comment + 1));
-            else
-                mSoftBPTable->setCellContent(wI, 9, QString().fromUtf8(comment));
-        }
+        QString comment;
+        if(GetCommentFormat(wBPList.bp[wI].addr, comment))
+            mSoftBPTable->setCellContent(wI, 9, comment);
         else
             mSoftBPTable->setCellContent(wI, 9, "");
     }
@@ -213,14 +203,9 @@ void BreakpointsView::reloadData()
         mMemBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
         mMemBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
 
-        char comment[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-        {
-            if(comment[0] == '\1') //automatic comment
-                mMemBPTable->setCellContent(wI, 9, QString(comment + 1));
-            else
-                mMemBPTable->setCellContent(wI, 9, QString().fromUtf8(comment));
-        }
+        QString comment;
+        if(GetCommentFormat(wBPList.bp[wI].addr, comment))
+            mMemBPTable->setCellContent(wI, 9, comment);
         else
             mMemBPTable->setCellContent(wI, 9, "");
     }

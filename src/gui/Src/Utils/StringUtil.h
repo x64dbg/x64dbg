@@ -94,4 +94,26 @@ static T & ArchValue(T & x32value, T & x64value)
 #endif //_WIN64
 }
 
+static bool GetCommentFormat(duint addr, QString & comment, bool* autoComment = nullptr)
+{
+    comment.clear();
+    char commentData[MAX_COMMENT_SIZE] = "";
+    if(!DbgGetCommentAt(addr, commentData))
+        return false;
+    auto a = *commentData == '\1';
+    if(autoComment)
+        *autoComment = a;
+    if(!strstr(commentData, "{"))
+    {
+        comment = commentData + a;
+        return true;
+    }
+    char commentFormat[MAX_SETTING_SIZE] = "";
+    if(DbgFunctions()->StringFormatInline(commentData + a, MAX_SETTING_SIZE, commentFormat))
+        comment = commentFormat;
+    else
+        comment = commentData + a;
+    return true;
+}
+
 #endif // STRINGUTIL_H
