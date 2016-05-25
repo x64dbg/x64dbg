@@ -91,10 +91,10 @@ String MnemonicHelp::getDescription(const char* mnem, int depth)
     if(found == MnemonicMap.end())
         return "";
     const auto & description = found->second;
-    if(StringUtils::StartsWith(description, "-R"))  //redirect
+    if(StringUtils::StartsWith(description, "-R:"))  //redirect
     {
         SHARED_RELEASE();
-        return getDescription(description.c_str() + 2, depth + 1);
+        return getDescription(description.c_str() + 3, depth + 1);
     }
     return description;
 }
