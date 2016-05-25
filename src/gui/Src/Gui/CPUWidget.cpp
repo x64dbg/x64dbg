@@ -22,7 +22,10 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     splitter->addWidget(mSideBar);
     splitter->addWidget(mDisas);
     splitter->setChildrenCollapsible(false);
+    splitter->setCollapsible(0, true); //allow collapsing of the SideBar
     splitter->setHandleWidth(1);
+
+    ui->mTopLeftVSplitter->setCollapsible(1, true); //allow collapsing of the InfoBox
 
     ui->mTopLeftUpperFrameLayout->addWidget(splitter);
 
@@ -54,6 +57,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     sizes.append(100);
     sizes.append(10);
     ui->mTopRightVSplitter->setSizes(sizes);
+    ui->mTopRightVSplitter->setCollapsible(1, true); //allow collapsing of the ArgumentWidget
 
     ui->mTopRightUpperFrameLayout->addWidget(button_changeview);
     ui->mTopRightUpperFrameLayout->addWidget(upperScrollArea);
