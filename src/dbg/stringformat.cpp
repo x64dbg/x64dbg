@@ -10,6 +10,7 @@ namespace ValueType
         SignedDecimal,
         UnsignedDecimal,
         Hex,
+        LongHex,
         Pointer,
         String
     };
@@ -36,6 +37,10 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
         if(validval)
             sprintf_s(result, "%" fext "X", valuint);
         break;
+    case ValueType::LongHex:
+        if(validval)
+            sprintf_s(result, fhex, valuint);
+        break;
     case ValueType::Pointer:
         if(validval)
             sprintf_s(result, "0x" fhex, valuint);
@@ -59,25 +64,26 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
     type = ValueType::Hex;
     if(formatString.size() > 2 && formatString[1] == ':')
     {
+        hasExplicitType = true;
         switch(formatString[0])
         {
         case 'd':
             type = ValueType::SignedDecimal;
-            hasExplicitType = true;
             break;
         case 'u':
             type = ValueType::UnsignedDecimal;
-            hasExplicitType = true;
             break;
         case 'p':
             type = ValueType::Pointer;
-            hasExplicitType = true;
             break;
         case 's':
             type = ValueType::String;
-            hasExplicitType = true;
+            break;
+        case 'x':
+            type = ValueType::LongHex;
             break;
         default:
+            hasExplicitType = false;
             break;
         }
     }
