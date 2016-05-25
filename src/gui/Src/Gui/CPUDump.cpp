@@ -457,6 +457,7 @@ void CPUDump::setupContextMenu()
 
     //Plugins
     mPluginMenu = new QMenu(this);
+    mPluginMenu->setIcon(QIcon(":/icons/images/plugin.png"));
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
 
     //Copy
@@ -710,7 +711,10 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
 
     default:
     {
-        binaryEditSlot();
+        if(getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint))
+            modifyValueSlot();
+        else
+            binaryEditSlot();
     }
     break;
     }

@@ -85,5 +85,7 @@
         <file>images/integer.png</file>
         <file>images/plugin.png</file>
         <file>images/modify.png</file>
+        <file>images/freeze.png</file>
+        <file>images/cbp.png</file>
     </qresource>
 </RCC>
