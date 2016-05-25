@@ -2323,9 +2323,9 @@ void RegistersView::setRegister(REGISTER_NAME reg, duint value)
         // map "cax" to "eax" or "rax"
         QString wRegName = mRegisterMapping.constFind(reg).value();
 
-        // flags need to '!' infront
+        // flags need to '_' infront
         if(mFlags.contains(reg))
-            wRegName = "!" + wRegName;
+            wRegName = "_" + wRegName;
 
 
         // we change the value (so highlight it)
