@@ -377,8 +377,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     QAction* traceRecordEnableBit = makeAction(tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
     QAction* traceRecordEnableByte = makeAction(tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
     QAction* traceRecordEnableWord = makeAction(tr("Word"), SLOT(ActionTraceRecordWordSlot()));
-    //TODO: I can't get mMenuBuilder work without an icon. Please add an icon for trace record. --torusrxxx
-    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/breakpoint.png"), tr("Trace record")), [ = ](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/trace.png"), tr("Trace record")), [ = ](QMenu * menu)
     {
         if(DbgFunctions()->GetTraceRecordType(rvaToVa(getInitialSelection())) == TRACERECORDTYPE::TraceRecordNone)
         {

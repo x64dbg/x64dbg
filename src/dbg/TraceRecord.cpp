@@ -397,15 +397,14 @@ void _dbg_dbgtraceexecute(duint CIP)
 {
     if(TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordType::TraceRecordNone)
     {
-        Capstone disassembler;
         unsigned char buffer[16];
         duint size;
         if(MemRead(CIP, buffer, 16))
         {
+            BASIC_INSTRUCTION_INFO basicInfo;
             TraceRecord.increaseInstructionCounter();
-            disassembler.Disassemble(CIP, buffer);
-            size = disassembler.Success() ? disassembler.Size() : 1;
-            TraceRecord.TraceExecute(CIP, size);
+            DbgDisasmFastAt(CIP, &basicInfo);
+            TraceRecord.TraceExecute(CIP, basicInfo.size);
         }
         else
         {
@@ -415,10 +414,10 @@ void _dbg_dbgtraceexecute(duint CIP)
                 size = base + size - CIP;
                 if(MemRead(CIP, buffer, size))
                 {
+                    BASIC_INSTRUCTION_INFO basicInfo;
                     TraceRecord.increaseInstructionCounter();
-                    disassembler.Disassemble(CIP, buffer, size); //TODO: warning
-                    size = disassembler.Success() ? disassembler.Size() : 1;
-                    TraceRecord.TraceExecute(CIP, size);
+                    DbgDisasmFastAt(CIP, &basicInfo);
+                    TraceRecord.TraceExecute(CIP, basicInfo.size);
                     return;
                 }
             }
