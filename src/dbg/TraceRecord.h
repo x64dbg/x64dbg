@@ -75,7 +75,7 @@ private:
     std::map<duint, TraceRecordPage> TraceRecord;
     std::vector<std::string> ModuleNames;
     unsigned int getModuleIndex(std::string moduleName);
-    unsigned ing instructionCounter;
+    unsigned int instructionCounter;
 };
 
 extern TraceRecordManager TraceRecord;
