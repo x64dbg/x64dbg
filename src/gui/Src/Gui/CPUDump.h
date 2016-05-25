@@ -49,6 +49,7 @@ public slots:
     void hardwareRemoveSlot();
 
     void setLabelSlot();
+    void modifyValueSlot();
     void gotoExpressionSlot();
     void gotoFileOffsetSlot();
     void gotoStartSlot();
@@ -182,6 +183,7 @@ private:
     QAction* mDisassemblyAction;
 
     QAction* mSetLabelAction;
+    QAction* mModifyValueAction;
 
     QMenu* mBinaryMenu;
     QAction* mBinaryEditAction;

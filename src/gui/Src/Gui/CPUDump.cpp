@@ -10,6 +10,7 @@
 #include "DataCopyDialog.h"
 #include "EntropyDialog.h"
 #include "CPUMultiDump.h"
+#include "WordEditDialog.h"
 #include <QToolTip>
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
@@ -187,18 +188,22 @@ void CPUDump::setupContextMenu()
     }
 
     //Sync with expression
-    mSyncWithExpression = new QAction(QIcon(":/icons/images/sync.png"), tr("Sync with expression"), this);
+    mSyncWithExpression = new QAction(QIcon(":/icons/images/sync.png"), tr("&Sync with expression"), this);
     connect(mSyncWithExpression, SIGNAL(triggered(bool)), this, SLOT(syncWithExpressionSlot()));
 
     //Entropy
-    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
+    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entrop&y..."), this);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropySlot()));
 
     //Label
-    mSetLabelAction = new QAction(QIcon(":/icons/images/label.png"), tr("Set Label"), this);
+    mSetLabelAction = new QAction(QIcon(":/icons/images/label.png"), tr("Set &Label"), this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetLabelAction);
     connect(mSetLabelAction, SIGNAL(triggered()), this, SLOT(setLabelSlot()));
+
+    //Modify value
+    mModifyValueAction = new QAction(QIcon(":/icons/images/modify.png"), tr("&Modify Value"), this);
+    connect(mModifyValueAction, SIGNAL(triggered(bool)), this, SLOT(modifyValueSlot()));
 
     //Breakpoint menu
     mBreakpointMenu = new QMenu(tr("&Breakpoint"), this);
@@ -299,7 +304,7 @@ void CPUDump::setupContextMenu()
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Data copy
-    mDataCopyAction = new QAction(QIcon(":/icons/images/data-copy.png"), tr("Data copy..."), this);
+    mDataCopyAction = new QAction(QIcon(":/icons/images/data-copy.png"), tr("Data co&py..."), this);
     connect(mDataCopyAction, SIGNAL(triggered()), this, SLOT(dataCopySlot()));
 
     //Find References
@@ -619,6 +624,8 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         mGotoNext->setVisible(false);
 
     wMenu->addAction(mSetLabelAction);
+    if(getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint))
+        wMenu->addAction(mModifyValueAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
     wMenu->addAction(mFindReferencesAction);
@@ -824,6 +831,21 @@ void CPUDump::setLabelSlot()
         msg.exec();
     }
     GuiUpdateAllViews();
+}
+
+void CPUDump::modifyValueSlot()
+{
+    dsint addr = getInitialSelection();
+    WordEditDialog wEditDialog(this);
+    dsint value = 0;
+    auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), int(sizeof(dsint)));
+    mMemPage->read(&value, addr, size);
+    wEditDialog.setup(tr("Modify value"), value, size);
+    if(wEditDialog.exec() != QDialog::Accepted)
+        return;
+    value = wEditDialog.getVal();
+    mMemPage->write(&value, addr, size);
+    reloadData();
 }
 
 void CPUDump::gotoExpressionSlot()
@@ -1476,7 +1498,7 @@ void CPUDump::binaryEditSlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    hexEdit.setWindowTitle(tr("Edit data at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Edit data at %1").arg(ToPtrString(rvaToVa(selStart))));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     dsint dataSize = hexEdit.mHexEdit->data().size();
