@@ -88,9 +88,12 @@ static void registercommands()
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //rtr
     dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
+
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
+
     dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
     dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
+
     dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true); //switch thread
     dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread
     dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true); //resume thread
@@ -98,16 +101,19 @@ static void registercommands()
     dbgcmdnew("suspendallthreads\1threadsuspendall", cbDebugSuspendAllThreads, true); //suspend all threads
     dbgcmdnew("resumeallthreads\1threadresumeall", cbDebugResumeAllThreads, true); //resume all threads
     dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
+
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
+
     dbgcmdnew("setjit\1jitset", cbDebugSetJIT, false); //set JIT
     dbgcmdnew("getjit\1jitget", cbDebugGetJIT, false); //get JIT
     dbgcmdnew("getjitauto\1jitgetauto", cbDebugGetJITAuto, false); //get JIT Auto
     dbgcmdnew("setjitauto\1jitsetauto", cbDebugSetJITAuto, false); //set JIT Auto
+
     dbgcmdnew("getcmdline\1getcommandline", cbDebugGetCmdline, true); //Get CmdLine
     dbgcmdnew("setcmdline\1setcommandline", cbDebugSetCmdline, true); //Set CmdLine
+
     dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
-    dbgcmdnew("setfreezestack", cbDebugSetfreezestack, false); //freeze the stack from auto updates
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
@@ -172,6 +178,7 @@ static void registercommands()
     dbgcmdnew("refadd", cbInstrRefadd, false);
     dbgcmdnew("asm", cbInstrAssemble, true); //assemble instruction
     dbgcmdnew("sleep", cbInstrSleep, false); //Sleep
+    dbgcmdnew("setfreezestack", cbDebugSetfreezestack, false); //freeze the stack from auto updates
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
@@ -188,6 +195,7 @@ static void registercommands()
     dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
     dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
     dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions
+    dbgcmdnew("functionclear", cbInstrFunctionClear, false); //delete all functions
 
     //memory operations
     dbgcmdnew("alloc", cbDebugAlloc, true); //allocate memory
@@ -257,7 +265,6 @@ static void registercommands()
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
     dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
     dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
-    dbgcmdnew("functionclear", cbInstrFunctionClear, false); //delete all functions
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

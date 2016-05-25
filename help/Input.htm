@@ -25,26 +25,25 @@ Variables optionally start with a $ and can only store one DWORD (QWORD on
 x64).</P>
 <P class=rvps3><U> registers</U>: All 
 registers (of all sizes) can be used as variables.</P>
-<P class=rvps3><U>memory locations</U>: You can read from a memory location by using one of the 
-following expressions:<BR>[addr]&nbsp;&nbsp;&nbsp; - read a 
+<P class=rvps3><U>memory locations</U>: 
+You can read/write from/to a memory location by using one of the 
+following expressions:<BR>[addr]&nbsp;&nbsp;&nbsp;&nbsp; - read a 
 DWORD/QWORD, depending on the 
-architecture.<BR><EM>n</EM>:[addr]&nbsp;&nbsp;- read <EM>n</EM>   bytes 
-from.<BR><STRONG>REMARKS</STRONG>:<BR>- <EM>n</EM> is the amount of bytes to read, this can be anything 
-smaller than 4 on x32 and smaller than 8 on x64 when specified, otherwise         
-                 
-            
-               
-            
- there will be an error.</P>
-<P class=rvps3><U>flags</U>: Debug 
-flags (interpreted as integer) can be used as input. Flags are prefixed with a 
-'!' following the flag name. Valid flags are: !cf, !pf, !af, !zf, !sf, !tf, !if, 
-!df, !of, !rf, !vm, !ac, !vif, !vip and !id.</P>
+architecture.<BR><EM>n</EM>:[addr]&nbsp;&nbsp; - read <EM>n</EM> bytes from.<BR><EM>seg</EM>:[addr] - 
+read a DWORD/QWORD   from&nbsp;a 
+segment.<BR><STRONG>REMARKS</STRONG>:<BR>- <EM>n</EM> is the amount of bytes to read, this can be anything 
+smaller than 4 on x32 and smaller than 8 on x64 when specified, otherwise there 
+will be an error.<BR>- <EM>seg</EM>            
+    can be gs, es, cs, fs, ds, ss. Only fs and gs have an effect.</P>
+<P class=rvps3><U>flags</U>: Debug flags 
+(interpreted as integer) can be used as input. Flags are prefixed with an '_' 
+followed by the flag name. Valid flags are: _cf, _pf, _af, _zf, _sf, _tf, _if, 
+_df, _of, _rf, _vm, _ac, _vif, _vip and _id.</P>
 <P class=rvps3><U>numbers</U>: All 
 numbers are interpreted as hex by default. If you want to be sure, you can use 
 the "x" prefix or the "0x" prefix. Decimal numbers can be used by prefixing the 
 number with a "." (.123=7B).</P>
-<P class=rvps3><U>basic calculations</U>: See "Calculations" for more information.</P>
+<P class=rvps3><U> expressions</U>: See "Expressions" for more information.</P>
 <P class=rvps3><U>Module Data</U>:</P>
 <OL>
   <LI>
