@@ -18,6 +18,7 @@
 #include "exhandlerinfo.h"
 #include "breakpoint.h"
 #include "threading.h"
+#include "TraceRecord.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -274,4 +275,8 @@ void dbgfunctionsinit()
     _dbgfunctions.ValFromString = _valfromstring;
     _dbgfunctions.PatchGetEx = (PATCHGETEX)PatchGet;
     _dbgfunctions.GetBridgeBp = _getbridgebp;
+    _dbgfunctions.GetTraceRecordHitCount = _dbg_dbggetTraceRecordHitCount;
+    _dbgfunctions.GetTraceRecordByteType = _dbg_dbggetTraceRecordByteType;
+    _dbgfunctions.SetTraceRecordType = _dbg_dbgsetTraceRecordType;
+    _dbgfunctions.GetTraceRecordType = _dbg_dbggetTraceRecordType;
 }
