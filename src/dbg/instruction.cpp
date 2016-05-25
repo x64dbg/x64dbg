@@ -2041,6 +2041,10 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
+    if(argc > 2)
+        if(!valfromstring(argv[2], &addr, false))
+            return STATUS_ERROR;
+
     Capstone cp;
     if(!cp.Disassemble(addr, data))
     {
