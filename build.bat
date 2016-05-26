@@ -20,7 +20,7 @@ goto usage
 
 :build
 echo Building DBG...
-msbuild.exe x64dbg.sln /m /verbosity:minimal /t:Rebuild /p:%type%
+msbuild.exe x64dbg.sln /m /verbosity:minimal /t:build /p:%type%
 if %ERRORLEVEL% neq 0 goto restorepath
 
 echo Building GUI...
