@@ -157,6 +157,11 @@ MainWindow::MainWindow(QWidget* parent)
     mNotesManager->setWindowTitle(tr("Notes"));
     mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
 
+    // Handles view
+    mHandlesView = new HandlesView(this);
+    mHandlesView->setWindowTitle(tr("Handles"));
+    mHandlesView->hide();
+
     // Create the tab widget
     mTabWidget = new MHTabWidget();
 
@@ -187,6 +192,8 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetNativeNameList.push_back("ThreadsTab");
     mWidgetList.push_back(mSnowmanView);
     mWidgetNativeNameList.push_back("SnowmanTab");
+    mWidgetList.push_back(mHandlesView);
+    mWidgetNativeNameList.push_back("HandlesTab");
 
     // If LoadSaveTabOrder disabled, load tabs in default order
     if(!ConfigBool("Miscellaneous", "LoadSaveTabOrder"))
@@ -711,13 +718,13 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 {
     if(filename.length())
     {
-        setWindowTitle(QString(mWindowMainTitle) + QString(" - ") + filename);
+        setWindowTitle(mWindowMainTitle + QString(" - ") + filename);
         windowTitle = filename;
     }
     else
     {
-        setWindowTitle(QString(mWindowMainTitle));
-        windowTitle = QString(mWindowMainTitle);
+        setWindowTitle(mWindowMainTitle);
+        windowTitle = mWindowMainTitle;
     }
 }
 
