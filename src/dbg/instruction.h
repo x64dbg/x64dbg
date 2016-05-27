@@ -82,4 +82,8 @@ CMDRESULT cbInstrSavedata(int argc, char* argv[]);
 CMDRESULT cbInstrMnemonichelp(int argc, char* argv[]);
 CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[]);
 
+CMDRESULT cbGetPrivilegeState(int argc, char* argv[]);
+CMDRESULT cbEnablePrivilege(int argc, char* argv[]);
+CMDRESULT cbDisablePrivilege(int argc, char* argv[]);
+
 #endif // _INSTRUCTION_H

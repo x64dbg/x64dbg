@@ -1667,20 +1667,22 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         int width = mCharWidth * mRegisterMapping[reg].length();
 
         // set the color of the register label
+#ifdef _WIN64
         switch(reg)
         {
-#ifdef _WIN64
         case CCX: //arg1
         case CDX: //arg2
         case R8: //arg3
         case R9: //arg4
             p->setPen(ConfigColor("RegistersArgumentLabelColor"));
             break;
-#endif //_WIN64
         default:
+#endif //_WIN64
             p->setPen(ConfigColor("RegistersLabelColor"));
+#ifdef _WIN64
             break;
         }
+#endif //_WIN64
 
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, mRegisterMapping[reg]);
         x += (mRegisterPlaces[reg].labelwidth) * mCharWidth;

@@ -206,6 +206,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     tabOrderUint.insert("ReferencesTab", curTab++);
     tabOrderUint.insert("ThreadsTab", curTab++);
     tabOrderUint.insert("SnowmanTab", curTab++);
+    tabOrderUint.insert("HandlesTab", curTab++);
     defaultUints.insert("TabOrder", tabOrderUint);
 
     //font settings

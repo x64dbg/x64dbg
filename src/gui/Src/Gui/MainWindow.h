@@ -23,6 +23,7 @@
 #include "UpdateChecker.h"
 #include "SourceViewerManager.h"
 #include "SnowmanView.h"
+#include "HandlesView.h"
 #include "MainWindowCloseThread.h"
 #include "TimeWastedCounter.h"
 #include "NotesManager.h"
@@ -145,6 +146,7 @@ private:
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
     SnowmanView* mSnowmanView;
+    HandlesView* mHandlesView;
     NotesManager* mNotesManager;
 
     StatusLabel* mStatusLabel;
