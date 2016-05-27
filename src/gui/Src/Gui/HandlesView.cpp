@@ -275,7 +275,7 @@ void HandlesView::enumPrivileges()
 
 void HandlesView::AppendPrivilege(int row, const char* PrivilegeString)
 {
-    DbgCmdExec(QString("GetPrivilegeState \"%1\"").arg(PrivilegeString).toUtf8().constData());
+    DbgCmdExecDirect(QString("GetPrivilegeState \"%1\"").arg(PrivilegeString).toUtf8().constData());
     mPrivilegesTable->setCellContent(row, 0, QString(PrivilegeString));
     switch(DbgValFromString("$result"))
     {

@@ -268,6 +268,9 @@ static void registercommands()
     dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
     dbgcmdnew("mnemonichelp", cbInstrMnemonichelp, false); //mnemonic help
     dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
+    dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state
+    dbgcmdnew("EnablePrivilege", cbEnablePrivilege, true); //enable priv
+    dbgcmdnew("DisablePrivilege", cbDisablePrivilege, true); //disable priv
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

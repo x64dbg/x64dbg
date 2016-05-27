@@ -2392,10 +2392,8 @@ CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-
 CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
 {
-    TOKEN_PRIVILEGES* Privileges;
     DWORD returnLength;
     LUID luid;
     if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
@@ -2403,36 +2401,28 @@ CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
         varset("$result", (duint)0, false);
         return CMDRESULT::STATUS_CONTINUE;
     }
-    Privileges = (TOKEN_PRIVILEGES*)emalloc(64 * 16 + 8, "_dbg_getprivilegestate");
-    if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges, 64 * 16 + 8, &returnLength) == 0)
+    Memory <TOKEN_PRIVILEGES*> Privileges(64 * 16 + 8, "_dbg_getprivilegestate");
+    if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges(), 64 * 16 + 8, &returnLength) == 0)
     {
         if(returnLength > 4 * 1024 * 1024)
         {
             varset("$result", (duint)0, false);
             return CMDRESULT::STATUS_CONTINUE;
         }
-        Privileges = (TOKEN_PRIVILEGES*)erealloc(Privileges, returnLength, "_dbg_getprivilegestate");
-        if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges, returnLength, &returnLength) == 0)
-        {
-            efree(Privileges, "_dbg_getprivilegestate");
+        Privileges.realloc(returnLength, "_dbg_getprivilegestate");
+        if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges(), returnLength, &returnLength) == 0)
             return STATUS_ERROR;
-        }
     }
-    for(unsigned int i = 0; i < Privileges->PrivilegeCount; i++)
+    for(unsigned int i = 0; i < Privileges()->PrivilegeCount; i++)
     {
         if(4 + sizeof(LUID_AND_ATTRIBUTES) * i > returnLength)
-        {
-            efree(Privileges, "_dbg_getprivilegestate");
             return STATUS_ERROR;
-        }
-        if(memcmp(&Privileges->Privileges[i].Luid, &luid, sizeof(LUID)) == 0)
+        if(memcmp(&Privileges()->Privileges[i].Luid, &luid, sizeof(LUID)) == 0)
         {
-            efree(Privileges, "_dbg_getprivilegestate");
-            varset("$result", (duint)(Privileges->Privileges[i].Attributes + 1), false); // 2=enabled, 3=default, 1=disabled
+            varset("$result", (duint)(Privileges()->Privileges[i].Attributes + 1), false); // 2=enabled, 3=default, 1=disabled
             return STATUS_CONTINUE;
         }
     }
-    efree(Privileges, "_dbg_getprivilegestate");
     varset("$result", (duint)0, false);
     return STATUS_CONTINUE;
 }
@@ -2445,13 +2435,11 @@ CMDRESULT cbEnablePrivilege(int argc, char* argv[])
         dprintf("Could not find the specified privilege: %s\n", argv[1]);
         return CMDRESULT::STATUS_ERROR;
     }
-    TOKEN_PRIVILEGES* Privilege;
-    Privilege = (TOKEN_PRIVILEGES*)emalloc(sizeof(LUID_AND_ATTRIBUTES) + 4, "_dbg_enableprivilege");
-    Privilege->PrivilegeCount = 1;
-    Privilege->Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-    Privilege->Privileges[0].Luid = luid;
-    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, Privilege, sizeof(LUID_AND_ATTRIBUTES) + 4, nullptr, nullptr) != NO_ERROR;
-    efree(Privilege, "_dbg_enableprivilege");
+    Memory<TOKEN_PRIVILEGES*> Privilege(sizeof(LUID_AND_ATTRIBUTES), "_dbg_enableprivilege");
+    Privilege()->PrivilegeCount = 1;
+    Privilege()->Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+    Privilege()->Privileges[0].Luid = luid;
+    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, Privilege(), sizeof(LUID_AND_ATTRIBUTES) + 4, nullptr, nullptr) != NO_ERROR;
     return ret ? CMDRESULT::STATUS_CONTINUE : CMDRESULT::STATUS_CONTINUE;
 }
 
@@ -2463,12 +2451,10 @@ CMDRESULT cbDisablePrivilege(int argc, char* argv[])
         dprintf("Could not find the specified privilege: %s\n", argv[1]);
         return CMDRESULT::STATUS_ERROR;
     }
-    TOKEN_PRIVILEGES* Privilege;
-    Privilege = (TOKEN_PRIVILEGES*)emalloc(sizeof(LUID_AND_ATTRIBUTES) + 4, "_dbg_disableprivilege");
-    Privilege->PrivilegeCount = 1;
-    Privilege->Privileges[0].Attributes = 0;
-    Privilege->Privileges[0].Luid = luid;
-    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, Privilege, sizeof(LUID_AND_ATTRIBUTES) + 4, nullptr, nullptr) != NO_ERROR;
-    efree(Privilege, "_dbg_disableprivilege");
+    Memory<TOKEN_PRIVILEGES*> Privilege(sizeof(LUID_AND_ATTRIBUTES), "_dbg_disableprivilege");
+    Privilege()->PrivilegeCount = 1;
+    Privilege()->Privileges[0].Attributes = 0;
+    Privilege()->Privileges[0].Luid = luid;
+    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, Privilege(), sizeof(LUID_AND_ATTRIBUTES) + 4, nullptr, nullptr) != NO_ERROR;
     return ret ? CMDRESULT::STATUS_CONTINUE : CMDRESULT::STATUS_CONTINUE;
 }

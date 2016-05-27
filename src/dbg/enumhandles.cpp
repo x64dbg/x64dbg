@@ -57,46 +57,34 @@ DWORD(__stdcall* NtQueryObject)(HANDLE ObjectHandle, ULONG ObjectInformationClas
 
 extern "C" DLL_EXPORT long _dbg_enumhandles(duint* handles, unsigned char* typeNumbers, unsigned int* grantedAccess, unsigned int maxcount)
 {
-    MYHANDLES* myhandles = (MYHANDLES*)emalloc(16384, "_dbg_enumhandles");
+    Memory<MYHANDLES*> myhandles(16 * 1024 * 1024, "_dbg_enumhandles");
     DWORD size = 16384;
     DWORD errcode = 0xC0000004;
     if(NtQuerySystemInformation == nullptr)
         *(FARPROC*)&NtQuerySystemInformation = GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation");
     while(errcode == 0xC0000004)
     {
-        errcode = NtQuerySystemInformation(16, myhandles, size, &size);
-        if(errcode == 0xC0000004)
-        {
-            myhandles = (MYHANDLES*)erealloc(myhandles, size + 16384, "_dbg_enumhandles");
-            size += 16384;
-        }
-        else
-        {
+        errcode = NtQuerySystemInformation(16, myhandles(), size, &size);
+        if(errcode != 0xC0000004)
             break;
-        }
+        myhandles.realloc(myhandles.size() * 2, "_dbg_enumhandles");
     }
     if(errcode != 0)
-    {
-        efree(myhandles, "_dbg_enumhandles");
         return 0;
-    }
-    else
+
+    unsigned int j = 0;
+    for(unsigned int i = 0; i < myhandles()->HandleCount; i++)
     {
-        unsigned int j = 0;
-        for(unsigned int i = 0; i < myhandles->HandleCount; i++)
+        DWORD pid = fdProcessInfo->dwProcessId;
+        if(myhandles()->Handles[i].ProcessId == pid)
         {
-            DWORD pid = fdProcessInfo->dwProcessId;
-            if(myhandles->Handles[i].ProcessId == pid)
-            {
-                handles[j] = myhandles->Handles[j].Handle;
-                typeNumbers[j] = myhandles->Handles[j].ObjectTypeNumber;
-                grantedAccess[j] = myhandles->Handles[j].GrantedAccess;
-                if(++j == maxcount) break;
-            }
+            handles[j] = myhandles()->Handles[j].Handle;
+            typeNumbers[j] = myhandles()->Handles[j].ObjectTypeNumber;
+            grantedAccess[j] = myhandles()->Handles[j].GrantedAccess;
+            if(++j == maxcount) break;
         }
-        efree(myhandles, "_dbg_enumhandles");
-        return j;
     }
+    return j;
 }
 
 extern "C" DLL_EXPORT bool _dbg_gethandlename(char* name, char* typeName, size_t buffersize, duint remotehandle)
@@ -104,12 +92,11 @@ extern "C" DLL_EXPORT bool _dbg_gethandlename(char* name, char* typeName, size_t
     HANDLE hLocalHandle;
     if(typeName && DuplicateHandle(fdProcessInfo->hProcess, (HANDLE)remotehandle, GetCurrentProcess(), &hLocalHandle, DUPLICATE_SAME_ACCESS, FALSE, 0))
     {
-        OBJECT_TYPE_INFORMATION* objectTypeInfo = (OBJECT_TYPE_INFORMATION*)emalloc(128, "_dbg_gethandlename");
+        Memory<OBJECT_TYPE_INFORMATION*> objectTypeInfo(128, "_dbg_gethandlename");
         if(NtQueryObject == nullptr)
             *(FARPROC*)&NtQueryObject = GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryObject");
-        if(NtQueryObject(hLocalHandle, 2, objectTypeInfo, 128, NULL) >= 0)
-            strcpy_s(typeName, buffersize, StringUtils::Utf16ToUtf8(objectTypeInfo->Name.Buffer).c_str());
-        efree(objectTypeInfo, "_dbg_gethandlename");
+        if(NtQueryObject(hLocalHandle, 2, objectTypeInfo(), 128, NULL) >= 0)
+            strcpy_s(typeName, buffersize, StringUtils::Utf16ToUtf8(objectTypeInfo()->Name.Buffer).c_str());
         CloseHandle(hLocalHandle);
     }
     wchar_t* buffer;
