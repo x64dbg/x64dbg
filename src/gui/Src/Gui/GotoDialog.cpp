@@ -93,7 +93,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
         QString addrText = QString(" %1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         if(va)
         {
-            ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -></b></font>") + addrText);
+            ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText);
             setOkEnabled(true);
             expressionText = expression;
         }
@@ -135,7 +135,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
                 addrText = QString(module) + "." + QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             else
                 addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-            ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -> </b></font>") + addrText);
+            ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText);
             setOkEnabled(true);
             expressionText = expression;
         }
