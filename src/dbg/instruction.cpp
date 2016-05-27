@@ -1393,27 +1393,30 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     }
     bool found = false;
     char label[MAX_LABEL_SIZE] = "";
+    char module[MAX_MODULE_SIZE] = "";
     if(basicinfo->call)  //we are looking for calls
     {
         duint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
-        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label); //a non-user label
+        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label) && DbgGetModuleAt(ptr, module); //a non-user label
     }
     if(found)
     {
         char addrText[20] = "";
+        char moduleTargetText[256] = "";
         sprintf(addrText, "%p", disasm->Address());
+        sprintf(moduleTargetText, "%s.%s", module, label);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
         {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
-            GuiReferenceSetCellContent(refinfo->refcount, 2, label);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, moduleTargetText);
         }
         else
         {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
-            GuiReferenceSetCellContent(refinfo->refcount, 2, label);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, moduleTargetText);
         }
     }
     return found;

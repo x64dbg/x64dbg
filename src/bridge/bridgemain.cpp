@@ -320,7 +320,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags = flaglabel | flagmodule;
+    info.flags = flaglabel;
     if(!_dbg_addrinfoget(addr, segment, &info))
     {
         duint addr_ = 0;
@@ -330,7 +330,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         ADDRINFO ptrinfo = info;
         if(!_dbg_addrinfoget(addr_, SEG_DEFAULT, &ptrinfo))
             return false;
-        sprintf_s(info.label, "%s.%s", ptrinfo.module, ptrinfo.label);
+        sprintf_s(info.label, "&%s", ptrinfo.label);
     }
     strcpy_s(text, MAX_LABEL_SIZE, info.label);
     return true;
