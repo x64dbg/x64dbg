@@ -352,7 +352,7 @@ typedef struct
     duint start; //OUT
     duint end; //OUT
 } LOOP;
-
+#ifndef _NO_ADDRINFO
 typedef struct
 {
     int flags; //ADDRINFOFLAGS (IN)
@@ -363,7 +363,7 @@ typedef struct
     FUNCTION function;
     LOOP loop;
 } ADDRINFO;
-
+#endif
 struct SYMBOLINFO_
 {
     duint addr;
@@ -725,6 +725,11 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 BRIDGE_IMPEXP bool DbgIsRunning();
 BRIDGE_IMPEXP duint DbgGetTimeWastedCounter();
 BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr);
+BRIDGE_IMPEXP long DbgGetHandleCount();
+BRIDGE_IMPEXP long DbgEnumHandles(duint* handles, unsigned char* typeNumbers, unsigned int* grantedAccess, unsigned int maxcount);
+BRIDGE_IMPEXP bool DbgGetHandleName(char* name, char* typeName, size_t buffersize, duint remotehandle);
+BRIDGE_IMPEXP bool DbgGetHandleInfo(duint remotehandle, duint* refcount, duint* access);
+BRIDGE_IMPEXP PROCESS_INFORMATION* DbgGetProcessInformation();
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
