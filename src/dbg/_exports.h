@@ -18,6 +18,10 @@ DLL_EXPORT bool _dbg_isdebugging();
 DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr);
 DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo);
 DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo);
+DLL_EXPORT long _dbg_gethandlecount();
+DLL_EXPORT long _dbg_enumhandles(duint* handles, unsigned char* typeNumbers, unsigned int* grantedAccess, unsigned int maxcount);
+DLL_EXPORT bool _dbg_gethandlename(char *name, char* typeName, size_t buffersize, duint remotehandle);
+DLL_EXPORT PROCESS_INFORMATION* _dbg_getProcessInformation();
 DLL_EXPORT int _dbg_bpgettypeat(duint addr);
 DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump);
 DLL_EXPORT bool _dbg_valtostring(const char* string, duint value);
@@ -28,6 +32,10 @@ DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* param2);
 
 #ifdef __cplusplus
 }
+#endif
+
+#endif // _EXPORTS_H
+
 #endif
 
 #endif // _EXPORTS_H
