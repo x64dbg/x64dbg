@@ -110,6 +110,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;
 extern HANDLE hActiveThread;
+extern HANDLE hProcessToken;
 extern char szFileName[MAX_PATH];
 extern char szSymbolCachePath[MAX_PATH];
 extern bool bUndecorateSymbolNames;
