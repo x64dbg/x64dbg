@@ -860,7 +860,7 @@ BRIDGE_IMPEXP long DbgEnumHandles(duint* handles, unsigned char* typeNumbers, un
     return _dbg_enumhandles(handles, typeNumbers, grantedAccess, maxcount);
 }
 
-BRIDGE_IMPEXP bool DbgGetHandleName(char *name, char* typeName, size_t buffersize, duint remotehandle)
+BRIDGE_IMPEXP bool DbgGetHandleName(char* name, char* typeName, size_t buffersize, duint remotehandle)
 {
     return _dbg_gethandlename(name, typeName, buffersize, remotehandle);
 }

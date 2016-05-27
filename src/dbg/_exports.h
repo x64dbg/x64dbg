@@ -20,7 +20,7 @@ DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addri
 DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo);
 DLL_EXPORT long _dbg_gethandlecount();
 DLL_EXPORT long _dbg_enumhandles(duint* handles, unsigned char* typeNumbers, unsigned int* grantedAccess, unsigned int maxcount);
-DLL_EXPORT bool _dbg_gethandlename(char *name, char* typeName, size_t buffersize, duint remotehandle);
+DLL_EXPORT bool _dbg_gethandlename(char* name, char* typeName, size_t buffersize, duint remotehandle);
 DLL_EXPORT PROCESS_INFORMATION* _dbg_getProcessInformation();
 DLL_EXPORT int _dbg_bpgettypeat(duint addr);
 DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump);

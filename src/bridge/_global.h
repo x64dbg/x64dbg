@@ -36,9 +36,9 @@ typedef bool (*DBGDBGCMDEXECDIRECT)(const char* cmd);
 typedef duint(*DBGGETBRANCHDESTINATION)(duint addr);
 typedef duint(*DBGSENDMESSAGE)(DBGMSG type, void* param1, void* param2);
 
-typedef long (*DBGGETHANDLECOUNT)();
-typedef long (*DBGENUMHANDLES)(duint* handles, unsigned char* typeNumbers, unsigned int* grantedAccess, unsigned int maxcount);
-typedef bool(*DBGGETHANDLENAME)(char *name, char* typeName, size_t buffersize, duint remotehandle);
+typedef long(*DBGGETHANDLECOUNT)();
+typedef long(*DBGENUMHANDLES)(duint* handles, unsigned char* typeNumbers, unsigned int* grantedAccess, unsigned int maxcount);
+typedef bool(*DBGGETHANDLENAME)(char* name, char* typeName, size_t buffersize, duint remotehandle);
 typedef PROCESS_INFORMATION* (*DBGGETPROCESSINFORMATION)();
 
 //DBG functions

@@ -1862,7 +1862,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         varset("$hp", (duint)fdProcessInfo->hProcess, true);
         varset("$pid", fdProcessInfo->dwProcessId, true);
 
-        if (!OpenProcessToken(fdProcessInfo->hProcess, TOKEN_ALL_ACCESS, &hProcessToken))
+        if(!OpenProcessToken(fdProcessInfo->hProcess, TOKEN_ALL_ACCESS, &hProcessToken))
             hProcessToken = 0;
     }
 

@@ -6,7 +6,7 @@
 #include "VersionHelpers.h"
 #pragma comment(lib, "ws2_32.lib")
 
-HandlesView::HandlesView(QWidget *parent) : QWidget(parent)
+HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
 {
     mHandlesTable = new StdTable(this);
     int wCharWidth = mHandlesTable->getCharWidth();
@@ -88,9 +88,9 @@ void HandlesView::reloadData()
     }
 }
 
-void HandlesView::handlesTableContextMenuSlot(const QPoint &pos)
+void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)
 {
-    StdTable& table = *mHandlesTable;
+    StdTable & table = *mHandlesTable;
     QMenu wMenu;
     wMenu.addAction(mActionRefresh);
     wMenu.addAction(mActionCloseHandle);
@@ -104,9 +104,9 @@ void HandlesView::handlesTableContextMenuSlot(const QPoint &pos)
     wMenu.exec(table.mapToGlobal(pos));
 }
 
-void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint &pos)
+void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
 {
-    StdTable& table = *mTcpConnectionsTable;
+    StdTable & table = *mTcpConnectionsTable;
     QMenu wMenu;
     wMenu.addAction(mActionRefresh);
     QMenu wCopyMenu(tr("&Copy"));
@@ -120,9 +120,9 @@ void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint &pos)
 }
 
 
-void HandlesView::privilegesTableContextMenuSlot(const QPoint &pos)
+void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 {
-    StdTable& table = *mPrivilegesTable;
+    StdTable & table = *mPrivilegesTable;
     QMenu wMenu;
     bool isValid = (mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 1) != tr("Unknown"));
     wMenu.addAction(mActionRefresh);
@@ -308,25 +308,27 @@ void HandlesView::enumTcpConnections()
     struct in_addr IpAddr;
     int i;
     // To ensure WindowsXP compatibility we won't link them statically
-    ULONG (WINAPI *GetTcpTable2)(PMIB_TCPTABLE2, PULONG, BOOL);
+    ULONG(WINAPI * GetTcpTable2)(PMIB_TCPTABLE2, PULONG, BOOL);
     *(FARPROC*)&GetTcpTable2 = GetProcAddress(hIpHlp, "GetTcpTable2");
-    ULONG (WINAPI *GetTcp6Table2)(PMIB_TCP6TABLE2 TcpTable, PULONG, BOOL Order);
+    ULONG(WINAPI * GetTcp6Table2)(PMIB_TCP6TABLE2 TcpTable, PULONG, BOOL Order);
     *(FARPROC*)&GetTcp6Table2 = GetProcAddress(hIpHlp, "GetTcp6Table2");
-    PCTSTR (WSAAPI *InetNtopW)(INT Family, PVOID  pAddr, PTSTR  pStringBuf, size_t StringBufSize);
+    PCTSTR(WSAAPI * InetNtopW)(INT Family, PVOID  pAddr, PTSTR  pStringBuf, size_t StringBufSize);
     *(FARPROC*)&InetNtopW = GetProcAddress(GetModuleHandleW(L"ws2_32.dll"), "InetNtopW");
     if(InetNtopW == nullptr)
         return;
-    pTcpTable = (MIB_TCPTABLE2 *) malloc(sizeof (MIB_TCPTABLE2));
-    ulSize = sizeof (MIB_TCPTABLE);
+    pTcpTable = (MIB_TCPTABLE2*) malloc(sizeof(MIB_TCPTABLE2));
+    ulSize = sizeof(MIB_TCPTABLE);
     // Make an initial call to GetTcpTable2 to
     // get the necessary size into the ulSize variable
-    if (GetTcpTable2 != nullptr && GetTcpTable2(pTcpTable, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER) {
+    if(GetTcpTable2 != nullptr && GetTcpTable2(pTcpTable, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
+    {
         free(pTcpTable);
-        pTcpTable = (MIB_TCPTABLE2 *) malloc(ulSize);
+        pTcpTable = (MIB_TCPTABLE2*) malloc(ulSize);
     }
     // Make a second call to GetTcpTable2 to get
     // the actual data we require
-    if(GetTcpTable2 != nullptr && GetTcpTable2(pTcpTable, &ulSize, TRUE) == NO_ERROR) {
+    if(GetTcpTable2 != nullptr && GetTcpTable2(pTcpTable, &ulSize, TRUE) == NO_ERROR)
+    {
         for(i = 0; i < (int) pTcpTable->dwNumEntries; i++)
         {
             wchar_t Buffer[56];
@@ -347,17 +349,19 @@ void HandlesView::enumTcpConnections()
         free(pTcpTable);
         pTcpTable = NULL;
     }
-    pTcp6Table = (MIB_TCP6TABLE2 *) malloc(sizeof (MIB_TCP6TABLE2));
-    ulSize = sizeof (MIB_TCP6TABLE);
+    pTcp6Table = (MIB_TCP6TABLE2*) malloc(sizeof(MIB_TCP6TABLE2));
+    ulSize = sizeof(MIB_TCP6TABLE);
     // Make an initial call to GetTcpTable2 to
     // get the necessary size into the ulSize variable
-    if (GetTcp6Table2 != nullptr && GetTcp6Table2(pTcp6Table, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER) {
+    if(GetTcp6Table2 != nullptr && GetTcp6Table2(pTcp6Table, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
+    {
         free(pTcp6Table);
-        pTcp6Table = (MIB_TCP6TABLE2 *) malloc(ulSize);
+        pTcp6Table = (MIB_TCP6TABLE2*) malloc(ulSize);
     }
     // Make a second call to GetTcpTable2 to get
     // the actual data we require
-    if(GetTcp6Table2 != nullptr && GetTcp6Table2(pTcp6Table, &ulSize, TRUE) == NO_ERROR) {
+    if(GetTcp6Table2 != nullptr && GetTcp6Table2(pTcp6Table, &ulSize, TRUE) == NO_ERROR)
+    {
         for(i = 0; i < (int) pTcp6Table->dwNumEntries; i++)
         {
             wchar_t Buffer[56];

@@ -1405,7 +1405,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if (GuiGetDisassembly((duint)disasm->Address(), disassembly))
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
         {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
             GuiReferenceSetCellContent(refinfo->refcount, 2, label);
@@ -2398,34 +2398,34 @@ CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
     TOKEN_PRIVILEGES* Privileges;
     DWORD returnLength;
     LUID luid;
-    if (LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
+    if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
     {
         varset("$result", (duint)0, false);
         return CMDRESULT::STATUS_CONTINUE;
     }
     Privileges = (TOKEN_PRIVILEGES*)emalloc(64 * 16 + 8, "_dbg_getprivilegestate");
-    if (GetTokenInformation(hProcessToken, TokenPrivileges, Privileges, 64 * 16 + 8, &returnLength) == 0)
+    if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges, 64 * 16 + 8, &returnLength) == 0)
     {
-        if (returnLength > 4 * 1024 * 1024)
+        if(returnLength > 4 * 1024 * 1024)
         {
             varset("$result", (duint)0, false);
             return CMDRESULT::STATUS_CONTINUE;
         }
         Privileges = (TOKEN_PRIVILEGES*)erealloc(Privileges, returnLength, "_dbg_getprivilegestate");
-        if (GetTokenInformation(hProcessToken, TokenPrivileges, Privileges, returnLength, &returnLength) == 0)
+        if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges, returnLength, &returnLength) == 0)
         {
             efree(Privileges, "_dbg_getprivilegestate");
             return STATUS_ERROR;
         }
     }
-    for (unsigned int i = 0; i < Privileges->PrivilegeCount; i++)
+    for(unsigned int i = 0; i < Privileges->PrivilegeCount; i++)
     {
-        if (4 + sizeof(LUID_AND_ATTRIBUTES) * i > returnLength)
+        if(4 + sizeof(LUID_AND_ATTRIBUTES) * i > returnLength)
         {
             efree(Privileges, "_dbg_getprivilegestate");
             return STATUS_ERROR;
         }
-        if (memcmp(&Privileges->Privileges[i].Luid, &luid, sizeof(LUID)) == 0)
+        if(memcmp(&Privileges->Privileges[i].Luid, &luid, sizeof(LUID)) == 0)
         {
             efree(Privileges, "_dbg_getprivilegestate");
             varset("$result", (duint)(Privileges->Privileges[i].Attributes + 1), false); // 2=enabled, 3=default, 1=disabled
@@ -2440,7 +2440,7 @@ CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
 CMDRESULT cbEnablePrivilege(int argc, char* argv[])
 {
     LUID luid;
-    if (LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
+    if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
     {
         dprintf("Could not find the specified privilege: %s\n", argv[1]);
         return CMDRESULT::STATUS_ERROR;
@@ -2458,7 +2458,7 @@ CMDRESULT cbEnablePrivilege(int argc, char* argv[])
 CMDRESULT cbDisablePrivilege(int argc, char* argv[])
 {
     LUID luid;
-    if (LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
+    if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
     {
         dprintf("Could not find the specified privilege: %s\n", argv[1]);
         return CMDRESULT::STATUS_ERROR;
