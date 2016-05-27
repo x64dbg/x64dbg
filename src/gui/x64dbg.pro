@@ -145,7 +145,8 @@ SOURCES += \
     Src/Utils/StringUtil.cpp \
     Src/Gui/SEHChainView.cpp \
     Src/Gui/EditBreakpointDialog.cpp \
-    Src/Gui/CPUArgumentWidget.cpp
+    Src/Gui/CPUArgumentWidget.cpp \
+    Src/Gui/HandlesView.cpp
 
 
 HEADERS += \
@@ -231,7 +232,8 @@ HEADERS += \
     Src/ThirdPartyLibs/float128/float128.h \
     Src/Gui/SEHChainView.h \
     Src/Gui/EditBreakpointDialog.h \
-    Src/Gui/CPUArgumentWidget.h
+    Src/Gui/CPUArgumentWidget.h \
+    Src/Gui/HandlesView.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
