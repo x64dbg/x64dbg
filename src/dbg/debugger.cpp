@@ -53,6 +53,7 @@ char szSymbolCachePath[MAX_PATH] = "";
 char sqlitedb[deflen] = "";
 PROCESS_INFORMATION* fdProcessInfo = &g_pi;
 HANDLE hActiveThread;
+HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = true;
 
@@ -1860,6 +1861,9 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         //set script variables
         varset("$hp", (duint)fdProcessInfo->hProcess, true);
         varset("$pid", fdProcessInfo->dwProcessId, true);
+
+        if (!OpenProcessToken(fdProcessInfo->hProcess, TOKEN_ALL_ACCESS, &hProcessToken))
+            hProcessToken = 0;
     }
 
     //set custom handlers
@@ -1933,6 +1937,8 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     dputs("Debugging stopped!");
     varset("$hp", (duint)0, true);
     varset("$pid", (duint)0, true);
+    if(hProcessToken)
+        CloseHandle(hProcessToken);
     unlock(WAITID_STOP); //we are done
     pDebuggedEntry = 0;
     pDebuggedBase = 0;
