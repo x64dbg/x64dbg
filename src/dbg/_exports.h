@@ -35,7 +35,3 @@ DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* param2);
 #endif
 
 #endif // _EXPORTS_H
-
-#endif
-
-#endif // _EXPORTS_H
