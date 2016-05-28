@@ -36,11 +36,6 @@ typedef bool (*DBGDBGCMDEXECDIRECT)(const char* cmd);
 typedef duint(*DBGGETBRANCHDESTINATION)(duint addr);
 typedef duint(*DBGSENDMESSAGE)(DBGMSG type, void* param1, void* param2);
 
-typedef long(*DBGGETHANDLECOUNT)();
-typedef long(*DBGENUMHANDLES)(duint* handles, unsigned char* typeNumbers, unsigned int* grantedAccess, unsigned int maxcount);
-typedef bool(*DBGGETHANDLENAME)(char* name, char* typeName, size_t buffersize, duint remotehandle);
-typedef PROCESS_INFORMATION* (*DBGGETPROCESSINFORMATION)();
-
 //DBG functions
 extern DBGDBGINIT _dbg_dbginit;
 extern DBGMEMFINDBASEADDR _dbg_memfindbaseaddr;
@@ -62,9 +57,5 @@ extern DBGGETBPLIST _dbg_getbplist;
 extern DBGDBGCMDEXECDIRECT _dbg_dbgcmddirectexec;
 extern DBGGETBRANCHDESTINATION _dbg_getbranchdestination;
 extern DBGSENDMESSAGE _dbg_sendmessage;
-extern DBGGETHANDLECOUNT _dbg_gethandlecount;
-extern DBGENUMHANDLES _dbg_enumhandles;
-extern DBGGETHANDLENAME _dbg_gethandlename;
-extern DBGGETPROCESSINFORMATION _dbg_getProcessInformation;
 
 #endif // _GLOBAL_H

@@ -2476,3 +2476,24 @@ CMDRESULT cbDisablePrivilege(int argc, char* argv[])
     bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, &Privilege, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) != NO_ERROR;
     return ret ? STATUS_CONTINUE : STATUS_CONTINUE;
 }
+
+CMDRESULT cbHandleClose(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
+    duint handle;
+    if(!valfromstring(argv[1], &handle, false))
+        return STATUS_ERROR;
+    HANDLE localHandle;
+    if(!DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), GetCurrentProcess(), &localHandle, DUPLICATE_SAME_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE))
+    {
+        dprintf("DuplicateHandle failed (%08X)\n", GetLastError());
+        return STATUS_ERROR;
+    }
+    CloseHandle(localHandle);
+    dprintf("Handle %" fhex "X closed!\n", handle);
+    return STATUS_CONTINUE;
+}

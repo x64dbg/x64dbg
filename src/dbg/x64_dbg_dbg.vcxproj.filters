@@ -302,7 +302,10 @@
     <ClCompile Include="mnemonichelp.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
-    <ClCompile Include="enumhandles.cpp">
+    <ClCompile Include="handles.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
+    <ClCompile Include="tcpconnections.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
   </ItemGroup>
@@ -665,6 +668,12 @@
       <Filter>Header Files\Information</Filter>
     </ClInclude>
     <ClInclude Include="TraceRecord.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="handles.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="tcpconnections.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>

@@ -39,7 +39,7 @@
     <ClCompile Include="debugger_commands.cpp" />
     <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
-    <ClCompile Include="enumhandles.cpp" />
+    <ClCompile Include="handles.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exceptiondirectoryanalysis.cpp" />
@@ -69,6 +69,7 @@
     <ClCompile Include="stringformat.cpp" />
     <ClCompile Include="stringutils.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
+    <ClCompile Include="tcpconnections.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
     <ClCompile Include="TraceRecord.cpp" />
@@ -120,6 +121,7 @@
     <ClInclude Include="disasm_fast.h" />
     <ClInclude Include="disasm_helper.h" />
     <ClInclude Include="dynamicmem.h" />
+    <ClInclude Include="handles.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="exceptiondirectoryanalysis.h" />
@@ -150,6 +152,7 @@
     <ClInclude Include="patternfind.h" />
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
+    <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
     <ClInclude Include="yara\yara\stream.h" />
     <ClInclude Include="_scriptapi.h" />
@@ -306,7 +309,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(ProjectDir)..\capstone_wrapper\bin\x32\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x86.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\capstone_wrapper\bin\x32\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x86.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -327,7 +330,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
-      <AdditionalDependencies>$(ProjectDir)..\capstone_wrapper\bin\x32\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x86.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\capstone_wrapper\bin\x32\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x86.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -354,7 +357,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(ProjectDir)..\capstone_wrapper\bin\x64\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\capstone_wrapper\bin\x64\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -378,7 +381,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
-      <AdditionalDependencies>$(ProjectDir)..\capstone_wrapper\bin\x64\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\capstone_wrapper\bin\x64\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

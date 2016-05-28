@@ -83,10 +83,6 @@ BRIDGE_IMPEXP const char* BridgeInit()
     LOADEXPORT(_dbg_dbgcmddirectexec);
     LOADEXPORT(_dbg_getbranchdestination);
     LOADEXPORT(_dbg_sendmessage);
-    LOADEXPORT(_dbg_gethandlecount);
-    LOADEXPORT(_dbg_gethandlename);
-    LOADEXPORT(_dbg_enumhandles);
-    LOADEXPORT(_dbg_getProcessInformation);
     return 0;
 }
 
@@ -848,26 +844,6 @@ BRIDGE_IMPEXP duint DbgGetTimeWastedCounter()
 BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr)
 {
     return ARG_NONE;
-}
-
-BRIDGE_IMPEXP long DbgGetHandleCount()
-{
-    return _dbg_gethandlecount();
-}
-
-BRIDGE_IMPEXP long DbgEnumHandles(duint* handles, unsigned char* typeNumbers, unsigned int* grantedAccess, unsigned int maxcount)
-{
-    return _dbg_enumhandles(handles, typeNumbers, grantedAccess, maxcount);
-}
-
-BRIDGE_IMPEXP bool DbgGetHandleName(char* name, char* typeName, size_t buffersize, duint remotehandle)
-{
-    return _dbg_gethandlename(name, typeName, buffersize, remotehandle);
-}
-
-BRIDGE_IMPEXP PROCESS_INFORMATION* DbgGetProcessInformation()
-{
-    return _dbg_getProcessInformation();
 }
 
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)

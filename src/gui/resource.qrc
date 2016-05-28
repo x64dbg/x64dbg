@@ -94,5 +94,6 @@
         <file>images/fileoffset.png</file>
         <file>images/helpbrief.png</file>
         <file>images/helpmnemonic.png</file>
+        <file>images/handles.png</file>
     </qresource>
 </RCC>

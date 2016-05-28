@@ -24,7 +24,3 @@ DBGGETBPLIST _dbg_getbplist;
 DBGDBGCMDEXECDIRECT _dbg_dbgcmddirectexec;
 DBGGETBRANCHDESTINATION _dbg_getbranchdestination;
 DBGSENDMESSAGE _dbg_sendmessage;
-DBGGETHANDLECOUNT _dbg_gethandlecount;
-DBGENUMHANDLES _dbg_enumhandles;
-DBGGETHANDLENAME _dbg_gethandlename;
-DBGGETPROCESSINFORMATION _dbg_getProcessInformation;

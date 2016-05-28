@@ -1,5 +1,6 @@
 #ifndef HANDLESVIEW_H
 #define HANDLESVIEW_H
+
 #include "StdTable.h"
 #include <QVBoxLayout>
 #include <QSplitter>
@@ -9,7 +10,6 @@ class HandlesView : public QWidget
     Q_OBJECT
 public:
     explicit HandlesView(QWidget* parent = nullptr);
-    ~HandlesView();
 
 public slots:
     void reloadData();
@@ -43,8 +43,6 @@ private:
     void enumPrivileges();
 
     void AppendPrivilege(int row, const char* PrivilegeString);
-    QString TcpStateToString(DWORD State);
-    HMODULE hIpHlp;
 };
 
 #endif // HANDLESVIEW_H

@@ -160,6 +160,7 @@ MainWindow::MainWindow(QWidget* parent)
     // Handles view
     mHandlesView = new HandlesView(this);
     mHandlesView->setWindowTitle(tr("Handles"));
+    mHandlesView->setWindowIcon(QIcon(":/icons/images/handles.png"));
     mHandlesView->hide();
 
     // Create the tab widget

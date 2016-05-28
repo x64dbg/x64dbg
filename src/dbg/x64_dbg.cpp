@@ -271,6 +271,7 @@ static void registercommands()
     dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state
     dbgcmdnew("EnablePrivilege", cbEnablePrivilege, true); //enable priv
     dbgcmdnew("DisablePrivilege", cbDisablePrivilege, true); //disable priv
+    dbgcmdnew("handleclose", cbHandleClose, true); //close remote handle
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

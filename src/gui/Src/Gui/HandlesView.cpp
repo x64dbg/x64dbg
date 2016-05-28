@@ -1,10 +1,6 @@
-#include <WS2tcpip.h>
-#define _NO_ADDRINFO
 #include "HandlesView.h"
 #include "Bridge.h"
-#include "IPHlpApi.h"
 #include "VersionHelpers.h"
-#pragma comment(lib, "ws2_32.lib")
 
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
 {
@@ -60,22 +56,13 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     connect(mTcpConnectionsTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(tcpConnectionsTableContextMenuSlot(const QPoint &)));
     connect(mPrivilegesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(privilegesTableContextMenuSlot(const QPoint &)));
 
-    if(IsWindowsVistaOrGreater())
-        hIpHlp = LoadLibraryW(L"iphlpapi.dll");
-    else
+    if(!IsWindowsVistaOrGreater())
     {
-        hIpHlp = 0;
         mTcpConnectionsTable->setRowCount(1);
         mTcpConnectionsTable->setCellContent(0, 0, tr("TCP Connection enumeration is only available on Windows Vista or greater."));
         mTcpConnectionsTable->reloadData();
     }
     reloadData();
-}
-
-HandlesView::~HandlesView()
-{
-    if(hIpHlp)
-        FreeLibrary(hIpHlp);
 }
 
 void HandlesView::reloadData()
@@ -153,17 +140,7 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 
 void HandlesView::closeHandleSlot()
 {
-    duint remotehandle;
-    if(!DbgIsDebugging())
-        return;
-    if(DbgFunctions()->ValFromString(mHandlesTable->getCellContent(mHandlesTable->getInitialSelection(), 2).toUtf8().constData(), &remotehandle))
-    {
-        HANDLE localHandle = nullptr;
-        DuplicateHandle(DbgGetProcessInformation()->hProcess, (HANDLE)remotehandle, GetCurrentProcess(), &localHandle, DUPLICATE_SAME_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE);
-        if(localHandle)
-            CloseHandle(localHandle);
-    }
-    enumHandles();
+    DbgCmdExec(QString("handleclose %1").arg(mHandlesTable->getCellContent(mHandlesTable->getInitialSelection(), 2)).toUtf8().constData());
 }
 
 void HandlesView::enablePrivilegeSlot()
@@ -196,39 +173,26 @@ void HandlesView::disableAllPrivilegesSlot()
 
 void HandlesView::enumHandles()
 {
-    long handleCount = DbgGetHandleCount();
-    if(handleCount > 0)
+    BridgeList<HANDLEINFO> handles;
+    if(DbgFunctions()->EnumHandles(&handles))
     {
-        duint* allHandles = new duint[handleCount + 16];
-        unsigned char* typeNumbers = new unsigned char[handleCount + 16];
-        unsigned int* grantedAccess = new unsigned int[handleCount + 16];
-        memset(allHandles, 0, sizeof(duint) * (handleCount + 16));
-        memset(typeNumbers, 0, handleCount + 16);
-        memset(grantedAccess, 0, sizeof(unsigned int) * (handleCount + 16));
-        duint ret1 = DbgEnumHandles(allHandles, typeNumbers, grantedAccess, handleCount + 16);
-        mHandlesTable->setRowCount(ret1);
-        for(unsigned int i = 0; i < ret1; i++)
+        auto count = handles.Count();
+        mHandlesTable->setRowCount(count);
+        for(auto i = 0; i < count; i++)
         {
-            char name[512];
-            char typeStr[512];
-            memset(name, 0, sizeof(name));
-            memset(typeStr, 0, sizeof(typeStr));
-            DbgGetHandleName(name, typeStr, sizeof(name), allHandles[i]);
-            mHandlesTable->setCellContent(i, 0, typeStr);
-            mHandlesTable->setCellContent(i, 1, ToHexString(typeNumbers[i]));
-            mHandlesTable->setCellContent(i, 2, ToHexString(allHandles[i]));
-            mHandlesTable->setCellContent(i, 3, ToHexString(grantedAccess[i]));
+            const HANDLEINFO & handle = handles[i];
+            char name[MAX_STRING_SIZE] = "";
+            char typeName[MAX_STRING_SIZE] = "";
+            DbgFunctions()->GetHandleName(handle.Handle, name, sizeof(name), typeName, sizeof(typeName));
+            mHandlesTable->setCellContent(i, 0, typeName);
+            mHandlesTable->setCellContent(i, 1, ToHexString(handle.TypeNumber));
+            mHandlesTable->setCellContent(i, 2, ToHexString(handle.Handle));
+            mHandlesTable->setCellContent(i, 3, ToHexString(handle.GrantedAccess));
             mHandlesTable->setCellContent(i, 4, name);
         }
-        delete allHandles;
-        delete typeNumbers;
-        delete grantedAccess;
     }
     else
-    {
-        mHandlesTable->setRowCount(1);
-        mHandlesTable->setCellContent(0, 0, QString("error:%1").arg(handleCount));
-    }
+        mHandlesTable->setRowCount(0);
     mHandlesTable->reloadData();
 }
 
@@ -294,12 +258,29 @@ void HandlesView::AppendPrivilege(int row, const char* PrivilegeString)
 
 void HandlesView::enumTcpConnections()
 {
-    if(!hIpHlp)
-        return;
+    BridgeList<TCPCONNECTIONINFO> connections;
+    if(DbgFunctions()->EnumTcpConnections(&connections))
+    {
+        auto count = connections.Count();
+        mTcpConnectionsTable->setRowCount(count);
+        for(auto i = 0; i < count; i++)
+        {
+            const TCPCONNECTIONINFO & connection = connections[i];
+            auto remoteText = QString("%1:%2").arg(connection.RemoteAddress).arg(connection.RemotePort);
+            mTcpConnectionsTable->setCellContent(i, 0, remoteText);
+            auto localText = QString("%1:%2").arg(connection.LocalAddress).arg(connection.LocalPort);
+            mTcpConnectionsTable->setCellContent(i, 1, localText);
+            mTcpConnectionsTable->setCellContent(i, 2, connection.StateText);
+        }
+    }
+    else
+        mTcpConnectionsTable->setRowCount(0);
+    mTcpConnectionsTable->reloadData();
+    /*
     QList<QString> TCPLocal;
     QList<QString> TCPRemote;
     QList<QString> TCPState;
-    DWORD PID = DbgGetProcessInformation()->dwProcessId;
+    DWORD PID = 0;// DbgGetProcessInformation()->dwProcessId;
     // The following code is modified from code sample at MSDN.GetTcpTable2
     // Declare and initialize variables
     PMIB_TCPTABLE2 pTcpTable;
@@ -387,50 +368,5 @@ void HandlesView::enumTcpConnections()
         mTcpConnectionsTable->setCellContent(i, 2, TCPState.at(i));
     }
     mTcpConnectionsTable->reloadData();
-}
-
-QString HandlesView::TcpStateToString(DWORD State)
-{
-    switch(State)
-    {
-    case MIB_TCP_STATE_CLOSED:
-        return "CLOSED";
-        break;
-    case MIB_TCP_STATE_LISTEN:
-        return "LISTEN";
-        break;
-    case MIB_TCP_STATE_SYN_SENT:
-        return "SYN-SENT";
-        break;
-    case MIB_TCP_STATE_SYN_RCVD:
-        return "SYN-RECEIVED";
-        break;
-    case MIB_TCP_STATE_ESTAB:
-        return "ESTABLISHED";
-        break;
-    case MIB_TCP_STATE_FIN_WAIT1:
-        return "FIN-WAIT-1";
-        break;
-    case MIB_TCP_STATE_FIN_WAIT2:
-        return "FIN-WAIT-2";
-        break;
-    case MIB_TCP_STATE_CLOSE_WAIT:
-        return "CLOSE-WAIT";
-        break;
-    case MIB_TCP_STATE_CLOSING:
-        return "CLOSING";
-        break;
-    case MIB_TCP_STATE_LAST_ACK:
-        return "LAST-ACK";
-        break;
-    case MIB_TCP_STATE_TIME_WAIT:
-        return "TIME-WAIT";
-        break;
-    case MIB_TCP_STATE_DELETE_TCB:
-        return "DELETE-TCB";
-        break;
-    default:
-        return QString("UNKNOWN dwState value %1").arg(State);
-        break;
-    }
+    */
 }

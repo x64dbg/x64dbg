@@ -45,7 +45,6 @@ typedef struct
     char szExeFile[MAX_PATH];
 } DBGPROCESSINFO;
 
-
 enum TRACERECORDBYTETYPE
 {
     InstructionBody = 0,
@@ -73,6 +72,25 @@ enum TRACERECORDTYPE
     TraceRecordByteWithExecTypeAndCounter,
     TraceRecordWordWithExecTypeAndCounter
 };
+
+typedef struct
+{
+    duint Handle;
+    unsigned char TypeNumber;
+    unsigned int GrantedAccess;
+} HANDLEINFO;
+
+#define TCP_ADDR_SIZE 50
+
+typedef struct
+{
+    char RemoteAddress[TCP_ADDR_SIZE];
+    unsigned short RemotePort;
+    char LocalAddress[TCP_ADDR_SIZE];
+    unsigned short LocalPort;
+    char StateText[TCP_ADDR_SIZE];
+    unsigned int State;
+} TCPCONNECTIONINFO;
 
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
@@ -118,6 +136,9 @@ typedef unsigned int (*GETTRACERECORDHITCOUNT)(duint address);
 typedef TRACERECORDBYTETYPE(*GETTRACERECORDBYTETYPE)(duint address);
 typedef bool (*SETTRACERECORDTYPE)(duint pageAddress, TRACERECORDTYPE type);
 typedef TRACERECORDTYPE(*GETTRACERECORDTYPE)(duint pageAddress);
+typedef bool(*ENUMHANDLES)(ListOf(HANDLEINFO) handles);
+typedef bool(*GETHANDLENAME)(duint handle, char* name, size_t nameSize, char* typeName, size_t typeNameSize);
+typedef bool(*ENUMTCPCONNECTIONS)(ListOf(TCPCONNECTIONINFO) connections);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -165,6 +186,9 @@ typedef struct DBGFUNCTIONS_
     GETTRACERECORDBYTETYPE GetTraceRecordByteType;
     SETTRACERECORDTYPE SetTraceRecordType;
     GETTRACERECORDTYPE GetTraceRecordType;
+    ENUMHANDLES EnumHandles;
+    GETHANDLENAME GetHandleName;
+    ENUMTCPCONNECTIONS EnumTcpConnections;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

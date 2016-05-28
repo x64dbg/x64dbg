@@ -366,12 +366,6 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
     return retval;
 }
 
-
-extern "C" DLL_EXPORT long _dbg_gethandlecount()
-{
-    return HandlerGetActiveHandleCount(fdProcessInfo->dwProcessId);
-}
-
 extern "C" DLL_EXPORT PROCESS_INFORMATION* _dbg_getProcessInformation()
 {
     return fdProcessInfo;
