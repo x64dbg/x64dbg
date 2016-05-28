@@ -2453,7 +2453,7 @@ CMDRESULT cbEnablePrivilege(int argc, char* argv[])
     Privilege.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
     Privilege.Privileges[0].Luid = luid;
     bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, &Privilege, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) != NO_ERROR;
-    return ret ? STATUS_CONTINUE : STATUS_CONTINUE;
+    return ret ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
 CMDRESULT cbDisablePrivilege(int argc, char* argv[])
@@ -2474,7 +2474,7 @@ CMDRESULT cbDisablePrivilege(int argc, char* argv[])
     Privilege.Privileges[0].Attributes = 0;
     Privilege.Privileges[0].Luid = luid;
     bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, &Privilege, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) != NO_ERROR;
-    return ret ? STATUS_CONTINUE : STATUS_CONTINUE;
+    return ret ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
 CMDRESULT cbHandleClose(int argc, char* argv[])
