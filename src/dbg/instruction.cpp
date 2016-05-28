@@ -2397,12 +2397,17 @@ CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[])
 
 CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
 {
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
     DWORD returnLength;
     LUID luid;
     if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
     {
         varset("$result", (duint)0, false);
-        return CMDRESULT::STATUS_CONTINUE;
+        return STATUS_CONTINUE;
     }
     Memory <TOKEN_PRIVILEGES*> Privileges(64 * 16 + 8, "_dbg_getprivilegestate");
     if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges(), 64 * 16 + 8, &returnLength) == 0)
@@ -2410,7 +2415,7 @@ CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
         if(returnLength > 4 * 1024 * 1024)
         {
             varset("$result", (duint)0, false);
-            return CMDRESULT::STATUS_CONTINUE;
+            return STATUS_CONTINUE;
         }
         Privileges.realloc(returnLength, "_dbg_getprivilegestate");
         if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges(), returnLength, &returnLength) == 0)
@@ -2432,32 +2437,42 @@ CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
 
 CMDRESULT cbEnablePrivilege(int argc, char* argv[])
 {
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
     LUID luid;
     if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
     {
         dprintf("Could not find the specified privilege: %s\n", argv[1]);
-        return CMDRESULT::STATUS_ERROR;
+        return STATUS_ERROR;
     }
-    Memory<TOKEN_PRIVILEGES*> Privilege(sizeof(LUID_AND_ATTRIBUTES), "_dbg_enableprivilege");
-    Privilege()->PrivilegeCount = 1;
-    Privilege()->Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-    Privilege()->Privileges[0].Luid = luid;
-    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, Privilege(), sizeof(LUID_AND_ATTRIBUTES) + 4, nullptr, nullptr) != NO_ERROR;
-    return ret ? CMDRESULT::STATUS_CONTINUE : CMDRESULT::STATUS_CONTINUE;
+    TOKEN_PRIVILEGES Privilege;
+    Privilege.PrivilegeCount = 1;
+    Privilege.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+    Privilege.Privileges[0].Luid = luid;
+    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, &Privilege, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) != NO_ERROR;
+    return ret ? STATUS_CONTINUE : STATUS_CONTINUE;
 }
 
 CMDRESULT cbDisablePrivilege(int argc, char* argv[])
 {
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
     LUID luid;
     if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
     {
         dprintf("Could not find the specified privilege: %s\n", argv[1]);
-        return CMDRESULT::STATUS_ERROR;
+        return STATUS_ERROR;
     }
-    Memory<TOKEN_PRIVILEGES*> Privilege(sizeof(LUID_AND_ATTRIBUTES), "_dbg_disableprivilege");
-    Privilege()->PrivilegeCount = 1;
-    Privilege()->Privileges[0].Attributes = 0;
-    Privilege()->Privileges[0].Luid = luid;
-    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, Privilege(), sizeof(LUID_AND_ATTRIBUTES) + 4, nullptr, nullptr) != NO_ERROR;
-    return ret ? CMDRESULT::STATUS_CONTINUE : CMDRESULT::STATUS_CONTINUE;
+    TOKEN_PRIVILEGES Privilege;
+    Privilege.PrivilegeCount = 1;
+    Privilege.Privileges[0].Attributes = 0;
+    Privilege.Privileges[0].Luid = luid;
+    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, &Privilege, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) != NO_ERROR;
+    return ret ? STATUS_CONTINUE : STATUS_CONTINUE;
 }
