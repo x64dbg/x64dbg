@@ -20,7 +20,7 @@ void MsgFreeStack(MESSAGE_STACK* Stack)
     Stack->Destroy = true;
 
     // Notify each thread
-    for(int i = 0; i < Stack->WaitingCalls + 1; i++)
+    for(int i = 0; i < Stack->WaitingCalls + 1; i++) //TODO: found crash here on exit
     {
         MESSAGE newMessage;
         Stack->msgs.enqueue(newMessage);

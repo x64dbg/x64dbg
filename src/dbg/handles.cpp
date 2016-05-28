@@ -1,5 +1,6 @@
 #include "handles.h"
 #include "undocumented.h"
+#include "error.h"
 
 typedef struct _OBJECT_NAME_INFORMATION
 {
@@ -118,7 +119,7 @@ bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String 
     if(!ZwQueryObject)
         return false;
     HANDLE hLocalHandle;
-    if(DuplicateHandle(hProcess, remoteHandle, GetCurrentProcess(), &hLocalHandle, DUPLICATE_SAME_ACCESS, FALSE, 0))
+    if(DuplicateHandle(hProcess, remoteHandle, GetCurrentProcess(), &hLocalHandle, 0, FALSE, 0))
     {
         ULONG ReturnSize = 0;
         if(ZwQueryObject(hLocalHandle, ObjectTypeInformation, nullptr, 0, &ReturnSize) == STATUS_INFO_LENGTH_MISMATCH)
@@ -137,5 +138,7 @@ bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String 
 
         CloseHandle(hLocalHandle);
     }
+    else
+        name = ErrorCodeToName(GetLastError());
     return true;
 }

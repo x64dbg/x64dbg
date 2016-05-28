@@ -34,6 +34,7 @@
 #include "_scriptapi_stack.h"
 #include "threading.h"
 #include "mnemonichelp.h"
+#include "error.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -2487,13 +2488,11 @@ CMDRESULT cbHandleClose(int argc, char* argv[])
     duint handle;
     if(!valfromstring(argv[1], &handle, false))
         return STATUS_ERROR;
-    HANDLE localHandle;
-    if(!DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), GetCurrentProcess(), &localHandle, DUPLICATE_SAME_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE))
+    if(!DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), NULL, NULL, 0, FALSE, DUPLICATE_CLOSE_SOURCE))
     {
-        dprintf("DuplicateHandle failed (%08X)\n", GetLastError());
+        dprintf("DuplicateHandle failed: %s\n", ErrorCodeToName(GetLastError()));
         return STATUS_ERROR;
     }
-    CloseHandle(localHandle);
-    dprintf("Handle %" fhex "X closed!\n", handle);
+    dprintf("Handle %" fext "X closed!\n", handle);
     return STATUS_CONTINUE;
 }
