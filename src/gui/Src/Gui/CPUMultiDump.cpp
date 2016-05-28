@@ -14,7 +14,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     {
         CPUDump* cpuDump = new CPUDump(disas, this);
         connect(cpuDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidgetSlot()));
-        this->addTab(cpuDump, tr("Dump ") + QString::number(i + 1));
+        this->addTabEx(cpuDump, QIcon(":/images/memory-map.png"), tr("Dump ") + QString::number(i + 1), QString("Dump ") + QString::number(i + 1));
     }
 
     mCurrentCPUDump = (CPUDump*)currentWidget();
