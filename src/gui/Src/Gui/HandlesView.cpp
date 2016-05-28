@@ -5,6 +5,7 @@
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
 {
     mHandlesTable = new StdTable(this);
+    mHandlesTable->setDrawDebugOnly(true);
     int wCharWidth = mHandlesTable->getCharWidth();
     mHandlesTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mHandlesTable->addColumnAt(8 + 16 * wCharWidth, tr("Type"), false);
@@ -14,12 +15,14 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mHandlesTable->addColumnAt(8 + wCharWidth * 20, tr("Name"), false);
 
     mTcpConnectionsTable = new StdTable(this);
+    mTcpConnectionsTable->setDrawDebugOnly(true);
     mTcpConnectionsTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
     mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
     mTcpConnectionsTable->addColumnAt(8 + 8 * wCharWidth, tr("State", "TcpConnection"), false);
 
     mPrivilegesTable = new StdTable(this);
+    mPrivilegesTable->setDrawDebugOnly(true);
     mPrivilegesTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mPrivilegesTable->addColumnAt(8 + 32 * wCharWidth, tr("Privilege"), false);
     mPrivilegesTable->addColumnAt(8 + 16 * wCharWidth, tr("State", "Privilege"), false);

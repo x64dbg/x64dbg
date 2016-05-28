@@ -266,6 +266,9 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionDetach, SIGNAL(triggered()), this, SLOT(detach()));
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
     connect(ui->actionManual, SIGNAL(triggered()), this, SLOT(displayManual()));
+    connect(ui->actionNotes, SIGNAL(triggered()), this, SLOT(displayNotesWidget()));
+    connect(ui->actionSnowman, SIGNAL(triggered()), this, SLOT(displaySnowmanWidget()));
+    connect(ui->actionHandles, SIGNAL(triggered()), this, SLOT(displayHandlesWidget()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -420,6 +423,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionBreakpoints, ConfigShortcut("ViewBreakpoints"));
     setGlobalShortcut(ui->actionMemoryMap, ConfigShortcut("ViewMemoryMap"));
     setGlobalShortcut(ui->actionCallStack, ConfigShortcut("ViewCallStack"));
+    setGlobalShortcut(ui->actionSEHChain, ConfigShortcut("ViewSEHChain"));
     setGlobalShortcut(ui->actionScript, ConfigShortcut("ViewScript"));
     setGlobalShortcut(ui->actionSymbolInfo, ConfigShortcut("ViewSymbolInfo"));
     setGlobalShortcut(ui->actionSource, ConfigShortcut("ViewSource"));
@@ -430,6 +434,8 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionLabels, ConfigShortcut("ViewLabels"));
     setGlobalShortcut(ui->actionBookmarks, ConfigShortcut("ViewBookmarks"));
     setGlobalShortcut(ui->actionFunctions, ConfigShortcut("ViewFunctions"));
+    setGlobalShortcut(ui->actionSnowman, ConfigShortcut("ViewSnowman"));
+    setGlobalShortcut(ui->actionHandles, ConfigShortcut("ViewHandles"));
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
@@ -1293,4 +1299,14 @@ void MainWindow::on_actionReloadStylesheet_triggered()
         qApp->setStyleSheet("");
     ensurePolished();
     update();
+}
+
+void MainWindow::displayNotesWidget()
+{
+    showQWidgetTab(mNotesManager);
+}
+
+void MainWindow::displayHandlesWidget()
+{
+    showQWidgetTab(mHandlesView);
 }

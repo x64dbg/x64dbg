@@ -303,7 +303,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         return true;
     });
 
-    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/memory-map.png"), tr("&Follow in Dump")), [this](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/dump.png"), tr("&Follow in Dump")), [this](QMenu * menu)
     {
         setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false, false);
         return true;

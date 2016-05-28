@@ -95,5 +95,6 @@
         <file>images/helpbrief.png</file>
         <file>images/helpmnemonic.png</file>
         <file>images/handles.png</file>
+        <file>images/dump.png</file>
     </qresource>
 </RCC>

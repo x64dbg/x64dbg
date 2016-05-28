@@ -231,6 +231,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewBreakpoints", Shortcut(tr("View -> Breakpoints"), "Alt+B", true));
     defaultShortcuts.insert("ViewMemoryMap", Shortcut(tr("View -> Memory Map"), "Alt+M", true));
     defaultShortcuts.insert("ViewCallStack", Shortcut(tr("View -> Call Stack"), "Alt+K", true));
+    defaultShortcuts.insert("ViewNotes", Shortcut(tr("View -> Notes"), "", true));
+    defaultShortcuts.insert("ViewSEHChain", Shortcut(tr("View -> SEH"), "", true));
     defaultShortcuts.insert("ViewScript", Shortcut(tr("View -> Script"), "Alt+S", true));
     defaultShortcuts.insert("ViewSymbolInfo", Shortcut(tr("View -> Symbol Info"), "Ctrl+Alt+S", true));
     defaultShortcuts.insert("ViewSource", Shortcut(tr("View -> Source"), "Ctrl+Shift+S", true));
@@ -241,6 +243,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L", true));
     defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B", true));
     defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Alt+F", true));
+    defaultShortcuts.insert("ViewSnowman", Shortcut(tr("View -> Snowman"), "", true));
+    defaultShortcuts.insert("ViewHandles", Shortcut(tr("View -> Handles"), "", true));
 
     defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9", true));
     defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (skip exceptions)"), "Shift+F9", true));

@@ -248,7 +248,7 @@ void CPUStack::setupContextMenu()
 
     //Follow in Dump
     auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
-    mFollowDump = new QAction(QIcon(":/icons/images/memory-map.png"), followDumpName, this);
+    mFollowDump = new QAction(QIcon(":/icons/images/dump.png"), followDumpName, this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
     auto followDumpMenuName = ArchValue(tr("&Follow DWORD in Dump"), tr("&Follow QWORD in Dump"));

@@ -126,6 +126,8 @@ public slots:
     void tabMovedSlot(int from, int to);
     void chkSaveloadTabSavedOrderStateChangedSlot(bool state);
     void dbgStateChangedSlot(DBGSTATE state);
+    void displayNotesWidget();
+    void displayHandlesWidget();
 
 private:
     Ui::MainWindow* ui;
