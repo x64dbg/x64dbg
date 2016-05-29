@@ -89,9 +89,19 @@ String MnemonicHelp::getDescription(const char* mnem, int depth)
     if(depth == 10)
         return "Too many redirections...";
     SHARED_ACQUIRE(LockMnemonicHelp);
-    auto found = MnemonicMap.find(getUniversalMnemonic(mnem));
+    auto mnemuni = getUniversalMnemonic(mnem);
+    auto found = MnemonicMap.find(mnemuni);
     if(found == MnemonicMap.end())
-        return "";
+    {
+        if(mnemuni[0] == 'v')  //v/vm
+        {
+            found = MnemonicMap.find(mnemuni.c_str() + 1);
+            if(found == MnemonicMap.end())
+                return "";
+        }
+        else
+            return "";
+    }
     const auto & description = found->second;
     if(StringUtils::StartsWith(description, "-R:"))  //redirect
     {
@@ -106,8 +116,23 @@ String MnemonicHelp::getBriefDescription(const char* mnem)
     if(mnem == nullptr)
         return "Invalid mnemonic!";
     SHARED_ACQUIRE(LockMnemonicHelp);
-    auto found = MnemonicBriefMap.find(StringUtils::ToLower(mnem));
+    auto mnemLower = StringUtils::ToLower(mnem);
+    if(mnemLower == "???")
+        return "invalid instruction";
+    auto found = MnemonicBriefMap.find(mnemLower);
     if(found == MnemonicBriefMap.end())
+    {
+        if(mnemLower[0] == 'v')  //v/vm
+        {
+            found = MnemonicBriefMap.find(mnemLower.c_str() + 1);
+            if(found != MnemonicBriefMap.end())
+            {
+                if(mnemLower.length() > 1 && mnemLower[1] == 'm')  //vm
+                    return "vm " + found->second;
+                return "vector " + found->second;
+            }
+        }
         return "";
+    }
     return found->second;
 }

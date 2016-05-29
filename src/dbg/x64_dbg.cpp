@@ -272,6 +272,38 @@ static void registercommands()
     dbgcmdnew("EnablePrivilege", cbEnablePrivilege, true); //enable priv
     dbgcmdnew("DisablePrivilege", cbDisablePrivilege, true); //disable priv
     dbgcmdnew("handleclose", cbHandleClose, true); //close remote handle
+    dbgcmdnew("briefcheck", [](int argc, char* argv[])
+    {
+        if(argc < 2)
+            return STATUS_ERROR;
+        duint addr;
+        if(!valfromstring(argv[1], &addr, false))
+            return STATUS_ERROR;
+        duint size;
+        auto base = DbgMemFindBaseAddr(addr, &size);
+        if(!base)
+            return STATUS_ERROR;
+        Memory<unsigned char*> buffer(size + 16);
+        DbgMemRead(base, buffer(), size);
+        Capstone cp;
+        std::unordered_set<String> reported;
+        for(duint i = 0; i < size;)
+        {
+            if(!cp.Disassemble(base + i, buffer() + i, 16))
+            {
+                i++;
+                continue;
+            }
+            i += cp.Size();
+            auto mnem = StringUtils::ToLower(cp.MnemonicId());
+            auto brief = MnemonicHelp::getBriefDescription(mnem.c_str());
+            if(brief.length() || reported.count(mnem))
+                continue;
+            reported.insert(mnem);
+            dprintf(fhex ": %s\n", cp.Address(), mnem.c_str());
+        }
+        return STATUS_CONTINUE;
+    }, true);
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

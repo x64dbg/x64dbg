@@ -2819,43 +2819,83 @@
       "mnem": "cmc"
     }, 
     {
-      "description": "conditional move - below/not above or equal/carry (cf=1)", 
+      "description": "conditional move - above/not below nor equal (cf=0 and zf=0)", 
+      "mnem": "cmova"
+    }, 
+    {
+      "description": "conditional move - above or equal/not below/not carry (cf=0)", 
+      "mnem": "cmovae"
+    }, 
+    {
+      "description": "conditional move - below/not above nor equal/carry (cf=1)", 
       "mnem": "cmovb"
     }, 
     {
-      "description": "conditional move - below or equal/not above (cf=1 and zf=1)", 
+      "description": "conditional move - below or equal/not above (cf=1 or zf=1)", 
       "mnem": "cmovbe"
     }, 
     {
-      "description": "conditional move - if equal (zf=1)", 
+      "description": "conditional move - carry/below/not above or equal (cf=1)", 
+      "mnem": "cmovc"
+    }, 
+    {
+      "description": "conditional move - equal/zero (zf=1)", 
       "mnem": "cmove"
     }, 
     {
-      "description": "conditional move - less/not greater (sf!=of)", 
+      "description": "conditional move - greater/not less nor equal (zf=0 and sf=of)", 
+      "mnem": "cmovg"
+    }, 
+    {
+      "description": "conditional move - greater or equal/not less (sf=of)", 
+      "mnem": "cmovge"
+    }, 
+    {
+      "description": "conditional move - less/not greater nor equal (sf!=of)", 
       "mnem": "cmovl"
     }, 
     {
-      "description": "conditional move - less or equal/not greater ((zf=1) or (sf!=of))", 
+      "description": "conditional move - less or equal/not greater (zf=1 or sf!=of)", 
       "mnem": "cmovle"
+    }, 
+    {
+      "description": "conditional move - not above/below or equal (cf=1 or zf=1)", 
+      "mnem": "cmovna"
+    }, 
+    {
+      "description": "conditional move - not above nor equal/below/carry (cf=1)", 
+      "mnem": "cmovnae"
     }, 
     {
       "description": "conditional move - not below/above or equal/not carry (cf=0)", 
       "mnem": "cmovnb"
     }, 
     {
-      "description": "conditional move - not below or equal/above (cf=0 and zf=0)", 
+      "description": "conditional move - not below nor equal/above (cf=0 and zf=0)", 
       "mnem": "cmovnbe"
     }, 
     {
-      "description": "conditional move - if not equal (zf=0)", 
+      "description": "conditional move - not carry/above or equal/not below (cf=0)", 
+      "mnem": "cmovnc"
+    }, 
+    {
+      "description": "conditional move - not equal/not zero (zf=0)", 
       "mnem": "cmovne"
+    }, 
+    {
+      "description": "conditional move - not greater/less or equal (zf=1 or sf!=of)", 
+      "mnem": "cmovng"
+    }, 
+    {
+      "description": "conditional move - not greater nor equal/less (sf!=of)", 
+      "mnem": "cmovnge"
     }, 
     {
       "description": "conditional move - not less/greater or equal (sf=of)", 
       "mnem": "cmovnl"
     }, 
     {
-      "description": "conditional move - not less nor equal/greater ((zf=0) and (sf=of))", 
+      "description": "conditional move - not less nor equal/greater (zf=0 and sf=of)", 
       "mnem": "cmovnle"
     }, 
     {
@@ -2863,7 +2903,7 @@
       "mnem": "cmovno"
     }, 
     {
-      "description": "conditional move - not parity/parity odd", 
+      "description": "conditional move - not parity/parity odd (pf=0)", 
       "mnem": "cmovnp"
     }, 
     {
@@ -2871,7 +2911,7 @@
       "mnem": "cmovns"
     }, 
     {
-      "description": "conditional move - not zero/not equal (zf=1)", 
+      "description": "conditional move - not zero/not equal (zf=0)", 
       "mnem": "cmovnz"
     }, 
     {
@@ -2883,11 +2923,19 @@
       "mnem": "cmovp"
     }, 
     {
+      "description": "conditional move - parity even/parity (pf=1)", 
+      "mnem": "cmovpe"
+    }, 
+    {
+      "description": "conditional move - parity odd/not parity (pf=0)", 
+      "mnem": "cmovpo"
+    }, 
+    {
       "description": "conditional move - sign (sf=1)", 
       "mnem": "cmovs"
     }, 
     {
-      "description": "conditional move - zero/equal (zf=0)", 
+      "description": "conditional move - zero/equal (zf=1)", 
       "mnem": "cmovz"
     }, 
     {
@@ -3235,6 +3283,10 @@
       "mnem": "ffree"
     }, 
     {
+      "description": "free floating-point register and pop (undocumented)", 
+      "mnem": "ffreep"
+    }, 
+    {
       "description": "integer add", 
       "mnem": "fiadd"
     }, 
@@ -3447,6 +3499,10 @@
       "mnem": "fstp"
     }, 
     {
+      "description": "store floating point value and pop (undocumented)", 
+      "mnem": "fstpnce"
+    }, 
+    {
       "description": "store x87 fpu status word", 
       "mnem": "fstsw"
     }, 
@@ -3583,6 +3639,14 @@
       "mnem": "insb"
     }, 
     {
+      "description": "input from port to string", 
+      "mnem": "insd"
+    }, 
+    {
+      "description": "input from port to string", 
+      "mnem": "insw"
+    }, 
+    {
       "description": "call to interrupt procedure", 
       "mnem": "int1"
     }, 
@@ -3635,7 +3699,7 @@
       "mnem": "jae"
     }, 
     {
-      "description": "jump short if below/not above or equal/carry (cf=1)", 
+      "description": "jump short if below/not above nor equal/carry (cf=1)", 
       "mnem": "jb"
     }, 
     {
@@ -3671,7 +3735,7 @@
       "mnem": "jl"
     }, 
     {
-      "description": "jump short if less or equal/not greater ((zf=1) or (sf!=of))", 
+      "description": "jump short if less or equal/not greater (zf=1 or sf!=of)", 
       "mnem": "jle"
     }, 
     {
@@ -3691,7 +3755,7 @@
       "mnem": "jna"
     }, 
     {
-      "description": "jump short if not above or equal/below (cf=1)", 
+      "description": "jump short if not above nor equal/below (cf=1)", 
       "mnem": "jnae"
     }, 
     {
@@ -3711,7 +3775,7 @@
       "mnem": "jne"
     }, 
     {
-      "description": "jump short if not greater/less or equal ((zf=1) or (sf!=of))", 
+      "description": "jump short if not greater/less or equal (zf=1 or sf!=of)", 
       "mnem": "jng"
     }, 
     {
@@ -3723,7 +3787,7 @@
       "mnem": "jnl"
     }, 
     {
-      "description": "jump short if not less nor equal/greater ((zf=0) and (sf=of))", 
+      "description": "jump short if not less nor equal/greater (zf=0 and sf=of)", 
       "mnem": "jnle"
     }, 
     {
@@ -3731,7 +3795,7 @@
       "mnem": "jno"
     }, 
     {
-      "description": "jump short if not parity/parity odd", 
+      "description": "jump short if not parity/parity odd (pf=0)", 
       "mnem": "jnp"
     }, 
     {
@@ -3739,7 +3803,7 @@
       "mnem": "jns"
     }, 
     {
-      "description": "jump short if not zero/not equal (zf=1)", 
+      "description": "jump short if not zero/not equal (zf=0)", 
       "mnem": "jnz"
     }, 
     {
@@ -3755,7 +3819,7 @@
       "mnem": "jpe"
     }, 
     {
-      "description": "jump short if parity odd/not parity", 
+      "description": "jump short if parity odd/not parity (pf=0)", 
       "mnem": "jpo"
     }, 
     {
@@ -3767,7 +3831,7 @@
       "mnem": "js"
     }, 
     {
-      "description": "jump short if zero/equal (zf=0)", 
+      "description": "jump short if zero/equal (zf=1)", 
       "mnem": "jz"
     }, 
     {
@@ -4067,6 +4131,10 @@
       "mnem": "movsldup"
     }, 
     {
+      "description": "ES:[rdi] = (qword)DS:[rsi] (rsi+=8, rdi+=8)", 
+      "mnem": "movsq"
+    }, 
+    {
       "description": "move scalar single-fp values", 
       "mnem": "movss"
     }, 
@@ -4155,15 +4223,15 @@
       "mnem": "outs"
     }, 
     {
-      "description": "Output string byte to port", 
+      "description": "output string byte to port", 
       "mnem": "outsb"
     }, 
     {
-      "description": "Output string doubleword to port", 
+      "description": "output string doubleword to port", 
       "mnem": "outsd"
     }, 
     {
-      "description": "Output string word to port", 
+      "description": "output string word to port", 
       "mnem": "outsw"
     }, 
     {
@@ -4363,6 +4431,10 @@
       "mnem": "pinsrq"
     }, 
     {
+      "description": "insert a word value from a register or memory into an XMM register", 
+      "mnem": "pinsrw"
+    }, 
+    {
       "description": "multiply and add packed signed and unsigned bytes", 
       "mnem": "pmaddubsw"
     }, 
@@ -4545,6 +4617,10 @@
     {
       "description": "prefetch data into caches", 
       "mnem": "prefetcht2"
+    }, 
+    {
+      "description": "prefetch data into caches", 
+      "mnem": "prefetchw"
     }, 
     {
       "description": "compute sum of absolute differences", 
@@ -4743,6 +4819,10 @@
       "mnem": "rdpmc"
     }, 
     {
+      "description": "read random number", 
+      "mnem": "rdrand"
+    }, 
+    {
       "description": "read time-stamp counter", 
       "mnem": "rdtsc"
     }, 
@@ -4919,7 +4999,11 @@
       "mnem": "scasb"
     }, 
     {
-      "description": "cmp rax, ES:[rdi+=2]", 
+      "description": "cmp eax, ES:[edi+=4]", 
+      "mnem": "scasd"
+    }, 
+    {
+      "description": "cmp rax, ES:[rdi+=8]", 
       "mnem": "scasq"
     }, 
     {
@@ -4927,35 +5011,51 @@
       "mnem": "scasw"
     }, 
     {
-      "description": "set byte on condition - below/not above or equal/carry (cf=1)", 
+      "description": "set byte on condition - above/not below nor equal (cf=0 and zf=0)", 
+      "mnem": "seta"
+    }, 
+    {
+      "description": "set byte on condition - above or equal/not below/not carry (cf=0)", 
+      "mnem": "setae"
+    }, 
+    {
+      "description": "set byte on condition - below/not above nor equal/carry (cf=1)", 
       "mnem": "setb"
     }, 
     {
-      "description": "set byte on condition - below or equal/not above (cf=1 and zf=1)", 
+      "description": "set byte on condition - below or equal/not above (cf=1 or zf=1)", 
       "mnem": "setbe"
     }, 
     {
-      "description": "set byte on condition - carry (cf=1)", 
+      "description": "set byte on condition - carry/below/not above nor equal (cf=1)", 
       "mnem": "setc"
     }, 
     {
-      "description": "set byte if equal (zf=1)", 
+      "description": "set byte on condition - equal/zero (zf=1)", 
       "mnem": "sete"
     }, 
     {
-      "description": "set byte on condition - less/not greater (sf!=of)", 
+      "description": "set byte on condition - greater/not less nor equal (zf=0 and sf=of)", 
+      "mnem": "setg"
+    }, 
+    {
+      "description": "set byte on condition - greater or equal/not less (sf=of)", 
+      "mnem": "setge"
+    }, 
+    {
+      "description": "set byte on condition - less/not greater nor equal (sf!=of)", 
       "mnem": "setl"
     }, 
     {
-      "description": "set byte on condition - less or equal/not greater ((zf=1) or (sf!=of))", 
+      "description": "set byte on condition - less or equal/not greater (zf=1 or sf!=of)", 
       "mnem": "setle"
     }, 
     {
-      "description": "set byte on condition - below or not above/equal (cf=1 and zf=1)", 
+      "description": "set byte on condition - not above/below or equal (cf=1 or zf=1)", 
       "mnem": "setna"
     }, 
     {
-      "description": "set byte on condition - not above or equal/below/carry (cf=1)", 
+      "description": "set byte on condition - not above nor equal/below/carry (cf=1)", 
       "mnem": "setnae"
     }, 
     {
@@ -4963,23 +5063,23 @@
       "mnem": "setnb"
     }, 
     {
-      "description": "set byte on condition - not below or equal/above (cf=0 and zf=0)", 
+      "description": "set byte on condition - not below nor equal/above (cf=0 and zf=0)", 
       "mnem": "setnbe"
     }, 
     {
-      "description": "set byte on condition - carry (cf=1)", 
+      "description": "set byte on condition - not carry/above or equal/not below (cf=0)", 
       "mnem": "setnc"
     }, 
     {
-      "description": "set byte on condition - not zero/not equal (zf=0)", 
+      "description": "set byte on condition - not equal/not zero (zf=0)", 
       "mnem": "setne"
     }, 
     {
-      "description": "set byte on condition - not greater/less or equal ((zf=1) or (sf!=of))", 
+      "description": "set byte on condition - not greater/less or equal (zf=1 or sf!=of)", 
       "mnem": "setng"
     }, 
     {
-      "description": "set byte on condition - not greater/less (sf!=of)", 
+      "description": "set byte on condition - not greater nor equal/less (sf!=of)", 
       "mnem": "setnge"
     }, 
     {
@@ -4987,7 +5087,7 @@
       "mnem": "setnl"
     }, 
     {
-      "description": "set byte on condition - not less nor equal/greater ((zf=0) and (sf=of))", 
+      "description": "set byte on condition - not less nor equal/greater (zf=0 and sf=of)", 
       "mnem": "setnle"
     }, 
     {
@@ -4995,7 +5095,7 @@
       "mnem": "setno"
     }, 
     {
-      "description": "set byte on condition - not parity/parity odd", 
+      "description": "set byte on condition - not parity/parity odd (pf=0)", 
       "mnem": "setnp"
     }, 
     {
@@ -5003,7 +5103,7 @@
       "mnem": "setns"
     }, 
     {
-      "description": "set byte on condition - not zero/not equal (zf=1)", 
+      "description": "set byte on condition - not zero/not equal (zf=0)", 
       "mnem": "setnz"
     }, 
     {
@@ -5015,11 +5115,11 @@
       "mnem": "setp"
     }, 
     {
-      "description": "set byte on condition - parity/parity even (pf=1)", 
+      "description": "set byte on condition - parity even/parity (pf=1)", 
       "mnem": "setpe"
     }, 
     {
-      "description": "set byte on condition - parity odd/not parity", 
+      "description": "set byte on condition - parity odd/not parity (pf=0)", 
       "mnem": "setpo"
     }, 
     {
@@ -5027,7 +5127,7 @@
       "mnem": "sets"
     }, 
     {
-      "description": "set byte on condition - zero/equal (zf=0)", 
+      "description": "set byte on condition - zero/equal (zf=1)", 
       "mnem": "setz"
     }, 
     {
@@ -5115,12 +5215,20 @@
       "mnem": "stos"
     }, 
     {
-      "description": "store string", 
+      "description": "store string byte", 
       "mnem": "stosb"
+    }, 
+    {
+      "description": "store string dword", 
+      "mnem": "stosd"
     }, 
     {
       "description": "store string quadword (added with x86_64)", 
       "mnem": "stosq"
+    }, 
+    {
+      "description": "store string word", 
+      "mnem": "stosw"
     }, 
     {
       "description": "store task register", 

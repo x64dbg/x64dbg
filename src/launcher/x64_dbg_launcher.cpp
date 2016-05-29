@@ -7,7 +7,7 @@
 #include <shlobj.h>
 #include <atlcomcli.h>
 
-typedef BOOL(WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
+typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
 
 enum arch
 {
@@ -79,15 +79,15 @@ static bool BrowseFileOpen(HWND owner, const TCHAR* filter, const TCHAR* defext,
 
 static BOOL isWoW64()
 {
-    
+
     LPFN_ISWOW64PROCESS fnIsWow64Process;
     BOOL isWoW64 = FALSE;
 
     fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
 
-    if (NULL != fnIsWow64Process)
+    if(NULL != fnIsWow64Process)
     {
-        if (!fnIsWow64Process(GetCurrentProcess(), &isWoW64))
+        if(!fnIsWow64Process(GetCurrentProcess(), &isWoW64))
         {
             return FALSE;
         }
@@ -314,7 +314,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if(MessageBox(nullptr, TEXT("Do you want to create Desktop Shortcuts?"), TEXT("Question"), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
             AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
-            if (isWoW64())
+            if(isWoW64())
                 AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
         }
         if(bDoneSomething)
