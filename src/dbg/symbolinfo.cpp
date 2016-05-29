@@ -225,51 +225,28 @@ bool SymAddrFromName(const char* Name, duint* Address)
     return true;
 }
 
-const char* SymGetSymbolicName(duint Address)
+String SymGetSymbolicName(duint Address)
 {
     //
     // This resolves an address to a module and symbol:
     // [modname.]symbolname
     //
     char label[MAX_SYM_NAME];
+    char modname[MAX_MODULE_SIZE];
+    auto hasModule = ModNameFromAddr(Address, modname, false);
 
     // User labels have priority, but if one wasn't found,
     // default to a symbol lookup
-    if(!LabelGet(Address, label))
+    if(!DbgGetLabelAt(Address, SEG_DEFAULT, label))
     {
-        char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
-
-        PSYMBOL_INFO symbol = (PSYMBOL_INFO)buffer;
-        symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-        symbol->MaxNameLen = MAX_LABEL_SIZE;
-
-        // Perform a symbol lookup
-        DWORD64 displacement = 0;
-
-        if(!SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)Address, &displacement, symbol))
-            return nullptr;
-
-        // If the symbol wasn't at offset 0 (start from the beginning) ignore it
-        if(displacement != 0)
-            return nullptr;
-
-        // Terminate the string for sanity
-        symbol->Name[symbol->MaxNameLen - 1] = '\0';
-
-        if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(symbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
-            strcpy_s(label, symbol->Name);
+        if(hasModule)
+            return StringUtils::sprintf("%s." fhex, modname, Address);
+        return "";
     }
 
-    // TODO: FIXME: STATIC VARIABLE
-    static char symbolicname[MAX_MODULE_SIZE + MAX_SYM_NAME];
-    char modname[MAX_MODULE_SIZE];
-
-    if(ModNameFromAddr(Address, modname, false))
-        sprintf_s(symbolicname, "%s.%s", modname, label);
-    else
-        sprintf_s(symbolicname, "<%s>", label);
-
-    return symbolicname;
+    if(hasModule)
+        return StringUtils::sprintf("<%s.%s>", modname, label);
+    return StringUtils::sprintf("<%s>", label);
 }
 
 bool SymGetSourceLine(duint Cip, char* FileName, int* Line)

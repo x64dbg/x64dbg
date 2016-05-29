@@ -281,13 +281,13 @@ static void printSoftBpInfo(const BREAKPOINT & bp)
         bptype = "UD2";
     else if((titantype & UE_BREAKPOINT_TYPE_LONG_INT3) == UE_BREAKPOINT_TYPE_LONG_INT3)
         bptype = "LONG INT3";
-    const char* symbolicname = SymGetSymbolicName(bp.addr);
-    if(symbolicname)
+    auto symbolicname = SymGetSymbolicName(bp.addr);
+    if(symbolicname.length())
     {
         if(*bp.name)
-            dprintf("%s breakpoint \"%s\" at %s (" fhex ")!\n", bptype, bp.name, symbolicname, bp.addr);
+            dprintf("%s breakpoint \"%s\" at %s (" fhex ")!\n", bptype, bp.name, symbolicname.c_str(), bp.addr);
         else
-            dprintf("%s breakpoint at %s (" fhex ")!\n", bptype, symbolicname, bp.addr);
+            dprintf("%s breakpoint at %s (" fhex ")!\n", bptype, symbolicname.c_str(), bp.addr);
     }
     else
     {
@@ -332,13 +332,13 @@ static void printHwBpInfo(const BREAKPOINT & bp)
         bptype = "write";
         break;
     }
-    const char* symbolicname = SymGetSymbolicName(bp.addr);
-    if(symbolicname)
+    auto symbolicname = SymGetSymbolicName(bp.addr);
+    if(symbolicname.length())
     {
         if(*bp.name)
-            dprintf("Hardware breakpoint (%s%s) \"%s\" at %s (" fhex ")!\n", bpsize, bptype, bp.name, symbolicname, bp.addr);
+            dprintf("Hardware breakpoint (%s%s) \"%s\" at %s (" fhex ")!\n", bpsize, bptype, bp.name, symbolicname.c_str(), bp.addr);
         else
-            dprintf("Hardware breakpoint (%s%s) at %s (" fhex ")!\n", bpsize, bptype, symbolicname, bp.addr);
+            dprintf("Hardware breakpoint (%s%s) at %s (" fhex ")!\n", bpsize, bptype, symbolicname.c_str(), bp.addr);
     }
     else
     {
@@ -368,12 +368,12 @@ static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
         break;
     }
     auto symbolicname = SymGetSymbolicName(bp.addr);
-    if(symbolicname)
+    if(symbolicname.length())
     {
         if(*bp.name)
-            dprintf("Memory breakpoint%s \"%s\" at %s (" fhex ", " fhex ")!\n", bptype, bp.name, symbolicname, bp.addr, ExceptionAddress);
+            dprintf("Memory breakpoint%s \"%s\" at %s (" fhex ", " fhex ")!\n", bptype, bp.name, symbolicname.c_str(), bp.addr, ExceptionAddress);
         else
-            dprintf("Memory breakpoint%s at %s (" fhex ", " fhex ")!\n", bptype, symbolicname, bp.addr, ExceptionAddress);
+            dprintf("Memory breakpoint%s at %s (" fhex ", " fhex ")!\n", bptype, symbolicname.c_str(), bp.addr, ExceptionAddress);
     }
     else
     {

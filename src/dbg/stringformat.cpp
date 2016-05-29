@@ -1,6 +1,6 @@
 #include "stringformat.h"
 #include "value.h"
-#include "disasm_helper.h"
+#include "symbolinfo.h"
 
 namespace ValueType
 {
@@ -11,43 +11,51 @@ namespace ValueType
         UnsignedDecimal,
         Hex,
         Pointer,
-        String
+        String,
+        AddrInfo
     };
 }
 
 static String printValue(FormatValueType value, ValueType::ValueType type)
 {
     duint valuint = 0;
-    auto validval = valfromstring(value, &valuint);
-    char result[deflen] = "???";
-    switch(type)
+    char string[MAX_STRING_SIZE] = "";
+    String result = "???";
+    if(valfromstring(value, &valuint))
     {
-    case ValueType::Unknown:
-        break;
-    case ValueType::SignedDecimal:
-        if(validval)
-            sprintf_s(result, "%" fext "d", valuint);
-        break;
-    case ValueType::UnsignedDecimal:
-        if(validval)
-            sprintf_s(result, "%" fext "u", valuint);
-        break;
-    case ValueType::Hex:
-        if(validval)
-            sprintf_s(result, "%" fext "X", valuint);
-        break;
-    case ValueType::Pointer:
-        if(validval)
-            sprintf_s(result, fhex, valuint);
-        break;
-    case ValueType::String:
-        if(validval)
+        switch(type)
         {
-            char string[MAX_STRING_SIZE] = "";
+        case ValueType::Unknown:
+            break;
+        case ValueType::SignedDecimal:
+            result = StringUtils::sprintf("%" fext "d", valuint);
+            break;
+        case ValueType::UnsignedDecimal:
+            result = StringUtils::sprintf("%" fext "u", valuint);
+            break;
+        case ValueType::Hex:
+            result = StringUtils::sprintf("%" fext "X", valuint);
+            break;
+        case ValueType::Pointer:
+            result = StringUtils::sprintf(fhex, valuint);
+            break;
+        case ValueType::String:
             if(DbgGetStringAt(valuint, string))
-                strcpy_s(result, _TRUNCATE, string);
+                result = string;
+            break;
+        case ValueType::AddrInfo:
+        {
+            auto symbolic = SymGetSymbolicName(valuint);
+            result = StringUtils::sprintf(fhex, valuint);
+            if(DbgGetStringAt(valuint, string))
+                result += " " + String(string);
+            else if(symbolic.length())
+                result += " " + symbolic;
         }
         break;
+        default:
+            break;
+        }
     }
     return result;
 }
@@ -74,6 +82,9 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
             break;
         case 'x':
             type = ValueType::Hex;
+            break;
+        case 'a':
+            type = ValueType::AddrInfo;
             break;
         default: //invalid format
             return nullptr;

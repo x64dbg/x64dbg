@@ -23,7 +23,7 @@ public:
     {
         if(format.length())
             return format;
-        return QString("%1 {p:%1}").arg(expression);
+        return QString("%1 {a:%1}").arg(expression);
     }
 
     static QString defaultArgName(const QString & name, int argN)
