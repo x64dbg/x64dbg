@@ -7,19 +7,19 @@
 
 ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(duint base, duint size)
     : Analysis(base, size),
-      _functionInfoSize(0),
-      _functionInfoData(nullptr)
+      mFunctionInfoSize(0),
+      mFunctionInfoData(nullptr)
 {
 #ifdef _WIN64
     // This will only be valid if the address range is within a loaded module
-    _moduleBase = ModBaseFromAddr(base);
+    mModuleBase = ModBaseFromAddr(base);
 
-    if(_moduleBase != 0)
+    if(mModuleBase != 0)
     {
         char modulePath[MAX_PATH];
         memset(modulePath, 0, sizeof(modulePath));
 
-        ModPathFromAddr(_moduleBase, modulePath, ARRAYSIZE(modulePath));
+        ModPathFromAddr(mModuleBase, modulePath, ARRAYSIZE(modulePath));
 
         HANDLE fileHandle;
         DWORD fileSize;
@@ -35,8 +35,8 @@ ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(duint base, duint size)
                     &fileMapVa))
         {
             // Find a pointer to IMAGE_DIRECTORY_ENTRY_EXCEPTION for later use
-            ULONG_PTR virtualOffset = GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALOFFSET);
-            _functionInfoSize = (duint)GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALSIZE);
+            auto virtualOffset = GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALOFFSET);
+            mFunctionInfoSize = duint(GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALSIZE));
 
             // Unload the file
             StaticFileUnloadW(nullptr, false, fileHandle, fileSize, fileMapHandle, fileMapVa);
@@ -45,10 +45,10 @@ ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(duint base, duint size)
             if(virtualOffset)
             {
                 // Read the table into a buffer
-                _functionInfoData = emalloc(_functionInfoSize);
+                mFunctionInfoData = emalloc(mFunctionInfoSize);
 
-                if(_functionInfoData)
-                    MemRead(virtualOffset + _moduleBase, _functionInfoData, _functionInfoSize);
+                if(mFunctionInfoData)
+                    MemRead(virtualOffset + mModuleBase, mFunctionInfoData, mFunctionInfoSize);
             }
         }
     }
@@ -57,8 +57,8 @@ ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(duint base, duint size)
 
 ExceptionDirectoryAnalysis::~ExceptionDirectoryAnalysis()
 {
-    if(_functionInfoData)
-        efree(_functionInfoData);
+    if(mFunctionInfoData)
+        efree(mFunctionInfoData);
 }
 
 void ExceptionDirectoryAnalysis::Analyse()
@@ -66,16 +66,16 @@ void ExceptionDirectoryAnalysis::Analyse()
 #ifdef _WIN64
     EnumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
     {
-        const duint funcAddr = _moduleBase + Function->BeginAddress;
-        const duint funcEnd = _moduleBase + Function->EndAddress;
+        auto funcAddr = mModuleBase + Function->BeginAddress;
+        auto funcEnd = mModuleBase + Function->EndAddress;
 
         // If within limits...
-        if(funcAddr >= _base && funcAddr < _base + _size)
-            _functions.push_back({ funcAddr, funcEnd });
+        if(inRange(funcAddr) && inRange(funcEnd))
+            mFunctions.push_back({ funcAddr, funcEnd });
 
         return true;
     });
-    dprintf("%u functions discovered!\n", _functions.size());
+    dprintf("%u functions discovered!\n", mFunctions.size());
 #else //x32
     dprintf("This kind of analysis doesn't work on x32 executables...\n");
 #endif // _WIN64
@@ -83,20 +83,20 @@ void ExceptionDirectoryAnalysis::Analyse()
 
 void ExceptionDirectoryAnalysis::SetMarkers()
 {
-    FunctionDelRange(_base, _base + _size - 1, false);
-    for(const auto & function : _functions)
+    FunctionDelRange(mBase, mBase + mSize - 1, false);
+    for(const auto & function : mFunctions)
         FunctionAdd(function.first, function.second, false);
 }
 
 #ifdef _WIN64
-void ExceptionDirectoryAnalysis::EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback)
+void ExceptionDirectoryAnalysis::EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const
 {
-    if(!_functionInfoData)
+    if(!mFunctionInfoData)
         return;
 
     // Get the table pointer and size
-    auto functionTable = (PRUNTIME_FUNCTION)_functionInfoData;
-    duint totalCount = (_functionInfoSize / sizeof(RUNTIME_FUNCTION));
+    auto functionTable = PRUNTIME_FUNCTION(mFunctionInfoData);
+    auto totalCount = mFunctionInfoSize / sizeof(RUNTIME_FUNCTION);
 
     // Enumerate each entry
     for(duint i = 0; i < totalCount; i++)
