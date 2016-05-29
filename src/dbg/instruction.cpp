@@ -2376,7 +2376,7 @@ CMDRESULT cbInstrMnemonichelp(int argc, char* argv[])
     else
     {
         auto padding = "================================================================";
-        auto logText = StringUtils::sprintf("%s%s%s", padding, description.c_str(), padding);
+        auto logText = StringUtils::sprintf("%s%s%s\n", padding, description.c_str(), padding);
         GuiAddLogMessage(logText.c_str());
     }
     return STATUS_CONTINUE;

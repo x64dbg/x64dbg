@@ -67,6 +67,8 @@ String MnemonicHelp::getUniversalMnemonic(const String & mnem)
         return mnemLower;
     if(mnemLower == "loop")  //LOOP
         return mnemLower;
+    if(startsWith("int"))  //INT n
+        return "int n";
     if(startsWith("cmov"))  //CMOVcc
         return "cmovcc";
     if(startsWith("fcmov"))  //FCMOVcc
