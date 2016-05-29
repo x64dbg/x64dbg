@@ -96,21 +96,6 @@ void HexEditDialog::on_btnUnicode2Hex_clicked()
 void HexEditDialog::on_chkKeepSize_toggled(bool checked)
 {
     mHexEdit->setKeepSize(checked);
-    QByteArray data = mHexEdit->data();
-    if(checked)
-    {
-        int dataSize = data.size();
-        QString asciiMask = QString("x").repeated(dataSize / sizeof(char));
-        QString unicodeMask = QString("x").repeated(dataSize / sizeof(wchar_t));
-        ui->lineEditAscii->setInputMask(asciiMask);
-        ui->lineEditUnicode->setInputMask(unicodeMask);
-    }
-    else
-    {
-        ui->lineEditAscii->setInputMask("");
-        ui->lineEditUnicode->setInputMask("");
-        mHexEdit->setData(data);
-    }
 }
 
 void HexEditDialog::dataChangedSlot()
@@ -141,15 +126,11 @@ void HexEditDialog::dataChangedSlot()
 void HexEditDialog::on_lineEditAscii_textEdited(const QString & arg1)
 {
     Q_UNUSED(arg1);
-    int cursorPosition = ui->lineEditAscii->cursorPosition();
     on_btnAscii2Hex_clicked();
-    ui->lineEditAscii->setCursorPosition(cursorPosition);
 }
 
 void HexEditDialog::on_lineEditUnicode_textEdited(const QString & arg1)
 {
     Q_UNUSED(arg1);
-    int cursorPosition = ui->lineEditUnicode->cursorPosition();
     on_btnUnicode2Hex_clicked();
-    ui->lineEditUnicode->setCursorPosition(cursorPosition);
 }
