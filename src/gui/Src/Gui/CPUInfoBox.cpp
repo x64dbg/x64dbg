@@ -74,8 +74,7 @@ QString CPUInfoBox::getSymbolicName(dsint addr)
     bool bHasString = DbgGetStringAt(addr, string);
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
     bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
-    QString addrText;
-    addrText = QString("%1").arg(addr & (duint) - 1, 0, 16, QChar('0')).toUpper();
+    QString addrText = ToHexString(addr);
     QString finalText;
     if(bHasString)
         finalText = addrText + " " + QString(string);
@@ -189,12 +188,18 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         }
         else
         {
+            auto symbolicName = getSymbolicName(arg.value);
             QString mnemonic(arg.mnemonic);
             bool ok;
             mnemonic.toULongLong(&ok, 16);
-            if(ok) //skip numbers
-                continue;
-            setInfoLine(j, mnemonic + "=" + getSymbolicName(arg.value));
+            if(ok) //skip certain numbers
+            {
+                if(ToHexString(arg.value) == symbolicName)
+                    continue;
+                setInfoLine(j, symbolicName);
+            }
+            else
+                setInfoLine(j, mnemonic + "=" + symbolicName);
             j++;
         }
     }

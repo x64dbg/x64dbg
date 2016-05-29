@@ -950,24 +950,23 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
         return true;
     }
     bool found = false;
-    STRING_TYPE strtype;
-    char string[1024] = "";
+    char string[MAX_STRING_SIZE] = "";
     if(basicinfo->branch)  //branches have no strings (jmp dword [401000])
         return false;
     if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
     {
-        if(disasmgetstringat(basicinfo->value.value, &strtype, string, string, 500))
+        if(DbgGetStringAt(basicinfo->value.value, string))
             found = true;
     }
     if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
-        if(!found && disasmgetstringat(basicinfo->memory.value, &strtype, string, string, 500))
+        if(DbgGetStringAt(basicinfo->memory.value, string))
             found = true;
     }
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->Address());
+        sprintf(addrText, fhex, disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[4096] = "";
@@ -975,12 +974,7 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
-        char dispString[1024] = "";
-        if(strtype == str_ascii)
-            sprintf(dispString, "\"%s\"", string);
-        else
-            sprintf(dispString, "L\"%s\"", string);
-        GuiReferenceSetCellContent(refinfo->refcount, 2, dispString);
+        GuiReferenceSetCellContent(refinfo->refcount, 2, string);
     }
     return found;
 }

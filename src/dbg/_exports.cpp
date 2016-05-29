@@ -232,8 +232,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 String temp_string;
                 String comment;
                 ADDRINFO newinfo;
-                char ascii[256 * 2] = "";
-                char unicode[256 * 2] = "";
+                char string_text[MAX_STRING_SIZE] = "";
 
                 memset(&instr, 0, sizeof(DISASM_INSTR));
                 disasmget(addr, &instr);
@@ -247,85 +246,54 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
                     if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
-                        if(instr.type == instr_branch || !disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode, len_left) || strtype == str_none)
+                        if(instr.type == instr_branch)
                             continue;
-                        switch(strtype)
+                        if(DbgGetStringAt(instr.arg[i].constant, string_text))
                         {
-                        case str_none:
-                            break;
-                        case str_ascii:
                             temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":\"");
-                            temp_string.append(ascii);
-                            temp_string.append("\"");
-                            break;
-                        case str_unicode:
-                            temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":L\"");
-                            temp_string.append(unicode);
-                            temp_string.append("\"");
-                            break;
+                            temp_string.append(":");
+                            temp_string.append(string_text);
                         }
                     }
-                    else if(instr.arg[i].memvalue && (disasmgetstringat(instr.arg[i].memvalue, &strtype, ascii, unicode, len_left) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
+                    else if(instr.arg[i].memvalue && (DbgGetStringAt(instr.arg[i].memvalue, string_text) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
                     {
-                        switch(strtype)
+                        if(*string_text)
                         {
-                        case str_none:
-                            if(*newinfo.label)
-                            {
-                                temp_string = "[";
-                                temp_string.append(instr.arg[i].mnemonic);
-                                temp_string.append("]:");
-                                temp_string.append(newinfo.label);
-                            }
-                            break;
-                        case str_ascii:
                             temp_string = "[";
                             temp_string.append(instr.arg[i].mnemonic);
                             temp_string.append("]:");
-                            temp_string.append(ascii);
-                            break;
-                        case str_unicode:
+                            temp_string.append(string_text);
+                        }
+                        else if(*newinfo.label)
+                        {
                             temp_string = "[";
                             temp_string.append(instr.arg[i].mnemonic);
                             temp_string.append("]:");
-                            temp_string.append(unicode);
-                            break;
+                            temp_string.append(newinfo.label);
                         }
                     }
-                    else if(instr.arg[i].value && (disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode, len_left) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
+                    else if(instr.arg[i].value && (DbgGetStringAt(instr.arg[i].value, string_text) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                     {
                         if(instr.type != instr_normal) //stack/jumps (eg add esp,4 or jmp 401110) cannot directly point to strings
-                            strtype = str_none;
-                        switch(strtype)
                         {
-                        case str_none:
                             if(*newinfo.label)
                             {
                                 temp_string = instr.arg[i].mnemonic;
                                 temp_string.append(":");
                                 temp_string.append(newinfo.label);
                             }
-                            break;
-                        case str_ascii:
+                        }
+                        else if(*string_text)
+                        {
                             temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":\"");
-                            temp_string.append(ascii);
-                            temp_string.append("\"");
-                            break;
-                        case str_unicode:
-                            temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":L\"");
-                            temp_string.append(unicode);
-                            temp_string.append("\"");
-                            break;
+                            temp_string.append(":");
+                            temp_string.append(string_text);
                         }
                     }
                     else
                         continue;
 
-                    if(!strstr(comment.c_str(), temp_string.c_str()))
+                    if(!strstr(comment.c_str(), temp_string.c_str())) //avoid duplicate comments
                     {
                         if(comment.length())
                             comment.append(", ");
@@ -964,14 +932,29 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_STRING_AT:
     {
-        STRING_TYPE strtype;
+        auto addr = duint(param1);
+        auto dest = (char*)param2;
+        *dest = '\0';
         char string[MAX_STRING_SIZE];
-        if(disasmgetstringat((duint)param1, &strtype, string, string, MAX_STRING_SIZE - 3))
+        duint addrPtr;
+        STRING_TYPE strtype;
+        if(MemRead(addr, &addrPtr, sizeof(addr)) && MemIsValidReadPtr(addrPtr))
+        {
+            if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 3))
+            {
+                if(strtype == str_ascii)
+                    sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
+                else //unicode
+                    sprintf_s(dest, MAX_STRING_SIZE, "&L\"%s\"", string);
+                return true;
+            }
+        }
+        if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 3))
         {
             if(strtype == str_ascii)
-                sprintf((char*)param2, "\"%s\"", string);
+                sprintf_s(dest, MAX_STRING_SIZE, "\"%s\"", string);
             else //unicode
-                sprintf((char*)param2, "L\"%s\"", string);
+                sprintf_s(dest, MAX_STRING_SIZE, "L\"%s\"", string);
             return true;
         }
         return false;

@@ -18,7 +18,7 @@ namespace ValueType
 static String printValue(FormatValueType value, ValueType::ValueType type)
 {
     duint valuint = 0;
-    bool validval = valfromstring(value, &valuint);
+    auto validval = valfromstring(value, &valuint);
     char result[deflen] = "???";
     switch(type)
     {
@@ -43,10 +43,9 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
     case ValueType::String:
         if(validval)
         {
-            STRING_TYPE strtype;
-            char string[512] = "";
-            if(disasmgetstringat(valuint, &strtype, string, string, 500))
-                strcpy_s(result, string);
+            char string[MAX_STRING_SIZE] = "";
+            if(DbgGetStringAt(valuint, string))
+                strcpy_s(result, _TRUNCATE, string);
         }
         break;
     }

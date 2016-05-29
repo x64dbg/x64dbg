@@ -567,17 +567,25 @@ QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
     }
-    else if(col && mDescriptor.at(col - 1).isData == false && mDescriptor.at(col - 1).itemCount == 1) //print comments
+    else if(mDescriptor.at(col - 1).isData) //print data
+    {
+        wStr = HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    }
+    else if(!mDescriptor.at(col - 1).isData && mDescriptor.at(col - 1).itemCount) //print comments
     {
         duint data = 0;
         dsint wRva = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset;
         mMemPage->read((byte_t*)&data, wRva, sizeof(duint));
+
         char modname[MAX_MODULE_SIZE] = "";
         if(!DbgGetModuleAt(data, modname))
             modname[0] = '\0';
         char label_text[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
             wStr = QString(modname) + "." + QString(label_text);
+        char string_text[MAX_STRING_SIZE] = "";
+        if(DbgGetStringAt(data, string_text))
+            wStr = string_text;
         if(!wStr.length()) //stack comments
         {
             auto va = rvaToVa(wRva);
@@ -601,10 +609,6 @@ QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
                 painter->restore();
             }
         }
-    }
-    else //data
-    {
-        wStr = HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
     }
     return wStr;
 }
@@ -1313,7 +1317,7 @@ void CPUDump::addressSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendDescriptor(0, "Comments", false, wColDesc);
+    appendDescriptor(0, tr("Comments"), false, wColDesc);
 
     reloadData();
 }
