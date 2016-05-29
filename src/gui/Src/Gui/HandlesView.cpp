@@ -42,15 +42,16 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     this->setLayout(mVertLayout);
 
     // Create the action list for the right click context menu
-    mActionRefresh = new QAction(QIcon(":/images/arrow_restart.png"), tr("&Refresh"), this);
+    mActionRefresh = new QAction(QIcon(":/icons/images/arrow-restart.png"), tr("&Refresh"), this);
     connect(mActionRefresh, SIGNAL(triggered()), this, SLOT(reloadData()));
-    mActionCloseHandle = new QAction(QIcon(":/images/close-all-tabs.png"), tr("Close handle"), this);
+    addAction(mActionRefresh);
+    mActionCloseHandle = new QAction(QIcon(":/icons/images/close-all-tabs.png"), tr("Close handle"), this);
     connect(mActionCloseHandle, SIGNAL(triggered()), this, SLOT(closeHandleSlot()));
-    mActionDisablePrivilege = new QAction(QIcon(":/images/close-all-tabs.png"), tr("Disable Privilege: "), this);
+    mActionDisablePrivilege = new QAction(QIcon(":/icons/images/close-all-tabs.png"), tr("Disable Privilege: "), this);
     connect(mActionDisablePrivilege, SIGNAL(triggered()), this, SLOT(disablePrivilegeSlot()));
     mActionEnablePrivilege = new QAction(tr("Enable Privilege: "), this);
     connect(mActionEnablePrivilege, SIGNAL(triggered()), this, SLOT(enablePrivilegeSlot()));
-    mActionDisableAllPrivileges = new QAction(QIcon(":/images/close-all-tabs.png"), tr("Disable all privileges"), this);
+    mActionDisableAllPrivileges = new QAction(QIcon(":/icons/images/close-all-tabs.png"), tr("Disable all privileges"), this);
     connect(mActionDisableAllPrivileges, SIGNAL(triggered()), this, SLOT(disableAllPrivilegesSlot()));
     mActionEnableAllPrivileges = new QAction(tr("Enable all privileges"), this);
     connect(mActionEnableAllPrivileges, SIGNAL(triggered()), this, SLOT(enableAllPrivilegesSlot()));
@@ -58,6 +59,8 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     connect(mHandlesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(handlesTableContextMenuSlot(const QPoint &)));
     connect(mTcpConnectionsTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(tcpConnectionsTableContextMenuSlot(const QPoint &)));
     connect(mPrivilegesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(privilegesTableContextMenuSlot(const QPoint &)));
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
 
     if(!IsWindowsVistaOrGreater())
     {
@@ -66,6 +69,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
         mTcpConnectionsTable->reloadData();
     }
     reloadData();
+    refreshShortcuts();
 }
 
 void HandlesView::reloadData()
@@ -76,6 +80,26 @@ void HandlesView::reloadData()
         enumTcpConnections();
         enumPrivileges();
     }
+    else
+    {
+        mHandlesTable->setRowCount(0);
+        mHandlesTable->reloadData();
+        mTcpConnectionsTable->setRowCount(0);
+        mTcpConnectionsTable->reloadData();
+        mPrivilegesTable->setRowCount(0);
+        mPrivilegesTable->reloadData();
+    }
+}
+
+void HandlesView::refreshShortcuts()
+{
+    mActionRefresh->setShortcut(ConfigShortcut("ActionRefresh"));
+}
+
+void HandlesView::dbgStateChanged(DBGSTATE state)
+{
+    if(state == stopped)
+        reloadData();
 }
 
 void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)

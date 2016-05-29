@@ -360,9 +360,8 @@
         <translation type="unfinished">附加</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AttachDialog.ui" line="83"/>
         <source>Refresh (F5)</source>
-        <translation type="unfinished">刷新 (F5)</translation>
+        <translation type="obsolete">刷新 (F5)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AttachDialog.ui" line="99"/>
@@ -375,19 +374,21 @@
         <translation type="unfinished">取消(&amp;C)</translation>
     </message>
     <message>
+        <location filename="../Src/Gui/AttachDialog.ui" line="83"/>
         <location filename="../Src/Gui/AttachDialog.cpp" line="21"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="23"/>
         <source>Refresh</source>
         <translation type="unfinished">刷新</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="34"/>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="39"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="35"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="40"/>
         <source>PID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="35"/>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="40"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="36"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="41"/>
         <source>Path</source>
         <translation type="unfinished">路径</translation>
     </message>
@@ -2036,437 +2037,462 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="234"/>
+        <source>View -&gt; Notes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Utils/Configuration.cpp" line="235"/>
+        <source>View -&gt; SEH</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Utils/Configuration.cpp" line="236"/>
         <source>View -&gt; Script</source>
         <translation type="unfinished">视图 -&gt; 脚本</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="235"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="237"/>
         <source>View -&gt; Symbol Info</source>
         <translation type="unfinished">视图 -&gt; 符号信息</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="236"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="238"/>
         <source>View -&gt; Source</source>
         <translation type="unfinished">视图 -&gt; 源代码</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="237"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="239"/>
         <source>View -&gt; References</source>
         <translation type="unfinished">视图 -&gt;引用</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="238"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="240"/>
         <source>View -&gt; Threads</source>
         <translation type="unfinished">视图 -&gt; 线程</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="239"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="241"/>
         <source>View -&gt; Patches</source>
         <translation type="unfinished">视图 -&gt; 补丁</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="240"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="242"/>
         <source>View -&gt; Comments</source>
         <translation type="unfinished">视图 -&gt; 注释</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="241"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="243"/>
         <source>View -&gt; Labels</source>
         <translation type="unfinished">视图 -&gt; 标签</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="242"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="244"/>
         <source>View -&gt; Bookmarks</source>
         <translation type="unfinished">视图 -&gt; 书签</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="243"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="245"/>
         <source>View -&gt; Functions</source>
         <translation type="unfinished">视图 -&gt; 函数</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="245"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="246"/>
+        <source>View -&gt; Snowman</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Utils/Configuration.cpp" line="247"/>
+        <source>View -&gt; Handles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Utils/Configuration.cpp" line="249"/>
         <source>Debug -&gt; Run</source>
         <translation type="unfinished">调试 -&gt; 运行</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="246"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="250"/>
         <source>Debug -&gt; Run (skip exceptions)</source>
         <translation type="unfinished">调试 -&gt; 运行 (忽略异常)</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="247"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="251"/>
         <source>Debug -&gt; Run until selection</source>
         <translation type="unfinished">调试 -&gt; 运行到选区</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="248"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="252"/>
         <source>Debug -&gt; Pause</source>
         <translation type="unfinished">调试 -&gt; 暂停</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="249"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="253"/>
         <source>Debug -&gt; Restart</source>
         <translation type="unfinished">调试 -&gt; 重新运行</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="250"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="254"/>
         <source>Debug -&gt; Close</source>
         <translation type="unfinished">调试 -&gt; 结束</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="251"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="255"/>
         <source>Debug -&gt; Step into</source>
         <translation type="unfinished">调试 -&gt; 步进</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="252"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="256"/>
         <source>Debug -&gt; Step into (skip execptions)</source>
         <translation type="unfinished">调试 -&gt; 步进 (忽略异常)</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="253"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="257"/>
         <source>Debug -&gt; Step over</source>
         <translation type="unfinished">调试 -&gt; 步过</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="254"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="258"/>
         <source>Debug -&gt; Step over (skip execptions)</source>
         <translation type="unfinished">调试 -&gt; 步过 (忽略异常)</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="255"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="259"/>
         <source>Debug -&gt; Execute till return</source>
         <translation type="unfinished">调试 -&gt; 运行到返回</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="256"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="260"/>
         <source>Debug -&gt; Execute till return (skip exceptions)</source>
         <translation type="unfinished">调试 -&gt; 运行到返回(忽略异常)</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="257"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="261"/>
         <source>Debug -&gt; Skip next instruction</source>
         <translation type="unfinished">调试 -&gt; 跳过下一指令</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="258"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="262"/>
         <source>Debug -&gt; Command</source>
         <translation type="unfinished">调试 -&gt; 命令</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="260"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="264"/>
         <source>Plugins -&gt; Scylla</source>
         <translation type="unfinished">插件 -&gt; Scyla</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="262"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="266"/>
         <source>Options -&gt; Preferences</source>
         <translation type="unfinished">选项 -&gt; 选项</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="263"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="267"/>
         <source>Options -&gt; Appearance</source>
         <translation type="unfinished">选项 -&gt; 外观</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="264"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="268"/>
         <source>Options -&gt; Shortcuts</source>
         <translation type="unfinished">选项 -&gt; 快捷键</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="265"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="269"/>
         <source>Options -&gt; Topmost</source>
         <translation type="unfinished">选项 -&gt; 窗口置顶</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="267"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="271"/>
         <source>Help -&gt; About</source>
         <translation type="unfinished">帮助 -&gt; 关于</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="268"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="272"/>
         <source>Help -&gt; Donate</source>
         <translation type="unfinished">帮助 -&gt; 捐赠</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="269"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="273"/>
         <source>Help -&gt; Check for Updates</source>
         <translation type="unfinished">帮助 -&gt; 检查更新</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="270"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="274"/>
         <source>Help -&gt; Calculator</source>
         <translation type="unfinished">帮助 -&gt; 计算器</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="271"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="275"/>
         <source>Help -&gt; Report Bug</source>
         <translation type="unfinished">帮助 -&gt; 报告Bug</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="272"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="276"/>
         <source>Help -&gt; Manual</source>
         <translation type="unfinished">帮助 -&gt; 用户手册</translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="274"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="278"/>
         <source>Actions -&gt; Find Strings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="275"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="279"/>
         <source>Actions -&gt; Find Intermodular Calls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="276"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="280"/>
         <source>Actions -&gt; Toggle Breakpoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="277"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="281"/>
         <source>Actions -&gt; Toggle Bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="278"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="282"/>
         <source>Actions -&gt; Delete Breakpoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="279"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="283"/>
         <source>Actions -&gt; Enable/Disable Breakpoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="281"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="285"/>
         <source>Actions -&gt; Binary Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="282"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="286"/>
         <source>Actions -&gt; Binary Fill</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="283"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="287"/>
         <source>Actions -&gt; Binary Fill NOPs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="284"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="288"/>
         <source>Actions -&gt; Binary Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="285"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="289"/>
         <source>Actions -&gt; Binary Paste</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="286"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="290"/>
         <source>Actions -&gt; Binary Paste (Ignore Size)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="287"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="291"/>
         <source>Actions -&gt; Undo Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="288"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="292"/>
         <source>Actions -&gt; Set Label</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="289"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="293"/>
         <source>Actions -&gt; Set Comment</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="290"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="294"/>
         <source>Actions -&gt; Toggle Function</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="291"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="295"/>
         <source>Actions -&gt; Assemble</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="292"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="296"/>
         <source>Actions -&gt; Yara</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="293"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="297"/>
         <source>Actions -&gt; Set New Origin Here</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="294"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="298"/>
         <source>Actions -&gt; Goto Origin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="295"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="299"/>
         <source>Actions -&gt; Goto Previous</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="296"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="300"/>
         <source>Actions -&gt; Goto Next</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="297"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="301"/>
         <source>Actions -&gt; Goto Expression</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="298"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="302"/>
         <source>Actions -&gt; Goto Start of Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="299"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="303"/>
         <source>Actions -&gt; Goto End of Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="300"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="304"/>
         <source>Actions -&gt; Goto File Offset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="301"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="305"/>
         <source>Actions -&gt; Find References to Selected Address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="302"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="306"/>
         <source>Actions -&gt; Find Pattern</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="303"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="307"/>
         <source>Actions -&gt; Find References</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="304"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="308"/>
         <source>Actions -&gt; Help on Mnemonic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="305"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="309"/>
         <source>Actions -&gt; Toggle Mnemonic Brief</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="306"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="310"/>
         <source>Actions -&gt; Highlighting Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="307"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="311"/>
         <source>Actions -&gt; Find</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="308"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="312"/>
         <source>Actions -&gt; Decompile Function</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="309"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="313"/>
         <source>Actions -&gt; Decompile Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="311"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="315"/>
         <source>Actions -&gt; Increase Register</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="312"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="316"/>
         <source>Actions -&gt; Decrease Register</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="313"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="317"/>
         <source>Actions -&gt; Zero Register</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="314"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="318"/>
         <source>Actions -&gt; Set Register to One</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="315"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="319"/>
         <source>Actions -&gt; Toggle Register Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="316"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="320"/>
         <source>Actions -&gt; Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="317"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="321"/>
         <source>Actions -&gt; Copy Address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="318"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="322"/>
         <source>Actions -&gt; Copy Symbol</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="319"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="323"/>
         <source>Actions -&gt; Load Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="320"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="324"/>
         <source>Actions -&gt; Reload Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="321"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="325"/>
         <source>Actions -&gt; Unload Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="322"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="326"/>
         <source>Actions -&gt; Run Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="323"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="327"/>
         <source>Actions -&gt; Toggle Script Breakpoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="324"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="328"/>
         <source>Actions -&gt; Run Script to Cursor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="325"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="329"/>
         <source>Actions -&gt; Step Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="326"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="330"/>
         <source>Actions -&gt; Abort Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="327"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="331"/>
         <source>Actions -&gt; Execute Script Command</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Utils/Configuration.cpp" line="332"/>
+        <source>Actions -&gt; Refresh</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2636,59 +2662,59 @@ run</translation>
 <context>
     <name>HandlesView</name>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="14"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="11"/>
         <source>Type</source>
         <translation type="unfinished">类型</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="15"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="12"/>
         <source>Type number</source>
         <translation type="unfinished">类型编号</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="16"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="13"/>
         <source>Handle</source>
         <translation type="unfinished">句柄</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="17"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="14"/>
         <source>Access</source>
         <translation type="unfinished">访问权限</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="18"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="15"/>
         <source>Name</source>
         <translation type="unfinished">名称</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="22"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="20"/>
         <source>Remote address</source>
         <translation type="unfinished">远程地址</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="23"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="21"/>
         <source>Local address</source>
         <translation type="unfinished">本机地址</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="24"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="22"/>
         <source>State</source>
         <comment>TcpConnection</comment>
         <translation type="unfinished">状态</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="28"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="27"/>
         <source>Privilege</source>
         <translation type="unfinished">特权</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="29"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="28"/>
         <source>State</source>
         <comment>Privilege</comment>
         <translation type="unfinished">状态</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="46"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="45"/>
         <source>&amp;Refresh</source>
         <translation>刷新(&amp;R)</translation>
     </message>
@@ -2699,13 +2725,13 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Gui/HandlesView.cpp" line="50"/>
-        <location filename="../Src/Gui/HandlesView.cpp" line="133"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="147"/>
         <source>Disable Privilege: </source>
         <translation type="unfinished">禁用特权： </translation>
     </message>
     <message>
         <location filename="../Src/Gui/HandlesView.cpp" line="52"/>
-        <location filename="../Src/Gui/HandlesView.cpp" line="138"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="152"/>
         <source>Enable Privilege: </source>
         <translation type="unfinished">启用特权： </translation>
     </message>
@@ -2720,33 +2746,33 @@ run</translation>
         <translation type="unfinished">启用所有特权</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="69"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="68"/>
         <source>TCP Connection enumeration is only available on Windows Vista or greater.</source>
         <translation type="unfinished">枚举TCP网络连接功能仅适用于Windows Vista及以上版本的操作系统。</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="97"/>
-        <location filename="../Src/Gui/HandlesView.cpp" line="112"/>
-        <location filename="../Src/Gui/HandlesView.cpp" line="144"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="111"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="126"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="158"/>
         <source>&amp;Copy</source>
         <translation type="unfinished">复制(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="127"/>
-        <location filename="../Src/Gui/HandlesView.cpp" line="184"/>
-        <location filename="../Src/Gui/HandlesView.cpp" line="192"/>
-        <location filename="../Src/Gui/HandlesView.cpp" line="283"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="141"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="188"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="196"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="274"/>
         <source>Unknown</source>
         <translation type="unfinished">未知</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="286"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="277"/>
         <source>Disabled</source>
         <translation type="unfinished">已禁用</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HandlesView.cpp" line="131"/>
-        <location filename="../Src/Gui/HandlesView.cpp" line="290"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="145"/>
+        <location filename="../Src/Gui/HandlesView.cpp" line="281"/>
         <source>Enabled</source>
         <translation type="unfinished">已启用</translation>
     </message>
@@ -2899,363 +2925,363 @@ run</translation>
         <translation>视图(&amp;V)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="73"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="76"/>
         <source>&amp;Debug</source>
         <translation>调试(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="97"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="100"/>
         <source>&amp;Help</source>
         <translation>帮助(&amp;H)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="110"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="113"/>
         <source>&amp;Plugins</source>
         <translation>插件(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="116"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="119"/>
         <source>&amp;Options</source>
         <translation>选项(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="198"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="201"/>
         <source>toolBar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="219"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="222"/>
         <source>&amp;Open</source>
         <translation>打开(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="228"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="231"/>
         <source>E&amp;xit</source>
         <translation>退出(&amp;X)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="237"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="240"/>
         <source>&amp;Run</source>
         <translation>运行(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="246"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="249"/>
         <source>&amp;Pause</source>
         <translation>暂停(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="255"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="258"/>
         <source>Re&amp;start</source>
         <translation>重新运行(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="264"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="267"/>
         <source>&amp;Close</source>
         <translation type="unfinished">结束(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="273"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="276"/>
         <source>Step &amp;into</source>
         <translation type="unfinished">步进(&amp;I)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="282"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="285"/>
         <source>Step &amp;over</source>
         <translation type="unfinished">步过(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="291"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="294"/>
         <source>Co&amp;mmand</source>
         <translation type="unfinished">命令(&amp;M)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="300"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="303"/>
         <source>E&amp;xecute till return</source>
         <translation type="unfinished">运行到返回(&amp;X)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="309"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="312"/>
         <source>&amp;Memory Map</source>
         <translation>内存布局(&amp;M)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="318"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="321"/>
         <source>&amp;Log Window</source>
         <translation>日志窗口(&amp;L)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="327"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="330"/>
         <source>&amp;About</source>
         <translation>关于(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="336"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="339"/>
         <source>Scylla</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="345"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="348"/>
         <source>&amp;Breakpoints</source>
         <translation>断点(&amp;B)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="354"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="357"/>
         <source>Step into (skip exceptions)</source>
         <translation type="unfinished">步进(忽略异常)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="363"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="366"/>
         <source>Step over (skip exceptions)</source>
         <translation type="unfinished">步过(忽略异常)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="372"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="375"/>
         <source>Run (&amp;skip exceptions)</source>
         <translation type="unfinished">运行(忽略异常)(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="381"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="384"/>
         <source>Execute till return (skip exceptions)</source>
         <translation type="unfinished">运行到返回(忽略异常)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="390"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="393"/>
         <source>&amp;Script</source>
         <translation>脚本(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="393"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="396"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="124"/>
         <source>Script</source>
         <translation>脚本</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="402"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="405"/>
         <source>Run &amp;until selection</source>
         <translation>运行到选区(&amp;U)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="405"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="408"/>
         <source>Run until selection</source>
         <translation>运行到选区</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="414"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="417"/>
         <source>&amp;CPU</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="417"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="420"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="130"/>
         <source>CPU</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="426"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="429"/>
         <source>Symbol &amp;Info</source>
         <translation>符号信息(&amp;I)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="429"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="432"/>
         <source>Symbol Info</source>
         <translation>符号信息</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="438"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="441"/>
         <source>&amp;References</source>
         <translation>引用(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="441"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="444"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="141"/>
         <source>References</source>
         <translation>引用</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="450"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="453"/>
         <source>&amp;Threads</source>
         <translation>线程(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="453"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="456"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="147"/>
         <source>Threads</source>
         <translation>线程</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="462"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="465"/>
         <source>&amp;Preferences</source>
         <translation>选项(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="465"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="468"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="474"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="477"/>
         <source>&amp;Find Strings</source>
         <translation>搜索字符串(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="477"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="480"/>
         <source>Find Strings</source>
         <translation>搜索字符串</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="486"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="489"/>
         <source>&amp;Appearance</source>
         <translation type="unfinished">外观(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="495"/>
         <location filename="../Src/Gui/MainWindow.ui" line="498"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="501"/>
         <source>Find Intermodular Calls</source>
         <translation type="unfinished">搜索跨模块调用</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="507"/>
         <location filename="../Src/Gui/MainWindow.ui" line="510"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="513"/>
         <source>Patches</source>
         <translation>补丁</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="519"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="522"/>
         <source>Comments</source>
         <translation>注释</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="528"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="531"/>
         <source>Labels</source>
         <translation type="unfinished">标签</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="537"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="540"/>
         <source>Bookmarks</source>
         <translation type="unfinished">书签</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="546"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="549"/>
         <source>Functions</source>
         <translation type="unfinished">函数</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="555"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="558"/>
         <source>Check for &amp;Updates</source>
         <translation>检查更新(&amp;U)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="564"/>
         <location filename="../Src/Gui/MainWindow.ui" line="567"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="570"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="112"/>
         <source>Call Stack</source>
         <translation>调用堆栈</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="576"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="579"/>
         <source>Shortcuts</source>
         <translation type="unfinished">快捷键</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="585"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="588"/>
         <source>&amp;Donate</source>
         <translation>捐赠(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="588"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1120"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="591"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1127"/>
         <source>Donate</source>
         <translation>捐赠</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="597"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="600"/>
         <source>Calculator</source>
         <translation>计算器</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="606"/>
         <location filename="../Src/Gui/MainWindow.ui" line="609"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="612"/>
         <source>Attach</source>
         <translation>附加</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="618"/>
         <location filename="../Src/Gui/MainWindow.ui" line="621"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="624"/>
         <source>Detach</source>
         <translation type="unfinished">脱离</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="630"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="633"/>
         <source>Change Command &amp;Line</source>
         <translation type="unfinished">改变命令行(&amp;L)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="639"/>
         <location filename="../Src/Gui/MainWindow.ui" line="642"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="645"/>
         <source>Skip next instruction</source>
         <translation type="unfinished">跳过下一指令</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="654"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="657"/>
         <source>Topmost</source>
         <translation type="unfinished">窗口置顶</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="657"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="660"/>
         <source>Topmost Window</source>
         <translation type="unfinished">窗口置顶</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="666"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="669"/>
         <source>&amp;Report Bug</source>
         <translation type="unfinished">报告Bug(&amp;B)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="669"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1133"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="672"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1140"/>
         <source>Report Bug</source>
         <translation type="unfinished">报告Bug</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="678"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="681"/>
         <source>&amp;Source</source>
         <translation type="unfinished">源代码(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="681"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="684"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="90"/>
         <source>Source</source>
         <translation type="unfinished">源代码</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="690"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="693"/>
         <source>&amp;Manual</source>
         <translation type="unfinished">用户手册(&amp;M)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="699"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="702"/>
         <source>&amp;FAQ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="702"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="705"/>
         <source>FAQ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="711"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="714"/>
         <source>SEH Chain</source>
         <translation type="unfinished">SEH链</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="720"/>
         <location filename="../Src/Gui/MainWindow.ui" line="723"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="726"/>
         <source>Hide debugger (PEB)</source>
         <translation type="unfinished">隐藏调试器 (PEB)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="732"/>
         <location filename="../Src/Gui/MainWindow.ui" line="735"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="738"/>
         <source>Reload style.css</source>
         <translation type="unfinished">重新载入 style.css</translation>
     </message>
@@ -3290,84 +3316,87 @@ run</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../Src/Gui/MainWindow.ui" line="756"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="152"/>
         <source>Snowman</source>
         <translation type="unfinished">Snowman反编译器</translation>
     </message>
     <message>
+        <location filename="../Src/Gui/MainWindow.ui" line="747"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="157"/>
         <source>Notes</source>
         <translation type="unfinished">笔记</translation>
     </message>
     <message>
+        <location filename="../Src/Gui/MainWindow.ui" line="765"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="162"/>
         <source>Handles</source>
         <translation type="unfinished">句柄</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="309"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="313"/>
         <source>Command: </source>
         <translation type="unfinished">命令: </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="318"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="322"/>
         <source>Ready</source>
         <translation>就绪</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="606"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="613"/>
         <source>About x64dbg</source>
         <translation type="unfinished">关于 x64dbg</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="608"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="615"/>
         <source>About x32dbg</source>
         <translation type="unfinished">关于 x32dbg</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="628"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="635"/>
         <source>Open file</source>
         <translation type="unfinished">打开文件</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="628"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="635"/>
         <source>Executables (*.exe *.dll);;All files (*.*)</source>
         <translation type="unfinished">可执行文件 (*.exe *.dll);;所有文件 (*.*)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1060"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1186"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1067"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1193"/>
         <source>Error!</source>
         <translation type="unfinished">错误!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1060"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1067"/>
         <source>Patches cannot be shown when not debugging...</source>
         <translation type="unfinished">未在调试时，不能显示补丁……</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1120"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1127"/>
         <source>All the money will go to x64dbg development.</source>
         <translation type="unfinished">所有捐款都将用于赞助x64dbg的开发。</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1133"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1140"/>
         <source>You will be taken to a website where you can report a bug.
 Make sure to fill in as much information as possible.</source>
         <translation type="unfinished">您将会进入报告Bug的网站。记得尽可能填写最多信息。</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1164"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1171"/>
         <source>Change Command Line</source>
         <translation type="unfinished">改变命令行</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1170"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1177"/>
         <source>Cannot get remote command line, use the &apos;getcmdline&apos; command for more information.</source>
         <translation type="unfinished">无法获得调试对象的命令行，请尝试调用“getcmdline”命令来获得更多信息。</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1186"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1193"/>
         <source>Could not set command line!</source>
         <translation type="unfinished">无法设置命令行！</translation>
     </message>

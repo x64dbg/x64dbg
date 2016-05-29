@@ -13,6 +13,8 @@ public:
 
 public slots:
     void reloadData();
+    void refreshShortcuts();
+    void dbgStateChanged(DBGSTATE state);
 
     void handlesTableContextMenuSlot(const QPoint & pos);
     void tcpConnectionsTableContextMenuSlot(const QPoint & pos);
