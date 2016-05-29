@@ -5,9 +5,11 @@
 #include "console.h"
 #include "function.h"
 
-ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(duint base, duint size) : Analysis(base, size)
+ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(duint base, duint size)
+    : Analysis(base, size),
+      _functionInfoSize(0),
+      _functionInfoData(nullptr)
 {
-    _functionInfoData = nullptr;
 #ifdef _WIN64
     // This will only be valid if the address range is within a loaded module
     _moduleBase = ModBaseFromAddr(base);
@@ -81,7 +83,7 @@ void ExceptionDirectoryAnalysis::Analyse()
 
 void ExceptionDirectoryAnalysis::SetMarkers()
 {
-    FunctionDelRange(_base, _base + _size);
+    FunctionDelRange(_base, _base + _size - 1, false);
     for(const auto & function : _functions)
         FunctionAdd(function.first, function.second, false);
 }

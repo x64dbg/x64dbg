@@ -1,7 +1,10 @@
 #include "GotoDialog.h"
 #include "ui_GotoDialog.h"
 
-GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog)
+GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression)
+    : QDialog(parent),
+      ui(new Ui::GotoDialog),
+      allowInvalidExpression(allowInvalidExpression)
 {
     //setup UI first
     ui->setupUi(this);
@@ -12,10 +15,10 @@ GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog
     setFixedSize(this->size()); //fixed size
     //initialize stuff
     if(!DbgIsDebugging()) //not debugging
-        ui->labelError->setText("<font color='red'><b>Not debugging...</b></font>");
+        ui->labelError->setText(tr("<font color='red'><b>Not debugging...</b></font>"));
     else
-        ui->labelError->setText("<font color='red'><b>Invalid expression...</b></font>");
-    ui->buttonOk->setEnabled(false);
+        ui->labelError->setText(tr("<font color='red'><b>Invalid expression...</b></font>"));
+    setOkEnabled(false);
     ui->editExpression->setFocus();
     validRangeStart = 0;
     validRangeEnd = 0;
@@ -54,59 +57,71 @@ void GotoDialog::validateExpression(QString expression)
     this->mValidateThread->emitExpressionChanged(validExpression, validPointer, value);
 }
 
+void GotoDialog::setInitialExpression(const QString & expression)
+{
+    ui->editExpression->setText(expression);
+    validateExpression(expression);
+}
+
 void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsint value)
 {
     QString expression = ui->editExpression->text();
+    if(!expression.length())
+    {
+        ui->labelError->setText(tr("<font color='red'><b>Empty expression...</b></font>"));
+        setOkEnabled(false);
+        expressionText.clear();
+    }
     if(expressionText == expression)
         return;
     if(!DbgIsDebugging()) //not debugging
     {
-        ui->labelError->setText("<font color='red'><b>Not debugging...</b></font>");
-        ui->buttonOk->setEnabled(false);
+        ui->labelError->setText(tr("<font color='red'><b>Not debugging...</b></font>"));
+        setOkEnabled(false);
         expressionText.clear();
     }
     else if(!validExpression) //invalid expression
     {
-        ui->labelError->setText("<font color='red'><b>Invalid expression...</b></font>");
-        ui->buttonOk->setEnabled(false);
+        ui->labelError->setText(tr("<font color='red'><b>Invalid expression...</b></font>"));
+        setOkEnabled(false);
         expressionText.clear();
     }
     else if(fileOffset)
     {
         duint offset = value;
         duint va = DbgFunctions()->FileOffsetToVa(modName.toUtf8().constData(), offset);
+        QString addrText = QString(" %1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         if(va)
         {
-            QString addrText = QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-            ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></font>" + addrText));
-            ui->buttonOk->setEnabled(true);
+            ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText);
+            setOkEnabled(true);
             expressionText = expression;
         }
         else
         {
-            ui->labelError->setText("<font color='red'><b>Invalid file offset...</b></font>");
-            ui->buttonOk->setEnabled(false);
+            ui->labelError->setText(tr("<font color='red'><b>Invalid file offset...</b></font>") + addrText);
+            setOkEnabled(false);
             expressionText.clear();
         }
     }
     else
     {
         duint addr = value;
+        QString addrText = QString(" %1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         if(!validPointer)
         {
-            ui->labelError->setText("<font color='red'><b>Invalid memory address...</b></font>");
-            ui->buttonOk->setEnabled(false);
+            ui->labelError->setText(tr("<font color='red'><b>Invalid memory address...</b></font>") + addrText);
+            setOkEnabled(false);
             expressionText.clear();
         }
         else if(!IsValidMemoryRange(addr))
         {
-            ui->labelError->setText("<font color='red'><b>Memory out of range...</b></font>");
-            ui->buttonOk->setEnabled(false);
+            ui->labelError->setText(tr("<font color='red'><b>Memory out of range...</b></font>") + addrText);
+            setOkEnabled(false);
             expressionText.clear();
         }
         else
         {
-            QString addrText;
             char module[MAX_MODULE_SIZE] = "";
             char label[MAX_LABEL_SIZE] = "";
             if(DbgGetLabelAt(addr, SEG_DEFAULT, label)) //has label
@@ -120,8 +135,8 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
                 addrText = QString(module) + "." + QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             else
                 addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-            ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></font>" + addrText));
-            ui->buttonOk->setEnabled(true);
+            ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText);
+            setOkEnabled(true);
             expressionText = expression;
         }
     }
@@ -130,6 +145,11 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
 bool GotoDialog::IsValidMemoryRange(duint addr)
 {
     return ((!validRangeStart && !validRangeEnd) || (addr >= validRangeStart && addr < validRangeEnd));
+}
+
+void GotoDialog::setOkEnabled(bool enabled)
+{
+    ui->buttonOk->setEnabled(enabled || allowInvalidExpression);
 }
 
 void GotoDialog::on_buttonOk_clicked()

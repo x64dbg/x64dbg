@@ -70,7 +70,7 @@ mkdir %RELEASEDIR%\pluginsdk\XEDParse
 mkdir %RELEASEDIR%\pluginsdk\yara
 mkdir %RELEASEDIR%\pluginsdk\yara\yara
 
-xcopy src\dbg\capstone %RELEASEDIR%\pluginsdk\capstone /S /Y
+xcopy src\capstone_wrapper\capstone %RELEASEDIR%\pluginsdk\capstone /S /Y
 xcopy src\dbg\dbghelp %RELEASEDIR%\pluginsdk\dbghelp /S /Y
 xcopy src\dbg\DeviceNameResolver %RELEASEDIR%\pluginsdk\DeviceNameResolver /S /Y
 xcopy src\dbg\jansson %RELEASEDIR%\pluginsdk\jansson /S /Y
@@ -113,10 +113,13 @@ copy bin\x64\x64dbg.lib %RELEASEDIR%\pluginsdk\x64dbg.lib
 echo release
 
 mkdir %RELEASEDIR%\release
+mkdir %RELEASEDIR%\release\translations
 mkdir %RELEASEDIR%\release\x32
 mkdir %RELEASEDIR%\release\x64
 
 copy bin\x96dbg.exe %RELEASEDIR%\release\x96dbg.exe
+copy bin\mnemdb.json %RELEASEDIR%\release\mnemdb.json
+xcopy src\gui\Translations\*.qm %RELEASEDIR%\release\translations /S /Y
 copy bin\x32\x32bridge.dll %RELEASEDIR%\release\x32\x32bridge.dll
 copy bin\x32\x32bridge.pdb %RELEASEDIR%\release\x32\x32bridge.pdb
 copy bin\x32\x32dbg.dll %RELEASEDIR%\release\x32\x32dbg.dll

@@ -1,8 +1,7 @@
-#pragma once
+#ifndef _SYMBOLINFO_H
+#define _SYMBOLINFO_H
 
 #include "_global.h"
-
-struct SYMBOLCBDATA;
 
 void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData);
 void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData);
@@ -10,10 +9,7 @@ bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List);
 void SymUpdateModuleList();
 void SymDownloadAllSymbols(const char* SymbolStore);
 bool SymAddrFromName(const char* Name, duint* Address);
-const char* SymGetSymbolicName(duint Address);
-void SymClearMemoryCache();
-bool SymGetSymbolInfo(PSYMBOL_INFO SymInfo, SYMBOLINFO* curSymbol, bool isImported);
-void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData);
+String SymGetSymbolicName(duint Address);
 
 /**
 \brief Gets the source code file name and line from an address.
@@ -23,3 +19,5 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData);
 \return true if it succeeds, false if it fails.
 */
 bool SymGetSourceLine(duint Cip, char* FileName, int* Line);
+
+#endif // _SYMBOLINFO_H

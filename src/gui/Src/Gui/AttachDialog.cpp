@@ -1,5 +1,6 @@
 #include "AttachDialog.h"
 #include "ui_AttachDialog.h"
+#include "SearchListView.h"
 #include <QMenu>
 
 AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AttachDialog)
@@ -9,26 +10,45 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
 #endif
 
-    //setup actions
-    mAttachAction = new QAction("Attach", this);
+    // Setup actions/shortcuts
+    //
+    // Enter key as shortcut for "Attach"
+    mAttachAction = new QAction(tr("Attach"), this);
     mAttachAction->setShortcut(QKeySequence("enter"));
     connect(mAttachAction, SIGNAL(triggered()), this, SLOT(on_btnAttach_clicked()));
 
-    mRefreshAction = new QAction("Refresh", this);
-    mRefreshAction->setShortcut(QKeySequence("F5"));
+    // F5 as shortcut to refresh view
+    mRefreshAction = new QAction(tr("Refresh"), this);
+    mRefreshAction->setShortcut(ConfigShortcut("ActionRefresh"));
+    ui->btnRefresh->setText(tr("Refresh") + QString(" (%1)").arg(mRefreshAction->shortcut().toString()));
     connect(mRefreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
     this->addAction(mRefreshAction);
+    connect(ui->btnRefresh, SIGNAL(clicked()), this, SLOT(refresh()));
 
+    // Create search view (regex disabled)
+    mSearchListView = new SearchListView(false);
+    mSearchListView->mSearchStartCol = 1;
+    ui->verticalLayout->insertWidget(0, mSearchListView);
 
     //setup process list
-    int charwidth = ui->listProcesses->getCharWidth();
-    ui->listProcesses->addColumnAt(charwidth * sizeof(int) * 2 + 8, "PID", true);
-    ui->listProcesses->addColumnAt(800, "Path", true);
-    ui->listProcesses->setDrawDebugOnly(false);
-    connect(ui->listProcesses, SIGNAL(enterPressedSignal()), this, SLOT(on_btnAttach_clicked()));
-    connect(ui->listProcesses, SIGNAL(doubleClickedSignal()), this, SLOT(on_btnAttach_clicked()));
-    connect(ui->listProcesses, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(processListContextMenu(QPoint)));
+    int charwidth = mSearchListView->mList->getCharWidth();
+    mSearchListView->mList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->mList->addColumnAt(800, tr("Path"), true);
+    mSearchListView->mList->setDrawDebugOnly(false);
 
+    charwidth = mSearchListView->mSearchList->getCharWidth();
+    mSearchListView->mSearchList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->mSearchList->addColumnAt(800, tr("Path"), true);
+    mSearchListView->mSearchList->setDrawDebugOnly(false);
+
+    connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(on_btnAttach_clicked()));
+    connect(mSearchListView, SIGNAL(doubleClickedSignal()), this, SLOT(on_btnAttach_clicked()));
+    connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(processListContextMenu(QMenu*)));
+
+    // Highlight the search box
+    mSearchListView->mCurList->setFocus();
+
+    // Populate the process list atleast once
     refresh();
 }
 
@@ -39,40 +59,35 @@ AttachDialog::~AttachDialog()
 
 void AttachDialog::refresh()
 {
-    ui->listProcesses->setRowCount(0);
-    ui->listProcesses->setTableOffset(0);
+    mSearchListView->mCurList->setRowCount(0);
+    mSearchListView->mCurList->setTableOffset(0);
     DBGPROCESSINFO* entries;
     int count;
     if(!DbgFunctions()->GetProcessList(&entries, &count))
         return;
-    ui->listProcesses->setRowCount(count);
+    mSearchListView->mCurList->setRowCount(count);
     for(int i = 0; i < count; i++)
     {
-        ui->listProcesses->setCellContent(i, 0, QString().sprintf("%.8X", entries[i].dwProcessId));
-        ui->listProcesses->setCellContent(i, 1, QString(entries[i].szExeFile));
+        mSearchListView->mCurList->setCellContent(i, 0, QString().sprintf("%.8X", entries[i].dwProcessId));
+        mSearchListView->mCurList->setCellContent(i, 1, QString(entries[i].szExeFile));
     }
-    ui->listProcesses->setSingleSelection(0);
-    ui->listProcesses->reloadData();
+    mSearchListView->mCurList->setSingleSelection(0);
+    mSearchListView->mCurList->reloadData();
 }
 
 void AttachDialog::on_btnAttach_clicked()
 {
-    QString pid = ui->listProcesses->getCellContent(ui->listProcesses->getInitialSelection(), 0);
+    QString pid = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
     DbgCmdExec(QString("attach " + pid).toUtf8().constData());
     accept();
 }
 
-void AttachDialog::processListContextMenu(const QPoint & pos)
+void AttachDialog::processListContextMenu(QMenu* wMenu)
 {
-    QMenu* wMenu = new QMenu(this); //create context menu
+    // Don't show menu options if nothing is listed
+    if(!mSearchListView->mCurList->getRowCount())
+        return;
+
     wMenu->addAction(mAttachAction);
     wMenu->addAction(mRefreshAction);
-    QMenu wCopyMenu("&Copy", this);
-    ui->listProcesses->setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
-    {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
-    }
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
 }

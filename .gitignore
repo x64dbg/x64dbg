@@ -44,6 +44,7 @@ ui_*
 help/x64*dbg.chm
 help/output/
 bin/x64*dbg.chm
+bin/win32.*
 
 # Debugger files to ignore
 CppCheckResults.xml
@@ -55,6 +56,8 @@ src/gui/build
 src/gui/Makefile*
 tools/
 RCa*
+RDa*
+RDb*
 src/build-*/
 
 # Exceptions
@@ -62,3 +65,4 @@ src/build-*/
 !/hooks/AStyle.dll
 !/bin/x64dbg_shell_remove.reg
 !*.lib
+pin.log

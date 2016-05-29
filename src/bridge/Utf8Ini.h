@@ -272,6 +272,7 @@ private:
                 break;
             case '\t':
                 escaped += "\\t";
+                break;
             default:
                 escaped += ch;
             }

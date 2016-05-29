@@ -74,10 +74,10 @@ private:
     UintSet* findParents(duint child);
     duint findFunctionStart(BasicBlock* block, UintSet* parents);
     String blockToString(BasicBlock* block);
-    duint GetReferenceOperand();
+    duint getReferenceOperand() const;
 
 #ifdef _WIN64
-    void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);
+    void enumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);
 #endif // _WIN64
 };
 

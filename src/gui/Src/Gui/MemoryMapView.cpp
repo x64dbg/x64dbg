@@ -1,3 +1,5 @@
+#include <QFileDialog>
+
 #include "MemoryMapView.h"
 #include "Configuration.h"
 #include "Bridge.h"
@@ -12,12 +14,12 @@ MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), "Address", false, "Address"); //addr
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), "Size", false, "Size"); //size
-    addColumnAt(8 + charwidth * 32, "Info", false, "Page Information"); //page information
-    addColumnAt(8 + charwidth * 5, "Type", false, "Allocation Type"); //allocation type
-    addColumnAt(8 + charwidth * 11, "Protection", false, "Current Protection"); //current protection
-    addColumnAt(8 + charwidth * 8, "Initial", false, "Allocation Protection"); //allocation protection
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, tr("Address")); //addr
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, tr("Size")); //size
+    addColumnAt(8 + charwidth * 32, tr("Info"), false, tr("Page Information")); //page information
+    addColumnAt(8 + charwidth * 5, tr("Type"), false, tr("Allocation Type")); //allocation type
+    addColumnAt(8 + charwidth * 11, tr("Protection"), false, tr("Current Protection")); //current protection
+    addColumnAt(8 + charwidth * 8, tr("Initial"), false, tr("Allocation Protection")); //allocation protection
     addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
@@ -30,11 +32,11 @@ MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 void MemoryMapView::setupContextMenu()
 {
     //Follow in Dump
-    mFollowDump = new QAction("&Follow in Dump", this);
+    mFollowDump = new QAction(tr("&Follow in Dump"), this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
     //Follow in Disassembler
-    mFollowDisassembly = new QAction("Follow in &Disassembler", this);
+    mFollowDisassembly = new QAction(tr("Follow in &Disassembler"), this);
     mFollowDisassembly->setShortcutContext(Qt::WidgetShortcut);
     mFollowDisassembly->setShortcut(QKeySequence("enter"));
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
@@ -46,49 +48,49 @@ void MemoryMapView::setupContextMenu()
     connect(mYara, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Set PageMemory Rights
-    mPageMemoryRights = new QAction("Set Page Memory Rights", this);
+    mPageMemoryRights = new QAction(tr("Set Page Memory Rights"), this);
     connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
 
     //Switch View
-    mSwitchView = new QAction("&Switch View", this);
+    mSwitchView = new QAction(tr("&Switch View"), this);
     connect(mSwitchView, SIGNAL(triggered()), this, SLOT(switchView()));
 
     //Breakpoint menu
-    mBreakpointMenu = new QMenu("Memory &Breakpoint", this);
+    mBreakpointMenu = new QMenu(tr("Memory &Breakpoint"), this);
 
     //Breakpoint->Memory Access
-    mMemoryAccessMenu = new QMenu("Access", this);
-    mMemoryAccessSingleshoot = new QAction("&Singleshoot", this);
+    mMemoryAccessMenu = new QMenu(tr("Access"), this);
+    mMemoryAccessSingleshoot = new QAction(tr("&Singleshoot"), this);
     connect(mMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessSingleshoot);
-    mMemoryAccessRestore = new QAction("&Restore", this);
+    mMemoryAccessRestore = new QAction(tr("&Restore"), this);
     connect(mMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessRestore);
     mBreakpointMenu->addMenu(mMemoryAccessMenu);
 
     //Breakpoint->Memory Write
-    mMemoryWriteMenu = new QMenu("Write", this);
-    mMemoryWriteSingleshoot = new QAction("&Singleshoot", this);
+    mMemoryWriteMenu = new QMenu(tr("Write"), this);
+    mMemoryWriteSingleshoot = new QAction(tr("&Singleshoot"), this);
     connect(mMemoryWriteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteSingleshoot);
-    mMemoryWriteRestore = new QAction("&Restore", this);
+    mMemoryWriteRestore = new QAction(tr("&Restore"), this);
     connect(mMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteRestore);
     mBreakpointMenu->addMenu(mMemoryWriteMenu);
 
     //Breakpoint->Memory Execute
-    mMemoryExecuteMenu = new QMenu("Execute", this);
-    mMemoryExecuteSingleshoot = new QAction("&Singleshoot", this);
+    mMemoryExecuteMenu = new QMenu(tr("Execute"), this);
+    mMemoryExecuteSingleshoot = new QAction(tr("&Singleshoot"), this);
     mMemoryExecuteSingleshoot->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
-    mMemoryExecuteRestore = new QAction("&Restore", this);
+    mMemoryExecuteRestore = new QAction(tr("&Restore"), this);
     connect(mMemoryExecuteRestore, SIGNAL(triggered()), this, SLOT(memoryExecuteRestoreSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteRestore);
     mBreakpointMenu->addMenu(mMemoryExecuteMenu);
 
     //Breakpoint->Remove
-    mMemoryRemove = new QAction("&Remove", this);
+    mMemoryRemove = new QAction(tr("&Remove"), this);
     mMemoryRemove->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
     mBreakpointMenu->addAction(mMemoryRemove);
@@ -100,14 +102,18 @@ void MemoryMapView::setupContextMenu()
     connect(mMemoryExecuteSingleshootToggle, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootToggleSlot()));
 
     //Entropy
-    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
+    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropy()));
 
     //Find
-    mFindPattern = new QAction(QIcon(":/icons/images/search-for.png"), "&Find Pattern...", this);
+    mFindPattern = new QAction(QIcon(":/icons/images/search-for.png"), tr("&Find Pattern..."), this);
     this->addAction(mFindPattern);
     mFindPattern->setShortcutContext(Qt::WidgetShortcut);
     connect(mFindPattern, SIGNAL(triggered()), this, SLOT(findPatternSlot()));
+
+    //Dump
+    mDumpMemory = new QAction(tr("&Dump Memory to File"), this);
+    connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemory()));
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -125,23 +131,24 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 {
     if(!DbgIsDebugging())
         return;
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addAction(mFollowDisassembly);
-    wMenu->addAction(mFollowDump);
-    wMenu->addAction(mYara);
-    wMenu->addAction(mEntropy);
-    wMenu->addAction(mFindPattern);
-    wMenu->addAction(mSwitchView);
-    wMenu->addSeparator();
-    wMenu->addAction(mPageMemoryRights);
-    wMenu->addSeparator();
-    wMenu->addMenu(mBreakpointMenu);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wMenu(this); //create context menu
+    wMenu.addAction(mDumpMemory);
+    wMenu.addAction(mFollowDisassembly);
+    wMenu.addAction(mFollowDump);
+    wMenu.addAction(mYara);
+    wMenu.addAction(mEntropy);
+    wMenu.addAction(mFindPattern);
+    wMenu.addAction(mSwitchView);
+    wMenu.addSeparator();
+    wMenu.addAction(mPageMemoryRights);
+    wMenu.addSeparator();
+    wMenu.addMenu(mBreakpointMenu);
+    QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
 
     QString wStr = getCellContent(getInitialSelection(), 0);
@@ -165,7 +172,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
         mMemoryRemove->setVisible(false);
     }
 
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
+    wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 QString MemoryMapView::getProtectionString(DWORD Protect)
@@ -447,3 +454,17 @@ void MemoryMapView::findPatternSlot()
     DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&").toUtf8().constData());
     emit showReferences();
 }
+
+void MemoryMapView::dumpMemory()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Memory Region", QDir::currentPath(), tr("All files (*.*)"));
+
+    if(fileName.length())
+    {
+        fileName = QDir::toNativeSeparators(fileName);
+        QString cmd = QString("savedata ""%1"",%2,%3").arg(fileName, getCellContent(getInitialSelection(), 0),
+                      getCellContent(getInitialSelection(), 1));
+        DbgCmdExec(cmd.toUtf8().constData());
+    }
+}
+

@@ -22,8 +22,8 @@ public:
 
     // Context menu management
     void setupRightClickContextMenu();
-    void addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences);
-    void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences);
+    void addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences, bool isFollowInCPU);
+    void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences, bool isFollowInCPU);
     void setHwBpAt(duint va, int slot);
 
     void copySelectionSlot(bool copyBytes);
@@ -34,6 +34,7 @@ signals:
     void showPatches();
     void decompileAt(dsint start, dsint end);
     void displaySnowmanWidget();
+    void displayLogWidget();
 
 public slots:
     void toggleInt3BPActionSlot();
@@ -83,12 +84,22 @@ public slots:
     void openSourceSlot();
     void decompileSelectionSlot();
     void decompileFunctionSlot();
+    void mnemonicHelpSlot();
+    void mnemonicBriefSlot();
+    void ActionTraceRecordBitSlot();
+    void ActionTraceRecordByteSlot();
+    void ActionTraceRecordWordSlot();
+    void ActionTraceRecordDisableSlot();
     void displayWarningSlot(QString title, QString text);
+    void labelHelpSlot();
+    void editSoftBpActionSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);
 
 private:
+    bool getLabelsFromInstruction(duint addr, QSet<QString> & labels);
+
     // Menus
     QMenu* mHwSlotSelectMenu;
     QMenu* mPluginMenu;
@@ -109,7 +120,6 @@ private:
     QAction* mFindConstantAll;
     QAction* mFindStringsAll;
     QAction* mFindCallsAll;
-
 
     // Goto dialog specific
     GotoDialog* mGoto;

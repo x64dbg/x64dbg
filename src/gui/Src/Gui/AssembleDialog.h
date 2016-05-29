@@ -28,7 +28,6 @@ public:
 
     bool bFillWithNopsChecked;
     void setFillWithNopsChecked(bool checked);
-    void setFillWithNopsLabel(const QString & text);
 
     void setSelectedInstrVa(const duint va);
     void setOkButtonEnabled(bool enabled);

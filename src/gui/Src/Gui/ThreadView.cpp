@@ -8,27 +8,27 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
     if(!DbgIsDebugging())
         return;
 
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addAction(mSwitchThread);
-    wMenu->addAction(mSuspendThread);
-    wMenu->addAction(mResumeThread);
-    wMenu->addAction(mKillThread);
-    wMenu->addSeparator();
-    wMenu->addMenu(mSetPriority);
+    QMenu wMenu(this); //create context menu
+    wMenu.addAction(mSwitchThread);
+    wMenu.addAction(mSuspendThread);
+    wMenu.addAction(mResumeThread);
+    wMenu.addAction(mKillThread);
+    wMenu.addSeparator();
+    wMenu.addMenu(mSetPriority);
     bool ok;
     ULONGLONG entry = getCellContent(getInitialSelection(), 2).toULongLong(&ok, 16);
     if(ok && DbgMemIsValidReadPtr(entry))
     {
-        wMenu->addSeparator();
-        wMenu->addAction(mGoToThreadEntry);
+        wMenu.addSeparator();
+        wMenu.addAction(mGoToThreadEntry);
     }
-    wMenu->addSeparator();
-    QMenu wCopyMenu("&Copy", this);
+    wMenu.addSeparator();
+    QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
 
 
@@ -38,6 +38,7 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
         action->setChecked(false);
     }
 
+    // TODO: remove locale-dependency here so that these strings can be translated.
     QString priority = getCellContent(getInitialSelection(), 6);
     if(priority == "Normal")
         mSetPriorityNormal->setChecked(true);
@@ -54,7 +55,7 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
     else if(priority == "Lowest")
         mSetPriorityLowest->setChecked(true);
 
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
+    wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void ThreadView::GoToThreadEntry()
@@ -133,23 +134,23 @@ void ThreadView::SetPriorityTimeCriticalSlot()
 void ThreadView::setupContextMenu()
 {
     //Switch thread menu
-    mSwitchThread = new QAction("Switch Thread", this);
+    mSwitchThread = new QAction(tr("Switch Thread"), this);
     connect(mSwitchThread, SIGNAL(triggered()), this, SLOT(SwitchThread()));
 
     //Suspend thread menu
-    mSuspendThread = new QAction("Suspend Thread", this);
+    mSuspendThread = new QAction(tr("Suspend Thread"), this);
     connect(mSuspendThread, SIGNAL(triggered()), this, SLOT(SuspendThread()));
 
     //Resume thread menu
-    mResumeThread = new QAction("Resume Thread", this);
+    mResumeThread = new QAction(tr("Resume Thread"), this);
     connect(mResumeThread, SIGNAL(triggered()), this, SLOT(ResumeThread()));
 
     //Kill thread menu
-    mKillThread = new QAction("Kill Thread", this);
+    mKillThread = new QAction(tr("Kill Thread"), this);
     connect(mKillThread, SIGNAL(triggered()), this, SLOT(KillThread()));
 
     // Set priority
-    mSetPriority = new QMenu("Set Priority", this);
+    mSetPriority = new QMenu(tr("Set Priority"), this);
 
     mSetPriorityIdle = new QAction("Idle", this);
     connect(mSetPriorityIdle, SIGNAL(triggered()), this, SLOT(SetPriorityIdleSlot()));
@@ -180,7 +181,7 @@ void ThreadView::setupContextMenu()
     mSetPriority->addAction(mSetPriorityTimeCritical);
 
     // GoToThreadEntry
-    mGoToThreadEntry = new QAction("Go to Thread Entry", this);
+    mGoToThreadEntry = new QAction(tr("Go to Thread Entry"), this);
     connect(mGoToThreadEntry, SIGNAL(triggered()), this, SLOT(GoToThreadEntry()));
 
 }
@@ -188,19 +189,19 @@ void ThreadView::setupContextMenu()
 ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
 {
     int charwidth = getCharWidth();
-    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, "Number", false);
-    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, "ID", false);
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, "Entry", false);
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, "TEB", false);
+    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("Number"), false);
+    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("ID"), false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("Entry"), false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("TEB"), false);
 #ifdef _WIN64
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, "RIP", false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("RIP"), false);
 #else
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, "EIP", false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("EIP"), false);
 #endif //_WIN64
-    addColumnAt(8 + charwidth * 14, "Suspend Count", false);
-    addColumnAt(8 + charwidth * 12, "Priority", false);
-    addColumnAt(8 + charwidth * 12, "Wait Reason", false);
-    addColumnAt(8 + charwidth * 11, "Last Error", false);
+    addColumnAt(8 + charwidth * 14, tr("Suspend Count"), false);
+    addColumnAt(8 + charwidth * 12, tr("Priority"), false);
+    addColumnAt(8 + charwidth * 12, tr("Wait Reason"), false);
+    addColumnAt(8 + charwidth * 11, tr("Last Error"), false);
     addColumnAt(0, "Name", false);
 
     //setCopyMenuOnly(true);

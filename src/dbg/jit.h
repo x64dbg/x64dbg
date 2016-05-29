@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _JIT_H
+#define _JIT_H
 
 #include "_global.h"
 
@@ -22,3 +23,5 @@ bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_erro
 bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
 bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
 bool dbggetdefjit(char* jit_entry);
+
+#endif // _JIT_H

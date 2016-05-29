@@ -29,9 +29,18 @@
     <ClInclude Include="crashdump.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="icon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="icon32.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="icon64.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -43,5 +52,13 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\bug32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bug64.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

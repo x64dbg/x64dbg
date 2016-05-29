@@ -26,6 +26,8 @@ public:
     static void ReplaceAll(WString & s, const WString & from, const WString & to);
     static String sprintf(const char* format, ...);
     static WString sprintf(const wchar_t* format, ...);
+    static String ToLower(const String & s);
+    static bool StartsWith(const String & h, const String & n);
 
 private:
     static const String WHITESPACE;

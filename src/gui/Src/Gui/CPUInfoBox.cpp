@@ -13,7 +13,7 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     setCellContent(2, 0, "");
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    horizontalScrollBar()->setStyleSheet("QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}");
+    horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
 
     int height = getHeight();
     setMaximumHeight(height);
@@ -31,9 +31,9 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
 
 void CPUInfoBox::setupContextMenu()
 {
-    mCopyAddressAction = makeAction("Address", SLOT(copyAddress()));
-    mCopyRvaAction = makeAction("RVA", SLOT(copyRva()));
-    mCopyOffsetAction = makeAction("File Offset", SLOT(copyOffset()));
+    mCopyAddressAction = makeAction(tr("Address"), SLOT(copyAddress()));
+    mCopyRvaAction = makeAction(tr("RVA"), SLOT(copyRva()));
+    mCopyOffsetAction = makeAction(tr("File Offset"), SLOT(copyOffset()));
 }
 
 int CPUInfoBox::getHeight()
@@ -74,8 +74,7 @@ QString CPUInfoBox::getSymbolicName(dsint addr)
     bool bHasString = DbgGetStringAt(addr, string);
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
     bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
-    QString addrText;
-    addrText = QString("%1").arg(addr & (duint) - 1, 0, 16, QChar('0')).toUpper();
+    QString addrText = ToHexString(addr);
     QString finalText;
     if(bHasString)
         finalText = addrText + " " + QString(string);
@@ -129,9 +128,9 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
     {
         bool taken = DbgIsJumpGoingToExecute(parVA);
         if(taken)
-            setInfoLine(0, "Jump is taken");
+            setInfoLine(0, tr("Jump is taken"));
         else
-            setInfoLine(0, "Jump is not taken");
+            setInfoLine(0, tr("Jump is not taken"));
         start = 1;
     }
 
@@ -163,6 +162,14 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 break;
             }
 
+#ifdef _WIN64
+            if(arg.segment == SEG_GS)
+                sizeName += "gs:";
+#else //x32
+            if(arg.segment == SEG_FS)
+                sizeName += "fs:";
+#endif
+
             if(bUpper)
                 sizeName = sizeName.toUpper();
 
@@ -181,12 +188,18 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         }
         else
         {
+            auto symbolicName = getSymbolicName(arg.value);
             QString mnemonic(arg.mnemonic);
             bool ok;
             mnemonic.toULongLong(&ok, 16);
-            if(ok) //skip numbers
-                continue;
-            setInfoLine(j, mnemonic + "=" + getSymbolicName(arg.value));
+            if(ok) //skip certain numbers
+            {
+                if(ToHexString(arg.value) == symbolicName)
+                    continue;
+                setInfoLine(j, symbolicName);
+            }
+            else
+                setInfoLine(j, mnemonic + "=" + symbolicName);
             j++;
         }
     }
@@ -222,13 +235,19 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 
         // File offset
         curOffset = DbgFunctions()->VaToFileOffset(parVA);
-        info += QString("#%1 ").arg(curOffset, 0, 16, QChar('0')).toUpper() + " ";
+        info += QString("#%1 ").arg(curOffset, 0, 16, QChar('0')).toUpper();
     }
 
     // Function/label name
     char label[MAX_LABEL_SIZE];
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
-        info += "<" + QString(label) + ">";
+        info += QString("<%1>").arg(label);
+    else
+    {
+        duint start;
+        if(DbgFunctionGet(parVA, &start, nullptr) && DbgGetLabelAt(start, SEG_DEFAULT, label) && start != parVA)
+            info += QString("<%1+%2>").arg(label).arg(ToHexString(parVA - start));
+    }
 
     setInfoLine(2, info);
 }
@@ -261,7 +280,7 @@ void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, dsint value)
 void CPUInfoBox::setupFollowMenu(QMenu* menu, dsint wVA)
 {
     //most basic follow action
-    addFollowMenuItem(menu, "&Selected Address", wVA);
+    addFollowMenuItem(menu, tr("&Selected Address"), wVA);
 
     //add follow actions
     DISASM_INSTR instr;
@@ -272,16 +291,24 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, dsint wVA)
         const DISASM_ARG arg = instr.arg[i];
         if(arg.type == arg_memory)
         {
+            QString segment = "";
+#ifdef _WIN64
+            if(arg.segment == SEG_GS)
+                segment = "gs:";
+#else //x32
+            if(arg.segment == SEG_FS)
+                segment = "fs:";
+#endif //_WIN64
             if(DbgMemIsValidReadPtr(arg.value))
-                addFollowMenuItem(menu, "&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
+                addFollowMenuItem(menu, tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
             if(arg.value != arg.constant)
             {
                 QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
                 if(DbgMemIsValidReadPtr(arg.constant))
-                    addFollowMenuItem(menu, "&Constant: " + constant, arg.constant);
+                    addFollowMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowMenuItem(menu, "&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue);
+                addFollowMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue);
         }
         else
         {
@@ -338,11 +365,11 @@ int CPUInfoBox::followInDump(dsint wVA)
 
 void CPUInfoBox::contextMenuSlot(QPoint pos)
 {
-    QMenu* wMenu = new QMenu(this); //create context menu
-    QMenu* wFollowMenu = new QMenu("&Follow in Dump", this);
-    setupFollowMenu(wFollowMenu, curAddr);
-    wMenu->addMenu(wFollowMenu);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wMenu(this); //create context menu
+    QMenu wFollowMenu(tr("&Follow in Dump"), this);
+    setupFollowMenu(&wFollowMenu, curAddr);
+    wMenu.addMenu(&wFollowMenu);
+    QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(DbgIsDebugging())
     {
@@ -354,10 +381,10 @@ void CPUInfoBox::contextMenuSlot(QPoint pos)
     }
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
+    wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void CPUInfoBox::copyAddress()

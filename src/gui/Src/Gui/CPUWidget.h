@@ -3,12 +3,14 @@
 
 #include <QWidget>
 #include <QTabWidget>
+#include <QVBoxLayout>
 #include "CPUSideBar.h"
 #include "CPUDisassembly.h"
 #include "CPUMultiDump.h"
 #include "CPUStack.h"
 #include "RegistersView.h"
 #include "CPUInfoBox.h"
+#include "CPUArgumentWidget.h"
 
 namespace Ui
 {
@@ -47,6 +49,7 @@ protected:
     CPUStack* mStack;
     RegistersView* mGeneralRegs;
     CPUInfoBox* mInfo;
+    CPUArgumentWidget* mArgumentWidget;
 
 private:
     Ui::CPUWidget* ui;

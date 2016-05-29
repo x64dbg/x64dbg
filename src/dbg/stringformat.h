@@ -7,5 +7,6 @@ typedef const char* FormatValueType;
 typedef std::vector<FormatValueType> FormatValueVector;
 
 String stringformat(String format, const FormatValueVector & values);
+String stringformatinline(String format);
 
 #endif //_STRINGFORMAT_H

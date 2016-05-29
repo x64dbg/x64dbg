@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _THREADING_H
+#define _THREADING_H
 
 #include "_global.h"
 
@@ -46,11 +47,15 @@ enum SectionLock
     LockPatches,
     LockThreads,
     LockSym,
+    LockCmdLine,
+    LockDatabase,
     LockPluginList,
     LockPluginCallbackList,
     LockPluginCommandList,
     LockPluginMenuList,
-    LockCmdLine,
+    LockSehCache,
+    LockMnemonicHelp,
+    LockTraceRecord,
 
     // Number of elements in this enumeration. Must always be the last
     // index.
@@ -148,3 +153,5 @@ protected:
 private:
     using Internal = SectionLockerGlobal;
 };
+
+#endif // _THREADING_H

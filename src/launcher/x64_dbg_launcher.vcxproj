@@ -15,9 +15,11 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\exe\resource.rc" />
+    <ResourceCompile Include="..\exe\icon.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\exe\resource.h" />
+    <ClInclude Include="..\exe\icon.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AC3F927A-4079-4C97-B8BE-8D04546802E7}</ProjectGuid>

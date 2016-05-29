@@ -10,6 +10,7 @@ class Disassembly : public AbstractTableView
     Q_OBJECT
 public:
     explicit Disassembly(QWidget* parent = 0);
+    virtual ~Disassembly();
 
     // Configuration
     virtual void updateColors();
@@ -161,6 +162,7 @@ protected:
     QColor mLabelBackgroundColor;
 
     QColor mSelectedAddressBackgroundColor;
+    QColor mTracedAddressBackgroundColor;
     QColor mSelectedAddressColor;
     QColor mAddressBackgroundColor;
     QColor mAddressColor;
@@ -172,6 +174,9 @@ protected:
     QColor mAutoCommentColor;
     QColor mAutoCommentBackgroundColor;
 
+    QColor mMnemonicBriefColor;
+    QColor mMnemonicBriefBackgroundColor;
+
     QColor mCommentColor;
     QColor mCommentBackgroundColor;
 
@@ -182,12 +187,19 @@ protected:
     QColor mLoopColor;
     QColor mFunctionColor;
 
+    QPen mLoopPen;
+    QPen mFunctionPen;
+    QPen mUnconditionalPen;
+    QPen mConditionalTruePen;
+    QPen mConditionalFalsePen;
+
     // Misc
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;
     bool mHighlightingMode;
     MemoryPage* mMemPage;
+    bool mShowMnemonicBrief;
 };
 
 #endif // DISASSEMBLY_H

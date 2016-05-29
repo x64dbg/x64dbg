@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>868</width>
     <height>600</height>
    </rect>
   </property>
@@ -22,7 +22,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>868</width>
      <height>21</height>
     </rect>
    </property>
@@ -30,14 +30,18 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <widget class="QMenu" name="menuRecent_Files">
+    <widget class="QMenu" name="menuRecentFiles">
      <property name="title">
       <string>&amp;Recent Files</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../resource.qrc">
+       <normaloff>:/icons/images/recentfiles.png</normaloff>:/icons/images/recentfiles.png</iconset>
      </property>
      <addaction name="separator"/>
     </widget>
     <addaction name="actionOpen"/>
-    <addaction name="menuRecent_Files"/>
+    <addaction name="menuRecentFiles"/>
     <addaction name="actionAttach"/>
     <addaction name="actionDetach"/>
     <addaction name="separator"/>
@@ -49,9 +53,11 @@
     </property>
     <addaction name="actionCpu"/>
     <addaction name="actionLog"/>
+    <addaction name="actionNotes"/>
     <addaction name="actionBreakpoints"/>
     <addaction name="actionMemoryMap"/>
     <addaction name="actionCallStack"/>
+    <addaction name="actionSEHChain"/>
     <addaction name="actionScript"/>
     <addaction name="actionSymbolInfo"/>
     <addaction name="actionSource"/>
@@ -62,6 +68,8 @@
     <addaction name="actionLabels"/>
     <addaction name="actionBookmarks"/>
     <addaction name="actionFunctions"/>
+    <addaction name="actionSnowman"/>
+    <addaction name="actionHandles"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -84,6 +92,8 @@
     <addaction name="actionSkipNextInstruction"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
+    <addaction name="separator"/>
+    <addaction name="actionHideDebugger"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -95,6 +105,7 @@
     <addaction name="actionReportBug"/>
     <addaction name="separator"/>
     <addaction name="actionManual"/>
+    <addaction name="actionFaq"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
@@ -111,6 +122,7 @@
     <addaction name="actionAppearance"/>
     <addaction name="actionShortcuts"/>
     <addaction name="actionTopmost"/>
+    <addaction name="actionReloadStylesheet"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -152,6 +164,7 @@
    <addaction name="actionBreakpoints"/>
    <addaction name="actionMemoryMap"/>
    <addaction name="actionCallStack"/>
+   <addaction name="actionSEHChain"/>
    <addaction name="actionScript"/>
    <addaction name="actionSymbolInfo"/>
    <addaction name="actionSource"/>
@@ -173,6 +186,9 @@
    <addaction name="actionCheckUpdates"/>
    <addaction name="actionDonate"/>
    <addaction name="actionReportBug"/>
+   <addaction name="separator"/>
+   <addaction name="actionManual"/>
+   <addaction name="actionFaq"/>
    <addaction name="actionAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusBar">
@@ -395,7 +411,7 @@
   <action name="actionCpu">
    <property name="icon">
     <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/processor-cpu.png</normaloff>:/icons/images/processor-cpu.png</iconset>
+     <normaloff>:/icons/images/processor64.png</normaloff>:/icons/images/processor64.png</iconset>
    </property>
    <property name="text">
     <string>&amp;CPU</string>
@@ -675,6 +691,78 @@
    </property>
    <property name="text">
     <string>&amp;Manual</string>
+   </property>
+  </action>
+  <action name="actionFaq">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/faq.png</normaloff>:/icons/images/faq.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;FAQ</string>
+   </property>
+   <property name="toolTip">
+    <string>FAQ</string>
+   </property>
+  </action>
+  <action name="actionSEHChain">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/seh-chain.png</normaloff>:/icons/images/seh-chain.png</iconset>
+   </property>
+   <property name="text">
+    <string>SEH Chain</string>
+   </property>
+  </action>
+  <action name="actionHideDebugger">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/hide-debugger.png</normaloff>:/icons/images/hide-debugger.png</iconset>
+   </property>
+   <property name="text">
+    <string>Hide debugger (PEB)</string>
+   </property>
+   <property name="toolTip">
+    <string>Hide debugger (PEB)</string>
+   </property>
+  </action>
+  <action name="actionReloadStylesheet">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/css.png</normaloff>:/icons/images/css.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reload style.css</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload style.css</string>
+   </property>
+  </action>
+  <action name="actionNotes">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/notes.png</normaloff>:/icons/images/notes.png</iconset>
+   </property>
+   <property name="text">
+    <string>Notes</string>
+   </property>
+  </action>
+  <action name="actionSnowman">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/snowman.png</normaloff>:/icons/images/snowman.png</iconset>
+   </property>
+   <property name="text">
+    <string>Snowman</string>
+   </property>
+  </action>
+  <action name="actionHandles">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/handles.png</normaloff>:/icons/images/handles.png</iconset>
+   </property>
+   <property name="text">
+    <string>Handles</string>
    </property>
   </action>
  </widget>

@@ -29,9 +29,68 @@ typedef struct
 
 typedef struct
 {
+    duint addr;
+    duint handler;
+} DBGSEHRECORD;
+
+typedef struct
+{
+    duint total;
+    DBGSEHRECORD* records;
+} DBGSEHCHAIN;
+
+typedef struct
+{
     DWORD dwProcessId;
     char szExeFile[MAX_PATH];
 } DBGPROCESSINFO;
+
+enum TRACERECORDBYTETYPE
+{
+    InstructionBody = 0,
+    InstructionHeading = 1,
+    InstructionTailing = 2,
+    InstructionOverlapped = 3, // The byte was executed with differing instruction base addresses
+    DataByte,  // This and the following is not implemented yet.
+    DataWord,
+    DataDWord,
+    DataQWord,
+    DataFloat,
+    DataDouble,
+    DataLongDouble,
+    DataXMM,
+    DataYMM,
+    DataMMX,
+    DataMixed, //the byte is accessed in multiple ways
+    InstructionDataMixed //the byte is both executed and written
+};
+
+enum TRACERECORDTYPE
+{
+    TraceRecordNone,
+    TraceRecordBitExec,
+    TraceRecordByteWithExecTypeAndCounter,
+    TraceRecordWordWithExecTypeAndCounter
+};
+
+typedef struct
+{
+    duint Handle;
+    unsigned char TypeNumber;
+    unsigned int GrantedAccess;
+} HANDLEINFO;
+
+#define TCP_ADDR_SIZE 50
+
+typedef struct
+{
+    char RemoteAddress[TCP_ADDR_SIZE];
+    unsigned short RemotePort;
+    char LocalAddress[TCP_ADDR_SIZE];
+    unsigned short LocalPort;
+    char StateText[TCP_ADDR_SIZE];
+    unsigned int State;
+} TCPCONNECTIONINFO;
 
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
@@ -49,9 +108,10 @@ typedef bool (*PATCHRESTORE)(duint addr);
 typedef int (*PATCHFILE)(DBGPATCHINFO* patchlist, int count, const char* szFileName, char* error);
 typedef int (*MODPATHFROMADDR)(duint addr, char* path, int size);
 typedef int (*MODPATHFROMNAME)(const char* modname, char* path, int size);
-typedef bool (*DISASMFAST)(unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
+typedef bool (*DISASMFAST)(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 typedef void (*MEMUPDATEMAP)();
 typedef void (*GETCALLSTACK)(DBGCALLSTACK* callstack);
+typedef void (*GETSEHCHAIN)(DBGSEHCHAIN* sehchain);
 typedef void (*SYMBOLDOWNLOADALLSYMBOLS)(const char* szSymbolStore);
 typedef bool (*GETJIT)(char* jit, bool x64);
 typedef bool (*GETJITAUTO)(bool* jitauto);
@@ -68,7 +128,17 @@ typedef duint(*VATOFILEOFFSET)(duint va);
 typedef duint(*GETADDRFROMLINE)(const char* szSourceFile, int line);
 typedef bool (*GETSOURCEFROMADDR)(duint addr, char* szSourceFile, int* line);
 typedef bool (*VALFROMSTRING)(const char* string, duint* value);
-typedef bool(*PATCHGETEX)(duint addr, DBGPATCHINFO* info);
+typedef bool (*PATCHGETEX)(duint addr, DBGPATCHINFO* info);
+typedef bool(*GETBRIDGEBP)(BPXTYPE type, duint addr, BRIDGEBP* bp);
+typedef bool(*STRINGFORMATINLINE)(const char* format, size_t resultSize, char* result);
+typedef void(*GETMNEMONICBRIEF)(const char* mnem, size_t resultSize, char* result);
+typedef unsigned int (*GETTRACERECORDHITCOUNT)(duint address);
+typedef TRACERECORDBYTETYPE(*GETTRACERECORDBYTETYPE)(duint address);
+typedef bool (*SETTRACERECORDTYPE)(duint pageAddress, TRACERECORDTYPE type);
+typedef TRACERECORDTYPE(*GETTRACERECORDTYPE)(duint pageAddress);
+typedef bool(*ENUMHANDLES)(ListOf(HANDLEINFO) handles);
+typedef bool(*GETHANDLENAME)(duint handle, char* name, size_t nameSize, char* typeName, size_t typeNameSize);
+typedef bool(*ENUMTCPCONNECTIONS)(ListOf(TCPCONNECTIONINFO) connections);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -91,6 +161,7 @@ typedef struct DBGFUNCTIONS_
     DISASMFAST DisasmFast;
     MEMUPDATEMAP MemUpdateMap;
     GETCALLSTACK GetCallStack;
+    GETSEHCHAIN GetSEHChain;
     SYMBOLDOWNLOADALLSYMBOLS SymbolDownloadAllSymbols;
     GETJITAUTO GetJitAuto;
     GETJIT GetJit;
@@ -108,6 +179,16 @@ typedef struct DBGFUNCTIONS_
     GETSOURCEFROMADDR GetSourceFromAddr;
     VALFROMSTRING ValFromString;
     PATCHGETEX PatchGetEx;
+    GETBRIDGEBP GetBridgeBp;
+    STRINGFORMATINLINE StringFormatInline;
+    GETMNEMONICBRIEF GetMnemonicBrief;
+    GETTRACERECORDHITCOUNT GetTraceRecordHitCount;
+    GETTRACERECORDBYTETYPE GetTraceRecordByteType;
+    SETTRACERECORDTYPE SetTraceRecordType;
+    GETTRACERECORDTYPE GetTraceRecordType;
+    ENUMHANDLES EnumHandles;
+    GETHANDLENAME GetHandleName;
+    ENUMTCPCONNECTIONS EnumTcpConnections;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

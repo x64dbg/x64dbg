@@ -7,6 +7,7 @@
 #include <QWheelEvent>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QVBoxLayout>
 #include "Bridge.h"
 #include "Tree.h"
 #include "GraphNode.h"

@@ -106,7 +106,7 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
     unsigned char* ptr = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!ptr)
     {
-        MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
+        MessageBoxW(0, L"Could not allocate memory", L"Error", MB_ICONERROR);
         ExitProcess(1);
     }
     memset(ptr, 0, size);
@@ -345,6 +345,11 @@ BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
     return true;
 }
 
+BRIDGE_IMPEXP void DbgClearLabelRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_LABEL_RANGE, (void*)start, (void*)end);
+}
+
 // FIXME required size of arg _text_?
 BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 {
@@ -370,6 +375,11 @@ BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
     if(!_dbg_addrinfoset(addr, &info))
         return false;
     return true;
+}
+
+BRIDGE_IMPEXP void DbgClearCommentRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_COMMENT_RANGE, (void*)start, (void*)end);
 }
 
 // FIXME required size of arg _text_?
@@ -407,6 +417,11 @@ BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
     info.flags = flagbookmark;
     info.isbookmark = isbookmark;
     return _dbg_addrinfoset(addr, &info);
+}
+
+BRIDGE_IMPEXP void DbgClearBookmarkRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_BOOKMARK_RANGE, (void*)start, (void*)end);
 }
 
 // FIXME return on success?
@@ -826,6 +841,11 @@ BRIDGE_IMPEXP duint DbgGetTimeWastedCounter()
     return _dbg_sendmessage(DBG_GET_TIME_WASTED_COUNTER, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr)
+{
+    return ARG_NONE;
+}
+
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
     _gui_sendmessage(GUI_DISASSEMBLE_AT, (void*)addr, (void*)cip);
@@ -855,7 +875,11 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateDumpView();
     GuiUpdateThreadView();
     GuiUpdateSideBar();
+    GuiUpdatePatches();
+    GuiUpdateCallStack();
     GuiRepaintTableView();
+    GuiUpdateSEHChain();
+    GuiUpdateArgumentWidget();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -1180,6 +1204,11 @@ BRIDGE_IMPEXP void GuiUpdateCallStack()
     _gui_sendmessage(GUI_UPDATE_CALLSTACK, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiUpdateSEHChain()
+{
+    _gui_sendmessage(GUI_UPDATE_SEHCHAIN, 0, 0);
+}
+
 BRIDGE_IMPEXP void GuiLoadSourceFile(const char* path, int line)
 {
     _gui_sendmessage(GUI_LOAD_SOURCE_FILE, (void*)path, (void*)line);
@@ -1260,6 +1289,26 @@ BRIDGE_IMPEXP void GuiSetControlFlowInfos(CONTROLFLOWINFOS* ctrlFlow)
     _gui_sendmessage(GUI_SET_CONTROLFLOWINFOS, (void*) ctrlFlow, nullptr);
 }
 
+
+BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info)
+{
+    _gui_sendmessage(GUI_REGISTER_SCRIPT_LANG, (void*)info, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id)
+{
+    _gui_sendmessage(GUI_UNREGISTER_SCRIPT_LANG, (void*)id, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiUpdateArgumentWidget()
+{
+    _gui_sendmessage(GUI_UPDATE_ARGUMENT_VIEW, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiFocusView(int hWindow)
+{
+    _gui_sendmessage(GUI_FOCUS_VIEW, (void*)hWindow, nullptr);
+}
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {

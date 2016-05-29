@@ -14,7 +14,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     {
         CPUDump* cpuDump = new CPUDump(disas, this);
         connect(cpuDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidgetSlot()));
-        this->addTab(cpuDump, "Dump " + QString::number(i + 1));
+        this->addTabEx(cpuDump, QIcon(":/icons/images/dump.png"), tr("Dump ") + QString::number(i + 1), QString("Dump ") + QString::number(i + 1));
     }
 
     mCurrentCPUDump = (CPUDump*)currentWidget();
@@ -28,6 +28,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     connect(Bridge::getBridge(), SIGNAL(selectionDumpGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDumpSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
+    connect(Bridge::getBridge(), SIGNAL(focusDump()), this, SLOT(focusCurrentDumpSlot()));
 
     connect(mCurrentCPUDump, SIGNAL(selectionUpdated()), mCurrentCPUDump, SLOT(selectionUpdatedSlot()));
 }
@@ -96,6 +97,7 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
     {
         mCurrentCPUDump->printDumpAt(parVa);
         mCurrentCPUDump->addVaToHistory(parVa);
+        mCurrentCPUDump->setFocus();
     }
 }
 
@@ -131,7 +133,7 @@ void CPUMultiDump::openChangeTabTitleDialogSlot(int tabIndex)
     bool bUserPressedOk;
     QString sCurrentTabName = tabBar()->tabText(tabIndex);
 
-    QString sNewTabName = QInputDialog::getText(this, "Change Tab " + QString::number(tabIndex + 1) + " Name", "Tab Name", QLineEdit::Normal, sCurrentTabName, &bUserPressedOk, Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
+    QString sNewTabName = QInputDialog::getText(this, tr("Change Tab %1 Name").arg(tabIndex + 1), tr("Tab Name"), QLineEdit::Normal, sCurrentTabName, &bUserPressedOk, Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
     if(bUserPressedOk)
     {
         if(sNewTabName.length() != 0)
@@ -142,4 +144,9 @@ void CPUMultiDump::openChangeTabTitleDialogSlot(int tabIndex)
 void CPUMultiDump::displayReferencesWidgetSlot()
 {
     emit displayReferencesWidget();
+}
+
+void CPUMultiDump::focusCurrentDumpSlot()
+{
+    mCurrentCPUDump->setFocus();
 }

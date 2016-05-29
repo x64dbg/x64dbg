@@ -11,9 +11,45 @@
 #include "_exports.h"
 #include "module.h"
 #include "thread.h"
+#include "threading.h"
+#include "exhandlerinfo.h"
+
+using SehMap = std::unordered_map<duint, STACK_COMMENT>;
+static SehMap SehCache;
+
+void stackupdateseh()
+{
+    SehMap newcache;
+    std::vector<duint> SEHList;
+    if(ExHandlerGetSEH(SEHList))
+    {
+        STACK_COMMENT comment;
+        strcpy_s(comment.color, "#AE81FF"); //TODO: customize this color
+        auto count = SEHList.size();
+        for(duint i = 0; i < count; i++)
+        {
+            if(i + 1 != count)
+                sprintf_s(comment.comment, "Pointer to SEH_Record[%d]", i + 1);
+            else
+                sprintf_s(comment.comment, "End of SEH Chain");
+            newcache.insert({ SEHList[i], comment });
+        }
+    }
+    EXCLUSIVE_ACQUIRE(LockSehCache);
+    SehCache = std::move(newcache);
+}
 
 bool stackcommentget(duint addr, STACK_COMMENT* comment)
 {
+    SHARED_ACQUIRE(LockSehCache);
+    const auto found = SehCache.find(addr);
+    if(found != SehCache.end())
+    {
+        *comment = found->second;
+        return true;
+    }
+    SHARED_RELEASE();
+
     duint data = 0;
     memset(comment, 0, sizeof(STACK_COMMENT));
     MemRead(addr, &data, sizeof(duint));
@@ -67,19 +103,15 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
         }
         else
             sprintf_s(comment->comment, "return to %s from ???", returnToAddr);
-        strcpy_s(comment->color, "#ff0000");
+        strcpy_s(comment->color, "#ff0000"); //TODO: customize this color
         return true;
     }
 
     //string
-    STRING_TYPE strtype;
-    char string[512] = "";
-    if(disasmgetstringat(data, &strtype, string, string, 500))
+    char string[MAX_STRING_SIZE] = "";
+    if(DbgGetStringAt(data, string))
     {
-        if(strtype == str_ascii)
-            sprintf(comment->comment, "\"%s\"", string);
-        else //unicode
-            sprintf(comment->comment, "L\"%s\"", string);
+        strcpy_s(comment->comment, _TRUNCATE, string);
         return true;
     }
 

@@ -21,6 +21,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 
     mHighlightToken.text = "";
     mHighlightingMode = false;
+    mShowMnemonicBrief = false;
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
     Config()->writeUints();
@@ -54,6 +55,12 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     Initialize();
 }
 
+Disassembly::~Disassembly()
+{
+    delete mMemPage;
+    delete mDisasm;
+}
+
 void Disassembly::updateColors()
 {
     AbstractTableView::updateColors();
@@ -72,6 +79,7 @@ void Disassembly::updateColors()
     mLabelColor = ConfigColor("DisassemblyLabelColor");
     mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
     mSelectedAddressBackgroundColor = ConfigColor("DisassemblySelectedAddressBackgroundColor");
+    mTracedAddressBackgroundColor = ConfigColor("DisassemblyTracedBackgroundColor");
     mSelectedAddressColor = ConfigColor("DisassemblySelectedAddressColor");
     mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
     mAddressColor = ConfigColor("DisassemblyAddressColor");
@@ -80,6 +88,8 @@ void Disassembly::updateColors()
     mRestoredBytesColor = ConfigColor("DisassemblyRestoredBytesColor");
     mAutoCommentColor = ConfigColor("DisassemblyAutoCommentColor");
     mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
+    mMnemonicBriefColor = ConfigColor("DisassemblyMnemonicBriefColor");
+    mMnemonicBriefBackgroundColor = ConfigColor("DisassemblyMnemonicBriefBackgroundColor");
     mCommentColor = ConfigColor("DisassemblyCommentColor");
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
     mUnconditionalJumpLineColor = ConfigColor("DisassemblyUnconditionalJumpLineColor");
@@ -87,6 +97,12 @@ void Disassembly::updateColors()
     mConditionalJumpLineFalseColor = ConfigColor("DisassemblyConditionalJumpLineFalseColor");
     mLoopColor = ConfigColor("DisassemblyLoopColor");
     mFunctionColor = ConfigColor("DisassemblyFunctionColor");
+
+    mLoopPen = QPen(mLoopColor, 2);
+    mFunctionPen = QPen(mFunctionColor, 2);
+    mUnconditionalPen = QPen(mUnconditionalJumpLineColor);
+    mConditionalTruePen = QPen(mConditionalJumpLineTrueColor);
+    mConditionalFalsePen = QPen(mConditionalJumpLineFalseColor);
 
     CapstoneTokenizer::UpdateColors();
     mDisasm->UpdateConfig();
@@ -119,6 +135,8 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 {
     Q_UNUSED(rowBase);
 
+    const DBGFUNCTIONS* dbgFuncs = DbgFunctions();
+    bool isTraced;
     if(mHighlightingMode)
     {
         QPen pen(mInstructionHighlightColor);
@@ -130,17 +148,20 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     }
     dsint wRVA = mInstBuffer.at(rowOffset).rva;
     bool wIsSelected = isSelected(&mInstBuffer, rowOffset);
+    dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
+    isTraced = dbgFuncs->GetTraceRecordHitCount(cur_addr) != 0;
 
     // Highlight if selected
     if(wIsSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
+    else if(isTraced)
+        painter->fillRect(QRect(x, y, w, h), QBrush(mTracedAddressBackgroundColor));
 
     switch(col)
     {
     case 0: // Draw address (+ label)
     {
         char label[MAX_LABEL_SIZE] = "";
-        dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         QString addrText = getAddrText(cur_addr, label);
         BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
@@ -188,12 +209,12 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             {
                 if(*label) //label
                 {
-                    if(bpxtype == bp_none) //label only
+                    if(bpxtype == bp_none) //label only : fill label background
                     {
                         painter->setPen(mLabelColor); //red -> address + label text
                         painter->fillRect(QRect(x, y, w, h), QBrush(mLabelBackgroundColor)); //fill label background
                     }
-                    else //label+breakpoint
+                    else //label + breakpoint
                     {
                         if(bpxtype & bp_normal) //label + normal breakpoint
                         {
@@ -270,7 +291,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                         painter->setPen(mLabelColor); //red -> address + label text
                         painter->fillRect(QRect(x, y, w, h), QBrush(mBookmarkBackgroundColor)); //fill label background
                     }
-                    else //label+breakpoint+bookmark
+                    else //label + breakpoint + bookmark
                     {
                         QColor color = mBookmarkBackgroundColor;
                         if(!color.alpha()) //we don't want transparent text
@@ -323,7 +344,6 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     case 1: //draw bytes (TODO: some spaces between bytes)
     {
         //draw functions
-        dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         Function_t funcType;
         FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
         FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
@@ -370,11 +390,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             curByte.text = QString("%1").arg(byte, 2, 16, QChar('0')).toUpper();
             DBGPATCHINFO patchInfo;
             if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
-            {
-                auto log = QString().sprintf("oldbyte: %02X, newbyte: %02X, byte: %02X\n", patchInfo.oldbyte, patchInfo.newbyte, byte);
-                GuiAddLogMessage(log.toUtf8().constData());
                 curByte.textColor = byte == patchInfo.newbyte ? mModifiedBytesColor : mRestoredBytesColor;
-            }
             else
                 curByte.textColor = mBytesColor;
             richBytes.push_back(curByte);
@@ -385,7 +401,6 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     case 2: //draw disassembly (with colours needed)
     {
-        dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         int loopsize = 0;
         int depth = 0;
 
@@ -431,30 +446,92 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     case 3: //draw comments
     {
-        char comment[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(rvaToVa(mInstBuffer.at(rowOffset).rva), comment))
+        int argsize = 0;
+
+        ARGTYPE argType = DbgGetArgTypeAt(cur_addr);
+        if(argType != ARG_NONE)
         {
-            QString commentText;
+            Function_t funcType;
+            switch(argType)
+            {
+            case ARG_BEGIN:
+                funcType = Function_start;
+                break;
+            case ARG_MIDDLE:
+                funcType = Function_middle;
+                break;
+            case ARG_END:
+                funcType = Function_end;
+                break;
+            default:
+                break;
+            }
+            argsize += paintFunctionGraphic(painter, x, y, funcType, true);
+        }
+
+        QString comment;
+        bool autoComment = false;
+        char label[MAX_LABEL_SIZE] = "";
+        if(GetCommentFormat(cur_addr, comment, &autoComment))
+        {
             QColor backgroundColor;
-            if(comment[0] == '\1') //automatic comment
+            if(autoComment)
             {
                 painter->setPen(mAutoCommentColor);
                 backgroundColor = mAutoCommentBackgroundColor;
-                commentText = QString(comment + 1);
             }
             else //user comment
             {
                 painter->setPen(mCommentColor);
                 backgroundColor = mCommentBackgroundColor;
-                commentText = comment;
             }
 
-            int width = getCharWidth() * commentText.length() + 4;
+            int width = getCharWidth() * comment.length() + 4;
             if(width > w)
                 width = w;
             if(width)
-                painter->fillRect(QRect(x + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
-            painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, commentText);
+                painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
+            painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, comment);
+            argsize += width;
+        }
+        else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
+        {
+            QString labelText(label);
+            QColor backgroundColor;
+            painter->setPen(mLabelColor);
+            backgroundColor = mLabelBackgroundColor;
+
+            int width = getCharWidth() * labelText.length() + 4;
+            if(width > w)
+                width = w;
+            if(width)
+                painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
+            painter->drawText(QRect(x + argsize + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
+            argsize += width;
+        }
+
+        if(mShowMnemonicBrief)
+        {
+            char brief[MAX_STRING_SIZE] = "";
+            QString mnem = mInstBuffer.at(rowOffset).instStr;
+            int index = mnem.indexOf(' ');
+            if(index != -1)
+                mnem.truncate(index);
+            DbgFunctions()->GetMnemonicBrief(mnem.toUtf8().constData(), MAX_STRING_SIZE, brief);
+
+            painter->setPen(mMnemonicBriefColor);
+
+            QString mnemBrief = brief;
+            if(mnemBrief.length())
+            {
+                int width = getCharWidth() * mnemBrief.length() + 4;
+                if(width > w)
+                    width = w;
+                if(width)
+                    painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(mMnemonicBriefBackgroundColor)); //mnemonic brief background color
+                painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
+            }
+            break;
         }
     }
     break;
@@ -774,14 +851,14 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
 
     if(branchType == Instruction_t::Unconditional) //unconditional
     {
-        painter->setPen(mUnconditionalJumpLineColor);
+        painter->setPen(mUnconditionalPen);
     }
     else
     {
         if(bIsExecute)
-            painter->setPen(mConditionalJumpLineTrueColor);
+            painter->setPen(mConditionalTruePen);
         else
-            painter->setPen(mConditionalJumpLineFalseColor);
+            painter->setPen(mConditionalFalsePen);
     }
 
     if(wPict == GD_Vert)
@@ -847,9 +924,9 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
     if(loop && funcType == Function_none)
         return 0;
     if(loop)
-        painter->setPen(QPen(mLoopColor, 2)); //thick black line
+        painter->setPen(mLoopPen); //thick black line
     else
-        painter->setPen(QPen(mFunctionColor, 2)); //thick black line
+        painter->setPen(mFunctionPen); //thick black line
     int height = getRowHeight();
     int x_add = 5;
     int y_add = 4;
@@ -1306,11 +1383,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
         dsint selectionTableOffset = getTableOffset();
         if(selectionVA && mVaHistory.size() && mVaHistory.last().va != selectionVA) //do not have 2x the same va in a row
         {
-            if(mVaHistory.size() >= 1024) //max 1024 in the history
-            {
-                mCurrentVa--;
-                mVaHistory.erase(mVaHistory.begin()); //remove the oldest element
-            }
             mCurrentVa++;
             newHistory.va = selectionVA;
             newHistory.tableOffset = selectionTableOffset;
@@ -1421,14 +1493,13 @@ const dsint Disassembly::currentEIP() const
     return mCipRva;
 }
 
-
 void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
 {
+    setFocus();
     emit drawGraphAtAddress(parVA);
 
     disassembleAt(parVA, parCIP, true, -1);
 }
-
 
 void Disassembly::disassembleClear()
 {
@@ -1439,7 +1510,6 @@ void Disassembly::disassembleClear()
     setRowCount(0);
     reloadData();
 }
-
 
 void Disassembly::debugStateChangedSlot(DBGSTATE state)
 {
@@ -1483,7 +1553,7 @@ void Disassembly::historyClear()
 
 void Disassembly::historyPrevious()
 {
-    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
+    if(!historyHasPrevious())
         return;
     mCurrentVa--;
     disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
@@ -1494,8 +1564,7 @@ void Disassembly::historyPrevious()
 
 void Disassembly::historyNext()
 {
-    int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
+    if(!historyHasNext())
         return;
     mCurrentVa++;
     disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);

@@ -5,9 +5,11 @@
  */
 
 #include "disasm_helper.h"
-#include "value.h"
+#include "thread.h"
 #include "console.h"
 #include "memory.h"
+#include "debugger.h"
+#include "value.h"
 #include <capstone_wrapper.h>
 
 duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
@@ -121,27 +123,21 @@ const char* disasmtext(duint addr)
 
 static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
 {
-    const cs_x86 & x86 = cp.x86();
-    const cs_x86_op & op = x86.operands[opindex];
+    auto value = cp.ResolveOpValue(opindex, [&](x86_reg reg)
+    {
+        auto regName = cp.RegName(reg);
+        return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
+    });
+    const auto & op = cp[opindex];
     arg->segment = SEG_DEFAULT;
     strcpy_s(arg->mnemonic, cp.OperandText(opindex).c_str());
     switch(op.type)
     {
     case X86_OP_REG:
-    {
-        const char* regname = cp.RegName((x86_reg)op.reg);
-        arg->type = arg_normal;
-        duint value;
-        if(!valfromstring(regname, &value, true, true))
-            value = 0;
-        arg->constant = arg->value = value;
-    }
-    break;
-
     case X86_OP_IMM:
     {
         arg->type = arg_normal;
-        arg->constant = arg->value = (duint)op.imm;
+        arg->constant = arg->value = value;
     }
     break;
 
@@ -149,13 +145,21 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
     {
         arg->type = arg_memory;
         const x86_op_mem & mem = op.mem;
-        if(mem.base == X86_REG_RIP)  //rip-relative
-            arg->constant = cp.Address() + (duint)mem.disp + cp.Size();
+        if(mem.base == X86_REG_RIP) //rip-relative
+            arg->constant = cp.Address() + duint(mem.disp) + cp.Size();
         else
-            arg->constant = (duint)mem.disp;
-        duint value;
-        if(!valfromstring(arg->mnemonic, &value, true, true))
-            return;
+            arg->constant = duint(mem.disp);
+#ifdef _WIN64
+        if(mem.segment == X86_REG_GS)
+        {
+            arg->segment = SEG_GS;
+#else //x86
+        if(mem.segment == X86_REG_FS)
+        {
+            arg->segment = SEG_FS;
+#endif
+            value += ThreadGetLocalBase(ThreadGetId(hActiveThread));
+        }
         arg->value = value;
         if(DbgMemIsValidReadPtr(value))
         {
@@ -177,6 +181,9 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
         }
     }
     break;
+
+    default:
+        break;
     }
 }
 

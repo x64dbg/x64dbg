@@ -1,3 +1,6 @@
+[submodule "src/capstone_wrapper"]
+	path = src/capstone_wrapper
+	url = https://github.com/x64dbg/capstone_wrapper.git
 [submodule "src/ogdf"]
 	path = src/ogdf
 	url = https://github.com/x64dbg/ogdf.git

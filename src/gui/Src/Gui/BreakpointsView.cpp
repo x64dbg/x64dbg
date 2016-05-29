@@ -2,6 +2,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "Breakpoints.h"
+#include "LineEditDialog.h"
 
 BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 {
@@ -9,29 +10,44 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mSoftBPTable = new StdTable(this);
     int wCharWidth = mSoftBPTable->getCharWidth();
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mSoftBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), "Software", false, "Address");
-    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
-    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
-    mSoftBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
-    mSoftBPTable->addColumnAt(wCharWidth * 10, "Comment", false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Software"), false, tr("Address"));
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module/Label"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 10, tr("Hit count"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Log text"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, tr("Condition"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 2, tr("Fast resume"), false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
+    mSoftBPTable->addColumnAt(wCharWidth * 10, tr("Comment"), false);
 
     // Hardware
     mHardBPTable = new StdTable(this);
     mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), "Hardware", false, "Address");
-    mHardBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
-    mHardBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
-    mHardBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
-    mHardBPTable->addColumnAt(wCharWidth * 10, "Comment", false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Hardware"), false, tr("Address"));
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module/Label"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 10, tr("Hit count"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Log text"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Condition"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 2, tr("Fast resume"), false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
+    mHardBPTable->addColumnAt(wCharWidth * 10, tr("Comment"), false);
 
     // Memory
     mMemBPTable = new StdTable(this);
     mMemBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), "Memory", false, "Address");
-    mMemBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
-    mMemBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
-    mMemBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
-    mMemBPTable->addColumnAt(wCharWidth * 10, "Comment", false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Memory"), false, tr("Address"));
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module/Label"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 10, tr("Hit count"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Log text"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Condition"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 2, tr("Fast resume"), false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
+    mMemBPTable->addColumnAt(wCharWidth * 10, tr("Comment"), false);
 
     // Splitter
     mSplitter = new QSplitter(this);
@@ -48,9 +64,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     this->setLayout(mVertLayout);
 
     // Create the action list for the right click context menu
-    setupHardBPRightClickContextMenu();
-    setupSoftBPRightClickContextMenu();
-    setupMemBPRightClickContextMenu();
+    setupRightClickContextMenu();
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -60,14 +74,18 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     connect(mHardBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(hardwareBPContextMenuSlot(const QPoint &)));
     connect(mHardBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickHardwareSlot()));
     connect(mHardBPTable, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickHardwareSlot()));
+    connect(mHardBPTable, SIGNAL(selectionChangedSignal(int)), this, SLOT(selectionChangedHardwareSlot()));
     connect(mSoftBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(softwareBPContextMenuSlot(const QPoint &)));
     connect(mSoftBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickSoftwareSlot()));
     connect(mSoftBPTable, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickSoftwareSlot()));
+    connect(mSoftBPTable, SIGNAL(selectionChangedSignal(int)), this, SLOT(selectionChangedSoftwareSlot()));
     connect(mMemBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(memoryBPContextMenuSlot(const QPoint &)));
     connect(mMemBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickMemorySlot()));
     connect(mMemBPTable, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickMemorySlot()));
-}
+    connect(mMemBPTable, SIGNAL(selectionChangedSignal(int)), this, SLOT(selectionChangedMemorySlot()));
 
+    mCurrentType = bp_normal;
+}
 
 void BreakpointsView::reloadData()
 {
@@ -92,22 +110,24 @@ void BreakpointsView::reloadData()
         mHardBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
-            mHardBPTable->setCellContent(wI, 3, "Inactive");
+            mHardBPTable->setCellContent(wI, 3, tr("Inactive"));
         else if(wBPList.bp[wI].enabled == true)
-            mHardBPTable->setCellContent(wI, 3, "Enabled");
+            mHardBPTable->setCellContent(wI, 3, tr("Enabled"));
         else
-            mHardBPTable->setCellContent(wI, 3, "Disabled");
+            mHardBPTable->setCellContent(wI, 3, tr("Disabled"));
 
-        char comment[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-        {
-            if(comment[0] == '\1') //automatic comment
-                mHardBPTable->setCellContent(wI, 4, QString(comment + 1));
-            else
-                mHardBPTable->setCellContent(wI, 4, comment);
-        }
+        mHardBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
+        mHardBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].logText));
+        mHardBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].breakCondition));
+        mHardBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
+        mHardBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
+
+        QString comment;
+        if(GetCommentFormat(wBPList.bp[wI].addr, comment))
+            mHardBPTable->setCellContent(wI, 9, comment);
         else
-            mHardBPTable->setCellContent(wI, 4, "");
+            mHardBPTable->setCellContent(wI, 9, "");
+
     }
     mHardBPTable->reloadData();
     if(wBPList.count)
@@ -131,22 +151,23 @@ void BreakpointsView::reloadData()
         mSoftBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
-            mSoftBPTable->setCellContent(wI, 3, "Inactive");
+            mSoftBPTable->setCellContent(wI, 3, tr("Inactive"));
         else if(wBPList.bp[wI].enabled == true)
-            mSoftBPTable->setCellContent(wI, 3, "Enabled");
+            mSoftBPTable->setCellContent(wI, 3, tr("Enabled"));
         else
-            mSoftBPTable->setCellContent(wI, 3, "Disabled");
+            mSoftBPTable->setCellContent(wI, 3, tr("Disabled"));
 
-        char comment[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-        {
-            if(comment[0] == '\1') //automatic comment
-                mSoftBPTable->setCellContent(wI, 4, QString(comment + 1));
-            else
-                mSoftBPTable->setCellContent(wI, 4, comment);
-        }
+        mSoftBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
+        mSoftBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].logText));
+        mSoftBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].breakCondition));
+        mSoftBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
+        mSoftBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
+
+        QString comment;
+        if(GetCommentFormat(wBPList.bp[wI].addr, comment))
+            mSoftBPTable->setCellContent(wI, 9, comment);
         else
-            mSoftBPTable->setCellContent(wI, 4, "");
+            mSoftBPTable->setCellContent(wI, 9, "");
     }
     mSoftBPTable->reloadData();
     if(wBPList.count)
@@ -170,22 +191,23 @@ void BreakpointsView::reloadData()
         mMemBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
-            mMemBPTable->setCellContent(wI, 3, "Inactive");
+            mMemBPTable->setCellContent(wI, 3, tr("Inactive"));
         else if(wBPList.bp[wI].enabled == true)
-            mMemBPTable->setCellContent(wI, 3, "Enabled");
+            mMemBPTable->setCellContent(wI, 3, tr("Enabled"));
         else
-            mMemBPTable->setCellContent(wI, 3, "Disabled");
+            mMemBPTable->setCellContent(wI, 3, tr("Disabled"));
 
-        char comment[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-        {
-            if(comment[0] == '\1') //automatic comment
-                mMemBPTable->setCellContent(wI, 4, QString(comment + 1));
-            else
-                mMemBPTable->setCellContent(wI, 4, comment);
-        }
+        mMemBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
+        mMemBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].logText));
+        mMemBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].breakCondition));
+        mMemBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
+        mMemBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
+
+        QString comment;
+        if(GetCommentFormat(wBPList.bp[wI].addr, comment))
+            mMemBPTable->setCellContent(wI, 9, comment);
         else
-            mMemBPTable->setCellContent(wI, 4, "");
+            mMemBPTable->setCellContent(wI, 9, "");
     }
     mMemBPTable->reloadData();
 
@@ -193,6 +215,16 @@ void BreakpointsView::reloadData()
         BridgeFree(wBPList.bp);
 }
 
+void BreakpointsView::setupRightClickContextMenu()
+{
+    mEditBreakpointAction = new QAction("&Edit", this);
+    addAction(mEditBreakpointAction);
+    connect(mEditBreakpointAction, SIGNAL(triggered(bool)), this, SLOT(editBreakpointSlot()));
+
+    setupSoftBPRightClickContextMenu();
+    setupHardBPRightClickContextMenu();
+    setupMemBPRightClickContextMenu();
+}
 
 /************************************************************************************
                          Hardware Context Menu Management
@@ -200,20 +232,35 @@ void BreakpointsView::reloadData()
 void BreakpointsView::setupHardBPRightClickContextMenu()
 {
     // Remove
-    mHardBPRemoveAction = new QAction("Remove", this);
+    mHardBPRemoveAction = new QAction(tr("Remove"), this);
     mHardBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
     mHardBPTable->addAction(mHardBPRemoveAction);
     connect(mHardBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeHardBPActionSlot()));
 
     // Remove All
-    mHardBPRemoveAllAction = new QAction("Remove All", this);
+    mHardBPRemoveAllAction = new QAction(tr("Remove All"), this);
     connect(mHardBPRemoveAllAction, SIGNAL(triggered()), this, SLOT(removeAllHardBPActionSlot()));
 
     // Enable/Disable
-    mHardBPEnableDisableAction = new QAction("Enable", this);
+    mHardBPEnableDisableAction = new QAction(tr("Enable"), this);
     mHardBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mHardBPTable->addAction(mHardBPEnableDisableAction);
     connect(mHardBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableHardBPActionSlot()));
+
+    // Reset hit count
+    mHardBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
+    mHardBPTable->addAction(mHardBPResetHitCountAction);
+    connect(mHardBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetHardwareHitCountSlot()));
+
+    // Enable All
+    mHardBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mHardBPTable->addAction(mHardBPEnableAllAction);
+    connect(mHardBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllHardBPActionSlot()));
+
+    // Disable All
+    mHardBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mHardBPTable->addAction(mHardBPDisableAllAction);
+    connect(mHardBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllHardBPActionSlot()));
 }
 
 void BreakpointsView::refreshShortcutsSlot()
@@ -226,6 +273,8 @@ void BreakpointsView::refreshShortcutsSlot()
 
     mMemBPRemoveAction->setShortcut(ConfigShortcut("ActionDeleteBreakpoint"));
     mMemBPEnableDisableAction->setShortcut(ConfigShortcut("ActionEnableDisableBreakpoint"));
+
+    mEditBreakpointAction->setShortcut(ConfigShortcut("ActionBinaryEdit"));
 }
 
 void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
@@ -234,12 +283,12 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
     if(table->getRowCount() != 0)
     {
         int wI = 0;
-        QMenu* wMenu = new QMenu(this);
+        QMenu wMenu(this);
         duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
-        wMenu->addAction(mHardBPRemoveAction);
+        wMenu.addAction(mHardBPRemoveAction);
 
         // Enable/Disable
         DbgGetBpList(bp_hardware, &wBPList);
@@ -250,39 +299,51 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
             {
                 if(wBPList.bp[wI].active == false)
                 {
-                    // Nothing
+                    mHardBPEnableDisableAction->setText(tr("Enable"));
+                    wMenu.addAction(mHardBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
-                    mHardBPEnableDisableAction->setText("Disable");
-                    wMenu->addAction(mHardBPEnableDisableAction);
+                    mHardBPEnableDisableAction->setText(tr("Disable"));
+                    wMenu.addAction(mHardBPEnableDisableAction);
                 }
                 else
                 {
-                    mHardBPEnableDisableAction->setText("Enable");
-                    wMenu->addAction(mHardBPEnableDisableAction);
+                    mHardBPEnableDisableAction->setText(tr("Enable"));
+                    wMenu.addAction(mHardBPEnableDisableAction);
                 }
             }
         }
         if(wBPList.count)
             BridgeFree(wBPList.bp);
 
+        // Conditional
+        mCurrentType = bp_hardware;
+        wMenu.addAction(mEditBreakpointAction);
+        wMenu.addAction(mHardBPResetHitCountAction);
+
         // Separator
-        wMenu->addSeparator();
+        wMenu.addSeparator();
+
+        // Enable All
+        wMenu.addAction(mHardBPEnableAllAction);
+
+        // Disable All
+        wMenu.addAction(mHardBPDisableAllAction);
 
         // Remove All
-        wMenu->addAction(mHardBPRemoveAllAction);
+        wMenu.addAction(mHardBPRemoveAllAction);
 
         //Copy
-        QMenu wCopyMenu("&Copy", this);
+        QMenu wCopyMenu(tr("&Copy"), this);
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
-            wMenu->addSeparator();
-            wMenu->addMenu(&wCopyMenu);
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
         }
 
-        wMenu->exec(table->mapToGlobal(pos));
+        wMenu.exec(table->mapToGlobal(pos));
     }
 }
 
@@ -305,6 +366,16 @@ void BreakpointsView::enableDisableHardBPActionSlot()
     table->selectNext();
 }
 
+void BreakpointsView::enableAllHardBPActionSlot()
+{
+    DbgCmdExec("bphwe");
+}
+
+void BreakpointsView::disableAllHardBPActionSlot()
+{
+    DbgCmdExec("bphwd");
+}
+
 void BreakpointsView::doubleClickHardwareSlot()
 {
     StdTable* table = mHardBPTable;
@@ -313,6 +384,18 @@ void BreakpointsView::doubleClickHardwareSlot()
     emit showCpu();
 }
 
+void BreakpointsView::selectionChangedHardwareSlot()
+{
+    mCurrentType = bp_hardware;
+}
+
+void BreakpointsView::resetHardwareHitCountSlot()
+{
+    StdTable* table = mHardBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("ResetHardwareBreakpointHitCount " + addrText).toUtf8().constData());
+    reloadData();
+}
 
 /************************************************************************************
                          Software Context Menu Management
@@ -320,28 +403,33 @@ void BreakpointsView::doubleClickHardwareSlot()
 void BreakpointsView::setupSoftBPRightClickContextMenu()
 {
     // Remove
-    mSoftBPRemoveAction = new QAction("Remove", this);
+    mSoftBPRemoveAction = new QAction(tr("Remove"), this);
     mSoftBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
     mSoftBPTable->addAction(mSoftBPRemoveAction);
     connect(mSoftBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeSoftBPActionSlot()));
 
     // Remove All
-    mSoftBPRemoveAllAction = new QAction("Remove All", this);
+    mSoftBPRemoveAllAction = new QAction(tr("Remove All"), this);
     connect(mSoftBPRemoveAllAction, SIGNAL(triggered()), this, SLOT(removeAllSoftBPActionSlot()));
 
     // Enable/Disable
-    mSoftBPEnableDisableAction = new QAction("Enable", this);
+    mSoftBPEnableDisableAction = new QAction(tr("Enable"), this);
     mSoftBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mSoftBPTable->addAction(mSoftBPEnableDisableAction);
     connect(mSoftBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableSoftBPActionSlot()));
 
+    // Reset hit count
+    mSoftBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
+    mSoftBPTable->addAction(mSoftBPResetHitCountAction);
+    connect(mSoftBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetSoftwareHitCountSlot()));
+
     // Enable All
-    mSoftBPEnableAllAction = new QAction("Enable All", this);
+    mSoftBPEnableAllAction = new QAction(tr("Enable All"), this);
     mSoftBPTable->addAction(mSoftBPEnableAllAction);
     connect(mSoftBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllSoftBPActionSlot()));
 
     // Disable All
-    mSoftBPDisableAllAction = new QAction("Disable All", this);
+    mSoftBPDisableAllAction = new QAction(tr("Disable All"), this);
     mSoftBPTable->addAction(mSoftBPDisableAllAction);
     connect(mSoftBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllSoftBPActionSlot()));
 }
@@ -352,12 +440,12 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
     if(table->getRowCount() != 0)
     {
         int wI = 0;
-        QMenu* wMenu = new QMenu(this);
+        QMenu wMenu(this);
         duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
-        wMenu->addAction(mSoftBPRemoveAction);
+        wMenu.addAction(mSoftBPRemoveAction);
 
         // Enable/Disable
         DbgGetBpList(bp_normal, &wBPList);
@@ -368,45 +456,51 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
             {
                 if(wBPList.bp[wI].active == false)
                 {
-                    // Nothing
+                    mSoftBPEnableDisableAction->setText(tr("Enable"));
+                    wMenu.addAction(mSoftBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
-                    mSoftBPEnableDisableAction->setText("Disable");
-                    wMenu->addAction(mSoftBPEnableDisableAction);
+                    mSoftBPEnableDisableAction->setText(tr("Disable"));
+                    wMenu.addAction(mSoftBPEnableDisableAction);
                 }
                 else
                 {
-                    mSoftBPEnableDisableAction->setText("Enable");
-                    wMenu->addAction(mSoftBPEnableDisableAction);
+                    mSoftBPEnableDisableAction->setText(tr("Enable"));
+                    wMenu.addAction(mSoftBPEnableDisableAction);
                 }
             }
         }
         if(wBPList.count)
             BridgeFree(wBPList.bp);
 
+        // Conditional
+        mCurrentType = bp_normal;
+        wMenu.addAction(mEditBreakpointAction);
+        wMenu.addAction(mSoftBPResetHitCountAction);
+
         // Separator
-        wMenu->addSeparator();
+        wMenu.addSeparator();
 
         // Enable All
-        wMenu->addAction(mSoftBPEnableAllAction);
+        wMenu.addAction(mSoftBPEnableAllAction);
 
         // Disable All
-        wMenu->addAction(mSoftBPDisableAllAction);
+        wMenu.addAction(mSoftBPDisableAllAction);
 
         // Remove All
-        wMenu->addAction(mSoftBPRemoveAllAction);
+        wMenu.addAction(mSoftBPRemoveAllAction);
 
         //Copy
-        QMenu wCopyMenu("&Copy", this);
+        QMenu wCopyMenu(tr("&Copy"), this);
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
-            wMenu->addSeparator();
-            wMenu->addMenu(&wCopyMenu);
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
         }
 
-        wMenu->exec(table->mapToGlobal(pos));
+        wMenu.exec(table->mapToGlobal(pos));
     }
 }
 
@@ -431,12 +525,12 @@ void BreakpointsView::enableDisableSoftBPActionSlot()
 
 void BreakpointsView::enableAllSoftBPActionSlot()
 {
-    Breakpoints::toggleAllBP(bp_normal, true);
+    DbgCmdExec("bpe");
 }
 
 void BreakpointsView::disableAllSoftBPActionSlot()
 {
-    Breakpoints::toggleAllBP(bp_normal, false);
+    DbgCmdExec("bpd");
 }
 
 void BreakpointsView::doubleClickSoftwareSlot()
@@ -447,6 +541,18 @@ void BreakpointsView::doubleClickSoftwareSlot()
     emit showCpu();
 }
 
+void BreakpointsView::selectionChangedSoftwareSlot()
+{
+    mCurrentType = bp_normal;
+}
+
+void BreakpointsView::resetSoftwareHitCountSlot()
+{
+    StdTable* table = mSoftBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("ResetBreakpointHitCount " + addrText).toUtf8().constData());
+    reloadData();
+}
 
 /************************************************************************************
                          Memory Context Menu Management
@@ -454,20 +560,35 @@ void BreakpointsView::doubleClickSoftwareSlot()
 void BreakpointsView::setupMemBPRightClickContextMenu()
 {
     // Remove
-    mMemBPRemoveAction = new QAction("Remove", this);
+    mMemBPRemoveAction = new QAction(tr("Remove"), this);
     mMemBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
     mMemBPTable->addAction(mMemBPRemoveAction);
     connect(mMemBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeMemBPActionSlot()));
 
     // Remove All
-    mMemBPRemoveAllAction = new QAction("Remove All", this);
+    mMemBPRemoveAllAction = new QAction(tr("Remove All"), this);
     connect(mMemBPRemoveAllAction, SIGNAL(triggered()), this, SLOT(removeAllMemBPActionSlot()));
 
     // Enable/Disable
-    mMemBPEnableDisableAction = new QAction("Enable", this);
+    mMemBPEnableDisableAction = new QAction(tr("Enable"), this);
     mMemBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mMemBPTable->addAction(mMemBPEnableDisableAction);
     connect(mMemBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableMemBPActionSlot()));
+
+    // Reset hit count
+    mMemBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
+    mMemBPTable->addAction(mMemBPResetHitCountAction);
+    connect(mMemBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetMemoryHitCountSlot()));
+
+    // Enable All
+    mMemBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mMemBPTable->addAction(mMemBPEnableAllAction);
+    connect(mMemBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllMemBPActionSlot()));
+
+    // Disable All
+    mMemBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mMemBPTable->addAction(mMemBPDisableAllAction);
+    connect(mMemBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllMemBPActionSlot()));
 }
 
 void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
@@ -476,12 +597,12 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
     if(table->getRowCount() != 0)
     {
         int wI = 0;
-        QMenu* wMenu = new QMenu(this);
+        QMenu wMenu(this);
         duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
-        wMenu->addAction(mMemBPRemoveAction);
+        wMenu.addAction(mMemBPRemoveAction);
 
         // Enable/Disable
         DbgGetBpList(bp_memory, &wBPList);
@@ -492,39 +613,51 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
             {
                 if(wBPList.bp[wI].active == false)
                 {
-                    // Nothing
+                    mMemBPEnableDisableAction->setText(tr("Enable"));
+                    wMenu.addAction(mMemBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
-                    mMemBPEnableDisableAction->setText("Disable");
-                    wMenu->addAction(mMemBPEnableDisableAction);
+                    mMemBPEnableDisableAction->setText(tr("Disable"));
+                    wMenu.addAction(mMemBPEnableDisableAction);
                 }
                 else
                 {
-                    mMemBPEnableDisableAction->setText("Enable");
-                    wMenu->addAction(mMemBPEnableDisableAction);
+                    mMemBPEnableDisableAction->setText(tr("Enable"));
+                    wMenu.addAction(mMemBPEnableDisableAction);
                 }
             }
         }
         if(wBPList.count)
             BridgeFree(wBPList.bp);
 
+        // Conditional
+        mCurrentType = bp_memory;
+        wMenu.addAction(mEditBreakpointAction);
+        wMenu.addAction(mMemBPResetHitCountAction);
+
         // Separator
-        wMenu->addSeparator();
+        wMenu.addSeparator();
+
+        // Enable All
+        wMenu.addAction(mMemBPEnableAllAction);
+
+        // Disable All
+        wMenu.addAction(mMemBPDisableAllAction);
 
         // Remove All
-        wMenu->addAction(mMemBPRemoveAllAction);
+        wMenu.addAction(mMemBPRemoveAllAction);
 
         //Copy
-        QMenu wCopyMenu("&Copy", this);
+        QMenu wCopyMenu(tr("&Copy"), this);
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
-            wMenu->addSeparator();
-            wMenu->addMenu(&wCopyMenu);
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
         }
 
-        wMenu->exec(table->mapToGlobal(pos));
+        wMenu.exec(table->mapToGlobal(pos));
     }
 }
 
@@ -547,10 +680,56 @@ void BreakpointsView::enableDisableMemBPActionSlot()
     table->selectNext();
 }
 
+void BreakpointsView::enableAllMemBPActionSlot()
+{
+    DbgCmdExec("bpme");
+}
+
+void BreakpointsView::disableAllMemBPActionSlot()
+{
+    DbgCmdExec("bpmd");
+}
+
 void BreakpointsView::doubleClickMemorySlot()
 {
     StdTable* table = mMemBPTable;
     QString addrText = table->getCellContent(table->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     emit showCpu();
+}
+
+void BreakpointsView::selectionChangedMemorySlot()
+{
+    mCurrentType = bp_memory;
+}
+
+void BreakpointsView::resetMemoryHitCountSlot()
+{
+    StdTable* table = mMemBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("ResetMemoryBreakpointHitCount " + addrText).toUtf8().constData());
+    reloadData();
+}
+
+/************************************************************************************
+           Conditional Breakpoint Context Menu Management (Sub-menu only)
+************************************************************************************/
+void BreakpointsView::editBreakpointSlot()
+{
+    StdTable* table;
+    switch(mCurrentType)
+    {
+    case bp_normal:
+        table = mSoftBPTable;
+        break;
+    case bp_hardware:
+        table = mHardBPTable;
+        break;
+    case bp_memory:
+        table = mMemBPTable;
+        break;
+    default:
+        return;
+    }
+    Breakpoints::editBP(mCurrentType, table->getCellContent(table->getInitialSelection(), 0), this);
 }

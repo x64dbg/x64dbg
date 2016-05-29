@@ -1,5 +1,5 @@
-#ifndef _INSTRUCTIONS_H
-#define _INSTRUCTIONS_H
+#ifndef _INSTRUCTION_H
+#define _INSTRUCTION_H
 
 #include "command.h"
 
@@ -21,6 +21,7 @@ CMDRESULT cbInstrSavedb(int argc, char* argv[]);
 CMDRESULT cbInstrAssemble(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionAdd(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionDel(int argc, char* argv[]);
+CMDRESULT cbInstrFunctionClear(int argc, char* argv[]);
 
 CMDRESULT cbInstrCmp(int argc, char* argv[]);
 CMDRESULT cbInstrGpa(int argc, char* argv[]);
@@ -78,5 +79,12 @@ CMDRESULT cbInstrExanalyse(int argc, char* argv[]);
 CMDRESULT cbInstrVirtualmod(int argc, char* argv[]);
 CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[]);
 CMDRESULT cbInstrSavedata(int argc, char* argv[]);
+CMDRESULT cbInstrMnemonichelp(int argc, char* argv[]);
+CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[]);
 
-#endif // _INSTRUCTIONS_H
+CMDRESULT cbGetPrivilegeState(int argc, char* argv[]);
+CMDRESULT cbEnablePrivilege(int argc, char* argv[]);
+CMDRESULT cbDisablePrivilege(int argc, char* argv[]);
+CMDRESULT cbHandleClose(int argc, char* argv[]);
+
+#endif // _INSTRUCTION_H

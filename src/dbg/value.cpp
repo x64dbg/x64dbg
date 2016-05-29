@@ -14,6 +14,7 @@
 #include "label.h"
 #include "expressionparser.h"
 #include "function.h"
+#include "threading.h"
 
 static bool dosignedcalc = false;
 
@@ -610,10 +611,10 @@ bool setflag(const char* string, bool set)
 /**
 \brief Gets a register from a string.
 \param [out] size This function can store the register size in bytes in this parameter. Can be null, in that case it will be ignored.
-\param string The name of the register to get.
+\param string The name of the register to get. Cannot be null.
 \return The register value.
 */
-static duint getregister(int* size, const char* string)
+duint getregister(int* size, const char* string)
 {
     if(size)
         *size = 4;
@@ -1508,7 +1509,9 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         *value = 0;
         return true;
     }
-    else if(string[0] == '[' || (isdigit(string[0]) && string[1] == ':' && string[2] == '[')) //memory location
+    else if(string[0] == '['
+            || (isdigit(string[0]) && string[1] == ':' && string[2] == '[')
+            || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[')) //memory location
     {
         if(!DbgIsDebugging())
         {
@@ -1523,35 +1526,60 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         }
         int len = (int)strlen(string);
 
-        String newstring;
-        bool foundStart = false;
-        for(int i = 0; i < len; i++)
-        {
-            if(string[i] == '[')
-                foundStart = true;
-            else if(string[i] == ']')
-                break;
-            else if(foundStart)
-                newstring += string[i];
-        }
-
         int read_size = sizeof(duint);
-        int add = 1;
-        if(string[1] == ':')  //n:[ (number of bytes to read)
+        int prefix_size = 1;
+        size_t seg_offset = 0;
+        if(string[1] == ':')   //n:[ (number of bytes to read)
         {
-            add += 2;
+            prefix_size = 3;
             int new_size = string[0] - '0';
             if(new_size < read_size)
                 read_size = new_size;
         }
-        if(!valfromstring(newstring.c_str(), value, silent, baseonly))
+        else if(string[1] == 's' && string[2] == ':')
         {
-            dprintf("noexpr failed on %s\n", newstring.c_str());
+            prefix_size = 4;
+            if(string[0] == 'f')  // fs:[...]
+            {
+                // TODO: get real segment offset instead of assuming them
+#ifdef _WIN64
+                seg_offset = 0;
+#else //x86
+                seg_offset = (size_t)GetTEBLocation(hActiveThread);
+#endif //_WIN64
+            }
+            else if(string[0] == 'g')  // gs:[...]
+            {
+#ifdef _WIN64
+                seg_offset = (size_t)GetTEBLocation(hActiveThread);
+#else //x86
+                seg_offset = 0;
+#endif //_WIN64
+            }
+        }
+
+        String ptrstring;
+        for(auto i = prefix_size, depth = 1; i < len; i++)
+        {
+            if(string[i] == '[')
+                depth++;
+            else if(string[i] == ']')
+            {
+                depth--;
+                if(!depth)
+                    break;
+            }
+            ptrstring += string[i];
+        }
+
+        if(!valfromstring(ptrstring.c_str(), value, silent, baseonly))
+        {
+            dprintf("noexpr failed on %s\n", ptrstring.c_str());
             return false;
         }
         duint addr = *value;
         *value = 0;
-        if(!MemRead(addr, value, read_size))
+        if(!MemRead(addr + seg_offset, value, read_size))
         {
             if(!silent)
                 dputs("failed to read memory");
@@ -1581,7 +1609,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(*string == '!' && isflag(string + 1))  //flag
+    else if(*string == '_' && isflag(string + 1))  //flag
     {
         if(!DbgIsDebugging())
         {
@@ -1655,7 +1683,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
 /**
 \brief Gets a value from a string. This function can parse expressions, memory locations, registers, flags, API names, labels, symbols and variables.
 \param string The string to parse.
-\param [out] value The value of the expression. This value cannot be null.
+\param [out] value The value of the expression. This value cannot be null. When the expression is invalid, value is not changed.
 \param silent true to not output anything to the console.
 \param baseonly true to skip parsing API names, labels, symbols and variables (basic expressions only).
 \param [out] value_size This function can output the value size parsed (for example memory location size or register size). Can be null.
@@ -1674,7 +1702,7 @@ bool valfromstring(const char* string, duint* value, bool silent, bool baseonly,
     }
     ExpressionParser parser(string);
     duint result;
-    if(!parser.calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
+    if(!parser.Calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
         return false;
     *value = result;
     return true;
@@ -2194,19 +2222,7 @@ bool valtostring(const char* string, duint value, bool silent)
             GuiUpdateAllViews(); //repaint gui
         return ok;
     }
-    else if((*string == '_')) //FPU values
-    {
-        if(!DbgIsDebugging())
-        {
-            if(!silent)
-                dputs("not debugging!");
-            return false;
-        }
-        setfpuvalue(string + 1, value);
-        GuiUpdateAllViews(); //repaint gui
-        return true;
-    }
-    else if(*string == '!' && isflag(string + 1)) //flag
+    else if(*string == '_' && isflag(string + 1))  //flag
     {
         if(!DbgIsDebugging())
         {
@@ -2221,6 +2237,18 @@ bool valtostring(const char* string, duint value, bool silent)
         GuiUpdateAllViews(); //repaint gui
         return true;
     }
+    else if((*string == '_')) //FPU values
+    {
+        if(!DbgIsDebugging())
+        {
+            if(!silent)
+                dputs("not debugging!");
+            return false;
+        }
+        setfpuvalue(string + 1, value);
+        GuiUpdateAllViews(); //repaint gui
+        return true;
+    }
     return varset(string, value, false); //variable
 }
 
@@ -2232,21 +2260,14 @@ bool valtostring(const char* string, duint value, bool silent)
 */
 duint valfileoffsettova(const char* modname, duint offset)
 {
-    char modpath[MAX_PATH] = "";
-    if(ModPathFromName(modname, modpath, MAX_PATH))
+    SHARED_ACQUIRE(LockModules);
+    const auto modInfo = ModInfoFromAddr(ModBaseFromName(modname));
+    if(modInfo && modInfo->fileMapVA)
     {
-        HANDLE FileHandle;
-        DWORD LoadedSize;
-        HANDLE FileMap;
-        ULONG_PTR FileMapVA;
-        if(StaticFileLoadW(StringUtils::Utf8ToUtf16(modpath).c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
-        {
-            ULONGLONG rva = ConvertFileOffsetToVA(FileMapVA, //FileMapVA
-                                                  FileMapVA + (ULONG_PTR)offset, //Offset inside FileMapVA
-                                                  false); //Return without ImageBase
-            StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
-            return offset < LoadedSize ? (duint)rva + ModBaseFromName(modname) : 0;
-        }
+        ULONGLONG rva = ConvertFileOffsetToVA(modInfo->fileMapVA, //FileMapVA
+                                              modInfo->fileMapVA + (ULONG_PTR)offset, //Offset inside FileMapVA
+                                              false); //Return without ImageBase
+        return offset < modInfo->loadedSize ? (duint)rva + ModBaseFromName(modname) : 0;
     }
     return 0;
 }
@@ -2258,19 +2279,12 @@ duint valfileoffsettova(const char* modname, duint offset)
 */
 duint valvatofileoffset(duint va)
 {
-    char modpath[MAX_PATH] = "";
-    if(ModPathFromAddr(va, modpath, MAX_PATH))
+    SHARED_ACQUIRE(LockModules);
+    const auto modInfo = ModInfoFromAddr(va);
+    if(modInfo && modInfo->fileMapVA)
     {
-        HANDLE FileHandle;
-        DWORD LoadedSize;
-        HANDLE FileMap;
-        ULONG_PTR FileMapVA;
-        if(StaticFileLoadW(StringUtils::Utf8ToUtf16(modpath).c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
-        {
-            ULONGLONG offset = ConvertVAtoFileOffsetEx(FileMapVA, LoadedSize, 0, va - ModBaseFromAddr(va), true, false);
-            StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
-            return (duint)offset;
-        }
+        ULONGLONG offset = ConvertVAtoFileOffsetEx(modInfo->fileMapVA, modInfo->loadedSize, 0, va - modInfo->base, true, false);
+        return (duint)offset;
     }
     return 0;
 }

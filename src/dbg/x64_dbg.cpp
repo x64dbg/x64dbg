@@ -21,12 +21,14 @@
 #include "_scriptapi_gui.h"
 #include "filehelper.h"
 #include "database.h"
+#include "mnemonichelp.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
 static bool bStopCommandLoopThread = false;
 static char alloctrace[MAX_PATH] = "";
 static bool bIsStopped = true;
+static char scriptDllDir[MAX_PATH] = "";
 static String notesFile;
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
@@ -55,6 +57,18 @@ static CMDRESULT cbPrintf(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+static bool DbgScriptDllExec(const char* dll);
+
+static CMDRESULT cbScriptDll(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    return DbgScriptDllExec(argv[1]) ? STATUS_CONTINUE : STATUS_ERROR;
+}
+
 static void registercommands()
 {
     cmdinit();
@@ -75,9 +89,12 @@ static void registercommands()
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //rtr
     dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
+
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
+
     dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
     dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
+
     dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true); //switch thread
     dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread
     dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true); //resume thread
@@ -85,16 +102,19 @@ static void registercommands()
     dbgcmdnew("suspendallthreads\1threadsuspendall", cbDebugSuspendAllThreads, true); //suspend all threads
     dbgcmdnew("resumeallthreads\1threadresumeall", cbDebugResumeAllThreads, true); //resume all threads
     dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
+
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
+
     dbgcmdnew("setjit\1jitset", cbDebugSetJIT, false); //set JIT
     dbgcmdnew("getjit\1jitget", cbDebugGetJIT, false); //get JIT
     dbgcmdnew("getjitauto\1jitgetauto", cbDebugGetJITAuto, false); //get JIT Auto
     dbgcmdnew("setjitauto\1jitsetauto", cbDebugSetJITAuto, false); //set JIT Auto
+
     dbgcmdnew("getcmdline\1getcommandline", cbDebugGetCmdline, true); //Get CmdLine
     dbgcmdnew("setcmdline\1setcommandline", cbDebugSetCmdline, true); //Set CmdLine
+
     dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
-    dbgcmdnew("setfreezestack", cbDebugSetfreezestack, false); //freeze the stack from auto updates
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
@@ -111,6 +131,35 @@ static void registercommands()
     dbgcmdnew("DeleteMemoryBPX\1membpc\1bpmc", cbDebugDeleteMemoryBreakpoint, true); //delete memory breakpoint
     dbgcmdnew("EnableMemoryBreakpoint\1membpe\1bpme", cbDebugEnableMemoryBreakpoint, true); //enable memory breakpoint
     dbgcmdnew("DisableMemoryBreakpoint\1membpd\1bpmd", cbDebugDisableMemoryBreakpoint, true); //enable memory breakpoint
+
+    //breakpoints (conditional)
+    dbgcmdnew("SetBreakpointName\1bpname", cbDebugSetBPXName, true); //set breakpoint name
+    dbgcmdnew("SetBreakpointCondition\1bpcond", cbDebugSetBPXCondition, true); //set breakpoint breakCondition
+    dbgcmdnew("SetBreakpointLog\1bplog", cbDebugSetBPXLog, true); //set breakpoint logText
+    dbgcmdnew("SetBreakpointLogCondition\1bplogcondition", cbDebugSetBPXLogCondition, true); //set breakpoint logCondition
+    dbgcmdnew("SetBreakpointCommand", cbDebugSetBPXCommand, true); //set breakpoint command on hit
+    dbgcmdnew("SetBreakpointCommandCondition", cbDebugSetBPXCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetBreakpointFastResume", cbDebugSetBPXFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("GetBreakpointHitCount", cbDebugGetBPXHitCount, true); //get breakpoint hit count
+    dbgcmdnew("ResetBreakpointHitCount", cbDebugResetBPXHitCount, true); //reset breakpoint hit count
+    dbgcmdnew("SetHardwareBreakpointName\1bphwname", cbDebugSetBPXHardwareName, true); //set breakpoint name
+    dbgcmdnew("SetHardwareBreakpointCondition\1bphwcond", cbDebugSetBPXHardwareCondition, true); //set breakpoint breakCondition
+    dbgcmdnew("SetHardwareBreakpointLog\1bphwlog", cbDebugSetBPXHardwareLog, true); //set breakpoint logText
+    dbgcmdnew("SetHardwareBreakpointLogCondition\1bphwlogcondition", cbDebugSetBPXHardwareLogCondition, true); //set breakpoint logText
+    dbgcmdnew("SetHardwareBreakpointCommand", cbDebugSetBPXHardwareCommand, true); //set breakpoint command on hit
+    dbgcmdnew("SetHardwareBreakpointCommandCondition", cbDebugSetBPXHardwareCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetHardwareBreakpointFastResume", cbDebugSetBPXHardwareFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("GetHardwareBreakpointHitCount", cbDebugGetBPXHardwareHitCount, true); //get breakpoint hit count
+    dbgcmdnew("ResetHardwareBreakpointHitCount", cbDebugResetBPXHardwareHitCount, true); //reset breakpoint hit count
+    dbgcmdnew("SetMemoryBreakpointName\1bpmname", cbDebugSetBPXMemoryName, true); //set breakpoint name
+    dbgcmdnew("SetMemoryBreakpointCondition\1bpmcond", cbDebugSetBPXMemoryCondition, true); //set breakpoint breakCondition
+    dbgcmdnew("SetMemoryBreakpointLog\1bpmlog", cbDebugSetBPXMemoryLog, true); //set breakpoint log
+    dbgcmdnew("SetMemoryBreakpointLogCondition\1bpmlogcondition", cbDebugSetBPXMemoryLogCondition, true); //set breakpoint logCondition
+    dbgcmdnew("SetMemoryBreakpointCommand", cbDebugSetBPXMemoryCommand, true); //set breakpoint command on hit
+    dbgcmdnew("SetMemoryBreakpointCommandCondition", cbDebugSetBPXMemoryCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetMemoryBreakpointFastResume", cbDebugSetBPXMemoryFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetMemoryGetBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
+    dbgcmdnew("ResetMemoryBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
 
     //variables
     dbgcmdnew("varnew\1var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]
@@ -130,6 +179,7 @@ static void registercommands()
     dbgcmdnew("refadd", cbInstrRefadd, false);
     dbgcmdnew("asm", cbInstrAssemble, true); //assemble instruction
     dbgcmdnew("sleep", cbInstrSleep, false); //Sleep
+    dbgcmdnew("setfreezestack", cbDebugSetfreezestack, false); //freeze the stack from auto updates
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
@@ -146,6 +196,7 @@ static void registercommands()
     dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
     dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
     dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions
+    dbgcmdnew("functionclear", cbInstrFunctionClear, false); //delete all functions
 
     //memory operations
     dbgcmdnew("alloc", cbDebugAlloc, true); //allocate memory
@@ -214,6 +265,13 @@ static void registercommands()
     dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
     dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
+    dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
+    dbgcmdnew("mnemonichelp", cbInstrMnemonichelp, false); //mnemonic help
+    dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
+    dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state
+    dbgcmdnew("EnablePrivilege", cbEnablePrivilege, true); //enable priv
+    dbgcmdnew("DisablePrivilege", cbDisablePrivilege, true); //disable priv
+    dbgcmdnew("handleclose", cbHandleClose, true); //close remote handle
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -245,6 +303,84 @@ static DWORD WINAPI DbgCommandLoopThread(void* a)
 {
     cmdloop(cbBadCmd, cbCommandProvider, cmdfindmain, false);
     return 0;
+}
+
+typedef void(*SCRIPTDLLSTART)();
+
+struct DLLSCRIPTEXECTHREADINFO
+{
+    DLLSCRIPTEXECTHREADINFO(HINSTANCE hScriptDll, SCRIPTDLLSTART AsyncStart)
+        : hScriptDll(hScriptDll),
+          AsyncStart(AsyncStart)
+    {
+    }
+
+    HINSTANCE hScriptDll;
+    SCRIPTDLLSTART AsyncStart;
+};
+
+static DWORD WINAPI DbgScriptDllExecThread(void* a)
+{
+    auto info = (DLLSCRIPTEXECTHREADINFO*)a;
+    auto AsyncStart = info->AsyncStart;
+    auto hScriptDll = info->hScriptDll;
+    delete info;
+
+    dprintf("[Script DLL] Calling export \"AsyncStart\"...\n");
+    AsyncStart();
+    dprintf("[Script DLL] \"AsyncStart\" returned!\n");
+
+    dprintf("[Script DLL] Calling FreeLibrary...");
+    if(FreeLibrary(hScriptDll))
+        dprintf("success!\n");
+    else
+        dprintf("failure (%08X)...\n", GetLastError());
+
+    return 0;
+}
+
+static bool DbgScriptDllExec(const char* dll)
+{
+    String dllPath = dll;
+    if(dllPath.find('\\') == String::npos)
+        dllPath = String(scriptDllDir) + String(dll);
+
+    dprintf("[Script DLL] Loading Script DLL \"%s\"...\n", dllPath.c_str());
+
+    auto hScriptDll = LoadLibraryW(StringUtils::Utf8ToUtf16(dllPath).c_str());
+    if(hScriptDll)
+    {
+        dprintf("[Script DLL] DLL loaded on 0x%p!\n", hScriptDll);
+
+        auto AsyncStart = SCRIPTDLLSTART(GetProcAddress(hScriptDll, "AsyncStart"));
+        if(AsyncStart)
+        {
+            dprintf("[Script DLL] Creating thread to call the export \"AsyncStart\"...\n");
+            CloseHandle(CreateThread(nullptr, 0, DbgScriptDllExecThread, new DLLSCRIPTEXECTHREADINFO(hScriptDll, AsyncStart), 0, nullptr)); //on-purpose memory leak here
+        }
+        else
+        {
+            auto Start = SCRIPTDLLSTART(GetProcAddress(hScriptDll, "Start"));
+            if(Start)
+            {
+                dprintf("[Script DLL] Calling export \"Start\"...\n");
+                Start();
+                dprintf("[Script DLL] \"Start\" returned!\n");
+            }
+            else
+                dprintf("[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%08X)!\n", GetLastError());
+
+            dprintf("[Script DLL] Calling FreeLibrary...");
+            if(FreeLibrary(hScriptDll))
+                dprintf("success!\n");
+            else
+                dprintf("failure (%08X)...\n", GetLastError());
+        }
+    }
+    else
+        dprintf("[Script DLL] LoadLibary failed (%08X)!\n", GetLastError());
+
+    return true;
 }
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
@@ -280,11 +416,25 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dir[len] = 0;
     strcpy_s(alloctrace, dir);
     strcat_s(alloctrace, "\\alloctrace.txt");
+    strcpy_s(scriptDllDir, dir);
+    strcat_s(scriptDllDir, "\\scripts\\");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
 
+    // Load mnemonic help database
+    String mnemonicHelpData;
+    if(FileHelper::ReadAllText(StringUtils::sprintf("%s\\..\\mnemdb.json", dir), mnemonicHelpData))
+    {
+        if(MnemonicHelp::loadFromText(mnemonicHelpData.c_str()))
+            dputs("Mnemonic help database loaded!");
+        else
+            dputs("Failed to load mnemonic help database...");
+    }
+    else
+        dputs("Failed to read mnemonic help database...");
+
     // Create database directory in the local debugger folder
-    DBSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
+    DbSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
 
     char szLocalSymbolPath[MAX_PATH] = "";
     strcpy_s(szLocalSymbolPath, dir);
@@ -318,7 +468,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
             }
         }
     }
-    dputs(szSymbolCachePath);
+    dprintf("Symbol Path: %s\n", szSymbolCachePath);
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());
     dputs("Allocating message stack...");
     gMsgStack = MsgAllocStack();
@@ -328,6 +478,19 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     varinit();
     dputs("Registering debugger commands...");
     registercommands();
+    dputs("Registering GUI command handler...");
+    SCRIPTTYPEINFO info;
+    strcpy_s(info.name, "Default");
+    info.id = 0;
+    info.execute = DbgCmdExec;
+    info.completeCommand = nullptr;
+    GuiRegisterScriptLanguage(&info);
+    SCRIPTTYPEINFO infoDll;
+    strcpy_s(info.name, "Script DLL");
+    infoDll.id = 0;
+    info.execute = DbgScriptDllExec;
+    info.completeCommand = nullptr;
+    GuiRegisterScriptLanguage(&info);
     dputs("Starting command loop...");
     hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     char plugindir[deflen] = "";
@@ -392,7 +555,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     if(memleaks())
         dprintf("%d memory leak(s) found!\n", memleaks());
     else
-        DeleteFileA(alloctrace);
+        DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     dputs("Cleaning up wait objects...");
     waitdeinitialize();
     dputs("Cleaning up debugger threads...");

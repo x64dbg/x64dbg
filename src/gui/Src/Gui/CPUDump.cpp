@@ -10,12 +10,12 @@
 #include "DataCopyDialog.h"
 #include "EntropyDialog.h"
 #include "CPUMultiDump.h"
+#include "WordEditDialog.h"
 #include <QToolTip>
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
     mDisas = disas;
-    mCurrentVa = 0;
     mMultiDump = multiDump;
 
     switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
@@ -92,18 +92,18 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
 void CPUDump::setupContextMenu()
 {
     //Binary menu
-    mBinaryMenu = new QMenu("B&inary", this);
+    mBinaryMenu = new QMenu(tr("B&inary"), this);
     mBinaryMenu->setIcon(QIcon(":/icons/images/binary.png"));
 
     //Binary->Edit
-    mBinaryEditAction = new QAction("&Edit", this);
+    mBinaryEditAction = new QAction(tr("&Edit"), this);
     mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryEditAction);
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
     mBinaryMenu->addAction(mBinaryEditAction);
 
     //Binary->Fill
-    mBinaryFillAction = new QAction("&Fill...", this);
+    mBinaryFillAction = new QAction(tr("&Fill..."), this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
@@ -113,133 +113,142 @@ void CPUDump::setupContextMenu()
     mBinaryMenu->addSeparator();
 
     //Binary->Copy
-    mBinaryCopyAction = new QAction("&Copy", this);
+    mBinaryCopyAction = new QAction(tr("&Copy"), this);
     mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryCopyAction);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
     mBinaryMenu->addAction(mBinaryCopyAction);
 
     //Binary->Paste
-    mBinaryPasteAction = new QAction("&Paste", this);
+    mBinaryPasteAction = new QAction(tr("&Paste"), this);
     mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteAction);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
     //Binary->Paste (Ignore Size)
-    mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
+    mBinaryPasteIgnoreSizeAction = new QAction(tr("Paste (&Ignore Size)"), this);
     mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
 
     //Binary->Save To a File
-    mBinarySaveToFile = new QAction("Save To a File", this);
+    mBinarySaveToFile = new QAction(tr("Save To a File"), this);
     mBinarySaveToFile->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinarySaveToFile);
     connect(mBinarySaveToFile, SIGNAL(triggered()), this, SLOT(binarySaveToFileSlot()));
     mBinaryMenu->addAction(mBinarySaveToFile);
 
-
     // Restore Selection
-    mUndoSelection = new QAction("&Restore selection", this);
+    mUndoSelection = new QAction(QIcon(":/icons/images/eraser.png"), tr("&Restore selection"), this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Follow in Stack
-    mFollowStack = new QAction("Follow in Stack", this);
+    mFollowStack = new QAction(QIcon(":/icons/images/stack.png"), tr("Follow in Stack"), this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     // Follow in Disasm
-    mFollowInDisasm = new QAction("Follow in Disassembler", this);
+    auto disasmIcon = QIcon(QString(":/icons/images/") + ArchValue("processor32.png", "processor64.png"));
+    mFollowInDisasm = new QAction(disasmIcon, tr("Follow in Disassembler"), this);
     connect(mFollowInDisasm, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
 
     //Follow DWORD/QWORD
 #ifdef _WIN64
-    mFollowData = new QAction("&Follow QWORD in Disassembler", this);
+    mFollowData = new QAction(tr("&Follow QWORD in Disassembler"), this);
 #else //x86
-    mFollowData = new QAction("&Follow DWORD in Disassembler", this);
+    mFollowData = new QAction(tr("&Follow DWORD in Disassembler"), this);
 #endif //_WIN64
     connect(mFollowData, SIGNAL(triggered()), this, SLOT(followDataSlot()));
 
     //Follow DWORD/QWORD in Disasm
 #ifdef _WIN64
-    mFollowDataDump = new QAction("&Follow QWORD in Current Dump", this);
+    mFollowDataDump = new QAction(tr("&Follow QWORD in Current Dump"), this);
 #else //x86
-    mFollowDataDump = new QAction("&Follow DWORD in Current Dump", this);
+    mFollowDataDump = new QAction(tr("&Follow DWORD in Current Dump"), this);
 #endif //_WIN64
     connect(mFollowDataDump, SIGNAL(triggered()), this, SLOT(followDataDumpSlot()));
 
 #ifdef _WIN64
-    mFollowInDumpMenu = new QMenu("&Follow QWORD in Dump", this);
+    mFollowInDumpMenu = new QMenu(tr("&Follow QWORD in Dump"), this);
 #else //x86
-    mFollowInDumpMenu = new QMenu("&Follow DWORD in Dump", this);
+    mFollowInDumpMenu = new QMenu(tr("&Follow DWORD in Dump"), this);
 #endif //_WIN64
 
     int maxDumps = mMultiDump->getMaxCPUTabs();
     for(int i = 0; i < maxDumps; i++)
     {
-        QAction* action = new QAction(QString("Dump %1").arg(i + 1), this);
+        QAction* action = new QAction(tr("Dump %1").arg(i + 1), this);
         connect(action, SIGNAL(triggered()), this, SLOT(followInDumpNSlot()));
         mFollowInDumpMenu->addAction(action);
         mFollowInDumpActions.push_back(action);
     }
 
+    //Sync with expression
+    mSyncWithExpression = new QAction(QIcon(":/icons/images/sync.png"), tr("&Sync with expression"), this);
+    connect(mSyncWithExpression, SIGNAL(triggered(bool)), this, SLOT(syncWithExpressionSlot()));
+
     //Entropy
-    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
+    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entrop&y..."), this);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropySlot()));
 
     //Label
-    mSetLabelAction = new QAction("Set Label", this);
+    mSetLabelAction = new QAction(QIcon(":/icons/images/label.png"), tr("Set &Label"), this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetLabelAction);
     connect(mSetLabelAction, SIGNAL(triggered()), this, SLOT(setLabelSlot()));
 
+    //Modify value
+    mModifyValueAction = new QAction(QIcon(":/icons/images/modify.png"), tr("&Modify Value"), this);
+    connect(mModifyValueAction, SIGNAL(triggered(bool)), this, SLOT(modifyValueSlot()));
+
     //Breakpoint menu
-    mBreakpointMenu = new QMenu("&Breakpoint", this);
+    mBreakpointMenu = new QMenu(tr("&Breakpoint"), this);
+    mBreakpointMenu->setIcon(QIcon(":/icons/images/breakpoint.png"));
 
     //Breakpoint->Hardware, on access
-    mHardwareAccessMenu = new QMenu("Hardware, &Access", this);
-    mHardwareAccess1 = new QAction("&Byte", this);
+    mHardwareAccessMenu = new QMenu(tr("Hardware, &Access"), this);
+    mHardwareAccess1 = new QAction(tr("&Byte"), this);
     connect(mHardwareAccess1, SIGNAL(triggered()), this, SLOT(hardwareAccess1Slot()));
     mHardwareAccessMenu->addAction(mHardwareAccess1);
-    mHardwareAccess2 = new QAction("&Word", this);
+    mHardwareAccess2 = new QAction(tr("&Word"), this);
     connect(mHardwareAccess2, SIGNAL(triggered()), this, SLOT(hardwareAccess2Slot()));
     mHardwareAccessMenu->addAction(mHardwareAccess2);
-    mHardwareAccess4 = new QAction("&Dword", this);
+    mHardwareAccess4 = new QAction(tr("&Dword"), this);
     connect(mHardwareAccess4, SIGNAL(triggered()), this, SLOT(hardwareAccess4Slot()));
     mHardwareAccessMenu->addAction(mHardwareAccess4);
 #ifdef _WIN64
-    mHardwareAccess8 = new QAction("&Qword", this);
+    mHardwareAccess8 = new QAction(tr("&Qword"), this);
     connect(mHardwareAccess8, SIGNAL(triggered()), this, SLOT(hardwareAccess8Slot()));
     mHardwareAccessMenu->addAction(mHardwareAccess8);
 #endif //_WIN64
     mBreakpointMenu->addMenu(mHardwareAccessMenu);
 
     //Breakpoint->Hardware, on write
-    mHardwareWriteMenu = new QMenu("Hardware, &Write", this);
-    mHardwareWrite1 = new QAction("&Byte", this);
+    mHardwareWriteMenu = new QMenu(tr("Hardware, &Write"), this);
+    mHardwareWrite1 = new QAction(tr("&Byte"), this);
     connect(mHardwareWrite1, SIGNAL(triggered()), this, SLOT(hardwareWrite1Slot()));
     mHardwareWriteMenu->addAction(mHardwareWrite1);
-    mHardwareWrite2 = new QAction("&Word", this);
+    mHardwareWrite2 = new QAction(tr("&Word"), this);
     connect(mHardwareWrite2, SIGNAL(triggered()), this, SLOT(hardwareWrite2Slot()));
     mHardwareWriteMenu->addAction(mHardwareWrite2);
-    mHardwareWrite4 = new QAction("&Dword", this);
+    mHardwareWrite4 = new QAction(tr("&Dword"), this);
     connect(mHardwareWrite4, SIGNAL(triggered()), this, SLOT(hardwareWrite4Slot()));
     mHardwareWriteMenu->addAction(mHardwareWrite4);
 #ifdef _WIN64
-    mHardwareWrite8 = new QAction("&Qword", this);
+    mHardwareWrite8 = new QAction(tr("&Qword"), this);
     connect(mHardwareWrite8, SIGNAL(triggered()), this, SLOT(hardwareWrite8Slot()));
     mHardwareWriteMenu->addAction(mHardwareWrite8);
 #endif //_WIN64
     mBreakpointMenu->addMenu(mHardwareWriteMenu);
 
-    mHardwareExecute = new QAction("Hardware, &Execute", this);
+    mHardwareExecute = new QAction(tr("Hardware, &Execute"), this);
     connect(mHardwareExecute, SIGNAL(triggered()), this, SLOT(hardwareExecuteSlot()));
     mBreakpointMenu->addAction(mHardwareExecute);
 
-    mHardwareRemove = new QAction("Remove &Hardware", this);
+    mHardwareRemove = new QAction(tr("Remove &Hardware"), this);
     connect(mHardwareRemove, SIGNAL(triggered()), this, SLOT(hardwareRemoveSlot()));
     mBreakpointMenu->addAction(mHardwareRemove);
 
@@ -247,132 +256,135 @@ void CPUDump::setupContextMenu()
     mBreakpointMenu->addSeparator();
 
     //Breakpoint->Memory Access
-    mMemoryAccessMenu = new QMenu("Memory, Access", this);
-    mMemoryAccessSingleshoot = new QAction("&Singleshoot", this);
+    mMemoryAccessMenu = new QMenu(tr("Memory, Access"), this);
+    mMemoryAccessSingleshoot = new QAction(tr("&Singleshoot"), this);
     connect(mMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessSingleshoot);
-    mMemoryAccessRestore = new QAction("&Restore on hit", this);
+    mMemoryAccessRestore = new QAction(tr("&Restore on hit"), this);
     connect(mMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessRestore);
     mBreakpointMenu->addMenu(mMemoryAccessMenu);
 
     //Breakpoint->Memory Write
-    mMemoryWriteMenu = new QMenu("Memory, Write", this);
-    mMemoryWriteSingleshoot = new QAction("&Singleshoot", this);
+    mMemoryWriteMenu = new QMenu(tr("Memory, Write"), this);
+    mMemoryWriteSingleshoot = new QAction(tr("&Singleshoot"), this);
     connect(mMemoryWriteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteSingleshoot);
-    mMemoryWriteRestore = new QAction("&Restore on hit", this);
+    mMemoryWriteRestore = new QAction(tr("&Restore on hit"), this);
     connect(mMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteRestore);
     mBreakpointMenu->addMenu(mMemoryWriteMenu);
 
     //Breakpoint->Memory Execute
-    mMemoryExecuteMenu = new QMenu("Memory, Execute", this);
-    mMemoryExecuteSingleshoot = new QAction("&Singleshoot", this);
+    mMemoryExecuteMenu = new QMenu(tr("Memory, Execute"), this);
+    mMemoryExecuteSingleshoot = new QAction(tr("&Singleshoot"), this);
     connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
-    mMemoryExecuteRestore = new QAction("&Restore on hit", this);
+    mMemoryExecuteRestore = new QAction(tr("&Restore on hit"), this);
     connect(mMemoryExecuteRestore, SIGNAL(triggered()), this, SLOT(memoryExecuteRestoreSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteRestore);
     mBreakpointMenu->addMenu(mMemoryExecuteMenu);
 
     //Breakpoint->Remove Memory
-    mMemoryRemove = new QAction("Remove &Memory", this);
+    mMemoryRemove = new QAction(tr("Remove &Memory"), this);
     connect(mMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
     mBreakpointMenu->addAction(mMemoryRemove);
 
     //Find Pattern
-    mFindPatternAction = new QAction("&Find Pattern...", this);
+    mFindPatternAction = new QAction(QIcon(":/icons/images/search-for.png"), tr("&Find Pattern..."), this);
     mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
     //Yara
-    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), tr("&Yara..."), this);
     mYaraAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mYaraAction);
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Data copy
-    mDataCopyAction = new QAction(QIcon(":/icons/images/data-copy.png"), "Data copy...", this);
+    mDataCopyAction = new QAction(QIcon(":/icons/images/data-copy.png"), tr("Data co&py..."), this);
     connect(mDataCopyAction, SIGNAL(triggered()), this, SLOT(dataCopySlot()));
 
     //Find References
-    mFindReferencesAction = new QAction("Find &References", this);
+    mFindReferencesAction = new QAction(QIcon(":/icons/images/find.png"), tr("Find &References"), this);
     mFindReferencesAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindReferencesAction);
     connect(mFindReferencesAction, SIGNAL(triggered()), this, SLOT(findReferencesSlot()));
 
     //Goto menu
-    mGotoMenu = new QMenu("&Goto", this);
+    mGotoMenu = new QMenu(tr("&Go to"), this);
+    mGotoMenu->setIcon(QIcon(":/icons/images/goto.png"));
 
     //Goto->Expression
-    mGotoExpression = new QAction("&Expression", this);
+    mGotoExpression = new QAction(QIcon(":/icons/images/geolocation-goto.png"), tr("&Expression"), this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
     mGotoMenu->addAction(mGotoExpression);
 
     // Goto->File offset
-    mGotoFileOffset = new QAction("File Offset", this);
+    mGotoFileOffset = new QAction(QIcon(":/icons/images/fileoffset.png"), tr("File Offset"), this);
     mGotoFileOffset->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoFileOffset);
     connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffsetSlot()));
     mGotoMenu->addAction(mGotoFileOffset);
 
-    // Goto->Previous
-    mGotoPrevious = new QAction("Previous", this);
-    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoPrevious);
-    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevSlot()));
-    mGotoMenu->addAction(mGotoPrevious);
-
-    // Goto->Next
-    mGotoNext = new QAction("Next", this);
-    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoNext);
-    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNextSlot()));
-    mGotoMenu->addAction(mGotoNext);
-
-
     // Goto->Start of page
-    mGotoStart = new QAction("Start of Page", this);
+    mGotoStart = new QAction(QIcon(":/icons/images/top.png"), tr("Start of Page"), this);
     mGotoStart->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoStart);
     connect(mGotoStart, SIGNAL(triggered()), this, SLOT(gotoStartSlot()));
     mGotoMenu->addAction(mGotoStart);
 
     // Goto->End of page
-    mGotoEnd = new QAction("End of Page", this);
+    mGotoEnd = new QAction(QIcon(":/icons/images/bottom.png"), tr("End of Page"), this);
     mGotoEnd->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoEnd);
     connect(mGotoEnd, SIGNAL(triggered()), this, SLOT(gotoEndSlot()));
     mGotoMenu->addAction(mGotoEnd);
 
+    // Goto->Previous
+    mGotoPrevious = new QAction(QIcon(":/icons/images/previous.png"), tr("Previous"), this);
+    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoPrevious);
+    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevSlot()));
+    mGotoMenu->addAction(mGotoPrevious);
+
+    // Goto->Next
+    mGotoNext = new QAction(QIcon(":/icons/images/next.png"), tr("Next"), this);
+    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoNext);
+    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNextSlot()));
+    mGotoMenu->addAction(mGotoNext);
+
     //Hex menu
-    mHexMenu = new QMenu("&Hex", this);
+    mHexMenu = new QMenu(tr("&Hex"), this);
+    mHexMenu->setIcon(QIcon(":/icons/images/hex.png"));
     //Hex->Ascii
     mHexAsciiAction = new QAction("&Ascii", this);
     connect(mHexAsciiAction, SIGNAL(triggered()), this, SLOT(hexAsciiSlot()));
     mHexMenu->addAction(mHexAsciiAction);
     //Hex->Unicode
-    mHexUnicodeAction = new QAction("&Unicode", this);
+    mHexUnicodeAction = new QAction(tr("&Unicode"), this);
     connect(mHexUnicodeAction, SIGNAL(triggered()), this, SLOT(hexUnicodeSlot()));
     mHexMenu->addAction(mHexUnicodeAction);
 
     //Text menu
-    mTextMenu = new QMenu("&Text", this);
+    mTextMenu = new QMenu(tr("&Text"), this);
+    mTextMenu->setIcon(QIcon(":/icons/images/strings.png"));
     //Text->Ascii
-    mTextAsciiAction = new QAction("&Ascii", this);
+    mTextAsciiAction = new QAction(tr("&Ascii"), this);
     connect(mTextAsciiAction, SIGNAL(triggered()), this, SLOT(textAsciiSlot()));
     mTextMenu->addAction(mTextAsciiAction);
     //Text->Unicode
-    mTextUnicodeAction = new QAction("&Unicode", this);
+    mTextUnicodeAction = new QAction(tr("&Unicode"), this);
     connect(mTextUnicodeAction, SIGNAL(triggered()), this, SLOT(textUnicodeSlot()));
     mTextMenu->addAction(mTextUnicodeAction);
 
     //Integer menu
-    mIntegerMenu = new QMenu("&Integer", this);
+    mIntegerMenu = new QMenu(tr("&Integer"), this);
+    mIntegerMenu->setIcon(QIcon(":/icons/images/integer.png"));
     //Integer->Signed short
     mIntegerSignedShortAction = new QAction("Signed short (16-bit)", this);
     connect(mIntegerSignedShortAction, SIGNAL(triggered()), this, SLOT(integerSignedShortSlot()));
@@ -417,7 +429,8 @@ void CPUDump::setupContextMenu()
 #endif //_WIN64
 
     //Float menu
-    mFloatMenu = new QMenu("&Float", this);
+    mFloatMenu = new QMenu(tr("&Float"), this);
+    mFloatMenu->setIcon(QIcon(":/icons/images/float.png"));
     //Float->float
     mFloatFloatAction = new QAction("&Float (32-bit)", this);
     connect(mFloatFloatAction, SIGNAL(triggered()), this, SLOT(floatFloatSlot()));
@@ -432,23 +445,26 @@ void CPUDump::setupContextMenu()
     mFloatMenu->addAction(mFloatLongDoubleAction);
 
     //Address
-    mAddressAction = new QAction("&Address", this);
+    mAddressAction = new QAction(tr("&Address"), this);
+    mAddressAction->setIcon(QIcon(":/icons/images/address.png"));
     connect(mAddressAction, SIGNAL(triggered()), this, SLOT(addressSlot()));
 
     //Disassembly
-    mDisassemblyAction = new QAction("&Disassembly", this);
+    mDisassemblyAction = new QAction(tr("&Disassembly"), this);
     connect(mDisassemblyAction, SIGNAL(triggered()), this, SLOT(disassemblySlot()));
+    mDisassemblyAction->setEnabled(false); // If this is implemented remove this line.
 
     //Plugins
     mPluginMenu = new QMenu(this);
+    mPluginMenu->setIcon(QIcon(":/icons/images/plugin.png"));
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
 
     //Copy
-    mCopyMenu = new QMenu("&Copy", this);
+    mCopyMenu = new QMenu(tr("&Copy"), this);
     mCopyMenu->setIcon(QIcon(":/icons/images/copy.png"));
 
     // Copy -> Address
-    mCopyAddress = new QAction("&Address", this);
+    mCopyAddress = new QAction(tr("&Address"), this);
     connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddressSlot()));
     mCopyAddress->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mCopyAddress);
@@ -458,7 +474,6 @@ void CPUDump::setupContextMenu()
     mCopyRva = new QAction("&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
     mCopyMenu->addAction(mCopyRva);
-
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -552,21 +567,48 @@ QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
     }
-    else if(col && mDescriptor.at(col - 1).isData == false && mDescriptor.at(col - 1).itemCount == 1) //print comments
+    else if(mDescriptor.at(col - 1).isData) //print data
+    {
+        wStr = HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    }
+    else if(!mDescriptor.at(col - 1).isData && mDescriptor.at(col - 1).itemCount) //print comments
     {
         duint data = 0;
         dsint wRva = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset;
         mMemPage->read((byte_t*)&data, wRva, sizeof(duint));
+
         char modname[MAX_MODULE_SIZE] = "";
         if(!DbgGetModuleAt(data, modname))
             modname[0] = '\0';
         char label_text[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
             wStr = QString(modname) + "." + QString(label_text);
-    }
-    else //data
-    {
-        wStr = HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+        char string_text[MAX_STRING_SIZE] = "";
+        if(DbgGetStringAt(data, string_text))
+            wStr = string_text;
+        if(!wStr.length()) //stack comments
+        {
+            auto va = rvaToVa(wRva);
+            duint stackSize;
+            duint csp = DbgValFromString("csp");
+            duint stackBase = DbgMemFindBaseAddr(csp, &stackSize);
+            STACK_COMMENT comment;
+            if(va >= stackBase && va < stackBase + stackSize && DbgStackCommentGet(rvaToVa(wRva), &comment))
+            {
+                painter->save();
+                if(va >= csp) //active stack
+                {
+                    if(*comment.color)
+                        painter->setPen(QPen(QColor(QString(comment.color))));
+                    else
+                        painter->setPen(QPen(textColor));
+                }
+                else
+                    painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
+                painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, comment.comment);
+                painter->restore();
+            }
+        }
     }
     return wStr;
 }
@@ -578,51 +620,53 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
 
     dsint selectedAddr = rvaToVa(getInitialSelection());
 
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addMenu(mBinaryMenu);
-    wMenu->addMenu(mCopyMenu);
+    QMenu wMenu(this); //create context menu
+    wMenu.addMenu(mBinaryMenu);
+    wMenu.addMenu(mCopyMenu);
     dsint start = rvaToVa(getSelectionStart());
     dsint end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
-        wMenu->addAction(mUndoSelection);
+        wMenu.addAction(mUndoSelection);
     if(DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0))
-        wMenu->addAction(mFollowStack);
-    wMenu->addAction(mFollowInDisasm);
+        wMenu.addAction(mFollowStack);
+    wMenu.addAction(mFollowInDisasm);
 
     duint ptr = 0;
     DbgMemRead(selectedAddr, (unsigned char*)&ptr, sizeof(duint));
     if(DbgMemIsValidReadPtr(ptr))
     {
-        wMenu->addAction(mFollowData);
-        wMenu->addAction(mFollowDataDump);
-        wMenu->addMenu(mFollowInDumpMenu);
+        wMenu.addAction(mFollowData);
+        wMenu.addAction(mFollowDataDump);
+        wMenu.addMenu(mFollowInDumpMenu);
     }
 
+    mGotoMenu->removeAction(mGotoPrevious);
+    mGotoMenu->removeAction(mGotoNext);
+
     if(historyHasPrev())
-        mGotoPrevious->setVisible(true);
-    else
-        mGotoPrevious->setVisible(false);
+        mGotoMenu->addAction(mGotoPrevious);
 
     if(historyHasNext())
-        mGotoNext->setVisible(true);
-    else
-        mGotoNext->setVisible(false);
+        mGotoMenu->addAction(mGotoNext);
 
-    wMenu->addAction(mSetLabelAction);
-    wMenu->addMenu(mBreakpointMenu);
-    wMenu->addAction(mFindPatternAction);
-    wMenu->addAction(mFindReferencesAction);
-    wMenu->addAction(mYaraAction);
-    wMenu->addAction(mDataCopyAction);
-    wMenu->addMenu(mGotoMenu);
-    wMenu->addAction(mEntropy);
-    wMenu->addSeparator();
-    wMenu->addMenu(mHexMenu);
-    wMenu->addMenu(mTextMenu);
-    wMenu->addMenu(mIntegerMenu);
-    wMenu->addMenu(mFloatMenu);
-    wMenu->addAction(mAddressAction);
-    wMenu->addAction(mDisassemblyAction);
+    wMenu.addAction(mSetLabelAction);
+    if(getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint))
+        wMenu.addAction(mModifyValueAction);
+    wMenu.addMenu(mBreakpointMenu);
+    wMenu.addAction(mFindPatternAction);
+    wMenu.addAction(mFindReferencesAction);
+    wMenu.addAction(mYaraAction);
+    wMenu.addAction(mDataCopyAction);
+    wMenu.addAction(mSyncWithExpression);
+    wMenu.addAction(mEntropy);
+    wMenu.addMenu(mGotoMenu);
+    wMenu.addSeparator();
+    wMenu.addMenu(mHexMenu);
+    wMenu.addMenu(mTextMenu);
+    wMenu.addMenu(mIntegerMenu);
+    wMenu.addMenu(mFloatMenu);
+    wMenu.addAction(mAddressAction);
+    wMenu.addAction(mDisassemblyAction);
 
     QList<QString> tabNames;
     mMultiDump->getTabNames(tabNames);
@@ -658,10 +702,10 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         mMemoryRemove->setVisible(false);
     }
 
-    wMenu->addSeparator();
-    wMenu->addActions(mPluginMenu->actions());
+    wMenu.addSeparator();
+    wMenu.addActions(mPluginMenu->actions());
 
-    wMenu->exec(event->globalPos()); //execute context menu
+    wMenu.exec(event->globalPos()); //execute context menu
 }
 
 void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
@@ -691,7 +735,10 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
 
     default:
     {
-        binaryEditSlot();
+        if(getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint))
+            modifyValueSlot();
+        else
+            binaryEditSlot();
     }
     break;
     }
@@ -738,57 +785,6 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
     HexDump::mouseMoveEvent(event);
 }
 
-void CPUDump::addVaToHistory(dsint parVa)
-{
-    mVaHistory.push_back(parVa);
-    if(mVaHistory.size() > 1)
-        mCurrentVa++;
-}
-
-bool CPUDump::historyHasPrev()
-{
-    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
-        return false;
-    return true;
-}
-
-bool CPUDump::historyHasNext()
-{
-    int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
-        return false;
-    return true;
-}
-
-void CPUDump::historyPrev()
-{
-    if(!historyHasPrev())
-        return;
-
-    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
-        return;
-    mCurrentVa--;
-    printDumpAt(mVaHistory.at(mCurrentVa));
-}
-
-void CPUDump::historyNext()
-{
-    if(!historyHasNext())
-        return;
-
-    int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
-        return;
-    mCurrentVa++;
-    printDumpAt(mVaHistory.at(mCurrentVa));
-}
-
-void CPUDump::historyClear()
-{
-    mCurrentVa = 0;
-    mVaHistory.clear();
-}
-
 void CPUDump::setLabelSlot()
 {
     if(!DbgIsDebugging())
@@ -800,18 +796,33 @@ void CPUDump::setLabelSlot()
     char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
-    mLineEdit.setWindowTitle("Add label at " + addr_text);
+    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetLabelAt failed!"));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
     GuiUpdateAllViews();
+}
+
+void CPUDump::modifyValueSlot()
+{
+    dsint addr = getInitialSelection();
+    WordEditDialog wEditDialog(this);
+    dsint value = 0;
+    auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), int(sizeof(dsint)));
+    mMemPage->read(&value, addr, size);
+    wEditDialog.setup(tr("Modify value"), value, size);
+    if(wEditDialog.exec() != QDialog::Accepted)
+        return;
+    value = wEditDialog.getVal();
+    mMemPage->write(&value, addr, size);
+    reloadData();
 }
 
 void CPUDump::gotoExpressionSlot()
@@ -874,7 +885,7 @@ void CPUDump::hexAsciiSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8 + charwidth * 47, "Hex", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, tr("Hex"), false, wColDesc);
 
     wColDesc.isData = true; //ascii byte
     wColDesc.itemCount = 16;
@@ -882,7 +893,7 @@ void CPUDump::hexAsciiSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendDescriptor(8 + charwidth * 16, "ASCII", false, wColDesc);
+    appendDescriptor(8 + charwidth * 16, tr("ASCII"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -908,7 +919,7 @@ void CPUDump::hexUnicodeSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8 + charwidth * 47, "Hex", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, tr("Hex"), false, wColDesc);
 
     wColDesc.isData = true; //unicode short
     wColDesc.itemCount = 8;
@@ -916,7 +927,7 @@ void CPUDump::hexUnicodeSlot()
     dDesc.itemSize = Word;
     dDesc.wordMode = UnicodeWord;
     wColDesc.data = dDesc;
-    appendDescriptor(8 + charwidth * 8, "UNICODE", false, wColDesc);
+    appendDescriptor(8 + charwidth * 8, tr("UNICODE"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -942,7 +953,7 @@ void CPUDump::textAsciiSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8 + charwidth * 64, "ASCII", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 64, tr("ASCII"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -968,7 +979,7 @@ void CPUDump::textUnicodeSlot()
     dDesc.itemSize = Word;
     dDesc.wordMode = UnicodeWord;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8 + charwidth * 64, "UNICODE", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 64, tr("UNICODE"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -993,7 +1004,7 @@ void CPUDump::integerSignedShortSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = SignedDecWord;
-    appendResetDescriptor(8 + charwidth * 55, "Signed short (16-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 55, tr("Signed short (16-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1018,7 +1029,7 @@ void CPUDump::integerSignedLongSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = SignedDecDword;
-    appendResetDescriptor(8 + charwidth * 47, "Signed long (32-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, tr("Signed long (32-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1043,7 +1054,7 @@ void CPUDump::integerSignedLongLongSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = SignedDecQword;
-    appendResetDescriptor(8 + charwidth * 41, "Signed long long (64-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 41, tr("Signed long long (64-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1068,7 +1079,7 @@ void CPUDump::integerUnsignedShortSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = UnsignedDecWord;
-    appendResetDescriptor(8 + charwidth * 47, "Unsigned short (16-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, tr("Unsigned short (16-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1093,7 +1104,7 @@ void CPUDump::integerUnsignedLongSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = UnsignedDecDword;
-    appendResetDescriptor(8 + charwidth * 43, "Unsigned long (32-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 43, tr("Unsigned long (32-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1118,7 +1129,7 @@ void CPUDump::integerUnsignedLongLongSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = UnsignedDecQword;
-    appendResetDescriptor(8 + charwidth * 41, "Unsigned long long (64-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 41, tr("Unsigned long long (64-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1143,7 +1154,7 @@ void CPUDump::integerHexShortSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = HexWord;
-    appendResetDescriptor(8 + charwidth * 34, "Hex short (16-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 34, tr("Hex short (16-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1168,7 +1179,7 @@ void CPUDump::integerHexLongSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
-    appendResetDescriptor(8 + charwidth * 35, "Hex long (32-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 35, tr("Hex long (32-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1193,7 +1204,7 @@ void CPUDump::integerHexLongLongSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = HexQword;
-    appendResetDescriptor(8 + charwidth * 33, "Hex long long (64-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 33, tr("Hex long long (64-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1218,7 +1229,7 @@ void CPUDump::floatFloatSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = FloatDword;
-    appendResetDescriptor(8 + charwidth * 55, "Float (32-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 55, tr("Float (32-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1243,7 +1254,7 @@ void CPUDump::floatDoubleSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = DoubleQword;
-    appendResetDescriptor(8 + charwidth * 47, "Double (64-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, tr("Double (64-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1268,7 +1279,7 @@ void CPUDump::floatLongDoubleSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Tword;
     wColDesc.data.twordMode = FloatTword;
-    appendResetDescriptor(8 + charwidth * 59, "Long double (80-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 59, tr("Long double (80-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1298,7 +1309,7 @@ void CPUDump::addressSlot()
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
 #endif
-    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), "Address", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, wColDesc);
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 1;
@@ -1306,14 +1317,14 @@ void CPUDump::addressSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendDescriptor(0, "Comments", false, wColDesc);
+    appendDescriptor(0, tr("Comments"), false, wColDesc);
 
     reloadData();
 }
 
 void CPUDump::disassemblySlot()
 {
-    QMessageBox msg(QMessageBox::Critical, "Error!", "Not yet supported!");
+    QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Not yet supported!"));
     msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -1464,7 +1475,7 @@ void CPUDump::binaryEditSlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    hexEdit.setWindowTitle("Edit data at " + QString("%1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Edit data at %1").arg(ToPtrString(rvaToVa(selStart))));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     dsint dataSize = hexEdit.mHexEdit->data().size();
@@ -1481,7 +1492,7 @@ void CPUDump::binaryFillSlot()
     HexEditDialog hexEdit(this);
     hexEdit.mHexEdit->setOverwriteMode(false);
     dsint selStart = getSelectionStart();
-    hexEdit.setWindowTitle("Fill data at " + QString("%1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Fill data at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     QString pattern = hexEdit.mHexEdit->pattern();
@@ -1543,7 +1554,7 @@ void CPUDump::binaryPasteIgnoreSizeSlot()
 
 void CPUDump::binarySaveToFileSlot()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Save to file", QDir::currentPath(), tr("All files (*.*)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save to file"), QDir::currentPath(), tr("All files (*.*)"));
     if(fileName.length())
     {
         // Get starting selection and selection size, then convert selStart to VA
@@ -1552,6 +1563,7 @@ void CPUDump::binarySaveToFileSlot()
         dsint vaSelStart = rvaToVa(rvaSelStart);
 
         // Prepare command
+        fileName = QDir::toNativeSeparators(fileName);
         QString cmd = QString("savedata %1,%2,%3").arg(fileName, QString::number(vaSelStart, 16), QString::number(selSize));
         DbgCmdExec(cmd.toUtf8().constData());
     }
@@ -1562,7 +1574,7 @@ void CPUDump::findPattern()
     HexEditDialog hexEdit(this);
     hexEdit.showEntireBlock(true);
     hexEdit.mHexEdit->setOverwriteMode(false);
-    hexEdit.setWindowTitle("Find Pattern...");
+    hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     dsint addr = rvaToVa(getSelectionStart());
@@ -1604,7 +1616,7 @@ void CPUDump::followDataSlot()
 void CPUDump::followDataDumpSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("dump [%1]").arg(addrText).toUtf8().constData());
+    DbgCmdExec(QString("dump \"[%1]\"").arg(addrText).toUtf8().constData());
 }
 
 void CPUDump::selectionUpdatedSlot()
@@ -1655,6 +1667,20 @@ void CPUDump::entropySlot()
     entropyDialog.exec();
 }
 
+void CPUDump::syncWithExpressionSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    GotoDialog gotoDialog(this, true);
+    gotoDialog.setWindowTitle("Enter expression to sync with...");
+    gotoDialog.setInitialExpression(mSyncAddrExpression);
+    if(gotoDialog.exec() != QDialog::Accepted)
+        return;
+    mSyncAddrExpression = gotoDialog.expressionText;
+    if(mSyncAddrExpression.length())
+        DbgCmdExec(QString("dump \"%1\"").arg(mSyncAddrExpression).toUtf8().constData());
+}
+
 void CPUDump::copyAddressSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
@@ -1680,19 +1706,20 @@ void CPUDump::followInDumpNSlot()
     {
         if(mFollowInDumpActions[i] == sender())
         {
-            DbgCmdExec(QString("dump [%1], %2").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i).toUtf8().constData());
+            DbgCmdExec(QString("dump \"[%1]\", \"%2\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i).toUtf8().constData());
         }
     }
 }
 
 void CPUDump::gotoNextSlot()
 {
+    DbgCmdExec(QString("log \"next\"").toUtf8().constData());
     historyNext();
 }
 
 void CPUDump::gotoPrevSlot()
 {
+    DbgCmdExec(QString("log \"previous\"").toUtf8().constData());
     historyPrev();
 }
-
 

@@ -1,60 +1,91 @@
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QSplitter>
+#include <QLabel>
 #include "SearchListView.h"
-#include "ui_SearchListView.h"
 #include "FlickerThread.h"
 
 #include <QMessageBox>
-
-SearchListView::SearchListView(QWidget* parent) :
-    QWidget(parent),
-    ui(new Ui::SearchListView)
+SearchListView::SearchListView(bool EnableRegex, QWidget* parent) : QWidget(parent)
 {
-    ui->setupUi(this);
-
     setContextMenuPolicy(Qt::CustomContextMenu);
-    mCursorPosition = 0;
-    // Create the reference list
-    mList = new SearchListViewTable();
 
-    // Create the search list
-    mSearchList = new SearchListViewTable();
-    mSearchList->hide();
+    // Create the main button/bar view with QSplitter
+    //
+    // |- Splitter ----------------------------|
+    // | LISTVIEW                              |
+    // | SEARCH: | SEARCH BOX | REGEX CHECKBOX |
+    // |---------------------------------------|
+    QSplitter* barSplitter = new QSplitter(Qt::Vertical);
+    {
+        // Create list layout (contains both ListViews)
+        {
+            // Create reference & search list
+            mList = new SearchListViewTable();
+            mSearchList = new SearchListViewTable();
+            mSearchList->hide();
+
+            // Vertical layout
+            QVBoxLayout* listLayout = new QVBoxLayout();
+            listLayout->setContentsMargins(0, 0, 0, 0);
+            listLayout->setSpacing(0);
+            listLayout->addWidget(mList);
+            listLayout->addWidget(mSearchList);
+
+            // Add list placeholder
+            QWidget* listPlaceholder = new QWidget();
+            listPlaceholder->setLayout(listLayout);
+
+            barSplitter->addWidget(listPlaceholder);
+        }
+
+        // Filtering elements
+        {
+            // Input box
+            mSearchBox = new QLineEdit();
+            mSearchBox->setPlaceholderText("Type here to filter results...");
+
+            // Regex parsing checkbox
+            mRegexCheckbox = new QCheckBox("Regex");
+
+            if(!EnableRegex)
+                mRegexCheckbox->hide();
+
+            // Horizontal layout
+            QHBoxLayout* horzLayout = new QHBoxLayout();
+            horzLayout->setContentsMargins(4, 0, (EnableRegex) ? 0 : 4, 0);
+            horzLayout->setSpacing(2);
+            horzLayout->addWidget(new QLabel("Search: "));
+            horzLayout->addWidget(mSearchBox);
+            horzLayout->addWidget(mRegexCheckbox);
+
+            // Add searchbar placeholder
+            QWidget* horzPlaceholder = new QWidget();
+            horzPlaceholder->setLayout(horzLayout);
+
+            barSplitter->addWidget(horzPlaceholder);
+        }
+
+        // Minimum size for the search box
+        barSplitter->setStretchFactor(0, 1000);
+        barSplitter->setStretchFactor(0, 1);
+
+        // Disable main splitter
+        for(int i = 0; i < barSplitter->count(); i++)
+            barSplitter->handle(i)->setEnabled(false);
+    }
+
+    // Set the main layout which holds the splitter
+    QVBoxLayout* mainLayout = new QVBoxLayout();
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->addWidget(barSplitter);
+    setLayout(mainLayout);
 
     // Set global variables
-    mSearchBox = ui->searchBox;
     mCurList = mList;
     mSearchStartCol = 0;
 
-    // Create list layout
-    mListLayout = new QVBoxLayout();
-    mListLayout->setContentsMargins(0, 0, 0, 0);
-    mListLayout->setSpacing(0);
-    mListLayout->addWidget(mList);
-    mListLayout->addWidget(mSearchList);
-
-    // Create list placeholder
-    mListPlaceHolder = new QWidget();
-    mListPlaceHolder->setLayout(mListLayout);
-
-    // Insert the placeholder
-    ui->mainSplitter->insertWidget(0, mListPlaceHolder);
-
-    // Set the main layout
-    mMainLayout = new QVBoxLayout();
-    mMainLayout->setContentsMargins(0, 0, 0, 0);
-    mMainLayout->addWidget(ui->mainSplitter);
-    setLayout(mMainLayout);
-
-    // Minimal size for the search box
-    ui->mainSplitter->setStretchFactor(0, 1000);
-    ui->mainSplitter->setStretchFactor(0, 1);
-
-    // Disable main splitter
-    for(int i = 0; i < ui->mainSplitter->count(); i++)
-        ui->mainSplitter->handle(i)->setEnabled(false);
-
-    // Install eventFilter
-    mList->installEventFilter(this);
-    mSearchList->installEventFilter(this);
+    // Install input event filter
     mSearchBox->installEventFilter(this);
 
     // Setup search menu action
@@ -62,18 +93,19 @@ SearchListView::SearchListView(QWidget* parent) :
     connect(mSearchAction, SIGNAL(triggered()), this, SLOT(searchSlot()));
 
     // Slots
-    //    connect(mList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
     connect(mList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(mList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
-    //    connect(mSearchList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
     connect(mSearchList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(mSearchList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(mSearchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
+
+    // List input should always be forwarded to the filter edit
+    mSearchList->setFocusProxy(mSearchBox);
+    mList->setFocusProxy(mSearchBox);
 }
 
 SearchListView::~SearchListView()
 {
-    delete ui;
 }
 
 bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith)
@@ -91,7 +123,7 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
     {
         for(int i = startcol; i < count; i++)
         {
-            if(ui->checkBoxRegex->checkState() == Qt::Checked)
+            if(mRegexCheckbox->checkState() == Qt::Checked)
             {
                 if(list->getCellContent(row, i).contains(QRegExp(text)))
                     return true;
@@ -118,10 +150,9 @@ void SearchListView::searchTextChanged(const QString & arg1)
     {
         mSearchList->hide();
         mList->show();
-        if(ui->checkBoxRegex->checkState() != Qt::Checked)
-            mList->setFocus();
         mCurList = mList;
     }
+    mCurList->setSingleSelection(0);
     mSearchList->setRowCount(0);
     int rows = mList->getRowCount();
     int columns = mList->getColumnCount();
@@ -156,24 +187,26 @@ void SearchListView::searchTextChanged(const QString & arg1)
     if(rows == 0)
         emit emptySearchResult();
 
-    if(ui->checkBoxRegex->checkState() != Qt::Checked) //do not highlight with regex
+    // Do not highlight with regex
+    if(mRegexCheckbox->checkState() != Qt::Checked)
         mSearchList->highlightText = arg1;
+    else
+        mSearchList->highlightText = "";
+
     mSearchList->reloadData();
-    if(ui->checkBoxRegex->checkState() != Qt::Checked)
-        mSearchList->setFocus();
 }
 
 void SearchListView::listContextMenu(const QPoint & pos)
 {
-    QMenu* wMenu = new QMenu(this);
-    emit listContextMenuSignal(wMenu);
-    wMenu->addSeparator();
-    wMenu->addAction(mSearchAction);
+    QMenu wMenu(this);
+    emit listContextMenuSignal(&wMenu);
+    wMenu.addSeparator();
+    wMenu.addAction(mSearchAction);
     QMenu wCopyMenu("&Copy", this);
     mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
-        wMenu->addMenu(&wCopyMenu);
-    wMenu->exec(mCurList->mapToGlobal(pos));
+        wMenu.addMenu(&wCopyMenu);
+    wMenu.exec(mCurList->mapToGlobal(pos));
 }
 
 void SearchListView::doubleClickedSlot()
@@ -184,138 +217,63 @@ void SearchListView::doubleClickedSlot()
 void SearchListView::on_checkBoxRegex_toggled(bool checked)
 {
     Q_UNUSED(checked);
-    searchTextChanged(ui->searchBox->text());
-}
-
-void SearchListView::addCharToSearchBox(char ch)
-{
-    QString newText;
-    newText = mSearchBox->text();
-
-    // If text is selected
-    if(mSearchBox->hasSelectedText())
-    {
-        QString selectedText = mSearchBox->selectedText();
-        int indexOfSelectedText = newText.indexOf(selectedText);
-
-        if(indexOfSelectedText != -1)
-        {
-            newText.replace(indexOfSelectedText, selectedText.length(), QString(ch));
-            mCursorPosition = indexOfSelectedText;
-            mSearchBox->setText(newText);
-        }
-
-    }
-    // No text selected
-    else
-    {
-        mSearchBox->setText(mSearchBox->text().insert(mSearchBox->cursorPosition(), QString(ch)));
-        mCursorPosition++;
-    }
-}
-
-void SearchListView::deleteTextFromSearchBox(QKeyEvent* keyEvent)
-{
-    QString newText;
-    newText = mSearchBox->text();
-
-    // If Ctrl key pressed
-    if(keyEvent->modifiers() == Qt::ControlModifier)
-    {
-        newText = "";
-        mCursorPosition = 0;
-    }
-    else
-    {
-        // If text is selected
-        if(mSearchBox->hasSelectedText())
-        {
-            QString selectedText = mSearchBox->selectedText();
-            int indexOfSelectedText = newText.indexOf(selectedText);
-
-            if(indexOfSelectedText != -1)
-            {
-                newText.remove(indexOfSelectedText, selectedText.length());
-                mCursorPosition = indexOfSelectedText;
-            }
-        }
-        // No text selected
-        else
-        {
-            // Backspace Key
-            if(keyEvent->key() == Qt::Key_Backspace)
-            {
-                if(mCursorPosition > 0)
-                    newText.remove(mCursorPosition - 1, 1);
-
-                (mCursorPosition - 1) < 0 ? mCursorPosition = 0 : mCursorPosition--;
-            }
-            // Delete Key
-            else
-            {
-                if(mCursorPosition < newText.length())
-                    newText.remove(mCursorPosition, 1);
-            }
-        }
-    }
-
-    mSearchBox->setText(newText);
+    searchTextChanged(mSearchBox->text());
 }
 
 bool SearchListView::eventFilter(QObject* obj, QEvent* event)
 {
-    // Click in searchBox
-    if(obj == mSearchBox && event->type() == QEvent::MouseButtonPress)
-    {
-        // Give focus to current list to avoid having it elsewhere when you click on a different searchbox
-        mCurList->setFocus();
-
-        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-        QLineEdit* lineEdit = static_cast<QLineEdit*>(obj);
-
-        mCursorPosition = lineEdit->cursorPositionAt(mouseEvent->pos());
-        lineEdit->setFocusPolicy(Qt::NoFocus);
-
-        return QObject::eventFilter(obj, event);
-    }
-    // KeyPress in List
-    else if((obj == mList || obj == mSearchList || obj == mSearchBox) && event->type() == QEvent::KeyPress)
+    // Keyboard button press being sent to the QLineEdit
+    if(obj == mSearchBox && event->type() == QEvent::KeyPress)
     {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        char ch = keyEvent->text().toUtf8().constData()[0];
 
-        //add a char to the search box
-        if(isprint(ch))
-            addCharToSearchBox(ch);
-
-        //remove a char from the search box
-        else if(keyEvent->key() == Qt::Key_Backspace || keyEvent->key() == Qt::Key_Delete)
-            deleteTextFromSearchBox(keyEvent);
-
-        // user pressed enter
-        else if((keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter))
+        switch(keyEvent->key())
+        {
+        // The user pressed enter/return
+        case Qt::Key_Return:
+        case Qt::Key_Enter:
             if(mCurList->getCellContent(mCurList->getInitialSelection(), 0).length())
                 emit enterPressedSignal();
+            return true;
 
-        // Press escape, clears the search box
-            else if(keyEvent->key() == Qt::Key_Escape)
-            {
-                mSearchBox->clear();
-                mCursorPosition = 0;
-            }
+        // Search box misc controls
+        case Qt::Key_Escape:
+            mSearchBox->clear();
+        case Qt::Key_Left:
+        case Qt::Key_Right:
+        case Qt::Key_Backspace:
+        case Qt::Key_Delete:
+        case Qt::Key_Home:
+        case Qt::Key_End:
+        case Qt::Key_Insert:
+            return QWidget::eventFilter(obj, event);
 
-        // Update cursorPosition to avoid a weird bug
-        mSearchBox->setCursorPosition(mCursorPosition);
+        // Search box shortcuts
+        case Qt::Key_V: //Ctrl+V
+        case Qt::Key_X: //Ctrl+X
+        case Qt::Key_Z: //Ctrl+Z
+        case Qt::Key_A: //Ctrl+A
+        case Qt::Key_Y: //Ctrl+Y
+            if(keyEvent->modifiers() == Qt::CTRL)
+                return QWidget::eventFilter(obj, event);
+        }
 
-        return true;
+        // Printable characters go to the search box
+        char key = keyEvent->text().toUtf8().constData()[0];
+
+        if(isprint(key))
+            return QWidget::eventFilter(obj, event);
+
+        // By default, all other keys are forwarded to the search view
+        return QApplication::sendEvent(mCurList, event);
     }
-    else
-        return QObject::eventFilter(obj, event);
+
+    return QWidget::eventFilter(obj, event);
 }
 
 void SearchListView::searchSlot()
 {
-    FlickerThread* thread = new FlickerThread(ui->searchBox, this);
-    connect(thread, SIGNAL(setStyleSheet(QString)), ui->searchBox, SLOT(setStyleSheet(QString)));
+    FlickerThread* thread = new FlickerThread(mSearchBox, this);
+    connect(thread, SIGNAL(setStyleSheet(QString)), mSearchBox, SLOT(setStyleSheet(QString)));
     thread->start();
 }

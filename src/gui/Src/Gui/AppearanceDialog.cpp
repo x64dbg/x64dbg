@@ -431,21 +431,19 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Bookmarks", "DisassemblyBookmarkColor", "DisassemblyBookmarkBackgroundColor");
     colorInfoListAppend("Comments", "DisassemblyCommentColor", "DisassemblyCommentBackgroundColor");
     colorInfoListAppend("Automatic Comments", "DisassemblyAutoCommentColor", "DisassemblyAutoCommentBackgroundColor");
+    colorInfoListAppend("Mnemonic Brief Comments", "DisassemblyMnemonicBriefColor", "DisassemblyMnemonicBriefBackgroundColor");
     colorInfoListAppend("Labels", "DisassemblyLabelColor", "DisassemblyLabelBackgroundColor");
     colorInfoListAppend("Addresses", "DisassemblyAddressColor", "DisassemblyAddressBackgroundColor");
     colorInfoListAppend("Selected Addresses", "DisassemblySelectedAddressColor", "DisassemblySelectedAddressBackgroundColor");
     colorInfoListAppend("Conditional Jump Lines (jump)", "DisassemblyConditionalJumpLineTrueColor", "");
     colorInfoListAppend("Conditional Jump Lines (no jump)", "DisassemblyConditionalJumpLineFalseColor", "");
     colorInfoListAppend("Unconditional Jump Lines", "DisassemblyUnconditionalJumpLineColor", "");
+    colorInfoListAppend(tr("Traced line"), "DisassemblyTracedBackgroundColor", "");
     colorInfoListAppend("Function Lines", "DisassemblyFunctionColor", "");
     colorInfoListAppend("Loop Lines", "DisassemblyLoopColor", "");
 
     colorInfoListAppend("SideBar:", "", "");
-#ifdef _WIN64
-    colorInfoListAppend("RIP Label", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
-#else //x86
-    colorInfoListAppend("EIP Label", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
-#endif //_WIN64
+    colorInfoListAppend("Register Labels", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
     colorInfoListAppend("Bullets", "SideBarBulletColor", "");
     colorInfoListAppend("Breakpoints", "SideBarBulletBreakpointColor", "");
     colorInfoListAppend("Disabled Breakpoints", "SideBarBulletDisabledBreakpointColor", "");
@@ -463,6 +461,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Selection", "RegistersSelectionColor", "");
     colorInfoListAppend("Modified Registers", "RegistersModifiedColor", "");
     colorInfoListAppend("Register Names", "RegistersLabelColor", "");
+    colorInfoListAppend("Argument Register Names", "RegistersArgumentLabelColor", "");
     colorInfoListAppend("Extra Information", "RegistersExtraInfoColor", "");
 
     colorInfoListAppend("Instructions:", "", "");
@@ -481,6 +480,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("NOPs", "InstructionNopColor", "InstructionNopBackgroundColor");
     colorInfoListAppend("FAR", "InstructionFarColor", "InstructionFarBackgroundColor");
     colorInfoListAppend("INT3s", "InstructionInt3Color", "InstructionInt3BackgroundColor");
+    colorInfoListAppend("Unusual Instructions", "InstructionUnusualColor", "InstructionUnusualBackgroundColor");
     colorInfoListAppend("General Registers", "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
     colorInfoListAppend("FPU Registers", "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
     colorInfoListAppend("MMX Registers", "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");

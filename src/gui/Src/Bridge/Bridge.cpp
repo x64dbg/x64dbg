@@ -424,6 +424,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit updateCallStack();
         break;
 
+    case GUI_UPDATE_SEHCHAIN:
+        emit updateSEHChain();
+        break;
+
     case GUI_SYMBOL_REFRESH_CURRENT:
         emit symbolRefreshCurrent();
         break;
@@ -524,16 +528,50 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     break;
 
     case GUI_DUMP_AT_N:
-    {
         emit dumpAtN((duint)param1, (int)param2);
-    }
-    break;
+        break;
 
     case GUI_DISPLAY_WARNING:
     {
         QString title = QString((const char*)param1);
         QString text = QString((const char*)param2);
         emit displayWarning(title, text);
+    }
+    break;
+
+    case GUI_REGISTER_SCRIPT_LANG:
+    {
+        BridgeResult result;
+        emit registerScriptLang((SCRIPTTYPEINFO*)param1);
+        result.Wait();
+    }
+    break;
+
+    case GUI_UNREGISTER_SCRIPT_LANG:
+        emit unregisterScriptLang((int)param1);
+        break;
+
+    case GUI_UPDATE_ARGUMENT_VIEW:
+        emit updateArgumentView();
+        break;
+
+    case GUI_FOCUS_VIEW:
+    {
+        int hWindow = int(param1);
+        switch(hWindow)
+        {
+        case GUI_DISASSEMBLY:
+            emit focusDisasm();
+            break;
+        case GUI_DUMP:
+            emit focusDump();
+            break;
+        case GUI_STACK:
+            emit focusStack();
+            break;
+        default:
+            break;
+        }
     }
     break;
     case GUI_SET_CONTROLFLOWINFOS:

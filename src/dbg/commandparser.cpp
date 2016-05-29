@@ -58,7 +58,6 @@ Command::Command(const String & command)
                 state = TextEscaped;
                 break;
             case '\"':
-                dataFinish();
                 state = Default;
                 break;
             default:

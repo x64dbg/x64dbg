@@ -24,9 +24,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="crashdump.h" />
+    <ClInclude Include="icon.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="icon32.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ResourceCompile>
+    <ResourceCompile Include="icon64.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ResourceCompile>
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
@@ -35,6 +44,10 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\bug32.ico" />
+    <Image Include="..\bug64.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3A22175E-6B72-FDCC-1603-C4A2163C7900}</ProjectGuid>

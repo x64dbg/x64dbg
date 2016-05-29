@@ -35,27 +35,27 @@ SafeSymInitializeW(
     __in BOOL fInvadeProcess
 );
 BOOL
-SafeSymRegisterCallback64(
+SafeSymRegisterCallbackW64(
     __in HANDLE hProcess,
     __in PSYMBOL_REGISTERED_CALLBACK64 CallbackFunction,
     __in ULONG64 UserContext
 );
 DWORD64
-SafeSymLoadModuleEx(
+SafeSymLoadModuleExW(
     __in HANDLE hProcess,
     __in_opt HANDLE hFile,
-    __in_opt PCSTR ImageName,
-    __in_opt PCSTR ModuleName,
+    __in_opt PCWSTR ImageName,
+    __in_opt PCWSTR ModuleName,
     __in DWORD64 BaseOfDll,
     __in DWORD DllSize,
     __in_opt PMODLOAD_DATA Data,
     __in_opt DWORD Flags
 );
 BOOL
-SafeSymGetModuleInfo64(
+SafeSymGetModuleInfoW64(
     __in HANDLE hProcess,
     __in DWORD64 qwAddr,
-    __out PIMAGEHLP_MODULE64 ModuleInfo
+    __out PIMAGEHLP_MODULEW64 ModuleInfo
 );
 BOOL
 SafeSymGetSearchPathW(

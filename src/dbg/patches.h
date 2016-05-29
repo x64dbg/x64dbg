@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _PATCHES_H
+#define _PATCHES_H
 
 #include "_global.h"
 
@@ -17,3 +18,5 @@ void PatchDelRange(duint Start, duint End, bool Restore);
 bool PatchEnum(PATCHINFO* List, size_t* Size);
 int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Error);
 void PatchClear(const char* Module = nullptr);
+
+#endif // _PATCHES_H

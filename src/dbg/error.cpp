@@ -191,6 +191,7 @@ void ErrorCodeInit()
     ErrorNames.insert(std::make_pair(240, "ERROR_VC_DISCONNECTED"));
     ErrorNames.insert(std::make_pair(254, "ERROR_INVALID_EA_NAME"));
     ErrorNames.insert(std::make_pair(255, "ERROR_EA_LIST_INCONSISTENT"));
+    ErrorNames.insert(std::make_pair(258, "WAIT_TIMEOUT"));
     ErrorNames.insert(std::make_pair(259, "ERROR_NO_MORE_ITEMS"));
     ErrorNames.insert(std::make_pair(266, "ERROR_CANNOT_COPY"));
     ErrorNames.insert(std::make_pair(267, "ERROR_DIRECTORY"));

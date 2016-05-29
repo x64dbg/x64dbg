@@ -14,11 +14,11 @@ AnalysisPass::AnalysisPass(duint VirtualStart, duint VirtualEnd, BBlockArray & M
 
     // Read remote instruction data to local memory
     m_DataSize = VirtualEnd - VirtualStart;
-    m_Data = (unsigned char*)emalloc(m_DataSize, "AnalysisPass:m_Data");
+    m_Data = (unsigned char*)VirtualAlloc(nullptr, m_DataSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
     if(!MemRead(VirtualStart, m_Data, m_DataSize))
     {
-        BridgeFree(m_Data);
+        VirtualFree(m_Data, 0, MEM_RELEASE);
         assert(false);
     }
 }
@@ -26,7 +26,7 @@ AnalysisPass::AnalysisPass(duint VirtualStart, duint VirtualEnd, BBlockArray & M
 AnalysisPass::~AnalysisPass()
 {
     if(m_Data)
-        efree(m_Data);
+        VirtualFree(m_Data, 0, MEM_RELEASE);
 }
 
 BasicBlock* AnalysisPass::FindBBlockInRange(duint Address)

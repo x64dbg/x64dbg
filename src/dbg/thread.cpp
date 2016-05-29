@@ -7,9 +7,8 @@
 #include "thread.h"
 #include "memory.h"
 #include "threading.h"
-#include "dynamicptr.h"
 
-std::unordered_map<DWORD, THREADINFO> threadList;
+static std::unordered_map<DWORD, THREADINFO> threadList;
 
 void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
@@ -17,10 +16,13 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     memset(&curInfo, 0, sizeof(THREADINFO));
 
     curInfo.ThreadNumber = ThreadGetCount();
-    curInfo.Handle = CreateThread->hThread;
+    curInfo.Handle = INVALID_HANDLE_VALUE;
     curInfo.ThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     curInfo.ThreadStartAddress = (duint)CreateThread->lpStartAddress;
     curInfo.ThreadLocalBase = (duint)CreateThread->lpThreadLocalBase;
+
+    // Duplicate the debug thread handle -> thread handle
+    DuplicateHandle(GetCurrentProcess(), CreateThread->hThread, GetCurrentProcess(), &curInfo.Handle, 0, FALSE, DUPLICATE_SAME_ACCESS);
 
     // The first thread (#0) is always the main program thread
     if(curInfo.ThreadNumber <= 0)
@@ -43,7 +45,10 @@ void ThreadExit(DWORD ThreadId)
     auto itr = threadList.find(ThreadId);
 
     if(itr != threadList.end())
+    {
+        CloseHandle(itr->second.Handle);
         threadList.erase(itr);
+    }
 
     EXCLUSIVE_RELEASE();
     GuiUpdateThreadView();
@@ -51,12 +56,17 @@ void ThreadExit(DWORD ThreadId)
 
 void ThreadClear()
 {
-    // Clear the current array of threads
     EXCLUSIVE_ACQUIRE(LockThreads);
+
+    // Close all handles first
+    for(auto & itr : threadList)
+        CloseHandle(itr.second.Handle);
+
+    // Empty the array
     threadList.clear();
-    EXCLUSIVE_RELEASE();
 
     // Update the GUI's list
+    EXCLUSIVE_RELEASE();
     GuiUpdateThreadView();
 }
 
@@ -112,6 +122,15 @@ bool ThreadIsValid(DWORD ThreadId)
     return threadList.find(ThreadId) != threadList.end();
 }
 
+bool ThreadGetTib(duint TEBAddress, NT_TIB* Tib)
+{
+    // Calculate offset from structure member
+    TEBAddress += offsetof(TEB, Tib);
+
+    memset(Tib, 0, sizeof(NT_TIB));
+    return MemRead(TEBAddress, Tib, sizeof(NT_TIB));
+}
+
 bool ThreadGetTeb(duint TEBAddress, TEB* Teb)
 {
     memset(Teb, 0, sizeof(TEB));
@@ -150,7 +169,12 @@ THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
 
 DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)
 {
-    return RemoteMemberPtr(ThreadLocalBase, &TEB::LastErrorValue).get();
+    // Get the offset for the TEB::LastErrorValue and read it
+    DWORD lastError = 0;
+    duint structOffset = ThreadLocalBase + offsetof(TEB, LastErrorValue);
+
+    MemRead(structOffset, &lastError, sizeof(DWORD));
+    return lastError;
 }
 
 DWORD ThreadGetLastError(DWORD ThreadId)
@@ -237,4 +261,11 @@ int ThreadResumeAll()
     }
 
     return count;
+}
+
+ULONG_PTR ThreadGetLocalBase(DWORD ThreadId)
+{
+    SHARED_ACQUIRE(LockThreads);
+    auto found = threadList.find(ThreadId);
+    return found != threadList.end() ? found->second.ThreadLocalBase : 0;
 }

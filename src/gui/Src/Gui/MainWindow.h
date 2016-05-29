@@ -3,12 +3,14 @@
 
 #include <QMainWindow>
 #include <QDragEnterEvent>
+#include <QComboBox>
 #include "CloseDialog.h"
 #include "CommandLineEdit.h"
 #include "TabWidget.h"
 #include "CPUWidget.h"
 #include "MemoryMapView.h"
 #include "CallStackView.h"
+#include "SEHChainView.h"
 #include "LogView.h"
 #include "SymbolView.h"
 #include "BreakpointsView.h"
@@ -21,6 +23,7 @@
 #include "UpdateChecker.h"
 #include "SourceViewerManager.h"
 #include "SnowmanView.h"
+#include "HandlesView.h"
 #include "MainWindowCloseThread.h"
 #include "TimeWastedCounter.h"
 #include "NotesManager.h"
@@ -39,7 +42,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
-    static DWORD WINAPI closeThread(void* ptr);
+
+    void setupCommandBar();
+    void setupStatusBar();
     void closeEvent(QCloseEvent* event);
     void setTab(QWidget* widget);
     void loadTabDefaultOrder();
@@ -75,6 +80,7 @@ public slots:
     void displayReferencesWidget();
     void displayThreadsWidget();
     void displaySnowmanWidget();
+    void hideDebugger();
     void openSettings();
     void openAppearance();
     void openCalculator();
@@ -100,6 +106,7 @@ public slots:
     void displayFunctions();
     void checkUpdates();
     void displayCallstack();
+    void displaySEHChain();
     void setGlobalShortcut(QAction* action, const QKeySequence & key);
     void refreshShortcuts();
     void openShortcuts();
@@ -112,6 +119,7 @@ public slots:
     void displayManual();
     void decompileAt(dsint start, dsint end);
     void canClose();
+    void addQWidgetTab(QWidget* qWidget, QString nativeName);
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
@@ -119,6 +127,9 @@ public slots:
     void tabMovedSlot(int from, int to);
     void drawGraphAtAddressSlot(dsint va);
     void chkSaveloadTabSavedOrderStateChangedSlot(bool state);
+    void dbgStateChangedSlot(DBGSTATE state);
+    void displayNotesWidget();
+    void displayHandlesWidget();
 
 private:
     Ui::MainWindow* ui;
@@ -128,6 +139,7 @@ private:
     CPUWidget* mCpuWidget;
     MemoryMapView* mMemMapView;
     CallStackView* mCallStackView;
+    SEHChainView* mSEHChainView;
     LogView* mLogView;
     SymbolView* mSymbolView;
     SourceViewerManager* mSourceViewManager;
@@ -138,6 +150,7 @@ private:
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
     SnowmanView* mSnowmanView;
+    HandlesView* mHandlesView;
     NotesManager* mNotesManager;
     GraphView* mGraphView;
 
@@ -147,7 +160,7 @@ private:
     UpdateChecker* mUpdateChecker;
     TimeWastedCounter* mTimeWastedCounter;
 
-    const char* mWindowMainTitle;
+    QString mWindowMainTitle;
 
     QStringList mMRUList;
     int mMaxMRU;
@@ -196,6 +209,7 @@ private:
     bool bCanClose;
     MainWindowCloseThread* mCloseThread;
     QVector<QWidget*> mWidgetList;
+    QVector<QString> mWidgetNativeNameList;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);
@@ -203,6 +217,10 @@ protected:
 
 public:
     static QString windowTitle;
+
+private slots:
+    void on_actionFaq_triggered();
+    void on_actionReloadStylesheet_triggered();
 };
 
 #endif // MAINWINDOW_H

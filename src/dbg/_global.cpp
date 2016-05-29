@@ -35,7 +35,7 @@ void* emalloc(size_t size, const char* reason)
     unsigned char* a = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!a)
     {
-        MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
+        MessageBoxW(0, L"Could not allocate memory", L"Error", MB_ICONERROR);
         ExitProcess(1);
     }
     memset(a, 0, size);
@@ -61,7 +61,7 @@ void* erealloc(void* ptr, size_t size, const char* reason)
 
     // Free the memory if the pointer was set (as per documentation).
     if(ptr)
-        efree(ptr);
+        efree(ptr, reason);
 
     return emalloc(size, reason);
 }
@@ -205,7 +205,7 @@ bool FileExists(const char* file)
 bool DirExists(const char* dir)
 {
     DWORD attrib = GetFileAttributesW(StringUtils::Utf8ToUtf16(dir).c_str());
-    return (attrib == FILE_ATTRIBUTE_DIRECTORY);
+    return (attrib != INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_DIRECTORY) != 0);
 }
 
 /**

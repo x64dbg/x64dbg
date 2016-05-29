@@ -6,6 +6,6 @@
 
 void fillbasicinfo(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo);
 bool disasmfast(duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
-bool disasmfast(unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
+bool disasmfast(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 
 #endif //_DISASM_FAST_H

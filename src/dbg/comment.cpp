@@ -19,7 +19,10 @@ bool CommentSet(duint Address, const char* Text, bool Manual)
 
     // Delete the comment if no text was supplied
     if(Text[0] == '\0')
-        return CommentDelete(Address);
+    {
+        CommentDelete(Address);
+        return true;
+    }
 
     // Fill out the structure
     COMMENTSINFO comment;
@@ -53,10 +56,13 @@ bool CommentGet(duint Address, char* Text)
     if(found == comments.end())
         return false;
 
-    if(found->second.manual)  //autocomment
-        strcpy_s(Text, MAX_COMMENT_SIZE, found->second.text);
-    else
-        sprintf_s(Text, MAX_COMMENT_SIZE, "\1%s", found->second.text);
+    if(Text)
+    {
+        if(found->second.manual)   //autocomment
+            strcpy_s(Text, MAX_COMMENT_SIZE, found->second.text);
+        else
+            sprintf_s(Text, MAX_COMMENT_SIZE, "\1%s", found->second.text);
+    }
 
     return true;
 }
@@ -69,7 +75,7 @@ bool CommentDelete(duint Address)
     return (comments.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void CommentDelRange(duint Start, duint End)
+void CommentDelRange(duint Start, duint End, bool Manual)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -95,8 +101,8 @@ void CommentDelRange(duint Start, duint End)
         for(auto itr = comments.begin(); itr != comments.end();)
         {
             const auto & currentComment = itr->second;
-            // Ignore manually set entries
-            if(currentComment.manual)
+            // Ignore non-matching entries
+            if(Manual ? !currentComment.manual : currentComment.manual)
             {
                 ++itr;
                 continue;
@@ -233,4 +239,30 @@ void CommentClear()
 {
     EXCLUSIVE_ACQUIRE(LockComments);
     comments.clear();
+}
+
+void CommentGetList(std::vector<COMMENTSINFO> & list)
+{
+    SHARED_ACQUIRE(LockComments);
+    list.clear();
+    list.reserve(comments.size());
+    for(const auto & itr : comments)
+        list.push_back(itr.second);
+}
+
+bool CommentGetInfo(duint Address, COMMENTSINFO* info)
+{
+    SHARED_ACQUIRE(LockComments);
+
+    // Get an existing comment and copy the string buffer
+    auto found = comments.find(ModHashFromAddr(Address));
+
+    // Was it found?
+    if(found == comments.end())
+        return false;
+
+    if(info)
+        memcpy(info, &found->second, sizeof(COMMENTSINFO));
+
+    return true;
 }

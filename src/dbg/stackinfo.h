@@ -17,6 +17,7 @@ struct CALLSTACK
     CALLSTACKENTRY* entries;
 };
 
+void stackupdateseh();
 bool stackcommentget(duint addr, STACK_COMMENT* comment);
 void stackgetcallstack(duint csp, CALLSTACK* callstack);
 

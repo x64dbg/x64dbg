@@ -381,11 +381,11 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
     if(!getColumnCount())
         return;
     //Copy->Whole Line
-    QAction* mCopyLine = new QAction("Whole &Line", this);
+    QAction* mCopyLine = new QAction(tr("Whole &Line"), this);
     connect(mCopyLine, SIGNAL(triggered()), this, SLOT(copyLineSlot()));
     copyMenu->addAction(mCopyLine);
     //Copy->Whole Table
-    QAction* mCopyTable = new QAction("Whole &Table", this);
+    QAction* mCopyTable = new QAction(tr("Whole &Table"), this);
     connect(mCopyTable, SIGNAL(triggered()), this, SLOT(copyTableSlot()));
     copyMenu->addAction(mCopyTable);
     //Copy->Separator
@@ -420,14 +420,14 @@ void StdTable::contextMenuRequestedSlot(const QPoint & pos)
     }
     if(mCopyMenuDebugOnly && !DbgIsDebugging())
         return;
-    QMenu* wMenu = new QMenu(this);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wMenu(this);
+    QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
-        wMenu->exec(mapToGlobal(pos));
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
+        wMenu.exec(mapToGlobal(pos));
     }
 }
 

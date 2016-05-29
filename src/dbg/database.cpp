@@ -14,6 +14,10 @@
 #include "function.h"
 #include "loop.h"
 #include "commandline.h"
+#include "database.h"
+#include "threading.h"
+#include "filehelper.h"
+#include "TraceRecord.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -25,32 +29,28 @@ char dbbasepath[deflen];
 */
 char dbpath[deflen];
 
-enum LOAD_SAVE_DB_TYPE
+void DbSave(DbLoadSaveType saveType)
 {
-    COMMAND_LINE_ONLY,
-    ALL_BUT_COMMAND_LINE,
-    ALL
-};
+    EXCLUSIVE_ACQUIRE(LockDatabase);
 
-void DBSave(LOAD_SAVE_DB_TYPE saveType)
-{
     dprintf("Saving database...");
     DWORD ticks = GetTickCount();
     JSON root = json_object();
 
     // Save only command line
-    if(saveType == COMMAND_LINE_ONLY || saveType == ALL)
+    if(saveType == DbLoadSaveType::CommandLine || saveType == DbLoadSaveType::All)
     {
         CmdLineCacheSave(root);
     }
 
-    if(saveType == ALL_BUT_COMMAND_LINE || saveType == ALL)
+    if(saveType == DbLoadSaveType::DebugData || saveType == DbLoadSaveType::All)
     {
         CommentCacheSave(root);
         LabelCacheSave(root);
         BookmarkCacheSave(root);
         FunctionCacheSave(root);
         LoopCacheSave(root);
+        TraceRecord.saveToDb(root);
         BpCacheSave(root);
 
         //save notes
@@ -61,47 +61,50 @@ void DBSave(LOAD_SAVE_DB_TYPE saveType)
             json_object_set_new(root, "notes", json_string(text));
             BridgeFree(text);
         }
-        GuiSetDebuggeeNotes("");
     }
 
-    WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
+    auto wdbpath = StringUtils::Utf8ToUtf16(dbpath);
+    CopyFileW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), FALSE); //make a backup
     if(json_object_size(root))
     {
-        Handle hFile = CreateFileW(wdbpath.c_str(), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
-        if(!hFile)
-        {
-            dputs("\nFailed to open database for writing!");
-            json_decref(root); //free root
-            return;
-        }
-        SetEndOfFile(hFile);
         char* jsonText = json_dumps(root, JSON_INDENT(4));
-        DWORD written = 0;
-        if(!WriteFile(hFile, jsonText, (DWORD)strlen(jsonText), &written, 0))
+
+        if(jsonText)
         {
+            // Dump JSON to disk (overwrite any old files)
+            if(!FileHelper::WriteAllText(dbpath, jsonText))
+            {
+                dputs("\nFailed to write database file!");
+                json_free(jsonText);
+                json_decref(root);
+                return;
+            }
+
             json_free(jsonText);
-            dputs("\nFailed to write database file!");
-            json_decref(root); //free root
-            return;
         }
-        hFile.Close();
-        json_free(jsonText);
+
         if(!settingboolget("Engine", "DisableDatabaseCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
         DeleteFileW(wdbpath.c_str());
+
     dprintf("%ums\n", GetTickCount() - ticks);
     json_decref(root); //free root
 }
 
-void DBLoad(LOAD_SAVE_DB_TYPE loadType)
+void DbLoad(DbLoadSaveType loadType)
 {
+    EXCLUSIVE_ACQUIRE(LockDatabase);
+
     // If the file doesn't exist, there is no DB to load
     if(!FileExists(dbpath))
         return;
 
-    dprintf("Loading database...");
+    if(loadType == DbLoadSaveType::CommandLine)
+        dputs("Loading commandline...");
+    else
+        dprintf("Loading database...");
     DWORD ticks = GetTickCount();
 
     // Multi-byte (UTF8) file path converted to UTF16
@@ -122,36 +125,21 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
     }
 
     // Read the database file
-    Handle hFile = CreateFileW(databasePathW.c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if(!hFile)
-    {
-        dputs("\nFailed to open database file!");
-        return;
-    }
+    String databaseText;
 
-    unsigned int jsonFileSize = GetFileSize(hFile, 0);
-    if(!jsonFileSize)
-    {
-        dputs("\nEmpty database file!");
-        return;
-    }
-
-    Memory<char*> jsonText(jsonFileSize + 1);
-    DWORD read = 0;
-    if(!ReadFile(hFile, jsonText(), jsonFileSize, &read, 0))
+    if(!FileHelper::ReadAllText(dbpath, databaseText))
     {
         dputs("\nFailed to read database file!");
         return;
     }
-    hFile.Close();
 
-    // Deserialize JSON
-    JSON root = json_loads(jsonText(), 0, 0);
-
+    // Restore the old, compressed file
     if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
         LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());
 
-    // Validate JSON load status
+    // Deserialize JSON and validate
+    JSON root = json_loads(databaseText.c_str(), 0, 0);
+
     if(!root)
     {
         dputs("\nInvalid database file (JSON)!");
@@ -159,12 +147,12 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
     }
 
     // Load only command line
-    if(loadType == COMMAND_LINE_ONLY || loadType == ALL)
+    if(loadType == DbLoadSaveType::CommandLine || loadType == DbLoadSaveType::All)
     {
         CmdLineCacheLoad(root);
     }
 
-    if(loadType == ALL_BUT_COMMAND_LINE || loadType == ALL)
+    if(loadType == DbLoadSaveType::DebugData || loadType == DbLoadSaveType::All)
     {
         // Finally load all structures
         CommentCacheLoad(root);
@@ -172,6 +160,7 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
         BookmarkCacheLoad(root);
         FunctionCacheLoad(root);
         LoopCacheLoad(root);
+        TraceRecord.loadFromDb(root);
         BpCacheLoad(root);
 
         // Load notes
@@ -181,12 +170,14 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
 
     // Free root
     json_decref(root);
-    dprintf("%ums\n", GetTickCount() - ticks);
+
+    if(loadType != DbLoadSaveType::CommandLine)
+        dprintf("%ums\n", GetTickCount() - ticks);
 }
 
-void DBClose()
+void DbClose()
 {
-    DBSave(ALL);
+    DbSave(DbLoadSaveType::All);
     CommentClear();
     LabelClear();
     BookmarkClear();
@@ -194,11 +185,14 @@ void DBClose()
     LoopClear();
     BpClear();
     PatchClear();
+    GuiSetDebuggeeNotes("");
 }
 
-void DBSetPath(const char* Directory, const char* ModulePath)
+void DbSetPath(const char* Directory, const char* ModulePath)
 {
-    // Initialize directory if it was only supplied
+    EXCLUSIVE_ACQUIRE(LockDatabase);
+
+    // Initialize directory only if it was supplied
     if(Directory)
     {
         ASSERT_TRUE(strlen(Directory) > 0);

@@ -63,7 +63,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
         abuf[i % 128] = addr;
 
         if(!cp.Disassemble(0, pdata, (int)size))
-            cmdsize = 1;
+            cmdsize = 2; //heuristic for better output (FF FE or FE FF are usually part of an instruction)
         else
             cmdsize = cp.Size();
 
@@ -157,7 +157,6 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
         switch(cp.GetId())
         {
         case X86_INS_JMP:
-        case X86_INS_LOOP:
             branchType = Instruction_t::Unconditional;
             break;
         default:

@@ -15,7 +15,6 @@ private slots:
 
 private:
     QWidget* mParent;
-
 };
 
 #endif // UPDATECHECKER_H

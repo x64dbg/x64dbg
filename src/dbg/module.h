@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MODULE_H
+#define _MODULE_H
 
 #include "_global.h"
 
@@ -29,6 +30,11 @@ struct MODINFO
 
     std::vector<MODSECTIONINFO> sections;
     std::vector<MODIMPORTINFO> imports;
+
+    HANDLE fileHandle;
+    DWORD loadedSize;
+    HANDLE fileMap;
+    ULONG_PTR fileMapVA;
 };
 
 bool ModLoad(duint Base, duint Size, const char* FullPath);
@@ -47,4 +53,6 @@ duint ModEntryFromAddr(duint Address);
 int ModPathFromAddr(duint Address, char* Path, int Size);
 int ModPathFromName(const char* Module, char* Path, int Size);
 void ModGetList(std::vector<MODINFO> & list);
-bool ModAddImportToModule(duint Base, MODIMPORTINFO importInfo);
+bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo);
+
+#endif // _MODULE_H

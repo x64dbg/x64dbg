@@ -2,7 +2,10 @@
 #include <QFile>
 #include "Entropy.h"
 
-QEntropyView::QEntropyView(QWidget* parent) : QGraphicsView(parent)
+QEntropyView::QEntropyView(QWidget* parent)
+    : QGraphicsView(parent),
+      mRect(QRectF()),
+      mPenSize(1)
 {
     mScene = new QGraphicsScene(this);
 }

@@ -23,7 +23,10 @@ bool LabelSet(duint Address, const char* Text, bool Manual)
 
     // Delete the label if no text was supplied
     if(Text[0] == '\0')
-        return LabelDelete(Address);
+    {
+        LabelDelete(Address);
+        return true;
+    }
 
     // Fill out the structure data
     LABELSINFO labelInfo;
@@ -90,7 +93,7 @@ bool LabelDelete(duint Address)
     return (labels.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void LabelDelRange(duint Start, duint End)
+void LabelDelRange(duint Start, duint End, bool Manual)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -108,12 +111,16 @@ void LabelDelRange(duint Start, duint End)
         if(moduleBase != ModBaseFromAddr(End))
             return;
 
+        // Virtual -> relative offset
+        Start -= moduleBase;
+        End -= moduleBase;
+
         EXCLUSIVE_ACQUIRE(LockLabels);
         for(auto itr = labels.begin(); itr != labels.end();)
         {
             const auto & currentLabel = itr->second;
-            // Ignore manually set entries
-            if(currentLabel.manual)
+            // Ignore non-matching entries
+            if(Manual ? !currentLabel.manual : currentLabel.manual)
             {
                 ++itr;
                 continue;
@@ -262,4 +269,51 @@ void LabelClear()
 {
     EXCLUSIVE_ACQUIRE(LockLabels);
     labels.clear();
+}
+
+void LabelGetList(std::vector<LABELSINFO> & list)
+{
+    SHARED_ACQUIRE(LockLabels);
+    list.clear();
+    list.reserve(labels.size());
+    for(const auto & itr : labels)
+        list.push_back(itr.second);
+}
+
+bool LabelGetInfo(duint Address, LABELSINFO* info)
+{
+    SHARED_ACQUIRE(LockLabels);
+
+    // Was the label at this address exist?
+    auto found = labels.find(ModHashFromAddr(Address));
+
+    if(found == labels.end())
+        return false;
+
+    // Copy to user buffer
+    if(info)
+        memcpy(info, &found->second, sizeof(LABELSINFO));
+
+    return true;
+}
+
+void LabelEnumCb(std::function<void(const LABELSINFO & info)> cbEnum, const char* module)
+{
+    SHARED_ACQUIRE(LockLabels);
+
+    for(auto i = labels.begin(); i != labels.end();)
+    {
+        auto j = i;
+        ++i; // Increment here, because the callback might remove the current entry
+
+        if(module && module[0] != '\0')
+        {
+            if(strcmp(j->second.mod, module) != 0)
+                continue;
+        }
+
+        SHARED_RELEASE();
+        cbEnum(j->second);
+        SHARED_REACQUIRE();
+    }
 }

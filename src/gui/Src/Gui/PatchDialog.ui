@@ -134,7 +134,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="layoutWidget">
+  <widget class="QWidget" name="layoutWidget_1">
    <property name="geometry">
     <rect>
      <x>7</x>

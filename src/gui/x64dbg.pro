@@ -59,14 +59,14 @@ INCLUDEPATH += \
     Src/Gui \
     Src/BasicView \
     Src/Disassembler \
-    Src/ThirdPartyLibs/capstone \
-    Src/ThirdPartyLibs/snowman \
     Src/Memory \
     Src/Bridge \
     Src/Global \
     Src/Utils \
     Src/Graph \
     ../capstone_wrapper \
+    Src/ThirdPartyLibs/snowman \
+    Src/ThirdPartyLibs/float128 \
     $${OGDF_INCLUDE_DIR}
 
 # Resources, sources, headers, and forms
@@ -152,7 +152,13 @@ SOURCES += \
     Src/Graph/QGraphView.cpp \
     Src/Graph/GraphEdge.cpp \
     Src/Graph/GraphNode.cpp \
-    Src/Gui/ControlFlowGraph.cpp
+    Src/Gui/ControlFlowGraph.cpp \
+    Src/ThirdPartyLibs/float128/float128.cpp \
+    Src/Utils/StringUtil.cpp \
+    Src/Gui/SEHChainView.cpp \
+    Src/Gui/EditBreakpointDialog.cpp \
+    Src/Gui/CPUArgumentWidget.cpp \
+    Src/Gui/HandlesView.cpp
 
 
 HEADERS += \
@@ -240,6 +246,11 @@ HEADERS += \
     Src/Graph/GraphEdge.h \
     Src/Graph/GraphNode.h \
     Src/Graph/Node.h \
+    Src/ThirdPartyLibs/float128/float128.h \
+    Src/Gui/SEHChainView.h \
+    Src/Gui/EditBreakpointDialog.h \
+    Src/Gui/CPUArgumentWidget.h \
+    Src/Gui/HandlesView.h \
     Src/Graph/Tree.h \
     Src/Gui/GraphView.h \
     Src/Graph/QGraphScene.h \
@@ -253,7 +264,6 @@ FORMS += \
     Src/Gui/WordEditDialog.ui \
     Src/Gui/LineEditDialog.ui \
     Src/Gui/SymbolView.ui \
-    Src/BasicView/SearchListView.ui \
     Src/Gui/SettingsDialog.ui \
     Src/Gui/ExceptionRangeDialog.ui \
     Src/Gui/CommandHelpView.ui \
@@ -271,7 +281,12 @@ FORMS += \
     Src/Gui/DataCopyDialog.ui \
     Src/Gui/EntropyDialog.ui \
     Src/Gui/AssembleDialog.ui \
-    Src/Gui/GraphView.ui
+    Src/Gui/GraphView.ui \
+    Src/Gui/EditBreakpointDialog.ui \
+    Src/Gui/CPUArgumentWidget.ui
+
+TRANSLATIONS = \
+    Translations/x64dbg_zh_CN.ts
 
 ##
 ## Libraries
@@ -280,14 +295,16 @@ LIBS += -luser32
 
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
-    LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x86
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
-    LIBS += -L"$${X64_BIN_DIR}/" -lx32bridge -lcapstone_wrapper
+    LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x86
+    LIBS += -L"$$PWD/../capstone_wrapper/bin/x32" -lcapstone_wrapper
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x86
     LIBS += -L"$${OGDF_BIN_DIR}/" -logdf
+    LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
     # Windows x64 (64bit) specific build
-    LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x64
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
-    LIBS += -L"$${X64_BIN_DIR}/" -lx64bridge -lcapstone_wrapper
+    LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x64
+    LIBS += -L"$$PWD/../capstone_wrapper/bin/x64" -lcapstone_wrapper
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x64
     LIBS += -L"$${OGDF_BIN_DIR}/" -logdf
+    LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
 }

@@ -88,7 +88,7 @@ bool FunctionDelete(duint Address)
     return (functions.erase(ModuleRange(ModHashFromAddr(moduleBase), Range(Address - moduleBase, Address - moduleBase))) > 0);
 }
 
-void FunctionDelRange(duint Start, duint End)
+void FunctionDelRange(duint Start, duint End, bool DeleteManual)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -116,7 +116,7 @@ void FunctionDelRange(duint Start, duint End)
             const auto & currentFunction = itr->second;
 
             // Ignore manually set entries
-            if(currentFunction.manual)
+            if(!DeleteManual && currentFunction.manual)
             {
                 ++itr;
                 continue;
@@ -252,4 +252,31 @@ void FunctionClear()
 {
     EXCLUSIVE_ACQUIRE(LockFunctions);
     functions.clear();
+}
+
+void FunctionGetList(std::vector<FUNCTIONSINFO> & list)
+{
+    SHARED_ACQUIRE(LockFunctions);
+    list.clear();
+    list.reserve(functions.size());
+    for(const auto & itr : functions)
+        list.push_back(itr.second);
+}
+
+bool FunctionGetInfo(duint Address, FUNCTIONSINFO* info)
+{
+    auto moduleBase = ModBaseFromAddr(Address);
+
+    // Lookup by module hash, then function range
+    SHARED_ACQUIRE(LockFunctions);
+
+    auto found = functions.find(ModuleRange(ModHashFromAddr(moduleBase), Range(Address - moduleBase, Address - moduleBase)));
+
+    // Was this range found?
+    if(found == functions.end())
+        return false;
+
+    if(info)
+        memcpy(info, &found->second, sizeof(FUNCTIONSINFO));
+    return true;
 }

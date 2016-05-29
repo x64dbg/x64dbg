@@ -12,7 +12,6 @@
         <file>images/control-stop.png</file>
         <file>images/terminal-command.png</file>
         <file>images/memory-map.png</file>
-        <file>images/processor-cpu.png</file>
         <file>images/ui-combo-box-edit.png</file>
         <file>images/scylla.png</file>
         <file>images/compile-error.png</file>
@@ -66,5 +65,37 @@
         <file>images/notes.png</file>
         <file>images/win-help.png</file>
         <file>images/graph.png</file>
+        <file>images/faq.png</file>
+        <file>images/help.png</file>
+        <file>images/goto.png</file>
+        <file>images/neworigin.png</file>
+        <file>images/find.png</file>
+        <file>images/recentfiles.png</file>
+        <file>images/eraser.png</file>
+        <file>images/processor32.png</file>
+        <file>images/processor64.png</file>
+        <file>images/processor-cpu.png</file>
+        <file>images/seh-chain.png</file>
+        <file>images/css.png</file>
+        <file>images/hide-debugger.png</file>
+        <file>images/sync.png</file>
+        <file>images/stack.png</file>
+        <file>images/address.png</file>
+        <file>images/float.png</file>
+        <file>images/hex.png</file>
+        <file>images/integer.png</file>
+        <file>images/plugin.png</file>
+        <file>images/modify.png</file>
+        <file>images/freeze.png</file>
+        <file>images/cbp.png</file>
+        <file>images/next.png</file>
+        <file>images/previous.png</file>
+        <file>images/bottom.png</file>
+        <file>images/top.png</file>
+        <file>images/fileoffset.png</file>
+        <file>images/helpbrief.png</file>
+        <file>images/helpmnemonic.png</file>
+        <file>images/handles.png</file>
+        <file>images/dump.png</file>
     </qresource>
 </RCC>

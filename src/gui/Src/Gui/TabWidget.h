@@ -23,13 +23,15 @@ class MHTabWidget: public QTabWidget
     Q_OBJECT
 
 public:
-    MHTabWidget(QWidget* parent, bool allowDetach = true, bool allowDelete = false);
+    MHTabWidget(QWidget* parent = nullptr, bool allowDetach = true, bool allowDelete = false);
     virtual ~MHTabWidget(void);
 
     QWidget* widget(int index) const;
     int count() const;
     QList<QWidget*> windows();
 
+    int addTabEx(QWidget* widget, const QIcon & icon, const QString & label, const QString & nativeName);
+    QString getNativeName(int index);
 signals:
     void tabMovedTabWidget(int from, int to);
 
@@ -50,6 +52,7 @@ private:
     MHTabBar* m_tabBar;
 
     QList<QWidget*> m_Windows;
+    QList<QString> mNativeNames;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -66,6 +69,7 @@ class MHDetachedWindow : public QMainWindow
 public:
     MHDetachedWindow(QWidget* parent = 0, MHTabWidget* tabwidget = 0);
     ~MHDetachedWindow(void);
+    QString mNativeName;
 
 protected:
     MHTabWidget* m_TabWidget;

@@ -18,14 +18,6 @@ public:
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
-    void addVaToHistory(dsint parVa);
-    bool historyHasPrev();
-    bool historyHasNext();
-    void historyPrev();
-    void historyNext();
-    void historyClear();
-
-
 
 signals:
     void displayReferencesWidget();
@@ -51,6 +43,7 @@ public slots:
     void hardwareRemoveSlot();
 
     void setLabelSlot();
+    void modifyValueSlot();
     void gotoExpressionSlot();
     void gotoFileOffsetSlot();
     void gotoStartSlot();
@@ -100,6 +93,7 @@ public slots:
     void yaraSlot();
     void dataCopySlot();
     void entropySlot();
+    void syncWithExpressionSlot();
     void copyAddressSlot();
     void copyRvaSlot();
     void followInDumpNSlot();
@@ -183,6 +177,7 @@ private:
     QAction* mDisassemblyAction;
 
     QAction* mSetLabelAction;
+    QAction* mModifyValueAction;
 
     QMenu* mBinaryMenu;
     QAction* mBinaryEditAction;
@@ -198,6 +193,7 @@ private:
     QAction* mUndoSelection;
     QAction* mFollowData;
     QAction* mFollowDataDump;
+    QAction* mSyncWithExpression;
     QAction* mEntropy;
     QAction* mCopyAddress;
     QAction* mCopyRva;
@@ -212,9 +208,6 @@ private:
     GotoDialog* mGoto;
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
-
-    QList<dsint> mVaHistory;
-    int mCurrentVa;
 
     enum ViewEnum_t
     {
