@@ -227,13 +227,13 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
                     dsint va = mInstrBuffer->at(destLine).rva + mDisas->getBase();
                     if(destVA > instrVA) //jump goes up
                     {
-                        if(va > destVA)
+                        if(va >= destVA)
                             break;
                         destLine++;
                     }
                     else //jump goes down
                     {
-                        if(va < destVA)
+                        if(va <= destVA)
                             break;
                         destLine--;
                     }
