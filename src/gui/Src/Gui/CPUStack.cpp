@@ -909,7 +909,7 @@ void CPUStack::modifySlot()
         return;
     value = wEditDialog.getVal();
     mMemPage->write(&value, addr, sizeof(dsint));
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUStack::freezeStackSlot()

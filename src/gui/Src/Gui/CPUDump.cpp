@@ -822,7 +822,7 @@ void CPUDump::modifyValueSlot()
         return;
     value = wEditDialog.getVal();
     mMemPage->write(&value, addr, size);
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUDump::gotoExpressionSlot()
