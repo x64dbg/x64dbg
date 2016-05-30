@@ -19,7 +19,8 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
 
     // F5 as shortcut to refresh view
     mRefreshAction = new QAction(tr("Refresh"), this);
-    mRefreshAction->setShortcut(QKeySequence("F5"));
+    mRefreshAction->setShortcut(ConfigShortcut("ActionRefresh"));
+    ui->btnRefresh->setText(tr("Refresh") + QString(" (%1)").arg(mRefreshAction->shortcut().toString()));
     connect(mRefreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
     this->addAction(mRefreshAction);
     connect(ui->btnRefresh, SIGNAL(clicked()), this, SLOT(refresh()));

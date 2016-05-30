@@ -1667,20 +1667,22 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         int width = mCharWidth * mRegisterMapping[reg].length();
 
         // set the color of the register label
+#ifdef _WIN64
         switch(reg)
         {
-#ifdef _WIN64
         case CCX: //arg1
         case CDX: //arg2
         case R8: //arg3
         case R9: //arg4
             p->setPen(ConfigColor("RegistersArgumentLabelColor"));
             break;
-#endif //_WIN64
         default:
+#endif //_WIN64
             p->setPen(ConfigColor("RegistersLabelColor"));
+#ifdef _WIN64
             break;
         }
+#endif //_WIN64
 
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, mRegisterMapping[reg]);
         x += (mRegisterPlaces[reg].labelwidth) * mCharWidth;
@@ -2026,12 +2028,14 @@ void RegistersView::onCopySymbolToClipboardAction()
     }
 }
 
-void RegistersView::appendRegister(QString &text, REGISTER_NAME reg, const char *name64, const char *name32)
+void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32)
 {
     QString symbol;
 #ifdef _WIN64
+    Q_UNUSED(name32);
     text.append(name64);
 #else //x86
+    Q_UNUSED(name64);
     text.append(name32);
 #endif //_WIN64
     text.append(GetRegStringValueFromValue(reg, registerValue(&wRegDumpStruct, reg)));
@@ -2299,11 +2303,12 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     {
         wMenu.addSeparator();
         wMenu.addAction(wCM_ChangeFPUView);
+        wMenu.addAction(wCM_CopyAll);
         wMenu.addSeparator();
 #ifdef _WIN64
-        QAction* wHwbpCsp = wMenu.addAction("HW Break on [RSP]");
+        QAction* wHwbpCsp = wMenu.addAction(tr("HW Break on [RSP]"));
 #else
-        QAction* wHwbpCsp = wMenu.addAction("HW Break on [ESP]");
+        QAction* wHwbpCsp = wMenu.addAction(tr("HW Break on [ESP]"));
 #endif
         QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
 
@@ -2320,9 +2325,9 @@ void RegistersView::setRegister(REGISTER_NAME reg, duint value)
         // map "cax" to "eax" or "rax"
         QString wRegName = mRegisterMapping.constFind(reg).value();
 
-        // flags need to '!' infront
+        // flags need to '_' infront
         if(mFlags.contains(reg))
-            wRegName = "!" + wRegName;
+            wRegName = "_" + wRegName;
 
 
         // we change the value (so highlight it)

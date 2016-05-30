@@ -3,7 +3,8 @@
 #include "Bridge.h"
 #include "StringUtil.h"
 
-HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
+HexDump::HexDump(QWidget* parent)
+    : AbstractTableView(parent)
 {
     SelectionData_t data;
     memset(&data, 0, sizeof(SelectionData_t));
@@ -23,9 +24,12 @@ HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
     selectionColor = ConfigColor("HexDumpSelectionColor");
 
     mRvaDisplayEnabled = false;
+    mSyncAddrExpression = "";
+
+    historyClear();
 
     // Slots
-    connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
+    connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateDumpSlot()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
 
     Initialize();
@@ -49,6 +53,20 @@ void HexDump::updateColors()
 void HexDump::updateFonts()
 {
     setFont(ConfigFont("HexDump"));
+}
+
+void HexDump::updateDumpSlot()
+{
+    if(mSyncAddrExpression.length() && DbgFunctions()->ValFromString)
+    {
+        duint syncAddr;
+        if(DbgFunctions()->ValFromString(mSyncAddrExpression.toUtf8().constData(), &syncAddr)
+                && DbgMemIsValidReadPtr(syncAddr))
+        {
+            printDumpAt(syncAddr, false, false, true);
+        }
+    }
+    reloadData();
 }
 
 void HexDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset)
@@ -106,6 +124,57 @@ duint HexDump::rvaToVa(dsint rva)
 duint HexDump::getTableOffsetRva()
 {
     return getTableOffset() * getBytePerRowCount() - mByteOffset;
+}
+
+void HexDump::addVaToHistory(dsint parVa)
+{
+    //truncate everything right from the current VA
+    if(mVaHistory.size() && mCurrentVa < mVaHistory.size() - 1) //mCurrentVa is not the last
+        mVaHistory.erase(mVaHistory.begin() + mCurrentVa + 1, mVaHistory.end());
+
+    //do not have 2x the same va in a row
+    if(!mVaHistory.size() || mVaHistory.last() != parVa)
+    {
+        mCurrentVa++;
+        mVaHistory.push_back(parVa);
+    }
+}
+
+bool HexDump::historyHasPrev()
+{
+    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
+        return false;
+    return true;
+}
+
+bool HexDump::historyHasNext()
+{
+    int size = mVaHistory.size();
+    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
+        return false;
+    return true;
+}
+
+void HexDump::historyPrev()
+{
+    if(!historyHasPrev())
+        return;
+    mCurrentVa--;
+    printDumpAt(mVaHistory.at(mCurrentVa));
+}
+
+void HexDump::historyNext()
+{
+    if(!historyHasNext())
+        return;
+    mCurrentVa++;
+    printDumpAt(mVaHistory.at(mCurrentVa));
+}
+
+void HexDump::historyClear()
+{
+    mCurrentVa = -1;
+    mVaHistory.clear();
 }
 
 void HexDump::mouseMoveEvent(QMouseEvent* event)

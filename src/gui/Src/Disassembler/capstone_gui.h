@@ -32,6 +32,7 @@ public:
         MnemonicNop,
         MnemonicFar,
         MnemonicInt3,
+        MnemonicUnusual,
         //memory
         MemorySize,
         MemorySegment,

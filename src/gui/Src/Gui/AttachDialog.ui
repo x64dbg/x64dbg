@@ -80,7 +80,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Refresh(F5)</string>
+          <string>Refresh</string>
          </property>
          <property name="autoDefault">
           <bool>false</bool>

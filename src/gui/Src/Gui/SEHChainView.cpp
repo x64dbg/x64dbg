@@ -30,6 +30,8 @@ void SEHChainView::updateSEHChain()
 {
     DBGSEHCHAIN sehchain;
     memset(&sehchain, 0, sizeof(DBGSEHCHAIN));
+    if(!DbgFunctions()->GetSEHChain)
+        return;
     DbgFunctions()->GetSEHChain(&sehchain);
     setRowCount(sehchain.total);
     for(duint i = 0; i < sehchain.total; i++)
@@ -48,14 +50,9 @@ void SEHChainView::updateSEHChain()
         else
             label_text = QString(module);
         setCellContent(i, 2, label_text);
-        char comment[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(sehchain.records[i].handler, comment))
-        {
-            if(comment[0] == '\1') //automatic comment
-                setCellContent(i, 3, QString(comment + 1));
-            else
-                setCellContent(i, 3, comment);
-        }
+        QString comment;
+        if(GetCommentFormat(sehchain.records[i].handler, comment))
+            setCellContent(i, 3, comment);
     }
     if(sehchain.total)
         BridgeFree(sehchain.records);
@@ -66,17 +63,17 @@ void SEHChainView::contextMenuSlot(const QPoint pos)
 {
     if(!DbgIsDebugging())
         return;
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addAction(mFollowAddress);
-    wMenu->addAction(mFollowHandler);
+    QMenu wMenu(this); //create context menu
+    wMenu.addAction(mFollowAddress);
+    wMenu.addAction(mFollowHandler);
     QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
+    wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void SEHChainView::doubleClickedSlot()

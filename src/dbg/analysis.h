@@ -14,13 +14,20 @@ public:
     virtual void SetMarkers() = 0;
 
 protected:
-    duint _base;
-    duint _size;
-    unsigned char* _data;
-    Capstone _cp;
+    duint mBase;
+    duint mSize;
+    unsigned char* mData;
+    Capstone mCp;
 
-    bool IsValidAddress(duint addr);
-    const unsigned char* TranslateAddress(duint addr);
+    bool inRange(duint addr) const
+    {
+        return addr >= mBase && addr < mBase + mSize;
+    }
+
+    const unsigned char* translateAddr(duint addr) const
+    {
+        return inRange(addr) ? mData + (addr - mBase) : nullptr;
+    }
 };
 
 #endif //_ANALYSIS_H

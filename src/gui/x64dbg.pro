@@ -143,7 +143,10 @@ SOURCES += \
     Src/Gui/AssembleDialog.cpp \
     Src/ThirdPartyLibs/float128/float128.cpp \
     Src/Utils/StringUtil.cpp \
-    Src/Gui/SEHChainView.cpp
+    Src/Gui/SEHChainView.cpp \
+    Src/Gui/EditBreakpointDialog.cpp \
+    Src/Gui/CPUArgumentWidget.cpp \
+    Src/Gui/HandlesView.cpp
 
 
 HEADERS += \
@@ -227,7 +230,10 @@ HEADERS += \
     Src/Gui/CPUMultiDump.h \
     Src/Gui/AssembleDialog.h \
     Src/ThirdPartyLibs/float128/float128.h \
-    Src/Gui/SEHChainView.h
+    Src/Gui/SEHChainView.h \
+    Src/Gui/EditBreakpointDialog.h \
+    Src/Gui/CPUArgumentWidget.h \
+    Src/Gui/HandlesView.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -252,7 +258,9 @@ FORMS += \
     Src/Gui/YaraRuleSelectionDialog.ui \
     Src/Gui/DataCopyDialog.ui \
     Src/Gui/EntropyDialog.ui \
-    Src/Gui/AssembleDialog.ui
+    Src/Gui/AssembleDialog.ui \
+    Src/Gui/EditBreakpointDialog.ui \
+    Src/Gui/CPUArgumentWidget.ui
 
 TRANSLATIONS = \
     Translations/x64dbg_zh_CN.ts

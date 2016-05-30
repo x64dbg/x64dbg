@@ -1609,7 +1609,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(*string == '!' && isflag(string + 1))  //flag
+    else if(*string == '_' && isflag(string + 1))  //flag
     {
         if(!DbgIsDebugging())
         {
@@ -1683,7 +1683,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
 /**
 \brief Gets a value from a string. This function can parse expressions, memory locations, registers, flags, API names, labels, symbols and variables.
 \param string The string to parse.
-\param [out] value The value of the expression. This value cannot be null.
+\param [out] value The value of the expression. This value cannot be null. When the expression is invalid, value is not changed.
 \param silent true to not output anything to the console.
 \param baseonly true to skip parsing API names, labels, symbols and variables (basic expressions only).
 \param [out] value_size This function can output the value size parsed (for example memory location size or register size). Can be null.
@@ -1702,7 +1702,7 @@ bool valfromstring(const char* string, duint* value, bool silent, bool baseonly,
     }
     ExpressionParser parser(string);
     duint result;
-    if(!parser.calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
+    if(!parser.Calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
         return false;
     *value = result;
     return true;
@@ -2222,19 +2222,7 @@ bool valtostring(const char* string, duint value, bool silent)
             GuiUpdateAllViews(); //repaint gui
         return ok;
     }
-    else if((*string == '_')) //FPU values
-    {
-        if(!DbgIsDebugging())
-        {
-            if(!silent)
-                dputs("not debugging!");
-            return false;
-        }
-        setfpuvalue(string + 1, value);
-        GuiUpdateAllViews(); //repaint gui
-        return true;
-    }
-    else if(*string == '!' && isflag(string + 1)) //flag
+    else if(*string == '_' && isflag(string + 1))  //flag
     {
         if(!DbgIsDebugging())
         {
@@ -2246,6 +2234,18 @@ bool valtostring(const char* string, duint value, bool silent)
         if(value)
             set = true;
         setflag(string + 1, set);
+        GuiUpdateAllViews(); //repaint gui
+        return true;
+    }
+    else if((*string == '_')) //FPU values
+    {
+        if(!DbgIsDebugging())
+        {
+            if(!silent)
+                dputs("not debugging!");
+            return false;
+        }
+        setfpuvalue(string + 1, value);
         GuiUpdateAllViews(); //repaint gui
         return true;
     }

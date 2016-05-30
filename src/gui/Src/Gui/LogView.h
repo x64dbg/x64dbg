@@ -9,12 +9,10 @@ class LogView : public QTextEdit
 public:
     explicit LogView(QWidget* parent = 0);
     void setupContextMenu();
-    void refreshShortcutsSlot();
     void contextMenuEvent(QContextMenuEvent* event);
 
-signals:
-
 public slots:
+    void refreshShortcutsSlot();
     void updateStyle();
     void addMsgToLogSlot(QString msg);
     void setLoggingEnabled(bool enabled);

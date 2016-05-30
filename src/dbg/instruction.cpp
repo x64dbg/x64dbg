@@ -33,6 +33,8 @@
 #include "exceptiondirectoryanalysis.h"
 #include "_scriptapi_stack.h"
 #include "threading.h"
+#include "mnemonichelp.h"
+#include "error.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -948,24 +950,23 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
         return true;
     }
     bool found = false;
-    STRING_TYPE strtype;
-    char string[1024] = "";
+    char string[MAX_STRING_SIZE] = "";
     if(basicinfo->branch)  //branches have no strings (jmp dword [401000])
         return false;
     if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
     {
-        if(disasmgetstringat(basicinfo->value.value, &strtype, string, string, 500))
+        if(DbgGetStringAt(basicinfo->value.value, string))
             found = true;
     }
     if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
-        if(!found && disasmgetstringat(basicinfo->memory.value, &strtype, string, string, 500))
+        if(DbgGetStringAt(basicinfo->memory.value, string))
             found = true;
     }
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->Address());
+        sprintf(addrText, fhex, disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[4096] = "";
@@ -973,12 +974,7 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
-        char dispString[1024] = "";
-        if(strtype == str_ascii)
-            sprintf(dispString, "\"%s\"", string);
-        else
-            sprintf(dispString, "L\"%s\"", string);
-        GuiReferenceSetCellContent(refinfo->refcount, 2, dispString);
+        GuiReferenceSetCellContent(refinfo->refcount, 2, string);
     }
     return found;
 }
@@ -1385,28 +1381,38 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), "Address");
-        GuiReferenceAddColumn(0, "Disassembly");
+        GuiReferenceAddColumn(20, "Disassembly");
+        GuiReferenceAddColumn(MAX_LABEL_SIZE, "Destination");
         GuiReferenceReloadData();
         return true;
     }
     bool found = false;
+    char label[MAX_LABEL_SIZE] = "";
+    char module[MAX_MODULE_SIZE] = "";
     if(basicinfo->call)  //we are looking for calls
     {
         duint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
-        char label[MAX_LABEL_SIZE] = "";
-        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label); //a non-user label
+        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label) && DbgGetModuleAt(ptr, module); //a non-user label
     }
     if(found)
     {
         char addrText[20] = "";
+        char moduleTargetText[256] = "";
         sprintf(addrText, "%p", disasm->Address());
+        sprintf(moduleTargetText, "%s.%s", module, label);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
+        {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, moduleTargetText);
+        }
         else
+        {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
+            GuiReferenceSetCellContent(refinfo->refcount, 2, moduleTargetText);
+        }
     }
     return found;
 }
@@ -2041,6 +2047,10 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
+    if(argc > 2)
+        if(!valfromstring(argv[2], &addr, false))
+            return STATUS_ERROR;
+
     Capstone cp;
     if(!cp.Disassemble(addr, data))
     {
@@ -2353,5 +2363,130 @@ CMDRESULT cbInstrSavedata(int argc, char* argv[])
 
     dprintf("%p[% " fext "X] written to \"%s\" !\n", addr, size, argv[1]);
 
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrMnemonichelp(int argc, char* argv[])
+{
+    if(argc < 2)
+        return STATUS_ERROR;
+    auto description = MnemonicHelp::getDescription(argv[1]);
+    if(!description.length())
+        dputs("no description or empty description");
+    else
+    {
+        auto padding = "================================================================";
+        auto logText = StringUtils::sprintf("%s%s%s\n", padding, description.c_str(), padding);
+        GuiAddLogMessage(logText.c_str());
+    }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[])
+{
+    if(argc < 2)
+        return STATUS_ERROR;
+    dputs(MnemonicHelp::getBriefDescription(argv[1]).c_str());
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
+    DWORD returnLength;
+    LUID luid;
+    if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
+    {
+        varset("$result", (duint)0, false);
+        return STATUS_CONTINUE;
+    }
+    Memory <TOKEN_PRIVILEGES*> Privileges(64 * 16 + 8, "_dbg_getprivilegestate");
+    if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges(), 64 * 16 + 8, &returnLength) == 0)
+    {
+        if(returnLength > 4 * 1024 * 1024)
+        {
+            varset("$result", (duint)0, false);
+            return STATUS_CONTINUE;
+        }
+        Privileges.realloc(returnLength, "_dbg_getprivilegestate");
+        if(GetTokenInformation(hProcessToken, TokenPrivileges, Privileges(), returnLength, &returnLength) == 0)
+            return STATUS_ERROR;
+    }
+    for(unsigned int i = 0; i < Privileges()->PrivilegeCount; i++)
+    {
+        if(4 + sizeof(LUID_AND_ATTRIBUTES) * i > returnLength)
+            return STATUS_ERROR;
+        if(memcmp(&Privileges()->Privileges[i].Luid, &luid, sizeof(LUID)) == 0)
+        {
+            varset("$result", (duint)(Privileges()->Privileges[i].Attributes + 1), false); // 2=enabled, 3=default, 1=disabled
+            return STATUS_CONTINUE;
+        }
+    }
+    varset("$result", (duint)0, false);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbEnablePrivilege(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
+    LUID luid;
+    if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
+    {
+        dprintf("Could not find the specified privilege: %s\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    TOKEN_PRIVILEGES Privilege;
+    Privilege.PrivilegeCount = 1;
+    Privilege.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+    Privilege.Privileges[0].Luid = luid;
+    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, &Privilege, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) != NO_ERROR;
+    return ret ? STATUS_CONTINUE : STATUS_ERROR;
+}
+
+CMDRESULT cbDisablePrivilege(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
+    LUID luid;
+    if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
+    {
+        dprintf("Could not find the specified privilege: %s\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    TOKEN_PRIVILEGES Privilege;
+    Privilege.PrivilegeCount = 1;
+    Privilege.Privileges[0].Attributes = 0;
+    Privilege.Privileges[0].Luid = luid;
+    bool ret = AdjustTokenPrivileges(hProcessToken, FALSE, &Privilege, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) != NO_ERROR;
+    return ret ? STATUS_CONTINUE : STATUS_ERROR;
+}
+
+CMDRESULT cbHandleClose(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
+    duint handle;
+    if(!valfromstring(argv[1], &handle, false))
+        return STATUS_ERROR;
+    if(!DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), NULL, NULL, 0, FALSE, DUPLICATE_CLOSE_SOURCE))
+    {
+        dprintf("DuplicateHandle failed: %s\n", ErrorCodeToName(GetLastError()));
+        return STATUS_ERROR;
+    }
+    dprintf("Handle %" fext "X closed!\n", handle);
     return STATUS_CONTINUE;
 }

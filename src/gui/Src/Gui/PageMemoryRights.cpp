@@ -124,7 +124,7 @@ void PageMemoryRights::on_btnSetrights_clicked()
     emit refreshMemoryMap();
 
     if(one_right_changed)
-        ui->LnEdStatus->setText("Pages Rights Changed to: " + rights);
+        ui->LnEdStatus->setText(tr("Pages Rights Changed to: ") + rights);
     else
-        ui->LnEdStatus->setText("Error setting rights, read the MSDN to learn the valid rights of: " + pagetype);
+        ui->LnEdStatus->setText(tr("Error setting rights, read the MSDN to learn the valid rights of: ") + pagetype);
 }

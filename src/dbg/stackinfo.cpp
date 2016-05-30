@@ -108,14 +108,10 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
     }
 
     //string
-    STRING_TYPE strtype;
-    char string[512] = "";
-    if(disasmgetstringat(data, &strtype, string, string, 500))
+    char string[MAX_STRING_SIZE] = "";
+    if(DbgGetStringAt(data, string))
     {
-        if(strtype == str_ascii)
-            sprintf(comment->comment, "\"%s\"", string);
-        else //unicode
-            sprintf(comment->comment, "L\"%s\"", string);
+        strcpy_s(comment->comment, _TRUNCATE, string);
         return true;
     }
 

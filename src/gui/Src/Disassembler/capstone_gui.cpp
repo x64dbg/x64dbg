@@ -40,6 +40,7 @@ void CapstoneTokenizer::UpdateColors()
     addColorName(TokenType::MnemonicNop, "InstructionNopColor", "InstructionNopBackgroundColor");
     addColorName(TokenType::MnemonicFar, "InstructionFarColor", "InstructionFarBackgroundColor");
     addColorName(TokenType::MnemonicInt3, "InstructionInt3Color", "InstructionInt3BackgroundColor");
+    addColorName(TokenType::MnemonicUnusual, "InstructionUnusualColor", "InstructionUnusualBackgroundColor");
     //memory
     addColorName(TokenType::MemorySize, "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
     addColorName(TokenType::MemorySegment, "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
@@ -230,17 +231,7 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
     QString moduleText;
     duint addr = value.value;
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, label_);
-    if(!bHasLabel) //handle function+offset
-    {
-        duint start;
-        if(DbgFunctionGet(addr, &start, nullptr) && DbgGetLabelAt(start, SEG_DEFAULT, label_))
-        {
-            labelText = QString("%1+%2").arg(label_).arg(ToHexString(addr - start));
-            bHasLabel = true;
-        }
-    }
-    else
-        labelText = QString(label_);
+    labelText = QString(label_);
     bool bHasModule = (expandModule && DbgGetModuleAt(addr, module_) && !QString(labelText).startsWith("JMP.&"));
     moduleText = QString(module_);
     if(maxModuleLength != -1)
@@ -313,12 +304,27 @@ bool CapstoneTokenizer::tokenizeMnemonic()
         type = TokenType::MnemonicNop;
     else if(_cp.IsInt3())
         type = TokenType::MnemonicInt3;
+    else if(_cp.InGroup(CS_GRP_PRIVILEGE) || _cp.InGroup(CS_GRP_IRET) || _cp.InGroup(CS_GRP_INVALID)
+            || id == X86_INS_RDTSC || id == X86_INS_SYSCALL || id == X86_INS_SYSENTER || id == X86_INS_CPUID || id == X86_INS_RDRAND || id == X86_INS_RDTSCP
+            || id == X86_INS_OUT || id == X86_INS_OUTSB || id == X86_INS_OUTSD || id == X86_INS_OUTSW
+            || id == X86_INS_IN || id == X86_INS_INSB || id == X86_INS_INSD || id == X86_INS_INSW)
+        type = TokenType::MnemonicUnusual;
     else
     {
         switch(id)
         {
         case X86_INS_PUSH:
+        case X86_INS_PUSHF:
+        case X86_INS_PUSHFD:
+        case X86_INS_PUSHFQ:
+        case X86_INS_PUSHAL:
+        case X86_INS_PUSHAW:
         case X86_INS_POP:
+        case X86_INS_POPF:
+        case X86_INS_POPFD:
+        case X86_INS_POPFQ:
+        case X86_INS_POPAL:
+        case X86_INS_POPAW:
             type = TokenType::MnemonicPushPop;
             break;
         default:

@@ -197,15 +197,15 @@ void SearchListView::searchTextChanged(const QString & arg1)
 
 void SearchListView::listContextMenu(const QPoint & pos)
 {
-    QMenu* wMenu = new QMenu(this);
-    emit listContextMenuSignal(wMenu);
-    wMenu->addSeparator();
-    wMenu->addAction(mSearchAction);
+    QMenu wMenu(this);
+    emit listContextMenuSignal(&wMenu);
+    wMenu.addSeparator();
+    wMenu.addAction(mSearchAction);
     QMenu wCopyMenu("&Copy", this);
     mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
-        wMenu->addMenu(&wCopyMenu);
-    wMenu->exec(mCurList->mapToGlobal(pos));
+        wMenu.addMenu(&wCopyMenu);
+    wMenu.exec(mCurList->mapToGlobal(pos));
 }
 
 void SearchListView::doubleClickedSlot()

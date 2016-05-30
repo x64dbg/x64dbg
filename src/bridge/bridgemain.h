@@ -61,6 +61,8 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_MODULE_SIZE 256
 #define MAX_IMPORT_SIZE 65536
 #define MAX_BREAKPOINT_SIZE 256
+#define MAX_CONDITIONAL_EXPR_SIZE 256
+#define MAX_CONDITIONAL_TEXT_SIZE 256
 #define MAX_SCRIPT_LINE_SIZE 2048
 #define MAX_THREAD_NAME_SIZE 256
 #define MAX_STRING_SIZE 512
@@ -321,6 +323,14 @@ typedef struct
     char name[MAX_BREAKPOINT_SIZE];
     char mod[MAX_MODULE_SIZE];
     unsigned short slot;
+    // extended part
+    unsigned int hitCount;
+    bool fastResume;
+    char breakCondition[MAX_CONDITIONAL_EXPR_SIZE];
+    char logText[MAX_CONDITIONAL_TEXT_SIZE];
+    char logCondition[MAX_CONDITIONAL_EXPR_SIZE];
+    char commandText[MAX_CONDITIONAL_TEXT_SIZE];
+    char commandCondition[MAX_CONDITIONAL_EXPR_SIZE];
 } BRIDGEBP;
 
 typedef struct
@@ -343,6 +353,7 @@ typedef struct
     duint end; //OUT
 } LOOP;
 
+#ifndef _NO_ADDRINFO
 typedef struct
 {
     int flags; //ADDRINFOFLAGS (IN)
@@ -353,6 +364,7 @@ typedef struct
     FUNCTION function;
     LOOP loop;
 } ADDRINFO;
+#endif
 
 struct SYMBOLINFO_
 {
@@ -807,7 +819,9 @@ typedef enum
     GUI_DUMP_AT_N,                  // param1=int index,            param2=duint va
     GUI_DISPLAY_WARNING,            // param1=const char *text,     param2=unused
     GUI_REGISTER_SCRIPT_LANG,       // param1=SCRIPTTYPEINFO* info, param2=unused
-    GUI_UNREGISTER_SCRIPT_LANG      // param1=int id,               param2=unused
+    GUI_UNREGISTER_SCRIPT_LANG,     // param1=int id,               param2=unused
+    GUI_UPDATE_ARGUMENT_VIEW,       // param1=unused,               param2=unused
+    GUI_FOCUS_VIEW,                 // param1=int hWindow,          param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -844,7 +858,7 @@ typedef struct
 } SCRIPTTYPEINFO;
 
 //GUI functions
-// TODO: Most of these functions are not unicode-aware. Rewrite them.
+//code page is utf8
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state);
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg);
@@ -922,6 +936,8 @@ BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index);
 BRIDGE_IMPEXP void GuiDisplayWarning(const char* title, const char* text);
 BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info);
 BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id);
+BRIDGE_IMPEXP void GuiUpdateArgumentWidget();
+BRIDGE_IMPEXP void GuiFocusView(int hWindow);
 
 #ifdef __cplusplus
 }

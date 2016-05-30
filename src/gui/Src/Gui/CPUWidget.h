@@ -10,6 +10,7 @@
 #include "CPUStack.h"
 #include "RegistersView.h"
 #include "CPUInfoBox.h"
+#include "CPUArgumentWidget.h"
 
 namespace Ui
 {
@@ -48,6 +49,7 @@ protected:
     CPUStack* mStack;
     RegistersView* mGeneralRegs;
     CPUInfoBox* mInfo;
+    CPUArgumentWidget* mArgumentWidget;
 
 private:
     Ui::CPUWidget* ui;

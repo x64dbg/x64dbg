@@ -6,7 +6,7 @@
 
 Configuration* Configuration::mPtr = NULL;
 
-Configuration::Configuration() : QObject()
+Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 {
     //setup default color map
     defaultColors.clear();
@@ -28,6 +28,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("DisassemblyLabelBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("DisassemblySelectionColor", QColor("#C0C0C0"));
+    defaultColors.insert("DisassemblyTracedBackgroundColor", QColor("#C0FFC0"));
     defaultColors.insert("DisassemblyAddressColor", QColor("#808080"));
     defaultColors.insert("DisassemblyAddressBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblySelectedAddressColor", QColor("#000000"));
@@ -40,8 +41,10 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("DisassemblyRestoredBytesColor", QColor("#008000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
-    defaultColors.insert("DisassemblyAutoCommentColor", QColor("#808080"));
+    defaultColors.insert("DisassemblyAutoCommentColor", QColor("#008000"));
     defaultColors.insert("DisassemblyAutoCommentBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyMnemonicBriefColor", QColor("#717171"));
+    defaultColors.insert("DisassemblyMnemonicBriefBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyFunctionColor", QColor("#000000"));
     defaultColors.insert("DisassemblyLoopColor", QColor("#000000"));
 
@@ -88,6 +91,8 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("InstructionConditionalJumpBackgroundColor", QColor("#FFFF00"));
     defaultColors.insert("InstructionUnconditionalJumpColor", QColor("#000000"));
     defaultColors.insert("InstructionUnconditionalJumpBackgroundColor", QColor("#FFFF00"));
+    defaultColors.insert("InstructionUnusualColor", QColor("#000000"));
+    defaultColors.insert("InstructionUnusualBackgroundColor", QColor("#C00000"));
     defaultColors.insert("InstructionNopColor", QColor("#808080"));
     defaultColors.insert("InstructionNopBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionFarColor", QColor("#000000"));
@@ -201,6 +206,7 @@ Configuration::Configuration() : QObject()
     tabOrderUint.insert("ReferencesTab", curTab++);
     tabOrderUint.insert("ThreadsTab", curTab++);
     tabOrderUint.insert("SnowmanTab", curTab++);
+    tabOrderUint.insert("HandlesTab", curTab++);
     defaultUints.insert("TabOrder", tabOrderUint);
 
     //font settings
@@ -225,6 +231,8 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ViewBreakpoints", Shortcut(tr("View -> Breakpoints"), "Alt+B", true));
     defaultShortcuts.insert("ViewMemoryMap", Shortcut(tr("View -> Memory Map"), "Alt+M", true));
     defaultShortcuts.insert("ViewCallStack", Shortcut(tr("View -> Call Stack"), "Alt+K", true));
+    defaultShortcuts.insert("ViewNotes", Shortcut(tr("View -> Notes"), "", true));
+    defaultShortcuts.insert("ViewSEHChain", Shortcut(tr("View -> SEH"), "", true));
     defaultShortcuts.insert("ViewScript", Shortcut(tr("View -> Script"), "Alt+S", true));
     defaultShortcuts.insert("ViewSymbolInfo", Shortcut(tr("View -> Symbol Info"), "Ctrl+Alt+S", true));
     defaultShortcuts.insert("ViewSource", Shortcut(tr("View -> Source"), "Ctrl+Shift+S", true));
@@ -235,6 +243,8 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L", true));
     defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B", true));
     defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Alt+F", true));
+    defaultShortcuts.insert("ViewSnowman", Shortcut(tr("View -> Snowman"), "", true));
+    defaultShortcuts.insert("ViewHandles", Shortcut(tr("View -> Handles"), "", true));
 
     defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9", true));
     defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (skip exceptions)"), "Shift+F9", true));
@@ -295,6 +305,8 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ActionFindReferencesToSelectedAddress", Shortcut(tr("Actions -> Find References to Selected Address"), "Ctrl+R"));
     defaultShortcuts.insert("ActionFindPattern", Shortcut(tr("Actions -> Find Pattern"), "Ctrl+B"));
     defaultShortcuts.insert("ActionFindReferences", Shortcut(tr("Actions -> Find References"), "Ctrl+R"));
+    defaultShortcuts.insert("ActionHelpOnMnemonic", Shortcut(tr("Actions -> Help on Mnemonic"), "Ctrl+F1"));
+    defaultShortcuts.insert("ActionToggleMnemonicBrief", Shortcut(tr("Actions -> Toggle Mnemonic Brief"), "Ctrl+Shift+F1"));
     defaultShortcuts.insert("ActionHighlightingMode", Shortcut(tr("Actions -> Highlighting Mode"), "Ctrl+H"));
     defaultShortcuts.insert("ActionFind", Shortcut(tr("Actions -> Find"), "Ctrl+F"));
     defaultShortcuts.insert("ActionDecompileFunction", Shortcut(tr("Actions -> Decompile Function"), "F5"));
@@ -317,6 +329,7 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ActionStepScript", Shortcut(tr("Actions -> Step Script"), "Tab"));
     defaultShortcuts.insert("ActionAbortScript", Shortcut(tr("Actions -> Abort Script"), "Esc"));
     defaultShortcuts.insert("ActionExecuteCommandScript", Shortcut(tr("Actions -> Execute Script Command"), "X"));
+    defaultShortcuts.insert("ActionRefresh", Shortcut(tr("Actions -> Refresh"), "F5"));
 
     Shortcuts = defaultShortcuts;
 
@@ -514,10 +527,13 @@ const QColor Configuration::getColor(const QString id) const
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id);
+    if(noMoreMsgbox)
+        return Qt::black;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
     return Qt::black;
 }
 
@@ -527,16 +543,22 @@ const bool Configuration::getBool(const QString category, const QString id) cons
     {
         if(Bools[category].contains(id))
             return Bools[category][id];
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
+        if(noMoreMsgbox)
+            return false;
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
         return false;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    if(noMoreMsgbox)
+        return false;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
     return false;
 }
 
@@ -549,16 +571,22 @@ void Configuration::setBool(const QString category, const QString id, const bool
             Bools[category][id] = b;
             return;
         }
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
+        if(noMoreMsgbox)
+            return;
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
         return;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    if(noMoreMsgbox)
+        return;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
 }
 
 const duint Configuration::getUint(const QString category, const QString id) const
@@ -567,16 +595,22 @@ const duint Configuration::getUint(const QString category, const QString id) con
     {
         if(Uints[category].contains(id))
             return Uints[category][id];
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
+        if(noMoreMsgbox)
+            return 0;
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
         return 0;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    if(noMoreMsgbox)
+        return 0;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
     return 0;
 }
 
@@ -589,29 +623,38 @@ void Configuration::setUint(const QString category, const QString id, const duin
             Uints[category][id] = i;
             return;
         }
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
+        if(noMoreMsgbox)
+            return;
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
         return;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    if(noMoreMsgbox)
+        return;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
 }
 
 const QFont Configuration::getFont(const QString id) const
 {
     if(Fonts.contains(id))
         return Fonts.constFind(id).value();
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
     QFont ret("Lucida Console", 8, QFont::Normal, false);
     ret.setFixedPitch(true);
     ret.setStyleHint(QFont::Monospace);
+    if(noMoreMsgbox)
+        return ret;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id, QMessageBox::Retry | QMessageBox::Cancel);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
     return ret;
 }
 
@@ -619,10 +662,14 @@ const Configuration::Shortcut Configuration::getShortcut(const QString key_id) c
 {
     if(Shortcuts.contains(key_id))
         return Shortcuts.constFind(key_id).value();
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(!noMoreMsgbox)
+    {
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id, QMessageBox::Retry | QMessageBox::Cancel);
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::Cancel)
+            noMoreMsgbox = true;
+    }
     return Shortcut();
 }
 
@@ -633,10 +680,13 @@ void Configuration::setShortcut(const QString key_id, const QKeySequence key_seq
         Shortcuts[key_id].Hotkey = key_sequence;
         return;
     }
-    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id);
+    if(noMoreMsgbox)
+        return;
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id, QMessageBox::Retry | QMessageBox::Cancel);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(msg.exec() == QMessageBox::Cancel)
+        noMoreMsgbox = true;
 }
 
 QColor Configuration::colorFromConfig(const QString id)

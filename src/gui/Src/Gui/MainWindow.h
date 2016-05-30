@@ -23,6 +23,7 @@
 #include "UpdateChecker.h"
 #include "SourceViewerManager.h"
 #include "SnowmanView.h"
+#include "HandlesView.h"
 #include "MainWindowCloseThread.h"
 #include "TimeWastedCounter.h"
 #include "NotesManager.h"
@@ -117,12 +118,16 @@ public slots:
     void displayManual();
     void decompileAt(dsint start, dsint end);
     void canClose();
+    void addQWidgetTab(QWidget* qWidget, QString nativeName);
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
     void executeOnGuiThread(void* cbGuiThread);
     void tabMovedSlot(int from, int to);
     void chkSaveloadTabSavedOrderStateChangedSlot(bool state);
+    void dbgStateChangedSlot(DBGSTATE state);
+    void displayNotesWidget();
+    void displayHandlesWidget();
 
 private:
     Ui::MainWindow* ui;
@@ -143,6 +148,7 @@ private:
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
     SnowmanView* mSnowmanView;
+    HandlesView* mHandlesView;
     NotesManager* mNotesManager;
 
     StatusLabel* mStatusLabel;
@@ -200,6 +206,7 @@ private:
     bool bCanClose;
     MainWindowCloseThread* mCloseThread;
     QVector<QWidget*> mWidgetList;
+    QVector<QString> mWidgetNativeNameList;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);
@@ -207,8 +214,10 @@ protected:
 
 public:
     static QString windowTitle;
+
 private slots:
     void on_actionFaq_triggered();
+    void on_actionReloadStylesheet_triggered();
 };
 
 #endif // MAINWINDOW_H

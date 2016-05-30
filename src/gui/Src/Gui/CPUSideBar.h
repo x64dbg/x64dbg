@@ -37,7 +37,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent* e);
     void mouseMoveEvent(QMouseEvent* event);
 
-    void drawLabel(QPainter* painter, int Line, QString Text);
+    void drawLabel(QPainter* painter, int Line, const QString & Text);
     void drawBullets(QPainter* painter, int line, bool ispb, bool isbpdisabled, bool isbookmark);
     bool isJump(int i) const;
     void drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive);

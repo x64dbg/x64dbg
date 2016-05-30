@@ -1,5 +1,6 @@
 #include "CPUWidget.h"
 #include "ui_CPUWidget.h"
+#include "Configuration.h"
 
 CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 {
@@ -8,17 +9,23 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     mDisas = new CPUDisassembly(this);
     mSideBar = new CPUSideBar(mDisas);
+    mArgumentWidget = new CPUArgumentWidget(this);
     connect(mDisas, SIGNAL(tableOffsetChanged(dsint)), mSideBar, SLOT(changeTopmostAddress(dsint)));
     connect(mDisas, SIGNAL(viewableRows(int)), mSideBar, SLOT(setViewableRows(int)));
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mSideBar, SLOT(setSelection(dsint)));
+    connect(mDisas, SIGNAL(disassembledAt(dsint, dsint, bool, dsint)), mArgumentWidget, SLOT(disassembledAtSlot(dsint, dsint, bool, dsint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(repaint()));
+    connect(Bridge::getBridge(), SIGNAL(updateArgumentView()), mArgumentWidget, SLOT(refreshData()));
 
     QSplitter* splitter = new QSplitter(this);
     splitter->addWidget(mSideBar);
     splitter->addWidget(mDisas);
     splitter->setChildrenCollapsible(false);
+    splitter->setCollapsible(0, true); //allow collapsing of the SideBar
     splitter->setHandleWidth(1);
+
+    ui->mTopLeftVSplitter->setCollapsible(1, true); //allow collapsing of the InfoBox
 
     ui->mTopLeftUpperFrameLayout->addWidget(splitter);
 
@@ -35,19 +42,27 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mGeneralRegs->setFixedHeight(1400);
     mGeneralRegs->ShowFPU(true);
 
-    QScrollArea* scrollArea = new QScrollArea;
-    scrollArea->setWidget(mGeneralRegs);
+    QScrollArea* upperScrollArea = new QScrollArea(this);
+    upperScrollArea->setWidget(mGeneralRegs);
 
-    scrollArea->horizontalScrollBar()->setStyleSheet("QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}");
-    scrollArea->verticalScrollBar()->setStyleSheet("QScrollBar:vertical{border:1px solid grey;background:#f1f1f1;width:10px}QScrollBar::handle:vertical{background:#aaa;min-height:20px;margin:1px}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{width:0;height:0}");
+    upperScrollArea->horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
+    upperScrollArea->verticalScrollBar()->setStyleSheet(ConfigVScrollBarStyle());
 
-    QPushButton* button_changeview = new QPushButton("");
+    QPushButton* button_changeview = new QPushButton("", this);
     button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
     mGeneralRegs->SetChangeButton(button_changeview);
 
-    ui->mTopRightFrameLayout->addWidget(button_changeview);
-    ui->mTopRightFrameLayout->addWidget(scrollArea);
+    QList<int> sizes;
+    sizes.append(100);
+    sizes.append(10);
+    ui->mTopRightVSplitter->setSizes(sizes);
+    ui->mTopRightVSplitter->setCollapsible(1, true); //allow collapsing of the ArgumentWidget
+
+    ui->mTopRightUpperFrameLayout->addWidget(button_changeview);
+    ui->mTopRightUpperFrameLayout->addWidget(upperScrollArea);
+
+    ui->mTopRightLowerFrameLayout->addWidget(mArgumentWidget);
 
     mDump = new CPUMultiDump(mDisas, 5, 0); //dump widget
     ui->mBotLeftFrameLayout->addWidget(mDump);
@@ -108,7 +123,7 @@ QVBoxLayout* CPUWidget::getTopLeftLowerWidget()
 
 QVBoxLayout* CPUWidget::getTopRightWidget()
 {
-    return ui->mTopRightFrameLayout;
+    return ui->mTopRightUpperFrameLayout;
 }
 
 QVBoxLayout* CPUWidget::getBotLeftWidget()

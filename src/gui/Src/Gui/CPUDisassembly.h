@@ -34,6 +34,7 @@ signals:
     void showPatches();
     void decompileAt(dsint start, dsint end);
     void displaySnowmanWidget();
+    void displayLogWidget();
 
 public slots:
     void toggleInt3BPActionSlot();
@@ -83,8 +84,15 @@ public slots:
     void openSourceSlot();
     void decompileSelectionSlot();
     void decompileFunctionSlot();
+    void mnemonicHelpSlot();
+    void mnemonicBriefSlot();
+    void ActionTraceRecordBitSlot();
+    void ActionTraceRecordByteSlot();
+    void ActionTraceRecordWordSlot();
+    void ActionTraceRecordDisableSlot();
     void displayWarningSlot(QString title, QString text);
     void labelHelpSlot();
+    void editSoftBpActionSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);

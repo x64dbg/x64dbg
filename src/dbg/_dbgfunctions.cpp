@@ -16,6 +16,14 @@
 #include "symbolinfo.h"
 #include "module.h"
 #include "exhandlerinfo.h"
+#include "breakpoint.h"
+#include "threading.h"
+#include "stringformat.h"
+#include "TraceRecord.h"
+#include "mnemonichelp.h"
+#include "handles.h"
+#include "../bridge/bridgelist.h"
+#include "tcpconnections.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -203,6 +211,77 @@ static bool _valfromstring(const char* string, duint* value)
     return valfromstring(string, value);
 }
 
+static bool _getbridgebp(BPXTYPE type, duint addr, BRIDGEBP* bp)
+{
+    BP_TYPE bptype;
+    switch(type)
+    {
+    case bp_normal:
+        bptype = BPNORMAL;
+        break;
+    case bp_hardware:
+        bptype = BPHARDWARE;
+        break;
+    case bp_memory:
+        bptype = BPMEMORY;
+        break;
+    default:
+        return false;
+    }
+    SHARED_ACQUIRE(LockBreakpoints);
+    auto bpInfo = BpInfoFromAddr(bptype, addr);
+    if(!bpInfo)
+        return false;
+    if(bp)
+    {
+        BpToBridge(bpInfo, bp);
+        bp->addr = addr;
+    }
+    return true;
+}
+
+static bool _stringformatinline(const char* format, size_t resultSize, char* result)
+{
+    if(!format || !result)
+        return false;
+    strcpy_s(result, resultSize, stringformatinline(format).c_str());
+    return true;
+}
+
+static void _getmnemonicbrief(const char* mnem, size_t resultSize, char* result)
+{
+    if(!result)
+        return;
+    strcpy_s(result, resultSize, MnemonicHelp::getBriefDescription(mnem).c_str());
+}
+
+static bool _enumhandles(ListOf(HANDLEINFO) handles)
+{
+    std::vector<HANDLEINFO> handleV;
+    if(!HandlesEnum(fdProcessInfo->dwProcessId, handleV))
+        return false;
+    return BridgeList<HANDLEINFO>::CopyData(handles, handleV);
+}
+
+static bool _gethandlename(duint handle, char* name, size_t nameSize, char* typeName, size_t typeNameSize)
+{
+    String nameS;
+    String typeNameS;
+    if(!HandlesGetName(fdProcessInfo->hProcess, HANDLE(handle), nameS, typeNameS))
+        return false;
+    strcpy_s(name, nameSize, nameS.c_str());
+    strcpy_s(typeName, typeNameSize, typeNameS.c_str());
+    return true;
+}
+
+static bool _enumtcpconnections(ListOf(TCPCONNECTIONINFO) connections)
+{
+    std::vector<TCPCONNECTIONINFO> connectionsV;
+    if(!TcpEnumConnections(fdProcessInfo->dwProcessId, connectionsV))
+        return false;
+    return BridgeList<TCPCONNECTIONINFO>::CopyData(connections, connectionsV);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -242,4 +321,14 @@ void dbgfunctionsinit()
     _dbgfunctions.GetSourceFromAddr = _getsourcefromaddr;
     _dbgfunctions.ValFromString = _valfromstring;
     _dbgfunctions.PatchGetEx = (PATCHGETEX)PatchGet;
+    _dbgfunctions.GetBridgeBp = _getbridgebp;
+    _dbgfunctions.StringFormatInline = _stringformatinline;
+    _dbgfunctions.GetMnemonicBrief = _getmnemonicbrief;
+    _dbgfunctions.GetTraceRecordHitCount = _dbg_dbggetTraceRecordHitCount;
+    _dbgfunctions.GetTraceRecordByteType = _dbg_dbggetTraceRecordByteType;
+    _dbgfunctions.SetTraceRecordType = _dbg_dbgsetTraceRecordType;
+    _dbgfunctions.GetTraceRecordType = _dbg_dbggetTraceRecordType;
+    _dbgfunctions.EnumHandles = _enumhandles;
+    _dbgfunctions.GetHandleName = _gethandlename;
+    _dbgfunctions.EnumTcpConnections = _enumtcpconnections;
 }

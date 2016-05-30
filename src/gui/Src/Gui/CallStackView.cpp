@@ -34,6 +34,8 @@ void CallStackView::updateCallStack()
 {
     DBGCALLSTACK callstack;
     memset(&callstack, 0, sizeof(DBGCALLSTACK));
+    if(!DbgFunctions()->GetCallStack)
+        return;
     DbgFunctions()->GetCallStack(&callstack);
     setRowCount(callstack.total);
     for(int i = 0; i < callstack.total; i++)
@@ -58,20 +60,20 @@ void CallStackView::contextMenuSlot(const QPoint pos)
 {
     if(!DbgIsDebugging())
         return;
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addAction(mFollowAddress);
-    wMenu->addAction(mFollowTo);
+    QMenu wMenu(this); //create context menu
+    wMenu.addAction(mFollowAddress);
+    wMenu.addAction(mFollowTo);
     QString wStr = getCellContent(getInitialSelection(), 2);
     if(wStr.length())
-        wMenu->addAction(mFollowFrom);
+        wMenu.addAction(mFollowFrom);
     QMenu wCopyMenu("&Copy", this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
+    wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void CallStackView::doubleClickedSlot()

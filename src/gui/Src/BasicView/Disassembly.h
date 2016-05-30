@@ -161,6 +161,7 @@ protected:
     QColor mLabelBackgroundColor;
 
     QColor mSelectedAddressBackgroundColor;
+    QColor mTracedAddressBackgroundColor;
     QColor mSelectedAddressColor;
     QColor mAddressBackgroundColor;
     QColor mAddressColor;
@@ -171,6 +172,9 @@ protected:
 
     QColor mAutoCommentColor;
     QColor mAutoCommentBackgroundColor;
+
+    QColor mMnemonicBriefColor;
+    QColor mMnemonicBriefBackgroundColor;
 
     QColor mCommentColor;
     QColor mCommentBackgroundColor;
@@ -194,6 +198,7 @@ protected:
     dsint mRvaDisplayPageBase;
     bool mHighlightingMode;
     MemoryPage* mMemPage;
+    bool mShowMnemonicBrief;
 };
 
 #endif // DISASSEMBLY_H

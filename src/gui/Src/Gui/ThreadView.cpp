@@ -8,27 +8,27 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
     if(!DbgIsDebugging())
         return;
 
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addAction(mSwitchThread);
-    wMenu->addAction(mSuspendThread);
-    wMenu->addAction(mResumeThread);
-    wMenu->addAction(mKillThread);
-    wMenu->addSeparator();
-    wMenu->addMenu(mSetPriority);
+    QMenu wMenu(this); //create context menu
+    wMenu.addAction(mSwitchThread);
+    wMenu.addAction(mSuspendThread);
+    wMenu.addAction(mResumeThread);
+    wMenu.addAction(mKillThread);
+    wMenu.addSeparator();
+    wMenu.addMenu(mSetPriority);
     bool ok;
     ULONGLONG entry = getCellContent(getInitialSelection(), 2).toULongLong(&ok, 16);
     if(ok && DbgMemIsValidReadPtr(entry))
     {
-        wMenu->addSeparator();
-        wMenu->addAction(mGoToThreadEntry);
+        wMenu.addSeparator();
+        wMenu.addAction(mGoToThreadEntry);
     }
-    wMenu->addSeparator();
+    wMenu.addSeparator();
     QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
 
 
@@ -55,7 +55,7 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
     else if(priority == "Lowest")
         mSetPriorityLowest->setChecked(true);
 
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
+    wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void ThreadView::GoToThreadEntry()

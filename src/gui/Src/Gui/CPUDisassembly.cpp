@@ -11,6 +11,7 @@
 #include "YaraRuleSelectionDialog.h"
 #include "AssembleDialog.h"
 #include "StringUtil.h"
+#include "Breakpoints.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -27,6 +28,7 @@ CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
+    connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setFocus()));
 
     Initialize();
 }
@@ -123,7 +125,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
         if(isReferences)
             menu->addAction(mReferenceSelectedAddressAction);
         else
-            addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences, isFollowInCPU);
+            addFollowReferenceMenuItem(tr("&Selected Address"), wVA, menu, isReferences, isFollowInCPU);
     }
 
     //add follow actions
@@ -146,15 +148,15 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
                     segment = "fs:";
 #endif //_WIN64
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem("&Address: " + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem(tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
                 if(arg.value != arg.constant)
                 {
                     QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
                     if(DbgMemIsValidReadPtr(arg.constant))
-                        addFollowReferenceMenuItem("&Constant: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
+                        addFollowReferenceMenuItem(tr("&Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
                 }
                 if(DbgMemIsValidReadPtr(arg.memvalue))
-                    addFollowReferenceMenuItem("&Value: " + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem(tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
             }
             else //arg_normal
             {
@@ -170,9 +172,9 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
             const DISASM_ARG arg = instr.arg[i];
             QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
             if(DbgMemIsValidReadPtr(arg.constant))
-                addFollowReferenceMenuItem("Address: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
+                addFollowReferenceMenuItem(tr("Address: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
             else if(arg.constant)
-                addFollowReferenceMenuItem("Constant: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
+                addFollowReferenceMenuItem(tr("Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
         }
     }
 }
@@ -231,10 +233,11 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     QAction* toggleBreakpointAction = makeShortcutAction(tr("Toggle"), SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
+    QAction* editSoftwareBreakpointAction = makeAction(tr("Edit"), SLOT(editSoftBpActionSlot()));
     QAction* setHwBreakpointAction = makeAction(tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()));
     QAction* removeHwBreakpointAction = makeAction(tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()));
 
-    QMenu* replaceSlotMenu = makeMenu("Set Hardware on Execution");
+    QMenu* replaceSlotMenu = makeMenu(tr("Set Hardware on Execution"));
     QAction* replaceSlot0Action = makeMenuAction(replaceSlotMenu, tr("Replace Slot 0 (Free)"), SLOT(setHwBpOnSlot0ActionSlot()));
     QAction* replaceSlot1Action  = makeMenuAction(replaceSlotMenu, tr("Replace Slot 1 (Free)"), SLOT(setHwBpOnSlot1ActionSlot()));
     QAction* replaceSlot2Action  = makeMenuAction(replaceSlotMenu, tr("Replace Slot 2 (Free)"), SLOT(setHwBpOnSlot2ActionSlot()));
@@ -243,6 +246,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/breakpoint.png"), tr("Breakpoint")), [ = ](QMenu * menu)
     {
         BPXTYPE bpType = DbgGetBpxTypeAt(rvaToVa(getInitialSelection()));
+        if((bpType & bp_normal) == bp_normal)
+            menu->addAction(editSoftwareBreakpointAction);
 
         menu->addAction(toggleBreakpointAction);
 
@@ -298,7 +303,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         return true;
     });
 
-    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/memory-map.png"), tr("&Follow in Dump")), [this](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/dump.png"), tr("&Follow in Dump")), [this](QMenu * menu)
     {
         setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false, false);
         return true;
@@ -324,13 +329,23 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/snowman.png"), tr("Decompile")), decompileMenu);
 
-    mMenuBuilder->addMenu(makeMenu(QIcon(":icons/images/help.png"), tr("Help on Symbolic Name")), [this](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/help.png"), tr("Help on Symbolic Name")), [this](QMenu * menu)
     {
         QSet<QString> labels;
         if(!getLabelsFromInstruction(rvaToVa(getInitialSelection()), labels))
             return false;
         for(auto label : labels)
             menu->addAction(makeAction(label, SLOT(labelHelpSlot())));
+        return true;
+    });
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/helpmnemonic.png"), tr("Help on mnemonic"), SLOT(mnemonicHelpSlot()), "ActionHelpOnMnemonic"));
+    QAction* mnemonicBrief = makeShortcutAction(QIcon(":/icons/images/helpbrief.png"), tr("Show mnemonic brief"), SLOT(mnemonicBriefSlot()), "ActionToggleMnemonicBrief");
+    mMenuBuilder->addAction(mnemonicBrief, [this, mnemonicBrief](QMenu*)
+    {
+        if(mShowMnemonicBrief)
+            mnemonicBrief->setText(tr("Hide mnemonic brief"));
+        else
+            mnemonicBrief->setText(tr("Show mnemonic brief"));
         return true;
     });
 
@@ -354,11 +369,28 @@ void CPUDisassembly::setupRightClickContextMenu()
         else
             return false;
 
-        labelAddress->setText("Label " + ToPtrString(addr));
+        labelAddress->setText(tr("Label") + " " + ToPtrString(addr));
 
         return DbgMemIsValidReadPtr(addr);
     });
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/label.png"), tr("Label")), labelMenu);
+
+    QAction* traceRecordDisable = makeAction(tr("Disable"), SLOT(ActionTraceRecordDisableSlot()));
+    QAction* traceRecordEnableBit = makeAction(tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
+    QAction* traceRecordEnableByte = makeAction(tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
+    QAction* traceRecordEnableWord = makeAction(tr("Word"), SLOT(ActionTraceRecordWordSlot()));
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/trace.png"), tr("Trace record")), [ = ](QMenu * menu)
+    {
+        if(DbgFunctions()->GetTraceRecordType(rvaToVa(getInitialSelection())) == TRACERECORDTYPE::TraceRecordNone)
+        {
+            menu->addAction(traceRecordEnableBit);
+            menu->addAction(traceRecordEnableByte);
+            menu->addAction(traceRecordEnableWord);
+        }
+        else
+            menu->addAction(traceRecordDisable);
+        return true;
+    });
 
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/comment.png"), tr("Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/bookmark.png"), tr("Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
@@ -379,23 +411,23 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/neworigin.png"), tr("Set New Origin Here"), SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere"));
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
-    gotoMenu->addAction(makeShortcutAction(tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
-    gotoMenu->addAction(makeShortcutAction(tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
         return historyHasPrevious();
     });
-    gotoMenu->addAction(makeShortcutAction(tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/next.png"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
     {
         return historyHasNext();
     });
-    gotoMenu->addAction(makeShortcutAction(tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
-    gotoMenu->addAction(makeShortcutAction(tr("File Offset"), SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset"), [this](QMenu*)
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/fileoffset.png"), tr("File Offset"), SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset"), [this](QMenu*)
     {
         char modname[MAX_MODULE_SIZE] = "";
         return DbgGetModuleAt(rvaToVa(getInitialSelection()), modname);
     });
-    gotoMenu->addAction(makeShortcutAction(tr("Start of Page"), SLOT(gotoStartSlot()), "ActionGotoStart"));
-    gotoMenu->addAction(makeShortcutAction(tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/top.png"), tr("Start of Page"), SLOT(gotoStartSlot()), "ActionGotoStart"));
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/bottom.png"), tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/goto.png"), tr("Go to")), gotoMenu);
     mMenuBuilder->addSeparator();
 
@@ -424,7 +456,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSearchModuleMenu->addAction(mFindConstantModule);
     mSearchModuleMenu->addAction(mFindStringsModule);
     mSearchModuleMenu->addAction(mFindCallsModule);
-
 
     // Search in All Modules menu
     mFindCommandAll = makeAction(tr("C&ommand"), SLOT(findCommandSlot()));
@@ -1156,15 +1187,10 @@ void CPUDisassembly::copySelectionSlot(bool copyBytes)
         QString disassembly;
         for(const auto & token : instBuffer.at(i).tokens.tokens)
             disassembly += token.text;
-        char comment[MAX_COMMENT_SIZE] = "";
         QString fullComment;
-        if(DbgGetCommentAt(cur_addr, comment))
-        {
-            if(comment[0] == '\1') //automatic comment
-                fullComment = " " + QString(comment + 1);
-            else
-                fullComment = " " + QString(comment);
-        }
+        QString comment;
+        if(GetCommentFormat(cur_addr, comment))
+            fullComment = " " + comment;
         clipboard += address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
             clipboard += " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
@@ -1358,4 +1384,52 @@ void CPUDisassembly::labelHelpSlot()
     {
         QDesktopServices::openUrl(QUrl(fullUrl));
     }
+}
+
+void CPUDisassembly::editSoftBpActionSlot()
+{
+    Breakpoints::editBP(bp_normal, ToHexString(rvaToVa(getInitialSelection())), this);
+}
+
+void CPUDisassembly::ActionTraceRecordBitSlot()
+{
+    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordBitExec)))
+        GuiAddLogMessage("Failed to set trace record.\n");
+}
+
+void CPUDisassembly::ActionTraceRecordByteSlot()
+{
+    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordByteWithExecTypeAndCounter)))
+        GuiAddLogMessage("Failed to set trace record.\n");
+}
+
+void CPUDisassembly::ActionTraceRecordWordSlot()
+{
+    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordWordWithExecTypeAndCounter)))
+        GuiAddLogMessage("Failed to set trace record.\n");
+}
+
+void CPUDisassembly::ActionTraceRecordDisableSlot()
+{
+    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordNone)))
+        GuiAddLogMessage("Failed to set trace record.\n");
+}
+
+void CPUDisassembly::mnemonicBriefSlot()
+{
+    mShowMnemonicBrief = !mShowMnemonicBrief;
+    reloadData();
+}
+
+void CPUDisassembly::mnemonicHelpSlot()
+{
+    BASIC_INSTRUCTION_INFO disasm;
+    DbgDisasmFastAt(rvaToVa(getInitialSelection()), &disasm);
+    if(!*disasm.instruction)
+        return;
+    char* space = strstr(disasm.instruction, " ");
+    if(space)
+        *space = '\0';
+    DbgCmdExecDirect(QString("mnemonichelp %1").arg(disasm.instruction).toUtf8().constData());
+    emit displayLogWidget();
 }

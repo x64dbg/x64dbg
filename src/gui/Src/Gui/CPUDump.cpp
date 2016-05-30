@@ -10,12 +10,12 @@
 #include "DataCopyDialog.h"
 #include "EntropyDialog.h"
 #include "CPUMultiDump.h"
+#include "WordEditDialog.h"
 #include <QToolTip>
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
     mDisas = disas;
-    mCurrentVa = 0;
     mMultiDump = multiDump;
 
     switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
@@ -140,19 +140,19 @@ void CPUDump::setupContextMenu()
     connect(mBinarySaveToFile, SIGNAL(triggered()), this, SLOT(binarySaveToFileSlot()));
     mBinaryMenu->addAction(mBinarySaveToFile);
 
-
     // Restore Selection
-    mUndoSelection = new QAction(tr("&Restore selection"), this);
+    mUndoSelection = new QAction(QIcon(":/icons/images/eraser.png"), tr("&Restore selection"), this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Follow in Stack
-    mFollowStack = new QAction(tr("Follow in Stack"), this);
+    mFollowStack = new QAction(QIcon(":/icons/images/stack.png"), tr("Follow in Stack"), this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     // Follow in Disasm
-    mFollowInDisasm = new QAction(tr("Follow in Disassembler"), this);
+    auto disasmIcon = QIcon(QString(":/icons/images/") + ArchValue("processor32.png", "processor64.png"));
+    mFollowInDisasm = new QAction(disasmIcon, tr("Follow in Disassembler"), this);
     connect(mFollowInDisasm, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
 
     //Follow DWORD/QWORD
@@ -186,18 +186,27 @@ void CPUDump::setupContextMenu()
         mFollowInDumpActions.push_back(action);
     }
 
+    //Sync with expression
+    mSyncWithExpression = new QAction(QIcon(":/icons/images/sync.png"), tr("&Sync with expression"), this);
+    connect(mSyncWithExpression, SIGNAL(triggered(bool)), this, SLOT(syncWithExpressionSlot()));
+
     //Entropy
-    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
+    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entrop&y..."), this);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropySlot()));
 
     //Label
-    mSetLabelAction = new QAction(tr("Set Label"), this);
+    mSetLabelAction = new QAction(QIcon(":/icons/images/label.png"), tr("Set &Label"), this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetLabelAction);
     connect(mSetLabelAction, SIGNAL(triggered()), this, SLOT(setLabelSlot()));
 
+    //Modify value
+    mModifyValueAction = new QAction(QIcon(":/icons/images/modify.png"), tr("&Modify Value"), this);
+    connect(mModifyValueAction, SIGNAL(triggered(bool)), this, SLOT(modifyValueSlot()));
+
     //Breakpoint menu
     mBreakpointMenu = new QMenu(tr("&Breakpoint"), this);
+    mBreakpointMenu->setIcon(QIcon(":/icons/images/breakpoint.png"));
 
     //Breakpoint->Hardware, on access
     mHardwareAccessMenu = new QMenu(tr("Hardware, &Access"), this);
@@ -282,7 +291,7 @@ void CPUDump::setupContextMenu()
     mBreakpointMenu->addAction(mMemoryRemove);
 
     //Find Pattern
-    mFindPatternAction = new QAction(tr("&Find Pattern..."), this);
+    mFindPatternAction = new QAction(QIcon(":/icons/images/search-for.png"), tr("&Find Pattern..."), this);
     mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
@@ -294,63 +303,64 @@ void CPUDump::setupContextMenu()
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Data copy
-    mDataCopyAction = new QAction(QIcon(":/icons/images/data-copy.png"), tr("Data copy..."), this);
+    mDataCopyAction = new QAction(QIcon(":/icons/images/data-copy.png"), tr("Data co&py..."), this);
     connect(mDataCopyAction, SIGNAL(triggered()), this, SLOT(dataCopySlot()));
 
     //Find References
-    mFindReferencesAction = new QAction(tr("Find &References"), this);
+    mFindReferencesAction = new QAction(QIcon(":/icons/images/find.png"), tr("Find &References"), this);
     mFindReferencesAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindReferencesAction);
     connect(mFindReferencesAction, SIGNAL(triggered()), this, SLOT(findReferencesSlot()));
 
     //Goto menu
-    mGotoMenu = new QMenu(tr("&Goto"), this);
+    mGotoMenu = new QMenu(tr("&Go to"), this);
+    mGotoMenu->setIcon(QIcon(":/icons/images/goto.png"));
 
     //Goto->Expression
-    mGotoExpression = new QAction(tr("&Expression"), this);
+    mGotoExpression = new QAction(QIcon(":/icons/images/geolocation-goto.png"), tr("&Expression"), this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
     mGotoMenu->addAction(mGotoExpression);
 
     // Goto->File offset
-    mGotoFileOffset = new QAction(tr("File Offset"), this);
+    mGotoFileOffset = new QAction(QIcon(":/icons/images/fileoffset.png"), tr("File Offset"), this);
     mGotoFileOffset->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoFileOffset);
     connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffsetSlot()));
     mGotoMenu->addAction(mGotoFileOffset);
 
-    // Goto->Previous
-    mGotoPrevious = new QAction(tr("Previous"), this);
-    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoPrevious);
-    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevSlot()));
-    mGotoMenu->addAction(mGotoPrevious);
-
-    // Goto->Next
-    mGotoNext = new QAction(tr("Next"), this);
-    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoNext);
-    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNextSlot()));
-    mGotoMenu->addAction(mGotoNext);
-
-
     // Goto->Start of page
-    mGotoStart = new QAction(tr("Start of Page"), this);
+    mGotoStart = new QAction(QIcon(":/icons/images/top.png"), tr("Start of Page"), this);
     mGotoStart->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoStart);
     connect(mGotoStart, SIGNAL(triggered()), this, SLOT(gotoStartSlot()));
     mGotoMenu->addAction(mGotoStart);
 
     // Goto->End of page
-    mGotoEnd = new QAction(tr("End of Page"), this);
+    mGotoEnd = new QAction(QIcon(":/icons/images/bottom.png"), tr("End of Page"), this);
     mGotoEnd->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoEnd);
     connect(mGotoEnd, SIGNAL(triggered()), this, SLOT(gotoEndSlot()));
     mGotoMenu->addAction(mGotoEnd);
 
+    // Goto->Previous
+    mGotoPrevious = new QAction(QIcon(":/icons/images/previous.png"), tr("Previous"), this);
+    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoPrevious);
+    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevSlot()));
+    mGotoMenu->addAction(mGotoPrevious);
+
+    // Goto->Next
+    mGotoNext = new QAction(QIcon(":/icons/images/next.png"), tr("Next"), this);
+    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoNext);
+    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNextSlot()));
+    mGotoMenu->addAction(mGotoNext);
+
     //Hex menu
     mHexMenu = new QMenu(tr("&Hex"), this);
+    mHexMenu->setIcon(QIcon(":/icons/images/hex.png"));
     //Hex->Ascii
     mHexAsciiAction = new QAction("&Ascii", this);
     connect(mHexAsciiAction, SIGNAL(triggered()), this, SLOT(hexAsciiSlot()));
@@ -362,6 +372,7 @@ void CPUDump::setupContextMenu()
 
     //Text menu
     mTextMenu = new QMenu(tr("&Text"), this);
+    mTextMenu->setIcon(QIcon(":/icons/images/strings.png"));
     //Text->Ascii
     mTextAsciiAction = new QAction(tr("&Ascii"), this);
     connect(mTextAsciiAction, SIGNAL(triggered()), this, SLOT(textAsciiSlot()));
@@ -373,6 +384,7 @@ void CPUDump::setupContextMenu()
 
     //Integer menu
     mIntegerMenu = new QMenu(tr("&Integer"), this);
+    mIntegerMenu->setIcon(QIcon(":/icons/images/integer.png"));
     //Integer->Signed short
     mIntegerSignedShortAction = new QAction("Signed short (16-bit)", this);
     connect(mIntegerSignedShortAction, SIGNAL(triggered()), this, SLOT(integerSignedShortSlot()));
@@ -418,6 +430,7 @@ void CPUDump::setupContextMenu()
 
     //Float menu
     mFloatMenu = new QMenu(tr("&Float"), this);
+    mFloatMenu->setIcon(QIcon(":/icons/images/float.png"));
     //Float->float
     mFloatFloatAction = new QAction("&Float (32-bit)", this);
     connect(mFloatFloatAction, SIGNAL(triggered()), this, SLOT(floatFloatSlot()));
@@ -433,6 +446,7 @@ void CPUDump::setupContextMenu()
 
     //Address
     mAddressAction = new QAction(tr("&Address"), this);
+    mAddressAction->setIcon(QIcon(":/icons/images/address.png"));
     connect(mAddressAction, SIGNAL(triggered()), this, SLOT(addressSlot()));
 
     //Disassembly
@@ -442,6 +456,7 @@ void CPUDump::setupContextMenu()
 
     //Plugins
     mPluginMenu = new QMenu(this);
+    mPluginMenu->setIcon(QIcon(":/icons/images/plugin.png"));
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
 
     //Copy
@@ -459,7 +474,6 @@ void CPUDump::setupContextMenu()
     mCopyRva = new QAction("&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
     mCopyMenu->addAction(mCopyRva);
-
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -553,21 +567,48 @@ QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
     }
-    else if(col && mDescriptor.at(col - 1).isData == false && mDescriptor.at(col - 1).itemCount == 1) //print comments
+    else if(mDescriptor.at(col - 1).isData) //print data
+    {
+        wStr = HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    }
+    else if(!mDescriptor.at(col - 1).isData && mDescriptor.at(col - 1).itemCount) //print comments
     {
         duint data = 0;
         dsint wRva = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset;
         mMemPage->read((byte_t*)&data, wRva, sizeof(duint));
+
         char modname[MAX_MODULE_SIZE] = "";
         if(!DbgGetModuleAt(data, modname))
             modname[0] = '\0';
         char label_text[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
             wStr = QString(modname) + "." + QString(label_text);
-    }
-    else //data
-    {
-        wStr = HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+        char string_text[MAX_STRING_SIZE] = "";
+        if(DbgGetStringAt(data, string_text))
+            wStr = string_text;
+        if(!wStr.length()) //stack comments
+        {
+            auto va = rvaToVa(wRva);
+            duint stackSize;
+            duint csp = DbgValFromString("csp");
+            duint stackBase = DbgMemFindBaseAddr(csp, &stackSize);
+            STACK_COMMENT comment;
+            if(va >= stackBase && va < stackBase + stackSize && DbgStackCommentGet(rvaToVa(wRva), &comment))
+            {
+                painter->save();
+                if(va >= csp) //active stack
+                {
+                    if(*comment.color)
+                        painter->setPen(QPen(QColor(QString(comment.color))));
+                    else
+                        painter->setPen(QPen(textColor));
+                }
+                else
+                    painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
+                painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, comment.comment);
+                painter->restore();
+            }
+        }
     }
     return wStr;
 }
@@ -579,51 +620,53 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
 
     dsint selectedAddr = rvaToVa(getInitialSelection());
 
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addMenu(mBinaryMenu);
-    wMenu->addMenu(mCopyMenu);
+    QMenu wMenu(this); //create context menu
+    wMenu.addMenu(mBinaryMenu);
+    wMenu.addMenu(mCopyMenu);
     dsint start = rvaToVa(getSelectionStart());
     dsint end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
-        wMenu->addAction(mUndoSelection);
+        wMenu.addAction(mUndoSelection);
     if(DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0))
-        wMenu->addAction(mFollowStack);
-    wMenu->addAction(mFollowInDisasm);
+        wMenu.addAction(mFollowStack);
+    wMenu.addAction(mFollowInDisasm);
 
     duint ptr = 0;
     DbgMemRead(selectedAddr, (unsigned char*)&ptr, sizeof(duint));
     if(DbgMemIsValidReadPtr(ptr))
     {
-        wMenu->addAction(mFollowData);
-        wMenu->addAction(mFollowDataDump);
-        wMenu->addMenu(mFollowInDumpMenu);
+        wMenu.addAction(mFollowData);
+        wMenu.addAction(mFollowDataDump);
+        wMenu.addMenu(mFollowInDumpMenu);
     }
 
+    mGotoMenu->removeAction(mGotoPrevious);
+    mGotoMenu->removeAction(mGotoNext);
+
     if(historyHasPrev())
-        mGotoPrevious->setVisible(true);
-    else
-        mGotoPrevious->setVisible(false);
+        mGotoMenu->addAction(mGotoPrevious);
 
     if(historyHasNext())
-        mGotoNext->setVisible(true);
-    else
-        mGotoNext->setVisible(false);
+        mGotoMenu->addAction(mGotoNext);
 
-    wMenu->addAction(mSetLabelAction);
-    wMenu->addMenu(mBreakpointMenu);
-    wMenu->addAction(mFindPatternAction);
-    wMenu->addAction(mFindReferencesAction);
-    wMenu->addAction(mYaraAction);
-    wMenu->addAction(mDataCopyAction);
-    wMenu->addMenu(mGotoMenu);
-    wMenu->addAction(mEntropy);
-    wMenu->addSeparator();
-    wMenu->addMenu(mHexMenu);
-    wMenu->addMenu(mTextMenu);
-    wMenu->addMenu(mIntegerMenu);
-    wMenu->addMenu(mFloatMenu);
-    wMenu->addAction(mAddressAction);
-    wMenu->addAction(mDisassemblyAction);
+    wMenu.addAction(mSetLabelAction);
+    if(getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint))
+        wMenu.addAction(mModifyValueAction);
+    wMenu.addMenu(mBreakpointMenu);
+    wMenu.addAction(mFindPatternAction);
+    wMenu.addAction(mFindReferencesAction);
+    wMenu.addAction(mYaraAction);
+    wMenu.addAction(mDataCopyAction);
+    wMenu.addAction(mSyncWithExpression);
+    wMenu.addAction(mEntropy);
+    wMenu.addMenu(mGotoMenu);
+    wMenu.addSeparator();
+    wMenu.addMenu(mHexMenu);
+    wMenu.addMenu(mTextMenu);
+    wMenu.addMenu(mIntegerMenu);
+    wMenu.addMenu(mFloatMenu);
+    wMenu.addAction(mAddressAction);
+    wMenu.addAction(mDisassemblyAction);
 
     QList<QString> tabNames;
     mMultiDump->getTabNames(tabNames);
@@ -659,11 +702,10 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         mMemoryRemove->setVisible(false);
     }
 
-    wMenu->addSeparator();
-    wMenu->addActions(mPluginMenu->actions());
+    wMenu.addSeparator();
+    wMenu.addActions(mPluginMenu->actions());
 
-    wMenu->exec(event->globalPos()); //execute context menu
-    delete wMenu;
+    wMenu.exec(event->globalPos()); //execute context menu
 }
 
 void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
@@ -693,7 +735,10 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
 
     default:
     {
-        binaryEditSlot();
+        if(getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint))
+            modifyValueSlot();
+        else
+            binaryEditSlot();
     }
     break;
     }
@@ -740,57 +785,6 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
     HexDump::mouseMoveEvent(event);
 }
 
-void CPUDump::addVaToHistory(dsint parVa)
-{
-    mVaHistory.push_back(parVa);
-    if(mVaHistory.size() > 1)
-        mCurrentVa++;
-}
-
-bool CPUDump::historyHasPrev()
-{
-    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
-        return false;
-    return true;
-}
-
-bool CPUDump::historyHasNext()
-{
-    int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
-        return false;
-    return true;
-}
-
-void CPUDump::historyPrev()
-{
-    if(!historyHasPrev())
-        return;
-
-    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
-        return;
-    mCurrentVa--;
-    printDumpAt(mVaHistory.at(mCurrentVa));
-}
-
-void CPUDump::historyNext()
-{
-    if(!historyHasNext())
-        return;
-
-    int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
-        return;
-    mCurrentVa++;
-    printDumpAt(mVaHistory.at(mCurrentVa));
-}
-
-void CPUDump::historyClear()
-{
-    mCurrentVa = 0;
-    mVaHistory.clear();
-}
-
 void CPUDump::setLabelSlot()
 {
     if(!DbgIsDebugging())
@@ -802,17 +796,32 @@ void CPUDump::setLabelSlot()
     char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
-    mLineEdit.setWindowTitle("Add label at " + addr_text);
+    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetLabelAt failed!"));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+    GuiUpdateAllViews();
+}
+
+void CPUDump::modifyValueSlot()
+{
+    dsint addr = getInitialSelection();
+    WordEditDialog wEditDialog(this);
+    dsint value = 0;
+    auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), int(sizeof(dsint)));
+    mMemPage->read(&value, addr, size);
+    wEditDialog.setup(tr("Modify value"), value, size);
+    if(wEditDialog.exec() != QDialog::Accepted)
+        return;
+    value = wEditDialog.getVal();
+    mMemPage->write(&value, addr, size);
     GuiUpdateAllViews();
 }
 
@@ -1308,7 +1317,7 @@ void CPUDump::addressSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendDescriptor(0, "Comments", false, wColDesc);
+    appendDescriptor(0, tr("Comments"), false, wColDesc);
 
     reloadData();
 }
@@ -1466,7 +1475,7 @@ void CPUDump::binaryEditSlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    hexEdit.setWindowTitle(tr("Edit data at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Edit data at %1").arg(ToPtrString(rvaToVa(selStart))));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     dsint dataSize = hexEdit.mHexEdit->data().size();
@@ -1607,7 +1616,7 @@ void CPUDump::followDataSlot()
 void CPUDump::followDataDumpSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("dump [%1]").arg(addrText).toUtf8().constData());
+    DbgCmdExec(QString("dump \"[%1]\"").arg(addrText).toUtf8().constData());
 }
 
 void CPUDump::selectionUpdatedSlot()
@@ -1658,6 +1667,20 @@ void CPUDump::entropySlot()
     entropyDialog.exec();
 }
 
+void CPUDump::syncWithExpressionSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    GotoDialog gotoDialog(this, true);
+    gotoDialog.setWindowTitle("Enter expression to sync with...");
+    gotoDialog.setInitialExpression(mSyncAddrExpression);
+    if(gotoDialog.exec() != QDialog::Accepted)
+        return;
+    mSyncAddrExpression = gotoDialog.expressionText;
+    if(mSyncAddrExpression.length())
+        DbgCmdExec(QString("dump \"%1\"").arg(mSyncAddrExpression).toUtf8().constData());
+}
+
 void CPUDump::copyAddressSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
@@ -1683,19 +1706,20 @@ void CPUDump::followInDumpNSlot()
     {
         if(mFollowInDumpActions[i] == sender())
         {
-            DbgCmdExec(QString("dump [%1], %2").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i).toUtf8().constData());
+            DbgCmdExec(QString("dump \"[%1]\", \"%2\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i).toUtf8().constData());
         }
     }
 }
 
 void CPUDump::gotoNextSlot()
 {
+    DbgCmdExec(QString("log \"next\"").toUtf8().constData());
     historyNext();
 }
 
 void CPUDump::gotoPrevSlot()
 {
+    DbgCmdExec(QString("log \"previous\"").toUtf8().constData());
     historyPrev();
 }
-
 

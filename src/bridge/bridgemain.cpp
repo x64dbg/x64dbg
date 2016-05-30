@@ -106,7 +106,7 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
     unsigned char* ptr = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!ptr)
     {
-        MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
+        MessageBoxW(0, L"Could not allocate memory", L"Error", MB_ICONERROR);
         ExitProcess(1);
     }
     memset(ptr, 0, size);
@@ -875,7 +875,11 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateDumpView();
     GuiUpdateThreadView();
     GuiUpdateSideBar();
+    GuiUpdatePatches();
+    GuiUpdateCallStack();
     GuiRepaintTableView();
+    GuiUpdateSEHChain();
+    GuiUpdateArgumentWidget();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -1288,6 +1292,16 @@ BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info)
 BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id)
 {
     _gui_sendmessage(GUI_UNREGISTER_SCRIPT_LANG, (void*)id, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiUpdateArgumentWidget()
+{
+    _gui_sendmessage(GUI_UPDATE_ARGUMENT_VIEW, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiFocusView(int hWindow)
+{
+    _gui_sendmessage(GUI_FOCUS_VIEW, (void*)hWindow, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

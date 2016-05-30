@@ -1,8 +1,8 @@
 #include "Breakpoints.h"
+#include "EditBreakpointDialog.h"
 
 Breakpoints::Breakpoints(QObject* parent) : QObject(parent)
 {
-
 }
 
 /**
@@ -243,7 +243,7 @@ void Breakpoints::removeBP(BPXTYPE type, duint va)
  */
 void Breakpoints::toggleBPByDisabling(const BRIDGEBP & bp)
 {
-    if(bp.enabled == true)
+    if(bp.enabled)
         disableBP(bp);
     else
         enableBP(bp);
@@ -406,4 +406,56 @@ void Breakpoints::toggleBPByRemoving(BPXTYPE type, duint va)
     {
         setBP(bp_hardware, va);
     }
+}
+
+void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget)
+{
+    duint addr = addrText.toULongLong(nullptr, 16);
+    BRIDGEBP bridgebp;
+    if(!DbgFunctions()->GetBridgeBp(type, addr, &bridgebp))
+        return;
+    EditBreakpointDialog dialog(widget, bridgebp);
+    if(dialog.exec() != QDialog::Accepted)
+        return;
+    auto bp = dialog.getBp();
+    auto exec = [](const QString & command)
+    {
+        DbgCmdExecDirect(command.toUtf8().constData());
+    };
+    switch(type)
+    {
+    case bp_normal:
+        exec(QString("SetBreakpointName %1, \"%2\"").arg(addrText).arg(bp.name));
+        exec(QString("SetBreakpointCondition %1, \"%2\"").arg(addrText).arg(bp.breakCondition));
+        exec(QString("SetBreakpointLog %1, \"%2\"").arg(addrText).arg(bp.logText));
+        exec(QString("SetBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(bp.logCondition));
+        exec(QString("SetBreakpointCommand %1, \"%2\"").arg(addrText).arg(bp.commandText));
+        exec(QString("SetBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
+        exec(QString("ResetBreakpointHitCount %1, \"%2\"").arg(addrText).arg(bp.hitCount));
+        exec(QString("SetBreakpointFastResume %1, \"%2\"").arg(addrText).arg(bp.fastResume));
+        break;
+    case bp_hardware:
+        exec(QString("SetHardwareBreakpointName %1, \"%2\"").arg(addrText).arg(bp.name));
+        exec(QString("SetHardwareBreakpointCondition %1, \"%2\"").arg(addrText).arg(bp.breakCondition));
+        exec(QString("SetHardwareBreakpointLog %1, \"%2\"").arg(addrText).arg(bp.logText));
+        exec(QString("SetHardwareBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(bp.logCondition));
+        exec(QString("SetHardwareBreakpointCommand %1, \"%2\"").arg(addrText).arg(bp.commandText));
+        exec(QString("SetHardwareBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
+        exec(QString("ResetHardwareBreakpointHitCount %1, %2").arg(addrText).arg(bp.hitCount));
+        exec(QString("SetHardwareBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
+        break;
+    case bp_memory:
+        exec(QString("SetMemoryBreakpointName %1, \"\"%2\"\"").arg(addrText).arg(bp.name));
+        exec(QString("SetMemoryBreakpointCondition %1, \"%2\"").arg(addrText).arg(bp.breakCondition));
+        exec(QString("SetMemoryBreakpointLog %1, \"%2\"").arg(addrText).arg(bp.logText));
+        exec(QString("SetMemoryBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(bp.logCondition));
+        exec(QString("SetMemoryBreakpointCommand %1, \"%2\"").arg(addrText).arg(bp.commandText));
+        exec(QString("SetMemoryBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
+        exec(QString("ResetMemoryBreakpointHitCount %1, %2").arg(addrText).arg(bp.hitCount));
+        exec(QString("SetMemoryBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
+        break;
+    default:
+        return;
+    }
+    GuiUpdateBreakpointsView();
 }
