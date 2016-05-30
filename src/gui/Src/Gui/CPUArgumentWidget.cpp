@@ -1,7 +1,7 @@
 #include "CPUArgumentWidget.h"
 #include "ui_CPUArgumentWidget.h"
 #include "Configuration.h"
-#include <QDebug>
+#include "Bridge.h"
 
 CPUArgumentWidget::CPUArgumentWidget(QWidget* parent) :
     QWidget(parent),
@@ -16,6 +16,21 @@ CPUArgumentWidget::CPUArgumentWidget(QWidget* parent) :
     setupTable();
     loadConfig();
     refreshData();
+
+    mFollowDisasm = new QAction(this);
+    connect(mFollowDisasm, SIGNAL(triggered()), this, SLOT(followDisasmSlot()));
+    mFollowAddrDisasm = new QAction(this);
+    connect(mFollowAddrDisasm, SIGNAL(triggered()), this, SLOT(followDisasmSlot()));
+    mFollowDump = new QAction(this);
+    connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
+    mFollowAddrDump = new QAction(this);
+    connect(mFollowAddrDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
+    mFollowStack = new QAction(this);
+    connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
+    mFollowAddrStack = new QAction(this);
+    connect(mFollowAddrStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
+
+    connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(refreshData()));
 }
 
 CPUArgumentWidget::~CPUArgumentWidget()
@@ -73,12 +88,14 @@ void CPUArgumentWidget::refreshData()
     int argCount = std::min(argCountStruct, ui->spinArgCount->value());
     int stackCount = std::max(0, ui->spinArgCount->value() - argCountStruct);
     mTable->setRowCount(argCount + stackCount);
+    mArgumentValues.clear();
 
     for(int i = 0; i < argCount; i++)
     {
         const auto & curArg = cur.arguments[i];
         auto data = stringFormatInline(curArg.getFormat());
         auto text = defaultArgFieldFormat(defaultArgName(curArg.name, i + 1), data);
+        mArgumentValues.push_back(DbgValFromString(curArg.getExpression().toUtf8().constData()));
         mTable->setCellContent(i, 0, text);
     }
 
@@ -91,10 +108,84 @@ void CPUArgumentWidget::refreshData()
         QString format = defaultArgFormat("", QString("[%1]").arg(expr));
         auto data = stringFormatInline(format);
         auto text = defaultArgFieldFormat(defaultArgName("", argCount + i + 1), data);
+        mArgumentValues.push_back(DbgValFromString(expr.toUtf8().constData()));
         mTable->setCellContent(argCount + i, 0, text);
     }
 
     mTable->reloadData();
+}
+
+void CPUArgumentWidget::contextMenuSlot(QPoint pos)
+{
+    auto selection = mTable->getInitialSelection();
+    if(mArgumentValues.size() <= selection)
+        return;
+    auto value = mArgumentValues[selection];
+    if(!DbgMemIsValidReadPtr(value))
+        return;
+    duint valueAddr;
+    DbgMemRead(value, (unsigned char*)&valueAddr, sizeof(valueAddr));
+
+    QMenu wMenu(this);
+    auto valueText = ToHexString(value);
+    auto valueAddrText = QString("[%1]").arg(valueText);
+    auto configAction = [&](QAction * action, const QString & value, const QString & name)
+    {
+        action->setText(tr("Follow %1 in %2").arg(value).arg(name));
+        action->setObjectName(value);
+        wMenu.addAction(action);
+    };
+    auto inStackRange = [](duint addr)
+    {
+        auto csp = DbgValFromString("csp");
+        duint size;
+        auto base = DbgMemFindBaseAddr(csp, &size);
+        return addr >= base && addr < base + size;
+    };
+
+    configAction(mFollowDisasm, valueText, tr("Disassembler"));
+    configAction(mFollowDump, valueText, tr("Dump"));
+    if(inStackRange(value))
+        configAction(mFollowStack, valueText, tr("Stack"));
+    if(DbgMemIsValidReadPtr(valueAddr))
+    {
+        configAction(mFollowAddrDisasm, valueAddrText, tr("Disassembler"));
+        configAction(mFollowDump, valueAddrText, tr("Dump"));
+        if(inStackRange(valueAddr))
+            configAction(mFollowAddrStack, valueAddrText, tr("Stack"));
+    }
+    QMenu wCopyMenu(tr("&Copy"));
+    mTable->setupCopyMenu(&wCopyMenu);
+    if(wCopyMenu.actions().length())
+    {
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
+    }
+    wMenu.exec(mTable->mapToGlobal(pos));
+}
+
+void CPUArgumentWidget::followDisasmSlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(!action)
+        return;
+    DbgCmdExec(QString("disasm \"%1\"").arg(action->objectName()).toUtf8().constData());
+}
+
+void CPUArgumentWidget::followDumpSlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(!action)
+        return;
+    DbgCmdExec(QString("dump \"%1\"").arg(action->objectName()).toUtf8().constData());
+}
+
+void CPUArgumentWidget::followStackSlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(!action)
+        return;
+    DbgCmdExec(QString("sdump \"%1\"").arg(action->objectName()).toUtf8().constData());
 }
 
 void CPUArgumentWidget::loadConfig()
@@ -130,6 +221,7 @@ void CPUArgumentWidget::loadConfig()
 
 void CPUArgumentWidget::setupTable()
 {
+    connect(mTable, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
     mTable->verticalScrollBar()->setStyleSheet(ConfigVScrollBarStyle());
     mTable->enableMultiSelection(false);
     mTable->setShowHeader(false);

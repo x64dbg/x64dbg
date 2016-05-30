@@ -45,6 +45,10 @@ public slots:
     void refreshData();
 
 private slots:
+    void contextMenuSlot(QPoint pos);
+    void followDisasmSlot();
+    void followDumpSlot();
+    void followStackSlot();
     void on_comboCallingConvention_currentIndexChanged(int index);
     void on_spinArgCount_valueChanged(int arg1);
     void on_checkBoxLock_stateChanged(int arg1);
@@ -120,6 +124,13 @@ private:
     duint mStackOffset;
     bool mAllowUpdate;
     std::vector<CallingConvention> mCallingConventions;
+    std::vector<duint> mArgumentValues;
+    QAction* mFollowDisasm;
+    QAction* mFollowAddrDisasm;
+    QAction* mFollowDump;
+    QAction* mFollowAddrDump;
+    QAction* mFollowStack;
+    QAction* mFollowAddrStack;
 
     void loadConfig();
     void setupTable();
