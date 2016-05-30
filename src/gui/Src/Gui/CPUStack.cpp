@@ -418,8 +418,8 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         int wBytePerRowCount = getBytePerRowCount();
         dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
-        QList<RichTextPainter::CustomRichText_t> richText;
-        getString(col - 1, wRva, &richText);
+        RichTextPainter::List richText;
+        getString(col - 1, wRva, richText);
         if(!wActiveStack)
         {
             QColor inactiveColor = ConfigColor("StackInactiveTextColor");
@@ -429,7 +429,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                 richText[i].textColor = inactiveColor;
             }
         }
-        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText, getCharWidth());
+        RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, getCharWidth());
     }
     else if(DbgStackCommentGet(rvaToVa(wRva), &comment)) //paint stack comments
     {

@@ -115,7 +115,7 @@ const Capstone & CapstoneTokenizer::GetCapstone() const
     return _cp;
 }
 
-void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, QList<RichTextPainter::CustomRichText_t> & richTextList, const SingleToken* highlightToken)
+void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken)
 {
     QColor highlightColor = ConfigColor("InstructionHighlightColor");
     for(const auto & token : instr.tokens)
@@ -133,7 +133,7 @@ void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, QList<Ri
             richText.textColor = tokenColor.color;
             richText.textBackground = tokenColor.backgroundColor;
         }
-        richTextList.append(richText);
+        richTextList.push_back(richText);
     }
 }
 

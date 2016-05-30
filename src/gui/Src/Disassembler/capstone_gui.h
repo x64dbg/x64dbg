@@ -142,7 +142,7 @@ public:
     const Capstone & GetCapstone() const;
 
     static void UpdateColors();
-    static void TokenToRichText(const InstructionToken & instr, QList<RichTextPainter::CustomRichText_t> & richTextList, const SingleToken* highlightToken);
+    static void TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken);
     static bool TokenFromX(const InstructionToken & instr, SingleToken & token, int x, int charwidth);
     static bool IsHighlightableToken(const SingleToken & token);
     static bool TokenEquals(const SingleToken* a, const SingleToken* b, bool ignoreSize = true);

@@ -1,14 +1,14 @@
 #include "RichTextPainter.h"
 
-//TODO: sometimes this function takes 15/16ms, it is not clear to me why this is (no noticable performance impact)
-//TODO: change QList to std::vector (QList.append has bad performance)
-void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<RichTextPainter::CustomRichText_t>* richText, int charwidth)
+//TODO: fix performance
+void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, int charwidth)
 {
-    int len = richText->size();
-    QPen pen(Qt::black);
-    for(int i = 0; i < len; i++)
+    QPen pen;
+    QPen highlightPen;
+    highlightPen.setWidth(2);
+    QBrush brush(Qt::cyan);
+    for(const auto & curRichText : richText)
     {
-        const CustomRichText_t & curRichText = richText->at(i);
         int curRichTextLength = curRichText.text.length();
         int backgroundWidth = charwidth * curRichTextLength;
         if(backgroundWidth + xinc > w)
@@ -26,13 +26,15 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
         case FlagBackground: //background only
             if(backgroundWidth > 0)
             {
-                painter->fillRect(QRect(x + xinc, y, backgroundWidth, h), QBrush(curRichText.textBackground));
+                brush.setColor(curRichText.textBackground);
+                painter->fillRect(QRect(x + xinc, y, backgroundWidth, h), brush);
             }
             break;
         case FlagAll: //color+background
             if(backgroundWidth > 0)
             {
-                painter->fillRect(QRect(x + xinc, y, backgroundWidth, h), QBrush(curRichText.textBackground));
+                brush.setColor(curRichText.textBackground);
+                painter->fillRect(QRect(x + xinc, y, backgroundWidth, h), brush);
             }
             pen.setColor(curRichText.textColor);
             painter->setPen(pen);
@@ -41,9 +43,8 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
         painter->drawText(QRect(x + xinc, y, w - xinc, h), 0, curRichText.text); //TODO: this bottlenecks
         if(curRichText.highlight)
         {
-            QPen pen(curRichText.highlightColor);
-            pen.setWidth(2);
-            painter->setPen(pen);
+            highlightPen.setColor(curRichText.highlightColor);
+            painter->setPen(highlightPen);
             painter->drawLine(x + xinc + 1, y + h - 1, x + xinc + backgroundWidth - 1, y + h - 1);
         }
         xinc += charwidth * curRichTextLength;

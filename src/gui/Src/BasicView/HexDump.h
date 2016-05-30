@@ -101,7 +101,7 @@ public:
     dsint getSelectionEnd();
     bool isSelected(dsint rva);
 
-    void getString(int col, dsint rva, QList<RichTextPainter::CustomRichText_t>* richText);
+    void getString(int col, dsint rva, RichTextPainter::List & richText);
     int getSizeOf(DataSize_e size);
 
     QString toString(DataDescriptor_t desc, void* data);
