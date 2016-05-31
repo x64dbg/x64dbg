@@ -10,10 +10,21 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
 }
 
 std::map<CapstoneTokenizer::TokenType, CapstoneTokenizer::TokenColor> CapstoneTokenizer::colorNamesMap;
+QHash<QString, int> CapstoneTokenizer::stringPoolMap;
+int CapstoneTokenizer::poolId = 0;
 
 void CapstoneTokenizer::addColorName(TokenType type, QString color, QString backgroundColor)
 {
     colorNamesMap.insert({type, TokenColor(color, backgroundColor)});
+}
+
+void CapstoneTokenizer::addStringsToPool(const QString & strings)
+{
+    QStringList stringList = strings.split(' ', QString::SkipEmptyParts);
+    bool uppercase = ConfigBool("Disassembler", "Uppercase");
+    for(const QString & string : stringList)
+        stringPoolMap.insert(uppercase ? string.toUpper() : string.toLower(), poolId);
+    poolId++;
 }
 
 void CapstoneTokenizer::UpdateColors()
@@ -59,6 +70,28 @@ void CapstoneTokenizer::UpdateColors()
     addColorName(TokenType::ZmmRegister, "InstructionZmmRegisterColor", "InstructionZmmRegisterBackgroundColor");
 }
 
+void CapstoneTokenizer::UpdateStringPool()
+{
+    poolId = 0;
+    stringPoolMap.clear();
+    addStringsToPool("rax eax ax al");
+    addStringsToPool("rbx ebx bx bl");
+    addStringsToPool("rcx ecx cx cl");
+    addStringsToPool("rdx edx dx dl");
+    addStringsToPool("rsi esi si sil");
+    addStringsToPool("rdi edi di dil");
+    addStringsToPool("rbp ebp bp bpl");
+    addStringsToPool("rsp esp sp spl");
+    addStringsToPool("r8 r8d r8w r8b");
+    addStringsToPool("r9 r9d r9w r9b");
+    addStringsToPool("r10 r10d r10w r10b");
+    addStringsToPool("r11 r11d r11w r11b");
+    addStringsToPool("r12 r12d r12w r12b");
+    addStringsToPool("r13 r13d r13w r13b");
+    addStringsToPool("r14 r14d r14w r14b");
+    addStringsToPool("r15 r15d r15w r15b");
+}
+
 bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction)
 {
     _inst = InstructionToken();
@@ -95,6 +128,7 @@ void CapstoneTokenizer::UpdateConfig()
               ConfigBool("Disassembler", "TabbedMnemonic"),
               ConfigBool("Disassembler", "ArgumentSpaces"),
               ConfigBool("Disassembler", "MemorySpaces"));
+    UpdateStringPool();
 }
 
 void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces)
@@ -115,7 +149,7 @@ const Capstone & CapstoneTokenizer::GetCapstone() const
     return _cp;
 }
 
-void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, QList<RichTextPainter::CustomRichText_t> & richTextList, const SingleToken* highlightToken)
+void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken)
 {
     QColor highlightColor = ConfigColor("InstructionHighlightColor");
     for(const auto & token : instr.tokens)
@@ -133,7 +167,7 @@ void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, QList<Ri
             richText.textColor = tokenColor.color;
             richText.textBackground = tokenColor.backgroundColor;
         }
-        richTextList.append(richText);
+        richTextList.push_back(richText);
     }
 }
 
@@ -174,6 +208,17 @@ bool CapstoneTokenizer::IsHighlightableToken(const SingleToken & token)
     return true;
 }
 
+bool CapstoneTokenizer::tokenTextPoolEquals(const QString & a, const QString & b)
+{
+    if(a == b)
+        return true;
+    auto found1 = stringPoolMap.find(a);
+    auto found2 = stringPoolMap.find(b);
+    if(found1 == stringPoolMap.end() || found2 == stringPoolMap.end())
+        return false;
+    return found1.value() == found2.value();
+}
+
 bool CapstoneTokenizer::TokenEquals(const SingleToken* a, const SingleToken* b, bool ignoreSize)
 {
     if(!a || !b)
@@ -185,9 +230,7 @@ bool CapstoneTokenizer::TokenEquals(const SingleToken* a, const SingleToken* b, 
         else if(a->value.value != b->value.value)
             return false;
     }
-    else if(a->text != b->text) //text doesn't equal
-        return false;
-    return true; //passed all checks
+    return tokenTextPoolEquals(a->text, b->text);
 }
 
 void CapstoneTokenizer::addToken(TokenType type, QString text, const TokenValue & value)

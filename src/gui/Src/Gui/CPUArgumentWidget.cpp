@@ -118,7 +118,7 @@ void CPUArgumentWidget::refreshData()
 void CPUArgumentWidget::contextMenuSlot(QPoint pos)
 {
     auto selection = mTable->getInitialSelection();
-    if(mArgumentValues.size() <= selection)
+    if(int(mArgumentValues.size()) <= selection)
         return;
     auto value = mArgumentValues[selection];
     if(!DbgMemIsValidReadPtr(value))

@@ -340,9 +340,9 @@ QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
     else if(mDescriptor.at(col - 1).isData == true) //paint data
     {
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
-        QList<RichTextPainter::CustomRichText_t> richText;
-        getString(col - 1, wRva, &richText);
-        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText, getCharWidth());
+        RichTextPainter::List richText;
+        getString(col - 1, wRva, richText);
+        RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, getCharWidth());
     }
 
     return wStr;
@@ -434,7 +434,7 @@ bool HexDump::isSelected(dsint rva)
         return false;
 }
 
-void HexDump::getString(int col, dsint rva, QList<RichTextPainter::CustomRichText_t>* richText)
+void HexDump::getString(int col, dsint rva, RichTextPainter::List & richText)
 {
     int wI;
     QString wStr = "";
@@ -469,7 +469,7 @@ void HexDump::getString(int col, dsint rva, QList<RichTextPainter::CustomRichTex
         dsint start = rvaToVa(rva + wI * wByteCount);
         dsint end = start + wByteCount - 1;
         curData.textColor = DbgFunctions()->PatchInRange(start, end) ? highlightColor : textColor;
-        richText->push_back(curData);
+        richText.push_back(curData);
     }
 
     delete[] wData;

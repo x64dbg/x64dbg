@@ -91,7 +91,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         curRichText.flags = RichTextPainter::FlagColor;
         curRichText.textColor = textColor;
         curRichText.highlightColor = ConfigColor("SearchListViewHighlightColor");
-        QList<RichTextPainter::CustomRichText_t> richText;
+        RichTextPainter::List richText;
         foreach(QString str, split)
         {
             curRichText.text = str;
@@ -100,7 +100,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         }
 
         //paint the rich text
-        RichTextPainter::paintRichText(painter, x + 1, y, w, h, 4, &richText, getCharWidth());
+        RichTextPainter::paintRichText(painter, x + 1, y, w, h, 4, richText, getCharWidth());
         text = "";
     }
     return text;

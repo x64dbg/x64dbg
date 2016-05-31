@@ -105,7 +105,7 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
             //initialize
             int charwidth = getCharWidth();
             int xadd = charwidth; //for testing
-            QList<RichTextPainter::CustomRichText_t> richText;
+            RichTextPainter::List richText;
             RichTextPainter::CustomRichText_t newRichText;
             newRichText.highlight = false;
             QString command = getCellContent(rowBase + rowOffset, col);
@@ -260,7 +260,7 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
             }
 
             //paint the rich text
-            RichTextPainter::paintRichText(painter, x + 1, y, w, h, xadd, &richText, charwidth);
+            RichTextPainter::paintRichText(painter, x + 1, y, w, h, xadd, richText, charwidth);
             returnString = "";
         }
         else //no syntax highlighting
