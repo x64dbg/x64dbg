@@ -328,6 +328,15 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     return (*NumberOfBytesRead > 0);
 }
 
+bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead)
+{
+    SIZE_T read;
+    auto result = !!ReadProcessMemory(fdProcessInfo->hProcess, LPCVOID(BaseAddress), Buffer, Size, &read);
+    if(NumberOfBytesRead)
+        *NumberOfBytesRead = read;
+    return result;
+}
+
 bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten)
 {
     if(!MemIsCanonicalAddress(BaseAddress))
@@ -417,7 +426,7 @@ bool MemIsValidReadPtr(duint Address, bool cache)
     if(cache)
         return MemFindBaseAddr(Address, nullptr) != 0;
     unsigned char ch;
-    return MemRead(Address, &ch, sizeof(ch), nullptr, false);
+    return MemReadUnsafe(Address, &ch, sizeof(ch));
 }
 
 bool MemIsCanonicalAddress(duint Address)
