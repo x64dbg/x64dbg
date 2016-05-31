@@ -23,12 +23,13 @@ static MEMORY_SIZE argsize2memsize(int argsize)
     return size_byte;
 }
 
-void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
+void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo, bool instrText)
 {
     //zero basicinfo
     memset(basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
     //copy instruction text
-    strcpy_s(basicinfo->instruction, cp->InstructionText().c_str());
+    if(instrText)
+        strcpy_s(basicinfo->instruction, cp->InstructionText().c_str());
     //instruction size
     basicinfo->size = cp->Size();
     //branch/call info
@@ -67,11 +68,12 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
         case X86_OP_MEM:
         {
             const x86_op_mem & mem = op.mem;
-            strcpy_s(basicinfo->memory.mnemonic, cp->OperandText(i).c_str());
+            if(instrText)
+                strcpy_s(basicinfo->memory.mnemonic, cp->OperandText(i).c_str());
             basicinfo->memory.size = MEMORY_SIZE(op.size);
             if(op.mem.base == X86_REG_RIP)  //rip-relative
             {
-                basicinfo->memory.value = ULONG_PTR(cp->GetInstr()->address + op.mem.disp + basicinfo->size);
+                basicinfo->memory.value = ULONG_PTR(cp->Address() + op.mem.disp + basicinfo->size);
                 basicinfo->type |= TYPE_MEMORY;
             }
             else if(mem.disp)
