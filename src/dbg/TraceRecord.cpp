@@ -299,6 +299,7 @@ void TraceRecordManager::saveToDb(JSON root)
         json_array_append_new(jsonTraceRecords, jsonObj);
     }
     json_object_set_new(root, "tracerecord", jsonTraceRecords);
+    json_decref(jsonTraceRecords);
 }
 
 void TraceRecordManager::loadFromDb(JSON root)
