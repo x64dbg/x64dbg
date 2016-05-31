@@ -39,6 +39,7 @@ ui_*
 *.pro.user
 .DS_Store
 *.ipgset
+pin.log*
 
 # Project to ignore
 help/x64*dbg.chm
