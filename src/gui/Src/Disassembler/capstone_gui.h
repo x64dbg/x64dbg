@@ -5,6 +5,7 @@
 #include "RichTextPainter.h"
 #include "Configuration.h"
 #include <map>
+#include <QHash>
 #include <QtCore>
 
 class CapstoneTokenizer
@@ -142,6 +143,7 @@ public:
     const Capstone & GetCapstone() const;
 
     static void UpdateColors();
+    static void UpdateStringPool();
     static void TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken);
     static bool TokenFromX(const InstructionToken & instr, SingleToken & token, int x, int charwidth);
     static bool IsHighlightableToken(const SingleToken & token);
@@ -149,6 +151,8 @@ public:
 
 private:
     static void addColorName(TokenType type, QString color, QString backgroundColor);
+    static void addStringsToPool(const QString & regs);
+    static bool tokenTextPoolEquals(const QString & a, const QString & b);
 
     Capstone _cp;
     InstructionToken _inst;
@@ -165,6 +169,8 @@ private:
     QString printValue(const TokenValue & value, bool expandModule, int maxModuleLength) const;
 
     static std::map<TokenType, TokenColor> colorNamesMap;
+    static QHash<QString, int> stringPoolMap;
+    static int poolId;
 
     bool tokenizePrefix();
     bool tokenizeMnemonic();
