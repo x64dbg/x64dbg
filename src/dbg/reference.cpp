@@ -160,7 +160,6 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
     return refInfo.refcount;
 }
 
-
 int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, CBPROGRESS cbUpdateProgress)
 {
     // Allocate and read a buffer from the remote process
@@ -197,7 +196,7 @@ int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserDa
         if(cp.Disassemble(scanStart, data() + i, disasmMaxSize))
         {
             BASIC_INSTRUCTION_INFO basicinfo;
-            fillbasicinfo(&cp, &basicinfo);
+            fillbasicinfo(&cp, &basicinfo, false);
 
             if(Callback(&cp, &basicinfo, &refInfo))
                 refInfo.refcount++;

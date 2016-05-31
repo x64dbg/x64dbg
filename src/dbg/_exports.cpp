@@ -933,12 +933,15 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_GET_STRING_AT:
     {
         auto addr = duint(param1);
+        if(!MemIsValidReadPtr(addr, true))
+            return false;
+
         auto dest = (char*)param2;
         *dest = '\0';
         char string[MAX_STRING_SIZE];
         duint addrPtr;
         STRING_TYPE strtype;
-        if(MemRead(addr, &addrPtr, sizeof(addr)) && MemIsValidReadPtr(addrPtr))
+        if(MemReadUnsafe(addr, &addrPtr, sizeof(addr)) && MemIsValidReadPtr(addrPtr, true))
         {
             if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 3))
             {
