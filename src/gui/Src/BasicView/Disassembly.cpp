@@ -817,29 +817,29 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
 
     if(branchType != Instruction_t::None)
     {
-        dsint destRVA = instruction.branchDestination;
-
         dsint base = mMemPage->getBase();
-        if(destRVA >= base && destRVA < base + (dsint)mMemPage->getSize())
-        {
-            destRVA -= (dsint)mMemPage->getBase();
+        dsint destVA = DbgGetBranchDestination(rvaToVa(selHeadRVA));
 
-            if(destRVA < selHeadRVA)
+        if(destVA >= base && destVA < base + (dsint)mMemPage->getSize())
+        {
+            destVA -= base;
+
+            if(destVA < selHeadRVA)
             {
-                if(rva == destRVA)
+                if(rva == destVA)
                     wPict = GD_HeadFromBottom;
-                else if(rva > destRVA && rva < selHeadRVA)
+                else if(rva > destVA && rva < selHeadRVA)
                     wPict = GD_Vert;
                 else if(rva == selHeadRVA)
                     wPict = GD_FootToTop;
             }
-            else if(destRVA > selHeadRVA)
+            else if(destVA > selHeadRVA)
             {
                 if(rva == selHeadRVA)
                     wPict = GD_FootToBottom;
-                else if(rva > selHeadRVA && rva < destRVA)
+                else if(rva > selHeadRVA && rva < destVA)
                     wPict = GD_Vert;
-                else if(rva == destRVA)
+                else if(rva == destVA)
                     wPict = GD_HeadFromTop;
             }
         }

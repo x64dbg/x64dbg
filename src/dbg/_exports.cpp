@@ -582,23 +582,84 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
 
 extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
 {
-    DISASM_INSTR instr;
-    memset(&instr, 0, sizeof(instr));
-    disasmget(addr, &instr);
-    if(instr.type != instr_branch)
+    unsigned char data[MAX_DISASM_BUFFER];
+    if(!MemIsValidReadPtr(addr) || !MemRead(addr, data, sizeof(data)))
         return 0;
-    if(strstr(instr.instruction, "ret"))
+    Capstone cp;
+    if(!cp.Disassemble(addr, data))
+        return 0;
+    if(cp.InGroup(CS_GRP_JUMP) || cp.InGroup(CS_GRP_CALL) || cp.IsLoop())
+        return cp.ResolveOpValue(0, [](x86_reg reg) -> size_t
     {
-        duint atcsp = DbgValFromString("@csp");
-        if(DbgMemIsValidReadPtr(atcsp))
-            return atcsp;
-        else
+        switch(reg)
+        {
+#ifndef _WIN64 //x32
+        case X86_REG_EAX:
+            return GetContextDataEx(hActiveThread, UE_EAX);
+        case X86_REG_EBX:
+            return GetContextDataEx(hActiveThread, UE_EBX);
+        case X86_REG_ECX:
+            return GetContextDataEx(hActiveThread, UE_ECX);
+        case X86_REG_EDX:
+            return GetContextDataEx(hActiveThread, UE_EDX);
+        case X86_REG_EBP:
+            return GetContextDataEx(hActiveThread, UE_EBP);
+        case X86_REG_ESP:
+            return GetContextDataEx(hActiveThread, UE_ESP);
+        case X86_REG_ESI:
+            return GetContextDataEx(hActiveThread, UE_ESI);
+        case X86_REG_EDI:
+            return GetContextDataEx(hActiveThread, UE_EDI);
+        case X86_REG_EIP:
+            return GetContextDataEx(hActiveThread, UE_EIP);
+#else //x64
+        case X86_REG_RAX:
+            return GetContextDataEx(hActiveThread, UE_RAX);
+        case X86_REG_RBX:
+            return GetContextDataEx(hActiveThread, UE_RBX);
+        case X86_REG_RCX:
+            return GetContextDataEx(hActiveThread, UE_RCX);
+        case X86_REG_RDX:
+            return GetContextDataEx(hActiveThread, UE_RDX);
+        case X86_REG_RBP:
+            return GetContextDataEx(hActiveThread, UE_RBP);
+        case X86_REG_RSP:
+            return GetContextDataEx(hActiveThread, UE_RSP);
+        case X86_REG_RSI:
+            return GetContextDataEx(hActiveThread, UE_RSI);
+        case X86_REG_RDI:
+            return GetContextDataEx(hActiveThread, UE_RDI);
+        case X86_REG_RIP:
+            return GetContextDataEx(hActiveThread, UE_RIP);
+        case X86_REG_R8:
+            return GetContextDataEx(hActiveThread, UE_R8);
+        case X86_REG_R9:
+            return GetContextDataEx(hActiveThread, UE_R9);
+        case X86_REG_R10:
+            return GetContextDataEx(hActiveThread, UE_R10);
+        case X86_REG_R11:
+            return GetContextDataEx(hActiveThread, UE_R11);
+        case X86_REG_R12:
+            return GetContextDataEx(hActiveThread, UE_R12);
+        case X86_REG_R13:
+            return GetContextDataEx(hActiveThread, UE_R13);
+        case X86_REG_R14:
+            return GetContextDataEx(hActiveThread, UE_R14);
+        case X86_REG_R15:
+            return GetContextDataEx(hActiveThread, UE_R15);
+#endif //_WIN64
+        default:
             return 0;
+        }
+    });
+    if(cp.InGroup(CS_GRP_RET))
+    {
+        auto csp = GetContextDataEx(hActiveThread, UE_CSP);
+        duint dest = 0;
+        if(MemRead(csp, &dest, sizeof(dest)))
+            return dest;
     }
-    else if(instr.arg[0].type == arg_memory)
-        return instr.arg[0].memvalue;
-    else
-        return instr.arg[0].value;
+    return 0;
 }
 
 extern "C" DLL_EXPORT bool _dbg_functionoverlaps(duint start, duint end)
