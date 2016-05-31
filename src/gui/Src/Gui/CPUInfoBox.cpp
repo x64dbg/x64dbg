@@ -270,7 +270,7 @@ void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, dsint value)
     foreach(QAction * action, menu->actions()) //check for duplicate action
     if(action->text() == name)
         return;
-    QAction* newAction = new QAction(name, this);
+    QAction* newAction = new QAction(name, menu);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
     newAction->setObjectName(QString("DUMP|") + QString("%1").arg(value, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
