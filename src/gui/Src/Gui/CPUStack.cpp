@@ -423,7 +423,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         if(!wActiveStack)
         {
             QColor inactiveColor = ConfigColor("StackInactiveTextColor");
-            for(int i = 0; i < richText.size(); i++)
+            for(int i = 0; i < int(richText.size()); i++)
             {
                 richText[i].flags = RichTextPainter::FlagColor;
                 richText[i].textColor = inactiveColor;
