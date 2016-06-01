@@ -80,6 +80,7 @@ typedef struct
     unsigned int GrantedAccess;
 } HANDLEINFO;
 
+// The longest ip address is 1234:6789:1234:6789:1234:6789:123.567.901.345 (46 bytes)
 #define TCP_ADDR_SIZE 50
 
 typedef struct

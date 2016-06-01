@@ -1783,6 +1783,7 @@ duint dbggetdebuggedbase()
 static void debugLoopFunction(void* lpParameter, bool attach)
 {
     //we are running
+    EXCLUSIVE_ACQUIRE(LockDebugStartStop);
     lock(WAITID_STOP);
 
     //initialize variables
