@@ -53,6 +53,8 @@ struct DepthModuleRangeCompare
     }
 };
 
+#include "serializablemap.h"
+
 //typedefs
 typedef std::function<void (duint base, const char* mod, const char* name, duint addr)> EXPORTENUMCALLBACK;
 typedef std::function<void (duint base, duint addr, char* name, char* moduleName)> IMPORTENUMCALLBACK;

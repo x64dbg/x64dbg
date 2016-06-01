@@ -308,6 +308,12 @@
     <ClCompile Include="tcpconnections.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="argument.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_argument.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -675,6 +681,15 @@
     </ClInclude>
     <ClInclude Include="tcpconnections.h">
       <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="argument.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="serializablemap.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_argument.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

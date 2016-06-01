@@ -298,7 +298,8 @@ void TraceRecordManager::saveToDb(JSON root)
         efree(temp, "TraceRecordManager::saveToDb");
         json_array_append_new(jsonTraceRecords, jsonObj);
     }
-    json_object_set_new(root, "tracerecord", jsonTraceRecords);
+    if(json_array_size(jsonTraceRecords))
+        json_object_set_new(root, "tracerecord", jsonTraceRecords);
     json_decref(jsonTraceRecords);
 }
 
@@ -320,7 +321,7 @@ void TraceRecordManager::loadFromDb(JSON root)
         TraceRecordPage currentPage;
         size_t size;
         currentPage.dataType = (TraceRecordType)json_hex_value(json_object_get(value, "type"));
-        currentPage.rva = json_hex_value(json_object_get(value, "rva"));
+        currentPage.rva = (duint)json_hex_value(json_object_get(value, "rva"));
         switch(currentPage.dataType)
         {
         case TraceRecordType::TraceRecordBitExec:

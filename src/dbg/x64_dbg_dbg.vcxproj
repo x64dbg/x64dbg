@@ -23,6 +23,7 @@
     <ClCompile Include="analysis.cpp" />
     <ClCompile Include="AnalysisPass.cpp" />
     <ClCompile Include="analysis_nukem.cpp" />
+    <ClCompile Include="argument.cpp" />
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
@@ -80,6 +81,7 @@
     <ClCompile Include="_dbgfunctions.cpp" />
     <ClCompile Include="_global.cpp" />
     <ClCompile Include="_plugins.cpp" />
+    <ClCompile Include="_scriptapi_argument.cpp" />
     <ClCompile Include="_scriptapi_assembler.cpp" />
     <ClCompile Include="_scriptapi_bookmark.cpp" />
     <ClCompile Include="_scriptapi_comment.cpp" />
@@ -101,6 +103,7 @@
     <ClInclude Include="analysis.h" />
     <ClInclude Include="AnalysisPass.h" />
     <ClInclude Include="analysis_nukem.h" />
+    <ClInclude Include="argument.h" />
     <ClInclude Include="assemble.h" />
     <ClInclude Include="BasicBlock.h" />
     <ClInclude Include="bookmark.h" />
@@ -152,6 +155,7 @@
     <ClInclude Include="patternfind.h" />
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
+    <ClInclude Include="serializablemap.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
     <ClInclude Include="yara\yara\stream.h" />
@@ -204,6 +208,7 @@
     <ClInclude Include="_global.h" />
     <ClInclude Include="_plugins.h" />
     <ClInclude Include="_plugin_types.h" />
+    <ClInclude Include="_scriptapi_argument.h" />
     <ClInclude Include="_scriptapi_assembler.h" />
     <ClInclude Include="_scriptapi_bookmark.h" />
     <ClInclude Include="_scriptapi_comment.h" />
