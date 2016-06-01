@@ -146,7 +146,10 @@ SOURCES += \
     Src/Gui/SEHChainView.cpp \
     Src/Gui/EditBreakpointDialog.cpp \
     Src/Gui/CPUArgumentWidget.cpp \
-    Src/Gui/HandlesView.cpp
+    Src/Gui/HandlesView.cpp \
+    Src/Gui/EditFloatRegister.cpp \
+    Src/Utils/HexValidator.cpp \
+    Src/Utils/LongLongValidator.cpp
 
 
 HEADERS += \
@@ -233,7 +236,10 @@ HEADERS += \
     Src/Gui/SEHChainView.h \
     Src/Gui/EditBreakpointDialog.h \
     Src/Gui/CPUArgumentWidget.h \
-    Src/Gui/HandlesView.h
+    Src/Gui/HandlesView.h \
+    Src/Gui/EditFloatRegister.h \
+    Src/Utils/HexValidator.h \
+    Src/Utils/LongLongValidator.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -260,7 +266,8 @@ FORMS += \
     Src/Gui/EntropyDialog.ui \
     Src/Gui/AssembleDialog.ui \
     Src/Gui/EditBreakpointDialog.ui \
-    Src/Gui/CPUArgumentWidget.ui
+    Src/Gui/CPUArgumentWidget.ui \
+    Src/Gui/EditFloatRegister.ui
 
 TRANSLATIONS = \
     Translations/x64dbg_zh_CN.ts
