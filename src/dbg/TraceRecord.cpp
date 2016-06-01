@@ -387,11 +387,11 @@ unsigned int TraceRecordManager::getModuleIndex(std::string moduleName)
 {
     auto iterator = std::find(ModuleNames.begin(), ModuleNames.end(), moduleName);
     if(iterator != ModuleNames.end())
-        return iterator - ModuleNames.begin(); //TODO: warning
+        return (unsigned int)(iterator - ModuleNames.begin());
     else
     {
         ModuleNames.push_back(moduleName);
-        return ModuleNames.size() - 1; //TODO: warning
+        return (unsigned int)(ModuleNames.size() - 1);
     }
 }
 
