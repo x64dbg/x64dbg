@@ -1,6 +1,6 @@
 #include "LongLongValidator.h"
 
-LongLongValidator::LongLongValidator(DataType t, QObject *parent) : QValidator(parent), dt(t)
+LongLongValidator::LongLongValidator(DataType t, QObject* parent) : QValidator(parent), dt(t)
 {
 }
 
@@ -8,13 +8,14 @@ LongLongValidator::~LongLongValidator()
 {
 }
 
-void LongLongValidator::fixup(QString& input) const
+void LongLongValidator::fixup(QString & input) const
 {
-
+    Q_UNUSED(input);
 }
 
-QValidator::State LongLongValidator::validate(QString& input, int& pos) const
+QValidator::State LongLongValidator::validate(QString & input, int & pos) const
 {
+    Q_UNUSED(pos);
     bool ok = false;
     if(input.isEmpty()) return State::Acceptable;
     switch(dt)
@@ -65,7 +66,7 @@ QValidator::State LongLongValidator::validate(QString& input, int& pos) const
         {
             if(input == QString('-'))
                 return State::Acceptable;
-            if(input.toULongLong(&ok) > 2147483647)
+            if(input.toULongLong(&ok) > 2147483647LL)
             {
                 if(ok)
                 {
@@ -73,7 +74,7 @@ QValidator::State LongLongValidator::validate(QString& input, int& pos) const
                     return State::Acceptable;
                 }
             }
-            else if(input.toLongLong(&ok) < -2147483648)
+            else if(input.toLongLong(&ok) < -2147483648LL)
             {
                 if(ok)
                 {

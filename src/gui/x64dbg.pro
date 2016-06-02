@@ -149,7 +149,8 @@ SOURCES += \
     Src/Gui/HandlesView.cpp \
     Src/Gui/EditFloatRegister.cpp \
     Src/Utils/HexValidator.cpp \
-    Src/Utils/LongLongValidator.cpp
+    Src/Utils/LongLongValidator.cpp \
+    Src/Utils/MiscUtil.cpp
 
 
 HEADERS += \
@@ -239,7 +240,8 @@ HEADERS += \
     Src/Gui/HandlesView.h \
     Src/Gui/EditFloatRegister.h \
     Src/Utils/HexValidator.h \
-    Src/Utils/LongLongValidator.h
+    Src/Utils/LongLongValidator.h \
+    Src/Utils/MiscUtil.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \

@@ -223,6 +223,7 @@ void CPUArgumentWidget::setupTable()
 {
     connect(mTable, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
     mTable->verticalScrollBar()->setStyleSheet(ConfigVScrollBarStyle());
+    mTable->horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
     mTable->enableMultiSelection(false);
     mTable->setShowHeader(false);
     mTable->addColumnAt(0, "", false);

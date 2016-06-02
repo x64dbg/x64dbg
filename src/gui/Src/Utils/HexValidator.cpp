@@ -1,7 +1,7 @@
 #include "HexValidator.h"
 #include <QObject>
 
-HexValidator::HexValidator(QObject *parent) : QValidator(parent)
+HexValidator::HexValidator(QObject* parent) : QValidator(parent)
 {
 }
 
@@ -9,7 +9,7 @@ HexValidator::~HexValidator()
 {
 }
 
-void HexValidator::fixup(QString& input) const
+void HexValidator::fixup(QString & input) const
 {
     for(auto i : input)
     {
@@ -23,7 +23,7 @@ void HexValidator::fixup(QString& input) const
     }
 }
 
-QValidator::State HexValidator::validate(QString& input, int& pos) const
+QValidator::State HexValidator::validate(QString & input, int & pos) const
 {
     input = input.toUpper();
     for(int i = 0; i < input.length(); i++)

@@ -13,6 +13,7 @@
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -63,9 +64,7 @@ MainWindow::MainWindow(QWidget* parent)
     setWindowTitle(QString(mWindowMainTitle));
 
     // Load application icon
-    HICON hIcon = LoadIcon(GetModuleHandleW(0), MAKEINTRESOURCE(100));
-    SendMessageW((HWND)MainWindow::winId(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-    DestroyIcon(hIcon);
+    SetApplicationIcon(MainWindow::winId());
 
     // Load recent files
     loadMRUList(16);

@@ -7,8 +7,9 @@
 #include "LongLongValidator.h"
 #include <QDoubleValidator>
 
-namespace Ui {
-class EditFloatRegister;
+namespace Ui
+{
+    class EditFloatRegister;
 }
 
 class EditFloatRegister : public QDialog
@@ -16,7 +17,7 @@ class EditFloatRegister : public QDialog
     Q_OBJECT
 
 public:
-    explicit EditFloatRegister(int RegisterSize, QWidget *parent = 0);
+    explicit EditFloatRegister(int RegisterSize, QWidget* parent = 0);
     void loadData(char* RegisterData);
     const char* getData();
 
@@ -83,11 +84,11 @@ private:
     void reloadDataLow();
     void reloadDataHigh();
 
-    void reloadShortData(QLineEdit& txtbox, char* Data);
-    void reloadLongData(QLineEdit& txtbox, char* Data);
-    void reloadFloatData(QLineEdit& txtbox, char* Data);
-    void reloadDoubleData(QLineEdit& txtbox, char* Data);
-    void reloadLongLongData(QLineEdit& txtbox, char* Data);
+    void reloadShortData(QLineEdit & txtbox, char* Data);
+    void reloadLongData(QLineEdit & txtbox, char* Data);
+    void reloadFloatData(QLineEdit & txtbox, char* Data);
+    void reloadDoubleData(QLineEdit & txtbox, char* Data);
+    void reloadLongLongData(QLineEdit & txtbox, char* Data);
 
     void editingShortFinishedSlot(size_t offset, QString arg);
     void editingLongFinishedSlot(size_t offset, QString arg);
@@ -95,7 +96,7 @@ private:
     void editingDoubleFinishedSlot(size_t offset, QString arg);
     void editingLongLongFinishedSlot(size_t offset, QString arg);
 
-    Ui::EditFloatRegister *ui;
+    Ui::EditFloatRegister* ui;
     QObject* mutex;
     char Data[64];
     int RegSize;

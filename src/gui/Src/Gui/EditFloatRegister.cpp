@@ -14,7 +14,7 @@
  * @return      Nothing.
  */
 
-EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget *parent) :
+EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
     QDialog(parent), hexValidate(this), RegSize(RegisterSize),
     signedShortValidator(LongLongValidator::DataType::SignedShort, this),
     unsignedShortValidator(LongLongValidator::DataType::UnsignedShort, this),
@@ -28,9 +28,8 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget *parent) :
     memset(Data, 0, sizeof(Data));
     ui->setupUi(this);
     setModal(true);
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
-#endif
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
+
     switch(RegisterSize)
     {
     case 128:
@@ -152,7 +151,7 @@ void EditFloatRegister::hideUpperPart()
  * @param[in] RegisterData   the data to be loaded. It must be at lease the same size as the size specified in RegisterSize
  * @return    Nothing.
  */
-void EditFloatRegister::loadData(char *RegisterData)
+void EditFloatRegister::loadData(char* RegisterData)
 {
     memcpy(Data, RegisterData, RegSize / 8);
     reloadDataLow();
@@ -163,7 +162,7 @@ void EditFloatRegister::loadData(char *RegisterData)
  * @brief    Get the register data from the dialog
  * @return   The output buffer.
  */
-const char *EditFloatRegister::getData()
+const char* EditFloatRegister::getData()
 {
     return Data;
 }
@@ -232,20 +231,20 @@ void EditFloatRegister::reloadDataHigh()
     mutex = nullptr;
 }
 
-void EditFloatRegister::reloadShortData(QLineEdit& txtbox, char *Data)
+void EditFloatRegister::reloadShortData(QLineEdit & txtbox, char* Data)
 {
     if(mutex != &txtbox)
     {
         if(ui->radioHex->isChecked())
-            txtbox.setText(QString().number((int)*(unsigned short*)Data, 16).toUpper());
+            txtbox.setText(QString().number((int) * (unsigned short*)Data, 16).toUpper());
         else if(ui->radioSigned->isChecked())
-            txtbox.setText(QString().number((int)*(short*)Data));
+            txtbox.setText(QString().number((int) * (short*)Data));
         else
-            txtbox.setText(QString().number((unsigned int)*(unsigned short*)Data));
+            txtbox.setText(QString().number((unsigned int) * (unsigned short*)Data));
     }
 }
 
-void EditFloatRegister::reloadLongData(QLineEdit& txtbox, char *Data)
+void EditFloatRegister::reloadLongData(QLineEdit & txtbox, char* Data)
 {
     if(mutex != &txtbox)
     {
@@ -258,7 +257,7 @@ void EditFloatRegister::reloadLongData(QLineEdit& txtbox, char *Data)
     }
 }
 
-void EditFloatRegister::reloadFloatData(QLineEdit &txtbox, char *Data)
+void EditFloatRegister::reloadFloatData(QLineEdit & txtbox, char* Data)
 {
     if(mutex != &txtbox)
     {
@@ -266,7 +265,7 @@ void EditFloatRegister::reloadFloatData(QLineEdit &txtbox, char *Data)
     }
 }
 
-void EditFloatRegister::reloadDoubleData(QLineEdit &txtbox, char *Data)
+void EditFloatRegister::reloadDoubleData(QLineEdit & txtbox, char* Data)
 {
     if(mutex != &txtbox)
     {
@@ -274,7 +273,7 @@ void EditFloatRegister::reloadDoubleData(QLineEdit &txtbox, char *Data)
     }
 }
 
-void EditFloatRegister::reloadLongLongData(QLineEdit &txtbox, char *Data)
+void EditFloatRegister::reloadLongLongData(QLineEdit & txtbox, char* Data)
 {
     if(mutex != &txtbox)
     {
