@@ -109,7 +109,7 @@ static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink
 
     //Get the working directory
     TCHAR pathFile[MAX_PATH + 1];
-    _tcscpy(pathFile, szPathOfFile);
+    _tcscpy_s(pathFile, szPathOfFile);
     PathRemoveFileSpec(pathFile);
 
     CComPtr<IShellLink> psl;

@@ -387,7 +387,7 @@ bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo)
 
     // Search in Import Vector
     auto pImports = &(module->imports);
-    auto it = std::find_if(pImports->begin(), pImports->end(), [importInfo](const MODIMPORTINFO & currentImportInfo)->bool
+    auto it = std::find_if(pImports->begin(), pImports->end(), [&importInfo](const MODIMPORTINFO & currentImportInfo)->bool
     {
         return (importInfo.addr == currentImportInfo.addr);
     });

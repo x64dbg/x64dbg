@@ -1715,6 +1715,7 @@ dd_real pown(dd_real const & a, int n)
 
     case 2:
         s = sqr(a);
+        break;
 
     default:                            /* Use binary exponentiation */
     {

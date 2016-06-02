@@ -2,9 +2,9 @@
 
 if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
-if "%QT32PATH%"=="" set QT32PATH=c:\Qt\qt-4.8.6-x86-msvc2013\qt-4.8.6-x86-msvc2013\bin
-if "%QT64PATH%"=="" set QT64PATH=c:\Qt\qt-4.8.6-x64-msvc2013\qt-4.8.6-x64-msvc2013\bin
-if "%QTCREATORPATH%"=="" set QTCREATORPATH=c:\Qt\qtcreator-3.1.1\bin
+if "%QT32PATH%"=="" set QT32PATH=c:\Qt\qt-5.6.0-x86-msvc2013\5.6\msvc2013\bin
+if "%QT64PATH%"=="" set QT64PATH=c:\Qt\qt-5.6.0-x64-msvc2013\5.6\msvc2013_64\bin
+if "%QTCREATORPATH%"=="" set QTCREATORPATH=c:\Qt\qtcreator-4.0.0\bin
 if "%VSVARSALLPATH%"=="" set VSVARSALLPATH=c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat
 if "%COVERITYPATH%"=="" set COVERITYPATH=c:\coverity\bin
 if "%DOXYGENPATH%"=="" set DOXYGENPATH=C:\Program Files\doxygen\bin

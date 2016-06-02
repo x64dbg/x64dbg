@@ -44,7 +44,6 @@ protected:
 
 private:
     QCheckBox* mRegexCheckbox;
-    QWidget* mListPlaceHolder;
     QAction* mSearchAction;
 };
 

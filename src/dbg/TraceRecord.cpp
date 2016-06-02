@@ -68,7 +68,7 @@ bool TraceRecordManager::setTraceRecordType(duint pageAddress, TraceRecordType t
             auto inserted = TraceRecord.insert(std::make_pair(ModHashFromAddr(pageAddress), newPage));
             if(inserted.second == false) // we failed to insert new page into the map
             {
-                free(newPage.rawPtr);
+                efree(newPage.rawPtr);
                 return false;
             }
             return true;
@@ -298,7 +298,9 @@ void TraceRecordManager::saveToDb(JSON root)
         efree(temp, "TraceRecordManager::saveToDb");
         json_array_append_new(jsonTraceRecords, jsonObj);
     }
-    json_object_set_new(root, "tracerecord", jsonTraceRecords);
+    if(json_array_size(jsonTraceRecords))
+        json_object_set_new(root, "tracerecord", jsonTraceRecords);
+    json_decref(jsonTraceRecords);
 }
 
 void TraceRecordManager::loadFromDb(JSON root)
@@ -319,7 +321,7 @@ void TraceRecordManager::loadFromDb(JSON root)
         TraceRecordPage currentPage;
         size_t size;
         currentPage.dataType = (TraceRecordType)json_hex_value(json_object_get(value, "type"));
-        currentPage.rva = json_hex_value(json_object_get(value, "rva"));
+        currentPage.rva = (duint)json_hex_value(json_object_get(value, "rva"));
         switch(currentPage.dataType)
         {
         case TraceRecordType::TraceRecordBitExec:
@@ -385,11 +387,11 @@ unsigned int TraceRecordManager::getModuleIndex(std::string moduleName)
 {
     auto iterator = std::find(ModuleNames.begin(), ModuleNames.end(), moduleName);
     if(iterator != ModuleNames.end())
-        return iterator - ModuleNames.begin(); //TODO: warning
+        return (unsigned int)(iterator - ModuleNames.begin());
     else
     {
         ModuleNames.push_back(moduleName);
-        return ModuleNames.size() - 1; //TODO: warning
+        return (unsigned int)(ModuleNames.size() - 1);
     }
 }
 

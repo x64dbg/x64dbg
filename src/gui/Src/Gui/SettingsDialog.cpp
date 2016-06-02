@@ -11,9 +11,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 {
     ui->setupUi(this);
     //set window flags
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
-#endif
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     setModal(true);
     LoadSettings(); //load settings from file
