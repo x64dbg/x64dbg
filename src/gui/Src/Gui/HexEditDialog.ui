@@ -46,7 +46,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QLineEdit" name="lineEditUnicode">
+  <widget class="HexLineEdit" name="lineEditUnicode">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -68,7 +68,7 @@
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEditAscii">
+  <widget class="HexLineEdit" name="lineEditAscii">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -217,6 +217,13 @@
    </property>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>HexLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>HexLineEdit.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>lineEditAscii</tabstop>
   <tabstop>btnAscii2Hex</tabstop>

@@ -54,6 +54,7 @@ signals:
     void currentAddressChanged(int address);
     void currentSizeChanged(int size);
     void dataChanged();
+    void dataEdited();
     void overwriteModeChanged(bool state);
 
 private:
