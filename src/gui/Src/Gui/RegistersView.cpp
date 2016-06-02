@@ -5,6 +5,7 @@
 #include "Configuration.h"
 #include "WordEditDialog.h"
 #include "LineEditDialog.h"
+#include "EditFloatRegister.h"
 #include "SelectFields.h"
 
 void RegistersView::SetChangeButton(QPushButton* push_button)
@@ -1308,6 +1309,11 @@ void RegistersView::operator delete(void* p)
     _aligned_free(p);
 }
 
+/**
+ * @brief                   Get the label associated with the register
+ * @param register_selected the register
+ * @return                  the label
+ */
 QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
 {
     char label_text[MAX_LABEL_SIZE] = "";
@@ -1847,6 +1853,11 @@ void RegistersView::ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZ
 
 #define MODIFY_FIELDS_DISPLAY(title, table) ModifyFields(QString("Edit ") + QString(title), (STRING_VALUE_TABLE_t *) & table, SIZE_TABLE(table) )
 
+/**
+ * @brief   This function displays the appropriate edit dialog according to selected register
+ * @return  Nothing.
+ */
+
 void RegistersView::displayEditDialog()
 {
     if(mFPU.contains(mSelected))
@@ -1861,6 +1872,22 @@ void RegistersView::displayEditDialog()
             MODIFY_FIELDS_DISPLAY("x87CW_PC", ControlWordPCValueStringTable);
         else if(mSelected == x87SW_TOP)
             MODIFY_FIELDS_DISPLAY("x87SW_TOP ST0=", StatusWordTOPValueStringTable);
+        else if(mFPUYMM.contains(mSelected))
+        {
+            EditFloatRegister mEditFloat(256, this);
+            mEditFloat.setWindowTitle(tr("Edit YMM register"));
+            mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
+            if(mEditFloat.exec() == QDialog::Accepted)
+                setRegister(mSelected, (duint)mEditFloat.getData());
+        }
+        else if(mFPUXMM.contains(mSelected))
+        {
+            EditFloatRegister mEditFloat(128, this);
+            mEditFloat.setWindowTitle(tr("Edit XMM register"));
+            mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
+            if(mEditFloat.exec() == QDialog::Accepted)
+                setRegister(mSelected, (duint)mEditFloat.getData());
+        }
         else
         {
             bool errorinput = false;
