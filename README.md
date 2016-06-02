@@ -2,8 +2,6 @@
 
 [![BountySource](https://www.bountysource.com/badge/team?team_id=18188&style=raised)](https://www.bountysource.com/teams/x64dbg?utm_source=x64dbg&utm_medium=shield&utm_campaign=raised) [![Telegram](http://i.imgur.com/merFyCf.png)](https://telegram.me/joinchat/BzwLaQcORqjkM1k9YbTNmg) [![Join the chat at Gitter](https://badges.gitter.im/x64dbg/x64dbg.svg)](https://gitter.im/x64dbg/x64dbg?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![freenode](http://i.imgur.com/JEG5fJr.png)](http://webchat.freenode.net/?channels=x64dbg) [![Jenkins](http://jenkins.x64dbg.com/job/vs13/badge/icon)](http://jenkins.x64dbg.com) [![coverity](https://scan.coverity.com/projects/7478/badge.svg?flat=1)](https://scan.coverity.com/projects/7478/badge.svg?flat=1)
 
-
-
 ## Note
 
 Please run `install.bat` before you start committing code, this ensures your code is auto-formatted to the *x64dbg* [standards](https://github.com/x64dbg/x64dbg/wiki/Coding-Guidelines).
@@ -21,6 +19,10 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 ## Overview
 
 *x64dbg* is an open-source x32/x64 debugger for Windows.
+
+## Activity Graph
+
+[![Throughput Graph](https://graphs.waffle.io/x64dbg/x64dbg/throughput.svg)](https://waffle.io/x64dbg/x64dbg/metrics/throughput)
 
 ## Features
 
@@ -84,7 +86,7 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - DMichael
 - Artic
 - ahmadmansoor
-- _pusher_
+- \_pusher\_
 - firelegend
 
 ## Developers
