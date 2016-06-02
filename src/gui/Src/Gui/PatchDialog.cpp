@@ -643,7 +643,7 @@ void PatchDialog::on_btnExport_clicked()
     // TODO: C program source
 }
 
-void PatchDialog::saveAs1337(const QString &filename)
+void PatchDialog::saveAs1337(const QString & filename)
 {
     QStringList lines;
 

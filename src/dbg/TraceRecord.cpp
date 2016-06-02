@@ -68,7 +68,7 @@ bool TraceRecordManager::setTraceRecordType(duint pageAddress, TraceRecordType t
             auto inserted = TraceRecord.insert(std::make_pair(ModHashFromAddr(pageAddress), newPage));
             if(inserted.second == false) // we failed to insert new page into the map
             {
-                free(newPage.rawPtr);
+                efree(newPage.rawPtr);
                 return false;
             }
             return true;
