@@ -28,13 +28,22 @@ private:
         }
     };
 
+    struct ReferenceInfo
+    {
+        duint from;
+        duint to;
+        bool iscall;
+    };
+
     std::vector<FunctionInfo> mFunctions;
+
+    std::vector<ReferenceInfo> mReferences;
 
     void sortCleanup();
     void populateReferences();
     void analyseFunctions();
     duint findFunctionEnd(duint start, duint maxaddr);
-    duint getReferenceOperand() const;
+    duint getReferenceOperand(bool* iscall) const;
 };
 
 #endif //_LINEARANALYSIS_H

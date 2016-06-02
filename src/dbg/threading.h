@@ -56,6 +56,7 @@ enum SectionLock
     LockSehCache,
     LockMnemonicHelp,
     LockTraceRecord,
+    LockCrossReferences,
 
     // Number of elements in this enumeration. Must always be the last
     // index.

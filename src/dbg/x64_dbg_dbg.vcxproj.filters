@@ -308,6 +308,9 @@
     <ClCompile Include="tcpconnections.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="xrefs.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -674,6 +677,9 @@
       <Filter>Header Files\Information</Filter>
     </ClInclude>
     <ClInclude Include="tcpconnections.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="xrefs.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>

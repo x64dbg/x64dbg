@@ -4,6 +4,7 @@
 #include "Disassembly.h"
 #include "GotoDialog.h"
 #include "SourceViewerManager.h"
+#include "XrefBrowseDialog.h"
 
 // Needed forward declaration for parent container class
 class CPUWidget;
@@ -58,6 +59,7 @@ public slots:
     void followActionSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
+    void gotoXrefSlot();
     void findReferencesSlot();
     void findConstantSlot();
     void findStringsSlot();

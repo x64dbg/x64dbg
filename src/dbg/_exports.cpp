@@ -29,6 +29,7 @@
 #include "x64_dbg.h"
 #include "threading.h"
 #include "stringformat.h"
+#include "xrefs.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -988,6 +989,50 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_DELETE_AUTO_FUNCTION_RANGE:
     {
         FunctionDelRange((duint)param1, (duint)param2, false);
+    }
+    break;
+
+    case DBG_GET_XREF_COUNT_AT:
+    {
+        return XrefGetCount((duint)param1);
+    }
+    break;
+
+    case DBG_XREF_GET:
+    {
+        if(!param2)
+            return false;
+        XREF_INFO* info = (XREF_INFO*)param2;
+        duint address = (duint)param1;
+        info->refcount = XrefGetCount(address);
+
+        if(info->refcount == 0)
+        {
+            return false;
+        }
+        else
+        {
+            info->references = (duint*)BridgeAlloc(sizeof(duint) * info->refcount);
+            return XrefGet(address, info);
+        }
+    }
+    break;
+
+    case DBG_XREF_ADD:
+    {
+        return XrefAdd((duint)param1, (duint)param2, XREF_JMP);
+    }
+    break;
+
+    case DBG_XREF_DEL_ALL:
+    {
+        return XrefDeleteAll((duint)param1);
+    }
+    break;
+
+    case DBG_GET_XREF_TYPE_AT:
+    {
+        return XrefGetType((duint)param1);
     }
     break;
 

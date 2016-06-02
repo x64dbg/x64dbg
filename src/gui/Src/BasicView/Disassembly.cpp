@@ -46,10 +46,14 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 
     backgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
+    mXrefInfo.refcount = 0;
+
+
     // Slots
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
+    connect(this, SIGNAL(selectionChanged(dsint)), this, SLOT(selectionChangedSlot(dsint)));
 
     Initialize();
 }
@@ -58,6 +62,8 @@ Disassembly::~Disassembly()
 {
     delete mMemPage;
     delete mDisasm;
+    if(mXrefInfo.refcount != 0)
+        BridgeFree(mXrefInfo.references);
 }
 
 void Disassembly::updateColors()
@@ -367,6 +373,31 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             break;
         }
         int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
+
+        painter->setPen(mFunctionPen);
+
+        XREFTYPE refType = DbgGetXrefTypeAt(cur_addr);
+        QString indicator;
+        if(refType == XREF_JMP)
+        {
+            indicator = ">";
+        }
+        else if(refType == XREF_CALL)
+        {
+            indicator = "$";
+        }
+        else if(funcType != FUNC_NONE)
+        {
+            indicator = ".";
+        }
+        else
+        {
+            indicator = " ";
+        }
+
+        int charwidth = getCharWidth();
+        painter->drawText(QRect(x + funcsize, y , charwidth , h), Qt::AlignVCenter | Qt::AlignLeft, indicator);
+        funcsize += charwidth;
 
         //draw jump arrows
         int jumpsize = paintJumpsGraphic(painter, x + funcsize, y - 1, wRVA); //jump line
@@ -810,15 +841,19 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
 {
     dsint selHeadRVA = mSelection.fromIndex;
     dsint rva = addr;
+    dsint curVa = rvaToVa(addr);
+    dsint selVa = rvaToVa(selHeadRVA);
     Instruction_t instruction = DisassembleAt(selHeadRVA);
     auto branchType = instruction.branchType;
+
+    bool showXref = false;
 
     GraphicDump_t wPict = GD_Nothing;
 
     if(branchType != Instruction_t::None)
     {
         dsint base = mMemPage->getBase();
-        dsint destVA = DbgGetBranchDestination(rvaToVa(selHeadRVA));
+        dsint destVA = DbgGetBranchDestination(selVa);
 
         if(destVA >= base && destVA < base + (dsint)mMemPage->getSize())
         {
@@ -844,20 +879,107 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
             }
         }
     }
-
-    bool bIsExecute = DbgIsJumpGoingToExecute(rvaToVa(instruction.rva));
-
-    if(branchType == Instruction_t::Unconditional) //unconditional
+    else if(mXrefInfo.refcount > 0)
     {
-        painter->setPen(mUnconditionalPen);
+        dsint max = selVa, min = selVa;
+        showXref = true;
+        for(int i = 0; i < mXrefInfo.refcount; i++)
+        {
+            if(curVa == mXrefInfo.references[i])
+            {
+                wPict = curVa > selVa ? GD_FootToTop : GD_FootToBottom;
+                break;
+            }
+            if(mXrefInfo.references[i] > max)
+                max = mXrefInfo.references[i];
+            if(mXrefInfo.references[i] < min)
+                min = mXrefInfo.references[i];
+        }
+        if(curVa == selVa)
+        {
+            if(max == selVa)
+            {
+                wPict = GD_HeadFromTop;
+            }
+            else if(min == selVa)
+            {
+                wPict = GD_HeadFromBottom;
+            }
+            else if(max > selVa && min < selVa)
+            {
+                wPict = GD_HeadFromBoth;
+            }
+
+        }
+        if(wPict == GD_Nothing && curVa > min && curVa < max)
+            wPict = GD_Vert;
+    }
+
+
+    dsint curInstDestination = DbgGetBranchDestination(curVa);
+    GraphicJumpDirection_t curInstDir;
+    if(curInstDestination == 0 || curVa == curInstDestination)
+    {
+        curInstDir = GJD_Nothing;
+    }
+    else if(curInstDestination < curVa)
+    {
+        curInstDir = GJD_Up;
     }
     else
     {
-        if(bIsExecute)
-            painter->setPen(mConditionalTruePen);
-        else
-            painter->setPen(mConditionalFalsePen);
+        curInstDir = GJD_Down;
     }
+
+    painter->setPen(mConditionalTruePen);
+    if(curInstDir == GJD_Up)
+    {
+        QPoint wPoints[] =
+        {
+            QPoint(x , y + getRowHeight() / 2 + 1),
+            QPoint(x + 2, y + getRowHeight() / 2 - 1),
+            QPoint(x + 4, y + getRowHeight() / 2 + 1),
+        };
+
+        painter->drawPolyline(wPoints, 3);
+    }
+    else if(curInstDir == GJD_Down)
+    {
+        QPoint wPoints[] =
+        {
+            QPoint(x , y + getRowHeight() / 2 - 1),
+            QPoint(x + 2, y + getRowHeight() / 2 + 1),
+            QPoint(x + 4, y + getRowHeight() / 2 - 1),
+        };
+
+        painter->drawPolyline(wPoints, 3);
+    }
+
+    x += 8;
+
+    if(showXref)
+    {
+        painter->setPen(mConditionalTruePen);
+    }
+    else
+    {
+        bool bIsExecute = DbgIsJumpGoingToExecute(rvaToVa(instruction.rva));
+
+
+        if(branchType == Instruction_t::Unconditional) //unconditional
+        {
+            painter->setPen(mUnconditionalPen);
+        }
+        else
+        {
+            if(bIsExecute)
+                painter->setPen(mConditionalTruePen);
+            else
+                painter->setPen(mConditionalFalsePen);
+        }
+    }
+
+
 
     if(wPict == GD_Vert)
     {
@@ -899,8 +1021,21 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
         painter->drawLine(x, y, x, y + getRowHeight() / 2);
         painter->drawPolyline(wPoints, 3);
     }
+    else if(wPict == GD_HeadFromBoth)
+    {
+        QPoint wPoints[] =
+        {
+            QPoint(x + 3, y + getRowHeight() / 2 - 2),
+            QPoint(x + 5, y + getRowHeight() / 2),
+            QPoint(x + 3, y + getRowHeight() / 2 + 2),
+        };
 
-    return 7;
+        painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
+        painter->drawLine(x, y, x, y + getRowHeight());
+        painter->drawPolyline(wPoints, 3);
+    }
+
+    return 15;
 }
 
 /************************************************************************************
@@ -1185,6 +1320,14 @@ dsint Disassembly::getSelectionEnd()
 {
     return mSelection.toIndex;
 }
+
+void Disassembly::selectionChangedSlot(dsint Va)
+{
+    if(mXrefInfo.refcount != 0)
+        BridgeFree(mXrefInfo.references);
+    DbgXrefGet(Va, &mXrefInfo);
+}
+
 
 void Disassembly::selectNext(bool expand)
 {
