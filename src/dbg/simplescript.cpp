@@ -9,6 +9,7 @@
 #include "variable.h"
 #include "x64_dbg.h"
 #include "debugger.h"
+#include "filehelper.h"
 
 static std::vector<LINEMAPENTRY> linemap;
 
@@ -74,34 +75,20 @@ static int scriptinternalstep(int fromIp) //internal step routine
 
 static bool scriptcreatelinemap(const char* filename)
 {
-    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if(hFile == INVALID_HANDLE_VALUE)
+    String filedata;
+    if(FileHelper::ReadAllText(filename, filedata))
     {
-        GuiScriptError(0, "CreateFile failed...");
+        GuiScriptError(0, "FileHelper::ReadAllText failed...");
         return false;
     }
-    unsigned int filesize = GetFileSize(hFile, 0);
-    if(!filesize)
-    {
-        GuiScriptError(0, "Empty script...");
-        return false;
-    }
-    Memory<char*> filedata(filesize + 1, "createlinemap:filedata");
-    DWORD read = 0;
-    if(!ReadFile(hFile, filedata(), filesize, &read, 0))
-    {
-        GuiScriptError(0, "ReadFile failed...");
-        return false;
-    }
-    hFile.Close();
-    int len = (int)strlen(filedata());
+    auto len = filedata.length();
     char temp[256] = "";
     LINEMAPENTRY entry;
     memset(&entry, 0, sizeof(entry));
     std::vector<LINEMAPENTRY>().swap(linemap);
-    for(int i = 0, j = 0; i < len; i++) //make raw line map
+    for(size_t i = 0, j = 0; i < len; i++) //make raw line map
     {
-        if(filedata()[i] == '\r' && filedata()[i + 1] == '\n') //windows file
+        if(filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
         {
             memset(&entry, 0, sizeof(entry));
             int add = 0;
@@ -113,7 +100,7 @@ static bool scriptcreatelinemap(const char* filename)
             i++;
             linemap.push_back(entry);
         }
-        else if(filedata()[i] == '\n') //other file
+        else if(filedata[i] == '\n') //other file
         {
             memset(&entry, 0, sizeof(entry));
             int add = 0;
@@ -136,7 +123,7 @@ static bool scriptcreatelinemap(const char* filename)
             linemap.push_back(entry);
         }
         else
-            j += sprintf(temp + j, "%c", filedata()[i]);
+            j += sprintf(temp + j, "%c", filedata[i]);
     }
     if(*temp)
     {

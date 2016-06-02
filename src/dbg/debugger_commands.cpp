@@ -2249,14 +2249,14 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     counter += size;
 
     SetContextDataEx(LoadLibThread, UE_CIP, (duint)ASMAddr);
-    SetBPX((duint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugLoadLibBPX);
+    auto ok = SetBPX((duint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugLoadLibBPX);
 
     ThreadSuspendAll();
     ResumeThread(LoadLibThread);
 
     unlock(WAITID_RUN);
 
-    return STATUS_CONTINUE;
+    return ok ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
 void cbDebugLoadLibBPX()
