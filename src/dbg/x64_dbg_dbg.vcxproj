@@ -64,6 +64,7 @@
     <ClCompile Include="patches.cpp" />
     <ClCompile Include="patternfind.cpp" />
     <ClCompile Include="plugin_loader.cpp" />
+    <ClCompile Include="recursiveanalysis.cpp" />
     <ClCompile Include="reference.cpp" />
     <ClCompile Include="simplescript.cpp" />
     <ClCompile Include="stackinfo.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="patches.h" />
     <ClInclude Include="patternfind.h" />
     <ClInclude Include="plugin_loader.h" />
+    <ClInclude Include="recursiveanalysis.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />
     <ClInclude Include="tcpconnections.h" />

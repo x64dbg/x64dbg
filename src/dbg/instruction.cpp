@@ -35,6 +35,7 @@
 #include "threading.h"
 #include "mnemonichelp.h"
 #include "error.h"
+#include "recursiveanalysis.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -2153,6 +2154,23 @@ CMDRESULT cbInstrExanalyse(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbInstrAnalrecur(int argc, char* argv[])
+{
+    if(argc < 2)
+        return STATUS_ERROR;
+    duint entry;
+    if(!valfromstring(argv[1], &entry, false))
+        return STATUS_ERROR;
+    duint size;
+    auto base = MemFindBaseAddr(entry, &size);
+    if(!base)
+        return STATUS_ERROR;
+    RecursiveAnalysis analysis(base, size, entry, 0);
+    analysis.Analyse();
+    analysis.SetMarkers();
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
 {
     if(argc < 3)
@@ -2492,5 +2510,38 @@ CMDRESULT cbHandleClose(int argc, char* argv[])
         return STATUS_ERROR;
     }
     dprintf("Handle %" fext "X closed!\n", handle);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrBriefcheck(int argc, char* argv[])
+{
+    if(argc < 2)
+        return STATUS_ERROR;
+    duint addr;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
+    duint size;
+    auto base = DbgMemFindBaseAddr(addr, &size);
+    if(!base)
+        return STATUS_ERROR;
+    Memory<unsigned char*> buffer(size + 16);
+    DbgMemRead(base, buffer(), size);
+    Capstone cp;
+    std::unordered_set<String> reported;
+    for(duint i = 0; i < size;)
+    {
+        if(!cp.Disassemble(base + i, buffer() + i, 16))
+        {
+            i++;
+            continue;
+        }
+        i += cp.Size();
+        auto mnem = StringUtils::ToLower(cp.MnemonicId());
+        auto brief = MnemonicHelp::getBriefDescription(mnem.c_str());
+        if(brief.length() || reported.count(mnem))
+            continue;
+        reported.insert(mnem);
+        dprintf(fhex ": %s\n", cp.Address(), mnem.c_str());
+    }
     return STATUS_CONTINUE;
 }
