@@ -10,9 +10,8 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression)
     ui->setupUi(this);
     setModal(true);
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+    setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
 #endif
-    setFixedSize(this->size()); //fixed size
     //initialize stuff
     if(!DbgIsDebugging()) //not debugging
         ui->labelError->setText(tr("<font color='red'><b>Not debugging...</b></font>"));
