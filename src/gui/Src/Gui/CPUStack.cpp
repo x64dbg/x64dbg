@@ -308,12 +308,55 @@ void CPUStack::refreshShortcutsSlot()
     mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
 }
 
+void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
+{
+    // Compute RVA
+    dsint wRva = rva;
+    duint wVa = rvaToVa(wRva);
+
+    bool wActiveStack = true;
+    if(wVa < mCsp) //inactive stack
+        wActiveStack = false;
+
+    STACK_COMMENT comment;
+    RichTextPainter::CustomRichText_t curData;
+    curData.highlight = false;
+    curData.flags = RichTextPainter::FlagColor;
+    curData.textColor = textColor;
+
+    if(col && mDescriptor.at(col - 1).isData == true) //paint stack data
+    {
+        HexDump::getColumnRichText(col, rva, richText);
+        if(!wActiveStack)
+        {
+            QColor inactiveColor = ConfigColor("StackInactiveTextColor");
+            for(int i = 0; i < int(richText.size()); i++)
+            {
+                richText[i].flags = RichTextPainter::FlagColor;
+                richText[i].textColor = inactiveColor;
+            }
+        }
+    }
+    else if(col && DbgStackCommentGet(rvaToVa(wRva), &comment)) //paint stack comments
+    {
+        if(wActiveStack)
+        {
+            if(*comment.color)
+                curData.textColor = QColor(QString(comment.color));
+            else
+                curData.textColor = textColor;
+        }
+        else
+            curData.textColor = ConfigColor("StackInactiveTextColor");
+        curData.text = comment.comment;
+        richText.push_back(curData);
+    }
+    else
+        HexDump::getColumnRichText(col, rva, richText);
+}
+
 QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    // Reset byte offset when base address is reached
-    if(rowBase == 0 && mByteOffset != 0)
-        printDumpAt(mMemPage->getBase(), false, false);
-
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();
     dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
@@ -327,58 +370,10 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
     if(wIsSelected) //highlight if selected
         painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
 
-    bool wActiveStack = true;
-    if(wVa < mCsp) //inactive stack
-        wActiveStack = false;
-
-    STACK_COMMENT comment;
-
     if(col == 0) // paint stack address
     {
-        char label[MAX_LABEL_SIZE] = "";
-        QString addrText = "";
-        dsint cur_addr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
-        if(mRvaDisplayEnabled) //RVA display
-        {
-            dsint rva = cur_addr - mRvaDisplayBase;
-            if(rva == 0)
-            {
-#ifdef _WIN64
-                addrText = "$ ==>            ";
-#else
-                addrText = "$ ==>    ";
-#endif //_WIN64
-            }
-            else if(rva > 0)
-            {
-#ifdef _WIN64
-                addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
-#else
-                addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
-#endif //_WIN64
-            }
-            else if(rva < 0)
-            {
-#ifdef _WIN64
-                addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
-#else
-                addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
-#endif //_WIN64
-            }
-        }
-        addrText += ToPtrString(cur_addr);
-        if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
-        {
-            char module[MAX_MODULE_SIZE] = "";
-            if(DbgGetModuleAt(cur_addr, module) && !QString(label).startsWith("JMP.&"))
-                addrText += " <" + QString(module) + "." + QString(label) + ">";
-            else
-                addrText += " <" + QString(label) + ">";
-        }
-        else
-            *label = 0;
         QColor background;
-        if(*label) //label
+        if(DbgGetLabelAt(wVa, SEG_DEFAULT, nullptr)) //label
         {
             if(wVa == mCsp) //CSP
             {
@@ -411,41 +406,10 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         }
         if(background.alpha())
             painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background when defined
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
+        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(wVa));
+        return "";
     }
-    else if(mDescriptor.at(col - 1).isData == true) //paint stack data
-    {
-        int wBytePerRowCount = getBytePerRowCount();
-        dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
-        printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
-        RichTextPainter::List richText;
-        getString(col - 1, wRva, richText);
-        if(!wActiveStack)
-        {
-            QColor inactiveColor = ConfigColor("StackInactiveTextColor");
-            for(int i = 0; i < int(richText.size()); i++)
-            {
-                richText[i].flags = RichTextPainter::FlagColor;
-                richText[i].textColor = inactiveColor;
-            }
-        }
-        RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, getCharWidth());
-    }
-    else if(DbgStackCommentGet(rvaToVa(wRva), &comment)) //paint stack comments
-    {
-        QString wStr = QString(comment.comment);
-        if(wActiveStack)
-        {
-            if(*comment.color)
-                painter->setPen(QPen(QColor(QString(comment.color))));
-            else
-                painter->setPen(QPen(textColor));
-        }
-        else
-            painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, wStr);
-    }
-    return "";
+    return HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
 }
 
 void CPUStack::contextMenuEvent(QContextMenuEvent* event)
@@ -458,6 +422,13 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     QMenu wMenu(this); //create context menu
     wMenu.addAction(mModifyAction);
     wMenu.addMenu(mBinaryMenu);
+    QMenu wCopyMenu("&Copy", this);
+    wCopyMenu.setIcon(QIcon(":/icons/images/copy.png"));
+    wCopyMenu.addAction(mCopySelection);
+    wCopyMenu.addAction(mCopyAddress);
+    if(DbgFunctions()->ModBaseFromAddr(selectedAddr))
+        wCopyMenu.addAction(mCopyRva);
+    wMenu.addMenu(&wCopyMenu);
     wMenu.addMenu(mBreakpointMenu);
     dsint start = rvaToVa(getSelectionStart());
     dsint end = rvaToVa(getSelectionEnd());

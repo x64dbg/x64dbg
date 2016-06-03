@@ -17,7 +17,8 @@ public:
     virtual void updateColors();
     virtual void updateFonts();
 
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText) override;
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void setupContextMenu();

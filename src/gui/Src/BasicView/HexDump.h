@@ -82,6 +82,7 @@ public:
     // Configuration
     virtual void updateColors();
     virtual void updateFonts();
+    virtual void updateShortcuts();
 
     //QString getStringToPrint(int rowBase, int rowOffset, int col);
     void mouseMoveEvent(QMouseEvent* event);
@@ -101,7 +102,7 @@ public:
     dsint getSelectionEnd();
     bool isSelected(dsint rva);
 
-    void getString(int col, dsint rva, RichTextPainter::List & richText);
+    virtual void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText);
     int getSizeOf(DataSize_e size);
 
     QString toString(DataDescriptor_t desc, void* data);
@@ -134,6 +135,8 @@ public:
     void printDumpAt(dsint parVA, bool select, bool repaint = true, bool updateTableOffset = true);
     duint rvaToVa(dsint rva);
     duint getTableOffsetRva();
+    QString makeAddrText(duint va);
+    QString makeCopyText();
 
     void addVaToHistory(dsint parVa);
     bool historyHasPrev();
@@ -142,6 +145,8 @@ public:
     void historyNext();
     void historyClear();
 
+    void setupCopyMenu();
+
 signals:
     void selectionUpdated();
 
@@ -149,6 +154,9 @@ public slots:
     void printDumpAt(dsint parVA);
     void debugStateChanged(DBGSTATE state);
     void updateDumpSlot();
+    void copySelectionSlot();
+    void copyAddressSlot();
+    void copyRvaSlot();
 
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
@@ -176,6 +184,9 @@ protected:
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;
     QString mSyncAddrExpression;
+    QAction* mCopyAddress;
+    QAction* mCopyRva;
+    QAction* mCopySelection;
 };
 
 #endif // _HEXDUMP_H

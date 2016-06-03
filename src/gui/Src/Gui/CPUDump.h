@@ -13,6 +13,7 @@ class CPUDump : public HexDump
     Q_OBJECT
 public:
     explicit CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent = 0);
+    void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText) override;
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
     void contextMenuEvent(QContextMenuEvent* event);
@@ -94,8 +95,6 @@ public slots:
     void dataCopySlot();
     void entropySlot();
     void syncWithExpressionSlot();
-    void copyAddressSlot();
-    void copyRvaSlot();
     void followInDumpNSlot();
 
     void gotoNextSlot();
@@ -195,13 +194,9 @@ private:
     QAction* mFollowDataDump;
     QAction* mSyncWithExpression;
     QAction* mEntropy;
-    QAction* mCopyAddress;
-    QAction* mCopyRva;
-
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;
     QMenu* mPluginMenu;
-    QMenu* mCopyMenu;
     QMenu* mFollowInDumpMenu;
     QList<QAction*> mFollowInDumpActions;
 

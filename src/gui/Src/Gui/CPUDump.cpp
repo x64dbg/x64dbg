@@ -459,22 +459,7 @@ void CPUDump::setupContextMenu()
     mPluginMenu->setIcon(QIcon(":/icons/images/plugin.png"));
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
 
-    //Copy
-    mCopyMenu = new QMenu(tr("&Copy"), this);
-    mCopyMenu->setIcon(QIcon(":/icons/images/copy.png"));
-
-    // Copy -> Address
-    mCopyAddress = new QAction(tr("&Address"), this);
-    connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddressSlot()));
-    mCopyAddress->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mCopyAddress);
-    mCopyMenu->addAction(mCopyAddress);
-
-    // Copy -> RVA
-    mCopyRva = new QAction("&RVA", this);
-    connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
-    mCopyMenu->addAction(mCopyRva);
-
+    updateShortcuts();
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -497,7 +482,51 @@ void CPUDump::refreshShortcutsSlot()
     mGotoEnd->setShortcut(ConfigShortcut("ActionGotoEnd"));
     mGotoFileOffset->setShortcut(ConfigShortcut("ActionGotoFileOffset"));
     mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
-    mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
+}
+
+void CPUDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
+{
+    if(col && !mDescriptor.at(col - 1).isData && mDescriptor.at(col - 1).itemCount) //print comments
+    {
+        RichTextPainter::CustomRichText_t curData;
+        curData.flags = RichTextPainter::FlagColor;
+        curData.textColor = textColor;
+        duint data = 0;
+        mMemPage->read((byte_t*)&data, rva, sizeof(duint));
+
+        char modname[MAX_MODULE_SIZE] = "";
+        if(!DbgGetModuleAt(data, modname))
+            modname[0] = '\0';
+        char label_text[MAX_LABEL_SIZE] = "";
+        if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
+            curData.text = QString(modname) + "." + QString(label_text);
+        char string_text[MAX_STRING_SIZE] = "";
+        if(DbgGetStringAt(data, string_text))
+            curData.text = string_text;
+        if(!curData.text.length()) //stack comments
+        {
+            auto va = rvaToVa(rva);
+            duint stackSize;
+            duint csp = DbgValFromString("csp");
+            duint stackBase = DbgMemFindBaseAddr(csp, &stackSize);
+            STACK_COMMENT comment;
+            if(va >= stackBase && va < stackBase + stackSize && DbgStackCommentGet(va, &comment))
+            {
+                if(va >= csp) //active stack
+                {
+                    if(*comment.color)
+                        curData.textColor = QColor(QString(comment.color));
+                }
+                else
+                    curData.textColor = ConfigColor("StackInactiveTextColor");
+                curData.text = comment.comment;
+            }
+        }
+        if(curData.text.length())
+            richText.push_back(curData);
+    }
+    else
+        HexDump::getColumnRichText(col, rva, richText);
 }
 
 QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -506,111 +535,27 @@ QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
     if(rowBase == 0 && mByteOffset != 0)
         printDumpAt(mMemPage->getBase(), false, false);
 
-    QString wStr = "";
     if(!col) //address
     {
         char label[MAX_LABEL_SIZE] = "";
-        QString addrText = "";
         dsint cur_addr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
-        if(mRvaDisplayEnabled) //RVA display
+        QColor background;
+        if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //label
         {
-            dsint rva = cur_addr - mRvaDisplayBase;
-            if(rva == 0)
-            {
-#ifdef _WIN64
-                addrText = "$ ==>            ";
-#else
-                addrText = "$ ==>    ";
-#endif //_WIN64
-            }
-            else if(rva > 0)
-            {
-#ifdef _WIN64
-                addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
-#else
-                addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
-#endif //_WIN64
-            }
-            else if(rva < 0)
-            {
-#ifdef _WIN64
-                addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
-#else
-                addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
-#endif //_WIN64
-            }
-        }
-        addrText += QString("%1").arg(cur_addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
-        {
-            char module[MAX_MODULE_SIZE] = "";
-            if(DbgGetModuleAt(cur_addr, module) && !QString(label).startsWith("JMP.&"))
-                addrText += " <" + QString(module) + "." + QString(label) + ">";
-            else
-                addrText += " <" + QString(label) + ">";
-        }
-        else
-            *label = 0;
-        if(*label) //label
-        {
-            QColor background = ConfigColor("HexDumpLabelBackgroundColor");
-            if(background.alpha())
-                painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill bookmark color
+            background = ConfigColor("HexDumpLabelBackgroundColor");
             painter->setPen(ConfigColor("HexDumpLabelColor")); //TODO: config
         }
         else
         {
-            QColor background = ConfigColor("HexDumpAddressBackgroundColor");
-            if(background.alpha())
-                painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill bookmark color
+            background = ConfigColor("HexDumpAddressBackgroundColor");
             painter->setPen(ConfigColor("HexDumpAddressColor")); //TODO: config
         }
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
+        if(background.alpha())
+            painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background color
+        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(cur_addr));
+        return "";
     }
-    else if(mDescriptor.at(col - 1).isData) //print data
-    {
-        wStr = HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-    }
-    else if(!mDescriptor.at(col - 1).isData && mDescriptor.at(col - 1).itemCount) //print comments
-    {
-        duint data = 0;
-        dsint wRva = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset;
-        mMemPage->read((byte_t*)&data, wRva, sizeof(duint));
-
-        char modname[MAX_MODULE_SIZE] = "";
-        if(!DbgGetModuleAt(data, modname))
-            modname[0] = '\0';
-        char label_text[MAX_LABEL_SIZE] = "";
-        if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
-            wStr = QString(modname) + "." + QString(label_text);
-        char string_text[MAX_STRING_SIZE] = "";
-        if(DbgGetStringAt(data, string_text))
-            wStr = string_text;
-        if(!wStr.length()) //stack comments
-        {
-            auto va = rvaToVa(wRva);
-            duint stackSize;
-            duint csp = DbgValFromString("csp");
-            duint stackBase = DbgMemFindBaseAddr(csp, &stackSize);
-            STACK_COMMENT comment;
-            if(va >= stackBase && va < stackBase + stackSize && DbgStackCommentGet(rvaToVa(wRva), &comment))
-            {
-                painter->save();
-                if(va >= csp) //active stack
-                {
-                    if(*comment.color)
-                        painter->setPen(QPen(QColor(QString(comment.color))));
-                    else
-                        painter->setPen(QPen(textColor));
-                }
-                else
-                    painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
-                painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, comment.comment);
-                painter->restore();
-            }
-        }
-    }
-    return wStr;
+    return HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }
 
 void CPUDump::contextMenuEvent(QContextMenuEvent* event)
@@ -619,12 +564,19 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         return;
 
     dsint selectedAddr = rvaToVa(getInitialSelection());
+    dsint start = rvaToVa(getSelectionStart());
+    dsint end = rvaToVa(getSelectionEnd());
 
     QMenu wMenu(this); //create context menu
     wMenu.addMenu(mBinaryMenu);
-    wMenu.addMenu(mCopyMenu);
-    dsint start = rvaToVa(getSelectionStart());
-    dsint end = rvaToVa(getSelectionEnd());
+    QMenu wCopyMenu("&Copy", this);
+    wCopyMenu.setIcon(QIcon(":/icons/images/copy.png"));
+    wCopyMenu.addAction(mCopySelection);
+    wCopyMenu.addAction(mCopyAddress);
+    if(DbgFunctions()->ModBaseFromAddr(selectedAddr))
+        wCopyMenu.addAction(mCopyRva);
+    wMenu.addMenu(&wCopyMenu);
+
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
         wMenu.addAction(mUndoSelection);
     if(DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0))
@@ -1679,25 +1631,6 @@ void CPUDump::syncWithExpressionSlot()
     mSyncAddrExpression = gotoDialog.expressionText;
     if(mSyncAddrExpression.length())
         DbgCmdExec(QString("dump \"%1\"").arg(mSyncAddrExpression).toUtf8().constData());
-}
-
-void CPUDump::copyAddressSlot()
-{
-    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    Bridge::CopyToClipboard(addrText);
-}
-
-void CPUDump::copyRvaSlot()
-{
-    duint addr = rvaToVa(getInitialSelection());
-    duint base = DbgFunctions()->ModBaseFromAddr(addr);
-    if(base)
-    {
-        QString addrText = QString("%1").arg(addr - base, 0, 16, QChar('0')).toUpper();
-        Bridge::CopyToClipboard(addrText);
-    }
-    else
-        QMessageBox::warning(this, "Error!", "Selection not in a module...");
 }
 
 void CPUDump::followInDumpNSlot()

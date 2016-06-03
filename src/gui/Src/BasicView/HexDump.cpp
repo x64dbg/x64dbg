@@ -2,6 +2,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "StringUtil.h"
+#include <QMessageBox>
 
 HexDump::HexDump(QWidget* parent)
     : AbstractTableView(parent)
@@ -31,6 +32,7 @@ HexDump::HexDump(QWidget* parent)
     // Slots
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateDumpSlot()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
+    setupCopyMenu();
 
     Initialize();
 }
@@ -55,6 +57,13 @@ void HexDump::updateFonts()
     setFont(ConfigFont("HexDump"));
 }
 
+void HexDump::updateShortcuts()
+{
+    AbstractTableView::updateShortcuts();
+    mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
+    mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
+}
+
 void HexDump::updateDumpSlot()
 {
     if(mSyncAddrExpression.length() && DbgFunctions()->ValFromString)
@@ -67,6 +76,11 @@ void HexDump::updateDumpSlot()
         }
     }
     reloadData();
+}
+
+void HexDump::copySelectionSlot()
+{
+    Bridge::CopyToClipboard(makeCopyText());
 }
 
 void HexDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset)
@@ -126,6 +140,79 @@ duint HexDump::getTableOffsetRva()
     return getTableOffset() * getBytePerRowCount() - mByteOffset;
 }
 
+QString HexDump::makeAddrText(duint va)
+{
+    char label[MAX_LABEL_SIZE] = "";
+    QString addrText = "";
+    dsint cur_addr = va;
+    if(mRvaDisplayEnabled) //RVA display
+    {
+        dsint rva = cur_addr - mRvaDisplayBase;
+        if(rva == 0)
+        {
+#ifdef _WIN64
+            addrText = "$ ==>            ";
+#else
+            addrText = "$ ==>    ";
+#endif //_WIN64
+        }
+        else if(rva > 0)
+        {
+#ifdef _WIN64
+            addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+        else if(rva < 0)
+        {
+#ifdef _WIN64
+            addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+    }
+    addrText += ToPtrString(cur_addr);
+    if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
+    {
+        char module[MAX_MODULE_SIZE] = "";
+        if(DbgGetModuleAt(cur_addr, module) && !QString(label).startsWith("JMP.&"))
+            addrText += " <" + QString(module) + "." + QString(label) + ">";
+        else
+            addrText += " <" + QString(label) + ">";
+    }
+    else
+        *label = 0;
+    return addrText;
+}
+
+QString HexDump::makeCopyText()
+{
+    dsint deltaRowBase = getSelectionStart() % getBytePerRowCount() + mByteOffset;
+    if(deltaRowBase >= getBytePerRowCount())
+        deltaRowBase -= getBytePerRowCount();
+    auto curRow = getSelectionStart() - deltaRowBase;
+    QString result;
+    while(curRow < getSelectionEnd())
+    {
+        for(int col = 0; col < getColumnCount(); col++)
+        {
+            if(col)
+                result += " ";
+            RichTextPainter::List richText;
+            getColumnRichText(col, curRow, richText);
+            QString colText;
+            for(auto & r : richText)
+                colText += r.text;
+            result += colText.leftJustified(getColumnWidth(col) / getCharWidth(), QChar(' '), true);
+        }
+        curRow += getBytePerRowCount();
+        result += "\n";
+    }
+    return result;
+}
+
 void HexDump::addVaToHistory(dsint parVa)
 {
     //truncate everything right from the current VA
@@ -175,6 +262,44 @@ void HexDump::historyClear()
 {
     mCurrentVa = -1;
     mVaHistory.clear();
+}
+
+void HexDump::setupCopyMenu()
+{
+    // Copy -> Data
+    mCopySelection = new QAction(tr("&Selection"), this);
+    connect(mCopySelection, SIGNAL(triggered(bool)), this, SLOT(copySelectionSlot()));
+    mCopySelection->setShortcutContext(Qt::WidgetShortcut);
+    addAction(mCopySelection);
+
+    // Copy -> Address
+    mCopyAddress = new QAction(tr("&Address"), this);
+    connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddressSlot()));
+    mCopyAddress->setShortcutContext(Qt::WidgetShortcut);
+    addAction(mCopyAddress);
+
+    // Copy -> RVA
+    mCopyRva = new QAction("&RVA", this);
+    connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
+}
+
+void HexDump::copyAddressSlot()
+{
+    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    Bridge::CopyToClipboard(addrText);
+}
+
+void HexDump::copyRvaSlot()
+{
+    duint addr = rvaToVa(getInitialSelection());
+    duint base = DbgFunctions()->ModBaseFromAddr(addr);
+    if(base)
+    {
+        QString addrText = QString("%1").arg(addr - base, 0, 16, QChar('0')).toUpper();
+        Bridge::CopyToClipboard(addrText);
+    }
+    else
+        QMessageBox::warning(this, "Error!", "Selection not in a module...");
 }
 
 void HexDump::mouseMoveEvent(QMouseEvent* event)
@@ -332,20 +457,14 @@ QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
     int wBytePerRowCount = getBytePerRowCount();
     dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
 
-    QString wStr = "";
-    if(col == 0)    // Addresses
-    {
-        wStr += QString("%1").arg(rvaToVa(wRva), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    }
-    else if(mDescriptor.at(col - 1).isData == true) //paint data
-    {
+    if(col && mDescriptor.at(col - 1).isData)
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
-        RichTextPainter::List richText;
-        getString(col - 1, wRva, richText);
-        RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, getCharWidth());
-    }
 
-    return wStr;
+    RichTextPainter::List richText;
+    getColumnRichText(col, wRva, richText);
+    RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, getCharWidth());
+
+    return "";
 }
 
 void HexDump::printSelected(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -434,45 +553,56 @@ bool HexDump::isSelected(dsint rva)
         return false;
 }
 
-void HexDump::getString(int col, dsint rva, RichTextPainter::List & richText)
+void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
 {
-    int wI;
-    QString wStr = "";
-
-    int wByteCount = getSizeOf(mDescriptor.at(col).data.itemSize);
-    int wBufferByteCount = mDescriptor.at(col).itemCount * wByteCount;
-
-    wBufferByteCount = wBufferByteCount > (dsint)(mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : wBufferByteCount;
-
-    byte_t* wData = new byte_t[wBufferByteCount];
-    //byte_t wData[mDescriptor.at(col).itemCount * wByteCount];
-
-    mMemPage->read(wData, rva, wBufferByteCount);
-
     RichTextPainter::CustomRichText_t curData;
     curData.highlight = false;
     curData.flags = RichTextPainter::FlagColor;
-
-    QColor highlightColor = ConfigColor("HexDumpModifiedBytesColor");
-
-    for(wI = 0; wI < mDescriptor.at(col).itemCount && (rva + wI) < (dsint)mMemPage->getSize(); wI++)
+    curData.textColor = textColor;
+    if(!col) //address
     {
-        int maxLen = getStringMaxLength(mDescriptor.at(col).data);
-        QString append = " ";
-        if(!maxLen)
-            append = "";
-        if((rva + wI + wByteCount - 1) < (dsint)mMemPage->getSize())
-            wStr = toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
-        else
-            wStr = QString("?").rightJustified(maxLen, ' ') + append;
-        curData.text = wStr;
-        dsint start = rvaToVa(rva + wI * wByteCount);
-        dsint end = start + wByteCount - 1;
-        curData.textColor = DbgFunctions()->PatchInRange(start, end) ? highlightColor : textColor;
+        curData.text = makeAddrText(rvaToVa(rva));
         richText.push_back(curData);
     }
+    else if(mDescriptor.at(col - 1).isData == true)
+    {
+        int wI;
+        QString wStr = "";
 
-    delete[] wData;
+        int wByteCount = getSizeOf(mDescriptor.at(col - 1).data.itemSize);
+        int wBufferByteCount = mDescriptor.at(col - 1).itemCount * wByteCount;
+
+        wBufferByteCount = wBufferByteCount > (dsint)(mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : wBufferByteCount;
+
+        byte_t* wData = new byte_t[wBufferByteCount];
+        //byte_t wData[mDescriptor.at(col).itemCount * wByteCount];
+
+        mMemPage->read(wData, rva, wBufferByteCount);
+
+        QColor highlightColor = ConfigColor("HexDumpModifiedBytesColor");
+
+        for(wI = 0; wI < mDescriptor.at(col - 1).itemCount && (rva + wI) < (dsint)mMemPage->getSize(); wI++)
+        {
+            int maxLen = getStringMaxLength(mDescriptor.at(col - 1).data);
+            QString append = " ";
+            if(!maxLen)
+                append = "";
+            if((rva + wI + wByteCount - 1) < (dsint)mMemPage->getSize())
+                wStr = toString(mDescriptor.at(col - 1).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
+            else
+                wStr = QString("?").rightJustified(maxLen, ' ') + append;
+            curData.text = wStr;
+            dsint start = rvaToVa(rva + wI * wByteCount);
+            dsint end = start + wByteCount - 1;
+            if(DbgFunctions()->PatchInRange(start, end))
+                curData.textColor = highlightColor;
+            else
+                curData.textColor = textColor;
+            richText.push_back(curData);
+        }
+
+        delete[] wData;
+    }
 }
 
 QString HexDump::toString(DataDescriptor_t desc, void* data) //convert data to string
