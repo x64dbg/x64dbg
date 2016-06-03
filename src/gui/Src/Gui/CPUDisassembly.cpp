@@ -907,6 +907,8 @@ void CPUDisassembly::gotoEndSlot()
 
 void CPUDisassembly::gotoXrefSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     XrefBrowseDialog xrefDlg(this, getSelectedVa());
     xrefDlg.exec();
 }

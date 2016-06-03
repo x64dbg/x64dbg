@@ -32,7 +32,7 @@ void LinearAnalysis::SetMarkers()
     XrefClear();
     for(auto & reference : mReferences)
     {
-        XrefAdd(reference.to, reference.from, reference.iscall ? XREFTYPE::XREF_CALL : XREFTYPE::XREF_JMP);
+        XrefAdd(reference.to, reference.from);
     }
 }
 

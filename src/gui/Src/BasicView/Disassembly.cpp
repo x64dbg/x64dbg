@@ -400,7 +400,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         funcsize += charwidth;
 
         //draw jump arrows
-        int jumpsize = paintJumpsGraphic(painter, x + funcsize, y - 1, wRVA); //jump line
+        int jumpsize = paintJumpsGraphic(painter, x + funcsize, y - 1, wRVA, mInstBuffer.at(rowOffset).branchType != Instruction_t::BranchType::None); //jump line
 
         //draw bytes
         RichTextPainter::List richBytes;
@@ -837,12 +837,12 @@ dsint Disassembly::sliderMovedHook(int type, dsint value, dsint delta)
  *
  * @return      Nothing.
  */
-int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
+int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, bool isjmp)
 {
     dsint selHeadRVA = mSelection.fromIndex;
     dsint rva = addr;
-    dsint curVa = rvaToVa(addr);
-    dsint selVa = rvaToVa(selHeadRVA);
+    duint curVa = rvaToVa(addr);
+    duint selVa = rvaToVa(mSelection.firstSelectedIndex);
     Instruction_t instruction = DisassembleAt(selHeadRVA);
     auto branchType = instruction.branchType;
 
@@ -853,7 +853,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
     if(branchType != Instruction_t::None)
     {
         dsint base = mMemPage->getBase();
-        dsint destVA = DbgGetBranchDestination(selVa);
+        dsint destVA = DbgGetBranchDestination(rvaToVa(selHeadRVA));
 
         if(destVA >= base && destVA < base + (dsint)mMemPage->getSize())
         {
@@ -881,19 +881,18 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
     }
     else if(mXrefInfo.refcount > 0)
     {
-        dsint max = selVa, min = selVa;
+        duint max = selVa, min = selVa;
         showXref = true;
         for(int i = 0; i < mXrefInfo.refcount; i++)
         {
-            if(curVa == mXrefInfo.references[i])
+            if(curVa == mXrefInfo.references[i].addr)
             {
-                wPict = curVa > selVa ? GD_FootToTop : GD_FootToBottom;
-                break;
+                wPict = GD_VertHori;
             }
-            if(mXrefInfo.references[i] > max)
-                max = mXrefInfo.references[i];
-            if(mXrefInfo.references[i] < min)
-                min = mXrefInfo.references[i];
+            if(mXrefInfo.references[i].addr > max)
+                max = mXrefInfo.references[i].addr;
+            if(mXrefInfo.references[i].addr < min)
+                min = mXrefInfo.references[i].addr;
         }
         if(curVa == selVa)
         {
@@ -911,25 +910,37 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
             }
 
         }
+        else if(curVa < selVa && curVa == min)
+        {
+            wPict =  GD_FootToBottom;
+        }
+        else if(curVa > selVa && curVa == max)
+        {
+            wPict = GD_FootToTop;
+        }
         if(wPict == GD_Nothing && curVa > min && curVa < max)
             wPict = GD_Vert;
     }
 
+    GraphicJumpDirection_t curInstDir = GJD_Nothing;
 
-    dsint curInstDestination = DbgGetBranchDestination(curVa);
-    GraphicJumpDirection_t curInstDir;
-    if(curInstDestination == 0 || curVa == curInstDestination)
+    if(isjmp)
     {
-        curInstDir = GJD_Nothing;
+        duint curInstDestination = DbgGetBranchDestination(curVa);
+        if(curInstDestination == 0 || curVa == curInstDestination)
+        {
+            curInstDir = GJD_Nothing;
+        }
+        else if(curInstDestination < curVa)
+        {
+            curInstDir = GJD_Up;
+        }
+        else
+        {
+            curInstDir = GJD_Down;
+        }
     }
-    else if(curInstDestination < curVa)
-    {
-        curInstDir = GJD_Up;
-    }
-    else
-    {
-        curInstDir = GJD_Down;
-    }
+
 
     painter->setPen(mConditionalTruePen);
     if(curInstDir == GJD_Up)
@@ -959,7 +970,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
 
     if(showXref)
     {
-        painter->setPen(mConditionalTruePen);
+        painter->setPen(mUnconditionalPen);
     }
     else
     {
@@ -1033,6 +1044,11 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
         painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
         painter->drawLine(x, y, x, y + getRowHeight());
         painter->drawPolyline(wPoints, 3);
+    }
+    else if(wPict == GD_VertHori)
+    {
+        painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
+        painter->drawLine(x, y, x, y + getRowHeight());
     }
 
     return 15;
@@ -1324,8 +1340,12 @@ dsint Disassembly::getSelectionEnd()
 void Disassembly::selectionChangedSlot(dsint Va)
 {
     if(mXrefInfo.refcount != 0)
+    {
         BridgeFree(mXrefInfo.references);
-    DbgXrefGet(Va, &mXrefInfo);
+        mXrefInfo.refcount = 0;
+    }
+    if(DbgIsDebugging())
+        DbgXrefGet(Va, &mXrefInfo);
 }
 
 

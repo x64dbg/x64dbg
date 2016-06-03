@@ -1021,7 +1021,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         }
         else
         {
-            info->references = (duint*)BridgeAlloc(sizeof(duint) * info->refcount);
+            info->references = (XREF_RECORD*)BridgeAlloc(sizeof(XREF_RECORD) * info->refcount);
             return XrefGet(address, info);
         }
     }
@@ -1029,7 +1029,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_XREF_ADD:
     {
-        return XrefAdd((duint)param1, (duint)param2, XREF_JMP);
+        return XrefAdd((duint)param1, (duint)param2);
     }
     break;
 

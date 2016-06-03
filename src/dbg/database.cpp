@@ -17,6 +17,7 @@
 #include "database.h"
 #include "threading.h"
 #include "filehelper.h"
+#include "xrefs.h"
 #include "TraceRecord.h"
 
 /**
@@ -50,6 +51,7 @@ void DbSave(DbLoadSaveType saveType)
         BookmarkCacheSave(root);
         FunctionCacheSave(root);
         LoopCacheSave(root);
+        XrefCacheSave(root);
         TraceRecord.saveToDb(root);
         BpCacheSave(root);
 
@@ -160,6 +162,7 @@ void DbLoad(DbLoadSaveType loadType)
         BookmarkCacheLoad(root);
         FunctionCacheLoad(root);
         LoopCacheLoad(root);
+        XrefCacheLoad(root);
         TraceRecord.loadFromDb(root);
         BpCacheLoad(root);
 
@@ -184,6 +187,7 @@ void DbClose()
     BookmarkClear();
     FunctionClear();
     LoopClear();
+    XrefClear();
     BpClear();
     PatchClear();
     GuiSetDebuggeeNotes("");

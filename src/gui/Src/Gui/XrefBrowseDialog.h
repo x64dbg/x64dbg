@@ -2,6 +2,7 @@
 #define XREFBROWSEDIALOG_H
 
 #include <QDialog>
+#include <QListWidgetItem>
 #include <capstone_wrapper.h>
 #include "XrefBrowseDialog.h"
 #include "Bridge.h"
@@ -23,13 +24,16 @@ public:
 public slots:
 
     void on_buttonCancel_clicked();
-    void on_listview_clicked(int row);
+    void on_currentRow_changed(int);
+    void on_item_DoubleClicked(QListWidgetItem*);
+    void on_selection_changed();
 
 private:
     Ui::XrefBrowseDialog* ui;
     XREF_INFO mXrefInfo;
-    Capstone mCapstone;
     duint mAddress;
+    int mPrevSelectionSize;
+    void changeAddress(duint address);
 };
 
 #endif // XREFBROWSEDIALOG_H

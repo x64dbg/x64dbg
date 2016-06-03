@@ -129,12 +129,12 @@ typedef enum
     LOOP_END
 } LOOPTYPE;
 
-//flags
+
 typedef enum
 {
-    XREF_NONE = 0,
-    XREF_CALL = 1,
-    XREF_JMP = 2,
+    XREF_NONE,
+    XREF_CALL,
+    XREF_JMP
 } XREFTYPE;
 
 typedef enum
@@ -664,8 +664,14 @@ typedef struct
 
 typedef struct
 {
+    duint addr;
+    char inst[8];
+} XREF_RECORD;
+
+typedef struct
+{
     char mod[MAX_MODULE_SIZE];
-    duint* references;
+    XREF_RECORD* references;
     size_t refcount;
 } XREF_INFO;
 
