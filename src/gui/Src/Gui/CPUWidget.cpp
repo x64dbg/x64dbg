@@ -39,7 +39,11 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     mGeneralRegs = new RegistersView(0);
     mGeneralRegs->setFixedWidth(1000);
+#ifdef _WIN64
+    mGeneralRegs->setFixedHeight(2000);
+#else //x86
     mGeneralRegs->setFixedHeight(1400);
+#endif //_WIN64
     mGeneralRegs->ShowFPU(true);
 
     QScrollArea* upperScrollArea = new QScrollArea(this);
