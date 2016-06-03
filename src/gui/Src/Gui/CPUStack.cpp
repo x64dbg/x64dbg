@@ -195,6 +195,13 @@ void CPUStack::setupContextMenu()
     mModifyAction = new QAction(QIcon(":/icons/images/modify.png"), tr("Modify"), this);
     connect(mModifyAction, SIGNAL(triggered()), this, SLOT(modifySlot()));
 
+    // Copy
+    mCopyMenu = new QMenu(tr("&Copy"), this);
+    mCopyMenu->setIcon(QIcon(":/icons/images/copy.png"));
+    mCopySelection = new QAction(tr("Selection"), this);
+    connect(mCopySelection, SIGNAL(triggered()), this, SLOT(copySelectionSlot()));
+    mCopyMenu->addAction(mCopySelection);
+
     auto cspIcon = QIcon(":/icons/images/neworigin.png");
     auto cbpIcon = QIcon(":/icons/images/cbp.png");
 #ifdef _WIN64
@@ -336,47 +343,9 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
     if(col == 0) // paint stack address
     {
         char label[MAX_LABEL_SIZE] = "";
-        QString addrText = "";
-        dsint cur_addr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
-        if(mRvaDisplayEnabled) //RVA display
-        {
-            dsint rva = cur_addr - mRvaDisplayBase;
-            if(rva == 0)
-            {
-#ifdef _WIN64
-                addrText = "$ ==>            ";
-#else
-                addrText = "$ ==>    ";
-#endif //_WIN64
-            }
-            else if(rva > 0)
-            {
-#ifdef _WIN64
-                addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
-#else
-                addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
-#endif //_WIN64
-            }
-            else if(rva < 0)
-            {
-#ifdef _WIN64
-                addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
-#else
-                addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
-#endif //_WIN64
-            }
-        }
-        addrText += ToPtrString(cur_addr);
-        if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
-        {
-            char module[MAX_MODULE_SIZE] = "";
-            if(DbgGetModuleAt(cur_addr, module) && !QString(label).startsWith("JMP.&"))
-                addrText += " <" + QString(module) + "." + QString(label) + ">";
-            else
-                addrText += " <" + QString(label) + ">";
-        }
-        else
-            *label = 0;
+        QString addrText("");
+        duint cur_addr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
+        addrText = getAddrText(cur_addr, label);
         QColor background;
         if(*label) //label
         {
@@ -431,7 +400,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         }
         RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, getCharWidth());
     }
-    else if(DbgStackCommentGet(rvaToVa(wRva), &comment)) //paint stack comments
+    else if(DbgStackCommentGet(wVa, &comment)) //paint stack comments
     {
         QString wStr = QString(comment.comment);
         if(wActiveStack)
@@ -448,6 +417,51 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
     return "";
 }
 
+QString CPUStack::getAddrText(dsint cur_addr, char label[])
+{
+    QString addrText("");
+    if(mRvaDisplayEnabled) //RVA display
+    {
+        dsint rva = cur_addr - mRvaDisplayBase;
+        if(rva == 0)
+        {
+#ifdef _WIN64
+            addrText = "$ ==>            ";
+#else
+            addrText = "$ ==>    ";
+#endif //_WIN64
+        }
+        else if(rva > 0)
+        {
+#ifdef _WIN64
+            addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+        else if(rva < 0)
+        {
+#ifdef _WIN64
+            addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+    }
+    addrText += ToPtrString(cur_addr);
+    if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
+    {
+        char module[MAX_MODULE_SIZE] = "";
+        if(DbgGetModuleAt(cur_addr, module) && !QString(label).startsWith("JMP.&"))
+            addrText += " <" + QString(module) + "." + QString(label) + ">";
+        else
+            addrText += " <" + QString(label) + ">";
+    }
+    else
+        *label = 0;
+    return addrText;
+}
+
 void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 {
     dsint selectedAddr = rvaToVa(getInitialSelection());
@@ -459,6 +473,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(mModifyAction);
     wMenu.addMenu(mBinaryMenu);
     wMenu.addMenu(mBreakpointMenu);
+    wMenu.addMenu(mCopyMenu);
     dsint start = rvaToVa(getSelectionStart());
     dsint end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
@@ -910,6 +925,38 @@ void CPUStack::modifySlot()
     value = wEditDialog.getVal();
     mMemPage->write(&value, addr, sizeof(dsint));
     GuiUpdateAllViews();
+}
+
+void CPUStack::copySelectionSlot()
+{
+    dsint rvaStart = getSelectionStart();
+    dsint rvaEnd = getSelectionEnd();
+    duint vaStart = rvaToVa(rvaStart);
+    QString buffer;
+    duint stackContent;
+    char label[MAX_LABEL_SIZE];
+    STACK_COMMENT comment;
+    if(rvaStart > rvaEnd)
+    {
+        dsint temp = rvaStart;
+        rvaStart = rvaEnd;
+        rvaEnd = temp;
+    }
+    for(dsint i = rvaStart; i <= rvaEnd; i += sizeof(dsint))
+    {
+        duint cur_addr = i - rvaStart + vaStart;
+        if(DbgMemRead(cur_addr, (unsigned char*)&stackContent, sizeof(duint)))
+        {
+            buffer += getAddrText(cur_addr, label);
+            buffer += QString(" | ");
+            buffer += ToPtrString(stackContent);
+            buffer += QString(" | ");
+            DbgStackCommentGet(cur_addr, &comment);
+            buffer += QString(comment.comment);
+            buffer += QString("\r\n");
+        }
+    }
+    Bridge::CopyToClipboard(buffer);
 }
 
 void CPUStack::freezeStackSlot()
