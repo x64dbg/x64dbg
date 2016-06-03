@@ -1,5 +1,6 @@
 #include "_global.h"
 #include "threading.h"
+#include "module.h"
 
 template<class TValue>
 class JSONWrapper
@@ -79,7 +80,6 @@ protected:
         return true;
     }
 
-private:
     // ReSharper disable once CppMemberFunctionMayBeConst
     void set(const char* key, JSON value)
     {
@@ -237,6 +237,11 @@ public:
         if(valuePtr)
             *valuePtr = value;
         return true;
+    }
+
+    TMap & GetDataUnsafe()
+    {
+        return mMap;
     }
 
     virtual void AdjustValue(TValue & value) const = 0;

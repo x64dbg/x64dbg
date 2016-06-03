@@ -97,5 +97,6 @@
         <file>images/handles.png</file>
         <file>images/dump.png</file>
         <file>images/analyzesinglefunction.png</file>
+        <file>images/xrefs.png</file>
     </qresource>
 </RCC>

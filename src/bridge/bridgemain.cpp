@@ -737,6 +737,37 @@ BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
     return true;
 }
 
+BRIDGE_IMPEXP size_t DbgGetXrefCountAt(duint addr)
+{
+    return _dbg_sendmessage(DBG_GET_XREF_COUNT_AT, (void*)addr, 0);
+}
+
+BRIDGE_IMPEXP XREFTYPE DbgGetXrefTypeAt(duint addr)
+{
+    return (XREFTYPE)_dbg_sendmessage(DBG_GET_XREF_TYPE_AT, (void*)addr, 0);
+}
+
+BRIDGE_IMPEXP bool DbgXrefAdd(duint addr, duint from, bool iscall)
+{
+    if(!_dbg_sendmessage(DBG_XREF_ADD, (void*)addr, (void*)from))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgXrefDelAll(duint addr)
+{
+    if(!_dbg_sendmessage(DBG_XREF_DEL_ALL, (void*)addr, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgXrefGet(duint addr, XREF_INFO* info)
+{
+    if(!_dbg_sendmessage(DBG_XREF_GET, (void*)addr, info))
+        return false;
+    return true;
+}
+
 // FIXME all
 BRIDGE_IMPEXP bool DbgIsRunLocked()
 {

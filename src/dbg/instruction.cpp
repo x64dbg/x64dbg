@@ -36,6 +36,7 @@
 #include "mnemonichelp.h"
 #include "error.h"
 #include "recursiveanalysis.h"
+#include "xrefsanalysis.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -2168,6 +2169,19 @@ CMDRESULT cbInstrAnalrecur(int argc, char* argv[])
     RecursiveAnalysis analysis(base, size, entry, 0);
     analysis.Analyse();
     analysis.SetMarkers();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrAnalxrefs(int argc, char* argv[])
+{
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    duint size = 0;
+    auto base = MemFindBaseAddr(sel.start, &size);
+    XrefsAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 

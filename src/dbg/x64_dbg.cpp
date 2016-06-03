@@ -274,6 +274,7 @@ static void registercommands()
     dbgcmdnew("handleclose", cbHandleClose, true); //close remote handle
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
     dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
+    dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

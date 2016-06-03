@@ -58,6 +58,7 @@ public slots:
     void followActionSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
+    void gotoXrefSlot();
     void findReferencesSlot();
     void findConstantSlot();
     void findStringsSlot();

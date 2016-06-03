@@ -305,6 +305,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionFindReferencesToSelectedAddress", Shortcut(tr("Actions -> Find References to Selected Address"), "Ctrl+R"));
     defaultShortcuts.insert("ActionFindPattern", Shortcut(tr("Actions -> Find Pattern"), "Ctrl+B"));
     defaultShortcuts.insert("ActionFindReferences", Shortcut(tr("Actions -> Find References"), "Ctrl+R"));
+    defaultShortcuts.insert("ActionXrefs", Shortcut(tr("Actions -> xrefs..."), "X"));
     defaultShortcuts.insert("ActionHelpOnMnemonic", Shortcut(tr("Actions -> Help on Mnemonic"), "Ctrl+F1"));
     defaultShortcuts.insert("ActionToggleMnemonicBrief", Shortcut(tr("Actions -> Toggle Mnemonic Brief"), "Ctrl+Shift+F1"));
     defaultShortcuts.insert("ActionHighlightingMode", Shortcut(tr("Actions -> Highlighting Mode"), "Ctrl+H"));

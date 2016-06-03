@@ -56,6 +56,7 @@ enum SectionLock
     LockSehCache,
     LockMnemonicHelp,
     LockTraceRecord,
+    LockCrossReferences,
     LockDebugStartStop,
     LockArguments,
 

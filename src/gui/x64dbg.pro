@@ -151,7 +151,8 @@ SOURCES += \
     Src/Gui/EditFloatRegister.cpp \
     Src/Utils/HexValidator.cpp \
     Src/Utils/LongLongValidator.cpp \
-    Src/Utils/MiscUtil.cpp
+    Src/Utils/MiscUtil.cpp \
+    Src/Gui/XrefBrowseDialog.cpp
 
 
 HEADERS += \
@@ -243,7 +244,8 @@ HEADERS += \
     Src/Gui/EditFloatRegister.h \
     Src/Utils/HexValidator.h \
     Src/Utils/LongLongValidator.h \
-    Src/Utils/MiscUtil.h
+    Src/Utils/MiscUtil.h \
+    Src/Gui/XrefBrowseDialog.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -272,7 +274,8 @@ FORMS += \
     Src/Gui/AssembleDialog.ui \
     Src/Gui/EditBreakpointDialog.ui \
     Src/Gui/CPUArgumentWidget.ui \
-    Src/Gui/EditFloatRegister.ui
+    Src/Gui/EditFloatRegister.ui \
+    Src/Gui/XrefBrowseDialog.ui
 
 TRANSLATIONS = \
     Translations/x64dbg_zh_CN.ts
