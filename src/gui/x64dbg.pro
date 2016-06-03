@@ -110,6 +110,7 @@ SOURCES += \
     Src/Gui/AppearanceDialog.cpp \
     Src/Gui/CloseDialog.cpp \
     Src/Gui/HexEditDialog.cpp \
+    Src/Gui/HexLineEdit.cpp \
     Src/QHexEdit/ArrayCommand.cpp \
     Src/QHexEdit/QHexEdit.cpp \
     Src/QHexEdit/QHexEditPrivate.cpp \
@@ -198,6 +199,7 @@ HEADERS += \
     Src/Gui/AppearanceDialog.h \
     Src/Gui/CloseDialog.h \
     Src/Gui/HexEditDialog.h \
+    Src/Gui/HexLineEdit.h \
     Src/QHexEdit/ArrayCommand.h \
     Src/QHexEdit/QHexEdit.h \
     Src/QHexEdit/QHexEditPrivate.h \
@@ -256,6 +258,7 @@ FORMS += \
     Src/Gui/AppearanceDialog.ui \
     Src/Gui/CloseDialog.ui \
     Src/Gui/HexEditDialog.ui \
+    Src/Gui/HexLineEdit.ui \
     Src/Gui/PatchDialog.ui \
     Src/Gui/PatchDialogGroupSelector.ui \
     Src/Gui/ShortcutsDialog.ui \
