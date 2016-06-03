@@ -2,6 +2,7 @@
 #include "console.h"
 #include "memory.h"
 #include "function.h"
+#include "xrefs.h"
 
 LinearAnalysis::LinearAnalysis(duint base, duint size) : Analysis(base, size)
 {
@@ -28,6 +29,11 @@ void LinearAnalysis::SetMarkers()
             continue;
         FunctionAdd(function.start, function.end, false);
     }
+    XrefClear();
+    for(auto & reference : mReferences)
+    {
+        XrefAdd(reference.to, reference.from);
+    }
 }
 
 void LinearAnalysis::sortCleanup()
@@ -44,11 +50,15 @@ void LinearAnalysis::populateReferences()
     for(duint i = 0; i < mSize;)
     {
         auto addr = mBase + i;
+        bool iscall = false;
         if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
         {
-            auto ref = getReferenceOperand();
+            auto ref = getReferenceOperand(&iscall);
             if(ref)
+            {
+                mReferences.push_back({ addr, ref, iscall });
                 mFunctions.push_back({ ref, 0 });
+            }
             i += mCp.Size();
         }
         else
@@ -132,13 +142,14 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
     return end < jumpback ? jumpback : end;
 }
 
-duint LinearAnalysis::getReferenceOperand() const
+duint LinearAnalysis::getReferenceOperand(bool* iscall) const
 {
+    ReferenceInfo info;
     for(auto i = 0; i < mCp.OpCount(); i++)
     {
         const auto & op = mCp.x86().operands[i];
-        if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())  //skip jumps/loops
-            continue;
+        if(iscall != nullptr)
+            *iscall = mCp.InGroup(CS_GRP_CALL);
         if(op.type == X86_OP_IMM)  //we are looking for immediate references
         {
             auto dest = duint(op.imm);

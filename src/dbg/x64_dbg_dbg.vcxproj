@@ -78,6 +78,7 @@
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="x64_dbg.cpp" />
+    <ClCompile Include="xrefs.cpp" />
     <ClCompile Include="_exports.cpp" />
     <ClCompile Include="_dbgfunctions.cpp" />
     <ClCompile Include="_global.cpp" />
@@ -160,6 +161,7 @@
     <ClInclude Include="serializablemap.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
+    <ClInclude Include="xrefs.h" />
     <ClInclude Include="yara\yara\stream.h" />
     <ClInclude Include="_scriptapi.h" />
     <ClInclude Include="simplescript.h" />

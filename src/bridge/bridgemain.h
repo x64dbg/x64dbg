@@ -129,6 +129,14 @@ typedef enum
     LOOP_END
 } LOOPTYPE;
 
+
+typedef enum
+{
+    XREF_NONE,
+    XREF_CALL,
+    XREF_JMP
+} XREFTYPE;
+
 typedef enum
 {
     ARG_NONE,
@@ -188,6 +196,11 @@ typedef enum
     DBG_DELETE_COMMENT_RANGE,       // param1=duint start,               param2=duint end
     DBG_DELETE_LABEL_RANGE,         // param1=duint start,               param2=duint end
     DBG_DELETE_BOOKMARK_RANGE,      // param1=duint start,               param2=duint end
+    DBG_GET_XREF_COUNT_AT,          // param1=duint addr,                param2=unused
+    DBG_GET_XREF_TYPE_AT,           // param1=duint addr,                param2=unused
+    DBG_XREF_ADD,                   // param1=duint addr,                param2=duint from
+    DBG_XREF_DEL_ALL,               // param1=duint addr,                param2=unused
+    DBG_XREF_GET,                   // param1=duint addr,                param2=XREF_INFO* info
 } DBGMSG;
 
 typedef enum
@@ -649,6 +662,19 @@ typedef struct
     int depth;
 } FUNCTION_LOOP_INFO;
 
+typedef struct
+{
+    duint addr;
+    char inst[8];
+} XREF_RECORD;
+
+typedef struct
+{
+    char mod[MAX_MODULE_SIZE];
+    XREF_RECORD* references;
+    size_t refcount;
+} XREF_INFO;
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP void DbgExit();
@@ -710,6 +736,11 @@ BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end);
 BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr);
+BRIDGE_IMPEXP bool DbgXrefAdd(duint addr, duint from, bool iscall);
+BRIDGE_IMPEXP bool DbgXrefDelAll(duint addr);
+BRIDGE_IMPEXP bool DbgXrefGet(duint addr, XREF_INFO* info);
+BRIDGE_IMPEXP size_t DbgGetXrefCountAt(duint addr);
+BRIDGE_IMPEXP XREFTYPE DbgGetXrefTypeAt(duint addr);
 BRIDGE_IMPEXP bool DbgIsRunLocked();
 BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr);
 BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text);
