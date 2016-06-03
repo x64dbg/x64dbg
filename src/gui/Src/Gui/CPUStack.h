@@ -27,6 +27,7 @@ signals:
     void displayReferencesWidget();
 
 public slots:
+    void copySelectionSlot();
     void refreshShortcutsSlot();
     void stackDumpAt(duint addr, duint csp);
     void gotoSpSlot();
@@ -69,6 +70,7 @@ public slots:
 private:
     duint mCsp;
     bool bStackFrozen;
+    QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE]);
 
     QMenu* mBinaryMenu;
     QAction* mBinaryEditAction;
@@ -111,6 +113,8 @@ private:
     QAction* mFollowDisasm;
     QAction* mFollowDump;
     QAction* mFollowStack;
+    QMenu* mCopyMenu;
+    QAction* mCopySelection;
     QMenu* mPluginMenu;
     QMenu* mFollowInDumpMenu;
     QList<QAction*> mFollowInDumpActions;
