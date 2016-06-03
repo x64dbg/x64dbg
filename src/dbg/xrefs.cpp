@@ -140,7 +140,6 @@ bool XrefDeleteAll(duint Address)
 void XrefDelRange(duint Start, duint End, bool DeleteManual)
 {
 
-    // Should all functions be deleted?
     // 0x00000000 - 0xFFFFFFFF
     if(Start == 0 && End == ~0)
     {
@@ -233,13 +232,12 @@ void XrefCacheLoad(JSON Root)
         if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
             strcpy_s(xrefinfo.mod, mod);
 
-        // Function address
         xrefinfo.address = (duint)json_hex_value(json_object_get(value, "address"));
         xrefinfo.jmp_count = (duint)json_hex_value(json_object_get(value, "jmp_count"));
         xrefinfo.call_count = (duint)json_hex_value(json_object_get(value, "call_count"));
 
         JSON jsonRecords = json_object_get(value, "references");
-
+        // Load records
         json_array_foreach(jsonRecords, j, record)
         {
             XREF_RECORD xrefRecord;
