@@ -14,12 +14,12 @@ MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, "Address"); //addr
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, "Size"); //size
-    addColumnAt(8 + charwidth * 32, tr("Info"), false, "Page Information"); //page information
-    addColumnAt(8 + charwidth * 5, tr("Type"), false, "Allocation Type"); //allocation type
-    addColumnAt(8 + charwidth * 11, tr("Protection"), false, "Current Protection"); //current protection
-    addColumnAt(8 + charwidth * 8, tr("Initial"), false, "Allocation Protection"); //allocation protection
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, tr("Address")); //addr
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, tr("Size")); //size
+    addColumnAt(8 + charwidth * 32, tr("Info"), false, tr("Page Information")); //page information
+    addColumnAt(8 + charwidth * 5, tr("Type"), false, tr("Allocation Type")); //allocation type
+    addColumnAt(8 + charwidth * 11, tr("Protection"), false, tr("Current Protection")); //current protection
+    addColumnAt(8 + charwidth * 8, tr("Initial"), false, tr("Allocation Protection")); //allocation protection
     addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
@@ -131,24 +131,24 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 {
     if(!DbgIsDebugging())
         return;
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addAction(mDumpMemory);
-    wMenu->addAction(mFollowDisassembly);
-    wMenu->addAction(mFollowDump);
-    wMenu->addAction(mYara);
-    wMenu->addAction(mEntropy);
-    wMenu->addAction(mFindPattern);
-    wMenu->addAction(mSwitchView);
-    wMenu->addSeparator();
-    wMenu->addAction(mPageMemoryRights);
-    wMenu->addSeparator();
-    wMenu->addMenu(mBreakpointMenu);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wMenu(this); //create context menu
+    wMenu.addAction(mDumpMemory);
+    wMenu.addAction(mFollowDisassembly);
+    wMenu.addAction(mFollowDump);
+    wMenu.addAction(mYara);
+    wMenu.addAction(mEntropy);
+    wMenu.addAction(mFindPattern);
+    wMenu.addAction(mSwitchView);
+    wMenu.addSeparator();
+    wMenu.addAction(mPageMemoryRights);
+    wMenu.addSeparator();
+    wMenu.addMenu(mBreakpointMenu);
+    QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
 
     QString wStr = getCellContent(getInitialSelection(), 0);
@@ -172,7 +172,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
         mMemoryRemove->setVisible(false);
     }
 
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
+    wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 QString MemoryMapView::getProtectionString(DWORD Protect)

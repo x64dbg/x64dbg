@@ -129,6 +129,15 @@ typedef enum
     LOOP_END
 } LOOPTYPE;
 
+//order by most important type last
+typedef enum
+{
+    XREF_NONE,
+    XREF_DATA,
+    XREF_JMP,
+    XREF_CALL
+} XREFTYPE;
+
 typedef enum
 {
     ARG_NONE,
@@ -188,6 +197,11 @@ typedef enum
     DBG_DELETE_COMMENT_RANGE,       // param1=duint start,               param2=duint end
     DBG_DELETE_LABEL_RANGE,         // param1=duint start,               param2=duint end
     DBG_DELETE_BOOKMARK_RANGE,      // param1=duint start,               param2=duint end
+    DBG_GET_XREF_COUNT_AT,          // param1=duint addr,                param2=unused
+    DBG_GET_XREF_TYPE_AT,           // param1=duint addr,                param2=unused
+    DBG_XREF_ADD,                   // param1=duint addr,                param2=duint from
+    DBG_XREF_DEL_ALL,               // param1=duint addr,                param2=unused
+    DBG_XREF_GET,                   // param1=duint addr,                param2=XREF_INFO* info
 } DBGMSG;
 
 typedef enum
@@ -329,8 +343,8 @@ typedef struct
     char breakCondition[MAX_CONDITIONAL_EXPR_SIZE];
     char logText[MAX_CONDITIONAL_TEXT_SIZE];
     char logCondition[MAX_CONDITIONAL_EXPR_SIZE];
-    char commandText[MAX_CONDITIONAL_EXPR_SIZE];
-    char commandCondition[MAX_CONDITIONAL_TEXT_SIZE];
+    char commandText[MAX_CONDITIONAL_TEXT_SIZE];
+    char commandCondition[MAX_CONDITIONAL_EXPR_SIZE];
 } BRIDGEBP;
 
 typedef struct
@@ -353,6 +367,7 @@ typedef struct
     duint end; //OUT
 } LOOP;
 
+#ifndef _NO_ADDRINFO
 typedef struct
 {
     int flags; //ADDRINFOFLAGS (IN)
@@ -363,6 +378,7 @@ typedef struct
     FUNCTION function;
     LOOP loop;
 } ADDRINFO;
+#endif
 
 struct SYMBOLINFO_
 {
@@ -647,6 +663,19 @@ typedef struct
     int depth;
 } FUNCTION_LOOP_INFO;
 
+typedef struct
+{
+    duint addr;
+    XREFTYPE type;
+} XREF_RECORD;
+
+typedef struct
+{
+    char mod[MAX_MODULE_SIZE];
+    XREF_RECORD* references;
+    size_t refcount;
+} XREF_INFO;
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP void DbgExit();
@@ -708,6 +737,11 @@ BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end);
 BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr);
+BRIDGE_IMPEXP bool DbgXrefAdd(duint addr, duint from, bool iscall);
+BRIDGE_IMPEXP bool DbgXrefDelAll(duint addr);
+BRIDGE_IMPEXP bool DbgXrefGet(duint addr, XREF_INFO* info);
+BRIDGE_IMPEXP size_t DbgGetXrefCountAt(duint addr);
+BRIDGE_IMPEXP XREFTYPE DbgGetXrefTypeAt(duint addr);
 BRIDGE_IMPEXP bool DbgIsRunLocked();
 BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr);
 BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text);
@@ -817,7 +851,9 @@ typedef enum
     GUI_DUMP_AT_N,                  // param1=int index,            param2=duint va
     GUI_DISPLAY_WARNING,            // param1=const char *text,     param2=unused
     GUI_REGISTER_SCRIPT_LANG,       // param1=SCRIPTTYPEINFO* info, param2=unused
-    GUI_UNREGISTER_SCRIPT_LANG      // param1=int id,               param2=unused
+    GUI_UNREGISTER_SCRIPT_LANG,     // param1=int id,               param2=unused
+    GUI_UPDATE_ARGUMENT_VIEW,       // param1=unused,               param2=unused
+    GUI_FOCUS_VIEW,                 // param1=int hWindow,          param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -932,6 +968,8 @@ BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index);
 BRIDGE_IMPEXP void GuiDisplayWarning(const char* title, const char* text);
 BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info);
 BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id);
+BRIDGE_IMPEXP void GuiUpdateArgumentWidget();
+BRIDGE_IMPEXP void GuiFocusView(int hWindow);
 
 #ifdef __cplusplus
 }

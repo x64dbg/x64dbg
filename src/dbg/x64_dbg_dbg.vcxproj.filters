@@ -296,6 +296,33 @@
     <ClCompile Include="exhandlerinfo.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="xrefs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="argument.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="handles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mnemonichelp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="recursiveanalysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tcpconnections.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TraceRecord.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="xrefsanalysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_argument.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -651,6 +678,36 @@
     </ClInclude>
     <ClInclude Include="exhandlerinfo.h">
       <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="xrefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="argument.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="handles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mnemonichelp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="recursiveanalysis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="serializablemap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tcpconnections.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TraceRecord.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xrefsanalysis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_argument.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

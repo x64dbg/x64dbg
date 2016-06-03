@@ -26,15 +26,19 @@ private slots:
     void updateStyle();
     void on_btnAscii2Hex_clicked();
     void on_btnUnicode2Hex_clicked();
-    void on_btnUtf8Hex_clicked();
+    void on_btnUtf2Hex_clicked();
     void on_chkKeepSize_toggled(bool checked);
     void dataChangedSlot();
-    void on_lineEditAscii_textEdited(const QString & arg1);
-    void on_lineEditUnicode_textEdited(const QString & arg1);
-    void on_lineEditUtf8_textEdited(const QString & arg1);
-
+    void dataEditedSlot();
+    void on_lineEditAscii_dataEdited();
+    void on_lineEditUnicode_dataEdited();
+    void on_lineEditUtf8_dataEdited();
 private:
     Ui::HexEditDialog* ui;
+
+    bool mDataInitialized;
+
+    QByteArray resizeData(QByteArray & data);
 };
 
 #endif // HEXEDITDIALOG_H

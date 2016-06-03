@@ -10,19 +10,19 @@ LinearAnalysis::LinearAnalysis(duint base, duint size) : Analysis(base, size)
 void LinearAnalysis::Analyse()
 {
     dputs("Starting analysis...");
-    DWORD ticks = GetTickCount();
+    auto ticks = GetTickCount();
 
-    PopulateReferences();
-    dprintf("%u called functions populated\n", _functions.size());
-    AnalyseFunctions();
+    populateReferences();
+    dprintf("%u called functions populated\n", mFunctions.size());
+    analyseFunctions();
 
     dprintf("Analysis finished in %ums!\n", GetTickCount() - ticks);
 }
 
 void LinearAnalysis::SetMarkers()
 {
-    FunctionDelRange(_base, _base + _size - 1, false);
-    for(auto & function : _functions)
+    FunctionDelRange(mBase, mBase + mSize - 1, false);
+    for(auto & function : mFunctions)
     {
         if(!function.end)
             continue;
@@ -30,62 +30,62 @@ void LinearAnalysis::SetMarkers()
     }
 }
 
-void LinearAnalysis::SortCleanup()
+void LinearAnalysis::sortCleanup()
 {
     //sort & remove duplicates
-    std::sort(_functions.begin(), _functions.end());
-    auto last = std::unique(_functions.begin(), _functions.end());
-    _functions.erase(last, _functions.end());
+    std::sort(mFunctions.begin(), mFunctions.end());
+    auto last = std::unique(mFunctions.begin(), mFunctions.end());
+    mFunctions.erase(last, mFunctions.end());
 }
 
-void LinearAnalysis::PopulateReferences()
+void LinearAnalysis::populateReferences()
 {
     //linear immediate reference scan (call <addr>, push <addr>, mov [somewhere], <addr>)
-    for(duint i = 0; i < _size;)
+    for(duint i = 0; i < mSize;)
     {
-        duint addr = _base + i;
-        if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
+        auto addr = mBase + i;
+        if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
         {
-            duint ref = GetReferenceOperand();
+            auto ref = getReferenceOperand();
             if(ref)
-                _functions.push_back({ ref, 0 });
-            i += _cp.Size();
+                mFunctions.push_back({ ref, 0 });
+            i += mCp.Size();
         }
         else
             i++;
     }
-    SortCleanup();
+    sortCleanup();
 }
 
-void LinearAnalysis::AnalyseFunctions()
+void LinearAnalysis::analyseFunctions()
 {
-    for(size_t i = 0; i < _functions.size(); i++)
+    for(size_t i = 0; i < mFunctions.size(); i++)
     {
-        FunctionInfo & function = _functions[i];
+        auto & function = mFunctions[i];
         if(function.end)  //skip already-analysed functions
             continue;
-        duint maxaddr = _base + _size;
-        if(i < _functions.size() - 1)
-            maxaddr = _functions[i + 1].start;
+        auto maxaddr = mBase + mSize;
+        if(i < mFunctions.size() - 1)
+            maxaddr = mFunctions[i + 1].start;
 
-        duint end = FindFunctionEnd(function.start, maxaddr);
+        auto end = findFunctionEnd(function.start, maxaddr);
         if(end)
         {
-            if(_cp.Disassemble(end, TranslateAddress(end), MAX_DISASM_BUFFER))
-                function.end = end + _cp.Size() - 1;
+            if(mCp.Disassemble(end, translateAddr(end), MAX_DISASM_BUFFER))
+                function.end = end + mCp.Size() - 1;
             else
                 function.end = end;
         }
     }
 }
 
-duint LinearAnalysis::FindFunctionEnd(duint start, duint maxaddr)
+duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
 {
     //disassemble first instruction for some heuristics
-    if(_cp.Disassemble(start, TranslateAddress(start), MAX_DISASM_BUFFER))
+    if(mCp.Disassemble(start, translateAddr(start), MAX_DISASM_BUFFER))
     {
         //JMP [123456] ; import
-        if(_cp.InGroup(CS_GRP_JUMP) && _cp.x86().operands[0].type == X86_OP_MEM)
+        if(mCp.InGroup(CS_GRP_JUMP) && mCp.x86().operands[0].type == X86_OP_MEM)
             return 0;
     }
 
@@ -94,15 +94,15 @@ duint LinearAnalysis::FindFunctionEnd(duint start, duint maxaddr)
     duint jumpback = 0;
     for(duint addr = start, fardest = 0; addr < maxaddr;)
     {
-        if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
+        if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
         {
-            if(addr + _cp.Size() > maxaddr)  //we went past the maximum allowed address
+            if(addr + mCp.Size() > maxaddr)  //we went past the maximum allowed address
                 break;
 
-            const cs_x86_op & operand = _cp.x86().operands[0];
-            if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM)   //jump
+            const auto & op = mCp.x86().operands[0];
+            if((mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop()) && op.type == X86_OP_IMM)   //jump
             {
-                duint dest = (duint)operand.imm;
+                auto dest = duint(op.imm);
 
                 if(dest >= maxaddr)   //jump across function boundaries
                 {
@@ -112,19 +112,19 @@ duint LinearAnalysis::FindFunctionEnd(duint start, duint maxaddr)
                 {
                     fardest = dest;
                 }
-                else if(end && dest < end && (_cp.GetId() == X86_INS_JMP || _cp.GetId() == X86_INS_LOOP)) //save the last JMP backwards
+                else if(end && dest < end && (mCp.GetId() == X86_INS_JMP || mCp.GetId() == X86_INS_LOOP)) //save the last JMP backwards
                 {
                     jumpback = addr;
                 }
             }
-            else if(_cp.InGroup(CS_GRP_RET))   //possible function end?
+            else if(mCp.InGroup(CS_GRP_RET))   //possible function end?
             {
                 end = addr;
                 if(fardest < addr)  //we stop if the farthest JXX destination forward is before this RET
                     break;
             }
 
-            addr += _cp.Size();
+            addr += mCp.Size();
         }
         else
             addr++;
@@ -132,17 +132,17 @@ duint LinearAnalysis::FindFunctionEnd(duint start, duint maxaddr)
     return end < jumpback ? jumpback : end;
 }
 
-duint LinearAnalysis::GetReferenceOperand()
+duint LinearAnalysis::getReferenceOperand() const
 {
-    for(int i = 0; i < _cp.x86().op_count; i++)
+    for(auto i = 0; i < mCp.OpCount(); i++)
     {
-        const cs_x86_op & operand = _cp.x86().operands[i];
-        if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())  //skip jumps/loops
+        const auto & op = mCp.x86().operands[i];
+        if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())  //skip jumps/loops
             continue;
-        if(operand.type == X86_OP_IMM)  //we are looking for immediate references
+        if(op.type == X86_OP_IMM)  //we are looking for immediate references
         {
-            duint dest = (duint)operand.imm;
-            if(dest >= _base && dest < _base + _size)
+            auto dest = duint(op.imm);
+            if(inRange(dest))
                 return dest;
         }
     }

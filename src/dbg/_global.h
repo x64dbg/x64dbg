@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
 #include <tlhelp32.h>
 #include "..\dbg_types.h"
 #include "..\dbg_assert.h"

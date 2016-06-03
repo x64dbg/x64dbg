@@ -101,7 +101,7 @@ public:
     dsint getSelectionEnd();
     bool isSelected(dsint rva);
 
-    void getString(int col, dsint rva, QList<RichTextPainter::CustomRichText_t>* richText);
+    void getString(int col, dsint rva, RichTextPainter::List & richText);
     int getSizeOf(DataSize_e size);
 
     QString toString(DataDescriptor_t desc, void* data);
@@ -135,12 +135,20 @@ public:
     duint rvaToVa(dsint rva);
     duint getTableOffsetRva();
 
+    void addVaToHistory(dsint parVa);
+    bool historyHasPrev();
+    bool historyHasNext();
+    void historyPrev();
+    void historyNext();
+    void historyClear();
+
 signals:
     void selectionUpdated();
 
 public slots:
     void printDumpAt(dsint parVA);
     void debugStateChanged(DBGSTATE state);
+    void updateDumpSlot();
 
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
@@ -156,6 +164,9 @@ private:
 
     GuiState_t mGuiState;
 
+    QList<dsint> mVaHistory;
+    int mCurrentVa;
+
 protected:
     MemoryPage* mMemPage;
     int mByteOffset;
@@ -164,6 +175,7 @@ protected:
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;
+    QString mSyncAddrExpression;
 };
 
 #endif // _HEXDUMP_H

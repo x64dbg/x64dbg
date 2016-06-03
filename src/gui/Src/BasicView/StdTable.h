@@ -49,11 +49,14 @@ signals:
 public slots:
     void copyLineSlot();
     void copyTableSlot();
+    void copyTableResizeSlot();
     void copyEntrySlot();
     void contextMenuRequestedSlot(const QPoint & pos);
     void headerButtonPressedSlot(int col);
 
 private:
+    void copyTable(std::function<int(int)> getMaxColSize);
+
     class ColumnCompare
     {
     public:

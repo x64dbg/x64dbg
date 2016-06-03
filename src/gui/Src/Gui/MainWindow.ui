@@ -53,6 +53,7 @@
     </property>
     <addaction name="actionCpu"/>
     <addaction name="actionLog"/>
+    <addaction name="actionNotes"/>
     <addaction name="actionBreakpoints"/>
     <addaction name="actionMemoryMap"/>
     <addaction name="actionCallStack"/>
@@ -67,6 +68,8 @@
     <addaction name="actionLabels"/>
     <addaction name="actionBookmarks"/>
     <addaction name="actionFunctions"/>
+    <addaction name="actionSnowman"/>
+    <addaction name="actionHandles"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -733,6 +736,33 @@
    </property>
    <property name="toolTip">
     <string>Reload style.css</string>
+   </property>
+  </action>
+  <action name="actionNotes">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/notes.png</normaloff>:/icons/images/notes.png</iconset>
+   </property>
+   <property name="text">
+    <string>Notes</string>
+   </property>
+  </action>
+  <action name="actionSnowman">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/snowman.png</normaloff>:/icons/images/snowman.png</iconset>
+   </property>
+   <property name="text">
+    <string>Snowman</string>
+   </property>
+  </action>
+  <action name="actionHandles">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/handles.png</normaloff>:/icons/images/handles.png</iconset>
+   </property>
+   <property name="text">
+    <string>Handles</string>
    </property>
   </action>
  </widget>

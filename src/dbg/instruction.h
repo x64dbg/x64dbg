@@ -72,6 +72,8 @@ CMDRESULT cbInstrLog(int argc, char* argv[]);
 CMDRESULT cbInstrCapstone(int argc, char* argv[]);
 CMDRESULT cbInstrAnalyseNukem(int argc, char* argv[]);
 CMDRESULT cbInstrAnalyse(int argc, char* argv[]);
+CMDRESULT cbInstrAnalrecur(int argc, char* argv[]);
+CMDRESULT cbInstrAnalxrefs(int argc, char* argv[]);
 CMDRESULT cbInstrVisualize(int argc, char* argv[]);
 CMDRESULT cbInstrMeminfo(int argc, char* argv[]);
 CMDRESULT cbInstrCfanalyse(int argc, char* argv[]);
@@ -79,5 +81,13 @@ CMDRESULT cbInstrExanalyse(int argc, char* argv[]);
 CMDRESULT cbInstrVirtualmod(int argc, char* argv[]);
 CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[]);
 CMDRESULT cbInstrSavedata(int argc, char* argv[]);
+CMDRESULT cbInstrMnemonichelp(int argc, char* argv[]);
+CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[]);
+
+CMDRESULT cbGetPrivilegeState(int argc, char* argv[]);
+CMDRESULT cbEnablePrivilege(int argc, char* argv[]);
+CMDRESULT cbDisablePrivilege(int argc, char* argv[]);
+CMDRESULT cbHandleClose(int argc, char* argv[]);
+CMDRESULT cbInstrBriefcheck(int argc, char* argv[]);
 
 #endif // _INSTRUCTION_H

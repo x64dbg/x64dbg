@@ -15,16 +15,18 @@ class GotoDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit GotoDialog(QWidget* parent = 0);
+    explicit GotoDialog(QWidget* parent = 0, bool allowInvalidExpression = false);
     ~GotoDialog();
     QString expressionText;
     duint validRangeStart;
     duint validRangeEnd;
     bool fileOffset;
     QString modName;
+    bool allowInvalidExpression;
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);
     void validateExpression(QString expression);
+    void setInitialExpression(const QString & expression);
 
 private slots:
     void expressionChanged(bool validExpression, bool validPointer, dsint value);
@@ -35,6 +37,7 @@ private:
     Ui::GotoDialog* ui;
     ValidateExpressionThread* mValidateThread;
     bool IsValidMemoryRange(duint addr);
+    void setOkEnabled(bool enabled);
 };
 
 #endif // GOTODIALOG_H

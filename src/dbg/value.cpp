@@ -1609,7 +1609,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(*string == '!' && isflag(string + 1))  //flag
+    else if(*string == '_' && isflag(string + 1))  //flag
     {
         if(!DbgIsDebugging())
         {
@@ -2222,19 +2222,7 @@ bool valtostring(const char* string, duint value, bool silent)
             GuiUpdateAllViews(); //repaint gui
         return ok;
     }
-    else if((*string == '_')) //FPU values
-    {
-        if(!DbgIsDebugging())
-        {
-            if(!silent)
-                dputs("not debugging!");
-            return false;
-        }
-        setfpuvalue(string + 1, value);
-        GuiUpdateAllViews(); //repaint gui
-        return true;
-    }
-    else if(*string == '!' && isflag(string + 1)) //flag
+    else if(*string == '_' && isflag(string + 1))  //flag
     {
         if(!DbgIsDebugging())
         {
@@ -2246,6 +2234,18 @@ bool valtostring(const char* string, duint value, bool silent)
         if(value)
             set = true;
         setflag(string + 1, set);
+        GuiUpdateAllViews(); //repaint gui
+        return true;
+    }
+    else if((*string == '_')) //FPU values
+    {
+        if(!DbgIsDebugging())
+        {
+            if(!silent)
+                dputs("not debugging!");
+            return false;
+        }
+        setfpuvalue(string + 1, value);
         GuiUpdateAllViews(); //repaint gui
         return true;
     }

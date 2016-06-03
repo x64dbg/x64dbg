@@ -82,4 +82,38 @@ static QDate GetCompileDate()
     return QLocale("en_US").toDate(QString(__DATE__).simplified(), "MMM d yyyy");
 }
 
+template<typename T>
+static T & ArchValue(T & x32value, T & x64value)
+{
+#ifdef _WIN64
+    Q_UNUSED(x32value);
+    return x64value;
+#else
+    Q_UNUSED(x64value);
+    return x32value;
+#endif //_WIN64
+}
+
+static bool GetCommentFormat(duint addr, QString & comment, bool* autoComment = nullptr)
+{
+    comment.clear();
+    char commentData[MAX_COMMENT_SIZE] = "";
+    if(!DbgGetCommentAt(addr, commentData))
+        return false;
+    auto a = *commentData == '\1';
+    if(autoComment)
+        *autoComment = a;
+    if(!strstr(commentData, "{"))
+    {
+        comment = commentData + a;
+        return true;
+    }
+    char commentFormat[MAX_SETTING_SIZE] = "";
+    if(DbgFunctions()->StringFormatInline(commentData + a, MAX_SETTING_SIZE, commentFormat))
+        comment = commentFormat;
+    else
+        comment = commentData + a;
+    return true;
+}
+
 #endif // STRINGUTIL_H

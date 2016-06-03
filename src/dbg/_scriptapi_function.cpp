@@ -25,7 +25,7 @@ SCRIPT_EXPORT bool Script::Function::Get(duint addr, duint* start, duint* end, d
 SCRIPT_EXPORT bool Script::Function::GetInfo(duint addr, FunctionInfo* info)
 {
     FUNCTIONSINFO function;
-    if(!FunctionGetInfo(addr, &function))
+    if(!FunctionGetInfo(addr, function))
         return false;
     if(info)
     {

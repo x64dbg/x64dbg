@@ -279,11 +279,11 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
             return 0;
         QBeaEngine disasm(-1);
         Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, 0, parVA);
-        QList<RichTextPainter::CustomRichText_t> richText;
+        RichTextPainter::List richText;
         CapstoneTokenizer::TokenToRichText(instr.tokens, richText, 0);
         QString finalInstruction = "";
-        for(int i = 0; i < richText.size(); i++)
-            finalInstruction += richText.at(i).text;
+        for(const auto & curRichText : richText)
+            finalInstruction += curRichText.text;
         strcpy_s(text, GUI_MAX_DISASSEMBLY_SIZE, finalInstruction.toUtf8().constData());
         return (void*)1;
     }
@@ -550,6 +550,30 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_UNREGISTER_SCRIPT_LANG:
         emit unregisterScriptLang((int)param1);
         break;
+
+    case GUI_UPDATE_ARGUMENT_VIEW:
+        emit updateArgumentView();
+        break;
+
+    case GUI_FOCUS_VIEW:
+    {
+        int hWindow = int(param1);
+        switch(hWindow)
+        {
+        case GUI_DISASSEMBLY:
+            emit focusDisasm();
+            break;
+        case GUI_DUMP:
+            emit focusDump();
+            break;
+        case GUI_STACK:
+            emit focusStack();
+            break;
+        default:
+            break;
+        }
+    }
+    break;
     }
     return nullptr;
 }

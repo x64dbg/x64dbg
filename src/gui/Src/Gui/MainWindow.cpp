@@ -13,6 +13,7 @@
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -63,9 +64,7 @@ MainWindow::MainWindow(QWidget* parent)
     setWindowTitle(QString(mWindowMainTitle));
 
     // Load application icon
-    HICON hIcon = LoadIcon(GetModuleHandleA(0), MAKEINTRESOURCE(100));
-    SendMessageA((HWND)MainWindow::winId(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-    DestroyIcon(hIcon);
+    SetApplicationIcon(MainWindow::winId());
 
     // Load recent files
     loadMRUList(16);
@@ -75,7 +74,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Log view
     mLogView = new LogView();
-    mLogView->setWindowTitle("Log");
+    mLogView->setWindowTitle(tr("Log"));
     mLogView->setWindowIcon(QIcon(":/icons/images/log.png"));
     mLogView->hide();
 
@@ -157,23 +156,44 @@ MainWindow::MainWindow(QWidget* parent)
     mNotesManager->setWindowTitle(tr("Notes"));
     mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
 
+    // Handles view
+    mHandlesView = new HandlesView(this);
+    mHandlesView->setWindowTitle(tr("Handles"));
+    mHandlesView->setWindowIcon(QIcon(":/icons/images/handles.png"));
+    mHandlesView->hide();
+
     // Create the tab widget
     mTabWidget = new MHTabWidget();
 
     // Add all widgets to the list
     mWidgetList.push_back(mCpuWidget);
+    mWidgetNativeNameList.push_back("CPUTab");
     mWidgetList.push_back(mLogView);
+    mWidgetNativeNameList.push_back("LogTab");
     mWidgetList.push_back(mNotesManager);
+    mWidgetNativeNameList.push_back("NotesTab");
     mWidgetList.push_back(mBreakpointsView);
+    mWidgetNativeNameList.push_back("BreakpointsTab");
     mWidgetList.push_back(mMemMapView);
+    mWidgetNativeNameList.push_back("MemoryMapTab");
     mWidgetList.push_back(mCallStackView);
+    mWidgetNativeNameList.push_back("CallStackTab");
     mWidgetList.push_back(mSEHChainView);
+    mWidgetNativeNameList.push_back("SEHTab");
     mWidgetList.push_back(mScriptView);
+    mWidgetNativeNameList.push_back("ScriptTab");
     mWidgetList.push_back(mSymbolView);
+    mWidgetNativeNameList.push_back("SymbolsTab");
     mWidgetList.push_back(mSourceViewManager);
+    mWidgetNativeNameList.push_back("SourceTab");
     mWidgetList.push_back(mReferenceManager);
+    mWidgetNativeNameList.push_back("ReferencesTab");
     mWidgetList.push_back(mThreadView);
+    mWidgetNativeNameList.push_back("ThreadsTab");
     mWidgetList.push_back(mSnowmanView);
+    mWidgetNativeNameList.push_back("SnowmanTab");
+    mWidgetList.push_back(mHandlesView);
+    mWidgetNativeNameList.push_back("HandlesTab");
 
     // If LoadSaveTabOrder disabled, load tabs in default order
     if(!ConfigBool("Miscellaneous", "LoadSaveTabOrder"))
@@ -245,11 +265,16 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionDetach, SIGNAL(triggered()), this, SLOT(detach()));
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
     connect(ui->actionManual, SIGNAL(triggered()), this, SLOT(displayManual()));
+    connect(ui->actionNotes, SIGNAL(triggered()), this, SLOT(displayNotesWidget()));
+    connect(ui->actionSnowman, SIGNAL(triggered()), this, SLOT(displaySnowmanWidget()));
+    connect(ui->actionHandles, SIGNAL(triggered()), this, SLOT(displayHandlesWidget()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
+    connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
+
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(decompileAt(dsint, dsint)), this, SLOT(decompileAt(dsint, dsint)));
     connect(mCpuWidget->getDumpWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -345,28 +370,28 @@ void MainWindow::loadTabDefaultOrder()
     clearTabWidget();
 
     // Setup tabs
+    //TODO
     for(int i = 0; i < mWidgetList.size(); i++)
-        addQWidgetTab(mWidgetList[i]);
+        addQWidgetTab(mWidgetList[i], mWidgetNativeNameList[i]);
 }
 
 void MainWindow::loadTabSavedOrder()
 {
     clearTabWidget();
 
-    QMap<duint, QWidget*> tabIndexToWidget;
+    QMap<duint, std::pair<QWidget*, QString>> tabIndexToWidget;
 
     // Get tabIndex for each widget and add them to tabIndexToWidget
     for(int i = 0; i < mWidgetList.size(); i++)
     {
-        QString tabName = mWidgetList[i]->windowTitle();
-        tabName = tabName.replace(" ", "") + "Tab";
+        QString tabName = mWidgetNativeNameList[i];
         duint tabIndex = Config()->getUint("TabOrder", tabName);
-        tabIndexToWidget.insert(tabIndex, mWidgetList[i]);
+        tabIndexToWidget.insert(tabIndex, std::make_pair(mWidgetList[i], tabName));
     }
 
     // Setup tabs
     for(auto & widget : tabIndexToWidget)
-        addQWidgetTab(widget);
+        addQWidgetTab(widget.first, widget.second);
 }
 
 void MainWindow::clearTabWidget()
@@ -397,6 +422,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionBreakpoints, ConfigShortcut("ViewBreakpoints"));
     setGlobalShortcut(ui->actionMemoryMap, ConfigShortcut("ViewMemoryMap"));
     setGlobalShortcut(ui->actionCallStack, ConfigShortcut("ViewCallStack"));
+    setGlobalShortcut(ui->actionSEHChain, ConfigShortcut("ViewSEHChain"));
     setGlobalShortcut(ui->actionScript, ConfigShortcut("ViewScript"));
     setGlobalShortcut(ui->actionSymbolInfo, ConfigShortcut("ViewSymbolInfo"));
     setGlobalShortcut(ui->actionSource, ConfigShortcut("ViewSource"));
@@ -407,6 +433,8 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionLabels, ConfigShortcut("ViewLabels"));
     setGlobalShortcut(ui->actionBookmarks, ConfigShortcut("ViewBookmarks"));
     setGlobalShortcut(ui->actionFunctions, ConfigShortcut("ViewFunctions"));
+    setGlobalShortcut(ui->actionSnowman, ConfigShortcut("ViewSnowman"));
+    setGlobalShortcut(ui->actionHandles, ConfigShortcut("ViewHandles"));
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
@@ -696,13 +724,13 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 {
     if(filename.length())
     {
-        setWindowTitle(QString(mWindowMainTitle) + QString(" - ") + filename);
+        setWindowTitle(mWindowMainTitle + QString(" - ") + filename);
         windowTitle = filename;
     }
     else
     {
-        setWindowTitle(QString(mWindowMainTitle));
-        windowTitle = QString(mWindowMainTitle);
+        setWindowTitle(mWindowMainTitle);
+        windowTitle = mWindowMainTitle;
     }
 }
 
@@ -1178,7 +1206,7 @@ void MainWindow::changeCommandLine()
 void MainWindow::displayManual()
 {
     // Open the Windows CHM in the upper directory
-    QDesktopServices::openUrl(QUrl("..\\x64dbg.chm"));
+    QDesktopServices::openUrl(QUrl(QUrl::fromLocalFile(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath()))));
 }
 
 void MainWindow::decompileAt(dsint start, dsint end)
@@ -1192,9 +1220,14 @@ void MainWindow::canClose()
     close();
 }
 
+void MainWindow::addQWidgetTab(QWidget* qWidget, QString nativeName)
+{
+    mTabWidget->addTabEx(qWidget, qWidget->windowIcon(), qWidget->windowTitle(), nativeName);
+}
+
 void MainWindow::addQWidgetTab(QWidget* qWidget)
 {
-    mTabWidget->addTab(qWidget, qWidget->windowIcon(), qWidget->windowTitle());
+    addQWidgetTab(qWidget, qWidget->windowTitle());
 }
 
 void MainWindow::showQWidgetTab(QWidget* qWidget)
@@ -1226,7 +1259,8 @@ void MainWindow::tabMovedSlot(int from, int to)
     for(int i = 0; i < mTabWidget->count(); i++)
     {
         // Remove space in widget name and append Tab to get config settings (CPUTab, MemoryMapTab, etc...)
-        QString tabName = mTabWidget->tabText(i).replace(" ", "") + "Tab";
+        //QString tabName = mTabWidget->tabText(i).replace(" ", "") + "Tab";
+        QString tabName = mTabWidget->getNativeName(i);
         Config()->setUint("TabOrder", tabName, i);
     }
 }
@@ -1264,4 +1298,14 @@ void MainWindow::on_actionReloadStylesheet_triggered()
         qApp->setStyleSheet("");
     ensurePolished();
     update();
+}
+
+void MainWindow::displayNotesWidget()
+{
+    showQWidgetTab(mNotesManager);
+}
+
+void MainWindow::displayHandlesWidget()
+{
+    showQWidgetTab(mHandlesView);
 }

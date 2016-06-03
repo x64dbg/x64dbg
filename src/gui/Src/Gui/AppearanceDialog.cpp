@@ -10,9 +10,7 @@ AppearanceDialog::AppearanceDialog(QWidget* parent) : QDialog(parent), ui(new Ui
     ui->setupUi(this);
     //set window flags
     setModal(true);
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
-#endif
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     //Colors
     colorMap = &Config()->Colors;
@@ -431,12 +429,14 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Bookmarks", "DisassemblyBookmarkColor", "DisassemblyBookmarkBackgroundColor");
     colorInfoListAppend("Comments", "DisassemblyCommentColor", "DisassemblyCommentBackgroundColor");
     colorInfoListAppend("Automatic Comments", "DisassemblyAutoCommentColor", "DisassemblyAutoCommentBackgroundColor");
+    colorInfoListAppend("Mnemonic Brief Comments", "DisassemblyMnemonicBriefColor", "DisassemblyMnemonicBriefBackgroundColor");
     colorInfoListAppend("Labels", "DisassemblyLabelColor", "DisassemblyLabelBackgroundColor");
     colorInfoListAppend("Addresses", "DisassemblyAddressColor", "DisassemblyAddressBackgroundColor");
     colorInfoListAppend("Selected Addresses", "DisassemblySelectedAddressColor", "DisassemblySelectedAddressBackgroundColor");
     colorInfoListAppend("Conditional Jump Lines (jump)", "DisassemblyConditionalJumpLineTrueColor", "");
     colorInfoListAppend("Conditional Jump Lines (no jump)", "DisassemblyConditionalJumpLineFalseColor", "");
     colorInfoListAppend("Unconditional Jump Lines", "DisassemblyUnconditionalJumpLineColor", "");
+    colorInfoListAppend(tr("Traced line"), "DisassemblyTracedBackgroundColor", "");
     colorInfoListAppend("Function Lines", "DisassemblyFunctionColor", "");
     colorInfoListAppend("Loop Lines", "DisassemblyLoopColor", "");
 

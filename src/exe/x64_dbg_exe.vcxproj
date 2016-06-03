@@ -53,6 +53,12 @@
     <ProjectReference Include="..\bridge\x64_dbg_bridge.vcxproj">
       <Project>{944d9923-cb1a-6f6c-bcbc-9e00a71954c1}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\capstone_wrapper\capstone_wrapper.vcxproj">
+      <Project>{c9b06e6e-3534-4e7b-9c00-c3ea33cc4e15}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dbg\x64_dbg_dbg.vcxproj">
+      <Project>{e6548308-401e-3a8a-5819-905db90522a6}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3A22175E-6B72-FDCC-1603-C4A2163C7900}</ProjectGuid>

@@ -1,6 +1,6 @@
 #include "stringformat.h"
 #include "value.h"
-#include "disasm_helper.h"
+#include "symbolinfo.h"
 
 namespace ValueType
 {
@@ -11,44 +11,51 @@ namespace ValueType
         UnsignedDecimal,
         Hex,
         Pointer,
-        String
+        String,
+        AddrInfo
     };
 }
 
 static String printValue(FormatValueType value, ValueType::ValueType type)
 {
     duint valuint = 0;
-    bool validval = valfromstring(value, &valuint);
-    char result[deflen] = "???";
-    switch(type)
+    char string[MAX_STRING_SIZE] = "";
+    String result = "???";
+    if(valfromstring(value, &valuint))
     {
-    case ValueType::Unknown:
-        break;
-    case ValueType::SignedDecimal:
-        if(validval)
-            sprintf_s(result, "%" fext "d", valuint);
-        break;
-    case ValueType::UnsignedDecimal:
-        if(validval)
-            sprintf_s(result, "%" fext "u", valuint);
-        break;
-    case ValueType::Hex:
-        if(validval)
-            sprintf_s(result, "%" fext "X", valuint);
-        break;
-    case ValueType::Pointer:
-        if(validval)
-            sprintf_s(result, "0x" fhex, valuint);
-        break;
-    case ValueType::String:
-        if(validval)
+        switch(type)
         {
-            STRING_TYPE strtype;
-            char string[512] = "";
-            if(disasmgetstringat(valuint, &strtype, string, string, 500))
-                strcpy_s(result, string);
+        case ValueType::Unknown:
+            break;
+        case ValueType::SignedDecimal:
+            result = StringUtils::sprintf("%" fext "d", valuint);
+            break;
+        case ValueType::UnsignedDecimal:
+            result = StringUtils::sprintf("%" fext "u", valuint);
+            break;
+        case ValueType::Hex:
+            result = StringUtils::sprintf("%" fext "X", valuint);
+            break;
+        case ValueType::Pointer:
+            result = StringUtils::sprintf(fhex, valuint);
+            break;
+        case ValueType::String:
+            if(DbgGetStringAt(valuint, string))
+                result = string;
+            break;
+        case ValueType::AddrInfo:
+        {
+            auto symbolic = SymGetSymbolicName(valuint);
+            result = StringUtils::sprintf(fhex, valuint);
+            if(DbgGetStringAt(valuint, string))
+                result += " " + String(string);
+            else if(symbolic.length())
+                result += " " + symbolic;
         }
         break;
+        default:
+            break;
+        }
     }
     return result;
 }
@@ -63,27 +70,32 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
         {
         case 'd':
             type = ValueType::SignedDecimal;
-            hasExplicitType = true;
             break;
         case 'u':
             type = ValueType::UnsignedDecimal;
-            hasExplicitType = true;
             break;
         case 'p':
             type = ValueType::Pointer;
-            hasExplicitType = true;
             break;
         case 's':
             type = ValueType::String;
-            hasExplicitType = true;
             break;
-        default:
+        case 'x':
+            type = ValueType::Hex;
             break;
+        case 'a':
+            type = ValueType::AddrInfo;
+            break;
+        default: //invalid format
+            return nullptr;
         }
+        hasExplicitType = true;
     }
     auto expression = formatString.c_str();
     if(hasExplicitType)
         expression += 2;
+    else
+        type = ValueType::Hex;
     return expression;
 }
 
@@ -98,9 +110,9 @@ static unsigned int getArgNumType(const String & formatString, ValueType::ValueT
 
 static String handleFormatString(const String & formatString, const FormatValueVector & values)
 {
-    ValueType::ValueType type = ValueType::Unknown;
-    unsigned int argnum = getArgNumType(formatString, type);
-    if(argnum < values.size())
+    auto type = ValueType::Unknown;
+    auto argnum = getArgNumType(formatString, type);
+    if(type != ValueType::Unknown && argnum < values.size())
         return printValue(values.at(argnum), type);
     return "[Formatting Error]";
 }

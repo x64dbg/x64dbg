@@ -32,6 +32,8 @@ public slots:
     void gotoSpSlot();
     void gotoBpSlot();
     void gotoExpressionSlot();
+    void gotoPreviousSlot();
+    void gotoNextSlot();
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
     void selectionUpdatedSlot();
@@ -103,6 +105,8 @@ private:
     QAction* mGotoBp;
     QAction* mFreezeStack;
     QAction* mGotoExpression;
+    QAction* mGotoPrevious;
+    QAction* mGotoNext;
     QAction* mFindPatternAction;
     QAction* mFollowDisasm;
     QAction* mFollowDump;

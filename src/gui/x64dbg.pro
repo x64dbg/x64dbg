@@ -115,6 +115,7 @@ SOURCES += \
     Src/Gui/AppearanceDialog.cpp \
     Src/Gui/CloseDialog.cpp \
     Src/Gui/HexEditDialog.cpp \
+    Src/Gui/HexLineEdit.cpp \
     Src/QHexEdit/ArrayCommand.cpp \
     Src/QHexEdit/QHexEdit.cpp \
     Src/QHexEdit/QHexEditPrivate.cpp \
@@ -149,7 +150,14 @@ SOURCES += \
     Src/ThirdPartyLibs/float128/float128.cpp \
     Src/Utils/StringUtil.cpp \
     Src/Gui/SEHChainView.cpp \
-    Src/Gui/EditBreakpointDialog.cpp
+    Src/Gui/EditBreakpointDialog.cpp \
+    Src/Gui/CPUArgumentWidget.cpp \
+    Src/Gui/HandlesView.cpp \
+    Src/Gui/EditFloatRegister.cpp \
+    Src/Utils/HexValidator.cpp \
+    Src/Utils/LongLongValidator.cpp \
+    Src/Utils/MiscUtil.cpp \
+    Src/Gui/XrefBrowseDialog.cpp
 
 
 HEADERS += \
@@ -197,6 +205,7 @@ HEADERS += \
     Src/Gui/AppearanceDialog.h \
     Src/Gui/CloseDialog.h \
     Src/Gui/HexEditDialog.h \
+    Src/Gui/HexLineEdit.h \
     Src/QHexEdit/ArrayCommand.h \
     Src/QHexEdit/QHexEdit.h \
     Src/QHexEdit/QHexEditPrivate.h \
@@ -234,7 +243,14 @@ HEADERS += \
     Src/Gui/AssembleDialog.h \
     Src/ThirdPartyLibs/float128/float128.h \
     Src/Gui/SEHChainView.h \
-    Src/Gui/EditBreakpointDialog.h
+    Src/Gui/EditBreakpointDialog.h \
+    Src/Gui/CPUArgumentWidget.h \
+    Src/Gui/HandlesView.h \
+    Src/Gui/EditFloatRegister.h \
+    Src/Utils/HexValidator.h \
+    Src/Utils/LongLongValidator.h \
+    Src/Utils/MiscUtil.h \
+    Src/Gui/XrefBrowseDialog.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -249,6 +265,7 @@ FORMS += \
     Src/Gui/AppearanceDialog.ui \
     Src/Gui/CloseDialog.ui \
     Src/Gui/HexEditDialog.ui \
+    Src/Gui/HexLineEdit.ui \
     Src/Gui/PatchDialog.ui \
     Src/Gui/PatchDialogGroupSelector.ui \
     Src/Gui/ShortcutsDialog.ui \
@@ -260,7 +277,10 @@ FORMS += \
     Src/Gui/DataCopyDialog.ui \
     Src/Gui/EntropyDialog.ui \
     Src/Gui/AssembleDialog.ui \
-    Src/Gui/EditBreakpointDialog.ui
+    Src/Gui/EditBreakpointDialog.ui \
+    Src/Gui/CPUArgumentWidget.ui \
+    Src/Gui/EditFloatRegister.ui \
+    Src/Gui/XrefBrowseDialog.ui
 
 TRANSLATIONS = \
     Translations/x64dbg_zh_CN.ts

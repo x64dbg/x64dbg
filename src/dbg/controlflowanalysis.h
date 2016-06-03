@@ -24,55 +24,52 @@ private:
         duint function;
 
         BasicBlock()
+            : BasicBlock(0, 0, 0, 0)
         {
-            this->start = 0;
-            this->end = 0;
-            this->left = 0;
-            this->right = 0;
-            this->function = 0;
         }
 
         BasicBlock(duint start, duint end, duint left, duint right)
+            : start(start),
+              end(end),
+              left(min(left, right)),
+              right(min(left, right)),
+              function(0)
         {
-            this->start = start;
-            this->end = end;
-            this->left = min(left, right);
-            this->right = max(left, right);
-            this->function = 0;
         }
 
-        String toString()
+        String toString() const
         {
             return StringUtils::sprintf("start:%p,end:%p,left:%p,right:%p,func:%p", start, end, left, right, function);
         }
     };
 
-    typedef std::set<duint> UintSet;
+    typedef std::unordered_set<duint> UintSet;
 
-    duint _moduleBase;
-    duint _functionInfoSize;
-    void* _functionInfoData;
+    duint mModuleBase;
+    duint mFunctionInfoSize;
+    void* mFunctionInfoData;
 
-    UintSet _blockStarts;
-    UintSet _functionStarts;
-    std::map<duint, BasicBlock> _blocks; //start of block -> block
-    std::map<duint, UintSet> _parentMap; //start child -> parents
-    std::map<duint, UintSet> _functions; //function start -> function block starts
-    std::vector<Range> _functionRanges; //function start -> function range TODO: smarter stuff with overlapping ranges
+    UintSet mBlockStarts;
+    UintSet mFunctionStarts;
+    std::unordered_map<duint, BasicBlock> mBlocks; //start of block -> block
+    std::unordered_map<duint, UintSet> mParentMap; //start child -> parents
+    std::unordered_map<duint, UintSet> mFunctions; //function start -> function block starts
+    std::vector<Range> mFunctionRanges; //function start -> function range TODO: smarter stuff with overlapping ranges
 
     void BasicBlockStarts();
     void BasicBlocks();
     void Functions();
     void FunctionRanges();
     void insertBlock(BasicBlock block);
-    BasicBlock* findBlock(duint start);
+    const BasicBlock* findBlock(duint start) const;
     void insertParent(duint child, duint parent);
-    UintSet* findParents(duint child);
-    duint findFunctionStart(BasicBlock* block, UintSet* parents);
-    String blockToString(BasicBlock* block);
+    const UintSet* findParents(duint child) const;
+    duint findFunctionStart(const BasicBlock* block, const UintSet* parents) const;
+    static String blockToString(const BasicBlock* block);
     duint getReferenceOperand() const;
+
 #ifdef _WIN64
-    void enumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);
+    void enumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const;
 #endif // _WIN64
 };
 

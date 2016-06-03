@@ -7,10 +7,14 @@ echo qt_base
 
 mkdir %RELEASEDIR%\qt_base
 mkdir %RELEASEDIR%\qt_base\x32
+mkdir %RELEASEDIR%\qt_base\x32\platforms
 mkdir %RELEASEDIR%\qt_base\x64
+mkdir %RELEASEDIR%\qt_base\x64\platforms
 
 copy bin\x32\Qt*.dll %RELEASEDIR%\qt_base\x32\
 copy bin\x64\Qt*.dll %RELEASEDIR%\qt_base\x64\
+copy bin\x32\platforms\qwindows.dll %RELEASEDIR%\qt_base\x32\platforms\
+copy bin\x64\platforms\qwindows.dll %RELEASEDIR%\qt_base\x64\platforms\
 
 echo bin_base
 
@@ -18,32 +22,32 @@ mkdir %RELEASEDIR%\bin_base
 mkdir %RELEASEDIR%\bin_base\x32
 mkdir %RELEASEDIR%\bin_base\x64
 
-copy bin\x32\x32_bridge.dll %RELEASEDIR%\bin_base\x32\x32_bridge.dll
-copy bin\x32\x32_dbg.dll %RELEASEDIR%\bin_base\x32\x32_dbg.dll
-copy bin\x32\capstone.dll %RELEASEDIR%\bin_base\x32\capstone.dll
-copy bin\x32\dbghelp.dll %RELEASEDIR%\bin_base\x32\dbghelp.dll
-copy bin\x32\symsrv.dll %RELEASEDIR%\bin_base\x32\symsrv.dll
-copy bin\x32\DeviceNameResolver.dll %RELEASEDIR%\bin_base\x32\DeviceNameResolver.dll
-copy bin\x32\Scylla.dll %RELEASEDIR%\bin_base\x32\Scylla.dll
-copy bin\x32\jansson.dll %RELEASEDIR%\bin_base\x32\jansson.dll
-copy bin\x32\lz4.dll %RELEASEDIR%\bin_base\x32\lz4.dll
-copy bin\x32\TitanEngine.dll %RELEASEDIR%\bin_base\x32\TitanEngine.dll
-copy bin\x32\XEDParse.dll %RELEASEDIR%\bin_base\x32\XEDParse.dll
-copy bin\x32\yara.dll %RELEASEDIR%\bin_base\x32\yara.dll
-copy bin\x32\snowman.dll %RELEASEDIR%\bin_base\x32\snowman.dll
-copy bin\x64\x64_bridge.dll %RELEASEDIR%\bin_base\x64\x64_bridge.dll
-copy bin\x64\x64_dbg.dll %RELEASEDIR%\bin_base\x64\x64_dbg.dll
-copy bin\x64\capstone.dll %RELEASEDIR%\bin_base\x64\capstone.dll
-copy bin\x64\dbghelp.dll %RELEASEDIR%\bin_base\x64\dbghelp.dll
-copy bin\x64\symsrv.dll %RELEASEDIR%\bin_base\x64\symsrv.dll
-copy bin\x64\DeviceNameResolver.dll %RELEASEDIR%\bin_base\x64\DeviceNameResolver.dll
-copy bin\x64\Scylla.dll %RELEASEDIR%\bin_base\x64\Scylla.dll
-copy bin\x64\jansson.dll %RELEASEDIR%\bin_base\x64\jansson.dll
-copy bin\x64\lz4.dll %RELEASEDIR%\bin_base\x64\lz4.dll
-copy bin\x64\TitanEngine.dll %RELEASEDIR%\bin_base\x64\TitanEngine.dll
-copy bin\x64\XEDParse.dll %RELEASEDIR%\bin_base\x64\XEDParse.dll
-copy bin\x64\yara.dll %RELEASEDIR%\bin_base\x64\yara.dll
-copy bin\x64\snowman.dll %RELEASEDIR%\bin_base\x64\snowman.dll
+copy bin\x32\x32_bridge.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\x32_dbg.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\capstone.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\dbghelp.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\symsrv.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\DeviceNameResolver.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\Scylla.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\jansson.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\lz4.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\TitanEngine.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\XEDParse.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\yara.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\snowman.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x64\x64_bridge.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\x64_dbg.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\capstone.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\dbghelp.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\symsrv.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\DeviceNameResolver.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\Scylla.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\jansson.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\lz4.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\TitanEngine.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\XEDParse.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\yara.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\snowman.dll %RELEASEDIR%\bin_base\x64\
 
 echo help
 
@@ -112,23 +116,24 @@ mkdir %RELEASEDIR%\release\x32
 mkdir %RELEASEDIR%\release\x64
 
 copy bin\x96dbg.exe %RELEASEDIR%\release\x96dbg.exe
+copy bin\mnemdb.json %RELEASEDIR%\release\mnemdb.json
 xcopy src\gui\Translations\*.qm %RELEASEDIR%\release\translations /S /Y
-copy bin\x32\x32bridge.dll %RELEASEDIR%\release\x32\x32bridge.dll
-copy bin\x32\x32bridge.pdb %RELEASEDIR%\release\x32\x32bridge.pdb
-copy bin\x32\x32dbg.dll %RELEASEDIR%\release\x32\x32dbg.dll
-copy bin\x32\x32dbg.pdb %RELEASEDIR%\release\x32\x32dbg.pdb
-copy bin\x32\x32dbg.exe %RELEASEDIR%\release\x32\x32dbg.exe
-copy bin\x32\x32dbg_exe.pdb %RELEASEDIR%\release\x32\x32dbg_exe.pdb
-copy bin\x32\x32gui.dll %RELEASEDIR%\release\x32\x32gui.dll
-copy bin\x32\x32gui.pdb %RELEASEDIR%\release\x32\x32gui.pdb
-copy bin\x64\x64bridge.dll %RELEASEDIR%\release\x64\x64bridge.dll
-copy bin\x64\x64bridge.pdb %RELEASEDIR%\release\x64\x64bridge.pdb
-copy bin\x64\x64dbg.dll %RELEASEDIR%\release\x64\x64dbg.dll
-copy bin\x64\x64dbg.pdb %RELEASEDIR%\release\x64\x64dbg.pdb
-copy bin\x64\x64dbg.exe %RELEASEDIR%\release\x64\x64dbg.exe
-copy bin\x64\x64dbg_exe.pdb %RELEASEDIR%\release\x64\x64dbg_exe.pdb
-copy bin\x64\x64gui.dll %RELEASEDIR%\release\x64\x64gui.dll
-copy bin\x64\x64gui.pdb %RELEASEDIR%\release\x64\x64gui.pdb
+copy bin\x32\x32bridge.dll %RELEASEDIR%\release\x32\
+copy bin\x32\x32bridge.pdb %RELEASEDIR%\release\x32\
+copy bin\x32\x32dbg.dll %RELEASEDIR%\release\x32\
+copy bin\x32\x32dbg.pdb %RELEASEDIR%\release\x32\
+copy bin\x32\x32dbg.exe %RELEASEDIR%\release\x32\
+copy bin\x32\x32dbg_exe.pdb %RELEASEDIR%\release\x32\
+copy bin\x32\x32gui.dll %RELEASEDIR%\release\x32\
+copy bin\x32\x32gui.pdb %RELEASEDIR%\release\x32\
+copy bin\x64\x64bridge.dll %RELEASEDIR%\release\x64\
+copy bin\x64\x64bridge.pdb %RELEASEDIR%\release\x64\
+copy bin\x64\x64dbg.dll %RELEASEDIR%\release\x64\
+copy bin\x64\x64dbg.pdb %RELEASEDIR%\release\x64\
+copy bin\x64\x64dbg.exe %RELEASEDIR%\release\x64\
+copy bin\x64\x64dbg_exe.pdb %RELEASEDIR%\release\x64\
+copy bin\x64\x64gui.dll %RELEASEDIR%\release\x64\
+copy bin\x64\x64gui.pdb %RELEASEDIR%\release\x64\
 
 xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\release /S /Y
 xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\release /S /Y

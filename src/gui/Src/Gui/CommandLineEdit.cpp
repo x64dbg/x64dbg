@@ -1,7 +1,9 @@
 #include "CommandLineEdit.h"
 #include "Bridge.h"
 
-CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
+CommandLineEdit::CommandLineEdit(QWidget* parent)
+    : HistoryLineEdit(parent),
+      mCurrentScriptIndex(-1)
 {
     // QComboBox
     mCmdScriptType = new QComboBox(this);
@@ -77,6 +79,8 @@ bool CommandLineEdit::focusNextPrevChild(bool next)
 
 void CommandLineEdit::execute()
 {
+    if(mCurrentScriptIndex == -1)
+        return;
     GUISCRIPTEXECUTE exec = mScriptInfo[mCurrentScriptIndex].execute;
     const QString & cmd = text();
 
@@ -99,6 +103,8 @@ QWidget* CommandLineEdit::selectorWidget()
 
 void CommandLineEdit::autoCompleteUpdate(const QString text)
 {
+    if(mCurrentScriptIndex == -1)
+        return;
     // No command, no completer
     if(text.length() <= 0)
     {

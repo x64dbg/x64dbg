@@ -28,8 +28,10 @@ public:
         QColor highlightColor;
     } CustomRichText_t;
 
+    typedef std::vector<CustomRichText_t> List;
+
     //functions
-    static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<RichTextPainter::CustomRichText_t>* richText);
+    static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, int charwidth);
 };
 
 #endif // RICHTEXTPAINTER_H

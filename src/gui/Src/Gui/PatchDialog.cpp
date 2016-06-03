@@ -10,9 +10,7 @@ PatchDialog::PatchDialog(QWidget* parent) :
     ui(new Ui::PatchDialog)
 {
     ui->setupUi(this);
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
-#endif
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     setModal(false); //non-modal window
 
@@ -100,7 +98,7 @@ void PatchDialog::updatePatches()
 
     //get patches from DBG
     size_t cbsize;
-    if(!DbgFunctions()->PatchEnum(0, &cbsize))
+    if(!DbgFunctions()->PatchEnum || !DbgFunctions()->PatchEnum(0, &cbsize))
         return;
     int numPatches = (int)cbsize / sizeof(DBGPATCHINFO);
     if(!numPatches)
@@ -445,7 +443,7 @@ void PatchDialog::on_btnPatchFile_clicked()
             patchList.push_back(curPatchList.at(i).patch);
     if(!curPatchList.size() || !patchList.size())
     {
-        QMessageBox msg(QMessageBox::Information, "Information", "Nothing to patch!");
+        QMessageBox msg(QMessageBox::Information, tr("Information"), tr("Nothing to patch!"));
         msg.setWindowIcon(QIcon(":/icons/images/information.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -455,7 +453,7 @@ void PatchDialog::on_btnPatchFile_clicked()
     char szModName[MAX_PATH] = "";
     if(!DbgFunctions()->ModPathFromAddr(DbgFunctions()->ModBaseFromName(mod.toUtf8().constData()), szModName, MAX_PATH))
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to get module filename...");
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Failed to get module filename..."));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
@@ -470,7 +468,7 @@ void PatchDialog::on_btnPatchFile_clicked()
     strcpy_s(szDirName, szModName);
     szDirName[len] = '\0';
 
-    QString filename = QFileDialog::getSaveFileName(this, "Save file", szDirName, "All files (*.*)");
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save file"), szDirName, tr("All files (*.*)"));
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
@@ -484,13 +482,13 @@ void PatchDialog::on_btnPatchFile_clicked()
     delete [] dbgPatchList;
     if(patched == -1)
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", QString("Failed to save patched file (" + QString(error) + ")"));
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Failed to save patched file (%1)").arg(error));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return;
     }
-    QMessageBox msg(QMessageBox::Information, "Information", QString().sprintf("%d/%d patch(es) applied!", patched, patchList.size()));
+    QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1/%2 patch(es) applied!").arg(patched).arg(patchList.size()));
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -512,7 +510,7 @@ void PatchDialog::on_btnImport_clicked()
     QStringList lines = patch.split("\n", QString::SkipEmptyParts);
     if(!lines.size())
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", QString("The patch file is empty..."));
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("The patch file is empty..."));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
@@ -546,7 +544,7 @@ void PatchDialog::on_btnImport_clicked()
         curLine = curLine.replace(" ", "");
         if(sscanf_s(curLine.toUtf8().constData(), "%llX:%X->%X", &rva, &oldbyte, &newbyte) != 3)
         {
-            QMessageBox msg(QMessageBox::Critical, "Error!", QString("Patch file format is incorrect..."));
+            QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Patch file format is incorrect..."));
             msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
             msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
             msg.exec();
@@ -573,7 +571,7 @@ void PatchDialog::on_btnImport_clicked()
 
     if(!patchList.size())
     {
-        QMessageBox msg(QMessageBox::Information, "Information", QString().sprintf("No patches to apply in the current process."));
+        QMessageBox msg(QMessageBox::Information, tr("Information"), tr("No patches to apply in the current process."));
         msg.setWindowIcon(QIcon(":/icons/images/information.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -584,7 +582,7 @@ void PatchDialog::on_btnImport_clicked()
     bool bUndoPatched = false;
     if(bAlreadyDone)
     {
-        QMessageBox msg(QMessageBox::Question, "Question", "Some patches are already applied.\n\nDo you want to remove these patches?", QMessageBox::Yes | QMessageBox::No);
+        QMessageBox msg(QMessageBox::Question, tr("Question"), tr("Some patches are already applied.\n\nDo you want to remove these patches?"), QMessageBox::Yes | QMessageBox::No);
         msg.setWindowIcon(QIcon(":/icons/images/question.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -595,7 +593,7 @@ void PatchDialog::on_btnImport_clicked()
     bool bPatchBadOriginals = false;
     if(bBadOriginal)
     {
-        QMessageBox msg(QMessageBox::Question, "Question", "Some bytes do not match the original in the patch file.\n\nDo you want to apply these patches anyway?", QMessageBox::Yes | QMessageBox::No);
+        QMessageBox msg(QMessageBox::Question, tr("Question"), tr("Some bytes do not match the original in the patch file.\n\nDo you want to apply these patches anyway?"), QMessageBox::Yes | QMessageBox::No);
         msg.setWindowIcon(QIcon(":/icons/images/question.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -624,7 +622,7 @@ void PatchDialog::on_btnImport_clicked()
     updatePatches();
     GuiUpdateAllViews();
 
-    QMessageBox msg(QMessageBox::Information, "Information", QString().sprintf("%d/%d patch(es) applied!", patched, patchList.size()));
+    QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1/%2 patch(es) applied!").arg(patched).arg(patchList.size()));
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -640,7 +638,13 @@ void PatchDialog::on_btnExport_clicked()
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
+    if(filename.endsWith(QString(".1337")))
+        saveAs1337(filename);
+    // TODO: C program source
+}
 
+void PatchDialog::saveAs1337(const QString & filename)
+{
     QStringList lines;
 
     int patches = 0;
@@ -668,7 +672,7 @@ void PatchDialog::on_btnExport_clicked()
 
     if(!lines.size())
     {
-        QMessageBox msg(QMessageBox::Information, "Information", QString().sprintf("No patches to export."));
+        QMessageBox msg(QMessageBox::Information, tr("Information"), tr("No patches to export."));
         msg.setWindowIcon(QIcon(":/icons/images/information.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -682,7 +686,7 @@ void PatchDialog::on_btnExport_clicked()
     file.write(text.toUtf8().constData(), text.length());
     file.close();
 
-    QMessageBox msg(QMessageBox::Information, "Information", QString().sprintf("%d patch(es) exported!", patches));
+    QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1 patch(es) exported!").arg(patches));
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));

@@ -17,6 +17,8 @@
 #include "database.h"
 #include "threading.h"
 #include "filehelper.h"
+#include "xrefs.h"
+#include "TraceRecord.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -49,6 +51,8 @@ void DbSave(DbLoadSaveType saveType)
         BookmarkCacheSave(root);
         FunctionCacheSave(root);
         LoopCacheSave(root);
+        XrefCacheSave(root);
+        TraceRecord.saveToDb(root);
         BpCacheSave(root);
 
         //save notes
@@ -158,7 +162,10 @@ void DbLoad(DbLoadSaveType loadType)
         BookmarkCacheLoad(root);
         FunctionCacheLoad(root);
         LoopCacheLoad(root);
+        XrefCacheLoad(root);
+        TraceRecord.loadFromDb(root);
         BpCacheLoad(root);
+
 
         // Load notes
         const char* text = json_string_value(json_object_get(root, "notes"));
@@ -180,6 +187,7 @@ void DbClose()
     BookmarkClear();
     FunctionClear();
     LoopClear();
+    XrefClear();
     BpClear();
     PatchClear();
     GuiSetDebuggeeNotes("");

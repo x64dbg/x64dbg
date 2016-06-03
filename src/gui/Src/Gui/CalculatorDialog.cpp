@@ -4,9 +4,7 @@
 CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui::CalculatorDialog)
 {
     ui->setupUi(this);
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
-#endif
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     connect(this, SIGNAL(validAddress(bool)), ui->btnGoto, SLOT(setEnabled(bool)));
     connect(this, SIGNAL(validAddress(bool)), ui->btnGotoDump, SLOT(setEnabled(bool)));

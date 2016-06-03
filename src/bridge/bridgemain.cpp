@@ -106,7 +106,7 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
     unsigned char* ptr = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!ptr)
     {
-        MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
+        MessageBoxW(0, L"Could not allocate memory", L"Error", MB_ICONERROR);
         ExitProcess(1);
     }
     memset(ptr, 0, size);
@@ -737,6 +737,37 @@ BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
     return true;
 }
 
+BRIDGE_IMPEXP size_t DbgGetXrefCountAt(duint addr)
+{
+    return _dbg_sendmessage(DBG_GET_XREF_COUNT_AT, (void*)addr, 0);
+}
+
+BRIDGE_IMPEXP XREFTYPE DbgGetXrefTypeAt(duint addr)
+{
+    return (XREFTYPE)_dbg_sendmessage(DBG_GET_XREF_TYPE_AT, (void*)addr, 0);
+}
+
+BRIDGE_IMPEXP bool DbgXrefAdd(duint addr, duint from, bool iscall)
+{
+    if(!_dbg_sendmessage(DBG_XREF_ADD, (void*)addr, (void*)from))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgXrefDelAll(duint addr)
+{
+    if(!_dbg_sendmessage(DBG_XREF_DEL_ALL, (void*)addr, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgXrefGet(duint addr, XREF_INFO* info)
+{
+    if(!_dbg_sendmessage(DBG_XREF_GET, (void*)addr, info))
+        return false;
+    return true;
+}
+
 // FIXME all
 BRIDGE_IMPEXP bool DbgIsRunLocked()
 {
@@ -875,7 +906,11 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateDumpView();
     GuiUpdateThreadView();
     GuiUpdateSideBar();
+    GuiUpdatePatches();
+    GuiUpdateCallStack();
     GuiRepaintTableView();
+    GuiUpdateSEHChain();
+    GuiUpdateArgumentWidget();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -1288,6 +1323,16 @@ BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info)
 BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id)
 {
     _gui_sendmessage(GUI_UNREGISTER_SCRIPT_LANG, (void*)id, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiUpdateArgumentWidget()
+{
+    _gui_sendmessage(GUI_UPDATE_ARGUMENT_VIEW, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiFocusView(int hWindow)
+{
+    _gui_sendmessage(GUI_FOCUS_VIEW, (void*)hWindow, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

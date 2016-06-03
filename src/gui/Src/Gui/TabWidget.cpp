@@ -52,6 +52,13 @@ QList<QWidget*> MHTabWidget::windows()
     return m_Windows;
 }
 
+// Add a tab
+int MHTabWidget::addTabEx(QWidget* widget, const QIcon & icon, const QString & label, const QString & nativeName)
+{
+    mNativeNames.append(nativeName);
+    return this->addTab(widget, icon, label);
+}
+
 // Convert an external window to a widget tab
 void MHTabWidget::AttachTab(QWidget* parent)
 {
@@ -60,13 +67,15 @@ void MHTabWidget::AttachTab(QWidget* parent)
     QWidget* tearOffWidget = detachedWidget->centralWidget();
 
     // Reattach the tab
-    int newIndex = addTab(tearOffWidget, detachedWidget->windowIcon(), detachedWidget->windowTitle());
+    int newIndex = addTabEx(tearOffWidget, detachedWidget->windowIcon(), detachedWidget->windowTitle(), detachedWidget->mNativeName);
 
     // Remove it from the windows list
     for(int i = 0; i < m_Windows.size(); i++)
     {
         if(m_Windows.at(i) == tearOffWidget)
+        {
             m_Windows.removeAt(i);
+        }
     }
 
     // Make Active
@@ -92,6 +101,7 @@ void MHTabWidget::DetachTab(int index, QPoint & dropPoint)
 
     detachedWidget->setWindowTitle(tabText(index));
     detachedWidget->setWindowIcon(tabIcon(index));
+    detachedWidget->mNativeName = mNativeNames[index];
 
     // Remove from tab bar
     QWidget* tearOffWidget = widget(index);
@@ -122,8 +132,12 @@ void MHTabWidget::DetachTab(int index, QPoint & dropPoint)
 // Swap two tab indices
 void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 {
+    QString nativeName;
     removeTab(fromIndex);
+    nativeName = mNativeNames.at(fromIndex);
+    mNativeNames.removeAt(fromIndex);
     insertTab(toIndex, widget(fromIndex), tabIcon(fromIndex), tabText(fromIndex));
+    mNativeNames.insert(toIndex, nativeName);
     setCurrentIndex(toIndex);
 }
 
@@ -131,10 +145,15 @@ void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 void MHTabWidget::DeleteTab(int index)
 {
     removeTab(index);
+    mNativeNames.removeAt(index);
 }
 
 void MHTabWidget::tabMoved(int from, int to)
 {
+    QString nativeName;
+    nativeName = mNativeNames.at(from);
+    mNativeNames.removeAt(from);
+    mNativeNames.insert(to, nativeName);
     emit tabMovedTabWidget(from, to);
 }
 
@@ -158,6 +177,22 @@ void MHTabWidget::setCurrentIndex(int index)
 MHTabBar* MHTabWidget::tabBar() const
 {
     return m_tabBar;
+}
+
+QString MHTabWidget::getNativeName(int index)
+{
+    if(index < count())
+    {
+        return mNativeNames.at(index);
+    }
+    else
+    {
+        MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(widget(index)->parent());
+        if(window)
+            return window->mNativeName;
+        else
+            return "";
+    }
 }
 
 //----------------------------------------------------------------------------

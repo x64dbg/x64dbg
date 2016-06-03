@@ -4,7 +4,7 @@
 #include "_global.h"
 #include <capstone_wrapper.h>
 
-void fillbasicinfo(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo);
+void fillbasicinfo(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, bool instrText = true);
 bool disasmfast(duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 bool disasmfast(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 

@@ -13,13 +13,13 @@ public:
     void SetMarkers() override;
 
 private:
-    duint _moduleBase;
-    duint _functionInfoSize;
-    void* _functionInfoData;
-    std::vector<std::pair<duint, duint>> _functions;
+    duint mModuleBase;
+    duint mFunctionInfoSize;
+    void* mFunctionInfoData;
+    std::vector<std::pair<duint, duint>> mFunctions;
 
 #ifdef _WIN64
-    void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);
+    void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const;
 #endif // _WIN64
 };
 

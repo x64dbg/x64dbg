@@ -29,6 +29,7 @@
 #include "x64_dbg.h"
 #include "threading.h"
 #include "stringformat.h"
+#include "xrefs.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -207,11 +208,6 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         *addrinfo->comment = 0;
         if(CommentGet(addr, addrinfo->comment))
         {
-            if(strstr(addrinfo->comment, "{"))  //comment with format string
-            {
-                auto formatted = stringformatinline(addrinfo->comment);
-                strcpy_s(addrinfo->comment, _TRUNCATE, formatted.c_str());
-            }
             retval = true;
         }
         else
@@ -237,8 +233,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 String temp_string;
                 String comment;
                 ADDRINFO newinfo;
-                char ascii[256 * 2] = "";
-                char unicode[256 * 2] = "";
+                char string_text[MAX_STRING_SIZE] = "";
 
                 memset(&instr, 0, sizeof(DISASM_INSTR));
                 disasmget(addr, &instr);
@@ -252,85 +247,54 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
                     if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
-                        if(instr.type == instr_branch || !disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode, len_left) || strtype == str_none)
+                        if(instr.type == instr_branch)
                             continue;
-                        switch(strtype)
+                        if(DbgGetStringAt(instr.arg[i].constant, string_text))
                         {
-                        case str_none:
-                            break;
-                        case str_ascii:
                             temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":\"");
-                            temp_string.append(ascii);
-                            temp_string.append("\"");
-                            break;
-                        case str_unicode:
-                            temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":L\"");
-                            temp_string.append(unicode);
-                            temp_string.append("\"");
-                            break;
+                            temp_string.append(":");
+                            temp_string.append(string_text);
                         }
                     }
-                    else if(instr.arg[i].memvalue && (disasmgetstringat(instr.arg[i].memvalue, &strtype, ascii, unicode, len_left) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
+                    else if(instr.arg[i].memvalue && (DbgGetStringAt(instr.arg[i].memvalue, string_text) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
                     {
-                        switch(strtype)
+                        if(*string_text)
                         {
-                        case str_none:
-                            if(*newinfo.label)
-                            {
-                                temp_string = "[";
-                                temp_string.append(instr.arg[i].mnemonic);
-                                temp_string.append("]:");
-                                temp_string.append(newinfo.label);
-                            }
-                            break;
-                        case str_ascii:
                             temp_string = "[";
                             temp_string.append(instr.arg[i].mnemonic);
                             temp_string.append("]:");
-                            temp_string.append(ascii);
-                            break;
-                        case str_unicode:
+                            temp_string.append(string_text);
+                        }
+                        else if(*newinfo.label)
+                        {
                             temp_string = "[";
                             temp_string.append(instr.arg[i].mnemonic);
                             temp_string.append("]:");
-                            temp_string.append(unicode);
-                            break;
+                            temp_string.append(newinfo.label);
                         }
                     }
-                    else if(instr.arg[i].value && (disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode, len_left) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
+                    else if(instr.arg[i].value && (DbgGetStringAt(instr.arg[i].value, string_text) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                     {
                         if(instr.type != instr_normal) //stack/jumps (eg add esp,4 or jmp 401110) cannot directly point to strings
-                            strtype = str_none;
-                        switch(strtype)
                         {
-                        case str_none:
                             if(*newinfo.label)
                             {
                                 temp_string = instr.arg[i].mnemonic;
                                 temp_string.append(":");
                                 temp_string.append(newinfo.label);
                             }
-                            break;
-                        case str_ascii:
+                        }
+                        else if(*string_text)
+                        {
                             temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":\"");
-                            temp_string.append(ascii);
-                            temp_string.append("\"");
-                            break;
-                        case str_unicode:
-                            temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":L\"");
-                            temp_string.append(unicode);
-                            temp_string.append("\"");
-                            break;
+                            temp_string.append(":");
+                            temp_string.append(string_text);
                         }
                     }
                     else
                         continue;
 
-                    if(!strstr(comment.c_str(), temp_string.c_str()))
+                    if(!strstr(comment.c_str(), temp_string.c_str())) //avoid duplicate comments
                     {
                         if(comment.length())
                             comment.append(", ");
@@ -369,6 +333,11 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
             retval = BookmarkDelete(addr);
     }
     return retval;
+}
+
+extern "C" DLL_EXPORT PROCESS_INFORMATION* _dbg_getProcessInformation()
+{
+    return fdProcessInfo;
 }
 
 extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
@@ -614,23 +583,93 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
 
 extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
 {
-    DISASM_INSTR instr;
-    memset(&instr, 0, sizeof(instr));
-    disasmget(addr, &instr);
-    if(instr.type != instr_branch)
+    unsigned char data[MAX_DISASM_BUFFER];
+    if(!MemIsValidReadPtr(addr) || !MemRead(addr, data, sizeof(data)))
         return 0;
-    if(strstr(instr.instruction, "ret"))
+    Capstone cp;
+    if(!cp.Disassemble(addr, data))
+        return 0;
+    if(cp.InGroup(CS_GRP_JUMP) || cp.InGroup(CS_GRP_CALL) || cp.IsLoop())
     {
-        duint atcsp = DbgValFromString("@csp");
-        if(DbgMemIsValidReadPtr(atcsp))
-            return atcsp;
+        auto opValue = cp.ResolveOpValue(0, [](x86_reg reg) -> size_t
+        {
+            switch(reg)
+            {
+#ifndef _WIN64 //x32
+            case X86_REG_EAX:
+                return GetContextDataEx(hActiveThread, UE_EAX);
+            case X86_REG_EBX:
+                return GetContextDataEx(hActiveThread, UE_EBX);
+            case X86_REG_ECX:
+                return GetContextDataEx(hActiveThread, UE_ECX);
+            case X86_REG_EDX:
+                return GetContextDataEx(hActiveThread, UE_EDX);
+            case X86_REG_EBP:
+                return GetContextDataEx(hActiveThread, UE_EBP);
+            case X86_REG_ESP:
+                return GetContextDataEx(hActiveThread, UE_ESP);
+            case X86_REG_ESI:
+                return GetContextDataEx(hActiveThread, UE_ESI);
+            case X86_REG_EDI:
+                return GetContextDataEx(hActiveThread, UE_EDI);
+            case X86_REG_EIP:
+                return GetContextDataEx(hActiveThread, UE_EIP);
+#else //x64
+            case X86_REG_RAX:
+                return GetContextDataEx(hActiveThread, UE_RAX);
+            case X86_REG_RBX:
+                return GetContextDataEx(hActiveThread, UE_RBX);
+            case X86_REG_RCX:
+                return GetContextDataEx(hActiveThread, UE_RCX);
+            case X86_REG_RDX:
+                return GetContextDataEx(hActiveThread, UE_RDX);
+            case X86_REG_RBP:
+                return GetContextDataEx(hActiveThread, UE_RBP);
+            case X86_REG_RSP:
+                return GetContextDataEx(hActiveThread, UE_RSP);
+            case X86_REG_RSI:
+                return GetContextDataEx(hActiveThread, UE_RSI);
+            case X86_REG_RDI:
+                return GetContextDataEx(hActiveThread, UE_RDI);
+            case X86_REG_RIP:
+                return GetContextDataEx(hActiveThread, UE_RIP);
+            case X86_REG_R8:
+                return GetContextDataEx(hActiveThread, UE_R8);
+            case X86_REG_R9:
+                return GetContextDataEx(hActiveThread, UE_R9);
+            case X86_REG_R10:
+                return GetContextDataEx(hActiveThread, UE_R10);
+            case X86_REG_R11:
+                return GetContextDataEx(hActiveThread, UE_R11);
+            case X86_REG_R12:
+                return GetContextDataEx(hActiveThread, UE_R12);
+            case X86_REG_R13:
+                return GetContextDataEx(hActiveThread, UE_R13);
+            case X86_REG_R14:
+                return GetContextDataEx(hActiveThread, UE_R14);
+            case X86_REG_R15:
+                return GetContextDataEx(hActiveThread, UE_R15);
+#endif //_WIN64
+            default:
+                return 0;
+            }
+        });
+        if(cp[0].type == X86_OP_MEM)
+        {
+            if(MemRead(opValue, &opValue, sizeof(opValue)))
+                return opValue;
+        }
         else
-            return 0;
+            return opValue;
     }
-    else if(instr.arg[0].type == arg_memory)
-        return instr.arg[0].memvalue;
-    else
-        return instr.arg[0].value;
+    if(cp.InGroup(CS_GRP_RET))
+    {
+        auto csp = GetContextDataEx(hActiveThread, UE_CSP);
+        duint dest = 0;
+        if(MemRead(csp, &dest, sizeof(dest)))
+            return dest;
+    }
+    return 0;
 }
 
 extern "C" DLL_EXPORT bool _dbg_functionoverlaps(duint start, duint end)
@@ -962,16 +1001,78 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     }
     break;
 
+    case DBG_GET_XREF_COUNT_AT:
+    {
+        return XrefGetCount((duint)param1);
+    }
+    break;
+
+    case DBG_XREF_GET:
+    {
+        if(!param2)
+            return false;
+        XREF_INFO* info = (XREF_INFO*)param2;
+        duint address = (duint)param1;
+        info->refcount = XrefGetCount(address);
+
+        if(info->refcount == 0)
+        {
+            return false;
+        }
+        else
+        {
+            info->references = (XREF_RECORD*)BridgeAlloc(sizeof(XREF_RECORD) * info->refcount);
+            return XrefGet(address, info);
+        }
+    }
+    break;
+
+    case DBG_XREF_ADD:
+    {
+        return XrefAdd((duint)param1, (duint)param2);
+    }
+    break;
+
+    case DBG_XREF_DEL_ALL:
+    {
+        return XrefDeleteAll((duint)param1);
+    }
+    break;
+
+    case DBG_GET_XREF_TYPE_AT:
+    {
+        return XrefGetType((duint)param1);
+    }
+    break;
+
     case DBG_GET_STRING_AT:
     {
-        STRING_TYPE strtype;
+        auto addr = duint(param1);
+        if(!MemIsValidReadPtr(addr, true))
+            return false;
+
+        auto dest = (char*)param2;
+        *dest = '\0';
         char string[MAX_STRING_SIZE];
-        if(disasmgetstringat((duint)param1, &strtype, string, string, MAX_STRING_SIZE - 3))
+        duint addrPtr;
+        STRING_TYPE strtype;
+        if(MemReadUnsafe(addr, &addrPtr, sizeof(addr)) && MemIsValidReadPtr(addrPtr, true))
+        {
+            if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 3))
+            {
+                if(strtype == str_ascii)
+                    sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
+                else //unicode
+                    sprintf_s(dest, MAX_STRING_SIZE, "&L\"%s\"", string);
+                return true;
+            }
+        }
+        if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 3))
         {
             if(strtype == str_ascii)
-                sprintf((char*)param2, "\"%s\"", string);
+                sprintf_s(dest, MAX_STRING_SIZE, "\"%s\"", string);
             else //unicode
-                sprintf((char*)param2, "L\"%s\"", string);
+                sprintf_s(dest, MAX_STRING_SIZE, "L\"%s\"", string);
             return true;
         }
         return false;

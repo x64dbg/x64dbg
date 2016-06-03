@@ -101,6 +101,7 @@ signals:
     void updatePatches();
     void updateCallStack();
     void updateSEHChain();
+    void updateArgumentView();
     void symbolRefreshCurrent();
     void loadSourceFile(const QString path, int line, int selection);
     void setIconMenuEntry(int hEntry, QIcon icon);
@@ -119,6 +120,9 @@ signals:
     void displayWarning(QString title, QString text);
     void registerScriptLang(SCRIPTTYPEINFO* info);
     void unregisterScriptLang(int id);
+    void focusDisasm();
+    void focusDump();
+    void focusStack();
 
 private:
     QMutex* mBridgeMutex;

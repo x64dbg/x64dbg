@@ -47,7 +47,7 @@ CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(selectionStackGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
-
+    connect(Bridge::getBridge(), SIGNAL(focusStack()), this, SLOT(setFocus()));
 
     Initialize();
 }
@@ -70,6 +70,7 @@ void CPUStack::setupContextMenu()
 {
     //Binary menu
     mBinaryMenu = new QMenu(tr("B&inary"), this);
+    mBinaryMenu->setIcon(QIcon(":/icons/images/binary.png"));
 
     //Binary->Edit
     mBinaryEditAction = new QAction(tr("&Edit"), this);
@@ -111,6 +112,7 @@ void CPUStack::setupContextMenu()
 
     //Breakpoint menu
     mBreakpointMenu = new QMenu(tr("Brea&kpoint"), this);
+    mBreakpointMenu->setIcon(QIcon(":/icons/images/breakpoint.png"));
 
     //Breakpoint (hardware access) menu
     mBreakpointHardwareAccessMenu = new QMenu(tr("Hardware, Access"), this);
@@ -184,45 +186,60 @@ void CPUStack::setupContextMenu()
     mBreakpointMenu->addMenu(mBreakpointMemoryWriteMenu);
 
     // Restore Selection
-    mUndoSelection = new QAction(tr("&Restore selection"), this);
+    mUndoSelection = new QAction(QIcon(":/icons/images/eraser.png"), tr("&Restore selection"), this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Modify
-    mModifyAction = new QAction(tr("Modify"), this);
+    mModifyAction = new QAction(QIcon(":/icons/images/modify.png"), tr("Modify"), this);
     connect(mModifyAction, SIGNAL(triggered()), this, SLOT(modifySlot()));
 
+    auto cspIcon = QIcon(":/icons/images/neworigin.png");
+    auto cbpIcon = QIcon(":/icons/images/cbp.png");
 #ifdef _WIN64
-    mGotoSp = new QAction(tr("Follow R&SP"), this);
-    mGotoBp = new QAction(tr("Follow R&BP"), this);
+    mGotoSp = new QAction(cspIcon, tr("Follow R&SP"), this);
+    mGotoBp = new QAction(cbpIcon, tr("Follow R&BP"), this);
 #else
-    mGotoSp = new QAction(tr("Follow E&SP"), this);
-    mGotoBp = new QAction(tr("Follow E&BP"), this);
+    mGotoSp = new QAction(cspIcon, tr("Follow E&SP"), this);
+    mGotoBp = new QAction(cbpIcon, tr("Follow E&BP"), this);
 #endif //_WIN64
     mGotoSp->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoSp);
     connect(mGotoSp, SIGNAL(triggered()), this, SLOT(gotoSpSlot()));
     connect(mGotoBp, SIGNAL(triggered()), this, SLOT(gotoBpSlot()));
 
-    mFreezeStack = new QAction(tr("Freeze the stack"), this);
+    mFreezeStack = new QAction(QIcon(":/icons/images/freeze.png"), tr("Freeze the stack"), this);
     this->addAction(mFreezeStack);
     connect(mFreezeStack, SIGNAL(triggered()), this, SLOT(freezeStackSlot()));
 
     //Find Pattern
-    mFindPatternAction = new QAction(tr("&Find Pattern..."), this);
+    mFindPatternAction = new QAction(QIcon(":/icons/images/search-for.png"), tr("&Find Pattern..."), this);
     mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
-    //Expression
-    mGotoExpression = new QAction(tr("&Expression"), this);
+    //Go to Expression
+    mGotoExpression = new QAction(QIcon(":/icons/images/geolocation-goto.png"), tr("Go to &Expression"), this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
 
+    //Go to Previous
+    mGotoPrevious = new QAction(QIcon(":/icons/images/previous.png"), tr("Go to Previous"), this);
+    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoPrevious);
+    connect(mGotoPrevious, SIGNAL(triggered(bool)), this, SLOT(gotoPreviousSlot()));
+
+    //Go to Next
+    mGotoNext = new QAction(QIcon(":/icons/images/next.png"), tr("Go to Next"), this);
+    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoNext);
+    connect(mGotoNext, SIGNAL(triggered(bool)), this, SLOT(gotoNextSlot()));
+
     //Follow in Disassembler
-    mFollowDisasm = new QAction(tr("&Follow in Disassembler"), this);
+    auto disasmIcon = QIcon(QString(":/icons/images/") + ArchValue("processor32.png", "processor64.png"));
+    mFollowDisasm = new QAction(disasmIcon, tr("&Follow in Disassembler"), this);
     mFollowDisasm->setShortcutContext(Qt::WidgetShortcut);
     mFollowDisasm->setShortcut(QKeySequence("enter"));
     this->addAction(mFollowDisasm);
@@ -230,28 +247,28 @@ void CPUStack::setupContextMenu()
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     //Follow in Dump
-    mFollowDump = new QAction(tr("Follow in &Dump"), this);
+    auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
+    mFollowDump = new QAction(QIcon(":/icons/images/dump.png"), followDumpName, this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
-#ifdef _WIN64
-    mFollowInDumpMenu = new QMenu(tr("&Follow QWORD in Dump"), this);
-#else //x86
-    mFollowInDumpMenu = new QMenu(tr("&Follow DWORD in Dump"), this);
-#endif //_WIN64
+    auto followDumpMenuName = ArchValue(tr("&Follow DWORD in Dump"), tr("&Follow QWORD in Dump"));
+    mFollowInDumpMenu = new QMenu(followDumpMenuName, this);
 
     int maxDumps = mMultiDump->getMaxCPUTabs();
     for(int i = 0; i < maxDumps; i++)
     {
-        QAction* action = new QAction(tr("Dump %1)").arg(i + 1), this);
+        QAction* action = new QAction(tr("Dump %1").arg(i + 1), this);
         connect(action, SIGNAL(triggered()), this, SLOT(followinDumpNSlot()));
         mFollowInDumpMenu->addAction(action);
         mFollowInDumpActions.push_back(action);
     }
 
-    mFollowStack = new QAction(tr("Follow in &Stack"), this);
+    auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
+    mFollowStack = new QAction(QIcon(":/icons/images/stack.png"), followStackName, this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     mPluginMenu = new QMenu(this);
+    mPluginMenu->setIcon(QIcon(":/icons/images/plugin.png"));
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_STACK_MENU);
 
     refreshShortcutsSlot();
@@ -287,6 +304,8 @@ void CPUStack::refreshShortcutsSlot()
     mGotoSp->setShortcut(ConfigShortcut("ActionGotoOrigin"));
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
+    mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
 }
 
 QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -399,12 +418,12 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         int wBytePerRowCount = getBytePerRowCount();
         dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
-        QList<RichTextPainter::CustomRichText_t> richText;
-        getString(col - 1, wRva, &richText);
+        RichTextPainter::List richText;
+        getString(col - 1, wRva, richText);
         if(!wActiveStack)
         {
             QColor inactiveColor = ConfigColor("StackInactiveTextColor");
-            for(int i = 0; i < richText.size(); i++)
+            for(int i = 0; i < int(richText.size()); i++)
             {
                 richText[i].flags = RichTextPainter::FlagColor;
                 richText[i].textColor = inactiveColor;
@@ -414,7 +433,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         {
             ix.charwidth = getCharWidth(ix.text);
         }
-        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText);
+        RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, getCharWidth());
     }
     else if(DbgStackCommentGet(rvaToVa(wRva), &comment)) //paint stack comments
     {
@@ -440,19 +459,23 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     if(!DbgIsDebugging())
         return;
 
-    QMenu* wMenu = new QMenu(this); //create context menu
-    wMenu->addAction(mModifyAction);
-    wMenu->addMenu(mBinaryMenu);
-    wMenu->addMenu(mBreakpointMenu);
+    QMenu wMenu(this); //create context menu
+    wMenu.addAction(mModifyAction);
+    wMenu.addMenu(mBinaryMenu);
+    wMenu.addMenu(mBreakpointMenu);
     dsint start = rvaToVa(getSelectionStart());
     dsint end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
-        wMenu->addAction(mUndoSelection);
-    wMenu->addAction(mFindPatternAction);
-    wMenu->addAction(mGotoSp);
-    wMenu->addAction(mGotoBp);
-    wMenu->addAction(mFreezeStack);
-    wMenu->addAction(mGotoExpression);
+        wMenu.addAction(mUndoSelection);
+    wMenu.addAction(mFindPatternAction);
+    wMenu.addAction(mGotoSp);
+    wMenu.addAction(mGotoBp);
+    wMenu.addAction(mFreezeStack);
+    wMenu.addAction(mGotoExpression);
+    if(historyHasPrev())
+        wMenu.addAction(mGotoPrevious);
+    if(historyHasNext())
+        wMenu.addAction(mGotoNext);
 
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
@@ -461,14 +484,14 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
             duint stackBegin = mMemPage->getBase();
             duint stackEnd = stackBegin + mMemPage->getSize();
             if(selectedData >= stackBegin && selectedData < stackEnd)
-                wMenu->addAction(mFollowStack);
-            wMenu->addAction(mFollowDisasm);
-            wMenu->addAction(mFollowDump);
-            wMenu->addMenu(mFollowInDumpMenu);
+                wMenu.addAction(mFollowStack);
+            wMenu.addAction(mFollowDisasm);
+            wMenu.addAction(mFollowDump);
+            wMenu.addMenu(mFollowInDumpMenu);
         }
 
-    wMenu->addSeparator();
-    wMenu->addActions(mPluginMenu->actions());
+    wMenu.addSeparator();
+    wMenu.addActions(mPluginMenu->actions());
 
 
     if(DbgGetBpxTypeAt(selectedAddr) & bp_hardware) //hardware breakpoint set
@@ -496,7 +519,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
         mBreakpointMemoryRemove->setVisible(false);
     }
 
-    wMenu->exec(event->globalPos());
+    wMenu.exec(event->globalPos());
 }
 
 void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
@@ -534,6 +557,8 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPUStack::stackDumpAt(duint addr, duint csp)
 {
+    setFocus();
+    addVaToHistory(addr);
     mCsp = csp;
     printDumpAt(addr);
 }
@@ -570,6 +595,16 @@ void CPUStack::gotoExpressionSlot()
         QString cmd;
         DbgCmdExec(cmd.sprintf("sdump \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
     }
+}
+
+void CPUStack::gotoPreviousSlot()
+{
+    historyPrev();
+}
+
+void CPUStack::gotoNextSlot()
+{
+    historyNext();
 }
 
 void CPUStack::selectionGet(SELECTIONDATA* selection)
@@ -679,7 +714,7 @@ void CPUStack::binaryEditSlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    hexEdit.setWindowTitle(tr("Edit data at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Edit data at %1").arg(ToPtrString(rvaToVa(selStart))));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     dsint dataSize = hexEdit.mHexEdit->data().size();
@@ -878,7 +913,7 @@ void CPUStack::modifySlot()
         return;
     value = wEditDialog.getVal();
     mMemPage->write(&value, addr, sizeof(dsint));
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUStack::freezeStackSlot()

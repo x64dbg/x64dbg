@@ -7,19 +7,19 @@
 
 ControlFlowAnalysis::ControlFlowAnalysis(duint base, duint size, bool exceptionDirectory)
     : Analysis(base, size),
-      _functionInfoSize(0),
-      _functionInfoData(nullptr)
+      mFunctionInfoSize(0),
+      mFunctionInfoData(nullptr)
 {
 #ifdef _WIN64
     // This will only be valid if the address range is within a loaded module
-    _moduleBase = ModBaseFromAddr(base);
+    mModuleBase = ModBaseFromAddr(base);
 
-    if(exceptionDirectory && _moduleBase != 0)
+    if(exceptionDirectory && mModuleBase != 0)
     {
         char modulePath[MAX_PATH];
         memset(modulePath, 0, sizeof(modulePath));
 
-        ModPathFromAddr(_moduleBase, modulePath, ARRAYSIZE(modulePath));
+        ModPathFromAddr(mModuleBase, modulePath, ARRAYSIZE(modulePath));
 
         HANDLE fileHandle;
         DWORD fileSize;
@@ -35,8 +35,8 @@ ControlFlowAnalysis::ControlFlowAnalysis(duint base, duint size, bool exceptionD
                     &fileMapVa))
         {
             // Find a pointer to IMAGE_DIRECTORY_ENTRY_EXCEPTION for later use
-            ULONG_PTR virtualOffset = GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALOFFSET);
-            _functionInfoSize = (duint)GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALSIZE);
+            auto virtualOffset = GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALOFFSET);
+            mFunctionInfoSize = duint(GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALSIZE));
 
             // Unload the file
             StaticFileUnloadW(nullptr, false, fileHandle, fileSize, fileMapHandle, fileMapVa);
@@ -45,10 +45,10 @@ ControlFlowAnalysis::ControlFlowAnalysis(duint base, duint size, bool exceptionD
             if(virtualOffset)
             {
                 // Read the table into a buffer
-                _functionInfoData = emalloc(_functionInfoSize);
+                mFunctionInfoData = emalloc(mFunctionInfoSize);
 
-                if(_functionInfoData)
-                    MemRead(virtualOffset + _moduleBase, _functionInfoData, _functionInfoSize);
+                if(mFunctionInfoData)
+                    MemRead(virtualOffset + mModuleBase, mFunctionInfoData, mFunctionInfoSize);
             }
         }
     }
@@ -57,14 +57,14 @@ ControlFlowAnalysis::ControlFlowAnalysis(duint base, duint size, bool exceptionD
 
 ControlFlowAnalysis::~ControlFlowAnalysis()
 {
-    if(_functionInfoData)
-        efree(_functionInfoData);
+    if(mFunctionInfoData)
+        efree(mFunctionInfoData);
 }
 
 void ControlFlowAnalysis::Analyse()
 {
     dputs("Starting analysis...");
-    DWORD ticks = GetTickCount();
+    auto ticks = GetTickCount();
 
     BasicBlockStarts();
     dprintf("Basic block starts in %ums!\n", GetTickCount() - ticks);
@@ -80,31 +80,30 @@ void ControlFlowAnalysis::Analyse()
 
     FunctionRanges();
     dprintf("Function ranges in %ums!\n", GetTickCount() - ticks);
-    ticks = GetTickCount();
 
     dprintf("Analysis finished!\n");
 }
 
 void ControlFlowAnalysis::SetMarkers()
 {
-    FunctionDelRange(_base, _base + _size - 1, false);
-    auto size = _functionRanges.size();
-    for(size_t i = size - 1; i != -1; i--)
+    FunctionDelRange(mBase, mBase + mSize - 1, false);
+    auto size = mFunctionRanges.size();
+    for(auto i = size - 1; i != -1; i--)
     {
-        const auto & range = _functionRanges[i];
+        const auto & range = mFunctionRanges[i];
         FunctionAdd(range.first, range.second, false);
     }
     /*dprintf("digraph ControlFlow {\n");
     int i = 0;
     std::map<duint, int> nodeMap;
-    for(const auto & it : _blocks)
+    for(const auto & it : mBlocks)
     {
         const auto & block = it.second;
         nodeMap.insert({ block.start, i });
         dprintf("    node%u [label=\"s=%p, e=%p, f=%p\"];\n", i, block.start, block.end, block.function);
         i++;
     }
-    for(auto it : _blocks)
+    for(auto it : mBlocks)
     {
         const auto & block = it.second;
         int startNode = nodeMap[block.start];
@@ -136,55 +135,55 @@ void ControlFlowAnalysis::SetMarkers()
 
 void ControlFlowAnalysis::BasicBlockStarts()
 {
-    _blockStarts.insert(_base);
-    bool bSkipFilling = false;
-    for(duint i = 0; i < _size;)
+    mBlockStarts.insert(mBase);
+    auto bSkipFilling = false;
+    for(duint i = 0; i < mSize;)
     {
-        duint addr = _base + i;
-        if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
+        auto addr = mBase + i;
+        if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
         {
             if(bSkipFilling) //handle filling skip mode
             {
-                if(!_cp.IsFilling()) //do nothing until the filling stopped
+                if(!mCp.IsFilling()) //do nothing until the filling stopped
                 {
                     bSkipFilling = false;
-                    _blockStarts.insert(addr);
+                    mBlockStarts.insert(addr);
                 }
             }
-            else if(_cp.InGroup(CS_GRP_RET)) //RET breaks control flow
+            else if(mCp.InGroup(CS_GRP_RET)) //RET breaks control flow
             {
                 bSkipFilling = true; //skip INT3/NOP/whatever filling bytes (those are not part of the control flow)
             }
-            else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())   //branches
+            else if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())   //branches
             {
-                duint dest1 = getReferenceOperand();
+                auto dest1 = getReferenceOperand();
                 duint dest2 = 0;
-                if(_cp.GetId() != X86_INS_JMP)    //unconditional jump
-                    dest2 = addr + _cp.Size();
+                if(mCp.GetId() != X86_INS_JMP)    //conditional jump
+                    dest2 = addr + mCp.Size();
 
                 if(!dest1 && !dest2)  //TODO: better code for this (make sure absolutely no filling is inserted)
                     bSkipFilling = true;
                 if(dest1)
-                    _blockStarts.insert(dest1);
+                    mBlockStarts.insert(dest1);
                 if(dest2)
-                    _blockStarts.insert(dest2);
+                    mBlockStarts.insert(dest2);
             }
-            else if(_cp.InGroup(CS_GRP_CALL))
+            else if(mCp.InGroup(CS_GRP_CALL))
             {
-                duint dest1 = getReferenceOperand();
+                auto dest1 = getReferenceOperand();
                 if(dest1)
                 {
-                    _blockStarts.insert(dest1);
-                    _functionStarts.insert(dest1);
+                    mBlockStarts.insert(dest1);
+                    mFunctionStarts.insert(dest1);
                 }
             }
             else
             {
-                duint dest1 = getReferenceOperand();
+                auto dest1 = getReferenceOperand();
                 if(dest1)
-                    _blockStarts.insert(dest1);
+                    mBlockStarts.insert(dest1);
             }
-            i += _cp.Size();
+            i += mCp.Size();
         }
         else
             i++;
@@ -193,35 +192,35 @@ void ControlFlowAnalysis::BasicBlockStarts()
 
 void ControlFlowAnalysis::BasicBlocks()
 {
-    for(auto i = _blockStarts.begin(); i != _blockStarts.end(); ++i)
+    for(auto i = mBlockStarts.begin(); i != mBlockStarts.end(); ++i)
     {
-        duint start = *i;
-        if(!IsValidAddress(start))
+        auto start = *i;
+        if(!inRange(start))
             continue;
-        duint nextStart = _base + _size;
+        auto nextStart = mBase + mSize;
         auto next = std::next(i);
-        if(next != _blockStarts.end())
+        if(next != mBlockStarts.end())
             nextStart = *next;
-        for(duint addr = start, prevaddr = 0; addr < _base + _size;)
+        for(duint addr = start, prevaddr; addr < mBase + mSize;)
         {
             prevaddr = addr;
-            if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
+            if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
             {
-                if(_cp.InGroup(CS_GRP_RET))
+                if(mCp.InGroup(CS_GRP_RET))
                 {
                     insertBlock(BasicBlock(start, addr, 0, 0)); //leaf block
                     break;
                 }
-                else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())
+                else if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())
                 {
-                    duint dest1 = getReferenceOperand();
-                    duint dest2 = _cp.GetId() != X86_INS_JMP ? addr + _cp.Size() : 0;
+                    auto dest1 = getReferenceOperand();
+                    auto dest2 = mCp.GetId() != X86_INS_JMP ? addr + mCp.Size() : 0;
                     insertBlock(BasicBlock(start, addr, dest1, dest2));
                     insertParent(dest1, start);
                     insertParent(dest2, start);
                     break;
                 }
-                addr += _cp.Size();
+                addr += mCp.Size();
             }
             else
                 addr++;
@@ -233,48 +232,48 @@ void ControlFlowAnalysis::BasicBlocks()
             }
         }
     }
-    _blockStarts.clear();
+    mBlockStarts.clear();
 
 #ifdef _WIN64
-    int count = 0;
+    auto count = 0;
     enumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
     {
-        const duint funcAddr = _moduleBase + Function->BeginAddress;
-        const duint funcEnd = _moduleBase + Function->EndAddress;
+        auto funcAddr = mModuleBase + Function->BeginAddress;
+        auto funcEnd = mModuleBase + Function->EndAddress;
 
         // If within limits...
-        if(funcAddr >= _base && funcAddr < _base + _size)
-            _functionStarts.insert(funcAddr);
+        if(inRange(funcAddr) && inRange(funcEnd))
+            mFunctionStarts.insert(funcAddr);
         count++;
         return true;
     });
     dprintf("%u functions from the exception directory...\n", count);
 #endif // _WIN64
 
-    dprintf("%u basic blocks, %u function starts detected...\n", _blocks.size(), _functionStarts.size());
+    dprintf("%u basic blocks, %u function starts detected...\n", mBlocks.size(), mFunctionStarts.size());
 }
 
 void ControlFlowAnalysis::Functions()
 {
-    typedef std::pair<BasicBlock*, UintSet*> DelayedBlock;
+    typedef std::pair<BasicBlock*, const UintSet*> DelayedBlock;
     std::vector<DelayedBlock> delayedBlocks;
-    for(auto & it : _blocks)
+    for(auto & it : mBlocks)
     {
-        BasicBlock* block = &it.second;
-        UintSet* parents = findParents(block->start);
+        auto block = &it.second;
+        auto parents = findParents(block->start);
         if(!block->function)
         {
-            if(!parents || _functionStarts.count(block->start))  //no parents = function start
+            if(!parents || mFunctionStarts.count(block->start))  //no parents = function start
             {
-                duint functionStart = block->start;
+                auto functionStart = block->start;
                 block->function = functionStart;
                 UintSet functionBlocks;
                 functionBlocks.insert(functionStart);
-                _functions[functionStart] = functionBlocks;
+                mFunctions[functionStart] = functionBlocks;
             }
             else //in function
             {
-                duint function = findFunctionStart(block, parents);
+                auto function = findFunctionStart(block, parents);
                 if(!function)  //this happens with loops / unreferenced blocks sometimes
                     delayedBlocks.push_back(DelayedBlock(block, parents));
                 else
@@ -284,14 +283,14 @@ void ControlFlowAnalysis::Functions()
         else
             DebugBreak(); //this should not happen
     }
-    int delayedCount = (int)delayedBlocks.size();
-    dprintf("%u/%u delayed blocks...\n", delayedCount, _blocks.size());
-    int resolved = 0;
+    auto delayedCount = int(delayedBlocks.size());
+    dprintf("%u/%u delayed blocks...\n", delayedCount, mBlocks.size());
+    auto resolved = 0;
     for(auto & delayedBlock : delayedBlocks)
     {
-        BasicBlock* block = delayedBlock.first;
-        UintSet* parents = delayedBlock.second;
-        duint function = findFunctionStart(block, parents);
+        auto block = delayedBlock.first;
+        auto parents = delayedBlock.second;
+        auto function = findFunctionStart(block, parents);
         if(!function)
         {
             continue;
@@ -311,101 +310,101 @@ void ControlFlowAnalysis::Functions()
         block->function = function;
         resolved++;
     }
-    dprintf("%u/%u delayed blocks resolved (%u/%u still left, probably unreferenced functions)\n", resolved, delayedCount, delayedCount - resolved, _blocks.size());
-    int unreferencedCount = 0;
-    for(const auto & block : _blocks)
+    dprintf("%u/%u delayed blocks resolved (%u/%u still left, probably unreferenced functions)\n", resolved, delayedCount, delayedCount - resolved, mBlocks.size());
+    auto unreferencedCount = 0;
+    for(const auto & block : mBlocks)
     {
-        auto found = _functions.find(block.second.function);
-        if(found == _functions.end())  //unreferenced block
+        auto found = mFunctions.find(block.second.function);
+        if(found == mFunctions.end())  //unreferenced block
         {
             unreferencedCount++;
             continue;
         }
         found->second.insert(block.second.start);
     }
-    dprintf("%u/%u unreferenced blocks\n", unreferencedCount, _blocks.size());
-    dprintf("%u functions found!\n", _functions.size());
+    dprintf("%u/%u unreferenced blocks\n", unreferencedCount, mBlocks.size());
+    dprintf("%u functions found!\n", mFunctions.size());
 }
 
 void ControlFlowAnalysis::FunctionRanges()
 {
     //iterate over the functions and then find the deepest block = function end
-    for(const auto & function : _functions)
+    for(const auto & function : mFunctions)
     {
-        duint start = function.first;
-        duint end = start;
+        auto start = function.first;
+        auto end = start;
         for(auto blockstart : function.second)
         {
-            BasicBlock* block = this->findBlock(blockstart);
+            auto block = findBlock(blockstart);
             if(!block)
                 DebugBreak(); //this shouldn't happen
             if(block->end > end)
                 end = block->end;
         }
-        _functionRanges.push_back({ start, end });
+        mFunctionRanges.push_back({ start, end });
     }
 }
 
 void ControlFlowAnalysis::insertBlock(BasicBlock block)
 {
-    if(_blocks.find(block.start) != _blocks.end())
+    if(mBlocks.find(block.start) != mBlocks.end())
         DebugBreak();
-    _blocks[block.start] = block;
+    mBlocks[block.start] = block;
 }
 
-ControlFlowAnalysis::BasicBlock* ControlFlowAnalysis::findBlock(duint start)
+const ControlFlowAnalysis::BasicBlock* ControlFlowAnalysis::findBlock(duint start) const
 {
     if(!start)
         return nullptr;
-    auto found = _blocks.find(start);
-    return found != _blocks.end() ? &found->second : nullptr;
+    auto found = mBlocks.find(start);
+    return found != mBlocks.end() ? &found->second : nullptr;
 }
 
 void ControlFlowAnalysis::insertParent(duint child, duint parent)
 {
     if(!child || !parent)
         return;
-    auto found = _parentMap.find(child);
-    if(found == _parentMap.end())
+    auto found = mParentMap.find(child);
+    if(found == mParentMap.end())
     {
         UintSet parents;
         parents.insert(parent);
-        _parentMap[child] = parents;
+        mParentMap[child] = parents;
     }
     else
         found->second.insert(parent);
 }
 
-ControlFlowAnalysis::UintSet* ControlFlowAnalysis::findParents(duint child)
+const ControlFlowAnalysis::UintSet* ControlFlowAnalysis::findParents(duint child) const
 {
     if(!child)
         return nullptr;
-    auto found = _parentMap.find(child);
-    return found != _parentMap.end() ? &found->second : nullptr;
+    auto found = mParentMap.find(child);
+    return found != mParentMap.end() ? &found->second : nullptr;
 }
 
-duint ControlFlowAnalysis::findFunctionStart(BasicBlock* block, ControlFlowAnalysis::UintSet* parents)
+duint ControlFlowAnalysis::findFunctionStart(const BasicBlock* block, const UintSet* parents) const
 {
     if(!block)
         return 0;
     if(block->function)
         return block->function;
-    BasicBlock* left = findBlock(block->left);
+    auto left = findBlock(block->left);
     if(left && left->function)
         return left->function;
-    BasicBlock* right = findBlock(block->right);
+    auto right = findBlock(block->right);
     if(right && right->function)
         return right->function;
     for(auto start : *parents)
     {
-        BasicBlock* parent = findBlock(start);
+        auto parent = findBlock(start);
         if(parent->function)
             return parent->function;
     }
     return 0;
 }
 
-String ControlFlowAnalysis::blockToString(BasicBlock* block)
+String ControlFlowAnalysis::blockToString(const BasicBlock* block)
 {
     if(!block)
         return String("null");
@@ -414,13 +413,21 @@ String ControlFlowAnalysis::blockToString(BasicBlock* block)
 
 duint ControlFlowAnalysis::getReferenceOperand() const
 {
-    for(int i = 0; i < _cp.x86().op_count; i++)
+    for(auto i = 0; i < mCp.OpCount(); i++)
     {
-        const cs_x86_op & operand = _cp.x86().operands[i];
-        if(operand.type == X86_OP_IMM)
+        const auto & op = mCp.x86().operands[i];
+        if(op.type == X86_OP_IMM)
         {
-            duint dest = (duint)operand.imm;
-            if(dest >= _base && dest < _base + _size)
+            auto dest = duint(op.imm);
+            if(inRange(dest))
+                return dest;
+        }
+        else if(op.type == X86_OP_MEM)
+        {
+            auto dest = duint(op.mem.disp);
+            if(op.mem.base == X86_REG_RIP)  //rip-relative
+                dest += mCp.Address() + mCp.Size();
+            if(inRange(dest))
                 return dest;
         }
     }
@@ -428,17 +435,17 @@ duint ControlFlowAnalysis::getReferenceOperand() const
 }
 
 #ifdef _WIN64
-void ControlFlowAnalysis::enumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback)
+void ControlFlowAnalysis::enumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const
 {
-    if(!_functionInfoData)
+    if(!mFunctionInfoData)
         return;
 
     // Get the table pointer and size
-    auto functionTable = (PRUNTIME_FUNCTION)_functionInfoData;
-    duint totalCount = (_functionInfoSize / sizeof(RUNTIME_FUNCTION));
+    auto functionTable = PRUNTIME_FUNCTION(mFunctionInfoData);
+    auto totalCount = mFunctionInfoSize / sizeof(RUNTIME_FUNCTION);
 
     // Enumerate each entry
-    for(ULONG i = 0; i < totalCount; i++)
+    for(duint i = 0; i < totalCount; i++)
     {
         if(!Callback(&functionTable[i]))
             break;

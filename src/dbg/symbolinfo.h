@@ -9,7 +9,7 @@ bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List);
 void SymUpdateModuleList();
 void SymDownloadAllSymbols(const char* SymbolStore);
 bool SymAddrFromName(const char* Name, duint* Address);
-const char* SymGetSymbolicName(duint Address);
+String SymGetSymbolicName(duint Address);
 
 /**
 \brief Gets the source code file name and line from an address.

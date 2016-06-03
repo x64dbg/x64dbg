@@ -28,13 +28,13 @@ private:
         }
     };
 
-    std::vector<FunctionInfo> _functions;
+    std::vector<FunctionInfo> mFunctions;
 
-    void SortCleanup();
-    void PopulateReferences();
-    void AnalyseFunctions();
-    duint FindFunctionEnd(duint start, duint maxaddr);
-    duint GetReferenceOperand();
+    void sortCleanup();
+    void populateReferences();
+    void analyseFunctions();
+    duint findFunctionEnd(duint start, duint maxaddr);
+    duint getReferenceOperand() const;
 };
 
 #endif //_LINEARANALYSIS_H

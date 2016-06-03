@@ -222,12 +222,21 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             if(destVA <= last_va && destVA >= first_va)
             {
                 int destLine = line;
-                while(destLine > -1 && destLine < mInstrBuffer->size() && mInstrBuffer->at(destLine).rva + mDisas->getBase() != destVA)
+                while(destLine > -1 && destLine < mInstrBuffer->size())
                 {
+                    dsint va = mInstrBuffer->at(destLine).rva + mDisas->getBase();
                     if(destVA > instrVA) //jump goes up
+                    {
+                        if(va >= destVA)
+                            break;
                         destLine++;
+                    }
                     else //jump goes down
+                    {
+                        if(va <= destVA)
+                            break;
                         destLine--;
+                    }
                 }
                 drawJump(&painter, line, destLine, jumpoffset, isConditional, isJumpGoingToExecute, isSelected);
             }
