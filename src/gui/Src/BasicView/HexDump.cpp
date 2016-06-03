@@ -194,7 +194,7 @@ QString HexDump::makeCopyText()
         deltaRowBase -= getBytePerRowCount();
     auto curRow = getSelectionStart() - deltaRowBase;
     QString result;
-    while(curRow < getSelectionEnd())
+    while(curRow <= getSelectionEnd())
     {
         for(int col = 0; col < getColumnCount(); col++)
         {
@@ -205,7 +205,10 @@ QString HexDump::makeCopyText()
             QString colText;
             for(auto & r : richText)
                 colText += r.text;
-            result += colText.leftJustified(getColumnWidth(col) / getCharWidth(), QChar(' '), true);
+            if(col + 1 == getColumnCount())
+                result += colText;
+            else
+                result += colText.leftJustified(getColumnWidth(col) / getCharWidth(), QChar(' '), true);
         }
         curRow += getBytePerRowCount();
         result += "\n";
