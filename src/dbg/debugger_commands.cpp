@@ -128,6 +128,7 @@ CMDRESULT cbDebugRun(int argc, char* argv[])
     if(dbgisrunning())
         return STATUS_ERROR;
 
+    dbgsetispausedbyuser(false);
     GuiSetDebugState(running);
     unlock(WAITID_RUN);
     PLUG_CB_RESUMEDEBUG callbackInfo;
@@ -1358,23 +1359,28 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
         dputs("Program is not running");
         return STATUS_ERROR;
     }
-    duint debugBreakAddr;
-    if(!valfromstring("DebugBreak", &debugBreakAddr))
+    if(SuspendThread(hActiveThread) == -1)
     {
-        dputs("Could not find DebugBreak!");
+        dputs("Error suspending thread");
         return STATUS_ERROR;
     }
-    DWORD dwThreadId = 0;
-    HANDLE hThread = CreateRemoteThread(fdProcessInfo->hProcess, 0, 0, (LPTHREAD_START_ROUTINE)debugBreakAddr, 0, CREATE_SUSPENDED, &dwThreadId);
-    if(!hThread)
+    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    if(!SetBPX(CIP, UE_BREAKPOINT, (void*)cbPauseBreakpoint))
     {
-        dputs("Failed to create thread in debuggee");
+        dprintf("Error setting breakpoint at " fhex "! (SetBPX)\n", CIP);
+        if(ResumeThread(hActiveThread) == -1)
+        {
+            dputs("Error resuming thread");
+            return STATUS_ERROR;
+        }
         return STATUS_ERROR;
     }
-    dprintf("Created thread with ThreadId %X\n", dwThreadId);
     dbgsetispausedbyuser(true);
-    ResumeThread(hThread);
-    CloseHandle(hThread);
+    if(ResumeThread(hActiveThread) == -1)
+    {
+        dputs("Error resuming thread");
+        return STATUS_ERROR;
+    }
     return STATUS_CONTINUE;
 }
 
