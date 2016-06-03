@@ -40,9 +40,9 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mGeneralRegs = new RegistersView(0);
     mGeneralRegs->setFixedWidth(1000);
 #ifdef _WIN64
-    mGeneralRegs->setFixedHeight(2000);
+    mGeneralRegs->setFixedHeight((124 + 4) * QFontMetrics(mGeneralRegs->font()).height());
 #else //x86
-    mGeneralRegs->setFixedHeight(1400);
+    mGeneralRegs->setFixedHeight((108 + 4) * QFontMetrics(mGeneralRegs->font()).height());
 #endif //_WIN64
     mGeneralRegs->ShowFPU(true);
 
