@@ -31,7 +31,7 @@ public:
     dsint sliderMovedHook(int type, dsint value, dsint delta);
 
     // Jumps Graphic
-    int paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr);
+    int paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, bool isjmp);
 
     // Function Graphic
 
@@ -104,10 +104,12 @@ signals:
 public slots:
     void disassembleAt(dsint parVA, dsint parCIP);
     void debugStateChangedSlot(DBGSTATE state);
+    void selectionChangedSlot(dsint parVA);
 
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
-    enum GraphicDump_t {GD_Nothing, GD_FootToTop, GD_FootToBottom, GD_HeadFromTop, GD_HeadFromBottom, GD_Vert}; // GD_FootToTop = '- , GD_FootToBottom = ,- , GD_HeadFromTop = '-> , GD_HeadFromBottom = ,-> , GD_Vert = |
+    enum GraphicDump_t {GD_Nothing, GD_FootToTop, GD_FootToBottom, GD_HeadFromTop, GD_HeadFromBottom, GD_HeadFromBoth, GD_Vert, GD_VertHori}; // GD_FootToTop = '- , GD_FootToBottom = ,- , GD_HeadFromTop = '-> , GD_HeadFromBottom = ,-> , GD_HeadFromBoth = |-> , GD_Vert = | , GD_VertHori = |-
+    enum GraphicJumpDirection_t {GJD_Nothing, GJD_Up, GJD_Down };
 
     typedef struct _SelectionData_t
     {
@@ -139,6 +141,8 @@ private:
     QList<HistoryData_t> mVaHistory;
     int mCurrentVa;
     CapstoneTokenizer::SingleToken mHighlightToken;
+
+    XREF_INFO mXrefInfo;
 
 protected:
     // Configuration

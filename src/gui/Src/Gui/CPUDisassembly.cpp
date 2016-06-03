@@ -12,6 +12,7 @@
 #include "AssembleDialog.h"
 #include "StringUtil.h"
 #include "Breakpoints.h"
+#include "XrefBrowseDialog.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -429,6 +430,13 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
     gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/top.png"), tr("Start of Page"), SLOT(gotoStartSlot()), "ActionGotoStart"));
     gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/bottom.png"), tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
+
+    gotoMenu->addAction(makeAction(tr("Jump or call to selection..."), SLOT(gotoXrefSlot())), [this](QMenu*)
+    {
+        size_t xrefcount = DbgGetXrefCountAt(rvaToVa(getInitialSelection()));
+        return xrefcount > 0;
+    });
+
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/goto.png"), tr("Go to")), gotoMenu);
     mMenuBuilder->addSeparator();
 
@@ -895,6 +903,14 @@ void CPUDisassembly::gotoEndSlot()
 {
     duint dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * 16);
     DbgCmdExec(QString().sprintf("disasm \"%p\"", dest).toUtf8().constData());
+}
+
+void CPUDisassembly::gotoXrefSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    XrefBrowseDialog xrefDlg(this, getSelectedVa());
+    xrefDlg.exec();
 }
 
 void CPUDisassembly::followActionSlot()
