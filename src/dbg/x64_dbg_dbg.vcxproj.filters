@@ -688,11 +688,9 @@
     <ClInclude Include="tcpconnections.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="xrefs.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
-=======
     <ClInclude Include="argument.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
@@ -705,6 +703,5 @@
     <ClInclude Include="recursiveanalysis.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
->>>>>>> development
   </ItemGroup>
 </Project>
