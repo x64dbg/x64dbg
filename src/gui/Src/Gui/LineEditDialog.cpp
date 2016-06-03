@@ -18,6 +18,11 @@ LineEditDialog::~LineEditDialog()
     delete ui;
 }
 
+void LineEditDialog::selectAllText()
+{
+    ui->textEdit->selectAll();
+}
+
 void LineEditDialog::setCursorPosition(int position)
 {
     ui->textEdit->setCursorPosition(position);

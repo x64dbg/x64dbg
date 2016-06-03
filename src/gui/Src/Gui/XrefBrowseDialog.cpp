@@ -14,7 +14,7 @@ XrefBrowseDialog::XrefBrowseDialog(QWidget* parent, duint address) :
     {
         char disasm[GUI_MAX_DISASSEMBLY_SIZE] = "";
         setWindowTitle(QString(tr("xrefs at %1")).arg(ToHexString(address)));
-        for(int i = 0; i < mXrefInfo.refcount; i++)
+        for(duint i = 0; i < mXrefInfo.refcount; i++)
         {
             GuiGetDisassembly(mXrefInfo.references[i].addr, disasm);
             ui->listWidget->addItem(disasm);

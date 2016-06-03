@@ -671,9 +671,8 @@ typedef struct
 
 typedef struct
 {
-    char mod[MAX_MODULE_SIZE];
+    duint refcount;
     XREF_RECORD* references;
-    size_t refcount;
 } XREF_INFO;
 
 //Debugger functions

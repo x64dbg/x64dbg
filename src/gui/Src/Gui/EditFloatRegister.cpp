@@ -43,6 +43,8 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
         GuiAddLogMessage(QString("Error, register size %1 is not supported.\n").arg(RegisterSize).toUtf8().constData());
         break;
     }
+    setFixedWidth(width());
+    adjustSize();
 
     connect(ui->hexEdit, SIGNAL(textEdited(QString)), this, SLOT(editingHex1FinishedSlot(QString)));
     ui->hexEdit->setValidator(&hexValidate);
@@ -108,6 +110,7 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
 
 void EditFloatRegister::hideUpperPart()
 {
+    ui->line->hide();
     ui->labelH0->hide();
     ui->labelH1->hide();
     ui->labelH2->hide();
@@ -165,6 +168,11 @@ void EditFloatRegister::loadData(char* RegisterData)
 const char* EditFloatRegister::getData()
 {
     return Data;
+}
+
+void EditFloatRegister::selectAllText()
+{
+    ui->hexEdit->selectAll();
 }
 
 /**
@@ -483,7 +491,7 @@ EditFloatRegister::~EditFloatRegister()
 void EditFloatRegister::editingHex1FinishedSlot(QString arg)
 {
     mutex = sender();
-    QString filled(arg);
+    QString filled(arg.toUpper());
     filled.append(QString(16 - filled.length(), QChar('0')));
     for(int i = 0; i < 16; i++)
         Data[i + 16] = filled.mid(i * 2, 2).toInt(0, 16);
@@ -497,7 +505,7 @@ void EditFloatRegister::editingHex1FinishedSlot(QString arg)
 void EditFloatRegister::editingHex2FinishedSlot(QString arg)
 {
     mutex = sender();
-    QString filled(arg);
+    QString filled(arg.toUpper());
     filled.append(QString(16 - filled.length(), QChar('0')));
     for(int i = 0; i < 16; i++)
         Data[i] = filled.mid(i * 2, 2).toInt(0, 16);

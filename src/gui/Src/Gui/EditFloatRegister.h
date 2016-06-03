@@ -20,6 +20,7 @@ public:
     explicit EditFloatRegister(int RegisterSize, QWidget* parent = 0);
     void loadData(char* RegisterData);
     const char* getData();
+    void selectAllText();
 
     ~EditFloatRegister();
 

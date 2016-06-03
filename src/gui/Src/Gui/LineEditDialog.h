@@ -23,6 +23,7 @@ public:
     void setCheckBoxText(const QString & text);
     void setCursorPosition(int position);
     void ForceSize(unsigned int size);
+    void selectAllText();
 
 private slots:
     void on_textEdit_textChanged(const QString & arg1);

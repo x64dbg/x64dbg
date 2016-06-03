@@ -883,7 +883,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
         duint max = selVa, min = selVa;
         showXref = true;
         int jmpcount = 0;
-        for(int i = 0; i < mXrefInfo.refcount; i++)
+        for(duint i = 0; i < mXrefInfo.refcount; i++)
         {
             if(mXrefInfo.references[i].type != XREF_JMP)
                 continue;

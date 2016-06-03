@@ -1882,6 +1882,8 @@ void RegistersView::displayEditDialog()
             EditFloatRegister mEditFloat(256, this);
             mEditFloat.setWindowTitle(tr("Edit YMM register"));
             mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
+            mEditFloat.show();
+            mEditFloat.selectAllText();
             if(mEditFloat.exec() == QDialog::Accepted)
                 setRegister(mSelected, (duint)mEditFloat.getData());
         }
@@ -1906,6 +1908,8 @@ void RegistersView::displayEditDialog()
             do
             {
                 errorinput = false;
+                mLineEdit.show();
+                mLineEdit.selectAllText();
                 if(mLineEdit.exec() != QDialog::Accepted)
                     return; //pressed cancel
                 else
