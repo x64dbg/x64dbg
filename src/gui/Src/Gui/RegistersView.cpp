@@ -8,6 +8,11 @@
 #include "EditFloatRegister.h"
 #include "SelectFields.h"
 
+int RegistersView::getEstimateHeight()
+{
+    return mRowsNeeded * mRowHeight;
+}
+
 void RegistersView::SetChangeButton(QPushButton* push_button)
 {
     mChangeViewButton = push_button;
