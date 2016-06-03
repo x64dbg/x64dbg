@@ -25,6 +25,7 @@ void HexValidator::fixup(QString & input) const
 
 QValidator::State HexValidator::validate(QString & input, int & pos) const
 {
+    Q_UNUSED(pos);
     input = input.toUpper();
     for(int i = 0; i < input.length(); i++)
     {
