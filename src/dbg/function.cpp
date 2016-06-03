@@ -68,7 +68,8 @@ bool FunctionAdd(duint Start, duint End, bool Manual, duint InstructionCount)
         return false;
 
     FUNCTIONSINFO function;
-    ModNameFromAddr(Start, function.mod, true);
+    if(!ModNameFromAddr(Start, function.mod, true))
+        *function.mod = '\0';
     function.start = Start - moduleBase;
     function.end = End - moduleBase;
     function.manual = Manual;

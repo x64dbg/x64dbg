@@ -66,7 +66,8 @@ bool ArgumentAdd(duint Start, duint End, bool Manual, duint InstructionCount)
         return false;
 
     ARGUMENTSINFO argument;
-    ModNameFromAddr(Start, argument.mod, true);
+    if(!ModNameFromAddr(Start, argument.mod, true))
+        *argument.mod = '\0';
     argument.start = Start - moduleBase;
     argument.end = End - moduleBase;
     argument.manual = Manual;

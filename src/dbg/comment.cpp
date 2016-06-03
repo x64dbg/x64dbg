@@ -65,7 +65,8 @@ bool CommentSet(duint Address, const char* Text, bool Manual)
     // Fill out the structure
     COMMENTSINFO comment;
     strcpy_s(comment.text, Text);
-    ModNameFromAddr(Address, comment.mod, true);
+    if(!ModNameFromAddr(Address, comment.mod, true))
+        *comment.mod = '\0';
 
     comment.manual = Manual;
     comment.addr = Address - ModBaseFromAddr(Address);

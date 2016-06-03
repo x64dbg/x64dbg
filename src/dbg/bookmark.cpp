@@ -49,7 +49,8 @@ bool BookmarkSet(duint Address, bool Manual)
         return false;
 
     BOOKMARKSINFO bookmark;
-    ModNameFromAddr(Address, bookmark.mod, true);
+    if(!ModNameFromAddr(Address, bookmark.mod, true))
+        *bookmark.mod = '\0';
     bookmark.addr = Address - ModBaseFromAddr(Address);
     bookmark.manual = Manual;
 

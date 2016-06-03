@@ -104,7 +104,8 @@ bool XrefAdd(duint Address, duint From)
     if(found == mapData.end())
     {
         XREFSINFO info;
-        ModNameFromAddr(Address, info.mod, true);
+        if(!ModNameFromAddr(Address, info.mod, true))
+            *info.mod = '\0';
         info.address = Address - moduleBase;
         info.type = xrefRecord.type;
         info.references.insert({ xrefRecord.addr, xrefRecord });

@@ -2,6 +2,7 @@
 #include "threading.h"
 #include "module.h"
 #include "memory.h"
+#include "console.h"
 
 struct CommentSerializer : JSONWrapper<LABELSINFO>
 {
@@ -71,7 +72,8 @@ bool LabelSet(duint Address, const char* Text, bool Manual)
     labelInfo.manual = Manual;
     labelInfo.addr = Address - ModBaseFromAddr(Address);
     strcpy_s(labelInfo.text, Text);
-    ModNameFromAddr(Address, labelInfo.mod, true);
+    if(!ModNameFromAddr(Address, labelInfo.mod, true))
+        *labelInfo.mod = '\0';
 
     return labels.Add(labelInfo);
 }
