@@ -28,6 +28,7 @@ bool XrefAdd(duint Address, duint From)
         return false;
 
     duint addrHash = ModHashFromAddr(Address);
+    duint fromHash = ModHashFromAddr(From);
 
     BASIC_INSTRUCTION_INFO instInfo;
     DbgDisasmFastAt(From, &instInfo);
@@ -49,13 +50,13 @@ bool XrefAdd(duint Address, duint From)
         xref.address = Address - moduleBase;
         xref.jmp_count = 0;
         xref.call_count = 0;
-        xref.references[From] = xrefRecord;
+        xref.references[fromHash] = xrefRecord;
 
         references[addrHash] = xref;
     }
     else
     {
-        references[addrHash].references[From] = xrefRecord;
+        references[addrHash].references[fromHash] = xrefRecord;
     }
     if(instInfo.call)
         references[addrHash].call_count++;
@@ -92,7 +93,7 @@ bool XrefGet(duint Address, XREF_INFO* List)
 
     for(auto iter = found->second.references.begin(); iter != found->second.references.end(); iter++)
     {
-        ptr->addr = iter->first + moduleBase;
+        ptr->addr = iter->second.addr + moduleBase;
         strcpy_s(ptr->inst, iter->second.inst);
         ptr++;
     }
@@ -244,7 +245,7 @@ void XrefCacheLoad(JSON Root)
             xrefRecord.addr = json_hex_value(json_object_get(record, "addr"));
             const char* inst = json_string_value(json_object_get(record, "inst"));
             strcpy_s(xrefRecord.inst, inst);
-            xrefinfo.references.insert(std::make_pair(ModBaseFromName(xrefinfo.mod) + xrefRecord.addr, xrefRecord));
+            xrefinfo.references.insert(std::make_pair(ModHashFromName(xrefinfo.mod) + xrefRecord.addr, xrefRecord));
         }
 
         const duint key = ModHashFromName(xrefinfo.mod) + xrefinfo.address;

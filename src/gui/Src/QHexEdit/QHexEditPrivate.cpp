@@ -70,14 +70,15 @@ void QHexEditPrivate::insert(int index, const QByteArray & ba, const QByteArray 
         {
             _undoDataStack->push(new ArrayCommand(&_xData, ArrayCommand::replace, index, ba, ba.length()));
             _undoMaskStack->push(new ArrayCommand(&_xMask, ArrayCommand::replace, index, mask, mask.length()));
-            emit dataChanged();
         }
         else
         {
             _undoDataStack->push(new ArrayCommand(&_xData, ArrayCommand::insert, index, ba, ba.length()));
             _undoMaskStack->push(new ArrayCommand(&_xMask, ArrayCommand::insert, index, mask, mask.length()));
-            emit dataChanged();
         }
+
+        emit dataChanged();
+        emit dataEdited();
     }
 }
 
@@ -86,6 +87,7 @@ void QHexEditPrivate::insert(int index, char ch, char mask)
     _undoDataStack->push(new CharCommand(&_xData, CharCommand::insert, index, ch));
     _undoMaskStack->push(new CharCommand(&_xMask, CharCommand::insert, index, mask));
     emit dataChanged();
+    emit dataEdited();
 }
 
 void QHexEditPrivate::remove(int index, int len)
@@ -98,13 +100,11 @@ void QHexEditPrivate::remove(int index, int len)
             {
                 _undoDataStack->push(new CharCommand(&_xData, CharCommand::replace, index, char(0)));
                 _undoMaskStack->push(new CharCommand(&_xMask, CharCommand::replace, index, char(0)));
-                emit dataChanged();
             }
             else
             {
                 _undoDataStack->push(new CharCommand(&_xData, CharCommand::remove, index, char(0)));
                 _undoMaskStack->push(new CharCommand(&_xMask, CharCommand::remove, index, char(0)));
-                emit dataChanged();
             }
         }
         else
@@ -114,15 +114,16 @@ void QHexEditPrivate::remove(int index, int len)
             {
                 _undoDataStack->push(new ArrayCommand(&_xData, ArrayCommand::replace, index, ba, ba.length()));
                 _undoMaskStack->push(new ArrayCommand(&_xMask, ArrayCommand::replace, index, ba, ba.length()));
-                emit dataChanged();
             }
             else
             {
                 _undoDataStack->push(new ArrayCommand(&_xData, ArrayCommand::remove, index, ba, len));
                 _undoMaskStack->push(new ArrayCommand(&_xMask, ArrayCommand::remove, index, ba, len));
-                emit dataChanged();
             }
         }
+
+        emit dataChanged();
+        emit dataEdited();
     }
 }
 
@@ -132,6 +133,7 @@ void QHexEditPrivate::replace(int index, char ch, char mask)
     _undoMaskStack->push(new CharCommand(&_xMask, CharCommand::replace, index, mask));
     resetSelection();
     emit dataChanged();
+    emit dataEdited();
 }
 
 void QHexEditPrivate::replace(int index, const QByteArray & ba, const QByteArray & mask)
@@ -140,6 +142,7 @@ void QHexEditPrivate::replace(int index, const QByteArray & ba, const QByteArray
     _undoMaskStack->push(new ArrayCommand(&_xMask, ArrayCommand::replace, index, mask, mask.length()));
     resetSelection();
     emit dataChanged();
+    emit dataEdited();
 }
 
 void QHexEditPrivate::replace(int pos, int len, const QByteArray & after, const QByteArray & mask)
@@ -148,6 +151,7 @@ void QHexEditPrivate::replace(int pos, int len, const QByteArray & after, const 
     _undoMaskStack->push(new ArrayCommand(&_xMask, ArrayCommand::replace, pos, mask, len));
     resetSelection();
     emit dataChanged();
+    emit dataEdited();
 }
 
 void QHexEditPrivate::fill(int index, const QByteArray & ba, const QByteArray & mask)
@@ -259,6 +263,7 @@ void QHexEditPrivate::redo()
     _undoDataStack->redo();
     _undoMaskStack->redo();
     emit dataChanged();
+    emit dataEdited();
     setCursorPos(_cursorPosition);
     update();
 }
@@ -270,6 +275,7 @@ void QHexEditPrivate::undo()
     _undoDataStack->undo();
     _undoMaskStack->undo();
     emit dataChanged();
+    emit dataEdited();
     setCursorPos(_cursorPosition);
     update();
 }

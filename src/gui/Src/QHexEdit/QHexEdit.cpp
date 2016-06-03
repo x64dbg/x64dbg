@@ -11,7 +11,9 @@ QHexEdit::QHexEdit(QWidget* parent) : QScrollArea(parent)
     connect(qHexEdit_p, SIGNAL(currentAddressChanged(int)), this, SIGNAL(currentAddressChanged(int)));
     connect(qHexEdit_p, SIGNAL(currentSizeChanged(int)), this, SIGNAL(currentSizeChanged(int)));
     connect(qHexEdit_p, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+    connect(qHexEdit_p, SIGNAL(dataEdited()), this, SIGNAL(dataEdited()));
     connect(qHexEdit_p, SIGNAL(overwriteModeChanged(bool)), this, SIGNAL(overwriteModeChanged(bool)));
+
     setFocusPolicy(Qt::NoFocus);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 }
