@@ -14,9 +14,9 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
 
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * 4, "Line", false);
-    addColumnAt(8 + charwidth * 60, "Text", false);
-    addColumnAt(8 + charwidth * 40, "Info", false);
+    addColumnAt(8 + charwidth * 4, tr("Line"), false);
+    addColumnAt(8 + charwidth * 60, tr("Text"), false);
+    addColumnAt(8 + charwidth * 40, tr("Info"), false);
 
     setIp(0); //no IP
 
@@ -349,55 +349,55 @@ void ScriptView::keyPressEvent(QKeyEvent* event)
 
 void ScriptView::setupContextMenu()
 {
-    mLoadMenu = new QMenu("Load Script", this);
+    mLoadMenu = new QMenu(tr("Load Script"), this);
 
-    mScriptLoad = new QAction("Open...", this);
+    mScriptLoad = new QAction(tr("Open..."), this);
     mScriptLoad->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptLoad);
     connect(mScriptLoad, SIGNAL(triggered()), this, SLOT(openFile()));
     mLoadMenu->addAction(mScriptLoad);
 
-    mScriptReload = new QAction("Reload Script", this);
+    mScriptReload = new QAction(tr("Reload Script"), this);
     mScriptReload->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptReload);
     connect(mScriptReload, SIGNAL(triggered()), this, SLOT(reload()));
 
-    mScriptUnload = new QAction("Unload Script", this);
+    mScriptUnload = new QAction(tr("Unload Script"), this);
     mScriptUnload->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptUnload);
     connect(mScriptUnload, SIGNAL(triggered()), this, SLOT(unload()));
 
-    mScriptRun = new QAction("Run", this);
+    mScriptRun = new QAction(tr("Run"), this);
     mScriptRun->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptRun);
     connect(mScriptRun, SIGNAL(triggered()), this, SLOT(run()));
 
-    mScriptBpToggle = new QAction("Toggle BP", this);
+    mScriptBpToggle = new QAction(tr("Toggle BP"), this);
     mScriptBpToggle->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptBpToggle);
     connect(mScriptBpToggle, SIGNAL(triggered()), this, SLOT(bpToggle()));
 
-    mScriptRunCursor = new QAction("Run until selection", this);
+    mScriptRunCursor = new QAction(tr("Run until selection"), this);
     mScriptRunCursor->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptRunCursor);
     connect(mScriptRunCursor, SIGNAL(triggered()), this, SLOT(runCursor()));
 
-    mScriptStep = new QAction("Step", this);
+    mScriptStep = new QAction(tr("Step"), this);
     mScriptStep->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptStep);
     connect(mScriptStep, SIGNAL(triggered()), this, SLOT(step()));
 
-    mScriptAbort = new QAction("Abort", this);
+    mScriptAbort = new QAction(tr("Abort"), this);
     mScriptAbort->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptAbort);
     connect(mScriptAbort, SIGNAL(triggered()), this, SLOT(abort()));
 
-    mScriptCmdExec = new QAction("Execute Command...", this);
+    mScriptCmdExec = new QAction(tr("Execute Command..."), this);
     mScriptCmdExec->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptCmdExec);
     connect(mScriptCmdExec, SIGNAL(triggered()), this, SLOT(cmdExec()));
 
-    mScriptNewIp = new QAction("Continue here...", this);
+    mScriptNewIp = new QAction(tr("Continue here..."), this);
     mScriptNewIp->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptNewIp);
     connect(mScriptNewIp, SIGNAL(triggered()), this, SLOT(newIp()));
@@ -488,9 +488,9 @@ void ScriptView::error(int line, QString message)
 {
     QString title;
     if(isValidIndex(line - 1, 0))
-        title = title.sprintf("Error on line %.4d!", line);
+        title = tr("Error on line") + title.sprintf(" %.4d!", line);
     else
-        title = "Script Error!";
+        title = tr("Script Error!");
     QMessageBox msg(QMessageBox::Critical, title, message);
     msg.setWindowIcon(QIcon(":/icons/images/script-error.png"));
     msg.setParent(this, Qt::Dialog);
@@ -575,7 +575,7 @@ void ScriptView::abort()
 void ScriptView::cmdExec()
 {
     LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle("Execute Script Command...");
+    mLineEdit.setWindowTitle(tr("Execute Script Command..."));
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgScriptCmdExec(mLineEdit.editText.toUtf8().constData()))

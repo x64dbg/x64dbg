@@ -61,6 +61,8 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_MODULE_SIZE 256
 #define MAX_IMPORT_SIZE 65536
 #define MAX_BREAKPOINT_SIZE 256
+#define MAX_CONDITIONAL_EXPR_SIZE 256
+#define MAX_CONDITIONAL_TEXT_SIZE 256
 #define MAX_SCRIPT_LINE_SIZE 2048
 #define MAX_THREAD_NAME_SIZE 256
 #define MAX_STRING_SIZE 512
@@ -321,6 +323,14 @@ typedef struct
     char name[MAX_BREAKPOINT_SIZE];
     char mod[MAX_MODULE_SIZE];
     unsigned short slot;
+    // extended part
+    unsigned int hitCount;
+    bool fastResume;
+    char breakCondition[MAX_CONDITIONAL_EXPR_SIZE];
+    char logText[MAX_CONDITIONAL_TEXT_SIZE];
+    char logCondition[MAX_CONDITIONAL_EXPR_SIZE];
+    char commandText[MAX_CONDITIONAL_EXPR_SIZE];
+    char commandCondition[MAX_CONDITIONAL_TEXT_SIZE];
 } BRIDGEBP;
 
 typedef struct
@@ -844,6 +854,7 @@ typedef struct
 } SCRIPTTYPEINFO;
 
 //GUI functions
+//code page is utf8
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state);
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg);

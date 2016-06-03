@@ -89,6 +89,8 @@
     <addaction name="actionSkipNextInstruction"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
+    <addaction name="separator"/>
+    <addaction name="actionHideDebugger"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -117,6 +119,7 @@
     <addaction name="actionAppearance"/>
     <addaction name="actionShortcuts"/>
     <addaction name="actionTopmost"/>
+    <addaction name="actionReloadStylesheet"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -706,6 +709,30 @@
    </property>
    <property name="text">
     <string>SEH Chain</string>
+   </property>
+  </action>
+  <action name="actionHideDebugger">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/hide-debugger.png</normaloff>:/icons/images/hide-debugger.png</iconset>
+   </property>
+   <property name="text">
+    <string>Hide debugger (PEB)</string>
+   </property>
+   <property name="toolTip">
+    <string>Hide debugger (PEB)</string>
+   </property>
+  </action>
+  <action name="actionReloadStylesheet">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/css.png</normaloff>:/icons/images/css.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reload style.css</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload style.css</string>
    </property>
   </action>
  </widget>

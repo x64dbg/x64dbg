@@ -78,6 +78,7 @@ public slots:
     void displayReferencesWidget();
     void displayThreadsWidget();
     void displaySnowmanWidget();
+    void hideDebugger();
     void openSettings();
     void openAppearance();
     void openCalculator();
@@ -122,6 +123,7 @@ public slots:
     void executeOnGuiThread(void* cbGuiThread);
     void tabMovedSlot(int from, int to);
     void chkSaveloadTabSavedOrderStateChangedSlot(bool state);
+    void dbgStateChangedSlot(DBGSTATE state);
 
 private:
     Ui::MainWindow* ui;
@@ -150,7 +152,7 @@ private:
     UpdateChecker* mUpdateChecker;
     TimeWastedCounter* mTimeWastedCounter;
 
-    const char* mWindowMainTitle;
+    QString mWindowMainTitle;
 
     QStringList mMRUList;
     int mMaxMRU;
@@ -206,8 +208,10 @@ protected:
 
 public:
     static QString windowTitle;
+
 private slots:
     void on_actionFaq_triggered();
+    void on_actionReloadStylesheet_triggered();
 };
 
 #endif // MAINWINDOW_H

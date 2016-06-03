@@ -8,7 +8,7 @@ SCRIPT_EXPORT bool Script::Memory::Read(duint addr, void* data, duint size, duin
 
 SCRIPT_EXPORT bool Script::Memory::Write(duint addr, const void* data, duint size, duint* sizeWritten)
 {
-    return MemWrite(addr, (void*)data, size, sizeWritten);
+    return MemWrite(addr, data, size, sizeWritten);
 }
 
 SCRIPT_EXPORT bool Script::Memory::IsValidPtr(duint addr)
@@ -18,7 +18,7 @@ SCRIPT_EXPORT bool Script::Memory::IsValidPtr(duint addr)
 
 SCRIPT_EXPORT duint Script::Memory::RemoteAlloc(duint addr, duint size)
 {
-    return (duint)MemAllocRemote(addr, size);
+    return MemAllocRemote(addr, size);
 }
 
 SCRIPT_EXPORT bool Script::Memory::RemoteFree(duint addr)

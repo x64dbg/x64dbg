@@ -14,7 +14,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     {
         CPUDump* cpuDump = new CPUDump(disas, this);
         connect(cpuDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidgetSlot()));
-        this->addTab(cpuDump, "Dump " + QString::number(i + 1));
+        this->addTab(cpuDump, tr("Dump ") + QString::number(i + 1));
     }
 
     mCurrentCPUDump = (CPUDump*)currentWidget();
@@ -131,7 +131,7 @@ void CPUMultiDump::openChangeTabTitleDialogSlot(int tabIndex)
     bool bUserPressedOk;
     QString sCurrentTabName = tabBar()->tabText(tabIndex);
 
-    QString sNewTabName = QInputDialog::getText(this, "Change Tab " + QString::number(tabIndex + 1) + " Name", "Tab Name", QLineEdit::Normal, sCurrentTabName, &bUserPressedOk, Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
+    QString sNewTabName = QInputDialog::getText(this, tr("Change Tab %1 Name").arg(tabIndex + 1), tr("Tab Name"), QLineEdit::Normal, sCurrentTabName, &bUserPressedOk, Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
     if(bUserPressedOk)
     {
         if(sNewTabName.length() != 0)

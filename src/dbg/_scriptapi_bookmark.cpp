@@ -7,7 +7,7 @@ SCRIPT_EXPORT bool Script::Bookmark::Set(duint addr, bool manual)
     return BookmarkSet(addr, manual);
 }
 
-bool Script::Bookmark::Set(const BookmarkInfo* info)
+SCRIPT_EXPORT bool Script::Bookmark::Set(const BookmarkInfo* info)
 {
     if(!info)
         return false;

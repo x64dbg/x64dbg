@@ -137,6 +137,7 @@ protected slots:
     void onToggleValueAction();
     void onCopyToClipboardAction();
     void onCopySymbolToClipboardAction();
+    void onCopyAllAction();
     void onFollowInDisassembly();
     void onFollowInDump();
     void onFollowInStack();
@@ -156,7 +157,7 @@ protected slots:
     void ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZE_T size);
     unsigned int GetStatusWordTOPValueFromString(QString string);
     QString GetStatusWordTOPStateString(unsigned short state);
-
+    void appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32);
 private:
     QPushButton* mChangeViewButton;
     bool mShowFpu;
@@ -211,6 +212,7 @@ private:
     QAction* wCM_ToggleValue;
     QAction* wCM_CopyToClipboard;
     QAction* wCM_CopySymbolToClipboard;
+    QAction* wCM_CopyAll;
     QAction* wCM_FollowInDisassembly;
     QAction* wCM_FollowInDump;
     QAction* wCM_FollowInStack;

@@ -1,7 +1,7 @@
 #include "_scriptapi_symbol.h"
 #include "_scriptapi_label.h"
 
-bool Script::Symbol::GetList(ListOf(SymbolInfo) list)
+SCRIPT_EXPORT bool Script::Symbol::GetList(ListOf(SymbolInfo) list)
 {
     BridgeList<Label::LabelInfo> labels;
     if(!Label::GetList(&labels))

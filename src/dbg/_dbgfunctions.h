@@ -81,7 +81,8 @@ typedef duint(*VATOFILEOFFSET)(duint va);
 typedef duint(*GETADDRFROMLINE)(const char* szSourceFile, int line);
 typedef bool (*GETSOURCEFROMADDR)(duint addr, char* szSourceFile, int* line);
 typedef bool (*VALFROMSTRING)(const char* string, duint* value);
-typedef bool(*PATCHGETEX)(duint addr, DBGPATCHINFO* info);
+typedef bool (*PATCHGETEX)(duint addr, DBGPATCHINFO* info);
+typedef bool(*GETBRIDGEBP)(BPXTYPE type, duint addr, BRIDGEBP* bp);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -122,6 +123,7 @@ typedef struct DBGFUNCTIONS_
     GETSOURCEFROMADDR GetSourceFromAddr;
     VALFROMSTRING ValFromString;
     PATCHGETEX PatchGetEx;
+    GETBRIDGEBP GetBridgeBp;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

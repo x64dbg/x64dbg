@@ -51,7 +51,7 @@ SafeSymInitializeW(
     return SymInitializeW(hProcess, UserSearchPath, fInvadeProcess);
 }
 BOOL
-SafeSymRegisterCallback64(
+SafeSymRegisterCallbackW64(
     __in HANDLE hProcess,
     __in PSYMBOL_REGISTERED_CALLBACK64 CallbackFunction,
     __in ULONG64 UserContext
@@ -61,11 +61,11 @@ SafeSymRegisterCallback64(
     return SymRegisterCallbackW64(hProcess, CallbackFunction, UserContext);
 }
 DWORD64
-SafeSymLoadModuleEx(
+SafeSymLoadModuleExW(
     __in HANDLE hProcess,
     __in_opt HANDLE hFile,
-    __in_opt PCSTR ImageName,
-    __in_opt PCSTR ModuleName,
+    __in_opt PCWSTR ImageName,
+    __in_opt PCWSTR ModuleName,
     __in DWORD64 BaseOfDll,
     __in DWORD DllSize,
     __in_opt PMODLOAD_DATA Data,
@@ -73,47 +73,17 @@ SafeSymLoadModuleEx(
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-    return SymLoadModuleExW(hProcess, hFile, StringUtils::Utf8ToUtf16(ImageName).c_str(), StringUtils::Utf8ToUtf16(ModuleName).c_str(), BaseOfDll, DllSize, Data, Flags);
+    return SymLoadModuleExW(hProcess, hFile, ImageName, ModuleName, BaseOfDll, DllSize, Data, Flags);
 }
 BOOL
-SafeSymGetModuleInfo64(
+SafeSymGetModuleInfoW64(
     __in HANDLE hProcess,
     __in DWORD64 qwAddr,
-    __out PIMAGEHLP_MODULE64 ModuleInfo
+    __out PIMAGEHLP_MODULEW64 ModuleInfo
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-
-    IMAGEHLP_MODULEW64 modInfo;
-    memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct = sizeof(modInfo);
-    BOOL ret = SymGetModuleInfoW64(hProcess, qwAddr, &modInfo);
-
-    ModuleInfo->SizeOfStruct = modInfo.SizeOfStruct;
-    ModuleInfo->BaseOfImage = modInfo.BaseOfImage;
-    ModuleInfo->ImageSize = modInfo.ImageSize;
-    ModuleInfo->TimeDateStamp = modInfo.TimeDateStamp;
-    ModuleInfo->CheckSum = modInfo.CheckSum;
-    ModuleInfo->NumSyms = modInfo.NumSyms;
-    ModuleInfo->SymType = modInfo.SymType;
-    strcpy_s(ModuleInfo->ModuleName, 32, StringUtils::Utf16ToUtf8(modInfo.ModuleName).c_str());
-    strcpy_s(ModuleInfo->ImageName, 256, StringUtils::Utf16ToUtf8(modInfo.ImageName).c_str());
-    strcpy_s(ModuleInfo->LoadedImageName, 256, StringUtils::Utf16ToUtf8(modInfo.LoadedImageName).c_str());
-    strcpy_s(ModuleInfo->LoadedPdbName, 256, StringUtils::Utf16ToUtf8(modInfo.LoadedPdbName).c_str());
-    ModuleInfo->CVSig = modInfo.CVSig;
-    strcpy_s(ModuleInfo->CVData, MAX_PATH * 3, StringUtils::Utf16ToUtf8(modInfo.CVData).c_str());
-    ModuleInfo->PdbSig = modInfo.PdbSig;
-    ModuleInfo->PdbSig70 = modInfo.PdbSig70;
-    ModuleInfo->PdbAge = modInfo.PdbAge;
-    ModuleInfo->PdbUnmatched = modInfo.PdbUnmatched;
-    ModuleInfo->DbgUnmatched = modInfo.DbgUnmatched;
-    ModuleInfo->LineNumbers = modInfo.LineNumbers;
-    ModuleInfo->GlobalSymbols = modInfo.GlobalSymbols;
-    ModuleInfo->TypeInfo = modInfo.TypeInfo;
-    ModuleInfo->SourceIndexed = modInfo.SourceIndexed;
-    ModuleInfo->Publics = modInfo.Publics;
-
-    return ret;
+    return SymGetModuleInfoW64(hProcess, qwAddr, ModuleInfo);
 }
 BOOL
 SafeSymGetSearchPathW(

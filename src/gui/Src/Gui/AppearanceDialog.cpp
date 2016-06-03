@@ -441,11 +441,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Loop Lines", "DisassemblyLoopColor", "");
 
     colorInfoListAppend("SideBar:", "", "");
-#ifdef _WIN64
-    colorInfoListAppend("RIP Label", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
-#else //x86
-    colorInfoListAppend("EIP Label", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
-#endif //_WIN64
+    colorInfoListAppend("Register Labels", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
     colorInfoListAppend("Bullets", "SideBarBulletColor", "");
     colorInfoListAppend("Breakpoints", "SideBarBulletBreakpointColor", "");
     colorInfoListAppend("Disabled Breakpoints", "SideBarBulletDisabledBreakpointColor", "");
@@ -482,6 +478,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("NOPs", "InstructionNopColor", "InstructionNopBackgroundColor");
     colorInfoListAppend("FAR", "InstructionFarColor", "InstructionFarBackgroundColor");
     colorInfoListAppend("INT3s", "InstructionInt3Color", "InstructionInt3BackgroundColor");
+    colorInfoListAppend("Unusual Instructions", "InstructionUnusualColor", "InstructionUnusualBackgroundColor");
     colorInfoListAppend("General Registers", "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
     colorInfoListAppend("FPU Registers", "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
     colorInfoListAppend("MMX Registers", "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");

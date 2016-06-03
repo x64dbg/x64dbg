@@ -11,6 +11,7 @@ class BreakpointsView : public QWidget
     Q_OBJECT
 public:
     explicit BreakpointsView(QWidget* parent = 0);
+    void setupRightClickContextMenu();
     void setupHardBPRightClickContextMenu();
     void setupSoftBPRightClickContextMenu();
     void setupMemBPRightClickContextMenu();
@@ -27,7 +28,11 @@ public slots:
     void removeHardBPActionSlot();
     void removeAllHardBPActionSlot();
     void enableDisableHardBPActionSlot();
+    void enableAllHardBPActionSlot();
+    void disableAllHardBPActionSlot();
     void doubleClickHardwareSlot();
+    void selectionChangedHardwareSlot();
+    void resetHardwareHitCountSlot();
 
     // Software
     void softwareBPContextMenuSlot(const QPoint & pos);
@@ -37,13 +42,22 @@ public slots:
     void enableAllSoftBPActionSlot();
     void disableAllSoftBPActionSlot();
     void doubleClickSoftwareSlot();
+    void selectionChangedSoftwareSlot();
+    void resetSoftwareHitCountSlot();
 
     // Memory
     void memoryBPContextMenuSlot(const QPoint & pos);
     void removeMemBPActionSlot();
     void removeAllMemBPActionSlot();
     void enableDisableMemBPActionSlot();
+    void enableAllMemBPActionSlot();
+    void disableAllMemBPActionSlot();
     void doubleClickMemorySlot();
+    void selectionChangedMemorySlot();
+    void resetMemoryHitCountSlot();
+
+    // Conditional
+    void editBreakpointSlot();
 
 private:
     QVBoxLayout* mVertLayout;
@@ -51,16 +65,23 @@ private:
     StdTable* mHardBPTable;
     StdTable* mSoftBPTable;
     StdTable* mMemBPTable;
+    // Conditional BP Context Menu
+    BPXTYPE mCurrentType;
+    QAction* mEditBreakpointAction;
 
     // Hardware BP Context Menu
     QAction* mHardBPRemoveAction;
     QAction* mHardBPRemoveAllAction;
     QAction* mHardBPEnableDisableAction;
+    QAction* mHardBPResetHitCountAction;
+    QAction* mHardBPEnableAllAction;
+    QAction* mHardBPDisableAllAction;
 
     // Software BP Context Menu
     QAction* mSoftBPRemoveAction;
     QAction* mSoftBPRemoveAllAction;
     QAction* mSoftBPEnableDisableAction;
+    QAction* mSoftBPResetHitCountAction;
     QAction* mSoftBPEnableAllAction;
     QAction* mSoftBPDisableAllAction;
 
@@ -68,6 +89,9 @@ private:
     QAction* mMemBPRemoveAction;
     QAction* mMemBPRemoveAllAction;
     QAction* mMemBPEnableDisableAction;
+    QAction* mMemBPResetHitCountAction;
+    QAction* mMemBPEnableAllAction;
+    QAction* mMemBPDisableAllAction;
 };
 
 #endif // BREAKPOINTSVIEW_H
