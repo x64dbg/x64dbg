@@ -276,7 +276,7 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     if(!MemIsCanonicalAddress(BaseAddress))
         return false;
 
-    if(cache && !MemIsValidReadPtr(BaseAddress))
+    if(cache && !MemIsValidReadPtr(BaseAddress, cache))
         return false;
 
     // Buffer must be supplied and size must be greater than 0

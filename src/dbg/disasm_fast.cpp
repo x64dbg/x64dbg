@@ -105,10 +105,10 @@ bool disasmfast(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* b
     return true;
 }
 
-bool disasmfast(duint addr, BASIC_INSTRUCTION_INFO* basicinfo)
+bool disasmfast(duint addr, BASIC_INSTRUCTION_INFO* basicinfo, bool cache)
 {
     unsigned int data[16];
-    if(!MemRead(addr, data, sizeof(data)))
+    if(!MemRead(addr, data, sizeof(data), nullptr, cache))
         return false;
     return disasmfast((unsigned char*)data, addr, basicinfo);
 }

@@ -73,7 +73,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
 
 extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr)
 {
-    return MemIsValidReadPtr(addr);
+    return MemIsValidReadPtr(addr, true);
 }
 
 extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
@@ -137,7 +137,7 @@ static bool getLabel(duint addr, char* label)
         {
             BASIC_INSTRUCTION_INFO basicinfo;
             memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
-            if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value)  //thing is a JMP
+            if(disasmfast(addr, &basicinfo, true) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value)  //thing is a JMP
             {
                 duint val = 0;
                 if(MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
@@ -584,7 +584,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
 extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
 {
     unsigned char data[MAX_DISASM_BUFFER];
-    if(!MemIsValidReadPtr(addr) || !MemRead(addr, data, sizeof(data)))
+    if(!MemIsValidReadPtr(addr, true) || !MemRead(addr, data, sizeof(data)))
         return 0;
     Capstone cp;
     if(!cp.Disassemble(addr, data))
