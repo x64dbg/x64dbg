@@ -569,11 +569,12 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     }
     else if(mDescriptor.at(col - 1).isData == true)
     {
+        const ColumnDescriptor_t & desc = mDescriptor.at(col - 1);
         int wI;
         QString wStr = "";
 
-        int wByteCount = getSizeOf(mDescriptor.at(col - 1).data.itemSize);
-        int wBufferByteCount = mDescriptor.at(col - 1).itemCount * wByteCount;
+        int wByteCount = getSizeOf(desc.data.itemSize);
+        int wBufferByteCount = desc.itemCount * wByteCount;
 
         wBufferByteCount = wBufferByteCount > (dsint)(mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : wBufferByteCount;
 
@@ -582,26 +583,40 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
 
         mMemPage->read(wData, rva, wBufferByteCount);
 
-        QColor highlightColor = ConfigColor("HexDumpModifiedBytesColor");
-
-        for(wI = 0; wI < mDescriptor.at(col - 1).itemCount && (rva + wI) < (dsint)mMemPage->getSize(); wI++)
+        if(desc.textCodec) //convert the row bytes to unicode
         {
-            int maxLen = getStringMaxLength(mDescriptor.at(col - 1).data);
-            QString append = " ";
-            if(!maxLen)
-                append = "";
-            if((rva + wI + wByteCount - 1) < (dsint)mMemPage->getSize())
-                wStr = toString(mDescriptor.at(col - 1).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
-            else
-                wStr = QString("?").rightJustified(maxLen, ' ') + append;
-            curData.text = wStr;
-            dsint start = rvaToVa(rva + wI * wByteCount);
-            dsint end = start + wByteCount - 1;
-            if(DbgFunctions()->PatchInRange(start, end))
-                curData.textColor = highlightColor;
-            else
-                curData.textColor = textColor;
+            //This might produce invalid characters in variables-width encodings. This is currently ignored.
+            curData.text = desc.textCodec->toUnicode(QByteArray((const char*)wData, wBufferByteCount));
+            curData.text.replace('\t', "\\t");
+            curData.text.replace('\f', "\\f");
+            curData.text.replace('\v', "\\v");
+            curData.text.replace('\n', "\\n");
+            curData.text.replace('\r', "\\r");
             richText.push_back(curData);
+        }
+        else
+        {
+            QColor highlightColor = ConfigColor("HexDumpModifiedBytesColor");
+
+            for(wI = 0; wI < desc.itemCount && (rva + wI) < (dsint)mMemPage->getSize(); wI++)
+            {
+                int maxLen = getStringMaxLength(mDescriptor.at(col - 1).data);
+                QString append = " ";
+                if(!maxLen)
+                    append = "";
+                if((rva + wI + wByteCount - 1) < (dsint)mMemPage->getSize())
+                    wStr = toString(desc.data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
+                else
+                    wStr = QString("?").rightJustified(maxLen, ' ') + append;
+                curData.text = wStr;
+                dsint start = rvaToVa(rva + wI * wByteCount);
+                dsint end = start + wByteCount - 1;
+                if(DbgFunctions()->PatchInRange(start, end))
+                    curData.textColor = highlightColor;
+                else
+                    curData.textColor = textColor;
+                richText.push_back(curData);
+            }
         }
 
         delete[] wData;

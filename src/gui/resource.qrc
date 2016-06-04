@@ -98,5 +98,6 @@
         <file>images/dump.png</file>
         <file>images/analyzesinglefunction.png</file>
         <file>images/xrefs.png</file>
+        <file>images/codepage.png</file>
     </qresource>
 </RCC>

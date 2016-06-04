@@ -4,6 +4,7 @@
 #include "AbstractTableView.h"
 #include "RichTextPainter.h"
 #include "MemoryPage.h"
+#include <QTextCodec>
 
 class HexDump : public AbstractTableView
 {
@@ -68,13 +69,19 @@ public:
         };
     } DataDescriptor_t;
 
-    typedef struct _ColumnDescriptor_t
+    struct ColumnDescriptor_t
     {
         bool isData;
         int itemCount;
         int separator;
+        QTextCodec* textCodec; //name of the text codec (leave empty if you want to keep your sanity)
         DataDescriptor_t data;
-    } ColumnDescriptor_t;
+
+        explicit ColumnDescriptor_t()
+            : textCodec(nullptr)
+        {
+        }
+    };
 
     explicit HexDump(QWidget* parent = 0);
     virtual ~HexDump();

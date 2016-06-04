@@ -152,7 +152,8 @@ SOURCES += \
     Src/Utils/HexValidator.cpp \
     Src/Utils/LongLongValidator.cpp \
     Src/Utils/MiscUtil.cpp \
-    Src/Gui/XrefBrowseDialog.cpp
+    Src/Gui/XrefBrowseDialog.cpp \
+    Src/Gui/CodepageSelectionDialog.cpp
 
 
 HEADERS += \
@@ -245,7 +246,8 @@ HEADERS += \
     Src/Utils/HexValidator.h \
     Src/Utils/LongLongValidator.h \
     Src/Utils/MiscUtil.h \
-    Src/Gui/XrefBrowseDialog.h
+    Src/Gui/XrefBrowseDialog.h \
+    Src/Gui/CodepageSelectionDialog.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -275,7 +277,8 @@ FORMS += \
     Src/Gui/EditBreakpointDialog.ui \
     Src/Gui/CPUArgumentWidget.ui \
     Src/Gui/EditFloatRegister.ui \
-    Src/Gui/XrefBrowseDialog.ui
+    Src/Gui/XrefBrowseDialog.ui \
+    Src/Gui/CodepageSelectionDialog.ui
 
 TRANSLATIONS = \
     Translations/x64dbg_zh_CN.ts

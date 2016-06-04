@@ -52,9 +52,11 @@ public slots:
 
     void hexAsciiSlot();
     void hexUnicodeSlot();
+    void hexCodepageSlot();
 
     void textAsciiSlot();
     void textUnicodeSlot();
+    void textCodepageSlot();
 
     void integerSignedShortSlot();
     void integerSignedLongSlot();
@@ -145,10 +147,12 @@ private:
     QMenu* mHexMenu;
     QAction* mHexAsciiAction;
     QAction* mHexUnicodeAction;
+    QAction* mHexCodepageAction;
 
     QMenu* mTextMenu;
     QAction* mTextAsciiAction;
     QAction* mTextUnicodeAction;
+    QAction* mTextCodepageAction;
 
     QMenu* mIntegerMenu;
     QAction* mIntegerSignedShortAction;
@@ -224,6 +228,8 @@ private:
         ViewFloatLongDouble,
         ViewAddress
     };
+
+    void setView(ViewEnum_t view);
 };
 
 #endif // CPUDUMP_H

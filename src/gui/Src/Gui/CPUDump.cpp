@@ -11,6 +11,7 @@
 #include "EntropyDialog.h"
 #include "CPUMultiDump.h"
 #include "WordEditDialog.h"
+#include "CodepageSelectionDialog.h"
 #include <QToolTip>
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
@@ -18,69 +19,7 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
     mDisas = disas;
     mMultiDump = multiDump;
 
-    switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
-    {
-    case ViewHexAscii:
-        hexAsciiSlot();
-        break;
-    case ViewHexUnicode:
-        hexUnicodeSlot();
-        break;
-    case ViewTextAscii:
-        textAsciiSlot();
-        break;
-    case ViewTextUnicode:
-        textUnicodeSlot();
-        break;
-    case ViewIntegerSignedShort:
-        integerSignedShortSlot();
-        break;
-    case ViewIntegerSignedLong:
-        integerSignedLongSlot();
-        break;
-#ifdef _WIN64
-    case ViewIntegerSignedLongLong:
-        integerSignedLongLongSlot();
-        break;
-#endif //_WIN64
-    case ViewIntegerUnsignedShort:
-        integerUnsignedShortSlot();
-        break;
-    case ViewIntegerUnsignedLong:
-        integerUnsignedLongSlot();
-        break;
-#ifdef _WIN64
-    case ViewIntegerUnsignedLongLong:
-        integerUnsignedLongLongSlot();
-        break;
-#endif //_WIN64
-    case ViewIntegerHexShort:
-        integerHexShortSlot();
-        break;
-    case ViewIntegerHexLong:
-        integerHexLongSlot();
-        break;
-#ifdef _WIN64
-    case ViewIntegerHexLongLong:
-        integerHexLongLongSlot();
-        break;
-#endif //_WIN64
-    case ViewFloatFloat:
-        floatFloatSlot();
-        break;
-    case ViewFloatDouble:
-        floatDoubleSlot();
-        break;
-    case ViewFloatLongDouble:
-        floatLongDoubleSlot();
-        break;
-    case ViewAddress:
-        addressSlot();
-        break;
-    default:
-        hexAsciiSlot();
-        break;
-    }
+    setView((ViewEnum_t)ConfigUint("HexDump", "DefaultView"));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
@@ -362,25 +301,33 @@ void CPUDump::setupContextMenu()
     mHexMenu = new QMenu(tr("&Hex"), this);
     mHexMenu->setIcon(QIcon(":/icons/images/hex.png"));
     //Hex->Ascii
-    mHexAsciiAction = new QAction("&Ascii", this);
+    mHexAsciiAction = new QAction("&ASCII", this);
     connect(mHexAsciiAction, SIGNAL(triggered()), this, SLOT(hexAsciiSlot()));
     mHexMenu->addAction(mHexAsciiAction);
     //Hex->Unicode
-    mHexUnicodeAction = new QAction(tr("&Unicode"), this);
+    mHexUnicodeAction = new QAction(tr("&UTF-16"), this);
     connect(mHexUnicodeAction, SIGNAL(triggered()), this, SLOT(hexUnicodeSlot()));
     mHexMenu->addAction(mHexUnicodeAction);
+    //Hex->Codepage
+    mHexCodepageAction = new QAction(tr("&Codepage..."), this);
+    connect(mHexCodepageAction, SIGNAL(triggered()), this, SLOT(hexCodepageSlot()));
+    mHexMenu->addAction(mHexCodepageAction);
 
     //Text menu
     mTextMenu = new QMenu(tr("&Text"), this);
     mTextMenu->setIcon(QIcon(":/icons/images/strings.png"));
     //Text->Ascii
-    mTextAsciiAction = new QAction(tr("&Ascii"), this);
+    mTextAsciiAction = new QAction(tr("&ASCII"), this);
     connect(mTextAsciiAction, SIGNAL(triggered()), this, SLOT(textAsciiSlot()));
     mTextMenu->addAction(mTextAsciiAction);
     //Text->Unicode
-    mTextUnicodeAction = new QAction(tr("&Unicode"), this);
+    mTextUnicodeAction = new QAction(tr("&UTF-16"), this);
     connect(mTextUnicodeAction, SIGNAL(triggered()), this, SLOT(textUnicodeSlot()));
     mTextMenu->addAction(mTextUnicodeAction);
+    //Hex->Codepage
+    mTextCodepageAction = new QAction(tr("&Codepage..."), this);
+    connect(mTextCodepageAction, SIGNAL(triggered()), this, SLOT(textCodepageSlot()));
+    mTextMenu->addAction(mTextCodepageAction);
 
     //Integer menu
     mIntegerMenu = new QMenu(tr("&Integer"), this);
@@ -393,12 +340,10 @@ void CPUDump::setupContextMenu()
     mIntegerSignedLongAction = new QAction("Signed long (32-bit)", this);
     connect(mIntegerSignedLongAction, SIGNAL(triggered()), this, SLOT(integerSignedLongSlot()));
     mIntegerMenu->addAction(mIntegerSignedLongAction);
-#ifdef _WIN64
     //Integer->Signed long long
     mIntegerSignedLongLongAction = new QAction("Signed long long (64-bit)", this);
     connect(mIntegerSignedLongLongAction, SIGNAL(triggered()), this, SLOT(integerSignedLongLongSlot()));
     mIntegerMenu->addAction(mIntegerSignedLongLongAction);
-#endif //_WIN64
     //Integer->Unsigned short
     mIntegerUnsignedShortAction = new QAction("Unsigned short (16-bit)", this);
     connect(mIntegerUnsignedShortAction, SIGNAL(triggered()), this, SLOT(integerUnsignedShortSlot()));
@@ -407,12 +352,10 @@ void CPUDump::setupContextMenu()
     mIntegerUnsignedLongAction = new QAction("Unsigned long (32-bit)", this);
     connect(mIntegerUnsignedLongAction, SIGNAL(triggered()), this, SLOT(integerUnsignedLongSlot()));
     mIntegerMenu->addAction(mIntegerUnsignedLongAction);
-#ifdef _WIN64
     //Integer->Unsigned long long
     mIntegerUnsignedLongLongAction = new QAction("Unsigned long long (64-bit)", this);
     connect(mIntegerUnsignedLongLongAction, SIGNAL(triggered()), this, SLOT(integerUnsignedLongLongSlot()));
     mIntegerMenu->addAction(mIntegerUnsignedLongLongAction);
-#endif //_WIN64
     //Integer->Hex short
     mIntegerHexShortAction = new QAction("Hex short (16-bit)", this);
     connect(mIntegerHexShortAction, SIGNAL(triggered()), this, SLOT(integerHexShortSlot()));
@@ -421,12 +364,10 @@ void CPUDump::setupContextMenu()
     mIntegerHexLongAction = new QAction("Hex long (32-bit)", this);
     connect(mIntegerHexLongAction, SIGNAL(triggered()), this, SLOT(integerHexLongSlot()));
     mIntegerMenu->addAction(mIntegerHexLongAction);
-#ifdef _WIN64
     //Integer->Hex long long
     mIntegerHexLongLongAction = new QAction("Hex long long (64-bit)", this);
     connect(mIntegerHexLongLongAction, SIGNAL(triggered()), this, SLOT(integerHexLongLongSlot()));
     mIntegerMenu->addAction(mIntegerHexLongLongAction);
-#endif //_WIN64
 
     //Float menu
     mFloatMenu = new QMenu(tr("&Float"), this);
@@ -892,6 +833,36 @@ void CPUDump::hexUnicodeSlot()
     reloadData();
 }
 
+void CPUDump::hexCodepageSlot()
+{
+    CodepageSelectionDialog dialog(this);
+    if(dialog.exec() != QDialog::Accepted)
+        return;
+
+    int charwidth = getCharWidth();
+    ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
+
+    wColDesc.isData = true; //hex byte
+    wColDesc.itemCount = 16;
+    wColDesc.separator = 4;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = HexByte;
+    wColDesc.data = dDesc;
+    appendResetDescriptor(8 + charwidth * 47, tr("Hex"), false, wColDesc);
+
+    wColDesc.isData = true; //text (in code page)
+    wColDesc.itemCount = 16;
+    wColDesc.separator = 0;
+    wColDesc.textCodec = QTextCodec::codecForName(dialog.getSelectedCodepage());
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendDescriptor(0, dialog.getSelectedCodepage(), false, wColDesc);
+
+    reloadData();
+}
+
 void CPUDump::textAsciiSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewTextAscii);
@@ -940,6 +911,27 @@ void CPUDump::textUnicodeSlot()
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
     appendDescriptor(0, "", false, wColDesc);
+
+    reloadData();
+}
+
+void CPUDump::textCodepageSlot()
+{
+    CodepageSelectionDialog dialog(this);
+    if(dialog.exec() != QDialog::Accepted)
+        return;
+
+    ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
+
+    wColDesc.isData = true; //text (in code page)
+    wColDesc.itemCount = 64;
+    wColDesc.separator = 0;
+    wColDesc.textCodec = QTextCodec::codecForName(dialog.getSelectedCodepage());
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendResetDescriptor(0, dialog.getSelectedCodepage(), false, wColDesc);
 
     reloadData();
 }
@@ -1656,3 +1648,63 @@ void CPUDump::gotoPrevSlot()
     historyPrev();
 }
 
+void CPUDump::setView(ViewEnum_t view)
+{
+    switch(view)
+    {
+    case ViewHexAscii:
+        hexAsciiSlot();
+        break;
+    case ViewHexUnicode:
+        hexUnicodeSlot();
+        break;
+    case ViewTextAscii:
+        textAsciiSlot();
+        break;
+    case ViewTextUnicode:
+        textUnicodeSlot();
+        break;
+    case ViewIntegerSignedShort:
+        integerSignedShortSlot();
+        break;
+    case ViewIntegerSignedLong:
+        integerSignedLongSlot();
+        break;
+    case ViewIntegerSignedLongLong:
+        integerSignedLongLongSlot();
+        break;
+    case ViewIntegerUnsignedShort:
+        integerUnsignedShortSlot();
+        break;
+    case ViewIntegerUnsignedLong:
+        integerUnsignedLongSlot();
+        break;
+    case ViewIntegerUnsignedLongLong:
+        integerUnsignedLongLongSlot();
+        break;
+    case ViewIntegerHexShort:
+        integerHexShortSlot();
+        break;
+    case ViewIntegerHexLong:
+        integerHexLongSlot();
+        break;
+    case ViewIntegerHexLongLong:
+        integerHexLongLongSlot();
+        break;
+    case ViewFloatFloat:
+        floatFloatSlot();
+        break;
+    case ViewFloatDouble:
+        floatDoubleSlot();
+        break;
+    case ViewFloatLongDouble:
+        floatLongDoubleSlot();
+        break;
+    case ViewAddress:
+        addressSlot();
+        break;
+    default:
+        hexAsciiSlot();
+        break;
+    }
+}
