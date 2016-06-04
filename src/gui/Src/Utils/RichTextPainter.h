@@ -30,7 +30,7 @@ public:
     typedef std::vector<CustomRichText_t> List;
 
     //functions
-    static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, int charwidth);
+    static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, const QFont & font);
 };
 
 #endif // RICHTEXTPAINTER_H

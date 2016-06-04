@@ -424,7 +424,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 curByte.textColor = mBytesColor;
             richBytes.push_back(curByte);
         }
-        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, richBytes, getCharWidth());
+        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, richBytes, font());
     }
     break;
 
@@ -467,7 +467,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         else
             CapstoneTokenizer::TokenToRichText(token, richText, 0);
         int xinc = 4;
-        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, richText, getCharWidth());
+        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, richText, font());
         token.x = x + loopsize + xinc;
     }
     break;
@@ -648,7 +648,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                     if(rowOffset < mInstBuffer.size())
                     {
                         CapstoneTokenizer::SingleToken token;
-                        if(CapstoneTokenizer::TokenFromX(mInstBuffer.at(rowOffset).tokens, token, event->x(), getCharWidth()))
+                        if(CapstoneTokenizer::TokenFromX(mInstBuffer.at(rowOffset).tokens, token, event->x(), font()))
                         {
                             if(CapstoneTokenizer::IsHighlightableToken(token) && !CapstoneTokenizer::TokenEquals(&token, &mHighlightToken))
                                 mHighlightToken = token;

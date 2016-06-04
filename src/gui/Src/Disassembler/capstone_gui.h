@@ -145,7 +145,7 @@ public:
     static void UpdateColors();
     static void UpdateStringPool();
     static void TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken);
-    static bool TokenFromX(const InstructionToken & instr, SingleToken & token, int x, int charwidth);
+    static bool TokenFromX(const InstructionToken & instr, SingleToken & token, int x, const QFont & font);
     static bool IsHighlightableToken(const SingleToken & token);
     static bool TokenEquals(const SingleToken* a, const SingleToken* b, bool ignoreSize = true);
 

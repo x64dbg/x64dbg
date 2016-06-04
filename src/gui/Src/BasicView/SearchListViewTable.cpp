@@ -100,7 +100,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         }
 
         //paint the rich text
-        RichTextPainter::paintRichText(painter, x + 1, y, w, h, 4, richText, getCharWidth());
+        RichTextPainter::paintRichText(painter, x + 1, y, w, h, 4, richText, font());
         text = "";
     }
     return text;
