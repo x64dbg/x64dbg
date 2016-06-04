@@ -76,7 +76,7 @@ static int scriptinternalstep(int fromIp) //internal step routine
 static bool scriptcreatelinemap(const char* filename)
 {
     String filedata;
-    if(FileHelper::ReadAllText(filename, filedata))
+    if(!FileHelper::ReadAllText(filename, filedata))
     {
         GuiScriptError(0, "FileHelper::ReadAllText failed...");
         return false;
