@@ -157,19 +157,13 @@ private:
     QMenu* mIntegerMenu;
     QAction* mIntegerSignedShortAction;
     QAction* mIntegerSignedLongAction;
-#ifdef _WIN64
     QAction* mIntegerSignedLongLongAction;
-#endif //_WIN64
     QAction* mIntegerUnsignedShortAction;
     QAction* mIntegerUnsignedLongAction;
-#ifdef _WIN64
     QAction* mIntegerUnsignedLongLongAction;
-#endif //_WIN64
     QAction* mIntegerHexShortAction;
     QAction* mIntegerHexLongAction;
-#ifdef _WIN64
     QAction* mIntegerHexLongLongAction;
-#endif //_WIN64
 
     QMenu* mFloatMenu;
     QAction* mFloatFloatAction;
