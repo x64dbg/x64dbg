@@ -86,6 +86,7 @@ duint dbggetdebuggedbase();
 
 void cbStep();
 void cbRtrStep();
+void cbPauseBreakpoint();
 void cbSystemBreakpoint(void* ExceptionData);
 void cbMemoryBreakpoint(void* ExceptionAddress);
 void cbHardwareBreakpoint(void* ExceptionAddress);

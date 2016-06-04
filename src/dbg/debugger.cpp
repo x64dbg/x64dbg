@@ -397,6 +397,22 @@ static bool getConditionValue(const char* expression)
     return true;
 }
 
+void cbPauseBreakpoint()
+{
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    DeleteBPX(CIP);
+    GuiSetDebugState(paused);
+    DebugUpdateGui(CIP, true);
+    //lock
+    lock(WAITID_RUN);
+    SetForegroundWindow(GuiGetWindowHandle());
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved = nullptr;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    wait(WAITID_RUN);
+}
+
 static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
