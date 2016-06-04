@@ -27,6 +27,10 @@ private slots:
     void followApiAddress();
     void followGenericAddress();
     void toggleBreakpoint();
+    void setBreakpointOnAllCommands();
+    void removeBreakpointOnAllCommands();
+    void setBreakpointOnAllApiCalls();
+    void removeBreakpointOnAllApiCalls();
     void toggleBookmark();
     void refreshShortcutsSlot();
     void referenceSetProgressSlot(int progress);
@@ -43,9 +47,23 @@ private:
     QAction* mFollowApiAddress;
     QAction* mToggleBreakpoint;
     QAction* mToggleBookmark;
-    bool mFollowDumpDefault;
+    QAction* mSetBreakpointOnAllCommands;
+    QAction* mRemoveBreakpointOnAllCommands;
+    QAction* mSetBreakpointOnAllApiCalls;
+    QAction* mRemoveBreakpointOnAllApiCalls;
     QLabel* mCountTotalLabel;
 
+    bool mFollowDumpDefault;
+
+    enum BPSetAction
+    {
+        Enable,
+        Disable,
+        Toggle,
+        Remove
+    };
+
+    void setBreakpointAt(int row, BPSetAction action);
     dsint apiAddressFromString(const QString & s);
 };
 
