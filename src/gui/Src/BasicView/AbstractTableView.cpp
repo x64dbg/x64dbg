@@ -2,7 +2,9 @@
 #include <QStyleOptionButton>
 #include "Configuration.h"
 
-AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(parent)
+AbstractTableView::AbstractTableView(QWidget* parent)
+    : QAbstractScrollArea(parent),
+      mFontMetrics(nullptr)
 {
     // Class variable initialization
     mTableOffset = 0;
@@ -75,6 +77,8 @@ void AbstractTableView::updateColors()
 void AbstractTableView::updateFonts()
 {
     setFont(ConfigFont("AbstractTableView"));
+    puts("updateFonts()");
+    mFontMetrics = new CachedFontMetrics(this, font());
 }
 
 void AbstractTableView::updateShortcuts()

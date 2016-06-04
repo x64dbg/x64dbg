@@ -4,6 +4,7 @@
 #include <QString>
 #include <QColor>
 #include <QPainter>
+#include "CachedFontMetrics.h"
 
 class RichTextPainter
 {
@@ -30,7 +31,7 @@ public:
     typedef std::vector<CustomRichText_t> List;
 
     //functions
-    static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, const QFont & font);
+    static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, CachedFontMetrics* fontMetrics);
 };
 
 #endif // RICHTEXTPAINTER_H

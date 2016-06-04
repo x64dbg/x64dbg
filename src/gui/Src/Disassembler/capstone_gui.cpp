@@ -171,16 +171,15 @@ void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, RichText
     }
 }
 
-bool CapstoneTokenizer::TokenFromX(const InstructionToken & instr, SingleToken & token, int x, const QFont & font)
+bool CapstoneTokenizer::TokenFromX(const InstructionToken & instr, SingleToken & token, int x, CachedFontMetrics* fontMetrics)
 {
     if(x < instr.x) //before the first token
         return false;
     int len = int(instr.tokens.size());
-    QFontMetrics metrics(font);
     for(int i = 0, xStart = instr.x; i < len; i++)
     {
         const auto & curToken = instr.tokens.at(i);
-        int curWidth = metrics.width(curToken.text);
+        int curWidth = fontMetrics->width(curToken.text);
         int xEnd = xStart + curWidth;
         if(x >= xStart && x < xEnd)
         {

@@ -1,16 +1,15 @@
 #include "RichTextPainter.h"
 
-//TODO: fix performance
-void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, const QFont & font)
+//TODO: fix performance (possibly use QTextLayout?)
+void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, CachedFontMetrics* fontMetrics)
 {
     QPen pen;
     QPen highlightPen;
     highlightPen.setWidth(2);
     QBrush brush(Qt::cyan);
-    QFontMetrics metrics(font);
     for(const auto & curRichText : richText)
     {
-        int textWidth = metrics.width(curRichText.text);
+        int textWidth = fontMetrics->width(curRichText.text);
         int backgroundWidth = textWidth;
         if(backgroundWidth + xinc > w)
             backgroundWidth = w - xinc;

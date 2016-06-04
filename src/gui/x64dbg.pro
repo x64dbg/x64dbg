@@ -247,7 +247,8 @@ HEADERS += \
     Src/Utils/LongLongValidator.h \
     Src/Utils/MiscUtil.h \
     Src/Gui/XrefBrowseDialog.h \
-    Src/Gui/CodepageSelectionDialog.h
+    Src/Gui/CodepageSelectionDialog.h \
+    Src/Utils/CachedFontMetrics.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \

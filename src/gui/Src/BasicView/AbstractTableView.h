@@ -12,6 +12,7 @@
 #include "Configuration.h"
 #include "MenuBuilder.h"
 #include "QActionLambda.h"
+#include "CachedFontMetrics.h"
 
 //Hacky class that fixes a really annoying cursor problem
 class AbstractTableScrollBar : public QScrollBar
@@ -203,6 +204,9 @@ protected:
     QColor separatorColor;
     QColor headerTextColor;
     QColor selectionColor;
+
+    // Font metrics
+    CachedFontMetrics* mFontMetrics;
 
     //action helpers
 private:
