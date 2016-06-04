@@ -227,6 +227,8 @@ DWORD WINAPI updateSEHChainThread(void* ptr)
 
 void DebugUpdateGui(duint disasm_addr, bool stack)
 {
+    if(GuiIsUpdateDisabled())
+        return;
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     if(MemIsValidReadPtr(disasm_addr))
     {
@@ -264,6 +266,8 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
 
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
 {
+    if(GuiIsUpdateDisabled())
+        return;
     if(!forceDump && bFreezeStack)
     {
         SELECTIONDATA selection;

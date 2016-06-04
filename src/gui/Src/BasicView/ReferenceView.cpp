@@ -85,6 +85,21 @@ void ReferenceView::setupContextMenu()
     mSearchList->addAction(mToggleBookmark);
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 
+    mSetBreakpointOnAllCommands = new QAction("Set breakpoint on all commands", this);
+    connect(mSetBreakpointOnAllCommands, SIGNAL(triggered()), this, SLOT(setBreakpointOnAllCommands()));
+
+    mRemoveBreakpointOnAllCommands = new QAction("Remove breakpoint on all commands", this);
+    connect(mRemoveBreakpointOnAllCommands, SIGNAL(triggered()), this, SLOT(removeBreakpointOnAllCommands()));
+
+
+    mSetBreakpointOnAllApiCalls = new QAction("Set breakpoint on all api calls", this);
+    connect(mSetBreakpointOnAllApiCalls, SIGNAL(triggered()), this, SLOT(setBreakpointOnAllApiCalls()));
+
+    mRemoveBreakpointOnAllApiCalls = new QAction("Remove breakpoint on all api calls", this);
+    connect(mRemoveBreakpointOnAllApiCalls, SIGNAL(triggered()), this, SLOT(removeBreakpointOnAllApiCalls()));
+
+
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -183,10 +198,26 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
         return;
     wMenu->addAction(mFollowAddress);
     wMenu->addAction(mFollowDumpAddress);
-    if(apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1)))
+    dsint apiaddr = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
+    if(apiaddr)
         wMenu->addAction(mFollowApiAddress);
     wMenu->addSeparator();
     wMenu->addAction(mToggleBreakpoint);
+    wMenu->addAction(mSetBreakpointOnAllCommands);
+    wMenu->addAction(mRemoveBreakpointOnAllCommands);
+    if(apiaddr)
+    {
+        char label[MAX_LABEL_SIZE] = "";
+        if(DbgGetLabelAt(apiaddr, SEG_DEFAULT, label))
+        {
+            wMenu->addSeparator();
+            mSetBreakpointOnAllApiCalls->setText(QString("Set breakpoint on all calls to %1").arg(label));
+            wMenu->addAction(mSetBreakpointOnAllApiCalls);
+            mRemoveBreakpointOnAllApiCalls->setText(QString("Remove breakpoint on all calls to %1").arg(label));
+            wMenu->addAction(mRemoveBreakpointOnAllApiCalls);
+        }
+    }
+    wMenu->addSeparator();
     wMenu->addAction(mToggleBookmark);
 }
 
@@ -217,14 +248,14 @@ void ReferenceView::followGenericAddress()
         followAddress();
 }
 
-void ReferenceView::toggleBreakpoint()
+void ReferenceView::setBreakpointAt(int row, BPSetAction action)
 {
     if(!DbgIsDebugging())
         return;
 
     if(!mCurList->getRowCount())
         return;
-    QString addrText = mCurList->getCellContent(mCurList->getInitialSelection(), 0).toUtf8().constData();
+    QString addrText = mCurList->getCellContent(row, 0).toUtf8().constData();
     duint wVA;
     if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
         return;
@@ -236,15 +267,82 @@ void ReferenceView::toggleBreakpoint()
 
     if((wBpType & bp_normal) == bp_normal)
     {
-        wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        if(action == Toggle || action == Remove)
+            wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        else if(action == Disable)
+            wCmd = "bpd " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        else if(action == Enable)
+            wCmd = "bpe " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
-    else
+    else if(wBpType == bp_none && (action == Toggle || action == Enable))
     {
         wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
 }
+
+void ReferenceView::toggleBreakpoint()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    if(!mCurList->getRowCount())
+        return;
+
+    setBreakpointAt(mCurList->getInitialSelection(), Toggle);
+}
+
+
+
+void ReferenceView::setBreakpointOnAllCommands()
+{
+    for(int i = 0; i < mCurList->getRowCount(); i++)
+    {
+        setBreakpointAt(i, Enable);
+    }
+}
+
+void ReferenceView::removeBreakpointOnAllCommands()
+{
+    for(int i = 0; i < mCurList->getRowCount(); i++)
+    {
+        setBreakpointAt(i, Remove);
+    }
+}
+
+void ReferenceView::setBreakpointOnAllApiCalls()
+{
+    if(!mCurList->getRowCount())
+        return;
+    dsint apiaddr = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
+    if(!apiaddr)
+        return;
+    QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
+    for(int i = 0; i < mCurList->getRowCount(); i++)
+    {
+        if(mCurList->getCellContent(i, 1) == apiText)
+            setBreakpointAt(i, Enable);
+    }
+}
+
+void ReferenceView::removeBreakpointOnAllApiCalls()
+{
+    if(!mCurList->getRowCount())
+        return;
+
+    dsint apiaddr = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
+    if(!apiaddr)
+        return;
+    QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
+    for(int i = 0; i < mCurList->getRowCount(); i++)
+    {
+        if(mCurList->getCellContent(i, 1) == apiText)
+            setBreakpointAt(i, Remove);
+    }
+}
+
+
 
 void ReferenceView::toggleBookmark()
 {

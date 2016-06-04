@@ -2559,3 +2559,25 @@ CMDRESULT cbInstrBriefcheck(int argc, char* argv[])
     }
     return STATUS_CONTINUE;
 }
+
+
+CMDRESULT cbInstrDisableGuiUpdate(int argc, char* argv[])
+{
+    if(!GuiIsUpdateDisabled())
+        GuiUpdateDisable();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrEnableGuiUpdate(int argc, char* argv[])
+{
+    if(GuiIsUpdateDisabled())
+        GuiUpdateEnable(false);
+    duint value;
+    //default: update gui
+    if(argc > 1 && valfromstring(argv[1], &value) && value == 0)
+        return STATUS_CONTINUE;
+    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    DebugUpdateGui(cip, false);
+    return STATUS_CONTINUE;
+}
+
