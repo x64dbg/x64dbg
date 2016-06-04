@@ -969,6 +969,10 @@ BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info);
 BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id);
 BRIDGE_IMPEXP void GuiUpdateArgumentWidget();
 BRIDGE_IMPEXP void GuiFocusView(int hWindow);
+BRIDGE_IMPEXP bool GuiIsUpdateDisabled();
+BRIDGE_IMPEXP void GuiUpdateEnable(bool updateNow);
+BRIDGE_IMPEXP void GuiUpdateDisable();
+
 
 #ifdef __cplusplus
 }
