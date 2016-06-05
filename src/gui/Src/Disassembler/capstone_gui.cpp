@@ -247,7 +247,7 @@ void CapstoneTokenizer::addToken(TokenType type, QString text, const TokenValue 
     }
     if(_bUppercase && !value.size)
         text = text.toUpper();
-    _inst.tokens.push_back(SingleToken(type, text, value));
+    _inst.tokens.push_back(SingleToken(_cp.IsNop() ? TokenType::MnemonicNop : type, text, value));
 }
 
 void CapstoneTokenizer::addToken(TokenType type, const QString & text)
@@ -327,7 +327,9 @@ bool CapstoneTokenizer::tokenizeMnemonic()
 {
     auto type = TokenType::MnemonicNormal;
     auto id = _cp.GetId();
-    if(_cp.InGroup(CS_GRP_CALL))
+    if(_cp.IsNop())
+        type = TokenType::MnemonicNop;
+    else if(_cp.InGroup(CS_GRP_CALL))
         type = TokenType::MnemonicCall;
     else if(_cp.InGroup(CS_GRP_RET))
         type = TokenType::MnemonicRet;
@@ -343,14 +345,9 @@ bool CapstoneTokenizer::tokenizeMnemonic()
             break;
         }
     }
-    else if(_cp.IsNop())
-        type = TokenType::MnemonicNop;
     else if(_cp.IsInt3())
         type = TokenType::MnemonicInt3;
-    else if(_cp.InGroup(CS_GRP_PRIVILEGE) || _cp.InGroup(CS_GRP_IRET) || _cp.InGroup(CS_GRP_INVALID)
-            || id == X86_INS_RDTSC || id == X86_INS_SYSCALL || id == X86_INS_SYSENTER || id == X86_INS_CPUID || id == X86_INS_RDRAND || id == X86_INS_RDTSCP
-            || id == X86_INS_OUT || id == X86_INS_OUTSB || id == X86_INS_OUTSD || id == X86_INS_OUTSW
-            || id == X86_INS_IN || id == X86_INS_INSB || id == X86_INS_INSD || id == X86_INS_INSW)
+    else if(_cp.IsUnusual())
         type = TokenType::MnemonicUnusual;
     else
     {
@@ -457,10 +454,13 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     {
         switch(x86_reg(mem.base))
         {
-        case X86_REG_ESP:
+#ifdef _WIN64
         case X86_REG_RSP:
-        case X86_REG_EBP:
         case X86_REG_RBP:
+#else //x86
+        case X86_REG_ESP:
+        case X86_REG_EBP:
+#endif //_WIN64
             segmentText = "ss";
             break;
         default:
@@ -536,7 +536,6 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
 
     //closing bracket
     addToken(bracketsType, "]");
-
     return true;
 }
 
