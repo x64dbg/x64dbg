@@ -141,6 +141,7 @@ private:
     QList<RangeStruct> realExceptionRanges;
     bool bJitOld;
     bool bJitAutoOld;
+    bool bTokenizerConfigUpdated;
 
     //functions
     void GetSettingBool(const char* section, const char* name, bool* set);
