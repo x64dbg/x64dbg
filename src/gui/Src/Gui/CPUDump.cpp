@@ -1434,6 +1434,7 @@ void CPUDump::binaryEditSlot()
 void CPUDump::binaryFillSlot()
 {
     HexEditDialog hexEdit(this);
+    hexEdit.showKeepSize(false);
     hexEdit.mHexEdit->setOverwriteMode(false);
     dsint selStart = getSelectionStart();
     hexEdit.setWindowTitle(tr("Fill data at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());

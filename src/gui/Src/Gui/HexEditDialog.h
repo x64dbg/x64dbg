@@ -18,6 +18,8 @@ public:
     ~HexEditDialog();
 
     void showEntireBlock(bool show);
+    void showKeepSize(bool show);
+
     bool entireBlock();
 
     QHexEdit* mHexEdit;

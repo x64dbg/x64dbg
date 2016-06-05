@@ -48,6 +48,14 @@ void HexEditDialog::showEntireBlock(bool show)
         ui->chkEntireBlock->hide();
 }
 
+void HexEditDialog::showKeepSize(bool show)
+{
+    if(show)
+        ui->chkKeepSize->show();
+    else
+        ui->chkKeepSize->hide();
+}
+
 bool HexEditDialog::entireBlock()
 {
     return ui->chkEntireBlock->isChecked();
