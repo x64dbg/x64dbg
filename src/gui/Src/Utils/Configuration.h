@@ -44,6 +44,7 @@ public:
     void readColors();
     void writeColors();
     void emitColorsUpdated();
+    void emitTokenizerConfigUpdated();
     void readBools();
     void writeBools();
     void readUints();
@@ -83,6 +84,7 @@ signals:
     void colorsUpdated();
     void fontsUpdated();
     void shortcutsUpdated();
+    void tokenizerConfigUpdated();
 
 private:
     QColor colorFromConfig(const QString id);
