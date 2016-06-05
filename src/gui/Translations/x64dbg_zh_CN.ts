@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="zh_CN" sourcelanguage="zh_CN">
+<TS version="2.1" language="zh_CN" sourcelanguage="zh_CN">
 <context>
     <name>AppearanceDialog</name>
     <message>
@@ -281,7 +281,7 @@
         <translation type="unfinished">保存(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AppearanceDialog.cpp" line="441"/>
+        <location filename="../Src/Gui/AppearanceDialog.cpp" line="439"/>
         <source>Traced line</source>
         <translation type="unfinished"></translation>
     </message>
@@ -319,34 +319,34 @@
         <translation type="unfinished">&lt;font color=&apos;orange&apos;&gt;&lt;b&gt;指令解释错误&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="119"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="116"/>
         <source>&lt;font color=&apos;orange&apos;&gt;&lt;b&gt;Instruction decoding error : %1&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;orange&apos;&gt;&lt;b&gt;指令解码错误: %1&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="129"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="126"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Instruction bigger by %1 %2&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;red&apos;&gt;&lt;b&gt;指令字增大了 %1 %2&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="131"/>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="141"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="128"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="138"/>
         <source>byte</source>
         <translation type="unfinished">字节</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="131"/>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="141"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="128"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="138"/>
         <source>bytes</source>
         <translation type="unfinished">字节</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="139"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="136"/>
         <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction smaller by %1 %2&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;指令字缩短了 %1 %2&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="149"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="146"/>
         <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction is same size&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;指令字大小不变&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
@@ -355,7 +355,7 @@
     <name>AttachDialog</name>
     <message>
         <location filename="../Src/Gui/AttachDialog.ui" line="14"/>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="16"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="14"/>
         <source>Attach</source>
         <translation type="unfinished">附加</translation>
     </message>
@@ -375,20 +375,20 @@
     </message>
     <message>
         <location filename="../Src/Gui/AttachDialog.ui" line="83"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="19"/>
         <location filename="../Src/Gui/AttachDialog.cpp" line="21"/>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="23"/>
         <source>Refresh</source>
         <translation type="unfinished">刷新</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="35"/>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="40"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="33"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="38"/>
         <source>PID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="36"/>
-        <location filename="../Src/Gui/AttachDialog.cpp" line="41"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="34"/>
+        <location filename="../Src/Gui/AttachDialog.cpp" line="39"/>
         <source>Path</source>
         <translation type="unfinished">路径</translation>
     </message>
@@ -573,7 +573,7 @@
     </message>
     <message>
         <location filename="../Src/Gui/CPUArgumentWidget.ui" line="68"/>
-        <location filename="../Src/Gui/CPUArgumentWidget.cpp" line="265"/>
+        <location filename="../Src/Gui/CPUArgumentWidget.cpp" line="266"/>
         <source>Unlocked</source>
         <translation type="unfinished">解锁</translation>
     </message>
@@ -631,12 +631,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUArgumentWidget.cpp" line="252"/>
+        <location filename="../Src/Gui/CPUArgumentWidget.cpp" line="253"/>
         <source>Locked</source>
         <translation type="unfinished">锁定</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUArgumentWidget.cpp" line="259"/>
+        <location filename="../Src/Gui/CPUArgumentWidget.cpp" line="260"/>
         <source>Calls</source>
         <translation type="unfinished"></translation>
     </message>
@@ -644,447 +644,457 @@
 <context>
     <name>CPUDisassembly</name>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="211"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="212"/>
         <source>&amp;Edit</source>
         <translation type="unfinished">编辑(&amp;E)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="212"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="213"/>
         <source>&amp;Fill...</source>
         <translation type="unfinished">填充(&amp;F)...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="213"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="214"/>
         <source>Fill with &amp;NOPs</source>
         <translation type="unfinished">用NOP填充(&amp;N)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="215"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="226"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="216"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="227"/>
         <source>&amp;Copy</source>
         <translation type="unfinished">复制(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="216"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="217"/>
         <source>&amp;Paste</source>
         <translation type="unfinished">粘贴(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="217"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="218"/>
         <source>Paste (&amp;Ignore Size)</source>
         <translation type="unfinished">粘贴时忽略大小(&amp;I)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="218"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="219"/>
         <source>&amp;Binary</source>
         <translation type="unfinished">二进制(&amp;B)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="221"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="222"/>
         <source>&amp;Selection</source>
         <translation type="unfinished">选区(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="222"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="223"/>
         <source>Selection (&amp;No Bytes)</source>
         <translation type="unfinished">选区，不含字节(&amp;N)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="223"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="224"/>
         <source>&amp;Address</source>
         <translation type="unfinished">地址(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="224"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="225"/>
         <source>&amp;RVA</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="225"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="226"/>
         <source>Disassembly</source>
         <translation type="unfinished">反汇编</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="235"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="236"/>
         <source>Toggle</source>
         <translation type="unfinished">切换断点</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="237"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="240"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="238"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="241"/>
         <source>Set Hardware on Execution</source>
         <translation type="unfinished">设置硬件断点(执行)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="238"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="239"/>
         <source>Remove Hardware</source>
         <translation type="unfinished">删除硬件断点</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="241"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="242"/>
         <source>Replace Slot 0 (Free)</source>
         <translation type="unfinished">替换硬件断点 0 (空闲)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="242"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="243"/>
         <source>Replace Slot 1 (Free)</source>
         <translation type="unfinished">替换硬件断点 1 (空闲)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="243"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="244"/>
         <source>Replace Slot 2 (Free)</source>
         <translation type="unfinished">替换硬件断点 2 (空闲)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="244"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="245"/>
         <source>Replace Slot 3 (Free)</source>
         <translation type="unfinished">替换硬件断点 3 (空闲)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="246"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="247"/>
         <source>Breakpoint</source>
         <translation type="unfinished">断点</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="306"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="307"/>
         <source>&amp;Follow in Dump</source>
         <translation type="unfinished">在内存窗口中转到(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="312"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="313"/>
         <source>&amp;Follow in Disassembler</source>
         <translation type="unfinished">在反汇编中转到(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="318"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="319"/>
         <source>Open Source File</source>
         <translation type="unfinished">打开源代码文件</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="324"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="325"/>
         <source>Selection</source>
         <translation type="unfinished">选区</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="330"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="331"/>
         <source>Decompile</source>
         <translation type="unfinished">反编译</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="332"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="333"/>
         <source>Help on Symbolic Name</source>
         <translation type="unfinished">符号名称帮助</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="352"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="353"/>
         <source>&amp;Highlighting mode</source>
         <translation type="unfinished">高亮模式(&amp;H)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="356"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="357"/>
         <source>Label Current Address</source>
         <translation type="unfinished">给当前地址写标签</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="357"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="372"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="376"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="358"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="373"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="377"/>
         <source>Label</source>
         <translation type="unfinished">标签</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="395"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="396"/>
         <source>Comment</source>
         <translation type="unfinished">注释</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="396"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="397"/>
         <source>Bookmark</source>
         <translation type="unfinished">书签</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="325"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="397"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="326"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="398"/>
         <source>Function</source>
         <translation type="unfinished">函数</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="401"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="402"/>
         <source>Add function</source>
         <translation type="unfinished">添加函数</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="403"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="404"/>
         <source>Delete function</source>
         <translation type="unfinished">删除函数</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="414"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="416"/>
         <source>Origin</source>
         <translation type="unfinished">运行点</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="415"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="417"/>
         <source>Previous</source>
         <translation type="unfinished">上一个</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="419"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="421"/>
         <source>Next</source>
         <translation type="unfinished">下一个</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="423"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="425"/>
         <source>Expression</source>
         <translation type="unfinished">表达式</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="424"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="426"/>
         <source>File Offset</source>
         <translation type="unfinished">文件偏移</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="429"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="431"/>
         <source>Start of Page</source>
         <translation type="unfinished">页首</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="430"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="432"/>
         <source>End of Page</source>
         <translation type="unfinished">页尾</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="431"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="433"/>
         <source>Go to</source>
         <translation type="unfinished">转到</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="451"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="461"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="457"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="467"/>
         <source>C&amp;ommand</source>
         <translation type="unfinished">命令(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="441"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="452"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="462"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="447"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="458"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="468"/>
         <source>&amp;Constant</source>
         <translation type="unfinished">常数(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="128"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="129"/>
         <source>&amp;Selected Address</source>
         <translation type="unfinished">选定的地址(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="151"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="152"/>
         <source>&amp;Address: </source>
         <translation type="unfinished">地址(&amp;A): </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="156"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="157"/>
         <source>&amp;Constant: </source>
         <translation type="unfinished">常数(&amp;C): </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="159"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="160"/>
         <source>&amp;Value: </source>
         <translation type="unfinished">值(&amp;V): </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="175"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="176"/>
         <source>Address: </source>
         <translation type="unfinished">地址: </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="177"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="178"/>
         <source>Constant: </source>
         <translation type="unfinished">常数: </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="236"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="237"/>
         <source>Edit</source>
         <translation type="unfinished">编辑</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="341"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="342"/>
         <source>Help on mnemonic</source>
         <translation type="unfinished">指令帮助</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="342"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="348"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="343"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="349"/>
         <source>Show mnemonic brief</source>
         <translation type="unfinished">显示指令提示</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="346"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="347"/>
         <source>Hide mnemonic brief</source>
         <translation type="unfinished">隐藏指令提示</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="378"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="379"/>
         <source>Disable</source>
         <translation type="unfinished">禁用</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="379"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="380"/>
         <source>Bit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="380"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="381"/>
         <source>Byte</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="381"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="382"/>
         <source>Word</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="382"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="383"/>
         <source>Trace record</source>
         <translation type="unfinished">追踪记录</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="406"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="407"/>
+        <source>Analyze single function</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="408"/>
         <source>Assemble</source>
         <translation type="unfinished">汇编</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="407"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="409"/>
         <source>Patches</source>
         <translation type="unfinished">补丁</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="408"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="410"/>
         <source>&amp;Yara...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="411"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="413"/>
         <source>Set New Origin Here</source>
         <translation type="unfinished">设置新的运行点</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="442"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="453"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="463"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="435"/>
+        <source>xrefs...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="448"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="459"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="469"/>
         <source>&amp;String references</source>
         <translation type="unfinished">字符串(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="443"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="454"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="464"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="449"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="460"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="470"/>
         <source>&amp;Intermodular calls</source>
         <translation type="unfinished">跨模块调用(&amp;I)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="448"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="454"/>
         <source>&amp;Pattern</source>
         <translation type="unfinished">匹配特征(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="470"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="476"/>
         <source>Current Region</source>
         <translation type="unfinished">当前区域</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="471"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="477"/>
         <source>Current Module</source>
         <translation type="unfinished">当前模块</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="472"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="478"/>
         <source>All Modules</source>
         <translation type="unfinished">所有模块</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="473"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="479"/>
         <source>&amp;Search for</source>
         <translation type="unfinished">搜索(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="475"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="481"/>
         <source>&amp;Selected Address(es)</source>
         <translation type="unfinished">选定的地址(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="478"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="484"/>
         <source>Find &amp;references to</source>
         <translation type="unfinished">查找引用(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="622"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="657"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="628"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="663"/>
         <source>Add label at </source>
         <translation type="unfinished">添加标签到 </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="627"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="662"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="692"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="714"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="821"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="873"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="633"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="668"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="698"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="720"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="827"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="879"/>
         <source>Error!</source>
         <translation type="unfinished">错误!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="627"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="662"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="633"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="668"/>
         <source>DbgSetLabelAt failed!</source>
         <translation type="unfinished">DbgSetLabelAt 失败!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="687"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="693"/>
         <source>Add comment at </source>
         <translation type="unfinished">添加注释到 </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="692"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="698"/>
         <source>DbgSetCommentAt failed!</source>
         <translation type="unfinished">DbgSetCommentAt 失败!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="714"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="720"/>
         <source>DbgSetBookmarkAt failed!</source>
         <translation type="unfinished">DbgSetBookmarkAt 失败!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="741"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="747"/>
         <source>Define function?</source>
         <translation type="unfinished">确实要定义函数吗?</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="764"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="770"/>
         <source>Delete function?</source>
         <translation type="unfinished">确实要删除函数吗?</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="803"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="809"/>
         <source>Assemble at %1</source>
         <translation type="unfinished">汇编于 %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="821"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="827"/>
         <source>Failed to assemble instruction &quot; %1 &quot; (%2)</source>
         <translation type="unfinished">无法汇编指令 &quot;%1&quot; (%2)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="873"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="879"/>
         <source>Not inside a module...</source>
         <translation type="unfinished">不在已知模块中...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="879"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="885"/>
         <source>Goto File Offset in </source>
         <translation type="unfinished">转到指定文件的文件偏移</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="995"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1009"/>
         <source>Find Pattern...</source>
         <translation type="unfinished">搜索匹配特征...</translation>
     </message>
@@ -1092,427 +1102,432 @@
 <context>
     <name>CPUDump</name>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="95"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="34"/>
         <source>B&amp;inary</source>
         <translation type="unfinished">二进制编辑(&amp;I)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="99"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="38"/>
         <source>&amp;Edit</source>
         <translation type="unfinished">编辑(&amp;E)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="106"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="45"/>
         <source>&amp;Fill...</source>
         <translation type="unfinished">填充(&amp;F)...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="116"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="463"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="55"/>
         <source>&amp;Copy</source>
         <translation type="unfinished">复制(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="123"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="62"/>
         <source>&amp;Paste</source>
         <translation type="unfinished">粘贴(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="130"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="69"/>
         <source>Paste (&amp;Ignore Size)</source>
         <translation type="unfinished">粘贴时忽略大小(&amp;I)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="137"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="76"/>
         <source>Save To a File</source>
         <translation type="unfinished">保存到文件</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="144"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="83"/>
         <source>&amp;Restore selection</source>
         <translation type="unfinished">恢复选区(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="150"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="89"/>
         <source>Follow in Stack</source>
         <translation type="unfinished">在栈中转到</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="155"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="94"/>
         <source>Follow in Disassembler</source>
         <translation type="unfinished">在反汇编中转到</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="160"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="99"/>
         <source>&amp;Follow QWORD in Disassembler</source>
         <translation type="unfinished">在反汇编中转到指定QWORD(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="162"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="101"/>
         <source>&amp;Follow DWORD in Disassembler</source>
         <translation type="unfinished">在反汇编中转到指定DWORD(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="168"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="107"/>
         <source>&amp;Follow QWORD in Current Dump</source>
         <translation type="unfinished">在当前内存窗口中转到指定QWORD(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="170"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="109"/>
         <source>&amp;Follow DWORD in Current Dump</source>
         <translation type="unfinished">在当前内存窗口中转到指定DWORD(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="175"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="114"/>
         <source>&amp;Follow QWORD in Dump</source>
         <translation type="unfinished">在内存窗口中转到指定QWORD(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="177"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="116"/>
         <source>&amp;Follow DWORD in Dump</source>
         <translation type="unfinished">在内存窗口中转到指定DWORD(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="183"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="122"/>
         <source>Dump %1</source>
         <translation type="unfinished">内存 %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="208"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="147"/>
         <source>&amp;Breakpoint</source>
         <translation type="unfinished">断点(&amp;B)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="212"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="151"/>
         <source>Hardware, &amp;Access</source>
         <translation type="unfinished">硬件，读取(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="213"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="231"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="152"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="170"/>
         <source>&amp;Byte</source>
         <translation type="unfinished">字节(&amp;B)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="216"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="234"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="155"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="173"/>
         <source>&amp;Word</source>
         <translation type="unfinished">2字节(&amp;W)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="219"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="237"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="158"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="176"/>
         <source>&amp;Dword</source>
         <translation type="unfinished">4字节(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="223"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="241"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="162"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="180"/>
         <source>&amp;Qword</source>
         <translation type="unfinished">8字节(&amp;Q)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="230"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="169"/>
         <source>Hardware, &amp;Write</source>
         <translation type="unfinished">硬件，写入(&amp;W)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="247"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="186"/>
         <source>Hardware, &amp;Execute</source>
         <translation type="unfinished">硬件，执行(&amp;E)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="251"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="190"/>
         <source>Remove &amp;Hardware</source>
         <translation type="unfinished">删除硬件断点(&amp;H)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="259"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="198"/>
         <source>Memory, Access</source>
         <translation type="unfinished">内存，读取</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="260"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="270"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="280"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="199"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="209"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="219"/>
         <source>&amp;Singleshoot</source>
         <translation type="unfinished">一次性(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="263"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="273"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="283"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="202"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="212"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="222"/>
         <source>&amp;Restore on hit</source>
         <translation type="unfinished">重复设置(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="269"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="208"/>
         <source>Memory, Write</source>
         <translation type="unfinished">内存，写入</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="279"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="218"/>
         <source>Memory, Execute</source>
         <translation type="unfinished">内存，执行</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="289"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="228"/>
         <source>Remove &amp;Memory</source>
         <translation type="unfinished">删除内存断点(&amp;M)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="294"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="233"/>
         <source>&amp;Find Pattern...</source>
         <translation type="unfinished">搜索匹配特征(&amp;F)...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="300"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="239"/>
         <source>&amp;Yara...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="310"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="249"/>
         <source>Find &amp;References</source>
         <translation type="unfinished">搜索引用(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="320"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="259"/>
         <source>&amp;Expression</source>
         <translation type="unfinished">表达式(&amp;E)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="327"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="266"/>
         <source>File Offset</source>
         <translation type="unfinished">文件偏移</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="348"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="287"/>
         <source>Previous</source>
         <translation type="unfinished">上一个</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="355"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="294"/>
         <source>Next</source>
         <translation type="unfinished">下一个</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="334"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="273"/>
         <source>Start of Page</source>
         <translation type="unfinished">页首</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="190"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="129"/>
         <source>&amp;Sync with expression</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="194"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="133"/>
         <source>Entrop&amp;y...</source>
         <translation type="unfinished">熵(&amp;Y)...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="198"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="137"/>
         <source>Set &amp;Label</source>
         <translation type="unfinished">设置标签(&amp;L)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="204"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="143"/>
         <source>&amp;Modify Value</source>
         <translation type="unfinished">修改值(&amp;M)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="306"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="245"/>
         <source>Data co&amp;py...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="316"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="255"/>
         <source>&amp;Go to</source>
         <translation type="unfinished">转到(&amp;G)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="341"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="280"/>
         <source>End of Page</source>
         <translation type="unfinished">页尾</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="362"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="301"/>
         <source>&amp;Hex</source>
         <translation type="unfinished">十六进制(&amp;H)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="369"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="381"/>
-        <source>&amp;Unicode</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="374"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="317"/>
         <source>&amp;Text</source>
         <translation type="unfinished">文本(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="377"/>
-        <source>&amp;Ascii</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="386"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="333"/>
         <source>&amp;Integer</source>
         <translation type="unfinished">整数(&amp;I)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="432"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="373"/>
         <source>&amp;Float</source>
         <translation type="unfinished">浮点数(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="448"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="467"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="389"/>
         <source>&amp;Address</source>
         <translation type="unfinished">地址(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="453"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="394"/>
         <source>&amp;Disassembly</source>
         <translation type="unfinished">反汇编(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="799"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="692"/>
         <source>Add label at </source>
         <translation type="unfinished">添加标签到 </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="804"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="697"/>
         <source>DbgSetLabelAt failed!</source>
         <translation type="unfinished">DbgSetLabelAt 失败!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="820"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="713"/>
         <source>Modify value</source>
         <translation type="unfinished">修改</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="888"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="922"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="781"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="815"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="852"/>
         <source>Hex</source>
         <translation type="unfinished">十六进制</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="896"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="956"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="789"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="879"/>
         <source>ASCII</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="930"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="982"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="823"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="905"/>
         <source>UNICODE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1007"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="951"/>
         <source>Signed short (16-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1032"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="976"/>
         <source>Signed long (32-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1057"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1001"/>
         <source>Signed long long (64-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1082"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1026"/>
         <source>Unsigned short (16-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1107"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1051"/>
         <source>Unsigned long (32-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1132"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1076"/>
         <source>Unsigned long long (64-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1157"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1101"/>
         <source>Hex short (16-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1182"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1126"/>
         <source>Hex long (32-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1207"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1151"/>
         <source>Hex long long (64-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1232"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1176"/>
         <source>Float (32-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1257"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1201"/>
         <source>Double (64-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1282"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1226"/>
         <source>Long double (80-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1312"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1256"/>
         <source>Address</source>
         <translation type="unfinished">地址</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="804"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1327"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="697"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1271"/>
         <source>Error!</source>
         <translation type="unfinished">错误!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1320"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="308"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="324"/>
+        <source>&amp;UTF-16</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/CPUDump.cpp" line="312"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="328"/>
+        <source>&amp;Codepage...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/CPUDump.cpp" line="320"/>
+        <source>&amp;ASCII</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1264"/>
         <source>Comments</source>
         <translation type="unfinished">注释</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1327"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1271"/>
         <source>Not yet supported!</source>
         <translation type="unfinished">尚未支持!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1478"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1422"/>
         <source>Edit data at %1</source>
         <translation type="unfinished">编辑数据于  %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1495"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1439"/>
         <source>Fill data at %1</source>
         <translation type="unfinished">填充数据到 %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1557"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1501"/>
         <source>All files (*.*)</source>
         <translation type="unfinished">所有文件 (*.*)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1557"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1501"/>
         <source>Save to file</source>
         <translation type="unfinished">保存到文件</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1577"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1521"/>
         <source>Find Pattern...</source>
         <translation type="unfinished">搜索匹配特征...</translation>
     </message>
@@ -1721,7 +1736,7 @@
     </message>
     <message>
         <location filename="../Src/Gui/CPUStack.cpp" line="195"/>
-        <location filename="../Src/Gui/CPUStack.cpp" line="907"/>
+        <location filename="../Src/Gui/CPUStack.cpp" line="878"/>
         <source>Modify</source>
         <translation type="unfinished">修改</translation>
     </message>
@@ -1817,17 +1832,17 @@
         <translation type="unfinished">解锁堆栈</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUStack.cpp" line="588"/>
+        <location filename="../Src/Gui/CPUStack.cpp" line="559"/>
         <source>Enter expression to follow in Stack...</source>
         <translation type="unfinished">输入将在堆栈中转到的表达式...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUStack.cpp" line="713"/>
+        <location filename="../Src/Gui/CPUStack.cpp" line="684"/>
         <source>Edit data at %1</source>
         <translation type="unfinished">编辑数据于  %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUStack.cpp" line="730"/>
+        <location filename="../Src/Gui/CPUStack.cpp" line="701"/>
         <source>Fill data at %1</source>
         <translation type="unfinished">填充数据到 %1</translation>
     </message>
@@ -1972,6 +1987,24 @@
         <location filename="../Src/Gui/CloseDialog.ui" line="26"/>
         <source>Closing Debugger...</source>
         <translation>正在退出调试器...</translation>
+    </message>
+</context>
+<context>
+    <name>CodepageSelectionDialog</name>
+    <message>
+        <location filename="../Src/Gui/CodepageSelectionDialog.ui" line="14"/>
+        <source>Select Codepage...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/CodepageSelectionDialog.ui" line="38"/>
+        <source>&amp;OK</source>
+        <translation type="unfinished">确定(&amp;O)</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/CodepageSelectionDialog.ui" line="48"/>
+        <source>&amp;Cancel</source>
+        <translation type="unfinished">取消(&amp;C)</translation>
     </message>
 </context>
 <context>
@@ -2410,121 +2443,126 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="308"/>
-        <source>Actions -&gt; Help on Mnemonic</source>
+        <source>Actions -&gt; xrefs...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="309"/>
-        <source>Actions -&gt; Toggle Mnemonic Brief</source>
+        <source>Actions -&gt; Help on Mnemonic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="310"/>
-        <source>Actions -&gt; Highlighting Mode</source>
+        <source>Actions -&gt; Toggle Mnemonic Brief</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="311"/>
-        <source>Actions -&gt; Find</source>
+        <source>Actions -&gt; Highlighting Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="312"/>
-        <source>Actions -&gt; Decompile Function</source>
+        <source>Actions -&gt; Find</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="313"/>
+        <source>Actions -&gt; Decompile Function</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Utils/Configuration.cpp" line="314"/>
         <source>Actions -&gt; Decompile Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="315"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="316"/>
         <source>Actions -&gt; Increase Register</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="316"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="317"/>
         <source>Actions -&gt; Decrease Register</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="317"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="318"/>
         <source>Actions -&gt; Zero Register</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="318"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="319"/>
         <source>Actions -&gt; Set Register to One</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="319"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="320"/>
         <source>Actions -&gt; Toggle Register Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="320"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="321"/>
         <source>Actions -&gt; Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="321"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="322"/>
         <source>Actions -&gt; Copy Address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="322"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="323"/>
         <source>Actions -&gt; Copy Symbol</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="323"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="324"/>
         <source>Actions -&gt; Load Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="324"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="325"/>
         <source>Actions -&gt; Reload Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="325"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="326"/>
         <source>Actions -&gt; Unload Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="326"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="327"/>
         <source>Actions -&gt; Run Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="327"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="328"/>
         <source>Actions -&gt; Toggle Script Breakpoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="328"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="329"/>
         <source>Actions -&gt; Run Script to Cursor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="329"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="330"/>
         <source>Actions -&gt; Step Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="330"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="331"/>
         <source>Actions -&gt; Abort Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="331"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="332"/>
         <source>Actions -&gt; Execute Script Command</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Utils/Configuration.cpp" line="332"/>
+        <location filename="../Src/Utils/Configuration.cpp" line="333"/>
         <source>Actions -&gt; Refresh</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2603,121 +2641,147 @@ run</translation>
 <context>
     <name>EditFloatRegister</name>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="17"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="23"/>
         <source>Dialog</source>
         <translation type="unfinished">对话框</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="39"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="92"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="411"/>
+        <source>Byte:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="105"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="463"/>
+        <source>Int64:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="131"/>
         <source>High:</source>
         <translation type="unfinished">高位部分:</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="46"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="347"/>
         <source>byte</source>
-        <translation type="unfinished">字节</translation>
+        <translation type="obsolete">字节</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="53"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="354"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="66"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="450"/>
         <source>Short:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="60"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="361"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="118"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="424"/>
         <source>Long:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="67"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="368"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="79"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="385"/>
         <source>Float:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="74"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="375"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="53"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="437"/>
         <source>Double:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="81"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="382"/>
-        <source>int64:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="114"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="415"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="230"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="565"/>
         <source>0-1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="130"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="431"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="246"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="581"/>
         <source>2-3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="146"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="447"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="262"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="597"/>
         <source>4-5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="162"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="463"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="278"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="613"/>
         <source>6-7</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="178"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="479"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="294"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="629"/>
         <source>8-9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="194"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="495"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="310"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="645"/>
         <source>A-B</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="210"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="511"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="326"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="661"/>
         <source>C-D</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="226"/>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="527"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="342"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="677"/>
         <source>E-F</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="340"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="398"/>
         <source>Low:</source>
         <translation type="unfinished">低位部分:</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="629"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="707"/>
+        <source>&amp;Hexadecimal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="714"/>
+        <source>&amp;Signed</source>
+        <translation type="unfinished">有符号(&amp;S)</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="724"/>
+        <source>&amp;Unsigned</source>
+        <translation type="unfinished">无符号(&amp;U)</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="774"/>
+        <source>&amp;OK</source>
+        <translation type="unfinished">确定(&amp;O)</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="784"/>
+        <source>&amp;Cancel</source>
+        <translation type="unfinished">取消(&amp;C)</translation>
+    </message>
+    <message>
         <source>Hexadecimal</source>
-        <translation type="unfinished">十六进制</translation>
+        <translation type="obsolete">十六进制</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="636"/>
         <source>Signed</source>
-        <translation type="unfinished">有符号整数</translation>
+        <translation type="obsolete">有符号整数</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="646"/>
         <source>Unsigned</source>
-        <translation type="unfinished">无符号整数</translation>
+        <translation type="obsolete">无符号整数</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/EditFloatRegister.ui" line="661"/>
+        <location filename="../Src/Gui/EditFloatRegister.ui" line="754"/>
         <source>Unified hex value follows memory byte order.</source>
         <translation type="unfinished">最上方十六进制数值字节序为内存字节序。</translation>
     </message>
@@ -2776,40 +2840,40 @@ run</translation>
         <translation type="unfinished">取消(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="17"/>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="78"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="16"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="77"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Not debugging...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;red&apos;&gt;&lt;b&gt;未在调试……&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="19"/>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="84"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="18"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="83"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Invalid expression...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;red&apos;&gt;&lt;b&gt;无效的表达式……&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="70"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="69"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Empty expression...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;red&apos;&gt;&lt;b&gt;空的表达式……&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="95"/>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="137"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="94"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="136"/>
         <source>&lt;font color=&apos;#00DD00&apos;&gt;&lt;b&gt;Correct expression! -&amp;gt; &lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;#00DD00&apos;&gt;&lt;b&gt;正确的表达式！ -&amp;gt; &lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="101"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="100"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Invalid file offset...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;red&apos;&gt;&lt;b&gt;无效的文件偏移量……&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="112"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="111"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Invalid memory address...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;red&apos;&gt;&lt;b&gt;无效的内存地址……&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="118"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="117"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Memory out of range...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished">&lt;font color=&apos;red&apos;&gt;&lt;b&gt;内存地址超出范围……&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
@@ -2930,6 +2994,19 @@ run</translation>
         <location filename="../Src/Gui/HandlesView.cpp" line="281"/>
         <source>Enabled</source>
         <translation type="unfinished">已启用</translation>
+    </message>
+</context>
+<context>
+    <name>HexDump</name>
+    <message>
+        <location filename="../Src/BasicView/HexDump.cpp" line="273"/>
+        <source>&amp;Selection</source>
+        <translation type="unfinished">选区(&amp;S)</translation>
+    </message>
+    <message>
+        <location filename="../Src/BasicView/HexDump.cpp" line="279"/>
+        <source>&amp;Address</source>
+        <translation type="unfinished">地址(&amp;A)</translation>
     </message>
 </context>
 <context>
@@ -3060,7 +3137,7 @@ run</translation>
     <name>MainWindow</name>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="17"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="57"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="58"/>
         <source>x64dbg</source>
         <translation type="unfinished">x64dbg</translation>
     </message>
@@ -3206,7 +3283,7 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="396"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="124"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="123"/>
         <source>Script</source>
         <translation>脚本</translation>
     </message>
@@ -3227,7 +3304,7 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="420"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="130"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="129"/>
         <source>CPU</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3248,7 +3325,7 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="444"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="141"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="140"/>
         <source>References</source>
         <translation>引用</translation>
     </message>
@@ -3259,7 +3336,7 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="456"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="147"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="146"/>
         <source>Threads</source>
         <translation>线程</translation>
     </message>
@@ -3328,7 +3405,7 @@ run</translation>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="567"/>
         <location filename="../Src/Gui/MainWindow.ui" line="570"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="112"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="111"/>
         <source>Call Stack</source>
         <translation>调用堆栈</translation>
     </message>
@@ -3344,7 +3421,7 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="591"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1127"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1126"/>
         <source>Donate</source>
         <translation>捐赠</translation>
     </message>
@@ -3393,7 +3470,7 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="672"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1140"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1139"/>
         <source>Report Bug</source>
         <translation type="unfinished">报告Bug</translation>
     </message>
@@ -3404,7 +3481,7 @@ run</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="684"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="90"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="89"/>
         <source>Source</source>
         <translation type="unfinished">源代码</translation>
     </message>
@@ -3441,117 +3518,117 @@ run</translation>
         <translation type="unfinished">重新载入 style.css</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="59"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="60"/>
         <source>x32dbg</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="78"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="77"/>
         <source>Log</source>
         <translation type="unfinished">日志</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="84"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="83"/>
         <source>Symbols</source>
         <translation type="unfinished">符号</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="97"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="96"/>
         <source>Breakpoints</source>
         <translation type="unfinished">断点</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="106"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="105"/>
         <source>Memory Map</source>
         <translation type="unfinished">内存布局</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="118"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="117"/>
         <source>SEH</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="756"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="152"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="151"/>
         <source>Snowman</source>
         <translation type="unfinished">Snowman反编译器</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="747"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="157"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="156"/>
         <source>Notes</source>
         <translation type="unfinished">笔记</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="765"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="162"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="161"/>
         <source>Handles</source>
         <translation type="unfinished">句柄</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="313"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="312"/>
         <source>Command: </source>
         <translation type="unfinished">命令: </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="322"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="321"/>
         <source>Ready</source>
         <translation>就绪</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="613"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="612"/>
         <source>About x64dbg</source>
         <translation type="unfinished">关于 x64dbg</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="615"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="614"/>
         <source>About x32dbg</source>
         <translation type="unfinished">关于 x32dbg</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="635"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="634"/>
         <source>Open file</source>
         <translation type="unfinished">打开文件</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="635"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="634"/>
         <source>Executables (*.exe *.dll);;All files (*.*)</source>
         <translation type="unfinished">可执行文件 (*.exe *.dll);;所有文件 (*.*)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1067"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1193"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1066"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1192"/>
         <source>Error!</source>
         <translation type="unfinished">错误!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1067"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1066"/>
         <source>Patches cannot be shown when not debugging...</source>
         <translation type="unfinished">未在调试时，不能显示补丁……</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1127"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1126"/>
         <source>All the money will go to x64dbg development.</source>
         <translation type="unfinished">所有捐款都将用于赞助x64dbg的开发。</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1140"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1139"/>
         <source>You will be taken to a website where you can report a bug.
 Make sure to fill in as much information as possible.</source>
         <translation type="unfinished">您将会进入报告Bug的网站。记得尽可能填写最多信息。</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1171"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1170"/>
         <source>Change Command Line</source>
         <translation type="unfinished">改变命令行</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1177"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1176"/>
         <source>Cannot get remote command line, use the &apos;getcmdline&apos; command for more information.</source>
         <translation type="unfinished">无法获得调试对象的命令行，请尝试调用“getcmdline”命令来获得更多信息。</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1193"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1192"/>
         <source>Could not set command line!</source>
         <translation type="unfinished">无法设置命令行！</translation>
     </message>
@@ -3784,12 +3861,12 @@ Make sure to fill in as much information as possible.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PageMemoryRights.cpp" line="127"/>
+        <location filename="../Src/Gui/PageMemoryRights.cpp" line="125"/>
         <source>Pages Rights Changed to: </source>
         <translation type="unfinished">页面权限已改为： </translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PageMemoryRights.cpp" line="129"/>
+        <location filename="../Src/Gui/PageMemoryRights.cpp" line="127"/>
         <source>Error setting rights, read the MSDN to learn the valid rights of: </source>
         <translation type="unfinished">设置页面权限时发生错误，请您浏览MSDN来了解有效的页面权限： </translation>
     </message>
@@ -3847,88 +3924,88 @@ Make sure to fill in as much information as possible.</source>
         <translation type="unfinished">导出(&amp;E)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="448"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="493"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="576"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="627"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="671"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="685"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="446"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="491"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="574"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="625"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="675"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="689"/>
         <source>Information</source>
         <translation>温馨提示</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="448"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="446"/>
         <source>Nothing to patch!</source>
         <translation type="unfinished">没有补丁！</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="458"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="487"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="515"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="549"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="456"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="485"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="513"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="547"/>
         <source>Error!</source>
         <translation type="unfinished">发生错误！</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="458"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="456"/>
         <source>Failed to get module filename...</source>
         <translation type="unfinished">获取模块文件名时发生错误……</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="473"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="471"/>
         <source>Save file</source>
         <translation type="unfinished">保存文件</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="473"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="471"/>
         <source>All files (*.*)</source>
         <translation type="unfinished">所有文件 (*.*)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="487"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="485"/>
         <source>Failed to save patched file (%1)</source>
         <translation type="unfinished">保存修补文件时失败 (%1)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="493"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="627"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="491"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="625"/>
         <source>%1/%2 patch(es) applied!</source>
         <translation type="unfinished">%1/%2 个补丁已经应用！</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="502"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="500"/>
         <source>Open patch</source>
         <translation type="unfinished">打开补丁</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="502"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="639"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="500"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="637"/>
         <source>Patch files (*.1337)</source>
         <translation type="unfinished">补丁文件 (*.1337)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="515"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="513"/>
         <source>The patch file is empty...</source>
         <translation type="unfinished">补丁文件为空……</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="549"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="547"/>
         <source>Patch file format is incorrect...</source>
         <translation type="unfinished">补丁文件格式无效……</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="576"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="574"/>
         <source>No patches to apply in the current process.</source>
         <translation type="unfinished">当前进程中没有需要应用的补丁。</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="587"/>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="598"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="585"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="596"/>
         <source>Question</source>
         <translation type="unfinished">温馨提示</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="587"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="585"/>
         <source>Some patches are already applied.
 
 Do you want to remove these patches?</source>
@@ -3936,7 +4013,7 @@ Do you want to remove these patches?</source>
 您确实想要恢复这些补丁吗？</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="598"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="596"/>
         <source>Some bytes do not match the original in the patch file.
 
 Do you want to apply these patches anyway?</source>
@@ -3944,17 +4021,17 @@ Do you want to apply these patches anyway?</source>
 您现在还想应用这些补丁吗？</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="639"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="637"/>
         <source>Save patch</source>
         <translation type="unfinished">保存补丁</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="671"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="675"/>
         <source>No patches to export.</source>
         <translation type="unfinished">没有需要导出的补丁。</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/PatchDialog.cpp" line="685"/>
+        <location filename="../Src/Gui/PatchDialog.cpp" line="689"/>
         <source>%1 patch(es) exported!</source>
         <translation type="unfinished">成功导出了 %1 个补丁！</translation>
     </message>
@@ -3990,102 +4067,102 @@ Do you want to apply these patches anyway?</source>
 <context>
     <name>RegistersView</name>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="414"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="419"/>
         <source>Increment</source>
         <translation>加一</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="417"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="422"/>
         <source>Decrement</source>
         <translation>减一</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="420"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="425"/>
         <source>Zero</source>
         <translation>清零</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="423"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="428"/>
         <source>Set to 1</source>
         <translation>置一</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="428"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="433"/>
         <source>Toggle</source>
         <translation type="unfinished">切换</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="426"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="431"/>
         <source>Modify value</source>
         <translation type="unfinished">修改</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="431"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="436"/>
         <source>Copy value to clipboard</source>
         <translation type="unfinished">复制值</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="434"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="439"/>
         <source>Copy Symbol Value to Clipboard</source>
         <translation type="unfinished">复制符号</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="437"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="442"/>
         <source>Copy all registers</source>
         <translation>复制所有寄存器</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="439"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="444"/>
         <source>Follow in Disassembler</source>
         <translation type="unfinished">在反汇编中转到</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="440"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="445"/>
         <source>Follow in Dump</source>
         <translation type="unfinished">在内存窗口中转到</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="442"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="447"/>
         <source>Increment x87 Stack</source>
         <translation type="unfinished">递增x87浮点寄存器栈</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="443"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="448"/>
         <source>Decrement x87 Stack</source>
         <translation type="unfinished">递减x87浮点寄存器栈</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="444"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="449"/>
         <source>Change view</source>
         <translation type="unfinished">切换视图</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="1268"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="1273"/>
         <source>Hide FPU</source>
         <translation type="unfinished">隐藏FPU</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="1270"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="1275"/>
         <source>Show FPU</source>
         <translation type="unfinished">显示FPU</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="1878"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="1883"/>
         <source>Edit YMM register</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="1886"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="1893"/>
         <source>Edit XMM register</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="2336"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="2345"/>
         <source>HW Break on [RSP]</source>
         <translation type="unfinished">在[RSP]上设置硬件断点</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/RegistersView.cpp" line="2338"/>
+        <location filename="../Src/Gui/RegistersView.cpp" line="2347"/>
         <source>HW Break on [ESP]</source>
         <translation type="unfinished">在[ESP]上设置硬件断点</translation>
     </message>
@@ -4477,17 +4554,17 @@ Do you want to apply these patches anyway?</source>
         <translation type="unfinished">取消</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/SettingsDialog.cpp" line="432"/>
+        <location filename="../Src/Gui/SettingsDialog.cpp" line="430"/>
         <source>ERROR NOT FOUND OLD JIT</source>
         <translation type="unfinished">错误：没有找到旧的即时调试器</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/SettingsDialog.cpp" line="432"/>
+        <location filename="../Src/Gui/SettingsDialog.cpp" line="430"/>
         <source>NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND</source>
         <translation type="unfinished">没有找到以前保存的旧的即时调试器，请使用SETJIT命令设置</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/SettingsDialog.cpp" line="571"/>
+        <location filename="../Src/Gui/SettingsDialog.cpp" line="569"/>
         <source>Question</source>
         <translation type="unfinished">提示</translation>
     </message>
@@ -4536,17 +4613,30 @@ Do you want to apply these patches anyway?</source>
 <context>
     <name>StdTable</name>
     <message>
-        <location filename="../Src/BasicView/StdTable.cpp" line="384"/>
         <source>Whole &amp;Line</source>
-        <translation>整行(&amp;L)</translation>
+        <translation type="vanished">整行(&amp;L)</translation>
     </message>
     <message>
-        <location filename="../Src/BasicView/StdTable.cpp" line="388"/>
         <source>Whole &amp;Table</source>
-        <translation>整个表格(&amp;T)</translation>
+        <translation type="vanished">整个表格(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../Src/BasicView/StdTable.cpp" line="424"/>
+        <location filename="../Src/BasicView/StdTable.cpp" line="406"/>
+        <source>&amp;Line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/BasicView/StdTable.cpp" line="410"/>
+        <source>Cropped &amp;Table</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/BasicView/StdTable.cpp" line="414"/>
+        <source>&amp;Full Table</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/BasicView/StdTable.cpp" line="450"/>
         <source>&amp;Copy</source>
         <translation>复制(&amp;C)</translation>
     </message>
@@ -4681,6 +4771,19 @@ Do you want to apply these patches anyway?</source>
         <location filename="../Src/Gui/WordEditDialog.ui" line="184"/>
         <source>Expression:</source>
         <translation type="unfinished">表达式:</translation>
+    </message>
+</context>
+<context>
+    <name>XrefBrowseDialog</name>
+    <message>
+        <location filename="../Src/Gui/XrefBrowseDialog.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished">对话框</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/XrefBrowseDialog.cpp" line="16"/>
+        <source>xrefs at %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
