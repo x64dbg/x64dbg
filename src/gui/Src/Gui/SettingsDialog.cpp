@@ -12,8 +12,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     ui->setupUi(this);
     //set window flags
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     setModal(true);
+    adjustSize();
     bTokenizerConfigUpdated = false;
     LoadSettings(); //load settings from file
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
