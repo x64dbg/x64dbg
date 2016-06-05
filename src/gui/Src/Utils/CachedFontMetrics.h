@@ -13,6 +13,7 @@ public:
         : QObject(parent),
           mFontMetrics(font)
     {
+        memset(mWidths, 0, sizeof(mWidths));
     }
 
     int width(const QChar & ch)
