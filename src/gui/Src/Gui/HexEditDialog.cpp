@@ -2,6 +2,8 @@
 #include "ui_HexEditDialog.h"
 #include "Configuration.h"
 #include "Bridge.h"
+#include "CodepageSelectionDialog.h"
+#include "LineEditDialog.h"
 
 HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexEditDialog)
 {
@@ -127,4 +129,20 @@ QByteArray HexEditDialog::resizeData(QByteArray & data)
     }
 
     return data;
+}
+
+void HexEditDialog::on_btnCodepage_clicked()
+{
+    CodepageSelectionDialog codepageDialog(this);
+    if(codepageDialog.exec() != QDialog::Accepted)
+        return;
+    auto textCodec = QTextCodec::codecForName(codepageDialog.getSelectedCodepage());
+    if(!textCodec)
+        return;
+    LineEditDialog lineEdit(this);
+    lineEdit.setWindowTitle(tr("Enter text to convert..."));
+    if(lineEdit.exec() != QDialog::Accepted)
+        return;
+    mHexEdit->setData(resizeData(textCodec->fromUnicode(lineEdit.editText)));
+    dataEditedSlot();
 }

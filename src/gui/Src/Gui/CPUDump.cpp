@@ -838,6 +838,7 @@ void CPUDump::hexCodepageSlot()
     CodepageSelectionDialog dialog(this);
     if(dialog.exec() != QDialog::Accepted)
         return;
+    auto codepage = dialog.getSelectedCodepage();
 
     int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
@@ -854,11 +855,11 @@ void CPUDump::hexCodepageSlot()
     wColDesc.isData = true; //text (in code page)
     wColDesc.itemCount = 16;
     wColDesc.separator = 0;
-    wColDesc.textCodec = QTextCodec::codecForName(dialog.getSelectedCodepage());
+    wColDesc.textCodec = QTextCodec::codecForName(codepage);
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendDescriptor(0, dialog.getSelectedCodepage(), false, wColDesc);
+    appendDescriptor(0, codepage, false, wColDesc);
 
     reloadData();
 }
@@ -920,6 +921,7 @@ void CPUDump::textCodepageSlot()
     CodepageSelectionDialog dialog(this);
     if(dialog.exec() != QDialog::Accepted)
         return;
+    auto codepage = dialog.getSelectedCodepage();
 
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -927,11 +929,11 @@ void CPUDump::textCodepageSlot()
     wColDesc.isData = true; //text (in code page)
     wColDesc.itemCount = 64;
     wColDesc.separator = 0;
-    wColDesc.textCodec = QTextCodec::codecForName(dialog.getSelectedCodepage());
+    wColDesc.textCodec = QTextCodec::codecForName(codepage);
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendResetDescriptor(0, dialog.getSelectedCodepage(), false, wColDesc);
+    appendResetDescriptor(0, codepage, false, wColDesc);
 
     reloadData();
 }

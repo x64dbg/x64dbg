@@ -31,6 +31,8 @@ private slots:
     void dataEditedSlot();
     void on_lineEditAscii_dataEdited();
     void on_lineEditUnicode_dataEdited();
+    void on_btnCodepage_clicked();
+
 private:
     Ui::HexEditDialog* ui;
 
