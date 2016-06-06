@@ -2,7 +2,7 @@
 #include "ui_ColumnReorderDialog.h"
 #include <QMessageBox>
 
-ColumnReorderDialog::ColumnReorderDialog(AbstractTableView *parent) :
+ColumnReorderDialog::ColumnReorderDialog(AbstractTableView* parent) :
     QDialog(parent),
     mParent(parent),
     ui(new Ui::ColumnReorderDialog)

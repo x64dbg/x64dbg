@@ -176,7 +176,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             int width = getColumnWidth(i);
             QStyleOptionButton wOpt;
             if((mColumnList[i].header.isPressed == true) && (mColumnList[i].header.isMouseOver == true)
-                    || (mGuiState==AbstractTableView::HeaderButtonReordering && mColumnOrder[mHoveredColumnDisplayIndex] == i))
+                    || (mGuiState == AbstractTableView::HeaderButtonReordering && mColumnOrder[mHoveredColumnDisplayIndex] == i))
                 wOpt.state = QStyle::State_Sunken;
             else
                 wOpt.state = QStyle::State_Enabled;
@@ -444,7 +444,7 @@ void AbstractTableView::mouseReleaseEvent(QMouseEvent* event)
     }
 }
 
-void AbstractTableView::mouseDoubleClickEvent(QMouseEvent *event)
+void AbstractTableView::mouseDoubleClickEvent(QMouseEvent* event)
 {
     if(event->y() < getHeaderHeight())
     {

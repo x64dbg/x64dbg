@@ -4,8 +4,9 @@
 #include "AbstractTableView.h"
 #include <QDialog>
 
-namespace Ui {
-class ColumnReorderDialog;
+namespace Ui
+{
+    class ColumnReorderDialog;
 }
 
 class ColumnReorderDialog : public QDialog
