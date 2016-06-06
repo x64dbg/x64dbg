@@ -2,6 +2,15 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN" sourcelanguage="zh_CN">
 <context>
+    <name>AbstractTableView</name>
+    <message>
+        <location filename="../Src/BasicView/AbstractTableView.cpp" line="397"/>
+        <location filename="../Src/BasicView/AbstractTableView.cpp" line="462"/>
+        <source>Edit columns</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>AppearanceDialog</name>
     <message>
         <location filename="../Src/Gui/AppearanceDialog.ui" line="14"/>
@@ -1512,22 +1521,22 @@
         <translation type="unfinished">编辑数据于  %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1439"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1440"/>
         <source>Fill data at %1</source>
         <translation type="unfinished">填充数据到 %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1501"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1502"/>
         <source>All files (*.*)</source>
         <translation type="unfinished">所有文件 (*.*)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1501"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1502"/>
         <source>Save to file</source>
         <translation type="unfinished">保存到文件</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1521"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1522"/>
         <source>Find Pattern...</source>
         <translation type="unfinished">搜索匹配特征...</translation>
     </message>
@@ -1736,7 +1745,7 @@
     </message>
     <message>
         <location filename="../Src/Gui/CPUStack.cpp" line="195"/>
-        <location filename="../Src/Gui/CPUStack.cpp" line="878"/>
+        <location filename="../Src/Gui/CPUStack.cpp" line="879"/>
         <source>Modify</source>
         <translation type="unfinished">修改</translation>
     </message>
@@ -1842,7 +1851,7 @@
         <translation type="unfinished">编辑数据于  %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUStack.cpp" line="701"/>
+        <location filename="../Src/Gui/CPUStack.cpp" line="702"/>
         <source>Fill data at %1</source>
         <translation type="unfinished">填充数据到 %1</translation>
     </message>
@@ -2005,6 +2014,69 @@
         <location filename="../Src/Gui/CodepageSelectionDialog.ui" line="48"/>
         <source>&amp;Cancel</source>
         <translation type="unfinished">取消(&amp;C)</translation>
+    </message>
+</context>
+<context>
+    <name>ColumnReorderDialog</name>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished">对话框</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="24"/>
+        <source>Displayed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="41"/>
+        <source>&lt;- &amp;Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="48"/>
+        <source>&amp;Hide -&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="55"/>
+        <source>&amp;Up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="62"/>
+        <source>&amp;Down</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="69"/>
+        <source>&lt;&lt; A&amp;dd all</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="80"/>
+        <source>Available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="116"/>
+        <source>&amp;Ok</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.ui" line="126"/>
+        <source>&amp;Cancel</source>
+        <translation type="unfinished">取消(&amp;C)</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.cpp" line="47"/>
+        <source>Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ColumnReorderDialog.cpp" line="47"/>
+        <source>There isn&apos;t anything to display yet!</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4223,82 +4295,82 @@ Do you want to apply these patches anyway?</source>
         <translation type="unfinished">信息</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="348"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="349"/>
         <source>Load Script</source>
         <translation type="unfinished">载入脚本</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="350"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="351"/>
         <source>Open...</source>
         <translation type="unfinished">打开...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="356"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="357"/>
         <source>Reload Script</source>
         <translation type="unfinished">重新载入脚本</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="361"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="362"/>
         <source>Unload Script</source>
         <translation type="unfinished">关闭脚本</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="366"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="367"/>
         <source>Run</source>
         <translation type="unfinished">运行脚本</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="371"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="372"/>
         <source>Toggle BP</source>
         <translation type="unfinished">切换断点</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="376"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="377"/>
         <source>Run until selection</source>
         <translation type="unfinished">运行到选区</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="381"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="382"/>
         <source>Step</source>
         <translation type="unfinished">单步</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="386"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="387"/>
         <source>Abort</source>
         <translation type="unfinished">终止</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="391"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="392"/>
         <source>Execute Command...</source>
         <translation type="unfinished">运行命令...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="396"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="397"/>
         <source>Continue here...</source>
         <translation type="unfinished">从此处继续运行...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="487"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="488"/>
         <source>Error on line</source>
         <translation type="unfinished">发生错误于行</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="489"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="490"/>
         <source>Script Error!</source>
         <translation type="unfinished">脚本错误！</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="511"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="512"/>
         <source>Select script</source>
         <translation type="unfinished">选择脚本</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="511"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="512"/>
         <source>Script files (*.txt *.scr);;All files (*.*)</source>
         <translation type="unfinished">脚本文件 (*.txt *.scr);;所有文件 (*.*)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/ScriptView.cpp" line="574"/>
+        <location filename="../Src/Gui/ScriptView.cpp" line="575"/>
         <source>Execute Script Command...</source>
         <translation type="unfinished">运行脚本命令...</translation>
     </message>
@@ -4480,23 +4552,35 @@ Do you want to apply these patches anyway?</source>
     </message>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="390"/>
-        <source>Argument Spaces*</source>
-        <translation type="unfinished">参数间使用空格*</translation>
+        <source>Argument Spaces</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="397"/>
-        <source>Tab between mnemonic and arguments*</source>
-        <translation type="unfinished">在汇编助记符与参数之间使用 Tab *</translation>
+        <source>Tab between mnemonic and arguments</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="404"/>
-        <source>Memory Spaces*</source>
+        <source>Memory Spaces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="411"/>
+        <source>Uppercase</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Argument Spaces*</source>
+        <translation type="obsolete">参数间使用空格*</translation>
+    </message>
+    <message>
+        <source>Tab between mnemonic and arguments*</source>
+        <translation type="obsolete">在汇编助记符与参数之间使用 Tab *</translation>
+    </message>
+    <message>
         <source>Uppercase*</source>
-        <translation type="unfinished">大写*</translation>
+        <translation type="obsolete">大写*</translation>
     </message>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="418"/>
@@ -4554,17 +4638,17 @@ Do you want to apply these patches anyway?</source>
         <translation type="unfinished">取消</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/SettingsDialog.cpp" line="430"/>
+        <location filename="../Src/Gui/SettingsDialog.cpp" line="436"/>
         <source>ERROR NOT FOUND OLD JIT</source>
         <translation type="unfinished">错误：没有找到旧的即时调试器</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/SettingsDialog.cpp" line="430"/>
+        <location filename="../Src/Gui/SettingsDialog.cpp" line="436"/>
         <source>NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND</source>
         <translation type="unfinished">没有找到以前保存的旧的即时调试器，请使用SETJIT命令设置</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/SettingsDialog.cpp" line="569"/>
+        <location filename="../Src/Gui/SettingsDialog.cpp" line="575"/>
         <source>Question</source>
         <translation type="unfinished">提示</translation>
     </message>
