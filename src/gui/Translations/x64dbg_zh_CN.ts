@@ -1401,90 +1401,90 @@
     <message>
         <location filename="../Src/Gui/CPUDump.cpp" line="781"/>
         <location filename="../Src/Gui/CPUDump.cpp" line="815"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="852"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="853"/>
         <source>Hex</source>
         <translation type="unfinished">十六进制</translation>
     </message>
     <message>
         <location filename="../Src/Gui/CPUDump.cpp" line="789"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="879"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="880"/>
         <source>ASCII</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Gui/CPUDump.cpp" line="823"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="905"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="906"/>
         <source>UNICODE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="951"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="953"/>
         <source>Signed short (16-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="976"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="978"/>
         <source>Signed long (32-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1001"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1003"/>
         <source>Signed long long (64-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1026"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1028"/>
         <source>Unsigned short (16-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1051"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1053"/>
         <source>Unsigned long (32-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1076"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1078"/>
         <source>Unsigned long long (64-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1101"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1103"/>
         <source>Hex short (16-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1126"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1128"/>
         <source>Hex long (32-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1151"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1153"/>
         <source>Hex long long (64-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1176"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1178"/>
         <source>Float (32-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1201"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1203"/>
         <source>Double (64-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1226"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1228"/>
         <source>Long double (80-bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1256"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1258"/>
         <source>Address</source>
         <translation type="unfinished">地址</translation>
     </message>
     <message>
         <location filename="../Src/Gui/CPUDump.cpp" line="697"/>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1271"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1273"/>
         <source>Error!</source>
         <translation type="unfinished">错误!</translation>
     </message>
@@ -1506,37 +1506,37 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1264"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1266"/>
         <source>Comments</source>
         <translation type="unfinished">注释</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1271"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1273"/>
         <source>Not yet supported!</source>
         <translation type="unfinished">尚未支持!</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1422"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1424"/>
         <source>Edit data at %1</source>
         <translation type="unfinished">编辑数据于  %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1440"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1442"/>
         <source>Fill data at %1</source>
         <translation type="unfinished">填充数据到 %1</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1502"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1504"/>
         <source>All files (*.*)</source>
         <translation type="unfinished">所有文件 (*.*)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1502"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1504"/>
         <source>Save to file</source>
         <translation type="unfinished">保存到文件</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDump.cpp" line="1522"/>
+        <location filename="../Src/Gui/CPUDump.cpp" line="1524"/>
         <source>Find Pattern...</source>
         <translation type="unfinished">搜索匹配特征...</translation>
     </message>
@@ -3089,49 +3089,49 @@ run</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HexEditDialog.ui" line="103"/>
+        <location filename="../Src/Gui/HexEditDialog.ui" line="24"/>
         <source>&amp;ASCII:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HexEditDialog.ui" line="119"/>
+        <location filename="../Src/Gui/HexEditDialog.ui" line="34"/>
         <source>&amp;UNICODE:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HexEditDialog.ui" line="135"/>
+        <location filename="../Src/Gui/HexEditDialog.ui" line="76"/>
         <source>&amp;Hex:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HexEditDialog.ui" line="151"/>
-        <source>Ascii2Hex</source>
+        <location filename="../Src/Gui/HexEditDialog.ui" line="149"/>
+        <source>&amp;Codepage...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HexEditDialog.ui" line="164"/>
-        <source>Unicode2Hex</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../Src/Gui/HexEditDialog.ui" line="177"/>
+        <location filename="../Src/Gui/HexEditDialog.ui" line="93"/>
         <source>&amp;OK</source>
         <translation type="unfinished">确定(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HexEditDialog.ui" line="190"/>
+        <location filename="../Src/Gui/HexEditDialog.ui" line="130"/>
         <source>&amp;Cancel</source>
         <translation type="unfinished">取消(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HexEditDialog.ui" line="203"/>
+        <location filename="../Src/Gui/HexEditDialog.ui" line="86"/>
         <source>&amp;Keep Size</source>
         <translation type="unfinished">保持大小(&amp;K)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/HexEditDialog.ui" line="216"/>
+        <location filename="../Src/Gui/HexEditDialog.ui" line="123"/>
         <source>&amp;Entire Block</source>
         <translation type="unfinished">整块(&amp;E)</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/HexEditDialog.cpp" line="143"/>
+        <source>Enter text to convert...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3147,12 +3147,12 @@ run</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/LineEditDialog.ui" line="51"/>
+        <location filename="../Src/Gui/LineEditDialog.ui" line="64"/>
         <source>&amp;OK</source>
         <translation type="unfinished">确定(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/LineEditDialog.ui" line="61"/>
+        <location filename="../Src/Gui/LineEditDialog.ui" line="74"/>
         <source>&amp;Cancel</source>
         <translation type="unfinished">取消(&amp;C)</translation>
     </message>
