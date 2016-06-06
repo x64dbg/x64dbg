@@ -759,7 +759,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     void* base = CreateProcessInfo->lpBaseOfImage;
 
     char DebugFileName[deflen] = "";
-    if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName))
+    if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName) && !GetFileNameFromProcessHandle(CreateProcessInfo->hProcess, DebugFileName))
         strcpy_s(DebugFileName, "??? (GetFileNameFromHandle failed!)");
     dprintf("Process Started: " fhex " %s\n", base, DebugFileName);
 
