@@ -389,6 +389,16 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
             updateViewport();
         }
     }
+    else //right/middle click
+    {
+        if(event->y() < getHeaderHeight())
+        {
+            ColumnReorderDialog reorderDialog(this);
+            reorderDialog.setWindowTitle(tr("Edit columns"));
+            reorderDialog.exec();
+            event->accept();
+        }
+    }
 
     //QWidget::mousePressEvent(event);
 }
@@ -451,6 +461,7 @@ void AbstractTableView::mouseDoubleClickEvent(QMouseEvent* event)
         ColumnReorderDialog reorderDialog(this);
         reorderDialog.setWindowTitle(tr("Edit columns"));
         reorderDialog.exec();
+        event->accept();
     }
 }
 

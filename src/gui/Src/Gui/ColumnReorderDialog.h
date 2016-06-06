@@ -24,7 +24,6 @@ private slots:
     void on_hideButton_clicked();
     void on_addAllButton_clicked();
     void on_okButton_clicked();
-    void on_cancelButton_clicked();
 
 private:
     Ui::ColumnReorderDialog* ui;

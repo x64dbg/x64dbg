@@ -38,35 +38,35 @@
        <item>
         <widget class="QPushButton" name="addButton">
          <property name="text">
-          <string>&lt;- Add</string>
+          <string>&lt;- &amp;Add</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="hideButton">
          <property name="text">
-          <string>Hide -&gt;</string>
+          <string>&amp;Hide -&gt;</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="upButton">
          <property name="text">
-          <string>Up</string>
+          <string>&amp;Up</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="downButton">
          <property name="text">
-          <string>Down</string>
+          <string>&amp;Down</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="addAllButton">
          <property name="text">
-          <string>&lt;&lt; Add all</string>
+          <string>&lt;&lt; A&amp;dd all</string>
          </property>
         </widget>
        </item>
@@ -132,5 +132,22 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
+   <receiver>ColumnReorderDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>342</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>347</x>
+     <y>312</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

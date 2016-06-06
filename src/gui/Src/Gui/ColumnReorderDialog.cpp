@@ -15,12 +15,12 @@ ColumnReorderDialog::ColumnReorderDialog(AbstractTableView* parent) :
         if(parent->getColumnHidden(i))
         {
             ui->listAvailable->addItem(parent->getColTitle(i));
-            ui->listAvailable->item(ui->listAvailable->count() - 1)->setData(1, QVariant(j));
+            ui->listAvailable->item(ui->listAvailable->count() - 1)->setData(Qt::UserRole, QVariant(j));
         }
         else
         {
             ui->listDisplayed->addItem(parent->getColTitle(i));
-            ui->listDisplayed->item(ui->listDisplayed->count() - 1)->setData(1, QVariant(j));
+            ui->listDisplayed->item(ui->listDisplayed->count() - 1)->setData(Qt::UserRole, QVariant(j));
         }
     }
     if(ui->listAvailable->count() == 0)
@@ -28,6 +28,10 @@ ColumnReorderDialog::ColumnReorderDialog(AbstractTableView* parent) :
         ui->addAllButton->setEnabled(false);
         ui->addButton->setEnabled(false);
     }
+    else
+        ui->listAvailable->setCurrentRow(0);
+    if(ui->listDisplayed->count())
+        ui->listDisplayed->setCurrentRow(0);
 }
 
 ColumnReorderDialog::~ColumnReorderDialog()
@@ -46,22 +50,17 @@ void ColumnReorderDialog::on_okButton_clicked()
     }
     for(i = 0; i < ui->listDisplayed->count(); i++)
     {
-        int col = ui->listDisplayed->item(i)->data(1).toInt();
+        int col = ui->listDisplayed->item(i)->data(Qt::UserRole).toInt();
         mParent->mColumnOrder[i] = col;
         mParent->setColumnHidden(col, false);
     }
     for(int j = 0; j < ui->listAvailable->count(); j++, i++)
     {
-        int col = ui->listAvailable->item(j)->data(1).toInt();
+        int col = ui->listAvailable->item(j)->data(Qt::UserRole).toInt();
         mParent->mColumnOrder[i] = col;
         mParent->setColumnHidden(col, true);
     }
     this->done(QDialog::Accepted);
-}
-
-void ColumnReorderDialog::on_cancelButton_clicked()
-{
-    this->done(QDialog::Rejected);
 }
 
 void ColumnReorderDialog::on_addButton_clicked()
@@ -72,7 +71,7 @@ void ColumnReorderDialog::on_addButton_clicked()
     for(auto i : selected)
     {
         ui->listDisplayed->addItem(i->text());
-        ui->listDisplayed->item(ui->listDisplayed->count() - 1)->setData(1, i->data(1));
+        ui->listDisplayed->item(ui->listDisplayed->count() - 1)->setData(Qt::UserRole, i->data(Qt::UserRole));
         delete i;
     }
     if(ui->listAvailable->count() == 0)
@@ -87,7 +86,7 @@ void ColumnReorderDialog::on_addAllButton_clicked()
     for(int i = 0; i < ui->listAvailable->count(); i++)
     {
         ui->listDisplayed->addItem(ui->listAvailable->item(i)->text());
-        ui->listDisplayed->item(ui->listDisplayed->count() - 1)->setData(1, ui->listAvailable->item(i)->data(1));
+        ui->listDisplayed->item(ui->listDisplayed->count() - 1)->setData(Qt::UserRole, ui->listAvailable->item(i)->data(Qt::UserRole));
     }
     ui->listAvailable->clear();
     ui->addAllButton->setEnabled(false);
@@ -104,11 +103,11 @@ void ColumnReorderDialog::on_upButton_clicked()
         auto prevItem = ui->listDisplayed->item(i - 1);
         auto currentItem = ui->listDisplayed->item(i);
         QString text = prevItem->text();
-        auto data = prevItem->data(1);
+        auto data = prevItem->data(Qt::UserRole);
         prevItem->setText(currentItem->text());
-        prevItem->setData(1, currentItem->data(1));
+        prevItem->setData(Qt::UserRole, currentItem->data(Qt::UserRole));
         currentItem->setText(text);
-        currentItem->setData(1, data);
+        currentItem->setData(Qt::UserRole, data);
         ui->listDisplayed->setCurrentRow(i - 1);
     }
 }
@@ -123,11 +122,11 @@ void ColumnReorderDialog::on_downButton_clicked()
         auto nextItem = ui->listDisplayed->item(i + 1);
         auto currentItem = ui->listDisplayed->item(i);
         QString text = nextItem->text();
-        auto data = nextItem->data(1);
+        auto data = nextItem->data(Qt::UserRole);
         nextItem->setText(currentItem->text());
-        nextItem->setData(1, currentItem->data(1));
+        nextItem->setData(Qt::UserRole, currentItem->data(Qt::UserRole));
         currentItem->setText(text);
-        currentItem->setData(1, data);
+        currentItem->setData(Qt::UserRole, data);
         ui->listDisplayed->setCurrentRow(i + 1);
     }
 }
@@ -138,7 +137,7 @@ void ColumnReorderDialog::on_hideButton_clicked()
         return;
     auto currentItem = ui->listDisplayed->currentItem();
     ui->listAvailable->addItem(currentItem->text());
-    ui->listAvailable->item(ui->listAvailable->count() - 1)->setData(1, currentItem->data(1));
+    ui->listAvailable->item(ui->listAvailable->count() - 1)->setData(Qt::UserRole, currentItem->data(Qt::UserRole));
     delete currentItem;
     ui->addAllButton->setEnabled(true);
     ui->addButton->setEnabled(true);
