@@ -25,7 +25,6 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     mHexEdit->setOverwriteMode(true);
     ui->scrollArea->setWidget(mHexEdit);
     mHexEdit->widget()->setFocus();
-    mHexEdit->setTabOrder(ui->btnUnicode2Hex, mHexEdit->widget());
     connect(mHexEdit, SIGNAL(dataChanged()), this, SLOT(dataChangedSlot()));
     connect(mHexEdit, SIGNAL(dataEdited()), this, SLOT(dataEditedSlot()));
 
@@ -73,22 +72,6 @@ void HexEditDialog::updateStyle()
     mHexEdit->setSelectionColor(ConfigColor("HexEditSelectionColor"));
 }
 
-void HexEditDialog::on_btnAscii2Hex_clicked()
-{
-    QByteArray data = ui->lineEditAscii->data();
-    data = resizeData(data);
-    ui->lineEditUnicode->setData(data);
-    mHexEdit->setData(data);
-}
-
-void HexEditDialog::on_btnUnicode2Hex_clicked()
-{
-    QByteArray data = ui->lineEditUnicode->data();
-    data = resizeData(data);
-    ui->lineEditAscii->setData(data);
-    mHexEdit->setData(data);
-}
-
 void HexEditDialog::on_chkKeepSize_toggled(bool checked)
 {
     mHexEdit->setKeepSize(checked);
@@ -117,12 +100,18 @@ void HexEditDialog::dataEditedSlot()
 
 void HexEditDialog::on_lineEditAscii_dataEdited()
 {
-    on_btnAscii2Hex_clicked();
+    QByteArray data = ui->lineEditAscii->data();
+    data = resizeData(data);
+    ui->lineEditUnicode->setData(data);
+    mHexEdit->setData(data);
 }
 
 void HexEditDialog::on_lineEditUnicode_dataEdited()
 {
-    on_btnUnicode2Hex_clicked();
+    QByteArray data = ui->lineEditUnicode->data();
+    data = resizeData(data);
+    ui->lineEditAscii->setData(data);
+    mHexEdit->setData(data);
 }
 
 QByteArray HexEditDialog::resizeData(QByteArray & data)
