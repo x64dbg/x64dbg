@@ -116,8 +116,7 @@ void Disassembly::updateColors()
 void Disassembly::updateFonts()
 {
     setFont(ConfigFont("Disassembly"));
-    delete mFontMetrics;
-    mFontMetrics = new CachedFontMetrics(this, font());
+    invalidateCachedFont();
 }
 
 void Disassembly::tokenizerConfigUpdatedSlot()
