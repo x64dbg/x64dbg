@@ -7,7 +7,7 @@
         <location filename="../Src/BasicView/AbstractTableView.cpp" line="397"/>
         <location filename="../Src/BasicView/AbstractTableView.cpp" line="462"/>
         <source>Edit columns</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">编辑表头</translation>
     </message>
 </context>
 <context>
@@ -51,7 +51,7 @@
     <message>
         <location filename="../Src/Gui/AppearanceDialog.ui" line="560"/>
         <source>Font</source>
-        <translation type="unfinished">字体</translation>
+        <translation>字体</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AppearanceDialog.ui" line="578"/>
@@ -118,7 +118,7 @@
         <location filename="../Src/Gui/AppearanceDialog.ui" line="1396"/>
         <location filename="../Src/Gui/AppearanceDialog.ui" line="1524"/>
         <source>Bold</source>
-        <translation type="unfinished">粗体</translation>
+        <translation>粗体</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AppearanceDialog.ui" line="761"/>
@@ -129,7 +129,7 @@
         <location filename="../Src/Gui/AppearanceDialog.ui" line="1401"/>
         <location filename="../Src/Gui/AppearanceDialog.ui" line="1529"/>
         <source>Italic</source>
-        <translation type="unfinished">斜体</translation>
+        <translation>斜体</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AppearanceDialog.ui" line="766"/>
@@ -282,17 +282,17 @@
     <message>
         <location filename="../Src/Gui/AppearanceDialog.ui" line="1663"/>
         <source>&amp;Cancel</source>
-        <translation type="unfinished">取消(&amp;C)</translation>
+        <translation>取消(&amp;C)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AppearanceDialog.ui" line="1676"/>
         <source>&amp;Save</source>
-        <translation type="unfinished">保存(&amp;S)</translation>
+        <translation>保存(&amp;S)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AppearanceDialog.cpp" line="439"/>
         <source>Traced line</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">已追踪的行</translation>
     </message>
 </context>
 <context>
@@ -315,12 +315,12 @@
     <message>
         <location filename="../Src/Gui/AssembleDialog.ui" line="136"/>
         <source>OK</source>
-        <translation type="unfinished">确定</translation>
+        <translation>确定</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AssembleDialog.ui" line="143"/>
         <source>Cancel</source>
-        <translation type="unfinished">取消</translation>
+        <translation>取消</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AssembleDialog.ui" line="166"/>
@@ -341,7 +341,7 @@
         <location filename="../Src/Gui/AssembleDialog.cpp" line="128"/>
         <location filename="../Src/Gui/AssembleDialog.cpp" line="138"/>
         <source>byte</source>
-        <translation type="unfinished">字节</translation>
+        <translation>字节</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AssembleDialog.cpp" line="128"/>
@@ -366,7 +366,7 @@
         <location filename="../Src/Gui/AttachDialog.ui" line="14"/>
         <location filename="../Src/Gui/AttachDialog.cpp" line="14"/>
         <source>Attach</source>
-        <translation type="unfinished">附加</translation>
+        <translation>附加</translation>
     </message>
     <message>
         <source>Refresh (F5)</source>
@@ -375,19 +375,19 @@
     <message>
         <location filename="../Src/Gui/AttachDialog.ui" line="99"/>
         <source>&amp;Attach</source>
-        <translation type="unfinished">附加(&amp;A)</translation>
+        <translation>附加(&amp;A)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AttachDialog.ui" line="118"/>
         <source>&amp;Cancel</source>
-        <translation type="unfinished">取消(&amp;C)</translation>
+        <translation>取消(&amp;C)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AttachDialog.ui" line="83"/>
         <location filename="../Src/Gui/AttachDialog.cpp" line="19"/>
         <location filename="../Src/Gui/AttachDialog.cpp" line="21"/>
         <source>Refresh</source>
-        <translation type="unfinished">刷新</translation>
+        <translation>刷新</translation>
     </message>
     <message>
         <location filename="../Src/Gui/AttachDialog.cpp" line="33"/>
@@ -414,7 +414,7 @@
         <location filename="../Src/Gui/BreakpointsView.cpp" line="27"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="41"/>
         <source>Address</source>
-        <translation type="unfinished">地址</translation>
+        <translation>地址</translation>
     </message>
     <message>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="14"/>
@@ -477,7 +477,7 @@
         <location filename="../Src/Gui/BreakpointsView.cpp" line="36"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="50"/>
         <source>Comment</source>
-        <translation type="unfinished">注释</translation>
+        <translation>注释</translation>
     </message>
     <message>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="27"/>
@@ -501,28 +501,28 @@
         <location filename="../Src/Gui/BreakpointsView.cpp" line="156"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="196"/>
         <source>Enabled</source>
-        <translation type="unfinished">启用</translation>
+        <translation>已启用</translation>
     </message>
     <message>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="117"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="158"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="198"/>
         <source>Disabled</source>
-        <translation type="unfinished">禁用</translation>
+        <translation>已禁用</translation>
     </message>
     <message>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="235"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="406"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="563"/>
         <source>Remove</source>
-        <translation type="unfinished">删除</translation>
+        <translation>删除</translation>
     </message>
     <message>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="241"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="412"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="569"/>
         <source>Remove All</source>
-        <translation type="unfinished">全部删除</translation>
+        <translation>全部删除</translation>
     </message>
     <message>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="245"/>
@@ -535,7 +535,7 @@
         <location filename="../Src/Gui/BreakpointsView.cpp" line="616"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="626"/>
         <source>Enable</source>
-        <translation type="unfinished">启用</translation>
+        <translation>启用</translation>
     </message>
     <message>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="251"/>
@@ -549,7 +549,7 @@
         <location filename="../Src/Gui/BreakpointsView.cpp" line="464"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="621"/>
         <source>Disable</source>
-        <translation type="unfinished">禁用</translation>
+        <translation>禁用</translation>
     </message>
     <message>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="338"/>
@@ -959,7 +959,7 @@
     <message>
         <location filename="../Src/Gui/CPUDisassembly.cpp" line="407"/>
         <source>Analyze single function</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">分析这个函数</translation>
     </message>
     <message>
         <location filename="../Src/Gui/CPUDisassembly.cpp" line="408"/>
@@ -1321,7 +1321,7 @@
     <message>
         <location filename="../Src/Gui/CPUDump.cpp" line="129"/>
         <source>&amp;Sync with expression</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">与表达式同步(&amp;S)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/CPUDump.cpp" line="133"/>
@@ -1498,7 +1498,7 @@
         <location filename="../Src/Gui/CPUDump.cpp" line="312"/>
         <location filename="../Src/Gui/CPUDump.cpp" line="328"/>
         <source>&amp;Codepage...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">代码页(&amp;C)...</translation>
     </message>
     <message>
         <location filename="../Src/Gui/CPUDump.cpp" line="320"/>
@@ -2026,42 +2026,42 @@
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.ui" line="24"/>
         <source>Displayed</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">显示</translation>
     </message>
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.ui" line="41"/>
         <source>&lt;- &amp;Add</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;- 添加(&amp;A)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.ui" line="48"/>
         <source>&amp;Hide -&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">隐藏(&amp;H) -&gt;</translation>
     </message>
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.ui" line="55"/>
         <source>&amp;Up</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">上移(&amp;U)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.ui" line="62"/>
         <source>&amp;Down</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">下移(&amp;D)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.ui" line="69"/>
         <source>&lt;&lt; A&amp;dd all</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;&lt; 全部添加(&amp;A)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.ui" line="80"/>
         <source>Available</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">可用</translation>
     </message>
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.ui" line="116"/>
         <source>&amp;Ok</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">确定(&amp;O)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.ui" line="126"/>
@@ -2071,12 +2071,12 @@
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.cpp" line="47"/>
         <source>Error</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">温馨提示</translation>
     </message>
     <message>
         <location filename="../Src/Gui/ColumnReorderDialog.cpp" line="47"/>
         <source>There isn&apos;t anything to display yet!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">没有要显示的列！</translation>
     </message>
 </context>
 <context>
@@ -2371,77 +2371,77 @@ run</translation>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="278"/>
         <source>Actions -&gt; Find Strings</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 搜索字符串</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="279"/>
         <source>Actions -&gt; Find Intermodular Calls</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 搜索跨模块调用</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="280"/>
         <source>Actions -&gt; Toggle Breakpoint</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 切换断点</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="281"/>
         <source>Actions -&gt; Toggle Bookmark</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 切换书签</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="282"/>
         <source>Actions -&gt; Delete Breakpoint</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 删除断点</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="283"/>
         <source>Actions -&gt; Enable/Disable Breakpoint</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 启用或禁用断点</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="285"/>
         <source>Actions -&gt; Binary Edit</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 二进制编辑</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="286"/>
         <source>Actions -&gt; Binary Fill</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 二进制填充</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="287"/>
         <source>Actions -&gt; Binary Fill NOPs</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 用NOP填充</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="288"/>
         <source>Actions -&gt; Binary Copy</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 二进制复制</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="289"/>
         <source>Actions -&gt; Binary Paste</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 二进制粘贴</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="290"/>
         <source>Actions -&gt; Binary Paste (Ignore Size)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 二进制粘贴(忽略大小)</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="291"/>
         <source>Actions -&gt; Undo Selection</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 撤销选区修改</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="292"/>
         <source>Actions -&gt; Set Label</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 设置标签</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="293"/>
         <source>Actions -&gt; Set Comment</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 设置注释</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="294"/>
@@ -2466,47 +2466,47 @@ run</translation>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="298"/>
         <source>Actions -&gt; Goto Origin</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 转到当前位置</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="299"/>
         <source>Actions -&gt; Goto Previous</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 转到上一处</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="300"/>
         <source>Actions -&gt; Goto Next</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 转到下一处</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="301"/>
         <source>Actions -&gt; Goto Expression</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 转到表达式</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="302"/>
         <source>Actions -&gt; Goto Start of Page</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 转到页首</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="303"/>
         <source>Actions -&gt; Goto End of Page</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 转到页尾</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="304"/>
         <source>Actions -&gt; Goto File Offset</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 转到指定文件偏移量</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="305"/>
         <source>Actions -&gt; Find References to Selected Address</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 搜索对选定地址的引用</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="306"/>
         <source>Actions -&gt; Find Pattern</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 搜索匹配特征</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="307"/>
@@ -2521,122 +2521,122 @@ run</translation>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="309"/>
         <source>Actions -&gt; Help on Mnemonic</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 指令帮助</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="310"/>
         <source>Actions -&gt; Toggle Mnemonic Brief</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 切换指令帮助提示</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="311"/>
         <source>Actions -&gt; Highlighting Mode</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 高亮模式</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="312"/>
         <source>Actions -&gt; Find</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 搜索</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="313"/>
         <source>Actions -&gt; Decompile Function</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 反编译函数</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="314"/>
         <source>Actions -&gt; Decompile Selection</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 反编译选区</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="316"/>
         <source>Actions -&gt; Increase Register</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 寄存器加一</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="317"/>
         <source>Actions -&gt; Decrease Register</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 寄存器减一</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="318"/>
         <source>Actions -&gt; Zero Register</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 清零寄存器</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="319"/>
         <source>Actions -&gt; Set Register to One</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 置一寄存器</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="320"/>
         <source>Actions -&gt; Toggle Register Value</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 切换寄存器值</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="321"/>
         <source>Actions -&gt; Copy</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 复制</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="322"/>
         <source>Actions -&gt; Copy Address</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 复制地址</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="323"/>
         <source>Actions -&gt; Copy Symbol</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 复制符号</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="324"/>
         <source>Actions -&gt; Load Script</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 载入脚本</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="325"/>
         <source>Actions -&gt; Reload Script</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 重新载入脚本</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="326"/>
         <source>Actions -&gt; Unload Script</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 关闭脚本</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="327"/>
         <source>Actions -&gt; Run Script</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 运行脚本</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="328"/>
         <source>Actions -&gt; Toggle Script Breakpoint</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 切换脚本断点</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="329"/>
         <source>Actions -&gt; Run Script to Cursor</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 运行脚本到光标</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="330"/>
         <source>Actions -&gt; Step Script</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 步进脚本</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="331"/>
         <source>Actions -&gt; Abort Script</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 停止脚本</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="332"/>
         <source>Actions -&gt; Execute Script Command</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 运行脚本</translation>
     </message>
     <message>
         <location filename="../Src/Utils/Configuration.cpp" line="333"/>
         <source>Actions -&gt; Refresh</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动作 -&gt; 刷新</translation>
     </message>
 </context>
 <context>
@@ -2721,7 +2721,7 @@ run</translation>
         <location filename="../Src/Gui/EditFloatRegister.ui" line="92"/>
         <location filename="../Src/Gui/EditFloatRegister.ui" line="411"/>
         <source>Byte:</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">字节:</translation>
     </message>
     <message>
         <location filename="../Src/Gui/EditFloatRegister.ui" line="105"/>
@@ -2818,7 +2818,7 @@ run</translation>
     <message>
         <location filename="../Src/Gui/EditFloatRegister.ui" line="707"/>
         <source>&amp;Hexadecimal</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">十六进制(&amp;H)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/EditFloatRegister.ui" line="714"/>
@@ -2975,7 +2975,7 @@ run</translation>
     <message>
         <location filename="../Src/Gui/HandlesView.cpp" line="15"/>
         <source>Name</source>
-        <translation type="unfinished">名称</translation>
+        <translation>名称</translation>
     </message>
     <message>
         <location filename="../Src/Gui/HandlesView.cpp" line="20"/>
@@ -3106,7 +3106,7 @@ run</translation>
     <message>
         <location filename="../Src/Gui/HexEditDialog.ui" line="149"/>
         <source>&amp;Codepage...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">代码页(&amp;C)...</translation>
     </message>
     <message>
         <location filename="../Src/Gui/HexEditDialog.ui" line="93"/>
@@ -3131,7 +3131,7 @@ run</translation>
     <message>
         <location filename="../Src/Gui/HexEditDialog.cpp" line="143"/>
         <source>Enter text to convert...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">输入要转换的文本...</translation>
     </message>
 </context>
 <context>
@@ -3847,7 +3847,7 @@ Make sure to fill in as much information as possible.</source>
     <message>
         <location filename="../Src/Gui/NotesManager.cpp" line="9"/>
         <source>Global</source>
-        <translation type="unfinished">全局</translation>
+        <translation>全局</translation>
     </message>
     <message>
         <location filename="../Src/Gui/NotesManager.cpp" line="14"/>
@@ -3915,7 +3915,7 @@ Make sure to fill in as much information as possible.</source>
     <message>
         <location filename="../Src/Gui/PageMemoryRights.ui" line="164"/>
         <source>Select ALL</source>
-        <translation type="unfinished">全选</translation>
+        <translation>全选</translation>
     </message>
     <message>
         <location filename="../Src/Gui/PageMemoryRights.ui" line="171"/>
@@ -3988,12 +3988,12 @@ Make sure to fill in as much information as possible.</source>
     <message>
         <location filename="../Src/Gui/PatchDialog.ui" line="150"/>
         <source>&amp;Import</source>
-        <translation type="unfinished">导入(&amp;I)</translation>
+        <translation>导入(&amp;I)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/PatchDialog.ui" line="157"/>
         <source>&amp;Export</source>
-        <translation type="unfinished">导出(&amp;E)</translation>
+        <translation>导出(&amp;E)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/PatchDialog.cpp" line="446"/>
@@ -4221,12 +4221,12 @@ Do you want to apply these patches anyway?</source>
     <message>
         <location filename="../Src/Gui/RegistersView.cpp" line="1883"/>
         <source>Edit YMM register</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">编辑YMM寄存器</translation>
     </message>
     <message>
         <location filename="../Src/Gui/RegistersView.cpp" line="1893"/>
         <source>Edit XMM register</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">编辑XMM寄存器</translation>
     </message>
     <message>
         <location filename="../Src/Gui/RegistersView.cpp" line="2345"/>
@@ -4498,7 +4498,7 @@ Do you want to apply these patches anyway?</source>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="253"/>
         <source>Undecorate Symbol Names</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">解码符号名称</translation>
     </message>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="260"/>
@@ -4553,22 +4553,22 @@ Do you want to apply these patches anyway?</source>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="390"/>
         <source>Argument Spaces</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">在操作数间加空格</translation>
     </message>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="397"/>
         <source>Tab between mnemonic and arguments</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">在助记符与操作数间使用制表符</translation>
     </message>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="404"/>
         <source>Memory Spaces</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">在内存寻址寄存器间加空格</translation>
     </message>
     <message>
         <location filename="../Src/Gui/SettingsDialog.ui" line="411"/>
         <source>Uppercase</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">大写</translation>
     </message>
     <message>
         <source>Argument Spaces*</source>
@@ -4707,17 +4707,17 @@ Do you want to apply these patches anyway?</source>
     <message>
         <location filename="../Src/BasicView/StdTable.cpp" line="406"/>
         <source>&amp;Line</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">行(&amp;L)</translation>
     </message>
     <message>
         <location filename="../Src/BasicView/StdTable.cpp" line="410"/>
         <source>Cropped &amp;Table</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">截断的表格(&amp;T)</translation>
     </message>
     <message>
         <location filename="../Src/BasicView/StdTable.cpp" line="414"/>
         <source>&amp;Full Table</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">整个表格(&amp;F)</translation>
     </message>
     <message>
         <location filename="../Src/BasicView/StdTable.cpp" line="450"/>
