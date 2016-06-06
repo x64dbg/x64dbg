@@ -223,6 +223,19 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
     return true;
 }
 
+bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName)
+{
+    wchar_t wszDosFileName[MAX_PATH] = L"";
+    if(!GetProcessImageFileNameW(hProcess, wszDosFileName, sizeof(wszDosFileName)))
+        return false;
+
+    wchar_t wszFileName[MAX_PATH] = L"";
+    if(!DevicePathToPathW(wszDosFileName, wszFileName, MAX_PATH * sizeof(wchar_t)))
+        return false;
+    strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+    return true;
+}
+
 /**
 \brief Get a boolean setting from the configuration file.
 \param section The section of the setting (UTF-8).

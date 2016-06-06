@@ -779,8 +779,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     void* base = CreateProcessInfo->lpBaseOfImage;
 
     char DebugFileName[deflen] = "";
-    if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName))
-        strcpy_s(DebugFileName, "??? (GetFileNameFromHandle failed!)");
+    if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName) && !GetFileNameFromProcessHandle(CreateProcessInfo->hProcess, DebugFileName))
+        strcpy_s(DebugFileName, "??? (GetFileNameFromHandle failed)");
     dprintf("Process Started: " fhex " %s\n", base, DebugFileName);
 
     //update memory map
@@ -1015,7 +1015,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     char DLLDebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
-        strcpy_s(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
+        strcpy_s(DLLDebugFileName, "??? (GetFileNameFromHandle failed)");
 
     SafeSymLoadModuleExW(fdProcessInfo->hProcess, LoadDll->hFile, StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULEW64 modInfo;
