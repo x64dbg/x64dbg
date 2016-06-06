@@ -64,6 +64,7 @@ public:
     void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
     void wheelEvent(QWheelEvent* event);
     void resizeEvent(QResizeEvent* event);
     void keyPressEvent(QKeyEvent* event);
@@ -154,6 +155,7 @@ private:
     typedef struct _Column_t
     {
         int width;
+        bool hidden;
         HeaderButton_t header;
         QString title;
     } Column_t;
@@ -199,6 +201,9 @@ private:
     ScrollBar64_t mScrollBarAttributes;
 
     int getColumnDisplayIndexFromX(int x);
+    bool getColumnHidden(int col);
+    void setColumnHidden(int col, bool hidden);
+    friend class ColumnReorderDialog;
 protected:
     bool mAllowPainting;
     bool mDrawDebugOnly;
@@ -212,6 +217,7 @@ protected:
 
     // Font metrics
     CachedFontMetrics* mFontMetrics;
+    void invalidateCachedFont();
 
     //action helpers
 private:
