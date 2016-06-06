@@ -116,6 +116,7 @@ void Disassembly::updateColors()
 void Disassembly::updateFonts()
 {
     setFont(ConfigFont("Disassembly"));
+    invalidateCachedFont();
 }
 
 void Disassembly::tokenizerConfigUpdatedSlot()

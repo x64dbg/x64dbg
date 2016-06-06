@@ -1,6 +1,7 @@
 #include "AbstractTableView.h"
 #include <QStyleOptionButton>
 #include "Configuration.h"
+#include "ColumnReorderDialog.h"
 
 AbstractTableView::AbstractTableView(QWidget* parent)
     : QAbstractScrollArea(parent),
@@ -77,11 +78,14 @@ void AbstractTableView::updateColors()
 void AbstractTableView::updateFonts()
 {
     setFont(ConfigFont("AbstractTableView"));
-    puts("updateFonts()");
-    if(mFontMetrics)
-        delete mFontMetrics;
-    mFontMetrics = new CachedFontMetrics(this, font());
+    invalidateCachedFont();
     mHeader.height = QFontMetrics(font()).height() + 4;
+}
+
+void AbstractTableView::invalidateCachedFont()
+{
+    delete mFontMetrics;
+    mFontMetrics = new CachedFontMetrics(this, font());
 }
 
 void AbstractTableView::updateShortcuts()
@@ -122,12 +126,17 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     if(getColumnCount()) //make sure the last column is never smaller than the window
     {
         int totalWidth = 0;
-        int last = getColumnCount() - 1;
-        for(int i = 0; i < last; i++)
-            totalWidth += getColumnWidth(mColumnOrder[i]);
         int lastWidth = totalWidth;
-        last = mColumnOrder[last];
-        totalWidth += getColumnWidth(last);
+        int last = 0;
+        for(int i = 0; i < getColumnCount(); i++)
+        {
+            if(getColumnHidden(mColumnOrder[i]))
+                continue;
+            last = mColumnOrder[i];
+            lastWidth = getColumnWidth(last);
+            totalWidth += lastWidth;
+        }
+        lastWidth = totalWidth - lastWidth;
         int width = this->viewport()->width();
         lastWidth = width > lastWidth ? width - lastWidth : 0;
         if(totalWidth < width)
@@ -162,9 +171,9 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         for(int j = 0; j < getColumnCount(); j++)
         {
             int i = mColumnOrder[j];
-            int width = getColumnWidth(i);
-            if(width == 0)
+            if(getColumnHidden(i))
                 continue;
+            int width = getColumnWidth(i);
             QStyleOptionButton wOpt;
             if((mColumnList[i].header.isPressed == true) && (mColumnList[i].header.isMouseOver == true)
                     || (mGuiState==AbstractTableView::HeaderButtonReordering && mColumnOrder[mHoveredColumnDisplayIndex] == i))
@@ -190,6 +199,8 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     for(int k = 0; k < getColumnCount(); k++)
     {
         int j = mColumnOrder[k];
+        if(getColumnHidden(j))
+            continue;
         for(int i = 0; i < wViewableRowsCount; i++)
         {
             //  Paints cell contents
@@ -433,6 +444,15 @@ void AbstractTableView::mouseReleaseEvent(QMouseEvent* event)
     }
 }
 
+void AbstractTableView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if(event->y() < getHeaderHeight())
+    {
+        ColumnReorderDialog reorderDialog(this);
+        reorderDialog.setWindowTitle(tr("Edit columns"));
+        reorderDialog.exec();
+    }
+}
 
 /**
  * @brief       This method has been reimplemented. It manages the following actions:
@@ -666,11 +686,11 @@ dsint AbstractTableView::scaleFromScrollBarRangeToUint64(int value)
 
 
 /**
- * @brief       This method updates the scrollbar range and pre-computes some attributes for the 32<->64bits conversion methods.
+ * @brief       This method updates the vertical scrollbar range and pre-computes some attributes for the 32<->64bits conversion methods.
  *
  * @param[in]   range New table range (size)
  *
- * @return      32bits integer.
+ * @return      none.
  */
 void AbstractTableView::updateScrollBarRange(dsint range)
 {
@@ -745,7 +765,10 @@ int AbstractTableView::getColumnIndexFromX(int x)
 
     while(wColIndex < getColumnCount())
     {
-        wX += getColumnWidth(mColumnOrder[wColIndex]);
+        int col = mColumnOrder[wColIndex];
+        if(getColumnHidden(col))
+            continue;
+        wX += getColumnWidth(col);
 
         if(x <= wX)
         {
@@ -773,7 +796,10 @@ int AbstractTableView::getColumnDisplayIndexFromX(int x)
 
     while(wColIndex < getColumnCount())
     {
-        wX += getColumnWidth(mColumnOrder[wColIndex]);
+        int col = mColumnOrder[wColIndex];
+        if(getColumnHidden(col))
+            continue;
+        wX += getColumnWidth(col);
 
         if(x <= wX)
         {
@@ -803,7 +829,8 @@ int AbstractTableView::getColumnPosition(int index)
     {
         index = mColumnOrder[index];
         for(int i = 0; i < index; i++)
-            posX += getColumnWidth(mColumnOrder[i]);
+            if(!getColumnHidden(mColumnOrder[i]))
+                posX += getColumnWidth(mColumnOrder[i]);
         return posX;
     }
     else
@@ -880,7 +907,7 @@ void AbstractTableView::addColumnAt(int width, const QString & title, bool isCli
 
     wColumn.header = wHeaderButton;
     wColumn.width = width;
-
+    wColumn.hidden = false;
     wColumn.title = title;
     wCurrentCount = mColumnList.length();
     mColumnList.append(wColumn);
@@ -911,7 +938,7 @@ void AbstractTableView::setColTitle(int index, const QString & title)
 QString AbstractTableView::getColTitle(int index)
 {
     if(mColumnList.size() > 0 && index >= 0 && index < mColumnList.size())
-        return mColumnList.at(index).title;
+        return mColumnList[index].title;
     return "";
 }
 
@@ -941,15 +968,32 @@ int AbstractTableView::getColumnWidth(int index)
     if(index < 0)
         return -1;
     else if(index < getColumnCount())
-        return mColumnList.at(index).width;
+        return mColumnList[index].width;
     return 0;
+}
+
+bool AbstractTableView::getColumnHidden(int col)
+{
+    if(col < 0)
+        return true;
+    else if(col < getColumnCount())
+        return mColumnList[col].hidden;
+    else
+        return true;
+}
+
+void AbstractTableView::setColumnHidden(int col, bool hidden)
+{
+    if(col < getColumnCount() && col >= 0)
+        mColumnList[col].hidden = hidden;
 }
 
 void AbstractTableView::setColumnWidth(int index, int width)
 {
     int totalWidth = 0;
     for(int i = 0; i < getColumnCount(); i++)
-        totalWidth += getColumnWidth(i);
+        if(!getColumnHidden(i))
+            totalWidth += getColumnWidth(i);
     if(totalWidth > this->viewport()->width())
         horizontalScrollBar()->setRange(0, totalWidth - this->viewport()->width());
     else if(totalWidth <= this->viewport()->width())
