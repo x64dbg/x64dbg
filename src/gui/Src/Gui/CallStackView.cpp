@@ -9,6 +9,7 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), true); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), true); //return from
     addColumnAt(0, tr("Comment"), true);
+    loadColumnFromConfig("CallStack");
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
