@@ -20,6 +20,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mSoftBPTable->addColumnAt(8 + wCharWidth * 2, tr("Fast resume"), false);
     mSoftBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
     mSoftBPTable->addColumnAt(wCharWidth * 10, tr("Comment"), false);
+    mSoftBPTable->loadColumnFromConfig("SoftwareBreakpoint");
 
     // Hardware
     mHardBPTable = new StdTable(this);
@@ -34,6 +35,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mHardBPTable->addColumnAt(8 + wCharWidth * 2, tr("Fast resume"), false);
     mHardBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
     mHardBPTable->addColumnAt(wCharWidth * 10, tr("Comment"), false);
+    mHardBPTable->loadColumnFromConfig("HardwareBreakpoint");
 
     // Memory
     mMemBPTable = new StdTable(this);
@@ -48,6 +50,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mMemBPTable->addColumnAt(8 + wCharWidth * 2, tr("Fast resume"), false);
     mMemBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
     mMemBPTable->addColumnAt(wCharWidth * 10, tr("Comment"), false);
+    mMemBPTable->loadColumnFromConfig("MemoryBreakpoint");
 
     // Splitter
     mSplitter = new QSplitter(this);
