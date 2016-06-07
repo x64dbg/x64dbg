@@ -175,7 +175,9 @@ void SettingsDialog::LoadSettings()
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
+    GetSettingBool("Gui", "SaveColumnOrder", &settings.guiSaveColumnOrder);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
+    ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -282,6 +284,7 @@ void SettingsDialog::SaveSettings()
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
+    BridgeSettingSetUint("Gui", "SaveColumnOrder", settings.guiSaveColumnOrder);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -662,4 +665,12 @@ void SettingsDialog::on_chkFpuRegistersLittleEndian_stateChanged(int arg1)
         settings.guiFpuRegistersLittleEndian = false;
     else
         settings.guiFpuRegistersLittleEndian = true;
+}
+
+void SettingsDialog::on_chkSaveColumnOrder_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Unchecked)
+        settings.guiSaveColumnOrder = false;
+    else
+        settings.guiSaveColumnOrder = true;
 }
