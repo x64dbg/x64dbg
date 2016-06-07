@@ -195,6 +195,11 @@ void SearchListView::searchTextChanged(const QString & arg1)
     mSearchList->reloadData();
 }
 
+void SearchListView::refreshSearchList()
+{
+    searchTextChanged(mSearchBox->text());
+}
+
 void SearchListView::listContextMenu(const QPoint & pos)
 {
     QMenu wMenu(this);

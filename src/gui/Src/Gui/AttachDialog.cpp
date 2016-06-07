@@ -57,20 +57,21 @@ AttachDialog::~AttachDialog()
 
 void AttachDialog::refresh()
 {
-    mSearchListView->mCurList->setRowCount(0);
-    mSearchListView->mCurList->setTableOffset(0);
+    mSearchListView->mList->setRowCount(0);
+    mSearchListView->mList->setTableOffset(0);
     DBGPROCESSINFO* entries;
     int count;
     if(!DbgFunctions()->GetProcessList(&entries, &count))
         return;
-    mSearchListView->mCurList->setRowCount(count);
+    mSearchListView->mList->setRowCount(count);
     for(int i = 0; i < count; i++)
     {
-        mSearchListView->mCurList->setCellContent(i, 0, QString().sprintf("%.8X", entries[i].dwProcessId));
-        mSearchListView->mCurList->setCellContent(i, 1, QString(entries[i].szExeFile));
+        mSearchListView->mList->setCellContent(i, 0, QString().sprintf("%.8X", entries[i].dwProcessId));
+        mSearchListView->mList->setCellContent(i, 1, QString(entries[i].szExeFile));
     }
-    mSearchListView->mCurList->setSingleSelection(0);
-    mSearchListView->mCurList->reloadData();
+    mSearchListView->mList->setSingleSelection(0);
+    mSearchListView->mList->reloadData();
+    mSearchListView->refreshSearchList();
 }
 
 void AttachDialog::on_btnAttach_clicked()
