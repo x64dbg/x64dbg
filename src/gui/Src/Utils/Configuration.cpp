@@ -3,11 +3,13 @@
 #include <QFontInfo>
 #include <QMessageBox>
 #include <QIcon>
+#include "AbstractTableView.h"
 
-Configuration* Configuration::mPtr = NULL;
+Configuration* Configuration::mPtr = nullptr;
 
 Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 {
+    mPtr = this;
     //setup default color map
     defaultColors.clear();
     defaultColors.insert("AbstractTableViewSeparatorColor", QColor("#808080"));
@@ -184,7 +186,26 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     QMap<QString, bool> guiBool;
     guiBool.insert("FpuRegistersLittleEndian", false);
+    guiBool.insert("SaveColumnOrder", true);
     defaultBools.insert("Gui", guiBool);
+
+    QMap<QString, duint> guiUint;
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CPUDisassembly", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CPUStack", 3);
+    for(int i = 1; i <= 5; i++)
+        AbstractTableView::setupColumnConfigDefaultValue(guiUint, QString("CPUDump%1").arg(i), 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SoftwareBreakpoint", 10);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "HardwareBreakpoint", 10);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryBreakpoint", 10);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 7);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Script", 3);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Thread", 10);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Handle", 5);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "TcpConnection", 3);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Privilege", 2);
+    defaultUints.insert("Gui", guiUint);
 
     //uint settings
     QMap<QString, duint> hexdumpUint;
@@ -339,7 +360,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     Shortcuts = defaultShortcuts;
 
     load();
-    mPtr = this;
 }
 
 Configuration* Config()
