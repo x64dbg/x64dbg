@@ -203,6 +203,7 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * 12, tr("Wait Reason"), false);
     addColumnAt(8 + charwidth * 11, tr("Last Error"), false);
     addColumnAt(0, "Name", false);
+    loadColumnFromConfig("Thread");
 
     //setCopyMenuOnly(true);
 
