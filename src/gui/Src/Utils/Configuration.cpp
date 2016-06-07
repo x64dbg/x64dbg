@@ -182,6 +182,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     miscellaneousBool.insert("LoadSaveTabOrder", false);
     defaultBools.insert("Miscellaneous", miscellaneousBool);
 
+    QMap<QString, bool> guiBool;
+    guiBool.insert("FpuRegistersLittleEndian", false);
+    defaultBools.insert("Gui", guiBool);
+
     //uint settings
     QMap<QString, duint> hexdumpUint;
     hexdumpUint.insert("DefaultView", 0);
