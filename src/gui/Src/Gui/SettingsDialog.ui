@@ -453,6 +453,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkSaveColumnOrder">
+         <property name="text">
+          <string>Save column order and width</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
