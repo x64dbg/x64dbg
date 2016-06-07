@@ -34,7 +34,7 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
         this->setStyleSheet("QLabel { background-color : #ffff00; }");
         break;
     case running:
-        this->setText("Running");
+        this->setText(tr("Running"));
         this->setStyleSheet("QLabel { background-color : #c0c0c0; }");
         break;
     case stopped:
