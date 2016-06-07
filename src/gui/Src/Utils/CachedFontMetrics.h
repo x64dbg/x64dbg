@@ -38,9 +38,9 @@ public:
         QChar temp;
         for(const QChar & ch : text)
         {
-            if(ch.isLowSurrogate())
+            if(ch.isHighSurrogate())
                 temp = ch;
-            else if(ch.isHighSurrogate())
+            else if(ch.isLowSurrogate())
                 result += mFontMetrics.width(QString(temp) + ch);
             else
                 result += width(ch);
