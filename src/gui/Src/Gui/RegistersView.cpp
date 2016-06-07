@@ -7,6 +7,7 @@
 #include "LineEditDialog.h"
 #include "EditFloatRegister.h"
 #include "SelectFields.h"
+#include "MiscUtil.h"
 
 int RegistersView::getEstimateHeight()
 {
@@ -1168,6 +1169,7 @@ void RegistersView::fontsUpdatedSlot()
     wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
     mRowHeight = wRowsHeight;
     mCharWidth = QFontMetrics(this->font()).averageCharWidth();
+    setFixedHeight(getEstimateHeight());
     repaint();
 }
 
@@ -1438,7 +1440,12 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
     {
         SIZE_T size = GetSizeRegister(reg);
         if(size != 0)
-            valueText = QString(QByteArray(value, size).toHex()).toUpper();
+        {
+            if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
+                valueText = QString(QByteArray(value, size).toHex()).toUpper();
+            else
+                valueText = QString(ByteReverse(QByteArray(value, size)).toHex()).toUpper();
+        }
         else
             valueText = QString("???");
     }
