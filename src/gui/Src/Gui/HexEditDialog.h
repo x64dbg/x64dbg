@@ -18,19 +18,21 @@ public:
     ~HexEditDialog();
 
     void showEntireBlock(bool show);
+    void showKeepSize(bool show);
+
     bool entireBlock();
 
     QHexEdit* mHexEdit;
 
 private slots:
     void updateStyle();
-    void on_btnAscii2Hex_clicked();
-    void on_btnUnicode2Hex_clicked();
     void on_chkKeepSize_toggled(bool checked);
     void dataChangedSlot();
     void dataEditedSlot();
     void on_lineEditAscii_dataEdited();
     void on_lineEditUnicode_dataEdited();
+    void on_btnCodepage_clicked();
+
 private:
     Ui::HexEditDialog* ui;
 

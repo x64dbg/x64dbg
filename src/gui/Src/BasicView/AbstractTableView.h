@@ -43,7 +43,7 @@ class AbstractTableView : public QAbstractScrollArea
     Q_OBJECT
 
 public:
-    enum GuiState_t {NoState, ReadyToResize, ResizeColumnState, HeaderButtonPressed};
+    enum GuiState_t {NoState, ReadyToResize, ResizeColumnState, HeaderButtonPressed, HeaderButtonReordering};
 
     // Constructor
     explicit AbstractTableView(QWidget* parent = 0);
@@ -64,6 +64,7 @@ public:
     void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
     void wheelEvent(QWheelEvent* event);
     void resizeEvent(QResizeEvent* event);
     void keyPressEvent(QKeyEvent* event);
@@ -84,10 +85,10 @@ public:
     virtual int getLineToPrintcount();
 
     // New Columns/New Size
-    virtual void addColumnAt(int width, QString title, bool isClickable);
+    virtual void addColumnAt(int width, const QString & title, bool isClickable);
     virtual void setRowCount(dsint count);
     virtual void deleteAllColumns();
-    void setColTitle(int index, QString title);
+    void setColTitle(int index, const QString & title);
     QString getColTitle(int index);
 
     // Getter & Setter
@@ -154,6 +155,7 @@ private:
     typedef struct _Column_t
     {
         int width;
+        bool hidden;
         HeaderButton_t header;
         QString title;
     } Column_t;
@@ -179,6 +181,10 @@ private:
 
     QList<Column_t> mColumnList;
 
+    QList<int> mColumnOrder;
+    int mReorderStartX;
+    int mHoveredColumnDisplayIndex;
+
     dsint mRowCount;
 
     int mMouseWheelScrollDelta;
@@ -194,6 +200,10 @@ private:
 
     ScrollBar64_t mScrollBarAttributes;
 
+    int getColumnDisplayIndexFromX(int x);
+    bool getColumnHidden(int col);
+    void setColumnHidden(int col, bool hidden);
+    friend class ColumnReorderDialog;
 protected:
     bool mAllowPainting;
     bool mDrawDebugOnly;
@@ -207,6 +217,7 @@ protected:
 
     // Font metrics
     CachedFontMetrics* mFontMetrics;
+    void invalidateCachedFont();
 
     //action helpers
 private:

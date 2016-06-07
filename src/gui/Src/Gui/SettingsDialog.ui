@@ -387,28 +387,28 @@
        <item>
         <widget class="QCheckBox" name="chkArgumentSpaces">
          <property name="text">
-          <string>Argument Spaces*</string>
+          <string>Argument Spaces</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="chkTabBetweenMnemonicAndArguments">
          <property name="text">
-          <string>Tab between mnemonic and arguments*</string>
+          <string>Tab between mnemonic and arguments</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="chkMemorySpaces">
          <property name="text">
-          <string>Memory Spaces*</string>
+          <string>Memory Spaces</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="chkUppercase">
          <property name="text">
-          <string>Uppercase*</string>
+          <string>Uppercase</string>
          </property>
         </widget>
        </item>

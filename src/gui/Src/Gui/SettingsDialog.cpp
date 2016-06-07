@@ -12,8 +12,9 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     ui->setupUi(this);
     //set window flags
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     setModal(true);
+    adjustSize();
+    bTokenizerConfigUpdated = false;
     LoadSettings(); //load settings from file
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
     lastException = 0;
@@ -303,6 +304,11 @@ void SettingsDialog::SaveSettings()
 
     BridgeSettingFlush();
     Config()->load();
+    if(bTokenizerConfigUpdated)
+    {
+        Config()->emitTokenizerConfigUpdated();
+        bTokenizerConfigUpdated = false;
+    }
     DbgSettingsUpdated();
     GuiUpdateAllViews();
 }
@@ -582,6 +588,7 @@ void SettingsDialog::on_btnAddLast_clicked()
 
 void SettingsDialog::on_chkArgumentSpaces_stateChanged(int arg1)
 {
+    bTokenizerConfigUpdated = true;
     if(arg1 == Qt::Unchecked)
         settings.disasmArgumentSpaces = false;
     else
@@ -590,6 +597,7 @@ void SettingsDialog::on_chkArgumentSpaces_stateChanged(int arg1)
 
 void SettingsDialog::on_chkMemorySpaces_stateChanged(int arg1)
 {
+    bTokenizerConfigUpdated = true;
     if(arg1 == Qt::Unchecked)
         settings.disasmMemorySpaces = false;
     else
@@ -598,6 +606,7 @@ void SettingsDialog::on_chkMemorySpaces_stateChanged(int arg1)
 
 void SettingsDialog::on_chkUppercase_stateChanged(int arg1)
 {
+    bTokenizerConfigUpdated = true;
     if(arg1 == Qt::Unchecked)
         settings.disasmUppercase = false;
     else
@@ -614,6 +623,7 @@ void SettingsDialog::on_chkOnlyCipAutoComments_stateChanged(int arg1)
 
 void SettingsDialog::on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1)
 {
+    bTokenizerConfigUpdated = true;
     settings.disasmTabBetweenMnemonicAndArguments = arg1 == Qt::Checked;
 }
 

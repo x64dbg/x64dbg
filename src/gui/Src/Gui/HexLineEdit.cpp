@@ -48,10 +48,10 @@ void HexLineEdit::keyPressEvent(QKeyEvent* event)
             switch(mEncoding)
             {
             case Encoding::Ascii:
-                keyText  = event->text().toLatin1();
+                keyText = event->text().toLatin1();
                 break;
             case Encoding::Unicode:
-                keyText  = event->text();
+                keyText = event->text();
                 break;
             }
 
@@ -74,10 +74,8 @@ void HexLineEdit::setData(const QByteArray & data)
         for(int i = 0; i < data.size(); i++)
         {
             QChar ch(data.constData()[i]);
-            if(ch.isPrint())
+            if(ch >= 0 && ch <= 255)
                 text += ch.toLatin1();
-            else
-                text += '.';
         }
         break;
 
@@ -85,10 +83,7 @@ void HexLineEdit::setData(const QByteArray & data)
         for(int i = 0, j = 0; i < data.size(); i += sizeof(wchar_t), j++)
         {
             QChar wch(((wchar_t*)data.constData())[j]);
-            if(wch.isPrint())
-                text += wch;
-            else
-                text += '.';
+            text += wch;
         }
         break;
     }

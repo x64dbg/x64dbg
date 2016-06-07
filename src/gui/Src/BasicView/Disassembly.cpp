@@ -53,6 +53,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(this, SIGNAL(selectionChanged(dsint)), this, SLOT(selectionChangedSlot(dsint)));
+    connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
 
     Initialize();
 }
@@ -115,6 +116,12 @@ void Disassembly::updateColors()
 void Disassembly::updateFonts()
 {
     setFont(ConfigFont("Disassembly"));
+    invalidateCachedFont();
+}
+
+void Disassembly::tokenizerConfigUpdatedSlot()
+{
+    mDisasm->UpdateConfig();
 }
 
 /************************************************************************************

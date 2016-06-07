@@ -300,6 +300,7 @@ void ScriptView::contextMenuSlot(const QPoint & pos)
 
 void ScriptView::mouseDoubleClickEvent(QMouseEvent* event)
 {
+    AbstractTableView::mouseDoubleClickEvent(event);
     if(event->button() != Qt::LeftButton)
         return;
     Q_UNUSED(event);

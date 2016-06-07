@@ -23,6 +23,8 @@ rmdir /S /Q src\gui_build
 cd src\gui
 qmake x64dbg.pro CONFIG+=release
 jom
+echo Building translations...
+lrelease x64dbg.pro
 cd ..\..
 goto :restorepath
 

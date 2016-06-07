@@ -1,22 +1,21 @@
 #include "filehelper.h"
+#include "handle.h"
+#include "stringutils.h"
 
 bool FileHelper::ReadAllData(const String & fileName, std::vector<unsigned char> & content)
 {
     Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(fileName).c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
     if(hFile == INVALID_HANDLE_VALUE)
         return false;
-    unsigned int filesize = GetFileSize(hFile, 0);
+    unsigned int filesize = GetFileSize(hFile, nullptr);
     if(!filesize)
     {
         content.clear();
         return true;
     }
-    Memory<char*> filedata(filesize + 1, "FileReader::ReadAllData:filedata");
+    content.resize(filesize);
     DWORD read = 0;
-    if(!ReadFile(hFile, filedata(), filesize, &read, nullptr))
-        return false;
-    content = std::vector<unsigned char>(filedata(), filedata() + filesize);
-    return true;
+    return !!ReadFile(hFile, content.data(), filesize, &read, nullptr);
 }
 
 bool FileHelper::WriteAllData(const String & fileName, const void* data, size_t size)

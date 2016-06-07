@@ -75,6 +75,7 @@ void formatdec(char* string);
 bool FileExists(const char* file);
 bool DirExists(const char* dir);
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName);
+bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName);
 bool settingboolget(const char* section, const char* name);
 arch GetFileArchitecture(const char* szFileName);
 bool IsWow64();

@@ -1,5 +1,6 @@
 #include "CodepageSelectionDialog.h"
 #include "ui_CodepageSelectionDialog.h"
+#include "Bridge.h"
 #include <QTextCodec>
 
 CodepageSelectionDialog::CodepageSelectionDialog(QWidget* parent) :
@@ -19,11 +20,16 @@ CodepageSelectionDialog::CodepageSelectionDialog(QWidget* parent) :
         ui->listCodepages->addItem(name);
         mCodepages.append(codec->name());
     }
-    ui->listCodepages->setCurrentRow(0);
+    duint setting;
+    if(BridgeSettingGetUint("Misc", "LastCodepage", &setting) && setting < duint(ui->listCodepages->count()))
+        ui->listCodepages->setCurrentRow(setting);
+    else
+        ui->listCodepages->setCurrentRow(0);
 }
 
 CodepageSelectionDialog::~CodepageSelectionDialog()
 {
+    BridgeSettingSetUint("Misc", "LastCodepage", ui->listCodepages->currentRow());
     delete ui;
 }
 

@@ -67,3 +67,4 @@ src/build-*/
 !/bin/x64dbg_shell_remove.reg
 !*.lib
 pin.log
+src/gui/Translations/*.qm

@@ -33,6 +33,9 @@ String StringUtils::Escape(const String & s)
         auto ch = uint8_t(s[i]);
         switch(ch)
         {
+        case '\0':
+            escaped += "\\0";
+            break;
         case '\t':
             escaped += "\\t";
             break;
@@ -93,11 +96,11 @@ String StringUtils::TrimRight(const String & s)
 String StringUtils::Utf16ToUtf8(const WString & wstr)
 {
     String convertedString;
-    int requiredSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, 0, 0, 0, 0);
+    auto requiredSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
     if(requiredSize > 0)
     {
         std::vector<char> buffer(requiredSize);
-        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &buffer[0], requiredSize, 0, 0);
+        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &buffer[0], requiredSize, nullptr, nullptr);
         convertedString.assign(buffer.begin(), buffer.end() - 1);
     }
     return convertedString;
@@ -111,7 +114,7 @@ String StringUtils::Utf16ToUtf8(const wchar_t* wstr)
 WString StringUtils::Utf8ToUtf16(const String & str)
 {
     WString convertedString;
-    int requiredSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, 0, 0);
+    int requiredSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
     if(requiredSize > 0)
     {
         std::vector<wchar_t> buffer(requiredSize);

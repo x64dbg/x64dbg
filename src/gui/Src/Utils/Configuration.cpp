@@ -388,6 +388,11 @@ void Configuration::emitColorsUpdated()
     emit colorsUpdated();
 }
 
+void Configuration::emitTokenizerConfigUpdated()
+{
+    emit tokenizerConfigUpdated();
+}
+
 void Configuration::readBools()
 {
     Bools = defaultBools;
