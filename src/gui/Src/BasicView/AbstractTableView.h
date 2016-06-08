@@ -47,6 +47,7 @@ public:
 
     // Constructor
     explicit AbstractTableView(QWidget* parent = 0);
+    ~AbstractTableView();
 
     // Configuration
     virtual void Initialize();
@@ -104,6 +105,13 @@ public:
     void setNbrOfLineToPrint(int parNbrOfLineToPrint);
     void setShowHeader(bool show);
     int getCharWidth();
+    bool getColumnHidden(int col);
+    void setColumnHidden(int col, bool hidden);
+
+    // UI customization
+    void loadColumnFromConfig(const QString& viewName);
+    void saveColumnToConfig();
+    static void setupColumnConfigDefaultValue(QMap<QString, duint>& map, const QString& viewName, int columnCount);
 
     // Content drawing control
     bool getDrawDebugOnly();
@@ -201,8 +209,6 @@ private:
     ScrollBar64_t mScrollBarAttributes;
 
     int getColumnDisplayIndexFromX(int x);
-    bool getColumnHidden(int col);
-    void setColumnHidden(int col, bool hidden);
     friend class ColumnReorderDialog;
 protected:
     bool mAllowPainting;
@@ -214,6 +220,7 @@ protected:
     QColor separatorColor;
     QColor headerTextColor;
     QColor selectionColor;
+    QString mViewName;
 
     // Font metrics
     CachedFontMetrics* mFontMetrics;

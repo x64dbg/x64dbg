@@ -117,11 +117,12 @@ int main(int argc, char* argv[])
     Bridge::initBridge();
 
     // Start GUI
-    MainWindow mainWindow;
-    mainWindow.show();
+    MainWindow* mainWindow;
+    mainWindow = new MainWindow();
+    mainWindow->show();
 
     // Set some data
-    Bridge::getBridge()->winId = (void*)mainWindow.winId();
+    Bridge::getBridge()->winId = (void*)mainWindow->winId();
 
     // Init debugger
     const char* errormsg = DbgInit();
@@ -136,12 +137,13 @@ int main(int argc, char* argv[])
 
     //execute the application
     int result = application.exec();
-    mConfiguration->save(); //save config on exit
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QAbstractEventDispatcher::instance(application.thread())->removeNativeEventFilter(filter);
 #else
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(nullptr);
 #endif
+    delete mainWindow;
+    mConfiguration->save(); //save config on exit
 
     //TODO free capstone/config/bridge and prevent use after free.
 

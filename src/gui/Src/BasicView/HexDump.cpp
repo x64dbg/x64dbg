@@ -55,6 +55,7 @@ void HexDump::updateColors()
 void HexDump::updateFonts()
 {
     setFont(ConfigFont("HexDump"));
+    invalidateCachedFont();
 }
 
 void HexDump::updateShortcuts()

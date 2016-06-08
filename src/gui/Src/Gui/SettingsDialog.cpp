@@ -173,6 +173,12 @@ void SettingsDialog::LoadSettings()
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
     ui->chkTabBetweenMnemonicAndArguments->setChecked(settings.disasmTabBetweenMnemonicAndArguments);
 
+    //Gui tab
+    GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
+    GetSettingBool("Gui", "SaveColumnOrder", &settings.guiSaveColumnOrder);
+    ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
+    ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
+
     //Misc tab
     if(DbgFunctions()->GetJit)
     {
@@ -275,6 +281,10 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
     BridgeSettingSetUint("Disassembler", "TabbedMnemonic", settings.disasmTabBetweenMnemonicAndArguments);
+
+    //Gui tab
+    BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
+    BridgeSettingSetUint("Gui", "SaveColumnOrder", settings.guiSaveColumnOrder);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -647,4 +657,20 @@ void SettingsDialog::on_chkSaveLoadTabOrder_stateChanged(int arg1)
         settings.miscLoadSaveTabOrder = true;
 
     emit chkSaveLoadTabOrderStateChanged((bool)arg1);
+}
+
+void SettingsDialog::on_chkFpuRegistersLittleEndian_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Unchecked)
+        settings.guiFpuRegistersLittleEndian = false;
+    else
+        settings.guiFpuRegistersLittleEndian = true;
+}
+
+void SettingsDialog::on_chkSaveColumnOrder_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Unchecked)
+        settings.guiSaveColumnOrder = false;
+    else
+        settings.guiSaveColumnOrder = true;
 }

@@ -69,6 +69,10 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     mStack = new CPUStack(mDump, 0); //stack widget
     ui->mBotRightFrameLayout->addWidget(mStack);
+
+    // load column config
+    mDisas->loadColumnFromConfig("CPUDisassembly");
+    mStack->loadColumnFromConfig("CPUStack");
 }
 
 CPUWidget::~CPUWidget()

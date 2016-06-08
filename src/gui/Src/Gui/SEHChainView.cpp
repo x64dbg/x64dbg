@@ -12,6 +12,7 @@ SEHChainView::SEHChainView(StdTable* parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(updateSEHChain()), this, SLOT(updateSEHChain()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
+    loadColumnFromConfig("SEH");
     setupContextMenu();
 }
 

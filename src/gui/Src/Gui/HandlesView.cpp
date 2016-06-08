@@ -13,6 +13,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mHandlesTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), false);
     mHandlesTable->addColumnAt(8 + 16 * wCharWidth, tr("Access"), false);
     mHandlesTable->addColumnAt(8 + wCharWidth * 20, tr("Name"), false);
+    mHandlesTable->loadColumnFromConfig("Handle");
 
     mTcpConnectionsTable = new StdTable(this);
     mTcpConnectionsTable->setDrawDebugOnly(true);
@@ -20,12 +21,14 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
     mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
     mTcpConnectionsTable->addColumnAt(8 + 8 * wCharWidth, tr("State", "TcpConnection"), false);
+    mTcpConnectionsTable->loadColumnFromConfig("TcpConnection");
 
     mPrivilegesTable = new StdTable(this);
     mPrivilegesTable->setDrawDebugOnly(true);
     mPrivilegesTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mPrivilegesTable->addColumnAt(8 + 32 * wCharWidth, tr("Privilege"), false);
     mPrivilegesTable->addColumnAt(8 + 16 * wCharWidth, tr("State", "Privilege"), false);
+    mPrivilegesTable->loadColumnFromConfig("Privilege");
 
     // Splitter
     mSplitter = new QSplitter(this);

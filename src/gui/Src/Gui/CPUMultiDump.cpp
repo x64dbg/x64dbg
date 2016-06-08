@@ -13,6 +13,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     for(uint i = 0; i < mMaxCPUDumpTabs; i++)
     {
         CPUDump* cpuDump = new CPUDump(disas, this);
+        cpuDump->loadColumnFromConfig(QString("CPUDump%1").arg(i + 1));
         connect(cpuDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidgetSlot()));
         this->addTabEx(cpuDump, QIcon(":/icons/images/dump.png"), tr("Dump ") + QString::number(i + 1), QString("Dump ") + QString::number(i + 1));
     }

@@ -17,6 +17,7 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * 4, tr("Line"), false);
     addColumnAt(8 + charwidth * 60, tr("Text"), false);
     addColumnAt(8 + charwidth * 40, tr("Info"), false);
+    loadColumnFromConfig("Script");
 
     setIp(0); //no IP
 

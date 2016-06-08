@@ -443,7 +443,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     MenuBuilder* mSearchAllMenu = new MenuBuilder(this);
 
     // Search in Current Region menu
-    mFindCommandRegion = makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mFindCommandRegion = makeShortcutAction(tr("C&ommand"), SLOT(findCommandSlot()), "ActionFind");
     mFindConstantRegion = makeAction(tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsRegion = makeAction(tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsRegion = makeAction(tr("&Intermodular calls"), SLOT(findCallsSlot()));

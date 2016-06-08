@@ -51,6 +51,12 @@ AbstractTableView::AbstractTableView(QWidget* parent)
     Initialize();
 }
 
+AbstractTableView::~AbstractTableView()
+{
+    if(ConfigBool("Gui", "SaveColumnOrder"))
+        saveColumnToConfig();
+}
+
 /************************************************************************************
                            Configuration
 ************************************************************************************/
@@ -107,6 +113,48 @@ void AbstractTableView::slot_updateFonts()
 void AbstractTableView::slot_updateShortcuts()
 {
     updateShortcuts();
+}
+
+void AbstractTableView::loadColumnFromConfig(const QString& viewName)
+{
+    int columnCount = getColumnCount();
+    for(int i = 0; i < columnCount; i++)
+    {
+        duint width = ConfigUint("Gui", QString("%1ColumnWidth%2").arg(viewName).arg(i).toUtf8().constData());
+        duint hidden = ConfigUint("Gui", QString("%1ColumnHidden%2").arg(viewName).arg(i).toUtf8().constData());
+        duint order = ConfigUint("Gui", QString("%1ColumnOrder%2").arg(viewName).arg(i).toUtf8().constData());
+        if(width != 0)
+            setColumnWidth(i, width);
+        if(hidden != 2)
+            setColumnHidden(i, !!hidden);
+        if(order != 0)
+            mColumnOrder[i] = order - 1;
+    }
+    mViewName = viewName;
+}
+
+void AbstractTableView::saveColumnToConfig()
+{
+    if(mViewName.length() == 0)
+        return;
+    int columnCount = getColumnCount();
+    auto cfg = Config();
+    for(int i = 0; i < columnCount; i++)
+    {
+        cfg->setUint("Gui", QString("%1ColumnWidth%2").arg(mViewName).arg(i).toUtf8().constData(), getColumnWidth(i));
+        cfg->setUint("Gui", QString("%1ColumnHidden%2").arg(mViewName).arg(i).toUtf8().constData(), getColumnHidden(i) ? 1 : 0);
+        cfg->setUint("Gui", QString("%1ColumnOrder%2").arg(mViewName).arg(i).toUtf8().constData(), mColumnOrder[i] + 1);
+    }
+}
+
+void AbstractTableView::setupColumnConfigDefaultValue(QMap<QString, duint>& map, const QString& viewName, int columnCount)
+{
+    for(int i = 0; i < columnCount; i++)
+    {
+        map.insert(QString("%1ColumnWidth%2").arg(viewName).arg(i), 0);
+        map.insert(QString("%1ColumnHidden%2").arg(viewName).arg(i), 2);
+        map.insert(QString("%1ColumnOrder%2").arg(viewName).arg(i), 0);
+    }
 }
 
 /************************************************************************************
