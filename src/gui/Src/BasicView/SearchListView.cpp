@@ -97,6 +97,7 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent) : QWidget(pare
     connect(mSearchList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(mSearchList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(mSearchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
+    connect(mRegexCheckbox, SIGNAL(toggled(bool)), this, SLOT(on_checkBoxRegex_toggled(bool)));
 
     // List input should always be forwarded to the filter edit
     mSearchList->setFocusProxy(mSearchBox);
@@ -195,6 +196,11 @@ void SearchListView::searchTextChanged(const QString & arg1)
     mSearchList->reloadData();
 }
 
+void SearchListView::refreshSearchList()
+{
+    searchTextChanged(mSearchBox->text());
+}
+
 void SearchListView::listContextMenu(const QPoint & pos)
 {
     QMenu wMenu(this);
@@ -216,7 +222,7 @@ void SearchListView::doubleClickedSlot()
 void SearchListView::on_checkBoxRegex_toggled(bool checked)
 {
     Q_UNUSED(checked);
-    searchTextChanged(mSearchBox->text());
+    refreshSearchList();
 }
 
 bool SearchListView::eventFilter(QObject* obj, QEvent* event)

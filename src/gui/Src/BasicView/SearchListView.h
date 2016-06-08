@@ -26,6 +26,7 @@ public:
     int mSearchStartCol;
 
     bool findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith);
+    void refreshSearchList();
 
 private slots:
     void searchTextChanged(const QString & arg1);
