@@ -63,7 +63,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         {
             GuiReferenceSetCurrentTaskProgress(percent, "Region Search");
             GuiReferenceSetProgress(percent);
-        }, false);
+        }, disasmText);
     }
     else if(type == CURRENT_MODULE) // Search in current Module
     {
@@ -104,7 +104,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         {
             GuiReferenceSetCurrentTaskProgress(percent, "Module Search");
             GuiReferenceSetProgress(percent);
-        }, false);
+        }, disasmText);
     }
     else if(type == ALL_MODULES) // Search in all Modules
     {
