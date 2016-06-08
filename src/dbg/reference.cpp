@@ -10,7 +10,7 @@
 #include "module.h"
 #include "threading.h"
 
-int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name, REFFINDTYPE type)
+int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name, REFFINDTYPE type, bool disasmText)
 {
     char fullName[deflen];
     char moduleName[MAX_MODULE_SIZE];
@@ -63,7 +63,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         {
             GuiReferenceSetCurrentTaskProgress(percent, "Region Search");
             GuiReferenceSetProgress(percent);
-        });
+        }, false);
     }
     else if(type == CURRENT_MODULE) // Search in current Module
     {
@@ -104,7 +104,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         {
             GuiReferenceSetCurrentTaskProgress(percent, "Module Search");
             GuiReferenceSetProgress(percent);
-        });
+        }, false);
     }
     else if(type == ALL_MODULES) // Search in all Modules
     {
@@ -151,7 +151,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
                 GuiReferenceSetCurrentTaskProgress(percent, modList[i].name);
                 GuiReferenceSetProgress(totalPercent);
-            });
+            }, disasmText);
         }
     }
 
@@ -160,7 +160,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
     return refInfo.refcount;
 }
 
-int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, CBPROGRESS cbUpdateProgress)
+int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, CBPROGRESS cbUpdateProgress, bool disasmText)
 {
     // Allocate and read a buffer from the remote process
     Memory<unsigned char*> data(scanSize, "reffind:data");
@@ -196,7 +196,7 @@ int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserDa
         if(cp.Disassemble(scanStart, data() + i, disasmMaxSize))
         {
             BASIC_INSTRUCTION_INFO basicinfo;
-            fillbasicinfo(&cp, &basicinfo, false);
+            fillbasicinfo(&cp, &basicinfo, disasmText);
 
             if(Callback(&cp, &basicinfo, &refInfo))
                 refInfo.refcount++;

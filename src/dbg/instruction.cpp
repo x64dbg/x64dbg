@@ -937,7 +937,7 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
         if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
             refFindType = CURRENT_REGION;
 
-    int found = RefFind(addr, size, cbRefFind, &range, false, title, (REFFINDTYPE)refFindType);
+    int found = RefFind(addr, size, cbRefFind, &range, false, title, (REFFINDTYPE)refFindType, false);
     dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1003,7 +1003,7 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
             refFindType = CURRENT_REGION;
 
     duint ticks = GetTickCount();
-    int found = RefFind(addr, size, cbRefStr, 0, false, "Strings", (REFFINDTYPE)refFindType);
+    int found = RefFind(addr, size, cbRefStr, 0, false, "Strings", (REFFINDTYPE)refFindType, false);
     dprintf("%u string(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1439,7 +1439,7 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
             refFindType = CURRENT_REGION;
 
     duint ticks = GetTickCount();
-    int found = RefFind(addr, size, cbModCallFind, 0, false, "Calls", (REFFINDTYPE)refFindType);
+    int found = RefFind(addr, size, cbModCallFind, 0, false, "Calls", (REFFINDTYPE)refFindType, false);
     dprintf("%u call(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1715,7 +1715,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     duint ticks = GetTickCount();
     char title[256] = "";
     sprintf_s(title, "Command: \"%s\"", basicinfo.instruction);
-    int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title, (REFFINDTYPE)refFindType);
+    int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title, (REFFINDTYPE)refFindType, true);
     dprintf("%u result(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;

@@ -23,7 +23,7 @@ typedef enum
 typedef bool (*CBREF)(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo);
 typedef std::function<void(int)> CBPROGRESS;
 
-int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name, REFFINDTYPE type);
-int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, CBPROGRESS cbUpdateProgress);
+int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name, REFFINDTYPE type, bool disasmText);
+int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, CBPROGRESS cbUpdateProgress, bool disasmText);
 
 #endif // _REFERENCE_H
