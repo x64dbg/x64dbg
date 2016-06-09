@@ -117,3 +117,4 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - [ForNeVeR](https://github.com/RadicalRaccoon)
 - [wynick27](https://github.com/wynick27)
 - [Atvaark](https://github.com/Atvaark)
+- [Avin](https://github.com/Avinm)
