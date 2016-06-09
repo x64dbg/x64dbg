@@ -446,7 +446,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindCommandRegion = makeShortcutAction(tr("C&ommand"), SLOT(findCommandSlot()), "ActionFind");
     mFindConstantRegion = makeAction(tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsRegion = makeAction(tr("&String references"), SLOT(findStringsSlot()));
-    mFindCallsRegion = makeAction(tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindCallsRegion = makeAction(QIcon(":/icons/images/call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mSearchRegionMenu->addAction(mFindCommandRegion);
     mSearchRegionMenu->addAction(mFindConstantRegion);
     mSearchRegionMenu->addAction(mFindStringsRegion);
@@ -457,7 +457,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindCommandModule = makeAction(tr("C&ommand"), SLOT(findCommandSlot()));
     mFindConstantModule = makeAction(tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsModule = makeAction(tr("&String references"), SLOT(findStringsSlot()));
-    mFindCallsModule = makeAction(tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindCallsModule = makeAction(QIcon(":/icons/images/call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mSearchModuleMenu->addAction(mFindCommandModule);
     mSearchModuleMenu->addAction(mFindConstantModule);
     mSearchModuleMenu->addAction(mFindStringsModule);
@@ -467,7 +467,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindCommandAll = makeAction(tr("C&ommand"), SLOT(findCommandSlot()));
     mFindConstantAll = makeAction(tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsAll = makeAction(tr("&String references"), SLOT(findStringsSlot()));
-    mFindCallsAll = makeAction(tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindCallsAll = makeAction(QIcon(":/icons/images/call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mSearchAllMenu->addAction(mFindCommandAll);
     mSearchAllMenu->addAction(mFindConstantAll);
     mSearchAllMenu->addAction(mFindStringsAll);
