@@ -4,6 +4,8 @@
 
 ## Note
 
+## Test paragraph
+
 Please run `install.bat` before you start committing code, this ensures your code is auto-formatted to the *x64dbg* [standards](https://github.com/x64dbg/x64dbg/wiki/Coding-Guidelines).
 
 ## Compiling
