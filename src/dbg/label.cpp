@@ -1,46 +1,26 @@
 #include "label.h"
-#include "threading.h"
-#include "module.h"
-#include "memory.h"
-#include "console.h"
 
-struct CommentSerializer : JSONWrapper<LABELSINFO>
+struct LabelSerializer : AddrInfoSerializer<LABELSINFO>
 {
     bool Save(const LABELSINFO & value) override
     {
-        setString("module", value.mod);
-        setHex("address", value.addr);
+        AddrInfoSerializer::Save(value);
         setString("text", value.text);
-        setBool("manual", value.manual);
         return true;
     }
 
     bool Load(LABELSINFO & value) override
     {
-        value.manual = true;
-        getBool("manual", value.manual); //legacy support
-        return getString("module", value.mod) &&
-               getHex("address", value.addr) &&
+        return AddrInfoSerializer::Load(value) &&
                getString("text", value.text);
     }
 };
 
-struct Labels : SerializableModuleHashMap<LockComments, LABELSINFO, CommentSerializer>
+struct Labels : AddrInfoHashMap<LockLabels, LABELSINFO, LabelSerializer>
 {
-    void AdjustValue(LABELSINFO & value) const override
-    {
-        value.addr += ModBaseFromName(value.mod);
-    }
-
-protected:
     const char* jsonKey() const override
     {
         return "labels";
-    }
-
-    duint makeKey(const LABELSINFO & value) const override
-    {
-        return ModHashFromName(value.mod) + value.addr;
     }
 };
 
@@ -48,34 +28,21 @@ static Labels labels;
 
 bool LabelSet(duint Address, const char* Text, bool Manual)
 {
-    // A valid memory address must be supplied
-    if(!MemIsValidReadPtr(Address))
-        return false;
-
     // Make sure the string is supplied, within bounds, and not a special delimiter
-    if(!Text || Text[0] == '\1' || strlen(Text) >= MAX_LABEL_SIZE - 1)
+    if(!Text || Text[0] == '\1' || strlen(Text) >= MAX_LABEL_SIZE - 1 || strstr(Text, "&"))
         return false;
-
-    // Labels cannot be "address" of actual variables
-    if(strstr(Text, "&"))
-        return false;
-
     // Delete the label if no text was supplied
     if(Text[0] == '\0')
     {
         LabelDelete(Address);
         return true;
     }
-
-    // Fill out the structure data
-    LABELSINFO labelInfo;
-    labelInfo.manual = Manual;
-    labelInfo.addr = Address - ModBaseFromAddr(Address);
-    strcpy_s(labelInfo.text, Text);
-    if(!ModNameFromAddr(Address, labelInfo.mod, true))
-        *labelInfo.mod = '\0';
-
-    return labels.Add(labelInfo);
+    // Fill in the structure + add to database
+    LABELSINFO label;
+    if(!labels.PrepareValue(label, Address, Manual))
+        return false;
+    strcpy_s(label.text, Text);
+    return labels.Add(label);
 }
 
 bool LabelFromString(const char* Text, duint* Address)
@@ -107,12 +74,7 @@ bool LabelDelete(duint Address)
 
 void LabelDelRange(duint Start, duint End, bool Manual)
 {
-    labels.DeleteRange(Start, End, [Manual](duint start, duint end, const LABELSINFO & value)
-    {
-        if(Manual ? !value.manual : value.manual)  //ignore non-matching entries
-            return false;
-        return value.addr >= start && value.addr < end;
-    });
+    labels.DeleteRange(Start, End, Manual);
 }
 
 void LabelCacheSave(JSON Root)

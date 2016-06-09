@@ -1,45 +1,26 @@
 #include "comment.h"
-#include "threading.h"
-#include "module.h"
-#include "memory.h"
 
-struct CommentSerializer : JSONWrapper<COMMENTSINFO>
+struct CommentSerializer : AddrInfoSerializer<COMMENTSINFO>
 {
     bool Save(const COMMENTSINFO & value) override
     {
-        setString("module", value.mod);
-        setHex("address", value.addr);
+        AddrInfoSerializer::Save(value);
         setString("text", value.text);
-        setBool("manual", value.manual);
         return true;
     }
 
     bool Load(COMMENTSINFO & value) override
     {
-        value.manual = true;
-        getBool("manual", value.manual); //legacy support
-        return getString("module", value.mod) &&
-               getHex("address", value.addr) &&
+        return AddrInfoSerializer::Load(value) &&
                getString("text", value.text);
     }
 };
 
-struct Comments : SerializableModuleHashMap<LockComments, COMMENTSINFO, CommentSerializer>
+struct Comments : AddrInfoHashMap<LockComments, COMMENTSINFO, CommentSerializer>
 {
-    void AdjustValue(COMMENTSINFO & value) const override
-    {
-        value.addr += ModBaseFromName(value.mod);
-    }
-
-protected:
     const char* jsonKey() const override
     {
         return "comments";
-    }
-
-    duint makeKey(const COMMENTSINFO & value) const override
-    {
-        return ModHashFromName(value.mod) + value.addr;
     }
 };
 
@@ -47,30 +28,20 @@ static Comments comments;
 
 bool CommentSet(duint Address, const char* Text, bool Manual)
 {
-    // A valid memory address must be supplied
-    if(!MemIsValidReadPtr(Address))
-        return false;
-
     // Make sure the string is supplied, within bounds, and not a special delimiter
     if(!Text || Text[0] == '\1' || strlen(Text) >= MAX_COMMENT_SIZE - 1)
         return false;
-
     // Delete the comment if no text was supplied
     if(Text[0] == '\0')
     {
         CommentDelete(Address);
         return true;
     }
-
-    // Fill out the structure
+    // Fill in the structure + add to database
     COMMENTSINFO comment;
+    if(!comments.PrepareValue(comment, Address, Manual))
+        return false;
     strcpy_s(comment.text, Text);
-    if(!ModNameFromAddr(Address, comment.mod, true))
-        *comment.mod = '\0';
-
-    comment.manual = Manual;
-    comment.addr = Address - ModBaseFromAddr(Address);
-
     return comments.Add(comment);
 }
 
@@ -93,12 +64,7 @@ bool CommentDelete(duint Address)
 
 void CommentDelRange(duint Start, duint End, bool Manual)
 {
-    comments.DeleteRange(Start, End, [Manual](duint start, duint end, const COMMENTSINFO & value)
-    {
-        if(Manual ? !value.manual : value.manual)  //ignore non-matching entries
-            return false;
-        return value.addr >= start && value.addr < end;
-    });
+    comments.DeleteRange(Start, End, Manual);
 }
 
 void CommentCacheSave(JSON Root)

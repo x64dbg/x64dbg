@@ -2,13 +2,11 @@
 #define _LABEL_H
 
 #include "_global.h"
+#include "addrinfo.h"
 
-struct LABELSINFO
+struct LABELSINFO : AddrInfo
 {
-    char mod[MAX_MODULE_SIZE];
-    duint addr;
     char text[MAX_LABEL_SIZE];
-    bool manual;
 };
 
 bool LabelSet(duint Address, const char* Text, bool Manual);

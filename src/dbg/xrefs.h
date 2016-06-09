@@ -3,8 +3,6 @@
 
 #include "_global.h"
 
-
-
 bool XrefAdd(duint Address, duint From);
 bool XrefGet(duint Address, XREF_INFO* List);
 duint XrefGetCount(duint Address);

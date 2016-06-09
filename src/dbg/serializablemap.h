@@ -1,6 +1,7 @@
 #include "_global.h"
 #include "threading.h"
 #include "module.h"
+#include "memory.h"
 
 template<class TValue>
 class JSONWrapper
@@ -301,7 +302,7 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
         return ModHashFromAddr(addr);
     }
 
-    void DeleteRange(duint start, duint end, std::function<bool(duint start, duint end, const TValue & value)> inRange)
+    void DeleteRangeWhere(duint start, duint end, std::function<bool(duint start, duint end, const TValue & value)> inRange)
     {
         // Are all comments going to be deleted?
         // 0x00000000 - 0xFFFFFFFF
@@ -326,5 +327,73 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
                 return inRange(start, end, value);
             });
         }
+    }
+};
+
+struct AddrInfo
+{
+    char mod[MAX_MODULE_SIZE];
+    duint addr;
+    bool manual;
+};
+
+template<class TValue>
+struct AddrInfoSerializer : JSONWrapper<TValue>
+{
+    static_assert(std::is_base_of<AddrInfo, TValue>::value, "TValue is not derived from AddrInfo");
+
+    bool Save(const TValue & value) override
+    {
+        setString("module", value.mod);
+        setHex("address", value.addr);
+        setBool("manual", value.manual);
+        return true;
+    }
+
+    bool Load(TValue & value) override
+    {
+        value.manual = true; //legacy support
+        getBool("manual", value.manual);
+        return getString("module", value.mod) &&
+               getHex("address", value.addr);
+    }
+};
+
+template<SectionLock TLock, class TValue, class TSerializer>
+struct AddrInfoHashMap : SerializableModuleHashMap<TLock, TValue, TSerializer>
+{
+    static_assert(std::is_base_of<AddrInfo, TValue>::value, "TValue is not derived from AddrInfo");
+    static_assert(std::is_base_of<AddrInfoSerializer<TValue>, TSerializer>::value, "TSerializer is not derived from AddrInfoSerializer");
+
+    void AdjustValue(TValue & value) const override
+    {
+        value.addr += ModBaseFromName(value.mod);
+    }
+
+    bool PrepareValue(TValue & value, duint addr, bool manual)
+    {
+        if(!MemIsValidReadPtr(addr))
+            return false;
+        if(!ModNameFromAddr(addr, value.mod, true))
+            *value.mod = '\0';
+        value.manual = manual;
+        value.addr = addr - ModBaseFromAddr(addr);
+        return true;
+    }
+
+    void DeleteRange(duint start, duint end, bool manual)
+    {
+        DeleteRangeWhere(start, end, [manual](duint start, duint end, const TValue & value)
+        {
+            if(manual ? !value.manual : value.manual)   //ignore non-matching entries
+                return false;
+            return value.addr >= start && value.addr < end;
+        });
+    }
+
+protected:
+    duint makeKey(const TValue & value) const override
+    {
+        return ModHashFromName(value.mod) + value.addr;
     }
 };

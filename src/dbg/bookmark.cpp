@@ -2,41 +2,15 @@
 #include "module.h"
 #include "memory.h"
 
-struct BookmarkSerializer : JSONWrapper<BOOKMARKSINFO>
+struct BookmarkSerializer : AddrInfoSerializer<BOOKMARKSINFO>
 {
-    bool Save(const BOOKMARKSINFO & value) override
-    {
-        setString("module", value.mod);
-        setHex("address", value.addr);
-        setBool("manual", value.manual);
-        return true;
-    }
-
-    bool Load(BOOKMARKSINFO & value) override
-    {
-        value.manual = true;
-        getBool("manual", value.manual); //legacy support
-        return getString("module", value.mod) &&
-               getHex("address", value.addr);
-    }
 };
 
-struct Bookmarks : SerializableModuleHashMap<LockBookmarks, BOOKMARKSINFO, BookmarkSerializer>
+struct Bookmarks : AddrInfoHashMap<LockBookmarks, BOOKMARKSINFO, BookmarkSerializer>
 {
-    void AdjustValue(BOOKMARKSINFO & value) const override
-    {
-        value.addr += ModBaseFromName(value.mod);
-    }
-
-protected:
     const char* jsonKey() const override
     {
         return "bookmarks";
-    }
-
-    duint makeKey(const BOOKMARKSINFO & value) const override
-    {
-        return ModHashFromName(value.mod) + value.addr;
     }
 };
 
@@ -44,16 +18,9 @@ static Bookmarks bookmarks;
 
 bool BookmarkSet(duint Address, bool Manual)
 {
-    // Validate the incoming address
-    if(!MemIsValidReadPtr(Address))
-        return false;
-
     BOOKMARKSINFO bookmark;
-    if(!ModNameFromAddr(Address, bookmark.mod, true))
-        *bookmark.mod = '\0';
-    bookmark.addr = Address - ModBaseFromAddr(Address);
-    bookmark.manual = Manual;
-
+    if(!bookmarks.PrepareValue(bookmark, Address, Manual))
+        return false;
     auto key = Bookmarks::VaKey(Address);
     if(bookmarks.Contains(key))
         return bookmarks.Delete(key);
@@ -72,12 +39,7 @@ bool BookmarkDelete(duint Address)
 
 void BookmarkDelRange(duint Start, duint End, bool Manual)
 {
-    bookmarks.DeleteRange(Start, End, [Manual](duint start, duint end, const BOOKMARKSINFO & value)
-    {
-        if(Manual ? !value.manual : value.manual)  //ignore non-matching entries
-            return false;
-        return value.addr >= start && value.addr < end;
-    });
+    bookmarks.DeleteRange(Start, End, Manual);
 }
 
 void BookmarkCacheSave(JSON Root)

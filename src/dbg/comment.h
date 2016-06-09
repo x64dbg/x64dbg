@@ -2,13 +2,11 @@
 #define _COMMENT_H
 
 #include "_global.h"
+#include "addrinfo.h"
 
-struct COMMENTSINFO
+struct COMMENTSINFO : AddrInfo
 {
-    char mod[MAX_MODULE_SIZE];
-    duint addr;
     char text[MAX_COMMENT_SIZE];
-    bool manual;
 };
 
 bool CommentSet(duint Address, const char* Text, bool Manual);

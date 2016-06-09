@@ -2,12 +2,10 @@
 #define _BOOKMARK_H
 
 #include "_global.h"
+#include "addrinfo.h"
 
-struct BOOKMARKSINFO
+struct BOOKMARKSINFO : AddrInfo
 {
-    char mod[MAX_MODULE_SIZE];
-    duint addr;
-    bool manual;
 };
 
 bool BookmarkSet(duint Address, bool Manual);

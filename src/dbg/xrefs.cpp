@@ -1,22 +1,17 @@
 #include "xrefs.h"
-#include "module.h"
-#include "memory.h"
-#include "threading.h"
+#include "addrinfo.h"
 
-struct XREFSINFO
+struct XREFSINFO : AddrInfo
 {
-    char mod[MAX_MODULE_SIZE];
-    duint address;
     XREFTYPE type;
     std::unordered_map<duint, XREF_RECORD> references;
 };
 
-struct XrefSerializer : JSONWrapper<XREFSINFO>
+struct XrefSerializer : AddrInfoSerializer<XREFSINFO>
 {
     bool Save(const XREFSINFO & value) override
     {
-        setString("module", value.mod);
-        setHex("address", value.address);
+        AddrInfoSerializer::Save(value);
         auto references = json_array();
         for(const auto & itr : value.references)
         {
@@ -31,8 +26,7 @@ struct XrefSerializer : JSONWrapper<XREFSINFO>
 
     bool Load(XREFSINFO & value) override
     {
-        if(!getString("module", value.mod) ||
-                !getHex("address", value.address))
+        if(!AddrInfoSerializer::Load(value))
             return false;
         auto references = get("references");
         if(!references)
@@ -52,22 +46,11 @@ struct XrefSerializer : JSONWrapper<XREFSINFO>
     }
 };
 
-struct Xrefs : SerializableModuleHashMap<LockCrossReferences, XREFSINFO, XrefSerializer>
+struct Xrefs : AddrInfoHashMap<LockCrossReferences, XREFSINFO, XrefSerializer>
 {
-    void AdjustValue(XREFSINFO & value) const override
-    {
-        value.address += ModBaseFromName(value.mod);
-    }
-
-protected:
     const char* jsonKey() const override
     {
         return "xrefs";
-    }
-
-    duint makeKey(const XREFSINFO & value) const override
-    {
-        return ModHashFromName(value.mod) + value.address;
     }
 };
 
@@ -75,13 +58,12 @@ static Xrefs xrefs;
 
 bool XrefAdd(duint Address, duint From)
 {
-    // Make sure memory is readable
-    if(!MemIsValidReadPtr(Address) || !MemIsValidReadPtr(From))
+    XREFSINFO info;
+    if(!MemIsValidReadPtr(From) || !xrefs.PrepareValue(info, Address, false))
         return false;
 
     // Fail if boundary exceeds module size
     auto moduleBase = ModBaseFromAddr(Address);
-
     if(moduleBase != ModBaseFromAddr(From))
         return false;
 
@@ -103,10 +85,6 @@ bool XrefAdd(duint Address, duint From)
     auto found = mapData.find(key);
     if(found == mapData.end())
     {
-        XREFSINFO info;
-        if(!ModNameFromAddr(Address, info.mod, true))
-            *info.mod = '\0';
-        info.address = Address - moduleBase;
         info.type = xrefRecord.type;
         info.references.insert({ xrefRecord.addr, xrefRecord });
         mapData.insert({ key, info });
@@ -162,10 +140,7 @@ bool XrefDeleteAll(duint Address)
 
 void XrefDelRange(duint Start, duint End)
 {
-    xrefs.DeleteRange(Start, End, [](duint start, duint end, const XREFSINFO & value)
-    {
-        return value.address >= start && value.address <= end;
-    });
+    xrefs.DeleteRange(Start, End, false);
 }
 
 void XrefCacheSave(JSON Root)
