@@ -404,7 +404,7 @@ void CPUDisassembly::setupRightClickContextMenu()
             toggleFunctionAction->setText(tr("Delete function"));
         return true;
     });
-    mMenuBuilder->addAction(makeAction(QIcon(":/icons/images/analyzesinglefunction.png"), tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot())));
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/analyzesinglefunction.png"), tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/compile.png"), tr("Assemble"), SLOT(assembleSlot()), "ActionAssemble"));
     removeAction(mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/patch.png"), tr("Patches"), SLOT(showPatchesSlot()), "ViewPatches"))); //prevent conflicting shortcut with the MainWindow
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/yara.png"), tr("&Yara..."), SLOT(yaraSlot()), "ActionYara"));
