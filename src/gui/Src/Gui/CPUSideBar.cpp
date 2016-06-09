@@ -215,6 +215,10 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             if(destVA == instrVA)
                 continue;
 
+            // Do not try to draw EB00 (Jump to next instruction)
+            if(destVA == instrVA + instr.length)
+                continue;
+
             // Do not draw jumps that leave the memory range
             if(destVA >= mDisas->getBase() + mDisas->getSize() || destVA < mDisas->getBase())
                 continue;
