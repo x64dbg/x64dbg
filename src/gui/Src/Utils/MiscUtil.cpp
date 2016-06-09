@@ -8,7 +8,7 @@ void SetApplicationIcon(WId winId)
     DestroyIcon(hIcon);
 }
 
-QByteArray& ByteReverse(QByteArray& array)
+QByteArray & ByteReverse(QByteArray & array)
 {
     int length = array.length();
     for(int i = 0; i < length / 2; i++)

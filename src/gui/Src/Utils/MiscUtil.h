@@ -4,6 +4,6 @@
 #include <QWidget>
 
 void SetApplicationIcon(WId winId);
-QByteArray& ByteReverse(QByteArray& array);
+QByteArray & ByteReverse(QByteArray & array);
 
 #endif // MISCUTIL_H

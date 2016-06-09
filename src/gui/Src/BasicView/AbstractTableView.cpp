@@ -115,7 +115,7 @@ void AbstractTableView::slot_updateShortcuts()
     updateShortcuts();
 }
 
-void AbstractTableView::loadColumnFromConfig(const QString& viewName)
+void AbstractTableView::loadColumnFromConfig(const QString & viewName)
 {
     int columnCount = getColumnCount();
     for(int i = 0; i < columnCount; i++)
@@ -147,7 +147,7 @@ void AbstractTableView::saveColumnToConfig()
     }
 }
 
-void AbstractTableView::setupColumnConfigDefaultValue(QMap<QString, duint>& map, const QString& viewName, int columnCount)
+void AbstractTableView::setupColumnConfigDefaultValue(QMap<QString, duint> & map, const QString & viewName, int columnCount)
 {
     for(int i = 0; i < columnCount; i++)
     {

@@ -109,9 +109,9 @@ public:
     void setColumnHidden(int col, bool hidden);
 
     // UI customization
-    void loadColumnFromConfig(const QString& viewName);
+    void loadColumnFromConfig(const QString & viewName);
     void saveColumnToConfig();
-    static void setupColumnConfigDefaultValue(QMap<QString, duint>& map, const QString& viewName, int columnCount);
+    static void setupColumnConfigDefaultValue(QMap<QString, duint> & map, const QString & viewName, int columnCount);
 
     // Content drawing control
     bool getDrawDebugOnly();
