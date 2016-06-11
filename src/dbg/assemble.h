@@ -3,6 +3,14 @@
 
 #include "_global.h"
 
+enum class AssemblerEngine
+{
+    XEDParse = 0,
+    Keystone = 1
+};
+
+extern AssemblerEngine assemblerEngine;
+
 bool assemble(duint addr, unsigned char* dest, int* size, const char* instruction, char* error);
 bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop);
 
