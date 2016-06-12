@@ -61,15 +61,17 @@ typedef struct _YR_COMPILER
     YR_ARENA*         strings_arena;
     YR_ARENA*         code_arena;
     YR_ARENA*         re_code_arena;
-    YR_ARENA*         automaton_arena;
     YR_ARENA*         compiled_rules_arena;
     YR_ARENA*         externals_arena;
     YR_ARENA*         namespaces_arena;
     YR_ARENA*         metas_arena;
+    YR_ARENA*         matches_arena;
+    YR_ARENA*         automaton_arena;
 
     YR_AC_AUTOMATON*  automaton;
     YR_HASH_TABLE*    rules_table;
     YR_HASH_TABLE*    objects_table;
+    YR_HASH_TABLE*    strings_table;
     YR_NAMESPACE*     current_namespace;
     YR_RULE*          current_rule;
 

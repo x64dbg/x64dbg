@@ -88,6 +88,7 @@ typedef struct RE RE;
 typedef struct RE_NODE RE_NODE;
 typedef struct RE_ERROR RE_ERROR;
 
+typedef uint8_t RE_SPLIT_ID_TYPE;
 typedef uint8_t* RE_CODE;
 
 #define CHAR_IN_CLASS(chr, cls)  \
