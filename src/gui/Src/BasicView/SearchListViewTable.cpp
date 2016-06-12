@@ -25,6 +25,15 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
     {
         BPXTYPE bpxtype = DbgGetBpxTypeAt(wVA);
         bool isbookmark = DbgGetBookmarkAt(wVA);
+        char label[MAX_LABEL_SIZE] = "";
+        if(DbgGetLabelAt(wVA, SEG_DEFAULT, label)) //has label
+        {
+            char module[MAX_MODULE_SIZE] = "";
+            if(DbgGetModuleAt(wVA, module) && !QString(label).startsWith("JMP.&"))
+                text += " <" + QString(module) + "." + QString(label) + ">";
+            else
+                text += " <" + QString(label) + ">";
+        }
         painter->setPen(textColor);
         if(!isbookmark)
         {
