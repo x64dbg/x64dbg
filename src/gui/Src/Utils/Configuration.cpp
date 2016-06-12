@@ -61,6 +61,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
     defaultColors.insert("SideBarBulletDisabledBreakpointColor", QColor("#00AA00"));
     defaultColors.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
+    defaultColors.insert("SideBarCheckBoxForeColor", QColor("#000000"));
+    defaultColors.insert("SideBarCheckBoxBackColor", QColor("#FFFFFF"));
 
     defaultColors.insert("RegistersBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("RegistersColor", QColor("#000000"));
