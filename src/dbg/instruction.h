@@ -92,5 +92,6 @@ CMDRESULT cbInstrBriefcheck(int argc, char* argv[]);
 
 CMDRESULT cbInstrDisableGuiUpdate(int argc, char* argv[]);
 CMDRESULT cbInstrEnableGuiUpdate(int argc, char* argv[]);
+CMDRESULT cbInstrExhandlers(int argc, char* argv[]);
 
 #endif // _INSTRUCTION_H

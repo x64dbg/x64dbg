@@ -12,32 +12,30 @@
 #include "module.h"
 #include "thread.h"
 
-bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, EX_HANDLER_INFO* Info)
+bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, std::vector<duint> & Entries)
 {
-    bool ret = false;
-    std::vector<duint> handlerEntries;
-
+    Entries.clear();
     switch(Type)
     {
     case EX_HANDLER_SEH:
-        ret = ExHandlerGetSEH(handlerEntries);
-        break;
+        return ExHandlerGetSEH(Entries);
 
     case EX_HANDLER_VEH:
-        ret = ExHandlerGetVEH(handlerEntries);
-        break;
+        return ExHandlerGetVEH(Entries);
 
     case EX_HANDLER_VCH:
-        ret = ExHandlerGetVCH(handlerEntries, false);
-        break;
+        return ExHandlerGetVCH(Entries, false);
 
     case EX_HANDLER_UNHANDLED:
-        ret = ExHandlerGetUnhandled(handlerEntries);
-        break;
+        return ExHandlerGetUnhandled(Entries);
     }
+    return false;
+}
 
-    // Check if a call failed
-    if(!ret)
+bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, EX_HANDLER_INFO* Info)
+{
+    std::vector<duint> handlerEntries;
+    if(!ExHandlerGetInfo(Type, handlerEntries))
     {
         Info->count = 0;
         Info->addresses = nullptr;
@@ -49,8 +47,10 @@ bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, EX_HANDLER_INFO* Info)
     Info->addresses = (duint*)BridgeAlloc(Info->count * sizeof(duint));
 
     memcpy(Info->addresses, handlerEntries.data(), Info->count * sizeof(duint));
-    return false;
+    return true;
 }
+
+#define MAX_HANDLER_DEPTH 10
 
 bool ExHandlerGetSEH(std::vector<duint> & Entries)
 {
@@ -63,7 +63,7 @@ bool ExHandlerGetSEH(std::vector<duint> & Entries)
     {
         EXCEPTION_REGISTRATION_RECORD sehr;
         duint addr_ExRegRecord = (duint)tib.ExceptionList;
-        int MAX_DEPTH = 1000;
+        int MAX_DEPTH = MAX_HANDLER_DEPTH;
         while(addr_ExRegRecord != 0xFFFFFFFF && MAX_DEPTH)
         {
             Entries.push_back(addr_ExRegRecord);
@@ -76,6 +76,14 @@ bool ExHandlerGetSEH(std::vector<duint> & Entries)
     return true;
 }
 
+#pragma pack(8)
+struct VEH_ENTRY_XP
+{
+    duint Flink;
+    duint Blink;
+    duint VectoredHandler;
+};
+
 bool ExHandlerGetVEH(std::vector<duint> & Entries)
 {
     // Try the address for Windows XP first (or older)
@@ -83,79 +91,86 @@ bool ExHandlerGetVEH(std::vector<duint> & Entries)
     // VECTORED_EXCEPTION_NODE RtlpCalloutEntryList;
     static duint addr_RtlpCalloutEntryList = 0;
 
-    if(addr_RtlpCalloutEntryList || valfromstring("ntdll:RtlpCalloutEntryList", &addr_RtlpCalloutEntryList))
+#ifdef _WIN64
+    auto symbol = "RtlpCalloutEntryList";
+#else
+    auto symbol = "_RtlpCalloutEntryList";
+#endif
+    if(addr_RtlpCalloutEntryList || valfromstring(symbol, &addr_RtlpCalloutEntryList))
     {
-        // Read header node
-        VECTORED_EXCEPTION_NODE node;
-        memset(&node, 0, sizeof(VECTORED_EXCEPTION_NODE));
+        // Read head entry
+        auto list_head = addr_RtlpCalloutEntryList;
+        duint cur_entry;
 
-        if(!MemRead(addr_RtlpCalloutEntryList, &node, sizeof(VECTORED_EXCEPTION_NODE)))
+        if(!MemRead(list_head, &cur_entry, sizeof(cur_entry)))
             return false;
+        auto count = 0;
 
-        // Move to the next link
-        duint listCurrent = (duint)node.ListEntry.Flink;
-        duint listEnd = addr_RtlpCalloutEntryList;
-
-        while(listCurrent && listCurrent != listEnd)
+        while(cur_entry != list_head && count++ < MAX_HANDLER_DEPTH)
         {
-            duint handler = (duint)node.handler;
-
-            MemDecodePointer(&handler);
+            VEH_ENTRY_XP entry;
+            if(!MemRead(cur_entry, &entry, sizeof(entry)))
+                return false;
+            auto handler = entry.VectoredHandler;
+            MemDecodePointer(&handler, false); //TODO: Windows XP doesn't allow a remote process to query this value
             Entries.push_back(handler);
-
-            // Move to next element
-            memset(&node, 0, sizeof(VECTORED_EXCEPTION_NODE));
-
-            if(!MemRead(listCurrent, &node, sizeof(VECTORED_EXCEPTION_NODE)))
-                break;
-
-            listCurrent = (duint)node.ListEntry.Flink;
+            if(!MemRead(cur_entry, &cur_entry, sizeof(cur_entry)))
+                return false;
         }
+        return true;
     }
 
     // Otherwise try the Windows Vista or newer version
     return ExHandlerGetVCH(Entries, true);
 }
 
-bool ExHandlerGetVCH(std::vector<duint> & Entries, bool UseVEH)
+#pragma pack(8)
+struct VEH_ENTRY_VISTA
+{
+    duint Flink;
+    duint Blink;
+    DWORD Count;
+    duint VectoredHandler;
+};
+
+bool ExHandlerGetVCH(std::vector<duint> & Entries, bool GetVEH)
 {
     // VECTORED_HANDLER_LIST LdrpVectorHandlerList[2];
     static duint addr_LdrpVectorHandlerList = 0;
+    duint addrInc = sizeof(duint); //Vista+ has an extra ULONG_PTR in front of the structure
 
-    if(!addr_LdrpVectorHandlerList && !valfromstring("ntdll:LdrpVectorHandlerList", &addr_LdrpVectorHandlerList))
+#ifdef _WIN64
+    auto symbol = "LdrpVectorHandlerList";
+#else
+    auto symbol = "_LdrpVectorHandlerList";
+#endif
+    if(!addr_LdrpVectorHandlerList && !valfromstring(symbol, &addr_LdrpVectorHandlerList))
         return false;
 
     // Increase array index when using continue handlers
-    if(!UseVEH)
-        addr_LdrpVectorHandlerList += (1 * sizeof(VECTORED_HANDLER_LIST));
+    if(!GetVEH)
+        addrInc += sizeof(duint) + sizeof(LIST_ENTRY); //Vista+ has an extra ULONG_PTR
 
     // Read head entry
-    VECTORED_HANDLER_LIST list;
-    memset(&list, 0, sizeof(VECTORED_HANDLER_LIST));
+    auto list_head = addr_LdrpVectorHandlerList + addrInc;
+    duint cur_entry;
 
-    if(!MemRead(addr_LdrpVectorHandlerList, &list, sizeof(VECTORED_HANDLER_LIST)))
+    if(!MemRead(list_head, &cur_entry, sizeof(cur_entry)))
         return false;
+    auto count = 0;
 
-    // Sub-entries in list
-    duint listCurrent = (duint)list.Next;
-    duint listEnd = addr_LdrpVectorHandlerList;
-
-    while(listCurrent && listCurrent != listEnd)
+    while(cur_entry != list_head && count++ < MAX_HANDLER_DEPTH)
     {
-        duint handler = (duint)list.VectoredHandler;
-
-        MemDecodePointer(&handler);
+        VEH_ENTRY_VISTA entry;
+        if(!MemRead(cur_entry, &entry, sizeof(entry)))
+            return false;
+        auto handler = entry.VectoredHandler;
+        if(!MemDecodePointer(&handler, true))
+            return false;
         Entries.push_back(handler);
-
-        // Move to next element
-        memset(&list, 0, sizeof(VECTORED_HANDLER_LIST));
-
-        if(!MemRead(listCurrent, &list, sizeof(VECTORED_HANDLER_LIST)))
-            break;
-
-        listCurrent = (duint)list.Next;
+        if(!MemRead(cur_entry, &cur_entry, sizeof(cur_entry)))
+            return false;
     }
-
     return true;
 }
 
@@ -164,7 +179,12 @@ bool ExHandlerGetUnhandled(std::vector<duint> & Entries)
     // Try the address for Windows Vista+
     static duint addr_BasepCurrentTopLevelFilter = 0;
 
-    if(addr_BasepCurrentTopLevelFilter || valfromstring("kernelbase:BasepCurrentTopLevelFilter", &addr_BasepCurrentTopLevelFilter))
+#ifdef _WIN64
+    auto symbol = "BasepCurrentTopLevelFilter";
+#else
+    auto symbol = "_BasepCurrentTopLevelFilter";
+#endif
+    if(addr_BasepCurrentTopLevelFilter || valfromstring(symbol, &addr_BasepCurrentTopLevelFilter))
     {
         // Read external pointer
         duint handlerValue = 0;
@@ -173,7 +193,7 @@ bool ExHandlerGetUnhandled(std::vector<duint> & Entries)
             return false;
 
         // Decode with remote process cookie
-        if(!MemDecodePointer(&handlerValue))
+        if(!MemDecodePointer(&handlerValue, true))
             return false;
 
         Entries.push_back(handlerValue);

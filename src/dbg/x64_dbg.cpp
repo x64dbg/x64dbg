@@ -277,6 +277,7 @@ static void registercommands()
     dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
     dbgcmdnew("guiupdatedisable", cbInstrDisableGuiUpdate, true); //disable gui message
     dbgcmdnew("guiupdateenable", cbInstrEnableGuiUpdate, true); //enable gui message
+    dbgcmdnew("exhandlers", cbInstrExhandlers, true); //enumerate exception handlers
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
