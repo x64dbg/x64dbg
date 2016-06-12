@@ -36,10 +36,10 @@ void MHTabBar::contextMenuEvent(QContextMenuEvent* event)
     if(!mAllowDetach && !mAllowDelete)
         return;
     QMenu wMenu(this);
-    QAction wDetach("&Detach", this);
+    QAction wDetach(tr("&Detach"), this);
     if(mAllowDetach)
         wMenu.addAction(&wDetach);
-    QAction wDelete("&Delete", this);
+    QAction wDelete(tr("&Delete"), this);
     if(mAllowDelete)
         wMenu.addAction(&wDelete);
     QAction* executed = wMenu.exec(event->globalPos());
