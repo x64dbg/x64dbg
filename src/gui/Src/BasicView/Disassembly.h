@@ -4,6 +4,7 @@
 #include "AbstractTableView.h"
 #include "QBeaEngine.h"
 #include "MemoryPage.h"
+#include "CodeFolding.h"
 
 class Disassembly : public AbstractTableView
 {
@@ -74,8 +75,8 @@ public:
     // Public Methods
     duint rvaToVa(dsint rva);
     void disassembleClear();
-    const dsint getBase() const;
-    dsint getSize();
+    const duint getBase() const;
+    duint getSize();
     duint getTableOffsetRva();
 
     // history management
@@ -93,8 +94,12 @@ public:
     const dsint currentEIP() const;
 
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE]);
-    void prepareDataCount(dsint wRVA, int wCount, QList<Instruction_t>* instBuffer);
+    void prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction_t>* instBuffer);
     void prepareDataRange(dsint startRva, dsint endRva, QList<Instruction_t>* instBuffer);
+
+    //misc
+    void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
+    void unfold(dsint rva);
 
 signals:
     void selectionChanged(dsint parVA);
@@ -203,6 +208,7 @@ protected:
     MemoryPage* mMemPage;
     bool mShowMnemonicBrief;
     XREF_INFO mXrefInfo;
+    CodeFoldingHelper* mCodeFoldingManager;
 };
 
 #endif // DISASSEMBLY_H
