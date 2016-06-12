@@ -838,7 +838,7 @@ int AbstractTableView::getColumnIndexFromX(int x)
             wColIndex++;
         }
     }
-    return mColumnOrder[getColumnCount() - 1];
+    return getColumnCount() > 0 ? mColumnOrder[getColumnCount() - 1] : -1;
 }
 
 /**
