@@ -673,7 +673,6 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines)
             {
                 if(numLines[j] > maxJmpOffset)
                     maxJmpOffset = numLines[j];
-                numLines[j]++;
             }
         }
         else
@@ -682,10 +681,19 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines)
             {
                 if(numLines[j] > maxJmpOffset)
                     maxJmpOffset = numLines[j];
-                numLines[j]++;
             }
         }
         jmp.jumpOffset = maxJmpOffset + 1;
+        if(jmp.line < jmp.destLine)
+        {
+            for(int j = jmp.line; j <= jmp.destLine && j < viewableRows; j++)
+                numLines[j] = jmp.jumpOffset;
+        }
+        else
+        {
+            for(int j = jmp.line; j >= jmp.destLine && j >= 0; j--)
+                numLines[j] = jmp.jumpOffset;
+        }
     }
     delete numLines;
 }
