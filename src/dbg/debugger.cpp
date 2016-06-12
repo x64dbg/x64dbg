@@ -512,8 +512,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     }
     PLUG_CB_BREAKPOINT bpInfo;
     BRIDGEBP bridgebp;
+    memset(&bridgebp, 0, sizeof(bridgebp));
     bpInfo.breakpoint = &bridgebp;
-    memset(&bpInfo, 0, sizeof(bpInfo));
     BpToBridge(&bp, &bridgebp);
     plugincbcall(CB_BREAKPOINT, &bpInfo);
 

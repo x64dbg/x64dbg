@@ -606,6 +606,8 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                 wI = wI >= mInstBuffer.size() ? mInstBuffer.size() - 1 : wI;
                 wI = wI < 0 ? 0 : wI;
 
+                if(wI >= mInstBuffer.size())
+                    return;
                 dsint wRowIndex = mInstBuffer.at(wI).rva;
                 dsint wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
 

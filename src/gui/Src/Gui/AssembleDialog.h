@@ -41,12 +41,13 @@ private slots:
     void on_lineEdit_textChanged(const QString & arg1);
     void on_checkBoxKeepSize_clicked(bool checked);
     void on_checkBoxFillWithNops_clicked(bool checked);
+    void on_radioXEDParse_clicked();
+    void on_radioKeystone_clicked();
 
 private:
     Ui::AssembleDialog* ui;
     duint mSelectedInstrVa;
     ValidateExpressionThread* mValidateThread;
-
 };
 
 #endif // ASSEMBLEDIALOG_H

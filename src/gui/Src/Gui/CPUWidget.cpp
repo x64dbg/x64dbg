@@ -54,8 +54,8 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mGeneralRegs->SetChangeButton(button_changeview);
 
     QList<int> sizes;
-    sizes.append(100);
-    sizes.append(10);
+    sizes.append(87);
+    sizes.append(14);
     ui->mTopRightVSplitter->setSizes(sizes);
     ui->mTopRightVSplitter->setCollapsible(1, true); //allow collapsing of the ArgumentWidget
 
