@@ -125,7 +125,7 @@ void ReferenceView::referenceSetProgressSlot(int progress)
 {
     mSearchTotalProgress->setValue(progress);
     mSearchTotalProgress->setAlignment(Qt::AlignCenter);
-    mSearchTotalProgress->setFormat(tr("Total Progress %1%%").arg(QString::number(progress)));
+    mSearchTotalProgress->setFormat(tr("Total Progress %1%").arg(QString::number(progress)));
 }
 
 void ReferenceView::referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle)
