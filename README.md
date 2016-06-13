@@ -47,7 +47,7 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - Multi-datatype memory dump
 - Basic debug symbol (PDB) support
 - Dynamic stack view
-- Built-in assembler (XEDParse)
+- Built-in assembler (XEDParse/Keystone)
 - Executable patching
 - Yara Pattern Matching
 - Decompiler (Snowman)

@@ -56,8 +56,8 @@ char* yr_strndup(
 
 #endif
 
-int yr_heap_alloc();
+int yr_heap_alloc(void);
 
-int yr_heap_free();
+int yr_heap_free(void);
 
 #endif

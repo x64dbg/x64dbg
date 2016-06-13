@@ -41,7 +41,15 @@ limitations under the License.
 #elif defined(_MSC_VER)
 #define YR_API EXTERNC __declspec(dllexport)
 #else
-#deinfe YR_API EXTERNC
+#define YR_API EXTERNC
+#endif
+
+#if defined(__GNUC__)
+#define YR_ALIGN(n) __attribute__((aligned(n)))
+#elif defined(_MSC_VER)
+#define YR_ALIGN(n) __declspec(align(n))
+#else
+#define YR_ALIGN(n)
 #endif
 
 #define yr_min(x, y) ((x < y) ? (x) : (y))

@@ -2187,7 +2187,7 @@ CMDRESULT cbInstrAnalxrefs(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
+CMDRESULT cbInstrVirtualmod(int argc, char* argv[]) //virtualmod base, size, "name"
 {
     if(argc < 3)
     {

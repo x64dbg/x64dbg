@@ -18,10 +18,18 @@ limitations under the License.
 #define YR_OBJECT_H
 
 #ifdef _MSC_VER
+
 #include <float.h>
 #define isnan _isnan
-//#define INFINITY (DBL_MAX + DBL_MAX)
-//#define NAN (INFINITY-INFINITY)
+
+#ifndef INFINITY
+#define INFINITY (DBL_MAX + DBL_MAX)
+#endif
+
+#ifndef NAN
+#define NAN (INFINITY-INFINITY)
+#endif
+
 #endif
 
 #include "types.h"
@@ -148,7 +156,7 @@ YR_OBJECT* yr_object_get_root(
     YR_OBJECT* object);
 
 
-void yr_object_print_data(
+YR_API void yr_object_print_data(
     YR_OBJECT* object,
     int indent,
     int print_identifier);

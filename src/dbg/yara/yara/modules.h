@@ -32,15 +32,15 @@ limitations under the License.
 
 // Concatenation that macro-expands its arguments.
 
-#define CONCAT_ARGS(arg1, arg2) _CONCAT(arg1, arg2) // expands the arguments.
-#define _CONCAT_ARGS(arg1, arg2) arg1 ## arg2       // do the actual concatenation.
+#define CONCAT(arg1, arg2) YARA_CONCAT(arg1, arg2) // expands the arguments.
+#define YARA_CONCAT(arg1, arg2) arg1 ## arg2       // do the actual concatenation.
 
 
-#define module_declarations CONCAT_ARGS(MODULE_NAME, __declarations)
-#define module_load CONCAT_ARGS(MODULE_NAME, __load)
-#define module_unload CONCAT_ARGS(MODULE_NAME, __unload)
-#define module_initialize CONCAT_ARGS(MODULE_NAME, __initialize)
-#define module_finalize CONCAT_ARGS(MODULE_NAME, __finalize)
+#define module_declarations CONCAT(MODULE_NAME, __declarations)
+#define module_load CONCAT(MODULE_NAME, __load)
+#define module_unload CONCAT(MODULE_NAME, __unload)
+#define module_initialize CONCAT(MODULE_NAME, __initialize)
+#define module_finalize CONCAT(MODULE_NAME, __finalize)
 
 #define begin_declarations \
     int module_declarations(YR_OBJECT* module) { \
@@ -431,7 +431,4 @@ int yr_modules_load(
 int yr_modules_unload_all(
     YR_SCAN_CONTEXT* context);
 
-
-void yr_modules_print_data(
-    YR_SCAN_CONTEXT* context);
 #endif
