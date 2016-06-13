@@ -223,7 +223,7 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         mModuleList->mList->setCellContent(i, 1, modules[i].name);
     }
     mModuleList->mList->reloadData();
-    mModuleList->refreshSearchList();
+    //NOTE: DO NOT CALL mModuleList->refreshSearchList() IT WILL DEGRADE PERFORMANCE!
     if(modules)
         BridgeFree(modules);
 }
