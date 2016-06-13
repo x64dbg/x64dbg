@@ -1489,6 +1489,24 @@ static bool ishexnumber(const char* string)
     return true;
 }
 
+static bool convertNumber(const char* str, duint & result, int radix)
+{
+    errno = 0;
+    char* end;
+#ifdef _WIN64
+    result = strtoull(str, &end, radix);
+#else
+    result = strtoul(str, &end, radix);
+#endif //_WIN64
+    if(!result && end == str)
+        return false;
+    if(result == ULLONG_MAX && errno)
+        return false;
+    if(*end)
+        return false;
+    return true;
+}
+
 /**
 \brief Gets a value from a string. This function can parse expressions, memory locations, registers, flags, API names, labels, symbols and variables.
 \param string The string to parse.
@@ -1639,8 +1657,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *value_size = 0;
         if(isvar)
             *isvar = false;
-        sscanf(string + 1, "%" fext "u", value);
-        return true;
+        return convertNumber(string + 1, *value, 10);
     }
     else if(ishexnumber(string))  //then hex numbers
     {
@@ -1652,8 +1669,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         int inc = 0;
         if(*string == 'x')
             inc = 1;
-        sscanf(string + inc, "%" fext "x", value);
-        return true;
+        return convertNumber(string + inc, *value, 16);
     }
     if(baseonly)
         return false;
