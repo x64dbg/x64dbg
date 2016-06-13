@@ -680,17 +680,11 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
             else if(event->y() > getHeaderHeight())
             {
                 dsint wIndex = getIndexOffsetFromY(transY(event->y()));
-                dsint wRowIndex = getInstructionRVA(getTableOffset(), wIndex);
-                //dsint wRowIndex = mInstBuffer.at(wIndex).rva;
 
-                if(wRowIndex < getRowCount())
+                if(mInstBuffer.size() > wIndex && wIndex >= 0)
                 {
-                    //dsint wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
-                    dsint wInstrSize;
-                    if(wRowIndex >= mInstBuffer.first().rva && wRowIndex <= mInstBuffer.last().rva)
-                        wInstrSize = mInstBuffer.at(wIndex).length - 1;
-                    else
-                        wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
+                    dsint wRowIndex = mInstBuffer.at(wIndex).rva;
+                    dsint wInstrSize = mInstBuffer.at(wIndex).length - 1;
                     if(!(event->modifiers() & Qt::ShiftModifier)) //SHIFT pressed
                         setSingleSelection(wRowIndex);
                     if(getSelectionStart() > wRowIndex) //select up
@@ -1690,6 +1684,11 @@ const dsint Disassembly::currentEIP() const
 void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
 {
     setFocus();
+    if(mCodeFoldingManager)
+    {
+        mCodeFoldingManager->expandFoldSegment(parVA);
+        mCodeFoldingManager->expandFoldSegment(parCIP);
+    }
     disassembleAt(parVA, parCIP, true, -1);
 }
 
