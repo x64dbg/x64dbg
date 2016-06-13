@@ -33,7 +33,6 @@ public:
     void setOkButtonEnabled(bool enabled);
 
     void validateInstruction(QString expression);
-    void hideEvent(QHideEvent* event);
 
 private slots:
     void textChangedSlot(QString text);
