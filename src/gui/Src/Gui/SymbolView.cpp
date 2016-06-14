@@ -24,22 +24,22 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList = new SearchListView();
     mModuleList->mSearchStartCol = 1;
     int charwidth = mModuleList->mList->getCharWidth();
-    mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Base", false);
-    mModuleList->mList->addColumnAt(500, "Module", true);
-    mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Base", false);
+    mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
+    mModuleList->mList->addColumnAt(500, tr("Module"), true);
+    mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
     mModuleList->mSearchList->addColumnAt(500, "Module", true);
 
     // Setup symbol list
-    mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Address", true);
-    mSearchListView->mList->addColumnAt(charwidth * 6 + 8, "Type", true);
-    mSearchListView->mList->addColumnAt(charwidth * 80, "Symbol", true);
-    mSearchListView->mList->addColumnAt(2000, "Symbol (undecorated)", true);
+    mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
+    mSearchListView->mList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
+    mSearchListView->mList->addColumnAt(charwidth * 80, tr("Symbol"), true);
+    mSearchListView->mList->addColumnAt(2000, tr("Symbol (undecorated)"), true);
 
     // Setup search list
-    mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Address", true);
-    mSearchListView->mSearchList->addColumnAt(charwidth * 6 + 8, "Type", true);
-    mSearchListView->mSearchList->addColumnAt(charwidth * 80, "Symbol", true);
-    mSearchListView->mSearchList->addColumnAt(2000, "Symbol (undecorated)", true);
+    mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
+    mSearchListView->mSearchList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
+    mSearchListView->mSearchList->addColumnAt(charwidth * 80, tr("Symbol"), true);
+    mSearchListView->mSearchList->addColumnAt(2000, tr("Symbol (undecorated)"), true);
 
     // Setup list splitter
     ui->listSplitter->addWidget(mModuleList);
@@ -91,22 +91,22 @@ SymbolView::~SymbolView()
 void SymbolView::setupContextMenu()
 {
     //Symbols
-    mFollowSymbolAction = new QAction("&Follow in Disassembler", this);
+    mFollowSymbolAction = new QAction(tr("&Follow in Disassembler"), this);
     mFollowSymbolAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     mFollowSymbolAction->setShortcut(QKeySequence("enter"));
     connect(mFollowSymbolAction, SIGNAL(triggered()), this, SLOT(symbolFollow()));
 
-    mFollowSymbolDumpAction = new QAction("Follow in &Dump", this);
+    mFollowSymbolDumpAction = new QAction(tr("Follow in &Dump"), this);
     connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
 
-    mToggleBreakpoint = new QAction("Toggle Breakpoint", this);
+    mToggleBreakpoint = new QAction(tr("Toggle Breakpoint"), this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBreakpoint);
     mSearchListView->mList->addAction(mToggleBreakpoint);
     mSearchListView->mSearchList->addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
-    mToggleBookmark = new QAction("Toggle Bookmark", this);
+    mToggleBookmark = new QAction(tr("Toggle Bookmark"), this);
     mToggleBookmark->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBookmark);
     mSearchListView->mList->addAction(mToggleBookmark);
@@ -114,30 +114,30 @@ void SymbolView::setupContextMenu()
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 
     //Modules
-    mFollowModuleAction = new QAction("&Follow in Disassembler", this);
+    mFollowModuleAction = new QAction(tr("&Follow in Disassembler"), this);
     mFollowModuleAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     mFollowModuleAction->setShortcut(QKeySequence("enter"));
     connect(mFollowModuleAction, SIGNAL(triggered()), this, SLOT(moduleFollow()));
 
-    mFollowModuleEntryAction = new QAction("Follow &Entry Point in Disassembler", this);
+    mFollowModuleEntryAction = new QAction(tr("Follow &Entry Point in Disassembler"), this);
     connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
 
-    mDownloadSymbolsAction = new QAction("&Download Symbols for This Module", this);
+    mDownloadSymbolsAction = new QAction(tr("&Download Symbols for This Module"), this);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 
-    mDownloadAllSymbolsAction = new QAction("Download Symbols for &All Modules", this);
+    mDownloadAllSymbolsAction = new QAction(tr("Download Symbols for &All Modules"), this);
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
 
-    mCopyPathAction = new QAction("Copy File &Path", this);
+    mCopyPathAction = new QAction(tr("Copy File &Path"), this);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
 
-    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara Memory...", this);
+    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), tr("&Yara Memory..."), this);
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(moduleYara()));
 
-    mYaraFileAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara File...", this);
+    mYaraFileAction = new QAction(QIcon(":/icons/images/yara.png"), tr("&Yara File..."), this);
     connect(mYaraFileAction, SIGNAL(triggered()), this, SLOT(moduleYaraFile()));
 
-    mEntropyAction = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
+    mEntropyAction = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
     connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
 
     //Shortcuts
@@ -184,11 +184,11 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
 
     if(symbol->isImported)
     {
-        symbolList->setCellContent(index, 1, "Import");
+        symbolList->setCellContent(index, 1, tr("Import"));
     }
     else
     {
-        symbolList->setCellContent(index, 1, "Export");
+        symbolList->setCellContent(index, 1, tr("Export"));
     }
 }
 
@@ -272,7 +272,7 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
     wMenu->addAction(mYaraAction);
     wMenu->addAction(mYaraFileAction);
     wMenu->addAction(mEntropyAction);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wCopyMenu(tr("&Copy"), this);
     mModuleList->mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
@@ -384,7 +384,7 @@ void SymbolView::toggleBookmark()
         result = DbgSetBookmarkAt(wVA, true);
     if(!result)
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetBookmarkAt failed!");
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -400,7 +400,7 @@ void SymbolView::moduleEntropy()
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {
         EntropyDialog entropyDialog(this);
-        entropyDialog.setWindowTitle(QString("Entropy (%1)").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1)));
+        entropyDialog.setWindowTitle(tr("Entropy (%1)").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1)));
         entropyDialog.show();
         entropyDialog.GraphFile(QString(szModPath));
         entropyDialog.exec();
