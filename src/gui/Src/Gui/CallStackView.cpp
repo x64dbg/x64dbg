@@ -67,7 +67,7 @@ void CallStackView::contextMenuSlot(const QPoint pos)
     QString wStr = getCellContent(getInitialSelection(), 2);
     if(wStr.length())
         wMenu.addAction(mFollowFrom);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
