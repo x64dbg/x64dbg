@@ -303,60 +303,75 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.ui" line="81"/>
-        <source>Keep Size</source>
+        <location filename="../Src/Gui/AssembleDialog.ui" line="54"/>
+        <source>Keep &amp;Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.ui" line="88"/>
-        <source>Fill with NOP&apos;s</source>
+        <location filename="../Src/Gui/AssembleDialog.ui" line="61"/>
+        <source>&amp;Fill with NOP&apos;s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.ui" line="136"/>
+        <location filename="../Src/Gui/AssembleDialog.ui" line="68"/>
+        <source>&amp;XEDParse</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/AssembleDialog.ui" line="78"/>
+        <source>&amp;Keystone</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/AssembleDialog.ui" line="104"/>
         <source>OK</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.ui" line="143"/>
+        <location filename="../Src/Gui/AssembleDialog.ui" line="111"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.ui" line="166"/>
+        <location filename="../Src/Gui/AssembleDialog.ui" line="132"/>
         <source>&lt;font color=&apos;orange&apos;&gt;&lt;b&gt;Instruction decoding error&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="116"/>
-        <source>&lt;font color=&apos;orange&apos;&gt;&lt;b&gt;Instruction decoding error : %1&lt;/b&gt;&lt;/font&gt;</source>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="119"/>
+        <source>&lt;font color=&apos;orange&apos;&gt;&lt;b&gt;Instruction encoding error : %1&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="126"/>
-        <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Instruction bigger by %1 %2&lt;/b&gt;&lt;/font&gt;</source>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="127"/>
+        <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Instruction bigger by %1 %2...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="128"/>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="138"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="129"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="139"/>
         <source>byte</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="128"/>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="138"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="129"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="139"/>
         <source>bytes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="136"/>
-        <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction smaller by %1 %2&lt;/b&gt;&lt;/font&gt;</source>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="137"/>
+        <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction smaller by %1 %2...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="146"/>
-        <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction is same size&lt;/b&gt;&lt;/font&gt;</source>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="147"/>
+        <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction is same size!&lt;/b&gt;&lt;/font&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="155"/>
+        <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction encoded successfully!&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -19,7 +19,7 @@ limitations under the License.
 
 #include <string.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 #include <windows.h>
 #endif
 
@@ -71,6 +71,7 @@ limitations under the License.
 #define ERROR_EMPTY_STRING                      43
 #define ERROR_DIVISION_BY_ZERO                  44
 #define ERROR_REGULAR_EXPRESSION_TOO_LARGE      45
+#define ERROR_TOO_MANY_RE_FIBERS                46
 
 
 #define FAIL_ON_ERROR(x) { \

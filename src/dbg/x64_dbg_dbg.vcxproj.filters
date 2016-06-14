@@ -78,6 +78,9 @@
     <Filter Include="Header Files\Interfaces/Exports\_scriptapi">
       <UniqueIdentifier>{eb7d9981-6079-4b4b-af18-e44e63451d10}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Third Party\keystone">
+      <UniqueIdentifier>{ccc8108c-36f5-4b8d-8152-7208f109d752}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -720,6 +723,32 @@
     </ClInclude>
     <ClInclude Include="encodemap.h">
       <Filter>Header Files\Information</Filter>
+    <ClInclude Include="keystone\arm.h">
+      <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="keystone\arm64.h">
+      <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="keystone\hexagon.h">
+      <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="keystone\keystone.h">
+      <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="keystone\mips.h">
+      <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="keystone\ppc.h">
+      <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="keystone\sparc.h">
+      <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="keystone\systemz.h">
+      <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="keystone\x86.h">
+      <Filter>Header Files\Third Party\keystone</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

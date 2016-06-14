@@ -37,6 +37,8 @@
 #include "error.h"
 #include "recursiveanalysis.h"
 #include "xrefsanalysis.h"
+#include "exhandlerinfo.h"
+#include "symbolinfo.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -2185,7 +2187,7 @@ CMDRESULT cbInstrAnalxrefs(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
+CMDRESULT cbInstrVirtualmod(int argc, char* argv[]) //virtualmod base, size, "name"
 {
     if(argc < 3)
     {
@@ -2581,3 +2583,53 @@ CMDRESULT cbInstrEnableGuiUpdate(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+static void printExhandlers(const char* name, const std::vector<duint> & entries)
+{
+    if(!entries.size())
+        return;
+    dprintf("%s:\n", name);
+    for(auto entry : entries)
+    {
+        auto symbolic = SymGetSymbolicName(entry);
+        if(symbolic.length())
+            dprintf(fhex " %s\n", entry, symbolic.c_str());
+        else
+            dprintf(fhex "\n", entry);
+    }
+}
+
+CMDRESULT cbInstrExhandlers(int argc, char* argv[])
+{
+    std::vector<duint> entries;
+#ifndef _WIN64
+    if(ExHandlerGetInfo(EX_HANDLER_SEH, entries))
+    {
+        std::vector<duint> handlers;
+        for(auto entry : entries)
+        {
+            duint handler;
+            if(MemRead(entry + sizeof(duint), &handler, sizeof(handler)))
+                handlers.push_back(handler);
+        }
+        printExhandlers("StructuredExceptionHandler (SEH)", handlers);
+    }
+    else
+        dputs("Failed to get SEH (disabled?)");
+#endif //_WIN64
+
+    if(ExHandlerGetInfo(EX_HANDLER_VEH, entries))
+        printExhandlers("VectoredExceptionHandler (VEH)", entries);
+    else
+        dputs("Failed to get VEH (loaded symbols for ntdll.dll?)");
+
+    if(ExHandlerGetInfo(EX_HANDLER_VCH, entries))
+        printExhandlers("VectoredContinueHandler (VCH)", entries);
+    else
+        dputs("Failed to get VCH (loaded symbols for ntdll.dll?)");
+
+    if(ExHandlerGetInfo(EX_HANDLER_UNHANDLED, entries))
+        printExhandlers("UnhandledExceptionFilter", entries);
+    else
+        dputs("Failed to get UnhandledExceptionFilter (loaded symbols for kernelbase.dll?)");
+    return STATUS_CONTINUE;
+}

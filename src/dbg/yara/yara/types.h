@@ -22,14 +22,10 @@ limitations under the License.
 #include "re.h"
 #include "limits.h"
 #include "hash.h"
+#include "utils.h"
+#include "threading.h"
 
-#ifdef _WIN32
-#include <windows.h>
-typedef HANDLE mutex_t;
-#else
-#include <pthread.h>
-typedef pthread_mutex_t mutex_t;
-#endif
+
 
 #ifdef PROFILING_ENABLED
 #include <time.h>
@@ -39,69 +35,11 @@ typedef int32_t tidx_mask_t;
 
 
 #define DECLARE_REFERENCE(type, name) \
-    union { type name; int64_t name##_; }
+    union { type name; int64_t name##_; } YR_ALIGN(8)
 
-#pragma pack(push)
-#pragma pack(8)
 
 
 #define NAMESPACE_TFLAGS_UNSATISFIED_GLOBAL      0x01
-
-
-typedef struct _YR_NAMESPACE
-{
-    int32_t t_flags[MAX_THREADS];     // Thread-specific flags
-    DECLARE_REFERENCE(char*, name);
-
-} YR_NAMESPACE;
-
-
-#define META_TYPE_NULL      0
-#define META_TYPE_INTEGER   1
-#define META_TYPE_STRING    2
-#define META_TYPE_BOOLEAN   3
-
-#define META_IS_NULL(x) \
-    ((x) != NULL ? (x)->type == META_TYPE_NULL : TRUE)
-
-
-typedef struct _YR_META
-{
-    int32_t type;
-    int64_t integer;
-
-    DECLARE_REFERENCE(const char*, identifier);
-    DECLARE_REFERENCE(char*, string);
-
-} YR_META;
-
-
-typedef struct _YR_MATCH
-{
-    int64_t base;
-    int64_t offset;
-    int32_t length;
-
-    union
-    {
-        uint8_t* data;           // Confirmed matches use "data",
-        int32_t chain_length;    // unconfirmed ones use "chain_length"
-    };
-
-    struct _YR_MATCH*  prev;
-    struct _YR_MATCH*  next;
-
-} YR_MATCH;
-
-
-typedef struct _YR_MATCHES
-{
-    int32_t count;
-
-    DECLARE_REFERENCE(YR_MATCH*, head);
-    DECLARE_REFERENCE(YR_MATCH*, tail);
-
-} YR_MATCHES;
 
 
 #define STRING_GFLAGS_REFERENCED        0x01
@@ -121,7 +59,6 @@ typedef struct _YR_MATCHES
 #define STRING_GFLAGS_CHAIN_TAIL        0x4000
 #define STRING_GFLAGS_FIXED_OFFSET      0x8000
 #define STRING_GFLAGS_GREEDY_REGEXP     0x10000
-
 
 #define STRING_IS_HEX(x) \
     (((x)->g_flags) & STRING_GFLAGS_HEXADECIMAL)
@@ -181,6 +118,98 @@ typedef struct _YR_MATCHES
     ((x)->matches[yr_get_tidx()])
 
 
+#define RULE_TFLAGS_MATCH                0x01
+
+#define RULE_GFLAGS_PRIVATE              0x01
+#define RULE_GFLAGS_GLOBAL               0x02
+#define RULE_GFLAGS_REQUIRE_EXECUTABLE   0x04
+#define RULE_GFLAGS_REQUIRE_FILE         0x08
+#define RULE_GFLAGS_NULL                 0x1000
+
+#define RULE_IS_PRIVATE(x) \
+    (((x)->g_flags) & RULE_GFLAGS_PRIVATE)
+
+#define RULE_IS_GLOBAL(x) \
+    (((x)->g_flags) & RULE_GFLAGS_GLOBAL)
+
+#define RULE_IS_NULL(x) \
+    (((x)->g_flags) & RULE_GFLAGS_NULL)
+
+#define RULE_MATCHES(x) \
+    ((x)->t_flags[yr_get_tidx()] & RULE_TFLAGS_MATCH)
+
+
+#define META_TYPE_NULL      0
+#define META_TYPE_INTEGER   1
+#define META_TYPE_STRING    2
+#define META_TYPE_BOOLEAN   3
+
+#define META_IS_NULL(x) \
+    ((x) != NULL ? (x)->type == META_TYPE_NULL : TRUE)
+
+
+#define EXTERNAL_VARIABLE_TYPE_NULL           0
+#define EXTERNAL_VARIABLE_TYPE_FLOAT          1
+#define EXTERNAL_VARIABLE_TYPE_INTEGER        2
+#define EXTERNAL_VARIABLE_TYPE_BOOLEAN        3
+#define EXTERNAL_VARIABLE_TYPE_STRING         4
+#define EXTERNAL_VARIABLE_TYPE_MALLOC_STRING  5
+
+#define EXTERNAL_VARIABLE_IS_NULL(x) \
+    ((x) != NULL ? (x)->type == EXTERNAL_VARIABLE_TYPE_NULL : TRUE)
+
+
+#pragma pack(push)
+#pragma pack(8)
+
+
+typedef struct _YR_NAMESPACE
+{
+    int32_t t_flags[MAX_THREADS];     // Thread-specific flags
+    DECLARE_REFERENCE(char*, name);
+
+} YR_NAMESPACE;
+
+
+typedef struct _YR_META
+{
+    int32_t type;
+    YR_ALIGN(8) int64_t integer;
+
+    DECLARE_REFERENCE(const char*, identifier);
+    DECLARE_REFERENCE(char*, string);
+
+} YR_META;
+
+
+typedef struct _YR_MATCH
+{
+    int64_t base;
+    int64_t offset;
+    int32_t length;
+
+    union
+    {
+        uint8_t* data;           // Confirmed matches use "data",
+        int32_t chain_length;    // unconfirmed ones use "chain_length"
+    } YR_ALIGN(8);
+
+    YR_ALIGN(8) struct _YR_MATCH* prev;
+    YR_ALIGN(8) struct _YR_MATCH* next;
+
+} YR_MATCH;
+
+
+typedef struct _YR_MATCHES
+{
+    int32_t count;
+
+    DECLARE_REFERENCE(YR_MATCH*, head);
+    DECLARE_REFERENCE(YR_MATCH*, tail);
+
+} YR_MATCHES;
+
+
 typedef struct _YR_STRING
 {
     int32_t g_flags;
@@ -205,27 +234,6 @@ typedef struct _YR_STRING
 } YR_STRING;
 
 
-#define RULE_TFLAGS_MATCH                0x01
-
-#define RULE_GFLAGS_PRIVATE              0x01
-#define RULE_GFLAGS_GLOBAL               0x02
-#define RULE_GFLAGS_REQUIRE_EXECUTABLE   0x04
-#define RULE_GFLAGS_REQUIRE_FILE         0x08
-#define RULE_GFLAGS_NULL                 0x1000
-
-#define RULE_IS_PRIVATE(x) \
-    (((x)->g_flags) & RULE_GFLAGS_PRIVATE)
-
-#define RULE_IS_GLOBAL(x) \
-    (((x)->g_flags) & RULE_GFLAGS_GLOBAL)
-
-#define RULE_IS_NULL(x) \
-    (((x)->g_flags) & RULE_GFLAGS_NULL)
-
-#define RULE_MATCHES(x) \
-    ((x)->t_flags[yr_get_tidx()] & RULE_TFLAGS_MATCH)
-
-
 typedef struct _YR_RULE
 {
     int32_t g_flags;               // Global flags
@@ -244,23 +252,11 @@ typedef struct _YR_RULE
 } YR_RULE;
 
 
-#define EXTERNAL_VARIABLE_TYPE_NULL           0
-#define EXTERNAL_VARIABLE_TYPE_FLOAT          1
-#define EXTERNAL_VARIABLE_TYPE_INTEGER        2
-#define EXTERNAL_VARIABLE_TYPE_BOOLEAN        3
-#define EXTERNAL_VARIABLE_TYPE_STRING         4
-#define EXTERNAL_VARIABLE_TYPE_MALLOC_STRING  5
-
-
-#define EXTERNAL_VARIABLE_IS_NULL(x) \
-    ((x) != NULL ? (x)->type == EXTERNAL_VARIABLE_TYPE_NULL : TRUE)
-
-
 typedef struct _YR_EXTERNAL_VARIABLE
 {
     int32_t type;
 
-    union
+    YR_ALIGN(8) union
     {
         int64_t i;
         double f;
@@ -284,53 +280,16 @@ typedef struct _YR_AC_MATCH
 } YR_AC_MATCH;
 
 
-typedef struct _YR_AC_STATE
+typedef struct _YR_AC_MATCH_TABLE_ENTRY
 {
-    int8_t depth;
+    DECLARE_REFERENCE(YR_AC_MATCH*, match);
 
-    DECLARE_REFERENCE(struct _YR_AC_STATE*, failure);
-    DECLARE_REFERENCE(YR_AC_MATCH*, matches);
-
-} YR_AC_STATE;
+} YR_AC_MATCH_TABLE_ENTRY;
 
 
-typedef struct _YR_AC_STATE_TRANSITION
-{
-    uint8_t input;
-
-    DECLARE_REFERENCE(YR_AC_STATE*, state);
-    DECLARE_REFERENCE(struct _YR_AC_STATE_TRANSITION*, next);
-
-} YR_AC_STATE_TRANSITION;
-
-
-typedef struct _YR_AC_TABLE_BASED_STATE
-{
-    int8_t depth;
-
-    DECLARE_REFERENCE(YR_AC_STATE*, failure);
-    DECLARE_REFERENCE(YR_AC_MATCH*, matches);
-    DECLARE_REFERENCE(YR_AC_STATE*, state) transitions[256];
-
-} YR_AC_TABLE_BASED_STATE;
-
-
-typedef struct _YR_AC_LIST_BASED_STATE
-{
-    int8_t depth;
-
-    DECLARE_REFERENCE(YR_AC_STATE*, failure);
-    DECLARE_REFERENCE(YR_AC_MATCH*, matches);
-    DECLARE_REFERENCE(YR_AC_STATE_TRANSITION*, transitions);
-
-} YR_AC_LIST_BASED_STATE;
-
-
-typedef struct _YR_AC_AUTOMATON
-{
-    DECLARE_REFERENCE(YR_AC_STATE*, root);
-
-} YR_AC_AUTOMATON;
+typedef uint64_t                  YR_AC_TRANSITION;
+typedef YR_AC_TRANSITION*         YR_AC_TRANSITION_TABLE;
+typedef YR_AC_MATCH_TABLE_ENTRY*  YR_AC_MATCH_TABLE;
 
 
 typedef struct _YARA_RULES_FILE_HEADER
@@ -340,13 +299,52 @@ typedef struct _YARA_RULES_FILE_HEADER
     DECLARE_REFERENCE(YR_RULE*, rules_list_head);
     DECLARE_REFERENCE(YR_EXTERNAL_VARIABLE*, externals_list_head);
     DECLARE_REFERENCE(uint8_t*, code_start);
-    DECLARE_REFERENCE(YR_AC_AUTOMATON*, automaton);
+    DECLARE_REFERENCE(YR_AC_MATCH_TABLE, match_table);
+    DECLARE_REFERENCE(YR_AC_TRANSITION_TABLE, transition_table);
 
 } YARA_RULES_FILE_HEADER;
 
-
-
 #pragma pack(pop)
+
+
+//
+// Structs defined below are never stored in the compiled rules file
+//
+
+
+struct _YR_AC_STATE;
+
+
+typedef struct _YR_AC_STATE
+{
+    uint8_t depth;
+    uint8_t input;
+
+    uint32_t t_table_slot;
+
+    struct _YR_AC_STATE* failure;
+    struct _YR_AC_STATE* first_child;
+    struct _YR_AC_STATE* siblings;
+
+    YR_AC_MATCH* matches;
+
+} YR_AC_STATE;
+
+
+typedef struct _YR_AC_AUTOMATON
+{
+    // Both m_table and t_table have the same number of elements, which is
+    // stored in tables_size.
+
+    uint32_t tables_size;
+    uint32_t t_table_unused_candidate;
+
+    YR_AC_TRANSITION_TABLE t_table;
+    YR_AC_MATCH_TABLE m_table;
+
+    YR_AC_STATE* root;
+
+} YR_AC_AUTOMATON;
 
 
 typedef struct _YR_RULES
@@ -355,12 +353,12 @@ typedef struct _YR_RULES
     tidx_mask_t tidx_mask;
     uint8_t* code_start;
 
-    mutex_t mutex;
-
+    YR_MUTEX mutex;
     YR_ARENA* arena;
     YR_RULE* rules_list_head;
     YR_EXTERNAL_VARIABLE* externals_list_head;
-    YR_AC_AUTOMATON* automaton;
+    YR_AC_TRANSITION_TABLE transition_table;
+    YR_AC_MATCH_TABLE match_table;
 
 } YR_RULES;
 

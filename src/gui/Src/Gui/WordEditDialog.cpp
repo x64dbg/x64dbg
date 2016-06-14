@@ -34,6 +34,8 @@ void WordEditDialog::validateExpression(QString expression)
 
 WordEditDialog::~WordEditDialog()
 {
+    mValidateThread->stop();
+    mValidateThread->wait();
     delete ui;
 }
 

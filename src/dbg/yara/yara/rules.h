@@ -26,6 +26,7 @@ limitations under the License.
 #define CALLBACK_MSG_RULE_NOT_MATCHING          2
 #define CALLBACK_MSG_SCAN_FINISHED              3
 #define CALLBACK_MSG_IMPORT_MODULE              4
+#define CALLBACK_MSG_MODULE_IMPORTED            5
 
 #define CALLBACK_CONTINUE   0
 #define CALLBACK_ABORT      1

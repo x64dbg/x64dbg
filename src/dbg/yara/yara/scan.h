@@ -22,7 +22,6 @@ limitations under the License.
 // Bitmasks for flags.
 #define SCAN_FLAGS_FAST_MODE         1
 #define SCAN_FLAGS_PROCESS_MEMORY    2
-#define SCAN_FLAGS_SHOW_MODULE_DATA  4
 
 
 int yr_scan_verify_match(

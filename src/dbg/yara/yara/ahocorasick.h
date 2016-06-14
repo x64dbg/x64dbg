@@ -22,29 +22,50 @@ limitations under the License.
 #include "types.h"
 
 
-int yr_ac_create_automaton(
-    YR_ARENA* arena,
+#define YR_AC_ROOT_STATE                0
+#define YR_AC_NEXT_STATE(t)             (t >> 32)
+#define YR_AC_INVALID_TRANSITION(t, c)  (((t) & 0xFFFF) != c)
+
+#define YR_AC_MAKE_TRANSITION(state, code, flags) \
+  ((uint64_t)((((uint64_t) state) << 32) | ((flags) << 16) | (code)))
+
+#define YR_AC_USED_FLAG    0x1
+
+#define YR_AC_USED_TRANSITION_SLOT(x)   ((x) & (YR_AC_USED_FLAG << 16))
+#define YR_AC_UNUSED_TRANSITION_SLOT(x) (!YR_AC_USED_TRANSITION_SLOT(x))
+
+
+typedef struct _YR_AC_TABLES
+{
+    YR_AC_TRANSITION* transitions;
+    YR_AC_MATCH_TABLE_ENTRY* matches;
+
+} YR_AC_TABLES;
+
+
+int yr_ac_automaton_create(
     YR_AC_AUTOMATON** automaton);
 
 
+int yr_ac_automaton_destroy(
+    YR_AC_AUTOMATON* automaton);
+
+
 int yr_ac_add_string(
-    YR_ARENA* arena,
     YR_AC_AUTOMATON* automaton,
     YR_STRING* string,
-    YR_ATOM_LIST_ITEM* atom);
+    YR_ATOM_LIST_ITEM* atom,
+    YR_ARENA* matches_arena);
 
 
-YR_AC_STATE* yr_ac_next_state(
-    YR_AC_STATE* state,
-    uint8_t input);
-
-
-int yr_ac_create_failure_links(
+int yr_ac_compile(
+    YR_AC_AUTOMATON* automaton,
     YR_ARENA* arena,
-    YR_AC_AUTOMATON* automaton);
+    YR_AC_TABLES* tables);
 
 
 void yr_ac_print_automaton(
     YR_AC_AUTOMATON* automaton);
+
 
 #endif

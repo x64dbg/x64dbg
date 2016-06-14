@@ -10,6 +10,7 @@
 #include "threading.h"
 #include "thread.h"
 #include "module.h"
+#include "console.h"
 
 #define PAGE_SHIFT              (12)
 //#define PAGE_SIZE               (4096)
@@ -639,7 +640,19 @@ bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<Patte
     return true;
 }
 
-bool MemDecodePointer(duint* Pointer)
+template<class T>
+static T ror(T x, unsigned int moves)
+{
+    return (x >> moves) | (x << (sizeof(T) * 8 - moves));
+}
+
+template<class T>
+static T rol(T x, unsigned int moves)
+{
+    return (x << moves) | (x >> (sizeof(T) * 8 - moves));
+}
+
+bool MemDecodePointer(duint* Pointer, bool vistaPlus)
 {
     // Decode a pointer that has been encoded with a special "process cookie"
     // http://doxygen.reactos.org/dd/dc6/lib_2rtl_2process_8c_ad52c0f8f48ce65475a02a5c334b3e959.html
@@ -663,7 +676,16 @@ bool MemDecodePointer(duint* Pointer)
     if(NtQIP(fdProcessInfo->hProcess, /* ProcessCookie */36, &cookie, sizeof(ULONG), nullptr) < 0)
         return false;
 
+    // Pointer adjustment (Windows Vista+)
+    if(vistaPlus)
+#ifdef _WIN64
+        *Pointer = ror(*Pointer, (0x40 - (cookie & 0x3F)) & 0xFF);
+#else
+        *Pointer = ror(*Pointer, (0x20 - (cookie & 0x1F)) & 0xFF);
+#endif //_WIN64
+
     // XOR pointer with key
-    *Pointer = (duint)((ULONG_PTR)(*Pointer) ^ cookie);
+    *Pointer ^= cookie;
+
     return true;
 }

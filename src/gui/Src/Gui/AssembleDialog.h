@@ -33,7 +33,6 @@ public:
     void setOkButtonEnabled(bool enabled);
 
     void validateInstruction(QString expression);
-    void hideEvent(QHideEvent* event);
 
 private slots:
     void textChangedSlot(QString text);
@@ -41,12 +40,13 @@ private slots:
     void on_lineEdit_textChanged(const QString & arg1);
     void on_checkBoxKeepSize_clicked(bool checked);
     void on_checkBoxFillWithNops_clicked(bool checked);
+    void on_radioXEDParse_clicked();
+    void on_radioKeystone_clicked();
 
 private:
     Ui::AssembleDialog* ui;
     duint mSelectedInstrVa;
     ValidateExpressionThread* mValidateThread;
-
 };
 
 #endif // ASSEMBLEDIALOG_H

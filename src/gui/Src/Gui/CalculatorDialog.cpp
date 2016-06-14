@@ -22,6 +22,8 @@ CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui
 
 CalculatorDialog::~CalculatorDialog()
 {
+    mValidateThread->stop();
+    mValidateThread->wait();
     delete ui;
 }
 

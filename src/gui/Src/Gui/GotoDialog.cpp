@@ -31,6 +31,8 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression)
 
 GotoDialog::~GotoDialog()
 {
+    mValidateThread->stop();
+    mValidateThread->wait();
     delete ui;
 }
 
