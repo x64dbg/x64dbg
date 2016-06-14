@@ -275,6 +275,7 @@ static void registercommands()
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
     dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
     dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
+    dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
     dbgcmdnew("guiupdatedisable", cbInstrDisableGuiUpdate, true); //disable gui message
     dbgcmdnew("guiupdateenable", cbInstrEnableGuiUpdate, true); //enable gui message
     dbgcmdnew("exhandlers", cbInstrExhandlers, true); //enumerate exception handlers

@@ -5,7 +5,7 @@
 class AdvancedAnalysis : public Analysis
 {
 public:
-    explicit AdvancedAnalysis(duint base, duint size, duint maxDepth, bool dump = false);
+    explicit AdvancedAnalysis(duint base, duint size, bool dump = false);
     void Analyse() override;
     void SetMarkers() override;
 
@@ -128,10 +128,12 @@ protected:
         duint addr;
         duint from;
         XREFTYPE type;
+        bool valid;
     };
 
-    std::vector<duint> mEntryPoints;
-    std::vector<duint> mCandidateEPs;
+    std::unordered_set<duint> mEntryPoints;
+    std::unordered_set<duint> mCandidateEPs;
+    std::unordered_set<duint> mFuzzyEPs;
     std::vector<CFGraph> mFunctions;
     std::unordered_map<duint, std::vector<XREF>> mXrefs;
     byte* mEncMap;
@@ -140,6 +142,9 @@ private:
     duint mMaxDepth;
     bool mDump;
     void linearXrefPass();
+    void findInvalidXrefs();
+    void writeDataXrefs();
     void findEntryPoints();
-    void analyzeFunction(duint entryPoint);
+    void analyzeCandidateFunctions(bool writedata);
+    void analyzeFunction(duint entryPoint, bool writedata);
 };

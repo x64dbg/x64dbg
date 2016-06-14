@@ -1,7 +1,7 @@
 #pragma once
 #include "_global.h"
 
-void* EncodeMapGetBuffer(duint addr);
+void* EncodeMapGetBuffer(duint addr, bool create = false);
 
 void EncodeMapReleaseBuffer(void* buffer);
 

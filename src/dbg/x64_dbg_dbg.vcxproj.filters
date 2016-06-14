@@ -723,6 +723,7 @@
     </ClInclude>
     <ClInclude Include="encodemap.h">
       <Filter>Header Files\Information</Filter>
+	</ClInclude>
     <ClInclude Include="keystone\arm.h">
       <Filter>Header Files\Third Party\keystone</Filter>
     </ClInclude>

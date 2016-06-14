@@ -3,21 +3,24 @@
 #include "console.h"
 #include "filehelper.h"
 #include "function.h"
+#include "xrefs.h"
+#include "encodemap.h"
 
-AdvancedAnalysis::AdvancedAnalysis(duint base, duint size, duint maxDepth, bool dump)
+AdvancedAnalysis::AdvancedAnalysis(duint base, duint size, bool dump)
     : Analysis(base, size),
-      mMaxDepth(maxDepth),
       mDump(dump)
 {
+    mEncMap = new byte[size];
 }
 
 void AdvancedAnalysis::Analyse()
 {
-    //TODO: implement queue to analyze multiple functions
     linearXrefPass();
-
-    for(const auto & entryPoint : mEntryPoints)
-        analyzeFunction(entryPoint);
+    findEntryPoints();
+    analyzeCandidateFunctions(true);
+    //findFuzzyEntryPoints();
+    findInvalidXrefs();
+    writeDataXrefs();
 }
 
 void AdvancedAnalysis::SetMarkers()
@@ -26,6 +29,21 @@ void AdvancedAnalysis::SetMarkers()
         for(const auto & function : mFunctions)
             FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_" fhex ".dot", function.entryPoint), function.ToDot());
 
+    byte* buffer = (byte*)EncodeMapGetBuffer(mBase, true);
+    memcpy(buffer, mEncMap, mSize);
+    EncodeMapReleaseBuffer(buffer);
+
+    XrefDelRange(mBase, mBase + mSize - 1);
+    for(const auto & vec : mXrefs)
+    {
+        for(const auto & xref : vec.second)
+        {
+            if(xref.valid)
+                XrefAdd(xref.addr, xref.from);
+        }
+    }
+
+    FunctionDelRange(mBase, mBase + mSize - 1);
     for(const auto & function : mFunctions)
     {
         duint start = ~0;
@@ -47,7 +65,7 @@ void AdvancedAnalysis::SetMarkers()
     GuiUpdateAllViews();
 }
 
-void AdvancedAnalysis::analyzeFunction(duint entryPoint)
+void AdvancedAnalysis::analyzeFunction(duint entryPoint, bool writedata)
 {
     //BFS through the disassembly starting at entryPoint
     CFGraph graph(entryPoint);
@@ -68,8 +86,16 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint)
             node.icount++;
             if(!mCp.Disassemble(node.end, translateAddr(node.end)))
             {
+                if(writedata)
+                    mEncMap[node.end - mBase] = (byte)enc_byte;
                 node.end++;
                 continue;
+            }
+            if(writedata)
+            {
+                mEncMap[node.end - mBase] = (byte)enc_code;
+                for(int i = 1; i < mCp.Size(); i++)
+                    mEncMap[node.end - mBase + i] = (byte)enc_middle;
             }
             if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())   //jump
             {
@@ -92,6 +118,9 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint)
             if(mCp.InGroup(CS_GRP_CALL))   //call
             {
                 //TODO: add this to a queue to be analyzed later
+                duint target = mCp.BranchDestination();
+                if(inRange(target) && mEntryPoints.find(target) == mEntryPoints.end())
+                    mCandidateEPs.insert(target);
             }
             if(mCp.InGroup(CS_GRP_RET))   //return
             {
@@ -161,7 +190,133 @@ void AdvancedAnalysis::linearXrefPass()
     dprintf("%u xrefs found in %ums!\n", mXrefs.size(), GetTickCount() - ticks);
 }
 
+void AdvancedAnalysis::findInvalidXrefs()
+{
+    for(auto & vec : mXrefs)
+    {
+        duint jmps = 0, calls = 0;
+        duint addr = vec.first;
+        byte desttype = mEncMap[vec.first - mBase];
+        for(auto & xref : vec.second)
+        {
+            byte type = mEncMap[xref.from - mBase];
+            if(desttype == enc_code && type != enc_unknown && type != enc_code)
+                xref.valid = false;
+            else if(desttype == enc_middle)
+                xref.valid = false;
+        }
+    }
+}
+
+void AdvancedAnalysis::writeDataXrefs()
+{
+    for(auto & vec : mXrefs)
+    {
+        for(auto & xref : vec.second)
+        {
+            if(xref.type == XREF_DATA && xref.valid)
+            {
+                if(!mCp.Disassemble(xref.from, translateAddr(xref.from)))
+                {
+                    xref.valid = false;
+                    continue;
+                }
+                for(auto i = 0; i < mCp.OpCount(); i++)
+                {
+                    auto & op = mCp[i];
+                    ENCODETYPE type = enc_unknown;
+
+                    //Todo: Analyze op type and set correct type
+                    if(op.type == X86_OP_MEM)
+                    {
+                        duint datasize = op.size;
+                        duint size = datasize;
+                        duint offset = xref.addr - mBase;
+                        switch(op.size)
+                        {
+                        case 1:
+                            type = enc_byte;
+                            break;
+                        case 2:
+                            type = enc_word;
+                            break;
+                        case 4:
+                            type = enc_dword;
+                            break;
+                        case 6:
+                            type = enc_fword;
+                            break;
+                        case 8:
+                            type = enc_qword;
+                            break;
+                        case 10:
+                            type = enc_tbyte;
+                            break;
+                        case 16:
+                            type = enc_oword;
+                            break;
+                        case 32:
+                            type = enc_ymmword;
+                            break;
+                            //case 64: type = enc_zmmword; break;
+                        }
+                        if(datasize == 1)
+                        {
+                            memset(mEncMap + offset, (byte)type, size);
+                        }
+                        else
+                        {
+                            memset(mEncMap + offset, (byte)enc_middle, size);
+                            for(duint i = offset; i < offset + size; i += datasize)
+                                mEncMap[i] = (byte)type;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void AdvancedAnalysis::findEntryPoints()
 {
+    for(const auto & vec : mXrefs)
+    {
+        duint jmps = 0, calls = 0;
+        duint addr = vec.first;
+        for(const auto & xref : vec.second)
+        {
+            if(xref.type == XREF_CALL)
+                calls++;
+            else if(xref.type == XREF_JMP)
+                jmps++;
+        }
+        if(calls >= 1 && jmps + calls > 1)
+            mEntryPoints.insert(addr);
+        else
+            mFuzzyEPs.insert(addr);
+    }
+}
+
+void AdvancedAnalysis::analyzeCandidateFunctions(bool writedata)
+{
+    std::unordered_set<duint> pendingEPs;
+    while(true)
+    {
+        pendingEPs.clear();
+        if(mCandidateEPs.size() == 0)
+            return;
+        for(const auto & entryPoint : mCandidateEPs)
+        {
+            pendingEPs.insert(entryPoint);
+        }
+
+        for(const auto & entryPoint : pendingEPs)
+        {
+            if(mEntryPoints.find(entryPoint) == mEntryPoints.end())
+            {
+                analyzeFunction(entryPoint, true);
+            }
+        }
+    }
 
 }

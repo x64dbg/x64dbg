@@ -317,14 +317,15 @@ typedef enum
 {
     enc_unknown,  //must be 0
     enc_byte,     //1 byte
-    enc_word,     //2 byte
-    enc_dword,    //4 byte
-    enc_fword,    //6 byte
-    enc_qword,    //8 byte
-    enc_oword,    //16 byte
-    enc_mmword,   //8 byte
-    enc_xmmword,  //16 byte
-    enc_ymmword,  //32 byte
+    enc_word,     //2 bytes
+    enc_dword,    //4 bytes
+    enc_fword,    //6 bytes
+    enc_qword,    //8 bytes
+    enc_tbyte,    //10 bytes
+    enc_oword,    //16 bytes
+    enc_mmword,   //8 bytes
+    enc_xmmword,  //16 bytes
+    enc_ymmword,  //32 bytes
     enc_real4,    //4 byte float
     enc_real8,    //8 byte double
     enc_real10,   //10 byte decimal

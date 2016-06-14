@@ -44,9 +44,34 @@ struct EncodeMap : AddrInfoHashMap<LockEncodeMaps, ENCODEMAP, EncodeMapSerialize
 
 static EncodeMap encmaps;
 
+bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map)
+{
+    duint base, segsize;
+
+    base = MemFindBaseAddr(addr, &segsize);
+    if(!base)
+        return false;
+
+    duint key = EncodeMap::VaKey(base);
+    if(!encmaps.Contains(key))
+    {
+        map.size = segsize;
+        map.data = (byte*)VirtualAlloc(NULL, segsize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        if(map.data == NULL) return false;
+        encmaps.PrepareValue(map, base, false);
+        encmaps.Add(map);
+    }
+    else
+    {
+        if(!encmaps.Get(key, map))
+            return false;
+    }
+    return true;
+}
 
 
-void* EncodeMapGetBuffer(duint addr)
+
+void* EncodeMapGetBuffer(duint addr, bool create)
 {
     duint base, size;
 
@@ -55,7 +80,8 @@ void* EncodeMapGetBuffer(duint addr)
     base = MemFindBaseAddr(addr, &size);
 
     ENCODEMAP map;
-    if(encmaps.Get(EncodeMap::VaKey(base), map))
+    bool result = create ? EncodeMapGetorCreate(addr, map) : encmaps.Get(EncodeMap::VaKey(base), map);
+    if(result)
     {
         duint offset = addr - base;
         if(offset >= map.size)
@@ -214,28 +240,16 @@ duint EncodeMapGetSize(duint addr, duint codesize)
 
 bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type)
 {
-    duint base, segsize;
+    duint base;
 
-    base = MemFindBaseAddr(addr, &segsize);
+    base = MemFindBaseAddr(addr, 0);
     if(!base)
-        return 0;
+        return false;
 
-    duint key = EncodeMap::VaKey(base);
 
     ENCODEMAP map;
-    if(!encmaps.Contains(key))
-    {
-        map.size = segsize;
-        map.data = (byte*)VirtualAlloc(NULL, segsize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-        if(map.data == NULL) return false;
-        encmaps.PrepareValue(map, base, false);
-        encmaps.Add(map);
-    }
-    else
-    {
-        if(!encmaps.Get(key, map))
-            return false;
-    }
+    if(!EncodeMapGetorCreate(base, map))
+        return false;
     duint offset = addr - base;
     size = min(map.size - offset, size);
     //for (int i = offset - 1; i > 0; i++)
@@ -267,6 +281,7 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type)
         else
             break;
     }
+    return true;
 }
 
 void EncodeMapDelSegment(duint Start)
