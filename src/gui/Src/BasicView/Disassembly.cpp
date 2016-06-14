@@ -1179,13 +1179,18 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
     dsint wMaxByteCountToRead;
 
     wBottomByteRealRVA = (dsint)rva - 16 * (count + 3);
+    if(mCodeFoldingManager)
+    {
+        if(mCodeFoldingManager->isFolded(rvaToVa(wBottomByteRealRVA)))
+        {
+            wBottomByteRealRVA = mCodeFoldingManager->getFoldBegin(wBottomByteRealRVA) - mMemPage->getBase() - 16 * (count + 3);
+        }
+    }
     wBottomByteRealRVA = wBottomByteRealRVA < 0 ? 0 : wBottomByteRealRVA;
 
     wVirtualRVA = (dsint)rva - wBottomByteRealRVA;
 
     wMaxByteCountToRead = wVirtualRVA + 1 + 16;
-    if(mCodeFoldingManager)
-        wMaxByteCountToRead += mCodeFoldingManager->getFoldedSize(rvaToVa(wBottomByteRealRVA), rvaToVa(wBottomByteRealRVA + wMaxByteCountToRead));
     wBuffer.resize(wMaxByteCountToRead);
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wBottomByteRealRVA, wMaxByteCountToRead);
@@ -1401,7 +1406,7 @@ void Disassembly::selectPrevious(bool expand)
     dsint wAddr;
     dsint wStart;
     dsint wInstrSize;
-        wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
+    wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
     if(expand)
     {
         if(getSelectionStart() == getInitialSelection() && wStart != getSelectionEnd()) //decrease up
