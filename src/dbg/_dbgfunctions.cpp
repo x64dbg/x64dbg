@@ -331,4 +331,5 @@ void dbgfunctionsinit()
     _dbgfunctions.EnumHandles = _enumhandles;
     _dbgfunctions.GetHandleName = _gethandlename;
     _dbgfunctions.EnumTcpConnections = _enumtcpconnections;
+    _dbgfunctions.GetDbgEvents = dbggetdbgevents;
 }
