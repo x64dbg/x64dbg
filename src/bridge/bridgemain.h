@@ -202,6 +202,12 @@ typedef enum
     DBG_XREF_ADD,                   // param1=duint addr,                param2=duint from
     DBG_XREF_DEL_ALL,               // param1=duint addr,                param2=unused
     DBG_XREF_GET,                   // param1=duint addr,                param2=XREF_INFO* info
+    DBG_GET_ENCODE_TYPE_BUFFER,     // param1=duint addr,                param2=unused
+    DBG_ENCODE_TYPE_GET,            // param1=duint addr,                param2=duint size
+    DBG_DELETE_ENCODE_TYPE_RANGE,   // param1=duint start,               param2=duint end
+    DBG_ENCODE_SIZE_GET,            // param1=duint addr,                param2=duint codesize
+    DBG_DELETE_ENCODE_TYPE_SEG,     // param1=duint addr,                param2=unused
+    DBG_RELEASE_ENCODE_TYPE_BUFFER, // param1=void* buffer,              param2=unused
 } DBGMSG;
 
 typedef enum
@@ -306,6 +312,28 @@ typedef enum
     size_dword = 4,
     size_qword = 8
 } MEMORY_SIZE;
+
+typedef enum
+{
+    enc_unknown,  //must be 0
+    enc_byte,     //1 byte
+    enc_word,     //2 byte
+    enc_dword,    //4 byte
+    enc_fword,    //6 byte
+    enc_qword,    //8 byte
+    enc_oword,    //16 byte
+    enc_mmword,   //8 byte
+    enc_xmmword,  //16 byte
+    enc_ymmword,  //32 byte
+    enc_real4,    //4 byte float
+    enc_real8,    //8 byte double
+    enc_real10,   //10 byte decimal
+    enc_ascii,    //ascii sequence
+    enc_unicode,  //unicode sequence
+    enc_code,     //start of code
+    enc_middle    //middle of data
+} ENCODETYPE;
+
 
 //Debugger typedefs
 typedef MEMORY_SIZE VALUE_SIZE;
@@ -736,7 +764,7 @@ BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end);
 BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr);
-BRIDGE_IMPEXP bool DbgXrefAdd(duint addr, duint from, bool iscall);
+BRIDGE_IMPEXP bool DbgXrefAdd(duint addr, duint from);
 BRIDGE_IMPEXP bool DbgXrefDelAll(duint addr);
 BRIDGE_IMPEXP bool DbgXrefGet(duint addr, XREF_INFO* info);
 BRIDGE_IMPEXP size_t DbgGetXrefCountAt(duint addr);
@@ -758,6 +786,13 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 BRIDGE_IMPEXP bool DbgIsRunning();
 BRIDGE_IMPEXP duint DbgGetTimeWastedCounter();
 BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr);
+BRIDGE_IMPEXP void* DbgGetEncodeTypeBuffer(duint addr);
+BRIDGE_IMPEXP void DbgReleaseEncodeTypeBuffer(void* buffer);
+BRIDGE_IMPEXP ENCODETYPE DbgGetEncodeTypeAt(duint addr, duint size);
+BRIDGE_IMPEXP duint DbgGetEncodeSizeAt(duint addr, duint codesize);
+BRIDGE_IMPEXP bool DbgSetEncodeType(duint addr, duint size, ENCODETYPE type);
+BRIDGE_IMPEXP void DbgDelEncodeTypeRange(duint start, duint end);
+BRIDGE_IMPEXP void DbgDelEncodeTypeSegment(duint start);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

@@ -323,6 +323,12 @@
     <ClCompile Include="xrefsanalysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
+    <ClCompile Include="advancedanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="encodemap.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -708,6 +714,12 @@
     </ClInclude>
     <ClInclude Include="xrefsanalysis.h">
       <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="advancedanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="encodemap.h">
+      <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

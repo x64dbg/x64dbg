@@ -1185,7 +1185,7 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wBottomByteRealRVA, wMaxByteCountToRead);
 
-    dsint addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
+    dsint addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), mMemPage->getBase() + wBottomByteRealRVA,  wMaxByteCountToRead, wVirtualRVA , count);
 
     addr += rva - wVirtualRVA;
 
@@ -1219,7 +1219,7 @@ dsint Disassembly::getNextInstructionRVA(dsint rva, duint count)
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
 
-    wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
+    wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), mMemPage->getBase() + rva,  wMaxByteCountToRead, wVirtualRVA, count);
     wNewRVA += rva;
 
     return wNewRVA;
@@ -1323,7 +1323,7 @@ void Disassembly::setSingleSelection(dsint index)
 {
     mSelection.firstSelectedIndex = index;
     mSelection.fromIndex = index;
-    mSelection.toIndex = index;
+    mSelection.toIndex = getInstructionRVA(mSelection.fromIndex, 1) - 1;
     emit selectionChanged(rvaToVa(index));
 }
 
@@ -1335,7 +1335,7 @@ dsint Disassembly::getInitialSelection()
 
 dsint Disassembly::getSelectionSize()
 {
-    return mSelection.toIndex - mSelection.fromIndex;
+    return mSelection.toIndex - mSelection.fromIndex + 1;
 }
 
 dsint Disassembly::getSelectionStart()
@@ -1565,6 +1565,7 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
 
     // Set base and size (Useful when memory page changed)
     mMemPage->setAttributes(wBase, wSize);
+    mDisasm->getEncodeMap()->setMemoryRegion(wBase);
 
     if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
         mRvaDisplayEnabled = false;
@@ -1577,6 +1578,7 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
 
     //set CIP rva
     mCipRva = wCipRva;
+    mDisasm->setCIP(parCIP);
 
     if(newTableOffset == -1) //nothing specified
     {
@@ -1677,6 +1679,7 @@ void Disassembly::disassembleClear()
     mHighlightToken = CapstoneTokenizer::SingleToken();
     historyClear();
     mMemPage->setAttributes(0, 0);
+    mDisasm->getEncodeMap()->setMemoryRegion(0);
     setRowCount(0);
     reloadData();
 }

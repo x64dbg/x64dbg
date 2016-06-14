@@ -95,6 +95,9 @@ public slots:
     void labelHelpSlot();
     void editSoftBpActionSlot();
     void analyzeSingleFunctionSlot();
+    void removeAnalysisSelectionSlot();
+    void removeAnalysisModuleSlot();
+    void setEncodeTypeSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);

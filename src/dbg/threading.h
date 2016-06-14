@@ -59,6 +59,7 @@ enum SectionLock
     LockCrossReferences,
     LockDebugStartStop,
     LockArguments,
+    LockEncodeMaps,
 
     // Number of elements in this enumeration. Must always be the last
     // index.

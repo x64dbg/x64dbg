@@ -404,8 +404,58 @@ void CPUDisassembly::setupRightClickContextMenu()
             toggleFunctionAction->setText(tr("Delete function"));
         return true;
     });
-    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/analyzesinglefunction.png"), tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
+
+    mMenuBuilder->addSeparator();
+
+
+    MenuBuilder* analysisMenu = new MenuBuilder(this);
+
+
+    analysisMenu->addAction(makeShortcutAction(tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
+    analysisMenu->addAction(makeAction(tr("Remove analysis from module"), SLOT(removeAnalysisModuleSlot())));
+
+    analysisMenu->addSeparator();
+
+    analysisMenu->addAction(makeAction(tr("Remove analysis from selection"), SLOT(removeAnalysisSelectionSlot())));
+
+    QMenu* encodeTypeMenu = makeMenu("Treat selection as");
+
+    std::string strTable[] = {"Command", "Byte", "Word", "Dword", "Fword", "Qword", "Oword", "",
+                              "Float", "Double", "Long Double", "",
+                              "ASCII", "UNICODE", "",
+                              "MMWord", "XMMWOrd", "YMMWord"
+                             };
+
+    ENCODETYPE enctypeTable[] = {enc_code, enc_byte, enc_word, enc_dword, enc_fword, enc_qword, enc_oword, enc_middle,
+                                 enc_real4, enc_real8, enc_real10 , enc_middle,
+                                 enc_ascii, enc_unicode, enc_middle,
+                                 enc_mmword, enc_xmmword, enc_ymmword
+                                };
+
+    int enctypesize = sizeof(enctypeTable) / sizeof(ENCODETYPE);
+
+    for(int i = 0; i < enctypesize; i++)
+    {
+        if(enctypeTable[i] == enc_middle)
+            encodeTypeMenu->addSeparator();
+        else
+        {
+            QAction* action = makeAction(tr(strTable[i].c_str()), SLOT(setEncodeTypeSlot()));
+            action->setData(enctypeTable[i]);
+            encodeTypeMenu->addAction(action);
+
+        }
+    }
+
+    analysisMenu->addMenu(encodeTypeMenu);
+
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/analyzesinglefunction.png"), tr("Analysis")), analysisMenu);
+    mMenuBuilder->addSeparator();
+
+
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/compile.png"), tr("Assemble"), SLOT(assembleSlot()), "ActionAssemble"));
+
+
     removeAction(mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/patch.png"), tr("Patches"), SLOT(showPatchesSlot()), "ViewPatches"))); //prevent conflicting shortcut with the MainWindow
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/yara.png"), tr("&Yara..."), SLOT(yaraSlot()), "ActionYara"));
     mMenuBuilder->addSeparator();
@@ -1452,4 +1502,21 @@ void CPUDisassembly::mnemonicHelpSlot()
 void CPUDisassembly::analyzeSingleFunctionSlot()
 {
     DbgCmdExec(QString("analr %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
+}
+
+void CPUDisassembly::removeAnalysisSelectionSlot()
+{
+    DbgDelEncodeTypeRange(rvaToVa(getSelectionStart()), getSelectionSize());
+}
+
+void CPUDisassembly::removeAnalysisModuleSlot()
+{
+    DbgDelEncodeTypeSegment(rvaToVa(getSelectionStart()));
+}
+
+void CPUDisassembly::setEncodeTypeSlot()
+{
+    QAction* pAction = qobject_cast<QAction*>(sender());
+    mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), getSelectionSize(), (ENCODETYPE)pAction->data().toUInt());
+    GuiUpdateDisassemblyView();
 }

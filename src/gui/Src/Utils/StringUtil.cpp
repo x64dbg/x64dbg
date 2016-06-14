@@ -168,6 +168,41 @@ QString ToLongDoubleString(void* buffer)
     }
 }
 
+QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
+{
+    switch(type)
+    {
+    case enc_byte:
+        return ToIntegralString<unsigned char>(buffer);
+    case enc_word:
+        return ToIntegralString<unsigned short>(buffer);
+    case enc_dword:
+        return ToIntegralString<unsigned int>(buffer);
+    case enc_fword:
+        return ToHexString(*(unsigned short*)((char*)buffer + 4)) + ToHexString(*(unsigned int*)buffer);
+    case enc_qword:
+        return ToIntegralString<unsigned long long int>(buffer);
+    case enc_oword:
+        return ToIntegralString<unsigned long long int>((char*)buffer + 8) + ToIntegralString<unsigned long long int>(buffer);
+    case enc_mmword:
+    case enc_xmmword:
+    case enc_ymmword:
+        return QString(QByteArray((const char*)buffer, size).toHex());
+    case enc_real4:
+        return ToFloatString(buffer);
+    case enc_real8:
+        return ToDoubleString(buffer);
+    case enc_real10:
+        return ToLongDoubleString(buffer);
+    case enc_ascii:
+        return QString::fromLocal8Bit((const char*)buffer, size);
+    case enc_unicode:
+        return QString::fromWCharArray((const wchar_t*)buffer, size / sizeof(wchar_t));
+    default:
+        return ToIntegralString<unsigned char>(buffer);
+    }
+}
+
 QString ToDateString(const QDate & date)
 {
     static const char* months[] =

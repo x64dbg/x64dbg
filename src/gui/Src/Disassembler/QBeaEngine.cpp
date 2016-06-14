@@ -1,9 +1,17 @@
 #include "QBeaEngine.h"
+#include "StringUtil.h"
 
 QBeaEngine::QBeaEngine(int maxModuleSize)
-    : _tokenizer(maxModuleSize)
+    : _tokenizer(maxModuleSize), mCIP(0)
 {
     CapstoneTokenizer::UpdateColors();
+    UpdateDataInstructionMap();
+    this->mEncodeMap = new EncodeMap();
+}
+
+QBeaEngine::~QBeaEngine()
+{
+    delete this->mEncodeMap;
 }
 
 /**
@@ -67,6 +75,9 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
         else
             cmdsize = cp.Size();
 
+        if(base + ip != mCIP)
+            cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize); //If CIP at current address, it must be code, otherwise try decode as data
+
         pdata += cmdsize;
         addr += cmdsize;
         back -= cmdsize;
@@ -111,8 +122,11 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
     if(n <= 0)
         return ip;
 
+
     pdata = data + ip;
     size -= ip;
+
+
 
     for(i = 0; i < n && size > 0; i++)
     {
@@ -120,6 +134,9 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
             cmdsize = 1;
         else
             cmdsize = cp.Size();
+
+        if(base + ip != mCIP)
+            cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize); //If CIP at current address, it must be code, otherwise try decode as data
 
         pdata += cmdsize;
         ip += cmdsize;
@@ -151,6 +168,15 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
     const auto & cp = _tokenizer.GetCapstone();
     bool success = cp.Success();
 
+
+    ENCODETYPE type = enc_code;
+
+    if(origBase + origInstRVA != mCIP)
+        type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 0);
+
+    if(type != enc_unknown && type != enc_code && type != enc_middle)
+        return DecodeDataAt(data, size, instIndex, origBase, origInstRVA, type);
+
     auto branchType = Instruction_t::None;
     if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop()))
     {
@@ -177,7 +203,69 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
     return wInst;
 }
 
+
+
+Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, ENCODETYPE type)
+{
+    //tokenize
+    CapstoneTokenizer::InstructionToken cap;
+
+    DataInstructionInfo info;
+
+    auto & infoIter = dataInstMap.find(type);
+
+    if(infoIter == dataInstMap.end())
+    {
+        infoIter = dataInstMap.find(enc_byte);
+    }
+
+
+    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 0);
+
+    QString mnemonic = _bLongDataInst ? infoIter.value().longName : infoIter.value().shortName;
+
+    len = std::min(len, (int)size);
+
+    QString datastr = GetDataTypeString(data, len, type);
+
+    _tokenizer.TokenizeData(mnemonic, datastr, cap);
+
+    Instruction_t wInst;
+    wInst.instStr = mnemonic + " " + datastr;
+    wInst.dump = QByteArray((const char*)data, len);
+    wInst.rva = origInstRVA;
+    wInst.length = len;
+    wInst.branchType = Instruction_t::None;
+    wInst.branchDestination = 0;
+    wInst.tokens = cap;
+
+    return wInst;
+}
+
+void QBeaEngine::UpdateDataInstructionMap()
+{
+    dataInstMap.clear();
+    dataInstMap.insert(enc_byte, {"db", "byte", 1});
+    dataInstMap.insert(enc_word, {"dw", "word", 2});
+    dataInstMap.insert(enc_dword, {"dd", "dword", 4});
+    dataInstMap.insert(enc_fword, {"df", "fword", 6});
+    dataInstMap.insert(enc_qword, {"dq", "qword", 8});
+    dataInstMap.insert(enc_oword, {"oword", "oword", 16});
+    dataInstMap.insert(enc_mmword, {"mmword", "mmword", 8});
+    dataInstMap.insert(enc_xmmword, {"xmmword", "xmmword", 16});
+    dataInstMap.insert(enc_ymmword, {"ymmword", "ymmword", 32});
+    dataInstMap.insert(enc_real4, {"real4", "float", 4});
+    dataInstMap.insert(enc_real8, {"real8", "double", 8});
+    dataInstMap.insert(enc_real10, {"real10", "decimal", 10});
+    dataInstMap.insert(enc_ascii, {"ascii", "ascii", 0});
+    dataInstMap.insert(enc_unicode, {"unicode", "unicode", 0});
+
+}
+
+
+
 void QBeaEngine::UpdateConfig()
 {
+    _bLongDataInst = ConfigBool("Disassembler", "LongDataInstruction");
     _tokenizer.UpdateConfig();
 }

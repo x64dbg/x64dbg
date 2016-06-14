@@ -80,6 +80,7 @@ BRIDGE_IMPEXP const char* BridgeInit()
     LOADEXPORT(_dbg_isjumpgoingtoexecute);
     LOADEXPORT(_dbg_addrinfoget);
     LOADEXPORT(_dbg_addrinfoset);
+    LOADEXPORT(_dbg_encodetypeset);
     LOADEXPORT(_dbg_bpgettypeat);
     LOADEXPORT(_dbg_getregdump);
     LOADEXPORT(_dbg_valtostring);
@@ -752,7 +753,7 @@ BRIDGE_IMPEXP XREFTYPE DbgGetXrefTypeAt(duint addr)
     return (XREFTYPE)_dbg_sendmessage(DBG_GET_XREF_TYPE_AT, (void*)addr, 0);
 }
 
-BRIDGE_IMPEXP bool DbgXrefAdd(duint addr, duint from, bool iscall)
+BRIDGE_IMPEXP bool DbgXrefAdd(duint addr, duint from)
 {
     if(!_dbg_sendmessage(DBG_XREF_ADD, (void*)addr, (void*)from))
         return false;
@@ -880,6 +881,41 @@ BRIDGE_IMPEXP duint DbgGetTimeWastedCounter()
 BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr)
 {
     return ARG_NONE;
+}
+
+BRIDGE_IMPEXP void* DbgGetEncodeTypeBuffer(duint addr)
+{
+    return (void*)_dbg_sendmessage(DBG_GET_ENCODE_TYPE_BUFFER, (void*)addr, nullptr);
+}
+
+BRIDGE_IMPEXP void DbgReleaseEncodeTypeBuffer(void* buffer)
+{
+    _dbg_sendmessage(DBG_RELEASE_ENCODE_TYPE_BUFFER, buffer, nullptr);
+}
+
+BRIDGE_IMPEXP ENCODETYPE DbgGetEncodeTypeAt(duint addr, duint size)
+{
+    return (ENCODETYPE)_dbg_sendmessage(DBG_ENCODE_TYPE_GET, (void*)addr, (void*)size);
+}
+
+BRIDGE_IMPEXP duint DbgGetEncodeSizeAt(duint addr, duint codesize)
+{
+    return _dbg_sendmessage(DBG_ENCODE_SIZE_GET, (void*)addr, (void*)codesize);
+}
+
+BRIDGE_IMPEXP bool DbgSetEncodeType(duint addr, duint size, ENCODETYPE type)
+{
+    return _dbg_encodetypeset(addr, size, type);
+}
+
+BRIDGE_IMPEXP void DbgDelEncodeTypeRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_ENCODE_TYPE_RANGE, (void*)start, (void*)end);
+}
+
+BRIDGE_IMPEXP void DbgDelEncodeTypeSegment(duint start)
+{
+    _dbg_sendmessage(DBG_DELETE_ENCODE_TYPE_SEG, (void*)start, 0);
 }
 
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)

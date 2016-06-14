@@ -119,8 +119,6 @@ private:
         dsint toIndex;
     } SelectionData_t;
 
-    QBeaEngine* mDisasm;
-
     SelectionData_t mSelection;
 
     bool mIsLastInstDisplayed;
@@ -201,6 +199,7 @@ protected:
     dsint mRvaDisplayPageBase;
     bool mHighlightingMode;
     MemoryPage* mMemPage;
+    QBeaEngine* mDisasm;
     bool mShowMnemonicBrief;
     XREF_INFO mXrefInfo;
 };

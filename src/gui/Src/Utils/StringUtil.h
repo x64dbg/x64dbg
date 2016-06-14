@@ -63,6 +63,13 @@ static QString ToFloatingString(void* buffer)
     return QString::fromStdString(wFloatingStr.str());
 }
 
+template<typename T>
+static QString ToIntegralString(void* buffer)
+{
+    auto value = *(T*)buffer;
+    return ToHexString(value);
+}
+
 static QString ToFloatString(void* buffer)
 {
     return ToFloatingString<float>(buffer);
@@ -76,6 +83,8 @@ static QString ToDoubleString(void* buffer)
 QString ToLongDoubleString(void* buffer);
 
 QString ToDateString(const QDate & date);
+
+QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type);
 
 static QDate GetCompileDate()
 {

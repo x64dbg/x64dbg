@@ -174,6 +174,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disassemblyBool.insert("FindCommandEntireBlock", false);
     disassemblyBool.insert("OnlyCipAutoComments", false);
     disassemblyBool.insert("TabbedMnemonic", false);
+    disassemblyBool.insert("LongDataInstruction", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     QMap<QString, bool> engineBool;
