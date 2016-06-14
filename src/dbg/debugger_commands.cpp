@@ -1255,6 +1255,52 @@ CMDRESULT cbDebugeRtr(int argc, char* argv[])
     return cbDebugRtr(argc, argv);
 }
 
+CMDRESULT cbDebugTocnd(int argc, char* argv[])
+{
+    if (argc > 2)
+    {
+        dputs("Too many arguments.");
+        return STATUS_ERROR;
+    }
+    else if (argc < 1)
+    {
+        dputs("Too few arguments.");
+        return STATUS_ERROR;
+    }
+    if (RtcondCondition != nullptr)
+    {
+        dputs("Tracing is busy now.");
+        return STATUS_ERROR;
+    }
+    RtcondCondition = new ExpressionParser(argv[1]);
+    StepOver((void*)cbTOCNDStep);
+    cbDebugRun(argc, argv);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugTicnd(int argc, char* argv[])
+{
+    if (argc > 2)
+    {
+        dputs("Too many arguments.");
+        return STATUS_ERROR;
+    }
+    else if (argc < 1)
+    {
+        dputs("Too few arguments.");
+        return STATUS_ERROR;
+    }
+    if (RtcondCondition != nullptr)
+    {
+        dputs("Tracing is busy now.");
+        return STATUS_ERROR;
+    }
+    RtcondCondition = new ExpressionParser(argv[1]);
+    StepInto((void*)cbTICNDStep);
+    cbDebugRun(argc, argv);
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbDebugAlloc(int argc, char* argv[])
 {
     duint size = 0x1000;
