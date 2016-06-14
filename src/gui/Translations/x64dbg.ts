@@ -925,6 +925,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../Src/Gui/BreakpointsView.cpp" line="223"/>
+        <source>&amp;Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="238"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="409"/>
         <location filename="../Src/Gui/BreakpointsView.cpp" line="566"/>
@@ -2441,6 +2446,11 @@
     <message>
         <location filename="../Src/Gui/CallStackView.cpp" line="30"/>
         <source>Follow &amp;From</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/CallStackView.cpp" line="70"/>
+        <source>&amp;Copy</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5284,12 +5294,179 @@ Do you want to apply these patches anyway?</source>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="27"/>
+        <location filename="../Src/Gui/SymbolView.cpp" line="29"/>
+        <source>Base</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="28"/>
+        <source>Module</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="33"/>
+        <location filename="../Src/Gui/SymbolView.cpp" line="39"/>
+        <source>Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="34"/>
+        <location filename="../Src/Gui/SymbolView.cpp" line="40"/>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="35"/>
+        <location filename="../Src/Gui/SymbolView.cpp" line="41"/>
+        <source>Symbol</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="36"/>
+        <location filename="../Src/Gui/SymbolView.cpp" line="42"/>
+        <source>Symbol (undecorated)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="94"/>
+        <location filename="../Src/Gui/SymbolView.cpp" line="117"/>
+        <source>&amp;Follow in Disassembler</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="99"/>
+        <source>Follow in &amp;Dump</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="102"/>
+        <source>Toggle Breakpoint</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="109"/>
+        <source>Toggle Bookmark</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="122"/>
+        <source>Follow &amp;Entry Point in Disassembler</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="125"/>
+        <source>&amp;Download Symbols for This Module</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="128"/>
+        <source>Download Symbols for &amp;All Modules</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="131"/>
+        <source>Copy File &amp;Path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="134"/>
+        <source>&amp;Yara Memory...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="137"/>
+        <source>&amp;Yara File...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="140"/>
+        <source>Entropy...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="187"/>
+        <source>Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="191"/>
+        <source>Export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="275"/>
+        <source>&amp;Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="387"/>
+        <source>Error!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="387"/>
+        <source>DbgSetBookmarkAt failed!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/SymbolView.cpp" line="403"/>
+        <source>Entropy (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ThreadView</name>
     <message>
         <location filename="../Src/Gui/ThreadView.cpp" line="26"/>
         <source>&amp;Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="43"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="175"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="253"/>
+        <source>Normal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="45"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="241"/>
+        <source>AboveNormal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="47"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="256"/>
+        <source>TimeCritical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="49"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="155"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="238"/>
+        <source>Idle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="51"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="244"/>
+        <source>BelowNormal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="53"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="167"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="247"/>
+        <source>Highest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="55"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="171"/>
+        <location filename="../Src/Gui/ThreadView.cpp" line="250"/>
+        <source>Lowest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5315,6 +5492,21 @@ Do you want to apply these patches anyway?</source>
     <message>
         <location filename="../Src/Gui/ThreadView.cpp" line="153"/>
         <source>Set Priority</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="159"/>
+        <source>Above Normal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="163"/>
+        <source>Below Normal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="179"/>
+        <source>Time Critical</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5372,11 +5564,26 @@ Do you want to apply these patches anyway?</source>
         <source>Last Error</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="205"/>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/ThreadView.cpp" line="259"/>
+        <source>Unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>TimeWastedCounter</name>
     <message>
-        <location filename="../Src/Gui/TimeWastedCounter.cpp" line="19"/>
+        <location filename="../Src/Gui/TimeWastedCounter.cpp" line="17"/>
+        <source>%1 events/s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/TimeWastedCounter.cpp" line="26"/>
         <source>Time Wasted Debugging:</source>
         <translation type="unfinished"></translation>
     </message>
