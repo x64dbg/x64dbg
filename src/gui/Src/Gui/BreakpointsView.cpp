@@ -220,7 +220,7 @@ void BreakpointsView::reloadData()
 
 void BreakpointsView::setupRightClickContextMenu()
 {
-    mEditBreakpointAction = new QAction("&Edit", this);
+    mEditBreakpointAction = new QAction(tr("&Edit"), this);
     addAction(mEditBreakpointAction);
     connect(mEditBreakpointAction, SIGNAL(triggered(bool)), this, SLOT(editBreakpointSlot()));
 
