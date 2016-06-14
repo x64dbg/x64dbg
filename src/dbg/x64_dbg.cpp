@@ -89,6 +89,8 @@ static void registercommands()
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //rtr
     dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
+    dbgcmdnew("tocnd", cbDebugTocnd, true); //tocnd
+    dbgcmdnew("ticnd", cbDebugTicnd, true); //ticnd
 
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
 
@@ -134,8 +136,8 @@ static void registercommands()
 
     //breakpoints (conditional)
     dbgcmdnew("SetBreakpointName\1bpname", cbDebugSetBPXName, true); //set breakpoint name
-    dbgcmdnew("SetBreakpointCondition\1bpcond", cbDebugSetBPXCondition, true); //set breakpoint breakCondition
-    dbgcmdnew("SetBreakpointLog\1bplog", cbDebugSetBPXLog, true); //set breakpoint logText
+    dbgcmdnew("SetBreakpointCondition\1bpcond\1bpcnd", cbDebugSetBPXCondition, true); //set breakpoint breakCondition
+    dbgcmdnew("SetBreakpointLog\1bplog\1bpl", cbDebugSetBPXLog, true); //set breakpoint logText
     dbgcmdnew("SetBreakpointLogCondition\1bplogcondition", cbDebugSetBPXLogCondition, true); //set breakpoint logCondition
     dbgcmdnew("SetBreakpointCommand", cbDebugSetBPXCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetBreakpointCommandCondition", cbDebugSetBPXCommandCondition, true); //set breakpoint commandCondition
