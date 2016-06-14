@@ -56,6 +56,8 @@ CMDRESULT cbDebugStepOver(int argc, char* argv[]);
 CMDRESULT cbDebugeStepOver(int argc, char* argv[]);
 CMDRESULT cbDebugSingleStep(int argc, char* argv[]);
 CMDRESULT cbDebugeSingleStep(int argc, char* argv[]);
+CMDRESULT cbDebugTocnd(int argc, char* argv[]);
+CMDRESULT cbDebugTicnd(int argc, char* argv[]);
 CMDRESULT cbDebugHide(int argc, char* argv[]);
 CMDRESULT cbDebugDisasm(int argc, char* argv[]);
 CMDRESULT cbDebugRtr(int argc, char* argv[]);
