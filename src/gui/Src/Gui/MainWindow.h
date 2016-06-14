@@ -62,6 +62,8 @@ public slots:
     void execClose();
     void execRun();
     void execRtr();
+    void execTocnd();
+    void execTicnd();
     void openFile();
     void execPause();
     void startScylla();
