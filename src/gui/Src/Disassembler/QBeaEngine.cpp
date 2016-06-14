@@ -21,7 +21,7 @@ QBeaEngine::QBeaEngine(int maxModuleSize)
 ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n)
 {
     int i;
-    uint abuf[131], addr, back, cmdsize;
+    uint abuf[128], addr, back, cmdsize;
     unsigned char* pdata;
 
     // Reset Disasm Structure
@@ -48,12 +48,19 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
     //if(ip < (uint)n)
     //    return ip;
 
+    //TODO: buffer overflow due to unchecked "back" value
     back = MAX_DISASM_BUFFER * (n + 3); // Instruction length limited to 16
 
     if(ip < back)
         back = ip;
 
     addr = ip - back;
+    if(mCodeFoldingManager && mCodeFoldingManager->isFolded(addr + base))
+    {
+        duint newback = mCodeFoldingManager->getFoldBegin(addr + base);
+        if(newback >= base && newback < size + base)
+            addr = newback - base;
+    }
 
     pdata = data + addr;
 
@@ -63,11 +70,16 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
 
         if(mCodeFoldingManager && mCodeFoldingManager->isFolded(addr + base))
         {
+            duint newaddr = mCodeFoldingManager->getFoldBegin(addr + base);
+            if(newaddr >= base)
+            {
+                addr = newaddr - base;
+            }
             cmdsize = mCodeFoldingManager->getFoldEnd(addr + base) - (addr + base) + 1;
         }
         else
         {
-            if(!cp.Disassemble(0, pdata, (int)size))
+            if(!cp.Disassemble(addr + base, pdata, (int)size))
                 cmdsize = 2; //heuristic for better output (FF FE or FE FF are usually part of an instruction)
             else
                 cmdsize = cp.Size();
@@ -75,7 +87,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
 
         pdata += cmdsize;
         addr += cmdsize;
-        back -= cmdsize;
+        //back -= cmdsize; // dead code
         size -= cmdsize;
     }
 
