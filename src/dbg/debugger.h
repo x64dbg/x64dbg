@@ -6,6 +6,7 @@
 #include "command.h"
 #include "breakpoint.h"
 #include "undocumented.h"
+#include "expressionparser.h"
 #include "value.h"
 #include "_plugins.h"
 
@@ -104,6 +105,8 @@ bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp);
 bool cbBreakpointList(const BREAKPOINT* bp);
 bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp);
 bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp);
+void cbTOCNDStep();
+void cbTICNDStep();
 DWORD WINAPI threadAttachLoop(void* lpParameter);
 void cbDetach();
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
@@ -114,6 +117,7 @@ extern HANDLE hActiveThread;
 extern HANDLE hProcessToken;
 extern char szFileName[MAX_PATH];
 extern char szSymbolCachePath[MAX_PATH];
+extern ExpressionParser* RtcondCondition;
 extern bool bUndecorateSymbolNames;
 extern bool bEnableSourceDebugging;
 
