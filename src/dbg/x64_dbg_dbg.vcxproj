@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="addrinfo.cpp" />
+    <ClCompile Include="advancedanalysis.cpp" />
     <ClCompile Include="analysis.cpp" />
     <ClCompile Include="AnalysisPass.cpp" />
     <ClCompile Include="analysis_nukem.cpp" />
@@ -38,6 +39,7 @@
     <ClCompile Include="dbghelp_safe.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="debugger_commands.cpp" />
+    <ClCompile Include="encodemap.cpp" />
     <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="handles.cpp" />
@@ -103,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
+    <ClInclude Include="advancedanalysis.h" />
     <ClInclude Include="analysis.h" />
     <ClInclude Include="AnalysisPass.h" />
     <ClInclude Include="analysis_nukem.h" />
@@ -123,6 +126,7 @@
     <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />
     <ClInclude Include="debugger_commands.h" />
+    <ClInclude Include="encodemap.h" />
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h" />
     <ClInclude Include="disasm_fast.h" />
     <ClInclude Include="disasm_helper.h" />
@@ -234,6 +238,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E6548308-401E-3A8A-5819-905DB90522A6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
