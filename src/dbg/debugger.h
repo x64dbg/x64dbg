@@ -83,6 +83,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
 duint dbggetdebuggedbase();
+duint dbggetdbgevents();
 
 void cbStep();
 void cbRtrStep();
