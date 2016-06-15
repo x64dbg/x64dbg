@@ -25,9 +25,28 @@
 #include "stringformat.h"
 #include "TraceRecord.h"
 
+struct TraceCondition
+{
+    ExpressionParser condition;
+    duint steps;
+    duint maxSteps;
+
+    explicit TraceCondition(String expression, duint maxCount)
+        : condition(expression), steps(0), maxSteps(maxCount) {}
+
+    bool ContinueTrace()
+    {
+        steps++;
+        if(steps >= maxSteps)
+            return false;
+        duint value = 1;
+        return condition.Calculate(value, valuesignedcalc()) && !value;
+    }
+};
+
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
-ExpressionParser* RtcondCondition;
+static TraceCondition* traceCondition = nullptr;
 static bool bFileIsDll = false;
 static duint pDebuggedBase = 0;
 static duint pCreateProcessBase = 0;
@@ -58,6 +77,34 @@ HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = true;
 duint DbgEvents = 0;
+
+static duint dbgcleartracecondition()
+{
+    duint steps = 0;
+    if(traceCondition)
+    {
+        steps = traceCondition->steps;
+        delete traceCondition;
+    }
+    traceCondition = nullptr;
+    return steps;
+}
+
+bool dbgsettracecondition(String expression, duint maxSteps)
+{
+    if(dbgtraceactive())
+        return false;
+    traceCondition = new TraceCondition(expression, maxSteps);
+    if(traceCondition->condition.IsValidExpression())
+        return true;
+    dbgcleartracecondition();
+    return false;
+}
+
+bool dbgtraceactive()
+{
+    return traceCondition != nullptr;
+}
 
 static DWORD WINAPI memMapThread(void* ptr)
 {
@@ -220,6 +267,7 @@ duint dbggetdbgevents()
 
 DWORD WINAPI updateCallStackThread(void* ptr)
 {
+    stackupdatecallstack(duint(ptr));
     GuiUpdateCallStack();
     return 0;
 }
@@ -254,9 +302,9 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     static duint cacheCsp = 0;
     if(csp != cacheCsp)
     {
-        cacheCsp = csp;
-        CloseHandle(CreateThread(0, 0, updateCallStackThread, 0, 0, 0));
-        CloseHandle(CreateThread(0, 0, updateSEHChainThread, 0, 0, 0));
+        InterlockedExchange(&cacheCsp, csp);
+        CloseHandle(CreateThread(nullptr, 0, updateCallStackThread, LPVOID(csp), 0, nullptr));
+        CloseHandle(CreateThread(nullptr, 0, updateSEHChainThread, nullptr, 0, nullptr));
     }
     char modname[MAX_MODULE_SIZE] = "";
     char modtext[MAX_MODULE_SIZE * 2] = "";
@@ -783,43 +831,25 @@ void cbRtrStep()
 
 void cbTOCNDStep()
 {
-    duint value = 1;
-    if (!RtcondCondition || RtcondCondition->Calculate(value, valuesignedcalc()) == false)
-    {
-        delete RtcondCondition;
-        RtcondCondition = nullptr;
-        cbRtrFinalStep();
-    }
-    else if (value != 0)
-    {
-        delete RtcondCondition;
-        RtcondCondition = nullptr;
-        cbRtrFinalStep();
-    }
+    if(traceCondition && traceCondition->ContinueTrace())
+        StepOver((void*)cbTOCNDStep);
     else
     {
-        StepOver((void*)cbTOCNDStep);
+        auto steps = dbgcleartracecondition();
+        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        cbRtrFinalStep();
     }
 }
 
 void cbTICNDStep()
 {
-    duint value = 1;
-    if (!RtcondCondition || RtcondCondition->Calculate(value, valuesignedcalc()) == false)
-    {
-        delete RtcondCondition;
-        RtcondCondition = nullptr;
-        cbRtrFinalStep();
-    }
-    else if (value != 0)
-    {
-        delete RtcondCondition;
-        RtcondCondition = nullptr;
-        cbRtrFinalStep();
-    }
+    if(traceCondition && traceCondition->ContinueTrace())
+        StepInto((void*)cbTICNDStep);
     else
     {
-        StepInto((void*)cbTICNDStep);
+        auto steps = dbgcleartracecondition();
+        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        cbRtrFinalStep();
     }
 }
 

@@ -85,6 +85,8 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
 duint dbggetdebuggedbase();
 duint dbggetdbgevents();
+bool dbgsettracecondition(String expression, duint maxCount);
+bool dbgtraceactive();
 
 void cbStep();
 void cbRtrStep();
@@ -118,7 +120,6 @@ extern HANDLE hActiveThread;
 extern HANDLE hProcessToken;
 extern char szFileName[MAX_PATH];
 extern char szSymbolCachePath[MAX_PATH];
-extern ExpressionParser* RtcondCondition;
 extern bool bUndecorateSymbolNames;
 extern bool bEnableSourceDebugging;
 

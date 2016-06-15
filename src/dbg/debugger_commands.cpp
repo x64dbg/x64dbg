@@ -1257,22 +1257,24 @@ CMDRESULT cbDebugeRtr(int argc, char* argv[])
 
 CMDRESULT cbDebugTocnd(int argc, char* argv[])
 {
-    if (argc > 2)
+    if(argc < 2)
     {
-        dputs("Too many arguments.");
+        dputs("Not enough arguments");
         return STATUS_ERROR;
     }
-    else if (argc < 1)
+    if(dbgtraceactive())
     {
-        dputs("Too few arguments.");
+        dputs("Trace already active");
         return STATUS_ERROR;
     }
-    if (RtcondCondition != nullptr)
+    duint maxCount = 50000;
+    if(argc > 2 && !valfromstring(argv[2], &maxCount, false))
+        return STATUS_ERROR;
+    if(!dbgsettracecondition(argv[1], maxCount))
     {
-        dputs("Tracing is busy now.");
+        dprintf("Invalid expression \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
-    RtcondCondition = new ExpressionParser(argv[1]);
     StepOver((void*)cbTOCNDStep);
     cbDebugRun(argc, argv);
     return STATUS_CONTINUE;
@@ -1280,22 +1282,24 @@ CMDRESULT cbDebugTocnd(int argc, char* argv[])
 
 CMDRESULT cbDebugTicnd(int argc, char* argv[])
 {
-    if (argc > 2)
+    if(argc < 2)
     {
-        dputs("Too many arguments.");
+        dputs("Not enough arguments");
         return STATUS_ERROR;
     }
-    else if (argc < 1)
+    if(dbgtraceactive())
     {
-        dputs("Too few arguments.");
+        dputs("Trace already active");
         return STATUS_ERROR;
     }
-    if (RtcondCondition != nullptr)
+    duint maxCount = 50000;
+    if(argc > 2 && !valfromstring(argv[2], &maxCount, false))
+        return STATUS_ERROR;
+    if(!dbgsettracecondition(argv[1], maxCount))
     {
-        dputs("Tracing is busy now.");
+        dprintf("Invalid expression \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
-    RtcondCondition = new ExpressionParser(argv[1]);
     StepInto((void*)cbTICNDStep);
     cbDebugRun(argc, argv);
     return STATUS_CONTINUE;
