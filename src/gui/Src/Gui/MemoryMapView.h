@@ -29,6 +29,8 @@ public slots:
     void memoryExecuteRestoreSlot();
     void memoryRemoveSlot();
     void memoryExecuteSingleshootToggleSlot();
+    void memoryAllocateSlot();
+    void memoryFreeSlot();
     void contextMenuSlot(const QPoint & pos);
     void switchView();
     void pageMemoryRights();
@@ -61,6 +63,8 @@ private:
     QAction* mMemoryExecuteSingleshootToggle;
     QAction* mEntropy;
     QAction* mFindPattern;
+    QAction* mMemoryAllocate;
+    QAction* mMemoryFree;
 };
 
 #endif // MEMORYMAPVIEW_H

@@ -171,6 +171,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
 {
     if(!mAllowPainting)
         return;
+
     if(getColumnCount()) //make sure the last column is never smaller than the window
     {
         int totalWidth = 0;
@@ -348,11 +349,11 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
     case AbstractTableView::ResizeColumnState:
     {
         int delta = event->x() - mColResizeData.lastPosX;
-        bool bCanResize = (getColumnWidth(mColResizeData.index) + delta) >= 20;
+        bool bCanResize = (getColumnWidth(mColumnOrder[mColResizeData.index]) + delta) >= 20;
         if(bCanResize)
         {
-            int wNewSize = getColumnWidth(mColResizeData.index) + delta;
-            setColumnWidth(mColResizeData.index, wNewSize);
+            int wNewSize = getColumnWidth(mColumnOrder[mColResizeData.index]) + delta;
+            setColumnWidth(mColumnOrder[mColResizeData.index], wNewSize);
             mColResizeData.lastPosX = event->x();
             updateViewport();
         }
