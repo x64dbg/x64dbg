@@ -489,7 +489,7 @@ void MemoryMapView::memoryAllocateSlot()
         if(addr != 0)
         {
             DbgCmdExec("Dump $result");
-            showCpu();
+            emit showCpu();
         }
         else
         {
