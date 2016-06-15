@@ -57,6 +57,7 @@ HANDLE hActiveThread;
 HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = true;
+duint DbgEvents = 0;
 
 static DWORD WINAPI memMapThread(void* ptr)
 {
@@ -210,6 +211,11 @@ bool dbgcmddel(const char* name)
         return false;
     GuiAutoCompleteDelCmd(name);
     return true;
+}
+
+duint dbggetdbgevents()
+{
+    return InterlockedExchange(&DbgEvents, 0);
 }
 
 DWORD WINAPI updateCallStackThread(void* ptr)
@@ -1358,6 +1364,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 
 static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 {
+    InterlockedIncrement(&DbgEvents);
     PLUG_CB_DEBUGEVENT debugEventInfo;
     debugEventInfo.DebugEvent = DebugEvent;
     plugincbcall(CB_DEBUGEVENT, &debugEventInfo);

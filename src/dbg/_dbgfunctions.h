@@ -140,6 +140,7 @@ typedef TRACERECORDTYPE(*GETTRACERECORDTYPE)(duint pageAddress);
 typedef bool(*ENUMHANDLES)(ListOf(HANDLEINFO) handles);
 typedef bool(*GETHANDLENAME)(duint handle, char* name, size_t nameSize, char* typeName, size_t typeNameSize);
 typedef bool(*ENUMTCPCONNECTIONS)(ListOf(TCPCONNECTIONINFO) connections);
+typedef duint(*GETDBGEVENTS)();
 
 typedef struct DBGFUNCTIONS_
 {
@@ -190,6 +191,7 @@ typedef struct DBGFUNCTIONS_
     ENUMHANDLES EnumHandles;
     GETHANDLENAME GetHandleName;
     ENUMTCPCONNECTIONS EnumTcpConnections;
+    GETDBGEVENTS GetDbgEvents;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG
