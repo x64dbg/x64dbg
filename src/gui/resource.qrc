@@ -99,5 +99,7 @@
         <file>images/analyzesinglefunction.png</file>
         <file>images/xrefs.png</file>
         <file>images/codepage.png</file>
+        <file>images/traceinto.png</file>
+        <file>images/traceover.png</file>
     </qresource>
 </RCC>

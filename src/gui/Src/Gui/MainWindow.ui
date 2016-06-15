@@ -768,11 +768,19 @@
    </property>
   </action>
   <action name="actionTocnd">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/traceover.png</normaloff>:/icons/images/traceover.png</iconset>
+   </property>
    <property name="text">
     <string>Trace over until condition</string>
    </property>
   </action>
   <action name="actionTicnd">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/traceinto.png</normaloff>:/icons/images/traceinto.png</iconset>
+   </property>
    <property name="text">
     <string>Trace into until condition</string>
    </property>
