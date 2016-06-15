@@ -510,7 +510,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
 
     QMenu wMenu(this); //create context menu
     wMenu.addMenu(mBinaryMenu);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wCopyMenu(tr("&Copy"), this);
     wCopyMenu.setIcon(QIcon(":/icons/images/copy.png"));
     wCopyMenu.addAction(mCopySelection);
     wCopyMenu.addAction(mCopyAddress);
@@ -724,7 +724,7 @@ void CPUDump::gotoExpressionSlot()
         return;
     if(!mGoto)
         mGoto = new GotoDialog(this);
-    mGoto->setWindowTitle("Enter expression to follow in Dump...");
+    mGoto->setWindowTitle(tr("Enter expression to follow in Dump..."));
     if(mGoto->exec() == QDialog::Accepted)
     {
         QString cmd;
@@ -739,13 +739,13 @@ void CPUDump::gotoFileOffsetSlot()
     char modname[MAX_MODULE_SIZE] = "";
     if(!DbgFunctions()->ModNameFromAddr(rvaToVa(getInitialSelection()), modname, true))
     {
-        QMessageBox::critical(this, "Error!", "Not inside a module...");
+        QMessageBox::critical(this, tr("Error!"), tr("Not inside a module..."));
         return;
     }
     GotoDialog mGotoDialog(this);
     mGotoDialog.fileOffset = true;
     mGotoDialog.modName = QString(modname);
-    mGotoDialog.setWindowTitle("Goto File Offset in " + QString(modname));
+    mGotoDialog.setWindowTitle(tr("Goto File Offset in %1").arg(QString(modname)));
     if(mGotoDialog.exec() != QDialog::Accepted)
         return;
     duint value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
@@ -1608,7 +1608,7 @@ void CPUDump::entropySlot()
     mMemPage->read(data.data(), selStart, selSize);
 
     EntropyDialog entropyDialog(this);
-    entropyDialog.setWindowTitle(QString().sprintf("Entropy (Address: %p, Size: %p)", selStart, selSize));
+    entropyDialog.setWindowTitle(tr("Entropy (Address: %1, Size: %2)").arg(ToPtrString(selStart)).arg(ToPtrString(selSize)));
     entropyDialog.show();
     entropyDialog.GraphMemory(data.constData(), data.size());
     entropyDialog.exec();
@@ -1619,7 +1619,7 @@ void CPUDump::syncWithExpressionSlot()
     if(!DbgIsDebugging())
         return;
     GotoDialog gotoDialog(this, true);
-    gotoDialog.setWindowTitle("Enter expression to sync with...");
+    gotoDialog.setWindowTitle(tr("Enter expression to sync with..."));
     gotoDialog.setInitialExpression(mSyncAddrExpression);
     if(gotoDialog.exec() != QDialog::Accepted)
         return;

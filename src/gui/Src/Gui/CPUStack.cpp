@@ -422,7 +422,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     QMenu wMenu(this); //create context menu
     wMenu.addAction(mModifyAction);
     wMenu.addMenu(mBinaryMenu);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wCopyMenu(tr("&Copy"), this);
     wCopyMenu.setIcon(QIcon(":/icons/images/copy.png"));
     wCopyMenu.addAction(mCopySelection);
     wCopyMenu.addAction(mCopyAddress);

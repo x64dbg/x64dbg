@@ -40,19 +40,19 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
 
     // TODO: remove locale-dependency here so that these strings can be translated.
     QString priority = getCellContent(getInitialSelection(), 6);
-    if(priority == "Normal")
+    if(priority == tr("Normal"))
         mSetPriorityNormal->setChecked(true);
-    else if(priority == "AboveNormal")
+    else if(priority == tr("AboveNormal"))
         mSetPriorityAboveNormal->setChecked(true);
-    else if(priority == "TimeCritical")
+    else if(priority == tr("TimeCritical"))
         mSetPriorityTimeCritical ->setChecked(true);
-    else if(priority == "Idle")
+    else if(priority == tr("Idle"))
         mSetPriorityIdle->setChecked(true);
-    else if(priority == "BelowNormal")
+    else if(priority == tr("BelowNormal"))
         mSetPriorityBelowNormal->setChecked(true);
-    else if(priority == "Highest")
+    else if(priority == tr("Highest"))
         mSetPriorityHighest->setChecked(true);
-    else if(priority == "Lowest")
+    else if(priority == tr("Lowest"))
         mSetPriorityLowest->setChecked(true);
 
     wMenu.exec(mapToGlobal(pos)); //execute context menu
@@ -152,31 +152,31 @@ void ThreadView::setupContextMenu()
     // Set priority
     mSetPriority = new QMenu(tr("Set Priority"), this);
 
-    mSetPriorityIdle = new QAction("Idle", this);
+    mSetPriorityIdle = new QAction(tr("Idle"), this);
     connect(mSetPriorityIdle, SIGNAL(triggered()), this, SLOT(SetPriorityIdleSlot()));
     mSetPriority->addAction(mSetPriorityIdle);
 
-    mSetPriorityAboveNormal = new QAction("Above Normal", this);
+    mSetPriorityAboveNormal = new QAction(tr("Above Normal"), this);
     connect(mSetPriorityAboveNormal, SIGNAL(triggered()), this, SLOT(SetPriorityAboveNormalSlot()));
     mSetPriority->addAction(mSetPriorityAboveNormal);
 
-    mSetPriorityBelowNormal = new QAction("Below Normal", this);
+    mSetPriorityBelowNormal = new QAction(tr("Below Normal"), this);
     connect(mSetPriorityBelowNormal, SIGNAL(triggered()), this, SLOT(SetPriorityBelowNormalSlot()));
     mSetPriority->addAction(mSetPriorityBelowNormal);
 
-    mSetPriorityHighest = new QAction("Highest", this);
+    mSetPriorityHighest = new QAction(tr("Highest"), this);
     connect(mSetPriorityHighest, SIGNAL(triggered()), this, SLOT(SetPriorityHighestSlot()));
     mSetPriority->addAction(mSetPriorityHighest);
 
-    mSetPriorityLowest = new QAction("Lowest", this);
+    mSetPriorityLowest = new QAction(tr("Lowest"), this);
     connect(mSetPriorityLowest, SIGNAL(triggered()), this, SLOT(SetPriorityLowestSlot()));
     mSetPriority->addAction(mSetPriorityLowest);
 
-    mSetPriorityNormal = new QAction("Normal", this);
+    mSetPriorityNormal = new QAction(tr("Normal"), this);
     connect(mSetPriorityNormal, SIGNAL(triggered()), this, SLOT(SetPriorityNormalSlot()));
     mSetPriority->addAction(mSetPriorityNormal);
 
-    mSetPriorityTimeCritical = new QAction("Time Critical", this);
+    mSetPriorityTimeCritical = new QAction(tr("Time Critical"), this);
     connect(mSetPriorityTimeCritical, SIGNAL(triggered()), this, SLOT(SetPriorityTimeCriticalSlot()));
     mSetPriority->addAction(mSetPriorityTimeCritical);
 
@@ -202,7 +202,7 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * 12, tr("Priority"), false);
     addColumnAt(8 + charwidth * 12, tr("Wait Reason"), false);
     addColumnAt(8 + charwidth * 11, tr("Last Error"), false);
-    addColumnAt(0, "Name", false);
+    addColumnAt(0, tr("Name"), false);
     loadColumnFromConfig("Thread");
 
     //setCopyMenuOnly(true);
@@ -235,28 +235,28 @@ void ThreadView::updateThreadList()
         switch(threadList.list[i].Priority)
         {
         case _PriorityIdle:
-            priorityString = "Idle";
+            priorityString = tr("Idle");
             break;
         case _PriorityAboveNormal:
-            priorityString = "AboveNormal";
+            priorityString = tr("AboveNormal");
             break;
         case _PriorityBelowNormal:
-            priorityString = "BelowNormal";
+            priorityString = tr("BelowNormal");
             break;
         case _PriorityHighest:
-            priorityString = "Highest";
+            priorityString = tr("Highest");
             break;
         case _PriorityLowest:
-            priorityString = "Lowest";
+            priorityString = tr("Lowest");
             break;
         case _PriorityNormal:
-            priorityString = "Normal";
+            priorityString = tr("Normal");
             break;
         case _PriorityTimeCritical:
-            priorityString = "TimeCritical";
+            priorityString = tr("TimeCritical");
             break;
         default:
-            priorityString = "Unknown";
+            priorityString = tr("Unknown");
             break;
         }
         setCellContent(i, 6, priorityString);

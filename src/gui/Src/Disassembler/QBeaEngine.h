@@ -4,6 +4,7 @@
 #include <QString>
 #include "Imports.h"
 #include "capstone_gui.h"
+#include "CodeFolding.h"
 
 struct Instruction_t
 {
@@ -39,10 +40,12 @@ public:
     ulong DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n);
     ulong DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n);
     Instruction_t DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA);
+    void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     void UpdateConfig();
 
 private:
     CapstoneTokenizer _tokenizer;
+    CodeFoldingHelper* mCodeFoldingManager;
 };
 
 #endif // QBEAENGINE_H

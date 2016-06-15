@@ -16,9 +16,15 @@ public:
 
     QSize sizeHint() const;
     void drawStraightArrow(QPainter* painter, int x1, int y1, int x2, int y2);
+    void drawFoldingCheckbox(QPainter* painter, int y, bool state);
+
+    CodeFoldingHelper* getCodeFoldingManager();
 
     static void* operator new(size_t size);
     static void operator delete(void* p);
+
+signals:
+    void folded();
 
 public slots:
     // Configuration
@@ -41,6 +47,8 @@ protected:
     void drawBullets(QPainter* painter, int line, bool ispb, bool isbpdisabled, bool isbookmark);
     bool isJump(int i) const;
     void drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive);
+    int isFoldingGraphicsPresent(int line);
+    CodeFoldingHelper mCodeFoldingManager;
 
 private:
     dsint topVA;
@@ -52,12 +60,21 @@ private:
     int mBulletYOffset = 10;
     const int mBulletXOffset = 10;
 
-
     CPUDisassembly* mDisas;
     QList<Instruction_t>* mInstrBuffer;
     REGDUMP regDump;
 
-private:
+    struct JumpLine
+    {
+        int line;
+        int destLine;
+        int jumpOffset;
+        bool isSelected;
+        bool isConditional;
+        bool isJumpGoingToExecute;
+    };
+    void AllocateJumpOffsets(std::vector<JumpLine> & jumpLines);
+
     // Configuration
     QColor mBackgroundColor;
 
@@ -70,6 +87,9 @@ private:
     QColor mBulletBookmarkColor;
     QColor mBulletColor;
     QColor mBulletDisabledBreakpointColor;
+
+    QColor mChkBoxForeColor;
+    QColor mChkBoxBackColor;
 
     QColor mCipLabelColor;
     QColor mCipLabelBackgroundColor;

@@ -226,7 +226,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(tr("Disassembly"), SLOT(copyDisassemblySlot())));
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/copy.png"), tr("&Copy")), copyMenu);
 
-    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/eraser.png"), "&Restore selection", SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
     {
         dsint start = rvaToVa(getSelectionStart());
         dsint end = rvaToVa(getSelectionEnd());
@@ -791,6 +791,7 @@ void CPUDisassembly::assembleSlot()
     {
         dsint wRVA = getInitialSelection();
         duint wVA = rvaToVa(wRVA);
+        unfold(wRVA);
         QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
 
         Instruction_t instr = this->DisassembleAt(wRVA);
