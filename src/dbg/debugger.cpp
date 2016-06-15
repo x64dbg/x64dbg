@@ -27,6 +27,7 @@
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
+ExpressionParser* RtcondCondition;
 static bool bFileIsDll = false;
 static duint pDebuggedBase = 0;
 static duint pCreateProcessBase = 0;
@@ -772,6 +773,48 @@ void cbRtrStep()
         cbRtrFinalStep();
     else
         StepOver((void*)cbRtrStep);
+}
+
+void cbTOCNDStep()
+{
+    duint value = 1;
+    if (!RtcondCondition || RtcondCondition->Calculate(value, valuesignedcalc()) == false)
+    {
+        delete RtcondCondition;
+        RtcondCondition = nullptr;
+        cbRtrFinalStep();
+    }
+    else if (value != 0)
+    {
+        delete RtcondCondition;
+        RtcondCondition = nullptr;
+        cbRtrFinalStep();
+    }
+    else
+    {
+        StepOver((void*)cbTOCNDStep);
+    }
+}
+
+void cbTICNDStep()
+{
+    duint value = 1;
+    if (!RtcondCondition || RtcondCondition->Calculate(value, valuesignedcalc()) == false)
+    {
+        delete RtcondCondition;
+        RtcondCondition = nullptr;
+        cbRtrFinalStep();
+    }
+    else if (value != 0)
+    {
+        delete RtcondCondition;
+        RtcondCondition = nullptr;
+        cbRtrFinalStep();
+    }
+    else
+    {
+        StepInto((void*)cbTICNDStep);
+    }
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)

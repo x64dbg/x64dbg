@@ -232,6 +232,8 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actioneStepInto, SIGNAL(triggered()), this, SLOT(execeStepInto()));
     connect(ui->actioneRun, SIGNAL(triggered()), this, SLOT(execeRun()));
     connect(ui->actioneRtr, SIGNAL(triggered()), this, SLOT(execeRtr()));
+    connect(ui->actionTicnd, SIGNAL(triggered()), this, SLOT(execTicnd()));
+    connect(ui->actionTocnd, SIGNAL(triggered()), this, SLOT(execTocnd()));
     connect(ui->actionSkipNextInstruction, SIGNAL(triggered()), this, SLOT(execSkip()));
     connect(ui->actionScript, SIGNAL(triggered()), this, SLOT(displayScriptWidget()));
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
@@ -589,6 +591,26 @@ void MainWindow::execRun()
 void MainWindow::execRtr()
 {
     DbgCmdExec("rtr");
+}
+
+void MainWindow::execTicnd()
+{
+    if(!DbgIsDebugging())
+        return;
+    LineEditDialog mLineEdit(this);
+    mLineEdit.setWindowTitle(tr("Enter trace into finishing condition."));
+    if(mLineEdit.exec() == QDialog::Accepted)
+        DbgCmdExec(QString("ticnd \"%1\"").arg(mLineEdit.editText).toUtf8().constData());
+}
+
+void MainWindow::execTocnd()
+{
+    if(!DbgIsDebugging())
+        return;
+    LineEditDialog mLineEdit(this);
+    mLineEdit.setWindowTitle(tr("Enter trace over finishing condition."));
+    if(mLineEdit.exec() == QDialog::Accepted)
+        DbgCmdExec(QString("tocnd \"%1\"").arg(mLineEdit.editText).toUtf8().constData());
 }
 
 void MainWindow::displayMemMapWidget()

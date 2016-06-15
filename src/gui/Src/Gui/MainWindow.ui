@@ -85,8 +85,10 @@
     <addaction name="separator"/>
     <addaction name="actionStepInto"/>
     <addaction name="actioneStepInto"/>
+    <addaction name="actionTicnd"/>
     <addaction name="actionStepOver"/>
     <addaction name="actioneStepOver"/>
+    <addaction name="actionTocnd"/>
     <addaction name="actionRtr"/>
     <addaction name="actioneRtr"/>
     <addaction name="actionSkipNextInstruction"/>
@@ -763,6 +765,16 @@
    </property>
    <property name="text">
     <string>Handles</string>
+   </property>
+  </action>
+  <action name="actionTocnd">
+   <property name="text">
+    <string>Trace over until condition</string>
+   </property>
+  </action>
+  <action name="actionTicnd">
+   <property name="text">
+    <string>Trace into until condition</string>
    </property>
   </action>
  </widget>
