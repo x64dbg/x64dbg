@@ -1842,7 +1842,7 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE])
  * @brief Set the code folding manager for the disassembly view
  * @param CodeFoldingManager The pointer to the code folding manager.
  */
-void Disassembly::setCodeFoldingManager(CodeFoldingHelper *CodeFoldingManager)
+void Disassembly::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)
 {
     mCodeFoldingManager = CodeFoldingManager;
     mDisasm->setCodeFoldingManager(CodeFoldingManager);

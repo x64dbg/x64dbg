@@ -158,7 +158,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     duint first_va = mInstrBuffer->first().rva + mDisas->getBase();
 
     QVector<std::pair<QString, duint>> regLabel;
-    auto appendReg = [&regLabel, last_va, first_va] (const QString & name, duint value)
+    auto appendReg = [&regLabel, last_va, first_va](const QString & name, duint value)
     {
         if(value >= first_va && value <= last_va)
             regLabel.append(std::make_pair(name, value));
@@ -620,7 +620,7 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, const QString & Text)
     painter->restore();
 }
 
-void CPUSideBar::drawFoldingCheckbox(QPainter *painter, int y, bool state)
+void CPUSideBar::drawFoldingCheckbox(QPainter* painter, int y, bool state)
 {
     int x = viewport()->width() - fontHeight - mBulletXOffset - mBulletRadius;
     painter->save();
@@ -666,7 +666,7 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines)
     for(int i = 0; i < jumpLines.size(); i++)
     {
         JumpLine & jmp = jumpLines.at(i);
-        int maxJmpOffset = 0;
+        unsigned int maxJmpOffset = 0;
         if(jmp.line < jmp.destLine)
         {
             for(int j = jmp.line; j <= jmp.destLine && j < viewableRows; j++)
@@ -709,7 +709,7 @@ int CPUSideBar::isFoldingGraphicsPresent(int line)
         return 0;
     if(mCodeFoldingManager.isFoldStart(instr->rva + mDisas->getBase()))
         return 1;
-    if(instr->rva >= SelectionStart && instr->rva < SelectionEnd)
+    if(instr->rva >= duint(SelectionStart) && instr->rva < duint(SelectionEnd))
     {
         if(instr->rva == SelectionStart)
             return (SelectionEnd - SelectionStart + 1) != instr->length ? 1 : 0;

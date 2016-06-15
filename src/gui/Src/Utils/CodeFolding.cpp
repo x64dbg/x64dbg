@@ -185,7 +185,8 @@ bool CodeFoldingHelper::delFoldSegment(duint va)
             break;
         parent = &temp1->second.children;
         temp1 = temp2;
-    }while(true);
+    }
+    while(true);
     parent->erase(temp1);
     return true;
 }
@@ -202,7 +203,8 @@ const CodeFoldingHelper::FoldTree* CodeFoldingHelper::getFoldTree(duint va) cons
         if(temp2 == temp1->second.children.cend())
             break;
         temp1 = temp2;
-    }while(true);
+    }
+    while(true);
     return &temp1->second;
 }
 
@@ -234,7 +236,8 @@ CodeFoldingHelper::FoldTree* CodeFoldingHelper::getFoldTree(duint va)
         if(temp2 == temp1->second.children.cend())
             break;
         temp1 = temp2;
-    }while(true);
+    }
+    while(true);
     return &temp1->second;
 }
 
@@ -272,10 +275,11 @@ void CodeFoldingHelper::expandFoldSegment(duint va)
             break;
         temp2->second.folded = false;
         temp1 = temp2;
-    }while(true);
+    }
+    while(true);
 }
 
-bool CodeFoldingHelper::CompareFunc::operator()(const CodeFoldingHelper::Range& lhs, const CodeFoldingHelper::Range& rhs)
+bool CodeFoldingHelper::CompareFunc::operator()(const CodeFoldingHelper::Range & lhs, const CodeFoldingHelper::Range & rhs)
 {
     return lhs.second < rhs.first;
 }

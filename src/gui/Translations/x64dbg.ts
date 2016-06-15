@@ -741,39 +741,39 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="119"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="117"/>
         <source>&lt;font color=&apos;orange&apos;&gt;&lt;b&gt;Instruction encoding error : %1&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="127"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="125"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Instruction bigger by %1 %2...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="129"/>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="139"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="127"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="137"/>
         <source>byte</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="129"/>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="139"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="127"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="137"/>
         <source>bytes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="137"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="135"/>
         <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction smaller by %1 %2...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="147"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="145"/>
         <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction is same size!&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/AssembleDialog.cpp" line="155"/>
+        <location filename="../Src/Gui/AssembleDialog.cpp" line="153"/>
         <source>&lt;font color=&apos;#00cc00&apos;&gt;&lt;b&gt;Instruction encoded successfully!&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3357,39 +3357,39 @@ run</source>
     </message>
     <message>
         <location filename="../Src/Gui/GotoDialog.cpp" line="16"/>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="77"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="79"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Not debugging...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../Src/Gui/GotoDialog.cpp" line="18"/>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="83"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="85"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Invalid expression...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="69"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="71"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Empty expression...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="94"/>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="136"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="96"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="138"/>
         <source>&lt;font color=&apos;#00DD00&apos;&gt;&lt;b&gt;Correct expression! -&amp;gt; &lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="100"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="102"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Invalid file offset...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="111"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="113"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Invalid memory address...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/GotoDialog.cpp" line="117"/>
+        <location filename="../Src/Gui/GotoDialog.cpp" line="119"/>
         <source>&lt;font color=&apos;red&apos;&gt;&lt;b&gt;Memory out of range...&lt;/b&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3689,377 +3689,387 @@ run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="100"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="102"/>
         <source>&amp;Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="113"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="115"/>
         <source>&amp;Plugins</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="119"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="121"/>
         <source>&amp;Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="201"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="203"/>
         <source>toolBar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="222"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="224"/>
         <source>&amp;Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="231"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="233"/>
         <source>E&amp;xit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="240"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="242"/>
         <source>&amp;Run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="249"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="251"/>
         <source>&amp;Pause</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="258"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="260"/>
         <source>Re&amp;start</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="267"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="269"/>
         <source>&amp;Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="276"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="278"/>
         <source>Step &amp;into</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="285"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="287"/>
         <source>Step &amp;over</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="294"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="296"/>
         <source>Co&amp;mmand</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="303"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="305"/>
         <source>E&amp;xecute till return</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="312"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="314"/>
         <source>&amp;Memory Map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="321"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="323"/>
         <source>&amp;Log Window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="330"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="332"/>
         <source>&amp;About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="339"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="341"/>
         <source>Scylla</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="348"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="350"/>
         <source>&amp;Breakpoints</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="357"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="359"/>
         <source>Step into (skip exceptions)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="366"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="368"/>
         <source>Step over (skip exceptions)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="375"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="377"/>
         <source>Run (&amp;skip exceptions)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="384"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="386"/>
         <source>Execute till return (skip exceptions)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="393"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="395"/>
         <source>&amp;Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="396"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="398"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="123"/>
         <source>Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="405"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="407"/>
         <source>Run &amp;until selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="408"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="410"/>
         <source>Run until selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="417"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="419"/>
         <source>&amp;CPU</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="420"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="422"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="129"/>
         <source>CPU</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="429"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="431"/>
         <source>Symbol &amp;Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="432"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="434"/>
         <source>Symbol Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="441"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="443"/>
         <source>&amp;References</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="444"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="446"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="140"/>
         <source>References</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="453"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="455"/>
         <source>&amp;Threads</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="456"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="458"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="146"/>
         <source>Threads</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="465"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="467"/>
         <source>&amp;Preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="468"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="470"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="477"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="479"/>
         <source>&amp;Find Strings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="480"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="482"/>
         <source>Find Strings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="489"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="491"/>
         <source>&amp;Appearance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="498"/>
-        <location filename="../Src/Gui/MainWindow.ui" line="501"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="500"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="503"/>
         <source>Find Intermodular Calls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="510"/>
-        <location filename="../Src/Gui/MainWindow.ui" line="513"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="512"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="515"/>
         <source>Patches</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="522"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="524"/>
         <source>Comments</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="531"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="533"/>
         <source>Labels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="540"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="542"/>
         <source>Bookmarks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="549"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="551"/>
         <source>Functions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="558"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="560"/>
         <source>Check for &amp;Updates</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="567"/>
-        <location filename="../Src/Gui/MainWindow.ui" line="570"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="569"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="572"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="111"/>
         <source>Call Stack</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="579"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="581"/>
         <source>Shortcuts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="588"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="590"/>
         <source>&amp;Donate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="591"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1126"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="593"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1148"/>
         <source>Donate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="600"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="602"/>
         <source>Calculator</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="609"/>
-        <location filename="../Src/Gui/MainWindow.ui" line="612"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="611"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="614"/>
         <source>Attach</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="621"/>
-        <location filename="../Src/Gui/MainWindow.ui" line="624"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="623"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="626"/>
         <source>Detach</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="633"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="635"/>
         <source>Change Command &amp;Line</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="642"/>
-        <location filename="../Src/Gui/MainWindow.ui" line="645"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="644"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="647"/>
         <source>Skip next instruction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="657"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="659"/>
         <source>Topmost</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="660"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="662"/>
         <source>Topmost Window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="669"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="671"/>
         <source>&amp;Report Bug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="672"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1139"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="674"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1161"/>
         <source>Report Bug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="681"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="683"/>
         <source>&amp;Source</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="684"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="686"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="89"/>
         <source>Source</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="693"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="695"/>
         <source>&amp;Manual</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="702"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="704"/>
         <source>&amp;FAQ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="705"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="707"/>
         <source>FAQ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="714"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="716"/>
         <source>SEH Chain</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="723"/>
-        <location filename="../Src/Gui/MainWindow.ui" line="726"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="725"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="728"/>
         <source>Hide debugger (PEB)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="735"/>
-        <location filename="../Src/Gui/MainWindow.ui" line="738"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="737"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="740"/>
         <source>Reload style.css</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="747"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="749"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="156"/>
         <source>Notes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="756"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="758"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="151"/>
         <source>Snowman</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.ui" line="765"/>
+        <location filename="../Src/Gui/MainWindow.ui" line="767"/>
         <location filename="../Src/Gui/MainWindow.cpp" line="161"/>
         <source>Handles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MainWindow.ui" line="776"/>
+        <source>Trace over until condition</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MainWindow.ui" line="785"/>
+        <source>Trace into until condition</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4093,69 +4103,79 @@ run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="312"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="314"/>
         <source>Command: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="321"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="323"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="612"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="601"/>
+        <source>Enter trace into finishing condition.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MainWindow.cpp" line="611"/>
+        <source>Enter trace over finishing condition.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MainWindow.cpp" line="634"/>
         <source>About x64dbg</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="614"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="636"/>
         <source>About x32dbg</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="634"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="656"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="634"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="656"/>
         <source>Executables (*.exe *.dll);;All files (*.*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1066"/>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1192"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1088"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1214"/>
         <source>Error!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1066"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1088"/>
         <source>Patches cannot be shown when not debugging...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1126"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1148"/>
         <source>All the money will go to x64dbg development.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1139"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1161"/>
         <source>You will be taken to a website where you can report a bug.
 Make sure to fill in as much information as possible.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1170"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1192"/>
         <source>Change Command Line</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1176"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1198"/>
         <source>Cannot get remote command line, use the &apos;getcmdline&apos; command for more information.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MainWindow.cpp" line="1192"/>
+        <location filename="../Src/Gui/MainWindow.cpp" line="1214"/>
         <source>Could not set command line!</source>
         <translation type="unfinished"></translation>
     </message>

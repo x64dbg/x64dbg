@@ -29,9 +29,10 @@ protected:
     class CompareFunc
     {
     public:
-        bool operator()(const Range& lhs, const Range& rhs);
+        bool operator()(const Range & lhs, const Range & rhs);
     };
-    class FoldTree {
+    class FoldTree
+    {
     public:
         FoldTree(bool _folded, duint start, duint end) : folded(_folded), range(std::make_pair(start, end)) {}
         bool folded;
