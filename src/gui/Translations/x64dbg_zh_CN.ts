@@ -4,8 +4,8 @@
 <context>
     <name>AbstractTableView</name>
     <message>
-        <location filename="../Src/BasicView/AbstractTableView.cpp" line="445"/>
-        <location filename="../Src/BasicView/AbstractTableView.cpp" line="510"/>
+        <location filename="../Src/BasicView/AbstractTableView.cpp" line="446"/>
+        <location filename="../Src/BasicView/AbstractTableView.cpp" line="511"/>
         <source>Edit columns</source>
         <translation>编辑表头</translation>
     </message>
@@ -4103,17 +4103,17 @@ run</translation>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="776"/>
         <source>Trace over until condition</source>
-        <translation type="unfinished"></translation>
+        <translation>条件性步过</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.ui" line="785"/>
         <source>Trace into until condition</source>
-        <translation type="unfinished"></translation>
+        <translation>条件性步进</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.cpp" line="60"/>
         <source>x32dbg</source>
-        <translation>x64dbg {32d?}</translation>
+        <translation>x64dbg (32位)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.cpp" line="77"/>
@@ -4171,12 +4171,12 @@ run</translation>
     <message>
         <location filename="../Src/Gui/MainWindow.cpp" line="601"/>
         <source>Enter trace into finishing condition.</source>
-        <translation type="unfinished"></translation>
+        <translation>请输入步进结束的条件。</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.cpp" line="611"/>
         <source>Enter trace over finishing condition.</source>
-        <translation type="unfinished"></translation>
+        <translation>请输入步过结束的条件。</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MainWindow.cpp" line="634"/>
@@ -4239,138 +4239,195 @@ Make sure to fill in as much information as possible.</source>
 <context>
     <name>MemoryMapView</name>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="17"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="19"/>
         <source>Address</source>
         <translation>地址</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="18"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="20"/>
         <source>Size</source>
         <translation>大小</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="19"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="21"/>
         <source>Info</source>
         <translation>页面信息</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="19"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="21"/>
         <source>Page Information</source>
         <translation>页面信息</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="20"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="22"/>
         <source>Type</source>
         <translation>类型</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="20"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="22"/>
         <source>Allocation Type</source>
         <translation>分配类型</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="21"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="23"/>
         <source>Protection</source>
         <translation>页面保护</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="21"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="23"/>
         <source>Current Protection</source>
         <translation>当前保护</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="22"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="24"/>
         <source>Initial</source>
         <translation>初始保护</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="22"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="24"/>
         <source>Allocation Protection</source>
         <translation>初始保护</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="36"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="38"/>
         <source>&amp;Follow in Dump</source>
         <translation>在内存窗口中转到(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="40"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="42"/>
         <source>Follow in &amp;Disassembler</source>
         <translation>在反汇编中转到(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="52"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="54"/>
         <source>Set Page Memory Rights</source>
         <translation>设置内存保护权限</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="56"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="58"/>
         <source>&amp;Switch View</source>
         <translation>切换视图(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="60"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="62"/>
         <source>Memory &amp;Breakpoint</source>
         <translation>内存断点(&amp;B)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="63"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="65"/>
         <source>Access</source>
         <translation>读取</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="64"/>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="74"/>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="84"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="66"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="76"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="86"/>
         <source>&amp;Singleshoot</source>
         <translation>一次性(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="67"/>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="77"/>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="88"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="69"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="79"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="90"/>
         <source>&amp;Restore</source>
         <translation>重复设置(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="73"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="75"/>
         <source>Write</source>
         <translation>写入</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="83"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="85"/>
         <source>Execute</source>
         <translation>执行</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="94"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="96"/>
         <source>&amp;Remove</source>
         <translation>删除(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="106"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="108"/>
+        <source>&amp;Allocate memory</source>
+        <translation>分配内存(&amp;A)</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="113"/>
+        <source>&amp;Free memory</source>
+        <translation>释放内存(&amp;F)</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="118"/>
         <source>Entropy...</source>
         <translation>熵...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="110"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="122"/>
         <source>&amp;Find Pattern...</source>
         <translation>搜索匹配特征(&amp;F)...</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="116"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="128"/>
         <source>&amp;Dump Memory to File</source>
         <translation>将内存转存到文件(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../Src/Gui/MemoryMapView.cpp" line="147"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="162"/>
         <source>&amp;Copy</source>
         <translation>复制(&amp;C)</translation>
     </message>
     <message>
         <location filename="../Src/Gui/MemoryMapView.cpp" line="461"/>
+        <source>Enter the size of memory to allocate.</source>
+        <translation>请输入需要分配的内存大小。</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="467"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="480"/>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="493"/>
+        <source>Error</source>
+        <translation>发生错误</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="467"/>
+        <source>The expression &quot;%1&quot; is not valid.</source>
+        <translation>您刚才输入的表达式&quot;%1&quot;是无效的。</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="474"/>
+        <source>Warning</source>
+        <translation>温馨提示</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="474"/>
+        <source>You&apos;re trying to allocate a zero-sized buffer just now.</source>
+        <translation>您刚刚试图分配一个零字节大小的缓冲区。</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="480"/>
+        <source>The size of buffer you&apos;re trying to allocate exceeds 1GB. Please check your expression to ensure nothing is wrong.</source>
+        <translation>你想要分配的内存大小已经超过了1GB。请检查表达式以确保输入正确。</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="493"/>
+        <source>Memory allocation failed!</source>
+        <translation>内存分配失败了！</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="510"/>
+        <source>Find Pattern...</source>
+        <translation>搜索匹配特征...</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="523"/>
         <source>All files (*.*)</source>
         <translation>所有文件 (*.*)</translation>
+    </message>
+    <message>
+        <location filename="../Src/Gui/MemoryMapView.cpp" line="523"/>
+        <source>Save Memory Region</source>
+        <translation>保存内存区域</translation>
     </message>
 </context>
 <context>
