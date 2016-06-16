@@ -94,6 +94,10 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[]);
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[]);
 CMDRESULT cbDebugSkip(int argc, char* argv[]);
 CMDRESULT cbDebugSetfreezestack(int argc, char* argv[]);
+CMDRESULT cbDebugTibt(int argc, char* argv[]);
+CMDRESULT cbDebugTobt(int argc, char* argv[]);
+CMDRESULT cbDebugTiit(int argc, char* argv[]);
+CMDRESULT cbDebugToit(int argc, char* argv[]);
 
 //misc
 void showcommandlineerror(cmdline_error_t* cmdline_error);
