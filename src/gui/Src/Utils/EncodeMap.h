@@ -19,7 +19,7 @@ public:
     void delRange(duint start, duint size);
     void delSegment(duint va);
     bool isRangeConflict(duint offset, duint size, duint codesize, duint cip);
-    bool isDataType(ENCODETYPE type)
+    bool isDataType(ENCODETYPE type);
     duint getEncodeTypeSize(ENCODETYPE type);
     bool isCode(ENCODETYPE type) {return type == enc_unknown || type == enc_code; }
 

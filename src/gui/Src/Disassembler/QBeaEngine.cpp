@@ -53,8 +53,8 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
     if(n == 0)
         return ip;
 
-    //if(ip < (uint)n)
-    //    return ip;
+    if(ip < (uint)n)
+        return ip;
 
     //TODO: buffer overflow due to unchecked "back" value
     back = MAX_DISASM_BUFFER * (n + 3); // Instruction length limited to 16
@@ -99,7 +99,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
 
         pdata += cmdsize;
         addr += cmdsize;
-        //back -= cmdsize; // dead code
+        back -= cmdsize;
         size -= cmdsize;
     }
 

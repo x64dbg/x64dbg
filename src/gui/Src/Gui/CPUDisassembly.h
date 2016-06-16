@@ -98,6 +98,7 @@ public slots:
     void removeAnalysisSelectionSlot();
     void removeAnalysisModuleSlot();
     void setEncodeTypeSlot();
+    void setEncodeTypeRangeSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);

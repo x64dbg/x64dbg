@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include "addrinfo.h"
 #include <algorithm>
+#include <capstone_wrapper.h>
 
 struct ENCODEMAP : AddrInfo
 {
@@ -182,11 +183,11 @@ duint GetEncodeTypeSize(ENCODETYPE type)
     case enc_oword:
         return 16;
     case enc_mmword:
-        return 16;
+        return 8;
     case enc_xmmword:
-        return 32;
+        return 16;
     case enc_ymmword:
-        return 64;
+        return 32;
     case enc_real4:
         return 4;
     case enc_real8:
@@ -297,8 +298,34 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type)
     else
     {
         memset(map.data + offset, (byte)enc_middle, size);
-        for(int i = offset; i < offset + size; i += datasize)
-            map.data[i] = (byte)type;
+        if(IsCodeType(type) && size > 1)
+        {
+            Capstone cp;
+            unsigned char* buffer = new unsigned char[size];
+            if(!MemRead(addr, buffer, size))
+            {
+                delete[] buffer;
+                return false;
+
+            }
+            int buffersize = size, bufferoffset = 0, cmdsize;
+            for(int i = offset; i < offset + size;)
+            {
+                map.data[i] = (byte)type;
+                cp.Disassemble(base + i, buffer + bufferoffset, buffersize);
+                cmdsize = cp.Success() ? cp.Size() : 1;
+                i += cmdsize;
+                bufferoffset += cmdsize;
+                buffersize -= cmdsize;
+            }
+
+        }
+        else
+        {
+            for(int i = offset; i < offset + size; i += datasize)
+                map.data[i] = (byte)type;
+        }
+
     }
 
     for(int i = offset + size + 1; i < map.size; i++)
@@ -323,7 +350,7 @@ void EncodeMapDelSegment(duint Start)
         encmaps.Get(key, map);
         EncodeMapReleaseBuffer(map.data);
     }
-    encmaps.Delete(base);
+    encmaps.Delete(key);
 }
 
 void EncodeMapDelRange(duint Start, duint End)

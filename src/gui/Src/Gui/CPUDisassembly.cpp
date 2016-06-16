@@ -418,12 +418,14 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     analysisMenu->addAction(makeAction(tr("Remove analysis from selection"), SLOT(removeAnalysisSelectionSlot())));
 
-    QMenu* encodeTypeMenu = makeMenu("Treat selection as");
+    QMenu* encodeTypeMenu = makeMenu("Treat selection head as");
+
+    QMenu* encodeTypeRangeMenu = makeMenu("Treat selection as");
 
     std::string strTable[] = {"Command", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
                               "Float", "Double", "Long Double", "",
                               "ASCII", "UNICODE", "",
-                              "MMWord", "XMMWOrd", "YMMWord"
+                              "MMWord", "XMMWord", "YMMWord"
                              };
 
     ENCODETYPE enctypeTable[] = {enc_code, enc_byte, enc_word, enc_dword, enc_fword, enc_qword, enc_tbyte, enc_oword, enc_middle,
@@ -437,17 +439,23 @@ void CPUDisassembly::setupRightClickContextMenu()
     for(int i = 0; i < enctypesize; i++)
     {
         if(enctypeTable[i] == enc_middle)
+        {
+            encodeTypeRangeMenu->addSeparator();
             encodeTypeMenu->addSeparator();
+        }
         else
         {
-            QAction* action = makeAction(tr(strTable[i].c_str()), SLOT(setEncodeTypeSlot()));
+            QAction* action = makeAction(tr(strTable[i].c_str()), SLOT(setEncodeTypeRangeSlot()));
+            action->setData(enctypeTable[i]);
+            encodeTypeRangeMenu->addAction(action);
+            action = makeAction(tr(strTable[i].c_str()), SLOT(setEncodeTypeSlot()));
             action->setData(enctypeTable[i]);
             encodeTypeMenu->addAction(action);
-
         }
     }
 
     analysisMenu->addMenu(encodeTypeMenu);
+    analysisMenu->addMenu(encodeTypeRangeMenu);
 
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/analyzesinglefunction.png"), tr("Analysis")), analysisMenu);
     mMenuBuilder->addSeparator();
@@ -1517,9 +1525,16 @@ void CPUDisassembly::removeAnalysisModuleSlot()
     GuiUpdateDisassemblyView();
 }
 
-void CPUDisassembly::setEncodeTypeSlot()
+void CPUDisassembly::setEncodeTypeRangeSlot()
 {
     QAction* pAction = qobject_cast<QAction*>(sender());
     mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), getSelectionSize(), (ENCODETYPE)pAction->data().toUInt());
+    GuiUpdateDisassemblyView();
+}
+
+void CPUDisassembly::setEncodeTypeSlot()
+{
+    QAction* pAction = qobject_cast<QAction*>(sender());
+    mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), (ENCODETYPE)pAction->data().toUInt());
     GuiUpdateDisassemblyView();
 }

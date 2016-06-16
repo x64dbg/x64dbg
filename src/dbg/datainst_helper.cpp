@@ -179,7 +179,21 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
         case enc_ymmword:
         {
             retsize = GetEncodeTypeSize(di.type);
-            buffer = StringUtils::FromHex(di.oprand, retsize, false);
+            if(retsize > destsize)
+            {
+                strcpy_s(error, MAX_ERROR_SIZE, "insufficient buffer");
+                if(size)
+                {
+                    *size = retsize;  //return correct size
+                    return dest == nullptr;
+                }
+                return false;
+            }
+            else
+            {
+
+                buffer = StringUtils::FromHex(di.oprand, retsize, false);
+            }
             break;
         }
         case enc_real4:

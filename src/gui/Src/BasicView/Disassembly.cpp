@@ -1230,7 +1230,7 @@ dsint Disassembly::getNextInstructionRVA(dsint rva, duint count)
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
 
-    wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(rva),  wMaxByteCountToRead, wVirtualRVA, count);
+    wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(rva),  wMaxByteCountToRead, 0, count);
 
     wNewRVA += rva;
 

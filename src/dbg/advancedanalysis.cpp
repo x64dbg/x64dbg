@@ -120,7 +120,7 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint, bool writedata)
             }
             if(mCp.InGroup(CS_GRP_CALL))   //call
             {
-                //TODO: add this to a queue to be analyzed later
+                //TODO: handle no return
                 duint target = mCp.BranchDestination();
                 if(inRange(target) && mEntryPoints.find(target) == mEntryPoints.end())
                     mCandidateEPs.insert(target);
@@ -212,6 +212,28 @@ void AdvancedAnalysis::findInvalidXrefs()
     }
 }
 
+bool isFloatInstruction(x86_insn opcode)
+{
+    switch(opcode)
+    {
+    case X86_INS_FLD:
+    case X86_INS_FST:
+    case X86_INS_FSTP:
+    case X86_INS_FADD:
+    case X86_INS_FSUB:
+    case X86_INS_FSUBR:
+    case X86_INS_FMUL:
+    case X86_INS_FDIV:
+    case X86_INS_FDIVR:
+    case X86_INS_FCOM:
+    case X86_INS_FCOMP:
+
+        return true;
+    default:
+        return false;
+    }
+}
+
 void AdvancedAnalysis::writeDataXrefs()
 {
     for(auto & vec : mXrefs)
@@ -225,6 +247,8 @@ void AdvancedAnalysis::writeDataXrefs()
                     xref.valid = false;
                     continue;
                 }
+                auto opcode = mCp.GetId();
+                bool isfloat = isFloatInstruction(opcode);
                 for(auto i = 0; i < mCp.OpCount(); i++)
                 {
                     auto & op = mCp[i];
@@ -245,16 +269,16 @@ void AdvancedAnalysis::writeDataXrefs()
                             type = enc_word;
                             break;
                         case 4:
-                            type = enc_dword;
+                            type = isfloat ? enc_real4 : enc_dword;
                             break;
                         case 6:
                             type = enc_fword;
                             break;
                         case 8:
-                            type = enc_qword;
+                            type = isfloat ? enc_real8 : enc_qword;
                             break;
                         case 10:
-                            type = enc_real10;
+                            type = isfloat ? enc_real10 : enc_tbyte;
                             break;
                         case 16:
                             type = enc_oword;
