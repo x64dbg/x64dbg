@@ -76,7 +76,7 @@ private:
     };
 
     //Key := page base, value := trace record raw data
-    std::map<duint, TraceRecordPage> TraceRecord;
+    std::unordered_map<duint, TraceRecordPage> TraceRecord;
     std::vector<std::string> ModuleNames;
     unsigned int getModuleIndex(std::string moduleName);
     unsigned int instructionCounter;
