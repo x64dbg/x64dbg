@@ -332,6 +332,9 @@
     <ClCompile Include="encodemap.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="datainst_helper.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -723,7 +726,7 @@
     </ClInclude>
     <ClInclude Include="encodemap.h">
       <Filter>Header Files\Information</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="keystone\arm.h">
       <Filter>Header Files\Third Party\keystone</Filter>
     </ClInclude>
@@ -750,6 +753,9 @@
     </ClInclude>
     <ClInclude Include="keystone\x86.h">
       <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="datainst_helper.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

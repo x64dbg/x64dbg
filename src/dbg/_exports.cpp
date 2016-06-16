@@ -1080,6 +1080,17 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     }
     break;
 
+    case DBG_DELETE_ENCODE_TYPE_SEG:
+    {
+        EncodeMapDelSegment((duint)param1);
+    }
+    break;
+
+    case DBG_RELEASE_ENCODE_TYPE_BUFFER:
+    {
+        EncodeMapReleaseBuffer(param1);
+    }
+
     case DBG_GET_STRING_AT:
     {
         auto addr = duint(param1);

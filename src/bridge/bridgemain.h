@@ -332,7 +332,9 @@ typedef enum
     enc_ascii,    //ascii sequence
     enc_unicode,  //unicode sequence
     enc_code,     //start of code
+    enc_junk,     //specify junk code
     enc_middle    //middle of data
+
 } ENCODETYPE;
 
 

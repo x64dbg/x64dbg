@@ -6,6 +6,7 @@
 
 #include "disasm_fast.h"
 #include "memory.h"
+#include "datainst_helper.h"
 
 static MEMORY_SIZE argsize2memsize(int argsize)
 {
@@ -95,7 +96,10 @@ bool disasmfast(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* b
     if(!data || !basicinfo)
         return false;
     Capstone cp;
-    if(!cp.Disassemble(addr, data, MAX_DISASM_BUFFER))
+    cp.Disassemble(addr, data, MAX_DISASM_BUFFER);
+    if(trydisasmfast(data, addr, basicinfo, cp.Success() ? cp.Size() : 1))
+        return true;
+    if(!cp.Success())
     {
         strcpy_s(basicinfo->instruction, "???");
         basicinfo->size = 1;

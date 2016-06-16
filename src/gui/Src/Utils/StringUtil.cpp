@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "StringUtil.h"
 #include "float128.h"
+#include "MiscUtil.h"
 
 dd_real pow2_fast(int exponent, int* exp10)
 {
@@ -179,11 +180,13 @@ QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
     case enc_dword:
         return ToIntegralString<unsigned int>(buffer);
     case enc_fword:
-        return ToHexString(*(unsigned short*)((char*)buffer + 4)) + ToHexString(*(unsigned int*)buffer);
+        return QString(ByteReverse(QByteArray((char*)buffer, 6)).toHex());
     case enc_qword:
         return ToIntegralString<unsigned long long int>(buffer);
+    case enc_tbyte:
+        return QString(ByteReverse(QByteArray((char*)buffer, 10)).toHex());
     case enc_oword:
-        return ToIntegralString<unsigned long long int>((char*)buffer + 8) + ToIntegralString<unsigned long long int>(buffer);
+        return QString(ByteReverse(QByteArray((char*)buffer, 16)).toHex());
     case enc_mmword:
     case enc_xmmword:
     case enc_ymmword:

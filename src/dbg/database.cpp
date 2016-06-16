@@ -19,6 +19,7 @@
 #include "filehelper.h"
 #include "xrefs.h"
 #include "TraceRecord.h"
+#include "encodemap.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -52,6 +53,7 @@ void DbSave(DbLoadSaveType saveType)
         FunctionCacheSave(root);
         LoopCacheSave(root);
         XrefCacheSave(root);
+        EncodeMapCacheSave(root);
         TraceRecord.saveToDb(root);
         BpCacheSave(root);
 
@@ -139,8 +141,9 @@ void DbLoad(DbLoadSaveType loadType)
     if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
         LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());
 
+
     // Deserialize JSON and validate
-    JSON root = json_loads(databaseText.c_str(), 0, 0);
+    JSON root = json_loads(databaseText.c_str(), JSON_ALLOW_NUL, 0);
 
     if(!root)
     {
@@ -163,6 +166,7 @@ void DbLoad(DbLoadSaveType loadType)
         FunctionCacheLoad(root);
         LoopCacheLoad(root);
         XrefCacheLoad(root);
+        EncodeMapCacheLoad(root);
         TraceRecord.loadFromDb(root);
         BpCacheLoad(root);
 
@@ -188,6 +192,7 @@ void DbClose()
     FunctionClear();
     LoopClear();
     XrefClear();
+    EncodeMapClear();
     BpClear();
     PatchClear();
     GuiSetDebuggeeNotes("");

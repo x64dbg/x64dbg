@@ -54,6 +54,7 @@ static QString ToDecString(dsint Value)
     return QString(temp);
 }
 
+
 template<typename T>
 static QString ToFloatingString(void* buffer)
 {

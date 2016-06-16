@@ -144,6 +144,8 @@ private:
     void linearXrefPass();
     void findInvalidXrefs();
     void writeDataXrefs();
+
+    void findFuzzyEntryPoints();
     void findEntryPoints();
     void analyzeCandidateFunctions(bool writedata);
     void analyzeFunction(duint entryPoint, bool writedata);

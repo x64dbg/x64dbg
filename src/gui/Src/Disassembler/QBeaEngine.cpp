@@ -75,8 +75,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
         else
             cmdsize = cp.Size();
 
-        if(base + ip != mCIP)
-            cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize); //If CIP at current address, it must be code, otherwise try decode as data
+        cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize, mCIP); //If CIP at current address, it must be code, otherwise try decode as data
 
         pdata += cmdsize;
         addr += cmdsize;
@@ -135,8 +134,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
         else
             cmdsize = cp.Size();
 
-        if(base + ip != mCIP)
-            cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize); //If CIP at current address, it must be code, otherwise try decode as data
+        cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize, mCIP); //If CIP at current address, it must be code, otherwise try decode as data
 
         pdata += cmdsize;
         ip += cmdsize;
@@ -171,8 +169,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
 
     ENCODETYPE type = enc_code;
 
-    if(origBase + origInstRVA != mCIP)
-        type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 0);
+    type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 0, mCIP);
 
     if(type != enc_unknown && type != enc_code && type != enc_middle)
         return DecodeDataAt(data, size, instIndex, origBase, origInstRVA, type);
@@ -220,7 +217,7 @@ Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex
     }
 
 
-    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 0);
+    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 0, mCIP);
 
     QString mnemonic = _bLongDataInst ? infoIter.value().longName : infoIter.value().shortName;
 
@@ -245,20 +242,21 @@ Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex
 void QBeaEngine::UpdateDataInstructionMap()
 {
     dataInstMap.clear();
-    dataInstMap.insert(enc_byte, {"db", "byte", 1});
-    dataInstMap.insert(enc_word, {"dw", "word", 2});
-    dataInstMap.insert(enc_dword, {"dd", "dword", 4});
-    dataInstMap.insert(enc_fword, {"df", "fword", 6});
-    dataInstMap.insert(enc_qword, {"dq", "qword", 8});
-    dataInstMap.insert(enc_oword, {"oword", "oword", 16});
-    dataInstMap.insert(enc_mmword, {"mmword", "mmword", 8});
-    dataInstMap.insert(enc_xmmword, {"xmmword", "xmmword", 16});
-    dataInstMap.insert(enc_ymmword, {"ymmword", "ymmword", 32});
-    dataInstMap.insert(enc_real4, {"real4", "float", 4});
-    dataInstMap.insert(enc_real8, {"real8", "double", 8});
-    dataInstMap.insert(enc_real10, {"real10", "decimal", 10});
-    dataInstMap.insert(enc_ascii, {"ascii", "ascii", 0});
-    dataInstMap.insert(enc_unicode, {"unicode", "unicode", 0});
+    dataInstMap.insert(enc_byte, {"db", "byte", "int8"});
+    dataInstMap.insert(enc_word, {"dw", "word", "short"});
+    dataInstMap.insert(enc_dword, {"dd", "dword", "int"});
+    dataInstMap.insert(enc_fword, {"df", "fword", "fword"});
+    dataInstMap.insert(enc_qword, {"dq", "qword", "long"});
+    dataInstMap.insert(enc_tbyte, {"tbyte", "tbyte", "tbyte"});
+    dataInstMap.insert(enc_oword, {"oword", "oword", "oword"});
+    dataInstMap.insert(enc_mmword, {"mmword", "mmword", "long long"});
+    dataInstMap.insert(enc_xmmword, {"xmmword", "xmmword", "_m128"});
+    dataInstMap.insert(enc_ymmword, {"ymmword", "ymmword", "_m256"});
+    dataInstMap.insert(enc_real4, {"real4", "real4", "float"});
+    dataInstMap.insert(enc_real8, {"real8", "real8", "double"});
+    dataInstMap.insert(enc_real10, {"real10", "real10", "long double"});
+    dataInstMap.insert(enc_ascii, {"ascii", "ascii", "string"});
+    dataInstMap.insert(enc_unicode, {"unicode", "unicode", "wstring"});
 
 }
 

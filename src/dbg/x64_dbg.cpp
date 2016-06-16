@@ -22,6 +22,7 @@
 #include "filehelper.h"
 #include "database.h"
 #include "mnemonichelp.h"
+#include "datainst_helper.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -427,6 +428,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcat_s(scriptDllDir, "\\scripts\\");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
+    initDataInstMap();
 
     // Load mnemonic help database
     String mnemonicHelpData;

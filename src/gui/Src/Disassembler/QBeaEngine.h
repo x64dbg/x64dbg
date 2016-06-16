@@ -52,7 +52,7 @@ private:
     {
         QString shortName;
         QString longName;
-        int size;
+        QString cName;
     };
 
     void UpdateDataInstructionMap();

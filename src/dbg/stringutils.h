@@ -3,6 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
+#include "_global.h"
 
 typedef std::string String;
 typedef std::wstring WString;
@@ -15,9 +18,9 @@ public:
     static StringList Split(const String & s, char delim, std::vector<String> & elems);
     static StringList Split(const String & s, char delim);
     static String Escape(const String & s);
-    static String Trim(const String & s);
-    static String TrimLeft(const String & s);
-    static String TrimRight(const String & s);
+    static String Trim(const String & s, String delim = StringUtils::WHITESPACE);
+    static String TrimLeft(const String & s, String delim = StringUtils::WHITESPACE);
+    static String TrimRight(const String & s, String delim = StringUtils::WHITESPACE);
     static String Utf16ToUtf8(const WString & wstr);
     static String Utf16ToUtf8(const wchar_t* wstr);
     static WString Utf8ToUtf16(const String & str);
@@ -28,6 +31,26 @@ public:
     static WString sprintf(const wchar_t* format, ...);
     static String ToLower(const String & s);
     static bool StartsWith(const String & h, const String & n);
+    static String FromHex(const String & s, size_t size, bool reverse = false);
+    static String ToHex(duint value);
+    static String ToHex(void* buffer, size_t size, bool reverse = false);
+
+    template<typename T>
+    static String ToFloatingString(void* buffer)
+    {
+        auto value = *(T*)buffer;
+        std::stringstream wFloatingStr;
+        wFloatingStr << std::setprecision(std::numeric_limits<T>::digits10) << value;
+        return wFloatingStr.str();
+    }
+
+    template<typename T>
+    static String ToIntegralString(void* buffer)
+    {
+        auto value = *(T*)buffer;
+        return ToHex(value);
+    }
+
 
 private:
     static const String WHITESPACE;

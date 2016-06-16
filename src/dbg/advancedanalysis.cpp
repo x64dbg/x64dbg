@@ -11,6 +11,7 @@ AdvancedAnalysis::AdvancedAnalysis(duint base, duint size, bool dump)
       mDump(dump)
 {
     mEncMap = new byte[size];
+    memset(mEncMap, 0, size);
 }
 
 void AdvancedAnalysis::Analyse()
@@ -18,7 +19,8 @@ void AdvancedAnalysis::Analyse()
     linearXrefPass();
     findEntryPoints();
     analyzeCandidateFunctions(true);
-    //findFuzzyEntryPoints();
+    findFuzzyEntryPoints();
+    analyzeCandidateFunctions(true);
     findInvalidXrefs();
     writeDataXrefs();
 }
@@ -43,7 +45,7 @@ void AdvancedAnalysis::SetMarkers()
         }
     }
 
-    FunctionDelRange(mBase, mBase + mSize - 1);
+    FunctionClear();
     for(const auto & function : mFunctions)
     {
         duint start = ~0;
@@ -71,6 +73,7 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint, bool writedata)
     CFGraph graph(entryPoint);
     UintSet visited;
     std::queue<duint> queue;
+    mEntryPoints.insert(entryPoint);
     queue.push(graph.entryPoint);
     while(!queue.empty())
     {
@@ -150,6 +153,7 @@ void AdvancedAnalysis::linearXrefPass()
         addr += mCp.Size();
 
         XREF xref;
+        xref.valid = true;
         xref.addr = 0;
         xref.from = mCp.Address();
         for(auto i = 0; i < mCp.OpCount(); i++)
@@ -250,7 +254,7 @@ void AdvancedAnalysis::writeDataXrefs()
                             type = enc_qword;
                             break;
                         case 10:
-                            type = enc_tbyte;
+                            type = enc_real10;
                             break;
                         case 16:
                             type = enc_oword;
@@ -277,8 +281,30 @@ void AdvancedAnalysis::writeDataXrefs()
     }
 }
 
+void AdvancedAnalysis::findFuzzyEntryPoints()
+{
+    for(const auto & entryPoint : mFuzzyEPs)
+    {
+        mCandidateEPs.insert(entryPoint);
+    }
+}
+
 void AdvancedAnalysis::findEntryPoints()
 {
+    duint modbase = ModBaseFromAddr(mBase);
+    if(modbase)
+    {
+        apienumexports(modbase, [&](duint Base, const char* Module, const char* Name, duint Address)
+        {
+            // If within limits...
+            if(inRange(Address))
+            {
+                mCandidateEPs.insert(Address);
+            }
+        });
+    }
+
+
     for(const auto & vec : mXrefs)
     {
         duint jmps = 0, calls = 0;
@@ -291,8 +317,8 @@ void AdvancedAnalysis::findEntryPoints()
                 jmps++;
         }
         if(calls >= 1 && jmps + calls > 1)
-            mEntryPoints.insert(addr);
-        else
+            mCandidateEPs.insert(addr);
+        else if(calls >= 1)
             mFuzzyEPs.insert(addr);
     }
 }
@@ -309,6 +335,7 @@ void AdvancedAnalysis::analyzeCandidateFunctions(bool writedata)
         {
             pendingEPs.insert(entryPoint);
         }
+        mCandidateEPs.clear();
 
         for(const auto & entryPoint : pendingEPs)
         {

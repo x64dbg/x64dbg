@@ -420,13 +420,13 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     QMenu* encodeTypeMenu = makeMenu("Treat selection as");
 
-    std::string strTable[] = {"Command", "Byte", "Word", "Dword", "Fword", "Qword", "Oword", "",
+    std::string strTable[] = {"Command", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
                               "Float", "Double", "Long Double", "",
                               "ASCII", "UNICODE", "",
                               "MMWord", "XMMWOrd", "YMMWord"
                              };
 
-    ENCODETYPE enctypeTable[] = {enc_code, enc_byte, enc_word, enc_dword, enc_fword, enc_qword, enc_oword, enc_middle,
+    ENCODETYPE enctypeTable[] = {enc_code, enc_byte, enc_word, enc_dword, enc_fword, enc_qword, enc_tbyte, enc_oword, enc_middle,
                                  enc_real4, enc_real8, enc_real10 , enc_middle,
                                  enc_ascii, enc_unicode, enc_middle,
                                  enc_mmword, enc_xmmword, enc_ymmword
@@ -1506,12 +1506,14 @@ void CPUDisassembly::analyzeSingleFunctionSlot()
 
 void CPUDisassembly::removeAnalysisSelectionSlot()
 {
-    DbgDelEncodeTypeRange(rvaToVa(getSelectionStart()), getSelectionSize());
+    mDisasm->getEncodeMap()->delRange(rvaToVa(getSelectionStart()), getSelectionSize());
+    GuiUpdateDisassemblyView();
 }
 
 void CPUDisassembly::removeAnalysisModuleSlot()
 {
-    DbgDelEncodeTypeSegment(rvaToVa(getSelectionStart()));
+    mDisasm->getEncodeMap()->delSegment(rvaToVa(getSelectionStart()));
+    GuiUpdateDisassemblyView();
 }
 
 void CPUDisassembly::setEncodeTypeSlot()

@@ -13,6 +13,7 @@
 #include "disasm_helper.h"
 #include "memory.h"
 #include "keystone\keystone.h"
+#include "datainst_helper.h"
 
 AssemblerEngine assemblerEngine = AssemblerEngine::XEDParse;
 
@@ -110,8 +111,12 @@ static bool cbUnknown(const char* text, ULONGLONG* value)
     return true;
 }
 
-bool assemble(duint addr, unsigned char* dest, int* size, const char* instruction, char* error)
+bool assemble(duint addr, unsigned char* dest, int destsize, int* size, const char* instruction, char* error)
 {
+    if(isdatainstruction(instruction))
+    {
+        return tryassembledata(addr, dest, destsize, size, instruction, error);
+    }
     if(strlen(instruction) >= XEDPARSE_MAXBUFSIZE)
         return false;
     XEDPARSE parse;
@@ -140,6 +145,11 @@ bool assemble(duint addr, unsigned char* dest, int* size, const char* instructio
         *size = parse.dest_size;
 
     return true;
+}
+
+bool assemble(duint addr, unsigned char* dest, int* size, const char* instruction, char* error)
+{
+    return assemble(addr, dest, 16, size, instruction, error);
 }
 
 static bool isInstructionPointingToExMemory(duint addr, const unsigned char* dest)
@@ -181,8 +191,19 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
 {
     int destSize;
     unsigned char dest[16];
-    if(!assemble(addr, dest, &destSize, instruction, error))
-        return false;
+    unsigned char* newbuffer = nullptr;
+    if(!assemble(addr, dest, 16, &destSize, instruction, error))
+    {
+        if(destSize > 16)
+        {
+            newbuffer = new unsigned char[destSize];  //retry for long string sequence
+            if(!assemble(addr, newbuffer, destSize, &destSize, instruction, error))
+            {
+                delete[] newbuffer;
+                return false;
+            }
+        }
+    }
     //calculate the number of NOPs to insert
     int origLen = disasmgetsize(addr);
     while(origLen < destSize)
@@ -198,7 +219,8 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
     if(!isInstructionPointingToExMemory(addr, dest))
         GuiDisplayWarning("Non-executable memory region", "Assembled branch does not point to an executable memory region!");
 
-    bool ret = MemPatch(addr, dest, destSize);
+    bool ret = MemPatch(addr, newbuffer ? newbuffer : dest, destSize);
+    delete[] newbuffer;
 
     if(ret)
     {

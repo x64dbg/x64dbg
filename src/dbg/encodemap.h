@@ -22,3 +22,5 @@ void EncodeMapCacheSave(JSON Root);
 void EncodeMapCacheLoad(JSON Root);
 
 void EncodeMapClear();
+
+duint GetEncodeTypeSize(ENCODETYPE type);

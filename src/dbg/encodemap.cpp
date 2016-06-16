@@ -13,6 +13,40 @@ struct ENCODEMAP : AddrInfo
 std::unordered_map<duint, duint> referenceCount;
 
 
+void IncreaseReferenceCount(void* buffer, bool lock = true)
+{
+    if(lock)
+    {
+        EXCLUSIVE_ACQUIRE(LockEncodeMaps);
+    }
+    auto iter = referenceCount.find((duint)buffer);
+    if(iter == referenceCount.end())
+        referenceCount[(duint)buffer] = 1;
+    else
+        referenceCount[(duint)buffer]++;
+}
+
+duint DecreaseReferenceCount(void* buffer, bool lock = true)
+{
+    if(lock)
+    {
+        EXCLUSIVE_ACQUIRE(LockEncodeMaps);
+    }
+    auto iter = referenceCount.find((duint)buffer);
+    if(iter == referenceCount.end())
+        return -1;
+    if(iter->second == 1)
+    {
+        referenceCount.erase(iter->first);
+        return 0;
+    }
+    else
+        referenceCount[iter->first]--;
+    return iter->second;
+}
+
+
+
 struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
 {
     bool Save(const ENCODEMAP & value) override
@@ -29,7 +63,10 @@ struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
             return false;
         auto data = get("data");
         value.size = json_string_length(data);
-        value.data = (byte*)json_string_value(data);
+        value.data = (byte*)VirtualAlloc(NULL, value.size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        if(value.data == NULL) return false;
+        memcpy(value.data, (byte*)json_string_value(data), value.size);
+        IncreaseReferenceCount(value.data, false);
         return true;
     }
 };
@@ -58,6 +95,7 @@ bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map)
         map.size = segsize;
         map.data = (byte*)VirtualAlloc(NULL, segsize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         if(map.data == NULL) return false;
+        IncreaseReferenceCount(map.data);
         encmaps.PrepareValue(map, base, false);
         encmaps.Add(map);
     }
@@ -86,30 +124,22 @@ void* EncodeMapGetBuffer(duint addr, bool create)
         duint offset = addr - base;
         if(offset >= map.size)
             return nullptr;
-        EXCLUSIVE_ACQUIRE(LockEncodeMaps);
-        auto iter = referenceCount.find((duint)map.data);
-        if(iter == referenceCount.end())
-            referenceCount[(duint)map.data] = 1;
-        else
-            referenceCount[(duint)map.data]++;
+        IncreaseReferenceCount(map.data);
         return map.data;
     }
     return nullptr;
 }
 
+
+void EncodeMapReleaseBuffer(void* buffer, bool lock)
+{
+    if(DecreaseReferenceCount(buffer, lock) == 0)
+        VirtualFree(buffer, 0, MEM_RELEASE);
+}
+
 void EncodeMapReleaseBuffer(void* buffer)
 {
-    EXCLUSIVE_ACQUIRE(LockEncodeMaps);
-    auto iter = referenceCount.find((duint)buffer);
-    if(iter == referenceCount.end())
-        return;
-    if(iter->second == 1)
-    {
-        VirtualFree((void*)iter->first, 0, MEM_RELEASE);
-        referenceCount.erase(iter->first);
-    }
-    else
-        referenceCount[iter->first]--;
+    EncodeMapReleaseBuffer(buffer, true);
 }
 
 
@@ -122,9 +152,11 @@ bool IsRangeConflict(byte* typebuffer, duint size, duint codesize)
     if(size <= 0)
         return false;
     ENCODETYPE type = (ENCODETYPE)typebuffer[0];
+    if(type == enc_middle)
+        return true;
     for(int i = 1; i < size; i++)
     {
-        if((ENCODETYPE)typebuffer[i] != enc_unknown)
+        if((ENCODETYPE)typebuffer[i] != enc_unknown && (ENCODETYPE)typebuffer[i] != enc_middle)
             return true;
     }
 
@@ -145,6 +177,8 @@ duint GetEncodeTypeSize(ENCODETYPE type)
         return 6;
     case enc_qword:
         return 8;
+    case enc_tbyte:
+        return 10;
     case enc_oword:
         return 16;
     case enc_mmword:
@@ -168,6 +202,10 @@ duint GetEncodeTypeSize(ENCODETYPE type)
     }
 }
 
+bool IsCodeType(ENCODETYPE type)
+{
+    return type == enc_code || type == enc_junk;
+}
 
 ENCODETYPE EncodeMapGetType(duint addr, duint codesize)
 {
@@ -185,8 +223,7 @@ ENCODETYPE EncodeMapGetType(duint addr, duint codesize)
             return ENCODETYPE::enc_unknown;
         ENCODETYPE type = (ENCODETYPE)map.data[offset];
 
-
-        if(type == enc_unknown && IsRangeConflict(map.data + offset, map.size - offset, codesize))
+        if((type == enc_unknown || type == enc_middle) && IsRangeConflict(map.data + offset, size - offset, codesize))
             return enc_byte;
         else
             return type;
@@ -212,7 +249,7 @@ duint EncodeMapGetSize(duint addr, duint codesize)
         ENCODETYPE type = (ENCODETYPE)map.data[offset];
 
         duint datasize = GetEncodeTypeSize(type);
-        if(type == enc_unknown || type == enc_code)
+        if(type == enc_unknown || type == enc_code || type == enc_junk)
         {
             if(IsRangeConflict(map.data + offset, map.size - offset, codesize) || codesize == 0)
                 return datasize;
@@ -252,18 +289,8 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type)
         return false;
     duint offset = addr - base;
     size = min(map.size - offset, size);
-    //for (int i = offset - 1; i > 0; i++)
-    //{
-    //  if (map.data[i] != enc_middle)
-    //  {
-    //      map.data[i] = (byte)enc_unknown;
-    //      break;
-    //  }
-    //  map.data[i] = (byte)enc_unknown;
-    //}
-
     duint datasize = GetEncodeTypeSize(type);
-    if(datasize == 1)
+    if(datasize == 1 && !IsCodeType(type))
     {
         memset(map.data + offset, (byte)type, size);
     }
@@ -294,13 +321,7 @@ void EncodeMapDelSegment(duint Start)
     if(encmaps.Contains(key))
     {
         encmaps.Get(key, map);
-        EXCLUSIVE_ACQUIRE(LockEncodeMaps);
-        auto iter = referenceCount.find((duint)map.data);
-        if(iter == referenceCount.end() && map.data != nullptr)
-        {
-            VirtualFree(map.data, 0, MEM_RELEASE);
-        }
-        EXCLUSIVE_RELEASE(LockEncodeMaps);
+        EncodeMapReleaseBuffer(map.data);
     }
     encmaps.Delete(base);
 }
@@ -325,18 +346,7 @@ void EncodeMapClear()
     EXCLUSIVE_ACQUIRE(LockEncodeMaps);
     for(auto & encmap : encmaps.GetDataUnsafe())
     {
-        auto iter = referenceCount.find((duint)encmap.second.data);
-        if(iter == referenceCount.end() && encmap.second.data != nullptr)
-        {
-            VirtualFree(encmap.second.data, 0, MEM_RELEASE);
-            continue;
-        }
-
-        if(iter->second == 0)
-        {
-            VirtualFree((void*)iter->first, 0, MEM_RELEASE);
-            referenceCount.erase(iter->first);
-        }
+        EncodeMapReleaseBuffer(encmap.second.data, false);
 
     }
     EXCLUSIVE_RELEASE(LockEncodeMaps);
