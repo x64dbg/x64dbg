@@ -36,6 +36,7 @@
     <ClCompile Include="console.cpp" />
     <ClCompile Include="controlflowanalysis.cpp" />
     <ClCompile Include="database.cpp" />
+    <ClCompile Include="datainst_helper.cpp" />
     <ClCompile Include="dbghelp_safe.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="debugger_commands.cpp" />
@@ -122,6 +123,7 @@
     <ClInclude Include="console.h" />
     <ClInclude Include="controlflowanalysis.h" />
     <ClInclude Include="database.h" />
+    <ClInclude Include="datainst_helper.h" />
     <ClInclude Include="dbghelp\dbghelp.h" />
     <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />
