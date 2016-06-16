@@ -75,6 +75,20 @@
     <property name="title">
      <string>&amp;Debug</string>
     </property>
+    <widget class="QMenu" name="menuTrace_record">
+     <property name="title">
+      <string>Trace record</string>
+     </property>
+     <addaction name="actionTRBit"/>
+     <addaction name="actionTRByte"/>
+     <addaction name="actionTRWord"/>
+     <addaction name="actionTRNone"/>
+     <addaction name="separator"/>
+     <addaction name="actionTRTIBT"/>
+     <addaction name="actionTRTOBT"/>
+     <addaction name="actionTRTIIT"/>
+     <addaction name="actionTRTOIT"/>
+    </widget>
     <addaction name="actionRun"/>
     <addaction name="actioneRun"/>
     <addaction name="actionRunSelection"/>
@@ -92,6 +106,8 @@
     <addaction name="actionRtr"/>
     <addaction name="actioneRtr"/>
     <addaction name="actionSkipNextInstruction"/>
+    <addaction name="separator"/>
+    <addaction name="menuTrace_record"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
     <addaction name="separator"/>
@@ -783,6 +799,46 @@
    </property>
    <property name="text">
     <string>Trace into until condition</string>
+   </property>
+  </action>
+  <action name="actionTRBit">
+   <property name="text">
+    <string>Bit</string>
+   </property>
+  </action>
+  <action name="actionTRByte">
+   <property name="text">
+    <string>Byte</string>
+   </property>
+  </action>
+  <action name="actionTRWord">
+   <property name="text">
+    <string>Word</string>
+   </property>
+  </action>
+  <action name="actionTRTIBT">
+   <property name="text">
+    <string>Trace into beyond trace record</string>
+   </property>
+  </action>
+  <action name="actionTRTOBT">
+   <property name="text">
+    <string>Trace over beyond trace record</string>
+   </property>
+  </action>
+  <action name="actionTRTIIT">
+   <property name="text">
+    <string>Trace into into trace record</string>
+   </property>
+  </action>
+  <action name="actionTRTOIT">
+   <property name="text">
+    <string>Trace over into trace record</string>
+   </property>
+  </action>
+  <action name="actionTRNone">
+   <property name="text">
+    <string>None</string>
    </property>
   </action>
  </widget>
