@@ -656,8 +656,7 @@ QString HexDump::toString(DataDescriptor_t desc, void* data) //convert data to s
 
     case Tword:
     {
-        //TODO: sizeof(long double)=12, not 10
-        wStr = twordToString(*((long double*)data), desc.twordMode);
+        wStr = twordToString(data, desc.twordMode);
     }
     break;
 
@@ -840,7 +839,7 @@ QString HexDump::qwordToString(uint64 qword, QwordViewMode_e mode)
     return wStr;
 }
 
-QString HexDump::twordToString(long double tword, TwordViewMode_e mode)
+QString HexDump::twordToString(void* tword, TwordViewMode_e mode)
 {
     QString wStr = "";
 
@@ -848,7 +847,7 @@ QString HexDump::twordToString(long double tword, TwordViewMode_e mode)
     {
     case FloatTword:
     {
-        wStr = ToLongDoubleString(&tword);
+        wStr = ToLongDoubleString(tword);
     }
     break;
 
