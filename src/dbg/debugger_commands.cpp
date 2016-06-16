@@ -1255,6 +1255,56 @@ CMDRESULT cbDebugeRtr(int argc, char* argv[])
     return cbDebugRtr(argc, argv);
 }
 
+CMDRESULT cbDebugTocnd(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
+    if(dbgtraceactive())
+    {
+        dputs("Trace already active");
+        return STATUS_ERROR;
+    }
+    duint maxCount = 50000;
+    if(argc > 2 && !valfromstring(argv[2], &maxCount, false))
+        return STATUS_ERROR;
+    if(!dbgsettracecondition(argv[1], maxCount))
+    {
+        dprintf("Invalid expression \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    StepOver((void*)cbTOCNDStep);
+    cbDebugRun(argc, argv);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugTicnd(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments");
+        return STATUS_ERROR;
+    }
+    if(dbgtraceactive())
+    {
+        dputs("Trace already active");
+        return STATUS_ERROR;
+    }
+    duint maxCount = 50000;
+    if(argc > 2 && !valfromstring(argv[2], &maxCount, false))
+        return STATUS_ERROR;
+    if(!dbgsettracecondition(argv[1], maxCount))
+    {
+        dprintf("Invalid expression \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    StepInto((void*)cbTICNDStep);
+    cbDebugRun(argc, argv);
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbDebugAlloc(int argc, char* argv[])
 {
     duint size = 0x1000;

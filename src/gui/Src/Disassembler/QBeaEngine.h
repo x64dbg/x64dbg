@@ -5,6 +5,7 @@
 #include "Imports.h"
 #include "capstone_gui.h"
 #include "EncodeMap.h"
+#include "CodeFolding.h"
 
 struct Instruction_t
 {
@@ -42,6 +43,7 @@ public:
     ulong DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n);
     Instruction_t DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA);
     Instruction_t DecodeDataAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, ENCODETYPE type);
+    void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     void UpdateConfig();
     EncodeMap* getEncodeMap() { return mEncodeMap; }
     void setCIP(duint cip) { mCIP = cip; }
@@ -63,6 +65,7 @@ private:
     duint mCIP;
 
 
+    CodeFoldingHelper* mCodeFoldingManager;
 };
 
 #endif // QBEAENGINE_H

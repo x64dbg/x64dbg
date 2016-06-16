@@ -679,11 +679,12 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
             }
             else if(event->y() > getHeaderHeight())
             {
-                dsint wRowIndex = getInstructionRVA(getTableOffset(), getIndexOffsetFromY(transY(event->y())));
-                dsint wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
+                dsint wIndex = getIndexOffsetFromY(transY(event->y()));
 
-                if(wRowIndex < getRowCount())
+                if(mInstBuffer.size() > wIndex && wIndex >= 0)
                 {
+                    dsint wRowIndex = mInstBuffer.at(wIndex).rva;
+                    dsint wInstrSize = mInstBuffer.at(wIndex).length - 1;
                     if(!(event->modifiers() & Qt::ShiftModifier)) //SHIFT pressed
                         setSingleSelection(wRowIndex);
                     if(getSelectionStart() > wRowIndex) //select up
@@ -1175,9 +1176,16 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
     QByteArray wBuffer;
     dsint wBottomByteRealRVA;
     dsint wVirtualRVA;
-    dsint wMaxByteCountToRead ;
+    dsint wMaxByteCountToRead;
 
     wBottomByteRealRVA = (dsint)rva - 16 * (count + 3);
+    if(mCodeFoldingManager)
+    {
+        if(mCodeFoldingManager->isFolded(rvaToVa(wBottomByteRealRVA)))
+        {
+            wBottomByteRealRVA = mCodeFoldingManager->getFoldBegin(wBottomByteRealRVA) - mMemPage->getBase() - 16 * (count + 3);
+        }
+    }
     wBottomByteRealRVA = wBottomByteRealRVA < 0 ? 0 : wBottomByteRealRVA;
 
     wVirtualRVA = (dsint)rva - wBottomByteRealRVA;
@@ -1187,7 +1195,7 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wBottomByteRealRVA, wMaxByteCountToRead);
 
-    dsint addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), mMemPage->getBase() + wBottomByteRealRVA,  wMaxByteCountToRead, wVirtualRVA , count);
+    dsint addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(wBottomByteRealRVA),  wMaxByteCountToRead, wVirtualRVA , count);
 
     addr += rva - wVirtualRVA;
 
@@ -1206,7 +1214,6 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
 dsint Disassembly::getNextInstructionRVA(dsint rva, duint count)
 {
     QByteArray wBuffer;
-    dsint wVirtualRVA = 0;
     dsint wRemainingBytes;
     dsint wMaxByteCountToRead;
     dsint wNewRVA;
@@ -1216,12 +1223,15 @@ dsint Disassembly::getNextInstructionRVA(dsint rva, duint count)
     wRemainingBytes = mMemPage->getSize() - rva;
 
     wMaxByteCountToRead = 16 * (count + 1);
+    if(mCodeFoldingManager)
+        wMaxByteCountToRead += mCodeFoldingManager->getFoldedSize(rvaToVa(rva), rvaToVa(rva + wMaxByteCountToRead));
     wMaxByteCountToRead = wRemainingBytes > wMaxByteCountToRead ? wMaxByteCountToRead : wRemainingBytes;
     wBuffer.resize(wMaxByteCountToRead);
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
 
-    wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), mMemPage->getBase() + rva,  wMaxByteCountToRead, wVirtualRVA, count);
+    wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(rva),  wMaxByteCountToRead, wVirtualRVA, count);
+
     wNewRVA += rva;
 
     return wNewRVA;
@@ -1277,7 +1287,8 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
         size = rva;
 
     wMaxByteCountToRead = wMaxByteCountToRead > (size - rva) ? (size - rva) : wMaxByteCountToRead;
-
+    if(mCodeFoldingManager)
+        wMaxByteCountToRead += mCodeFoldingManager->getFoldedSize(rvaToVa(rva), rvaToVa(rva + wMaxByteCountToRead));
     wBuffer.resize(wMaxByteCountToRead);
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
@@ -1366,6 +1377,7 @@ void Disassembly::selectNext(bool expand)
 {
     dsint wAddr;
     dsint wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
+    dsint wInstrSize;
     if(expand)
     {
         if(getSelectionEnd() == getInitialSelection() && wStart != getSelectionEnd()) //decrease down
@@ -1376,16 +1388,16 @@ void Disassembly::selectNext(bool expand)
         else //expand down
         {
             wAddr = getSelectionEnd() + 1;
-            dsint wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
-            expandSelectionUpTo(wAddr + wInstrSize);
+            wInstrSize = getInstructionRVA(wAddr, 1) - 1;
+            expandSelectionUpTo(wInstrSize);
         }
     }
     else //select next instruction
     {
         wAddr = getSelectionEnd() + 1;
         setSingleSelection(wAddr);
-        dsint wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
-        expandSelectionUpTo(wAddr + wInstrSize);
+        wInstrSize = getInstructionRVA(wAddr, 1) - 1;
+        expandSelectionUpTo(wInstrSize);
     }
 }
 
@@ -1393,14 +1405,16 @@ void Disassembly::selectNext(bool expand)
 void Disassembly::selectPrevious(bool expand)
 {
     dsint wAddr;
-    dsint wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
+    dsint wStart;
+    dsint wInstrSize;
+    wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
     if(expand)
     {
         if(getSelectionStart() == getInitialSelection() && wStart != getSelectionEnd()) //decrease up
         {
             wAddr = getInstructionRVA(getSelectionEnd() + 1, -2);
-            dsint wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
-            expandSelectionUpTo(wAddr + wInstrSize);
+            wInstrSize = getInstructionRVA(wAddr, 1) - 1;
+            expandSelectionUpTo(wInstrSize);
         }
         else //expand up
         {
@@ -1412,8 +1426,8 @@ void Disassembly::selectPrevious(bool expand)
     {
         wAddr = getInstructionRVA(getSelectionStart(), -1);
         setSingleSelection(wAddr);
-        dsint wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
-        expandSelectionUpTo(wAddr + wInstrSize);
+        wInstrSize = getInstructionRVA(wAddr, 1) - 1;
+        expandSelectionUpTo(wInstrSize);
     }
 }
 
@@ -1460,38 +1474,43 @@ duint Disassembly::getSelectedVa()
                          Update/Reload/Refresh/Repaint
 ************************************************************************************/
 
-void Disassembly::prepareDataCount(dsint wRVA, int wCount, QList<Instruction_t>* instBuffer)
+void Disassembly::prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction_t>* instBuffer)
 {
     instBuffer->clear();
     Instruction_t wInst;
-    for(int wI = 0; wI < wCount; wI++)
+    for(int wI = 0; wI < wRVAs.count(); wI++)
     {
-        wInst = DisassembleAt(wRVA);
+        wInst = DisassembleAt(wRVAs.at(wI));
         instBuffer->append(wInst);
-        wRVA += wInst.length;
     }
 }
 
 void Disassembly::prepareDataRange(dsint startRva, dsint endRva, QList<Instruction_t>* instBuffer)
 {
+    QList<dsint> wRVAs;
     if(startRva == endRva)
-        prepareDataCount(startRva, 1, instBuffer);
+    {
+        wRVAs.append(startRva);
+        prepareDataCount(wRVAs, instBuffer);
+    }
     else
     {
         int wCount = 0;
         dsint addr = startRva;
         while(addr <= endRva)
         {
+            wRVAs.append(addr);
             addr = getNextInstructionRVA(addr, 1);
             wCount++;
         }
-        prepareDataCount(startRva, wCount, instBuffer);
+        prepareDataCount(wRVAs, instBuffer);
     }
 }
 
 void Disassembly::prepareData()
 {
     dsint wViewableRowsCount = getViewableRowsCount();
+    QList<dsint> wRVAs;
 
     dsint wAddrPrev = getTableOffset();
     dsint wAddr = wAddrPrev;
@@ -1500,6 +1519,7 @@ void Disassembly::prepareData()
 
     for(int wI = 0; wI < wViewableRowsCount && getRowCount() > 0; wI++)
     {
+        wRVAs.append(wAddr);
         wAddrPrev = wAddr;
         wAddr = getNextInstructionRVA(wAddr, 1);
 
@@ -1513,7 +1533,7 @@ void Disassembly::prepareData()
 
     setNbrOfLineToPrint(wCount);
 
-    prepareDataCount(getTableOffset(), wCount, &mInstBuffer);
+    prepareDataCount(wRVAs, &mInstBuffer);
 }
 
 void Disassembly::reloadData()
@@ -1672,6 +1692,11 @@ const dsint Disassembly::currentEIP() const
 void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
 {
     setFocus();
+    if(mCodeFoldingManager)
+    {
+        mCodeFoldingManager->expandFoldSegment(parVA);
+        mCodeFoldingManager->expandFoldSegment(parCIP);
+    }
     disassembleAt(parVA, parCIP, true, -1);
 }
 
@@ -1704,12 +1729,12 @@ void Disassembly::debugStateChangedSlot(DBGSTATE state)
     }
 }
 
-const dsint Disassembly::getBase() const
+const duint Disassembly::getBase() const
 {
     return mMemPage->getBase();
 }
 
-dsint Disassembly::getSize()
+duint Disassembly::getSize()
 {
     return mMemPage->getSize();
 }
@@ -1731,7 +1756,10 @@ void Disassembly::historyPrevious()
     if(!historyHasPrevious())
         return;
     mCurrentVa--;
-    disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+    dsint va = mVaHistory.at(mCurrentVa).va;
+    if(mCodeFoldingManager && mCodeFoldingManager->isFolded(va))
+        mCodeFoldingManager->expandFoldSegment(va);
+    disassembleAt(va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
 
     // Update window title
     emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
@@ -1742,7 +1770,10 @@ void Disassembly::historyNext()
     if(!historyHasNext())
         return;
     mCurrentVa++;
-    disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+    dsint va = mVaHistory.at(mCurrentVa).va;
+    if(mCodeFoldingManager && mCodeFoldingManager->isFolded(va))
+        mCodeFoldingManager->expandFoldSegment(va);
+    disassembleAt(va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
 
     // Update window title
     emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
@@ -1809,4 +1840,27 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE])
     if(label)
         strcpy_s(label, MAX_LABEL_SIZE, label_);
     return addrText;
+}
+
+/**
+ * @brief Set the code folding manager for the disassembly view
+ * @param CodeFoldingManager The pointer to the code folding manager.
+ */
+void Disassembly::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)
+{
+    mCodeFoldingManager = CodeFoldingManager;
+    mDisasm->setCodeFoldingManager(CodeFoldingManager);
+}
+
+/**
+ * @brief   Unfolds specified rva.
+ * @param rva the address.
+ */
+void Disassembly::unfold(dsint rva)
+{
+    if(mCodeFoldingManager)
+    {
+        mCodeFoldingManager->expandFoldSegment(rvaToVa(rva));
+        viewport()->update();
+    }
 }

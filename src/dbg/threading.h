@@ -60,6 +60,7 @@ enum SectionLock
     LockDebugStartStop,
     LockArguments,
     LockEncodeMaps,
+    LockCallstackCache,
 
     // Number of elements in this enumeration. Must always be the last
     // index.

@@ -118,7 +118,7 @@ public:
     QString wordToString(uint16 word, WordViewMode_e mode);
     QString dwordToString(uint32 dword, DwordViewMode_e mode);
     QString qwordToString(uint64 qword, QwordViewMode_e mode);
-    QString twordToString(long double tword, TwordViewMode_e mode);
+    QString twordToString(void* tword, TwordViewMode_e mode);
 
     int getStringMaxLength(DataDescriptor_t desc);
 

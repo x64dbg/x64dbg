@@ -6,6 +6,7 @@
 #include "command.h"
 #include "breakpoint.h"
 #include "undocumented.h"
+#include "expressionparser.h"
 #include "value.h"
 #include "_plugins.h"
 
@@ -83,6 +84,9 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
 duint dbggetdebuggedbase();
+duint dbggetdbgevents();
+bool dbgsettracecondition(String expression, duint maxCount);
+bool dbgtraceactive();
 
 void cbStep();
 void cbRtrStep();
@@ -104,6 +108,8 @@ bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp);
 bool cbBreakpointList(const BREAKPOINT* bp);
 bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp);
 bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp);
+void cbTOCNDStep();
+void cbTICNDStep();
 DWORD WINAPI threadAttachLoop(void* lpParameter);
 void cbDetach();
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);

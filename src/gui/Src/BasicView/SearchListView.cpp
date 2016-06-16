@@ -42,10 +42,10 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent) : QWidget(pare
         {
             // Input box
             mSearchBox = new QLineEdit();
-            mSearchBox->setPlaceholderText("Type here to filter results...");
+            mSearchBox->setPlaceholderText(tr("Type here to filter results..."));
 
             // Regex parsing checkbox
-            mRegexCheckbox = new QCheckBox("Regex");
+            mRegexCheckbox = new QCheckBox(tr("Regex"));
 
             if(!EnableRegex)
                 mRegexCheckbox->hide();
@@ -54,7 +54,7 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent) : QWidget(pare
             QHBoxLayout* horzLayout = new QHBoxLayout();
             horzLayout->setContentsMargins(4, 0, (EnableRegex) ? 0 : 4, 0);
             horzLayout->setSpacing(2);
-            horzLayout->addWidget(new QLabel("Search: "));
+            horzLayout->addWidget(new QLabel(tr("Search: ")));
             horzLayout->addWidget(mSearchBox);
             horzLayout->addWidget(mRegexCheckbox);
 
@@ -88,7 +88,7 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent) : QWidget(pare
     mSearchBox->installEventFilter(this);
 
     // Setup search menu action
-    mSearchAction = new QAction("Search...", this);
+    mSearchAction = new QAction(tr("Search..."), this);
     connect(mSearchAction, SIGNAL(triggered()), this, SLOT(searchSlot()));
 
     // Slots
@@ -207,7 +207,7 @@ void SearchListView::listContextMenu(const QPoint & pos)
     emit listContextMenuSignal(&wMenu);
     wMenu.addSeparator();
     wMenu.addAction(mSearchAction);
-    QMenu wCopyMenu("&Copy", this);
+    QMenu wCopyMenu(tr("&Copy"), this);
     mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
         wMenu.addMenu(&wCopyMenu);

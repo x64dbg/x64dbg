@@ -1,4 +1,5 @@
 #include <QFileDialog>
+#include <QMessageBox>
 
 #include "MemoryMapView.h"
 #include "Configuration.h"
@@ -7,6 +8,7 @@
 #include "YaraRuleSelectionDialog.h"
 #include "EntropyDialog.h"
 #include "HexEditDialog.h"
+#include "LineEditDialog.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 {
@@ -102,6 +104,16 @@ void MemoryMapView::setupContextMenu()
     this->addAction(mMemoryExecuteSingleshootToggle);
     connect(mMemoryExecuteSingleshootToggle, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootToggleSlot()));
 
+    //Allocate memory
+    mMemoryAllocate = new QAction(tr("&Allocate memory"), this);
+    connect(mMemoryAllocate, SIGNAL(triggered()), this, SLOT(memoryAllocateSlot()));
+    this->addAction(mMemoryAllocate);
+
+    //Free memory
+    mMemoryFree = new QAction(tr("&Free memory"), this);
+    connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
+    this->addAction(mMemoryFree);
+
     //Entropy
     mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropy()));
@@ -140,6 +152,9 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addAction(mEntropy);
     wMenu.addAction(mFindPattern);
     wMenu.addAction(mSwitchView);
+    wMenu.addSeparator();
+    wMenu.addAction(mMemoryAllocate);
+    wMenu.addAction(mMemoryFree);
     wMenu.addSeparator();
     wMenu.addAction(mPageMemoryRights);
     wMenu.addSeparator();
@@ -440,12 +455,63 @@ void MemoryMapView::entropy()
     delete[] data;
 }
 
+void MemoryMapView::memoryAllocateSlot()
+{
+    LineEditDialog mLineEdit(this);
+    mLineEdit.setWindowTitle(tr("Enter the size of memory to allocate."));
+    if(mLineEdit.exec() == QDialog::Accepted)
+    {
+        QByteArray textUtf8 = mLineEdit.editText.toUtf8();
+        if(!DbgIsValidExpression(textUtf8.constData()))
+        {
+            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("The expression \"%1\" is not valid.").arg(mLineEdit.editText));
+            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+            msg.exec();
+            return;
+        }
+        duint memsize = DbgValFromString(textUtf8.constData());
+        if(memsize == 0) // 1GB
+        {
+            QMessageBox msg(QMessageBox::Warning, tr("Warning"), tr("You're trying to allocate a zero-sized buffer just now."));
+            msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+            msg.exec();
+            return;
+        }
+        if(memsize > 1024 * 1024 * 1024)
+        {
+            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("The size of buffer you're trying to allocate exceeds 1GB. Please check your expression to ensure nothing is wrong."));
+            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+            msg.exec();
+            return;
+        }
+        DbgCmdExecDirect(QString("alloc %1").arg(ToPtrString(memsize)).toUtf8().constData());
+        duint addr = DbgValFromString("$result");
+        if(addr != 0)
+        {
+            DbgCmdExec("Dump $result");
+            emit showCpu();
+        }
+        else
+        {
+            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Memory allocation failed!"));
+            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+            msg.exec();
+            return;
+        }
+    }
+}
+
+void MemoryMapView::memoryFreeSlot()
+{
+    DbgCmdExec(QString("free %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
+}
+
 void MemoryMapView::findPatternSlot()
 {
     HexEditDialog hexEdit(this);
     hexEdit.showEntireBlock(true);
     hexEdit.mHexEdit->setOverwriteMode(false);
-    hexEdit.setWindowTitle("Find Pattern...");
+    hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     duint addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
@@ -458,7 +524,7 @@ void MemoryMapView::findPatternSlot()
 
 void MemoryMapView::dumpMemory()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Save Memory Region", QDir::currentPath(), tr("All files (*.*)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Memory Region"), QDir::currentPath(), tr("All files (*.*)"));
 
     if(fileName.length())
     {

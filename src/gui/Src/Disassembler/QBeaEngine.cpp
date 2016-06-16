@@ -2,7 +2,7 @@
 #include "StringUtil.h"
 
 QBeaEngine::QBeaEngine(int maxModuleSize)
-    : _tokenizer(maxModuleSize), mCIP(0)
+    : _tokenizer(maxModuleSize), mCIP(0), mCodeFoldingManager(nullptr)
 {
     CapstoneTokenizer::UpdateColors();
     UpdateDataInstructionMap();
@@ -28,9 +28,8 @@ QBeaEngine::~QBeaEngine()
  */
 ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n)
 {
-    Q_UNUSED(base)
     int i;
-    uint abuf[131], addr, back, cmdsize;
+    uint abuf[128], addr, back, cmdsize;
     unsigned char* pdata;
 
     // Reset Disasm Structure
@@ -54,15 +53,22 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
     if(n == 0)
         return ip;
 
-    if(ip < (uint)n)
-        return ip;
+    //if(ip < (uint)n)
+    //    return ip;
 
+    //TODO: buffer overflow due to unchecked "back" value
     back = MAX_DISASM_BUFFER * (n + 3); // Instruction length limited to 16
 
     if(ip < back)
         back = ip;
 
     addr = ip - back;
+    if(mCodeFoldingManager && mCodeFoldingManager->isFolded(addr + base))
+    {
+        duint newback = mCodeFoldingManager->getFoldBegin(addr + base);
+        if(newback >= base && newback < size + base)
+            addr = newback - base;
+    }
 
     pdata = data + addr;
 
@@ -70,16 +76,30 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
     {
         abuf[i % 128] = addr;
 
-        if(!cp.Disassemble(0, pdata, (int)size))
-            cmdsize = 2; //heuristic for better output (FF FE or FE FF are usually part of an instruction)
+        if(mCodeFoldingManager && mCodeFoldingManager->isFolded(addr + base))
+        {
+            duint newaddr = mCodeFoldingManager->getFoldBegin(addr + base);
+            if(newaddr >= base)
+            {
+                addr = newaddr - base;
+            }
+            cmdsize = mCodeFoldingManager->getFoldEnd(addr + base) - (addr + base) + 1;
+        }
         else
-            cmdsize = cp.Size();
+        {
+            if(!cp.Disassemble(addr + base, pdata, (int)size))
+                cmdsize = 2; //heuristic for better output (FF FE or FE FF are usually part of an instruction)
+            else
+                cmdsize = cp.Size();
 
-        cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize, mCIP); //If CIP at current address, it must be code, otherwise try decode as data
+            cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize, mCIP); //If CIP at current address, it must be code, otherwise try decode as data
+
+        }
+
 
         pdata += cmdsize;
         addr += cmdsize;
-        back -= cmdsize;
+        //back -= cmdsize; // dead code
         size -= cmdsize;
     }
 
@@ -104,7 +124,6 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
  */
 ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n)
 {
-    Q_UNUSED(base)
     int i;
     uint cmdsize;
     unsigned char* pdata;
@@ -129,12 +148,21 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
 
     for(i = 0; i < n && size > 0; i++)
     {
-        if(!cp.Disassemble(0, pdata, (int)size))
-            cmdsize = 1;
+        if(mCodeFoldingManager && mCodeFoldingManager->isFolded(ip + base))
+        {
+            cmdsize = mCodeFoldingManager->getFoldEnd(ip + base) - (ip + base) + 1;
+        }
         else
-            cmdsize = cp.Size();
+        {
+            if(!cp.Disassemble(0, pdata, (int)size))
+                cmdsize = 1;
+            else
+                cmdsize = cp.Size();
 
-        cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize, mCIP); //If CIP at current address, it must be code, otherwise try decode as data
+            cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize, mCIP); //If CIP at current address, it must be code, otherwise try decode as data
+
+        }
+
 
         pdata += cmdsize;
         ip += cmdsize;
@@ -160,7 +188,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
 {
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
-    _tokenizer.Tokenize(origBase + origInstRVA, data, size, cap);
+    _tokenizer.Tokenize(origBase + origInstRVA, data + instIndex, size, cap);
     int len = _tokenizer.Size();
 
     const auto & cp = _tokenizer.GetCapstone();
@@ -190,16 +218,18 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
 
     Instruction_t wInst;
     wInst.instStr = QString(cp.InstructionText().c_str());
-    wInst.dump = QByteArray((const char*)data, len);
+    wInst.dump = QByteArray((const char*)data + instIndex, len);
     wInst.rva = origInstRVA;
-    wInst.length = len;
+    if(mCodeFoldingManager && mCodeFoldingManager->isFolded(origInstRVA))
+        wInst.length = mCodeFoldingManager->getFoldEnd(origInstRVA + origBase) - (origInstRVA + origBase) + 1;
+    else
+        wInst.length = len;
     wInst.branchType = branchType;
     wInst.branchDestination = cp.BranchDestination();
     wInst.tokens = cap;
 
     return wInst;
 }
-
 
 
 Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, ENCODETYPE type)
@@ -261,6 +291,11 @@ void QBeaEngine::UpdateDataInstructionMap()
 }
 
 
+
+void QBeaEngine::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)
+{
+    mCodeFoldingManager = CodeFoldingManager;
+}
 
 void QBeaEngine::UpdateConfig()
 {

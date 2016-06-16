@@ -209,8 +209,29 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint
         sprintf_s(Entry->comment, "return to %s from ???", returnToAddr);
 }
 
-void stackgetcallstack(duint csp, CALLSTACK* callstack)
+#define MAX_CALLSTACK_CACHE 20
+using CallstackMap = std::unordered_map<duint, std::vector<CALLSTACKENTRY>>;
+static CallstackMap CallstackCache;
+
+void stackupdatecallstack(duint csp)
 {
+    std::vector<CALLSTACKENTRY> callstack;
+    stackgetcallstack(csp, callstack, false);
+}
+
+void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector, bool cache)
+{
+    if(cache)
+    {
+        SHARED_ACQUIRE(LockCallstackCache);
+        auto found = CallstackCache.find(csp);
+        if(found != CallstackCache.end())
+        {
+            callstackVector = found->second;
+            return;
+        }
+    }
+
     // Gather context data
     CONTEXT context;
     memset(&context, 0, sizeof(CONTEXT));
@@ -249,7 +270,7 @@ void stackgetcallstack(duint csp, CALLSTACK* callstack)
 #endif
 
     // Container for each callstack entry (20 pre-allocated entries)
-    std::vector<CALLSTACKENTRY> callstackVector;
+    callstackVector.clear();
     callstackVector.reserve(20);
 
     while(true)
@@ -284,6 +305,17 @@ void stackgetcallstack(duint csp, CALLSTACK* callstack)
             break;
         }
     }
+
+    EXCLUSIVE_ACQUIRE(LockCallstackCache);
+    if(CallstackCache.size() > MAX_CALLSTACK_CACHE)
+        CallstackCache.clear();
+    CallstackCache[csp] = callstackVector;
+}
+
+void stackgetcallstack(duint csp, CALLSTACK* callstack)
+{
+    std::vector<CALLSTACKENTRY> callstackVector;
+    stackgetcallstack(csp, callstackVector, true);
 
     // Convert to a C data structure
     callstack->total = (int)callstackVector.size();

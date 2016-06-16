@@ -62,40 +62,40 @@ ReferenceView::ReferenceView() : SearchListView()
 
 void ReferenceView::setupContextMenu()
 {
-    mFollowAddress = new QAction("&Follow in Disassembler", this);
+    mFollowAddress = new QAction(tr("&Follow in Disassembler"), this);
     connect(mFollowAddress, SIGNAL(triggered()), this, SLOT(followAddress()));
 
-    mFollowDumpAddress = new QAction("Follow in &Dump", this);
+    mFollowDumpAddress = new QAction(tr("Follow in &Dump"), this);
     connect(mFollowDumpAddress, SIGNAL(triggered()), this, SLOT(followDumpAddress()));
 
-    mFollowApiAddress = new QAction("Follow &API Address", this);
+    mFollowApiAddress = new QAction(tr("Follow &API Address"), this);
     connect(mFollowApiAddress, SIGNAL(triggered()), this, SLOT(followApiAddress()));
 
-    mToggleBreakpoint = new QAction("Toggle Breakpoint", this);
+    mToggleBreakpoint = new QAction(tr("Toggle Breakpoint"), this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     addAction(mToggleBreakpoint);
     mList->addAction(mToggleBreakpoint);
     mSearchList->addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
-    mToggleBookmark = new QAction("Toggle Bookmark", this);
+    mToggleBookmark = new QAction(tr("Toggle Bookmark"), this);
     mToggleBookmark->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     addAction(mToggleBookmark);
     mList->addAction(mToggleBookmark);
     mSearchList->addAction(mToggleBookmark);
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 
-    mSetBreakpointOnAllCommands = new QAction("Set breakpoint on all commands", this);
+    mSetBreakpointOnAllCommands = new QAction(tr("Set breakpoint on all commands"), this);
     connect(mSetBreakpointOnAllCommands, SIGNAL(triggered()), this, SLOT(setBreakpointOnAllCommands()));
 
-    mRemoveBreakpointOnAllCommands = new QAction("Remove breakpoint on all commands", this);
+    mRemoveBreakpointOnAllCommands = new QAction(tr("Remove breakpoint on all commands"), this);
     connect(mRemoveBreakpointOnAllCommands, SIGNAL(triggered()), this, SLOT(removeBreakpointOnAllCommands()));
 
 
-    mSetBreakpointOnAllApiCalls = new QAction("Set breakpoint on all api calls", this);
+    mSetBreakpointOnAllApiCalls = new QAction(tr("Set breakpoint on all api calls"), this);
     connect(mSetBreakpointOnAllApiCalls, SIGNAL(triggered()), this, SLOT(setBreakpointOnAllApiCalls()));
 
-    mRemoveBreakpointOnAllApiCalls = new QAction("Remove breakpoint on all api calls", this);
+    mRemoveBreakpointOnAllApiCalls = new QAction(tr("Remove breakpoint on all api calls"), this);
     connect(mRemoveBreakpointOnAllApiCalls, SIGNAL(triggered()), this, SLOT(removeBreakpointOnAllApiCalls()));
 
 
@@ -125,7 +125,7 @@ void ReferenceView::referenceSetProgressSlot(int progress)
 {
     mSearchTotalProgress->setValue(progress);
     mSearchTotalProgress->setAlignment(Qt::AlignCenter);
-    mSearchTotalProgress->setFormat("Total Progress " + QString::number(progress) + "%");
+    mSearchTotalProgress->setFormat(tr("Total Progress %1%").arg(QString::number(progress)));
 }
 
 void ReferenceView::referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle)
@@ -211,9 +211,9 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
         if(DbgGetLabelAt(apiaddr, SEG_DEFAULT, label))
         {
             wMenu->addSeparator();
-            mSetBreakpointOnAllApiCalls->setText(QString("Set breakpoint on all calls to %1").arg(label));
+            mSetBreakpointOnAllApiCalls->setText(tr("Set breakpoint on all calls to %1").arg(label));
             wMenu->addAction(mSetBreakpointOnAllApiCalls);
-            mRemoveBreakpointOnAllApiCalls->setText(QString("Remove breakpoint on all calls to %1").arg(label));
+            mRemoveBreakpointOnAllApiCalls->setText(tr("Remove breakpoint on all calls to %1").arg(label));
             wMenu->addAction(mRemoveBreakpointOnAllApiCalls);
         }
     }
@@ -365,7 +365,7 @@ void ReferenceView::toggleBookmark()
         result = DbgSetBookmarkAt(wVA, true);
     if(!result)
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetBookmarkAt failed!");
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
