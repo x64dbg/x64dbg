@@ -283,8 +283,9 @@ bool trydisasm(const unsigned char* buffer, duint addr, DISASM_INSTR* instr, dui
     memset(instr, 0, sizeof(DISASM_INSTR));
     instr->argcount = 1;
     instr->type = instr_normal;
-    instr->arg[0].type = arg_memory;
+    instr->arg[0].type = arg_normal;
     instr->arg[0].value = decodesimpledata(buffer, type);
+    strcpy_s(instr->arg[0].mnemonic, GetDataTypeString((void*)buffer, size, type).c_str());
     instr->instr_size = size;
     String str = GetDataInstString((void*)buffer, MAX_DISASM_BUFFER, type);
     strcpy_s(instr->instruction, str.c_str());
