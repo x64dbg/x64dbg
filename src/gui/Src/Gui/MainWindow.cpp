@@ -54,11 +54,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     this->showMaximized();
 
-#ifdef _WIN64
-    mWindowMainTitle = tr("x64dbg");
-#else
-    mWindowMainTitle = tr("x32dbg");
-#endif
+    mWindowMainTitle = QCoreApplication::applicationName();
 
     // Set window title
     setWindowTitle(QString(mWindowMainTitle));
