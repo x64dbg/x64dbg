@@ -586,6 +586,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     }
     if(breakCondition)  //break the debugger
     {
+        dbgcleartracecondition();
         SetForegroundWindow(GuiGetWindowHandle());
         bSkipExceptions = false;
     }
@@ -796,12 +797,13 @@ void cbStep()
 
 static void cbRtrFinalStep()
 {
+    dbgcleartracecondition();
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     GuiSetDebugState(paused);
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    DebugUpdateGui(CIP, true);
     // Trace record
     _dbg_dbgtraceexecute(CIP);
+    DebugUpdateGui(CIP, true);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
@@ -812,18 +814,12 @@ static void cbRtrFinalStep()
     wait(WAITID_RUN);
 }
 
-static unsigned char getCIPch()
+void cbRtrStep()
 {
     unsigned char ch = 0x90;
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     MemRead(cip, &ch, 1);
-    return ch;
-}
-
-void cbRtrStep()
-{
-    unsigned int cipch = getCIPch();
-    if(cipch == 0xC3 || cipch == 0xC2)
+    if(ch == 0xC3 || ch == 0xC2)
         cbRtrFinalStep();
     else
         StepOver((void*)cbRtrStep);
@@ -851,6 +847,94 @@ void cbTICNDStep()
         dprintf("Trace finished after %" fext "u steps!\n", steps);
         cbRtrFinalStep();
     }
+}
+
+void cbTIBTStep()
+{
+    // Trace record
+    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    if(!traceCondition)
+    {
+        _dbg_dbgtraceexecute(CIP);
+        dprintf("Bad tracing state.\n");
+        cbRtrFinalStep();
+        return;
+    }
+    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && TraceRecord.getHitCount(CIP) == 0) || !traceCondition->ContinueTrace())
+    {
+        _dbg_dbgtraceexecute(CIP);
+        auto steps = dbgcleartracecondition();
+        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        cbRtrFinalStep();
+        return;
+    }
+    StepInto((void*)cbTIBTStep);
+}
+
+void cbTOBTStep()
+{
+    // Trace record
+    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    if(!traceCondition)
+    {
+        _dbg_dbgtraceexecute(CIP);
+        dprintf("Bad tracing state.\n");
+        cbRtrFinalStep();
+        return;
+    }
+    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && TraceRecord.getHitCount(CIP) == 0) || !traceCondition->ContinueTrace())
+    {
+        _dbg_dbgtraceexecute(CIP);
+        auto steps = dbgcleartracecondition();
+        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        cbRtrFinalStep();
+        return;
+    }
+    StepOver((void*)cbTOBTStep);
+}
+
+void cbTIITStep()
+{
+    // Trace record
+    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    if(!traceCondition)
+    {
+        _dbg_dbgtraceexecute(CIP);
+        dprintf("Bad tracing state.\n");
+        cbRtrFinalStep();
+        return;
+    }
+    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && TraceRecord.getHitCount(CIP) != 0) || !traceCondition->ContinueTrace())
+    {
+        _dbg_dbgtraceexecute(CIP);
+        auto steps = dbgcleartracecondition();
+        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        cbRtrFinalStep();
+        return;
+    }
+    StepInto((void*)cbTIITStep);
+}
+
+void cbTOITStep()
+{
+    // Trace record
+    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    if(!traceCondition)
+    {
+        _dbg_dbgtraceexecute(CIP);
+        dprintf("Bad tracing state.\n");
+        cbRtrFinalStep();
+        return;
+    }
+    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && TraceRecord.getHitCount(CIP) != 0) || !traceCondition->ContinueTrace())
+    {
+        _dbg_dbgtraceexecute(CIP);
+        auto steps = dbgcleartracecondition();
+        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        cbRtrFinalStep();
+        return;
+    }
+    StepOver((void*)cbTOITStep);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)

@@ -75,6 +75,14 @@ public slots:
     void execeRun();
     void execeRtr();
     void execSkip();
+    void execTRBit();
+    void execTRByte();
+    void execTRWord();
+    void execTRNone();
+    void execTRTIBT();
+    void execTRTOBT();
+    void execTRTIIT();
+    void execTRTOIT();
     void displayCpuWidget();
     void displaySymbolWidget();
     void displaySourceViewWidget();

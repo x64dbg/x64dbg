@@ -54,11 +54,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     this->showMaximized();
 
-#ifdef _WIN64
-    mWindowMainTitle = tr("x64dbg");
-#else
-    mWindowMainTitle = tr("x32dbg");
-#endif
+    mWindowMainTitle = QCoreApplication::applicationName();
 
     // Set window title
     setWindowTitle(QString(mWindowMainTitle));
@@ -234,6 +230,14 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actioneRtr, SIGNAL(triggered()), this, SLOT(execeRtr()));
     connect(ui->actionTicnd, SIGNAL(triggered()), this, SLOT(execTicnd()));
     connect(ui->actionTocnd, SIGNAL(triggered()), this, SLOT(execTocnd()));
+    connect(ui->actionTRBit, SIGNAL(triggered()), this, SLOT(execTRBit()));
+    connect(ui->actionTRByte, SIGNAL(triggered()), this, SLOT(execTRByte()));
+    connect(ui->actionTRWord, SIGNAL(triggered()), this, SLOT(execTRWord()));
+    connect(ui->actionTRNone, SIGNAL(triggered()), this, SLOT(execTRNone()));
+    connect(ui->actionTRTIBT, SIGNAL(triggered()), this, SLOT(execTRTIBT()));
+    connect(ui->actionTRTOBT, SIGNAL(triggered()), this, SLOT(execTRTOBT()));
+    connect(ui->actionTRTIIT, SIGNAL(triggered()), this, SLOT(execTRTIIT()));
+    connect(ui->actionTRTOIT, SIGNAL(triggered()), this, SLOT(execTRTOIT()));
     connect(ui->actionSkipNextInstruction, SIGNAL(triggered()), this, SLOT(execSkip()));
     connect(ui->actionScript, SIGNAL(triggered()), this, SLOT(displayScriptWidget()));
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
@@ -591,6 +595,46 @@ void MainWindow::execRun()
 void MainWindow::execRtr()
 {
     DbgCmdExec("rtr");
+}
+
+void MainWindow::execTRBit()
+{
+    mCpuWidget->getDisasmWidget()->ActionTraceRecordBitSlot();
+}
+
+void MainWindow::execTRByte()
+{
+    mCpuWidget->getDisasmWidget()->ActionTraceRecordByteSlot();
+}
+
+void MainWindow::execTRWord()
+{
+    mCpuWidget->getDisasmWidget()->ActionTraceRecordWordSlot();
+}
+
+void MainWindow::execTRNone()
+{
+    mCpuWidget->getDisasmWidget()->ActionTraceRecordDisableSlot();
+}
+
+void MainWindow::execTRTIBT()
+{
+    DbgCmdExec("tibt");
+}
+
+void MainWindow::execTRTOBT()
+{
+    DbgCmdExec("tobt");
+}
+
+void MainWindow::execTRTIIT()
+{
+    DbgCmdExec("tiit");
+}
+
+void MainWindow::execTRTOIT()
+{
+    DbgCmdExec("toit");
 }
 
 void MainWindow::execTicnd()
