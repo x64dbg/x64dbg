@@ -197,7 +197,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
 
     ENCODETYPE type = enc_code;
 
-    type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 0, tmpcodecount, tmpcodelist);
+    type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 1, tmpcodecount, tmpcodelist);
 
     if(type != enc_unknown && type != enc_code && type != enc_middle)
         return DecodeDataAt(data, size, instIndex, origBase, origInstRVA, type);
@@ -247,7 +247,7 @@ Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex
     }
 
 
-    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 0, tmpcodecount, tmpcodelist);
+    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 1, tmpcodecount, tmpcodelist);
 
     QString mnemonic = _bLongDataInst ? infoIter.value().longName : infoIter.value().shortName;
 
