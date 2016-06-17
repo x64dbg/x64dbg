@@ -300,7 +300,6 @@ void TraceRecordManager::saveToDb(JSON root)
     }
     if(json_array_size(jsonTraceRecords))
         json_object_set_new(root, "tracerecord", jsonTraceRecords);
-    json_decref(jsonTraceRecords);
 }
 
 void TraceRecordManager::loadFromDb(JSON root)

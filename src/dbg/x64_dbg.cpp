@@ -89,8 +89,12 @@ static void registercommands()
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //rtr
     dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
-    dbgcmdnew("tocnd", cbDebugTocnd, true); //tocnd
-    dbgcmdnew("ticnd", cbDebugTicnd, true); //ticnd
+    dbgcmdnew("TraceOverConditional\1tocnd", cbDebugTocnd, true); //tocnd
+    dbgcmdnew("TraceIntoConditional\1ticnd", cbDebugTicnd, true); //ticnd
+    dbgcmdnew("TraceIntoBeyondTraceRecord\1tibt", cbDebugTibt, true); //Trace into beyond trace record
+    dbgcmdnew("TraceOverBeyondTraceRecord\1tobt", cbDebugTobt, true); //Trace over beyond trace record
+    dbgcmdnew("TraceIntoIntoTraceRecord\1tiit", cbDebugTiit, true); //Trace into into trace record
+    dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugToit, true); //Trace over into trace record
 
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
 

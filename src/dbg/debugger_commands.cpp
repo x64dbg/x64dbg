@@ -1255,7 +1255,7 @@ CMDRESULT cbDebugeRtr(int argc, char* argv[])
     return cbDebugRtr(argc, argv);
 }
 
-CMDRESULT cbDebugTocnd(int argc, char* argv[])
+static CMDRESULT cbDebugConditionalTrace(void* callBack, bool stepOver, int argc, char* argv[])
 {
     if(argc < 2)
     {
@@ -1275,34 +1275,66 @@ CMDRESULT cbDebugTocnd(int argc, char* argv[])
         dprintf("Invalid expression \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
-    StepOver((void*)cbTOCNDStep);
+    if(stepOver)
+        StepOver(callBack);
+    else
+        StepInto(callBack);
     cbDebugRun(argc, argv);
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbDebugTocnd(int argc, char* argv[])
+{
+    return cbDebugConditionalTrace((void*)cbTOCNDStep, true, argc, argv);
+}
+
 CMDRESULT cbDebugTicnd(int argc, char* argv[])
 {
-    if(argc < 2)
+    return cbDebugConditionalTrace((void*)cbTICNDStep, false, argc, argv);
+}
+
+CMDRESULT cbDebugTibt(int argc, char* argv[])
+{
+    if(argc == 1)
     {
-        dputs("Not enough arguments");
-        return STATUS_ERROR;
+        char* new_argv[] = { "tibt", "0" };
+        return cbDebugConditionalTrace((void*)cbTIBTStep, false, 2, new_argv);
     }
-    if(dbgtraceactive())
+    else
+        return cbDebugConditionalTrace((void*)cbTIBTStep, false, argc, argv);
+}
+
+CMDRESULT cbDebugTobt(int argc, char* argv[])
+{
+    if(argc == 1)
     {
-        dputs("Trace already active");
-        return STATUS_ERROR;
+        char* new_argv[] = { "tobt", "0" };
+        return cbDebugConditionalTrace((void*)cbTOBTStep, true, 2, new_argv);
     }
-    duint maxCount = 50000;
-    if(argc > 2 && !valfromstring(argv[2], &maxCount, false))
-        return STATUS_ERROR;
-    if(!dbgsettracecondition(argv[1], maxCount))
+    else
+        return cbDebugConditionalTrace((void*)cbTOBTStep, true, argc, argv);
+}
+
+CMDRESULT cbDebugTiit(int argc, char* argv[])
+{
+    if(argc == 1)
     {
-        dprintf("Invalid expression \"%s\"\n", argv[1]);
-        return STATUS_ERROR;
+        char* new_argv[] = { "tiit", "0" };
+        return cbDebugConditionalTrace((void*)cbTIITStep, false, 2, new_argv);
     }
-    StepInto((void*)cbTICNDStep);
-    cbDebugRun(argc, argv);
-    return STATUS_CONTINUE;
+    else
+        return cbDebugConditionalTrace((void*)cbTIITStep, false, argc, argv);
+}
+
+CMDRESULT cbDebugToit(int argc, char* argv[])
+{
+    if(argc == 1)
+    {
+        char* new_argv[] = { "toit", "0" };
+        return cbDebugConditionalTrace((void*)cbTOITStep, true, 2, new_argv);
+    }
+    else
+        return cbDebugConditionalTrace((void*)cbTOITStep, true, argc, argv);
 }
 
 CMDRESULT cbDebugAlloc(int argc, char* argv[])

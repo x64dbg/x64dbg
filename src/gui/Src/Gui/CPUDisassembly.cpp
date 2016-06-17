@@ -1409,26 +1409,58 @@ void CPUDisassembly::editSoftBpActionSlot()
 
 void CPUDisassembly::ActionTraceRecordBitSlot()
 {
-    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordBitExec)))
-        GuiAddLogMessage("Failed to set trace record.\n");
+    duint base = mMemPage->getBase();
+    duint size = mMemPage->getSize();
+    for(duint i = base; i < base + size; i += 4096)
+    {
+        if(!(DbgFunctions()->SetTraceRecordType(i, TRACERECORDTYPE::TraceRecordBitExec)))
+        {
+            GuiAddLogMessage(tr("Failed to set trace record.\n").toUtf8().constData());
+            break;
+        }
+    }
 }
 
 void CPUDisassembly::ActionTraceRecordByteSlot()
 {
-    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordByteWithExecTypeAndCounter)))
-        GuiAddLogMessage("Failed to set trace record.\n");
+    duint base = mMemPage->getBase();
+    duint size = mMemPage->getSize();
+    for(duint i = base; i < base + size; i += 4096)
+    {
+        if(!(DbgFunctions()->SetTraceRecordType(i, TRACERECORDTYPE::TraceRecordByteWithExecTypeAndCounter)))
+        {
+            GuiAddLogMessage(tr("Failed to set trace record.\n").toUtf8().constData());
+            break;
+        }
+    }
 }
 
 void CPUDisassembly::ActionTraceRecordWordSlot()
 {
-    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordWordWithExecTypeAndCounter)))
-        GuiAddLogMessage("Failed to set trace record.\n");
+    duint base = mMemPage->getBase();
+    duint size = mMemPage->getSize();
+    for(duint i = base; i < base + size; i += 4096)
+    {
+        if(!(DbgFunctions()->SetTraceRecordType(i, TRACERECORDTYPE::TraceRecordWordWithExecTypeAndCounter)))
+        {
+            GuiAddLogMessage(tr("Failed to set trace record.\n").toUtf8().constData());
+            break;
+        }
+    }
 }
 
 void CPUDisassembly::ActionTraceRecordDisableSlot()
 {
-    if(!(DbgFunctions()->SetTraceRecordType(rvaToVa(getInitialSelection()), TRACERECORDTYPE::TraceRecordNone)))
-        GuiAddLogMessage("Failed to set trace record.\n");
+    duint base = mMemPage->getBase();
+    duint size = mMemPage->getSize();
+    for(duint i = base; i < base + size; i += 4096)
+    {
+        if(!(DbgFunctions()->SetTraceRecordType(i, TRACERECORDTYPE::TraceRecordNone)))
+        {
+            GuiAddLogMessage(tr("Failed to set trace record.\n").toUtf8().constData());
+            break;
+        }
+    }
 }
 
 void CPUDisassembly::mnemonicBriefSlot()
