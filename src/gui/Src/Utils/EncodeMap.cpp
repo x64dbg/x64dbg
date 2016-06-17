@@ -25,7 +25,7 @@ void EncodeMap::setMemoryRegion(duint addr)
 
 
 
-bool EncodeMap::isRangeConflict(duint offset, duint size, duint codesize, duint cip)
+bool EncodeMap::isRangeConflict(duint offset, duint size, duint codesize, duint tmpcodecount, duint* tmpcodelist)
 {
     if(codesize > size)
         return true;
@@ -35,8 +35,12 @@ bool EncodeMap::isRangeConflict(duint offset, duint size, duint codesize, duint 
     ENCODETYPE type = (ENCODETYPE)mBuffer[offset];
     if(type == enc_middle)
         return true;
-    if(cip > offset + mBase && cip < offset + size + mBase)
-        return true;
+    for(int i = 0; i < tmpcodecount; i++)
+    {
+        if(tmpcodelist[i] > offset + mBase && tmpcodelist[i] < offset + size + mBase)
+            return true;
+    }
+
     for(int i = 1 + offset; i < size + offset; i++)
     {
         if((ENCODETYPE)mBuffer[i] != enc_unknown && (ENCODETYPE)mBuffer[i] != enc_middle)
@@ -127,28 +131,44 @@ bool EncodeMap::isDataType(ENCODETYPE type)
 }
 
 
-ENCODETYPE EncodeMap::getDataType(duint addr, duint codesize, duint cip)
+ENCODETYPE EncodeMap::getDataType(duint addr, duint codesize, duint tmpcodecount, duint* tmpcodelist)
 {
-    if(!mBuffer || addr - mBase >= mSize)
+    if(addr - mBase >= mSize)
         return ENCODETYPE::enc_unknown;
-    if(addr == cip)
-        return enc_code;
-    if(addr < cip && addr + codesize > cip)
-        return enc_byte;
+    for(int i = 0; i < tmpcodecount; i++)
+    {
+        if(addr == tmpcodelist[i])
+            return enc_code;
+        else if(addr < tmpcodelist[i] && addr + codesize > tmpcodelist[i] && !mBuffer)
+            return enc_byte;
+    }
+
+    if(!mBuffer)
+        return ENCODETYPE::enc_unknown;
 
     duint offset = addr - mBase;
     ENCODETYPE type = (ENCODETYPE)mBuffer[offset];
-    bool conflict = isRangeConflict(offset, mSize - offset, codesize, cip);
+    bool conflict = isRangeConflict(offset, mSize - offset, codesize, tmpcodecount, tmpcodelist);
     if(conflict)
         return enc_byte;
     else
         return type;
 }
 
-duint EncodeMap::getDataSize(duint addr, duint codesize, duint cip)
+duint EncodeMap::getDataSize(duint addr, duint codesize, duint tmpcodecount, duint* tmpcodelist)
 {
 
-    if(!mBuffer || addr - mBase >= mSize || addr == cip)
+    if(addr - mBase >= mSize)
+        return codesize;
+    for(int i = 0; i < tmpcodecount; i++)
+    {
+        if(addr == tmpcodelist[i])
+            return codesize;
+        else if(addr < tmpcodelist[i] && addr + codesize > tmpcodelist[i] && !mBuffer)
+            return 1;
+    }
+
+    if(!mBuffer)
         return codesize;
 
     duint offset = addr - mBase;
@@ -158,7 +178,7 @@ duint EncodeMap::getDataSize(duint addr, duint codesize, duint cip)
     duint datasize = getEncodeTypeSize(type);
     if(type == enc_unknown || type == enc_code || type == enc_junk)
     {
-        if(isRangeConflict(offset, mSize - offset, codesize, cip) || codesize == 0)
+        if(isRangeConflict(offset, mSize - offset, codesize, tmpcodecount, tmpcodelist) || codesize == 0)
         {
             return datasize;
         }

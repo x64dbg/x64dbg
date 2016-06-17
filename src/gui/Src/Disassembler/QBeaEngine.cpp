@@ -2,7 +2,7 @@
 #include "StringUtil.h"
 
 QBeaEngine::QBeaEngine(int maxModuleSize)
-    : _tokenizer(maxModuleSize), mCIP(0), mCodeFoldingManager(nullptr)
+    : _tokenizer(maxModuleSize), mCodeFoldingManager(nullptr)
 {
     CapstoneTokenizer::UpdateColors();
     UpdateDataInstructionMap();
@@ -26,7 +26,7 @@ QBeaEngine::~QBeaEngine()
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction before the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n)
+ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n, duint tmpcodecount, duint* tmpcodelist)
 {
     int i;
     uint abuf[128], addr, back, cmdsize;
@@ -92,7 +92,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
             else
                 cmdsize = cp.Size();
 
-            cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize, mCIP); //If CIP at current address, it must be code, otherwise try decode as data
+            cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize, tmpcodecount, tmpcodelist);
 
         }
 
@@ -122,7 +122,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction after the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n)
+ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n, duint tmpcodecount, duint* tmpcodelist)
 {
     int i;
     uint cmdsize;
@@ -159,7 +159,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
             else
                 cmdsize = cp.Size();
 
-            cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize, mCIP); //If CIP at current address, it must be code, otherwise try decode as data
+            cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize, tmpcodecount, tmpcodelist);
 
         }
 
@@ -184,7 +184,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
  * @return      Return the disassembled instruction
  */
 
-Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA)
+Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, duint tmpcodecount, duint* tmpcodelist)
 {
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
@@ -197,7 +197,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
 
     ENCODETYPE type = enc_code;
 
-    type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 0, mCIP);
+    type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 0, tmpcodecount, tmpcodelist);
 
     if(type != enc_unknown && type != enc_code && type != enc_middle)
         return DecodeDataAt(data, size, instIndex, origBase, origInstRVA, type);
@@ -232,7 +232,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
 }
 
 
-Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, ENCODETYPE type)
+Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, ENCODETYPE type, duint tmpcodecount, duint* tmpcodelist)
 {
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
@@ -247,7 +247,7 @@ Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex
     }
 
 
-    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 0, mCIP);
+    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 0, tmpcodecount, tmpcodelist);
 
     QString mnemonic = _bLongDataInst ? infoIter.value().longName : infoIter.value().shortName;
 

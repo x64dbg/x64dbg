@@ -1090,6 +1090,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     {
         EncodeMapReleaseBuffer(param1);
     }
+    break;
 
     case DBG_GET_STRING_AT:
     {

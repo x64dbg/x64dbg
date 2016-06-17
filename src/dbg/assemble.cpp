@@ -190,16 +190,15 @@ static bool isInstructionPointingToExMemory(duint addr, const unsigned char* des
 bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop)
 {
     int destSize;
-    unsigned char dest[16];
+    Memory<unsigned char*> dest(16 * sizeof(unsigned char), "AssembleBuffer");
     unsigned char* newbuffer = nullptr;
-    if(!assemble(addr, dest, 16, &destSize, instruction, error))
+    if(!assemble(addr, dest(), 16, &destSize, instruction, error))
     {
         if(destSize > 16)
         {
-            newbuffer = new unsigned char[destSize];  //retry for long string sequence
-            if(!assemble(addr, newbuffer, destSize, &destSize, instruction, error))
+            dest.realloc(destSize);
+            if(!assemble(addr, dest(), destSize, &destSize, instruction, error))
             {
-                delete[] newbuffer;
                 return false;
             }
         }
@@ -216,11 +215,10 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
         *size = destSize;
 
     // Check if the instruction doesn't set IP to non-executable memory
-    if(!isInstructionPointingToExMemory(addr, dest))
+    if(!isInstructionPointingToExMemory(addr, dest()))
         GuiDisplayWarning("Non-executable memory region", "Assembled branch does not point to an executable memory region!");
 
-    bool ret = MemPatch(addr, newbuffer ? newbuffer : dest, destSize);
-    delete[] newbuffer;
+    bool ret = MemPatch(addr, dest(), destSize);
 
     if(ret)
     {

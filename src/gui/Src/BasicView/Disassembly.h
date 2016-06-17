@@ -208,6 +208,8 @@ protected:
     bool mShowMnemonicBrief;
     XREF_INFO mXrefInfo;
     CodeFoldingHelper* mCodeFoldingManager;
+    duint mTmpCodeCount;
+    duint mTmpCodeList[3];  //ensure correct disassemble
 };
 
 #endif // DISASSEMBLY_H

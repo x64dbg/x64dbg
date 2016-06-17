@@ -12,13 +12,13 @@ public:
     ~EncodeMap();
 
     void setMemoryRegion(duint va);
-    duint getDataSize(duint va, duint codesize, duint cip);
-    ENCODETYPE getDataType(duint addr, duint codesize, duint cip);
+    duint getDataSize(duint va, duint codesize, duint tmpcodecount = 0, duint* tmpcodelist = nullptr);
+    ENCODETYPE getDataType(duint addr, duint codesize, duint tmpcodecount = 0, duint* tmpcodelist = nullptr);
     void setDataType(duint va, ENCODETYPE type);
     void setDataType(duint va, duint size, ENCODETYPE type);
     void delRange(duint start, duint size);
     void delSegment(duint va);
-    bool isRangeConflict(duint offset, duint size, duint codesize, duint cip);
+    bool isRangeConflict(duint offset, duint size, duint codesize, duint tmpcodecount = 0, duint* tmpcodelist = nullptr);
     bool isDataType(ENCODETYPE type);
     duint getEncodeTypeSize(ENCODETYPE type);
     bool isCode(ENCODETYPE type) {return type == enc_unknown || type == enc_code; }
