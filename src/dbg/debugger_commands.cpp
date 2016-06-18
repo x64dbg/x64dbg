@@ -28,6 +28,7 @@ duint LoadLibThreadID;
 duint DLLNameMem;
 duint ASMAddr;
 TITAN_ENGINE_CONTEXT_t backupctx = { 0 };
+extern std::vector<std::pair<duint, duint>> RunToUserCodeBreakpoints;
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
 {
@@ -699,6 +700,29 @@ CMDRESULT cbDebugGetBPXMemoryHitCount(int argc, char* argv[])
     return cbDebugGetBPXHitCountCommon(BPMEMORY, argc, argv);
 }
 
+CMDRESULT cbDebugSetBPGoto(int argc, char* argv[])
+{
+    if (argc != 3)
+    {
+        dputs("argument count mismatch!\n");
+        return STATUS_ERROR;
+    }
+    char cmd[64];
+    _snprintf(cmd, sizeof(cmd), "SetBreakpointCondition %s, 0", argv[1]);
+    if(!DbgCmdExecDirect(cmd))
+        return STATUS_ERROR;
+    _snprintf(cmd, sizeof(cmd), "SetBreakpointCommand %s, \"CIP=%s\"", argv[1], argv[2]);
+    if(!DbgCmdExecDirect(cmd))
+        return STATUS_ERROR;
+    _snprintf(cmd, sizeof(cmd), "SetBreakpointCommandCondition %s, 1", argv[1]);
+    if(!DbgCmdExecDirect(cmd))
+        return STATUS_ERROR;
+    _snprintf(cmd, sizeof(cmd), "SetBreakpointFastResume %s, 0", argv[1]);
+    if(!DbgCmdExecDirect(cmd))
+        return STATUS_ERROR;
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
 {
     if(argc < 2)
@@ -994,7 +1018,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
     if(BpGet(base, BPMEMORY, 0, &bp))
     {
         if(!bp.enabled)
-            return DbgCmdExecDirect(StringUtils::sprintf("bpme " fhex, bp.addr).c_str()) ? STATUS_CONTINUE : STATUS_ERROR;
+            return BpEnable(base, BPMEMORY, true) ? STATUS_CONTINUE : STATUS_ERROR;
         dputs("Memory breakpoint already set!");
         return STATUS_CONTINUE;
     }
@@ -1253,6 +1277,39 @@ CMDRESULT cbDebugeRtr(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
     return cbDebugRtr(argc, argv);
+}
+
+CMDRESULT cbDebugRunToParty(int argc, char* argv[])
+{
+    EXCLUSIVE_ACQUIRE(LockRunToUserCode);
+    std::vector<MODINFO> AllModules;
+    ModGetList(AllModules);
+    if(!RunToUserCodeBreakpoints.empty())
+    {
+        dputs("Run to party is busy.\n");
+        return STATUS_ERROR;
+    }
+    int party = atoi(argv[1]); // party is a signed integer
+    for(auto i : AllModules)
+    {
+        if(i.party == party)
+        {
+            BREAKPOINT bp;
+            if(!BpGet(i.base, BPMEMORY, nullptr, &bp))
+            {
+                RunToUserCodeBreakpoints.push_back(std::make_pair(i.base, i.size));
+                SetMemoryBPXEx(i.base, i.size, UE_MEMORY_EXECUTE, false, (void*)cbRunToUserCodeBreakpoint);
+            }
+        }
+    }
+    cbDebugRun(argc, argv);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugRtu(int argc, char* argv[])
+{
+    char* newargv[] = { "RunToParty", "0" };
+    return cbDebugRunToParty(argc, newargv);
 }
 
 static CMDRESULT cbDebugConditionalTrace(void* callBack, bool stepOver, int argc, char* argv[])
