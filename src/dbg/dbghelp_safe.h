@@ -28,6 +28,9 @@ DWORD
 SafeSymSetOptions(
     __in DWORD   SymOptions
 );
+DWORD
+SafeSymGetOptions(
+);
 BOOL
 SafeSymInitializeW(
     __in HANDLE hProcess,

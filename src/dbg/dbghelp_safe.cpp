@@ -40,6 +40,13 @@ SafeSymSetOptions(
     EXCLUSIVE_ACQUIRE(LockSym);
     return SymSetOptions(SymOptions);
 }
+DWORD
+SafeSymGetOptions(
+)
+{
+    EXCLUSIVE_ACQUIRE(LockSym);
+    return SymGetOptions();
+}
 BOOL
 SafeSymInitializeW(
     __in HANDLE hProcess,
