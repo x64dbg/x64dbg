@@ -290,6 +290,8 @@ void dbgfunctionsinit()
     _dbgfunctions.ModBaseFromAddr = ModBaseFromAddr;
     _dbgfunctions.ModBaseFromName = ModBaseFromName;
     _dbgfunctions.ModSizeFromAddr = ModSizeFromAddr;
+    _dbgfunctions.ModGetParty = ModGetParty;
+    _dbgfunctions.ModSetParty = ModSetParty;
     _dbgfunctions.Assemble = assemble;
     _dbgfunctions.PatchGet = _patchget;
     _dbgfunctions.PatchInRange = _patchinrange;
