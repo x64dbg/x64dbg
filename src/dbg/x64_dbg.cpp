@@ -95,6 +95,8 @@ static void registercommands()
     dbgcmdnew("TraceOverBeyondTraceRecord\1tobt", cbDebugTobt, true); //Trace over beyond trace record
     dbgcmdnew("TraceIntoIntoTraceRecord\1tiit", cbDebugTiit, true); //Trace into into trace record
     dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugToit, true); //Trace over into trace record
+    dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
+    dbgcmdnew("RunToUserCode\1rtu", cbDebugRtu, true); //Run to user code
 
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
 
@@ -166,6 +168,8 @@ static void registercommands()
     dbgcmdnew("SetMemoryBreakpointFastResume", cbDebugSetBPXMemoryFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetMemoryGetBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetMemoryBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
+    
+    dbgcmdnew("bpgoto", cbDebugSetBPGoto, true);
 
     //variables
     dbgcmdnew("varnew\1var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]
