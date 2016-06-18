@@ -168,6 +168,9 @@ void SymDownloadAllSymbols(const char* SymbolStore)
         return;
     }
 
+    auto symOptions = SafeSymGetOptions();
+    SafeSymSetOptions(symOptions & ~SYMOPT_IGNORE_CVREC);
+
     // Reload
     for(auto & module : modList)
     {
@@ -192,6 +195,8 @@ void SymDownloadAllSymbols(const char* SymbolStore)
             continue;
         }
     }
+
+    SafeSymSetOptions(symOptions);
 
     // Restore the old search path
     if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, oldSearchPath))

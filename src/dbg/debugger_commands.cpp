@@ -1849,6 +1849,7 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
 
 CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
 {
+    dputs("This may take very long, depending on your network connection and data in the debug directory...");
     char szDefaultStore[MAX_SETTING_SIZE] = "";
     const char* szSymbolStore = szDefaultStore;
     if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore)) //get default symbol store from settings
@@ -1897,12 +1898,16 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         dputs("SymUnloadModule64 failed!");
         return STATUS_ERROR;
     }
+    auto symOptions = SafeSymGetOptions();
+    SafeSymSetOptions(symOptions & ~SYMOPT_IGNORE_CVREC);
     if(!SafeSymLoadModuleExW(fdProcessInfo->hProcess, 0, wszModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
     {
         dputs("SymLoadModuleEx failed!");
+        SafeSymSetOptions(symOptions);
         SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath);
         return STATUS_ERROR;
     }
+    SafeSymSetOptions(symOptions);
     if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath))
     {
         dputs("SymSetSearchPathW (2) failed!");
