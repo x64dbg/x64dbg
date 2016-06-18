@@ -62,6 +62,7 @@ public slots:
     void execClose();
     void execRun();
     void execRtr();
+    void execRtu();
     void execTocnd();
     void execTicnd();
     void openFile();
