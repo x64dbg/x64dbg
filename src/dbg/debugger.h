@@ -114,6 +114,7 @@ void cbTIBTStep();
 void cbTOBTStep();
 void cbTIITStep();
 void cbTOITStep();
+void cbRunToUserCodeBreakpoint(void* ExceptionAddress);
 DWORD WINAPI threadAttachLoop(void* lpParameter);
 void cbDetach();
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
