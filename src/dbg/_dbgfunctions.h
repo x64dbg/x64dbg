@@ -141,6 +141,8 @@ typedef bool(*ENUMHANDLES)(ListOf(HANDLEINFO) handles);
 typedef bool(*GETHANDLENAME)(duint handle, char* name, size_t nameSize, char* typeName, size_t typeNameSize);
 typedef bool(*ENUMTCPCONNECTIONS)(ListOf(TCPCONNECTIONINFO) connections);
 typedef duint(*GETDBGEVENTS)();
+typedef int(*MODGETPARTY)(duint base);
+typedef void(*MODSETPARTY)(duint base, int party);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -192,6 +194,8 @@ typedef struct DBGFUNCTIONS_
     GETHANDLENAME GetHandleName;
     ENUMTCPCONNECTIONS EnumTcpConnections;
     GETDBGEVENTS GetDbgEvents;
+    MODGETPARTY ModGetParty;
+    MODSETPARTY ModSetParty;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG
