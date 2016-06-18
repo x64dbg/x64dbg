@@ -1294,11 +1294,14 @@ CMDRESULT cbDebugRunToParty(int argc, char* argv[])
     {
         if(i.party == party)
         {
-            BREAKPOINT bp;
-            if(!BpGet(i.base, BPMEMORY, nullptr, &bp))
+            for(auto j : i.sections)
             {
-                RunToUserCodeBreakpoints.push_back(std::make_pair(i.base, i.size));
-                SetMemoryBPXEx(i.base, i.size, UE_MEMORY_EXECUTE, false, (void*)cbRunToUserCodeBreakpoint);
+                BREAKPOINT bp;
+                if (!BpGet(j.addr, BPMEMORY, nullptr, &bp))
+                {
+                    RunToUserCodeBreakpoints.push_back(std::make_pair(j.addr, j.size));
+                    SetMemoryBPXEx(j.addr, j.size, UE_MEMORY_EXECUTE, false, (void*)cbRunToUserCodeBreakpoint);
+                }
             }
         }
     }
