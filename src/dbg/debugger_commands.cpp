@@ -707,7 +707,7 @@ CMDRESULT cbDebugSetBPGoto(int argc, char* argv[])
         dputs("argument count mismatch!\n");
         return STATUS_ERROR;
     }
-    char cmd[64];
+    char cmd[deflen];
     _snprintf(cmd, sizeof(cmd), "SetBreakpointCondition %s, 0", argv[1]);
     if(!DbgCmdExecDirect(cmd))
         return STATUS_ERROR;
