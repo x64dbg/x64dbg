@@ -491,7 +491,7 @@ void SymbolView::moduleSetParty()
         }
         else
         {
-            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("The party can only be an integer"));
+            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("The party number can only be an integer"));
             msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
             msg.exec();
         }
