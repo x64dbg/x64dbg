@@ -40,6 +40,8 @@ void QEntropyView::InitializeGraph(int penSize)
 
 void QEntropyView::AddGraph(const std::vector<double> & points, QColor color)
 {
+    mPoints = points; /* store for alternate rendering method */
+
     int pointCount = (int)points.size();
     if(!pointCount)
         return;
@@ -83,4 +85,9 @@ void QEntropyView::GraphMemory(const unsigned char* data, int dataSize, int bloc
         pointCount = (int)dataSize;
     Entropy::MeasurePoints(data, dataSize, blockSize, points, pointCount);
     AddGraph(points, color);
+}
+
+std::vector<double> QEntropyView::GetGraphData() const
+{
+    return mPoints;
 }
