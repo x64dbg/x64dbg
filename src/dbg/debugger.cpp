@@ -628,9 +628,11 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     }
     RunToUserCodeBreakpoints.clear();
     lock(WAITID_RUN);
+    EXCLUSIVE_RELEASE();
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved = nullptr;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    _dbg_dbgtraceexecute(CIP);
     GuiSetDebugState(paused);
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     SetForegroundWindow(GuiGetWindowHandle());
