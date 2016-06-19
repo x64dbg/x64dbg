@@ -431,7 +431,7 @@ int ModGetParty(duint Address)
 
 void ModSetParty(duint Address, int Party)
 {
-    SHARED_ACQUIRE(LockModules);
+    EXCLUSIVE_ACQUIRE(LockModules);
 
     auto module = ModInfoFromAddr(Address);
 
