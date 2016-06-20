@@ -87,20 +87,15 @@ static void registercommands()
     dbgcmdnew("eStepOver\1estep\1esto\1est", cbDebugeStepOver, true); //StepOver + skip first chance exceptions
     dbgcmdnew("SingleStep\1sstep\1sst", cbDebugSingleStep, true); //SingleStep arg1:count
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
-    dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //rtr
+    dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //StepOut
     dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
-    dbgcmdnew("TraceOverConditional\1tocnd", cbDebugTocnd, true); //tocnd
-    dbgcmdnew("TraceIntoConditional\1ticnd", cbDebugTicnd, true); //ticnd
+    dbgcmdnew("TraceOverConditional\1tocnd", cbDebugTocnd, true); //Trace over conditional
+    dbgcmdnew("TraceIntoConditional\1ticnd", cbDebugTicnd, true); //Trace into conditional
     dbgcmdnew("TraceIntoBeyondTraceRecord\1tibt", cbDebugTibt, true); //Trace into beyond trace record
     dbgcmdnew("TraceOverBeyondTraceRecord\1tobt", cbDebugTobt, true); //Trace over beyond trace record
     dbgcmdnew("TraceIntoIntoTraceRecord\1tiit", cbDebugTiit, true); //Trace into into trace record
     dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugToit, true); //Trace over into trace record
-
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
-
-    dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
-    dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
-
     dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true); //switch thread
     dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread
     dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true); //resume thread
@@ -108,18 +103,9 @@ static void registercommands()
     dbgcmdnew("suspendallthreads\1threadsuspendall", cbDebugSuspendAllThreads, true); //suspend all threads
     dbgcmdnew("resumeallthreads\1threadresumeall", cbDebugResumeAllThreads, true); //resume all threads
     dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
-
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
-
-    dbgcmdnew("setjit\1jitset", cbDebugSetJIT, false); //set JIT
-    dbgcmdnew("getjit\1jitget", cbDebugGetJIT, false); //get JIT
-    dbgcmdnew("getjitauto\1jitgetauto", cbDebugGetJITAuto, false); //get JIT Auto
-    dbgcmdnew("setjitauto\1jitsetauto", cbDebugSetJITAuto, false); //set JIT Auto
-
     dbgcmdnew("getcmdline\1getcommandline", cbDebugGetCmdline, true); //Get CmdLine
     dbgcmdnew("setcmdline\1setcommandline", cbDebugSetCmdline, true); //Set CmdLine
-
-    dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
 
     //breakpoints
@@ -137,6 +123,8 @@ static void registercommands()
     dbgcmdnew("DeleteMemoryBPX\1membpc\1bpmc", cbDebugDeleteMemoryBreakpoint, true); //delete memory breakpoint
     dbgcmdnew("EnableMemoryBreakpoint\1membpe\1bpme", cbDebugEnableMemoryBreakpoint, true); //enable memory breakpoint
     dbgcmdnew("DisableMemoryBreakpoint\1membpd\1bpmd", cbDebugDisableMemoryBreakpoint, true); //enable memory breakpoint
+    dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
+    dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
 
     //breakpoints (conditional)
     dbgcmdnew("SetBreakpointName\1bpname", cbDebugSetBPXName, true); //set breakpoint name
@@ -186,6 +174,11 @@ static void registercommands()
     dbgcmdnew("asm", cbInstrAssemble, true); //assemble instruction
     dbgcmdnew("sleep", cbInstrSleep, false); //Sleep
     dbgcmdnew("setfreezestack", cbDebugSetfreezestack, false); //freeze the stack from auto updates
+    dbgcmdnew("setjit\1jitset", cbDebugSetJIT, false); //set JIT
+    dbgcmdnew("getjit\1jitget", cbDebugGetJIT, false); //get JIT
+    dbgcmdnew("getjitauto\1jitgetauto", cbDebugGetJITAuto, false); //get JIT Auto
+    dbgcmdnew("setjitauto\1jitsetauto", cbDebugSetJITAuto, false); //set JIT Auto
+    dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
