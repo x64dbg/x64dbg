@@ -10,6 +10,7 @@
 #include "x64_dbg.h"
 #include "debugger.h"
 #include "filehelper.h"
+#include "stringformat.h"
 
 static std::vector<LINEMAPENTRY> linemap;
 
@@ -629,7 +630,7 @@ CMDRESULT cbScriptMsg(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    GuiScriptMessage(argv[1]);
+    GuiScriptMessage(stringformatinline(argv[1]).c_str());
     return STATUS_CONTINUE;
 }
 
@@ -640,6 +641,6 @@ CMDRESULT cbScriptMsgyn(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    varset("$RESULT", GuiScriptMsgyn(argv[1]), false);
+    varset("$RESULT", GuiScriptMsgyn(stringformatinline(argv[1]).c_str()), false);
     return STATUS_CONTINUE;
 }

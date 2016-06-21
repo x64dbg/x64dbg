@@ -832,7 +832,7 @@ CMDRESULT cbInstrRefadd(int argc, char* argv[])
     char addr_text[deflen] = "";
     sprintf(addr_text, fhex, addr);
     GuiReferenceSetCellContent(index, 0, addr_text);
-    GuiReferenceSetCellContent(index, 1, argv[2]);
+    GuiReferenceSetCellContent(index, 1, stringformatinline(argv[2]).c_str());
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
@@ -2017,17 +2017,22 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
 
 CMDRESULT cbInstrLog(int argc, char* argv[])
 {
-    //log "format {0} string",arg1, arg2, argN
     if(argc == 1)  //just log newline
     {
         dprintf("\n");
         return STATUS_CONTINUE;
     }
-    FormatValueVector formatArgs;
-    for(int i = 2; i < argc; i++)
-        formatArgs.push_back(argv[i]);
-    String logString = stringformat(argv[1], formatArgs);
-    dputs(logString.c_str());
+    if(argc == 2) //inline logging: log "format {rax}"
+    {
+        dputs(stringformatinline(argv[1]).c_str());
+    }
+    else //log "format {0} string", arg1, arg2, argN
+    {
+        FormatValueVector formatArgs;
+        for(auto i = 2; i < argc; i++)
+            formatArgs.push_back(argv[i]);
+        dputs(stringformat(argv[1], formatArgs).c_str());
+    }
     return STATUS_CONTINUE;
 }
 
