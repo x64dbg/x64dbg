@@ -19,6 +19,7 @@
 
 #include "bridgemain.h"
 #include "_dbgfunctions.h"
+#include "jansson/jansson.h"
 
 #endif // BUILD_DBG
 
