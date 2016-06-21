@@ -210,9 +210,7 @@ void DbLoad(DbLoadSaveType loadType)
                 pluginLoadDb.loadSaveType = 0;
                 break;
             }
-            //TODO: We have to increment the reference count before every callback invoke.
             plugincbcall(CB_LOADDB, &pluginLoadDb);
-            json_decref(pluginRoot);
         }
     }
 
