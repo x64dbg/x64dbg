@@ -1418,7 +1418,7 @@ bool CPUDisassembly::getLabelsFromInstruction(duint addr, QSet<QString> & labels
 {
     BASIC_INSTRUCTION_INFO basicinfo;
     DbgDisasmFastAt(addr, &basicinfo);
-    std::vector<duint> values = { basicinfo.addr, basicinfo.value.value, basicinfo.memory.value};
+    std::vector<duint> values = { addr, basicinfo.addr, basicinfo.value.value, basicinfo.memory.value};
     for(auto value : values)
     {
         char label_[MAX_LABEL_SIZE] = "";
