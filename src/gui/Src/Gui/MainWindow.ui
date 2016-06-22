@@ -79,6 +79,10 @@
      <property name="title">
       <string>Trace record</string>
      </property>
+     <property name="icon">
+      <iconset resource="../../resource.qrc">
+       <normaloff>:/icons/images/trace.png</normaloff>:/icons/images/trace.png</iconset>
+     </property>
      <addaction name="actionTRBit"/>
      <addaction name="actionTRByte"/>
      <addaction name="actionTRWord"/>
