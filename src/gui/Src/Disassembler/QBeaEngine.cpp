@@ -177,30 +177,28 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
  *
  * @param[in]   data            Pointer to memory data (Can be either a buffer or the original data memory)
  * @param[in]   size            Size of the memory pointed by data (Can be the memory page size if data points to the original memory page base address)
- * @param[in]   instIndex       Offset to reach the instruction data from the data pointer
  * @param[in]   origBase        Original base address of the memory page (Required to disassemble destination addresses)
  * @param[in]   origInstRVA     Original Instruction RVA of the instruction to disassemble
  *
  * @return      Return the disassembled instruction
  */
 
-Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, duint tmpcodecount, duint* tmpcodelist)
+Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA, duint tmpcodecount, duint* tmpcodelist)
 {
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
-    _tokenizer.Tokenize(origBase + origInstRVA, data + instIndex, size, cap);
+    _tokenizer.Tokenize(origBase + origInstRVA, data, size, cap);
     int len = _tokenizer.Size();
 
     const auto & cp = _tokenizer.GetCapstone();
     bool success = cp.Success();
-
 
     ENCODETYPE type = enc_code;
 
     type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 1, tmpcodecount, tmpcodelist);
 
     if(type != enc_unknown && type != enc_code && type != enc_middle)
-        return DecodeDataAt(data, size, instIndex, origBase, origInstRVA, type);
+        return DecodeDataAt(data, size, origBase, origInstRVA, type);
 
     auto branchType = Instruction_t::None;
     if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop()))
@@ -218,7 +216,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
 
     Instruction_t wInst;
     wInst.instStr = QString(cp.InstructionText().c_str());
-    wInst.dump = QByteArray((const char*)data + instIndex, len);
+    wInst.dump = QByteArray((const char*)data, len);
     wInst.rva = origInstRVA;
     if(mCodeFoldingManager && mCodeFoldingManager->isFolded(origInstRVA))
         wInst.length = mCodeFoldingManager->getFoldEnd(origInstRVA + origBase) - (origInstRVA + origBase) + 1;
@@ -232,7 +230,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
 }
 
 
-Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, ENCODETYPE type, duint tmpcodecount, duint* tmpcodelist)
+Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type, duint tmpcodecount, duint* tmpcodelist)
 {
     //tokenize
     CapstoneTokenizer::InstructionToken cap;

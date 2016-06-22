@@ -1260,8 +1260,6 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     {
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     }
-    if(!MemIsValidReadPtr(addr))
-        return STATUS_CONTINUE;
     DebugUpdateGui(addr, false);
     return STATUS_CONTINUE;
 }

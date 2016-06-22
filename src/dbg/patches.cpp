@@ -14,7 +14,8 @@ std::unordered_map<duint, PATCHINFO> patches;
 
 bool PatchSet(duint Address, unsigned char OldByte, unsigned char NewByte)
 {
-    ASSERT_DEBUGGING("Export call");
+    if(!DbgIsDebugging())
+        return false;
 
     // Address must be valid
     if(!MemIsValidReadPtr(Address))
@@ -62,7 +63,8 @@ bool PatchSet(duint Address, unsigned char OldByte, unsigned char NewByte)
 
 bool PatchGet(duint Address, PATCHINFO* Patch)
 {
-    ASSERT_DEBUGGING("Export call");
+    if(!DbgIsDebugging())
+        return false;
     SHARED_ACQUIRE(LockPatches);
 
     // Find this specific address in the list
@@ -84,7 +86,8 @@ bool PatchGet(duint Address, PATCHINFO* Patch)
 
 bool PatchDelete(duint Address, bool Restore)
 {
-    ASSERT_DEBUGGING("Export call");
+    if(!DbgIsDebugging())
+        return false;
     EXCLUSIVE_ACQUIRE(LockPatches);
 
     // Do a list lookup with hash
@@ -104,7 +107,8 @@ bool PatchDelete(duint Address, bool Restore)
 
 void PatchDelRange(duint Start, duint End, bool Restore)
 {
-    ASSERT_DEBUGGING("Export call");
+    if(!DbgIsDebugging())
+        return;
 
     // Are all bookmarks going to be deleted?
     // 0x00000000 - 0xFFFFFFFF

@@ -427,6 +427,14 @@ bool MemIsValidReadPtr(duint Address, bool cache)
     if(cache)
         return MemFindBaseAddr(Address, nullptr) != 0;
     unsigned char ch;
+    return MemRead(Address, &ch, sizeof(ch));
+}
+
+bool MemIsValidReadPtrUnsafe(duint Address, bool cache)
+{
+    if(cache)
+        return MemFindBaseAddr(Address, nullptr) != 0;
+    unsigned char ch;
     return MemReadUnsafe(Address, &ch, sizeof(ch));
 }
 

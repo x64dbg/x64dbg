@@ -303,7 +303,7 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
 {
     if(type)
         *type = str_none;
-    if(!MemIsValidReadPtr(addr, true) || !disasmispossiblestring(addr))
+    if(!MemIsValidReadPtrUnsafe(addr, true) || !disasmispossiblestring(addr))
         return false;
     Memory<unsigned char*> data((maxlen + 1) * 2, "disasmgetstringat:data");
     if(!MemReadUnsafe(addr, data(), (maxlen + 1) * 2)) //TODO: use safe version?

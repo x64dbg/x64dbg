@@ -575,7 +575,6 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     return "";
 }
 
-
 /************************************************************************************
                             Mouse Management
 ************************************************************************************/
@@ -632,7 +631,6 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
     if(wAccept == true)
         AbstractTableView::mouseMoveEvent(event);
 }
-
 
 /**
  * @brief       This method has been reimplemented. It manages the following actions:
@@ -714,7 +712,6 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
         AbstractTableView::mousePressEvent(event);
 }
 
-
 /**
  * @brief       This method has been reimplemented. It manages the following actions:
  *               - Multi-rows selection
@@ -742,7 +739,6 @@ void Disassembly::mouseReleaseEvent(QMouseEvent* event)
     if(wAccept == true)
         AbstractTableView::mouseReleaseEvent(event);
 }
-
 
 /************************************************************************************
                             Keyboard Management
@@ -1160,7 +1156,6 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
     return x_add + line_width + end_add;
 }
 
-
 /************************************************************************************
                             Instructions Management
  ***********************************************************************************/
@@ -1194,15 +1189,14 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
     wMaxByteCountToRead = wVirtualRVA + 1 + 16;
     wBuffer.resize(wMaxByteCountToRead);
 
-    mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wBottomByteRealRVA, wMaxByteCountToRead);
+    mMemPage->read(wBuffer.data(), wBottomByteRealRVA, wBuffer.size());
 
-    dsint addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(wBottomByteRealRVA),  wMaxByteCountToRead, wVirtualRVA , count, mTmpCodeCount, mTmpCodeList);
+    dsint addr = mDisasm->DisassembleBack((byte_t*)wBuffer.data(), rvaToVa(wBottomByteRealRVA), wBuffer.size(), wVirtualRVA , count, mTmpCodeCount, mTmpCodeList);
 
     addr += rva - wVirtualRVA;
 
     return addr;
 }
-
 
 /**
  * @brief       Returns the RVA of count-th instructions after the given instruction RVA.
@@ -1229,15 +1223,14 @@ dsint Disassembly::getNextInstructionRVA(dsint rva, duint count)
     wMaxByteCountToRead = wRemainingBytes > wMaxByteCountToRead ? wMaxByteCountToRead : wRemainingBytes;
     wBuffer.resize(wMaxByteCountToRead);
 
-    mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
+    mMemPage->read(wBuffer.data(), rva, wBuffer.size());
 
-    wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(rva),  wMaxByteCountToRead, 0, count, mTmpCodeCount, mTmpCodeList);
+    wNewRVA = mDisasm->DisassembleNext((byte_t*)wBuffer.data(), rvaToVa(rva), wBuffer.size(), 0, count, mTmpCodeCount, mTmpCodeList);
 
     wNewRVA += rva;
 
     return wNewRVA;
 }
-
 
 /**
  * @brief       Returns the RVA of count-th instructions before/after (depending on the sign) the given instruction RVA.
@@ -1267,7 +1260,6 @@ dsint Disassembly::getInstructionRVA(dsint index, dsint count)
     return wAddr;
 }
 
-
 /**
  * @brief       Disassembles the instruction at the given RVA.
  *
@@ -1278,28 +1270,24 @@ dsint Disassembly::getInstructionRVA(dsint index, dsint count)
 Instruction_t Disassembly::DisassembleAt(dsint rva)
 {
     QByteArray wBuffer;
-    dsint base = mMemPage->getBase();
-    dsint wMaxByteCountToRead = 16 * 2;
+    duint base = mMemPage->getBase();
+    duint wMaxByteCountToRead = 16 * 2;
 
     // Bounding
-    //TODO: fix problems with negative sizes
-    dsint size = getSize();
+    auto size = getSize();
     if(!size)
-        size = rva;
+        size = rva + wMaxByteCountToRead * 2;
 
-    wMaxByteCountToRead = wMaxByteCountToRead > (size - rva) ? (size - rva) : wMaxByteCountToRead;
     if(mCodeFoldingManager)
         wMaxByteCountToRead += mCodeFoldingManager->getFoldedSize(rvaToVa(rva), rvaToVa(rva + wMaxByteCountToRead));
+
+    wMaxByteCountToRead = wMaxByteCountToRead > (size - rva) ? (size - rva) : wMaxByteCountToRead;
     wBuffer.resize(wMaxByteCountToRead);
 
-    if(!wMaxByteCountToRead)
-        wMaxByteCountToRead = 1;
+    mMemPage->read(wBuffer.data(), rva, wBuffer.size());
 
-    mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
-
-    return mDisasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, base, rva, mTmpCodeCount, mTmpCodeList);
+    return mDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva, mTmpCodeCount, mTmpCodeList);
 }
-
 
 /**
  * @brief       Disassembles the instruction count instruction afterc the instruction at the given RVA.
@@ -1315,7 +1303,6 @@ Instruction_t Disassembly::DisassembleAt(dsint rva, dsint count)
     rva = getNextInstructionRVA(rva, count);
     return DisassembleAt(rva);
 }
-
 
 /************************************************************************************
                                 Selection Management
@@ -1528,9 +1515,7 @@ void Disassembly::prepareData()
         wAddr = getNextInstructionRVA(wAddr, 1);
 
         if(wAddr == wAddrPrev)
-        {
             break;
-        }
 
         wCount++;
     }
@@ -1557,8 +1542,8 @@ duint Disassembly::rvaToVa(dsint rva)
 
 void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset)
 {
-    dsint wBase = DbgMemFindBaseAddr(parVA, 0);
-    dsint wSize = DbgMemGetPageSize(wBase);
+    duint wSize;
+    auto wBase = DbgMemFindBaseAddr(parVA, &wSize);
 
     if(!wBase || !wSize)
         return;
@@ -1594,7 +1579,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     mDisasm->getEncodeMap()->setMemoryRegion(wBase);
 
     bool cipChanged = rvaToVa(mCipRva) != parCIP;
-
 
     if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
         mRvaDisplayEnabled = false;
@@ -1696,7 +1680,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     */
     emit disassembledAt(parVA,  parCIP,  history,  newTableOffset);
     reloadData();
-
 }
 
 QList<Instruction_t>* Disassembly::instructionsBuffer()

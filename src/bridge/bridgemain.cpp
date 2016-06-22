@@ -253,6 +253,7 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
     if(IsBadWritePtr(dest, size))
     {
         GuiAddLogMessage("DbgMemRead with invalid boundaries!\n");
+        __debugbreak();
         return false;
     }
 #endif //_DEBUG
@@ -273,6 +274,7 @@ BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
     if(IsBadReadPtr(src, size))
     {
         GuiAddLogMessage("DbgMemWrite with invalid boundaries!\n");
+        __debugbreak();
         return false;
     }
 #endif //_DEBUG

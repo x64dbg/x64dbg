@@ -86,8 +86,8 @@ void HexDump::copySelectionSlot()
 
 void HexDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset)
 {
-    dsint wBase = DbgMemFindBaseAddr(parVA, 0); //get memory base
-    dsint wSize = DbgMemGetPageSize(wBase); //get page size
+    duint wSize;
+    auto wBase = DbgMemFindBaseAddr(parVA, &wSize); //get memory base
     if(!wBase || !wSize)
         return;
     dsint wRVA = parVA - wBase; //calculate rva

@@ -18,6 +18,7 @@ public:
     duint getBase() const;
     duint va(dsint rva) const;
     void setAttributes(duint base, duint size);
+    bool inRange(duint va) const;
 
 private:
     duint mBase;

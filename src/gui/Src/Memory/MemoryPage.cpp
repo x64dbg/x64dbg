@@ -48,3 +48,8 @@ void MemoryPage::setAttributes(duint base, duint size)
     mBase = base;
     mSize = size;
 }
+
+bool MemoryPage::inRange(duint va) const
+{
+    return va >= mBase && va < mBase + mSize;
+}
