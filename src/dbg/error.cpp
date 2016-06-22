@@ -26,7 +26,7 @@ bool ErrorCodeInit(const String & errorFile)
             dprintf("Failed to convert number \"%s\"\n", split[0].c_str());
             return false;
         }
-        ErrorNames.insert({ code, split[1] });
+        ErrorNames.insert({ (unsigned int)code, split[1] });
         return true;
     };
     auto result = true;

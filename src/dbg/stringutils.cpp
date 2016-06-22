@@ -220,9 +220,9 @@ String StringUtils::FromHex(const String & s, size_t size, bool reverse)
     if(s.length() > size * 2)
         throw std::invalid_argument("string too long");
     char ch = 0;
-    bool odd = s.size() % 2 == 1;
-    int cursize = 0;
-    for(int i = s.size() - 1; i >= 0; i--)
+    auto odd = s.size() % 2;
+    size_t cursize = 0;
+    for(dsint i = s.size() - 1; i >= 0; i--)
     {
         ch |= char2int(s[i]) << (high ? 4 : 0);
         if(high || odd && i == 0)
@@ -233,7 +233,7 @@ String StringUtils::FromHex(const String & s, size_t size, bool reverse)
         }
         high = !high;
     }
-    for(int i = cursize; i < size; i++)
+    for(auto i = cursize; i < size; i++)
         ss.put('\0');
     String res = ss.str();
     if(!reverse)
@@ -255,12 +255,12 @@ String StringUtils::ToHex(void* buffer, size_t size, bool reverse)
     ss << std::hex;
     if(reverse)
     {
-        for(int i = size - 1; i >= 0; i--)
+        for(dsint i = size - 1; i >= 0; i--)
             ss << ((char*)buffer)[i];
     }
     else
     {
-        for(int i = 0; i < size; i++)
+        for(size_t i = 0; i < size; i++)
             ss << ((char*)buffer)[i];
     }
 

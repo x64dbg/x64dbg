@@ -26,7 +26,7 @@ bool ExceptionCodeInit(const String & exceptionFile)
             dprintf("Failed to convert number \"%s\"\n", split[0].c_str());
             return false;
         }
-        ExceptionNames.insert({ code, split[1] });
+        ExceptionNames.insert({ (unsigned int)code, split[1] });
         return true;
     };
     auto result = true;

@@ -358,7 +358,7 @@ int disasmgetsize(duint addr, unsigned char* data)
     Capstone cp;
     if(!cp.Disassemble(addr, data, MAX_DISASM_BUFFER))
         return 1;
-    return EncodeMapGetSize(addr, cp.Size());
+    return int(EncodeMapGetSize(addr, cp.Size()));
 }
 
 int disasmgetsize(duint addr)

@@ -87,7 +87,7 @@ String GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
 String GetDataInstMnemonic(ENCODETYPE type)
 {
     if(disasmMap.find(type) == disasmMap.end())
-        type == enc_byte;
+        type = enc_byte;
     if(disasmMap.find(type) == disasmMap.end())
         return "???";
     return disasmMap[type];
@@ -136,6 +136,7 @@ bool parsedatainstruction(const char* instruction, DataInstruction & di)
     if(pos == String::npos)
         return false;
     di.oprand = instStr.substr(pos);
+    return true;
 }
 
 bool isdatainstruction(const char* instruction)
@@ -184,7 +185,7 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
                 strcpy_s(error, MAX_ERROR_SIZE, "insufficient buffer");
                 if(size)
                 {
-                    *size = retsize;  //return correct size
+                    *size = int(retsize);  //return correct size
                     return dest == nullptr;
                 }
                 return false;
@@ -222,7 +223,7 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
                 strcpy_s(error, MAX_ERROR_SIZE, "string too long");
                 if(size)
                 {
-                    *size = di.oprand.size();  //return correct size
+                    *size = int(di.oprand.size());  //return correct size
                     return dest == nullptr;
                 }
                 return false;
@@ -267,7 +268,7 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
         return false;
     }
     if(size)
-        *size = retsize;
+        *size = int(retsize);
 
     if(dest)
         memcpy_s((char*)dest, retsize, buffer.c_str(), retsize);
@@ -286,7 +287,7 @@ bool trydisasm(const unsigned char* buffer, duint addr, DISASM_INSTR* instr, dui
     instr->arg[0].type = arg_normal;
     instr->arg[0].value = decodesimpledata(buffer, type);
     strcpy_s(instr->arg[0].mnemonic, GetDataTypeString((void*)buffer, size, type).c_str());
-    instr->instr_size = size;
+    instr->instr_size = int(size);
     String str = GetDataInstString((void*)buffer, MAX_DISASM_BUFFER, type);
     strcpy_s(instr->instruction, str.c_str());
     return true;
@@ -300,7 +301,7 @@ bool trydisasmfast(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO
         return false;
     memset(basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
     basicinfo->type = TYPE_VALUE;
-    basicinfo->size = size;
+    basicinfo->size = int(size);
     String str = GetDataInstString((void*)data, MAX_DISASM_BUFFER, type);
     strcpy_s(basicinfo->instruction, str.c_str());
     basicinfo->value.size = VALUE_SIZE(size);

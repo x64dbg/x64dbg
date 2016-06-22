@@ -10,9 +10,7 @@ struct ENCODEMAP : AddrInfo
     byte* data;
 };
 
-
 std::unordered_map<duint, duint> referenceCount;
-
 
 void IncreaseReferenceCount(void* buffer, bool lock = true)
 {
@@ -45,8 +43,6 @@ duint DecreaseReferenceCount(void* buffer, bool lock = true)
         referenceCount[iter->first]--;
     return iter->second;
 }
-
-
 
 struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
 {
@@ -108,8 +104,6 @@ bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map)
     return true;
 }
 
-
-
 void* EncodeMapGetBuffer(duint addr, bool create)
 {
     duint base, size;
@@ -131,7 +125,6 @@ void* EncodeMapGetBuffer(duint addr, bool create)
     return nullptr;
 }
 
-
 void EncodeMapReleaseBuffer(void* buffer, bool lock)
 {
     if(DecreaseReferenceCount(buffer, lock) == 0)
@@ -142,8 +135,6 @@ void EncodeMapReleaseBuffer(void* buffer)
 {
     EncodeMapReleaseBuffer(buffer, true);
 }
-
-
 
 bool IsRangeConflict(byte* typebuffer, duint size, duint codesize)
 {
@@ -260,7 +251,7 @@ duint EncodeMapGetSize(duint addr, duint codesize)
         else if(type == enc_ascii || type == enc_unicode)
         {
             duint totalsize = 0;
-            for(int i = offset; i < map.size; i += datasize)
+            for(auto i = offset; i < map.size; i += datasize)
             {
                 if(map.data[i] == type)
                     totalsize += datasize;
@@ -308,11 +299,11 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type)
                 return false;
 
             }
-            int buffersize = size, bufferoffset = 0, cmdsize;
-            for(int i = offset; i < offset + size;)
+            duint buffersize = size, bufferoffset = 0, cmdsize;
+            for(auto i = offset; i < offset + size;)
             {
                 map.data[i] = (byte)type;
-                cp.Disassemble(base + i, buffer + bufferoffset, buffersize);
+                cp.Disassemble(base + i, buffer + bufferoffset, int(buffersize));
                 cmdsize = cp.Success() ? cp.Size() : 1;
                 i += cmdsize;
                 bufferoffset += cmdsize;
@@ -322,13 +313,13 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type)
         }
         else
         {
-            for(int i = offset; i < offset + size; i += datasize)
+            for(auto i = offset; i < offset + size; i += datasize)
                 map.data[i] = (byte)type;
         }
 
     }
 
-    for(int i = offset + size + 1; i < map.size; i++)
+    for(auto i = offset + size + 1; i < map.size; i++)
     {
         if(map.data[i] == enc_middle)
             map.data[i] = (byte)enc_unknown;
@@ -372,10 +363,7 @@ void EncodeMapClear()
 {
     EXCLUSIVE_ACQUIRE(LockEncodeMaps);
     for(auto & encmap : encmaps.GetDataUnsafe())
-    {
         EncodeMapReleaseBuffer(encmap.second.data, false);
-
-    }
-    EXCLUSIVE_RELEASE(LockEncodeMaps);
+    EXCLUSIVE_RELEASE();
     encmaps.Clear();
 }
