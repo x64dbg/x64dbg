@@ -296,7 +296,8 @@ CMDRESULT cbWatchdog(int argc, char* argv[])
         }
     }
     varset("$result", watchdogTriggered, false);
-    varset("$breakcondition", watchdogTriggered, false);
+    if(watchdogTriggered)
+        varset("$breakcondition", 1, false);
     return STATUS_CONTINUE;
 }
 
