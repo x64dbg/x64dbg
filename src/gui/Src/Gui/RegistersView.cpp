@@ -1430,7 +1430,7 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
     else if(reg == LastError)
     {
         LASTERROR* data = (LASTERROR*)value;
-        if(data->name)
+        if(*data->name)
             valueText = QString().sprintf("%08X (%s)", data->code, data->name);
         else
             valueText = QString().sprintf("%08X", data->code);

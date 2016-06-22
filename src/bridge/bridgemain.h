@@ -582,7 +582,7 @@ typedef struct
 typedef struct
 {
     DWORD code;
-    const char* name;
+    char name[128];
 } LASTERROR;
 
 typedef struct

@@ -1489,7 +1489,7 @@ static bool ishexnumber(const char* string)
     return true;
 }
 
-static bool convertNumber(const char* str, duint & result, int radix)
+bool convertNumber(const char* str, duint & result, int radix)
 {
     errno = 0;
     char* end;

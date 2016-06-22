@@ -525,7 +525,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->regcontext.x87fpu.StatusWord);
     LASTERROR lastError;
     lastError.code = ThreadGetLastError(ThreadGetId(hActiveThread));
-    lastError.name = ErrorCodeToName(lastError.code);
+    strcpy_s(lastError.name, _TRUNCATE, ErrorCodeToName(lastError.code).c_str());
     regdump->lastError = lastError;
 
     return true;

@@ -41,3 +41,32 @@ bool FileHelper::WriteAllText(const String & fileName, const String & content)
 {
     return WriteAllData(fileName, content.c_str(), content.length());
 }
+
+bool FileHelper::ReadAllLines(const String & fileName, std::vector<String> & lines, bool keepEmpty)
+{
+    String content;
+    if(!ReadAllText(fileName, content))
+        return false;
+    lines.clear();
+    String line;
+    for(auto ch : content)
+    {
+        switch(ch)
+        {
+        case '\r':
+            break;
+        case '\n':
+            if(line.length() || keepEmpty)
+                lines.push_back(line);
+            line.clear();
+            break;
+        default:
+            line.resize(line.length() + 1);
+            line[line.length() - 1] = ch;
+            break;
+        }
+    }
+    if(line.length())
+        lines.push_back(line);
+    return true;
+}

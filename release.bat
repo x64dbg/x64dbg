@@ -123,8 +123,10 @@ mkdir %RELEASEDIR%\release\translations
 mkdir %RELEASEDIR%\release\x32
 mkdir %RELEASEDIR%\release\x64
 
-copy bin\x96dbg.exe %RELEASEDIR%\release\x96dbg.exe
-copy bin\mnemdb.json %RELEASEDIR%\release\mnemdb.json
+copy bin\x96dbg.exe %RELEASEDIR%\release\
+copy bin\mnemdb.json %RELEASEDIR%\release\
+copy bin\errordb.txt %RELEASEDIR%\release\
+copy bin\exceptiondb.txt %RELEASEDIR%\release\
 xcopy src\gui\Translations\*.qm %RELEASEDIR%\release\translations /S /Y
 copy bin\x32\x32bridge.dll %RELEASEDIR%\release\x32\
 copy bin\x32\x32bridge.pdb %RELEASEDIR%\release\x32\

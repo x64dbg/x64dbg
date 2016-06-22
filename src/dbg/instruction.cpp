@@ -2541,7 +2541,7 @@ CMDRESULT cbHandleClose(int argc, char* argv[])
         return STATUS_ERROR;
     if(!DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), NULL, NULL, 0, FALSE, DUPLICATE_CLOSE_SOURCE))
     {
-        dprintf("DuplicateHandle failed: %s\n", ErrorCodeToName(GetLastError()));
+        dprintf("DuplicateHandle failed: %s\n", ErrorCodeToName(GetLastError()).c_str());
         return STATUS_ERROR;
     }
     dprintf("Handle %" fext "X closed!\n", handle);

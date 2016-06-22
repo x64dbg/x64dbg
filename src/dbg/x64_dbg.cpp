@@ -23,6 +23,8 @@
 #include "database.h"
 #include "mnemonichelp.h"
 #include "datainst_helper.h"
+#include "error.h"
+#include "exception.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -444,6 +446,18 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     }
     else
         dputs("Failed to read mnemonic help database...");
+
+    // Load error codes
+    if(ErrorCodeInit(StringUtils::sprintf("%s\\..\\errordb.txt", dir)))
+        dputs("Error codes database loaded!");
+    else
+        dputs("Failed to load error codes...");
+
+    // Load exception codes
+    if(ExceptionCodeInit(StringUtils::sprintf("%s\\..\\exceptiondb.txt", dir)))
+        dputs("Exception codes database loaded!");
+    else
+        dputs("Failed to load exception codes...");
 
     // Create database directory in the local debugger folder
     DbSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);

@@ -3,7 +3,9 @@
 
 #define MS_VC_EXCEPTION 0x406D1388
 
-void ExceptionCodeInit();
-const char* ExceptionCodeToName(unsigned int ExceptionCode);
+#include "_global.h"
+
+bool ExceptionCodeInit(const String & exceptionFile);
+String ExceptionCodeToName(unsigned int ExceptionCode);
 
 #endif // _EXCEPTION_H
