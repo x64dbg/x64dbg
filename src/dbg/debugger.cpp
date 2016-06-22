@@ -24,6 +24,7 @@
 #include "stackinfo.h"
 #include "stringformat.h"
 #include "TraceRecord.h"
+#include "watch.h"
 
 struct TraceCondition
 {
@@ -582,7 +583,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     if(*bp.commandText && commandCondition)  //command
     {
         //TODO: commands like run/step etc will fuck up your shit
-        DbgCmdExec(bp.commandText);
+        _dbg_dbgcmddirectexec(bp.commandText);
     }
     if(breakCondition)  //break the debugger
     {
@@ -2116,6 +2117,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     DbClose();
     ModClear();
     ThreadClear();
+    WatchClear();
     TraceRecord.clear();
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
