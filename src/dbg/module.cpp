@@ -110,7 +110,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     GetEnvironmentVariableW(L"windir", sysdir, sizeof(sysdir));
     String Utf8Sysdir = StringUtils::Utf16ToUtf8(sysdir);
     Utf8Sysdir.append("\\");
-    if (_memicmp(Utf8Sysdir.c_str(), FullPath, Utf8Sysdir.size()) == 0)
+    if(_memicmp(Utf8Sysdir.c_str(), FullPath, Utf8Sysdir.size()) == 0)
     {
         info.party = 1;
     }
@@ -423,7 +423,7 @@ int ModGetParty(duint Address)
     auto module = ModInfoFromAddr(Address);
 
     // If the module is not found, it is an user module
-    if (!module)
+    if(!module)
         return 0;
 
     return module->party;
@@ -436,7 +436,7 @@ void ModSetParty(duint Address, int Party)
     auto module = ModInfoFromAddr(Address);
 
     // If the module is not found, it is an user module
-    if (!module)
+    if(!module)
         return;
 
     module->party = Party;

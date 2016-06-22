@@ -702,7 +702,7 @@ CMDRESULT cbDebugGetBPXMemoryHitCount(int argc, char* argv[])
 
 CMDRESULT cbDebugSetBPGoto(int argc, char* argv[])
 {
-    if (argc != 3)
+    if(argc != 3)
     {
         dputs("argument count mismatch!\n");
         return STATUS_ERROR;
@@ -1297,7 +1297,7 @@ CMDRESULT cbDebugRunToParty(int argc, char* argv[])
             for(auto j : i.sections)
             {
                 BREAKPOINT bp;
-                if (!BpGet(j.addr, BPMEMORY, nullptr, &bp))
+                if(!BpGet(j.addr, BPMEMORY, nullptr, &bp))
                 {
                     RunToUserCodeBreakpoints.push_back(std::make_pair(j.addr, j.size));
                     SetMemoryBPXEx(j.addr, j.size, UE_MEMORY_EXECUTE, false, (void*)cbRunToUserCodeBreakpoint);
