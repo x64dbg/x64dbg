@@ -6,6 +6,7 @@ class AdvancedAnalysis : public Analysis
 {
 public:
     explicit AdvancedAnalysis(duint base, duint size, bool dump = false);
+    ~AdvancedAnalysis();
     void Analyse() override;
     void SetMarkers() override;
 

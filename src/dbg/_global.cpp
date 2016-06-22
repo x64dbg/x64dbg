@@ -217,7 +217,7 @@ bool DirExists(const char* dir)
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 {
     wchar_t wszFileName[MAX_PATH] = L"";
-    if(!PathFromFileHandleW(hFile, wszFileName, sizeof(wszFileName)))
+    if(!PathFromFileHandleW(hFile, wszFileName, _countof(wszFileName)))
         return false;
     strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     return true;

@@ -14,6 +14,11 @@ AdvancedAnalysis::AdvancedAnalysis(duint base, duint size, bool dump)
     memset(mEncMap, 0, size);
 }
 
+AdvancedAnalysis::~AdvancedAnalysis()
+{
+    delete[] mEncMap;
+}
+
 void AdvancedAnalysis::Analyse()
 {
     linearXrefPass();

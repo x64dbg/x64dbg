@@ -107,7 +107,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
 
     // Determine whether the module is located in system
     wchar_t sysdir[MAX_PATH];
-    GetEnvironmentVariableW(L"windir", sysdir, sizeof(sysdir));
+    GetEnvironmentVariableW(L"windir", sysdir, _countof(sysdir));
     String Utf8Sysdir = StringUtils::Utf16ToUtf8(sysdir);
     Utf8Sysdir.append("\\");
     if(_memicmp(Utf8Sysdir.c_str(), FullPath, Utf8Sysdir.size()) == 0)

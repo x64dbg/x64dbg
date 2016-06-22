@@ -144,6 +144,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Snowman view (decompiler)
     mSnowmanView = CreateSnowman(this);
+    if(!mSnowmanView)
+        mSnowmanView = (SnowmanView*)new QLabel("<center>Snowman is disabled...</center>", this);
     mSnowmanView->setWindowTitle(tr("Snowman"));
     mSnowmanView->setWindowIcon(QIcon(":/icons/images/snowman.png"));
 

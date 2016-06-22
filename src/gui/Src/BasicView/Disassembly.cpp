@@ -393,7 +393,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         {
             indicator = "$";
         }
-        else if(funcType != FUNC_NONE)
+        else if(funcType != Function_none)
         {
             indicator = ".";
         }
@@ -1291,6 +1291,9 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
     if(mCodeFoldingManager)
         wMaxByteCountToRead += mCodeFoldingManager->getFoldedSize(rvaToVa(rva), rvaToVa(rva + wMaxByteCountToRead));
     wBuffer.resize(wMaxByteCountToRead);
+
+    if(!wMaxByteCountToRead)
+        wMaxByteCountToRead = 1;
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
 

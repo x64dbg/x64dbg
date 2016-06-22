@@ -249,11 +249,13 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion()
 
 BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
 {
+#ifdef _DEBUG
     if(IsBadWritePtr(dest, size))
     {
         GuiAddLogMessage("DbgMemRead with invalid boundaries!\n");
         return false;
     }
+#endif //_DEBUG
 
     if(!_dbg_memread(va, dest, size, 0))
     {
@@ -267,11 +269,13 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
 
 BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
 {
+#ifdef _DEBUG
     if(IsBadReadPtr(src, size))
     {
         GuiAddLogMessage("DbgMemWrite with invalid boundaries!\n");
         return false;
     }
+#endif //_DEBUG
     return _dbg_memwrite(va, src, size, 0);
 }
 

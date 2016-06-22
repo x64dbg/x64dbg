@@ -16,8 +16,10 @@ XrefBrowseDialog::XrefBrowseDialog(QWidget* parent, duint address) :
         setWindowTitle(QString(tr("xrefs at %1")).arg(ToHexString(address)));
         for(duint i = 0; i < mXrefInfo.refcount; i++)
         {
-            GuiGetDisassembly(mXrefInfo.references[i].addr, disasm);
-            ui->listWidget->addItem(disasm);
+            if(GuiGetDisassembly(mXrefInfo.references[i].addr, disasm))
+                ui->listWidget->addItem(disasm);
+            else
+                ui->listWidget->addItem("???");
         }
         mPrevSelectionSize = 0;
         ui->listWidget->setCurrentRow(0);

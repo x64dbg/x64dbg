@@ -695,7 +695,7 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines)
                 numLines[j] = jmp.jumpOffset;
         }
     }
-    delete numLines;
+    delete[] numLines;
 }
 
 int CPUSideBar::isFoldingGraphicsPresent(int line)
