@@ -20,6 +20,7 @@
 #include "xrefs.h"
 #include "TraceRecord.h"
 #include "encodemap.h"
+#include "plugin_loader.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -35,7 +36,7 @@ void DbSave(DbLoadSaveType saveType)
 {
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
-    dprintf("Saving database...");
+    dputs("Saving database...");
     DWORD ticks = GetTickCount();
     JSON root = json_object();
 
@@ -65,6 +66,27 @@ void DbSave(DbLoadSaveType saveType)
             json_object_set_new(root, "notes", json_string(text));
             BridgeFree(text);
         }
+
+        //plugin data
+        PLUG_CB_LOADSAVEDB pluginSaveDb;
+        // Some plugins may wish to change this value so that all plugins after his or her plugin will save data into plugin-supplied storage instead of the system's.
+        // We back up this value so that the debugger is not fooled by such plugins.
+        JSON pluginRoot = json_object();
+        pluginSaveDb.root = pluginRoot;
+        switch(saveType)
+        {
+        case DbLoadSaveType::DebugData:
+            pluginSaveDb.loadSaveType = PLUG_DB_LOADSAVE_DATA;
+            break;
+        case DbLoadSaveType::All:
+            pluginSaveDb.loadSaveType = PLUG_DB_LOADSAVE_ALL;
+            break;
+        default:
+            pluginSaveDb.loadSaveType = 0;
+            break;
+        }
+        plugincbcall(CBTYPE::CB_SAVEDB, &pluginSaveDb);
+        json_object_set_new(root, "plugins", pluginRoot);
     }
 
     auto wdbpath = StringUtils::Utf8ToUtf16(dbpath);
@@ -170,10 +192,30 @@ void DbLoad(DbLoadSaveType loadType)
         TraceRecord.loadFromDb(root);
         BpCacheLoad(root);
 
-
         // Load notes
         const char* text = json_string_value(json_object_get(root, "notes"));
         GuiSetDebuggeeNotes(text);
+
+        // Plugins
+        JSON pluginRoot = json_object_get(root, "plugins");
+        if(pluginRoot)
+        {
+            PLUG_CB_LOADSAVEDB pluginLoadDb;
+            pluginLoadDb.root = pluginRoot;
+            switch(loadType)
+            {
+            case DbLoadSaveType::DebugData:
+                pluginLoadDb.loadSaveType = PLUG_DB_LOADSAVE_DATA;
+                break;
+            case DbLoadSaveType::All:
+                pluginLoadDb.loadSaveType = PLUG_DB_LOADSAVE_ALL;
+                break;
+            default:
+                pluginLoadDb.loadSaveType = 0;
+                break;
+            }
+            plugincbcall(CB_LOADDB, &pluginLoadDb);
+        }
     }
 
     // Free root

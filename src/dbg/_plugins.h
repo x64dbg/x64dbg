@@ -25,6 +25,9 @@
 //defines
 #define PLUG_SDKVERSION 1
 
+#define PLUG_DB_LOADSAVE_DATA 1
+#define PLUG_DB_LOADSAVE_ALL 2
+
 //structures
 typedef struct
 {
@@ -167,6 +170,12 @@ typedef struct
     bool retval;
 } PLUG_CB_WINEVENTGLOBAL;
 
+typedef struct
+{
+    JSON root;
+    int loadSaveType;
+} PLUG_CB_LOADSAVEDB;
+
 //enums
 typedef enum
 {
@@ -190,7 +199,9 @@ typedef enum
     CB_DEBUGEVENT, //PLUG_CB_DEBUGEVENT (called on any debug event)
     CB_MENUENTRY, //PLUG_CB_MENUENTRY
     CB_WINEVENT, //PLUG_CB_WINEVENT
-    CB_WINEVENTGLOBAL //PLUG_CB_WINEVENTGLOBAL
+    CB_WINEVENTGLOBAL, //PLUG_CB_WINEVENTGLOBAL
+    CB_LOADDB, //PLUG_CB_LOADSAVEDB
+    CB_SAVEDB //PLUG_CB_LOADSAVEDB
 } CBTYPE;
 
 //typedefs
