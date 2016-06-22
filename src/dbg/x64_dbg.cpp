@@ -22,6 +22,7 @@
 #include "filehelper.h"
 #include "database.h"
 #include "mnemonichelp.h"
+#include "watch.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -154,6 +155,12 @@ static void registercommands()
     dbgcmdnew("SetMemoryBreakpointFastResume", cbDebugSetBPXMemoryFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetMemoryGetBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetMemoryBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
+
+    //watch
+    dbgcmdnew("addwatch", cbAddWatch, true); // add watch
+    dbgcmdnew("delwatch", cbDelWatch, true); // delete watch
+    dbgcmdnew("watchdog", cbWatchdog, true); // Watchdog
+    dbgcmdnew("setwatchdog", cbSetWatchdog, true); // Setup watchdog
 
     //variables
     dbgcmdnew("varnew\1var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]
