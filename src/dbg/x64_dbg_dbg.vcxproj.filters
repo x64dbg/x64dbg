@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -325,6 +325,9 @@
     </ClCompile>
     <ClCompile Include="xrefsanalysis.cpp">
       <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="watch.cpp">
+      <Filter>Source Files\Information</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -738,6 +741,9 @@
     </ClInclude>
     <ClInclude Include="keystone\x86.h">
       <Filter>Header Files\Third Party\keystone</Filter>
+    </ClInclude>
+    <ClInclude Include="watch.h">
+      <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

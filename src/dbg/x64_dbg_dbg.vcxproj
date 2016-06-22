@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -77,6 +77,7 @@
     <ClCompile Include="TraceRecord.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
+    <ClCompile Include="watch.cpp" />
     <ClCompile Include="x64_dbg.cpp" />
     <ClCompile Include="xrefs.cpp" />
     <ClCompile Include="xrefsanalysis.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="serializablemap.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
+    <ClInclude Include="watch.h" />
     <ClInclude Include="xrefs.h" />
     <ClInclude Include="xrefsanalysis.h" />
     <ClInclude Include="yara\yara\stream.h" />

@@ -15,6 +15,7 @@
 #include "loop.h"
 #include "commandline.h"
 #include "database.h"
+#include "watch.h"
 #include "threading.h"
 #include "filehelper.h"
 #include "xrefs.h"
@@ -54,6 +55,7 @@ void DbSave(DbLoadSaveType saveType)
         XrefCacheSave(root);
         TraceRecord.saveToDb(root);
         BpCacheSave(root);
+        WatchCacheSave(root);
 
         //save notes
         char* text = nullptr;
@@ -165,7 +167,7 @@ void DbLoad(DbLoadSaveType loadType)
         XrefCacheLoad(root);
         TraceRecord.loadFromDb(root);
         BpCacheLoad(root);
-
+        WatchCacheLoad(root);
 
         // Load notes
         const char* text = json_string_value(json_object_get(root, "notes"));

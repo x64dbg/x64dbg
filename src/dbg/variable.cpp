@@ -73,6 +73,8 @@ void varinit()
     varnew("$result3\1$res3", 0, VAR_SYSTEM);
     varnew("$result4\1$res4", 0, VAR_SYSTEM);
 
+    varnew("$breakcondition", 0, VAR_SYSTEM);
+
     // InitDebug variables
     varnew("$hProcess\1$hp", 0, VAR_READONLY);  // Process handle
     varnew("$pid", 0, VAR_READONLY);            // Process ID
