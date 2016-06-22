@@ -155,6 +155,7 @@ SOURCES += \
     Src/Gui/XrefBrowseDialog.cpp \
     Src/Gui/CodepageSelectionDialog.cpp \
     Src/Gui/ColumnReorderDialog.cpp \
+    Src/Utils/EncodeMap.cpp \
     Src/Utils/CodeFolding.cpp
 
 
@@ -252,7 +253,9 @@ HEADERS += \
     Src/Gui/CodepageSelectionDialog.h \
     Src/Utils/CachedFontMetrics.h \
     Src/Gui/ColumnReorderDialog.h \
+    Src/Utils/EncodeMap.h \
     Src/Utils/CodeFolding.h
+    
 
 FORMS += \
     Src/Gui/MainWindow.ui \

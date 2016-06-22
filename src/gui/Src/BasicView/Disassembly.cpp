@@ -47,6 +47,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     backgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mXrefInfo.refcount = 0;
+    mTmpCodeCount = 0;
 
     // Slots
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
@@ -1195,7 +1196,7 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wBottomByteRealRVA, wMaxByteCountToRead);
 
-    dsint addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(wBottomByteRealRVA),  wMaxByteCountToRead, wVirtualRVA, count);
+    dsint addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(wBottomByteRealRVA),  wMaxByteCountToRead, wVirtualRVA , count, mTmpCodeCount, mTmpCodeList);
 
     addr += rva - wVirtualRVA;
 
@@ -1230,7 +1231,8 @@ dsint Disassembly::getNextInstructionRVA(dsint rva, duint count)
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
 
-    wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(rva),  wMaxByteCountToRead, 0, count);
+    wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), rvaToVa(rva),  wMaxByteCountToRead, 0, count, mTmpCodeCount, mTmpCodeList);
+
     wNewRVA += rva;
 
     return wNewRVA;
@@ -1292,7 +1294,7 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
 
-    return mDisasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, base, rva);
+    return mDisasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, base, rva, mTmpCodeCount, mTmpCodeList);
 }
 
 
@@ -1335,7 +1337,7 @@ void Disassembly::setSingleSelection(dsint index)
 {
     mSelection.firstSelectedIndex = index;
     mSelection.fromIndex = index;
-    mSelection.toIndex = index;
+    mSelection.toIndex = getInstructionRVA(mSelection.fromIndex, 1) - 1;
     emit selectionChanged(rvaToVa(index));
 }
 
@@ -1347,7 +1349,7 @@ dsint Disassembly::getInitialSelection()
 
 dsint Disassembly::getSelectionSize()
 {
-    return mSelection.toIndex - mSelection.fromIndex;
+    return mSelection.toIndex - mSelection.fromIndex + 1;
 }
 
 dsint Disassembly::getSelectionStart()
@@ -1586,6 +1588,10 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
 
     // Set base and size (Useful when memory page changed)
     mMemPage->setAttributes(wBase, wSize);
+    mDisasm->getEncodeMap()->setMemoryRegion(wBase);
+
+    bool cipChanged = rvaToVa(mCipRva) != parCIP;
+
 
     if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
         mRvaDisplayEnabled = false;
@@ -1598,6 +1604,20 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
 
     //set CIP rva
     mCipRva = wCipRva;
+
+    //add CIP and its jump location to tmp code list so they will always decoded as code
+    if(cipChanged)
+    {
+        mTmpCodeCount = 1;
+        mTmpCodeList[0] = parCIP;
+        Instruction_t inst = DisassembleAt(mCipRva);
+        if(inst.branchType == Instruction_t::Unconditional || inst.branchType == Instruction_t::Conditional && DbgIsJumpGoingToExecute(parCIP))
+        {
+            mTmpCodeCount++;
+            mTmpCodeList[1] = inst.branchDestination;
+        }
+    }
+
 
     if(newTableOffset == -1) //nothing specified
     {
@@ -1703,6 +1723,7 @@ void Disassembly::disassembleClear()
     mHighlightToken = CapstoneTokenizer::SingleToken();
     historyClear();
     mMemPage->setAttributes(0, 0);
+    mDisasm->getEncodeMap()->setMemoryRegion(0);
     setRowCount(0);
     reloadData();
 }

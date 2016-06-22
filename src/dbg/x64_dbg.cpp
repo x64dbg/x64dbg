@@ -22,6 +22,7 @@
 #include "filehelper.h"
 #include "database.h"
 #include "mnemonichelp.h"
+#include "datainst_helper.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -274,6 +275,7 @@ static void registercommands()
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
     dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
     dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
+    dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
     dbgcmdnew("guiupdatedisable", cbInstrDisableGuiUpdate, true); //disable gui message
     dbgcmdnew("guiupdateenable", cbInstrEnableGuiUpdate, true); //enable gui message
     dbgcmdnew("exhandlers", cbInstrExhandlers, true); //enumerate exception handlers
@@ -425,6 +427,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcat_s(scriptDllDir, "\\scripts\\");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
+    initDataInstMap();
 
     // Load mnemonic help database
     String mnemonicHelpData;

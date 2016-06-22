@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "StringUtil.h"
 #include "float128.h"
+#include "MiscUtil.h"
 
 dd_real pow2_fast(int exponent, int* exp10)
 {
@@ -165,6 +166,43 @@ QString ToLongDoubleString(void* buffer)
         QString sigStr = QString::fromStdString(significand.to_string(23 - expStr.length() - (int)sign, 0, std::ios_base::fixed));
 
         return sigStr + expStr;
+    }
+}
+
+QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
+{
+    switch(type)
+    {
+    case enc_byte:
+        return ToIntegralString<unsigned char>(buffer);
+    case enc_word:
+        return ToIntegralString<unsigned short>(buffer);
+    case enc_dword:
+        return ToIntegralString<unsigned int>(buffer);
+    case enc_fword:
+        return QString(ByteReverse(QByteArray((char*)buffer, 6)).toHex());
+    case enc_qword:
+        return ToIntegralString<unsigned long long int>(buffer);
+    case enc_tbyte:
+        return QString(ByteReverse(QByteArray((char*)buffer, 10)).toHex());
+    case enc_oword:
+        return QString(ByteReverse(QByteArray((char*)buffer, 16)).toHex());
+    case enc_mmword:
+    case enc_xmmword:
+    case enc_ymmword:
+        return QString(QByteArray((const char*)buffer, size).toHex());
+    case enc_real4:
+        return ToFloatString(buffer);
+    case enc_real8:
+        return ToDoubleString(buffer);
+    case enc_real10:
+        return ToLongDoubleString(buffer);
+    case enc_ascii:
+        return QString::fromLocal8Bit((const char*)buffer, size);
+    case enc_unicode:
+        return QString::fromWCharArray((const wchar_t*)buffer, size / sizeof(wchar_t));
+    default:
+        return ToIntegralString<unsigned char>(buffer);
     }
 }
 

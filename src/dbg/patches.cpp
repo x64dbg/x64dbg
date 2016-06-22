@@ -147,6 +147,8 @@ void PatchDelRange(duint Start, duint End, bool Restore)
 bool PatchEnum(PATCHINFO* List, size_t* Size)
 {
     ASSERT_DEBUGGING("Export call");
+    if(!DbgIsDebugging())
+        return false;
     ASSERT_FALSE(!List && !Size);
     SHARED_ACQUIRE(LockPatches);
 

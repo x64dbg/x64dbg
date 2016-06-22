@@ -30,6 +30,7 @@
 #include "threading.h"
 #include "stringformat.h"
 #include "xrefs.h"
+#include "encodemap.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -333,6 +334,11 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
             retval = BookmarkDelete(addr);
     }
     return retval;
+}
+
+extern "C" DLL_EXPORT bool _dbg_encodetypeset(duint addr, duint size, ENCODETYPE type)
+{
+    return EncodeMapSetType(addr, size, type);
 }
 
 extern "C" DLL_EXPORT PROCESS_INFORMATION* _dbg_getProcessInformation()
@@ -691,6 +697,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         case DBG_GET_THREAD_LIST:
         case DBG_WIN_EVENT:
         case DBG_WIN_EVENT_GLOBAL:
+        case DBG_RELEASE_ENCODE_TYPE_BUFFER:
             break;
         //the rest is unsafe -> throw an exception when people try to call them
         default:
@@ -1046,6 +1053,42 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_GET_XREF_TYPE_AT:
     {
         return XrefGetType((duint)param1);
+    }
+    break;
+
+    case DBG_GET_ENCODE_TYPE_BUFFER:
+    {
+        return (duint)EncodeMapGetBuffer((duint)param1);
+    }
+    break;
+
+    case DBG_ENCODE_TYPE_GET:
+    {
+        return EncodeMapGetType((duint)param1, (duint)param2);
+    }
+    break;
+
+    case DBG_ENCODE_SIZE_GET:
+    {
+        return EncodeMapGetSize((duint)param1, (duint)param2);
+    }
+    break;
+
+    case DBG_DELETE_ENCODE_TYPE_RANGE:
+    {
+        EncodeMapDelRange((duint)param1, (duint)param2);
+    }
+    break;
+
+    case DBG_DELETE_ENCODE_TYPE_SEG:
+    {
+        EncodeMapDelSegment((duint)param1);
+    }
+    break;
+
+    case DBG_RELEASE_ENCODE_TYPE_BUFFER:
+    {
+        EncodeMapReleaseBuffer(param1);
     }
     break;
 

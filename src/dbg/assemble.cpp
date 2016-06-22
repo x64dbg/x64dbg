@@ -13,6 +13,7 @@
 #include "disasm_helper.h"
 #include "memory.h"
 #include "keystone\keystone.h"
+#include "datainst_helper.h"
 
 AssemblerEngine assemblerEngine = AssemblerEngine::XEDParse;
 
@@ -110,8 +111,12 @@ static bool cbUnknown(const char* text, ULONGLONG* value)
     return true;
 }
 
-bool assemble(duint addr, unsigned char* dest, int* size, const char* instruction, char* error)
+bool assemble(duint addr, unsigned char* dest, int destsize, int* size, const char* instruction, char* error)
 {
+    if(isdatainstruction(instruction))
+    {
+        return tryassembledata(addr, dest, destsize, size, instruction, error);
+    }
     if(strlen(instruction) >= XEDPARSE_MAXBUFSIZE)
         return false;
     XEDPARSE parse;
@@ -140,6 +145,11 @@ bool assemble(duint addr, unsigned char* dest, int* size, const char* instructio
         *size = parse.dest_size;
 
     return true;
+}
+
+bool assemble(duint addr, unsigned char* dest, int* size, const char* instruction, char* error)
+{
+    return assemble(addr, dest, 16, size, instruction, error);
 }
 
 static bool isInstructionPointingToExMemory(duint addr, const unsigned char* dest)
@@ -180,9 +190,19 @@ static bool isInstructionPointingToExMemory(duint addr, const unsigned char* des
 bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop)
 {
     int destSize;
-    unsigned char dest[16];
-    if(!assemble(addr, dest, &destSize, instruction, error))
-        return false;
+    Memory<unsigned char*> dest(16 * sizeof(unsigned char), "AssembleBuffer");
+    unsigned char* newbuffer = nullptr;
+    if(!assemble(addr, dest(), 16, &destSize, instruction, error))
+    {
+        if(destSize > 16)
+        {
+            dest.realloc(destSize);
+            if(!assemble(addr, dest(), destSize, &destSize, instruction, error))
+            {
+                return false;
+            }
+        }
+    }
     //calculate the number of NOPs to insert
     int origLen = disasmgetsize(addr);
     while(origLen < destSize)
@@ -195,10 +215,10 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
         *size = destSize;
 
     // Check if the instruction doesn't set IP to non-executable memory
-    if(!isInstructionPointingToExMemory(addr, dest))
+    if(!isInstructionPointingToExMemory(addr, dest()))
         GuiDisplayWarning("Non-executable memory region", "Assembled branch does not point to an executable memory region!");
 
-    bool ret = MemPatch(addr, dest, destSize);
+    bool ret = MemPatch(addr, dest(), destSize);
 
     if(ret)
     {

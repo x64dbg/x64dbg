@@ -10,7 +10,10 @@
 #include "memory.h"
 #include "debugger.h"
 #include "value.h"
+#include "encodemap.h"
 #include <capstone_wrapper.h>
+#include "datainst_helper.h"
+
 
 duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
 {
@@ -197,7 +200,10 @@ void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr)
     }
     memset(instr, 0, sizeof(DISASM_INSTR));
     Capstone cp;
-    if(!cp.Disassemble(addr, buffer, MAX_DISASM_BUFFER))
+    cp.Disassemble(addr, buffer, MAX_DISASM_BUFFER);
+    if(trydisasm(buffer, addr, instr, cp.Success() ? cp.Size() : 1))
+        return;
+    if(!cp.Success())
     {
         strcpy_s(instr->instruction, "???");
         instr->instr_size = 1;
@@ -352,7 +358,7 @@ int disasmgetsize(duint addr, unsigned char* data)
     Capstone cp;
     if(!cp.Disassemble(addr, data, MAX_DISASM_BUFFER))
         return 1;
-    return cp.Size();
+    return EncodeMapGetSize(addr, cp.Size());
 }
 
 int disasmgetsize(duint addr)

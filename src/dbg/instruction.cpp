@@ -37,6 +37,7 @@
 #include "error.h"
 #include "recursiveanalysis.h"
 #include "xrefsanalysis.h"
+#include "advancedanalysis.h"
 #include "exhandlerinfo.h"
 #include "symbolinfo.h"
 
@@ -2127,6 +2128,19 @@ CMDRESULT cbInstrAnalyse(int argc, char* argv[])
     duint size = 0;
     duint base = MemFindBaseAddr(sel.start, &size);
     LinearAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrAnalyseadv(int argc, char* argv[])
+{
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    duint size = 0;
+    auto base = MemFindBaseAddr(sel.start, &size);
+    AdvancedAnalysis anal(base, size);
     anal.Analyse();
     anal.SetMarkers();
     GuiUpdateAllViews();

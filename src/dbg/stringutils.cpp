@@ -1,4 +1,3 @@
-#include <sstream>
 #include "stringutils.h"
 #include "memory.h"
 #include "dynamicmem.h"
@@ -58,7 +57,7 @@ String StringUtils::Escape(const String & s)
             escaped += "\\\"";
             break;
         default:
-            if(!isprint(ch)) //unknown unprintable character
+            if(!isprint(ch))  //unknown unprintable character
             {
                 char buf[16] = "";
                 sprintf_s(buf, "\\x%02X", ch);
@@ -75,20 +74,20 @@ String StringUtils::Escape(const String & s)
 //Trim functions taken from: http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring/16743707#16743707
 const String StringUtils::WHITESPACE = " \n\r\t";
 
-String StringUtils::Trim(const String & s)
+String StringUtils::Trim(const String & s, String delim)
 {
     return TrimRight(TrimLeft(s));
 }
 
-String StringUtils::TrimLeft(const String & s)
+String StringUtils::TrimLeft(const String & s, String delim)
 {
-    size_t startpos = s.find_first_not_of(StringUtils::WHITESPACE);
+    size_t startpos = s.find_first_not_of(delim);
     return (startpos == String::npos) ? "" : s.substr(startpos);
 }
 
-String StringUtils::TrimRight(const String & s)
+String StringUtils::TrimRight(const String & s, String delim)
 {
-    size_t endpos = s.find_last_not_of(StringUtils::WHITESPACE);
+    size_t endpos = s.find_last_not_of(delim);
     return (endpos == String::npos) ? "" : s.substr(0, endpos + 1);
 }
 
@@ -201,4 +200,69 @@ String StringUtils::ToLower(const String & s)
 bool StringUtils::StartsWith(const String & h, const String & n)
 {
     return strstr(h.c_str(), n.c_str()) == h.c_str();
+}
+
+int char2int(char input)
+{
+    if(input >= '0' && input <= '9')
+        return input - '0';
+    if(input >= 'A' && input <= 'F')
+        return input - 'A' + 10;
+    if(input >= 'a' && input <= 'f')
+        return input - 'a' + 10;
+    throw std::invalid_argument("invalid character");
+}
+
+String StringUtils::FromHex(const String & s, size_t size, bool reverse)
+{
+    std::stringstream ss;
+    bool high = false;
+    if(s.length() > size * 2)
+        throw std::invalid_argument("string too long");
+    char ch = 0;
+    bool odd = s.size() % 2 == 1;
+    int cursize = 0;
+    for(int i = s.size() - 1; i >= 0; i--)
+    {
+        ch |= char2int(s[i]) << (high ? 4 : 0);
+        if(high || odd && i == 0)
+        {
+            ss.put(ch);
+            cursize++;
+            ch = 0;
+        }
+        high = !high;
+    }
+    for(int i = cursize; i < size; i++)
+        ss.put('\0');
+    String res = ss.str();
+    if(!reverse)
+        std::reverse(res.begin(), res.end());
+    return res;
+}
+
+String StringUtils::ToHex(duint value)
+{
+    std::stringstream ss;
+    ss << std::hex;
+    ss << value;
+    return ss.str();
+}
+
+String StringUtils::ToHex(void* buffer, size_t size, bool reverse)
+{
+    std::stringstream ss;
+    ss << std::hex;
+    if(reverse)
+    {
+        for(int i = size - 1; i >= 0; i--)
+            ss << ((char*)buffer)[i];
+    }
+    else
+    {
+        for(int i = 0; i < size; i++)
+            ss << ((char*)buffer)[i];
+    }
+
+    return ss.str();
 }

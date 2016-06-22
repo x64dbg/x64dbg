@@ -122,6 +122,20 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
     return true;
 }
 
+bool CapstoneTokenizer::TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction)
+{
+    _inst = InstructionToken();
+
+    if(!tokenizeMnemonic(TokenType::MnemonicNormal, datatype))
+        return false;
+
+    addToken(TokenType::Value, data);
+
+    instruction = _inst;
+
+    return true;
+}
+
 void CapstoneTokenizer::UpdateConfig()
 {
     SetConfig(ConfigBool("Disassembler", "Uppercase"),
@@ -372,6 +386,14 @@ bool CapstoneTokenizer::tokenizeMnemonic()
         }
     }
     QString mnemonic = QString(_cp.Mnemonic().c_str());
+
+    tokenizeMnemonic(type, mnemonic);
+
+    return true;
+}
+
+bool CapstoneTokenizer::tokenizeMnemonic(TokenType type, const QString & mnemonic)
+{
     addToken(type, mnemonic);
     if(_bTabbedMnemonic)
     {

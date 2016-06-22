@@ -1,9 +1,17 @@
 #include "QBeaEngine.h"
+#include "StringUtil.h"
 
 QBeaEngine::QBeaEngine(int maxModuleSize)
     : _tokenizer(maxModuleSize), mCodeFoldingManager(nullptr)
 {
     CapstoneTokenizer::UpdateColors();
+    UpdateDataInstructionMap();
+    this->mEncodeMap = new EncodeMap();
+}
+
+QBeaEngine::~QBeaEngine()
+{
+    delete this->mEncodeMap;
 }
 
 /**
@@ -18,7 +26,7 @@ QBeaEngine::QBeaEngine(int maxModuleSize)
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction before the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n)
+ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n, duint tmpcodecount, duint* tmpcodelist)
 {
     int i;
     uint abuf[128], addr, back, cmdsize;
@@ -45,8 +53,8 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
     if(n == 0)
         return ip;
 
-    //if(ip < (uint)n)
-    //    return ip;
+    if(ip < (uint)n)
+        return ip;
 
     //TODO: buffer overflow due to unchecked "back" value
     back = MAX_DISASM_BUFFER * (n + 3); // Instruction length limited to 16
@@ -83,11 +91,15 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
                 cmdsize = 2; //heuristic for better output (FF FE or FE FF are usually part of an instruction)
             else
                 cmdsize = cp.Size();
+
+            cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize, tmpcodecount, tmpcodelist);
+
         }
+
 
         pdata += cmdsize;
         addr += cmdsize;
-        //back -= cmdsize; // dead code
+        back -= cmdsize;
         size -= cmdsize;
     }
 
@@ -110,7 +122,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction after the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n)
+ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n, duint tmpcodecount, duint* tmpcodelist)
 {
     int i;
     uint cmdsize;
@@ -128,8 +140,11 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
     if(n <= 0)
         return ip;
 
+
     pdata = data + ip;
     size -= ip;
+
+
 
     for(i = 0; i < n && size > 0; i++)
     {
@@ -143,7 +158,11 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
                 cmdsize = 1;
             else
                 cmdsize = cp.Size();
+
+            cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize, tmpcodecount, tmpcodelist);
+
         }
+
 
         pdata += cmdsize;
         ip += cmdsize;
@@ -165,7 +184,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
  * @return      Return the disassembled instruction
  */
 
-Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA)
+Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, duint tmpcodecount, duint* tmpcodelist)
 {
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
@@ -174,6 +193,14 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
 
     const auto & cp = _tokenizer.GetCapstone();
     bool success = cp.Success();
+
+
+    ENCODETYPE type = enc_code;
+
+    type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 1, tmpcodecount, tmpcodelist);
+
+    if(type != enc_unknown && type != enc_code && type != enc_middle)
+        return DecodeDataAt(data, size, instIndex, origBase, origInstRVA, type);
 
     auto branchType = Instruction_t::None;
     if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop()))
@@ -204,6 +231,67 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
     return wInst;
 }
 
+
+Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA, ENCODETYPE type, duint tmpcodecount, duint* tmpcodelist)
+{
+    //tokenize
+    CapstoneTokenizer::InstructionToken cap;
+
+    DataInstructionInfo info;
+
+    auto & infoIter = dataInstMap.find(type);
+
+    if(infoIter == dataInstMap.end())
+    {
+        infoIter = dataInstMap.find(enc_byte);
+    }
+
+
+    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 1, tmpcodecount, tmpcodelist);
+
+    QString mnemonic = _bLongDataInst ? infoIter.value().longName : infoIter.value().shortName;
+
+    len = std::min(len, (int)size);
+
+    QString datastr = GetDataTypeString(data, len, type);
+
+    _tokenizer.TokenizeData(mnemonic, datastr, cap);
+
+    Instruction_t wInst;
+    wInst.instStr = mnemonic + " " + datastr;
+    wInst.dump = QByteArray((const char*)data, len);
+    wInst.rva = origInstRVA;
+    wInst.length = len;
+    wInst.branchType = Instruction_t::None;
+    wInst.branchDestination = 0;
+    wInst.tokens = cap;
+
+    return wInst;
+}
+
+void QBeaEngine::UpdateDataInstructionMap()
+{
+    dataInstMap.clear();
+    dataInstMap.insert(enc_byte, {"db", "byte", "int8"});
+    dataInstMap.insert(enc_word, {"dw", "word", "short"});
+    dataInstMap.insert(enc_dword, {"dd", "dword", "int"});
+    dataInstMap.insert(enc_fword, {"df", "fword", "fword"});
+    dataInstMap.insert(enc_qword, {"dq", "qword", "long"});
+    dataInstMap.insert(enc_tbyte, {"tbyte", "tbyte", "tbyte"});
+    dataInstMap.insert(enc_oword, {"oword", "oword", "oword"});
+    dataInstMap.insert(enc_mmword, {"mmword", "mmword", "long long"});
+    dataInstMap.insert(enc_xmmword, {"xmmword", "xmmword", "_m128"});
+    dataInstMap.insert(enc_ymmword, {"ymmword", "ymmword", "_m256"});
+    dataInstMap.insert(enc_real4, {"real4", "real4", "float"});
+    dataInstMap.insert(enc_real8, {"real8", "real8", "double"});
+    dataInstMap.insert(enc_real10, {"real10", "real10", "long double"});
+    dataInstMap.insert(enc_ascii, {"ascii", "ascii", "string"});
+    dataInstMap.insert(enc_unicode, {"unicode", "unicode", "wstring"});
+
+}
+
+
+
 void QBeaEngine::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)
 {
     mCodeFoldingManager = CodeFoldingManager;
@@ -211,5 +299,6 @@ void QBeaEngine::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)
 
 void QBeaEngine::UpdateConfig()
 {
+    _bLongDataInst = ConfigBool("Disassembler", "LongDataInstruction");
     _tokenizer.UpdateConfig();
 }

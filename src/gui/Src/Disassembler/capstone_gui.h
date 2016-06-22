@@ -137,6 +137,7 @@ public:
 
     CapstoneTokenizer(int maxModuleLength);
     bool Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction);
+    bool TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction);
     void UpdateConfig();
     void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces);
     int Size() const;
@@ -174,6 +175,7 @@ private:
 
     bool tokenizePrefix();
     bool tokenizeMnemonic();
+    bool tokenizeMnemonic(TokenType type, const QString & mnemonic);
     bool tokenizeOperand(const cs_x86_op & op);
     bool tokenizeRegOperand(const cs_x86_op & op);
     bool tokenizeImmOperand(const cs_x86_op & op);

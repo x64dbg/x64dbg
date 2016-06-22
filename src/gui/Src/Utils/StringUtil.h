@@ -54,6 +54,7 @@ static QString ToDecString(dsint Value)
     return QString(temp);
 }
 
+
 template<typename T>
 static QString ToFloatingString(void* buffer)
 {
@@ -61,6 +62,13 @@ static QString ToFloatingString(void* buffer)
     std::stringstream wFloatingStr;
     wFloatingStr << std::setprecision(std::numeric_limits<T>::digits10) << value;
     return QString::fromStdString(wFloatingStr.str());
+}
+
+template<typename T>
+static QString ToIntegralString(void* buffer)
+{
+    auto value = *(T*)buffer;
+    return ToHexString(value);
 }
 
 static QString ToFloatString(void* buffer)
@@ -76,6 +84,8 @@ static QString ToDoubleString(void* buffer)
 QString ToLongDoubleString(void* buffer);
 
 QString ToDateString(const QDate & date);
+
+QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type);
 
 static QDate GetCompileDate()
 {
