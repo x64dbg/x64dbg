@@ -583,7 +583,41 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     if(*bp.commandText && commandCondition)  //command
     {
         //TODO: commands like run/step etc will fuck up your shit
+        varset("$breakcondition", breakCondition ? 1 : 0, false);
         _dbg_dbgcmddirectexec(bp.commandText);
+        duint script_breakcondition;
+        int size;
+        VAR_TYPE type;
+        if(varget("$breakcondition", &script_breakcondition, &size, &type))
+        {
+            if(script_breakcondition != 0)
+            {
+                breakCondition = true;
+                if(bp.singleshoot)
+                    BpDelete(bp.addr, bptype);
+                switch(bptype)
+                {
+                case BPNORMAL:
+                    printSoftBpInfo(bp);
+                    break;
+                case BPHARDWARE:
+                    printHwBpInfo(bp);
+                    break;
+                case BPMEMORY:
+                    printMemBpInfo(bp, ExceptionAddress);
+                    break;
+                default:
+                    break;
+                }
+                GuiSetDebugState(paused);
+                DebugUpdateGui(CIP, true);
+                PLUG_CB_PAUSEDEBUG pauseInfo;
+                pauseInfo.reserved = nullptr;
+                plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+            }
+            else
+                breakCondition = false;
+        }
     }
     if(breakCondition)  //break the debugger
     {
