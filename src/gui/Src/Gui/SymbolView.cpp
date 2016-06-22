@@ -5,6 +5,7 @@
 #include "Bridge.h"
 #include "YaraRuleSelectionDialog.h"
 #include "EntropyDialog.h"
+#include "LineEditDialog.h"
 
 SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {
@@ -25,9 +26,11 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList->mSearchStartCol = 1;
     int charwidth = mModuleList->mList->getCharWidth();
     mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
-    mModuleList->mList->addColumnAt(500, tr("Module"), true);
+    mModuleList->mList->addColumnAt(300, tr("Module"), true);
+    mModuleList->mList->addColumnAt(charwidth * 8, tr("Party"), false);
     mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
-    mModuleList->mSearchList->addColumnAt(500, "Module", true);
+    mModuleList->mSearchList->addColumnAt(300, "Module", true);
+    mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), false);
 
     // Setup symbol list
     mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
@@ -140,6 +143,15 @@ void SymbolView::setupContextMenu()
     mEntropyAction = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
     connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
 
+    mModSetUserAction = new QAction(tr("Mark as &user module"), this);
+    connect(mModSetUserAction, SIGNAL(triggered()), this, SLOT(moduleSetUser()));
+
+    mModSetSystemAction = new QAction(tr("Mark as &system module"), this);
+    connect(mModSetSystemAction, SIGNAL(triggered()), this, SLOT(moduleSetSystem()));
+
+    mModSetPartyAction = new QAction(tr("Mark as &party..."), this);
+    connect(mModSetPartyAction, SIGNAL(triggered()), this, SLOT(moduleSetParty()));
+
     //Shortcuts
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -218,9 +230,23 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
     mModuleBaseList.clear();
     for(int i = 0; i < module_count; i++)
     {
-        mModuleBaseList.insert(modules[i].name, modules[i].base);
-        mModuleList->mList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
-        mModuleList->mList->setCellContent(i, 1, modules[i].name);
+        QString modName(modules[i].name);
+        mModuleBaseList.insert(modName, modules[i].base);
+        int party = DbgFunctions()->ModGetParty(modules[i].base);
+        mModuleList->mList->setCellContent(i, 0, ToPtrString(modules[i].base));
+        mModuleList->mList->setCellContent(i, 1, modName);
+        switch(party)
+        {
+        case 0:
+            mModuleList->mList->setCellContent(i, 2, tr("User"));
+            break;
+        case 1:
+            mModuleList->mList->setCellContent(i, 2, tr("System"));
+            break;
+        default:
+            mModuleList->mList->setCellContent(i, 2, tr("Party: %1").arg(party));
+            break;
+        }
     }
     mModuleList->mList->reloadData();
     //NOTE: DO NOT CALL mModuleList->refreshSearchList() IT WILL DEGRADE PERFORMANCE!
@@ -265,13 +291,20 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
     wMenu->addAction(mFollowModuleEntryAction);
     wMenu->addAction(mDownloadSymbolsAction);
     wMenu->addAction(mDownloadAllSymbolsAction);
-    dsint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
+    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         wMenu->addAction(mCopyPathAction);
     wMenu->addAction(mYaraAction);
     wMenu->addAction(mYaraFileAction);
     wMenu->addAction(mEntropyAction);
+    wMenu->addSeparator();
+    int party = DbgFunctions()->ModGetParty(modbase);
+    if(party != 0)
+        wMenu->addAction(mModSetUserAction);
+    if(party != 1)
+        wMenu->addAction(mModSetSystemAction);
+    wMenu->addAction(mModSetPartyAction);
     QMenu wCopyMenu(tr("&Copy"), this);
     mModuleList->mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
@@ -295,7 +328,7 @@ void SymbolView::moduleEntryFollow()
 
 void SymbolView::moduleCopyPath()
 {
-    dsint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
+    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         Bridge::CopyToClipboard(szModPath);
@@ -395,7 +428,7 @@ void SymbolView::toggleBookmark()
 
 void SymbolView::moduleEntropy()
 {
-    dsint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
+    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {
@@ -404,6 +437,64 @@ void SymbolView::moduleEntropy()
         entropyDialog.show();
         entropyDialog.GraphFile(QString(szModPath));
         entropyDialog.exec();
+    }
+}
+
+void SymbolView::moduleSetSystem()
+{
+    int i = mModuleList->mCurList->getInitialSelection();
+    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, 0).toUtf8().constData());
+    DbgFunctions()->ModSetParty(modbase, 1);
+    mModuleList->mCurList->setCellContent(i, 2, tr("System"));
+    mModuleList->mCurList->reloadData();
+}
+
+void SymbolView::moduleSetUser()
+{
+    int i = mModuleList->mCurList->getInitialSelection();
+    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, 0).toUtf8().constData());
+    DbgFunctions()->ModSetParty(modbase, 0);
+    mModuleList->mCurList->setCellContent(i, 2, tr("User"));
+    mModuleList->mCurList->reloadData();
+}
+
+void SymbolView::moduleSetParty()
+{
+    LineEditDialog mLineEdit(this);
+    int party;
+    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
+    party = DbgFunctions()->ModGetParty(modbase);
+    mLineEdit.setWindowIcon(QIcon(":/icons/images/bookmark.png"));
+    mLineEdit.setWindowTitle(tr("Mark the party of the module as"));
+    mLineEdit.setText(QString::number(party));
+    if(mLineEdit.exec() == QDialog::Accepted)
+    {
+        bool ok;
+        party = mLineEdit.editText.toInt(&ok);
+        int i = mModuleList->mCurList->getInitialSelection();
+        if(ok)
+        {
+            DbgFunctions()->ModSetParty(modbase, party);
+            switch(party)
+            {
+            case 0:
+                mModuleList->mCurList->setCellContent(i, 2, tr("User"));
+                break;
+            case 1:
+                mModuleList->mCurList->setCellContent(i, 2, tr("System"));
+                break;
+            default:
+                mModuleList->mCurList->setCellContent(i, 2, tr("Party: %1").arg(party));
+                break;
+            }
+            mModuleList->mCurList->reloadData();
+        }
+        else
+        {
+            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("The party number can only be an integer"));
+            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+            msg.exec();
+        }
     }
 }
 

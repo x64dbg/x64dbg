@@ -108,6 +108,8 @@ static void registercommands()
     dbgcmdnew("getcmdline\1getcommandline", cbDebugGetCmdline, true); //Get CmdLine
     dbgcmdnew("setcmdline\1setcommandline", cbDebugSetCmdline, true); //Set CmdLine
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
+    dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
+    dbgcmdnew("RunToUserCode\1rtu", cbDebugRtu, true); //Run to user code
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
@@ -155,6 +157,8 @@ static void registercommands()
     dbgcmdnew("SetMemoryBreakpointFastResume", cbDebugSetBPXMemoryFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetMemoryGetBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetMemoryBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
+    
+    dbgcmdnew("bpgoto", cbDebugSetBPGoto, true);
 
     //variables
     dbgcmdnew("varnew\1var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]

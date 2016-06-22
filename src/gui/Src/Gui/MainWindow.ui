@@ -102,6 +102,7 @@
     <addaction name="actionTicnd"/>
     <addaction name="actionStepOver"/>
     <addaction name="actioneStepOver"/>
+    <addaction name="actionRtu"/>
     <addaction name="actionTocnd"/>
     <addaction name="actionRtr"/>
     <addaction name="actioneRtr"/>
@@ -176,6 +177,7 @@
    <addaction name="actionStepOver"/>
    <addaction name="separator"/>
    <addaction name="actionRtr"/>
+   <addaction name="actionRtu"/>
    <addaction name="separator"/>
    <addaction name="actionCpu"/>
    <addaction name="actionLog"/>
@@ -839,6 +841,15 @@
   <action name="actionTRNone">
    <property name="text">
     <string>None</string>
+   </property>
+  </action>
+  <action name="actionRtu">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/recentfiles.png</normaloff>:/icons/images/recentfiles.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run to &amp;user code</string>
    </property>
   </action>
  </widget>

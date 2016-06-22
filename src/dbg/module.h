@@ -35,6 +35,8 @@ struct MODINFO
     DWORD loadedSize;
     HANDLE fileMap;
     ULONG_PTR fileMapVA;
+
+    int party;  // Party. Currently used value: 0: User, 1: System
 };
 
 bool ModLoad(duint Base, duint Size, const char* FullPath);
@@ -53,6 +55,8 @@ duint ModEntryFromAddr(duint Address);
 int ModPathFromAddr(duint Address, char* Path, int Size);
 int ModPathFromName(const char* Module, char* Path, int Size);
 void ModGetList(std::vector<MODINFO> & list);
+int ModGetParty(duint Address);
+void ModSetParty(duint Address, int Party);
 bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo);
 
 #endif // _MODULE_H

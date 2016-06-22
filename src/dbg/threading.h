@@ -61,6 +61,7 @@ enum SectionLock
     LockArguments,
     LockEncodeMaps,
     LockCallstackCache,
+    LockRunToUserCode,
 
     // Number of elements in this enumeration. Must always be the last
     // index.

@@ -228,6 +228,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actioneStepInto, SIGNAL(triggered()), this, SLOT(execeStepInto()));
     connect(ui->actioneRun, SIGNAL(triggered()), this, SLOT(execeRun()));
     connect(ui->actioneRtr, SIGNAL(triggered()), this, SLOT(execeRtr()));
+    connect(ui->actionRtu, SIGNAL(triggered()), this, SLOT(execRtu()));
     connect(ui->actionTicnd, SIGNAL(triggered()), this, SLOT(execTicnd()));
     connect(ui->actionTocnd, SIGNAL(triggered()), this, SLOT(execTocnd()));
     connect(ui->actionTRBit, SIGNAL(triggered()), this, SLOT(execTRBit()));
@@ -454,6 +455,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actioneStepOver, ConfigShortcut("DebugeStepOver"));
     setGlobalShortcut(ui->actionRtr, ConfigShortcut("DebugRtr"));
     setGlobalShortcut(ui->actioneRtr, ConfigShortcut("DebugeRtr"));
+    setGlobalShortcut(ui->actionRtu, ConfigShortcut("DebugRtu"));
     setGlobalShortcut(ui->actionCommand, ConfigShortcut("DebugCommand"));
     setGlobalShortcut(ui->actionSkipNextInstruction, ConfigShortcut("DebugSkipNextInstruction"));
 
@@ -595,6 +597,11 @@ void MainWindow::execRun()
 void MainWindow::execRtr()
 {
     DbgCmdExec("rtr");
+}
+
+void MainWindow::execRtu()
+{
+    DbgCmdExec("rtu");
 }
 
 void MainWindow::execTRBit()

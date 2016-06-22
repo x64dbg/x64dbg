@@ -37,6 +37,9 @@ private slots:
     void moduleCopyPath();
     void moduleYara();
     void moduleYaraFile();
+    void moduleSetUser();
+    void moduleSetSystem();
+    void moduleSetParty();
     void toggleBreakpoint();
     void toggleBookmark();
     void refreshShortcutsSlot();
@@ -67,6 +70,9 @@ private:
     QAction* mYaraAction;
     QAction* mYaraFileAction;
     QAction* mEntropyAction;
+    QAction* mModSetUserAction;
+    QAction* mModSetSystemAction;
+    QAction* mModSetPartyAction;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

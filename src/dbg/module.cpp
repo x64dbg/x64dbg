@@ -105,6 +105,20 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     info.fileMap = nullptr;
     info.fileMapVA = 0;
 
+    // Determine whether the module is located in system
+    wchar_t sysdir[MAX_PATH];
+    GetEnvironmentVariableW(L"windir", sysdir, sizeof(sysdir));
+    String Utf8Sysdir = StringUtils::Utf16ToUtf8(sysdir);
+    Utf8Sysdir.append("\\");
+    if (_memicmp(Utf8Sysdir.c_str(), FullPath, Utf8Sysdir.size()) == 0)
+    {
+        info.party = 1;
+    }
+    else
+    {
+        info.party = 0;
+    }
+
     // Load module data
     bool virtualModule = strstr(FullPath, "virtual:\\") == FullPath;
 
@@ -400,4 +414,30 @@ bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo)
     pImports->push_back(importInfo);
 
     return true;
+}
+
+int ModGetParty(duint Address)
+{
+    SHARED_ACQUIRE(LockModules);
+
+    auto module = ModInfoFromAddr(Address);
+
+    // If the module is not found, it is an user module
+    if (!module)
+        return 0;
+
+    return module->party;
+}
+
+void ModSetParty(duint Address, int Party)
+{
+    EXCLUSIVE_ACQUIRE(LockModules);
+
+    auto module = ModInfoFromAddr(Address);
+
+    // If the module is not found, it is an user module
+    if (!module)
+        return;
+
+    module->party = Party;
 }

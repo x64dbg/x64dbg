@@ -652,7 +652,7 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines)
     unsigned int* numLines = new unsigned int[viewableRows];
     memset(numLines, 0, sizeof(unsigned int) * viewableRows);
     // preprocessing
-    for(int i = 0; i < jumpLines.size(); i++)
+    for(size_t i = 0; i < jumpLines.size(); i++)
     {
         JumpLine & jmp = jumpLines.at(i);
         jmp.jumpOffset = abs(jmp.destLine - jmp.line);
@@ -663,7 +663,7 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines)
         return op2.jumpOffset > op1.jumpOffset;
     });
     // Allocate jump offsets
-    for(int i = 0; i < jumpLines.size(); i++)
+    for(size_t i = 0; i < jumpLines.size(); i++)
     {
         JumpLine & jmp = jumpLines.at(i);
         unsigned int maxJmpOffset = 0;
