@@ -291,6 +291,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugRtu", Shortcut(tr("Debug -> Run to user code"), "Alt+F9", true));
     defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut(tr("Debug -> Skip next instruction"), "Ctrl+F8", true));
     defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return", true));
+    defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut(tr("Debug -> Trace Into Conditional"), ""));
+    defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace Over Conditional"), ""));
+    defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut(tr("Debug -> Trace Record -> Bit"), ""));
+    defaultShortcuts.insert("DebugTraceRecordNone", Shortcut(tr("Debug -> Trace Record -> None"), ""));
 
     defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
 
@@ -344,6 +348,23 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionFind", Shortcut(tr("Actions -> Find"), "Ctrl+F"));
     defaultShortcuts.insert("ActionDecompileFunction", Shortcut(tr("Actions -> Decompile Function"), "F5"));
     defaultShortcuts.insert("ActionDecompileSelection", Shortcut(tr("Actions -> Decompile Selection"), "Shift+F5"));
+    defaultShortcuts.insert("ActionEditBreakpoint", Shortcut(tr("Actions -> Edit breakpoint"), ""));
+    defaultShortcuts.insert("ActionToggleLogging", Shortcut(tr("Actions -> Enable/Disable Logging"), ""));
+    defaultShortcuts.insert("ActionAllocateMemory", Shortcut(tr("Actions -> Allocate Memory"), ""));
+    defaultShortcuts.insert("ActionFreeMemory", Shortcut(tr("Actions -> Free Memory"), ""));
+    defaultShortcuts.insert("ActionSyncWithExpression", Shortcut(tr("Actions -> Sync With Expression"), ""));
+    defaultShortcuts.insert("ActionEntropy", Shortcut(tr("Actions -> Entropy"), ""));
+    defaultShortcuts.insert("ActionCopyAllRegisters", Shortcut(tr("Actions -> Copy All Registers"), ""));
+    defaultShortcuts.insert("ActionMarkAsUser", Shortcut(tr("Actions -> Mark As User Module"), ""));
+    defaultShortcuts.insert("ActionMarkAsSystem", Shortcut(tr("Actions -> Mark As System Module"), ""));
+    defaultShortcuts.insert("ActionMarkAsParty", Shortcut(tr("Actions -> Mark As Party"), ""));
+    defaultShortcuts.insert("ActionSetHwBpE", Shortcut(tr("Actions -> Set Hardware Breakpoint (Execute)"), ""));
+    defaultShortcuts.insert("ActionRemoveHwBp", Shortcut(tr("Actions -> Remove Hardware Breakpoint"), ""));
+    defaultShortcuts.insert("ActionRemoveAnalysisFromModule", Shortcut(tr("Actions -> Remove Analysis From Module"), ""));
+    defaultShortcuts.insert("ActionRemoveAnalysisFromSelection", Shortcut(tr("Actions -> Remove Analysis From Selection"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsByte", Shortcut(tr("Actions -> Treat Selection As Bytes"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsASCII", Shortcut(tr("Actions -> Treat Selection As ASCII"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsUNICODE", Shortcut(tr("Actions -> Treat Selection As UNICODE"), ""));
 
     defaultShortcuts.insert("ActionIncreaseRegister", Shortcut(tr("Actions -> Increase Register"), "+"));
     defaultShortcuts.insert("ActionDecreaseRegister", Shortcut(tr("Actions -> Decrease Register"), "-"));
