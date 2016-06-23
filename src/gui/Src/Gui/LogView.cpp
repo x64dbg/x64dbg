@@ -53,7 +53,7 @@ void LogView::setupContextMenu()
 void LogView::refreshShortcutsSlot()
 {
     actionCopy->setShortcut(ConfigShortcut("ActionCopy"));
-    // More shortcuts?
+    actionToggleLogging->setShortcut(ConfigShortcut("ActionToggleLogging"));
 }
 
 void LogView::contextMenuEvent(QContextMenuEvent* event)
@@ -111,7 +111,7 @@ void LogView::saveSlot()
     {
         savedLog.write(this->document()->toPlainText().toUtf8().constData());
         savedLog.close();
-        addMsgToLogSlot(tr("Log have been saved to %1\n").arg(fileName));
+        addMsgToLogSlot(tr("Log have been saved as %1\n").arg(fileName));
     }
 }
 
