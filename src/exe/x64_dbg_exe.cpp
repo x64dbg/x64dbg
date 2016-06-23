@@ -8,6 +8,7 @@
 #include <windows.h>
 #include "crashdump.h"
 #include "..\bridge\bridgemain.h"
+#include "LoadResourceString.h"
 
 /**
  @fn int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -26,16 +27,16 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
     CrashDumpInitialize();
 
-    const char* errormsg = BridgeInit();
+    const wchar_t* errormsg = BridgeInit();
     if(errormsg)
     {
-        MessageBoxA(0, errormsg, "BridgeInit Error", MB_ICONERROR | MB_SYSTEMMODAL);
+        MessageBoxW(0, errormsg, LoadResString(IDS_BRIDGEINITERR), MB_ICONERROR | MB_SYSTEMMODAL);
         return 1;
     }
     errormsg = BridgeStart();
     if(errormsg)
     {
-        MessageBoxA(0, errormsg, "BridgeStart Error", MB_ICONERROR | MB_SYSTEMMODAL);
+        MessageBoxW(0, errormsg, LoadResString(IDS_BRIDGESTARTERR), MB_ICONERROR | MB_SYSTEMMODAL);
         return 1;
     }
     return 0;

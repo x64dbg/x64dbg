@@ -11,7 +11,7 @@ ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
 
     // x64 has no model-view-controler pattern
     QStringList tblHeader;
-    tblHeader << "Instruction" << "Shortcut";
+    tblHeader << tr("Instruction") << tr("Shortcut");
 
     currentRow = 0;
 

@@ -127,10 +127,14 @@ void CPUDump::setupContextMenu()
 
     //Sync with expression
     mSyncWithExpression = new QAction(QIcon(":/icons/images/sync.png"), tr("&Sync with expression"), this);
+    mSyncWithExpression->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mSyncWithExpression);
     connect(mSyncWithExpression, SIGNAL(triggered(bool)), this, SLOT(syncWithExpressionSlot()));
 
     //Entropy
     mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entrop&y..."), this);
+    mEntropy->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mEntropy);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropySlot()));
 
     //Label
@@ -423,6 +427,8 @@ void CPUDump::refreshShortcutsSlot()
     mGotoEnd->setShortcut(ConfigShortcut("ActionGotoEnd"));
     mGotoFileOffset->setShortcut(ConfigShortcut("ActionGotoFileOffset"));
     mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
+    mSyncWithExpression->setShortcut(ConfigShortcut("ActionSyncWithExpression"));
+    mEntropy->setShortcut(ConfigShortcut("ActionEntropy"));
 }
 
 void CPUDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)

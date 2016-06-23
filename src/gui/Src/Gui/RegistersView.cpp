@@ -441,6 +441,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     wCM_CopySymbolToClipboard->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopySymbolToClipboard);
     wCM_CopyAll = new QAction(tr("Copy all registers"), this);
+    wCM_CopyAll->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopyAll);
     wCM_FollowInDisassembly = new QAction(tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(tr("Follow in Dump"), this);
@@ -1152,6 +1153,7 @@ void RegistersView::refreshShortcutsSlot()
     wCM_ToggleValue->setShortcut(ConfigShortcut("ActionToggleRegisterValue"));
     wCM_CopyToClipboard->setShortcut(ConfigShortcut("ActionCopy"));
     wCM_CopySymbolToClipboard->setShortcut(ConfigShortcut("ActionCopySymbol"));
+    wCM_CopyAll->setShortcut(ConfigShortcut("ActionCopyAllRegisters"));
 }
 
 RegistersView::~RegistersView()

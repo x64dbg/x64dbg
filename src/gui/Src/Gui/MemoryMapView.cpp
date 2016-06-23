@@ -109,11 +109,13 @@ void MemoryMapView::setupContextMenu()
 
     //Allocate memory
     mMemoryAllocate = new QAction(tr("&Allocate memory"), this);
+    mMemoryAllocate->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryAllocate, SIGNAL(triggered()), this, SLOT(memoryAllocateSlot()));
     this->addAction(mMemoryAllocate);
 
     //Free memory
     mMemoryFree = new QAction(tr("&Free memory"), this);
+    mMemoryFree->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
     this->addAction(mMemoryFree);
 
@@ -123,6 +125,8 @@ void MemoryMapView::setupContextMenu()
 
     //Entropy
     mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
+    mEntropy->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mEntropy);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropy()));
 
     //Find
@@ -145,6 +149,9 @@ void MemoryMapView::refreshShortcutsSlot()
     mMemoryRemove->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mMemoryExecuteSingleshootToggle->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mFindPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
+    mEntropy->setShortcut(ConfigShortcut("ActionEntropy"));
+    mMemoryFree->setShortcut(ConfigShortcut("ActionFreeMemory"));
+    mMemoryAllocate->setShortcut(ConfigShortcut("ActionAllocateMemory"));
 }
 
 void MemoryMapView::contextMenuSlot(const QPoint & pos)
@@ -471,7 +478,7 @@ void MemoryMapView::entropy()
     DbgMemRead(addr, data, size);
 
     EntropyDialog entropyDialog(this);
-    entropyDialog.setWindowTitle(QString().sprintf("Entropy (Address: %p, Size: %p)", addr, size));
+    entropyDialog.setWindowTitle(tr("Entropy (Address: %1, Size: %2)").arg(ToPtrString(addr).arg(ToPtrString(size))));
     entropyDialog.show();
     entropyDialog.GraphMemory(data, size);
     entropyDialog.exec();
