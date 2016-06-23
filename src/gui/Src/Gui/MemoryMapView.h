@@ -38,6 +38,8 @@ public slots:
     void entropy();
     void findPatternSlot();
     void dumpMemory();
+    void selectAddress(duint va);
+    void findAddressSlot();
 
 private:
     QString getProtectionString(DWORD Protect);
@@ -65,6 +67,9 @@ private:
     QAction* mFindPattern;
     QAction* mMemoryAllocate;
     QAction* mMemoryFree;
+    QAction* mFindAddress;
+
+    duint mCipBase;
 };
 
 #endif // MEMORYMAPVIEW_H

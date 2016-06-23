@@ -9,8 +9,11 @@
 #include "EntropyDialog.h"
 #include "HexEditDialog.h"
 #include "LineEditDialog.h"
+#include "GotoDialog.h"
 
-MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
+MemoryMapView::MemoryMapView(StdTable* parent)
+    : StdTable(parent),
+      mCipBase(0)
 {
     enableMultiSelection(false);
 
@@ -114,6 +117,10 @@ void MemoryMapView::setupContextMenu()
     connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
     this->addAction(mMemoryFree);
 
+    mFindAddress = new QAction(tr("Find address &page"), this);
+    connect(mFindAddress, SIGNAL(triggered()), this, SLOT(findAddressSlot()));
+    this->addAction(mFindAddress);
+
     //Entropy
     mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropy()));
@@ -155,6 +162,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addSeparator();
     wMenu.addAction(mMemoryAllocate);
     wMenu.addAction(mMemoryFree);
+    wMenu.addAction(mFindAddress);
     wMenu.addSeparator();
     wMenu.addAction(mPageMemoryRights);
     wMenu.addSeparator();
@@ -212,18 +220,33 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
 #else //x86
         duint addr = wStr.toULong(0, 16);
 #endif //_WIN64
-        if((DbgGetBpxTypeAt(addr)&bp_memory) == bp_memory)
+        QColor color = textColor;
+        QColor backgroundColor = Qt::transparent;
+        bool isBp = (DbgGetBpxTypeAt(addr) & bp_memory) == bp_memory;
+        bool isCip = addr == mCipBase;
+        if(isCip && isBp)
         {
-            QString wStr = getCellContent(rowBase + rowOffset, col);
-            QColor bpBackgroundColor = ConfigColor("MemoryMapBreakpointBackgroundColor");
-            if(bpBackgroundColor.alpha())
-                painter->fillRect(QRect(x, y, w - 1, h), QBrush(bpBackgroundColor));
-            painter->setPen(ConfigColor("MemoryMapBreakpointColor"));
-            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
-            return "";
+            color = ConfigColor("MemoryMapBreakpointBackgroundColor");
+            backgroundColor = ConfigColor("MemoryMapCipBackgroundColor");
+        }
+        else if(isBp)
+        {
+            color = ConfigColor("MemoryMapBreakpointColor");
+            backgroundColor = ConfigColor("MemoryMapBreakpointBackgroundColor");
+        }
+        else if(isCip)
+        {
+            color = ConfigColor("MemoryMapCipColor");
+            backgroundColor = ConfigColor("MemoryMapCipBackgroundColor");
         }
         else if(isSelected(rowBase, rowOffset) == true)
             painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
+
+        if(backgroundColor.alpha())
+            painter->fillRect(QRect(x, y, w - 1, h), QBrush(backgroundColor));
+        painter->setPen(color);
+        painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+        return "";
     }
     else if(col == 2) //info
     {
@@ -256,6 +279,7 @@ void MemoryMapView::refreshMap()
     memset(&wMemMapStruct, 0, sizeof(MEMMAP));
 
     DbgMemMap(&wMemMapStruct);
+    mCipBase = DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr);
 
     setRowCount(wMemMapStruct.count);
 
@@ -535,3 +559,32 @@ void MemoryMapView::dumpMemory()
     }
 }
 
+void MemoryMapView::selectAddress(duint va)
+{
+    auto base = DbgMemFindBaseAddr(va, nullptr);
+    if(base)
+    {
+        auto baseText = ToPtrString(base);
+        auto rows = getRowCount();
+        for(dsint row = 0; row < rows; row++)
+            if(getCellContent(row, 0) == baseText)
+            {
+                setSingleSelection(row);
+                return;
+            }
+    }
+    QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Address %0 not found in memory map...").arg(ToPtrString(va)));
+    msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+    msg.exec();
+    QMessageBox::warning(this, tr("Error"), QString());
+}
+
+void MemoryMapView::findAddressSlot()
+{
+    GotoDialog mGoto(this);
+    mGoto.setWindowTitle(tr("Enter the address to find..."));
+    if(mGoto.exec() == QDialog::Accepted)
+    {
+        selectAddress(DbgValFromString(mGoto.expressionText.toUtf8().constData()));
+    }
+}

@@ -161,8 +161,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
     defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
-    defaultColors.insert("MemoryMapBreakpointColor", QColor("#FFFBF0"));
+    defaultColors.insert("MemoryMapBreakpointColor", QColor("#000000"));
     defaultColors.insert("MemoryMapBreakpointBackgroundColor", QColor("#FF0000"));
+    defaultColors.insert("MemoryMapCipColor", QColor("#FFFFFF"));
+    defaultColors.insert("MemoryMapCipBackgroundColor", QColor("#000000"));
     defaultColors.insert("MemoryMapSectionTextColor", QColor("#8B671F"));
     defaultColors.insert("SearchListViewHighlightColor", QColor("#FF0000"));
 
