@@ -43,8 +43,8 @@ extern "C"
 #define DBG_VERSION 25
 
 //Bridge functions
-BRIDGE_IMPEXP const char* BridgeInit();
-BRIDGE_IMPEXP const char* BridgeStart();
+BRIDGE_IMPEXP const wchar_t* BridgeInit();
+BRIDGE_IMPEXP const wchar_t* BridgeStart();
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size);
 BRIDGE_IMPEXP void BridgeFree(void* ptr);
 BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value);
