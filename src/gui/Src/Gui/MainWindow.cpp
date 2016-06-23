@@ -460,6 +460,10 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionRtu, ConfigShortcut("DebugRtu"));
     setGlobalShortcut(ui->actionCommand, ConfigShortcut("DebugCommand"));
     setGlobalShortcut(ui->actionSkipNextInstruction, ConfigShortcut("DebugSkipNextInstruction"));
+    setGlobalShortcut(ui->actionTicnd, ConfigShortcut("DebugTraceIntoConditional"));
+    setGlobalShortcut(ui->actionTocnd, ConfigShortcut("DebugTraceOverConditional"));
+    setGlobalShortcut(ui->actionTRBit, ConfigShortcut("DebugEnableTraceRecordBit"));
+    setGlobalShortcut(ui->actionTRNone, ConfigShortcut("DebugTraceRecordNone"));
 
     setGlobalShortcut(ui->actionScylla, ConfigShortcut("PluginsScylla"));
 
