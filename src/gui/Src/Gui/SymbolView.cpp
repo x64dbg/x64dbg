@@ -144,12 +144,24 @@ void SymbolView::setupContextMenu()
     connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
 
     mModSetUserAction = new QAction(tr("Mark as &user module"), this);
+    mModSetUserAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mModSetUserAction);
+    mModuleList->mList->addAction(mModSetUserAction);
+    mModuleList->mSearchList->addAction(mModSetUserAction);
     connect(mModSetUserAction, SIGNAL(triggered()), this, SLOT(moduleSetUser()));
 
     mModSetSystemAction = new QAction(tr("Mark as &system module"), this);
+    mModSetSystemAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mModSetSystemAction);
+    mModuleList->mList->addAction(mModSetSystemAction);
+    mModuleList->mSearchList->addAction(mModSetSystemAction);
     connect(mModSetSystemAction, SIGNAL(triggered()), this, SLOT(moduleSetSystem()));
 
     mModSetPartyAction = new QAction(tr("Mark as &party..."), this);
+    mModSetPartyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mModSetPartyAction);
+    mModuleList->mList->addAction(mModSetPartyAction);
+    mModuleList->mSearchList->addAction(mModSetPartyAction);
     connect(mModSetPartyAction, SIGNAL(triggered()), this, SLOT(moduleSetParty()));
 
     //Shortcuts
@@ -161,6 +173,9 @@ void SymbolView::refreshShortcutsSlot()
 {
     mToggleBreakpoint->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mToggleBookmark->setShortcut(ConfigShortcut("ActionToggleBookmark"));
+    mModSetUserAction->setShortcut(ConfigShortcut("ActionMarkAsUser"));
+    mModSetSystemAction->setShortcut(ConfigShortcut("ActionMarkAsSystem"));
+    mModSetPartyAction->setShortcut(ConfigShortcut("ActionMarkAsParty"));
 }
 
 void SymbolView::updateStyle()
