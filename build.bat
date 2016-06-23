@@ -16,13 +16,22 @@ goto usage
 
 :build
 echo Building DBG...
-msbuild.exe x64dbg.sln /m /verbosity:minimal /t:Rebuild /p:%type%
+if "%MAXCORES%"=="" (
+    msbuild.exe x64dbg.sln /m /verbosity:minimal /t:Rebuild /p:%type%
+) else (
+    set CL=/MP%MAXCORES%
+    msbuild.exe x64dbg.sln /m:1 /verbosity:minimal /t:Rebuild /p:%type%
+)
 
 echo Building GUI...
 rmdir /S /Q src\gui_build
 cd src\gui
 qmake x64dbg.pro CONFIG+=release
-jom
+if "%MAXCORES%"=="" (
+    jom
+) else (
+    jom /J %MAXCORES%
+)
 echo Building translations...
 lrelease x64dbg.pro
 cd ..\..
