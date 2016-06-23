@@ -226,8 +226,8 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             duint destVA = DbgGetBranchDestination(baseAddr + instr.rva);
 
             // Do not try to draw EBFE (Jump to the same line)
-            if(destVA == instrVA)
-                continue;
+            //if(destVA == instrVA)
+            //    continue;
 
             // Do not draw jumps that leave the memory range
             if(destVA >= mDisas->getBase() + mDisas->getSize() || destVA < mDisas->getBase())
@@ -457,8 +457,15 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     const int JumpPadding = 11;
     int x = viewportWidth - jumpoffset * JumpPadding - 15 - fontHeight;
     int x_right = viewportWidth - 12;
-    const int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight - pixel_y_offs;
-    const int y_end =  fontHeight * (1 + endLine) - 0.5 * fontHeight;
+    int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight - pixel_y_offs;
+    int y_end =  fontHeight * (1 + endLine) - 0.5 * fontHeight;
+
+    // special handling of self-jumping
+    if(startLine == endLine)
+    {
+        y_start -= fontHeight / 4;
+        y_end += fontHeight / 4;
+    }
 
     // Horizontal (<----)
     if(!isFoldingGraphicsPresent(startLine) != 0)
