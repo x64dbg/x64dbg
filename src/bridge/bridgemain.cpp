@@ -20,35 +20,35 @@ static bool bDisableGUIUpdate;
         return;
 
 #ifdef _WIN64
-#define dbg_lib "x64dbg.dll"
-#define gui_lib "x64gui.dll"
+#define dbg_lib L"x64dbg.dll"
+#define gui_lib L"x64gui.dll"
 #else
-#define dbg_lib "x32dbg.dll"
-#define gui_lib "x32gui.dll"
+#define dbg_lib L"x32dbg.dll"
+#define gui_lib L"x32gui.dll"
 #endif // _WIN64
 
 #define LOADLIBRARY(name) \
     szLib=name; \
-    hInst=LoadLibraryA(name); \
+    hInst=LoadLibraryW(name); \
     if(!hInst) \
-        return "Error loading library \""name"\"!"
+        return L"Error loading library \"" L#name L"\"!"
 
 #define LOADEXPORT(name) \
     *((FARPROC*)&name)=GetProcAddress(hInst, #name); \
     if(!name) \
     { \
-        sprintf(szError, "Export %s:%s could not be found!", szLib, #name); \
+        wsprintfW(szError, L"Export %s:%s could not be found!", szLib, L#name); \
         return szError; \
     }
 
-BRIDGE_IMPEXP const char* BridgeInit()
+BRIDGE_IMPEXP const wchar_t* BridgeInit()
 {
     //Initialize critial section
     InitializeCriticalSection(&csIni);
 
     //Settings load
     if(!GetModuleFileNameW(0, szIniFile, MAX_PATH))
-        return "Error getting module path!";
+        return L"Error getting module path!";
     int len = (int)wcslen(szIniFile);
     while(szIniFile[len] != L'.' && szIniFile[len] != L'\\' && len)
         len--;
@@ -58,8 +58,8 @@ BRIDGE_IMPEXP const char* BridgeInit()
         wcscpy_s(&szIniFile[len], _countof(szIniFile) - len, L".ini");
 
     HINSTANCE hInst;
-    const char* szLib;
-    static char szError[256] = "";
+    const wchar_t* szLib;
+    static wchar_t szError[256] = L"";
 
     //GUI Load
     LOADLIBRARY(gui_lib);
@@ -92,16 +92,16 @@ BRIDGE_IMPEXP const char* BridgeInit()
     return 0;
 }
 
-BRIDGE_IMPEXP const char* BridgeStart()
+BRIDGE_IMPEXP const wchar_t* BridgeStart()
 {
     if(!_dbg_dbginit || !_gui_guiinit)
-        return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
+        return L"\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
     int errorLine = 0;
     BridgeSettingRead(&errorLine);
     _dbg_sendmessage(DBG_INITIALIZE_LOCKS, nullptr, nullptr); //initialize locks before any other thread than the main thread are started
     _gui_guiinit(0, 0); //remove arguments
     if(!BridgeSettingFlush())
-        return "Failed to save settings!";
+        return L"Failed to save settings!";
     _dbg_sendmessage(DBG_DEINITIALIZE_LOCKS, nullptr, nullptr); //deinitialize locks when only one thread is left (hopefully)
     DeleteCriticalSection(&csIni);
     return 0;
