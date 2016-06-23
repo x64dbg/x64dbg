@@ -180,7 +180,6 @@ private:
     bool tokenizeRegOperand(const cs_x86_op & op);
     bool tokenizeImmOperand(const cs_x86_op & op);
     bool tokenizeMemOperand(const cs_x86_op & op);
-    bool tokenizeFpOperand(const cs_x86_op & op);
     bool tokenizeInvalidOperand(const cs_x86_op & op);
 };
 

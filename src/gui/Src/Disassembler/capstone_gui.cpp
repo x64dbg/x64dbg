@@ -418,8 +418,6 @@ bool CapstoneTokenizer::tokenizeOperand(const cs_x86_op & op)
         return tokenizeImmOperand(op);
     case X86_OP_MEM:
         return tokenizeMemOperand(op);
-    case X86_OP_FP:
-        return tokenizeFpOperand(op);
     case X86_OP_INVALID:
         return tokenizeInvalidOperand(op);
     default:
@@ -558,12 +556,6 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
 
     //closing bracket
     addToken(bracketsType, "]");
-    return true;
-}
-
-bool CapstoneTokenizer::tokenizeFpOperand(const cs_x86_op & op)
-{
-    addToken(TokenType::Uncategorized, QString().sprintf("%f", op.fp));
     return true;
 }
 

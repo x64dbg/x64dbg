@@ -2101,9 +2101,6 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
                     mem.disp);
         }
         break;
-        case X86_OP_FP:
-            dprintf("float: %f\n", op.fp);
-            break;
         }
     }
 
