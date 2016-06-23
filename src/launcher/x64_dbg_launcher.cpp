@@ -7,6 +7,8 @@
 #include <shlobj.h>
 #include <atlcomcli.h>
 
+#include "../exe/LoadResourceString.h"
+
 typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
 
 enum arch
@@ -72,11 +74,6 @@ static bool BrowseFileOpen(HWND owner, const TCHAR* filter, const TCHAR* defext,
     return !!GetOpenFileName(&ofstruct);
 }
 
-#define SHELLEXT_EXE_KEY TEXT("exefile\\shell\\Debug with x64dbg\\Command")
-#define SHELLEXT_ICON_EXE_KEY TEXT("exefile\\shell\\Debug with x64dbg")
-#define SHELLEXT_DLL_KEY TEXT("dllfile\\shell\\Debug with x64dbg\\Command")
-#define SHELLEXT_ICON_DLL_KEY TEXT("dllfile\\shell\\Debug with x64dbg")
-
 static BOOL isWoW64()
 {
 
@@ -103,6 +100,11 @@ static TCHAR* GetDesktopPath()
     return nullptr;
 }
 
+const wchar_t* SHELLEXT_EXE_KEY = L"exefile\\shell\\Debug with x64dbg\\Command";
+const wchar_t* SHELLEXT_ICON_EXE_KEY = L"exefile\\shell\\Debug with x64dbg";
+const wchar_t* SHELLEXT_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg\\Command";
+const wchar_t* SHELLEXT_ICON_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg";
+
 static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink)
 {
     HRESULT hRes = NULL;
@@ -119,7 +121,7 @@ static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink
         CComPtr<IPersistFile> ppf;
 
         psl->SetPath(szPathOfFile);
-        psl->SetDescription(TEXT("A Debugger for the future!"));
+        psl->SetDescription(LoadResString(IDS_SHORTCUTDESC));
         psl->SetIconLocation(szPathOfFile, 0);
         psl->SetWorkingDirectory(pathFile);
 
@@ -141,25 +143,27 @@ static bool RegisterShellExtension(const TCHAR* key, const TCHAR* command)
     auto result = true;
     if(RegCreateKey(HKEY_CLASSES_ROOT, key, &hKey) != ERROR_SUCCESS)
     {
-        MessageBox(nullptr, TEXT("RegCreateKeyA failed!"), TEXT("Running as Admin?"), MB_ICONERROR);
+        MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
         return false;
     }
     if(RegSetValueEx(hKey, nullptr, 0, REG_EXPAND_SZ, LPBYTE(command), (_tcslen(command) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
     {
-        MessageBox(nullptr, TEXT("RegSetValueExA failed!"), TEXT("Running as Admin?"), MB_ICONERROR);
+        MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
         result = false;
     }
     RegCloseKey(hKey);
     return result;
 }
 
-static void AddShellIcon(const TCHAR* key, const TCHAR* command)
+static void AddShellIcon(const TCHAR* key, const TCHAR* icon, const TCHAR* title)
 {
     HKEY pKey;
-    if(RegOpenKeyExW(HKEY_CLASSES_ROOT, key, 0, KEY_ALL_ACCESS, &pKey) != ERROR_SUCCESS)
-        MessageBoxW(nullptr, L"RegOpenKeyExW Failed!", L"Running as Admin?", MB_ICONERROR);
-    if(RegSetValueExW(pKey, L"Icon", 0, REG_SZ, LPBYTE(command), (_tcslen(command) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
-        MessageBoxW(nullptr, L"RegSetValueExA failed!", L"Running as Admin?", MB_ICONERROR);
+    if(RegOpenKeyEx(HKEY_CLASSES_ROOT, key, 0, KEY_ALL_ACCESS, &pKey) != ERROR_SUCCESS)
+        MessageBox(nullptr, LoadResString(IDS_REGOPENKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+    if(RegSetValueEx(pKey, L"Icon", 0, REG_SZ, LPBYTE(icon), (_tcslen(icon) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
+        MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+    if(RegSetValueEx(pKey, nullptr, 0, REG_SZ, LPBYTE(title), (_tcslen(title) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
+        MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
     RegCloseKey(pKey);
 }
 
@@ -230,7 +234,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     TCHAR szModulePath[MAX_PATH] = TEXT("");
     if(!GetModuleFileName(nullptr, szModulePath, MAX_PATH))
     {
-        MessageBox(nullptr, TEXT("Error getting module path!"), TEXT("Error"), MB_ICONERROR | MB_SYSTEMMODAL);
+        MessageBox(nullptr, LoadResString(IDS_ERRORGETTINGMODULEPATH), LoadResString(IDS_ERROR), MB_ICONERROR | MB_SYSTEMMODAL);
         return 0;
     }
     TCHAR szIniPath[MAX_PATH] = TEXT("");
@@ -300,25 +304,25 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), sz64Path, szIniPath);
             bDoneSomething = true;
         }
-        if(MessageBox(nullptr, TEXT("Do you want to register a shell extension?"), TEXT("Question"), MB_YESNO | MB_ICONQUESTION) == IDYES)
+        if(MessageBox(nullptr, LoadResString(IDS_ASKSHELLEXT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
             TCHAR szLauncherCommand[MAX_PATH] = TEXT("");
             _stprintf_s(szLauncherCommand, _countof(szLauncherCommand), TEXT("\"%s\" \"%%1\""), szModulePath);
             TCHAR szIconCommand[MAX_PATH] = TEXT("");
             _stprintf_s(szIconCommand, _countof(szIconCommand), TEXT("\"%s\",0"), szModulePath);
             if(RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand))
-                AddShellIcon(SHELLEXT_ICON_EXE_KEY, szIconCommand);
+                AddShellIcon(SHELLEXT_ICON_EXE_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
             if(RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand))
-                AddShellIcon(SHELLEXT_ICON_DLL_KEY, szIconCommand);
+                AddShellIcon(SHELLEXT_ICON_DLL_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
         }
-        if(MessageBox(nullptr, TEXT("Do you want to create Desktop Shortcuts?"), TEXT("Question"), MB_YESNO | MB_ICONQUESTION) == IDYES)
+        if(MessageBox(nullptr, LoadResString(IDS_ASKDESKTOPSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
             AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
             if(isWoW64())
                 AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
         }
         if(bDoneSomething)
-            MessageBox(nullptr, TEXT("New configuration written!"), TEXT("Done!"), MB_ICONINFORMATION);
+            MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);
     }
     if(argc == 2)  //one argument -> execute debugger
     {
@@ -337,22 +341,22 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             if(sz32Path[0])
                 ShellExecute(nullptr, TEXT("open"), sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
             else
-                MessageBox(nullptr, TEXT("Path to x32dbg not specified in launcher configuration..."), TEXT("Error!"), MB_ICONERROR);
+                MessageBox(nullptr, LoadResString(IDS_INVDPATH32), LoadResString(IDS_ERROR), MB_ICONERROR);
             break;
 
         case x64:
             if(sz64Path[0])
                 ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
             else
-                MessageBox(nullptr, TEXT("Path to x64dbg not specified in launcher configuration..."), TEXT("Error!"), MB_ICONERROR);
+                MessageBox(nullptr, LoadResString(IDS_INVDPATH64), LoadResString(IDS_ERROR), MB_ICONERROR);
             break;
 
         case invalid:
-            MessageBox(nullptr, argv[1], TEXT("Invalid PE File!"), MB_ICONERROR);
+            MessageBox(nullptr, argv[1], LoadResString(IDS_INVDPE), MB_ICONERROR);
             break;
 
         case notfound:
-            MessageBox(nullptr, argv[1], TEXT("File not found or in use!"), MB_ICONERROR);
+            MessageBox(nullptr, argv[1], LoadResString(IDS_FILEERR), MB_ICONERROR);
             break;
         }
     }
