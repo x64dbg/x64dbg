@@ -299,7 +299,7 @@ void TraceRecordManager::saveToDb(JSON root)
         json_array_append_new(jsonTraceRecords, jsonObj);
     }
     if(json_array_size(jsonTraceRecords))
-        json_object_set_new(root, "tracerecord", jsonTraceRecords);
+        json_object_set(root, "tracerecord", jsonTraceRecords);
 
     // Notify garbage collector
     json_decref(jsonTraceRecords);
