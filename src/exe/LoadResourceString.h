@@ -2,7 +2,8 @@
 
 #include "resource1.h" // String resources
 
-inline std::wstring _LoadResString(UINT uID) {
+inline std::wstring _LoadResString(UINT uID)
+{
     wchar_t* p = nullptr;
     int len = ::LoadStringW(NULL, uID, reinterpret_cast<LPWSTR>(&p), 0);
     if(len > 0)

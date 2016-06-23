@@ -431,7 +431,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     const char* shortcutTable[] = {nullptr, "ActionTreatSelectionAsByte", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
                                    nullptr, nullptr, nullptr, nullptr,
                                    "ActionTreatSelectionAsASCII", "ActionTreatSelectionAsUNICODE", nullptr,
-                                   nullptr, nullptr, nullptr};
+                                   nullptr, nullptr, nullptr
+                                  };
 
     ENCODETYPE enctypeTable[] = {enc_code, enc_byte, enc_word, enc_dword, enc_fword, enc_qword, enc_tbyte, enc_oword, enc_middle,
                                  enc_real4, enc_real8, enc_real10 , enc_middle,
