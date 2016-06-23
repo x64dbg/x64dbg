@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -25,7 +25,9 @@
   <ItemGroup>
     <ClInclude Include="crashdump.h" />
     <ClInclude Include="icon.h" />
+    <ClInclude Include="LoadResourceString.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon32.rc">
@@ -37,6 +39,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ResourceCompile>
     <ResourceCompile Include="resource.rc" />
+    <ResourceCompile Include="Strings.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bug.ico" />
