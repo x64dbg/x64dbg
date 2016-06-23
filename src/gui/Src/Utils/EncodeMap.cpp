@@ -133,6 +133,7 @@ bool EncodeMap::isDataType(ENCODETYPE type)
 
 ENCODETYPE EncodeMap::getDataType(duint addr, duint codesize, duint tmpcodecount, duint* tmpcodelist)
 {
+    return ENCODETYPE::enc_unknown;
     if(addr - mBase >= mSize)
         return ENCODETYPE::enc_unknown;
     for(int i = 0; i < tmpcodecount; i++)

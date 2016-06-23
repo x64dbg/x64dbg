@@ -96,7 +96,7 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
 {
     _inst = InstructionToken();
 
-    _success = _cp.Disassemble(addr, data, datasize);
+    _success = _cp.DisassembleSafe(addr, data, datasize);
     if(_success)
     {
         if(!tokenizeMnemonic())

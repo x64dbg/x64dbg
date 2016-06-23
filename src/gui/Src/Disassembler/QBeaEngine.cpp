@@ -87,7 +87,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
         }
         else
         {
-            if(!cp.Disassemble(addr + base, pdata, (int)size))
+            if(!cp.DisassembleSafe(addr + base, pdata, (int)size))
                 cmdsize = 2; //heuristic for better output (FF FE or FE FF are usually part of an instruction)
             else
                 cmdsize = cp.Size();
@@ -154,7 +154,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
         }
         else
         {
-            if(!cp.Disassemble(0, pdata, (int)size))
+            if(!cp.DisassembleSafe(0, pdata, (int)size))
                 cmdsize = 1;
             else
                 cmdsize = cp.Size();
