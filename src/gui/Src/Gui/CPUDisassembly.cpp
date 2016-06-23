@@ -234,9 +234,9 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     QAction* toggleBreakpointAction = makeShortcutAction(tr("Toggle"), SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
-    QAction* editSoftwareBreakpointAction = makeAction(tr("Edit"), SLOT(editSoftBpActionSlot()));
-    QAction* setHwBreakpointAction = makeAction(tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()));
-    QAction* removeHwBreakpointAction = makeAction(tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()));
+    QAction* editSoftwareBreakpointAction = makeShortcutAction(tr("Edit"), SLOT(editSoftBpActionSlot()), "ActionEditBreakpoint");
+    QAction* setHwBreakpointAction = makeShortcutAction(tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()), "ActionSetHwBpE");
+    QAction* removeHwBreakpointAction = makeShortcutAction(tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()), "ActionRemoveHwBp");
 
     QMenu* replaceSlotMenu = makeMenu(tr("Set Hardware on Execution"));
     QAction* replaceSlot0Action = makeMenuAction(replaceSlotMenu, tr("Replace Slot 0 (Free)"), SLOT(setHwBpOnSlot0ActionSlot()));
@@ -281,16 +281,16 @@ void CPUDisassembly::setupRightClickContextMenu()
                     switch(bpList.bp[i].slot)
                     {
                     case 0:
-                        replaceSlot0Action->setText("Replace Slot 0 (0x" + QString("%1").arg(bpList.bp[i].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        replaceSlot0Action->setText(tr("Replace Slot %1 (0x%2)").arg(1).arg(ToPtrString(bpList.bp[i].addr)));
                         break;
                     case 1:
-                        replaceSlot1Action->setText("Replace Slot 1 (0x" + QString("%1").arg(bpList.bp[i].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        replaceSlot1Action->setText(tr("Replace Slot %1 (0x%2)").arg(2).arg(ToPtrString(bpList.bp[i].addr)));
                         break;
                     case 2:
-                        replaceSlot2Action->setText("Replace Slot 2 (0x" + QString("%1").arg(bpList.bp[i].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        replaceSlot2Action->setText(tr("Replace Slot %1 (0x%2)").arg(3).arg(ToPtrString(bpList.bp[i].addr)));
                         break;
                     case 3:
-                        replaceSlot3Action->setText("Replace Slot 3 (0x" + QString("%1").arg(bpList.bp[i].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        replaceSlot3Action->setText(tr("Replace Slot %1 (0x%2)").arg(4).arg(ToPtrString(bpList.bp[i].addr)));
                         break;
                     default:
                         break;
@@ -412,21 +412,26 @@ void CPUDisassembly::setupRightClickContextMenu()
 
 
     analysisMenu->addAction(makeShortcutAction(tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
-    analysisMenu->addAction(makeAction(tr("Remove analysis from module"), SLOT(removeAnalysisModuleSlot())));
+    analysisMenu->addAction(makeShortcutAction(tr("Remove analysis from module"), SLOT(removeAnalysisModuleSlot()), "ActionRemoveAnalysisFromModule"));
 
     analysisMenu->addSeparator();
 
-    analysisMenu->addAction(makeAction(tr("Remove analysis from selection"), SLOT(removeAnalysisSelectionSlot())));
+    analysisMenu->addAction(makeShortcutAction(tr("Remove analysis from selection"), SLOT(removeAnalysisSelectionSlot()), "ActionRemoveAnalysisFromSelection"));
 
-    QMenu* encodeTypeMenu = makeMenu("Treat selection head as");
+    QMenu* encodeTypeMenu = makeMenu(tr("Treat selection head as"));
 
-    QMenu* encodeTypeRangeMenu = makeMenu("Treat selection as");
+    QMenu* encodeTypeRangeMenu = makeMenu(tr("Treat selection as"));
 
-    std::string strTable[] = {"Command", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
+    const char* strTable[] = {"Command", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
                               "Float", "Double", "Long Double", "",
                               "ASCII", "UNICODE", "",
                               "MMWord", "XMMWord", "YMMWord"
                              };
+
+    const char* shortcutTable[] = {nullptr, "ActionTreatSelectionAsByte", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                                   nullptr, nullptr, nullptr, nullptr,
+                                   "ActionTreatSelectionAsASCII", "ActionTreatSelectionAsUNICODE", nullptr,
+                                   nullptr, nullptr, nullptr};
 
     ENCODETYPE enctypeTable[] = {enc_code, enc_byte, enc_word, enc_dword, enc_fword, enc_qword, enc_tbyte, enc_oword, enc_middle,
                                  enc_real4, enc_real8, enc_real10 , enc_middle,
@@ -445,10 +450,14 @@ void CPUDisassembly::setupRightClickContextMenu()
         }
         else
         {
-            QAction* action = makeAction(tr(strTable[i].c_str()), SLOT(setEncodeTypeRangeSlot()));
+            QAction* action;
+            if(shortcutTable[i])
+                action = makeShortcutAction(tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()), shortcutTable[i]);
+            else
+                action = makeAction(tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()));
             action->setData(enctypeTable[i]);
             encodeTypeRangeMenu->addAction(action);
-            action = makeAction(tr(strTable[i].c_str()), SLOT(setEncodeTypeSlot()));
+            action = makeAction(tr(strTable[i]), SLOT(setEncodeTypeSlot()));
             action->setData(enctypeTable[i]);
             encodeTypeMenu->addAction(action);
         }
