@@ -261,7 +261,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewBreakpoints", Shortcut(tr("View -> Breakpoints"), "Alt+B", true));
     defaultShortcuts.insert("ViewMemoryMap", Shortcut(tr("View -> Memory Map"), "Alt+M", true));
     defaultShortcuts.insert("ViewCallStack", Shortcut(tr("View -> Call Stack"), "Alt+K", true));
-    defaultShortcuts.insert("ViewNotes", Shortcut(tr("View -> Notes"), "", true));
+    defaultShortcuts.insert("ViewNotes", Shortcut(tr("View -> Notes"), "Alt+N", true));
     defaultShortcuts.insert("ViewSEHChain", Shortcut(tr("View -> SEH"), "", true));
     defaultShortcuts.insert("ViewScript", Shortcut(tr("View -> Script"), "Alt+S", true));
     defaultShortcuts.insert("ViewSymbolInfo", Shortcut(tr("View -> Symbol Info"), "Ctrl+Alt+S", true));
