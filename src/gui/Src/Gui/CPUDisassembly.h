@@ -50,6 +50,7 @@ public slots:
     void setCommentSlot();
     void setBookmarkSlot();
     void toggleFunctionSlot();
+    void toggleArgumentSlot();
     void assembleSlot();
     void gotoExpressionSlot();
     void gotoFileOffsetSlot();

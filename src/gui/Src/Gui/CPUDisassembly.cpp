@@ -395,8 +395,11 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/comment.png"), tr("Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/bookmark.png"), tr("Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
+    mMenuBuilder->addSeparator();
+
+    MenuBuilder* analysisMenu = new MenuBuilder(this);
     QAction* toggleFunctionAction = makeShortcutAction(QIcon(":/icons/images/functions.png"), tr("Function"), SLOT(toggleFunctionSlot()), "ActionToggleFunction");
-    mMenuBuilder->addAction(toggleFunctionAction, [this, toggleFunctionAction](QMenu*)
+    analysisMenu->addAction(toggleFunctionAction, [this, toggleFunctionAction](QMenu*)
     {
         if(!DbgFunctionOverlaps(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd())))
             toggleFunctionAction->setText(tr("Add function"));
@@ -404,10 +407,15 @@ void CPUDisassembly::setupRightClickContextMenu()
             toggleFunctionAction->setText(tr("Delete function"));
         return true;
     });
-
-    mMenuBuilder->addSeparator();
-
-    MenuBuilder* analysisMenu = new MenuBuilder(this);
+    QAction* toggleArgumentAction = makeShortcutAction(QIcon(":/icons/images/arguments.png"), tr("Argument"), SLOT(toggleArgumentSlot()), "ActionToggleArgument");
+    analysisMenu->addAction(toggleArgumentAction, [this, toggleArgumentAction](QMenu*)
+    {
+        if(!DbgArgumentOverlaps(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd())))
+            toggleArgumentAction->setText(tr("Add argument"));
+        else
+            toggleArgumentAction->setText(tr("Delete argument"));
+        return true;
+    });
     analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/analysis_single_function.png"), tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
     analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/remove_analysis_from_module.png"), tr("Remove analysis from module"), SLOT(removeAnalysisModuleSlot()), "ActionRemoveAnalysisFromModule"));
     analysisMenu->addSeparator();
@@ -838,7 +846,6 @@ void CPUDisassembly::toggleFunctionSlot()
             label_text = " (" + QString(labeltext) + ")";
 
         QMessageBox msg(QMessageBox::Warning, tr("Delete function?"), start_text + "-" + end_text + label_text, QMessageBox::Ok | QMessageBox::Cancel);
-        msg.setDefaultButton(QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -847,7 +854,57 @@ void CPUDisassembly::toggleFunctionSlot()
         QString cmd = "functiondel " + start_text;
         DbgCmdExec(cmd.toUtf8().constData());
     }
+}
 
+void CPUDisassembly::toggleArgumentSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    duint start = rvaToVa(getSelectionStart());
+    duint end = rvaToVa(getSelectionEnd());
+    duint argument_start = 0;
+    duint argument_end = 0;
+    if(!DbgArgumentOverlaps(start, end))
+    {
+        QString start_text = QString("%1").arg(start, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString end_text = QString("%1").arg(end, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        char labeltext[MAX_LABEL_SIZE] = "";
+        QString label_text = "";
+        if(DbgGetLabelAt(start, SEG_DEFAULT, labeltext))
+            label_text = " (" + QString(labeltext) + ")";
+
+        QMessageBox msg(QMessageBox::Question, tr("Define argument?"), start_text + "-" + end_text + label_text, QMessageBox::Yes | QMessageBox::No);
+        msg.setWindowIcon(QIcon(":/icons/images/compile.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() != QMessageBox::Yes)
+            return;
+        QString cmd = "argumentadd " + start_text + "," + end_text;
+        DbgCmdExec(cmd.toUtf8().constData());
+    }
+    else
+    {
+        for(duint i = start; i <= end; i++)
+        {
+            if(DbgArgumentGet(i, &argument_start, &argument_end))
+                break;
+        }
+        QString start_text = QString("%1").arg(argument_start, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString end_text = QString("%1").arg(argument_end, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        char labeltext[MAX_LABEL_SIZE] = "";
+        QString label_text = "";
+        if(DbgGetLabelAt(argument_start, SEG_DEFAULT, labeltext))
+            label_text = " (" + QString(labeltext) + ")";
+
+        QMessageBox msg(QMessageBox::Warning, tr("Delete argument?"), start_text + "-" + end_text + label_text, QMessageBox::Ok | QMessageBox::Cancel);
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() != QMessageBox::Ok)
+            return;
+        QString cmd = "argumentdel " + start_text;
+        DbgCmdExec(cmd.toUtf8().constData());
+    }
 }
 
 void CPUDisassembly::assembleSlot()

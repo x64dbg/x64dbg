@@ -118,5 +118,6 @@
         <file>images/treat_selection_as_xmm.png</file>
         <file>images/treat_selection_as_ymm.png</file>
         <file>images/analysis.png</file>
+        <file>images/arguments.png</file>
     </qresource>
 </RCC>

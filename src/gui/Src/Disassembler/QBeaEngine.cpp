@@ -144,8 +144,6 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
     pdata = data + ip;
     size -= ip;
 
-
-
     for(i = 0; i < n && size > 0; i++)
     {
         if(mCodeFoldingManager && mCodeFoldingManager->isFolded(ip + base))
@@ -162,7 +160,6 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
             cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize);
 
         }
-
 
         pdata += cmdsize;
         ip += cmdsize;
