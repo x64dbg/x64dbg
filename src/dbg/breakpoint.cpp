@@ -502,11 +502,11 @@ void BpCacheSave(JSON Root)
 }
 
 template<typename T>
-static void loadStringValue(JSON value, T dest, const char* key)
+static void loadStringValue(JSON value, T & dest, const char* key)
 {
     auto text = json_string_value(json_object_get(value, key));
     if(text)
-        strcpy_s(dest, _TRUNCATE, text);
+        strncpy_s(dest, text, _TRUNCATE);
 }
 
 void BpCacheLoad(JSON Root)

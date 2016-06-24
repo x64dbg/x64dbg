@@ -33,7 +33,7 @@ void EditBreakpointDialog::loadFromBp()
 }
 
 template<typename T>
-void copyTruncate(T dest, const QString & src)
+void copyTruncate(T & dest, const QString & src)
 {
     strncpy_s(dest, src.toUtf8().constData(), _TRUNCATE);
 }
