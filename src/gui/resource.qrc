@@ -119,5 +119,15 @@
         <file>images/treat_selection_as_ymm.png</file>
         <file>images/analysis.png</file>
         <file>images/arguments.png</file>
+        <file>images/bit.png</file>
+        <file>images/byte.png</file>
+        <file>images/dword.png</file>
+        <file>images/functionend.png</file>
+        <file>images/functionstart.png</file>
+        <file>images/qword.png</file>
+        <file>images/word.png</file>
+        <file>images/xmm.png</file>
+        <file>images/ymm.png</file>
+        <file>images/zmm.png</file>
     </qresource>
 </RCC>
