@@ -364,12 +364,24 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionMarkAsParty", Shortcut(tr("Actions -> Mark As Party"), ""));
     defaultShortcuts.insert("ActionSetHwBpE", Shortcut(tr("Actions -> Set Hardware Breakpoint (Execute)"), ""));
     defaultShortcuts.insert("ActionRemoveHwBp", Shortcut(tr("Actions -> Remove Hardware Breakpoint"), ""));
-    defaultShortcuts.insert("ActionRemoveAnalysisFromModule", Shortcut(tr("Actions -> Remove Analysis From Module"), ""));
-    defaultShortcuts.insert("ActionRemoveAnalysisFromSelection", Shortcut(tr("Actions -> Remove Analysis From Selection"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsByte", Shortcut(tr("Actions -> Treat Selection As Bytes"), ""));
+    defaultShortcuts.insert("ActionRemoveAnalysisFromModule", Shortcut(tr("Actions -> Remove Analysis From Module"), "Ctrl+Shift+U"));
+    defaultShortcuts.insert("ActionRemoveAnalysisFromSelection", Shortcut(tr("Actions -> Remove Analysis From Selection"), "U"));
+    defaultShortcuts.insert("ActionTreatSelectionAsCode", Shortcut(tr("Actions -> Treat Selection As Code"), "C"));
+    defaultShortcuts.insert("ActionTreatSelectionAsByte", Shortcut(tr("Actions -> Treat Selection As Byte"), "B"));
+    defaultShortcuts.insert("ActionTreatSelectionAsWord", Shortcut(tr("Actions -> Treat Selection As Word"), "W"));
+    defaultShortcuts.insert("ActionTreatSelectionAsDword", Shortcut(tr("Actions -> Treat Selection As Dword"), "D"));
+    defaultShortcuts.insert("ActionTreatSelectionAsFword", Shortcut(tr("Actions -> Treat Selection As Fword"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsQword", Shortcut(tr("Actions -> Treat Selection As Qword"), "Q"));
+    defaultShortcuts.insert("ActionTreatSelectionAsTbyte", Shortcut(tr("Actions -> Treat Selection As Tbyte"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsOword", Shortcut(tr("Actions -> Treat Selection As Oword"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsFloat", Shortcut(tr("Actions -> Treat Selection As Float"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsDouble", Shortcut(tr("Actions -> Treat Selection As Double"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsLongDouble", Shortcut(tr("Actions -> Treat Selection As LongDouble"), ""));
     defaultShortcuts.insert("ActionTreatSelectionAsASCII", Shortcut(tr("Actions -> Treat Selection As ASCII"), ""));
     defaultShortcuts.insert("ActionTreatSelectionAsUNICODE", Shortcut(tr("Actions -> Treat Selection As UNICODE"), ""));
-
+    defaultShortcuts.insert("ActionTreatSelectionAsMMWord", Shortcut(tr("Actions -> Treat Selection As MMWord"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsXMMWord", Shortcut(tr("Actions -> Treat Selection As XMMWord"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsYMMWord", Shortcut(tr("Actions -> Treat Selection As YMMWord"), ""));
     defaultShortcuts.insert("ActionIncreaseRegister", Shortcut(tr("Actions -> Increase Register"), "+"));
     defaultShortcuts.insert("ActionDecreaseRegister", Shortcut(tr("Actions -> Decrease Register"), "-"));
     defaultShortcuts.insert("ActionZeroRegister", Shortcut(tr("Actions -> Zero Register"), "0"));

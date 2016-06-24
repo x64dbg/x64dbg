@@ -231,7 +231,7 @@ private:
     struct ActionShortcut
     {
         QAction* action;
-        const char* shortcut;
+        QString shortcut;
 
         ActionShortcut(QAction* action, const char* shortcut)
             : action(action),

@@ -426,16 +426,16 @@ void CPUDisassembly::setupRightClickContextMenu()
     QMenu* encodeTypeMenu = makeMenu(QIcon(":/icons/images/treat_selection_head_as.png"), tr("Treat selection &head as"));
     QMenu* encodeTypeRangeMenu = makeMenu(QIcon(":/icons/images/treat_from_selection_as.png"), tr("Treat from &selection as"));
 
-    const char* strTable[] = {"Code", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
-                              "Float", "Double", "Long Double", "",
-                              "ASCII", "UNICODE", "",
+    const char* strTable[] = {"Code", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", nullptr,
+                              "Float", "Double", "Long Double", nullptr,
+                              "ASCII", "UNICODE", nullptr,
                               "MMWord", "XMMWord", "YMMWord"
                              };
 
-    const char* shortcutTable[] = {nullptr, "ActionTreatSelectionAsByte", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                                   nullptr, nullptr, nullptr, nullptr,
-                                   "ActionTreatSelectionAsASCII", "ActionTreatSelectionAsUNICODE", nullptr,
-                                   nullptr, nullptr, nullptr
+    const char* shortcutTable[] = {"Code", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", nullptr,
+                                   "Float", "Double", "LongDouble", nullptr,
+                                   "ASCII", "UNICODE", nullptr,
+                                   "MMWord", "XMMWord", "YMMWord"
                                   };
 
     const char* iconTable[] = {"cmd", "byte", "word", "dword", "fword", "qword", "tbyte", "oword", nullptr,
@@ -466,7 +466,7 @@ void CPUDisassembly::setupRightClickContextMenu()
             if(iconTable[i])
                 icon = QIcon(QString(":/icons/images/treat_selection_as_%1.png").arg(iconTable[i]));
             if(shortcutTable[i])
-                action = makeShortcutAction(icon, tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()), shortcutTable[i]);
+                action = makeShortcutAction(icon, tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()), QString("ActionTreatSelectionAs%1").arg(shortcutTable[i]).toUtf8().constData());
             else
                 action = makeAction(icon, tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()));
             action->setData(enctypeTable[i]);
