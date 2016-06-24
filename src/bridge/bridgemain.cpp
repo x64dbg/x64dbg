@@ -701,6 +701,49 @@ BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
     return true;
 }
 
+BRIDGE_IMPEXP bool DbgArgumentGet(duint addr, duint* start, duint* end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr = addr;
+    if(!_dbg_sendmessage(DBG_ARGUMENT_GET, &info, 0))
+        return false;
+    if(start)
+        *start = info.start;
+    if(end)
+        *end = info.end;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgArgumentOverlaps(duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start = start;
+    info.end = end;
+    if(!_dbg_sendmessage(DBG_ARGUMENT_OVERLAPS, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgArgumentAdd(duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start = start;
+    info.end = end;
+    info.manual = false;
+    if(!_dbg_sendmessage(DBG_ARGUMENT_ADD, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgArgumentDel(duint addr)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr = addr;
+    if(!_dbg_sendmessage(DBG_ARGUMENT_DEL, &info, 0))
+        return false;
+    return true;
+}
+
 // FIXME depth
 BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
 {
@@ -886,7 +929,20 @@ BRIDGE_IMPEXP duint DbgGetTimeWastedCounter()
 
 BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr)
 {
-    return ARG_NONE;
+    ADDRINFO info;
+    memset(&info, 0, sizeof(info));
+    info.flags = flagargs;
+    if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
+        return ARG_NONE;
+    duint start = info.args.start;
+    duint end = info.args.end;
+    if(start == end || info.args.instrcount == 1)
+        return ARG_SINGLE;
+    else if(addr == start)
+        return ARG_BEGIN;
+    else if(addr == end)
+        return ARG_END;
+    return ARG_MIDDLE;
 }
 
 BRIDGE_IMPEXP void* DbgGetEncodeTypeBuffer(duint addr)
@@ -934,7 +990,6 @@ BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
     _gui_sendmessage(GUI_SET_DEBUG_STATE, (void*)state, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
 {
     _gui_sendmessage(GUI_ADD_MSG_TO_LOG, (void*)msg, 0);
@@ -966,7 +1021,6 @@ BRIDGE_IMPEXP bool GuiIsUpdateDisabled()
     return bDisableGUIUpdate;
 }
 
-
 BRIDGE_IMPEXP void GuiUpdateAllViews()
 {
     CHEKC_GUI_UPDATE_DISABLED
@@ -995,133 +1049,111 @@ BRIDGE_IMPEXP void GuiUpdateDisassemblyView()
     _gui_sendmessage(GUI_UPDATE_DISASSEMBLY_VIEW, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiUpdateBreakpointsView()
 {
     CHEKC_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_BREAKPOINTS_VIEW, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename)
 {
     _gui_sendmessage(GUI_UPDATE_WINDOW_TITLE, (void*)filename, 0);
 }
-
 
 BRIDGE_IMPEXP HWND GuiGetWindowHandle()
 {
     return (HWND)_gui_sendmessage(GUI_GET_WINDOW_HANDLE, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiDumpAt(duint va)
 {
     _gui_sendmessage(GUI_DUMP_AT, (void*)va, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiScriptAdd(int count, const char** lines)
 {
     _gui_sendmessage(GUI_SCRIPT_ADD, (void*)(duint)count, (void*)lines);
 }
 
-
 BRIDGE_IMPEXP void GuiScriptClear()
 {
     _gui_sendmessage(GUI_SCRIPT_CLEAR, 0, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiScriptSetIp(int line)
 {
     _gui_sendmessage(GUI_SCRIPT_SETIP, (void*)(duint)line, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiScriptError(int line, const char* message)
 {
     _gui_sendmessage(GUI_SCRIPT_ERROR, (void*)(duint)line, (void*)message);
 }
-
 
 BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title)
 {
     _gui_sendmessage(GUI_SCRIPT_SETTITLE, (void*)title, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info)
 {
     _gui_sendmessage(GUI_SCRIPT_SETINFOLINE, (void*)(duint)line, (void*)info);
 }
-
 
 BRIDGE_IMPEXP void GuiScriptMessage(const char* message)
 {
     _gui_sendmessage(GUI_SCRIPT_MESSAGE, (void*)message, 0);
 }
 
-
 BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message)
 {
     return (int)(duint)_gui_sendmessage(GUI_SCRIPT_MSGYN, (void*)message, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiScriptEnableHighlighting(bool enable)
 {
     _gui_sendmessage(GUI_SCRIPT_ENABLEHIGHLIGHTING, (void*)(duint)enable, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message)
 {
     _gui_sendmessage(GUI_SYMBOL_LOG_ADD, (void*)message, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiSymbolLogClear()
 {
     _gui_sendmessage(GUI_SYMBOL_LOG_CLEAR, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent)
 {
     _gui_sendmessage(GUI_SYMBOL_SET_PROGRESS, (void*)(duint)percent, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiSymbolUpdateModuleList(int count, SYMBOLMODULEINFO* modules)
 {
     _gui_sendmessage(GUI_SYMBOL_UPDATE_MODULE_LIST, (void*)(duint)count, (void*)modules);
 }
 
-
 BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title)
 {
     _gui_sendmessage(GUI_REF_ADDCOLUMN, (void*)(duint)width, (void*)title);
 }
-
 
 BRIDGE_IMPEXP void GuiSymbolRefreshCurrent()
 {
     _gui_sendmessage(GUI_SYMBOL_REFRESH_CURRENT, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count)
 {
     _gui_sendmessage(GUI_REF_SETROWCOUNT, (void*)(duint)count, 0);
 }
 
-
 BRIDGE_IMPEXP int GuiReferenceGetRowCount()
 {
     return (int)(duint)_gui_sendmessage(GUI_REF_GETROWCOUNT, 0, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns()
 {
@@ -1142,24 +1174,20 @@ BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
     _gui_sendmessage(GUI_REF_SETCELLCONTENT, &info, 0);
 }
 
-
 BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col)
 {
     return (const char*)_gui_sendmessage(GUI_REF_GETCELLCONTENT, (void*)(duint)row, (void*)(duint)col);
 }
-
 
 BRIDGE_IMPEXP void GuiReferenceReloadData()
 {
     _gui_sendmessage(GUI_REF_RELOADDATA, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll)
 {
     _gui_sendmessage(GUI_REF_SETSINGLESELECTION, (void*)(duint)index, (void*)(duint)scroll);
 }
-
 
 BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress)
 {
@@ -1176,12 +1204,10 @@ BRIDGE_IMPEXP void GuiReferenceSetSearchStartCol(int col)
     _gui_sendmessage(GUI_REF_SETSEARCHSTARTCOL, (void*)(duint)col, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp)
 {
     _gui_sendmessage(GUI_STACK_DUMP_AT, (void*)addr, (void*)csp);
 }
-
 
 BRIDGE_IMPEXP void GuiUpdateDumpView()
 {
@@ -1189,13 +1215,11 @@ BRIDGE_IMPEXP void GuiUpdateDumpView()
     _gui_sendmessage(GUI_UPDATE_DUMP_VIEW, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiUpdateMemoryView()
 {
     CHEKC_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_MEMORY_VIEW, 0, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiUpdateThreadView()
 {
@@ -1203,90 +1227,75 @@ BRIDGE_IMPEXP void GuiUpdateThreadView()
     _gui_sendmessage(GUI_UPDATE_THREAD_VIEW, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiAddRecentFile(const char* file)
 {
     _gui_sendmessage(GUI_ADD_RECENT_FILE, (void*)file, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception)
 {
     _gui_sendmessage(GUI_SET_LAST_EXCEPTION, (void*)(duint)exception, 0);
 }
 
-
 BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text)
 {
     return !!_gui_sendmessage(GUI_GET_DISASSEMBLY, (void*)addr, text);
 }
-
 
 BRIDGE_IMPEXP int GuiMenuAdd(int hMenu, const char* title)
 {
     return (int)(duint)_gui_sendmessage(GUI_MENU_ADD, (void*)(duint)hMenu, (void*)title);
 }
 
-
 BRIDGE_IMPEXP int GuiMenuAddEntry(int hMenu, const char* title)
 {
     return (int)(duint)_gui_sendmessage(GUI_MENU_ADD_ENTRY, (void*)(duint)hMenu, (void*)title);
 }
-
 
 BRIDGE_IMPEXP void GuiMenuAddSeparator(int hMenu)
 {
     _gui_sendmessage(GUI_MENU_ADD_SEPARATOR, (void*)(duint)hMenu, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiMenuClear(int hMenu)
 {
     _gui_sendmessage(GUI_MENU_CLEAR, (void*)(duint)hMenu, 0);
 }
-
 
 BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection)
 {
     return !!_gui_sendmessage(GUI_SELECTION_GET, (void*)(duint)hWindow, selection);
 }
 
-
 BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection)
 {
     return !!_gui_sendmessage(GUI_SELECTION_SET, (void*)(duint)hWindow, (void*)selection);
 }
-
 
 BRIDGE_IMPEXP bool GuiGetLineWindow(const char* title, char* text)
 {
     return !!_gui_sendmessage(GUI_GETLINE_WINDOW, (void*)title, text);
 }
 
-
 BRIDGE_IMPEXP void GuiAutoCompleteAddCmd(const char* cmd)
 {
     _gui_sendmessage(GUI_AUTOCOMPLETE_ADDCMD, (void*)cmd, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiAutoCompleteDelCmd(const char* cmd)
 {
     _gui_sendmessage(GUI_AUTOCOMPLETE_DELCMD, (void*)cmd, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiAutoCompleteClearAll()
 {
     _gui_sendmessage(GUI_AUTOCOMPLETE_CLEARALL, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg)
 {
     _gui_sendmessage(GUI_ADD_MSG_TO_STATUSBAR, (void*)msg, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiUpdateSideBar()
 {
@@ -1294,20 +1303,17 @@ BRIDGE_IMPEXP void GuiUpdateSideBar()
     _gui_sendmessage(GUI_UPDATE_SIDEBAR, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiRepaintTableView()
 {
     CHEKC_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_REPAINT_TABLE_VIEW, 0, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiUpdatePatches()
 {
     CHEKC_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_PATCHES, 0, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiUpdateCallStack()
 {

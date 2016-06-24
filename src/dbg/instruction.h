@@ -22,6 +22,9 @@ CMDRESULT cbInstrAssemble(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionAdd(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionDel(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionClear(int argc, char* argv[]);
+CMDRESULT cbInstrArgumentAdd(int argc, char* argv[]);
+CMDRESULT cbInstrArgumentDel(int argc, char* argv[]);
+CMDRESULT cbInstrArgumentClear(int argc, char* argv[]);
 
 CMDRESULT cbInstrCmp(int argc, char* argv[]);
 CMDRESULT cbInstrGpa(int argc, char* argv[]);
@@ -62,6 +65,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[]);
 CMDRESULT cbInstrLabelList(int argc, char* argv[]);
 CMDRESULT cbInstrBookmarkList(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionList(int argc, char* argv[]);
+CMDRESULT cbInstrArgumentList(int argc, char* argv[]);
 CMDRESULT cbInstrLoopList(int argc, char* argv[]);
 CMDRESULT cbInstrSleep(int argc, char* argv[]);
 CMDRESULT cbInstrFindAsm(int argc, char* argv[]);

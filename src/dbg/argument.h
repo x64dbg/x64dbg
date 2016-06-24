@@ -22,5 +22,6 @@ void ArgumentCacheLoad(JSON Root);
 void ArgumentClear();
 void ArgumentGetList(std::vector<ARGUMENTSINFO> & list);
 bool ArgumentGetInfo(duint Address, ARGUMENTSINFO & info);
+bool ArgumentEnum(ARGUMENTSINFO* List, size_t* Size);
 
 #endif // _ARGUMENT_H

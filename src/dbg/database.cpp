@@ -21,6 +21,7 @@
 #include "TraceRecord.h"
 #include "encodemap.h"
 #include "plugin_loader.h"
+#include "argument.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -52,6 +53,7 @@ void DbSave(DbLoadSaveType saveType)
         LabelCacheSave(root);
         BookmarkCacheSave(root);
         FunctionCacheSave(root);
+        ArgumentCacheSave(root);
         LoopCacheSave(root);
         XrefCacheSave(root);
         EncodeMapCacheSave(root);
@@ -188,6 +190,7 @@ void DbLoad(DbLoadSaveType loadType)
         LabelCacheLoad(root);
         BookmarkCacheLoad(root);
         FunctionCacheLoad(root);
+        ArgumentCacheLoad(root);
         LoopCacheLoad(root);
         XrefCacheLoad(root);
         EncodeMapCacheLoad(root);

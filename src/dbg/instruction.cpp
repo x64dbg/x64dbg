@@ -40,6 +40,7 @@
 #include "advancedanalysis.h"
 #include "exhandlerinfo.h"
 #include "symbolinfo.h"
+#include "argument.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -518,6 +519,55 @@ CMDRESULT cbInstrFunctionClear(int argc, char* argv[])
     FunctionClear();
     GuiUpdateAllViews();
     dputs("all functions deleted!");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrArgumentAdd(int argc, char* argv[])
+{
+    if(argc < 3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    duint start = 0;
+    duint end = 0;
+    if(!valfromstring(argv[1], &start, false) || !valfromstring(argv[2], &end, false))
+        return STATUS_ERROR;
+    if(!ArgumentAdd(start, end, true))
+    {
+        dputs("failed to add argument");
+        return STATUS_ERROR;
+    }
+    dputs("argument added!");
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrArgumentDel(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    duint addr = 0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
+    if(!ArgumentDelete(addr))
+    {
+        dputs("failed to delete argument");
+        return STATUS_ERROR;
+    }
+    dputs("argument deleted!");
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrArgumentClear(int argc, char* argv[])
+{
+    ArgumentClear();
+    GuiUpdateAllViews();
+    dputs("all arguments deleted!");
     return STATUS_CONTINUE;
 }
 
@@ -1593,6 +1643,52 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     }
     varset("$result", count, false);
     dprintf("%d function(s) listed\n", count);
+    GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrArgumentList(int argc, char* argv[])
+{
+    //setup reference view
+    GuiReferenceInitialize("Arguments");
+    GuiReferenceAddColumn(2 * sizeof(duint), "Start");
+    GuiReferenceAddColumn(2 * sizeof(duint), "End");
+    GuiReferenceAddColumn(64, "Disassembly (Start)");
+    GuiReferenceAddColumn(0, "Label/Comment");
+    GuiReferenceReloadData();
+    size_t cbsize;
+    ArgumentEnum(0, &cbsize);
+    if(!cbsize)
+    {
+        dputs("No arguments");
+        return STATUS_CONTINUE;
+    }
+    Memory<ARGUMENTSINFO*> arguments(cbsize, "cbInstrArgumentList:arguments");
+    ArgumentEnum(arguments(), 0);
+    int count = (int)(cbsize / sizeof(ARGUMENTSINFO));
+    for(int i = 0; i < count; i++)
+    {
+        GuiReferenceSetRowCount(i + 1);
+        char addrText[20] = "";
+        sprintf(addrText, "%p", arguments()[i].start);
+        GuiReferenceSetCellContent(i, 0, addrText);
+        sprintf(addrText, "%p", arguments()[i].end);
+        GuiReferenceSetCellContent(i, 1, addrText);
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
+        if(GuiGetDisassembly(arguments()[i].start, disassembly))
+            GuiReferenceSetCellContent(i, 2, disassembly);
+        char label[MAX_LABEL_SIZE] = "";
+        if(LabelGet(arguments()[i].start, label))
+            GuiReferenceSetCellContent(i, 3, label);
+        else
+        {
+            char comment[MAX_COMMENT_SIZE] = "";
+            if(CommentGet(arguments()[i].start, comment))
+                GuiReferenceSetCellContent(i, 3, comment);
+        }
+    }
+    varset("$result", count, false);
+    dprintf("%d argument(s) listed\n", count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }

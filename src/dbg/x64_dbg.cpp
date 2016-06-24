@@ -198,11 +198,15 @@ static void registercommands()
     dbgcmdnew("loaddb\1dbload", cbInstrLoaddb, true); //load program database
     dbgcmdnew("functionadd\1func", cbInstrFunctionAdd, true); //function
     dbgcmdnew("functiondel\1funcc", cbInstrFunctionDel, true); //function
+    dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions
+    dbgcmdnew("functionclear", cbInstrFunctionClear, false); //delete all functions
     dbgcmdnew("commentlist", cbInstrCommentList, true); //list comments
     dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
     dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
-    dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions
-    dbgcmdnew("functionclear", cbInstrFunctionClear, false); //delete all functions
+    dbgcmdnew("argumentadd\1func", cbInstrArgumentAdd, true); //argument
+    dbgcmdnew("argumentdel\1funcc", cbInstrArgumentDel, true); //argument
+    dbgcmdnew("argumentlist", cbInstrArgumentList, true); //list arguments
+    dbgcmdnew("argumentclear", cbInstrArgumentClear, false); //delete all arguments
 
     //memory operations
     dbgcmdnew("alloc", cbDebugAlloc, true); //allocate memory

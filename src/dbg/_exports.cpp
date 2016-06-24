@@ -31,6 +31,7 @@
 #include "stringformat.h"
 #include "xrefs.h"
 #include "encodemap.h"
+#include "argument.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -202,6 +203,11 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     if(addrinfo->flags & flagloop)
     {
         if(LoopGet(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
+            retval = true;
+    }
+    if(addrinfo->flags & flagargs)
+    {
+        if(ArgumentGet(addr, &addrinfo->args.start, &addrinfo->args.end, &addrinfo->function.instrcount))
             retval = true;
     }
     if(addrinfo->flags & flagcomment)
@@ -918,6 +924,34 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
         return (duint)FunctionDelete(info->addr);
+    }
+    break;
+
+    case DBG_ARGUMENT_GET:
+    {
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
+        return (duint)ArgumentGet(info->addr, &info->start, &info->end);
+    }
+    break;
+
+    case DBG_ARGUMENT_OVERLAPS:
+    {
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
+        return (duint)ArgumentOverlaps(info->start, info->end);
+    }
+    break;
+
+    case DBG_ARGUMENT_ADD:
+    {
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
+        return (duint)ArgumentAdd(info->start, info->end, info->manual);
+    }
+    break;
+
+    case DBG_ARGUMENT_DEL:
+    {
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
+        return (duint)ArgumentDelete(info->addr);
     }
     break;
 

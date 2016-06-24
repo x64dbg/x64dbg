@@ -157,3 +157,8 @@ bool ArgumentGetInfo(duint Address, ARGUMENTSINFO & info)
 {
     return arguments.Get(Arguments::VaKey(Address, Address), info);
 }
+
+bool ArgumentEnum(ARGUMENTSINFO* List, size_t* Size)
+{
+    return arguments.Enum(List, Size);
+}

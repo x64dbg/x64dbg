@@ -100,7 +100,8 @@ typedef enum
     flagcomment = 4,
     flagbookmark = 8,
     flagfunction = 16,
-    flagloop = 32
+    flagloop = 32,
+    flagargs = 64
 } ADDRINFOFLAGS;
 
 typedef enum
@@ -143,7 +144,8 @@ typedef enum
     ARG_NONE,
     ARG_BEGIN,
     ARG_MIDDLE,
-    ARG_END
+    ARG_END,
+    ARG_SINGLE
 } ARGTYPE;
 
 typedef enum
@@ -208,6 +210,10 @@ typedef enum
     DBG_ENCODE_SIZE_GET,            // param1=duint addr,                param2=duint codesize
     DBG_DELETE_ENCODE_TYPE_SEG,     // param1=duint addr,                param2=unused
     DBG_RELEASE_ENCODE_TYPE_BUFFER, // param1=void* buffer,              param2=unused
+    DBG_ARGUMENT_GET,               // param1=FUNCTION* info,            param2=unused
+    DBG_ARGUMENT_OVERLAPS,          // param1=FUNCTION* info,            param2=unused
+    DBG_ARGUMENT_ADD,               // param1=FUNCTION* info,            param2=unused
+    DBG_ARGUMENT_DEL,               // param1=FUNCTION* info,            param2=unused
 } DBGMSG;
 
 typedef enum
@@ -407,6 +413,7 @@ typedef struct
     bool isbookmark;
     FUNCTION function;
     LOOP loop;
+    FUNCTION args;
 } ADDRINFO;
 #endif
 
@@ -762,6 +769,10 @@ BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end);
 BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end);
 BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end);
 BRIDGE_IMPEXP bool DbgFunctionDel(duint addr);
+BRIDGE_IMPEXP bool DbgArgumentGet(duint addr, duint* start, duint* end);
+BRIDGE_IMPEXP bool DbgArgumentOverlaps(duint start, duint end);
+BRIDGE_IMPEXP bool DbgArgumentAdd(duint start, duint end);
+BRIDGE_IMPEXP bool DbgArgumentDel(duint addr);
 BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end);
 BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end);
@@ -1009,7 +1020,6 @@ BRIDGE_IMPEXP void GuiFocusView(int hWindow);
 BRIDGE_IMPEXP bool GuiIsUpdateDisabled();
 BRIDGE_IMPEXP void GuiUpdateEnable(bool updateNow);
 BRIDGE_IMPEXP void GuiUpdateDisable();
-
 
 #ifdef __cplusplus
 }
