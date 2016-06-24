@@ -10,6 +10,7 @@
 #include "HexEditDialog.h"
 #include "LineEditDialog.h"
 #include "GotoDialog.h"
+#include "WordEditDialog.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent)
     : StdTable(parent),
@@ -488,19 +489,11 @@ void MemoryMapView::entropy()
 
 void MemoryMapView::memoryAllocateSlot()
 {
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle(tr("Enter the size of memory to allocate."));
+    WordEditDialog mLineEdit(this);
+    mLineEdit.setup(tr("Size"), 0x1000, sizeof(duint));
     if(mLineEdit.exec() == QDialog::Accepted)
     {
-        QByteArray textUtf8 = mLineEdit.editText.toUtf8();
-        if(!DbgIsValidExpression(textUtf8.constData()))
-        {
-            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("The expression \"%1\" is not valid.").arg(mLineEdit.editText));
-            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-            msg.exec();
-            return;
-        }
-        duint memsize = DbgValFromString(textUtf8.constData());
+        duint memsize = mLineEdit.getVal();
         if(memsize == 0) // 1GB
         {
             QMessageBox msg(QMessageBox::Warning, tr("Warning"), tr("You're trying to allocate a zero-sized buffer just now."));
