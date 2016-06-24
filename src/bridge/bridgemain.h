@@ -335,9 +335,7 @@ typedef enum
     enc_code,     //start of code
     enc_junk,     //junk code
     enc_middle    //middle of data
-
 } ENCODETYPE;
-
 
 //Debugger typedefs
 typedef MEMORY_SIZE VALUE_SIZE;

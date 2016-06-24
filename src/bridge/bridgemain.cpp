@@ -176,11 +176,11 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 {
     if(!section || !key)
         return false;
-    char newvalue[MAX_SETTING_SIZE] = "";
+    char newvalue[32] = "";
 #ifdef _WIN64
-    sprintf(newvalue, "%llX", value);
+    sprintf_s(newvalue, "%llX", value);
 #else
-    sprintf(newvalue, "%X", value);
+    sprintf_s(newvalue, "%X", value);
 #endif //_WIN64
     return BridgeSettingSet(section, key, newvalue);
 }
