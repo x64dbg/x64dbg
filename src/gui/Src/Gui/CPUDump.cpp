@@ -309,7 +309,7 @@ void CPUDump::setupContextMenu()
     connect(mHexAsciiAction, SIGNAL(triggered()), this, SLOT(hexAsciiSlot()));
     mHexMenu->addAction(mHexAsciiAction);
     //Hex->Unicode
-    mHexUnicodeAction = new QAction(tr("&UTF-16"), this);
+    mHexUnicodeAction = new QAction(tr("&Extended ASCII"), this);
     connect(mHexUnicodeAction, SIGNAL(triggered()), this, SLOT(hexUnicodeSlot()));
     mHexMenu->addAction(mHexUnicodeAction);
     //Hex->Codepage
@@ -325,7 +325,7 @@ void CPUDump::setupContextMenu()
     connect(mTextAsciiAction, SIGNAL(triggered()), this, SLOT(textAsciiSlot()));
     mTextMenu->addAction(mTextAsciiAction);
     //Text->Unicode
-    mTextUnicodeAction = new QAction(tr("&UTF-16"), this);
+    mTextUnicodeAction = new QAction(tr("&Extended ASCII"), this);
     connect(mTextUnicodeAction, SIGNAL(triggered()), this, SLOT(textUnicodeSlot()));
     mTextMenu->addAction(mTextUnicodeAction);
     //Hex->Codepage
