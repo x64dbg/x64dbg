@@ -244,6 +244,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionSkipNextInstruction, SIGNAL(triggered()), this, SLOT(execSkip()));
     connect(ui->actionScript, SIGNAL(triggered()), this, SLOT(displayScriptWidget()));
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
+    connect(ui->actionRunExpression, SIGNAL(triggered(bool)), this, SLOT(runExpression()));
     connect(ui->actionHideDebugger, SIGNAL(triggered()), this, SLOT(hideDebugger()));
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
@@ -448,6 +449,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
     setGlobalShortcut(ui->actionRunSelection, ConfigShortcut("DebugRunSelection"));
+    setGlobalShortcut(ui->actionRunExpression, ConfigShortcut("DebugRunExpression"));
     setGlobalShortcut(ui->actionPause, ConfigShortcut("DebugPause"));
     setGlobalShortcut(ui->actionRestart, ConfigShortcut("DebugRestart"));
     setGlobalShortcut(ui->actionClose, ConfigShortcut("DebugClose"));
@@ -1124,6 +1126,20 @@ void MainWindow::runSelection()
 
     QString command = "bp " + QString("%1").arg(mCpuWidget->getDisasmWidget()->getSelectedVa(), sizeof(dsint) * 2, 16, QChar('0')).toUpper() + ", ss";
     if(DbgCmdExecDirect(command.toUtf8().constData()))
+        DbgCmdExecDirect("run");
+}
+
+void MainWindow::runExpression()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    GotoDialog gotoDialog(this);
+    gotoDialog.setWindowTitle(tr("Enter expression to run to..."));
+    if(gotoDialog.exec() != QDialog::Accepted)
+        return;
+
+    if(DbgCmdExecDirect(QString("bp \"%1\", ss").arg(gotoDialog.expressionText).toUtf8().constData()))
         DbgCmdExecDirect("run");
 }
 

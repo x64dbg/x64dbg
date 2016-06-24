@@ -279,6 +279,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9", true));
     defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (skip exceptions)"), "Shift+F9", true));
     defaultShortcuts.insert("DebugRunSelection", Shortcut(tr("Debug -> Run until selection"), "F4", true));
+    defaultShortcuts.insert("DebugRunExpression", Shortcut(tr("Debug -> Run until expression"), "Shift+F4", true));
     defaultShortcuts.insert("DebugPause", Shortcut(tr("Debug -> Pause"), "F12", true));
     defaultShortcuts.insert("DebugRestart", Shortcut(tr("Debug -> Restart"), "Ctrl+F2", true));
     defaultShortcuts.insert("DebugClose", Shortcut(tr("Debug -> Close"), "Alt+F2", true));

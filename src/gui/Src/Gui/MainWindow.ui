@@ -96,6 +96,7 @@
     <addaction name="actionRun"/>
     <addaction name="actioneRun"/>
     <addaction name="actionRunSelection"/>
+    <addaction name="actionRunExpression"/>
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
     <addaction name="actionClose"/>
@@ -854,6 +855,15 @@
    </property>
    <property name="text">
     <string>Run to &amp;user code</string>
+   </property>
+  </action>
+  <action name="actionRunExpression">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-run-cursor.png</normaloff>:/icons/images/arrow-run-cursor.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run until e&amp;xpression</string>
    </property>
   </action>
  </widget>

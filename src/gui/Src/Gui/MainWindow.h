@@ -108,6 +108,7 @@ public slots:
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
     void runSelection();
+    void runExpression();
     void getStrWindow(const QString title, QString* text);
     void patchWindow();
     void displayComments();
