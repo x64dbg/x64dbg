@@ -129,5 +129,9 @@
         <file>images/xmm.png</file>
         <file>images/ymm.png</file>
         <file>images/zmm.png</file>
+        <file>images/treat_selection_as_double.png</file>
+        <file>images/treat_selection_as_longdouble.png</file>
+        <file>images/treat_from_selection_as.png</file>
+        <file>images/treat_selection_head_as.png</file>
     </qresource>
 </RCC>

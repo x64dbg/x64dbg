@@ -423,8 +423,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/remove_analysis_from_selection.png"), tr("Remove analysis from selection"), SLOT(removeAnalysisSelectionSlot()), "ActionRemoveAnalysisFromSelection"));
     analysisMenu->addSeparator();
 
-    QMenu* encodeTypeMenu = makeMenu(tr("Treat selection &head as"));
-    QMenu* encodeTypeRangeMenu = makeMenu(tr("Treat from &selection as"));
+    QMenu* encodeTypeMenu = makeMenu(QIcon(":/icons/images/treat_selection_head_as.png"), tr("Treat selection &head as"));
+    QMenu* encodeTypeRangeMenu = makeMenu(QIcon(":/icons/images/treat_from_selection_as.png"), tr("Treat from &selection as"));
 
     const char* strTable[] = {"Code", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
                               "Float", "Double", "Long Double", "",
@@ -439,7 +439,7 @@ void CPUDisassembly::setupRightClickContextMenu()
                                   };
 
     const char* iconTable[] = {"cmd", "byte", "word", "dword", "fword", "qword", "tbyte", "oword", nullptr,
-                               "float", "double", nullptr, nullptr,
+                               "float", "double", "longdouble", nullptr,
                                "ascii", "unicode", nullptr,
                                "mmword", "xmm", "ymm"
                               };
