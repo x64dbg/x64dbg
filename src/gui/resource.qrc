@@ -96,10 +96,27 @@
         <file>images/helpmnemonic.png</file>
         <file>images/handles.png</file>
         <file>images/dump.png</file>
-        <file>images/analyzesinglefunction.png</file>
         <file>images/xrefs.png</file>
         <file>images/codepage.png</file>
         <file>images/traceinto.png</file>
         <file>images/traceover.png</file>
+        <file>images/analysis_single_function.png</file>
+        <file>images/remove_analysis_from_module.png</file>
+        <file>images/remove_analysis_from_selection.png</file>
+        <file>images/treat_selection_as_ascii.png</file>
+        <file>images/treat_selection_as_byte.png</file>
+        <file>images/treat_selection_as_cmd.png</file>
+        <file>images/treat_selection_as_dword.png</file>
+        <file>images/treat_selection_as_float.png</file>
+        <file>images/treat_selection_as_fword.png</file>
+        <file>images/treat_selection_as_mmword.png</file>
+        <file>images/treat_selection_as_oword.png</file>
+        <file>images/treat_selection_as_qword.png</file>
+        <file>images/treat_selection_as_tbyte.png</file>
+        <file>images/treat_selection_as_unicode.png</file>
+        <file>images/treat_selection_as_word.png</file>
+        <file>images/treat_selection_as_xmm.png</file>
+        <file>images/treat_selection_as_ymm.png</file>
+        <file>images/analysis.png</file>
     </qresource>
 </RCC>

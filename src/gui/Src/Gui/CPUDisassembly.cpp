@@ -407,20 +407,15 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mMenuBuilder->addSeparator();
 
-
     MenuBuilder* analysisMenu = new MenuBuilder(this);
-
-
-    analysisMenu->addAction(makeShortcutAction(tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
-    analysisMenu->addAction(makeShortcutAction(tr("Remove analysis from module"), SLOT(removeAnalysisModuleSlot()), "ActionRemoveAnalysisFromModule"));
-
+    analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/analysis_single_function.png"), tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
+    analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/remove_analysis_from_module.png"), tr("Remove analysis from module"), SLOT(removeAnalysisModuleSlot()), "ActionRemoveAnalysisFromModule"));
     analysisMenu->addSeparator();
 
-    analysisMenu->addAction(makeShortcutAction(tr("Remove analysis from selection"), SLOT(removeAnalysisSelectionSlot()), "ActionRemoveAnalysisFromSelection"));
+    analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/remove_analysis_from_selection.png"), tr("Remove analysis from selection"), SLOT(removeAnalysisSelectionSlot()), "ActionRemoveAnalysisFromSelection"));
 
-    QMenu* encodeTypeMenu = makeMenu(tr("Treat selection head as"));
-
-    QMenu* encodeTypeRangeMenu = makeMenu(tr("Treat selection as"));
+    QMenu* encodeTypeMenu = makeMenu(tr("Treat selection &head as"));
+    QMenu* encodeTypeRangeMenu = makeMenu(tr("Treat &selection as"));
 
     const char* strTable[] = {"Code", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
                               "Float", "Double", "Long Double", "",
@@ -433,6 +428,12 @@ void CPUDisassembly::setupRightClickContextMenu()
                                    "ActionTreatSelectionAsASCII", "ActionTreatSelectionAsUNICODE", nullptr,
                                    nullptr, nullptr, nullptr
                                   };
+
+    const char* iconTable[] = {"cmd", "byte", "word", "dword", "fword", "qword", "tbyte", "oword", nullptr,
+                               "float", "double", nullptr, nullptr,
+                               "ascii", "unicode", nullptr,
+                               "mmword", "xmm", "ymm"
+                              };
 
     ENCODETYPE enctypeTable[] = {enc_code, enc_byte, enc_word, enc_dword, enc_fword, enc_qword, enc_tbyte, enc_oword, enc_middle,
                                  enc_real4, enc_real8, enc_real10 , enc_middle,
@@ -452,28 +453,29 @@ void CPUDisassembly::setupRightClickContextMenu()
         else
         {
             QAction* action;
+            QIcon icon;
+            if(iconTable[i])
+                icon = QIcon(QString(":/icons/images/treat_selection_as_%1.png").arg(iconTable[i]));
             if(shortcutTable[i])
-                action = makeShortcutAction(tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()), shortcutTable[i]);
+                action = makeShortcutAction(icon, tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()), shortcutTable[i]);
             else
-                action = makeAction(tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()));
+                action = makeAction(icon, tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()));
             action->setData(enctypeTable[i]);
             encodeTypeRangeMenu->addAction(action);
-            action = makeAction(tr(strTable[i]), SLOT(setEncodeTypeSlot()));
+            action = makeAction(icon, tr(strTable[i]), SLOT(setEncodeTypeSlot()));
             action->setData(enctypeTable[i]);
             encodeTypeMenu->addAction(action);
         }
     }
 
-    analysisMenu->addMenu(encodeTypeMenu);
     analysisMenu->addMenu(encodeTypeRangeMenu);
+    analysisMenu->addMenu(encodeTypeMenu);
 
-    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/analyzesinglefunction.png"), tr("Analysis")), analysisMenu);
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/analysis.png"), tr("Analysis")), analysisMenu);
     mMenuBuilder->addSeparator();
 
 
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/compile.png"), tr("Assemble"), SLOT(assembleSlot()), "ActionAssemble"));
-
-
     removeAction(mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/patch.png"), tr("Patches"), SLOT(showPatchesSlot()), "ViewPatches"))); //prevent conflicting shortcut with the MainWindow
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/yara.png"), tr("&Yara..."), SLOT(yaraSlot()), "ActionYara"));
     mMenuBuilder->addSeparator();
