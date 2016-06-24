@@ -1,10 +1,11 @@
 #include "GotoDialog.h"
 #include "ui_GotoDialog.h"
 
-GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression)
+GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowInvalidAddress)
     : QDialog(parent),
       ui(new Ui::GotoDialog),
-      allowInvalidExpression(allowInvalidExpression)
+      allowInvalidExpression(allowInvalidExpression),
+      allowInvalidAddress(allowInvalidAddress || allowInvalidExpression)
 {
     //setup UI first
     ui->setupUi(this);
@@ -91,7 +92,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
         duint offset = value;
         duint va = DbgFunctions()->FileOffsetToVa(modName.toUtf8().constData(), offset);
         QString addrText = QString(" %1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        if(va)
+        if(va || allowInvalidAddress)
         {
             ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText);
             setOkEnabled(true);
@@ -108,13 +109,13 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
     {
         duint addr = value;
         QString addrText = QString(" %1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        if(!validPointer)
+        if(!validPointer && !allowInvalidAddress)
         {
             ui->labelError->setText(tr("<font color='red'><b>Invalid memory address...</b></font>") + addrText);
             setOkEnabled(false);
             expressionText.clear();
         }
-        else if(!IsValidMemoryRange(addr))
+        else if(!IsValidMemoryRange(addr) && !allowInvalidAddress)
         {
             ui->labelError->setText(tr("<font color='red'><b>Memory out of range...</b></font>") + addrText);
             setOkEnabled(false);
