@@ -376,10 +376,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/label.png"), tr("Label")), labelMenu);
 
-    QAction* traceRecordDisable = makeAction(tr("Disable"), SLOT(ActionTraceRecordDisableSlot()));
-    QAction* traceRecordEnableBit = makeAction(tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
-    QAction* traceRecordEnableByte = makeAction(tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
-    QAction* traceRecordEnableWord = makeAction(tr("Word"), SLOT(ActionTraceRecordWordSlot()));
+    QAction* traceRecordDisable = makeAction(QIcon(":/icons/images/close-all-tabs.png"), tr("Disable"), SLOT(ActionTraceRecordDisableSlot()));
+    QAction* traceRecordEnableBit = makeAction(QIcon(":/icons/images/bit.png"), tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
+    QAction* traceRecordEnableByte = makeAction(QIcon(":/icons/images/byte.png"), tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
+    QAction* traceRecordEnableWord = makeAction(QIcon(":/icons/images/word.png"), tr("Word"), SLOT(ActionTraceRecordWordSlot()));
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/trace.png"), tr("Trace record")), [ = ](QMenu * menu)
     {
         if(DbgFunctions()->GetTraceRecordType(rvaToVa(getInitialSelection())) == TRACERECORDTYPE::TraceRecordNone)

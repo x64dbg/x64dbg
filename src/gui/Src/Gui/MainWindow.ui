@@ -809,41 +809,73 @@
    </property>
   </action>
   <action name="actionTRBit">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/bit.png</normaloff>:/icons/images/bit.png</iconset>
+   </property>
    <property name="text">
     <string>Bit</string>
    </property>
   </action>
   <action name="actionTRByte">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/byte.png</normaloff>:/icons/images/byte.png</iconset>
+   </property>
    <property name="text">
     <string>Byte</string>
    </property>
   </action>
   <action name="actionTRWord">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/word.png</normaloff>:/icons/images/word.png</iconset>
+   </property>
    <property name="text">
     <string>Word</string>
    </property>
   </action>
   <action name="actionTRTIBT">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/traceinto.png</normaloff>:/icons/images/traceinto.png</iconset>
+   </property>
    <property name="text">
     <string>Trace into beyond trace record</string>
    </property>
   </action>
   <action name="actionTRTOBT">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/traceover.png</normaloff>:/icons/images/traceover.png</iconset>
+   </property>
    <property name="text">
     <string>Trace over beyond trace record</string>
    </property>
   </action>
   <action name="actionTRTIIT">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
+   </property>
    <property name="text">
     <string>Trace into into trace record</string>
    </property>
   </action>
   <action name="actionTRTOIT">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
+   </property>
    <property name="text">
     <string>Trace over into trace record</string>
    </property>
   </action>
   <action name="actionTRNone">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/close-all-tabs.png</normaloff>:/icons/images/close-all-tabs.png</iconset>
+   </property>
    <property name="text">
     <string>None</string>
    </property>
