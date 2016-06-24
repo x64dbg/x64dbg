@@ -417,13 +417,14 @@ void CPUDisassembly::setupRightClickContextMenu()
         return true;
     });
     analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/analysis_single_function.png"), tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
-    analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/remove_analysis_from_module.png"), tr("Remove analysis from module"), SLOT(removeAnalysisModuleSlot()), "ActionRemoveAnalysisFromModule"));
     analysisMenu->addSeparator();
 
+    analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/remove_analysis_from_module.png"), tr("Remove analysis from module"), SLOT(removeAnalysisModuleSlot()), "ActionRemoveAnalysisFromModule"));
     analysisMenu->addAction(makeShortcutAction(QIcon(":/icons/images/remove_analysis_from_selection.png"), tr("Remove analysis from selection"), SLOT(removeAnalysisSelectionSlot()), "ActionRemoveAnalysisFromSelection"));
+    analysisMenu->addSeparator();
 
     QMenu* encodeTypeMenu = makeMenu(tr("Treat selection &head as"));
-    QMenu* encodeTypeRangeMenu = makeMenu(tr("Treat &selection as"));
+    QMenu* encodeTypeRangeMenu = makeMenu(tr("Treat from &selection as"));
 
     const char* strTable[] = {"Code", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
                               "Float", "Double", "Long Double", "",
@@ -1616,7 +1617,11 @@ void CPUDisassembly::analyzeSingleFunctionSlot()
 
 void CPUDisassembly::removeAnalysisSelectionSlot()
 {
-    mDisasm->getEncodeMap()->delRange(rvaToVa(getSelectionStart()), getSelectionSize());
+    WordEditDialog mLineEdit(this);
+    mLineEdit.setup(tr("Size"), getSelectionSize(), sizeof(duint));
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    mDisasm->getEncodeMap()->delRange(rvaToVa(getSelectionStart()), mLineEdit.getVal());
     GuiUpdateDisassemblyView();
 }
 
@@ -1629,7 +1634,11 @@ void CPUDisassembly::removeAnalysisModuleSlot()
 void CPUDisassembly::setEncodeTypeRangeSlot()
 {
     QAction* pAction = qobject_cast<QAction*>(sender());
-    mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), getSelectionSize(), (ENCODETYPE)pAction->data().toUInt());
+    WordEditDialog mLineEdit(this);
+    mLineEdit.setup(tr("Size"), getSelectionSize(), sizeof(duint));
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), mLineEdit.getVal(), (ENCODETYPE)pAction->data().toUInt());
     GuiUpdateDisassemblyView();
 }
 
