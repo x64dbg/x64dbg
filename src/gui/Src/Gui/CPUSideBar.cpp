@@ -326,6 +326,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
         {
             if(e->button() == Qt::LeftButton)
             {
+                duint start, end;
                 if(mCodeFoldingManager.isFoldStart(wVA))
                 {
                     mCodeFoldingManager.setFolded(wVA, !mCodeFoldingManager.isFolded(wVA));
@@ -333,6 +334,12 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
                 else if(mInstrBuffer->at(line).rva == mDisas->getSelectionStart())
                 {
                     bool success = mCodeFoldingManager.addFoldSegment(wVA, mDisas->getSelectionEnd() - mDisas->getSelectionStart());
+                    if(!success)
+                        GuiAddLogMessage(tr("Cannot fold selection.\n").toUtf8().constData());
+                }
+                else if((DbgArgumentGet(wVA, &start, &end) || DbgFunctionGet(wVA, &start, &end)) && wVA == start)
+                {
+                    bool success = mCodeFoldingManager.addFoldSegment(wVA, end - start);
                     if(!success)
                         GuiAddLogMessage(tr("Cannot fold selection.\n").toUtf8().constData());
                 }
@@ -714,12 +721,18 @@ int CPUSideBar::isFoldingGraphicsPresent(int line)
     const dsint SelectionEnd = mDisas->getSelectionEnd();
     if(instr == nullptr)
         return 0;
-    if(mCodeFoldingManager.isFoldStart(instr->rva + mDisas->getBase()))
+    auto wVA = instr->rva + mDisas->getBase();
+    if(mCodeFoldingManager.isFoldStart(wVA))
         return 1;
+    duint start, end;
     if(instr->rva >= duint(SelectionStart) && instr->rva < duint(SelectionEnd))
     {
         if(instr->rva == SelectionStart)
             return (SelectionEnd - SelectionStart + 1) != instr->length ? 1 : 0;
+    }
+    else if((DbgArgumentGet(wVA, &start, &end) || DbgFunctionGet(wVA, &start, &end)) && wVA == start)
+    {
+        return end - start + 1 != instr->length ? 1 : 0;
     }
     return 0;
 }
