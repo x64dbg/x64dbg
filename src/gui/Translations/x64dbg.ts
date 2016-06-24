@@ -1598,17 +1598,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1546"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1560"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1574"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1588"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1551"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1565"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1579"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1593"/>
         <source>Failed to set trace record.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1621"/>
-        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1638"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1230"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1626"/>
+        <location filename="../Src/Gui/CPUDisassembly.cpp" line="1643"/>
         <source>Size</source>
         <translation type="unfinished"></translation>
     </message>

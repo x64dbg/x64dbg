@@ -1226,6 +1226,11 @@ void CPUDisassembly::binaryFillNopsSlot()
     HexEditDialog hexEdit(this);
     dsint selStart = getSelectionStart();
     dsint selSize = getSelectionEnd() - selStart + 1;
+    WordEditDialog mLineEdit(this);
+    mLineEdit.setup(tr("Size"), selSize, sizeof(duint));
+    if(mLineEdit.exec() != QDialog::Accepted || !mLineEdit.getVal())
+        return;
+    selSize = mLineEdit.getVal();
     byte_t* data = new byte_t[selSize];
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
@@ -1619,7 +1624,7 @@ void CPUDisassembly::removeAnalysisSelectionSlot()
 {
     WordEditDialog mLineEdit(this);
     mLineEdit.setup(tr("Size"), getSelectionSize(), sizeof(duint));
-    if(mLineEdit.exec() != QDialog::Accepted)
+    if(mLineEdit.exec() != QDialog::Accepted || !mLineEdit.getVal())
         return;
     mDisasm->getEncodeMap()->delRange(rvaToVa(getSelectionStart()), mLineEdit.getVal());
     GuiUpdateDisassemblyView();
@@ -1636,7 +1641,7 @@ void CPUDisassembly::setEncodeTypeRangeSlot()
     QAction* pAction = qobject_cast<QAction*>(sender());
     WordEditDialog mLineEdit(this);
     mLineEdit.setup(tr("Size"), getSelectionSize(), sizeof(duint));
-    if(mLineEdit.exec() != QDialog::Accepted)
+    if(mLineEdit.exec() != QDialog::Accepted || !mLineEdit.getVal())
         return;
     mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), mLineEdit.getVal(), (ENCODETYPE)pAction->data().toUInt());
     GuiUpdateDisassemblyView();
