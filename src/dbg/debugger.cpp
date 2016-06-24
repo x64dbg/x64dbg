@@ -1138,7 +1138,8 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 {
     // Not called when the main (last) thread exits. Instead
     // EXIT_PROCESS_DEBUG_EVENT is signalled.
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    // Switch to the main thread (because the thread is terminated).
+    hActiveThread = ThreadGetHandle(fdProcessInfo->dwThreadId);
     DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     PLUG_CB_EXITTHREAD callbackInfo;
     callbackInfo.ExitThread = ExitThread;
