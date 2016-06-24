@@ -1105,7 +1105,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         STRING_TYPE strtype;
         if(MemReadUnsafe(addr, &addrPtr, sizeof(addr)) && MemIsValidReadPtrUnsafe(addrPtr, true))
         {
-            if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 3))
+            if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 5))
             {
                 if(strtype == str_ascii)
                     sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
@@ -1114,7 +1114,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
                 return true;
             }
         }
-        if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 3))
+        if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 4))
         {
             if(strtype == str_ascii)
                 sprintf_s(dest, MAX_STRING_SIZE, "\"%s\"", string);

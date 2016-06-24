@@ -182,9 +182,9 @@ void PatchDialog::groupToggle()
         unsigned char writebyte = curPatchList[i].status.checked ? curPatchList[i].patch.newbyte : curPatchList[i].patch.oldbyte;
         DbgMemWrite(curPatchList[i].patch.addr, &writebyte, sizeof(writebyte));
     }
-    GuiUpdateAllViews();
     mIsWorking = false;
     dsint groupStart = getGroupAddress(curPatchList, group);
+    GuiUpdateAllViews();
     if(!groupStart)
         return;
     QString color = enabled ? "#00DD00" : "red";
@@ -302,7 +302,6 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem* item) //checkbox c
             }
         mIsWorking = false;
     }
-    GuiUpdateAllViews();
     int group = mGroupSelector->group();
     QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
     QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
@@ -310,6 +309,7 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem* item) //checkbox c
     mGroupSelector->setGroupTitle(title);
     mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
     mGroupSelector->setNextEnabled(hasNextGroup(curPatchList, group));
+    GuiUpdateAllViews();
 }
 
 void PatchDialog::on_btnSelectAll_clicked()
