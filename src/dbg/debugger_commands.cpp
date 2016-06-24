@@ -142,6 +142,11 @@ CMDRESULT cbDebugErun(int argc, char* argv[])
 {
     if(!dbgisrunning())
         dbgsetskipexceptions(true);
+    else
+    {
+        dbgsetskipexceptions(false);
+        return STATUS_CONTINUE;
+    }
     return cbDebugRun(argc, argv);
 }
 
