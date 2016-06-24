@@ -1491,13 +1491,18 @@ static bool ishexnumber(const char* string)
 
 bool convertNumber(const char* str, duint & result, int radix)
 {
+    unsigned long long llr;
+    if(!convertLongLongNumber(str, llr, radix))
+        return false;
+    result = duint(llr);
+    return true;
+}
+
+bool convertLongLongNumber(const char* str, unsigned long long & result, int radix)
+{
     errno = 0;
     char* end;
-#ifdef _WIN64
     result = strtoull(str, &end, radix);
-#else
-    result = strtoul(str, &end, radix);
-#endif //_WIN64
     if(!result && end == str)
         return false;
     if(result == ULLONG_MAX && errno)

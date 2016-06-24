@@ -1,7 +1,6 @@
 #include "encodemap.h"
 #include <unordered_map>
 #include "addrinfo.h"
-#include <algorithm>
 #include <capstone_wrapper.h>
 
 struct ENCODEMAP : AddrInfo
@@ -48,9 +47,8 @@ struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
 {
     bool Save(const ENCODEMAP & value) override
     {
-
         AddrInfoSerializer::Save(value);
-        set("data", json_stringn((const char*)value.data, value.size));
+        setString("data", StringUtils::ToCompressedHex(value.data, value.size).c_str());
         return true;
     }
 
@@ -58,11 +56,17 @@ struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
     {
         if(!AddrInfoSerializer::Load(value))
             return false;
-        auto data = get("data");
-        value.size = json_string_length(data);
+        auto dataJson = get("data");
+        if(!dataJson)
+            return false;
+        std::vector<unsigned char> data;
+        if(!StringUtils::FromCompressedHex(json_string_value(dataJson), data))
+            return false;
+        value.size = data.size();
         value.data = (byte*)VirtualAlloc(NULL, value.size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-        if(value.data == NULL) return false;
-        memcpy(value.data, (byte*)json_string_value(data), value.size);
+        if(!value.data)
+            return false;
+        memcpy(value.data, data.data(), data.size());
         IncreaseReferenceCount(value.data, false);
         return true;
     }
@@ -106,21 +110,19 @@ bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map)
 
 void* EncodeMapGetBuffer(duint addr, bool create)
 {
-    duint base, size;
-
-    if(!MemIsValidReadPtr(addr))
-        return nullptr;
-    base = MemFindBaseAddr(addr, &size);
+    duint size;
+    auto base = MemFindBaseAddr(addr, &size);
 
     ENCODEMAP map;
-    bool result = create ? EncodeMapGetorCreate(addr, map) : encmaps.Get(EncodeMap::VaKey(base), map);
+    auto result = create ? EncodeMapGetorCreate(addr, map) : encmaps.Get(EncodeMap::VaKey(base), map);
     if(result)
     {
-        duint offset = addr - base;
-        if(offset >= map.size)
-            return nullptr;
-        IncreaseReferenceCount(map.data);
-        return map.data;
+        auto offset = addr - base;
+        if(offset < map.size)
+        {
+            IncreaseReferenceCount(map.data);
+            return map.data;
+        }
     }
     return nullptr;
 }
@@ -134,25 +136,6 @@ void EncodeMapReleaseBuffer(void* buffer, bool lock)
 void EncodeMapReleaseBuffer(void* buffer)
 {
     EncodeMapReleaseBuffer(buffer, true);
-}
-
-bool IsRangeConflict(byte* typebuffer, duint size, duint codesize)
-{
-    if(codesize > size)
-        return true;
-    size = min(size, codesize);
-    if(size <= 0)
-        return false;
-    ENCODETYPE type = (ENCODETYPE)typebuffer[0];
-    if(type == enc_middle)
-        return true;
-    for(int i = 1; i < size; i++)
-    {
-        if((ENCODETYPE)typebuffer[i] != enc_unknown && (ENCODETYPE)typebuffer[i] != enc_middle)
-            return true;
-    }
-
-    return false;
 }
 
 duint GetEncodeTypeSize(ENCODETYPE type)
@@ -194,73 +177,44 @@ duint GetEncodeTypeSize(ENCODETYPE type)
     }
 }
 
-bool IsCodeType(ENCODETYPE type)
+static bool IsCodeType(ENCODETYPE type)
 {
     return type == enc_code || type == enc_junk;
 }
 
 ENCODETYPE EncodeMapGetType(duint addr, duint codesize)
 {
-    duint base, size;
-
-    base = MemFindBaseAddr(addr, &size);
-    if(!base)
-        return ENCODETYPE::enc_unknown;
+    duint size;
+    auto base = MemFindBaseAddr(addr, &size);
 
     ENCODEMAP map;
-    if(encmaps.Get(EncodeMap::VaKey(base), map))
+    if(base && encmaps.Get(EncodeMap::VaKey(base), map))
     {
-        duint offset = addr - base;
+        auto offset = addr - base;
         if(offset >= map.size)
-            return ENCODETYPE::enc_unknown;
-        ENCODETYPE type = (ENCODETYPE)map.data[offset];
-
-        if((type == enc_unknown || type == enc_middle) && IsRangeConflict(map.data + offset, size - offset, codesize))
-            return enc_byte;
-        else
-            return type;
+            return enc_unknown;
+        return ENCODETYPE(map.data[offset]);
     }
 
-    return ENCODETYPE::enc_unknown;
+    return enc_unknown;
 }
 
 duint EncodeMapGetSize(duint addr, duint codesize)
 {
-    duint base;
-
-    base = MemFindBaseAddr(addr, 0);
+    auto base = MemFindBaseAddr(addr, nullptr);
     if(!base)
         return codesize;
 
     ENCODEMAP map;
     if(encmaps.Get(EncodeMap::VaKey(base), map))
     {
-        duint offset = addr - base;
+        auto offset = addr - base;
         if(offset >= map.size)
             return 1;
-        ENCODETYPE type = (ENCODETYPE)map.data[offset];
+        auto type = ENCODETYPE(map.data[offset]);
 
-        duint datasize = GetEncodeTypeSize(type);
-        if(type == enc_unknown || type == enc_code || type == enc_junk)
-        {
-            if(IsRangeConflict(map.data + offset, map.size - offset, codesize) || codesize == 0)
-                return datasize;
-            else
-                return codesize;
-        }
-        else if(type == enc_ascii || type == enc_unicode)
-        {
-            duint totalsize = 0;
-            for(auto i = offset; i < map.size; i += datasize)
-            {
-                if(map.data[i] == type)
-                    totalsize += datasize;
-                else
-                    break;
-            }
-            return totalsize;
-        }
-        else
+        auto datasize = GetEncodeTypeSize(type);
+        if(!IsCodeType(type))
             return datasize;
     }
 
@@ -269,19 +223,16 @@ duint EncodeMapGetSize(duint addr, duint codesize)
 
 bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type)
 {
-    duint base;
-
-    base = MemFindBaseAddr(addr, 0);
+    auto base = MemFindBaseAddr(addr, nullptr);
     if(!base)
         return false;
-
 
     ENCODEMAP map;
     if(!EncodeMapGetorCreate(base, map))
         return false;
-    duint offset = addr - base;
+    auto offset = addr - base;
     size = min(map.size - offset, size);
-    duint datasize = GetEncodeTypeSize(type);
+    auto datasize = GetEncodeTypeSize(type);
     if(datasize == 1 && !IsCodeType(type))
     {
         memset(map.data + offset, (byte)type, size);
@@ -292,24 +243,20 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type)
         if(IsCodeType(type) && size > 1)
         {
             Capstone cp;
-            unsigned char* buffer = new unsigned char[size];
-            if(!MemRead(addr, buffer, size))
-            {
-                delete[] buffer;
+            Memory<unsigned char*> buffer(size);
+            if(!MemRead(addr, buffer(), size))
                 return false;
 
-            }
             duint buffersize = size, bufferoffset = 0, cmdsize;
             for(auto i = offset; i < offset + size;)
             {
                 map.data[i] = (byte)type;
-                cp.Disassemble(base + i, buffer + bufferoffset, int(buffersize));
+                cp.Disassemble(base + i, buffer() + bufferoffset, int(buffersize - bufferoffset));
                 cmdsize = cp.Success() ? cp.Size() : 1;
                 i += cmdsize;
                 bufferoffset += cmdsize;
                 buffersize -= cmdsize;
             }
-
         }
         else
         {

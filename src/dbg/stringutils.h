@@ -18,9 +18,11 @@ public:
     static StringList Split(const String & s, char delim, std::vector<String> & elems);
     static StringList Split(const String & s, char delim);
     static String Escape(const String & s);
+    static bool Unescape(const String & s, String & result, bool quoted = true);
     static String Trim(const String & s, String delim = StringUtils::WHITESPACE);
     static String TrimLeft(const String & s, String delim = StringUtils::WHITESPACE);
     static String TrimRight(const String & s, String delim = StringUtils::WHITESPACE);
+    static String PadLeft(const String & s, size_t minLength, char ch);
     static String Utf16ToUtf8(const WString & wstr);
     static String Utf16ToUtf8(const wchar_t* wstr);
     static WString Utf8ToUtf16(const String & str);
@@ -31,9 +33,11 @@ public:
     static WString sprintf(const wchar_t* format, ...);
     static String ToLower(const String & s);
     static bool StartsWith(const String & h, const String & n);
-    static String FromHex(const String & s, size_t size, bool reverse = false);
-    static String ToHex(duint value);
-    static String ToHex(void* buffer, size_t size, bool reverse = false);
+    static bool FromHex(const String & text, std::vector<unsigned char> & data, bool reverse = false);
+    static String ToHex(unsigned long long value);
+    static String ToHex(unsigned char* buffer, size_t size, bool reverse = false);
+    static String ToCompressedHex(unsigned char* buffer, size_t size);
+    static bool FromCompressedHex(const String & text, std::vector<unsigned char> & data);
 
     template<typename T>
     static String ToFloatingString(void* buffer)
@@ -50,7 +54,6 @@ public:
         auto value = *(T*)buffer;
         return ToHex(value);
     }
-
 
 private:
     static const String WHITESPACE;

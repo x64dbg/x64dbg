@@ -86,7 +86,9 @@ void DbSave(DbLoadSaveType saveType)
             break;
         }
         plugincbcall(CBTYPE::CB_SAVEDB, &pluginSaveDb);
-        json_object_set_new(root, "plugins", pluginRoot);
+        if(json_object_size(pluginRoot))
+            json_object_set(root, "plugins", pluginRoot);
+        json_decref(pluginRoot);
     }
 
     auto wdbpath = StringUtils::Utf8ToUtf16(dbpath);
@@ -165,7 +167,7 @@ void DbLoad(DbLoadSaveType loadType)
 
 
     // Deserialize JSON and validate
-    JSON root = json_loads(databaseText.c_str(), JSON_ALLOW_NUL, 0);
+    JSON root = json_loads(databaseText.c_str(), 0, 0);
 
     if(!root)
     {

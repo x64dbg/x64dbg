@@ -1,5 +1,6 @@
 #include "stringutils.h"
 #include "memory.h"
+#include "value.h"
 #include "dynamicmem.h"
 #include <windows.h>
 #include <cstdint>
@@ -71,6 +72,87 @@ String StringUtils::Escape(const String & s)
     return escaped;
 }
 
+bool StringUtils::Unescape(const String & s, String & result, bool quoted)
+{
+    int mLastChar;
+    size_t i = 0;
+    auto nextChar = [&]()
+    {
+        if(i == s.length())
+            return mLastChar = EOF;
+        return mLastChar = s[i++];
+    };
+    if(quoted)
+    {
+        nextChar();
+        if(mLastChar != '\"')  //start of quoted string literal
+            return false; //invalid string literal
+    }
+    result.reserve(s.length());
+    while(true)
+    {
+        nextChar();
+        if(mLastChar == EOF)  //end of file
+        {
+            if(!quoted)
+                break;
+            return false; //unexpected end of file in string literal (1)
+        }
+        if(mLastChar == '\r' || mLastChar == '\n')
+            return false; //unexpected newline in string literal (1)
+        if(quoted && mLastChar == '\"')  //end of quoted string literal
+            break;
+        if(mLastChar == '\\')  //escape sequence
+        {
+            nextChar();
+            if(mLastChar == EOF)
+                return false; //unexpected end of file in string literal (2)
+            if(mLastChar == '\r' || mLastChar == '\n')
+                return false; //unexpected newline in string literal (2)
+            if(mLastChar == '\'' || mLastChar == '\"' || mLastChar == '?' || mLastChar == '\\')
+                mLastChar = mLastChar;
+            else if(mLastChar == 'a')
+                mLastChar = '\a';
+            else if(mLastChar == 'b')
+                mLastChar = '\b';
+            else if(mLastChar == 'f')
+                mLastChar = '\f';
+            else if(mLastChar == 'n')
+                mLastChar = '\n';
+            else if(mLastChar == 'r')
+                mLastChar = '\r';
+            else if(mLastChar == 't')
+                mLastChar = '\t';
+            else if(mLastChar == 'v')
+                mLastChar = '\v';
+            else if(mLastChar == '0')
+                mLastChar = '\0';
+            else if(mLastChar == 'x')  //\xHH
+            {
+                auto ch1 = nextChar();
+                auto ch2 = nextChar();
+                if(isxdigit(ch1) && isxdigit(ch2))
+                {
+                    char byteStr[3] = "";
+                    byteStr[0] = ch1;
+                    byteStr[1] = ch2;
+                    uint64_t hexData;
+                    auto error = convertLongLongNumber(byteStr, hexData, 16);
+                    if(error)
+                        return false; //convertNumber failed (%s) for hex sequence \"\\x%c%c\" in string literal
+                    mLastChar = hexData & 0xFF;
+                }
+                else
+                    return false; //invalid hex sequence \"\\x%c%c\" in string literal
+            }
+            else
+                return false; //invalid escape sequence \"\\%c\" in string literal
+        }
+        result.push_back(mLastChar);
+    }
+    return true;
+}
+
 //Trim functions taken from: http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring/16743707#16743707
 const String StringUtils::WHITESPACE = " \n\r\t";
 
@@ -89,6 +171,17 @@ String StringUtils::TrimRight(const String & s, String delim)
 {
     size_t endpos = s.find_last_not_of(delim);
     return (endpos == String::npos) ? "" : s.substr(0, endpos + 1);
+}
+
+String StringUtils::PadLeft(const String & s, size_t minLength, char ch)
+{
+    if(s.length() >= minLength)
+        return s;
+    String pad;
+    pad.resize(minLength - s.length());
+    for(size_t i = 0; i < pad.length(); i++)
+        pad[i] = ch;
+    return pad + s;
 }
 
 //Conversion functions taken from: http://www.nubaria.com/en/blog/?p=289
@@ -202,67 +295,115 @@ bool StringUtils::StartsWith(const String & h, const String & n)
     return strstr(h.c_str(), n.c_str()) == h.c_str();
 }
 
-int char2int(char input)
+static int hex2int(char ch)
 {
-    if(input >= '0' && input <= '9')
-        return input - '0';
-    if(input >= 'A' && input <= 'F')
-        return input - 'A' + 10;
-    if(input >= 'a' && input <= 'f')
-        return input - 'a' + 10;
-    throw std::invalid_argument("invalid character");
+    if(ch >= '0' && ch <= '9')
+        return ch - '0';
+    if(ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    if(ch >= 'a' && ch <= 'f')
+        return ch - 'a' + 10;
+    return -1;
 }
 
-String StringUtils::FromHex(const String & s, size_t size, bool reverse)
+bool StringUtils::FromHex(const String & text, std::vector<unsigned char> & data, bool reverse)
 {
-    std::stringstream ss;
-    bool high = false;
-    if(s.length() > size * 2)
-        throw std::invalid_argument("string too long");
-    char ch = 0;
-    auto odd = s.size() % 2;
-    size_t cursize = 0;
-    for(dsint i = s.size() - 1; i >= 0; i--)
+    auto size = text.size();
+    if(size % 2)
+        return false;
+    data.resize(size / 2);
+    for(size_t i = 0, j = 0; i < size; i += 2, j++)
     {
-        ch |= char2int(s[i]) << (high ? 4 : 0);
-        if(high || odd && i == 0)
+        auto high = hex2int(text[i]);
+        auto low = hex2int(text[i + 1]);
+        if(high == -1 || low == -1)
+            return false;
+        data[reverse ? data.size() - j - 1 : j] = (high << 4) | low;
+    }
+    return true;
+}
+
+String StringUtils::ToHex(unsigned long long value)
+{
+    char buf[32];
+    sprintf_s(buf, "%llX", value);
+    return buf;
+}
+
+#define HEXLOOKUP "0123456789ABCDEF"
+
+String StringUtils::ToHex(unsigned char* buffer, size_t size, bool reverse)
+{
+    String result;
+    result.resize(size * 2);
+    for(size_t i = 0, j = 0; i < size; i++, j += 2)
+    {
+        auto ch = buffer[reverse ? size - i - 1 : i];
+        result[j] = HEXLOOKUP[(ch >> 4) & 0xF];
+        result[j + 1] = HEXLOOKUP[ch & 0xF];
+    }
+    return result;
+}
+
+String StringUtils::ToCompressedHex(unsigned char* buffer, size_t size)
+{
+    if(!size)
+        return "";
+    String result;
+    result.reserve(size * 2);
+    for(size_t i = 0; i < size;)
+    {
+        size_t repeat = 0;
+        auto lastCh = buffer[i];
+        result.push_back(HEXLOOKUP[(lastCh >> 4) & 0xF]);
+        result.push_back(HEXLOOKUP[lastCh & 0xF]);
+        for(; i < size && buffer[i] == lastCh; i++)
+            repeat++;
+        result.append(StringUtils::sprintf("{%" fext "X}", repeat));
+    }
+    return result;
+}
+
+bool StringUtils::FromCompressedHex(const String & text, std::vector<unsigned char> & data)
+{
+    auto size = text.size();
+    if(size < 2)
+        return false;
+    data.clear();
+    data.reserve(size); //TODO: better initial estimate
+    String repeatStr;
+    for(size_t i = 0; i < size;)
+    {
+        auto high = hex2int(text[i++]); //eat high nibble
+        if(i >= size)
+            return false;
+        auto low = hex2int(text[i++]); //eat low nibble
+        if(high == -1 || low == -1)
+            return false;
+        auto lastCh = (high << 4) | low;
+        data.push_back(lastCh);
+
+        if(i >= size)
+            break;
+
+        if(text[i] == '{')
         {
-            ss.put(ch);
-            cursize++;
-            ch = 0;
+            repeatStr.clear();
+            i++; //eat '{'
+            while(text[i] != '}')
+            {
+                repeatStr.push_back(text[i++]); //eat character
+                if(i >= size)
+                    return false;
+            }
+            i++; //eat '}'
+
+            duint repeat = 0;
+            if(!convertNumber(repeatStr.c_str(), repeat, 16) || !repeat)
+                return false;
+            for(size_t j = 1; j < repeat; j++)
+                data.push_back(lastCh);
         }
-        high = !high;
     }
-    for(auto i = cursize; i < size; i++)
-        ss.put('\0');
-    String res = ss.str();
-    if(!reverse)
-        std::reverse(res.begin(), res.end());
-    return res;
-}
-
-String StringUtils::ToHex(duint value)
-{
-    std::stringstream ss;
-    ss << std::hex;
-    ss << value;
-    return ss.str();
-}
-
-String StringUtils::ToHex(void* buffer, size_t size, bool reverse)
-{
-    std::stringstream ss;
-    ss << std::hex;
-    if(reverse)
-    {
-        for(dsint i = size - 1; i >= 0; i--)
-            ss << ((char*)buffer)[i];
-    }
-    else
-    {
-        for(size_t i = 0; i < size; i++)
-            ss << ((char*)buffer)[i];
-    }
-
-    return ss.str();
+    return true;
 }

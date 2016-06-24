@@ -1004,7 +1004,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     if(!bFileIsDll && !bIsAttached) //Set entry breakpoint
     {
         pDebuggedBase = pCreateProcessBase; //debugged base = executable
-        char command[256] = "";
+        char command[deflen] = "";
 
         if(settingboolget("Events", "TlsCallbacks"))
         {
@@ -1025,7 +1025,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                         duint callbackVA = TLSCallBacks()[i] - ImageBase + pDebuggedBase;
                         if(MemIsValidReadPtr(callbackVA))
                         {
-                            sprintf(command, "bp " fhex ",\"TLS Callback %d\",ss", callbackVA, i + 1);
+                            sprintf_s(command, "bp " fhex ",\"TLS Callback %d\",ss", callbackVA, i + 1);
                             cmddirectexec(command);
                         }
                         else
@@ -1039,7 +1039,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
         if(settingboolget("Events", "EntryBreakpoint"))
         {
-            sprintf(command, "bp " fhex ",\"entry breakpoint\",ss", (duint)CreateProcessInfo->lpStartAddress);
+            sprintf_s(command, "bp " fhex ",\"entry breakpoint\",ss", (duint)CreateProcessInfo->lpStartAddress);
             cmddirectexec(command);
         }
     }

@@ -1,10 +1,10 @@
 #include "datainst_helper.h"
 #include "encodemap.h"
 #include "stringutils.h"
+#include "value.h"
 #include <capstone_wrapper.h>
 
 std::unordered_map<ENCODETYPE, std::string> disasmMap;
-
 std::unordered_map<std::string, ENCODETYPE> assembleMap;
 
 void initDataInstMap()
@@ -42,12 +42,8 @@ void initDataInstMap()
 
 }
 
-
-
-
 String GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
 {
-
     switch(type)
     {
     case enc_byte:
@@ -57,23 +53,23 @@ String GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
     case enc_dword:
         return StringUtils::ToIntegralString<unsigned int>(buffer);
     case enc_fword:
-        return StringUtils::ToHex((char*)buffer, 6, true);
+        return StringUtils::ToHex((unsigned char*)buffer, 6, true);
     case enc_qword:
         return StringUtils::ToIntegralString<unsigned long long int>(buffer);
     case enc_tbyte:
-        return StringUtils::ToHex((char*)buffer, 10, true);
+        return StringUtils::ToHex((unsigned char*)buffer, 10, true);
     case enc_oword:
-        return StringUtils::ToHex((char*)buffer, 16, true);
+        return StringUtils::ToHex((unsigned char*)buffer, 16, true);
     case enc_mmword:
     case enc_xmmword:
     case enc_ymmword:
-        return StringUtils::ToHex((char*)buffer, size, false);
+        return StringUtils::ToHex((unsigned char*)buffer, size, false);
     case enc_real4:
         return StringUtils::ToFloatingString<float>(buffer);
     case enc_real8:
         return StringUtils::ToFloatingString<double>(buffer);
     case enc_real10:
-        return StringUtils::ToHex((char*)buffer, 10, true);
+        return StringUtils::ToHex((unsigned char*)buffer, 10, true);
     //return ToLongDoubleString(buffer);
     case enc_ascii:
         return String((const char*)buffer, size);
@@ -118,13 +114,13 @@ duint decodesimpledata(const unsigned char* buffer, ENCODETYPE type)
 struct DataInstruction
 {
     ENCODETYPE type;
-    String oprand;
+    String operand;
 };
 
 bool parsedatainstruction(const char* instruction, DataInstruction & di)
 {
     di.type = enc_unknown;
-    di.oprand = "";
+    di.operand = "";
     String instStr = StringUtils::Trim(String(instruction));
     size_t pos = instStr.find_first_of(" \t");
     String opcode = instStr.substr(0, pos);
@@ -135,7 +131,7 @@ bool parsedatainstruction(const char* instruction, DataInstruction & di)
     pos = instStr.find_first_not_of(" \t", pos);
     if(pos == String::npos)
         return false;
-    di.oprand = instStr.substr(pos);
+    di.operand = instStr.substr(pos);
     return true;
 }
 
@@ -152,126 +148,161 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
     DataInstruction di;
     if(!parsedatainstruction(instruction, di))
     {
-        if(di.oprand == "")
-            strcpy_s(error, MAX_ERROR_SIZE, "Missing oprand");
+        if(di.operand == "")
+            strcpy_s(error, MAX_ERROR_SIZE, "missing operand");
         return false;
     }
 
-    duint retsize = 0;
+    duint retsize = GetEncodeTypeSize(di.type);
     String buffer;
-    try
+
+    switch(di.type)
     {
-        switch(di.type)
+    case enc_byte:
+    case enc_word:
+    case enc_dword:
+    case enc_fword:
+    case enc_qword:
+    {
+        unsigned long long result = 0;
+        if(!convertLongLongNumber(di.operand.c_str(), result, 16))
         {
-        case enc_byte:
-        case enc_word:
-        case enc_dword:
-        case enc_fword:
-        case enc_qword:
-        case enc_tbyte:
-        case enc_oword:
-        {
-            retsize = GetEncodeTypeSize(di.type);
-            buffer = StringUtils::FromHex(di.oprand, retsize, true);
-            break;
-        }
-        case enc_mmword:
-        case enc_xmmword:
-        case enc_ymmword:
-        {
-            retsize = GetEncodeTypeSize(di.type);
-            if(retsize > destsize)
-            {
-                strcpy_s(error, MAX_ERROR_SIZE, "insufficient buffer");
-                if(size)
-                {
-                    *size = int(retsize);  //return correct size
-                    return dest == nullptr;
-                }
-                return false;
-            }
-            else
-            {
-
-                buffer = StringUtils::FromHex(di.oprand, retsize, false);
-            }
-            break;
-        }
-        case enc_real4:
-        {
-            retsize = 4;
-            float f = std::stof(di.oprand);
-            buffer = String((char*)&f, 4);
-            break;
-        }
-
-        case enc_real8:
-        {
-            retsize = 8;
-            double d = std::stod(di.oprand);
-            buffer = String((char*)&d, 8);
-            break;
-        }
-
-        case enc_real10:
-            strcpy_s(error, MAX_ERROR_SIZE, "80bit extended float is not supported");
-            return false; //80 bit float is not supported in MSVC, need to add other library
-        case enc_ascii:
-        {
-            if(di.oprand.size() > destsize)
-            {
-                strcpy_s(error, MAX_ERROR_SIZE, "string too long");
-                if(size)
-                {
-                    *size = int(di.oprand.size());  //return correct size
-                    return dest == nullptr;
-                }
-                return false;
-            }
-            else
-            {
-                retsize = di.oprand.size();
-                buffer = di.oprand;
-            }
-            break;
-        }
-
-        case enc_unicode:
-        {
-            WString unicode = StringUtils::Utf8ToUtf16(di.oprand);
-
-            if(unicode.size()*sizeof(wchar_t) > destsize)
-            {
-                strcpy_s(error, MAX_ERROR_SIZE, "string too long");
-                if(size)
-                {
-                    retsize = unicode.size() * 2; //return correct size
-                    return dest == nullptr;
-                }
-
-                return false;
-            }
-            else
-            {
-                retsize = unicode.size() * 2;
-                buffer = String((char*)unicode.c_str(), retsize);
-            }
-            break;
-        }
-        default:
+            strcpy_s(error, MAX_ERROR_SIZE, "failed to convert operand");
             return false;
         }
+        auto buf = (char*)&result;
+        for(auto i = retsize; i < sizeof(result); i++)
+            if(buf[i])
+            {
+                strcpy_s(error, MAX_ERROR_SIZE, "operand value too big");
+                return false;
+            }
+        buffer = String(buf, retsize);
     }
-    catch(const std::exception & e)
+    break;
+
+    case enc_tbyte:
+    case enc_oword:
     {
-        strcpy_s(error, MAX_ERROR_SIZE, e.what());
+        std::vector<unsigned char> data;
+        if(!StringUtils::FromHex(StringUtils::PadLeft(di.operand, retsize * 2, '0'), data, true))
+        {
+            strcpy_s(error, MAX_ERROR_SIZE, "invalid operand (FromHex failed)");
+            return false;
+        }
+        if(data.size() != retsize)
+        {
+            sprintf_s(error, MAX_ERROR_SIZE, "invalid size (expected %" fext "u, got %" fext "u)", retsize, data.size());
+            return false;
+        }
+        buffer = String((char*)data.data(), data.size());
+    }
+    break;
+
+    case enc_mmword:
+    case enc_xmmword:
+    case enc_ymmword:
+    {
+        std::vector<unsigned char> data;
+        if(!StringUtils::FromHex(StringUtils::PadLeft(di.operand, retsize * 2, '0'), data, false))
+        {
+            strcpy_s(error, MAX_ERROR_SIZE, "invalid operand (FromHex failed)");
+            return false;
+        }
+        if(data.size() != retsize)
+        {
+            sprintf_s(error, MAX_ERROR_SIZE, "invalid size (expected %" fext "u, got %" fext "u)", retsize, data.size());
+            return false;
+        }
+        buffer = String((char*)data.data(), data.size());
+    }
+    break;
+
+    case enc_real4:
+    {
+        retsize = 4;
+        float f = std::stof(di.operand);
+        buffer = String((char*)&f, 4);
+        break;
+    }
+
+    case enc_real8:
+    {
+        retsize = 8;
+        double d = std::stod(di.operand);
+        buffer = String((char*)&d, 8);
+        break;
+    }
+
+    case enc_real10:
+        strcpy_s(error, MAX_ERROR_SIZE, "80bit extended float is not supported");
+        return false; //80 bit float is not supported in MSVC, need to add other library
+
+    case enc_ascii:
+    {
+        String unescaped;
+        if(!StringUtils::Unescape(di.operand, unescaped))
+        {
+            strcpy_s(error, MAX_ERROR_SIZE, "invalid string literal");
+            return false;
+        }
+        if(unescaped.size() > size_t(destsize))
+        {
+            strcpy_s(error, MAX_ERROR_SIZE, "string too long");
+            if(size)
+            {
+                *size = int(unescaped.size());  //return correct size
+                return dest == nullptr;
+            }
+            return false;
+        }
+        retsize = unescaped.size();
+        buffer = unescaped;
+    }
+    break;
+
+    case enc_unicode:
+    {
+        String unescaped;
+        if(!StringUtils::Unescape(di.operand, unescaped))
+        {
+            strcpy_s(error, MAX_ERROR_SIZE, "invalid string literal");
+            return false;
+        }
+        WString unicode = StringUtils::Utf8ToUtf16(unescaped);
+
+        if(unicode.size()*sizeof(wchar_t) > size_t(destsize))
+        {
+            strcpy_s(error, MAX_ERROR_SIZE, "string too long");
+            if(size)
+            {
+                retsize = unicode.size() * 2; //return correct size
+                return dest == nullptr;
+            }
+
+            return false;
+        }
+        retsize = unicode.size() * 2;
+        buffer = String((char*)unicode.c_str(), retsize);
+    }
+    break;
+
+    default:
         return false;
     }
+
+    if(retsize > size_t(destsize))
+    {
+        strcpy_s(error, MAX_ERROR_SIZE, "dest buffer too small");
+        return false;
+    }
+
     if(size)
         *size = int(retsize);
 
     if(dest)
         memcpy_s((char*)dest, retsize, buffer.c_str(), retsize);
+
     return true;
 }
 
