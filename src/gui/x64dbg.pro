@@ -290,8 +290,7 @@ FORMS += \
     Src/Gui/ColumnReorderDialog.ui
 
 TRANSLATIONS = \
-    Translations/x64dbg.ts \
-    Translations/x64dbg_zh_CN.ts
+    Translations/x64dbg.ts
 
 ##
 ## Libraries
