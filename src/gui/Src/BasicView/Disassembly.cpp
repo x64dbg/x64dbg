@@ -536,7 +536,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             if(width)
                 painter->fillRect(QRect(x + argsize, y, width, h), QBrush(backgroundColor)); //fill comment color
             painter->drawText(QRect(x + argsize, y , width , h), Qt::AlignVCenter | Qt::AlignLeft, comment);
-            argsize += width;
+            argsize += width + 3;
         }
         else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
         {
@@ -551,7 +551,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             if(width)
                 painter->fillRect(QRect(x + argsize, y, width, h), QBrush(backgroundColor)); //fill comment color
             painter->drawText(QRect(x + argsize, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
-            argsize += width;
+            argsize += width + 3;
         }
 
         if(mShowMnemonicBrief)
@@ -573,7 +573,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                     width = w;
                 if(width)
                     painter->fillRect(QRect(x + argsize, y, width, h), QBrush(mMnemonicBriefBackgroundColor)); //mnemonic brief background color
-                painter->drawText(QRect(x + argsize, y , width , h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
+                painter->drawText(QRect(x + argsize, y , width, h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
             }
             break;
         }
