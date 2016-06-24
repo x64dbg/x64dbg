@@ -56,6 +56,8 @@ public slots:
     void gotoFileOffsetSlot();
     void gotoStartSlot();
     void gotoEndSlot();
+    void gotoFunctionStartSlot();
+    void gotoFunctionEndSlot();
     void followActionSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();

@@ -338,6 +338,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGotoExpression", Shortcut(tr("Actions -> Goto Expression"), "Ctrl+G"));
     defaultShortcuts.insert("ActionGotoStart", Shortcut(tr("Actions -> Goto Start of Page"), "Home"));
     defaultShortcuts.insert("ActionGotoEnd", Shortcut(tr("Actions -> Goto End of Page"), "End"));
+    defaultShortcuts.insert("ActionGotoFunctionStart", Shortcut(tr("Actions -> Goto Start of Function"), "Ctrl+Home"));
+    defaultShortcuts.insert("ActionGotoFunctionEnd", Shortcut(tr("Actions -> Goto End of Function"), "Ctrl+End"));
     defaultShortcuts.insert("ActionGotoFileOffset", Shortcut(tr("Actions -> Goto File Offset"), "Ctrl+Shift+G"));
     defaultShortcuts.insert("ActionFindReferencesToSelectedAddress", Shortcut(tr("Actions -> Find References to Selected Address"), "Ctrl+R"));
     defaultShortcuts.insert("ActionFindPattern", Shortcut(tr("Actions -> Find Pattern"), "Ctrl+B"));

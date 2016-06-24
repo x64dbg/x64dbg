@@ -509,6 +509,14 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
     gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/top.png"), tr("Start of Page"), SLOT(gotoStartSlot()), "ActionGotoStart"));
     gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/bottom.png"), tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/functionstart.png"), tr("Start of Function"), SLOT(gotoFunctionStartSlot()), "ActionGotoFunctionStart"), [this](QMenu*)
+    {
+        return DbgFunctionGet(rvaToVa(getInitialSelection()), nullptr, nullptr);
+    });
+    gotoMenu->addAction(makeShortcutAction(QIcon(":/icons/images/functionend.png"), tr("End of Function"), SLOT(gotoFunctionEndSlot()), "ActionGotoFunctionEnd"), [this](QMenu*)
+    {
+        return DbgFunctionGet(rvaToVa(getInitialSelection()), nullptr, nullptr);
+    });
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/goto.png"), tr("Go to")), gotoMenu);
     mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/xrefs.png"), tr("xrefs..."), SLOT(gotoXrefSlot()), "ActionXrefs"), [this](QMenu*)
@@ -1029,6 +1037,22 @@ void CPUDisassembly::gotoEndSlot()
 {
     duint dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * 16);
     DbgCmdExec(QString().sprintf("disasm \"%p\"", dest).toUtf8().constData());
+}
+
+void CPUDisassembly::gotoFunctionStartSlot()
+{
+    duint start;
+    if(!DbgFunctionGet(rvaToVa(getInitialSelection()), &start, nullptr))
+        return;
+    DbgCmdExec(QString("disasm \"%1\"").arg(ToHexString(start)).toUtf8().constData());
+}
+
+void CPUDisassembly::gotoFunctionEndSlot()
+{
+    duint end;
+    if(!DbgFunctionGet(rvaToVa(getInitialSelection()), nullptr, &end))
+        return;
+    DbgCmdExec(QString("disasm \"%1\"").arg(ToHexString(end)).toUtf8().constData());
 }
 
 void CPUDisassembly::gotoXrefSlot()
