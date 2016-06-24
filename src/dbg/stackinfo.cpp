@@ -111,7 +111,7 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
     char string[MAX_STRING_SIZE] = "";
     if(DbgGetStringAt(data, string))
     {
-        strcpy_s(comment->comment, _TRUNCATE, string);
+        strncpy_s(comment->comment, string, _TRUNCATE);
         return true;
     }
 

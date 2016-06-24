@@ -35,7 +35,7 @@ void EditBreakpointDialog::loadFromBp()
 template<typename T>
 void copyTruncate(T dest, const QString & src)
 {
-    strcpy_s(dest, _TRUNCATE, src.toUtf8().constData());
+    strncpy_s(dest, src.toUtf8().constData(), _TRUNCATE);
 }
 
 void EditBreakpointDialog::on_editName_textEdited(const QString & arg1)
