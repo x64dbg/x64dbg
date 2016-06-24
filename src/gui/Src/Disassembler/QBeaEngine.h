@@ -39,14 +39,17 @@ class QBeaEngine
 public:
     explicit QBeaEngine(int maxModuleSize);
     ~QBeaEngine();
-    ulong DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n, duint tmpcodecount = 0, duint* tmpcodelist = nullptr);
-    ulong DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n, duint tmpcodecount = 0, duint* tmpcodelist = nullptr);
-    Instruction_t DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA, duint tmpcodecount = 0, duint* tmpcodelist = nullptr);
-    Instruction_t DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type, duint tmpcodecount = 0, duint* tmpcodelist = nullptr);
+    ulong DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n);
+    ulong DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n);
+    Instruction_t DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA);
+    Instruction_t DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type);
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     void UpdateConfig();
-    EncodeMap* getEncodeMap() { return mEncodeMap; }
 
+    EncodeMap* getEncodeMap()
+    {
+        return mEncodeMap;
+    }
 
 private:
     struct DataInstructionInfo

@@ -28,6 +28,15 @@ static QString ToPtrString(duint Address)
     return QString(temp);
 }
 
+static QString ToLongLongHexString(unsigned long long Value)
+{
+    char temp[32];
+
+    sprintf_s(temp, "%llX", Value);
+
+    return QString(temp);
+}
+
 static QString ToHexString(duint Value)
 {
     char temp[32];
@@ -54,7 +63,6 @@ static QString ToDecString(dsint Value)
     return QString(temp);
 }
 
-
 template<typename T>
 static QString ToFloatingString(void* buffer)
 {
@@ -68,7 +76,7 @@ template<typename T>
 static QString ToIntegralString(void* buffer)
 {
     auto value = *(T*)buffer;
-    return ToHexString(value);
+    return ToLongLongHexString(value);
 }
 
 static QString ToFloatString(void* buffer)

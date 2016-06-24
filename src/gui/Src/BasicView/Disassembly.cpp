@@ -47,7 +47,6 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     backgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mXrefInfo.refcount = 0;
-    mTmpCodeCount = 0;
 
     // Slots
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
@@ -1191,7 +1190,7 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
 
     mMemPage->read(wBuffer.data(), wBottomByteRealRVA, wBuffer.size());
 
-    dsint addr = mDisasm->DisassembleBack((byte_t*)wBuffer.data(), rvaToVa(wBottomByteRealRVA), wBuffer.size(), wVirtualRVA , count, mTmpCodeCount, mTmpCodeList);
+    dsint addr = mDisasm->DisassembleBack((byte_t*)wBuffer.data(), rvaToVa(wBottomByteRealRVA), wBuffer.size(), wVirtualRVA , count);
 
     addr += rva - wVirtualRVA;
 
@@ -1225,7 +1224,7 @@ dsint Disassembly::getNextInstructionRVA(dsint rva, duint count)
 
     mMemPage->read(wBuffer.data(), rva, wBuffer.size());
 
-    wNewRVA = mDisasm->DisassembleNext((byte_t*)wBuffer.data(), rvaToVa(rva), wBuffer.size(), 0, count, mTmpCodeCount, mTmpCodeList);
+    wNewRVA = mDisasm->DisassembleNext((byte_t*)wBuffer.data(), rvaToVa(rva), wBuffer.size(), 0, count);
 
     wNewRVA += rva;
 
@@ -1286,7 +1285,7 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
 
     mMemPage->read(wBuffer.data(), rva, wBuffer.size());
 
-    return mDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva, mTmpCodeCount, mTmpCodeList);
+    return mDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva);
 }
 
 /**
@@ -1578,8 +1577,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     mMemPage->setAttributes(wBase, wSize);
     mDisasm->getEncodeMap()->setMemoryRegion(wBase);
 
-    bool cipChanged = rvaToVa(mCipRva) != parCIP;
-
     if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
         mRvaDisplayEnabled = false;
 
@@ -1591,20 +1588,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
 
     //set CIP rva
     mCipRva = wCipRva;
-
-    //add CIP and its jump location to tmp code list so they will always decoded as code
-    if(cipChanged)
-    {
-        mTmpCodeCount = 1;
-        mTmpCodeList[0] = parCIP;
-        Instruction_t inst = DisassembleAt(mCipRva);
-        if(inst.branchType == Instruction_t::Unconditional || inst.branchType == Instruction_t::Conditional && DbgIsJumpGoingToExecute(parCIP))
-        {
-            mTmpCodeCount++;
-            mTmpCodeList[1] = inst.branchDestination;
-        }
-    }
-
 
     if(newTableOffset == -1) //nothing specified
     {

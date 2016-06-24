@@ -26,7 +26,7 @@ QBeaEngine::~QBeaEngine()
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction before the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n, duint tmpcodecount, duint* tmpcodelist)
+ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n)
 {
     int i;
     uint abuf[128], addr, back, cmdsize;
@@ -92,7 +92,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
             else
                 cmdsize = cp.Size();
 
-            cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize, tmpcodecount, tmpcodelist);
+            cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize);
 
         }
 
@@ -122,7 +122,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction after the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n, duint tmpcodecount, duint* tmpcodelist)
+ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n)
 {
     int i;
     uint cmdsize;
@@ -159,7 +159,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
             else
                 cmdsize = cp.Size();
 
-            cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize, tmpcodecount, tmpcodelist);
+            cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize);
 
         }
 
@@ -183,7 +183,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
  * @return      Return the disassembled instruction
  */
 
-Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA, duint tmpcodecount, duint* tmpcodelist)
+Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA)
 {
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
@@ -195,7 +195,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     ENCODETYPE type = enc_code;
 
-    type = mEncodeMap->getDataType(origBase + origInstRVA, cp.Success() ? len : 1, tmpcodecount, tmpcodelist);
+    type = mEncodeMap->getDataType(origBase + origInstRVA);
 
     if(type != enc_unknown && type != enc_code && type != enc_middle)
         return DecodeDataAt(data, size, origBase, origInstRVA, type);
@@ -230,22 +230,17 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 }
 
 
-Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type, duint tmpcodecount, duint* tmpcodelist)
+Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type)
 {
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
 
-    DataInstructionInfo info;
-
     auto & infoIter = dataInstMap.find(type);
-
     if(infoIter == dataInstMap.end())
-    {
         infoIter = dataInstMap.find(enc_byte);
-    }
 
 
-    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 1, tmpcodecount, tmpcodelist);
+    int len = mEncodeMap->getDataSize(origBase + origInstRVA, 1);
 
     QString mnemonic = _bLongDataInst ? infoIter.value().longName : infoIter.value().shortName;
 

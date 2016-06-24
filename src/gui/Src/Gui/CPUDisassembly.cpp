@@ -422,7 +422,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     QMenu* encodeTypeRangeMenu = makeMenu(tr("Treat selection as"));
 
-    const char* strTable[] = {"Command", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
+    const char* strTable[] = {"Code", "Byte", "Word", "Dword", "Fword", "Qword", "Tbyte", "Oword", "",
                               "Float", "Double", "Long Double", "",
                               "ASCII", "UNICODE", "",
                               "MMWord", "XMMWord", "YMMWord"
