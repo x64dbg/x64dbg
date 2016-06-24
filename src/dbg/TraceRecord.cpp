@@ -248,7 +248,6 @@ void TraceRecordManager::increaseInstructionCounter()
     InterlockedIncrement(&instructionCounter);
 }
 
-
 void TraceRecordManager::saveToDb(JSON root)
 {
     EXCLUSIVE_ACQUIRE(LockTraceRecord);
@@ -257,8 +256,6 @@ void TraceRecordManager::saveToDb(JSON root)
     for(auto i : TraceRecord)
     {
         JSON jsonObj = json_object();
-        duint j;
-        json_object_set_new(jsonObj, "idx", json_hex(i.first));
         if(i.second.moduleIndex != ~0)
         {
             json_object_set_new(jsonObj, "module", json_string(ModuleNames[i.second.moduleIndex].c_str()));
@@ -270,9 +267,8 @@ void TraceRecordManager::saveToDb(JSON root)
             json_object_set_new(jsonObj, "rva", json_hex(i.first));
         }
         json_object_set_new(jsonObj, "type", json_hex((duint)i.second.dataType));
-        char* ptr = (char*)i.second.rawPtr;
+        auto ptr = (unsigned char*)i.second.rawPtr;
         duint size = 0;
-        char* temp;
         switch(i.second.dataType)
         {
         case TraceRecordType::TraceRecordBitExec:
@@ -287,15 +283,8 @@ void TraceRecordManager::saveToDb(JSON root)
         default:
             __debugbreak(); // We have encountered an error condition.
         }
-        temp = (char*)emalloc(size * 2 + 1, "TraceRecordManager::saveToDb");
-        for(j = 0; j < size; j++)
-        {
-            temp[j * 2 + 1] = byteToHex[ptr[j] & 0xF];
-            temp[j * 2] = byteToHex[(ptr[j] & 0xF0) >> 4];
-        }
-        temp[size * 2] = 0;
-        json_object_set_new(jsonObj, "data", json_string(temp));
-        efree(temp, "TraceRecordManager::saveToDb");
+        auto hex = StringUtils::ToCompressedHex(ptr, size);
+        json_object_set_new(jsonObj, "data", json_string(hex.c_str()));
         json_array_append_new(jsonTraceRecords, jsonObj);
     }
     if(json_array_size(jsonTraceRecords))
@@ -343,32 +332,12 @@ void TraceRecordManager::loadFromDb(JSON root)
         {
             currentPage.rawPtr = emalloc(size, "TraceRecordManager");
             const char* p = json_string_value(json_object_get(value, "data"));
-            char* read_ptr = (char*)currentPage.rawPtr;
-            const char* c;
-            for(c = p; c < p + size * 2 && *c != '\0'; c += 2, read_ptr++)
+            std::vector<unsigned char> data;
+            if(StringUtils::FromCompressedHex(p, data) && data.size() == size)
             {
-                if(c[1] >= '0' && c[1] <= '9')
-                    *read_ptr = c[1] - '0';
-                else if(c[1] >= 'A' && c[0] <= 'F')
-                    *read_ptr = c[1] - 'A' + 10;
-                else
-                    break;
-                if(c[0] >= '0' && c[0] <= '9')
-                    *read_ptr |= (c[0] - '0') << 4;
-                else if(c[0] >= 'A' && c[0] <= 'F')
-                    *read_ptr |= (c[0] - 'A' + 10) << 4;
-                else
-                    break;
-            }
-            if(c != p + size * 2)
-            {
-                efree(currentPage.rawPtr, "TraceRecordManager");
-            }
-            else
-            {
+                memcpy(currentPage.rawPtr, data.data(), size);
                 const char* moduleName = json_string_value(json_object_get(value, "module"));
                 duint key;
-                dprintf("%s\n", moduleName);
                 if(*moduleName)
                 {
                     currentPage.moduleIndex = getModuleIndex(std::string(moduleName));
@@ -381,6 +350,8 @@ void TraceRecordManager::loadFromDb(JSON root)
                 }
                 TraceRecord.insert(std::make_pair(key, currentPage));
             }
+            else
+                efree(currentPage.rawPtr, "TraceRecordManager");
         }
     }
 }
@@ -436,14 +407,17 @@ unsigned int _dbg_dbggetTraceRecordHitCount(duint address)
 {
     return TraceRecord.getHitCount(address);
 }
+
 TRACERECORDBYTETYPE _dbg_dbggetTraceRecordByteType(duint address)
 {
     return (TRACERECORDBYTETYPE)TraceRecord.getByteType(address);
 }
+
 bool _dbg_dbgsetTraceRecordType(duint pageAddress, TRACERECORDTYPE type)
 {
     return TraceRecord.setTraceRecordType(pageAddress, (TraceRecordManager::TraceRecordType)type);
 }
+
 TRACERECORDTYPE _dbg_dbggetTraceRecordType(duint pageAddress)
 {
     return (TRACERECORDTYPE)TraceRecord.getTraceRecordType(pageAddress);

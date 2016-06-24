@@ -84,6 +84,7 @@ private:
 
 extern TraceRecordManager TraceRecord;
 void _dbg_dbgtraceexecute(duint CIP);
+
 //exported to bridge
 unsigned int _dbg_dbggetTraceRecordHitCount(duint address);
 TRACERECORDBYTETYPE _dbg_dbggetTraceRecordByteType(duint address);

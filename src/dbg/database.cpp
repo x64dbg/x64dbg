@@ -97,7 +97,7 @@ void DbSave(DbLoadSaveType saveType)
     CopyFileW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), FALSE); //make a backup
     if(json_object_size(root))
     {
-        char* jsonText = json_dumps(root, JSON_INDENT(4));
+        char* jsonText = json_dumps(root, JSON_INDENT(1));
 
         if(jsonText)
         {
