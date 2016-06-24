@@ -3,6 +3,7 @@
 #include "console.h"
 #include "filehelper.h"
 #include "function.h"
+#include "xrefs.h"
 
 RecursiveAnalysis::RecursiveAnalysis(duint base, duint size, duint entryPoint, duint maxDepth, bool dump)
     : Analysis(base, size),
@@ -24,6 +25,7 @@ void RecursiveAnalysis::SetMarkers()
         for(const auto & function : mFunctions)
             FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_" fhex ".dot", function.entryPoint), function.ToDot());
 
+    //set function ranges
     for(const auto & function : mFunctions)
     {
         duint start = ~0;
@@ -35,6 +37,7 @@ void RecursiveAnalysis::SetMarkers()
             start = min(node.second.start, start);
             end = max(node.second.end, end);
         }
+        XrefDelRange(start, end);
         if(!FunctionAdd(start, end, false, icount))
         {
             FunctionDelete(start);
@@ -42,6 +45,11 @@ void RecursiveAnalysis::SetMarkers()
             FunctionAdd(start, end, false, icount);
         }
     }
+
+    //set xrefs
+    for(const auto & xref : mXrefs)
+        XrefAdd(xref.addr, xref.from);
+
     GuiUpdateAllViews();
 }
 
@@ -56,7 +64,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
     {
         auto start = queue.front();
         queue.pop();
-        if(visited.count(start) || !inRange(start))  //already visited or out of range
+        if(visited.count(start) || !inRange(start)) //already visited or out of range
             continue;
         visited.insert(start);
 
@@ -69,7 +77,27 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
                 node.end++;
                 continue;
             }
-            if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())  //jump
+
+            //do xref analysis on the instruction
+            XREF xref;
+            xref.addr = 0;
+            xref.from = mCp.Address();
+            for(auto i = 0; i < mCp.OpCount(); i++)
+            {
+                duint dest = mCp.ResolveOpValue(i, [](x86_reg)->size_t
+                {
+                    return 0;
+                });
+                if(inRange(dest))
+                {
+                    xref.addr = dest;
+                    break;
+                }
+            }
+            if(xref.addr)
+                mXrefs.push_back(xref);
+
+            if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop()) //jump
             {
                 //set the branch destinations
                 node.brtrue = mCp.BranchDestination();

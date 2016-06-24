@@ -130,5 +130,13 @@ private:
     duint mMaxDepth;
     bool mDump;
 
+    struct XREF
+    {
+        duint addr;
+        duint from;
+    };
+
+    std::vector<XREF> mXrefs;
+
     void analyzeFunction(duint entryPoint);
 };
