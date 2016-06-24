@@ -358,7 +358,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         Function_t funcType;
         FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
         FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
-        if(funcLast == FUNC_END)
+        if(funcLast == FUNC_END && funcFirst != FUNC_SINGLE)
             funcFirst = funcLast;
         switch(funcFirst)
         {
@@ -378,7 +378,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             funcType = Function_end;
             break;
         }
-        int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
+        int funcsize = funcType == Function_none ? 0 : paintFunctionGraphic(painter, x, y, funcType, false);
 
         painter->setPen(mFunctionPen);
 
@@ -431,6 +431,12 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 curByte.textColor = mBytesColor;
             richBytes.push_back(curByte);
         }
+        if(mCodeFoldingManager->isFolded(cur_addr))
+        {
+            curByte.textColor = mBytesColor;
+            curByte.text = "...";
+            richBytes.push_back(curByte);
+        }
         RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, richBytes, mFontMetrics);
     }
     break;
@@ -481,28 +487,31 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     case 3: //draw comments
     {
-        int argsize = 0;
-
-        ARGTYPE argType = DbgGetArgTypeAt(cur_addr);
-        if(argType != ARG_NONE)
+        //draw arguments
+        Function_t funcType;
+        ARGTYPE argFirst = DbgGetArgTypeAt(cur_addr);
+        ARGTYPE argLast = DbgGetArgTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
+        if(argLast == ARG_END && argFirst != ARG_SINGLE)
+            argFirst = argLast;
+        switch(argFirst)
         {
-            Function_t funcType;
-            switch(argType)
-            {
-            case ARG_BEGIN:
-                funcType = Function_start;
-                break;
-            case ARG_MIDDLE:
-                funcType = Function_middle;
-                break;
-            case ARG_END:
-                funcType = Function_end;
-                break;
-            default:
-                break;
-            }
-            argsize += paintFunctionGraphic(painter, x, y, funcType, true);
+        case ARG_SINGLE:
+            funcType = Function_single;
+            break;
+        case ARG_NONE:
+            funcType = Function_none;
+            break;
+        case ARG_BEGIN:
+            funcType = Function_start;
+            break;
+        case ARG_MIDDLE:
+            funcType = Function_middle;
+            break;
+        case ARG_END:
+            funcType = Function_end;
+            break;
         }
+        int argsize = funcType == Function_none ? 3 : paintFunctionGraphic(painter, x, y, funcType, false);
 
         QString comment;
         bool autoComment = false;
@@ -521,12 +530,12 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 backgroundColor = mCommentBackgroundColor;
             }
 
-            int width = getCharWidth() * comment.length() + 4;
+            int width = getCharWidth() * comment.length();
             if(width > w)
                 width = w;
             if(width)
-                painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
-            painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, comment);
+                painter->fillRect(QRect(x + argsize, y, width, h), QBrush(backgroundColor)); //fill comment color
+            painter->drawText(QRect(x + argsize, y , width , h), Qt::AlignVCenter | Qt::AlignLeft, comment);
             argsize += width;
         }
         else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
@@ -536,12 +545,12 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             painter->setPen(mLabelColor);
             backgroundColor = mLabelBackgroundColor;
 
-            int width = getCharWidth() * labelText.length() + 4;
+            int width = getCharWidth() * labelText.length();
             if(width > w)
                 width = w;
             if(width)
-                painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
-            painter->drawText(QRect(x + argsize + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
+                painter->fillRect(QRect(x + argsize, y, width, h), QBrush(backgroundColor)); //fill comment color
+            painter->drawText(QRect(x + argsize, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
             argsize += width;
         }
 
@@ -559,12 +568,12 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             QString mnemBrief = brief;
             if(mnemBrief.length())
             {
-                int width = getCharWidth() * mnemBrief.length() + 4;
+                int width = getCharWidth() * mnemBrief.length();
                 if(width > w)
                     width = w;
                 if(width)
-                    painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(mMnemonicBriefBackgroundColor)); //mnemonic brief background color
-                painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
+                    painter->fillRect(QRect(x + argsize, y, width, h), QBrush(mMnemonicBriefBackgroundColor)); //mnemonic brief background color
+                painter->drawText(QRect(x + argsize, y , width , h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
             }
             break;
         }
@@ -1330,7 +1339,6 @@ void Disassembly::setSingleSelection(dsint index)
     emit selectionChanged(rvaToVa(index));
 }
 
-
 dsint Disassembly::getInitialSelection()
 {
     return mSelection.firstSelectedIndex;
@@ -1362,7 +1370,6 @@ void Disassembly::selectionChangedSlot(dsint Va)
         DbgXrefGet(Va, &mXrefInfo);
 }
 
-
 void Disassembly::selectNext(bool expand)
 {
     dsint wAddr;
@@ -1390,7 +1397,6 @@ void Disassembly::selectNext(bool expand)
         expandSelectionUpTo(wInstrSize);
     }
 }
-
 
 void Disassembly::selectPrevious(bool expand)
 {
@@ -1421,7 +1427,6 @@ void Disassembly::selectPrevious(bool expand)
     }
 }
 
-
 bool Disassembly::isSelected(dsint base, dsint offset)
 {
     dsint wAddr = base;
@@ -1436,7 +1441,6 @@ bool Disassembly::isSelected(dsint base, dsint offset)
     else
         return false;
 }
-
 
 bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
 {
