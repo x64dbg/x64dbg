@@ -983,6 +983,7 @@ void AbstractTableView::setRowCount(dsint count)
 void AbstractTableView::deleteAllColumns()
 {
     mColumnList.clear();
+    mColumnOrder.clear();
 }
 
 void AbstractTableView::setColTitle(int index, const QString & title)
