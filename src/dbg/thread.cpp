@@ -116,6 +116,15 @@ void ThreadGetList(THREADLIST* List)
     }
 }
 
+void ThreadGetList(std::vector<THREADINFO> & list)
+{
+    SHARED_ACQUIRE(LockThreads);
+    list.clear();
+    list.reserve(threadList.size());
+    for(const auto & thread : threadList)
+        list.push_back(thread.second);
+}
+
 bool ThreadIsValid(DWORD ThreadId)
 {
     SHARED_ACQUIRE(LockThreads);

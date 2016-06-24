@@ -1140,6 +1140,14 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     // EXIT_PROCESS_DEBUG_EVENT is signalled.
     // Switch to the main thread (because the thread is terminated).
     hActiveThread = ThreadGetHandle(fdProcessInfo->dwThreadId);
+    if(!hActiveThread)
+    {
+        std::vector<THREADINFO> threads;
+        ThreadGetList(threads);
+        if(!threads.size())
+            dputs("No threads left to switch to (bug?)");
+        hActiveThread = threads[0].Handle;
+    }
     DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     PLUG_CB_EXITTHREAD callbackInfo;
     callbackInfo.ExitThread = ExitThread;
