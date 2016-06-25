@@ -161,6 +161,8 @@ String stringformat(String format, const FormatValueVector & values)
     }
     if(inFormatter && formatString.size())
         output += handleFormatString(formatString, values);
+    else if(inFormatter)
+        output += "{";
     return output;
 }
 
