@@ -515,6 +515,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     bp.addr += ModBaseFromAddr(CIP);
     bp.active = true; //a breakpoint that has been hit is active
 
+    varset("$breakpointcounter", bp.hitcount, false); //save the breakpoint counter as a variable
+
     //get condition values
     bool breakCondition;
     bool logCondition;
@@ -581,7 +583,42 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     if(*bp.commandText && commandCondition)  //command
     {
         //TODO: commands like run/step etc will fuck up your shit
-        DbgCmdExec(bp.commandText);
+        varset("$breakpointcondition", breakCondition ? 1 : 0, false);
+        varset("$breakpointlogcondition", logCondition, false);
+        _dbg_dbgcmddirectexec(bp.commandText);
+        duint script_breakcondition;
+        int size;
+        VAR_TYPE type;
+        if(varget("$breakpointcondition", &script_breakcondition, &size, &type))
+        {
+            if(script_breakcondition != 0)
+            {
+                breakCondition = true;
+                if(bp.singleshoot)
+                    BpDelete(bp.addr, bptype);
+                switch(bptype)
+                {
+                case BPNORMAL:
+                    printSoftBpInfo(bp);
+                    break;
+                case BPHARDWARE:
+                    printHwBpInfo(bp);
+                    break;
+                case BPMEMORY:
+                    printMemBpInfo(bp, ExceptionAddress);
+                    break;
+                default:
+                    break;
+                }
+                GuiSetDebugState(paused);
+                DebugUpdateGui(CIP, true);
+                PLUG_CB_PAUSEDEBUG pauseInfo;
+                pauseInfo.reserved = nullptr;
+                plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+            }
+            else
+                breakCondition = false;
+        }
     }
     if(breakCondition)  //break the debugger
     {
