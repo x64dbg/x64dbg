@@ -217,5 +217,7 @@ String stringformatinline(String format)
     }
     if(inFormatter && formatString.size())
         output += handleFormatStringInline(formatString);
+    else if(inFormatter)
+        output += "{";
     return output;
 }

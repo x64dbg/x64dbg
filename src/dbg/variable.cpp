@@ -80,6 +80,11 @@ void varinit()
     // Hidden variables
     varnew("$ans\1$an", 0, VAR_HIDDEN);
 
+    // Breakpoint variables
+    varnew("$breakpointcondition", 0, VAR_SYSTEM);
+    varnew("$breakpointcounter", 0, VAR_SYSTEM);
+    varnew("$breakpointlogcondition", 0, VAR_SYSTEM);
+
     // Read-only variables
     varnew("$lastalloc", 0, VAR_READONLY);  // Last memory allocation
     varnew("$_EZ_FLAG", 0, VAR_READONLY);   // Equal/zero flag for internal use (1 = equal, 0 = unequal)

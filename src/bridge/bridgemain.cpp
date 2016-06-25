@@ -31,7 +31,7 @@ static bool bDisableGUIUpdate;
     szLib=name; \
     hInst=LoadLibraryW(name); \
     if(!hInst) \
-        return L"Error loading library \"" L#name L"\"!"
+        return L"Error loading library \"" name L"\"!"
 
 #define LOADEXPORT(name) \
     *((FARPROC*)&name)=GetProcAddress(hInst, #name); \
