@@ -392,7 +392,7 @@ static int mulhi(int x, int y)
 {
     return (int)(((long long)x * y) >> 32);
 }
-#endif //__MINGW64__
+#endif //_WIN64
 
 template<typename T>
 static bool operation(const ExpressionParser::Token::Type type, const T op1, const T op2, T & result, const bool signedcalc)
