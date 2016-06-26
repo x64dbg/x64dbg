@@ -1516,6 +1516,8 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         }
     }
     auto exceptionName = ExceptionCodeToName(ExceptionCode);
+    if(!exceptionName.size())  //if no exception was found, try the error codes (RPC_S_*)
+        exceptionName = ErrorCodeToName(ExceptionCode);
     if(ExceptionData->dwFirstChance) //first chance exception
     {
         if(exceptionName.size())

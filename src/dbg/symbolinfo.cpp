@@ -75,6 +75,14 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
     if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
         dputs("SymEnumSymbols failed!");
 
+    // Emit pseudo entry point symbol
+    SYMBOLINFO symbol;
+    memset(&symbol, 0, sizeof(SYMBOLINFO));
+    symbol.decoratedSymbol = "OptionalHeader.AddressOfEntryPoint";
+    symbol.addr = ModEntryFromAddr(Base);
+    if(symbol.addr)
+        EnumCallback(&symbol, UserData);
+
     SymEnumImports(Base, EnumCallback, UserData);
 }
 

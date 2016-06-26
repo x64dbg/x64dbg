@@ -172,7 +172,7 @@ typedef struct
 
 typedef struct
 {
-    JSON root;
+    json_t* root;
     int loadSaveType;
 } PLUG_CB_LOADSAVEDB;
 

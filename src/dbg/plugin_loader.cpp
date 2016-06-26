@@ -174,7 +174,7 @@ void pluginload(const char* pluginDir)
         //init plugin
         if(!pluginData.pluginit(&pluginData.initStruct))
         {
-            dprintf("[PLUGIN] pluginit failed for plugin: %s\n", foundData.cFileName);
+            dprintf("[PLUGIN] pluginit failed for plugin: %s\n", StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
             FreeLibrary(pluginData.hPlugin);
             continue;
         }
