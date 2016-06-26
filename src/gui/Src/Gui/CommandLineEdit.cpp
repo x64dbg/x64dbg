@@ -80,11 +80,6 @@ void CommandLineEdit::keyPressEvent(QKeyEvent* event)
             // Ctrl + Down selects the next language
             index = (index + 1) % count;
         }
-        else if(event->key() == Qt::Key_Left)
-        {
-            // Alt + Left selects the first language
-            index = 0;
-        }
         else
             HistoryLineEdit::keyPressEvent(event);
         mCmdScriptType->setCurrentIndex(index);
