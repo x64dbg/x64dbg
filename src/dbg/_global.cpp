@@ -230,7 +230,7 @@ bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName)
         return false;
 
     wchar_t wszFileName[MAX_PATH] = L"";
-    if(!DevicePathToPathW(wszDosFileName, wszFileName, MAX_PATH * sizeof(wchar_t)))
+    if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
         return false;
     strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     return true;
