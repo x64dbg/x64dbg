@@ -29,45 +29,71 @@ CommandLineEdit::CommandLineEdit(QWidget* parent)
 
 void CommandLineEdit::keyPressEvent(QKeyEvent* event)
 {
-    // We only want key-press events for TAB
-    if(event->type() != QEvent::KeyPress || event->key() != Qt::Key_Tab)
+    if(event->type() == QEvent::KeyPress && event->key() == Qt::Key_Tab)
     {
-        HistoryLineEdit::keyPressEvent(event);
-        return;
-    }
+        // TAB autocompletes the command
+        QStringList stringList = mCompleterModel->stringList();
 
-    // Tab autocompletes the command
-    QStringList stringList = mCompleterModel->stringList();
-
-    if(stringList.size())
-    {
-        QAbstractItemView* popup = mCompleter->popup();
-        QModelIndex currentModelIndex = popup->currentIndex();
-
-        // If not item selected, select first one in the list
-        if(currentModelIndex.row() < 0)
-            currentModelIndex = mCompleter->currentIndex();
-
-        // If popup list is not visible, selected next suggested command
-        if(!popup->isVisible())
+        if(stringList.size())
         {
-            for(int row = 0; row < popup->model()->rowCount(); row++)
-            {
-                QModelIndex modelIndex = popup->model()->index(row, 0);
+            QAbstractItemView* popup = mCompleter->popup();
+            QModelIndex currentModelIndex = popup->currentIndex();
 
-                // If the lineedit contains a suggested command, get the next suggested one
-                if(popup->model()->data(modelIndex) == this->text())
+            // If not item selected, select first one in the list
+            if(currentModelIndex.row() < 0)
+                currentModelIndex = mCompleter->currentIndex();
+
+            // If popup list is not visible, selected next suggested command
+            if(!popup->isVisible())
+            {
+                for(int row = 0; row < popup->model()->rowCount(); row++)
                 {
-                    int nextModelIndexRow = (currentModelIndex.row() + 1) % popup->model()->rowCount();
-                    currentModelIndex = popup->model()->index(nextModelIndexRow, 0);
-                    break;
+                    QModelIndex modelIndex = popup->model()->index(row, 0);
+
+                    // If the lineedit contains a suggested command, get the next suggested one
+                    if(popup->model()->data(modelIndex) == this->text())
+                    {
+                        int nextModelIndexRow = (currentModelIndex.row() + 1) % popup->model()->rowCount();
+                        currentModelIndex = popup->model()->index(nextModelIndexRow, 0);
+                        break;
+                    }
                 }
             }
-        }
 
-        popup->setCurrentIndex(currentModelIndex);
-        popup->hide();
+            popup->setCurrentIndex(currentModelIndex);
+            popup->hide();
+        }
     }
+    else if(event->type() == QEvent::KeyPress && event->modifiers() == Qt::ControlModifier)
+    {
+        int index = mCmdScriptType->currentIndex(), count = mCmdScriptType->count();
+        if(event->key() == Qt::Key_Up)
+        {
+            // Ctrl + Up selects the previous language
+            if(index > 0)
+                index--;
+            else
+                index = count - 1;
+        }
+        else if(event->key() == Qt::Key_Down)
+        {
+            // Ctrl + Down selects the next language
+            index = (index + 1) % count;
+        }
+        else if(event->key() == Qt::Key_Left)
+        {
+            // Ctrl + Left selects the first language
+            index = 0;
+        }
+        else if(event->key() == Qt::Key_Right)
+        {
+            // Ctrl + Right selects the last language
+            index = count - 1;
+        }
+        mCmdScriptType->setCurrentIndex(index);
+    }
+    else
+        HistoryLineEdit::keyPressEvent(event);
 }
 
 // Disables moving to Prev/Next child when pressing tab

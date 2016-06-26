@@ -3771,7 +3771,7 @@
       "mnem": "jnc"
     }, 
     {
-      "description": "jump short if not equal (zf=0)", 
+      "description": "jump short if not equal/not zero (zf=0)", 
       "mnem": "jne"
     }, 
     {
