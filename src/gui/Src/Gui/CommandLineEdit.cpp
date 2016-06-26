@@ -64,12 +64,12 @@ void CommandLineEdit::keyPressEvent(QKeyEvent* event)
             popup->hide();
         }
     }
-    else if(event->type() == QEvent::KeyPress && event->modifiers() == Qt::ControlModifier)
+    else if(event->type() == QEvent::KeyPress && event->modifiers() == Qt::AltModifier)
     {
         int index = mCmdScriptType->currentIndex(), count = mCmdScriptType->count();
         if(event->key() == Qt::Key_Up)
         {
-            // Ctrl + Up selects the previous language
+            // Alt + Up selects the previous language
             if(index > 0)
                 index--;
             else
@@ -77,19 +77,21 @@ void CommandLineEdit::keyPressEvent(QKeyEvent* event)
         }
         else if(event->key() == Qt::Key_Down)
         {
-            // Ctrl + Down selects the next language
+            // Alt + Down selects the next language
             index = (index + 1) % count;
         }
         else if(event->key() == Qt::Key_Left)
         {
-            // Ctrl + Left selects the first language
+            // Alt + Left selects the first language
             index = 0;
         }
         else if(event->key() == Qt::Key_Right)
         {
-            // Ctrl + Right selects the last language
+            // Alt + Right selects the last language
             index = count - 1;
         }
+        else
+            HistoryLineEdit::keyPressEvent(event);
         mCmdScriptType->setCurrentIndex(index);
     }
     else
