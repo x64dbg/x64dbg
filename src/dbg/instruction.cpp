@@ -2109,7 +2109,7 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
         dprintf("invalid module \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    return cmddirectexec("yara \"%s\",%s,%s", argv[1], argv[2], argc > 3 && *argv[3] == '1' ? "1" : "0");
+    return cmddirectexec("yara \"%s\",\"%s\",%s", argv[1], argv[2], argc > 3 && *argv[3] == '1' ? "1" : "0");
 }
 
 CMDRESULT cbInstrLog(int argc, char* argv[])
