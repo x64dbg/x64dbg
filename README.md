@@ -88,6 +88,8 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - ahmadmansoor
 - \_pusher\_
 - firelegend
+- kao
+- sstrato
 
 ## Developers
 
@@ -118,3 +120,4 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - [wynick27](https://github.com/wynick27)
 - [Atvaark](https://github.com/Atvaark)
 - [Avin](https://github.com/Avinm)
+- [mrfearless](https://github.com/mrfearless)

@@ -133,5 +133,15 @@
         <file>images/treat_selection_as_longdouble.png</file>
         <file>images/treat_from_selection_as.png</file>
         <file>images/treat_selection_head_as.png</file>
+        <file>images/register_dec.png</file>
+        <file>images/register_edit.png</file>
+        <file>images/register_inc.png</file>
+        <file>images/register_one.png</file>
+        <file>images/register_toggle.png</file>
+        <file>images/register_zero.png</file>
+        <file>images/arrow-small-down.png</file>
+        <file>images/arrow-small-up.png</file>
+        <file>images/copy-alt.png</file>
+        <file>images/change-view.png</file>
     </qresource>
 </RCC>
