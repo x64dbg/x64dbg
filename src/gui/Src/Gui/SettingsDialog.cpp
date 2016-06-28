@@ -115,6 +115,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "EnableSourceDebugging", &settings.engineEnableSourceDebugging);
     GetSettingBool("Engine", "SaveDatabaseInProgramDirectory", &settings.engineSaveDatabaseInProgramDirectory);
     GetSettingBool("Engine", "DisableDatabaseCompression", &settings.engineDisableDatabaseCompression);
+    GetSettingBool("Engine", "TraceRecordEnabledDuringTrace", &settings.engineEnableTraceRecordDuringTrace);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -141,6 +142,7 @@ void SettingsDialog::LoadSettings()
     ui->chkEnableSourceDebugging->setChecked(settings.engineEnableSourceDebugging);
     ui->chkSaveDatabaseInProgramDirectory->setChecked(settings.engineSaveDatabaseInProgramDirectory);
     ui->chkDisableDatabaseCompression->setChecked(settings.engineDisableDatabaseCompression);
+    ui->chkTraceRecordEnabledDuringTrace->setChecked(settings.engineEnableTraceRecordDuringTrace);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -264,6 +266,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "EnableSourceDebugging", settings.engineEnableSourceDebugging);
     BridgeSettingSetUint("Engine", "SaveDatabaseInProgramDirectory", settings.engineSaveDatabaseInProgramDirectory);
     BridgeSettingSetUint("Engine", "DisableDatabaseCompression", settings.engineDisableDatabaseCompression);
+    BridgeSettingSetUint("Engine", "TraceRecordEnabledDuringTrace", settings.engineEnableTraceRecordDuringTrace);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -556,6 +559,11 @@ void SettingsDialog::on_chkDisableDatabaseCompression_stateChanged(int arg1)
 void SettingsDialog::on_chkSaveDatabaseInProgramDirectory_stateChanged(int arg1)
 {
     settings.engineSaveDatabaseInProgramDirectory = arg1 == Qt::Checked;
+}
+
+void SettingsDialog::on_chkTraceRecordEnabledDuringTrace_stateChanged(int arg1)
+{
+    settings.engineEnableTraceRecordDuringTrace = arg1 == Qt::Checked;
 }
 
 void SettingsDialog::on_btnAddRange_clicked()
