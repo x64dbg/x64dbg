@@ -209,21 +209,21 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     MenuBuilder* binaryMenu = new MenuBuilder(this);
-    binaryMenu->addAction(makeShortcutAction(tr("&Edit"), SLOT(binaryEditSlot()), "ActionBinaryEdit"));
-    binaryMenu->addAction(makeShortcutAction(tr("&Fill..."), SLOT(binaryFillSlot()), "ActionBinaryFill"));
-    binaryMenu->addAction(makeShortcutAction(tr("Fill with &NOPs"), SLOT(binaryFillNopsSlot()), "ActionBinaryFillNops"));
+    binaryMenu->addAction(makeShortcutAction(QIcon(":/icons/images/binary_edit.png"), tr("&Edit"), SLOT(binaryEditSlot()), "ActionBinaryEdit"));
+    binaryMenu->addAction(makeShortcutAction(QIcon(":/icons/images/binary_fill.png"), tr("&Fill..."), SLOT(binaryFillSlot()), "ActionBinaryFill"));
+    binaryMenu->addAction(makeShortcutAction(QIcon(":/icons/images/binary_fill_nop.png"), tr("Fill with &NOPs"), SLOT(binaryFillNopsSlot()), "ActionBinaryFillNops"));
     binaryMenu->addSeparator();
-    binaryMenu->addAction(makeShortcutAction(tr("&Copy"), SLOT(binaryCopySlot()), "ActionBinaryCopy"));
-    binaryMenu->addAction(makeShortcutAction(tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
-    binaryMenu->addAction(makeShortcutAction(tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"));
+    binaryMenu->addAction(makeShortcutAction(QIcon(":/icons/images/binary_copy.png"), tr("&Copy"), SLOT(binaryCopySlot()), "ActionBinaryCopy"));
+    binaryMenu->addAction(makeShortcutAction(QIcon(":/icons/images/binary_paste.png"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
+    binaryMenu->addAction(makeShortcutAction(QIcon(":/icons/images/binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"));
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/binary.png"), tr("&Binary")), binaryMenu);
 
     MenuBuilder* copyMenu = new MenuBuilder(this);
-    copyMenu->addAction(makeShortcutAction(tr("&Selection"), SLOT(copySelectionSlot()), "ActionCopy"));
-    copyMenu->addAction(makeAction(tr("Selection (&No Bytes)"), SLOT(copySelectionNoBytesSlot())));
-    copyMenu->addAction(makeShortcutAction(tr("&Address"), SLOT(copyAddressSlot()), "ActionCopyAddress"));
-    copyMenu->addAction(makeAction(tr("&RVA"), SLOT(copyRvaSlot())));
-    copyMenu->addAction(makeAction(tr("Disassembly"), SLOT(copyDisassemblySlot())));
+    copyMenu->addAction(makeShortcutAction(QIcon(":/icons/images/copy_selection.png"), tr("&Selection"), SLOT(copySelectionSlot()), "ActionCopy"));
+    copyMenu->addAction(makeAction(QIcon(":/icons/images/copy_selection_no_bytes.png"), tr("Selection (&No Bytes)"), SLOT(copySelectionNoBytesSlot())));
+    copyMenu->addAction(makeShortcutAction(QIcon(":/icons/images/copy_address.png"), tr("&Address"), SLOT(copyAddressSlot()), "ActionCopyAddress"));
+    copyMenu->addAction(makeAction(QIcon(":/icons/images/copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot())));
+    copyMenu->addAction(makeAction(QIcon(":/icons/images/copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/copy.png"), tr("&Copy")), copyMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
@@ -233,16 +233,16 @@ void CPUDisassembly::setupRightClickContextMenu()
         return DbgFunctions()->PatchInRange(start, end); //something patched in selected range
     });
 
-    QAction* toggleBreakpointAction = makeShortcutAction(tr("Toggle"), SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
-    QAction* editSoftwareBreakpointAction = makeShortcutAction(tr("Edit"), SLOT(editSoftBpActionSlot()), "ActionEditBreakpoint");
-    QAction* setHwBreakpointAction = makeShortcutAction(tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()), "ActionSetHwBpE");
-    QAction* removeHwBreakpointAction = makeShortcutAction(tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()), "ActionRemoveHwBp");
+    QAction* toggleBreakpointAction = makeShortcutAction(QIcon(":/icons/images/breakpoint_toggle.png"), tr("Toggle"), SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
+    QAction* editSoftwareBreakpointAction = makeShortcutAction(QIcon(":/icons/images/breakpoint_edit.png"), tr("Edit"), SLOT(editSoftBpActionSlot()), "ActionEditBreakpoint");
+    QAction* setHwBreakpointAction = makeShortcutAction(QIcon(":/icons/images/breakpoint_execute.png"), tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()), "ActionSetHwBpE");
+    QAction* removeHwBreakpointAction = makeShortcutAction(QIcon(":/icons/images/breakpoint_remove.png"), tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()), "ActionRemoveHwBp");
 
-    QMenu* replaceSlotMenu = makeMenu(tr("Set Hardware on Execution"));
-    QAction* replaceSlot0Action = makeMenuAction(replaceSlotMenu, tr("Replace Slot 0 (Free)"), SLOT(setHwBpOnSlot0ActionSlot()));
-    QAction* replaceSlot1Action  = makeMenuAction(replaceSlotMenu, tr("Replace Slot 1 (Free)"), SLOT(setHwBpOnSlot1ActionSlot()));
-    QAction* replaceSlot2Action  = makeMenuAction(replaceSlotMenu, tr("Replace Slot 2 (Free)"), SLOT(setHwBpOnSlot2ActionSlot()));
-    QAction* replaceSlot3Action  = makeMenuAction(replaceSlotMenu, tr("Replace Slot 3 (Free)"), SLOT(setHwBpOnSlot3ActionSlot()));
+    QMenu* replaceSlotMenu = makeMenu(QIcon(":/icons/images/breakpoint_execute.png"), tr("Set Hardware on Execution"));
+    QAction* replaceSlot0Action = makeMenuAction(replaceSlotMenu, QIcon(":/icons/images/breakpoint_execute_slot1.png"), tr("Replace Slot 0 (Free)"), SLOT(setHwBpOnSlot0ActionSlot()));
+    QAction* replaceSlot1Action = makeMenuAction(replaceSlotMenu, QIcon(":/icons/images/breakpoint_execute_slot2.png"), tr("Replace Slot 1 (Free)"), SLOT(setHwBpOnSlot1ActionSlot()));
+    QAction* replaceSlot2Action = makeMenuAction(replaceSlotMenu, QIcon(":/icons/images/breakpoint_execute_slot3.png"), tr("Replace Slot 2 (Free)"), SLOT(setHwBpOnSlot2ActionSlot()));
+    QAction* replaceSlot3Action = makeMenuAction(replaceSlotMenu, QIcon(":/icons/images/breakpoint_execute_slot4.png"), tr("Replace Slot 3 (Free)"), SLOT(setHwBpOnSlot3ActionSlot()));
 
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/breakpoint.png"), tr("Breakpoint")), [ = ](QMenu * menu)
     {
@@ -273,9 +273,6 @@ void CPUDisassembly::setupRightClickContextMenu()
             }
             else
             {
-                REGDUMP wRegDump;
-                DbgGetRegDump(&wRegDump);
-
                 for(int i = 0; i < 4; i++)
                 {
                     switch(bpList.bp[i].slot)
@@ -322,8 +319,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     MenuBuilder* decompileMenu = new MenuBuilder(this);
-    decompileMenu->addAction(makeShortcutAction(tr("Selection"), SLOT(decompileSelectionSlot()), "ActionDecompileSelection"));
-    decompileMenu->addAction(makeShortcutAction(tr("Function"), SLOT(decompileFunctionSlot()), "ActionDecompileFunction"), [this](QMenu*)
+    decompileMenu->addAction(makeShortcutAction(QIcon(":/icons/images/decompile_selection.png"), tr("Selection"), SLOT(decompileSelectionSlot()), "ActionDecompileSelection"));
+    decompileMenu->addAction(makeShortcutAction(QIcon(":/icons/images/decompile_function.png"), tr("Function"), SLOT(decompileFunctionSlot()), "ActionDecompileFunction"), [this](QMenu*)
     {
         return DbgFunctionGet(rvaToVa(getInitialSelection()), 0, 0);
     });
@@ -394,7 +391,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/comment.png"), tr("Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
-    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/bookmark.png"), tr("Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
     mMenuBuilder->addSeparator();
 
     MenuBuilder* analysisMenu = new MenuBuilder(this);
@@ -530,20 +527,20 @@ void CPUDisassembly::setupRightClickContextMenu()
     MenuBuilder* mSearchAllMenu = new MenuBuilder(this);
 
     // Search in Current Region menu
-    mFindCommandRegion = makeShortcutAction(tr("C&ommand"), SLOT(findCommandSlot()), "ActionFind");
-    mFindConstantRegion = makeAction(tr("&Constant"), SLOT(findConstantSlot()));
-    mFindStringsRegion = makeAction(tr("&String references"), SLOT(findStringsSlot()));
+    mFindCommandRegion = makeShortcutAction(QIcon(":/icons/images/search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()), "ActionFind");
+    mFindConstantRegion = makeAction(QIcon(":/icons/images/search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
+    mFindStringsRegion = makeAction(QIcon(":/icons/images/search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsRegion = makeAction(QIcon(":/icons/images/call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mSearchRegionMenu->addAction(mFindCommandRegion);
     mSearchRegionMenu->addAction(mFindConstantRegion);
     mSearchRegionMenu->addAction(mFindStringsRegion);
     mSearchRegionMenu->addAction(mFindCallsRegion);
-    mSearchRegionMenu->addAction(makeShortcutAction(tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPattern"));
+    mSearchRegionMenu->addAction(makeShortcutAction(QIcon(":/icons/images/search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPattern"));
 
     // Search in Current Module menu
-    mFindCommandModule = makeAction(tr("C&ommand"), SLOT(findCommandSlot()));
-    mFindConstantModule = makeAction(tr("&Constant"), SLOT(findConstantSlot()));
-    mFindStringsModule = makeAction(tr("&String references"), SLOT(findStringsSlot()));
+    mFindCommandModule = makeAction(QIcon(":/icons/images/search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindConstantModule = makeAction(QIcon(":/icons/images/search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
+    mFindStringsModule = makeAction(QIcon(":/icons/images/search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsModule = makeAction(QIcon(":/icons/images/call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mSearchModuleMenu->addAction(mFindCommandModule);
     mSearchModuleMenu->addAction(mFindConstantModule);
@@ -551,18 +548,18 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSearchModuleMenu->addAction(mFindCallsModule);
 
     // Search in All Modules menu
-    mFindCommandAll = makeAction(tr("C&ommand"), SLOT(findCommandSlot()));
-    mFindConstantAll = makeAction(tr("&Constant"), SLOT(findConstantSlot()));
-    mFindStringsAll = makeAction(tr("&String references"), SLOT(findStringsSlot()));
+    mFindCommandAll = makeAction(QIcon(":/icons/images/search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindConstantAll = makeAction(QIcon(":/icons/images/search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
+    mFindStringsAll = makeAction(QIcon(":/icons/images/search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsAll = makeAction(QIcon(":/icons/images/call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mSearchAllMenu->addAction(mFindCommandAll);
     mSearchAllMenu->addAction(mFindConstantAll);
     mSearchAllMenu->addAction(mFindStringsAll);
     mSearchAllMenu->addAction(mFindCallsAll);
 
-    searchMenu->addMenu(makeMenu(tr("Current Region")), mSearchRegionMenu);
-    searchMenu->addMenu(makeMenu(tr("Current Module")), mSearchModuleMenu);
-    searchMenu->addMenu(makeMenu(tr("All Modules")), mSearchAllMenu);
+    searchMenu->addMenu(makeMenu(QIcon(":/icons/images/search_current_region.png"), tr("Current Region")), mSearchRegionMenu);
+    searchMenu->addMenu(makeMenu(QIcon(":/icons/images/search_current_module.png"), tr("Current Module")), mSearchModuleMenu);
+    searchMenu->addMenu(makeMenu(QIcon(":/icons/images/search_all_modules.png"), tr("All Modules")), mSearchAllMenu);
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/search-for.png"), tr("&Search for")), searchMenu);
 
     mReferenceSelectedAddressAction = makeShortcutAction(tr("&Selected Address(es)"), SLOT(findReferencesSlot()), "ActionFindReferencesToSelectedAddress");

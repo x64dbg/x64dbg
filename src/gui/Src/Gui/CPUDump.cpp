@@ -35,14 +35,14 @@ void CPUDump::setupContextMenu()
     mBinaryMenu->setIcon(QIcon(":/icons/images/binary.png"));
 
     //Binary->Edit
-    mBinaryEditAction = new QAction(tr("&Edit"), this);
+    mBinaryEditAction = new QAction(QIcon(":/icons/images/binary_edit.png"), tr("&Edit"), this);
     mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryEditAction);
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
     mBinaryMenu->addAction(mBinaryEditAction);
 
     //Binary->Fill
-    mBinaryFillAction = new QAction(tr("&Fill..."), this);
+    mBinaryFillAction = new QAction(QIcon(":/icons/images/binary_fill.png"), tr("&Fill..."), this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
@@ -52,21 +52,21 @@ void CPUDump::setupContextMenu()
     mBinaryMenu->addSeparator();
 
     //Binary->Copy
-    mBinaryCopyAction = new QAction(tr("&Copy"), this);
+    mBinaryCopyAction = new QAction(QIcon(":/icons/images/binary_copy.png"), tr("&Copy"), this);
     mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryCopyAction);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
     mBinaryMenu->addAction(mBinaryCopyAction);
 
     //Binary->Paste
-    mBinaryPasteAction = new QAction(tr("&Paste"), this);
+    mBinaryPasteAction = new QAction(QIcon(":/icons/images/binary_paste.png"), tr("&Paste"), this);
     mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteAction);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
     //Binary->Paste (Ignore Size)
-    mBinaryPasteIgnoreSizeAction = new QAction(tr("Paste (&Ignore Size)"), this);
+    mBinaryPasteIgnoreSizeAction = new QAction(QIcon(":/icons/images/binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), this);
     mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
@@ -153,17 +153,18 @@ void CPUDump::setupContextMenu()
 
     //Breakpoint->Hardware, on access
     mHardwareAccessMenu = new QMenu(tr("Hardware, &Access"), this);
-    mHardwareAccess1 = new QAction(tr("&Byte"), this);
+    mHardwareAccessMenu->setIcon(QIcon(":/icons/images/breakpoint_access.png"));
+    mHardwareAccess1 = new QAction(QIcon(":/icons/images/breakpoint_byte.png"), tr("&Byte"), this);
     connect(mHardwareAccess1, SIGNAL(triggered()), this, SLOT(hardwareAccess1Slot()));
     mHardwareAccessMenu->addAction(mHardwareAccess1);
-    mHardwareAccess2 = new QAction(tr("&Word"), this);
+    mHardwareAccess2 = new QAction(QIcon(":/icons/images/breakpoint_word.png"), tr("&Word"), this);
     connect(mHardwareAccess2, SIGNAL(triggered()), this, SLOT(hardwareAccess2Slot()));
     mHardwareAccessMenu->addAction(mHardwareAccess2);
-    mHardwareAccess4 = new QAction(tr("&Dword"), this);
+    mHardwareAccess4 = new QAction(QIcon(":/icons/images/breakpoint_dword.png"), tr("&Dword"), this);
     connect(mHardwareAccess4, SIGNAL(triggered()), this, SLOT(hardwareAccess4Slot()));
     mHardwareAccessMenu->addAction(mHardwareAccess4);
 #ifdef _WIN64
-    mHardwareAccess8 = new QAction(tr("&Qword"), this);
+    mHardwareAccess8 = new QAction(QIcon(":/icons/images/breakpoint_qword.png"), tr("&Qword"), this);
     connect(mHardwareAccess8, SIGNAL(triggered()), this, SLOT(hardwareAccess8Slot()));
     mHardwareAccessMenu->addAction(mHardwareAccess8);
 #endif //_WIN64
@@ -171,27 +172,28 @@ void CPUDump::setupContextMenu()
 
     //Breakpoint->Hardware, on write
     mHardwareWriteMenu = new QMenu(tr("Hardware, &Write"), this);
-    mHardwareWrite1 = new QAction(tr("&Byte"), this);
+    mHardwareWriteMenu->setIcon(QIcon(":/icons/images/breakpoint_write.png"));
+    mHardwareWrite1 = new QAction(QIcon(":/icons/images/breakpoint_byte.png"), tr("&Byte"), this);
     connect(mHardwareWrite1, SIGNAL(triggered()), this, SLOT(hardwareWrite1Slot()));
     mHardwareWriteMenu->addAction(mHardwareWrite1);
-    mHardwareWrite2 = new QAction(tr("&Word"), this);
+    mHardwareWrite2 = new QAction(QIcon(":/icons/images/breakpoint_word.png"), tr("&Word"), this);
     connect(mHardwareWrite2, SIGNAL(triggered()), this, SLOT(hardwareWrite2Slot()));
     mHardwareWriteMenu->addAction(mHardwareWrite2);
-    mHardwareWrite4 = new QAction(tr("&Dword"), this);
+    mHardwareWrite4 = new QAction(QIcon(":/icons/images/breakpoint_dword.png"), tr("&Dword"), this);
     connect(mHardwareWrite4, SIGNAL(triggered()), this, SLOT(hardwareWrite4Slot()));
     mHardwareWriteMenu->addAction(mHardwareWrite4);
 #ifdef _WIN64
-    mHardwareWrite8 = new QAction(tr("&Qword"), this);
+    mHardwareWrite8 = new QAction(QIcon(":/icons/images/breakpoint_qword.png"), tr("&Qword"), this);
     connect(mHardwareWrite8, SIGNAL(triggered()), this, SLOT(hardwareWrite8Slot()));
     mHardwareWriteMenu->addAction(mHardwareWrite8);
 #endif //_WIN64
     mBreakpointMenu->addMenu(mHardwareWriteMenu);
 
-    mHardwareExecute = new QAction(tr("Hardware, &Execute"), this);
+    mHardwareExecute = new QAction(QIcon(":/icons/images/breakpoint_execute.png"), tr("Hardware, &Execute"), this);
     connect(mHardwareExecute, SIGNAL(triggered()), this, SLOT(hardwareExecuteSlot()));
     mBreakpointMenu->addAction(mHardwareExecute);
 
-    mHardwareRemove = new QAction(tr("Remove &Hardware"), this);
+    mHardwareRemove = new QAction(QIcon(":/icons/images/breakpoint_remove.png"), tr("Remove &Hardware"), this);
     connect(mHardwareRemove, SIGNAL(triggered()), this, SLOT(hardwareRemoveSlot()));
     mBreakpointMenu->addAction(mHardwareRemove);
 
@@ -200,36 +202,39 @@ void CPUDump::setupContextMenu()
 
     //Breakpoint->Memory Access
     mMemoryAccessMenu = new QMenu(tr("Memory, Access"), this);
-    mMemoryAccessSingleshoot = new QAction(tr("&Singleshoot"), this);
+    mMemoryAccessMenu->setIcon(QIcon(":/icons/images/breakpoint_memory_access.png"));
+    mMemoryAccessSingleshoot = new QAction(QIcon(":/icons/images/breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
     connect(mMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessSingleshoot);
-    mMemoryAccessRestore = new QAction(tr("&Restore on hit"), this);
+    mMemoryAccessRestore = new QAction(QIcon(":/icons/images/breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), this);
     connect(mMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessRestore);
     mBreakpointMenu->addMenu(mMemoryAccessMenu);
 
     //Breakpoint->Memory Write
     mMemoryWriteMenu = new QMenu(tr("Memory, Write"), this);
-    mMemoryWriteSingleshoot = new QAction(tr("&Singleshoot"), this);
+    mMemoryWriteMenu->setIcon(QIcon(":/icons/images/breakpoint_memory_write.png"));
+    mMemoryWriteSingleshoot = new QAction(QIcon(":/icons/images/breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
     connect(mMemoryWriteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteSingleshoot);
-    mMemoryWriteRestore = new QAction(tr("&Restore on hit"), this);
+    mMemoryWriteRestore = new QAction(QIcon(":/icons/images/breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), this);
     connect(mMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteRestore);
     mBreakpointMenu->addMenu(mMemoryWriteMenu);
 
     //Breakpoint->Memory Execute
     mMemoryExecuteMenu = new QMenu(tr("Memory, Execute"), this);
-    mMemoryExecuteSingleshoot = new QAction(tr("&Singleshoot"), this);
+    mMemoryExecuteMenu->setIcon(QIcon(":/icons/images/breakpoint_memory_execute.png"));
+    mMemoryExecuteSingleshoot = new QAction(QIcon(":/icons/images/breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
     connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
-    mMemoryExecuteRestore = new QAction(tr("&Restore on hit"), this);
+    mMemoryExecuteRestore = new QAction(QIcon(":/icons/images/breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), this);
     connect(mMemoryExecuteRestore, SIGNAL(triggered()), this, SLOT(memoryExecuteRestoreSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteRestore);
     mBreakpointMenu->addMenu(mMemoryExecuteMenu);
 
     //Breakpoint->Remove Memory
-    mMemoryRemove = new QAction(tr("Remove &Memory"), this);
+    mMemoryRemove = new QAction(QIcon(":/icons/images/breakpoint_remove.png"), tr("Remove &Memory"), this);
     connect(mMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
     mBreakpointMenu->addAction(mMemoryRemove);
 
