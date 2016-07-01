@@ -177,9 +177,11 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
             case 4:
                 DbgMemRead(value, (unsigned char*)&arg->memvalue, 4);
                 break;
+#ifdef _WIN64
             case 8:
                 DbgMemRead(value, (unsigned char*)&arg->memvalue, 8);
                 break;
+#endif //_WIN64
             }
         }
     }
