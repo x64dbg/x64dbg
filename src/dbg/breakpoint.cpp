@@ -432,7 +432,7 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         break;
     case BPHARDWARE:
         BridgeBp->type = bp_hardware;
-        switch(TITANGETTYPE(Bp->titantype))
+        switch(TITANGETDRX(Bp->titantype))
         {
         case UE_DR0:
             BridgeBp->slot = 0;
