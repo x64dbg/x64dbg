@@ -59,7 +59,7 @@ private:
     dsint getGroupAddress(const PatchInfoList & patchList, int group);
 
     void saveAs1337(const QString & filename);
-    //void saveAsC(const QString & filename);
+    void saveAsC(const QString & filename);
 
 private slots:
     void dbgStateChanged(DBGSTATE state);
