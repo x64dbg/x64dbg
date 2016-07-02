@@ -891,7 +891,11 @@ void cbRtrStep()
 void cbTOCNDStep()
 {
     if(traceCondition && traceCondition->ContinueTrace())
+    {
+        // Trace record
+        _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
         StepOver((void*)cbTOCNDStep);
+    }
     else
     {
         auto steps = dbgcleartracecondition();
@@ -903,7 +907,11 @@ void cbTOCNDStep()
 void cbTICNDStep()
 {
     if(traceCondition && traceCondition->ContinueTrace())
+    {
+        // Trace record
+        _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
         StepInto((void*)cbTICNDStep);
+    }
     else
     {
         auto steps = dbgcleartracecondition();
