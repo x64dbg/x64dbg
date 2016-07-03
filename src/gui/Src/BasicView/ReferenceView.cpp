@@ -4,6 +4,7 @@
 #include "ReferenceView.h"
 #include "Configuration.h"
 #include "Bridge.h"
+#include "MiscUtil.h"
 
 ReferenceView::ReferenceView() : SearchListView()
 {
@@ -364,13 +365,7 @@ void ReferenceView::toggleBookmark()
     else
         result = DbgSetBookmarkAt(wVA, true);
     if(!result)
-    {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
     GuiUpdateAllViews();
 }
 
