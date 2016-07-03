@@ -13,6 +13,7 @@
 #include "WordEditDialog.h"
 #include "CodepageSelectionDialog.h"
 #include <QToolTip>
+#include "MiscUtil.h"
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
@@ -704,13 +705,7 @@ void CPUDump::setLabelSlot()
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
-    {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetLabelAt failed!"));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
     GuiUpdateAllViews();
 }
 
@@ -750,7 +745,7 @@ void CPUDump::gotoFileOffsetSlot()
     char modname[MAX_MODULE_SIZE] = "";
     if(!DbgFunctions()->ModNameFromAddr(rvaToVa(getInitialSelection()), modname, true))
     {
-        QMessageBox::critical(this, tr("Error!"), tr("Not inside a module..."));
+        SimpleErrorBox(this, tr("Error!"), tr("Not inside a module..."));
         return;
     }
     GotoDialog mGotoDialog(this);
@@ -1281,11 +1276,7 @@ void CPUDump::addressSlot()
 
 void CPUDump::disassemblySlot()
 {
-    QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Not yet supported!"));
-    msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    SimpleErrorBox(this, tr("Error!"), tr("Not yet supported!"));
 }
 
 void CPUDump::selectionGet(SELECTIONDATA* selection)
