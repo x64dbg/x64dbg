@@ -4,6 +4,7 @@
 #include <QIcon>
 #include <QFileDialog>
 #include <QTextStream>
+#include "MiscUtil.h"
 
 PatchDialog::PatchDialog(QWidget* parent) :
     QDialog(parent),
@@ -453,10 +454,7 @@ void PatchDialog::on_btnPatchFile_clicked()
     char szModName[MAX_PATH] = "";
     if(!DbgFunctions()->ModPathFromAddr(DbgFunctions()->ModBaseFromName(mod.toUtf8().constData()), szModName, MAX_PATH))
     {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Failed to get module filename..."));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleErrorBox(this, tr("Error!"), tr("Failed to get module filename..."));
         return;
     }
 
@@ -482,10 +480,7 @@ void PatchDialog::on_btnPatchFile_clicked()
     delete [] dbgPatchList;
     if(patched == -1)
     {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Failed to save patched file (%1)").arg(error));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleErrorBox(this, tr("Error!"), tr("Failed to save patched file (%1)").arg(error));
         return;
     }
     QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1/%2 patch(es) applied!").arg(patched).arg(patchList.size()));
@@ -510,10 +505,7 @@ void PatchDialog::on_btnImport_clicked()
     QStringList lines = patch.split("\n", QString::SkipEmptyParts);
     if(!lines.size())
     {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("The patch file is empty..."));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleErrorBox(this, tr("Error!"), tr("The patch file is empty..."));
         return;
     }
 
@@ -544,10 +536,7 @@ void PatchDialog::on_btnImport_clicked()
         curLine = curLine.replace(" ", "");
         if(sscanf_s(curLine.toUtf8().constData(), "%llX:%X->%X", &rva, &oldbyte, &newbyte) != 3)
         {
-            QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Patch file format is incorrect..."));
-            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-            msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-            msg.exec();
+            SimpleErrorBox(this, tr("Error!"), tr("Patch file format is incorrect..."));
             return;
         }
         oldbyte &= 0xFF;
