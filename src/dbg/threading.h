@@ -83,9 +83,23 @@ private:
         if(m_SRWLocks)
         {
             if(Shared)
+            {
                 m_AcquireSRWLockShared(&m_srwLocks[LockIndex]);
-            else
-                m_AcquireSRWLockExclusive(&m_srwLocks[LockIndex]);
+                return;
+            }
+
+            if(m_owner[LockIndex].thread == GetCurrentThreadId())
+            {
+                assert(m_owner[LockIndex].count > 0);
+                m_owner[LockIndex].count++;
+                return;
+            }
+
+            m_AcquireSRWLockExclusive(&m_srwLocks[LockIndex]);
+            assert(m_owner[LockIndex].thread == 0);
+            assert(m_owner[LockIndex].count == 0);
+            m_owner[LockIndex].thread = GetCurrentThreadId();
+            m_owner[LockIndex].count = 1;
         }
         else
             EnterCriticalSection(&m_crLocks[LockIndex]);
@@ -96,9 +110,18 @@ private:
         if(m_SRWLocks)
         {
             if(Shared)
+            {
                 m_ReleaseSRWLockShared(&m_srwLocks[LockIndex]);
-            else
+                return;
+            }
+
+            assert(m_owner[LockIndex].count && m_owner[LockIndex].thread);
+            m_owner[LockIndex].count--;
+            if(m_owner[LockIndex].count == 0)
+            {
+                m_owner[LockIndex].thread = 0;
                 m_ReleaseSRWLockExclusive(&m_srwLocks[LockIndex]);
+            }
         }
         else
             LeaveCriticalSection(&m_crLocks[LockIndex]);
@@ -108,6 +131,8 @@ private:
 
     static bool m_Initialized;
     static bool m_SRWLocks;
+    struct owner_info { DWORD thread; size_t count; };
+    static owner_info m_owner[SectionLock::LockLast];
     static SRWLOCK m_srwLocks[SectionLock::LockLast];
     static CRITICAL_SECTION m_crLocks[SectionLock::LockLast];
     static SRWLOCKFUNCTION m_InitializeSRWLock;

@@ -279,7 +279,7 @@ void CodeFoldingHelper::expandFoldSegment(duint va)
     while(true);
 }
 
-bool CodeFoldingHelper::CompareFunc::operator()(const CodeFoldingHelper::Range & lhs, const CodeFoldingHelper::Range & rhs)
+bool CodeFoldingHelper::CompareFunc::operator()(const CodeFoldingHelper::Range & lhs, const CodeFoldingHelper::Range & rhs) const
 {
     return lhs.second < rhs.first;
 }
