@@ -11,7 +11,7 @@ SafeUnDecorateSymbolName(
 )
 {
     // NOTE: Disabled because of potential recursive deadlocks
-     EXCLUSIVE_ACQUIRE(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return UnDecorateSymbolName(name, outputString, maxStringLength, flags);
 }
 BOOL
