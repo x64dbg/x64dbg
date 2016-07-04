@@ -13,6 +13,7 @@
 #include "StringUtil.h"
 #include "Breakpoints.h"
 #include "XrefBrowseDialog.h"
+#include "MiscUtil.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -713,13 +714,7 @@ void CPUDisassembly::setLabelSlot()
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
-    {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetLabelAt failed!"));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
 
     GuiUpdateAllViews();
 }
@@ -748,13 +743,7 @@ void CPUDisassembly::setLabelAddressSlot()
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(addr, mLineEdit.editText.toUtf8().constData()))
-    {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetLabelAt failed!"));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
 
     GuiUpdateAllViews();
 }
@@ -778,13 +767,7 @@ void CPUDisassembly::setCommentSlot()
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
-    {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetCommentAt failed!"));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
 
     GuiUpdateAllViews();
 }
@@ -1395,7 +1378,7 @@ void CPUDisassembly::copyRvaSlot()
         Bridge::CopyToClipboard(addrText);
     }
     else
-        QMessageBox::warning(this, "Error!", "Selection not in a module...");
+        SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
 }
 
 void CPUDisassembly::copyDisassemblySlot()
@@ -1442,11 +1425,7 @@ void CPUDisassembly::findCommandSlot()
 
     if(!DbgFunctions()->Assemble(va + mMemPage->getSize() / 2, dest, &asmsize, mLineEdit.editText.toUtf8().constData(), error))
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleErrorBox(this, tr("Error!"), tr("Failed to assemble instruction \"") + mLineEdit.editText + "\" (" + error + ")");
         return;
     }
 

@@ -8,7 +8,7 @@
 #include "YaraRuleSelectionDialog.h"
 #include "EntropyDialog.h"
 #include "HexEditDialog.h"
-#include "LineEditDialog.h"
+#include "MiscUtil.h"
 #include "GotoDialog.h"
 #include "WordEditDialog.h"
 
@@ -496,16 +496,12 @@ void MemoryMapView::memoryAllocateSlot()
         duint memsize = mLineEdit.getVal();
         if(memsize == 0) // 1GB
         {
-            QMessageBox msg(QMessageBox::Warning, tr("Warning"), tr("You're trying to allocate a zero-sized buffer just now."));
-            msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-            msg.exec();
+            SimpleWarningBox(this, tr("Warning"), tr("You're trying to allocate a zero-sized buffer just now."));
             return;
         }
         if(memsize > 1024 * 1024 * 1024)
         {
-            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("The size of buffer you're trying to allocate exceeds 1GB. Please check your expression to ensure nothing is wrong."));
-            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-            msg.exec();
+            SimpleErrorBox(this, tr("Error"), tr("The size of buffer you're trying to allocate exceeds 1GB. Please check your expression to ensure nothing is wrong."));
             return;
         }
         DbgCmdExecDirect(QString("alloc %1").arg(ToPtrString(memsize)).toUtf8().constData());
@@ -517,9 +513,7 @@ void MemoryMapView::memoryAllocateSlot()
         }
         else
         {
-            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Memory allocation failed!"));
-            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-            msg.exec();
+            SimpleErrorBox(this, tr("Error"), tr("Memory allocation failed!"));
             return;
         }
     }

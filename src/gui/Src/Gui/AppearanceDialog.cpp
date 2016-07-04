@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include "Configuration.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 
 AppearanceDialog::AppearanceDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AppearanceDialog)
 {
@@ -326,7 +327,7 @@ void AppearanceDialog::on_buttonSave_clicked()
     Config()->writeFonts();
     GuiUpdateAllViews();
     BridgeSettingFlush();
-    GuiAddStatusBarMessage("Settings saved!\n");
+    GuiAddStatusBarMessage(tr("Settings saved!\n").toUtf8().constData());
 }
 
 void AppearanceDialog::defaultValueSlot()
@@ -550,20 +551,14 @@ void AppearanceDialog::colorInfoListInit()
             notFound += id + "\n";
     }
     if(notFound.length())
-    {
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", notFound);
-        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
+        SimpleWarningBox(this, "NOT FOUND IN CONFIG!", notFound);
 
     //setup context menu
     ui->listColorNames->setContextMenuPolicy(Qt::ActionsContextMenu);
-    defaultValueAction = new QAction("&Default Value", this);
+    defaultValueAction = new QAction(tr("&Default Value"), this);
     defaultValueAction->setEnabled(false);
     connect(defaultValueAction, SIGNAL(triggered()), this, SLOT(defaultValueSlot()));
-    currentSettingAction = new QAction("&Current Setting", this);
+    currentSettingAction = new QAction(tr("&Current Setting"), this);
     currentSettingAction->setEnabled(false);
     connect(currentSettingAction, SIGNAL(triggered()), this, SLOT(currentSettingSlot()));
     ui->listColorNames->addAction(defaultValueAction);
