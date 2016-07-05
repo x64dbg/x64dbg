@@ -74,6 +74,7 @@
     <ClCompile Include="stringformat.cpp" />
     <ClCompile Include="stringutils.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
+    <ClCompile Include="taskthread.cpp" />
     <ClCompile Include="tcpconnections.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="recursiveanalysis.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />
+    <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
     <ClInclude Include="xrefs.h" />

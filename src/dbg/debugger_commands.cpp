@@ -22,6 +22,7 @@
 #include "label.h"
 #include "bookmark.h"
 #include "function.h"
+#include "taskthread.h"
 
 static bool bScyllaLoaded = false;
 duint LoadLibThreadID;

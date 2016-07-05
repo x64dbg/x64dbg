@@ -335,6 +335,9 @@
     <ClCompile Include="datainst_helper.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="taskthread.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -755,6 +758,9 @@
       <Filter>Header Files\Third Party\keystone</Filter>
     </ClInclude>
     <ClInclude Include="datainst_helper.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="taskthread.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>

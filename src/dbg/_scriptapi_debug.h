@@ -23,6 +23,7 @@ namespace Script
         SCRIPT_EXPORT void StepOut();
         SCRIPT_EXPORT bool SetBreakpoint(duint address);
         SCRIPT_EXPORT bool DeleteBreakpoint(duint address);
+        SCRIPT_EXPORT bool DisableBreakpoint(duint address);
         SCRIPT_EXPORT bool SetHardwareBreakpoint(duint address, HardwareType type = HardwareExecute);
         SCRIPT_EXPORT bool DeleteHardwareBreakpoint(duint address);
     }; //Debug
