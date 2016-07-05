@@ -1,47 +1,43 @@
-#include <Windows.h>
 #include "taskthread.h"
-#include <mutex>
-#include <condition_variable>
 #include <thread>
 
 struct TaskThreadDetails
 {
     HANDLE threadHandle;
     bool active = true;
-    bool pending = false;
     void* arg = 0;
     TaskThread::TaskFunction_t fn;
     CRITICAL_SECTION access;
-    CONDITION_VARIABLE wakeup;
+    HANDLE wakeup;
 
     size_t minSleepTimeMs;
     size_t wakeups = 0;
     size_t execs = 0;
     TaskThreadDetails()
     {
+        wakeup = CreateSemaphore(0, 0, 1, 0);
         InitializeCriticalSection(&access);
-        InitializeConditionVariable(&wakeup);
     }
     ~TaskThreadDetails()
     {
+        EnterCriticalSection(&access);
         active = false;
-        pending = true;
-        {
-            EnterCriticalSection(&access);
-            WakeConditionVariable(&wakeup);
-            LeaveCriticalSection(&access);
-        }
+        LeaveCriticalSection(&access);
+        ReleaseSemaphore(wakeup, 1, 0);
+
         WaitForSingleObject(threadHandle, INFINITE);
         CloseHandle(threadHandle);
+        DeleteCriticalSection(&access);
+        CloseHandle(wakeup);
     }
     void WakeUp(void* _arg)
     {
-        EnterCriticalSection(&access);
         wakeups++;
+        EnterCriticalSection(&access);
         arg = _arg;
-        pending = true;
-        WakeConditionVariable(&wakeup);
         LeaveCriticalSection(&access);
+        // This will fail if it's redundant, which is what we want.
+        ReleaseSemaphore(wakeup, 1, 0);
     }
 
     void Loop()
@@ -49,14 +45,11 @@ struct TaskThreadDetails
         void* argLatch = 0;
         while(active)
         {
-            {
-                EnterCriticalSection(&access);
-                while(pending == false)
-                    SleepConditionVariableCS(&wakeup, &access, INFINITE);
-                argLatch = arg;
-                pending = false;
-                LeaveCriticalSection(&access);
-            }
+            WaitForSingleObject(wakeup, INFINITE);
+
+            EnterCriticalSection(&access);
+            argLatch = arg;
+            LeaveCriticalSection(&access);
 
             if(active)
             {

@@ -15,7 +15,7 @@ public:
     template <typename T> void WakeUp(T arg = 0) { WakeUp((void*)arg); }
 
     TaskThread(TaskFunction_t,
-               size_t minSleepTimeMs = 500,
+               size_t minSleepTimeMs = 50,
                _SECURITY_ATTRIBUTES*  lpThreadAttributes = 0,
                SIZE_T                 dwStackSize = 0);
     ~TaskThread();
