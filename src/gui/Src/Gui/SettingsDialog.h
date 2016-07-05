@@ -49,6 +49,7 @@ private slots:
     void on_chkEnableSourceDebugging_stateChanged(int arg1);
     void on_chkDisableDatabaseCompression_stateChanged(int arg1);
     void on_chkSaveDatabaseInProgramDirectory_stateChanged(int arg1);
+    void on_chkTraceRecordEnabledDuringTrace_stateChanged(int arg1);
     //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
@@ -122,6 +123,7 @@ private:
         bool engineEnableSourceDebugging;
         bool engineSaveDatabaseInProgramDirectory;
         bool engineDisableDatabaseCompression;
+        bool engineEnableTraceRecordDuringTrace;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
         //Disasm Tab

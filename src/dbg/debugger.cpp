@@ -77,6 +77,7 @@ HANDLE hActiveThread;
 HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = true;
+bool bTraceRecordEnabledDuringTrace = false;
 duint DbgEvents = 0;
 
 static duint dbgcleartracecondition()
@@ -882,6 +883,8 @@ void cbRtrStep()
     unsigned char ch = 0x90;
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     MemRead(cip, &ch, 1);
+    if(bTraceRecordEnabledDuringTrace)
+        _dbg_dbgtraceexecute(cip);
     if(ch == 0xC3 || ch == 0xC2)
         cbRtrFinalStep();
     else
@@ -892,8 +895,8 @@ void cbTOCNDStep()
 {
     if(traceCondition && traceCondition->ContinueTrace())
     {
-        // Trace record
-        _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
+        if(bTraceRecordEnabledDuringTrace)
+            _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
         StepOver((void*)cbTOCNDStep);
     }
     else
@@ -908,8 +911,8 @@ void cbTICNDStep()
 {
     if(traceCondition && traceCondition->ContinueTrace())
     {
-        // Trace record
-        _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
+        if(bTraceRecordEnabledDuringTrace)
+            _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
         StepInto((void*)cbTICNDStep);
     }
     else
@@ -939,6 +942,8 @@ void cbTIBTStep()
         cbRtrFinalStep();
         return;
     }
+    if(bTraceRecordEnabledDuringTrace)
+        _dbg_dbgtraceexecute(CIP);
     StepInto((void*)cbTIBTStep);
 }
 
@@ -961,6 +966,8 @@ void cbTOBTStep()
         cbRtrFinalStep();
         return;
     }
+    if(bTraceRecordEnabledDuringTrace)
+        _dbg_dbgtraceexecute(CIP);
     StepOver((void*)cbTOBTStep);
 }
 
@@ -983,6 +990,8 @@ void cbTIITStep()
         cbRtrFinalStep();
         return;
     }
+    if(bTraceRecordEnabledDuringTrace)
+        _dbg_dbgtraceexecute(CIP);
     StepInto((void*)cbTIITStep);
 }
 
@@ -1005,6 +1014,8 @@ void cbTOITStep()
         cbRtrFinalStep();
         return;
     }
+    if(bTraceRecordEnabledDuringTrace)
+        _dbg_dbgtraceexecute(CIP);
     StepOver((void*)cbTOITStep);
 }
 
@@ -1087,6 +1098,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
             sprintf_s(command, "bp " fhex ",\"entry breakpoint\",ss", (duint)CreateProcessInfo->lpStartAddress);
             cmddirectexec(command);
         }
+
+        bTraceRecordEnabledDuringTrace = settingboolget("Engine", "TraceRecordEnabledDuringTrace");
     }
     GuiUpdateBreakpointsView();
 
