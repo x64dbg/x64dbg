@@ -378,7 +378,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             funcType = Function_end;
             break;
         }
-        int funcsize = funcType == Function_none ? 0 : paintFunctionGraphic(painter, x, y, funcType, false);
+        int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
 
         painter->setPen(mFunctionPen);
 
