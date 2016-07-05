@@ -63,7 +63,6 @@ static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static HANDLE hEvent = 0;
 static HANDLE hProcess = 0;
-static HANDLE hMemMapThread = 0;
 static bool bStopMemMapThread = false;
 static HANDLE hTimeWastedCounterThread = 0;
 static bool bStopTimeWastedCounterThread = false;
@@ -159,16 +158,12 @@ static DWORD WINAPI timeWastedCounterThread(void* ptr)
 
 void dbginit()
 {
-    hMemMapThread = CreateThread(nullptr, 0, memMapThread, nullptr, 0, nullptr);
     hTimeWastedCounterThread = CreateThread(nullptr, 0, timeWastedCounterThread, nullptr, 0, nullptr);
 }
 
 void dbgstop()
 {
-    bStopMemMapThread = true;
-    memMapThreadCounter = 0;
     bStopTimeWastedCounterThread = true;
-    WaitForThreadTermination(hMemMapThread);
     WaitForThreadTermination(hTimeWastedCounterThread);
 }
 
