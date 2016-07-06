@@ -81,7 +81,7 @@ void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
 {
     if(state == stopped)
     {
-        update(); //clear
+        repaint(); //clear
     }
 }
 
@@ -96,7 +96,7 @@ void CPUSideBar::changeTopmostAddress(dsint i)
     topVA = i;
     memset(&regDump, 0, sizeof(REGDUMP));
     DbgGetRegDump(&regDump);
-    update();
+    repaint();
 }
 
 void CPUSideBar::setViewableRows(int rows)
@@ -109,7 +109,7 @@ void CPUSideBar::setSelection(dsint selVA)
     if(selVA != selectedVA)
     {
         selectedVA = selVA;
-        update();
+        repaint();
     }
 }
 
@@ -349,7 +349,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
                 mCodeFoldingManager.delFoldSegment(wVA);
             }
             mDisas->reloadData();
-            viewport()->update();
+            viewport()->repaint();
         }
     }
     if(x < bulletX - mBulletRadius)
@@ -625,11 +625,11 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, const QString & Text)
     painter->drawText(rect, Qt::AlignHCenter | Qt::AlignVCenter, Text);
 
     // Draw arrow
-    y = fontHeight * (1 + Line) - 0.5 * fontHeight;
+    /*y = fontHeight * (1 + Line) - 0.5 * fontHeight;
 
     painter->setPen(QPen(IPLabelBG, 2.0));
     painter->setBrush(QBrush(IPLabelBG));
-    drawStraightArrow(painter, rect.right() + 2, y, this->viewport()->width() - x - 11 - (isFoldingGraphicsPresent(Line) != 0 ? mBulletRadius + fontHeight : 0), y);
+    drawStraightArrow(painter, rect.right() + 2, y, this->viewport()->width() - x - 11 - (isFoldingGraphicsPresent(Line) != 0 ? mBulletRadius + fontHeight : 0), y);*/
 
     painter->restore();
 }

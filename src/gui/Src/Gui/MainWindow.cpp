@@ -143,7 +143,6 @@ MainWindow::MainWindow(QWidget* parent)
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
 
     // Snowman view (decompiler)
-
     mSnowmanView = CreateSnowman(this);
     if(!mSnowmanView)
         mSnowmanView = (SnowmanView*)new QLabel("<center>Snowman is disabled...</center>", this);

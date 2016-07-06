@@ -208,7 +208,7 @@ void QHexEditPrivate::setHorizontalSpacing(int x)
     _horizonalSpacing = x;
     adjust();
     setCursorPos(cursorPos());
-    this->update();
+    this->repaint();
 }
 
 int QHexEditPrivate::horizontalSpacing()

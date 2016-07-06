@@ -1122,7 +1122,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     // self communication for repainting (maybe some other widgets needs this information, too)
-    connect(this, SIGNAL(refresh()), this, SLOT(update()));
+    connect(this, SIGNAL(refresh()), this, SLOT(repaint()));
     // context menu actions
     connect(wCM_Increment, SIGNAL(triggered()), this, SLOT(onIncrementAction()));
     connect(wCM_ChangeFPUView, SIGNAL(triggered()), this, SLOT(onChangeFPUViewAction()));
@@ -1172,14 +1172,14 @@ void RegistersView::fontsUpdatedSlot()
     mRowHeight = wRowsHeight;
     mCharWidth = QFontMetrics(this->font()).averageCharWidth();
     setFixedHeight(getEstimateHeight());
-    update();
+    repaint();
 }
 
 void RegistersView::ShowFPU(bool set_showfpu)
 {
     mShowFpu = set_showfpu;
     InitMappings();
-    update();
+    repaint();
 }
 
 
