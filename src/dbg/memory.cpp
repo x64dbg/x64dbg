@@ -244,7 +244,7 @@ void MemUpdateMap()
     }
 }
 
-static DWORD WINAPI memUpdateMap(void* ptr)
+static DWORD WINAPI memUpdateMap()
 {
     if(DbgIsDebugging())
     {
@@ -256,7 +256,7 @@ static DWORD WINAPI memUpdateMap(void* ptr)
 
 void MemUpdateMapAsync()
 {
-    static TaskThread MemUpdateMapTask(memUpdateMap, 1000);
+    static auto MemUpdateMapTask = MakeTaskThread(memUpdateMap, 1000);
     MemUpdateMapTask.WakeUp();
 }
 

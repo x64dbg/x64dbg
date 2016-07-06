@@ -261,20 +261,20 @@ duint dbggetdbgevents()
 }
 
 
-DWORD WINAPI updateCallStackThread(void* ptr)
+static DWORD WINAPI updateCallStackThread(duint ptr)
 {
-    stackupdatecallstack(duint(ptr));
+    stackupdatecallstack(ptr);
     GuiUpdateCallStack();
     return 0;
 }
 
 void updateCallStackAsync(duint ptr)
 {
-    static TaskThread updateCallStackTask(updateCallStackThread);
+    static TaskThread_<decltype(&updateCallStackThread), duint> updateCallStackTask(&updateCallStackThread);
     updateCallStackTask.WakeUp(ptr);
 }
 
-DWORD WINAPI updateSEHChainThread(void* ptr)
+DWORD WINAPI updateSEHChainThread()
 {
     GuiUpdateSEHChain();
     stackupdateseh();
@@ -284,7 +284,7 @@ DWORD WINAPI updateSEHChainThread(void* ptr)
 
 void updateSEHChainAsync()
 {
-    static TaskThread updateSEHChainTask(updateSEHChainThread);
+    static auto updateSEHChainTask = MakeTaskThread(&updateSEHChainThread);
     updateSEHChainTask.WakeUp();
 }
 
@@ -339,12 +339,8 @@ static DWORD WINAPI _debugUpdateGuiNoStack(void* disasm_addr)
 
 void DebugUpdateGuiAsync(duint disasm_addr, bool stack)
 {
-    static TaskThread DebugUpdateGuiStackTask(_debugUpdateGuiStack);
-    static TaskThread DebugUpdateGuiNoStackTask(_debugUpdateGuiNoStack);
-    if(stack)
-        DebugUpdateGuiStackTask.WakeUp(disasm_addr);
-    else
-        DebugUpdateGuiNoStackTask.WakeUp(disasm_addr);
+    static TaskThread_<decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiAsync(&DebugUpdateGui);
+    DebugUpdateGuiAsync.WakeUp(disasm_addr, stack);
 }
 
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
@@ -484,16 +480,12 @@ static bool getConditionValue(const char* expression)
     return true;
 }
 
-static DWORD WINAPI _guiSetDebugState(void* state)
-{
-    GuiSetDebugState((DBGSTATE)(int)state);
-    return 0;
-}
 void GuiSetDebugStateAsync(DBGSTATE state)
 {
-    static TaskThread GuiSetDebugStateTask(_guiSetDebugState);
+    static TaskThread_<decltype(&GuiSetDebugState), DBGSTATE> GuiSetDebugStateTask(&GuiSetDebugState);
     GuiSetDebugStateTask.WakeUp(state);
 }
+
 void cbPauseBreakpoint()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);

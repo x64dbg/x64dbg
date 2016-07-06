@@ -74,7 +74,6 @@
     <ClCompile Include="stringformat.cpp" />
     <ClCompile Include="stringutils.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
-    <ClCompile Include="taskthread.cpp" />
     <ClCompile Include="tcpconnections.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />

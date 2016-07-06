@@ -4,6 +4,7 @@
 */
 
 #include "console.h"
+#include "taskthread.h"
 
 /**
 \brief Print a line with text, terminated with a newline to the console.
@@ -31,6 +32,16 @@ void dprintf(const char* Format, ...)
     va_end(args);
 }
 
+
+void GuiAddLogMessageAsync(const char* msg)
+{
+    static StringConcatTaskThread_<void (*)(const std::string &)> task([](const std::string & msg)
+    {
+        GuiAddLogMessage(msg.c_str());
+    });
+    task.WakeUp(msg);
+}
+
 /**
 \brief Print a formatted string to the console.
 \param format The printf format to use (see documentation of printf for more information).
@@ -41,5 +52,5 @@ void dprintf_args(const char* Format, va_list Args)
     char buffer[16384];
     vsnprintf_s(buffer, _TRUNCATE, Format, Args);
 
-    GuiAddLogMessage(buffer);
+    GuiAddLogMessageAsync(buffer);
 }

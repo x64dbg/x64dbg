@@ -335,9 +335,6 @@
     <ClCompile Include="datainst_helper.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="taskthread.cpp">
-      <Filter>Source Files\Utilities</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
