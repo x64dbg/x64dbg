@@ -327,21 +327,24 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     GuiUpdateAllViews();
     GuiFocusView(GUI_DISASSEMBLY);
 }
-static DWORD WINAPI _debugUpdateGuiStack(void* disasm_addr)
+
+void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paused)
 {
-    DebugUpdateGui((duint)disasm_addr, true);
-    return 0;
+    GuiSetDebugState(state);
+    DebugUpdateGui(disasm_addr, stack);
 }
-static DWORD WINAPI _debugUpdateGuiNoStack(void* disasm_addr)
+
+void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
 {
-    DebugUpdateGui((duint)disasm_addr, false);
-    return 0;
+    //correctly orders the GuiSetDebugState DebugUpdateGui to prevent drawing inconsistencies
+    static TaskThread_<decltype(&DebugUpdateGuiSetState), duint, bool, DBGSTATE> DebugUpdateGuiSetStateTask(&DebugUpdateGuiSetState);
+    DebugUpdateGuiSetStateTask.WakeUp(disasm_addr, stack, state);
 }
 
 void DebugUpdateGuiAsync(duint disasm_addr, bool stack)
 {
-    static TaskThread_<decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiAsync(&DebugUpdateGui);
-    DebugUpdateGuiAsync.WakeUp(disasm_addr, stack);
+    static TaskThread_<decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiTask(&DebugUpdateGui);
+    DebugUpdateGuiTask.WakeUp(disasm_addr, stack);
 }
 
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
@@ -492,8 +495,7 @@ void cbPauseBreakpoint()
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     DeleteBPX(CIP);
-    GuiSetDebugStateAsync(paused);
-    DebugUpdateGuiAsync(CIP, true);
+    DebugUpdateGuiSetStateAsync(CIP, true);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
@@ -526,8 +528,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     {
         SHARED_RELEASE();
         dputs("Breakpoint reached not in list!");
-        GuiSetDebugStateAsync(paused);
-        DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
@@ -587,8 +588,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         default:
             break;
         }
-        GuiSetDebugStateAsync(paused);
-        DebugUpdateGuiAsync(CIP, true);
+        DebugUpdateGuiSetStateAsync(CIP, true);
     }
 
     // plugin interaction
@@ -642,8 +642,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
                 default:
                     break;
                 }
-                GuiSetDebugStateAsync(paused);
-                DebugUpdateGuiAsync(CIP, true);
+                DebugUpdateGuiSetStateAsync(CIP, true);
                 PLUG_CB_PAUSEDEBUG pauseInfo;
                 pauseInfo.reserved = nullptr;
                 plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -700,8 +699,7 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     pauseInfo.reserved = nullptr;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     _dbg_dbgtraceexecute(CIP);
-    GuiSetDebugStateAsync(paused);
-    DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
     wait(WAITID_RUN);
@@ -871,9 +869,8 @@ void cbStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     isStepping = false;
-    GuiSetDebugStateAsync(paused);
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    DebugUpdateGuiAsync(CIP, true);
+    DebugUpdateGuiSetStateAsync(CIP, true);
     // Trace record
     _dbg_dbgtraceexecute(CIP);
     // Plugin interaction
@@ -894,11 +891,10 @@ static void cbRtrFinalStep()
 {
     dbgcleartracecondition();
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    GuiSetDebugStateAsync(paused);
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
     // Trace record
     _dbg_dbgtraceexecute(CIP);
-    DebugUpdateGuiAsync(CIP, true);
+    DebugUpdateGuiSetStateAsync(CIP, true);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
@@ -1211,8 +1207,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         //update memory map
         MemUpdateMap();
         //update GUI
-        GuiSetDebugStateAsync(paused);
-        DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
@@ -1248,8 +1243,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     if(settingboolget("Events", "ThreadEnd"))
     {
         //update GUI
-        GuiSetDebugStateAsync(paused);
-        DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
@@ -1266,9 +1260,8 @@ static void cbSystemBreakpoint(void* ExceptionData)
 
     // Update GUI (this should be the first triggered event)
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    GuiSetDebugStateAsync(running);
     GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
-    DebugUpdateGuiAsync(cip, true);
+    DebugUpdateGuiSetStateAsync(cip, true, running);
 
     //log message
     if(bIsAttached)
@@ -1418,8 +1411,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     {
         bBreakOnNextDll = false;
         //update GUI
-        GuiSetDebugStateAsync(paused);
-        DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
@@ -1449,8 +1441,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     {
         bBreakOnNextDll = false;
         //update GUI
-        GuiSetDebugStateAsync(paused);
-        DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
@@ -1494,8 +1485,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     if(settingboolget("Events", "DebugStrings"))
     {
         //update GUI
-        GuiSetDebugStateAsync(paused);
-        DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
@@ -1533,10 +1523,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         {
             dputs("paused!");
             SetNextDbgContinueStatus(DBG_CONTINUE);
-            GuiSetDebugStateAsync(paused);
             //update memory map
             MemUpdateMap();
-            DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+            DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
             //lock
             lock(WAITID_RUN);
             SetForegroundWindow(GuiGetWindowHandle());
@@ -1589,8 +1578,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         SetNextDbgContinueStatus(DBG_CONTINUE);
     }
 
-    GuiSetDebugStateAsync(paused);
-    DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
@@ -2190,7 +2178,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     SetCustomHandler(UE_CH_DEBUGEVENT, (void*)cbDebugEvent);
 
     //inform GUI we started without problems
-    GuiSetDebugStateAsync(initialized);
+    GuiSetDebugState(initialized);
     GuiAddRecentFile(szFileName);
 
     //set GUI title
@@ -2243,7 +2231,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     ModClear();
     ThreadClear();
     TraceRecord.clear();
-    GuiSetDebugStateAsync(stopped);
+    GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs("Debugging stopped!");
     varset("$hp", (duint)0, true);

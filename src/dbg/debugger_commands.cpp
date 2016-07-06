@@ -1266,7 +1266,7 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     {
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     }
-    DebugUpdateGui(addr, false);
+    DebugUpdateGuiAsync(addr, false);
     return STATUS_CONTINUE;
 }
 
@@ -1754,7 +1754,7 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
     }
     //switch thread
     hActiveThread = ThreadGetHandle((DWORD)threadid);
-    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+    DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     dputs("Thread switched!");
     return STATUS_CONTINUE;
 }
@@ -2435,8 +2435,7 @@ void cbDebugLoadLibBPX()
     MemFreeRemote(ASMAddr);
     ThreadResumeAll();
     //update GUI
-    GuiSetDebugState(paused);
-    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
@@ -2560,7 +2559,7 @@ CMDRESULT cbDebugSkip(int argc, char* argv[])
     disasmfast(cip, &basicinfo);
     cip += basicinfo.size;
     SetContextDataEx(hActiveThread, UE_CIP, cip);
-    DebugUpdateGui(cip, false); //update GUI
+    DebugUpdateGuiAsync(cip, false); //update GUI
     return STATUS_CONTINUE;
 }
 

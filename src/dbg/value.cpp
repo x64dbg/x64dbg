@@ -2232,7 +2232,7 @@ bool valtostring(const char* string, duint value, bool silent)
         strcpy_s(regName(), len + 1, string);
         _strlwr(regName());
         if(strstr(regName(), "ip"))
-            DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), false); //update disassembly + register view
+            DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), false); //update disassembly + register view
         else if(strstr(regName(), "sp")) //update stack
         {
             duint csp = GetContextDataEx(hActiveThread, UE_CSP);

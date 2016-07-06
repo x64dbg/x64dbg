@@ -2388,7 +2388,7 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
                 BookmarkSet(jumpback, false);
             if(fardest)
                 BpNew(fardest, true, false, 0, BPHARDWARE, 0, nullptr);
-            DebugUpdateGui(addr, false);
+            DebugUpdateGuiAsync(addr, false);
             Sleep(300);
 
             //continue algorithm
@@ -2435,7 +2435,7 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
         BpClear();
         BookmarkClear();
         SetContextDataEx(fdProcessInfo->hThread, UE_CIP, start);
-        DebugUpdateGui(start, false);
+        DebugUpdateGuiAsync(start, false);
     }
     return STATUS_CONTINUE;
 }
@@ -2691,7 +2691,7 @@ CMDRESULT cbInstrEnableGuiUpdate(int argc, char* argv[])
     if(argc > 1 && valfromstring(argv[1], &value) && value == 0)
         return STATUS_CONTINUE;
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    DebugUpdateGui(cip, false);
+    DebugUpdateGuiAsync(cip, false);
     return STATUS_CONTINUE;
 }
 
