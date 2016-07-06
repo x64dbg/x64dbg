@@ -80,8 +80,8 @@ void Bridge::setDbgStopped()
 
 void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 {
-    if(dbgStopped) //there can be no more messages if the debugger stopped = BUG
-        __debugbreak();
+    if(dbgStopped) //there can be no more messages if the debugger stopped = IGNORE
+        return nullptr;
     switch(type)
     {
     case GUI_DISASSEMBLE_AT:

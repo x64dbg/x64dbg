@@ -216,12 +216,10 @@ typedef struct _TEB
     PVOID                   StackReserved;
 } TEB, *PTEB;
 
-#ifdef _WIN64
 typedef struct _EXCEPTION_REGISTRATION_RECORD
 {
     _EXCEPTION_REGISTRATION_RECORD* Next;
     _EXCEPTION_DISPOSITION Handler;
 } EXCEPTION_REGISTRATION_RECORD, *PEXCEPTION_REGISTRATION_RECORD;
-#endif
 
 #endif // _UNDOCUMENTED_H
