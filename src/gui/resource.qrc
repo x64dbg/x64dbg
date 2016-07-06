@@ -217,5 +217,32 @@
         <file>images/thread-setpriority_alt.png</file>
         <file>images/thread-switch.png</file>
         <file>images/unicode.png</file>
+        <file>images/16bit.png</file>
+        <file>images/16bit-short.png</file>
+        <file>images/32bit.png</file>
+        <file>images/32bit-float.png</file>
+        <file>images/32bit-long.png</file>
+        <file>images/64bit.png</file>
+        <file>images/64bit-float.png</file>
+        <file>images/64bit-long.png</file>
+        <file>images/80bit.png</file>
+        <file>images/80bit-float.png</file>
+        <file>images/breakpoint_disable.png</file>
+        <file>images/breakpoint_disable_all.png</file>
+        <file>images/breakpoint_editcaret.png</file>
+        <file>images/breakpoint_enable.png</file>
+        <file>images/breakpoint_enable_all.png</file>
+        <file>images/breakpoint_memory_singleshot.png</file>
+        <file>images/breakpoint_remove_all.png</file>
+        <file>images/breakpoint_remove_all_commands.png</file>
+        <file>images/breakpoint_reset_hitcount.png</file>
+        <file>images/breakpoint_seton_all_commands.png</file>
+        <file>images/memmap_alloc_memory.png</file>
+        <file>images/memmap_dump_memory_to_file.png</file>
+        <file>images/memmap_find_address_page.png</file>
+        <file>images/memmap_free_memory.png</file>
+        <file>images/memmap_memory_breakpoint.png</file>
+        <file>images/memmap_set_page_memory_rights.png</file>
+        <file>images/runtouser.png</file>
     </qresource>
 </RCC>
