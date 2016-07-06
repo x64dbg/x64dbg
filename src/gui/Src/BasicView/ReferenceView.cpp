@@ -280,7 +280,7 @@ void ReferenceView::setBreakpointAt(int row, BPSetAction action)
         wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
 
-    DbgCmdExec(wCmd.toUtf8().constData());
+    DbgCmdExecDirect(wCmd.toUtf8().constData());
 }
 
 void ReferenceView::toggleBreakpoint()
@@ -294,22 +294,20 @@ void ReferenceView::toggleBreakpoint()
     setBreakpointAt(mCurList->getInitialSelection(), Toggle);
 }
 
-
-
 void ReferenceView::setBreakpointOnAllCommands()
 {
+    GuiUpdateDisable();
     for(int i = 0; i < mCurList->getRowCount(); i++)
-    {
         setBreakpointAt(i, Enable);
-    }
+    GuiUpdateEnable(true);
 }
 
 void ReferenceView::removeBreakpointOnAllCommands()
 {
+    GuiUpdateDisable();
     for(int i = 0; i < mCurList->getRowCount(); i++)
-    {
         setBreakpointAt(i, Remove);
-    }
+    GuiUpdateEnable(true);
 }
 
 void ReferenceView::setBreakpointOnAllApiCalls()
@@ -320,11 +318,11 @@ void ReferenceView::setBreakpointOnAllApiCalls()
     if(!apiaddr)
         return;
     QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
+    GuiUpdateDisable();
     for(int i = 0; i < mCurList->getRowCount(); i++)
-    {
         if(mCurList->getCellContent(i, 1) == apiText)
             setBreakpointAt(i, Enable);
-    }
+    GuiUpdateEnable(true);
 }
 
 void ReferenceView::removeBreakpointOnAllApiCalls()
@@ -336,14 +334,12 @@ void ReferenceView::removeBreakpointOnAllApiCalls()
     if(!apiaddr)
         return;
     QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
+    GuiUpdateDisable();
     for(int i = 0; i < mCurList->getRowCount(); i++)
-    {
         if(mCurList->getCellContent(i, 1) == apiText)
             setBreakpointAt(i, Remove);
-    }
+    GuiUpdateEnable(true);
 }
-
-
 
 void ReferenceView::toggleBookmark()
 {

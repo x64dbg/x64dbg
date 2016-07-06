@@ -15,7 +15,7 @@ static wchar_t szIniFile[MAX_PATH] = L"";
 static CRITICAL_SECTION csIni;
 static bool bDisableGUIUpdate;
 
-#define CHEKC_GUI_UPDATE_DISABLED \
+#define CHECK_GUI_UPDATE_DISABLED \
     if (bDisableGUIUpdate) \
         return;
 
@@ -992,6 +992,7 @@ BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
 
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
 {
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_ADD_MSG_TO_LOG, (void*)msg, 0);
 }
 
@@ -1023,7 +1024,7 @@ BRIDGE_IMPEXP bool GuiIsUpdateDisabled()
 
 BRIDGE_IMPEXP void GuiUpdateAllViews()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     GuiUpdateRegisterView();
     GuiUpdateDisassemblyView();
     GuiUpdateBreakpointsView();
@@ -1039,24 +1040,25 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_REGISTER_VIEW, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateDisassemblyView()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_DISASSEMBLY_VIEW, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateBreakpointsView()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_BREAKPOINTS_VIEW, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename)
 {
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_WINDOW_TITLE, (void*)filename, 0);
 }
 
@@ -1211,19 +1213,19 @@ BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp)
 
 BRIDGE_IMPEXP void GuiUpdateDumpView()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_DUMP_VIEW, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateMemoryView()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_MEMORY_VIEW, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateThreadView()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_THREAD_VIEW, 0, 0);
 }
 
@@ -1299,31 +1301,31 @@ BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg)
 
 BRIDGE_IMPEXP void GuiUpdateSideBar()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_SIDEBAR, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiRepaintTableView()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_REPAINT_TABLE_VIEW, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdatePatches()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_PATCHES, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateCallStack()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_CALLSTACK, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateSEHChain()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_SEHCHAIN, 0, 0);
 }
 
@@ -1414,7 +1416,7 @@ BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id)
 
 BRIDGE_IMPEXP void GuiUpdateArgumentWidget()
 {
-    CHEKC_GUI_UPDATE_DISABLED
+    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_ARGUMENT_VIEW, nullptr, nullptr);
 }
 
