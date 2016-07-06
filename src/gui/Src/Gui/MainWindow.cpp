@@ -14,6 +14,7 @@
 #include "LineEditDialog.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
+#include "FavouriteTools.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -241,6 +242,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionTRTOBT, SIGNAL(triggered()), this, SLOT(execTRTOBT()));
     connect(ui->actionTRTIIT, SIGNAL(triggered()), this, SLOT(execTRTIIT()));
     connect(ui->actionTRTOIT, SIGNAL(triggered()), this, SLOT(execTRTOIT()));
+    connect(ui->actionInstrUndo, SIGNAL(triggered()), this, SLOT(execInstrUndo()));
     connect(ui->actionSkipNextInstruction, SIGNAL(triggered()), this, SLOT(execSkip()));
     connect(ui->actionScript, SIGNAL(triggered()), this, SLOT(displayScriptWidget()));
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
@@ -271,6 +273,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionSEHChain, SIGNAL(triggered()), this, SLOT(displaySEHChain()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
     connect(ui->actionReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
+    connect(ui->actionCrashDump, SIGNAL(triggered()), this, SLOT(crashDump()));
     connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
     connect(ui->actionDetach, SIGNAL(triggered()), this, SLOT(detach()));
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
@@ -299,6 +302,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Create updatechecker
     mUpdateChecker = new UpdateChecker(this);
+
+    updateFavouriteTools();
 
     refreshShortcuts();
 
@@ -466,13 +471,17 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionTocnd, ConfigShortcut("DebugTraceOverConditional"));
     setGlobalShortcut(ui->actionTRBit, ConfigShortcut("DebugEnableTraceRecordBit"));
     setGlobalShortcut(ui->actionTRNone, ConfigShortcut("DebugTraceRecordNone"));
+    setGlobalShortcut(ui->actionInstrUndo, ConfigShortcut("DebugInstrUndo"));
 
     setGlobalShortcut(ui->actionScylla, ConfigShortcut("PluginsScylla"));
+
+    setGlobalShortcut(ui->actionManageFavourite, ConfigShortcut("FavouritesManage"));
 
     setGlobalShortcut(ui->actionSettings, ConfigShortcut("OptionsPreferences"));
     setGlobalShortcut(ui->actionAppearance, ConfigShortcut("OptionsAppearance"));
     setGlobalShortcut(ui->actionShortcuts, ConfigShortcut("OptionsShortcuts"));
     setGlobalShortcut(ui->actionTopmost, ConfigShortcut("OptionsTopmost"));
+    setGlobalShortcut(ui->actionReloadStylesheet, ConfigShortcut("OptionsReloadStylesheet"));
 
     setGlobalShortcut(ui->actionAbout, ConfigShortcut("HelpAbout"));
     setGlobalShortcut(ui->actionDonate, ConfigShortcut("HelpDonate"));
@@ -480,6 +489,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionCalculator, ConfigShortcut("HelpCalculator"));
     setGlobalShortcut(ui->actionReportBug, ConfigShortcut("HelpReportBug"));
     setGlobalShortcut(ui->actionManual, ConfigShortcut("HelpManual"));
+    setGlobalShortcut(ui->actionCrashDump, ConfigShortcut("HelpCrashDump"));
 
     setGlobalShortcut(ui->actionStrings, ConfigShortcut("ActionFindStrings"));
     setGlobalShortcut(ui->actionCalls, ConfigShortcut("ActionFindIntermodularCalls"));
@@ -650,6 +660,11 @@ void MainWindow::execTRTIIT()
 void MainWindow::execTRTOIT()
 {
     DbgCmdExec("toit");
+}
+
+void MainWindow::execInstrUndo()
+{
+    DbgCmdExec("InstrUndo");
 }
 
 void MainWindow::execTicnd()
@@ -1158,10 +1173,7 @@ void MainWindow::patchWindow()
 {
     if(!DbgIsDebugging())
     {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Patches cannot be shown when not debugging..."));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleErrorBox(this, tr("Error!"), tr("Patches cannot be shown when not debugging..."));
         return;
     }
     GuiUpdatePatches();
@@ -1242,6 +1254,24 @@ void MainWindow::reportBug()
     QDesktopServices::openUrl(QUrl("http://report.x64dbg.com"));
 }
 
+void MainWindow::crashDump()
+{
+    QMessageBox msg(QMessageBox::Critical, tr("Generate crash dump"), tr("This action will crash the debugger and generate a crash dump. You will LOSE ALL YOUR DATA. Do you really want to continue?"));
+    msg.setWindowIcon(QIcon(":/icons/images/fatal-error.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msg.setDefaultButton(QMessageBox::Cancel);
+    if(msg.exec() != QMessageBox::Ok)
+        return;
+
+    // Fatal error
+    __debugbreak();
+
+    // Congratulations! We survived a fatal error!
+    SimpleWarningBox(this, "Have fun debugging the debugger!", "Debugger detected!");
+}
+
 void MainWindow::displayAttach()
 {
     AttachDialog attach(this);
@@ -1283,13 +1313,7 @@ void MainWindow::changeCommandLine()
         return; //pressed cancel
 
     if(!DbgFunctions()->SetCmdline((char*)mLineEdit.editText.toUtf8().constData()))
-    {
-        QMessageBox msg(QMessageBox::Warning, tr("Error!"), tr("Could not set command line!"));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
+        SimpleErrorBox(this, tr("Error!"), tr("Could not set command line!"));
     else
     {
         DbgFunctions()->MemUpdateMap();
@@ -1403,4 +1427,107 @@ void MainWindow::displayNotesWidget()
 void MainWindow::displayHandlesWidget()
 {
     showQWidgetTab(mHandlesView);
+}
+
+void MainWindow::manageFavourites()
+{
+    FavouriteTools favToolsDialog(this);
+    favToolsDialog.exec();
+    updateFavouriteTools();
+}
+
+void MainWindow::updateFavouriteTools()
+{
+    char buffer[MAX_SETTING_SIZE];
+    bool isanythingexists = false;
+    ui->menuFavourites->clear();
+    for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Tool%1").arg(i).toUtf8().constData(), buffer); i++)
+    {
+        QString exePath = QString::fromUtf8(buffer);
+        QAction* newAction = new QAction(this);
+        newAction->setData(QVariant(QString("Tool,%1").arg(exePath)));
+        if(BridgeSettingGet("Favourite", QString("ToolShortcut%1").arg(i).toUtf8().constData(), buffer))
+            if(*buffer && strcmp(buffer, "NOT_SET") != 0)
+                setGlobalShortcut(newAction, QKeySequence(QString::fromUtf8(buffer)));
+        if(BridgeSettingGet("Favourite", QString("ToolDescription%1").arg(i).toUtf8().constData(), buffer))
+            newAction->setText(QString::fromUtf8(buffer));
+        else
+            newAction->setText(exePath);
+        connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
+        ui->menuFavourites->addAction(newAction);
+        isanythingexists = true;
+    }
+    if(isanythingexists)
+    {
+        isanythingexists = false;
+        ui->menuFavourites->addSeparator();
+    }
+    for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Script%1").arg(i).toUtf8().constData(), buffer); i++)
+    {
+        QString scriptPath = QString::fromUtf8(buffer);
+        QAction* newAction = new QAction(this);
+        newAction->setData(QVariant(QString("Script,%1").arg(scriptPath)));
+        if(BridgeSettingGet("Favourite", QString("ScriptShortcut%1").arg(i).toUtf8().constData(), buffer))
+            if(*buffer && strcmp(buffer, "NOT_SET") != 0)
+                setGlobalShortcut(newAction, QKeySequence(QString::fromUtf8(buffer)));
+        if(BridgeSettingGet("Favourite", QString("ScriptDescription%1").arg(i).toUtf8().constData(), buffer))
+            newAction->setText(QString::fromUtf8(buffer));
+        else
+            newAction->setText(scriptPath);
+        connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
+        ui->menuFavourites->addAction(newAction);
+        isanythingexists = true;
+    }
+    if(isanythingexists)
+    {
+        isanythingexists = false;
+        ui->menuFavourites->addSeparator();
+    }
+    for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
+    {
+        QAction* newAction = new QAction(QString::fromUtf8(buffer), this);
+        newAction->setData(QVariant(QString("Command")));
+        if(BridgeSettingGet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), buffer))
+            if(*buffer && strcmp(buffer, "NOT_SET") != 0)
+                setGlobalShortcut(newAction, QKeySequence(QString::fromUtf8(buffer)));
+        connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
+        ui->menuFavourites->addAction(newAction);
+        isanythingexists = true;
+    }
+    if(isanythingexists)
+        ui->menuFavourites->addSeparator();
+    QAction* manageFavTools = new QAction(QIcon(":/icons/images/star.png"), tr("Manage Favourite Tools"), this);
+    ui->menuFavourites->addAction(manageFavTools);
+    setGlobalShortcut(manageFavTools, ConfigShortcut("FavouritesManage"));
+    connect(ui->menuFavourites->actions().last(), SIGNAL(triggered()), this, SLOT(manageFavourites()));
+}
+
+void MainWindow::clickFavouriteTool()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action == nullptr)
+        throw std::exception("Bad favourite tool shortcut action");
+    QString data = action->data().toString();
+    if(data.startsWith("Tool,"))
+    {
+        QString toolPath = data.mid(5);
+        PROCESS_INFORMATION procinfo;
+        STARTUPINFO startupinfo;
+        memset(&procinfo, 0, sizeof(PROCESS_INFORMATION));
+        memset(&startupinfo, 0, sizeof(startupinfo));
+        startupinfo.cb = sizeof(startupinfo);
+        CreateProcessW(nullptr, (LPWSTR)toolPath.toStdWString().c_str(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startupinfo, &procinfo);
+        CloseHandle(procinfo.hThread);
+        CloseHandle(procinfo.hProcess);
+    }
+    else if(data.startsWith("Script,"))
+    {
+        QString scriptPath = data.mid(7);
+        DbgScriptUnload();
+        DbgScriptLoad(scriptPath.toUtf8().constData());
+    }
+    else if(data.compare("Command") == 0)
+    {
+        DbgCmdExec(action->text().toUtf8().constData());
+    }
 }
