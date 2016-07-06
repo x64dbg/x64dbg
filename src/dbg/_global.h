@@ -2,7 +2,12 @@
 #define _GLOBAL_H
 
 #define _WIN32_WINNT 0x0501
+
+#ifdef WINVER // Overwrite WINVER if given on command line
+#undef WINVER
+#endif
 #define WINVER 0x0501
+
 #define _WIN32_IE 0x0500
 
 #include <stdio.h>

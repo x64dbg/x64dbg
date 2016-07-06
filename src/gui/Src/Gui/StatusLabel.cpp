@@ -44,7 +44,7 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
         break;
     }
 
-    this->repaint();
+    this->update();
 }
 
 void StatusLabel::logUpdate(QString message)

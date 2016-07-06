@@ -81,7 +81,7 @@ void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
 {
     if(state == stopped)
     {
-        repaint(); //clear
+        update(); //clear
     }
 }
 
@@ -96,7 +96,7 @@ void CPUSideBar::changeTopmostAddress(dsint i)
     topVA = i;
     memset(&regDump, 0, sizeof(REGDUMP));
     DbgGetRegDump(&regDump);
-    repaint();
+    update();
 }
 
 void CPUSideBar::setViewableRows(int rows)
@@ -109,7 +109,7 @@ void CPUSideBar::setSelection(dsint selVA)
     if(selVA != selectedVA)
     {
         selectedVA = selVA;
-        repaint();
+        update();
     }
 }
 
@@ -349,7 +349,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
                 mCodeFoldingManager.delFoldSegment(wVA);
             }
             mDisas->reloadData();
-            viewport()->repaint();
+            viewport()->update();
         }
     }
     if(x < bulletX - mBulletRadius)

@@ -11,6 +11,7 @@
 #include "thread.h"
 #include "module.h"
 #include "console.h"
+#include "taskthread.h"
 
 #define PAGE_SHIFT              (12)
 //#define PAGE_SIZE               (4096)
@@ -20,7 +21,6 @@
 
 std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
-DWORD memMapThreadCounter = 0;
 
 void MemUpdateMap()
 {
@@ -244,11 +244,20 @@ void MemUpdateMap()
     }
 }
 
+static DWORD WINAPI memUpdateMap()
+{
+    if(DbgIsDebugging())
+    {
+        MemUpdateMap();
+        GuiUpdateMemoryView();
+    }
+    return 0;
+}
+
 void MemUpdateMapAsync()
 {
-    // Setting the last tick to 0 will force the thread to execute MemUpdateMap()
-    // as soon as possible
-    InterlockedExchange((volatile LONG*)&memMapThreadCounter, 0);
+    static auto MemUpdateMapTask = MakeTaskThread(memUpdateMap, 1000);
+    MemUpdateMapTask.WakeUp();
 }
 
 duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh)

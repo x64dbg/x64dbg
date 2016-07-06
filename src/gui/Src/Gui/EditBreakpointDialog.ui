@@ -181,8 +181,14 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>editBreakCondition</tabstop>
+  <tabstop>editLogText</tabstop>
+  <tabstop>editLogCondition</tabstop>
+  <tabstop>editCommandText</tabstop>
+  <tabstop>editCommandCondition</tabstop>
   <tabstop>editName</tabstop>
   <tabstop>spinHitCount</tabstop>
+  <tabstop>checkBoxFastResume</tabstop>
   <tabstop>buttonSave</tabstop>
   <tabstop>buttonCancel</tabstop>
  </tabstops>

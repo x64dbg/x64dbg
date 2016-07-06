@@ -29,7 +29,7 @@ protected:
     class CompareFunc
     {
     public:
-        bool operator()(const Range & lhs, const Range & rhs);
+        bool operator()(const Range & lhs, const Range & rhs) const;
     };
     class FoldTree
     {

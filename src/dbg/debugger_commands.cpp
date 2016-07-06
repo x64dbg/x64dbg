@@ -22,6 +22,7 @@
 #include "label.h"
 #include "bookmark.h"
 #include "function.h"
+#include "taskthread.h"
 
 static bool bScyllaLoaded = false;
 duint LoadLibThreadID;
@@ -130,7 +131,7 @@ CMDRESULT cbDebugRun(int argc, char* argv[])
         return STATUS_ERROR;
 
     dbgsetispausedbyuser(false);
-    GuiSetDebugState(running);
+    GuiSetDebugStateAsync(running);
     unlock(WAITID_RUN);
     PLUG_CB_RESUMEDEBUG callbackInfo;
     callbackInfo.reserved = 0;

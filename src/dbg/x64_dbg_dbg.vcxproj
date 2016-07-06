@@ -175,6 +175,7 @@
     <ClInclude Include="recursiveanalysis.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />
+    <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
     <ClInclude Include="xrefs.h" />
