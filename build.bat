@@ -9,7 +9,6 @@ if /i "%1"=="x32"	call setenv.bat x32&set type=Configuration=Release;Platform=Wi
 if /i "%1"=="x64"	call setenv.bat x64&set type=Configuration=Release;Platform=x64&goto build
 if /i "%1"=="coverity"	goto coverity
 if /i "%1"=="doxygen"	call setenv.bat doxygen&goto doxygen
-if /i "%1"=="chm"	call setenv.bat chm&goto chm
 
 goto usage
 
@@ -53,11 +52,6 @@ goto :restorepath
 
 :doxygen
 doxygen
-goto :restorepath
-
-
-:chm
-start /w "" winchm.exe help\x64_dbg.wcp /h
 goto :restorepath
 
 
