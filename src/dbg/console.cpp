@@ -35,8 +35,6 @@ void dprintf(const char* Format, ...)
 
 void GuiAddLogMessageAsync(const char* msg)
 {
-    if(GuiIsUpdateDisabled())
-        return;
     static StringConcatTaskThread_<void (*)(const std::string &)> task([](const std::string & msg)
     {
         GuiAddLogMessage(msg.c_str());

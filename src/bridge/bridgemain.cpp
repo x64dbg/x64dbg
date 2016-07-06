@@ -992,7 +992,6 @@ BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
 
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
 {
-    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_ADD_MSG_TO_LOG, (void*)msg, 0);
 }
 
@@ -1008,7 +1007,6 @@ BRIDGE_IMPEXP void GuiUpdateEnable(bool updateNow)
         DbgCmdExecDirect("guiupdateenable");
     else
         DbgCmdExecDirect("guiupdateenable 0");
-
 }
 
 BRIDGE_IMPEXP void GuiUpdateDisable()
