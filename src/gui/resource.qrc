@@ -217,5 +217,7 @@
         <file>images/thread-setpriority_alt.png</file>
         <file>images/thread-switch.png</file>
         <file>images/unicode.png</file>
+        <file>images/fatal-error.png</file>
+        <file>images/star.png</file>
     </qresource>
 </RCC>
