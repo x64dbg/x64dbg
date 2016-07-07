@@ -180,6 +180,8 @@ private:
     int mMaxMRU;
     unsigned int lastException;
 
+    QAction* actionManageFavourites;
+
     void loadMRUList(int maxItems);
     void saveMRUList();
     void addMRUEntry(QString entry);

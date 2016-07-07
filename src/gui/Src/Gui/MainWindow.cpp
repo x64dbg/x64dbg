@@ -295,17 +295,17 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
+    // Setup favourite tools menu
+    updateFavouriteTools();
+
     // Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException = 0;
     defaultSettings.SaveSettings();
+    // Don't need to set shortcuts because the code above will signal refreshShortcuts()
 
     // Create updatechecker
     mUpdateChecker = new UpdateChecker(this);
-
-    updateFavouriteTools();
-
-    refreshShortcuts();
 
     // Setup close thread and dialog
     bCanClose = false;
@@ -475,7 +475,7 @@ void MainWindow::refreshShortcuts()
 
     setGlobalShortcut(ui->actionScylla, ConfigShortcut("PluginsScylla"));
 
-    setGlobalShortcut(ui->actionManageFavourite, ConfigShortcut("FavouritesManage"));
+    setGlobalShortcut(actionManageFavourites, ConfigShortcut("FavouritesManage"));
 
     setGlobalShortcut(ui->actionSettings, ConfigShortcut("OptionsPreferences"));
     setGlobalShortcut(ui->actionAppearance, ConfigShortcut("OptionsAppearance"));
@@ -1496,9 +1496,9 @@ void MainWindow::updateFavouriteTools()
     }
     if(isanythingexists)
         ui->menuFavourites->addSeparator();
-    QAction* manageFavTools = new QAction(QIcon(":/icons/images/star.png"), tr("Manage Favourite Tools"), this);
-    ui->menuFavourites->addAction(manageFavTools);
-    setGlobalShortcut(manageFavTools, ConfigShortcut("FavouritesManage"));
+    actionManageFavourites = new QAction(QIcon(":/icons/images/star.png"), tr("Manage Favourite Tools"), this);
+    ui->menuFavourites->addAction(actionManageFavourites);
+    setGlobalShortcut(actionManageFavourites, ConfigShortcut("FavouritesManage"));
     connect(ui->menuFavourites->actions().last(), SIGNAL(triggered()), this, SLOT(manageFavourites()));
 }
 
