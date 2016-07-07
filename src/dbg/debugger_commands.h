@@ -8,6 +8,7 @@
 CMDRESULT cbDebugInit(int argc, char* argv[]);
 CMDRESULT cbDebugStop(int argc, char* argv[]);
 CMDRESULT cbDebugRun(int argc, char* argv[]);
+CMDRESULT cbDebugRun2(int argc, char* argv[]);
 CMDRESULT cbDebugErun(int argc, char* argv[]);
 CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[]);
 CMDRESULT cbDebugSetBPX(int argc, char* argv[]);

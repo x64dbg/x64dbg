@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "CPUDump.h"
 #include "TabWidget.h"
+#include "WatchView.h"
 
 class CPUDump;
 
@@ -35,6 +36,7 @@ private:
     bool mInitAllDumpTabs;
     uint mMaxCPUDumpTabs;
 
+    WatchView* mWatch;
 };
 
 #endif // CPUMULTIDUMP_H

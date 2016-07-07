@@ -84,6 +84,7 @@ public slots:
     void execTRTOBT();
     void execTRTIIT();
     void execTRTOIT();
+    void execInstrUndo();
     void displayCpuWidget();
     void displaySymbolWidget();
     void displaySourceViewWidget();
@@ -116,6 +117,7 @@ public slots:
     void displayBookmarks();
     void displayFunctions();
     void checkUpdates();
+    void crashDump();
     void displayCallstack();
     void displaySEHChain();
     void setGlobalShortcut(QAction* action, const QKeySequence & key);
@@ -140,6 +142,9 @@ public slots:
     void dbgStateChangedSlot(DBGSTATE state);
     void displayNotesWidget();
     void displayHandlesWidget();
+    void manageFavourites();
+    void updateFavouriteTools();
+    void clickFavouriteTool();
 
 private:
     Ui::MainWindow* ui;
@@ -174,6 +179,8 @@ private:
     QStringList mMRUList;
     int mMaxMRU;
     unsigned int lastException;
+
+    QAction* actionManageFavourites;
 
     void loadMRUList(int maxItems);
     void saveMRUList();

@@ -24,6 +24,7 @@
 #include "handles.h"
 #include "../bridge/bridgelist.h"
 #include "tcpconnections.h"
+#include "watch.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -292,6 +293,7 @@ void dbgfunctionsinit()
     _dbgfunctions.ModSizeFromAddr = ModSizeFromAddr;
     _dbgfunctions.ModGetParty = ModGetParty;
     _dbgfunctions.ModSetParty = ModSetParty;
+    _dbgfunctions.WatchIsWatchdogTriggered = WatchIsWatchdogTriggered;
     _dbgfunctions.Assemble = assemble;
     _dbgfunctions.PatchGet = _patchget;
     _dbgfunctions.PatchInRange = _patchinrange;

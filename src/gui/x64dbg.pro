@@ -156,7 +156,10 @@ SOURCES += \
     Src/Gui/CodepageSelectionDialog.cpp \
     Src/Gui/ColumnReorderDialog.cpp \
     Src/Utils/EncodeMap.cpp \
-    Src/Utils/CodeFolding.cpp
+    Src/Utils/CodeFolding.cpp \
+    Src/Gui/WatchView.cpp \
+    Src/Gui/FavouriteTools.cpp \
+    Src/Gui/BrowseDialog.cpp
 
 
 HEADERS += \
@@ -254,7 +257,10 @@ HEADERS += \
     Src/Utils/CachedFontMetrics.h \
     Src/Gui/ColumnReorderDialog.h \
     Src/Utils/EncodeMap.h \
-    Src/Utils/CodeFolding.h
+    Src/Utils/CodeFolding.h \
+    Src/Gui/WatchView.h \
+    Src/Gui/FavouriteTools.h \
+    Src/Gui/BrowseDialog.h
     
 
 FORMS += \
@@ -287,7 +293,9 @@ FORMS += \
     Src/Gui/EditFloatRegister.ui \
     Src/Gui/XrefBrowseDialog.ui \
     Src/Gui/CodepageSelectionDialog.ui \
-    Src/Gui/ColumnReorderDialog.ui
+    Src/Gui/ColumnReorderDialog.ui \
+    Src/Gui/FavouriteTools.ui \
+    Src/Gui/BrowseDialog.ui
 
 TRANSLATIONS = \
     Translations/x64dbg.ts

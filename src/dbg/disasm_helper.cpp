@@ -114,7 +114,7 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
 const char* disasmtext(duint addr)
 {
     unsigned char buffer[MAX_DISASM_BUFFER] = "";
-    DbgMemRead(addr, buffer, sizeof(buffer));
+    MemRead(addr, buffer, sizeof(buffer));
     Capstone cp;
     static char instruction[64] = "";
     if(!cp.Disassemble(addr, buffer))
@@ -169,17 +169,17 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
             switch(op.size)
             {
             case 1:
-                DbgMemRead(value, (unsigned char*)&arg->memvalue, 1);
+                MemRead(value, (unsigned char*)&arg->memvalue, 1);
                 break;
             case 2:
-                DbgMemRead(value, (unsigned char*)&arg->memvalue, 2);
+                MemRead(value, (unsigned char*)&arg->memvalue, 2);
                 break;
             case 4:
-                DbgMemRead(value, (unsigned char*)&arg->memvalue, 4);
+                MemRead(value, (unsigned char*)&arg->memvalue, 4);
                 break;
 #ifdef _WIN64
             case 8:
-                DbgMemRead(value, (unsigned char*)&arg->memvalue, 8);
+                MemRead(value, (unsigned char*)&arg->memvalue, 8);
                 break;
 #endif //_WIN64
             }
@@ -236,8 +236,10 @@ void disasmget(duint addr, DISASM_INSTR* instr)
         return;
     }
     unsigned char buffer[MAX_DISASM_BUFFER] = "";
-    DbgMemRead(addr, buffer, sizeof(buffer));
-    disasmget(buffer, addr, instr);
+    if(MemRead(addr, buffer, sizeof(buffer)))
+        disasmget(buffer, addr, instr);
+    else
+        memset(instr, 0, sizeof(DISASM_INSTR)); // Buffer overflow
 }
 
 void disasmprint(duint addr)

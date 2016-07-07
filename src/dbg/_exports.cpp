@@ -32,6 +32,7 @@
 #include "xrefs.h"
 #include "encodemap.h"
 #include "argument.h"
+#include "watch.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -1209,6 +1210,12 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_DELETE_BOOKMARK_RANGE:
     {
         BookmarkDelRange((duint)param1, (duint)param2, true);
+    }
+    break;
+
+    case DBG_GET_WATCH_LIST:
+    {
+        BridgeList<WATCHINFO>::CopyData((ListInfo*)param1, WatchGetList());
     }
     break;
     }

@@ -18,8 +18,13 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
         this->addTabEx(cpuDump, QIcon(":/icons/images/dump.png"), tr("Dump ") + QString::number(i + 1), QString("Dump ") + QString::number(i + 1));
     }
 
-    mCurrentCPUDump = (CPUDump*)currentWidget();
+    mCurrentCPUDump = dynamic_cast<CPUDump*>(currentWidget());
 
+    mWatch = new WatchView(this);
+
+    //mMaxCPUDumpTabs++;
+    this->addTabEx(mWatch, QIcon(":/icons/images/geolocation-goto.png"), tr("Watch ") + QString::number(1), QString("Watch 1"));
+    mWatch->loadColumnFromConfig("Watch1");
 
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(updateCurrentTabSlot(int)));
     connect(tabBar(), SIGNAL(OnDoubleClickTabIndex(int)), this, SLOT(openChangeTabTitleDialogSlot(int)));
@@ -45,6 +50,8 @@ void CPUMultiDump::getTabNames(QList<QString> & names)
     names.clear();
     for(int i = 0; i < count(); i++)
     {
+        if(!getNativeName(i).startsWith("Dump "))
+            continue;
         // If empty name, then widget is detached
         if(this->tabBar()->tabText(i).length() == 0)
         {
@@ -76,7 +83,9 @@ int CPUMultiDump::getMaxCPUTabs()
 
 void CPUMultiDump::updateCurrentTabSlot(int tabIndex)
 {
-    mCurrentCPUDump = (CPUDump*)widget(tabIndex);
+    CPUDump* t = dynamic_cast<CPUDump*>(widget(tabIndex));
+    if(t)
+        mCurrentCPUDump = t;
 }
 
 void CPUMultiDump::printDumpAtSlot(dsint parVa)
@@ -86,6 +95,8 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
         CPUDump* cpuDump = NULL;
         for(int i = 0; i < count(); i++)
         {
+            if(!getNativeName(i).startsWith("Dump "))
+                continue;
             cpuDump = (CPUDump*)widget(i);
             cpuDump->historyClear();
             cpuDump->addVaToHistory(parVa);
@@ -105,10 +116,21 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
 void CPUMultiDump::printDumpAtNSlot(duint parVa, int index)
 {
     setCurrentIndex(index);
-
-    mCurrentCPUDump = (CPUDump*) widget(index);
-    mCurrentCPUDump->printDumpAt(parVa);
-    mCurrentCPUDump->addVaToHistory(parVa);
+    CPUDump* current = dynamic_cast<CPUDump*>(widget(index));
+    if(current)
+    {
+        current->printDumpAt(parVa);
+        current->addVaToHistory(parVa);
+    }
+    else if(index > 0 && unsigned int(index) < mMaxCPUDumpTabs)
+    {
+        current = dynamic_cast<CPUDump*>(widget(index + 1));
+        if(current)
+        {
+            current->printDumpAt(parVa);
+            current->addVaToHistory(parVa);
+        }
+    }
 }
 
 void CPUMultiDump::selectionGetSlot(SELECTIONDATA* selectionData)

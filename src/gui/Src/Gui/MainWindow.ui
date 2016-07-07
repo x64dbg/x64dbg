@@ -114,6 +114,7 @@
     <addaction name="actionSkipNextInstruction"/>
     <addaction name="separator"/>
     <addaction name="menuTrace_record"/>
+    <addaction name="actionInstrUndo"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
     <addaction name="separator"/>
@@ -131,6 +132,8 @@
     <addaction name="actionManual"/>
     <addaction name="actionFaq"/>
     <addaction name="actionAbout"/>
+    <addaction name="separator"/>
+    <addaction name="actionCrashDump"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
     <property name="title">
@@ -148,10 +151,16 @@
     <addaction name="actionTopmost"/>
     <addaction name="actionReloadStylesheet"/>
    </widget>
+   <widget class="QMenu" name="menuFavourites">
+    <property name="title">
+     <string>Favourites</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuDebug"/>
    <addaction name="menuPlugins"/>
+   <addaction name="menuFavourites"/>
    <addaction name="menuOptions"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -896,6 +905,25 @@
    </property>
    <property name="text">
     <string>Run until e&amp;xpression</string>
+   </property>
+  </action>
+  <action name="actionInstrUndo">
+   <property name="text">
+    <string>Undo last instruction</string>
+   </property>
+  </action>
+  <action name="actionCrashDump">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/fatal-error.png</normaloff>:/icons/images/fatal-error.png</iconset>
+   </property>
+   <property name="text">
+    <string>Generate crash dump</string>
+   </property>
+  </action>
+  <action name="actionManageFavourite">
+   <property name="text">
+    <string>&amp;Manage Favourite Tools...</string>
    </property>
   </action>
  </widget>

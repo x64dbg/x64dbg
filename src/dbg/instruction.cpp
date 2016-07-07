@@ -41,6 +41,7 @@
 #include "exhandlerinfo.h"
 #include "symbolinfo.h"
 #include "argument.h"
+#include "historycontext.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -2744,5 +2745,12 @@ CMDRESULT cbInstrExhandlers(int argc, char* argv[])
         printExhandlers("UnhandledExceptionFilter", entries);
     else
         dputs("Failed to get UnhandledExceptionFilter (loaded symbols for kernelbase.dll?)");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrInstrUndo(int argc, char* argv[])
+{
+    HistoryRestore();
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }

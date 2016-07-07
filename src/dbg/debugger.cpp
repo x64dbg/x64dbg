@@ -11,6 +11,7 @@
 #include "command.h"
 #include "database.h"
 #include "addrinfo.h"
+#include "watch.h"
 #include "thread.h"
 #include "plugin_loader.h"
 #include "breakpoint.h"
@@ -24,6 +25,7 @@
 #include "stackinfo.h"
 #include "stringformat.h"
 #include "TraceRecord.h"
+#include "historycontext.h"
 #include "taskthread.h"
 
 struct TraceCondition
@@ -35,7 +37,7 @@ struct TraceCondition
     explicit TraceCondition(String expression, duint maxCount)
         : condition(expression), steps(0), maxSteps(maxCount) {}
 
-    bool ContinueTrace()
+    inline bool ContinueTrace()
     {
         steps++;
         if(steps >= maxSteps)
@@ -260,7 +262,6 @@ duint dbggetdbgevents()
 {
     return InterlockedExchange(&DbgEvents, 0);
 }
-
 
 static DWORD WINAPI updateCallStackThread(duint ptr)
 {
@@ -496,6 +497,10 @@ void cbPauseBreakpoint()
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     DeleteBPX(CIP);
     DebugUpdateGuiSetStateAsync(CIP, true);
+    // Trace record
+    _dbg_dbgtraceexecute(CIP);
+    // Watchdog
+    cbWatchdog(0, nullptr);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
@@ -608,6 +613,9 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     // Trace record
     _dbg_dbgtraceexecute(CIP);
 
+    // Watchdog
+    cbWatchdog(0, nullptr);
+
     if(*bp.logText && logCondition)  //log
     {
         dprintf("%s\n", stringformatinline(bp.logText).c_str());
@@ -695,10 +703,15 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     RunToUserCodeBreakpoints.clear();
     lock(WAITID_RUN);
     EXCLUSIVE_RELEASE();
+    // Watchdog
+    cbWatchdog(0, nullptr);
+    // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved = nullptr;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    // Trace record
     _dbg_dbgtraceexecute(CIP);
+    // Update GUI
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
@@ -873,6 +886,8 @@ void cbStep()
     DebugUpdateGuiSetStateAsync(CIP, true);
     // Trace record
     _dbg_dbgtraceexecute(CIP);
+    // Watchdog
+    cbWatchdog(0, nullptr);
     // Plugin interaction
     PLUG_CB_STEPPED stepInfo;
     stepInfo.reserved = 0;
@@ -895,6 +910,8 @@ static void cbRtrFinalStep()
     // Trace record
     _dbg_dbgtraceexecute(CIP);
     DebugUpdateGuiSetStateAsync(CIP, true);
+    // Watchdog
+    cbWatchdog(0, nullptr);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
@@ -907,6 +924,7 @@ static void cbRtrFinalStep()
 
 void cbRtrStep()
 {
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     unsigned char ch = 0x90;
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     MemRead(cip, &ch, 1);
@@ -915,11 +933,14 @@ void cbRtrStep()
     if(ch == 0xC3 || ch == 0xC2)
         cbRtrFinalStep();
     else
+    {
         StepOver((void*)cbRtrStep);
+    }
 }
 
 void cbTOCNDStep()
 {
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     if(traceCondition && traceCondition->ContinueTrace())
     {
         if(bTraceRecordEnabledDuringTrace)
@@ -936,6 +957,7 @@ void cbTOCNDStep()
 
 void cbTICNDStep()
 {
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     if(traceCondition && traceCondition->ContinueTrace())
     {
         if(bTraceRecordEnabledDuringTrace)
@@ -952,6 +974,7 @@ void cbTICNDStep()
 
 void cbTIBTStep()
 {
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     // Trace record
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
     if(!traceCondition)
@@ -976,6 +999,7 @@ void cbTIBTStep()
 
 void cbTOBTStep()
 {
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     // Trace record
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
     if(!traceCondition)
@@ -1000,6 +1024,7 @@ void cbTOBTStep()
 
 void cbTIITStep()
 {
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     // Trace record
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
     if(!traceCondition)
@@ -1024,6 +1049,7 @@ void cbTIITStep()
 
 void cbTOITStep()
 {
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     // Trace record
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
     if(!traceCondition)
@@ -1179,6 +1205,8 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
     //unload main module
     SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
+    //history
+    HistoryClear();
     ModClear(); //clear all modules
 }
 
@@ -1204,6 +1232,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     if(settingboolget("Events", "ThreadStart"))
     {
+        HistoryClear();
         //update memory map
         MemUpdateMap();
         //update GUI
@@ -1237,6 +1266,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     callbackInfo.ExitThread = ExitThread;
     callbackInfo.dwThreadId = dwThreadId;
     plugincbcall(CB_EXITTHREAD, &callbackInfo);
+    HistoryClear();
     ThreadExit(dwThreadId);
     dprintf("Thread %X exit\n", dwThreadId);
 
@@ -1254,7 +1284,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     }
 }
 
-static void cbSystemBreakpoint(void* ExceptionData)
+static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint event shouldn't be dropped
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
 
@@ -2230,6 +2260,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     DbClose();
     ModClear();
     ThreadClear();
+    WatchClear();
     TraceRecord.clear();
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();

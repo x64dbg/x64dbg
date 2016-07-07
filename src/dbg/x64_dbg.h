@@ -1,7 +1,6 @@
 #ifndef _X64_DBG_H
 #define _X64_DBG_H
 
-#include <windows.h>
 #include "_global.h"
 
 #ifdef __cplusplus
