@@ -14,6 +14,7 @@
 #include "x64_dbg.h"
 #include "msgqueue.h"
 #include "threading.h"
+#include "watch.h"
 #include "plugin_loader.h"
 #include "_dbgfunctions.h"
 #include "debugger_commands.h"
@@ -25,6 +26,7 @@
 #include "datainst_helper.h"
 #include "error.h"
 #include "exception.h"
+#include "historycontext.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -81,7 +83,7 @@ static void registercommands()
     dbgcmdnew("StopDebug\1stop\1dbgstop", cbDebugStop, true); //stop debugger
     dbgcmdnew("AttachDebugger\1attach", cbDebugAttach, false); //attach
     dbgcmdnew("DetachDebugger\1detach", cbDebugDetach, true); //detach
-    dbgcmdnew("run\1go\1r\1g", cbDebugRun, true); //unlock WAITID_RUN
+    dbgcmdnew("run\1go\1r\1g", cbDebugRun2, true); //unlock WAITID_RUN
     dbgcmdnew("erun\1egun\1er\1eg", cbDebugErun, true); //run + skip first chance exceptions
     dbgcmdnew("pause", cbDebugPause, true); //pause debugger
     dbgcmdnew("StepInto\1sti", cbDebugStepInto, true); //StepInto
@@ -112,6 +114,7 @@ static void registercommands()
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
     dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
     dbgcmdnew("RunToUserCode\1rtu", cbDebugRtu, true); //Run to user code
+    dbgcmdnew("InstrUndo", cbInstrInstrUndo, true); //Instruction undo
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
@@ -161,6 +164,14 @@ static void registercommands()
     dbgcmdnew("ResetMemoryBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
 
     dbgcmdnew("bpgoto", cbDebugSetBPGoto, true);
+
+    //watch
+    dbgcmdnew("AddWatch", cbAddWatch, true); // add watch
+    dbgcmdnew("DelWatch", cbDelWatch, true); // delete watch
+    dbgcmdnew("CheckWatchdog", cbWatchdog, true); // Watchdog
+    dbgcmdnew("SetWatchdog", cbSetWatchdog, true); // Setup watchdog
+    dbgcmdnew("SetWatchName", cbSetWatchName, true); // Set watch name
+    dbgcmdnew("SetWatchExpression", cbSetWatchExpression, true); // Set watch expression
 
     //variables
     dbgcmdnew("varnew\1var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]
