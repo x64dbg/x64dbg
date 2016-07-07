@@ -559,11 +559,12 @@ static bool getAssignmentOperator(ExpressionParser::Token::Type type, Expression
     return true;
 }
 
-static bool handleAssignment(const char* variable, duint resultv, bool silent)
+static bool handleAssignment(const char* variable, duint resultv, bool silent, bool allowassign)
 {
+    if(!allowassign)
+        return false;
     bool destIsVar = false;
     duint temp;
-    //NOTE: assignments can be disabled by failing here
     //TODO: implement destIsVar without retrieving the value
     valfromstring_noexpr(variable, &temp, true, false, nullptr, &destIsVar, nullptr); //there is no return check on this because the destination might not exist yet
     if(!destIsVar)
@@ -583,7 +584,7 @@ static bool handleAssignment(const char* variable, duint resultv, bool silent)
 }
 
 template<typename T>
-static bool evalOperation(ExpressionParser::Token::Type type, const ExpressionParser::EvalValue & op1, const ExpressionParser::EvalValue & op2, ExpressionParser::EvalValue & result, bool signedcalc, bool silent, bool baseonly)
+static bool evalOperation(ExpressionParser::Token::Type type, const ExpressionParser::EvalValue & op1, const ExpressionParser::EvalValue & op2, ExpressionParser::EvalValue & result, bool signedcalc, bool silent, bool baseonly, bool allowassign)
 {
     switch(type)
     {
@@ -606,7 +607,7 @@ static bool evalOperation(ExpressionParser::Token::Type type, const ExpressionPa
         ExpressionParser::Token::Type assop;
         if(getAssignmentOperator(type, assop))
         {
-            if(!evalOperation<T>(assop, op1, op2, newvalue, signedcalc, silent, baseonly))
+            if(!evalOperation<T>(assop, op1, op2, newvalue, signedcalc, silent, baseonly, allowassign))
                 return false;
         }
         else
@@ -614,7 +615,7 @@ static bool evalOperation(ExpressionParser::Token::Type type, const ExpressionPa
         duint resultv;
         if(!newvalue.DoEvaluate(resultv, silent, baseonly))
             return false;
-        if(!handleAssignment(op1.data.c_str(), resultv, silent))
+        if(!handleAssignment(op1.data.c_str(), resultv, silent, allowassign))
             return false;
         result = ExpressionParser::EvalValue(resultv);
     }
@@ -648,7 +649,7 @@ static bool evalOperation(ExpressionParser::Token::Type type, const ExpressionPa
         default:
             return false;
         }
-        if(!handleAssignment(op1.data.c_str(), op1v, silent))
+        if(!handleAssignment(op1.data.c_str(), op1v, silent, allowassign))
             return false;
         result = ExpressionParser::EvalValue(resultv);
     }
@@ -669,19 +670,18 @@ static bool evalOperation(ExpressionParser::Token::Type type, const ExpressionPa
     return true;
 }
 
-bool ExpressionParser::unsignedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const
+bool ExpressionParser::unsignedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly, bool allowassign) const
 {
-    return evalOperation<duint>(type, op1, op2, result, false, silent, baseonly);
+    return evalOperation<duint>(type, op1, op2, result, false, silent, baseonly, allowassign);
 }
 
-bool ExpressionParser::signedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const
+bool ExpressionParser::signedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly, bool allowassign) const
 {
-    return evalOperation<dsint>(type, op1, op2, result, true, silent, baseonly);
+    return evalOperation<dsint>(type, op1, op2, result, true, silent, baseonly, allowassign);
 }
 
-bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly) const
+bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassign, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly) const
 {
-    //TODO: flag to disable assignment operators
     value = 0;
     if(!mPrefixTokens.size() || !mIsValidExpression)
         return false;
@@ -710,9 +710,9 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bo
                 op1 = stack.top();
                 stack.pop();
                 if(signedcalc)
-                    operationSuccess = signedOperation(type, op1, op2, result, silent, baseonly);
+                    operationSuccess = signedOperation(type, op1, op2, result, silent, baseonly, allowassign);
                 else
-                    operationSuccess = unsignedOperation(type, op1, op2, result, silent, baseonly);
+                    operationSuccess = unsignedOperation(type, op1, op2, result, silent, baseonly, allowassign);
                 if(!operationSuccess)
                     return false;
                 stack.push(result);
@@ -756,9 +756,9 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bo
                 op1 = stack.top();
                 stack.pop();
                 if(signedcalc)
-                    operationSuccess = signedOperation(type, op1, op2, result, silent, baseonly);
+                    operationSuccess = signedOperation(type, op1, op2, result, silent, baseonly, allowassign);
                 else
-                    operationSuccess = unsignedOperation(type, op1, op2, result, silent, baseonly);
+                    operationSuccess = unsignedOperation(type, op1, op2, result, silent, baseonly, allowassign);
                 if(!operationSuccess)
                     return false;
                 stack.push(result);

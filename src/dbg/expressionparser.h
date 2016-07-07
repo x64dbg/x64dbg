@@ -8,7 +8,7 @@ class ExpressionParser
 {
 public:
     explicit ExpressionParser(const String & expression);
-    bool Calculate(duint & value, bool signedcalc, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const;
+    bool Calculate(duint & value, bool signedcalc, bool allowassign, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const;
 
     const String & GetExpression() const
     {
@@ -137,8 +137,8 @@ private:
     void tokenize();
     void shuntingYard();
     void addOperatorToken(const String & data, Token::Type type);
-    bool unsignedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const;
-    bool signedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const;
+    bool unsignedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly, bool allowassign) const;
+    bool signedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly, bool allowassign) const;
 
     void addOperatorToken(char ch, Token::Type type)
     {

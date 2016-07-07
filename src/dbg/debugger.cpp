@@ -41,7 +41,7 @@ struct TraceCondition
         if(steps >= maxSteps)
             return false;
         duint value = 1;
-        return condition.Calculate(value, valuesignedcalc()) && !value;
+        return condition.Calculate(value, valuesignedcalc(), true) && !value;
     }
 };
 
