@@ -2,6 +2,7 @@
 #include "value.h"
 #include "console.h"
 #include "variable.h"
+#include "expressionfunctions.h"
 
 ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() const
 {
@@ -803,12 +804,33 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
                 break;
             }
         }
-        else
+        else if(token.type() == Token::Type::Function)
         {
-            stack.push(EvalValue(token.data()));
+            const auto & name = token.data();
+            int argc;
+            if(!ExpressionFunctions::GetArgc(name, argc))
+                return false;
+            if(int(stack.size()) < argc)
+                return false;
+            std::vector<duint> argv;
+            argv.resize(argc);
+            for(auto i = 0; i < argc; i++)
+            {
+                duint arg;
+                if(!stack.top().DoEvaluate(arg, silent, baseonly))
+                    return false;
+                stack.pop();
+                argv[argc - i - 1] = arg;
+            }
+            duint result;
+            if(!ExpressionFunctions::Call(name, argv, result))
+                return false;
+            stack.push(EvalValue(result));
         }
+        else
+            stack.push(EvalValue(token.data()));
     }
-    if(stack.empty())  //empty result stack means error
+    if(stack.size() != 1) //there should only be one value left on the stack
         return false;
     return stack.top().DoEvaluate(value, silent, baseonly, value_size, isvar, hexonly);
 }
