@@ -13,6 +13,7 @@
 #include "bookmark.h"
 #include "function.h"
 #include "loop.h"
+#include "watch.h"
 #include "commandline.h"
 #include "database.h"
 #include "threading.h"
@@ -59,6 +60,7 @@ void DbSave(DbLoadSaveType saveType)
         EncodeMapCacheSave(root);
         TraceRecord.saveToDb(root);
         BpCacheSave(root);
+        WatchCacheSave(root);
 
         //save notes
         char* text = nullptr;
@@ -196,6 +198,7 @@ void DbLoad(DbLoadSaveType loadType)
         EncodeMapCacheLoad(root);
         TraceRecord.loadFromDb(root);
         BpCacheLoad(root);
+        WatchCacheLoad(root);
 
         // Load notes
         const char* text = json_string_value(json_object_get(root, "notes"));
