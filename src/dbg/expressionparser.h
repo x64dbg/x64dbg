@@ -63,6 +63,10 @@ public:
             OperatorAssignAnd,
             OperatorAssignXor,
             OperatorAssignOr,
+            OperatorSuffixInc,
+            OperatorSuffixDec,
+            OperatorPrefixInc,
+            OperatorPrefixDec,
             Error
         };
 
@@ -92,7 +96,6 @@ public:
         Associativity associativity() const;
         int precedence() const;
         bool isOperator() const;
-        bool isAssign() const;
 
     private:
         String mData;
@@ -134,8 +137,8 @@ private:
     void tokenize();
     void shuntingYard();
     void addOperatorToken(const String & data, Token::Type type);
-    bool unsignedOperation(const Token & token, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const;
-    bool signedOperation(const Token & token, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const;
+    bool unsignedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const;
+    bool signedOperation(Token::Type type, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const;
 
     void addOperatorToken(char ch, Token::Type type)
     {
