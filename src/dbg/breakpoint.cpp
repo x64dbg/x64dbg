@@ -308,7 +308,7 @@ bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume)
     return true;
 }
 
-bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
+bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
 {
     ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockBreakpoints);
@@ -329,7 +329,10 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
         }
 
         BREAKPOINT bpInfo = j->second;
-        bpInfo.addr += ModBaseFromName(bpInfo.mod);
+        if(base)  //workaround for some Windows bullshit with compatibility mode
+            bpInfo.addr += base;
+        else
+            bpInfo.addr += ModBaseFromName(bpInfo.mod);
         setBpActive(bpInfo);
 
         // Lock must be released due to callback sub-locks

@@ -1106,7 +1106,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     char modname[256] = "";
     if(ModNameFromAddr((duint)base, modname, true))
-        BpEnumAll(cbSetModuleBreakpoints, modname);
+        BpEnumAll(cbSetModuleBreakpoints, modname, duint(base));
     BpEnumAll(cbSetModuleBreakpoints, "");
     GuiUpdateBreakpointsView();
     pCreateProcessBase = (duint)CreateProcessInfo->lpBaseOfImage;
@@ -1339,7 +1339,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     char modname[256] = "";
     if(ModNameFromAddr((duint)base, modname, true))
-        BpEnumAll(cbSetModuleBreakpoints, modname);
+        BpEnumAll(cbSetModuleBreakpoints, modname, duint(base));
     GuiUpdateBreakpointsView();
     bool bAlreadySetEntry = false;
 
@@ -1462,7 +1462,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     void* base = UnloadDll->lpBaseOfDll;
     char modname[256] = "???";
     if(ModNameFromAddr((duint)base, modname, true))
-        BpEnumAll(cbRemoveModuleBreakpoints, modname);
+        BpEnumAll(cbRemoveModuleBreakpoints, modname, duint(base));
     GuiUpdateBreakpointsView();
     SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf("DLL Unloaded: " fhex " %s\n", base, modname);

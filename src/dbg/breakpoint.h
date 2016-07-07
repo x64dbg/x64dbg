@@ -55,7 +55,7 @@ bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd);
 bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume);
-bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module);
+bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base = 0);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback);
 int BpGetCount(BP_TYPE Type, bool EnabledOnly = false);
 uint32 BpGetHitCount(duint Address, BP_TYPE Type);
