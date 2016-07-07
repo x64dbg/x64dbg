@@ -393,7 +393,6 @@ CMDRESULT cbWatchdog(int argc, char* argv[])
 {
     EXCLUSIVE_ACQUIRE(LockWatch);
     bool watchdogTriggered = false;
-    auto lbl = SymGetSymbolicName(GetContextDataEx(hActiveThread, UE_CIP));
     for(auto j = watchexpr.begin(); j != watchexpr.end(); j++)
     {
         std::pair<unsigned int, WatchExpr*> i = *j;
