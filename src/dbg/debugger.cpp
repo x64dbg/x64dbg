@@ -43,15 +43,7 @@ struct TraceCondition
         if(steps >= maxSteps)
             return false;
         duint value = 1;
-        if(!(condition.Calculate(value, valuesignedcalc()) && !value))
-            return false;
-        cbWatchdog(0, nullptr);
-        int size = 0;
-        VAR_TYPE type;
-        varget("$result", &value, &size, &type);
-        if(value != 0)
-            return false;
-        return true;
+        return condition.Calculate(value, valuesignedcalc()) && !value;
     }
 };
 
@@ -918,6 +910,8 @@ static void cbRtrFinalStep()
     // Trace record
     _dbg_dbgtraceexecute(CIP);
     DebugUpdateGuiSetStateAsync(CIP, true);
+    // Watchdog
+    cbWatchdog(0, nullptr);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
@@ -940,7 +934,6 @@ void cbRtrStep()
         cbRtrFinalStep();
     else
     {
-        HistoryAdd();
         StepOver((void*)cbRtrStep);
     }
 }
@@ -952,7 +945,6 @@ void cbTOCNDStep()
     {
         if(bTraceRecordEnabledDuringTrace)
             _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
-        HistoryAdd();
         StepOver((void*)cbTOCNDStep);
     }
     else
@@ -970,7 +962,6 @@ void cbTICNDStep()
     {
         if(bTraceRecordEnabledDuringTrace)
             _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
-        HistoryAdd();
         StepInto((void*)cbTICNDStep);
     }
     else
@@ -1003,7 +994,6 @@ void cbTIBTStep()
     }
     if(bTraceRecordEnabledDuringTrace)
         _dbg_dbgtraceexecute(CIP);
-    HistoryAdd();
     StepInto((void*)cbTIBTStep);
 }
 
@@ -1029,7 +1019,6 @@ void cbTOBTStep()
     }
     if(bTraceRecordEnabledDuringTrace)
         _dbg_dbgtraceexecute(CIP);
-    HistoryAdd();
     StepOver((void*)cbTOBTStep);
 }
 
@@ -1055,7 +1044,6 @@ void cbTIITStep()
     }
     if(bTraceRecordEnabledDuringTrace)
         _dbg_dbgtraceexecute(CIP);
-    HistoryAdd();
     StepInto((void*)cbTIITStep);
 }
 
@@ -1081,7 +1069,6 @@ void cbTOITStep()
     }
     if(bTraceRecordEnabledDuringTrace)
         _dbg_dbgtraceexecute(CIP);
-    HistoryAdd();
     StepOver((void*)cbTOITStep);
 }
 
