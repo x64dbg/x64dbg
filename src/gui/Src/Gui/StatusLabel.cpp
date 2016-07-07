@@ -16,6 +16,7 @@ StatusLabel::StatusLabel(QStatusBar* parent) : QLabel(parent)
     }
     else //last log message
     {
+        setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(logUpdate(QString)));
         connect(Bridge::getBridge(), SIGNAL(addMsgToStatusBar(QString)), this, SLOT(logUpdate(QString)));
     }

@@ -216,10 +216,29 @@ typedef struct _TEB
     PVOID                   StackReserved;
 } TEB, *PTEB;
 
+// http://stackoverflow.com/questions/36961152/detect-windows-kit-8-0-and-windows-kit-8-1-sdks
+#if defined(WINAPI_PARTITION_APP)
+#if (WINAPI_PARTITION_APP == 0x00000002)
+#define USING_WINDOWS_8_0_SDK
+#define USING_WINDOWS_8_x_SDK
+#endif
+#if defined(WINAPI_FAMILY_SYSTEM)
+#define USING_WINDOWS_10_SDK
+#else
+#if (WINAPI_PARTITION_APP == 1)
+#define USING_WINDOWS_8_1_SDK
+#define USING_WINDOWS_8_x_SDK
+#endif
+#endif
+#endif
+
+// This struct was included in winnt.h starting in the windows 8 toolkit
+#if !(defined(USING_WINDOWS_8_x_SDK) || defined(USING_WINDOWS_10_SDK))
 typedef struct _EXCEPTION_REGISTRATION_RECORD
 {
     _EXCEPTION_REGISTRATION_RECORD* Next;
     _EXCEPTION_DISPOSITION Handler;
 } EXCEPTION_REGISTRATION_RECORD, *PEXCEPTION_REGISTRATION_RECORD;
+#endif
 
 #endif // _UNDOCUMENTED_H
