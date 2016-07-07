@@ -120,7 +120,7 @@ int ExpressionParser::Token::precedence() const
 
 bool ExpressionParser::Token::isOperator() const
 {
-    return mType != Type::Data && mType != Type::OpenBracket && mType != Type::CloseBracket;
+    return mType >= Type::OperatorUnarySub;
 }
 
 ExpressionParser::ExpressionParser(const String & expression)
@@ -184,6 +184,9 @@ void ExpressionParser::tokenize()
             {
                 switch(ch)
                 {
+                case ',':
+                    addOperatorToken(ch, Token::Type::Comma);
+                    break;
                 case '(':
                     addOperatorToken(ch, Token::Type::OpenBracket);
                     break;
@@ -319,7 +322,7 @@ void ExpressionParser::addOperatorToken(const String & data, Token::Type type)
 {
     if(mCurToken.length()) //add a new data token when there is data in the buffer
     {
-        mTokens.push_back(Token(mCurToken, Token::Type::Data));
+        mTokens.push_back(Token(mCurToken, type == Token::Type::OpenBracket ? Token::Type::Function : Token::Type::Data));
         mCurToken.clear();
     }
     mTokens.push_back(Token(data, type)); //add the operator token
@@ -337,7 +340,7 @@ bool ExpressionParser::isUnaryOperator() const
 
 void ExpressionParser::shuntingYard()
 {
-    //Implementation of Dijkstra's Shunting-yard algorithm
+    //Implementation of Dijkstra's Shunting-yard algorithm (https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
     std::vector<Token> queue;
     std::stack<Token> stack;
     auto len = mTokens.size();
@@ -350,22 +353,45 @@ void ExpressionParser::shuntingYard()
         case Token::Type::Data:
             queue.push_back(token);
             break;
+        case Token::Type::Function:
+            stack.push(token);
+            break;
+        case Token::Type::Comma:
+            while(true)
+            {
+                if(stack.empty())  //empty stack = problems
+                {
+                    mIsValidExpression = false;
+                    return;
+                }
+                auto curToken = stack.top();
+                if(curToken.type() == Token::Type::OpenBracket)
+                    break;
+                stack.pop();
+                queue.push_back(curToken);
+            }
+            break;
         case Token::Type::OpenBracket:
             stack.push(token);
             break;
         case Token::Type::CloseBracket:
             while(true)
             {
-                if(stack.empty())   //empty stack = bracket mismatch
+                if(stack.empty()) //empty stack = bracket mismatch
                 {
                     mIsValidExpression = false;
                     return;
                 }
                 auto curToken = stack.top();
                 stack.pop();
-                if(curToken.type() == Token::Type::OpenBracket)
+                if(curToken.type() == Token::Type::OpenBracket) //the bracket is already popped here
                     break;
                 queue.push_back(curToken);
+            }
+            if(!stack.empty() && stack.top().type() == Token::Type::Function)
+            {
+                queue.push_back(stack.top());
+                stack.pop();
             }
             break;
         default: //operator

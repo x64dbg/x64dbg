@@ -25,9 +25,13 @@ public:
     public:
         enum class Type
         {
+            Error,
             Data,
+            Function,
+            Comma,
             OpenBracket,
             CloseBracket,
+
             OperatorUnarySub,
             OperatorUnaryAdd,
             OperatorNot,
@@ -67,8 +71,7 @@ public:
             OperatorSuffixInc,
             OperatorSuffixDec,
             OperatorPrefixInc,
-            OperatorPrefixDec,
-            Error
+            OperatorPrefixDec
         };
 
         enum class Associativity
