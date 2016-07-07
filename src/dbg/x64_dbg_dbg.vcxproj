@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -51,6 +51,7 @@
     <ClCompile Include="expressionparser.cpp" />
     <ClCompile Include="filehelper.cpp" />
     <ClCompile Include="function.cpp" />
+    <ClCompile Include="historycontext.cpp" />
     <ClCompile Include="jit.cpp" />
     <ClCompile Include="linearanalysis.cpp" />
     <ClCompile Include="FunctionPass.cpp" />
@@ -80,6 +81,7 @@
     <ClCompile Include="TraceRecord.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
+    <ClCompile Include="watch.cpp" />
     <ClCompile Include="x64_dbg.cpp" />
     <ClCompile Include="xrefs.cpp" />
     <ClCompile Include="xrefsanalysis.cpp" />
@@ -141,6 +143,7 @@
     <ClInclude Include="expressionparser.h" />
     <ClInclude Include="filehelper.h" />
     <ClInclude Include="function.h" />
+    <ClInclude Include="historycontext.h" />
     <ClInclude Include="jit.h" />
     <ClInclude Include="keystone\arm.h" />
     <ClInclude Include="keystone\arm64.h" />
@@ -178,6 +181,7 @@
     <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
+    <ClInclude Include="watch.h" />
     <ClInclude Include="xrefs.h" />
     <ClInclude Include="xrefsanalysis.h" />
     <ClInclude Include="yara\yara\stream.h" />
