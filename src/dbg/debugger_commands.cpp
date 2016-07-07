@@ -742,62 +742,6 @@ CMDRESULT cbDebugSetBPGoto(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugSetBPHwKeep(int argc, char* argv[])
-{
-    // will this have an effect?
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
-        return STATUS_ERROR;
-    }
-    BREAKPOINT Bp;
-    if(BpGetAny(BPHARDWARE, argv[1], &Bp))
-    {
-        duint addr = Bp.addr + ModBaseFromName(Bp.mod);
-        duint memory = 0;
-        unsigned char size = TITANGETSIZE(Bp.titantype);
-        if(DbgMemRead(addr, (unsigned char*)&memory, size))
-        {
-            char cmd[deflen];
-            _snprintf(cmd, sizeof(cmd), "SetHardwareBreakpointCondition " fhex ", 0", addr);
-            if(!_dbg_dbgcmddirectexec(cmd))
-                return STATUS_ERROR;
-            switch(size)
-            {
-            case 1:
-            default:
-                _snprintf(cmd, sizeof(cmd), "SetHardwareBreakpointCommand " fhex ", \"mov " fhex ", #%.2X#\"", addr, addr, memory);
-                break;
-            case 2:
-                _snprintf(cmd, sizeof(cmd), "SetHardwareBreakpointCommand " fhex ", \"mov " fhex ", #%.4X#\"", addr, addr, memory);
-                break;
-            case 4:
-                _snprintf(cmd, sizeof(cmd), "SetHardwareBreakpointCommand " fhex ", \"mov " fhex ", #%.8X#\"", addr, addr, memory);
-                break;
-            case 8:
-                _snprintf(cmd, sizeof(cmd), "SetHardwareBreakpointCommand " fhex ", \"mov " fhex ", #%.16X#\"", addr, addr, memory);
-                break;
-            }
-            if(!_dbg_dbgcmddirectexec(cmd))
-                return STATUS_ERROR;
-            _snprintf(cmd, sizeof(cmd), "SetHardwareBreakpointCommandCondition " fhex ", 1", addr);
-            if(!_dbg_dbgcmddirectexec(cmd))
-                return STATUS_ERROR;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dputs("The address of hardware breakpoint is not accessible!");
-            return STATUS_ERROR;
-        }
-    }
-    else
-    {
-        dputs("The specified hardware breakpoint does not exist");
-        return STATUS_ERROR;
-    }
-}
-
 CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
 {
     if(argc < 2)
