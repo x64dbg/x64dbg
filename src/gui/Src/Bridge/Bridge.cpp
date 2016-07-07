@@ -574,6 +574,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         }
     }
     break;
+
+    case GUI_UPDATE_WATCH_VIEW:
+        emit updateWatch();
+    break;
     }
     return nullptr;
 }
