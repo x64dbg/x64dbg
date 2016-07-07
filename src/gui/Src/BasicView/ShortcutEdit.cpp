@@ -46,7 +46,13 @@ void ShortcutEdit::keyPressEvent(QKeyEvent* event)
 
     // any combination of "Ctrl, Alt, Shift" ?
     Qt::KeyboardModifiers modifiers = event->modifiers();
-    if(modifiers.testFlag(Qt::ShiftModifier))
+    QString text = event->text();
+    // The shift modifier only counts when it is not used to type a symbol
+    // that is only reachable using the shift key anyway
+    if(modifiers.testFlag(Qt::ShiftModifier) && (text.isEmpty() ||
+            !text.at(0).isPrint() ||
+            text.at(0).isLetterOrNumber() ||
+            text.at(0).isSpace()))
         keyInt += Qt::SHIFT;
     if(modifiers.testFlag(Qt::ControlModifier))
         keyInt += Qt::CTRL;
@@ -54,7 +60,7 @@ void ShortcutEdit::keyPressEvent(QKeyEvent* event)
         keyInt += Qt::ALT;
 
     // some strange cases (only Ctrl)
-    QString KeyText = QKeySequence(keyInt).toString(QKeySequence::NativeText) ;
+    QString KeyText = QKeySequence(keyInt).toString(QKeySequence::NativeText);
     for(int i = 0; i < KeyText.length(); i++)
     {
         if(KeyText[i].toLatin1() == 0)
