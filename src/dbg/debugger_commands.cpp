@@ -1415,6 +1415,7 @@ static CMDRESULT cbDebugConditionalTrace(void* callBack, bool stepOver, int argc
         dprintf("Invalid expression \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
+    HistoryClear();
     if(stepOver)
         StepOver(callBack);
     else
