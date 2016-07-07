@@ -35,21 +35,70 @@ void WatchView::updateWatch()
     {
         setCellContent(i, 0, QString::fromUtf8(WatchList[i].WatchName));
         setCellContent(i, 1, QString::fromUtf8(WatchList[i].Expression));
-        setCellContent(i, 2, ToPtrString(WatchList[i].value));
         switch(WatchList[i].varType)
         {
         case WATCHVARTYPE::TYPE_UINT:
             setCellContent(i, 3, "UINT");
+            setCellContent(i, 2, ToPtrString(WatchList[i].value));
             break;
         case WATCHVARTYPE::TYPE_INT:
             setCellContent(i, 3, "INT");
+            setCellContent(i, 2, QString::number((dsint)WatchList[i].value));
             break;
         case WATCHVARTYPE::TYPE_FLOAT:
             setCellContent(i, 3, "FLOAT");
+            setCellContent(i, 2, QString::number(*(float*)&WatchList[i].value));
+            break;
+        case WATCHVARTYPE::TYPE_ASCII:
+            setCellContent(i, 3, "ASCII");
+            {
+                char buffer[128];
+                // zero the buffer
+                memset(buffer, 0, sizeof(buffer));
+                if(DbgMemRead(WatchList[i].value, (unsigned char*)buffer, sizeof(buffer) - 1))
+                {
+                    // convert the ASCII string to QString
+                    QString text = QString::fromLocal8Bit(buffer);
+                    if(strlen(buffer) == sizeof(buffer) - 1)
+                        text.append("...");
+                    // remove CRLF
+                    text.replace(QChar('\x13'), "\\r");
+                    text.replace(QChar('\x10'), "\\n");
+                    setCellContent(i, 2, text);
+                }
+                else
+                    setCellContent(i, 2, tr("%1 is not readable.").arg(ToPtrString(WatchList[i].value)));
+            }
+            break;
+        case WATCHVARTYPE::TYPE_UNICODE:
+            setCellContent(i, 3, "UNICODE");
+            {
+                unsigned short buffer[128];
+                // zero the buffer
+                memset(buffer, 0, sizeof(buffer));
+                if(DbgMemRead(WatchList[i].value, (unsigned char*)buffer, sizeof(buffer) - sizeof(unsigned short)))
+                {
+                    QString text = QString::fromUtf16(buffer);
+                    size_t size = text.size();
+                    // Check if the last character is an incomplete UTF-16 surrogate.
+                    if(text.at(text.size() - 1).isHighSurrogate())
+                        text.chop(text.size() - 1); // Delete the incomplete surrogate.
+                    // Check if something is truncated.
+                    if(size == sizeof(buffer)/sizeof(unsigned short) - 1)
+                        text.append("...");
+                    // remove CRLF
+                    text.replace(QChar('\x13'), "\\r");
+                    text.replace(QChar('\x10'), "\\n");
+                    setCellContent(i, 2, text);
+                }
+                else
+                    setCellContent(i, 2, tr("%1 is not readable.").arg(ToPtrString(WatchList[i].value)));
+            }
             break;
         case WATCHVARTYPE::TYPE_INVALID:
         default:
             setCellContent(i, 3, "INVALID");
+            setCellContent(i, 2, "");
             break;
         }
         switch(WatchList[i].watchdogMode)
