@@ -71,7 +71,7 @@ void LineEditDialog::on_textEdit_textChanged(const QString & arg1)
             int ct = arg1.size() - (int) this->fixed_size;
             if(ct > 0)
                 symbolct = "+";
-            ui->label->setText(QString("<font color='red'>") + QString("CT: ") + symbolct + QString::number(ct) + QString("</font>"));
+            ui->label->setText(tr("<font color='red'>CT: %1%2</font>").arg(symbolct).arg(ct));
         }
         else
         {
