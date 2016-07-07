@@ -335,6 +335,9 @@
     <ClCompile Include="datainst_helper.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="expressionfunctions.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -759,6 +762,9 @@
     </ClInclude>
     <ClInclude Include="taskthread.h">
       <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="expressionfunctions.h">
+      <Filter>Header Files\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

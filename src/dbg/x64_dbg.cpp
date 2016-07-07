@@ -25,6 +25,7 @@
 #include "datainst_helper.h"
 #include "error.h"
 #include "exception.h"
+#include "expressionfunctions.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -509,6 +510,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dputs("Registering debugger commands...");
     registercommands();
     dputs("Registering GUI command handler...");
+    ExpressionFunctions::Init();
+    dputs("Registering expression functions...");
     SCRIPTTYPEINFO info;
     strcpy_s(info.name, "Default");
     info.id = 0;
