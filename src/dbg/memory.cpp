@@ -256,7 +256,7 @@ static DWORD WINAPI memUpdateMap()
 
 void MemUpdateMapAsync()
 {
-    static auto MemUpdateMapTask = MakeTaskThread(memUpdateMap, 1000);
+    static auto MemUpdateMapTask = MakeTaskThread(memUpdateMap, 100);
     MemUpdateMapTask.WakeUp();
 }
 
