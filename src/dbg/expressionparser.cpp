@@ -8,6 +8,7 @@ ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() 
     switch(mType)
     {
     case Type::OperatorUnarySub:
+    case Type::OperatorUnaryAdd:
     case Type::OperatorNot:
     case Type::OperatorLogicalNot:
     case Type::OperatorAssign:
@@ -63,6 +64,7 @@ int ExpressionParser::Token::precedence() const
     case Type::OperatorSuffixDec:
         return 1;
     case Type::OperatorUnarySub:
+    case Type::OperatorUnaryAdd:
     case Type::OperatorNot:
     case Type::OperatorLogicalNot:
     case Type::OperatorPrefixInc:
@@ -220,7 +222,9 @@ void ExpressionParser::tokenize()
                         addOperatorToken("+=", Token::Type::OperatorAssignAdd);
                     else if(tryEatNextCh(i, '+'))
                         addOperatorToken("++", isUnaryOperator() ? Token::Type::OperatorPrefixInc : Token::Type::OperatorSuffixInc);
-                    else if(!isUnaryOperator()) //ignore unary add operators
+                    else if(isUnaryOperator())
+                        addOperatorToken(ch, Token::Type::OperatorUnaryAdd);
+                    else
                         addOperatorToken(ch, Token::Type::OperatorAdd);
                     break;
                 case '-':
@@ -434,6 +438,9 @@ static bool operation(const ExpressionParser::Token::Type type, const T op1, con
     {
     case ExpressionParser::Token::Type::OperatorUnarySub:
         result = op1 * ~0;
+        break;
+    case ExpressionParser::Token::Type::OperatorUnaryAdd:
+        result = +op1;
         break;
     case ExpressionParser::Token::Type::OperatorNot:
         result = ~op1;
@@ -699,6 +706,7 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
             switch(type)
             {
             case Token::Type::OperatorUnarySub:
+            case Token::Type::OperatorUnaryAdd:
             case Token::Type::OperatorNot:
             case Token::Type::OperatorLogicalNot:
             case Token::Type::OperatorPrefixInc:

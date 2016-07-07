@@ -29,6 +29,7 @@ public:
             OpenBracket,
             CloseBracket,
             OperatorUnarySub,
+            OperatorUnaryAdd,
             OperatorNot,
             OperatorMul,
             OperatorHiMul,
