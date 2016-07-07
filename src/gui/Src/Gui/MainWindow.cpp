@@ -1318,14 +1318,14 @@ void MainWindow::changeCommandLine()
     {
         DbgFunctions()->MemUpdateMap();
         GuiUpdateMemoryView();
-        GuiAddStatusBarMessage(QString("New command line: " + mLineEdit.editText + "\n").toUtf8().constData());
+        GuiAddStatusBarMessage((tr("New command line: ") + mLineEdit.editText + "\n").toUtf8().constData());
     }
 }
 
 void MainWindow::displayManual()
 {
     // Open the Windows CHM in the upper directory
-    QDesktopServices::openUrl(QUrl(QUrl::fromLocalFile(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath()))));
+    QDesktopServices::openUrl(QUrl("http://help.x64dbg.com/"));
 }
 
 void MainWindow::decompileAt(dsint start, dsint end)
@@ -1511,6 +1511,8 @@ void MainWindow::clickFavouriteTool()
     if(data.startsWith("Tool,"))
     {
         QString toolPath = data.mid(5);
+        duint PID = DbgValFromString("$pid");
+        toolPath.replace(QString("%PID%"), QString::number(PID), Qt::CaseInsensitive);
         PROCESS_INFORMATION procinfo;
         STARTUPINFO startupinfo;
         memset(&procinfo, 0, sizeof(PROCESS_INFORMATION));
