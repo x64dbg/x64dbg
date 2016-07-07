@@ -277,7 +277,7 @@ CMDRESULT cmddirectexec(const char* cmd, ...)
     va_end(ap);
 
     strcpy_s(command, StringUtils::Trim(command).c_str());
-    COMMAND* found = cmdfind(command, 0);
+    COMMAND* found = cmdget(command);
     if(!found || !found->cbCommand)
     {
         ExpressionParser parser(command);

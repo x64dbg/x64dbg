@@ -320,7 +320,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_CONTINUE;
     char command[deflen] = "";
     strcpy_s(command, StringUtils::Trim(cmd).c_str());
-    COMMAND* found = cmdfind(command, nullptr);
+    COMMAND* found = cmdget(command);
     if(!found) //invalid command
     {
         ExpressionParser parser(command);
