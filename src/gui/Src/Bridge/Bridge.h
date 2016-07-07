@@ -123,6 +123,7 @@ signals:
     void focusDisasm();
     void focusDump();
     void focusStack();
+    void updateWatch();
 
 private:
     QMutex* mBridgeMutex;
