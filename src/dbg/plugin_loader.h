@@ -43,6 +43,12 @@ struct PLUG_COMMAND
     char command[deflen];
 };
 
+struct PLUG_EXPRFUNCTION
+{
+    int pluginHandle;
+    char name[deflen];
+};
+
 //plugin management functions
 void pluginload(const char* pluginDir);
 void pluginunload();
@@ -60,6 +66,7 @@ bool pluginwinevent(MSG* message, long* result);
 bool pluginwineventglobal(MSG* message);
 void pluginmenuseticon(int hMenu, const ICONDATA* icon);
 void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon);
-
+bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction);
+bool pluginexprfuncunregister(int pluginHandle, const char* name);
 
 #endif // _PLUGIN_LOADER_H

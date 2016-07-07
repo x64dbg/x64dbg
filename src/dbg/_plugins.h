@@ -206,8 +206,9 @@ typedef enum
 
 //typedefs
 typedef void (*CBPLUGIN)(CBTYPE cbType, void* callbackInfo);
-typedef bool (*CBPLUGINCOMMAND)(int, char**);
+typedef bool (*CBPLUGINCOMMAND)(int argc, char** argv);
 typedef void (*CBPLUGINSCRIPT)();
+typedef duint(*CBPLUGINEXPRFUNCTION)(int argc, const duint* argv);
 
 //exports
 #ifdef __cplusplus
@@ -231,6 +232,8 @@ PLUG_IMPEXP void _plugin_menuseticon(int hMenu, const ICONDATA* icon);
 PLUG_IMPEXP void _plugin_menuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon);
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript);
 PLUG_IMPEXP bool _plugin_waituntilpaused();
+PLUG_IMPEXP bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction);
+PLUG_IMPEXP bool _plugin_unregisterexprfunction(int pluginHandle, const char* name);
 
 #ifdef __cplusplus
 }

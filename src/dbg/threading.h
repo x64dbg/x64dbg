@@ -53,6 +53,7 @@ enum SectionLock
     LockPluginCallbackList,
     LockPluginCommandList,
     LockPluginMenuList,
+    LockPluginExprfunctionList,
     LockSehCache,
     LockMnemonicHelp,
     LockTraceRecord,

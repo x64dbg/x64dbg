@@ -8,6 +8,7 @@
 #include "console.h"
 #include "debugger.h"
 #include "threading.h"
+#include "expressionfunctions.h"
 
 /**
 \brief List of plugins.
@@ -29,10 +30,16 @@ static std::vector<PLUG_CALLBACK> pluginCallbackList;
 */
 static std::vector<PLUG_COMMAND> pluginCommandList;
 
+
 /**
 \brief List of plugin menus.
 */
 static std::vector<PLUG_MENU> pluginMenuList;
+
+/**
+\brief List of plugin exprfunctions.
+*/
+static std::vector<PLUG_EXPRFUNCTION> pluginExprfunctionList;
 
 /**
 \brief Loads plugins from a specified directory.
@@ -304,6 +311,29 @@ static void plugincmdunregisterall(int pluginHandle)
 }
 
 /**
+\brief Unregister all plugin expression functions.
+\param pluginHandle Handle of the plugin to remove the commands from.
+*/
+static void pluginexprfuncunregisterall(int pluginHandle)
+{
+    SHARED_ACQUIRE(LockPluginExprfunctionList);
+    auto commandList = pluginExprfunctionList; //copy for thread-safety reasons
+    SHARED_RELEASE();
+    auto i = commandList.begin();
+    while(i != commandList.end())
+    {
+        auto currentExprfunction = *i;
+        if(currentExprfunction.pluginHandle == pluginHandle)
+        {
+            i = commandList.erase(i);
+            ExpressionFunctions::Unregister(currentExprfunction.name);
+        }
+        else
+            ++i;
+    }
+}
+
+/**
 \brief Unloads all plugins.
 */
 void pluginunload()
@@ -316,6 +346,7 @@ void pluginunload()
             if(stop)
                 stop();
             plugincmdunregisterall(currentPlugin.initStruct.pluginHandle);
+            pluginexprfuncunregisterall(currentPlugin.initStruct.pluginHandle);
         }
     }
     {
@@ -660,4 +691,37 @@ void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
             break;
         }
     }
+}
+
+bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction)
+{
+    PLUG_EXPRFUNCTION plugExprfunction;
+    plugExprfunction.pluginHandle = pluginHandle;
+    strcpy_s(plugExprfunction.name, name);
+    if(!ExpressionFunctions::Register(name, argc, cbFunction))
+        return false;
+    EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
+    pluginExprfunctionList.push_back(plugExprfunction);
+    EXCLUSIVE_RELEASE();
+    dprintf("[PLUGIN] expression function \"%s\" registered!\n", name);
+    return true;
+}
+
+bool pluginexprfuncunregister(int pluginHandle, const char* name)
+{
+    EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
+    for(auto it = pluginExprfunctionList.begin(); it != pluginExprfunctionList.end(); ++it)
+    {
+        const auto & currentExprfunction = *it;
+        if(currentExprfunction.pluginHandle == pluginHandle && !strcmp(currentExprfunction.name, name))
+        {
+            pluginExprfunctionList.erase(it);
+            EXCLUSIVE_RELEASE();
+            if(!ExpressionFunctions::Unregister(name))
+                return false;
+            dprintf("[PLUGIN] command \"%s\" unregistered!\n", name);
+            return true;
+        }
+    }
+    return false;
 }
