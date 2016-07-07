@@ -20,7 +20,6 @@ WatchExpr::WatchExpr(const char* name, const char* expression, WATCHVARTYPE type
 duint WatchExpr::getIntValue()
 {
     duint origVal = currValue;
-    auto lbl = SymGetSymbolicName(GetContextDataEx(hActiveThread, UE_CIP));
     if(varType == WATCHVARTYPE::TYPE_UINT || varType == WATCHVARTYPE::TYPE_INT || varType == WATCHVARTYPE::TYPE_ASCII || varType == WATCHVARTYPE::TYPE_UNICODE)
     {
         duint val;
@@ -39,28 +38,32 @@ duint WatchExpr::getIntValue()
                 case WATCHDOGMODE::MODE_ISTRUE:
                     if(currValue != 0)
                     {
-                        dprintf("Watchdog %s (expression \"%s\") is triggered at %s ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), lbl.c_str(), origVal, currValue);
+                        duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+                        dprintf("Watchdog %s (expression \"%s\") is triggered at " fhex " ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), cip, origVal, currValue);
                         watchdogTriggered = 1;
                     }
                     break;
                 case WATCHDOGMODE::MODE_ISFALSE:
                     if(currValue == 0)
                     {
-                        dprintf("Watchdog %s (expression \"%s\") is triggered at %s ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), lbl.c_str(), origVal, currValue);
+                        duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+                        dprintf("Watchdog %s (expression \"%s\") is triggered at " fhex " ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), cip, origVal, currValue);
                         watchdogTriggered = 1;
                     }
                     break;
                 case WATCHDOGMODE::MODE_CHANGED:
                     if(currValue != origVal || !haveCurrValue)
                     {
-                        dprintf("Watchdog %s (expression \"%s\") is triggered at %s ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), lbl.c_str(), origVal, currValue);
+                        duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+                        dprintf("Watchdog %s (expression \"%s\") is triggered at " fhex " ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), cip, origVal, currValue);
                         watchdogTriggered = 1;
                     }
                     break;
                 case WATCHDOGMODE::MODE_UNCHANGED:
                     if(currValue == origVal || !haveCurrValue)
                     {
-                        dprintf("Watchdog %s (expression \"%s\") is triggered at %s ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), lbl.c_str(), origVal, currValue);
+                        duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+                        dprintf("Watchdog %s (expression \"%s\") is triggered at " fhex " ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), cip, origVal, currValue);
                         watchdogTriggered = 1;
                     }
                     break;
