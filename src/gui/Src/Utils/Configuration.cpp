@@ -161,6 +161,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
     defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
+    defaultColors.insert("WatchTriggeredColor", QColor("#FF0000"));
+    defaultColors.insert("WatchTriggeredBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("MemoryMapBreakpointColor", QColor("#000000"));
     defaultColors.insert("MemoryMapBreakpointBackgroundColor", QColor("#FF0000"));
     defaultColors.insert("MemoryMapCipColor", QColor("#FFFFFF"));
@@ -199,6 +201,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CPUStack", 3);
     for(int i = 1; i <= 5; i++)
         AbstractTableView::setupColumnConfigDefaultValue(guiUint, QString("CPUDump%1").arg(i), 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Watch1", 6);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SoftwareBreakpoint", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "HardwareBreakpoint", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryBreakpoint", 10);
@@ -296,13 +299,17 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace Over Conditional"), ""));
     defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut(tr("Debug -> Trace Record -> Bit"), ""));
     defaultShortcuts.insert("DebugTraceRecordNone", Shortcut(tr("Debug -> Trace Record -> None"), ""));
+    defaultShortcuts.insert("DebugInstrUndo", Shortcut(tr("Debug -> Undo instruction"), "Alt+U"));
 
     defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
+
+    defaultShortcuts.insert("FavouritesManage", Shortcut(tr("Favourites -> Manage Favourite Tools"), "", true));
 
     defaultShortcuts.insert("OptionsPreferences", Shortcut(tr("Options -> Preferences"), "", true));
     defaultShortcuts.insert("OptionsAppearance", Shortcut(tr("Options -> Appearance"), "", true));
     defaultShortcuts.insert("OptionsShortcuts", Shortcut(tr("Options -> Shortcuts"), "", true));
     defaultShortcuts.insert("OptionsTopmost", Shortcut(tr("Options -> Topmost"), "Ctrl+F5", true));
+    defaultShortcuts.insert("OptionsReloadStylesheet", Shortcut(tr("Options -> Reload style.css") , "", true));
 
     defaultShortcuts.insert("HelpAbout", Shortcut(tr("Help -> About"), "", true));
     defaultShortcuts.insert("HelpDonate", Shortcut(tr("Help -> Donate"), "", true));
@@ -310,6 +317,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("HelpCalculator", Shortcut(tr("Help -> Calculator"), "?"));
     defaultShortcuts.insert("HelpReportBug", Shortcut(tr("Help -> Report Bug"), "", true));
     defaultShortcuts.insert("HelpManual", Shortcut(tr("Help -> Manual"), "F1", true));
+    defaultShortcuts.insert("HelpCrashDump", Shortcut(tr("Help -> Generate Crash Dump"), "", true));
 
     defaultShortcuts.insert("ActionFindStrings", Shortcut(tr("Actions -> Find Strings"), "", true));
     defaultShortcuts.insert("ActionFindIntermodularCalls", Shortcut(tr("Actions -> Find Intermodular Calls"), "", true));
