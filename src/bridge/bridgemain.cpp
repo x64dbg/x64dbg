@@ -823,6 +823,11 @@ BRIDGE_IMPEXP bool DbgXrefGet(duint addr, XREF_INFO* info)
     return true;
 }
 
+BRIDGE_IMPEXP bool DbgGetWatchList(ListOf(WATCHINFO) list)
+{
+    return !!_dbg_sendmessage(DBG_GET_WATCH_LIST, list, nullptr);
+}
+
 // FIXME all
 BRIDGE_IMPEXP bool DbgIsRunLocked()
 {
@@ -1027,6 +1032,7 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateDisassemblyView();
     GuiUpdateBreakpointsView();
     GuiUpdateDumpView();
+    GuiUpdateWatchView();
     GuiUpdateThreadView();
     GuiUpdateSideBar();
     GuiUpdatePatches();
@@ -1213,6 +1219,12 @@ BRIDGE_IMPEXP void GuiUpdateDumpView()
 {
     CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_DUMP_VIEW, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiUpdateWatchView()
+{
+    CHECK_GUI_UPDATE_DISABLED
+    _gui_sendmessage(GUI_UPDATE_WATCH_VIEW, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateMemoryView()
