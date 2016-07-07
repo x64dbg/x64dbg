@@ -173,22 +173,16 @@ void ExpressionParser::tokenize()
                         addOperatorToken(ch, Token::Type::OperatorAdd);
                     break;
                 case '-':
-                    if(nextChEquals(i, '>'))
-                    {
+                    if(tryEatNextCh(i, '>'))
                         addOperatorToken("->", Token::Type::OperatorLogicalImpl);
-                        i++;
-                    }
                     else if(isUnaryOperator())
                         addOperatorToken(ch, Token::Type::OperatorUnarySub);
                     else
                         addOperatorToken(ch, Token::Type::OperatorSub);
                     break;
                 case '=':
-                    if(nextChEquals(i, '='))
-                    {
+                    if(tryEatNextCh(i, '='))
                         addOperatorToken("==", Token::Type::OperatorEqual);
-                        i++;
-                    }
                     else
                     {
                         addOperatorToken(ch, Token::Type::Error);
@@ -196,39 +190,24 @@ void ExpressionParser::tokenize()
                     }
                     break;
                 case '<':
-                    if(nextChEquals(i, '='))
-                    {
+                    if(tryEatNextCh(i, '='))
                         addOperatorToken("<=", Token::Type::OperatorSmallerEqual);
-                        i++;
-                    }
-                    else if(nextChEquals(i, '<'))
-                    {
+                    else if(tryEatNextCh(i, '<'))
                         addOperatorToken("<<", Token::Type::OperatorShl);
-                        i++;
-                    }
                     else
                         addOperatorToken(ch, Token::Type::OperatorSmaller);
                     break;
                 case '>':
-                    if(nextChEquals(i, '='))
-                    {
+                    if(tryEatNextCh(i, '='))
                         addOperatorToken(">=", Token::Type::OperatorBiggerEqual);
-                        i++;
-                    }
-                    else if(nextChEquals(i, '>'))
-                    {
+                    else if(tryEatNextCh(i, '>'))
                         addOperatorToken(">>", Token::Type::OperatorShr);
-                        i++;
-                    }
                     else
                         addOperatorToken(ch, Token::Type::OperatorBigger);
                     break;
                 case '&':
-                    if(nextChEquals(i, '&'))
-                    {
+                    if(tryEatNextCh(i, '&'))
                         addOperatorToken("&&", Token::Type::OperatorLogicalAnd);
-                        i++;
-                    }
                     else
                         addOperatorToken(ch, Token::Type::OperatorAnd);
                     break;
@@ -236,20 +215,14 @@ void ExpressionParser::tokenize()
                     addOperatorToken(ch, Token::Type::OperatorXor);
                     break;
                 case '|':
-                    if(nextChEquals(i, '|'))
-                    {
+                    if(tryEatNextCh(i, '|'))
                         addOperatorToken("||", Token::Type::OperatorLogicalOr);
-                        i++;
-                    }
                     else
                         addOperatorToken(ch, Token::Type::OperatorOr);
                     break;
                 case '!':
-                    if(nextChEquals(i, '='))
-                    {
+                    if(tryEatNextCh(i, '='))
                         addOperatorToken("!=", Token::Type::OperatorNotEqual);
-                        i++;
-                    }
                     else
                         addOperatorToken(ch, Token::Type::OperatorLogicalNot);
                     break;

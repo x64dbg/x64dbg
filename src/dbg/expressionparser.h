@@ -101,9 +101,12 @@ private:
         addOperatorToken(data, type);
     }
 
-    bool nextChEquals(size_t i, char ch) const
+    bool tryEatNextCh(size_t & i, char ch) const
     {
-        return i + 1 < mExpression.length() && mExpression[i + 1] == ch;
+        if(!(i + 1 < mExpression.length() && mExpression[i + 1] == ch))
+            return false;
+        i++;
+        return true;
     }
 
     String mExpression;
