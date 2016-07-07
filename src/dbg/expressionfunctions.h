@@ -21,5 +21,7 @@ private:
         CBEXPRESSIONFUNCTION cbFunction;
     };
 
+    static bool isValidName(const String & name);
+
     static std::unordered_map<String, Function> mFunctions;
 };

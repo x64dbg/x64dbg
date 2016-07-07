@@ -10,6 +10,8 @@ void ExpressionFunctions::Init()
 
 bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction)
 {
+    if(!isValidName(name))
+        return false;
     EXCLUSIVE_ACQUIRE(LockExpressionFunctions);
     if(mFunctions.count(name))
         return false;
@@ -51,5 +53,17 @@ bool ExpressionFunctions::GetArgc(const String & name, int & argc)
     if(found == mFunctions.end())
         return false;
     argc = found->second.argc;
+    return true;
+}
+
+bool ExpressionFunctions::isValidName(const String & name)
+{
+    if(!name.length())
+        return false;
+    if(!(name[0] == '_' || isalpha(name[0])))
+        return false;
+    for(const auto & ch : name)
+        if(!(isalnum(ch) || ch == '_' || ch == '.'))
+            return false;
     return true;
 }
