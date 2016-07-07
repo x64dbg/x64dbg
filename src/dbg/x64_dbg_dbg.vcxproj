@@ -300,7 +300,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(ProjectDir)..\..\bin\x32\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\x32d\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
     <IncludePath>$(ProjectDir)..\capstone_wrapper;$(IncludePath)</IncludePath>
@@ -313,7 +313,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(ProjectDir)..\..\bin\x64\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\x64d\</OutDir>
     <TargetName>x64dbg</TargetName>
     <IncludePath>$(ProjectDir)..\capstone_wrapper;$(IncludePath)</IncludePath>
   </PropertyGroup>
