@@ -49,6 +49,7 @@ public:
             OperatorLogicalAnd,
             OperatorLogicalOr,
             OperatorLogicalNot,
+            OperatorLogicalImpl,
             Error
         };
 

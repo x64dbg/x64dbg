@@ -28,6 +28,7 @@ ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() 
     case Type::OperatorSmallerEqual:
     case Type::OperatorLogicalAnd:
     case Type::OperatorLogicalOr:
+    case Type::OperatorLogicalImpl:
         return Associativity::LeftToRight;
     default:
         return Associativity::Unspecified;
@@ -73,6 +74,8 @@ int ExpressionParser::Token::precedence() const
         return 11;
     case Type::OperatorLogicalOr:
         return 12;
+    case Type::OperatorLogicalImpl:
+        return 13;
     default:
         return 16;
     }
@@ -170,7 +173,12 @@ void ExpressionParser::tokenize()
                         addOperatorToken(ch, Token::Type::OperatorAdd);
                     break;
                 case '-':
-                    if(isUnaryOperator())
+                    if(nextChEquals(i, '>'))
+                    {
+                        addOperatorToken("->", Token::Type::OperatorLogicalImpl);
+                        i++;
+                    }
+                    else if(isUnaryOperator())
                         addOperatorToken(ch, Token::Type::OperatorUnarySub);
                     else
                         addOperatorToken(ch, Token::Type::OperatorSub);
@@ -455,6 +463,9 @@ static bool operation(const ExpressionParser::Token::Type type, const T op1, con
     case ExpressionParser::Token::Type::OperatorLogicalOr:
         result = op1 || op2 ? 1 : 0;
         break;
+    case ExpressionParser::Token::Type::OperatorLogicalImpl:
+        result = !op1 || op2 ? 1 : 0;
+        break;
     default:
         return false;
     }
@@ -523,6 +534,7 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bo
             case Token::Type::OperatorSmallerEqual:
             case Token::Type::OperatorLogicalAnd:
             case Token::Type::OperatorLogicalOr:
+            case Token::Type::OperatorLogicalImpl:
                 if(stack.size() < 2)
                     return false;
                 op2 = stack.top();
