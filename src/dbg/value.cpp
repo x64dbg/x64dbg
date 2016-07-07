@@ -1712,7 +1712,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
 \param [out] hexonly This function can output if the output value should only be printed as hexadecimal (for example addresses). Can be null.
 \return true if the expression was parsed successful, false otherwise.
 */
-bool valfromstring(const char* string, duint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
+bool valfromstring(const char* string, duint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly, bool allowassign)
 {
     if(!value || !string)
         return false;
@@ -1723,7 +1723,7 @@ bool valfromstring(const char* string, duint* value, bool silent, bool baseonly,
     }
     ExpressionParser parser(string);
     duint result;
-    if(!parser.Calculate(result, valuesignedcalc(), false, silent, baseonly, value_size, isvar, hexonly))
+    if(!parser.Calculate(result, valuesignedcalc(), allowassign, silent, baseonly, value_size, isvar, hexonly))
         return false;
     *value = result;
     return true;

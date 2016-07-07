@@ -320,9 +320,17 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_CONTINUE;
     char command[deflen] = "";
     strcpy_s(command, StringUtils::Trim(cmd).c_str());
-    COMMAND* found = cmdfindmain(command);
+    COMMAND* found = cmdfind(command, nullptr);
     if(!found) //invalid command
-        return STATUS_ERROR;
+    {
+        ExpressionParser parser(command);
+        duint result;
+        if(!parser.Calculate(result, valuesignedcalc(), true))
+            return STATUS_ERROR;
+        varset("$result", result, false);
+        varset("$ans", result, true);
+        return STATUS_CONTINUE;
+    }
     if(arraycontains(found->name, "var")) //var
     {
         cmddirectexec(command);

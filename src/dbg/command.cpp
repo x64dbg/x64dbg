@@ -8,6 +8,8 @@
 #include "value.h"
 #include "console.h"
 #include "commandparser.h"
+#include "expressionparser.h"
+#include "variable.h"
 
 COMMAND* cmd_list = 0;
 
@@ -253,124 +255,6 @@ CMDRESULT cmdloop(CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvide
     return STATUS_EXIT;
 }
 
-/*
-- custom command formatting rules
-*/
-
-/**
-\brief Query if a string is a valid expression.
-\param expression The expression to check.
-\return true if the string is a valid expression.
-*/
-static bool isvalidexpression(const char* expression)
-{
-    duint value;
-    return valfromstring(expression, &value);
-}
-
-/**
-\brief Check if a character is a mathematical operator. Used to determine stuff like "a *= b"
-\param ch The character to check.
-\return true if the character is an operator, false otherwise.
-*/
-static bool mathisoperator(const char ch)
-{
-    switch(ch)
-    {
-    case '*':
-    case '`':
-    case '/':
-    case '%':
-    case '+':
-    case '-':
-    case '<':
-    case '>':
-    case '&':
-    case '^':
-    case '|':
-        return true;
-    default:
-        return false;
-    }
-}
-
-/**
-\brief Special formats a given command. Used as a little hack to support stuff like 'x++' and 'x=y'
-\param [in,out] string String to format.
-*/
-static void specialformat(char* string)
-{
-    int len = (int)strlen(string);
-    char* found = strstr(string, "=");
-    char str[deflen] = "";
-    char backup[deflen] = "";
-    strcpy_s(backup, string); //create a backup of the string
-    if(found && found != string) //contains =
-    {
-        auto a = found - 1;
-        *found = '\0';
-        found++;
-
-        if(mathisoperator(*a)) //x*=3 -> x=x*3
-        {
-            char op = *a;
-            *a = 0;
-            if(isvalidexpression(found))
-            {
-                len = int(strlen(string));
-                if(len > 1 && string[len - 1] == '<' || string[len - 1] == '>')  //TODO: never look at this again, ever (used for x<<=1 and x>>=1)
-                {
-                    string[len - 1] = '\0';
-                    sprintf_s(str, "mov %s,%s%c%c%s", string, string, op, op, found);
-                }
-                else
-                    sprintf_s(str, "mov %s,%s%c%s", string, string, op, found);
-            }
-            else
-                strcpy_s(str, backup);
-        }
-        else //x=y
-        {
-            if(isvalidexpression(found))
-                sprintf_s(str, "mov %s,%s", string, found);
-            else
-                strcpy_s(str, backup);
-        }
-        strcpy_s(string, deflen, str);
-    }
-    else if((string[len - 1] == '+' && string[len - 2] == '+') || (string[len - 1] == '-' && string[len - 2] == '-')) //eax++/eax--
-    {
-        string[len - 2] = 0;
-        char op = string[len - 1];
-        if(isvalidexpression(string))
-            sprintf_s(str, "mov %s,%s%c1", string, string, op);
-        else
-            strcpy_s(str, backup);
-        strcpy_s(string, deflen, str);
-    }
-}
-
-/*
-- 'default' command finder, with some custom rules
-*/
-
-/**
-\brief Default command finder. It uses specialformat() and mathformat() to make sure the command is optimally checked.
-\param [in] cmd_list Command list.
-\param [in] command Command name.
-\return null if it fails, else a COMMAND*.
-*/
-COMMAND* cmdfindmain(char* command)
-{
-    COMMAND* cmd = cmdfind(command, 0);
-    if(!cmd)
-    {
-        specialformat(command);
-        cmd = cmdget(command);
-    }
-    return cmd;
-}
-
 /**
 \brief Directly execute a command.
 \param [in,out] cmd_list Command list.
@@ -393,9 +277,17 @@ CMDRESULT cmddirectexec(const char* cmd, ...)
     va_end(ap);
 
     strcpy_s(command, StringUtils::Trim(command).c_str());
-    COMMAND* found = cmdfindmain(command);
+    COMMAND* found = cmdfind(command, 0);
     if(!found || !found->cbCommand)
-        return STATUS_ERROR;
+    {
+        ExpressionParser parser(command);
+        duint result;
+        if(!parser.Calculate(result, valuesignedcalc(), true))
+            return STATUS_ERROR;
+        varset("$result", result, false);
+        varset("$ans", result, true);
+        return STATUS_CONTINUE;
+    }
     if(found->debugonly && !DbgIsDebugging())
         return STATUS_ERROR;
     Command cmdParsed(command);

@@ -318,7 +318,7 @@ extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 
 static DWORD WINAPI DbgCommandLoopThread(void* a)
 {
-    cmdloop(cbBadCmd, cbCommandProvider, cmdfindmain, false);
+    cmdloop(cbBadCmd, cbCommandProvider, nullptr, false);
     return 0;
 }
 
@@ -515,11 +515,9 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     info.execute = DbgCmdExec;
     info.completeCommand = nullptr;
     GuiRegisterScriptLanguage(&info);
-    SCRIPTTYPEINFO infoDll;
+    dputs("Registering Script DLL command handler...");
     strcpy_s(info.name, "Script DLL");
-    infoDll.id = 0;
     info.execute = DbgScriptDllExec;
-    info.completeCommand = nullptr;
     GuiRegisterScriptLanguage(&info);
     dputs("Starting command loop...");
     hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);

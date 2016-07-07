@@ -51,8 +51,9 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
     int valsize = 0;
     bool isvar = false;
     bool hexonly = false;
-    if(valfromstring(*argv, &value, false, false, &valsize, &isvar, &hexonly))  //dump variable/value/register/etc
+    if(valfromstring(*argv, &value, false, false, &valsize, &isvar, &hexonly, true))  //dump variable/value/register/etc
     {
+        varset("$ans", value, true);
         //dprintf("[DEBUG] valsize: %d\n", valsize);
         if(valsize)
             valsize *= 2;
