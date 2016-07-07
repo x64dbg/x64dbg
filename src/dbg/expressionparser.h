@@ -2,6 +2,7 @@
 #define _EXPRESSION_PARSER_H
 
 #include "_global.h"
+#include "value.h"
 
 class ExpressionParser
 {
@@ -50,6 +51,18 @@ public:
             OperatorLogicalOr,
             OperatorLogicalNot,
             OperatorLogicalImpl,
+            OperatorAssign,
+            OperatorAssignMul,
+            OperatorAssignHiMul,
+            OperatorAssignDiv,
+            OperatorAssignMod,
+            OperatorAssignAdd,
+            OperatorAssignSub,
+            OperatorAssignShl,
+            OperatorAssignShr,
+            OperatorAssignAnd,
+            OperatorAssignXor,
+            OperatorAssignOr,
             Error
         };
 
@@ -79,10 +92,40 @@ public:
         Associativity associativity() const;
         int precedence() const;
         bool isOperator() const;
+        bool isAssign() const;
 
     private:
         String mData;
         Type mType;
+    };
+
+    struct EvalValue
+    {
+        bool evaluated;
+        duint value = 0;
+        String data;
+
+        explicit EvalValue(duint value)
+            : evaluated(true), value(value) {}
+
+        explicit EvalValue(const String & data)
+            : evaluated(false), data(data) {}
+
+        bool DoEvaluate(duint & result, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const
+        {
+            if(evaluated)
+            {
+                if(value_size)
+                    *value_size = sizeof(duint);
+                if(isvar)
+                    *isvar = false;
+                if(hexonly)
+                    *hexonly = false;
+                result = value;
+                return true;
+            }
+            return valfromstring_noexpr(data.c_str(), &result, silent, baseonly, value_size, isvar, hexonly);
+        }
     };
 
 private:
@@ -91,8 +134,8 @@ private:
     void tokenize();
     void shuntingYard();
     void addOperatorToken(const String & data, Token::Type type);
-    bool unsignedOperation(Token::Type type, duint op1, duint op2, duint & result) const;
-    bool signedOperation(Token::Type type, dsint op1, dsint op2, duint & result) const;
+    bool unsignedOperation(const Token & token, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const;
+    bool signedOperation(const Token & token, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const;
 
     void addOperatorToken(char ch, Token::Type type)
     {

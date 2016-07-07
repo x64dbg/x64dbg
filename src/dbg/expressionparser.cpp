@@ -1,5 +1,7 @@
 #include "expressionparser.h"
 #include "value.h"
+#include "console.h"
+#include "variable.h"
 
 ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() const
 {
@@ -8,6 +10,18 @@ ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() 
     case Type::OperatorUnarySub:
     case Type::OperatorNot:
     case Type::OperatorLogicalNot:
+    case Type::OperatorAssign:
+    case Type::OperatorAssignMul:
+    case Type::OperatorAssignHiMul:
+    case Type::OperatorAssignDiv:
+    case Type::OperatorAssignMod:
+    case Type::OperatorAssignAdd:
+    case Type::OperatorAssignSub:
+    case Type::OperatorAssignShl:
+    case Type::OperatorAssignShr:
+    case Type::OperatorAssignAnd:
+    case Type::OperatorAssignXor:
+    case Type::OperatorAssignOr:
         return Associativity::RightToLeft;
     case Type::OperatorMul:
     case Type::OperatorHiMul:
@@ -73,9 +87,21 @@ int ExpressionParser::Token::precedence() const
     case Type::OperatorLogicalAnd:
         return 11;
     case Type::OperatorLogicalOr:
-        return 12;
     case Type::OperatorLogicalImpl:
-        return 13;
+        return 12;
+    case Type::OperatorAssign:
+    case Type::OperatorAssignMul:
+    case Type::OperatorAssignHiMul:
+    case Type::OperatorAssignDiv:
+    case Type::OperatorAssignMod:
+    case Type::OperatorAssignAdd:
+    case Type::OperatorAssignSub:
+    case Type::OperatorAssignShl:
+    case Type::OperatorAssignShr:
+    case Type::OperatorAssignAnd:
+    case Type::OperatorAssignXor:
+    case Type::OperatorAssignOr:
+        return 14;
     default:
         return 16;
     }
@@ -84,6 +110,28 @@ int ExpressionParser::Token::precedence() const
 bool ExpressionParser::Token::isOperator() const
 {
     return mType != Type::Data && mType != Type::OpenBracket && mType != Type::CloseBracket;
+}
+
+bool ExpressionParser::Token::isAssign() const
+{
+    switch(mType)
+    {
+    case Type::OperatorAssign:
+    case Type::OperatorAssignMul:
+    case Type::OperatorAssignHiMul:
+    case Type::OperatorAssignDiv:
+    case Type::OperatorAssignMod:
+    case Type::OperatorAssignAdd:
+    case Type::OperatorAssignSub:
+    case Type::OperatorAssignShl:
+    case Type::OperatorAssignShr:
+    case Type::OperatorAssignAnd:
+    case Type::OperatorAssignXor:
+    case Type::OperatorAssignOr:
+        return true;
+    default:
+        return false;
+    }
 }
 
 ExpressionParser::ExpressionParser(const String & expression)
@@ -157,24 +205,40 @@ void ExpressionParser::tokenize()
                     addOperatorToken(ch, Token::Type::OperatorNot);
                     break;
                 case '*':
-                    addOperatorToken(ch, Token::Type::OperatorMul);
+                    if(tryEatNextCh(i, '='))
+                        addOperatorToken("*=", Token::Type::OperatorAssignMul);
+                    else
+                        addOperatorToken(ch, Token::Type::OperatorMul);
                     break;
                 case '`':
-                    addOperatorToken(ch, Token::Type::OperatorHiMul);
+                    if(tryEatNextCh(i, '='))
+                        addOperatorToken("`=", Token::Type::OperatorAssignHiMul);
+                    else
+                        addOperatorToken(ch, Token::Type::OperatorHiMul);
                     break;
                 case '/':
-                    addOperatorToken(ch, Token::Type::OperatorDiv);
+                    if(tryEatNextCh(i, '='))
+                        addOperatorToken("/=", Token::Type::OperatorAssignDiv);
+                    else
+                        addOperatorToken(ch, Token::Type::OperatorDiv);
                     break;
                 case '%':
-                    addOperatorToken(ch, Token::Type::OperatorMod);
+                    if(tryEatNextCh(i, '='))
+                        addOperatorToken("%=", Token::Type::OperatorAssignMod);
+                    else
+                        addOperatorToken(ch, Token::Type::OperatorMod);
                     break;
                 case '+':
-                    if(!isUnaryOperator()) //ignore unary add operators
+                    if(tryEatNextCh(i, '='))
+                        addOperatorToken("+=", Token::Type::OperatorAssignAdd);
+                    else if(!isUnaryOperator()) //ignore unary add operators
                         addOperatorToken(ch, Token::Type::OperatorAdd);
                     break;
                 case '-':
                     if(tryEatNextCh(i, '>'))
                         addOperatorToken("->", Token::Type::OperatorLogicalImpl);
+                    else if(tryEatNextCh(i, '='))
+                        addOperatorToken("-=", Token::Type::OperatorAssignSub);
                     else if(isUnaryOperator())
                         addOperatorToken(ch, Token::Type::OperatorUnarySub);
                     else
@@ -184,16 +248,18 @@ void ExpressionParser::tokenize()
                     if(tryEatNextCh(i, '='))
                         addOperatorToken("==", Token::Type::OperatorEqual);
                     else
-                    {
-                        addOperatorToken(ch, Token::Type::Error);
-                        mIsValidExpression = false;
-                    }
+                        addOperatorToken(ch, Token::Type::OperatorAssign);
                     break;
                 case '<':
                     if(tryEatNextCh(i, '='))
                         addOperatorToken("<=", Token::Type::OperatorSmallerEqual);
                     else if(tryEatNextCh(i, '<'))
-                        addOperatorToken("<<", Token::Type::OperatorShl);
+                    {
+                        if(tryEatNextCh(i, '='))
+                            addOperatorToken("<<=", Token::Type::OperatorAssignShl);
+                        else
+                            addOperatorToken("<<", Token::Type::OperatorShl);
+                    }
                     else
                         addOperatorToken(ch, Token::Type::OperatorSmaller);
                     break;
@@ -201,22 +267,34 @@ void ExpressionParser::tokenize()
                     if(tryEatNextCh(i, '='))
                         addOperatorToken(">=", Token::Type::OperatorBiggerEqual);
                     else if(tryEatNextCh(i, '>'))
-                        addOperatorToken(">>", Token::Type::OperatorShr);
+                    {
+                        if(tryEatNextCh(i, '='))
+                            addOperatorToken(">>=", Token::Type::OperatorAssignShr);
+                        else
+                            addOperatorToken(">>", Token::Type::OperatorShr);
+                    }
                     else
                         addOperatorToken(ch, Token::Type::OperatorBigger);
                     break;
                 case '&':
                     if(tryEatNextCh(i, '&'))
                         addOperatorToken("&&", Token::Type::OperatorLogicalAnd);
+                    else if(tryEatNextCh(i, '='))
+                        addOperatorToken("&=", Token::Type::OperatorAssignAnd);
                     else
                         addOperatorToken(ch, Token::Type::OperatorAnd);
                     break;
                 case '^':
-                    addOperatorToken(ch, Token::Type::OperatorXor);
+                    if(tryEatNextCh(i, '='))
+                        addOperatorToken("^=", Token::Type::OperatorAssignXor);
+                    else
+                        addOperatorToken(ch, Token::Type::OperatorXor);
                     break;
                 case '|':
                     if(tryEatNextCh(i, '|'))
                         addOperatorToken("||", Token::Type::OperatorLogicalOr);
+                    else if(tryEatNextCh(i, '='))
+                        addOperatorToken("|=", Token::Type::OperatorAssignOr);
                     else
                         addOperatorToken(ch, Token::Type::OperatorOr);
                     break;
@@ -445,18 +523,116 @@ static bool operation(const ExpressionParser::Token::Type type, const T op1, con
     return true;
 }
 
-bool ExpressionParser::unsignedOperation(Token::Type type, duint op1, duint op2, duint & result) const
+static bool getAssignOperator(ExpressionParser::Token::Type type, ExpressionParser::Token::Type & result)
 {
-    return operation<duint>(type, op1, op2, result, false);
+    switch(type)
+    {
+    case ExpressionParser::Token::Type::OperatorAssign:
+        return false;
+    case ExpressionParser::Token::Type::OperatorAssignMul:
+        result = ExpressionParser::Token::Type::OperatorMul;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignHiMul:
+        result = ExpressionParser::Token::Type::OperatorHiMul;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignDiv:
+        result = ExpressionParser::Token::Type::OperatorDiv;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignMod:
+        result = ExpressionParser::Token::Type::OperatorMod;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignAdd:
+        result = ExpressionParser::Token::Type::OperatorAdd;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignSub:
+        result = ExpressionParser::Token::Type::OperatorSub;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignShl:
+        result = ExpressionParser::Token::Type::OperatorShl;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignShr:
+        result = ExpressionParser::Token::Type::OperatorShr;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignAnd:
+        result = ExpressionParser::Token::Type::OperatorAnd;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignXor:
+        result = ExpressionParser::Token::Type::OperatorXor;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignOr:
+        result = ExpressionParser::Token::Type::OperatorOr;
+        break;
+    default:
+        __debugbreak();
+    }
+    return true;
 }
 
-bool ExpressionParser::signedOperation(Token::Type type, const dsint op1, const dsint op2, duint & result) const
+static String printEvalValue(const ExpressionParser::EvalValue & value)
 {
-    dsint signedResult;
-    if(!operation<dsint>(type, op1, op2, signedResult, true))
-        return false;
-    result = duint(signedResult);
-    return true;
+    return value.evaluated ? StringUtils::sprintf(fhex, value.value) : "\"" + value.data + "\"";
+}
+
+template<typename T>
+static bool evalOperation(const ExpressionParser::Token & token, const ExpressionParser::EvalValue & op1, const ExpressionParser::EvalValue & op2, ExpressionParser::EvalValue & result, bool signedcalc, bool silent, bool baseonly)
+{
+    if(token.isAssign())
+    {
+        if(op1.evaluated)
+            __debugbreak();
+        ExpressionParser::EvalValue newvalue(0);
+        ExpressionParser::Token::Type assop;
+        if(getAssignOperator(token.type(), assop))
+        {
+            if(!evalOperation<T>(ExpressionParser::Token("", assop), op1, op2, newvalue, signedcalc, silent, baseonly))
+                return false;
+        }
+        else
+            newvalue = op2;
+        duint resultv;
+        if(!newvalue.DoEvaluate(resultv, silent, baseonly))
+            return false;
+        bool destIsVar = false;
+        duint temp;
+        //TODO: implement destIsVar without retrieving the value
+        valfromstring_noexpr(op1.data.c_str(), &temp, true, false, nullptr, &destIsVar, nullptr); //there is no return check on this because the destination might not exist yet
+        if(!destIsVar)
+            destIsVar = vargettype(op1.data.c_str(), nullptr);
+        if(!destIsVar || !valtostring(op1.data.c_str(), resultv, true))
+        {
+            duint value;
+            if(valfromstring(op1.data.c_str(), &value))   //if the var is a value already it's an invalid destination
+            {
+                if(!silent)
+                    dprintf("invalid dest \"%s\"\n", op1.data.c_str());
+                return false;
+            }
+            varnew(op1.data.c_str(), resultv, VAR_USER);
+        }
+        result = ExpressionParser::EvalValue(resultv);
+        return true;
+    }
+    else
+    {
+        duint op1v, op2v;
+        if(!op1.DoEvaluate(op1v, silent, baseonly) || !op2.DoEvaluate(op2v, silent, baseonly))
+            return false;
+        T resultv;
+        if(!operation<T>(token.type(), T(op1v), T(op2v), resultv, signedcalc))
+            return false;
+        result = ExpressionParser::EvalValue(duint(resultv));
+        return true;
+    }
+}
+
+bool ExpressionParser::unsignedOperation(const Token & token, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const
+{
+    return evalOperation<duint>(token, op1, op2, result, false, silent, baseonly);
+}
+
+bool ExpressionParser::signedOperation(const Token & token, const EvalValue & op1, const EvalValue & op2, EvalValue & result, bool silent, bool baseonly) const
+{
+    return evalOperation<dsint>(token, op1, op2, result, true, silent, baseonly);
 }
 
 bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly) const
@@ -464,15 +640,16 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bo
     value = 0;
     if(!mPrefixTokens.size() || !mIsValidExpression)
         return false;
-    std::stack<duint> stack;
+    std::stack<EvalValue> stack;
     //calculate the result from the RPN queue
     for(const auto & token : mPrefixTokens)
     {
         if(token.isOperator())
         {
-            duint op1 = 0;
-            duint op2 = 0;
-            duint result = 0;
+            EvalValue op1(0);
+            EvalValue op2(0);
+            EvalValue result(0);
+            bool operationSuccess;
             switch(token.type())
             {
             case Token::Type::OperatorUnarySub:
@@ -483,9 +660,11 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bo
                 op1 = stack.top();
                 stack.pop();
                 if(signedcalc)
-                    signedOperation(token.type(), op1, op2, result);
+                    operationSuccess = signedOperation(token, op1, op2, result, silent, baseonly);
                 else
-                    unsignedOperation(token.type(), op1, op2, result);
+                    operationSuccess = unsignedOperation(token, op1, op2, result, silent, baseonly);
+                if(!operationSuccess)
+                    return false;
                 stack.push(result);
                 break;
             case Token::Type::OperatorMul:
@@ -508,6 +687,18 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bo
             case Token::Type::OperatorLogicalAnd:
             case Token::Type::OperatorLogicalOr:
             case Token::Type::OperatorLogicalImpl:
+            case Token::Type::OperatorAssign:
+            case Token::Type::OperatorAssignMul:
+            case Token::Type::OperatorAssignHiMul:
+            case Token::Type::OperatorAssignDiv:
+            case Token::Type::OperatorAssignMod:
+            case Token::Type::OperatorAssignAdd:
+            case Token::Type::OperatorAssignSub:
+            case Token::Type::OperatorAssignShl:
+            case Token::Type::OperatorAssignShr:
+            case Token::Type::OperatorAssignAnd:
+            case Token::Type::OperatorAssignXor:
+            case Token::Type::OperatorAssignOr:
                 if(stack.size() < 2)
                     return false;
                 op2 = stack.top();
@@ -515,9 +706,11 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bo
                 op1 = stack.top();
                 stack.pop();
                 if(signedcalc)
-                    signedOperation(token.type(), op1, op2, result);
+                    operationSuccess = signedOperation(token, op1, op2, result, silent, baseonly);
                 else
-                    unsignedOperation(token.type(), op1, op2, result);
+                    operationSuccess = unsignedOperation(token, op1, op2, result, silent, baseonly);
+                if(!operationSuccess)
+                    return false;
                 stack.push(result);
                 break;
             case Token::Type::Error:
@@ -528,14 +721,10 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool silent, bo
         }
         else
         {
-            duint result;
-            if(!valfromstring_noexpr(token.data().c_str(), &result, silent, baseonly, value_size, isvar, hexonly))
-                return false;
-            stack.push(result);
+            stack.push(EvalValue(token.data()));
         }
     }
     if(stack.empty())  //empty result stack means error
         return false;
-    value = stack.top();
-    return true;
+    return stack.top().DoEvaluate(value, silent, baseonly, value_size, isvar, hexonly);
 }
