@@ -1,22 +1,6 @@
 #include "expressionparser.h"
 #include "value.h"
 
-ExpressionParser::Token::Token(const String & data, const Type type)
-{
-    mData = data;
-    mType = type;
-}
-
-const String & ExpressionParser::Token::data() const
-{
-    return mData;
-}
-
-ExpressionParser::Token::Type ExpressionParser::Token::type() const
-{
-    return mType;
-}
-
 ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() const
 {
     switch(mType)
@@ -182,7 +166,7 @@ void ExpressionParser::tokenize()
                     addOperatorToken(ch, Token::Type::OperatorMod);
                     break;
                 case '+':
-                    if(!isUnaryOperator())    //skip all unary add operators
+                    if(!isUnaryOperator()) //ignore unary add operators
                         addOperatorToken(ch, Token::Type::OperatorAdd);
                     break;
                 case '-':
@@ -192,9 +176,9 @@ void ExpressionParser::tokenize()
                         addOperatorToken(ch, Token::Type::OperatorSub);
                     break;
                 case '=':
-                    if(i + 1 < len && mExpression[i + 1] == '=')
+                    if(nextChEquals(i, '='))
                     {
-                        addOperatorToken(ch, Token::Type::OperatorEqual);
+                        addOperatorToken("==", Token::Type::OperatorEqual);
                         i++;
                     }
                     else
@@ -204,37 +188,37 @@ void ExpressionParser::tokenize()
                     }
                     break;
                 case '<':
-                    if(i + 1 < len && mExpression[i + 1] == '=')
+                    if(nextChEquals(i, '='))
                     {
-                        addOperatorToken(ch, Token::Type::OperatorSmallerEqual);
+                        addOperatorToken("<=", Token::Type::OperatorSmallerEqual);
                         i++;
                     }
-                    else if(i + 1 < len && mExpression[i + 1] == '<')
+                    else if(nextChEquals(i, '<'))
                     {
-                        addOperatorToken(ch, Token::Type::OperatorShl);
+                        addOperatorToken("<<", Token::Type::OperatorShl);
                         i++;
                     }
                     else
                         addOperatorToken(ch, Token::Type::OperatorSmaller);
                     break;
                 case '>':
-                    if(i + 1 < len && mExpression[i + 1] == '=')
+                    if(nextChEquals(i, '='))
                     {
-                        addOperatorToken(ch, Token::Type::OperatorBiggerEqual);
+                        addOperatorToken(">=", Token::Type::OperatorBiggerEqual);
                         i++;
                     }
-                    else if(i + 1 < len && mExpression[i + 1] == '>')
+                    else if(nextChEquals(i, '>'))
                     {
-                        addOperatorToken(ch, Token::Type::OperatorShr);
+                        addOperatorToken(">>", Token::Type::OperatorShr);
                         i++;
                     }
                     else
                         addOperatorToken(ch, Token::Type::OperatorBigger);
                     break;
                 case '&':
-                    if(i + 1 < len && mExpression[i + 1] == '&')
+                    if(nextChEquals(i, '&'))
                     {
-                        addOperatorToken(ch, Token::Type::OperatorLogicalAnd);
+                        addOperatorToken("&&", Token::Type::OperatorLogicalAnd);
                         i++;
                     }
                     else
@@ -244,18 +228,18 @@ void ExpressionParser::tokenize()
                     addOperatorToken(ch, Token::Type::OperatorXor);
                     break;
                 case '|':
-                    if(i + 1 < len && mExpression[i + 1] == '|')
+                    if(nextChEquals(i, '|'))
                     {
-                        addOperatorToken(ch, Token::Type::OperatorLogicalOr);
+                        addOperatorToken("||", Token::Type::OperatorLogicalOr);
                         i++;
                     }
                     else
                         addOperatorToken(ch, Token::Type::OperatorOr);
                     break;
                 case '!':
-                    if(i + 1 < len && mExpression[i + 1] == '=')
+                    if(nextChEquals(i, '='))
                     {
-                        addOperatorToken(ch, Token::Type::OperatorNotEqual);
+                        addOperatorToken("!=", Token::Type::OperatorNotEqual);
                         i++;
                     }
                     else
@@ -277,15 +261,13 @@ void ExpressionParser::tokenize()
         mTokens.push_back(Token(mCurToken, Token::Type::Data));
 }
 
-void ExpressionParser::addOperatorToken(const char ch, const Token::Type type)
+void ExpressionParser::addOperatorToken(const String & data, Token::Type type)
 {
     if(mCurToken.length()) //add a new data token when there is data in the buffer
     {
         mTokens.push_back(Token(mCurToken, Token::Type::Data));
         mCurToken.clear();
     }
-    String data;
-    data += ch;
     mTokens.push_back(Token(data, type)); //add the operator token
 }
 
@@ -479,12 +461,12 @@ static bool operation(const ExpressionParser::Token::Type type, const T op1, con
     return true;
 }
 
-bool ExpressionParser::unsignedOperation(const Token::Type type, const duint op1, const duint op2, duint & result) const
+bool ExpressionParser::unsignedOperation(Token::Type type, duint op1, duint op2, duint & result) const
 {
     return operation<duint>(type, op1, op2, result, false);
 }
 
-bool ExpressionParser::signedOperation(const Token::Type type, const dsint op1, const dsint op2, duint & result) const
+bool ExpressionParser::signedOperation(Token::Type type, const dsint op1, const dsint op2, duint & result) const
 {
     dsint signedResult;
     if(!operation<dsint>(type, op1, op2, signedResult, true))

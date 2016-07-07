@@ -59,9 +59,22 @@ public:
             Unspecified
         };
 
-        Token(const String & data, const Type type);
-        const String & data() const;
-        Type type() const;
+        Token(const String & data, const Type type)
+            : mData(data),
+              mType(type)
+        {
+        }
+
+        const String & data() const
+        {
+            return mData;
+        }
+
+        Type type() const
+        {
+            return mType;
+        }
+
         Associativity associativity() const;
         int precedence() const;
         bool isOperator() const;
@@ -76,9 +89,21 @@ private:
     bool isUnaryOperator() const;
     void tokenize();
     void shuntingYard();
-    void addOperatorToken(const char ch, const Token::Type type);
-    bool unsignedOperation(const Token::Type type, const duint op1, const duint op2, duint & result) const;
-    bool signedOperation(const Token::Type type, const dsint op1, const dsint op2, duint & result) const;
+    void addOperatorToken(const String & data, Token::Type type);
+    bool unsignedOperation(Token::Type type, duint op1, duint op2, duint & result) const;
+    bool signedOperation(Token::Type type, dsint op1, dsint op2, duint & result) const;
+
+    void addOperatorToken(char ch, Token::Type type)
+    {
+        String data;
+        data.push_back(ch);
+        addOperatorToken(data, type);
+    }
+
+    bool nextChEquals(size_t i, char ch) const
+    {
+        return i + 1 < mExpression.length() && mExpression[i + 1] == ch;
+    }
 
     String mExpression;
     bool mIsValidExpression;
