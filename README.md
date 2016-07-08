@@ -1,6 +1,6 @@
 # x64dbg
 
-[![BountySource](https://www.bountysource.com/badge/team?team_id=18188&style=raised)](https://www.bountysource.com/teams/x64dbg?utm_source=x64dbg&utm_medium=shield&utm_campaign=raised) [![Telegram](http://i.imgur.com/merFyCf.png)](https://telegram.me/joinchat/BzwLaQcORqjkM1k9YbTNmg) [![Join the chat at Gitter](https://badges.gitter.im/x64dbg/x64dbg.svg)](https://gitter.im/x64dbg/x64dbg?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![freenode](http://i.imgur.com/JEG5fJr.png)](http://webchat.freenode.net/?channels=x64dbg) [![Jenkins](http://jenkins.x64dbg.com/job/vs13/badge/icon)](http://jenkins.x64dbg.com) [![coverity](https://scan.coverity.com/projects/7478/badge.svg?flat=1)](https://scan.coverity.com/projects/7478/badge.svg?flat=1)
+[![BountySource](https://www.bountysource.com/badge/team?team_id=18188&style=raised)](https://www.bountysource.com/teams/x64dbg?utm_source=x64dbg&utm_medium=shield&utm_campaign=raised) [![Telegram](http://i.imgur.com/merFyCf.png)](https://telegram.me/joinchat/BzwLaQcORqjkM1k9YbTNmg) [![Join the chat at Gitter](https://badges.gitter.im/x64dbg/x64dbg.svg)](https://gitter.im/x64dbg/x64dbg?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![freenode](http://i.imgur.com/JEG5fJr.png)](http://webchat.freenode.net/?channels=x64dbg) [![coverity](https://scan.coverity.com/projects/7478/badge.svg?flat=1)](https://scan.coverity.com/projects/7478/badge.svg?flat=1)
 
 ## Note
 
