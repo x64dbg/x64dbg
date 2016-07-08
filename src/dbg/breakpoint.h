@@ -23,6 +23,7 @@ struct BREAKPOINT
     bool enabled;                                     // whether the breakpoint is enabled
     bool singleshoot;                                 // whether the breakpoint should be deleted on first hit
     bool active;                                      // whether the breakpoint is active or not
+    bool silent;                                      // whether the breakpoint diplays a default message when hit
     unsigned short oldbytes;                          // original bytes (for software breakpoitns)
     BP_TYPE type;                                     // breakpoint type
     DWORD titantype;                                  // type passed to titanengine
@@ -56,6 +57,7 @@ bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd);
 bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base = 0);
+bool BpSetSilent(duint Address, BP_TYPE Type, bool silent);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback);
 int BpGetCount(BP_TYPE Type, bool EnabledOnly = false);
 uint32 BpGetHitCount(duint Address, BP_TYPE Type);

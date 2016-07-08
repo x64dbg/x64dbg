@@ -433,6 +433,7 @@ void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
         exec(QString("SetBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
         exec(QString("ResetBreakpointHitCount %1, \"%2\"").arg(addrText).arg(bp.hitCount));
         exec(QString("SetBreakpointFastResume %1, \"%2\"").arg(addrText).arg(bp.fastResume));
+        exec(QString("SetBreakpointSilent %1, \"%2\"").arg(addrText).arg(bp.silent));
         break;
     case bp_hardware:
         exec(QString("SetHardwareBreakpointName %1, \"%2\"").arg(addrText).arg(bp.name));
@@ -443,6 +444,7 @@ void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
         exec(QString("SetHardwareBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
         exec(QString("ResetHardwareBreakpointHitCount %1, %2").arg(addrText).arg(bp.hitCount));
         exec(QString("SetHardwareBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
+        exec(QString("SetHardwareBreakpointSilent %1, %2").arg(addrText).arg(bp.silent));
         break;
     case bp_memory:
         exec(QString("SetMemoryBreakpointName %1, \"\"%2\"\"").arg(addrText).arg(bp.name));
@@ -453,6 +455,7 @@ void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
         exec(QString("SetMemoryBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
         exec(QString("ResetMemoryBreakpointHitCount %1, %2").arg(addrText).arg(bp.hitCount));
         exec(QString("SetMemoryBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
+        exec(QString("SetMemoryBreakpointSilent %1, \"%2\"").arg(addrText).arg(bp.silent));
         break;
     default:
         return;

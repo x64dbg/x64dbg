@@ -31,6 +31,8 @@ private slots:
     void on_checkBoxFastResume_toggled(bool checked);
     void on_spinHitCount_valueChanged(int arg1);
 
+    void on_checkBoxSilent_toggled(bool checked);
+
 private:
     Ui::EditBreakpointDialog* ui;
     BRIDGEBP mBp;

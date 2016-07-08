@@ -580,19 +580,22 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     {
         if(bp.singleshoot)
             BpDelete(bp.addr, bptype);
-        switch(bptype)
+        if(!bp.silent)
         {
-        case BPNORMAL:
-            printSoftBpInfo(bp);
-            break;
-        case BPHARDWARE:
-            printHwBpInfo(bp);
-            break;
-        case BPMEMORY:
-            printMemBpInfo(bp, ExceptionAddress);
-            break;
-        default:
-            break;
+            switch(bptype)
+            {
+            case BPNORMAL:
+                printSoftBpInfo(bp);
+                break;
+            case BPHARDWARE:
+                printHwBpInfo(bp);
+                break;
+            case BPMEMORY:
+                printMemBpInfo(bp, ExceptionAddress);
+                break;
+            default:
+                break;
+            }
         }
         DebugUpdateGuiSetStateAsync(CIP, true);
     }

@@ -308,6 +308,21 @@ bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume)
     return true;
 }
 
+bool BpSetSilent(duint Address, BP_TYPE Type, bool silent)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set breakpoint fast resume
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    bpInfo->silent = silent;
+    return true;
+}
+
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
 {
     ASSERT_DEBUGGING("Export call");
@@ -426,6 +441,7 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
     BridgeBp->enabled = Bp->enabled;
     BridgeBp->singleshoot = Bp->singleshoot;
     BridgeBp->fastResume = Bp->fastResume;
+    BridgeBp->silent = Bp->silent;
     BridgeBp->hitCount = Bp->hitcount;
 
     switch(Bp->type)
@@ -494,6 +510,7 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "commandText", json_string(breakpoint.commandText));
         json_object_set_new(jsonObj, "commandCondition", json_string(breakpoint.commandCondition));
         json_object_set_new(jsonObj, "fastResume", json_boolean(breakpoint.fastResume));
+        json_object_set_new(jsonObj, "silent", json_boolean(breakpoint.silent));
         json_array_append_new(jsonBreakpoints, jsonObj);
     }
 
@@ -551,6 +568,7 @@ void BpCacheLoad(JSON Root)
 
         // Fast resume
         breakpoint.fastResume = json_boolean_value(json_object_get(value, "fastResume"));
+        breakpoint.silent = json_boolean_value(json_object_get(value, "silent"));
 
         // Build the hash map key: MOD_HASH + ADDRESS
         duint key = ModHashFromName(breakpoint.mod) + breakpoint.addr;
