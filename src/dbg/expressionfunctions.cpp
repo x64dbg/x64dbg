@@ -3,6 +3,34 @@
 
 std::unordered_map<String, ExpressionFunctions::Function> ExpressionFunctions::mFunctions;
 
+//Copied from http://stackoverflow.com/a/7858971/1806760
+template<int...>
+struct seq {};
+
+template<int N, int... S>
+struct gens : gens < N - 1, N - 1, S... > {};
+
+template<int... S>
+struct gens<0, S...>
+{
+    typedef seq<S...> type;
+};
+
+template<typename T, int ...S, typename... Ts>
+static T callFunc(const T* argv, T(*cbFunction)(Ts...), seq<S...>)
+{
+    return cbFunction(argv[S]...);
+}
+
+template<typename... Ts>
+static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
+{
+    return ExpressionFunctions::Register(name, sizeof...(Ts), [cbFunction](int argc, const duint * argv)
+    {
+        return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
+    });
+}
+
 void ExpressionFunctions::Init()
 {
     //TODO: register some functions

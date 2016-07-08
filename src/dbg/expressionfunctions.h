@@ -5,7 +5,7 @@
 class ExpressionFunctions
 {
 public:
-    typedef duint(*CBEXPRESSIONFUNCTION)(int argc, const duint* argv);
+    using CBEXPRESSIONFUNCTION = std::function<duint(int argc, const duint* argv)>;
 
     static void Init();
     static bool Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction);
