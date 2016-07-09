@@ -18,6 +18,6 @@ String SymGetSymbolicName(duint Address);
 \param [out] nLine Line number. Can be null.
 \return true if it succeeds, false if it fails.
 */
-bool SymGetSourceLine(duint Cip, char* FileName, int* Line);
+bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* displacement = nullptr);
 
 #endif // _SYMBOLINFO_H

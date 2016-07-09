@@ -1,5 +1,6 @@
 #include "expressionfunctions.h"
 #include "threading.h"
+#include "exprfunc.h"
 
 std::unordered_map<String, ExpressionFunctions::Function> ExpressionFunctions::mFunctions;
 
@@ -33,7 +34,11 @@ static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
 
 void ExpressionFunctions::Init()
 {
-    //TODO: register some functions
+    //TODO: register more functions
+    using namespace Exprfunc;
+
+    //undocumented
+    RegisterEasy("srcline", srcline);
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction)

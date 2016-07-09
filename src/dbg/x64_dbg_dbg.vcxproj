@@ -50,6 +50,7 @@
     <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="expressionfunctions.cpp" />
+    <ClCompile Include="exprfunc.cpp" />
     <ClCompile Include="handles.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="disasm_helper.h" />
     <ClInclude Include="dynamicmem.h" />
     <ClInclude Include="expressionfunctions.h" />
+    <ClInclude Include="exprfunc.h" />
     <ClInclude Include="handles.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />

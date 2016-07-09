@@ -262,7 +262,7 @@ String SymGetSymbolicName(duint Address)
     return StringUtils::sprintf("<%s>", label);
 }
 
-bool SymGetSourceLine(duint Cip, char* FileName, int* Line)
+bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* disp)
 {
     IMAGEHLP_LINEW64 lineInfo;
     memset(&lineInfo, 0, sizeof(IMAGEHLP_LINE64));
@@ -274,6 +274,9 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line)
 
     if(!SymGetLineFromAddrW64(fdProcessInfo->hProcess, Cip, &displacement, &lineInfo))
         return false;
+
+    if(disp)
+        *disp = displacement;
 
     String NewFile = StringUtils::Utf16ToUtf8(lineInfo.FileName);
 
