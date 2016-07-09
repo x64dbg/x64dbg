@@ -301,6 +301,7 @@ static void registercommands()
     dbgcmdnew("guiupdatedisable", cbInstrDisableGuiUpdate, true); //disable gui message
     dbgcmdnew("guiupdateenable", cbInstrEnableGuiUpdate, true); //enable gui message
     dbgcmdnew("exhandlers", cbInstrExhandlers, true); //enumerate exception handlers
+    dbgcmdnew("exinfo", cbInstrExinfo, true); //dump last exception information
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

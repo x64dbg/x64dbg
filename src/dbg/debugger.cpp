@@ -70,6 +70,7 @@ static HANDLE hTimeWastedCounterThread = 0;
 static bool bStopTimeWastedCounterThread = false;
 static String lastDebugText;
 static duint timeWastedDebugging = 0;
+static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
 char sqlitedb[deflen] = "";
@@ -854,6 +855,11 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+EXCEPTION_DEBUG_INFO getLastExceptionInfo()
+{
+    return lastExceptionInfo;
+}
+
 static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 {
     if(!bp->enabled)
@@ -1533,6 +1539,8 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     callbackInfo.Exception = ExceptionData;
     unsigned int ExceptionCode = ExceptionData->ExceptionRecord.ExceptionCode;
     GuiSetLastException(ExceptionCode);
+    if(ExceptionData)
+        lastExceptionInfo = *ExceptionData;
 
     duint addr = (duint)ExceptionData->ExceptionRecord.ExceptionAddress;
     if(ExceptionData->ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)

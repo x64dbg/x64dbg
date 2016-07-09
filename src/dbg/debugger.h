@@ -121,6 +121,7 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress);
 DWORD WINAPI threadAttachLoop(void* lpParameter);
 void cbDetach();
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
+EXCEPTION_DEBUG_INFO getLastExceptionInfo();
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;

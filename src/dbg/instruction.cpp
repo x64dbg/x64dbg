@@ -2754,3 +2754,19 @@ CMDRESULT cbInstrInstrUndo(int argc, char* argv[])
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrExinfo(int argc, char* argv[])
+{
+    auto info = getLastExceptionInfo();
+    const auto & record = info.ExceptionRecord;
+    dputs("EXCEPTION_DEBUG_INFO:");
+    dprintf("           dwFirstChance: %X\n", info.dwFirstChance);
+    dprintf("           ExceptionCode: %08X\n", record.ExceptionCode);
+    dprintf("          ExceptionFlags: %08X\n", record.ExceptionFlags);
+    dprintf("        ExceptionAddress: " fhex "\n", record.ExceptionAddress);
+    dprintf("        NumberParameters: %d\n", record.NumberParameters);
+    if(record.NumberParameters)
+        for(DWORD i = 0; i < record.NumberParameters; i++)
+            dprintf("ExceptionInformation[%02d]: " fhex "\n", i, record.ExceptionInformation[i]);
+    return STATUS_CONTINUE;
+}
