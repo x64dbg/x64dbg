@@ -212,7 +212,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
     QString info;
 
     // Section
-    char section[MAX_SECTION_SIZE];
+    char section[MAX_SECTION_SIZE * 5];
     if(DbgFunctions()->SectionFromAddr(parVA, section))
         info += QString(section) + ":";
 

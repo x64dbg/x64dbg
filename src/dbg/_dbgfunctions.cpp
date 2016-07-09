@@ -47,7 +47,7 @@ static bool _sectionfromaddr(duint addr, char* section)
         {
             if(addr >= cur.addr && addr < cur.addr + (cur.size + (0x1000 - 1) & ~(0x1000 - 1)))
             {
-                strcpy_s(section, MAX_SECTION_SIZE, cur.name);
+                strncpy_s(section, MAX_SECTION_SIZE * 5, cur.name, _TRUNCATE);
                 return true;
             }
         }
