@@ -42,6 +42,7 @@
 #include "symbolinfo.h"
 #include "argument.h"
 #include "historycontext.h"
+#include "exception.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -2761,12 +2762,28 @@ CMDRESULT cbInstrExinfo(int argc, char* argv[])
     const auto & record = info.ExceptionRecord;
     dputs("EXCEPTION_DEBUG_INFO:");
     dprintf("           dwFirstChance: %X\n", info.dwFirstChance);
-    dprintf("           ExceptionCode: %08X\n", record.ExceptionCode);
+    auto exceptionName = ExceptionCodeToName(record.ExceptionCode);
+    if(!exceptionName.size())   //if no exception was found, try the error codes (RPC_S_*)
+        exceptionName = ErrorCodeToName(record.ExceptionCode);
+    if(exceptionName.size())
+        dprintf("           ExceptionCode: %08X (%s)\n", record.ExceptionCode, exceptionName.c_str());
+    else
+        dprintf("           ExceptionCode: %08X\n", record.ExceptionCode);
     dprintf("          ExceptionFlags: %08X\n", record.ExceptionFlags);
-    dprintf("        ExceptionAddress: " fhex "\n", record.ExceptionAddress);
+    auto symbolic = SymGetSymbolicName(duint(record.ExceptionAddress));
+    if(symbolic.length())
+        dprintf("        ExceptionAddress: " fhex " %s\n", record.ExceptionAddress, symbolic.c_str());
+    else
+        dprintf("        ExceptionAddress: " fhex "\n", record.ExceptionAddress);
     dprintf("        NumberParameters: %d\n", record.NumberParameters);
     if(record.NumberParameters)
         for(DWORD i = 0; i < record.NumberParameters; i++)
-            dprintf("ExceptionInformation[%02d]: " fhex "\n", i, record.ExceptionInformation[i]);
+        {
+            symbolic = SymGetSymbolicName(duint(record.ExceptionInformation[i]));
+            if(symbolic.length())
+                dprintf("ExceptionInformation[%02d]: " fhex " %s\n", i, record.ExceptionInformation[i], symbolic.c_str());
+            else
+                dprintf("ExceptionInformation[%02d]: " fhex "\n", i, record.ExceptionInformation[i]);
+        }
     return STATUS_CONTINUE;
 }
