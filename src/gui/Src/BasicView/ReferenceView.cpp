@@ -6,7 +6,7 @@
 #include "Bridge.h"
 #include "MiscUtil.h"
 
-ReferenceView::ReferenceView() : SearchListView()
+ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : SearchListView(true, parent)
 {
     // Setup SearchListView settings
     mSearchStartCol = 1;
@@ -43,18 +43,21 @@ ReferenceView::ReferenceView() : SearchListView()
     mCountTotalLabel->setContentsMargins(2, 0, 5, 0);
     layoutProgress->addWidget(mCountTotalLabel);
 
-    // Add the progress bar and label to the main layout
-    layout()->addWidget(progressWidget);
+    if(!sourceView)
+    {
+        // Add the progress bar and label to the main layout
+        layout()->addWidget(progressWidget);
 
-    // Setup signals
-    connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(dsint)), this, SLOT(setRowCount(dsint)));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
-    connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
+        // Setup signals
+        connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
+        connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(dsint)), this, SLOT(setRowCount(dsint)));
+        connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
+        connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
+        connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
+        connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
+        connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
+        connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
+    }
     connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(referenceContextMenu(QMenu*)));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followGenericAddress()));
 

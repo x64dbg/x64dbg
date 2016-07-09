@@ -21,20 +21,14 @@ SourceViewerManager::SourceViewerManager(QWidget* parent) : QTabWidget(parent)
 
 void SourceViewerManager::loadSourceFile(QString path, int line, int selection)
 {
-    if(!selection)
-    {
-        for(int i = 0; i < count(); i++) //remove all other instruction pointers (only one is possible)
-            ((SourceView*)this->widget(i))->setInstructionPointer(0);
-    }
+    if(!line)
+        line = selection;
     for(int i = 0; i < count(); i++)
     {
         SourceView* curView = (SourceView*)this->widget(i);
         if(curView->getSourcePath().compare(path, Qt::CaseInsensitive) == 0) //file already loaded
         {
-            if(selection)
-                curView->setSelection(selection);
-            else
-                curView->setInstructionPointer(line);
+            curView->setSelection(line);
             setCurrentIndex(i); //show that loaded tab
             return;
         }
@@ -51,11 +45,6 @@ void SourceViewerManager::loadSourceFile(QString path, int line, int selection)
         title = path.mid(idx + 1);
     SourceView* newView = new SourceView(path, line);
     connect(newView, SIGNAL(showCpu()), this, SIGNAL(showCpu()));
-    if(selection)
-    {
-        newView->setInstructionPointer(0);
-        newView->setSelection(selection);
-    }
     addTab(newView, title);
     setCurrentIndex(count() - 1);
 }

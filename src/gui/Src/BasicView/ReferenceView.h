@@ -10,11 +10,11 @@ class ReferenceView : public SearchListView
     Q_OBJECT
 
 public:
-    ReferenceView();
+    ReferenceView(bool sourceView = false, QWidget* parent = nullptr);
     void setupContextMenu();
     void disconnectBridge();
 
-private slots:
+protected slots:
     void addColumnAt(int width, QString title);
     void setRowCount(dsint count);
     void setCellContent(int r, int c, QString s);
