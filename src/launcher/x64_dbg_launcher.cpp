@@ -324,17 +324,35 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if(bDoneSomething)
             MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);
     }
-    if(argc == 2)  //one argument -> execute debugger
+    else if(argc >= 2)  //one or more arguments -> execute debugger
     {
         TCHAR szPath[MAX_PATH] = TEXT("");
-        _tcscpy_s(szPath, argv[1]);
-        TCHAR szResolvedPath[MAX_PATH] = TEXT("");
+        if(PathIsRelative(argv[1]))  //resolve the full path if a relative path is specified
+        {
+            GetCurrentDirectory(_countof(szPath), szPath);
+            PathAppend(szPath, argv[1]);
+        }
+        else if(!ResolveShortcut(nullptr, argv[1], szPath, _countof(szPath)))  //attempt to resolve the shortcut path
+            _tcscpy_s(szPath, argv[1]); //fall back to the origin full path
 
-        ResolveShortcut(nullptr, szPath, szResolvedPath, _countof(szResolvedPath));
-
-        std::wstring cmdLine = TEXT("\"");
+        std::wstring cmdLine;
+        cmdLine.push_back(L'\"');
         cmdLine += szPath;
-        cmdLine += L"\"";
+        cmdLine.push_back(L'\"');
+        if(argc > 2)  //forward any commandline parameters
+        {
+            cmdLine += L" \"";
+            for(auto i = 2; i < argc; i++)
+            {
+                if(i > 2)
+                    cmdLine.push_back(L' ');
+                cmdLine.push_back(L'\"');
+                cmdLine += argv[i];
+                cmdLine.push_back(L'\"');
+            }
+            cmdLine += L"\"";
+        }
+
         switch(GetFileArchitecture(szPath))
         {
         case x32:
