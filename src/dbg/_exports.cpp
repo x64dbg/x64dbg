@@ -705,6 +705,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         case DBG_WIN_EVENT:
         case DBG_WIN_EVENT_GLOBAL:
         case DBG_RELEASE_ENCODE_TYPE_BUFFER:
+        case DBG_GET_TIME_WASTED_COUNTER:
             break;
         //the rest is unsafe -> throw an exception when people try to call them
         default:
