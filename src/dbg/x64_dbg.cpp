@@ -198,6 +198,13 @@ static void registercommands()
     dbgcmdnew("getjitauto\1jitgetauto", cbDebugGetJITAuto, false); //get JIT Auto
     dbgcmdnew("setjitauto\1jitsetauto", cbDebugSetJITAuto, false); //set JIT Auto
     dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
+    dbgcmdnew("exhandlers", cbInstrExhandlers, true); //enumerate exception handlers
+    dbgcmdnew("exinfo", cbInstrExinfo, true); //dump last exception information
+    dbgcmdnew("guiupdatedisable", cbInstrDisableGuiUpdate, true); //disable gui message
+    dbgcmdnew("guiupdateenable", cbInstrEnableGuiUpdate, true); //enable gui message
+    dbgcmdnew("mnemonichelp", cbInstrMnemonichelp, false); //mnemonic help
+    dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
+    dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
@@ -270,6 +277,12 @@ static void registercommands()
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
     dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
 
+    //Operating System Control
+    dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state
+    dbgcmdnew("EnablePrivilege", cbEnablePrivilege, true); //enable priv
+    dbgcmdnew("DisablePrivilege", cbDisablePrivilege, true); //disable priv
+    dbgcmdnew("handleclose", cbHandleClose, true); //close remote handle
+
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)
     dbgcmdnew("dprintf", cbPrintf, false); //printf
@@ -283,25 +296,14 @@ static void registercommands()
     dbgcmdnew("cfanal\1cfanalyse\1cfanalyze", cbInstrCfanalyse, true); //control flow analysis
     dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
     dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
-    dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
     dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
     dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
     dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
-    dbgcmdnew("mnemonichelp", cbInstrMnemonichelp, false); //mnemonic help
-    dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
-    dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state
-    dbgcmdnew("EnablePrivilege", cbEnablePrivilege, true); //enable priv
-    dbgcmdnew("DisablePrivilege", cbDisablePrivilege, true); //disable priv
-    dbgcmdnew("handleclose", cbHandleClose, true); //close remote handle
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
     dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
     dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
     dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
-    dbgcmdnew("guiupdatedisable", cbInstrDisableGuiUpdate, true); //disable gui message
-    dbgcmdnew("guiupdateenable", cbInstrEnableGuiUpdate, true); //enable gui message
-    dbgcmdnew("exhandlers", cbInstrExhandlers, true); //enumerate exception handlers
-    dbgcmdnew("exinfo", cbInstrExinfo, true); //dump last exception information
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
