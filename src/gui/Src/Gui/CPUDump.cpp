@@ -74,7 +74,7 @@ void CPUDump::setupContextMenu()
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
 
     //Binary->Save To a File
-    mBinarySaveToFile = new QAction(tr("Save To a File"), this);
+    mBinarySaveToFile = new QAction(QIcon(":/icons/images/binary_save.png"), tr("Save To a File"), this);
     mBinarySaveToFile->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinarySaveToFile);
     connect(mBinarySaveToFile, SIGNAL(triggered()), this, SLOT(binarySaveToFileSlot()));
@@ -311,15 +311,15 @@ void CPUDump::setupContextMenu()
     mHexMenu = new QMenu(tr("&Hex"), this);
     mHexMenu->setIcon(QIcon(":/icons/images/hex.png"));
     //Hex->Ascii
-    mHexAsciiAction = new QAction("&ASCII", this);
+    mHexAsciiAction = new QAction(QIcon(":/icons/images/ascii.png"), "&ASCII", this);
     connect(mHexAsciiAction, SIGNAL(triggered()), this, SLOT(hexAsciiSlot()));
     mHexMenu->addAction(mHexAsciiAction);
     //Hex->Unicode
-    mHexUnicodeAction = new QAction(tr("&Extended ASCII"), this);
+    mHexUnicodeAction = new QAction(QIcon(":/icons/images/ascii-extended.png"), tr("&Extended ASCII"), this);
     connect(mHexUnicodeAction, SIGNAL(triggered()), this, SLOT(hexUnicodeSlot()));
     mHexMenu->addAction(mHexUnicodeAction);
     //Hex->Codepage
-    mHexCodepageAction = new QAction(tr("&Codepage..."), this);
+    mHexCodepageAction = new QAction(QIcon(":/icons/images/codepage.png"), tr("&Codepage..."), this);
     connect(mHexCodepageAction, SIGNAL(triggered()), this, SLOT(hexCodepageSlot()));
     mHexMenu->addAction(mHexCodepageAction);
 
@@ -327,15 +327,15 @@ void CPUDump::setupContextMenu()
     mTextMenu = new QMenu(tr("&Text"), this);
     mTextMenu->setIcon(QIcon(":/icons/images/strings.png"));
     //Text->Ascii
-    mTextAsciiAction = new QAction(tr("&ASCII"), this);
+    mTextAsciiAction = new QAction(QIcon(":/icons/images/ascii.png"), tr("&ASCII"), this);
     connect(mTextAsciiAction, SIGNAL(triggered()), this, SLOT(textAsciiSlot()));
     mTextMenu->addAction(mTextAsciiAction);
     //Text->Unicode
-    mTextUnicodeAction = new QAction(tr("&Extended ASCII"), this);
+    mTextUnicodeAction = new QAction(QIcon(":/icons/images/ascii-extended.png"), tr("&Extended ASCII"), this);
     connect(mTextUnicodeAction, SIGNAL(triggered()), this, SLOT(textUnicodeSlot()));
     mTextMenu->addAction(mTextUnicodeAction);
     //Hex->Codepage
-    mTextCodepageAction = new QAction(tr("&Codepage..."), this);
+    mTextCodepageAction = new QAction(QIcon(":/icons/images/codepage.png"), tr("&Codepage..."), this);
     connect(mTextCodepageAction, SIGNAL(triggered()), this, SLOT(textCodepageSlot()));
     mTextMenu->addAction(mTextCodepageAction);
 
@@ -343,39 +343,39 @@ void CPUDump::setupContextMenu()
     mIntegerMenu = new QMenu(tr("&Integer"), this);
     mIntegerMenu->setIcon(QIcon(":/icons/images/integer.png"));
     //Integer->Signed short
-    mIntegerSignedShortAction = new QAction("Signed short (16-bit)", this);
+    mIntegerSignedShortAction = new QAction(QIcon(":/icons/images/word.png"), "Signed short (16-bit)", this);
     connect(mIntegerSignedShortAction, SIGNAL(triggered()), this, SLOT(integerSignedShortSlot()));
     mIntegerMenu->addAction(mIntegerSignedShortAction);
     //Integer->Signed long
-    mIntegerSignedLongAction = new QAction("Signed long (32-bit)", this);
+    mIntegerSignedLongAction = new QAction(QIcon(":/icons/images/dword.png"), "Signed long (32-bit)", this);
     connect(mIntegerSignedLongAction, SIGNAL(triggered()), this, SLOT(integerSignedLongSlot()));
     mIntegerMenu->addAction(mIntegerSignedLongAction);
     //Integer->Signed long long
-    mIntegerSignedLongLongAction = new QAction("Signed long long (64-bit)", this);
+    mIntegerSignedLongLongAction = new QAction(QIcon(":/icons/images/qword.png"), "Signed long long (64-bit)", this);
     connect(mIntegerSignedLongLongAction, SIGNAL(triggered()), this, SLOT(integerSignedLongLongSlot()));
     mIntegerMenu->addAction(mIntegerSignedLongLongAction);
     //Integer->Unsigned short
-    mIntegerUnsignedShortAction = new QAction("Unsigned short (16-bit)", this);
+    mIntegerUnsignedShortAction = new QAction(QIcon(":/icons/images/word.png"), "Unsigned short (16-bit)", this);
     connect(mIntegerUnsignedShortAction, SIGNAL(triggered()), this, SLOT(integerUnsignedShortSlot()));
     mIntegerMenu->addAction(mIntegerUnsignedShortAction);
     //Integer->Unsigned long
-    mIntegerUnsignedLongAction = new QAction("Unsigned long (32-bit)", this);
+    mIntegerUnsignedLongAction = new QAction(QIcon(":/icons/images/dword.png"), "Unsigned long (32-bit)", this);
     connect(mIntegerUnsignedLongAction, SIGNAL(triggered()), this, SLOT(integerUnsignedLongSlot()));
     mIntegerMenu->addAction(mIntegerUnsignedLongAction);
     //Integer->Unsigned long long
-    mIntegerUnsignedLongLongAction = new QAction("Unsigned long long (64-bit)", this);
+    mIntegerUnsignedLongLongAction = new QAction(QIcon(":/icons/images/qword.png"), "Unsigned long long (64-bit)", this);
     connect(mIntegerUnsignedLongLongAction, SIGNAL(triggered()), this, SLOT(integerUnsignedLongLongSlot()));
     mIntegerMenu->addAction(mIntegerUnsignedLongLongAction);
     //Integer->Hex short
-    mIntegerHexShortAction = new QAction("Hex short (16-bit)", this);
+    mIntegerHexShortAction = new QAction(QIcon(":/icons/images/word.png"), "Hex short (16-bit)", this);
     connect(mIntegerHexShortAction, SIGNAL(triggered()), this, SLOT(integerHexShortSlot()));
     mIntegerMenu->addAction(mIntegerHexShortAction);
     //Integer->Hex long
-    mIntegerHexLongAction = new QAction("Hex long (32-bit)", this);
+    mIntegerHexLongAction = new QAction(QIcon(":/icons/images/dword.png"), "Hex long (32-bit)", this);
     connect(mIntegerHexLongAction, SIGNAL(triggered()), this, SLOT(integerHexLongSlot()));
     mIntegerMenu->addAction(mIntegerHexLongAction);
     //Integer->Hex long long
-    mIntegerHexLongLongAction = new QAction("Hex long long (64-bit)", this);
+    mIntegerHexLongLongAction = new QAction(QIcon(":/icons/images/qword.png"), "Hex long long (64-bit)", this);
     connect(mIntegerHexLongLongAction, SIGNAL(triggered()), this, SLOT(integerHexLongLongSlot()));
     mIntegerMenu->addAction(mIntegerHexLongLongAction);
 
@@ -383,15 +383,15 @@ void CPUDump::setupContextMenu()
     mFloatMenu = new QMenu(tr("&Float"), this);
     mFloatMenu->setIcon(QIcon(":/icons/images/float.png"));
     //Float->float
-    mFloatFloatAction = new QAction("&Float (32-bit)", this);
+    mFloatFloatAction = new QAction(QIcon(":/icons/images/32bit-float.png"), "&Float (32-bit)", this);
     connect(mFloatFloatAction, SIGNAL(triggered()), this, SLOT(floatFloatSlot()));
     mFloatMenu->addAction(mFloatFloatAction);
     //Float->double
-    mFloatDoubleAction = new QAction("&Double (64-bit)", this);
+    mFloatDoubleAction = new QAction(QIcon(":/icons/images/64bit-float.png"), "&Double (64-bit)", this);
     connect(mFloatDoubleAction, SIGNAL(triggered()), this, SLOT(floatDoubleSlot()));
     mFloatMenu->addAction(mFloatDoubleAction);
     //Float->long double
-    mFloatLongDoubleAction = new QAction("&Long double (80-bit)", this);
+    mFloatLongDoubleAction = new QAction(QIcon(":/icons/images/80bit-float.png"), "&Long double (80-bit)", this);
     connect(mFloatLongDoubleAction, SIGNAL(triggered()), this, SLOT(floatLongDoubleSlot()));
     mFloatMenu->addAction(mFloatLongDoubleAction);
 
@@ -401,7 +401,7 @@ void CPUDump::setupContextMenu()
     connect(mAddressAction, SIGNAL(triggered()), this, SLOT(addressSlot()));
 
     //Disassembly
-    mDisassemblyAction = new QAction(tr("&Disassembly"), this);
+    mDisassemblyAction = new QAction(QIcon(":/icons/images/processor-cpu.png"), tr("&Disassembly"), this);
     connect(mDisassemblyAction, SIGNAL(triggered()), this, SLOT(disassemblySlot()));
     mDisassemblyAction->setEnabled(false); // If this is implemented remove this line.
 

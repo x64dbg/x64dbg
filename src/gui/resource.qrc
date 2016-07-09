@@ -247,5 +247,6 @@
         <file>images/memmap_set_page_memory_rights.png</file>
         <file>images/runtouser.png</file>
         <file>images/undo.png</file>
+        <file>images/binary_save.png</file>
     </qresource>
 </RCC>
