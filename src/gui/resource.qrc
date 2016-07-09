@@ -246,5 +246,6 @@
         <file>images/memmap_memory_breakpoint.png</file>
         <file>images/memmap_set_page_memory_rights.png</file>
         <file>images/runtouser.png</file>
+        <file>images/undo.png</file>
     </qresource>
 </RCC>

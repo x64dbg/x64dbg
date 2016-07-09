@@ -908,6 +908,10 @@
    </property>
   </action>
   <action name="actionInstrUndo">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/undo.png</normaloff>:/icons/images/undo.png</iconset>
+   </property>
    <property name="text">
     <string>Undo last instruction</string>
    </property>
