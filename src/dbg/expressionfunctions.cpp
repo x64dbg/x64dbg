@@ -1,6 +1,7 @@
 #include "expressionfunctions.h"
 #include "threading.h"
 #include "exprfunc.h"
+#include "module.h"
 
 std::unordered_map<String, ExpressionFunctions::Function> ExpressionFunctions::mFunctions;
 
@@ -38,7 +39,14 @@ void ExpressionFunctions::Init()
     using namespace Exprfunc;
 
     //undocumented
-    RegisterEasy("srcline", srcline);
+    RegisterEasy("src.line", srcline);
+    RegisterEasy("src.disp", srcdisp);
+
+    RegisterEasy("mod.party", modparty);
+    RegisterEasy("mod.base", ModBaseFromAddr);
+    RegisterEasy("mod.size", ModSizeFromAddr);
+    RegisterEasy("mod.hash", ModHashFromAddr);
+    RegisterEasy("mod.entry", ModEntryFromAddr);
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction)

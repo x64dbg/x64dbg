@@ -1538,10 +1538,10 @@ void MainWindow::clickFavouriteTool()
 
 void MainWindow::on_actionStepIntoSource_triggered()
 {
-    DbgCmdExec("TraceIntoConditional srcline(cip)");
+    DbgCmdExec("TraceIntoConditional src.line(cip) && !src.disp(cip)");
 }
 
 void MainWindow::on_actionStepOverSource_triggered()
 {
-    DbgCmdExec("TraceOverConditional srcline(cip)");
+    DbgCmdExec("TraceOverConditional src.line(cip) && !src.disp(cip)");
 }
