@@ -287,9 +287,11 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugRestart", Shortcut(tr("Debug -> Restart"), "Ctrl+F2", true));
     defaultShortcuts.insert("DebugClose", Shortcut(tr("Debug -> Close"), "Alt+F2", true));
     defaultShortcuts.insert("DebugStepInto", Shortcut(tr("Debug -> Step into"), "F7", true));
-    defaultShortcuts.insert("DebugeStepInfo", Shortcut(tr("Debug -> Step into (skip execptions)"), "Shift+F7", true));
+    defaultShortcuts.insert("DebugeStepInto", Shortcut(tr("Debug -> Step into (skip execptions)"), "Shift+F7", true));
+    defaultShortcuts.insert("DebugStepIntoSource", Shortcut(tr("Debug -> Step into (source)"), "F11", true));
     defaultShortcuts.insert("DebugStepOver", Shortcut(tr("Debug -> Step over"), "F8", true));
     defaultShortcuts.insert("DebugeStepOver", Shortcut(tr("Debug -> Step over (skip execptions)"), "Shift+F8", true));
+    defaultShortcuts.insert("DebugStepOverSource", Shortcut(tr("Debug -> Step over (source)"), "F10", true));
     defaultShortcuts.insert("DebugRtr", Shortcut(tr("Debug -> Execute till return"), "Ctrl+F9", true));
     defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> Execute till return (skip exceptions)"), "Ctrl+Shift+F9", true));
     defaultShortcuts.insert("DebugRtu", Shortcut(tr("Debug -> Run to user code"), "Alt+F9", true));

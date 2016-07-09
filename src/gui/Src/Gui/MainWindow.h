@@ -237,6 +237,8 @@ public:
 private slots:
     void on_actionFaq_triggered();
     void on_actionReloadStylesheet_triggered();
+    void on_actionStepIntoSource_triggered();
+    void on_actionStepOverSource_triggered();
 };
 
 #endif // MAINWINDOW_H

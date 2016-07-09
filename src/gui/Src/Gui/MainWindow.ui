@@ -104,9 +104,11 @@
     <addaction name="separator"/>
     <addaction name="actionStepInto"/>
     <addaction name="actioneStepInto"/>
+    <addaction name="actionStepIntoSource"/>
     <addaction name="actionTicnd"/>
     <addaction name="actionStepOver"/>
     <addaction name="actioneStepOver"/>
+    <addaction name="actionStepOverSource"/>
     <addaction name="actionRtu"/>
     <addaction name="actionTocnd"/>
     <addaction name="actionRtr"/>
@@ -926,8 +928,30 @@
    </property>
   </action>
   <action name="actionManageFavourite">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/star.png</normaloff>:/icons/images/star.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Manage Favourite Tools...</string>
+   </property>
+  </action>
+  <action name="actionStepOverSource">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
+   </property>
+   <property name="text">
+    <string>Step over (source)</string>
+   </property>
+  </action>
+  <action name="actionStepIntoSource">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
+   </property>
+   <property name="text">
+    <string>Step into (source)</string>
    </property>
   </action>
  </widget>

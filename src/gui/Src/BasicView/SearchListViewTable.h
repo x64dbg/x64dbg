@@ -19,7 +19,7 @@ public:
 protected:
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
 
-private slots:
+public slots:
     void disassembleAtSlot(dsint va, dsint cip);
 
 private:

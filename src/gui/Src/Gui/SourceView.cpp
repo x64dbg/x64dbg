@@ -17,6 +17,9 @@ SourceView::SourceView(QString path, int line, StdTable* parent)
 
     loadFile();
     setSelection(line);
+    auto cip = DbgValFromString("cip");
+    mList->disassembleAtSlot(0, cip);
+    mSearchList->disassembleAtSlot(0, cip);
 }
 
 void SourceView::setSelection(int line)

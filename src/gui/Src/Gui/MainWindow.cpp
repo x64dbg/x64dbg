@@ -459,9 +459,11 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionRestart, ConfigShortcut("DebugRestart"));
     setGlobalShortcut(ui->actionClose, ConfigShortcut("DebugClose"));
     setGlobalShortcut(ui->actionStepInto, ConfigShortcut("DebugStepInto"));
-    setGlobalShortcut(ui->actioneStepInto, ConfigShortcut("DebugeStepInfo"));
+    setGlobalShortcut(ui->actioneStepInto, ConfigShortcut("DebugeStepInto"));
+    setGlobalShortcut(ui->actionStepIntoSource, ConfigShortcut("DebugStepIntoSource"));
     setGlobalShortcut(ui->actionStepOver, ConfigShortcut("DebugStepOver"));
     setGlobalShortcut(ui->actioneStepOver, ConfigShortcut("DebugeStepOver"));
+    setGlobalShortcut(ui->actionStepOverSource, ConfigShortcut("DebugStepOverSource"));
     setGlobalShortcut(ui->actionRtr, ConfigShortcut("DebugRtr"));
     setGlobalShortcut(ui->actioneRtr, ConfigShortcut("DebugeRtr"));
     setGlobalShortcut(ui->actionRtu, ConfigShortcut("DebugRtu"));
@@ -1532,4 +1534,14 @@ void MainWindow::clickFavouriteTool()
     {
         DbgCmdExec(action->text().toUtf8().constData());
     }
+}
+
+void MainWindow::on_actionStepIntoSource_triggered()
+{
+    DbgCmdExec("TraceIntoConditional srcline(cip)");
+}
+
+void MainWindow::on_actionStepOverSource_triggered()
+{
+    DbgCmdExec("TraceOverConditional srcline(cip)");
 }
