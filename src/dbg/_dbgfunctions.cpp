@@ -190,7 +190,7 @@ static duint _getaddrfromline(const char* szSourceFile, int line)
     IMAGEHLP_LINE64 lineData;
     memset(&lineData, 0, sizeof(lineData));
     lineData.SizeOfStruct = sizeof(lineData);
-    if(!SymGetLineFromName64(fdProcessInfo->hProcess, NULL, szSourceFile, line, &displacement, &lineData))
+    if(!SymGetLineFromName64(fdProcessInfo->hProcess, NULL, szSourceFile, line, &displacement, &lineData) || displacement)
         return 0;
     return (duint)lineData.Address;
 }
