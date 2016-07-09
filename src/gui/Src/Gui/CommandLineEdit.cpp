@@ -171,7 +171,8 @@ void CommandLineEdit::autoCompleteUpdate(const QString text)
         }
 
         // Restore index
-        mCompleter->popup()->setCurrentIndex(modelIndex);
+        if(mCompleter->popup()->model()->rowCount() > modelIndex.row())
+            mCompleter->popup()->setCurrentIndex(modelIndex);
     }
 }
 
