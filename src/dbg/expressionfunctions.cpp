@@ -49,6 +49,34 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.entry", ModEntryFromAddr);
 }
 
+duint ExpressionFunctions::Function::Invoke(int argc, const duint* argv) const
+{
+    if(cbFunction)
+    {
+        return cbFunction(argc, argv);
+    }
+    else if(cbFunctionWithUserData)
+    {
+        return cbFunctionWithUserData(argc, argv, userdata);
+    }
+
+    return 0;
+}
+bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTIONWITHUSERDATA cbFunction, void* user)
+{
+    if(!isValidName(name))
+        return false;
+    EXCLUSIVE_ACQUIRE(LockExpressionFunctions);
+    if(mFunctions.count(name))
+        return false;
+    Function f;
+    f.name = name;
+    f.argc = argc;
+    f.cbFunctionWithUserData = cbFunction;
+    f.userdata = user;
+    mFunctions[name] = f;
+    return true;
+}
 bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction)
 {
     if(!isValidName(name))
@@ -83,7 +111,7 @@ bool ExpressionFunctions::Call(const String & name, const std::vector<duint> & a
     const auto & f = found->second;
     if(f.argc != int(argv.size()))
         return false;
-    result = f.cbFunction(f.argc, argv.data());
+    result = f.Invoke(f.argc, argv.data());
     return true;
 }
 

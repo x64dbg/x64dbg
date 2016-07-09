@@ -693,17 +693,29 @@ void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
     }
 }
 
-bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction)
+static void pluginexprfuncregister(int pluginHandle, const char* name)
 {
     PLUG_EXPRFUNCTION plugExprfunction;
     plugExprfunction.pluginHandle = pluginHandle;
     strcpy_s(plugExprfunction.name, name);
-    if(!ExpressionFunctions::Register(name, argc, cbFunction))
-        return false;
     EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
     pluginExprfunctionList.push_back(plugExprfunction);
     EXCLUSIVE_RELEASE();
     dprintf("[PLUGIN] expression function \"%s\" registered!\n", name);
+}
+
+bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTIONWITHUSERDATA cbFunction, void* user)
+{
+    if(!ExpressionFunctions::Register(name, argc, cbFunction, user))
+        return false;
+    pluginexprfuncregister(pluginHandle, name);
+    return true;
+}
+bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction)
+{
+    if(!ExpressionFunctions::Register(name, argc, cbFunction))
+        return false;
+    pluginexprfuncregister(pluginHandle, name);
     return true;
 }
 

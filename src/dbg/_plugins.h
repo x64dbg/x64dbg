@@ -209,6 +209,7 @@ typedef void (*CBPLUGIN)(CBTYPE cbType, void* callbackInfo);
 typedef bool (*CBPLUGINCOMMAND)(int argc, char** argv);
 typedef void (*CBPLUGINSCRIPT)();
 typedef duint(*CBPLUGINEXPRFUNCTION)(int argc, const duint* argv);
+typedef duint(*CBPLUGINEXPRFUNCTIONWITHUSERDATA)(int argc, const duint* argv, void* usrdata);
 
 //exports
 #ifdef __cplusplus
@@ -233,6 +234,7 @@ PLUG_IMPEXP void _plugin_menuentryseticon(int pluginHandle, int hEntry, const IC
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript);
 PLUG_IMPEXP bool _plugin_waituntilpaused();
 PLUG_IMPEXP bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction);
+PLUG_IMPEXP bool _plugin_registerexprfunctionuserdata(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTIONWITHUSERDATA cbFunction, void* usrdata);
 PLUG_IMPEXP bool _plugin_unregisterexprfunction(int pluginHandle, const char* name);
 
 #ifdef __cplusplus
