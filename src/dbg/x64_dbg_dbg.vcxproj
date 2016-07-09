@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -20,21 +20,27 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="addrinfo.cpp" />
-    <ClCompile Include="advancedanalysis.cpp" />
-    <ClCompile Include="analysis.cpp" />
-    <ClCompile Include="AnalysisPass.cpp" />
-    <ClCompile Include="analysis_nukem.cpp" />
+    <ClCompile Include="analysis\advancedanalysis.cpp" />
+    <ClCompile Include="analysis\analysis.cpp" />
+    <ClCompile Include="analysis\AnalysisPass.cpp" />
+    <ClCompile Include="analysis\analysis_nukem.cpp" />
+    <ClCompile Include="analysis\CodeFollowPass.cpp" />
+    <ClCompile Include="analysis\controlflowanalysis.cpp" />
+    <ClCompile Include="analysis\exceptiondirectoryanalysis.cpp" />
+    <ClCompile Include="analysis\FunctionPass.cpp" />
+    <ClCompile Include="analysis\linearanalysis.cpp" />
+    <ClCompile Include="analysis\LinearPass.cpp" />
+    <ClCompile Include="analysis\recursiveanalysis.cpp" />
+    <ClCompile Include="analysis\xrefsanalysis.cpp" />
     <ClCompile Include="argument.cpp" />
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
-    <ClCompile Include="CodeFollowPass.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="commandline.cpp" />
     <ClCompile Include="commandparser.cpp" />
     <ClCompile Include="comment.cpp" />
     <ClCompile Include="console.cpp" />
-    <ClCompile Include="controlflowanalysis.cpp" />
     <ClCompile Include="database.cpp" />
     <ClCompile Include="datainst_helper.cpp" />
     <ClCompile Include="dbghelp_safe.cpp" />
@@ -47,18 +53,14 @@
     <ClCompile Include="handles.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
-    <ClCompile Include="exceptiondirectoryanalysis.cpp" />
     <ClCompile Include="exhandlerinfo.cpp" />
     <ClCompile Include="expressionparser.cpp" />
     <ClCompile Include="filehelper.cpp" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="historycontext.cpp" />
     <ClCompile Include="jit.cpp" />
-    <ClCompile Include="linearanalysis.cpp" />
-    <ClCompile Include="FunctionPass.cpp" />
     <ClCompile Include="instruction.cpp" />
     <ClCompile Include="label.cpp" />
-    <ClCompile Include="LinearPass.cpp" />
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory.cpp" />
@@ -69,7 +71,6 @@
     <ClCompile Include="patches.cpp" />
     <ClCompile Include="patternfind.cpp" />
     <ClCompile Include="plugin_loader.cpp" />
-    <ClCompile Include="recursiveanalysis.cpp" />
     <ClCompile Include="reference.cpp" />
     <ClCompile Include="simplescript.cpp" />
     <ClCompile Include="stackinfo.cpp" />
@@ -85,7 +86,6 @@
     <ClCompile Include="watch.cpp" />
     <ClCompile Include="x64_dbg.cpp" />
     <ClCompile Include="xrefs.cpp" />
-    <ClCompile Include="xrefsanalysis.cpp" />
     <ClCompile Include="_exports.cpp" />
     <ClCompile Include="_dbgfunctions.cpp" />
     <ClCompile Include="_global.cpp" />
@@ -109,22 +109,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
-    <ClInclude Include="advancedanalysis.h" />
-    <ClInclude Include="analysis.h" />
-    <ClInclude Include="AnalysisPass.h" />
-    <ClInclude Include="analysis_nukem.h" />
+    <ClInclude Include="analysis\advancedanalysis.h" />
+    <ClInclude Include="analysis\analysis.h" />
+    <ClInclude Include="analysis\AnalysisPass.h" />
+    <ClInclude Include="analysis\analysis_nukem.h" />
+    <ClInclude Include="analysis\BasicBlock.h" />
+    <ClInclude Include="analysis\CodeFollowPass.h" />
+    <ClInclude Include="analysis\controlflowanalysis.h" />
+    <ClInclude Include="analysis\exceptiondirectoryanalysis.h" />
+    <ClInclude Include="analysis\FunctionPass.h" />
+    <ClInclude Include="analysis\linearanalysis.h" />
+    <ClInclude Include="analysis\LinearPass.h" />
+    <ClInclude Include="analysis\recursiveanalysis.h" />
+    <ClInclude Include="analysis\xrefsanalysis.h" />
     <ClInclude Include="argument.h" />
     <ClInclude Include="assemble.h" />
-    <ClInclude Include="BasicBlock.h" />
     <ClInclude Include="bookmark.h" />
     <ClInclude Include="breakpoint.h" />
-    <ClInclude Include="CodeFollowPass.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="commandline.h" />
     <ClInclude Include="commandparser.h" />
     <ClInclude Include="comment.h" />
     <ClInclude Include="console.h" />
-    <ClInclude Include="controlflowanalysis.h" />
     <ClInclude Include="database.h" />
     <ClInclude Include="datainst_helper.h" />
     <ClInclude Include="dbghelp\dbghelp.h" />
@@ -140,7 +146,6 @@
     <ClInclude Include="handles.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
-    <ClInclude Include="exceptiondirectoryanalysis.h" />
     <ClInclude Include="exhandlerinfo.h" />
     <ClInclude Include="expressionparser.h" />
     <ClInclude Include="filehelper.h" />
@@ -156,15 +161,12 @@
     <ClInclude Include="keystone\sparc.h" />
     <ClInclude Include="keystone\systemz.h" />
     <ClInclude Include="keystone\x86.h" />
-    <ClInclude Include="linearanalysis.h" />
-    <ClInclude Include="FunctionPass.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="instruction.h" />
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
     <ClInclude Include="jansson\jansson_x64dbg.h" />
     <ClInclude Include="label.h" />
-    <ClInclude Include="LinearPass.h" />
     <ClInclude Include="loop.h" />
     <ClInclude Include="lz4\lz4.h" />
     <ClInclude Include="lz4\lz4file.h" />
@@ -177,7 +179,6 @@
     <ClInclude Include="patches.h" />
     <ClInclude Include="patternfind.h" />
     <ClInclude Include="plugin_loader.h" />
-    <ClInclude Include="recursiveanalysis.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />
     <ClInclude Include="taskthread.h" />
@@ -185,7 +186,6 @@
     <ClInclude Include="TraceRecord.h" />
     <ClInclude Include="watch.h" />
     <ClInclude Include="xrefs.h" />
-    <ClInclude Include="xrefsanalysis.h" />
     <ClInclude Include="yara\yara\stream.h" />
     <ClInclude Include="_scriptapi.h" />
     <ClInclude Include="simplescript.h" />
@@ -300,26 +300,26 @@
     <OutDir>$(ProjectDir)..\..\bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x32d\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64d\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

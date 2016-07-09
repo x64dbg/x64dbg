@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -230,24 +230,6 @@
     <ClCompile Include="_scriptapi_gui.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
     </ClCompile>
-    <ClCompile Include="AnalysisPass.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="LinearPass.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="CodeFollowPass.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="FunctionPass.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="analysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="analysis_nukem.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
     <ClCompile Include="_scriptapi_assembler.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
     </ClCompile>
@@ -256,15 +238,6 @@
     </ClCompile>
     <ClCompile Include="_scriptapi_stack.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
-    </ClCompile>
-    <ClCompile Include="controlflowanalysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="exceptiondirectoryanalysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="linearanalysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
     </ClCompile>
     <ClCompile Include="_scriptapi_flag.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
@@ -320,15 +293,6 @@
     <ClCompile Include="_scriptapi_argument.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
     </ClCompile>
-    <ClCompile Include="recursiveanalysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="xrefsanalysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="advancedanalysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
     <ClCompile Include="encodemap.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
@@ -343,6 +307,42 @@
     </ClCompile>
     <ClCompile Include="watch.cpp">
       <Filter>Source Files\Information</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\advancedanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\analysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\analysis_nukem.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\AnalysisPass.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\CodeFollowPass.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\controlflowanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\exceptiondirectoryanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\FunctionPass.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\linearanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\LinearPass.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\recursiveanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis\xrefsanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -625,30 +625,6 @@
     <ClInclude Include="_scriptapi_gui.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
-    <ClInclude Include="BasicBlock.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="AnalysisPass.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="LinearPass.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="CodeFollowPass.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="FunctionPass.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="analysis.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="analysis_nukem.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="controlflowanalysis.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
     <ClInclude Include="_scriptapi_stack.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
@@ -657,12 +633,6 @@
     </ClInclude>
     <ClInclude Include="_scriptapi_misc.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
-    </ClInclude>
-    <ClInclude Include="exceptiondirectoryanalysis.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="linearanalysis.h">
-      <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="_scriptapi_flag.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
@@ -724,15 +694,6 @@
     <ClInclude Include="_scriptapi_argument.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
-    <ClInclude Include="recursiveanalysis.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="xrefsanalysis.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="advancedanalysis.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
     <ClInclude Include="encodemap.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
@@ -777,6 +738,45 @@
     </ClInclude>
     <ClInclude Include="expressionfunctions.h">
       <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\advancedanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\analysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\analysis_nukem.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\AnalysisPass.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\BasicBlock.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\CodeFollowPass.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\controlflowanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\exceptiondirectoryanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\FunctionPass.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\linearanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\LinearPass.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\recursiveanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis\xrefsanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
