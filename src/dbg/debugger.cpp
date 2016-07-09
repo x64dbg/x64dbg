@@ -80,7 +80,7 @@ HANDLE hActiveThread;
 HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = true;
-bool bTraceRecordEnabledDuringTrace = false;
+bool bTraceRecordEnabledDuringTrace = true;
 duint DbgEvents = 0;
 
 static duint dbgcleartracecondition()

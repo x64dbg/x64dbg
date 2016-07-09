@@ -56,6 +56,7 @@ void SettingsDialog::LoadSettings()
     settings.engineBreakpointType = break_int3short;
     settings.engineUndecorateSymbolNames = true;
     settings.engineEnableSourceDebugging = true;
+    settings.engineEnableTraceRecordDuringTrace = true;
     settings.exceptionRanges = &realExceptionRanges;
     settings.disasmArgumentSpaces = false;
     settings.disasmMemorySpaces = false;
