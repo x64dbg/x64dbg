@@ -548,24 +548,14 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     //handle command line
     int argc = 0;
     wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    if(argc == 2) //we have an argument
-    {
-        String str = "init \"";
-        str += StringUtils::Utf16ToUtf8(argv[1]);
-        str += "\"";
-        DbgCmdExec(str.c_str());
-    }
-    else if(argc == 5) //4 arguments (JIT)
-    {
-        if(_wcsicmp(argv[1], L"-a") == 0 && !_wcsicmp(argv[3], L"-e"))
-        {
-            String str = "attach .";
-            str += StringUtils::Utf16ToUtf8(argv[2]);
-            str += ", .";
-            str += StringUtils::Utf16ToUtf8(argv[4]);
-            DbgCmdExec(str.c_str());
-        }
-    }
+    if(argc == 2) //1 argument (init filename)
+        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\"", argv[1])).c_str());
+    else if(argc == 3)  //2 arguments (init filename, cmdline)
+        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\"", argv[1], argv[2])).c_str());
+    else if(argc == 4)  //3 arguments (init filename, cmdline, currentdir)
+        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\", \"%s\"", argv[1], argv[2], argv[3])).c_str());
+    else if(argc == 5 && !_wcsicmp(argv[1], L"-a") && !_wcsicmp(argv[3], L"-e"))  //4 arguments (JIT)
+        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, .%s", argv[2], argv[4])).c_str()); //attach pid, event
     LocalFree(argv);
     dputs("Reading notes file...");
     notesFile = String(dir) + "\\notes.txt";
