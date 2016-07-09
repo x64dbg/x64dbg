@@ -1,10 +1,35 @@
 #include "SearchListViewTable.h"
 #include "Configuration.h"
 #include "RichTextPainter.h"
+#include "Bridge.h"
 
-SearchListViewTable::SearchListViewTable(StdTable* parent) : StdTable(parent)
+SearchListViewTable::SearchListViewTable(StdTable* parent)
+    : StdTable(parent),
+      bCipBase(false)
 {
     highlightText = "";
+    updateColors();
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+}
+
+void SearchListViewTable::updateColors()
+{
+    StdTable::updateColors();
+
+    mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
+    mCipColor = ConfigColor("DisassemblyCipColor");
+    mBreakpointBackgroundColor = ConfigColor("DisassemblyBreakpointBackgroundColor");
+    mBreakpointColor = ConfigColor("DisassemblyBreakpointColor");
+    mHardwareBreakpointBackgroundColor = ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
+    mHardwareBreakpointColor = ConfigColor("DisassemblyHardwareBreakpointColor");
+    mBookmarkBackgroundColor = ConfigColor("DisassemblyBookmarkBackgroundColor");
+    mBookmarkColor = ConfigColor("DisassemblyBookmarkColor");
+    mLabelColor = ConfigColor("DisassemblyLabelColor");
+    mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
+    mSelectedAddressBackgroundColor = ConfigColor("DisassemblySelectedAddressBackgroundColor");
+    mSelectedAddressColor = ConfigColor("DisassemblySelectedAddressColor");
+    mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
+    mAddressColor = ConfigColor("DisassemblyAddressColor");
 }
 
 QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -35,22 +60,9 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         BPXTYPE bpxtype = DbgGetBpxTypeAt(wVA);
         bool isbookmark = DbgGetBookmarkAt(wVA);
 
-        auto mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
-        auto mCipColor = ConfigColor("DisassemblyCipColor");
-        auto mBreakpointBackgroundColor = ConfigColor("DisassemblyBreakpointBackgroundColor");
-        auto mBreakpointColor = ConfigColor("DisassemblyBreakpointColor");
-        auto mHardwareBreakpointBackgroundColor = ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
-        auto mHardwareBreakpointColor = ConfigColor("DisassemblyHardwareBreakpointColor");
-        auto mBookmarkBackgroundColor = ConfigColor("DisassemblyBookmarkBackgroundColor");
-        auto mBookmarkColor = ConfigColor("DisassemblyBookmarkColor");
-        auto mLabelColor = ConfigColor("DisassemblyLabelColor");
-        auto mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
-        auto mSelectedAddressBackgroundColor = ConfigColor("DisassemblySelectedAddressBackgroundColor");
-        auto mSelectedAddressColor = ConfigColor("DisassemblySelectedAddressColor");
-        auto mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
-        auto mAddressColor = ConfigColor("DisassemblyAddressColor");
+
         auto wIsSelected = rowBase + rowOffset == getInitialSelection();
-        if(wVA == DbgValFromString("cip")) //cip + not running
+        if(wVA == mCip) //cip + not running
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
             if(!isbookmark) //no bookmark
@@ -259,4 +271,15 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         text = "";
     }
     return text;
+}
+
+void SearchListViewTable::disassembleAtSlot(dsint va, dsint cip)
+{
+    Q_UNUSED(va);
+    mCip = cip;
+    if(!bCipBase)
+        return;
+    duint base = DbgFunctions()->ModBaseFromAddr(mCip);
+    if(base)
+        mCip = base;
 }

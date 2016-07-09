@@ -25,9 +25,11 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList = new SearchListView();
     mModuleList->mSearchStartCol = 1;
     int charwidth = mModuleList->mList->getCharWidth();
+    mModuleList->mList->setCipBase(true);
     mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
     mModuleList->mList->addColumnAt(300, tr("Module"), true);
     mModuleList->mList->addColumnAt(charwidth * 8, tr("Party"), false);
+    mModuleList->mSearchList->setCipBase(true);
     mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
     mModuleList->mSearchList->addColumnAt(300, "Module", true);
     mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), false);

@@ -53,8 +53,9 @@ void SourceView::loadFile()
     {
         QString line = in.readLine().replace('\t', "    "); //replace tabs with four spaces
         setRowCount(lineNum + 1);
-        duint addr = DbgFunctions()->GetAddrFromLine(mSourcePath.toUtf8().constData(), lineNum + 1);
-        if(addr)
+        duint displacement = 0;
+        duint addr = DbgFunctions()->GetAddrFromLine(mSourcePath.toUtf8().constData(), lineNum + 1, &displacement);
+        if(addr && !displacement)
             setCellContent(lineNum, 0, ToPtrString(addr));
         setCellContent(lineNum, 1, QString("%1").arg(lineNum + 1));
         setCellContent(lineNum, 2, line);
