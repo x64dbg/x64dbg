@@ -184,14 +184,16 @@ static void _memupdatemap()
     GuiUpdateMemoryView();
 }
 
-static duint _getaddrfromline(const char* szSourceFile, int line)
+static duint _getaddrfromline(const char* szSourceFile, int line, duint* disp)
 {
     LONG displacement = 0;
     IMAGEHLP_LINE64 lineData;
     memset(&lineData, 0, sizeof(lineData));
     lineData.SizeOfStruct = sizeof(lineData);
-    if(!SymGetLineFromName64(fdProcessInfo->hProcess, NULL, szSourceFile, line, &displacement, &lineData) || displacement)
+    if(!SymGetLineFromName64(fdProcessInfo->hProcess, NULL, szSourceFile, line, &displacement, &lineData))
         return 0;
+    if(disp)
+        *disp = displacement;
     return (duint)lineData.Address;
 }
 

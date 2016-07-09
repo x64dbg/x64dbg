@@ -126,7 +126,7 @@ typedef bool (*GETCMDLINE)(char* cmdline, size_t* cbsize);
 typedef bool (*SETCMDLINE)(const char* cmdline);
 typedef duint(*FILEOFFSETTOVA)(const char* modname, duint offset);
 typedef duint(*VATOFILEOFFSET)(duint va);
-typedef duint(*GETADDRFROMLINE)(const char* szSourceFile, int line);
+typedef duint(*GETADDRFROMLINE)(const char* szSourceFile, int line, duint* displacement);
 typedef bool (*GETSOURCEFROMADDR)(duint addr, char* szSourceFile, int* line);
 typedef bool (*VALFROMSTRING)(const char* string, duint* value);
 typedef bool (*PATCHGETEX)(duint addr, DBGPATCHINFO* info);
