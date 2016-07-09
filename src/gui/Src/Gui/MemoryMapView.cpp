@@ -51,7 +51,7 @@ void MemoryMapView::setupContextMenu()
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followDisassemblerSlot()));
 
     //Yara
-    mYara = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    mYara = new QAction(DIcon("yara.png"), "&Yara...", this);
     connect(mYara, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Set PageMemory Rights
@@ -125,13 +125,13 @@ void MemoryMapView::setupContextMenu()
     this->addAction(mFindAddress);
 
     //Entropy
-    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
+    mEntropy = new QAction(DIcon("entropy.png"), tr("Entropy..."), this);
     mEntropy->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mEntropy);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropy()));
 
     //Find
-    mFindPattern = new QAction(QIcon(":/icons/images/search-for.png"), tr("&Find Pattern..."), this);
+    mFindPattern = new QAction(DIcon("search-for.png"), tr("&Find Pattern..."), this);
     this->addAction(mFindPattern);
     mFindPattern->setShortcutContext(Qt::WidgetShortcut);
     connect(mFindPattern, SIGNAL(triggered()), this, SLOT(findPatternSlot()));
@@ -568,7 +568,7 @@ void MemoryMapView::selectAddress(duint va)
             }
     }
     QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Address %0 not found in memory map...").arg(ToPtrString(va)));
-    msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+    msg.setWindowIcon(DIcon("compile-error.png"));
     msg.exec();
     QMessageBox::warning(this, tr("Error"), QString());
 }

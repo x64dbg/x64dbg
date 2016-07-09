@@ -13,6 +13,7 @@
 #include "MenuBuilder.h"
 #include "QActionLambda.h"
 #include "CachedFontMetrics.h"
+#include "MiscUtil.h"
 
 //Hacky class that fixes a really annoying cursor problem
 class AbstractTableScrollBar : public QScrollBar

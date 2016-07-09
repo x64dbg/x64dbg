@@ -417,38 +417,38 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mChangeViewButton = NULL;
 
     // precreate ContextMenu Actions
-    wCM_Increment = new QAction(QIcon(":/icons/images/register_inc.png"), tr("Increment"), this);
+    wCM_Increment = new QAction(DIcon("register_inc.png"), tr("Increment"), this);
     wCM_Increment->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_Increment);
-    wCM_Decrement = new QAction(QIcon(":/icons/images/register_dec.png"), tr("Decrement"), this);
+    wCM_Decrement = new QAction(DIcon("register_dec.png"), tr("Decrement"), this);
     wCM_Decrement->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_Decrement);
-    wCM_Zero = new QAction(QIcon(":/icons/images/register_zero.png"), tr("Zero"), this);
+    wCM_Zero = new QAction(DIcon("register_zero.png"), tr("Zero"), this);
     wCM_Zero->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_Zero);
-    wCM_SetToOne = new QAction(QIcon(":/icons/images/register_one.png"), tr("Set to 1"), this);
+    wCM_SetToOne = new QAction(DIcon("register_one.png"), tr("Set to 1"), this);
     wCM_SetToOne->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_SetToOne);
-    wCM_Modify = new QAction(QIcon(":/icons/images/register_edit.png"), tr("Modify value"), this);
+    wCM_Modify = new QAction(DIcon("register_edit.png"), tr("Modify value"), this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
-    wCM_ToggleValue = new QAction(QIcon(":/icons/images/register_toggle.png"), tr("Toggle"), this);
+    wCM_ToggleValue = new QAction(DIcon("register_toggle.png"), tr("Toggle"), this);
     wCM_ToggleValue->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_ToggleValue);
-    wCM_CopyToClipboard = new QAction(QIcon(":/icons/images/copy.png"), tr("Copy value to clipboard"), this);
+    wCM_CopyToClipboard = new QAction(DIcon("copy.png"), tr("Copy value to clipboard"), this);
     wCM_CopyToClipboard->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopyToClipboard);
-    wCM_CopySymbolToClipboard = new QAction(QIcon(":/icons/images/pdb.png"), tr("Copy Symbol Value to Clipboard"), this);
+    wCM_CopySymbolToClipboard = new QAction(DIcon("pdb.png"), tr("Copy Symbol Value to Clipboard"), this);
     wCM_CopySymbolToClipboard->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopySymbolToClipboard);
-    wCM_CopyAll = new QAction(QIcon(":/icons/images/copy-alt.png"), tr("Copy all registers"), this);
+    wCM_CopyAll = new QAction(DIcon("copy-alt.png"), tr("Copy all registers"), this);
     wCM_CopyAll->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopyAll);
-    wCM_FollowInDisassembly = new QAction(QIcon(QString(":/icons/images/processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
-    wCM_FollowInDump = new QAction(QIcon(":/icons/images/dump.png"), tr("Follow in Dump"), this);
-    wCM_FollowInStack = new QAction(QIcon(":/icons/images/stack.png"), "Follow in Stack", this);
-    wCM_Incrementx87Stack = new QAction(QIcon(":/icons/images/arrow-small-down.png"), tr("Increment x87 Stack"), this);
-    wCM_Decrementx87Stack = new QAction(QIcon(":/icons/images/arrow-small-up.png"), tr("Decrement x87 Stack"), this);
-    wCM_ChangeFPUView = new QAction(QIcon(":/icons/images/change-view.png"), tr("Change view"), this);
+    wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
+    wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
+    wCM_FollowInStack = new QAction(DIcon("stack.png"), "Follow in Stack", this);
+    wCM_Incrementx87Stack = new QAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
+    wCM_Decrementx87Stack = new QAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"), this);
+    wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1911,7 +1911,7 @@ void RegistersView::displayEditDialog()
 
             mLineEdit.setText(GetRegStringValueFromValue(mSelected,  registerValue(&wRegDumpStruct, mSelected)));
             mLineEdit.setWindowTitle("Edit FPU register");
-            mLineEdit.setWindowIcon(QIcon(":/icons/images/log.png"));
+            mLineEdit.setWindowIcon(DIcon("log.png"));
             mLineEdit.setCursorPosition(0);
             mLineEdit.ForceSize(GetSizeRegister(mSelected) * 2);
             do
@@ -1969,7 +1969,7 @@ void RegistersView::displayEditDialog()
                         errorinput = true;
 
                         QMessageBox msg(QMessageBox::Warning, "ERROR CONVERTING TO HEX", "ERROR CONVERTING TO HEXADECIMAL");
-                        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+                        msg.setWindowIcon(DIcon("compile-warning.png"));
                         msg.setParent(this, Qt::Dialog);
                         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
                         msg.exec();
@@ -2350,7 +2350,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         wMenu.addAction(wCM_ChangeFPUView);
         wMenu.addAction(wCM_CopyAll);
         wMenu.addSeparator();
-        QAction* wHwbpCsp = wMenu.addAction(QIcon(":/icons/images/breakpoint.png"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
+        QAction* wHwbpCsp = wMenu.addAction(DIcon("breakpoint.png"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
         QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
 
         if(wAction == wHwbpCsp)

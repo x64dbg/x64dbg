@@ -448,7 +448,7 @@ void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
                  * was removed and the user in MISC tab wants check and uncheck the JIT checkbox: he can (this block its NOT executed then).
                 */
                 QMessageBox msg(QMessageBox::Warning, tr("ERROR NOT FOUND OLD JIT"), tr("NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND"));
-                msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+                msg.setWindowIcon(DIcon("compile-warning.png"));
                 msg.setParent(this, Qt::Dialog);
                 msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
                 msg.exec();
@@ -592,7 +592,7 @@ void SettingsDialog::on_btnDeleteRange_clicked()
 void SettingsDialog::on_btnAddLast_clicked()
 {
     QMessageBox msg(QMessageBox::Question, tr("Question"), QString().sprintf("Are you sure you want to add %.8X?", lastException));
-    msg.setWindowIcon(QIcon(":/icons/images/question.png"));
+    msg.setWindowIcon(DIcon("question.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.setStandardButtons(QMessageBox::No | QMessageBox::Yes);

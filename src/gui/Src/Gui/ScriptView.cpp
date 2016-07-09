@@ -490,7 +490,7 @@ void ScriptView::error(int line, QString message)
     else
         title = tr("Script Error!");
     QMessageBox msg(QMessageBox::Critical, title, message);
-    msg.setWindowIcon(QIcon(":/icons/images/script-error.png"));
+    msg.setWindowIcon(DIcon("script-error.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -583,7 +583,7 @@ void ScriptView::cmdExec()
 void ScriptView::message(QString message)
 {
     QMessageBox msg(QMessageBox::Information, "Message", message);
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setWindowIcon(DIcon("information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -602,7 +602,7 @@ void ScriptView::newIp()
 void ScriptView::question(QString message)
 {
     QMessageBox msg(QMessageBox::Question, "Question", message, QMessageBox::Yes | QMessageBox::No);
-    msg.setWindowIcon(QIcon(":/icons/images/question.png"));
+    msg.setWindowIcon(DIcon("question.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     if(msg.exec() == QMessageBox::Yes)

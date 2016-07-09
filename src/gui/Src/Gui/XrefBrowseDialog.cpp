@@ -8,7 +8,7 @@ XrefBrowseDialog::XrefBrowseDialog(QWidget* parent, duint address) :
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setWindowIcon(QIcon(":/icons/images/xrefs.png"));
+    setWindowIcon(DIcon("xrefs.png"));
     mAddress = address;
     if(DbgXrefGet(address, &mXrefInfo))
     {

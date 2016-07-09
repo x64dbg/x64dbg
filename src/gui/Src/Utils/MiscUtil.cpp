@@ -42,7 +42,7 @@ bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue
 void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text)
 {
     QMessageBox msg(QMessageBox::Critical, title, text, QMessageBox::NoButton, parent);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+    msg.setWindowIcon(DIcon("compile-error.png"));
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -51,8 +51,13 @@ void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text
 void SimpleWarningBox(QWidget* parent, const QString & title, const QString & text)
 {
     QMessageBox msg(QMessageBox::Warning, title, text, QMessageBox::NoButton, parent);
-    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowIcon(DIcon("compile-warning.png"));
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
+}
+
+DIcon::DIcon(const QString & file)
+    : QIcon(QString(":/icons/images/%1").arg(file))
+{
 }

@@ -11,7 +11,7 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     setWindowTitle(QString("Edit Breakpoint %1").arg(ToHexString(bp.addr)));
-    setWindowIcon(QIcon(":/icons/images/breakpoint.png"));
+    setWindowIcon(DIcon("breakpoint.png"));
     loadFromBp();
 }
 

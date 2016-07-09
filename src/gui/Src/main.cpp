@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
     if(errormsg)
     {
         QMessageBox msg(QMessageBox::Critical, "DbgInit Error!", QString(errormsg));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowIcon(DIcon("compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         exit(1);

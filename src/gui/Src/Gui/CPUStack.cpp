@@ -70,7 +70,7 @@ void CPUStack::setupContextMenu()
 {
     //Binary menu
     mBinaryMenu = new QMenu(tr("B&inary"), this);
-    mBinaryMenu->setIcon(QIcon(":/icons/images/binary.png"));
+    mBinaryMenu->setIcon(DIcon("binary.png"));
 
     //Binary->Edit
     mBinaryEditAction = new QAction(tr("&Edit"), this);
@@ -112,7 +112,7 @@ void CPUStack::setupContextMenu()
 
     //Breakpoint menu
     mBreakpointMenu = new QMenu(tr("Brea&kpoint"), this);
-    mBreakpointMenu->setIcon(QIcon(":/icons/images/breakpoint.png"));
+    mBreakpointMenu->setIcon(DIcon("breakpoint.png"));
 
     //Breakpoint (hardware access) menu
     mBreakpointHardwareAccessMenu = new QMenu(tr("Hardware, Access"), this);
@@ -186,17 +186,17 @@ void CPUStack::setupContextMenu()
     mBreakpointMenu->addMenu(mBreakpointMemoryWriteMenu);
 
     // Restore Selection
-    mUndoSelection = new QAction(QIcon(":/icons/images/eraser.png"), tr("&Restore selection"), this);
+    mUndoSelection = new QAction(DIcon("eraser.png"), tr("&Restore selection"), this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Modify
-    mModifyAction = new QAction(QIcon(":/icons/images/modify.png"), tr("Modify"), this);
+    mModifyAction = new QAction(DIcon("modify.png"), tr("Modify"), this);
     connect(mModifyAction, SIGNAL(triggered()), this, SLOT(modifySlot()));
 
-    auto cspIcon = QIcon(":/icons/images/neworigin.png");
-    auto cbpIcon = QIcon(":/icons/images/cbp.png");
+    auto cspIcon = DIcon("neworigin.png");
+    auto cbpIcon = DIcon("cbp.png");
 #ifdef _WIN64
     mGotoSp = new QAction(cspIcon, tr("Follow R&SP"), this);
     mGotoBp = new QAction(cbpIcon, tr("Follow R&BP"), this);
@@ -209,36 +209,36 @@ void CPUStack::setupContextMenu()
     connect(mGotoSp, SIGNAL(triggered()), this, SLOT(gotoSpSlot()));
     connect(mGotoBp, SIGNAL(triggered()), this, SLOT(gotoBpSlot()));
 
-    mFreezeStack = new QAction(QIcon(":/icons/images/freeze.png"), tr("Freeze the stack"), this);
+    mFreezeStack = new QAction(DIcon("freeze.png"), tr("Freeze the stack"), this);
     this->addAction(mFreezeStack);
     connect(mFreezeStack, SIGNAL(triggered()), this, SLOT(freezeStackSlot()));
 
     //Find Pattern
-    mFindPatternAction = new QAction(QIcon(":/icons/images/search-for.png"), tr("&Find Pattern..."), this);
+    mFindPatternAction = new QAction(DIcon("search-for.png"), tr("&Find Pattern..."), this);
     mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
     //Go to Expression
-    mGotoExpression = new QAction(QIcon(":/icons/images/geolocation-goto.png"), tr("Go to &Expression"), this);
+    mGotoExpression = new QAction(DIcon("geolocation-goto.png"), tr("Go to &Expression"), this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
 
     //Go to Previous
-    mGotoPrevious = new QAction(QIcon(":/icons/images/previous.png"), tr("Go to Previous"), this);
+    mGotoPrevious = new QAction(DIcon("previous.png"), tr("Go to Previous"), this);
     mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoPrevious);
     connect(mGotoPrevious, SIGNAL(triggered(bool)), this, SLOT(gotoPreviousSlot()));
 
     //Go to Next
-    mGotoNext = new QAction(QIcon(":/icons/images/next.png"), tr("Go to Next"), this);
+    mGotoNext = new QAction(DIcon("next.png"), tr("Go to Next"), this);
     mGotoNext->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoNext);
     connect(mGotoNext, SIGNAL(triggered(bool)), this, SLOT(gotoNextSlot()));
 
     //Follow in Disassembler
-    auto disasmIcon = QIcon(QString(":/icons/images/") + ArchValue("processor32.png", "processor64.png"));
+    auto disasmIcon = DIcon(ArchValue("processor32.png", "processor64.png"));
     mFollowDisasm = new QAction(disasmIcon, tr("&Follow in Disassembler"), this);
     mFollowDisasm->setShortcutContext(Qt::WidgetShortcut);
     mFollowDisasm->setShortcut(QKeySequence("enter"));
@@ -248,7 +248,7 @@ void CPUStack::setupContextMenu()
 
     //Follow in Dump
     auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
-    mFollowDump = new QAction(QIcon(":/icons/images/dump.png"), followDumpName, this);
+    mFollowDump = new QAction(DIcon("dump.png"), followDumpName, this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
     auto followDumpMenuName = ArchValue(tr("&Follow DWORD in Dump"), tr("&Follow QWORD in Dump"));
@@ -264,11 +264,11 @@ void CPUStack::setupContextMenu()
     }
 
     auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
-    mFollowStack = new QAction(QIcon(":/icons/images/stack.png"), followStackName, this);
+    mFollowStack = new QAction(DIcon("stack.png"), followStackName, this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     mPluginMenu = new QMenu(this);
-    mPluginMenu->setIcon(QIcon(":/icons/images/plugin.png"));
+    mPluginMenu->setIcon(DIcon("plugin.png"));
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_STACK_MENU);
 
     refreshShortcutsSlot();
@@ -423,7 +423,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(mModifyAction);
     wMenu.addMenu(mBinaryMenu);
     QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(QIcon(":/icons/images/copy.png"));
+    wCopyMenu.setIcon(DIcon("copy.png"));
     wCopyMenu.addAction(mCopySelection);
     wCopyMenu.addAction(mCopyAddress);
     if(DbgFunctions()->ModBaseFromAddr(selectedAddr))

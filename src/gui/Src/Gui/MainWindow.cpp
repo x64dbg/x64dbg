@@ -72,26 +72,26 @@ MainWindow::MainWindow(QWidget* parent)
     // Log view
     mLogView = new LogView();
     mLogView->setWindowTitle(tr("Log"));
-    mLogView->setWindowIcon(QIcon(":/icons/images/log.png"));
+    mLogView->setWindowIcon(DIcon("log.png"));
     mLogView->hide();
 
     // Symbol view
     mSymbolView = new SymbolView();
     mSymbolView->setWindowTitle(tr("Symbols"));
-    mSymbolView->setWindowIcon(QIcon(":/icons/images/pdb.png"));
+    mSymbolView->setWindowIcon(DIcon("pdb.png"));
     mSymbolView->hide();
 
     // Source view
     mSourceViewManager = new SourceViewerManager();
     mSourceViewManager->setWindowTitle(tr("Source"));
-    mSourceViewManager->setWindowIcon(QIcon(":/icons/images/source.png"));
+    mSourceViewManager->setWindowIcon(DIcon("source.png"));
     mSourceViewManager->hide();
     connect(mSourceViewManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle(tr("Breakpoints"));
-    mBreakpointsView->setWindowIcon(QIcon(":/icons/images/breakpoint.png"));
+    mBreakpointsView->setWindowIcon(DIcon("breakpoint.png"));
     mBreakpointsView->hide();
     connect(mBreakpointsView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
@@ -100,65 +100,65 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mMemMapView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(mMemMapView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     mMemMapView->setWindowTitle(tr("Memory Map"));
-    mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
+    mMemMapView->setWindowIcon(DIcon("memory-map.png"));
     mMemMapView->hide();
 
     // Callstack view
     mCallStackView = new CallStackView();
     mCallStackView->setWindowTitle(tr("Call Stack"));
-    mCallStackView->setWindowIcon(QIcon(":/icons/images/callstack.png"));
+    mCallStackView->setWindowIcon(DIcon("callstack.png"));
     connect(mCallStackView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // SEH Chain view
     mSEHChainView = new SEHChainView();
     mSEHChainView->setWindowTitle(tr("SEH"));
-    mSEHChainView->setWindowIcon(QIcon(":/icons/images/seh-chain.png"));
+    mSEHChainView->setWindowIcon(DIcon("seh-chain.png"));
     connect(mSEHChainView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Script view
     mScriptView = new ScriptView();
     mScriptView->setWindowTitle(tr("Script"));
-    mScriptView->setWindowIcon(QIcon(":/icons/images/script-code.png"));
+    mScriptView->setWindowIcon(DIcon("script-code.png"));
     mScriptView->hide();
 
     // CPU view
     mCpuWidget = new CPUWidget();
     mCpuWidget->setWindowTitle(tr("CPU"));
 #ifdef _WIN64
-    mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor64.png"));
+    mCpuWidget->setWindowIcon(DIcon("processor64.png"));
 #else
-    mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor32.png"));
-    ui->actionCpu->setIcon(QIcon(":/icons/images/processor32.png"));
+    mCpuWidget->setWindowIcon(DIcon("processor32.png"));
+    ui->actionCpu->setIcon(DIcon("processor32.png"));
 #endif //_WIN64
 
     // Reference manager
     mReferenceManager = new ReferenceManager(this);
     Bridge::getBridge()->referenceManager = mReferenceManager;
     mReferenceManager->setWindowTitle(tr("References"));
-    mReferenceManager->setWindowIcon(QIcon(":/icons/images/search.png"));
+    mReferenceManager->setWindowIcon(DIcon("search.png"));
 
     // Thread view
     mThreadView = new ThreadView();
     connect(mThreadView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     mThreadView->setWindowTitle(tr("Threads"));
-    mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
+    mThreadView->setWindowIcon(DIcon("arrow-threads.png"));
 
     // Snowman view (decompiler)
     mSnowmanView = CreateSnowman(this);
     if(!mSnowmanView)
         mSnowmanView = (SnowmanView*)new QLabel("<center>Snowman is disabled...</center>", this);
     mSnowmanView->setWindowTitle(tr("Snowman"));
-    mSnowmanView->setWindowIcon(QIcon(":/icons/images/snowman.png"));
+    mSnowmanView->setWindowIcon(DIcon("snowman.png"));
 
     // Notes manager
     mNotesManager = new NotesManager(this);
     mNotesManager->setWindowTitle(tr("Notes"));
-    mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
+    mNotesManager->setWindowIcon(DIcon("notes.png"));
 
     // Handles view
     mHandlesView = new HandlesView(this);
     mHandlesView->setWindowTitle(tr("Handles"));
-    mHandlesView->setWindowIcon(QIcon(":/icons/images/handles.png"));
+    mHandlesView->setWindowIcon(DIcon("handles.png"));
     mHandlesView->hide();
 
     // Create the tab widget
@@ -711,7 +711,7 @@ void MainWindow::displayAboutWidget()
 #endif //_WIN64
     title += QString().sprintf(" v%d", BridgeGetDbgVersion());
     QMessageBox msg(QMessageBox::Information, title, "Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>" + ToDateString(GetCompileDate()) + ", " __TIME__);
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setWindowIcon(DIcon("information.png"));
     msg.setTextFormat(Qt::RichText);
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -1231,7 +1231,7 @@ void MainWindow::displaySEHChain()
 void MainWindow::donate()
 {
     QMessageBox msg(QMessageBox::Information, tr("Donate"), tr("All the money will go to x64dbg development."));
-    msg.setWindowIcon(QIcon(":/icons/images/donate.png"));
+    msg.setWindowIcon(DIcon("donate.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -1244,7 +1244,7 @@ void MainWindow::donate()
 void MainWindow::reportBug()
 {
     QMessageBox msg(QMessageBox::Information, tr("Report Bug"), tr("You will be taken to a website where you can report a bug.\nMake sure to fill in as much information as possible."));
-    msg.setWindowIcon(QIcon(":/icons/images/bug-report.png"));
+    msg.setWindowIcon(DIcon("bug-report.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -1257,7 +1257,7 @@ void MainWindow::reportBug()
 void MainWindow::crashDump()
 {
     QMessageBox msg(QMessageBox::Critical, tr("Generate crash dump"), tr("This action will crash the debugger and generate a crash dump. You will LOSE ALL YOUR DATA. Do you really want to continue?"));
-    msg.setWindowIcon(QIcon(":/icons/images/fatal-error.png"));
+    msg.setWindowIcon(DIcon("fatal-error.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -1293,7 +1293,7 @@ void MainWindow::changeCommandLine()
     LineEditDialog mLineEdit(this);
     mLineEdit.setText("");
     mLineEdit.setWindowTitle(tr("Change Command Line"));
-    mLineEdit.setWindowIcon(QIcon(":/icons/images/changeargs.png"));
+    mLineEdit.setWindowIcon(DIcon("changeargs.png"));
 
     size_t cbsize = 0;
     char* cmdline = 0;
@@ -1496,7 +1496,7 @@ void MainWindow::updateFavouriteTools()
     }
     if(isanythingexists)
         ui->menuFavourites->addSeparator();
-    actionManageFavourites = new QAction(QIcon(":/icons/images/star.png"), tr("Manage Favourite Tools"), this);
+    actionManageFavourites = new QAction(DIcon("star.png"), tr("Manage Favourite Tools"), this);
     ui->menuFavourites->addAction(actionManageFavourites);
     setGlobalShortcut(actionManageFavourites, ConfigShortcut("FavouritesManage"));
     connect(ui->menuFavourites->actions().last(), SIGNAL(triggered()), this, SLOT(manageFavourites()));

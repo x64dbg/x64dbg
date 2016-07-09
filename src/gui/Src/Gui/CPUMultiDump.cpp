@@ -15,7 +15,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
         CPUDump* cpuDump = new CPUDump(disas, this);
         cpuDump->loadColumnFromConfig(QString("CPUDump%1").arg(i + 1)); //TODO: needs a workaround because the columns change
         connect(cpuDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidgetSlot()));
-        this->addTabEx(cpuDump, QIcon(":/icons/images/dump.png"), tr("Dump ") + QString::number(i + 1), QString("Dump ") + QString::number(i + 1));
+        this->addTabEx(cpuDump, DIcon("dump.png"), tr("Dump ") + QString::number(i + 1), QString("Dump ") + QString::number(i + 1));
     }
 
     mCurrentCPUDump = dynamic_cast<CPUDump*>(currentWidget());
@@ -23,7 +23,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     mWatch = new WatchView(this);
 
     //mMaxCPUDumpTabs++;
-    this->addTabEx(mWatch, QIcon(":/icons/images/geolocation-goto.png"), tr("Watch ") + QString::number(1), QString("Watch 1"));
+    this->addTabEx(mWatch, DIcon("geolocation-goto.png"), tr("Watch ") + QString::number(1), QString("Watch 1"));
     mWatch->loadColumnFromConfig("Watch1");
 
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(updateCurrentTabSlot(int)));

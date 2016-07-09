@@ -143,7 +143,7 @@ void WatchView::setupContextMenu()
     mMenu->addAction(makeAction(tr("Rename"), SLOT(renameWatchSlot())));
     mMenu->addAction(makeAction(tr("&Edit..."), SLOT(editWatchSlot())));
     QMenu* watchdogMenu = new QMenu(tr("Watchdog"), this);
-    watchdogMenu->addAction(makeAction(QIcon(":/icons/images/close-all-tabs.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
+    watchdogMenu->addAction(makeAction(DIcon("close-all-tabs.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
     watchdogMenu->addSeparator();
     watchdogMenu->addAction(makeAction(tr("Changed"), SLOT(watchdogChangedSlot())));
     watchdogMenu->addAction(makeAction(tr("Not changed"), SLOT(watchdogUnchangedSlot())));

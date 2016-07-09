@@ -271,19 +271,19 @@ void HexDump::historyClear()
 void HexDump::setupCopyMenu()
 {
     // Copy -> Data
-    mCopySelection = new QAction(QIcon(":/icons/images/copy_selection.png"), tr("&Selection"), this);
+    mCopySelection = new QAction(DIcon("copy_selection.png"), tr("&Selection"), this);
     connect(mCopySelection, SIGNAL(triggered(bool)), this, SLOT(copySelectionSlot()));
     mCopySelection->setShortcutContext(Qt::WidgetShortcut);
     addAction(mCopySelection);
 
     // Copy -> Address
-    mCopyAddress = new QAction(QIcon(":/icons/images/copy_address.png"), tr("&Address"), this);
+    mCopyAddress = new QAction(DIcon("copy_address.png"), tr("&Address"), this);
     connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddressSlot()));
     mCopyAddress->setShortcutContext(Qt::WidgetShortcut);
     addAction(mCopyAddress);
 
     // Copy -> RVA
-    mCopyRva = new QAction(QIcon(":/icons/images/copy_address.png"), "&RVA", this);
+    mCopyRva = new QAction(DIcon("copy_address.png"), "&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
 }
 

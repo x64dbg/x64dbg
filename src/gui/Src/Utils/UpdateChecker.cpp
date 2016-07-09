@@ -26,7 +26,7 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
     {
         QMessageBox msg(QMessageBox::Critical, "Network Error!", reply->errorString());
         msg.setParent(mParent, Qt::Dialog);
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowIcon(DIcon("compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return;
@@ -42,7 +42,7 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "File on server could not be parsed...");
         msg.setParent(mParent, Qt::Dialog);
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowIcon(DIcon("compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return;
@@ -57,7 +57,7 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
     else
         info = QString("You have the latest build (%1) of x64dbg!").arg(ToDateString(build));
     QMessageBox msg(QMessageBox::Information, "Information", info);
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setWindowIcon(DIcon("information.png"));
     msg.setParent(mParent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();

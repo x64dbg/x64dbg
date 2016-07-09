@@ -134,13 +134,13 @@ void SymbolView::setupContextMenu()
     mCopyPathAction = new QAction(tr("Copy File &Path"), this);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
 
-    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), tr("&Yara Memory..."), this);
+    mYaraAction = new QAction(DIcon("yara.png"), tr("&Yara Memory..."), this);
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(moduleYara()));
 
-    mYaraFileAction = new QAction(QIcon(":/icons/images/yara.png"), tr("&Yara File..."), this);
+    mYaraFileAction = new QAction(DIcon("yara.png"), tr("&Yara File..."), this);
     connect(mYaraFileAction, SIGNAL(triggered()), this, SLOT(moduleYaraFile()));
 
-    mEntropyAction = new QAction(QIcon(":/icons/images/entropy.png"), tr("Entropy..."), this);
+    mEntropyAction = new QAction(DIcon("entropy.png"), tr("Entropy..."), this);
     connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
 
     mModSetUserAction = new QAction(tr("Mark as &user module"), this);
@@ -433,7 +433,7 @@ void SymbolView::toggleBookmark()
     if(!result)
     {
         QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowIcon(DIcon("compile-error.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
@@ -479,7 +479,7 @@ void SymbolView::moduleSetParty()
     int party;
     duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
     party = DbgFunctions()->ModGetParty(modbase);
-    mLineEdit.setWindowIcon(QIcon(":/icons/images/bookmark.png"));
+    mLineEdit.setWindowIcon(DIcon("bookmark.png"));
     mLineEdit.setWindowTitle(tr("Mark the party of the module as"));
     mLineEdit.setText(QString::number(party));
     if(mLineEdit.exec() == QDialog::Accepted)
@@ -507,7 +507,7 @@ void SymbolView::moduleSetParty()
         else
         {
             QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("The party number can only be an integer"));
-            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+            msg.setWindowIcon(DIcon("compile-error.png"));
             msg.exec();
         }
     }

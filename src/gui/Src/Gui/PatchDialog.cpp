@@ -445,7 +445,7 @@ void PatchDialog::on_btnPatchFile_clicked()
     if(!curPatchList.size() || !patchList.size())
     {
         QMessageBox msg(QMessageBox::Information, tr("Information"), tr("Nothing to patch!"));
-        msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+        msg.setWindowIcon(DIcon("information.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
@@ -484,7 +484,7 @@ void PatchDialog::on_btnPatchFile_clicked()
         return;
     }
     QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1/%2 patch(es) applied!").arg(patched).arg(patchList.size()));
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setWindowIcon(DIcon("information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -561,7 +561,7 @@ void PatchDialog::on_btnImport_clicked()
     if(!patchList.size())
     {
         QMessageBox msg(QMessageBox::Information, tr("Information"), tr("No patches to apply in the current process."));
-        msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+        msg.setWindowIcon(DIcon("information.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
@@ -572,7 +572,7 @@ void PatchDialog::on_btnImport_clicked()
     if(bAlreadyDone)
     {
         QMessageBox msg(QMessageBox::Question, tr("Question"), tr("Some patches are already applied.\n\nDo you want to remove these patches?"), QMessageBox::Yes | QMessageBox::No);
-        msg.setWindowIcon(QIcon(":/icons/images/question.png"));
+        msg.setWindowIcon(DIcon("question.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         if(msg.exec() == QMessageBox::Yes)
@@ -583,7 +583,7 @@ void PatchDialog::on_btnImport_clicked()
     if(bBadOriginal)
     {
         QMessageBox msg(QMessageBox::Question, tr("Question"), tr("Some bytes do not match the original in the patch file.\n\nDo you want to apply these patches anyway?"), QMessageBox::Yes | QMessageBox::No);
-        msg.setWindowIcon(QIcon(":/icons/images/question.png"));
+        msg.setWindowIcon(DIcon("question.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         if(msg.exec() == QMessageBox::Yes)
@@ -612,7 +612,7 @@ void PatchDialog::on_btnImport_clicked()
     GuiUpdateAllViews();
 
     QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1/%2 patch(es) applied!").arg(patched).arg(patchList.size()));
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setWindowIcon(DIcon("information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -662,7 +662,7 @@ void PatchDialog::saveAs1337(const QString & filename)
     if(!lines.size())
     {
         QMessageBox msg(QMessageBox::Information, tr("Information"), tr("No patches to export."));
-        msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+        msg.setWindowIcon(DIcon("information.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
@@ -676,7 +676,7 @@ void PatchDialog::saveAs1337(const QString & filename)
     file.close();
 
     QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1 patch(es) exported!").arg(patches));
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setWindowIcon(DIcon("information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();

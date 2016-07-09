@@ -45,7 +45,7 @@ void ColumnReorderDialog::on_okButton_clicked()
     if(ui->listDisplayed->count() == 0)
     {
         QMessageBox msg(QMessageBox::Warning, tr("Error"), tr("There isn't anything to display yet!"));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowIcon(DIcon("compile-error.png"));
         msg.exec();
         return;
     }
