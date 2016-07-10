@@ -282,7 +282,24 @@ bool dbgcmddel(const char* name)
 
 duint dbggetdbgevents()
 {
-    return InterlockedExchange(&DbgEvents, 0);
+    static duint DbgEventsLastSample = 0;
+    static uint32 DbgEventsLastReset = 0;
+
+    duint eventsSinceLastQuery = InterlockedExchange(&DbgEvents, 0);
+    uint32 now = GetTickCount();
+    uint32 timeDiffMs = now - DbgEventsLastReset;
+
+    // With too small of a time difference, it's hard to get a consistent sample.
+    if(timeDiffMs < 50)
+        return DbgEventsLastSample;
+
+    if(DbgEventsLastReset == 0 || (now < DbgEventsLastReset))
+    {
+        // Either firt time this was called, or rollover. Either way, just call it a second
+        timeDiffMs = 1000;
+    }
+    DbgEventsLastReset = now;
+    return DbgEventsLastSample = (eventsSinceLastQuery * 1000 / timeDiffMs);
 }
 
 static DWORD WINAPI updateCallStackThread(duint ptr)
