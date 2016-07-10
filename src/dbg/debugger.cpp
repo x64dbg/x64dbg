@@ -511,6 +511,36 @@ void cbPauseBreakpoint()
     wait(WAITID_RUN);
 }
 
+static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAddress, duint CIP, bool doBreak)
+{
+    if(doBreak)
+    {
+        if(bp.singleshoot)
+            BpDelete(bp.addr, bp.type);
+        if(!bp.silent)
+        {
+            switch(bp.type)
+            {
+            case BPNORMAL:
+                printSoftBpInfo(bp);
+                break;
+            case BPHARDWARE:
+                printHwBpInfo(bp);
+                break;
+            case BPMEMORY:
+                printMemBpInfo(bp, ExceptionAddress);
+                break;
+            default:
+                break;
+            }
+        }
+        DebugUpdateGuiSetStateAsync(CIP, true);
+        PLUG_CB_PAUSEDEBUG pauseInfo;
+        pauseInfo.reserved = nullptr;
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    }
+}
+
 static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -576,37 +606,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         commandCondition = breakCondition; //if no condition is set, execute the command when the debugger would break
 
     lock(WAITID_RUN);
-    if(breakCondition)
-    {
-        if(bp.singleshoot)
-            BpDelete(bp.addr, bptype);
-        if(!bp.silent)
-        {
-            switch(bptype)
-            {
-            case BPNORMAL:
-                printSoftBpInfo(bp);
-                break;
-            case BPHARDWARE:
-                printHwBpInfo(bp);
-                break;
-            case BPMEMORY:
-                printMemBpInfo(bp, ExceptionAddress);
-                break;
-            default:
-                break;
-            }
-        }
-        DebugUpdateGuiSetStateAsync(CIP, true);
-    }
+    handleBreakCondition(bp, ExceptionAddress, CIP, breakCondition);
 
-    // plugin interaction
-    if(breakCondition)
-    {
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = nullptr;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    }
     PLUG_CB_BREAKPOINT bpInfo;
     BRIDGEBP bridgebp;
     memset(&bridgebp, 0, sizeof(bridgebp));
@@ -637,27 +638,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         {
             if(script_breakcondition != 0)
             {
+                handleBreakCondition(bp, ExceptionAddress, CIP, !breakCondition);
                 breakCondition = true;
-                if(bp.singleshoot)
-                    BpDelete(bp.addr, bptype);
-                switch(bptype)
-                {
-                case BPNORMAL:
-                    printSoftBpInfo(bp);
-                    break;
-                case BPHARDWARE:
-                    printHwBpInfo(bp);
-                    break;
-                case BPMEMORY:
-                    printMemBpInfo(bp, ExceptionAddress);
-                    break;
-                default:
-                    break;
-                }
-                DebugUpdateGuiSetStateAsync(CIP, true);
-                PLUG_CB_PAUSEDEBUG pauseInfo;
-                pauseInfo.reserved = nullptr;
-                plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
             }
             else
                 breakCondition = false;
