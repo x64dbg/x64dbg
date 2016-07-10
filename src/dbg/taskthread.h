@@ -128,7 +128,11 @@ template <typename F, typename... Args> void TaskThread_<F, Args...>::Loop()
         if(active)
         {
             apply_from_tuple(fn, argLatch);
-            std::this_thread::sleep_for(std::chrono::milliseconds(minSleepTimeMs));
+            do
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(minSleepTimeMs));
+            }
+            while(GuiGetLatency() > 100);
             execs++;
         }
     }
