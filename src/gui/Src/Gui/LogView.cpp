@@ -78,8 +78,8 @@ void LogView::addMsgToLogSlot(QString msg)
         return;
     if(this->document()->characterCount() > 10000 * 100) //limit the log to ~100mb
         this->clear();
-    this->moveCursor(QTextCursor::End);
     this->insertPlainText(msg);
+    this->moveCursor(QTextCursor::End);
 }
 
 void LogView::clearLogSlot()

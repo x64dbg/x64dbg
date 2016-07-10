@@ -397,6 +397,7 @@ typedef struct
     // extended part
     unsigned int hitCount;
     bool fastResume;
+    bool silent;
     char breakCondition[MAX_CONDITIONAL_EXPR_SIZE];
     char logText[MAX_CONDITIONAL_TEXT_SIZE];
     char logCondition[MAX_CONDITIONAL_EXPR_SIZE];

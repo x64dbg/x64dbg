@@ -594,6 +594,35 @@ static CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* arg
     return STATUS_CONTINUE;
 }
 
+static CMDRESULT cbDebugSetBPXSilentCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    BREAKPOINT bp;
+    if(argc < 2)
+    {
+        dprintf("not enough arguments!\n");
+        return STATUS_ERROR;
+    }
+    auto silent = true;
+    if(argc > 2)
+    {
+        duint value;
+        if(!valfromstring(argv[2], &value, false))
+            return STATUS_ERROR;
+        silent = value != 0;
+    }
+    if(!BpGetAny(Type, argv[1], &bp))
+    {
+        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!BpSetSilent(bp.addr, Type, silent))
+    {
+        dprintf("Can't set fast resume on breakpoint \"%1\"", argv[1]);
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbDebugSetBPXName(int argc, char* argv[])
 {
     return cbDebugSetBPXNameCommon(BPNORMAL, argc, argv);
@@ -627,6 +656,11 @@ CMDRESULT cbDebugSetBPXCommandCondition(int argc, char* argv[])
 CMDRESULT cbDebugSetBPXFastResume(int argc, char* argv[])
 {
     return cbDebugSetBPXFastResumeCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXSilent(int argc, char* argv[])
+{
+    return cbDebugSetBPXSilentCommon(BPNORMAL, argc, argv);
 }
 
 CMDRESULT cbDebugResetBPXHitCount(int argc, char* argv[])
@@ -669,6 +703,11 @@ CMDRESULT cbDebugSetBPXHardwareFastResume(int argc, char* argv[])
     return cbDebugSetBPXFastResumeCommon(BPHARDWARE, argc, argv);
 }
 
+CMDRESULT cbDebugSetBPXHardwareSilent(int argc, char* argv[])
+{
+    return cbDebugSetBPXSilentCommon(BPHARDWARE, argc, argv);
+}
+
 CMDRESULT cbDebugResetBPXHardwareHitCount(int argc, char* argv[])
 {
     return cbDebugResetBPXHitCountCommon(BPHARDWARE, argc, argv);
@@ -706,12 +745,17 @@ CMDRESULT cbDebugSetBPXMemoryCommandCondition(int argc, char* argv[])
 
 CMDRESULT cbDebugResetBPXMemoryHitCount(int argc, char* argv[])
 {
-    return cbDebugSetBPXFastResumeCommon(BPMEMORY, argc, argv);
+    return cbDebugResetBPXHitCountCommon(BPMEMORY, argc, argv);
 }
 
 CMDRESULT cbDebugSetBPXMemoryFastResume(int argc, char* argv[])
 {
-    return cbDebugResetBPXHitCountCommon(BPMEMORY, argc, argv);
+    return cbDebugSetBPXFastResumeCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXMemorySilent(int argc, char* argv[])
+{
+    return cbDebugSetBPXSilentCommon(BPMEMORY, argc, argv);
 }
 
 CMDRESULT cbDebugGetBPXMemoryHitCount(int argc, char* argv[])

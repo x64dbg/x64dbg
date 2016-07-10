@@ -156,6 +156,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QCheckBox" name="checkBoxSilent">
+       <property name="text">
+        <string>&amp;Silent</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="checkBoxFastResume">
        <property name="text">
         <string>&amp;Fast Resume</string>
@@ -188,6 +195,7 @@
   <tabstop>editCommandCondition</tabstop>
   <tabstop>editName</tabstop>
   <tabstop>spinHitCount</tabstop>
+  <tabstop>checkBoxSilent</tabstop>
   <tabstop>checkBoxFastResume</tabstop>
   <tabstop>buttonSave</tabstop>
   <tabstop>buttonCancel</tabstop>
