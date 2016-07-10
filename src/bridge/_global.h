@@ -6,10 +6,12 @@
 
 //GUI typedefs
 typedef int (*GUIGUIINIT)(int, char**);
+typedef uint32(*GUIMESSAGELATENCY)();
 typedef void* (*GUISENDMESSAGE)(GUIMSG type, void* param1, void* param2);
 
 //GUI functions
 extern GUIGUIINIT _gui_guiinit;
+extern  GUIMESSAGELATENCY _gui_messagelatency;
 extern GUISENDMESSAGE _gui_sendmessage;
 
 //DBG typedefs
