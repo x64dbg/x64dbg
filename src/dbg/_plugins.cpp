@@ -101,9 +101,9 @@ PLUG_IMPEXP bool _plugin_waituntilpaused()
     return DbgIsDebugging();
 }
 
-bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction)
+bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata)
 {
-    return pluginexprfuncregister(pluginHandle, name, argc, cbFunction);
+    return pluginexprfuncregister(pluginHandle, name, argc, cbFunction, userdata);
 }
 
 bool _plugin_unregisterexprfunction(int pluginHandle, const char* name)

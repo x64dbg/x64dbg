@@ -5,12 +5,12 @@
 class ExpressionFunctions
 {
 public:
-    using CBEXPRESSIONFUNCTION = std::function<duint(int argc, const duint* argv)>;
+    using CBEXPRESSIONFUNCTION = std::function<duint(int argc, duint* argv, void* userdata)>;
 
     static void Init();
-    static bool Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction);
+    static bool Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata = nullptr);
     static bool Unregister(const String & name);
-    static bool Call(const String & name, const std::vector<duint> & argv, duint & result);
+    static bool Call(const String & name, std::vector<duint> & argv, duint & result);
     static bool GetArgc(const String & name, int & argc);
 
 private:
@@ -19,6 +19,7 @@ private:
         String name;
         int argc;
         CBEXPRESSIONFUNCTION cbFunction;
+        void* userdata;
     };
 
     static bool isValidName(const String & name);

@@ -27,7 +27,7 @@ static T callFunc(const T* argv, T(*cbFunction)(Ts...), seq<S...>)
 template<typename... Ts>
 static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
 {
-    return ExpressionFunctions::Register(name, sizeof...(Ts), [cbFunction](int argc, const duint * argv)
+    return ExpressionFunctions::Register(name, sizeof...(Ts), [cbFunction](int argc, duint * argv, void* userdata)
     {
         return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
     });
@@ -49,7 +49,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.entry", ModEntryFromAddr);
 }
 
-bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction)
+bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata)
 {
     if(!isValidName(name))
         return false;
@@ -60,6 +60,7 @@ bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFU
     f.name = name;
     f.argc = argc;
     f.cbFunction = cbFunction;
+    f.userdata = userdata;
     mFunctions[name] = f;
     return true;
 }
@@ -74,7 +75,7 @@ bool ExpressionFunctions::Unregister(const String & name)
     return true;
 }
 
-bool ExpressionFunctions::Call(const String & name, const std::vector<duint> & argv, duint & result)
+bool ExpressionFunctions::Call(const String & name, std::vector<duint> & argv, duint & result)
 {
     SHARED_ACQUIRE(LockExpressionFunctions);
     auto found = mFunctions.find(name);
@@ -83,7 +84,7 @@ bool ExpressionFunctions::Call(const String & name, const std::vector<duint> & a
     const auto & f = found->second;
     if(f.argc != int(argv.size()))
         return false;
-    result = f.cbFunction(f.argc, argv.data());
+    result = f.cbFunction(f.argc, argv.data(), f.userdata);
     return true;
 }
 
