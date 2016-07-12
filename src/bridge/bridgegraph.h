@@ -56,7 +56,7 @@ struct BridgeCFNode
         userdata = nodeList->userdata;
         auto data = (duint*)nodeList->exits->data;
         exits.resize(nodeList->exits->count);
-        for(size_t i = 0; i < nodeList->exits->count; i++)
+        for(int i = 0; i < nodeList->exits->count; i++)
             exits[i] = data[i];
     }
 
@@ -93,7 +93,7 @@ struct BridgeCFGraph
         entryPoint = graphList->entryPoint;
         userdata = graphList->userdata;
         auto data = (BridgeCFNode*)graphList->nodes->data;
-        for(size_t i = 0; i < graphList->nodes->count; i++)
+        for(int i = 0; i < graphList->nodes->count; i++)
             AddNode(data[i]);
     }
 
