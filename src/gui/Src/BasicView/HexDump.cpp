@@ -303,7 +303,7 @@ void HexDump::copyRvaSlot()
         Bridge::CopyToClipboard(addrText);
     }
     else
-        QMessageBox::warning(this, "Error!", "Selection not in a module...");
+        QMessageBox::warning(this, tr("Error!"), tr("Selection not in a module..."));
 }
 
 void HexDump::mouseMoveEvent(QMouseEvent* event)
@@ -1217,7 +1217,7 @@ void HexDump::clearDescriptors()
     deleteAllColumns();
     mDescriptor.clear();
     int charwidth = getCharWidth();
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), "Address", false); //address
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), false); //address
 }
 
 void HexDump::debugStateChanged(DBGSTATE state)

@@ -24,7 +24,7 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
 {
     if(reply->error() != QNetworkReply::NoError) //error
     {
-        QMessageBox msg(QMessageBox::Critical, "Network Error!", reply->errorString());
+        QMessageBox msg(QMessageBox::Critical, tr("Network Error!"), reply->errorString());
         msg.setParent(mParent, Qt::Dialog);
         msg.setWindowIcon(DIcon("compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -40,7 +40,7 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
     reply->close();
     if(!ok)
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "File on server could not be parsed...");
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("File on server could not be parsed..."));
         msg.setParent(mParent, Qt::Dialog);
         msg.setWindowIcon(DIcon("compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -51,12 +51,12 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
     auto build = GetCompileDate();
     QString info;
     if(server > build)
-        info = QString("New build %1 available!<br>Download <a href=\"http://releases.x64dbg.com\">here</a><br><br>You are now on build %2").arg(ToDateString(server), ToDateString(build));
+        info = QString(tr("New build %1 available!<br>Download <a href=\"%2\">here</a><br><br>You are now on build %2")).arg(ToDateString(server).arg("http://releases.x64dbg.com"), ToDateString(build));
     else if(server < build)
-        info = QString("You have a development build (%1) of x64dbg!").arg(ToDateString(build));
+        info = QString(tr("You have a development build (%1) of x64dbg!")).arg(ToDateString(build));
     else
-        info = QString("You have the latest build (%1) of x64dbg!").arg(ToDateString(build));
-    QMessageBox msg(QMessageBox::Information, "Information", info);
+        info = QString(tr("You have the latest build (%1) of x64dbg!")).arg(ToDateString(build));
+    QMessageBox msg(QMessageBox::Information, tr("Information"), info);
     msg.setWindowIcon(DIcon("information.png"));
     msg.setParent(mParent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));

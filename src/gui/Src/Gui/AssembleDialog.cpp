@@ -74,7 +74,7 @@ void AssembleDialog::validateInstruction(QString expression)
 {
     if(!ui->lineEdit->text().length())
     {
-        emit mValidateThread->emitInstructionChanged(0, "empty instruction");
+        emit mValidateThread->emitInstructionChanged(0, tr("empty instruction"));
         return;
     }
     //void instructionChanged(bool validInstruction, dsint sizeDifference, QString error)

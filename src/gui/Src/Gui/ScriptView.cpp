@@ -544,7 +544,7 @@ void ScriptView::bpToggle()
         return;
     int selected = getInitialSelection() + 1;
     if(!DbgScriptBpToggle(selected))
-        error(selected, "Error setting script breakpoint!");
+        error(selected, tr("Error setting script breakpoint!"));
     reloadData();
 }
 
@@ -577,12 +577,12 @@ void ScriptView::cmdExec()
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgScriptCmdExec(mLineEdit.editText.toUtf8().constData()))
-        error(0, "Error executing command!");
+        error(0, tr("Error executing command!"));
 }
 
 void ScriptView::message(QString message)
 {
-    QMessageBox msg(QMessageBox::Information, "Message", message);
+    QMessageBox msg(QMessageBox::Information, tr("Message"), message);
     msg.setWindowIcon(DIcon("information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -601,7 +601,7 @@ void ScriptView::newIp()
 
 void ScriptView::question(QString message)
 {
-    QMessageBox msg(QMessageBox::Question, "Question", message, QMessageBox::Yes | QMessageBox::No);
+    QMessageBox msg(QMessageBox::Question, tr("Question"), message, QMessageBox::Yes | QMessageBox::No);
     msg.setWindowIcon(DIcon("question.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));

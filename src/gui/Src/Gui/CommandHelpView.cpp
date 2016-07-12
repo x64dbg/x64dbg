@@ -25,7 +25,7 @@ CommandHelpView::CommandHelpView(QWidget* parent) : QWidget(parent), ui(new Ui::
 
     // Create module list
     mModuleList = new StdTable();
-    mModuleList->addColumnAt(0, "Module", false);
+    mModuleList->addColumnAt(0, tr("Module"), false);
 
     // Setup symbol list
     mSearchListView->mList->addColumnAt(0, tr("Command"), true);

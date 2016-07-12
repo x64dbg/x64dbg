@@ -256,7 +256,7 @@ void AppearanceDialog::on_buttonBackgroundColor_clicked()
         initialColor = Qt::black; //transparent will set the alpha channel, which users will forget
     else
         initialColor = QColor(ui->editBackgroundColor->text());
-    QColor selectedColor = QColorDialog::getColor(initialColor, this, "Select Color", QColorDialog::ShowAlphaChannel);
+    QColor selectedColor = QColorDialog::getColor(initialColor, this, tr("Select Color"), QColorDialog::ShowAlphaChannel);
     if(selectedColor.isValid())
     {
         if(!selectedColor.alpha())
@@ -552,7 +552,7 @@ void AppearanceDialog::colorInfoListInit()
             notFound += id + "\n";
     }
     if(notFound.length())
-        SimpleWarningBox(this, "NOT FOUND IN CONFIG!", notFound);
+        SimpleWarningBox(this, tr("NOT FOUND IN CONFIG!"), notFound);
 
     //setup context menu
     ui->listColorNames->setContextMenuPolicy(Qt::ActionsContextMenu);

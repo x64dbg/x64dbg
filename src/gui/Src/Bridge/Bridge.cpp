@@ -203,7 +203,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         return (void*)referenceManager->currentReferenceView()->mList->getRowCount();
 
     case GUI_REF_DELETEALLCOLUMNS:
-        GuiReferenceInitialize("References");
+        GuiReferenceInitialize(tr("References").toUtf8().constData());
         break;
 
     case GUI_REF_SETCELLCONTENT:

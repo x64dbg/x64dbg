@@ -220,7 +220,7 @@ void SettingsDialog::LoadSettings()
         {
             ui->chkSetJIT->setDisabled(true);
             ui->chkConfirmBeforeAtt->setDisabled(true);
-            ui->lblAdminWarning->setText(QString("<font color=\"red\"><b>Warning</b></font>: Run the debugger as Admin to enable JIT."));
+            ui->lblAdminWarning->setText(QString(tr("<font color=\"red\"><b>Warning</b></font>: Run the debugger as Admin to enable JIT.")));
         }
         else
             ui->lblAdminWarning->setText("");
@@ -363,7 +363,7 @@ void SettingsDialog::setLastException(unsigned int exceptionCode)
 void SettingsDialog::on_btnSave_clicked()
 {
     SaveSettings();
-    GuiAddStatusBarMessage("Settings saved!\n");
+    GuiAddStatusBarMessage(QString("%1\n").arg(tr("Settings saved!")).toUtf8().constData());
 }
 
 void SettingsDialog::on_chkSystemBreakpoint_stateChanged(int arg1)
@@ -591,7 +591,7 @@ void SettingsDialog::on_btnDeleteRange_clicked()
 
 void SettingsDialog::on_btnAddLast_clicked()
 {
-    QMessageBox msg(QMessageBox::Question, tr("Question"), QString().sprintf("Are you sure you want to add %.8X?", lastException));
+    QMessageBox msg(QMessageBox::Question, tr("Question"), QString().sprintf(tr("Are you sure you want to add %.8X?").toUtf8().constData(), lastException));
     msg.setWindowIcon(DIcon("question.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));

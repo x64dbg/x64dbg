@@ -28,8 +28,8 @@ void PageMemoryRights::RunAddrSize(duint addrin, duint sizein, QString pagetypei
     duint nr_pages = size / PAGE_SIZE;
     tableWidget->setColumnCount(2);
     tableWidget->setRowCount(nr_pages);
-    tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Address")));
-    tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("Rights")));
+    tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem(QString(tr("Address"))));
+    tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem(QString(tr("Rights"))));
 
     duint actual_addr;
     char rights[RIGHTS_STRING_SIZE];

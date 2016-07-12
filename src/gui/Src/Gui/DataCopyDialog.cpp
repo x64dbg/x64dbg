@@ -9,17 +9,17 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     setFixedSize(this->size()); //fixed size
     mData = data;
 
-    ui->comboType->addItem("C-Style BYTE (Hex)");
-    ui->comboType->addItem("C-Style WORD (Hex)");
-    ui->comboType->addItem("C-Style DWORD (Hex)");
-    ui->comboType->addItem("C-Style QWORD (Hex)");
-    ui->comboType->addItem("C-Style String");
-    ui->comboType->addItem("C-Style Unicode String");
-    ui->comboType->addItem("C-Style Shellcode String");
-    ui->comboType->addItem("Pascal BYTE (Hex)");
-    ui->comboType->addItem("Pascal WORD (Hex)");
-    ui->comboType->addItem("Pascal DWORD (Hex)");
-    ui->comboType->addItem("Pascal QWORD (Hex)");
+    ui->comboType->addItem(tr("C-Style BYTE (Hex)"));
+    ui->comboType->addItem(tr("C-Style WORD (Hex)"));
+    ui->comboType->addItem(tr("C-Style DWORD (Hex)"));
+    ui->comboType->addItem(tr("C-Style QWORD (Hex)"));
+    ui->comboType->addItem(tr("C-Style String"));
+    ui->comboType->addItem(tr("C-Style Unicode String"));
+    ui->comboType->addItem(tr("C-Style Shellcode String"));
+    ui->comboType->addItem(tr("Pascal BYTE (Hex)"));
+    ui->comboType->addItem(tr("Pascal WORD (Hex)"));
+    ui->comboType->addItem(tr("Pascal DWORD (Hex)"));
+    ui->comboType->addItem(tr("Pascal QWORD (Hex)"));
 
     ui->comboType->setCurrentIndex(DataCByte);
 

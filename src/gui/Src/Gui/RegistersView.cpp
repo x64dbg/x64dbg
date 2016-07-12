@@ -445,7 +445,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     this->addAction(wCM_CopyAll);
     wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
-    wCM_FollowInStack = new QAction(DIcon("stack.png"), "Follow in Stack", this);
+    wCM_FollowInStack = new QAction(DIcon("stack.png"), tr("Follow in Stack"), this);
     wCM_Incrementx87Stack = new QAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
     wCM_Decrementx87Stack = new QAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"), this);
     wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
@@ -1530,7 +1530,7 @@ QString RegistersView::GetControlWordRCStateString(unsigned short state)
             return ControlWordRCValueStringTable[i].string;
     }
 
-    return "unknown";
+    return "Unknown";
 }
 
 #define x87SW_TOP_0 0
@@ -1577,7 +1577,7 @@ QString RegistersView::GetStatusWordTOPStateString(unsigned short state)
             return StatusWordTOPValueStringTable[i].string;
     }
 
-    return "unknown";
+    return "Unknown";
 }
 
 
@@ -1619,7 +1619,7 @@ QString RegistersView::GetControlWordPCStateString(unsigned short state)
             return ControlWordPCValueStringTable[i].string;
     }
 
-    return "unknown";
+    return "Unknown";
 }
 
 
@@ -1968,7 +1968,7 @@ void RegistersView::displayEditDialog()
                     {
                         errorinput = true;
 
-                        QMessageBox msg(QMessageBox::Warning, "ERROR CONVERTING TO HEX", "ERROR CONVERTING TO HEXADECIMAL");
+                        QMessageBox msg(QMessageBox::Warning, tr("ERROR CONVERTING TO HEX"), tr("ERROR CONVERTING TO HEX"));
                         msg.setWindowIcon(DIcon("compile-warning.png"));
                         msg.setParent(this, Qt::Dialog);
                         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));

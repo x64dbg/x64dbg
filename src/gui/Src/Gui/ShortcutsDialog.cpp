@@ -121,7 +121,7 @@ ShortcutsDialog::~ShortcutsDialog()
 void ShortcutsDialog::on_btnSave_clicked()
 {
     Config()->writeShortcuts();
-    GuiAddStatusBarMessage("Settings saved!\n");
+    GuiAddStatusBarMessage(QString("%1\n").arg(tr("Settings saved!")).toUtf8().constData());
 }
 
 void ShortcutsDialog::rejectedSlot()
