@@ -33,6 +33,7 @@ if "%MAXCORES%"=="" (
 )
 echo Building translations...
 lrelease x64dbg.pro
+del Translations\x64dbg.qm
 cd ..\..
 goto :restorepath
 
