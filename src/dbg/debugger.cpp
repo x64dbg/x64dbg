@@ -69,6 +69,8 @@ static HANDLE hMemMapThread = 0;
 static bool bStopMemMapThread = false;
 static HANDLE hTimeWastedCounterThread = 0;
 static bool bStopTimeWastedCounterThread = false;
+static HANDLE hDumpRefreshThread = 0;
+static bool bStopDumpRefreshThread = false;
 static String lastDebugText;
 static duint timeWastedDebugging = 0;
 static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
@@ -154,10 +156,30 @@ static DWORD WINAPI timeWastedCounterThread(void* ptr)
     return 0;
 }
 
+static DWORD WINAPI dumpRefreshThread(void* ptr)
+{
+    while(!bStopDumpRefreshThread)
+    {
+        while(!DbgIsDebugging())
+        {
+            if(bStopDumpRefreshThread)
+                break;
+            Sleep(10);
+        }
+        if(bStopDumpRefreshThread)
+            break;
+        timeWastedDebugging++;
+        GuiUpdateDumpView();
+        Sleep(200);
+    }
+    return 0;
+}
+
 void dbginit()
 {
     hTimeWastedCounterThread = CreateThread(nullptr, 0, timeWastedCounterThread, nullptr, 0, nullptr);
     hMemMapThread = CreateThread(nullptr, 0, memMapThread, nullptr, 0, nullptr);
+    hDumpRefreshThread = CreateThread(nullptr, 0, dumpRefreshThread, nullptr, 0, nullptr);
 }
 
 void dbgstop()
@@ -166,6 +188,8 @@ void dbgstop()
     WaitForThreadTermination(hTimeWastedCounterThread);
     bStopMemMapThread = true;
     WaitForThreadTermination(hMemMapThread);
+    bStopDumpRefreshThread = true;
+    WaitForThreadTermination(hDumpRefreshThread);
 }
 
 duint dbgdebuggedbase()
