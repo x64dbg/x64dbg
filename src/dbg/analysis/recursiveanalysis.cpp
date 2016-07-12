@@ -55,7 +55,7 @@ void RecursiveAnalysis::SetMarkers()
 
 void RecursiveAnalysis::analyzeFunction(duint entryPoint)
 {
-    //BFS through the disassembly starting at entryPoint
+    //first pass: BFS through the disassembly starting at entryPoint
     CFGraph graph(entryPoint);
     UintSet visited;
     std::queue<duint> queue;
@@ -127,6 +127,37 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             }
             node.end += mCp.Size();
         }
+    }
+    //second pass: split overlapping blocks introduced by backedges
+    for(auto & nodeIt : graph.nodes)
+    {
+        auto & node = nodeIt.second;
+        duint addr = node.start;
+        duint icount = 0;
+        while(addr < node.end)
+        {
+            icount++;
+            auto size = mCp.Disassemble(addr, translateAddr(addr)) ? mCp.Size() : 1;
+            if(graph.nodes.count(addr + size))
+            {
+                node.end = addr;
+                node.split = true;
+                node.brtrue = addr + size;
+                node.brfalse = 0;
+                node.terminal = false;
+                node.icount = icount;
+                break;
+            }
+            addr += size;
+        }
+    }
+    //third pass: correct the parents
+    graph.parents.clear();
+    for(const auto & nodeIt : graph.nodes)
+    {
+        const auto & node = nodeIt.second;
+        graph.AddParent(node.start, node.brtrue);
+        graph.AddParent(node.start, node.brfalse);
     }
     mFunctions.push_back(graph);
 }

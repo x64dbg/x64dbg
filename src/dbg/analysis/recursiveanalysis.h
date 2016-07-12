@@ -23,6 +23,7 @@ public:
         duint brfalse; //destination if condition is false
         duint icount; //number of instructions in node
         bool terminal; //node is a RET
+        bool split; //node is a split (brtrue points to the next node)
 
         explicit CFNode(duint parentGraph, duint start, duint end)
             : parentGraph(parentGraph),
@@ -31,7 +32,8 @@ public:
               brtrue(0),
               brfalse(0),
               icount(0),
-              terminal(false)
+              terminal(false),
+              split(false)
         {
         }
 
@@ -42,7 +44,7 @@ public:
 
         String ToString() const
         {
-            return StringUtils::sprintf("start: " fhex "\nend: " fhex "\nfunction: " fhex, start, end, parentGraph);
+            return StringUtils::sprintf("start: " fhex ", %" fext "d\nend: " fhex "\nfunction: " fhex, start, icount, end, parentGraph);
         }
     };
 
@@ -100,9 +102,10 @@ public:
             for(const auto & node : nodes)
             {
                 if(node.second.brtrue)
-                    result += StringUtils::sprintf("    n" fhex "-> n" fhex " [color=green]\n",
+                    result += StringUtils::sprintf("    n" fhex "-> n" fhex " [color=%s]\n",
                                                    node.second.start,
-                                                   node.second.brtrue);
+                                                   node.second.brtrue,
+                                                   node.second.split ? "black" : "green");
                 if(node.second.brfalse)
                     result += StringUtils::sprintf("    n" fhex "-> n" fhex " [color=red]\n",
                                                    node.second.start,
