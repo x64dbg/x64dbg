@@ -232,9 +232,9 @@ bool StdTable::isSelected(int base, int offset)
 /************************************************************************************
                                 Data Management
 ************************************************************************************/
-void StdTable::addColumnAt(int width, QString title, bool isClickable, QString copyTitle)
+void StdTable::addColumnAt(int width, QString title, bool isClickable, QString copyTitle, SortBy::t sortFn)
 {
-    AbstractTableView::addColumnAt(width, title, isClickable);
+    AbstractTableView::addColumnAt(width, title, isClickable, sortFn);
 
     //append empty column to list of rows
     for(int i = 0; i < mData.size(); i++)
@@ -474,6 +474,6 @@ void StdTable::headerButtonPressedSlot(int col)
 void StdTable::reloadData()
 {
     if(mSort.first != -1) //re-sort if the user wants to sort
-        qSort(mData.begin(), mData.end(), ColumnCompare(mSort.first, mSort.second));
+        qSort(mData.begin(), mData.end(), ColumnCompare(mSort.first, mSort.second, getColumnSortBy(mSort.first)));
     AbstractTableView::reloadData();
 }
