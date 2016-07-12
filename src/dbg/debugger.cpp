@@ -65,6 +65,7 @@ static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static HANDLE hEvent = 0;
 static HANDLE hProcess = 0;
+static HANDLE hMemMapThread = 0;
 static bool bStopMemMapThread = false;
 static HANDLE hTimeWastedCounterThread = 0;
 static bool bStopTimeWastedCounterThread = false;
@@ -119,19 +120,12 @@ static DWORD WINAPI memMapThread(void* ptr)
         {
             if(bStopMemMapThread)
                 break;
-            Sleep(33);
+            Sleep(10);
         }
-
-        // Execute the update only if the delta if >= 1 second
-        if((GetTickCount() - memMapThreadCounter) >= 1000)
-        {
-            MemUpdateMap();
-            GuiUpdateMemoryView();
-
-            memMapThreadCounter = GetTickCount();
-        }
-
-        Sleep(1000);
+        if(bStopMemMapThread)
+            break;
+        MemUpdateMapAsync();
+        Sleep(2000);
     }
 
     return 0;
@@ -148,7 +142,7 @@ static DWORD WINAPI timeWastedCounterThread(void* ptr)
         {
             if(bStopTimeWastedCounterThread)
                 break;
-            Sleep(1);
+            Sleep(10);
         }
         if(bStopTimeWastedCounterThread)
             break;
@@ -163,12 +157,15 @@ static DWORD WINAPI timeWastedCounterThread(void* ptr)
 void dbginit()
 {
     hTimeWastedCounterThread = CreateThread(nullptr, 0, timeWastedCounterThread, nullptr, 0, nullptr);
+    hMemMapThread = CreateThread(nullptr, 0, memMapThread, nullptr, 0, nullptr);
 }
 
 void dbgstop()
 {
     bStopTimeWastedCounterThread = true;
     WaitForThreadTermination(hTimeWastedCounterThread);
+    bStopMemMapThread = true;
+    WaitForThreadTermination(hMemMapThread);
 }
 
 duint dbgdebuggedbase()
@@ -296,6 +293,11 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     if(GuiIsUpdateDisabled())
         return;
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    //Check if the addresses are in the memory map and force update if they are not
+    if(!MemIsValidReadPtr(disasm_addr, true) || !MemIsValidReadPtr(cip, true))
+        MemUpdateMap();
+    else
+        MemUpdateMapAsync();
     if(MemIsValidReadPtr(disasm_addr))
     {
         if(bEnableSourceDebugging)
