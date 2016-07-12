@@ -31,5 +31,8 @@
     <ClInclude Include="bridgelist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bridgegraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

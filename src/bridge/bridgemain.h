@@ -25,6 +25,8 @@ typedef unsigned long duint;
 typedef signed long dsint;
 #endif //_WIN64
 
+#include "bridgegraph.h"
+
 #ifndef BRIDGE_IMPEXP
 #ifdef BUILD_BRIDGE
 #define BRIDGE_IMPEXP __declspec(dllexport)
@@ -936,7 +938,10 @@ typedef enum
     GUI_UNREGISTER_SCRIPT_LANG,     // param1=int id,               param2=unused
     GUI_UPDATE_ARGUMENT_VIEW,       // param1=unused,               param2=unused
     GUI_FOCUS_VIEW,                 // param1=int hWindow,          param2=unused
-    GUI_UPDATE_WATCH_VIEW           // param1=unused,               param2=unused
+    GUI_UPDATE_WATCH_VIEW,          // param1=unused,               param2=unused
+    GUI_LOAD_GRAPH,                 // param1=BridgeCFGraphList*    param2=unused
+    GUI_GRAPH_AT,                   // param1=duint addr            param2=unused
+    GUI_UPDATE_GRAPH_VIEW           // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1057,6 +1062,9 @@ BRIDGE_IMPEXP void GuiFocusView(int hWindow);
 BRIDGE_IMPEXP bool GuiIsUpdateDisabled();
 BRIDGE_IMPEXP void GuiUpdateEnable(bool updateNow);
 BRIDGE_IMPEXP void GuiUpdateDisable();
+BRIDGE_IMPEXP void GuiLoadGraph(BridgeCFGraphList* graph);
+BRIDGE_IMPEXP void GuiGraphAt(duint addr);
+BRIDGE_IMPEXP void GuiUpdateGraphView();
 
 #ifdef __cplusplus
 }
