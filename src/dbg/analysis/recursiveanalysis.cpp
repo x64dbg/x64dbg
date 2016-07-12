@@ -23,7 +23,7 @@ void RecursiveAnalysis::SetMarkers()
 {
     if(mDump)
         for(const auto & function : mFunctions)
-            FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_" fhex ".dot", function.entryPoint), function.ToDot());
+            FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_" fhex ".dot", function.entryPoint), GraphToDot(function));
 
     //set function ranges
     for(const auto & function : mFunctions)
@@ -151,13 +151,17 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             addr += size;
         }
     }
-    //third pass: correct the parents
+    //third pass: correct the parents + add brtrue and brfalse to the exits
     graph.parents.clear();
-    for(const auto & nodeIt : graph.nodes)
+    for(auto & nodeIt : graph.nodes)
     {
-        const auto & node = nodeIt.second;
+        auto & node = nodeIt.second;
         graph.AddParent(node.start, node.brtrue);
         graph.AddParent(node.start, node.brfalse);
+        if(node.brtrue)
+            node.exits.push_back(node.brtrue);
+        if(node.brfalse)
+            node.exits.push_back(node.brfalse);
     }
     mFunctions.push_back(graph);
 }
