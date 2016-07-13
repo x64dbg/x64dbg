@@ -40,7 +40,7 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
         break;
     case 512:
     default:
-        GuiAddLogMessage(QString("Error, register size %1 is not supported.\n").arg(RegisterSize).toUtf8().constData());
+        GuiAddLogMessage(QString(tr("Error, register size %1 is not supported.\n")).arg(RegisterSize).toUtf8().constData());
         break;
     }
     setFixedWidth(width());

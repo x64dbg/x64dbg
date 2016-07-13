@@ -1048,6 +1048,7 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiRepaintTableView();
     GuiUpdateSEHChain();
     GuiUpdateArgumentWidget();
+    GuiUpdateGraphView();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -1441,6 +1442,22 @@ BRIDGE_IMPEXP void GuiUpdateArgumentWidget()
 BRIDGE_IMPEXP void GuiFocusView(int hWindow)
 {
     _gui_sendmessage(GUI_FOCUS_VIEW, (void*)hWindow, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiLoadGraph(BridgeCFGraphList* graph)
+{
+    _gui_sendmessage(GUI_LOAD_GRAPH, graph, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiGraphAt(duint addr)
+{
+    _gui_sendmessage(GUI_GRAPH_AT, (void*)addr, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiUpdateGraphView()
+{
+    CHECK_GUI_UPDATE_DISABLED
+    _gui_sendmessage(GUI_UPDATE_GRAPH_VIEW, nullptr, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

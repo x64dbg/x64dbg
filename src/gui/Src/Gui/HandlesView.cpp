@@ -20,14 +20,14 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mTcpConnectionsTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
     mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
-    mTcpConnectionsTable->addColumnAt(8 + 8 * wCharWidth, tr("State", "TcpConnection"), false);
+    mTcpConnectionsTable->addColumnAt(8 + 8 * wCharWidth, tr("State"), false);
     mTcpConnectionsTable->loadColumnFromConfig("TcpConnection");
 
     mPrivilegesTable = new StdTable(this);
     mPrivilegesTable->setDrawDebugOnly(true);
     mPrivilegesTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mPrivilegesTable->addColumnAt(8 + 32 * wCharWidth, tr("Privilege"), false);
-    mPrivilegesTable->addColumnAt(8 + 16 * wCharWidth, tr("State", "Privilege"), false);
+    mPrivilegesTable->addColumnAt(8 + 16 * wCharWidth, tr("State"), false);
     mPrivilegesTable->loadColumnFromConfig("Privilege");
 
     // Splitter
@@ -306,97 +306,4 @@ void HandlesView::enumTcpConnections()
     else
         mTcpConnectionsTable->setRowCount(0);
     mTcpConnectionsTable->reloadData();
-    /*
-    QList<QString> TCPLocal;
-    QList<QString> TCPRemote;
-    QList<QString> TCPState;
-    DWORD PID = 0;// DbgGetProcessInformation()->dwProcessId;
-    // The following code is modified from code sample at MSDN.GetTcpTable2
-    // Declare and initialize variables
-    PMIB_TCPTABLE2 pTcpTable;
-    PMIB_TCP6TABLE2 pTcp6Table;
-    ULONG ulSize = 0;
-    struct in_addr IpAddr;
-    int i;
-    // To ensure WindowsXP compatibility we won't link them statically
-    ULONG(WINAPI * GetTcpTable2)(PMIB_TCPTABLE2, PULONG, BOOL);
-    *(FARPROC*)&GetTcpTable2 = GetProcAddress(hIpHlp, "GetTcpTable2");
-    ULONG(WINAPI * GetTcp6Table2)(PMIB_TCP6TABLE2 TcpTable, PULONG, BOOL Order);
-    *(FARPROC*)&GetTcp6Table2 = GetProcAddress(hIpHlp, "GetTcp6Table2");
-    PCTSTR(WSAAPI * InetNtopW)(INT Family, PVOID  pAddr, PTSTR  pStringBuf, size_t StringBufSize);
-    *(FARPROC*)&InetNtopW = GetProcAddress(GetModuleHandleW(L"ws2_32.dll"), "InetNtopW");
-    if(InetNtopW == nullptr)
-        return;
-    pTcpTable = (MIB_TCPTABLE2*) malloc(sizeof(MIB_TCPTABLE2));
-    ulSize = sizeof(MIB_TCPTABLE);
-    // Make an initial call to GetTcpTable2 to
-    // get the necessary size into the ulSize variable
-    if(GetTcpTable2 != nullptr && GetTcpTable2(pTcpTable, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
-    {
-        free(pTcpTable);
-        pTcpTable = (MIB_TCPTABLE2*) malloc(ulSize);
-    }
-    // Make a second call to GetTcpTable2 to get
-    // the actual data we require
-    if(GetTcpTable2 != nullptr && GetTcpTable2(pTcpTable, &ulSize, TRUE) == NO_ERROR)
-    {
-        for(i = 0; i < (int) pTcpTable->dwNumEntries; i++)
-        {
-            wchar_t Buffer[56];
-            if(pTcpTable->table[i].dwOwningPid != PID)
-                continue;
-            TCPState.push_back(TcpStateToString(pTcpTable->table[i].dwState));
-            IpAddr.S_un.S_addr = (u_long) pTcpTable->table[i].dwLocalAddr;
-            InetNtopW(AF_INET, &IpAddr, Buffer, 56);
-            TCPLocal.push_back(QString("%1:%2").arg(QString().fromUtf16(Buffer)).arg(ntohs((u_short)pTcpTable->table[i].dwLocalPort)));
-
-            IpAddr.S_un.S_addr = (u_long) pTcpTable->table[i].dwRemoteAddr;
-            InetNtopW(AF_INET, &IpAddr, Buffer, 56);
-            TCPRemote.push_back(QString("%1:%2").arg(QString().fromUtf16(Buffer)).arg(ntohs((u_short)pTcpTable->table[i].dwRemotePort)));
-        }
-    }
-    if(pTcpTable != NULL)
-    {
-        free(pTcpTable);
-        pTcpTable = NULL;
-    }
-    pTcp6Table = (MIB_TCP6TABLE2*) malloc(sizeof(MIB_TCP6TABLE2));
-    ulSize = sizeof(MIB_TCP6TABLE);
-    // Make an initial call to GetTcpTable2 to
-    // get the necessary size into the ulSize variable
-    if(GetTcp6Table2 != nullptr && GetTcp6Table2(pTcp6Table, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
-    {
-        free(pTcp6Table);
-        pTcp6Table = (MIB_TCP6TABLE2*) malloc(ulSize);
-    }
-    // Make a second call to GetTcpTable2 to get
-    // the actual data we require
-    if(GetTcp6Table2 != nullptr && GetTcp6Table2(pTcp6Table, &ulSize, TRUE) == NO_ERROR)
-    {
-        for(i = 0; i < (int) pTcp6Table->dwNumEntries; i++)
-        {
-            wchar_t Buffer[56];
-            if(pTcp6Table->table[i].dwOwningPid != PID)
-                continue;
-            TCPState.push_back(TcpStateToString(pTcp6Table->table[i].State));
-            InetNtopW(AF_INET6, &pTcp6Table->table[i].LocalAddr, Buffer, 56);
-            TCPLocal.push_back(QString("[%1]:%2").arg(QString().fromUtf16(Buffer)).arg(ntohs((u_short)pTcp6Table->table[i].dwLocalPort)));
-            InetNtopW(AF_INET6, &pTcp6Table->table[i].RemoteAddr, Buffer, 56);
-            TCPRemote.push_back(QString("[%1]:%2").arg(QString().fromUtf16(Buffer)).arg(ntohs((u_short)pTcp6Table->table[i].dwRemotePort)));
-        }
-    }
-    if(pTcp6Table != NULL)
-    {
-        free(pTcp6Table);
-        pTcp6Table = NULL;
-    }
-    mTcpConnectionsTable->setRowCount(TCPRemote.length());
-    for(int i = 0; i < TCPLocal.length(); i++)
-    {
-        mTcpConnectionsTable->setCellContent(i, 0, TCPRemote.at(i));
-        mTcpConnectionsTable->setCellContent(i, 1, TCPLocal.at(i));
-        mTcpConnectionsTable->setCellContent(i, 2, TCPState.at(i));
-    }
-    mTcpConnectionsTable->reloadData();
-    */
 }

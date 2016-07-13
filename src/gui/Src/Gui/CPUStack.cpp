@@ -36,7 +36,7 @@ CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendDescriptor(2000, "Comments", false, wColDesc);
+    appendDescriptor(2000, tr("Comments"), false, wColDesc);
 
     setupContextMenu();
 
@@ -849,7 +849,7 @@ void CPUStack::findPattern()
     HexEditDialog hexEdit(this);
     hexEdit.showEntireBlock(true);
     hexEdit.mHexEdit->setOverwriteMode(false);
-    hexEdit.setWindowTitle("Find Pattern...");
+    hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     dsint addr = rvaToVa(getSelectionStart());

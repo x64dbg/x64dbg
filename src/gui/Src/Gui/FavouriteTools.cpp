@@ -133,6 +133,8 @@ void FavouriteTools::on_btnAddFavouriteTool_clicked()
 
 void FavouriteTools::upbutton(QTableWidget* table)
 {
+    if(!table->rowCount())
+        return;
     int currentRow = table->currentRow();
     if(currentRow == 0)
         return;
@@ -147,6 +149,8 @@ void FavouriteTools::upbutton(QTableWidget* table)
 
 void FavouriteTools::downbutton(QTableWidget* table)
 {
+    if(!table->rowCount())
+        return;
     int currentRow = table->currentRow();
     if(currentRow == table->rowCount() - 1)
         return;
@@ -162,12 +166,16 @@ void FavouriteTools::downbutton(QTableWidget* table)
 void FavouriteTools::on_btnRemoveFavouriteTool_clicked()
 {
     QTableWidget* table = ui->listTools;
+    if(!table->rowCount())
+        return;
     table->removeRow(table->currentRow());
 }
 
 void FavouriteTools::on_btnDescriptionFavouriteTool_clicked()
 {
     QTableWidget* table = ui->listTools;
+    if(!table->rowCount())
+        return;
     QString description = table->item(table->currentRow(), 2)->text();
     if(SimpleInputBox(this, tr("Enter the description"), description, description))
         table->item(table->currentRow(), 2)->setText(description);
@@ -205,12 +213,16 @@ void FavouriteTools::on_btnAddFavouriteScript_clicked()
 void FavouriteTools::on_btnRemoveFavouriteScript_clicked()
 {
     QTableWidget* table = ui->listScript;
+    if(!table->rowCount())
+        return;
     table->removeRow(table->currentRow());
 }
 
 void FavouriteTools::on_btnDescriptionFavouriteScript_clicked()
 {
     QTableWidget* table = ui->listScript;
+    if(!table->rowCount())
+        return;
     QString description = table->item(table->currentRow(), 2)->text();
     if(SimpleInputBox(this, tr("Enter the description"), description, description))
         table->item(table->currentRow(), 2)->setText(description);
@@ -243,6 +255,8 @@ void FavouriteTools::on_btnAddFavouriteCommand_clicked()
 void FavouriteTools::on_btnRemoveFavouriteCommand_clicked()
 {
     QTableWidget* table = ui->listCommand;
+    if(!table->rowCount())
+        return;
     table->removeRow(table->currentRow());
 }
 
@@ -260,7 +274,7 @@ void FavouriteTools::onListSelectionChanged()
 {
     QTableWidget* table = qobject_cast<QTableWidget*>(sender());
     if(table == nullptr)
-        throw std::exception("No active table!");
+        return;
     QModelIndexList indexes = table->selectionModel()->selectedRows();
     if(indexes.count() < 1)
         return;
@@ -284,8 +298,10 @@ void FavouriteTools::on_shortcutEdit_askForSave()
         table = ui->listCommand;
         break;
     default:
-        throw std::exception("No active table!");
+        return;
     }
+    if(!table->rowCount())
+        return;
     const QKeySequence newKey = ui->shortcutEdit->getKeysequence();
     if(newKey != currentShortcut)
     {

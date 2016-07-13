@@ -23,6 +23,7 @@
     <ClCompile Include="_global.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bridgegraph.h" />
     <ClInclude Include="bridgemain.h" />
     <ClInclude Include="bridgelist.h" />
     <ClInclude Include="Utf8Ini.h" />

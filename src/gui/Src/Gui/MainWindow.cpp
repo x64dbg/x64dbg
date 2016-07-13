@@ -1271,7 +1271,7 @@ void MainWindow::crashDump()
     __debugbreak();
 
     // Congratulations! We survived a fatal error!
-    SimpleWarningBox(this, "Have fun debugging the debugger!", "Debugger detected!");
+    SimpleWarningBox(this, tr("Have fun debugging the debugger!"), tr("Debugger detected!"));
 }
 
 void MainWindow::displayAttach()
@@ -1498,7 +1498,7 @@ void MainWindow::updateFavouriteTools()
     }
     if(isanythingexists)
         ui->menuFavourites->addSeparator();
-    actionManageFavourites = new QAction(DIcon("star.png"), tr("Manage Favourite Tools"), this);
+    actionManageFavourites = new QAction(DIcon("star.png"), tr("&Manage Favourite Tools..."), this);
     ui->menuFavourites->addAction(actionManageFavourites);
     setGlobalShortcut(actionManageFavourites, ConfigShortcut("FavouritesManage"));
     connect(ui->menuFavourites->actions().last(), SIGNAL(triggered()), this, SLOT(manageFavourites()));
@@ -1508,7 +1508,7 @@ void MainWindow::clickFavouriteTool()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if(action == nullptr)
-        throw std::exception("Bad favourite tool shortcut action");
+        return;
     QString data = action->data().toString();
     if(data.startsWith("Tool,"))
     {

@@ -185,10 +185,10 @@ void dbginit()
 void dbgstop()
 {
     bStopTimeWastedCounterThread = true;
-    WaitForThreadTermination(hTimeWastedCounterThread);
     bStopMemMapThread = true;
-    WaitForThreadTermination(hMemMapThread);
     bStopDumpRefreshThread = true;
+    WaitForThreadTermination(hTimeWastedCounterThread);
+    WaitForThreadTermination(hMemMapThread);
     WaitForThreadTermination(hDumpRefreshThread);
 }
 

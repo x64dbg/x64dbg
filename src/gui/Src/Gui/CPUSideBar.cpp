@@ -284,7 +284,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         }
         else if(mCodeFoldingManager.isFoldBody(instrVA))
         {
-            painter.setPen(QColor("black"));
+            painter.setPen(QColor("#000000"));
             painter.drawLine(QPointF(viewport()->width() - fontHeight / 2 - mBulletXOffset - mBulletRadius, line * fontHeight), QPointF(viewport()->width() - fontHeight / 2 - mBulletXOffset - mBulletRadius, (line + 1) * fontHeight));
             if(mCodeFoldingManager.isFoldEnd(instrVA + instr.length - 1))
                 painter.drawLine(QPointF(viewport()->width() - fontHeight / 2 - mBulletXOffset - mBulletRadius, (line + 1) * fontHeight), QPointF(viewport()->width(), (line + 1) * fontHeight));

@@ -50,7 +50,7 @@ static bool isValidLocale(const QString & locale)
 {
     auto allLocales = QLocale::matchingLocales(QLocale::AnyLanguage, QLocale::AnyScript, QLocale::AnyCountry);
     for(auto & l : allLocales)
-        if(l.name() == locale)
+        if(l.name() == locale || l.name().replace(QRegExp("_.+"), "") == locale)
             return true;
     return false;
 }
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
     const char* errormsg = DbgInit();
     if(errormsg)
     {
-        QMessageBox msg(QMessageBox::Critical, "DbgInit Error!", QString(errormsg));
+        QMessageBox msg(QMessageBox::Critical, QObject::tr("DbgInit Error!"), QString(errormsg));
         msg.setWindowIcon(DIcon("compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();

@@ -35,7 +35,7 @@ QString YaraRuleSelectionDialog::getSelectedFile()
 
 void YaraRuleSelectionDialog::on_buttonDirectory_clicked()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, "Select Yara Rules Directory...");
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select Yara Rules Directory..."));
     if(!dir.length())
         return;
     rulesDirectory = QDir::toNativeSeparators(dir);
@@ -45,7 +45,7 @@ void YaraRuleSelectionDialog::on_buttonDirectory_clicked()
 
 void YaraRuleSelectionDialog::on_buttonFile_clicked()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select Yara Rule...", rulesDirectory);
+    QString file = QFileDialog::getOpenFileName(this, tr("Select Yara Rule..."), rulesDirectory);
     if(!file.length())
         return;
     selectedFile = QDir::toNativeSeparators(file);
