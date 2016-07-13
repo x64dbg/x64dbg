@@ -1498,7 +1498,7 @@ void MainWindow::updateFavouriteTools()
     }
     if(isanythingexists)
         ui->menuFavourites->addSeparator();
-    actionManageFavourites = new QAction(DIcon("star.png"), tr("Manage Favourite Tools"), this);
+    actionManageFavourites = new QAction(DIcon("star.png"), tr("&Manage Favourite Tools..."), this);
     ui->menuFavourites->addAction(actionManageFavourites);
     setGlobalShortcut(actionManageFavourites, ConfigShortcut("FavouritesManage"));
     connect(ui->menuFavourites->actions().last(), SIGNAL(triggered()), this, SLOT(manageFavourites()));
