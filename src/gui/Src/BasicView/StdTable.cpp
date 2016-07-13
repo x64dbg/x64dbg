@@ -197,6 +197,17 @@ int StdTable::getInitialSelection()
     return mSelection.firstSelectedIndex;
 }
 
+QList<int> StdTable::getSelection()
+{
+    QList<int> selection;
+    selection.reserve(mSelection.toIndex - mSelection.fromIndex);
+    for(int i = mSelection.fromIndex; i <= mSelection.toIndex; i++)
+    {
+        selection.append(i);
+    }
+    return selection;
+}
+
 void StdTable::selectNext()
 {
     int wNext = getInitialSelection() + 1;
