@@ -1454,7 +1454,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     if(basicinfo->call)  //we are looking for calls
     {
         duint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
-        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label) && DbgGetModuleAt(ptr, module); //a non-user label
+        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label) && !strstr(label, "sub_") && DbgGetModuleAt(ptr, module); //a non-user label
     }
     if(found)
     {
