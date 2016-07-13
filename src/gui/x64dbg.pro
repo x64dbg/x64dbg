@@ -165,7 +165,8 @@ SOURCES += \
     Src/Utils/CodeFolding.cpp \
     Src/Gui/WatchView.cpp \
     Src/Gui/FavouriteTools.cpp \
-    Src/Gui/BrowseDialog.cpp
+    Src/Gui/BrowseDialog.cpp \
+    Src/Gui/DisassemblerGraphView.cpp
 
 
 HEADERS += \
@@ -266,7 +267,8 @@ HEADERS += \
     Src/Utils/CodeFolding.h \
     Src/Gui/WatchView.h \
     Src/Gui/FavouriteTools.h \
-    Src/Gui/BrowseDialog.h
+    Src/Gui/BrowseDialog.h \
+    Src/Gui/DisassemblerGraphView.h
     
 
 FORMS += \
