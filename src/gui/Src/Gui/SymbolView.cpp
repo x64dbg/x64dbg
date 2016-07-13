@@ -35,6 +35,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), false);
 
     // Setup symbol list
+    mSearchListView->mList->enableMultiSelection(true);
     mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
     mSearchListView->mList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
     mSearchListView->mList->addColumnAt(charwidth * 80, tr("Symbol"), true);
@@ -390,27 +391,33 @@ void SymbolView::toggleBreakpoint()
 
     if(!mSearchListView->mCurList->getRowCount())
         return;
-    QString addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
-    duint wVA;
-    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
-        return;
 
-    if(!DbgMemIsValidReadPtr(wVA))
-        return;
+    auto selection = mSearchListView->mCurList->getSelection();
 
-    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-    QString wCmd;
-
-    if((wBpType & bp_normal) == bp_normal)
+    for(auto selectedIdx : selection)
     {
-        wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    }
-    else
-    {
-        wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    }
+        QString addrText = mSearchListView->mCurList->getCellContent(selectedIdx, 0);
+        duint wVA;
+        if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
+            return;
 
-    DbgCmdExec(wCmd.toUtf8().constData());
+        if(!DbgMemIsValidReadPtr(wVA))
+            return;
+
+        BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
+        QString wCmd;
+
+        if((wBpType & bp_normal) == bp_normal)
+        {
+            wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        }
+        else
+        {
+            wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        }
+
+        DbgCmdExec(wCmd.toUtf8().constData());
+    }
 }
 
 void SymbolView::toggleBookmark()

@@ -24,6 +24,7 @@ public:
     void expandSelectionUpTo(int to);
     void setSingleSelection(int index);
     int getInitialSelection();
+    QList<int> getSelection();
     void selectNext();
     void selectPrevious();
     bool isSelected(int base, int offset);
