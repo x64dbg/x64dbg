@@ -50,7 +50,7 @@ static bool isValidLocale(const QString & locale)
 {
     auto allLocales = QLocale::matchingLocales(QLocale::AnyLanguage, QLocale::AnyScript, QLocale::AnyCountry);
     for(auto & l : allLocales)
-        if(l.name() == locale)
+        if(l.name() == locale || l.name().replace(QRegExp("_.+"), "") == locale)
             return true;
     return false;
 }
