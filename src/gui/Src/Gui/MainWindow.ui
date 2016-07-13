@@ -155,7 +155,7 @@
    </widget>
    <widget class="QMenu" name="menuFavourites">
     <property name="title">
-     <string>Favourites</string>
+     <string>&amp;Favourites</string>
     </property>
    </widget>
    <addaction name="menuFile"/>
