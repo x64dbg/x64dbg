@@ -69,7 +69,7 @@ bool dbgisdll();
 void dbgsetattachevent(HANDLE handle);
 void DebugUpdateGui(duint disasm_addr, bool stack);
 void DebugUpdateGuiAsync(duint disasm_addr, bool stack);
-void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state = paused);
+void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state = paused, bool updateDebugState = true);
 void DebugUpdateBreakpointsViewAsync();
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump = false);
 void GuiSetDebugStateAsync(DBGSTATE state);

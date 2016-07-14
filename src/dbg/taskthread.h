@@ -31,6 +31,8 @@ protected:
     // Reset called after we latch in a value
     virtual void ResetArgs() { }
 public:
+    typedef F Fn_t;
+    typedef std::tuple<Args...> Args_t;
     void WakeUp(Args...);
     TaskThread_(F, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME);
     ~TaskThread_();
