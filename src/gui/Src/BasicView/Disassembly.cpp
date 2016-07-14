@@ -771,18 +771,23 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         if(event->modifiers() & Qt::ShiftModifier) //SHIFT pressed
             expand = true;
 
+        dsint initialStart = getSelectionStart();
+
         if(key == Qt::Key_Up)
             selectPrevious(expand);
         else
             selectNext(expand);
 
-        if(getSelectionStart() < botRVA)
+        bool expandedUp = initialStart != getSelectionStart();
+        dsint modifiedSelection = expandedUp ? getSelectionStart() : getSelectionEnd();
+
+        if(modifiedSelection < botRVA)
         {
-            setTableOffset(getSelectionStart());
+            setTableOffset(modifiedSelection);
         }
-        else if(getSelectionEnd() >= topRVA)
+        else if(modifiedSelection >= topRVA)
         {
-            setTableOffset(getInstructionRVA(getSelectionEnd(), -getNbrOfLineToPrint() + 2));
+            setTableOffset(getInstructionRVA(modifiedSelection, -getNbrOfLineToPrint() + 2));
         }
 
         updateViewport();
