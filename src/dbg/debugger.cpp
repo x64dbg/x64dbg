@@ -372,7 +372,6 @@ void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paus
     GuiSetDebugState(state);
     DebugUpdateGui(disasm_addr, stack);
 }
-
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
 {
     //correctly orders the GuiSetDebugState DebugUpdateGui to prevent drawing inconsistencies
@@ -385,6 +384,13 @@ void DebugUpdateGuiAsync(duint disasm_addr, bool stack)
     static TaskThread_<decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiTask(&DebugUpdateGui);
     DebugUpdateGuiTask.WakeUp(disasm_addr, stack);
 }
+
+void DebugUpdateBreakpointsViewAsync()
+{
+    static TaskThread_<decltype(&GuiUpdateBreakpointsView)> BreakpointsUpdateGuiTask(&GuiUpdateBreakpointsView);
+    BreakpointsUpdateGuiTask.WakeUp();
+}
+
 
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
 {
