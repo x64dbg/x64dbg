@@ -140,7 +140,7 @@ typedef TRACERECORDTYPE(*GETTRACERECORDTYPE)(duint pageAddress);
 typedef bool(*ENUMHANDLES)(ListOf(HANDLEINFO) handles);
 typedef bool(*GETHANDLENAME)(duint handle, char* name, size_t nameSize, char* typeName, size_t typeNameSize);
 typedef bool(*ENUMTCPCONNECTIONS)(ListOf(TCPCONNECTIONINFO) connections);
-typedef duint(*GETDBGEVENTS)();
+typedef uint64(*GETDBGEVENTS)();
 typedef int(*MODGETPARTY)(duint base);
 typedef void(*MODSETPARTY)(duint base, int party);
 typedef bool(*WATCHISWATCHDOGTRIGGERED)(unsigned int id);
