@@ -172,11 +172,13 @@ void StdTable::expandSelectionUpTo(int to)
     {
         mSelection.fromIndex = to;
         mSelection.toIndex = mSelection.firstSelectedIndex;
+        emit selectionChangedSignal(to);
     }
     else if(to > mSelection.firstSelectedIndex)
     {
         mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = to;
+        emit selectionChangedSignal(to);
     }
     else if(to == mSelection.firstSelectedIndex)
     {
