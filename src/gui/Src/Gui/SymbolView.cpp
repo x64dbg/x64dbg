@@ -25,6 +25,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList = new SearchListView();
     mModuleList->mSearchStartCol = 1;
     int charwidth = mModuleList->mList->getCharWidth();
+    mModuleList->mList->enableMultiSelection(true);
     mModuleList->mList->setCipBase(true);
     mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
     mModuleList->mList->addColumnAt(300, tr("Module"), true);
@@ -42,6 +43,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mSearchListView->mList->addColumnAt(2000, tr("Symbol (undecorated)"), true);
 
     // Setup search list
+    mSearchListView->mSearchList->enableMultiSelection(true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 80, tr("Symbol"), true);
@@ -224,15 +226,22 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
 
 void SymbolView::moduleSelectionChanged(int index)
 {
-    QString mod = mModuleList->mCurList->getCellContent(index, 1);
-    if(!mModuleBaseList.count(mod))
-        return;
+    setUpdatesEnabled(false);
+
     mSearchListView->mList->setRowCount(0);
-    DbgSymbolEnumFromCache(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList);
+    for(auto index : mModuleList->mCurList->getSelection())
+    {
+        QString mod = mModuleList->mCurList->getCellContent(index, 1);
+        if(!mModuleBaseList.count(mod))
+            continue;
+        DbgSymbolEnumFromCache(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList);
+    }
     mSearchListView->mList->reloadData();
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->setTableOffset(0);
     mSearchListView->mSearchBox->setText("");
+
+    setUpdatesEnabled(true);
 }
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
