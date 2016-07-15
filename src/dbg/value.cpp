@@ -1316,7 +1316,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         }
         else
         {
-            HMODULE mod = LoadLibraryExW(szModName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
+            HMODULE mod = LoadLibraryExW(szModName, 0, DONT_RESOLVE_DLL_REFERENCES);
             if(!mod)
             {
                 if(!silent)
@@ -1512,6 +1512,15 @@ bool convertLongLongNumber(const char* str, unsigned long long & result, int rad
     return true;
 }
 
+static bool isdigitduint(char digit)
+{
+#ifdef _WIN64
+    return digit >= '1' && digit <= '8';
+#else //x86
+    return digit >= '1' && digit <= '4';
+#endif //_WIN64
+}
+
 /**
 \brief Gets a value from a string. This function can parse expressions, memory locations, registers, flags, API names, labels, symbols and variables.
 \param string The string to parse.
@@ -1533,7 +1542,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         return true;
     }
     else if(string[0] == '['
-            || (isdigit(string[0]) && string[1] == ':' && string[2] == '[')
+            || (isdigitduint(string[0]) && string[1] == ':' && string[2] == '[')
             || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[')) //memory location
     {
         if(!DbgIsDebugging())
