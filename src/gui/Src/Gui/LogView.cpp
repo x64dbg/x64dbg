@@ -1,8 +1,9 @@
 #include "LogView.h"
 #include "Configuration.h"
 #include "Bridge.h"
+#include "BrowseDialog.h"
 
-LogView::LogView(QWidget* parent) : QTextEdit(parent)
+LogView::LogView(QWidget* parent) : QTextEdit(parent), logRedirection(NULL)
 {
     updateStyle();
     this->setUndoRedoEnabled(false);
@@ -15,6 +16,13 @@ LogView::LogView(QWidget* parent) : QTextEdit(parent)
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
 
     setupContextMenu();
+}
+
+LogView::~LogView()
+{
+    if(logRedirection)
+        CloseHandle(logRedirection);
+    logRedirection = NULL;
 }
 
 void LogView::updateStyle()
@@ -45,6 +53,9 @@ void LogView::setupContextMenu()
     actionToggleLogging->setShortcutContext(Qt::WidgetShortcut);
     connect(actionToggleLogging, SIGNAL(triggered()), this, SLOT(toggleLoggingSlot()));
     this->addAction(actionToggleLogging);
+    actionRedirectLog = new QAction(tr("&Redirect Log..."), this);
+    connect(actionRedirectLog, SIGNAL(triggered()), this, SLOT(redirectLogSlot()));
+    this->addAction(actionRedirectLog);
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -68,12 +79,28 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     else
         actionToggleLogging->setText(tr("Enable &Logging"));
     wMenu.addAction(actionToggleLogging);
+    wMenu.addAction(actionRedirectLog);
 
     wMenu.exec(event->globalPos());
 }
 
 void LogView::addMsgToLogSlot(QString msg)
 {
+    // fix Unix-style line endings.
+    msg.replace(QString("\r\n"), QString("\n"));
+    msg.replace(QChar('\n'), QString("\r\n"));
+    // redirect the log
+    if(logRedirection)
+    {
+        DWORD written = 0;
+        SetLastError(ERROR_SUCCESS);
+        if(!WriteFile(logRedirection, msg.data_ptr()->data(), msg.size() * 2, &written, nullptr))
+        {
+            CloseHandle(logRedirection);
+            logRedirection = NULL;
+            msg += tr("WriteFile() failed (GetLastError()= %1 ). Log redirection stopped.\r\n").arg(GetLastError());
+        }
+    }
     if(!loggingEnabled)
         return;
     if(this->document()->characterCount() > 10000 * 100) //limit the log to ~100mb
@@ -85,6 +112,29 @@ void LogView::addMsgToLogSlot(QString msg)
 void LogView::clearLogSlot()
 {
     this->clear();
+}
+
+void LogView::redirectLogSlot()
+{
+    if(logRedirection)
+        CloseHandle(logRedirection);
+    logRedirection = NULL;
+    BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
+    if(browse.exec() == QDialog::Accepted)
+    {
+        logRedirection = CreateFile(browse.path.toStdWString().c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+        if(logRedirection == INVALID_HANDLE_VALUE && GetLastError() == ERROR_FILE_EXISTS) // File already exists. Append to it.
+            logRedirection = CreateFile(browse.path.toStdWString().c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if(logRedirection == INVALID_HANDLE_VALUE)
+            addMsgToLogSlot(tr("CreateFile() failed. Log will not be redirected to %1.\n").arg(browse.path));
+        else
+        {
+            unsigned short BOM = 0xfeff;
+            DWORD written = 0;
+            WriteFile(logRedirection, &BOM, sizeof(BOM), &written, nullptr);
+            addMsgToLogSlot(tr("Log will be redirected to %1.\n").arg(browse.path));
+        }
+    }
 }
 
 void LogView::setLoggingEnabled(bool enabled)
