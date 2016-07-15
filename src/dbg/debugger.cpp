@@ -84,7 +84,7 @@ HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = true;
 bool bTraceRecordEnabledDuringTrace = true;
-duint DbgEvents = 0;
+uint64 DbgEvents = 0;
 
 static duint dbgcleartracecondition()
 {
@@ -280,26 +280,9 @@ bool dbgcmddel(const char* name)
     return true;
 }
 
-duint dbggetdbgevents()
+uint64 dbggetdbgevents()
 {
-    static duint DbgEventsLastSample = 0;
-    static uint32 DbgEventsLastReset = 0;
-
-    duint eventsSinceLastQuery = InterlockedExchange(&DbgEvents, 0);
-    uint32 now = GetTickCount();
-    uint32 timeDiffMs = now - DbgEventsLastReset;
-
-    // With too small of a time difference, it's hard to get a consistent sample.
-    if(timeDiffMs < 50)
-        return DbgEventsLastSample;
-
-    if(DbgEventsLastReset == 0 || (now < DbgEventsLastReset))
-    {
-        // Either firt time this was called, or rollover. Either way, just call it a second
-        timeDiffMs = 1000;
-    }
-    DbgEventsLastReset = now;
-    return DbgEventsLastSample = (eventsSinceLastQuery * 1000 / timeDiffMs);
+    return InterlockedCompareExchange64((int64*)&DbgEvents, -1, -1);
 }
 
 static DWORD WINAPI updateCallStackThread(duint ptr)
@@ -1685,7 +1668,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 
 static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 {
-    InterlockedIncrement(&DbgEvents);
+    InterlockedIncrement64((int64_t*)&DbgEvents);
     PLUG_CB_DEBUGEVENT debugEventInfo;
     debugEventInfo.DebugEvent = DebugEvent;
     plugincbcall(CB_DEBUGEVENT, &debugEventInfo);

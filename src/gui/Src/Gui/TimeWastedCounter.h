@@ -3,18 +3,33 @@
 
 #include <QObject>
 #include <QLabel>
+#include <stdint.h>
 
-class TimeWastedCounter : public QObject
+class TimeWastedCounter : public QLabel
 {
     Q_OBJECT
 public:
-    explicit TimeWastedCounter(QObject* parent, QLabel* label);
+    explicit TimeWastedCounter(QWidget* parent);
 
 private slots:
     void updateTimeWastedCounter();
-
+protected:
+    void mousePressEvent(QMouseEvent* event);
 private:
-    QLabel* mLabel;
+    struct TimeWastedCounterMode
+    {
+        enum t
+        {
+            EventsDelta = 0,
+            EventsTotal,
+            EventsHertz,
+            SIZE
+        };
+    };
+
+    TimeWastedCounterMode::t mCounterMode = TimeWastedCounterMode::EventsDelta;
+    uint64_t mLastEventCount = 0;
+    uint64_t mLastTime = 0;
 };
 
 #endif // TIMEWASTEDCOUNTER_H
