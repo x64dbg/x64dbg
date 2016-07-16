@@ -13,6 +13,7 @@ typedef struct
     bool split; //node is a split (brtrue points to the next node)
     void* userdata; //user data
     ListInfo exits; //exits (including brtrue and brfalse, duint)
+    ListInfo data; //block data
 } BridgeCFNodeList;
 
 typedef struct
@@ -41,10 +42,11 @@ struct BridgeCFNode
     bool split; //node is a split (brtrue points to the next node)
     void* userdata; //user data
     std::vector<duint> exits; //exits (including brtrue and brfalse)
+    std::vector<unsigned char> data; //block data
 
     explicit BridgeCFNode(BridgeCFNodeList* nodeList, bool freedata = true)
     {
-        if(!nodeList || nodeList->exits.size != nodeList->exits.count * sizeof(duint))
+        if(!nodeList)
             __debugbreak();
         parentGraph = nodeList->parentGraph;
         start = nodeList->start;
@@ -55,12 +57,10 @@ struct BridgeCFNode
         terminal = nodeList->terminal;
         split = nodeList->split;
         userdata = nodeList->userdata;
-        auto data = (duint*)nodeList->exits.data;
-        exits.resize(nodeList->exits.count);
-        for(int i = 0; i < nodeList->exits.count; i++)
-            exits[i] = data[i];
-        if(freedata)
-            BridgeFree(data);
+        if(!BridgeList<duint>::ToVector(&nodeList->exits, exits, freedata))
+            __debugbreak();
+        if(!BridgeList<unsigned char>::ToVector(&nodeList->data, data, freedata))
+            __debugbreak();
     }
 
     explicit BridgeCFNode(duint parentGraph, duint start, duint end)
@@ -94,6 +94,7 @@ struct BridgeCFNode
         out.split = split;
         out.userdata = userdata;
         BridgeList<duint>::CopyData(&out.exits, exits);
+        BridgeList<unsigned char>::CopyData(&out.data, data);
         return std::move(out);
     }
 };
@@ -114,7 +115,7 @@ struct BridgeCFGraph
         auto data = (BridgeCFNodeList*)graphList->nodes.data;
         for(int i = 0; i < graphList->nodes.count; i++)
             AddNode(BridgeCFNode(&data[i], freedata));
-        if(freedata)
+        if(freedata && data)
             BridgeFree(data);
     }
 
