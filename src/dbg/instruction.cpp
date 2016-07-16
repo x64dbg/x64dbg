@@ -858,6 +858,72 @@ CMDRESULT cbInstrPop(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbInstrBswap(int argc, char* argv[])
+{
+    if (argc < 2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    duint arg1 = 0;
+    int size = 0;
+    bool isvar = false;
+    if (!valfromstring(argv[1], &arg1, false, false, &size, &isvar))
+        return STATUS_ERROR;
+
+    // refuse 8-bit swap requests
+    if (size == 1)
+    {
+        dprintf("invalid expression: \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+
+    dprintf("arg1:  %llx\n", arg1);
+    dprintf("size:  %d\n", size);
+    dprintf("isvar: %s\n", isvar ? "true" : "false");
+
+    duint result = 0;
+
+    // target is register/user-defined variable
+    if (isvar)
+    {
+        dprintf("before:    %llx\n", arg1);
+
+        switch (size)
+        {
+        case 2:
+            result = _byteswap_ushort((uint16)arg1);
+            break;
+        case 4:
+            result = _byteswap_ulong((uint32)arg1);
+            break;
+#ifdef _WIN64
+        case 8:
+            result = _byteswap_uint64(arg1);
+            break;
+#endif //_WIN64
+        }
+    }
+    // target is mem address
+    else
+    {
+#ifdef _WIN64
+        result = _byteswap_uint64(*(duint*)arg1);
+#else
+        result = _byteswap_ulong(*(duint*)arg1);
+#endif //_WIN64
+    }
+
+    dprintf("result:    %llx\n", result);
+    dprintf("\n");
+
+#ifdef _WIN64
+    return cmddirectexec("mov %s,%llx", argv[1], result);
+#else
+    return cmddirectexec("mov %s,%x", argv[1], result);
+#endif //_WIN64
+}
+
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
 {
     GuiReferenceInitialize("Script");
