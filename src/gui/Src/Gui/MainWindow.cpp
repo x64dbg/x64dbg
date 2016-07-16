@@ -172,7 +172,7 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(mCpuWidget);
     mWidgetNativeNameList.push_back("CPUTab");
     mWidgetList.push_back(mGraphView);
-    mWidgetNativeNameList.push_back("Graph");
+    mWidgetNativeNameList.push_back("GraphTab");
     mWidgetList.push_back(mLogView);
     mWidgetNativeNameList.push_back("LogTab");
     mWidgetList.push_back(mNotesManager);

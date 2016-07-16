@@ -227,6 +227,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     QMap<QString, duint> tabOrderUint;
     int curTab = 0;
     tabOrderUint.insert("CPUTab", curTab++);
+    tabOrderUint.insert("GraphTab", curTab++);
     tabOrderUint.insert("LogTab", curTab++);
     tabOrderUint.insert("NotesTab", curTab++);
     tabOrderUint.insert("BreakpointsTab", curTab++);
