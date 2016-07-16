@@ -65,6 +65,14 @@ public:
         return result;
     }
 
+    const CFGraph* GetFunctionGraph(duint entry) const
+    {
+        for(const auto & function : mFunctions)
+            if(function.entryPoint == entry)
+                return &function;
+        return nullptr;
+    }
+
 protected:
     duint mEntryPoint;
     std::vector<CFGraph> mFunctions;
