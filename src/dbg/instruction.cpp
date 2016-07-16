@@ -2804,7 +2804,6 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
     }
     RecursiveAnalysis analysis(base, size, entry, 0);
     analysis.Analyse();
-    analysis.SetMarkers();
     auto graph = analysis.GetFunctionGraph(entry);
     if(!graph)
     {
