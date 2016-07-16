@@ -5,6 +5,7 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QMimeData>
+#include "capstone_wrapper.h"
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent)
@@ -1167,6 +1168,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
     BridgeCFGraph graph(graphList);
     Bridge::getBridge()->setResult();
     Analysis anal;
+    Capstone cp;
     anal.update_id = this->update_id + 1;
     anal.entry = graph.entryPoint;
     anal.ready = true;
@@ -1186,12 +1188,23 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
                 block.true_path = node.brtrue;
                 block.header_text = Text(ToPtrString(block.entry), Qt::red, block.entry);
                 {
-                    //TODO: disassemble blocks
                     Instr instr;
-                    instr.addr = node.end;
-                    instr.opcode.push_back(0x90);
-                    instr.text = Text(ToPtrString(instr.addr), Qt::blue, instr.addr);
-                    block.instrs.push_back(instr);
+                    unsigned char data[MAX_DISASM_BUFFER];
+                    for(duint i = 0; i < node.data.size();)
+                    {
+                        data[0] = 0xFF;
+                        memcpy(data, node.data.data() + i, qMin(sizeof(data), node.data.size() - i));
+                        auto addr = node.start + i;
+                        cp.Disassemble(addr, data);
+                        auto size = cp.Size();
+                        instr.addr = addr;
+                        instr.opcode.resize(size);
+                        for(size_t j = 0; j < size; j++)
+                            instr.opcode[j] = data[j];
+                        instr.text = Text(cp.InstructionText().c_str(), Qt::black, instr.addr);
+                        block.instrs.push_back(instr);
+                        i += size;
+                    }
                 }
                 func.blocks.push_back(block);
             }
