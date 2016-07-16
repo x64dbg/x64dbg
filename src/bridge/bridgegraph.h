@@ -146,7 +146,7 @@ struct BridgeCFGraph
             found->second.insert(parent);
     }
 
-    BridgeCFGraphList ToGraphList()
+    BridgeCFGraphList ToGraphList() const
     {
         BridgeCFGraphList out;
         out.entryPoint = entryPoint;
