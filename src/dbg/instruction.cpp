@@ -871,57 +871,24 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
     if (!valfromstring(argv[1], &arg1, false, false, &size, &isvar))
         return STATUS_ERROR;
 
-    // refuse 8-bit swap requests
-    if (size == 1)
-    {
-        dprintf("invalid expression: \"%s\"!\n", argv[1]);
-        return STATUS_ERROR;
-    }
-
-    dprintf("arg1:  %llx\n", arg1);
-    dprintf("size:  %d\n", size);
-    dprintf("isvar: %s\n", isvar ? "true" : "false");
-
-    duint result = 0;
-
-    // target is register/user-defined variable
-    if (isvar)
-    {
-        dprintf("before:    %llx\n", arg1);
-
-        switch (size)
-        {
-        case 2:
-            result = _byteswap_ushort((uint16)arg1);
-            break;
-        case 4:
-            result = _byteswap_ulong((uint32)arg1);
-            break;
+    duint result = arg1;
+    if (size == 2)
+        result = _byteswap_ushort((uint16)arg1);
+    else if (size == 4)
+        result = _byteswap_ulong((uint32)arg1);
 #ifdef _WIN64
-        case 8:
-            result = _byteswap_uint64(arg1);
-            break;
-#endif //_WIN64
-        }
-    }
-    // target is mem address
-    else
-    {
-#ifdef _WIN64
-        result = _byteswap_uint64(*(duint*)arg1);
-#else
-        result = _byteswap_ulong(*(duint*)arg1);
-#endif //_WIN64
-    }
+    else if (size == 8)
+        result = _byteswap_uint64(arg1);
+#endif
 
-    dprintf("result:    %llx\n", result);
-    dprintf("\n");
+    String swapcmd = StringUtils::sprintf("mov %s, " fhex, argv[1], result);
 
-#ifdef _WIN64
-    return cmddirectexec("mov %s,%llx", argv[1], result);
-#else
-    return cmddirectexec("mov %s,%x", argv[1], result);
-#endif //_WIN64
+    dprintf("isvar:   %s\n", isvar ? "true" : "false");
+    dprintf("before:  %016llX\n", arg1);
+    dprintf("after:   %016llX\n", result);
+    dprintf("cmd:     %s\n\n", swapcmd.c_str());
+
+    return cmddirectexec(swapcmd.c_str());
 }
 
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
