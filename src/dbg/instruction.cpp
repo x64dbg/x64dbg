@@ -870,7 +870,11 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
     bool isvar = false;
     if (!valfromstring(argv[1], &arg1, false, false, &size, &isvar))
         return STATUS_ERROR;
-
+    if (!isvar)
+    {
+        dprintf("Invalid expression: \"%s\"", argv[1]);
+        return STATUS_ERROR;
+    }
     duint result = arg1;
     if (size == 2)
         result = _byteswap_ushort((uint16)arg1);
@@ -880,14 +884,7 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
     else if (size == 8)
         result = _byteswap_uint64(arg1);
 #endif
-
     String swapcmd = StringUtils::sprintf("mov %s, " fhex, argv[1], result);
-
-    dprintf("isvar:   %s\n", isvar ? "true" : "false");
-    dprintf("before:  %016llX\n", arg1);
-    dprintf("after:   %016llX\n", result);
-    dprintf("cmd:     %s\n\n", swapcmd.c_str());
-
     return cmddirectexec(swapcmd.c_str());
 }
 
