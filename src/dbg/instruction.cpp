@@ -860,7 +860,7 @@ CMDRESULT cbInstrPop(int argc, char* argv[])
 
 CMDRESULT cbInstrBswap(int argc, char* argv[])
 {
-    if (argc < 2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
@@ -868,20 +868,20 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
     duint arg1 = 0;
     int size = 0;
     bool isvar = false;
-    if (!valfromstring(argv[1], &arg1, false, false, &size, &isvar))
+    if(!valfromstring(argv[1], &arg1, false, false, &size, &isvar))
         return STATUS_ERROR;
-    if (!isvar)
+    if(!isvar)
     {
         dprintf("Invalid expression: \"%s\"", argv[1]);
         return STATUS_ERROR;
     }
     duint result = arg1;
-    if (size == 2)
+    if(size == 2)
         result = _byteswap_ushort((uint16)arg1);
-    else if (size == 4)
+    else if(size == 4)
         result = _byteswap_ulong((uint32)arg1);
 #ifdef _WIN64
-    else if (size == 8)
+    else if(size == 8)
         result = _byteswap_uint64(arg1);
 #endif
     String swapcmd = StringUtils::sprintf("mov %s, " fhex, argv[1], result);
