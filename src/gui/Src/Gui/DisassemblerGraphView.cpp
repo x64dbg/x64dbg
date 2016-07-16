@@ -6,9 +6,8 @@
 #include <QApplication>
 #include <QMimeData>
 
-DisassemblerGraphView::DisassemblerGraphView(const Analysis & analysis, QWidget* parent)
-    : QAbstractScrollArea(parent),
-      analysis(analysis)
+DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
+    : QAbstractScrollArea(parent)
 {
     this->status = "Loading...";
 
@@ -16,7 +15,7 @@ DisassemblerGraphView::DisassemblerGraphView(const Analysis & analysis, QWidget*
     //Dummy
 
     //Start disassembly view at the entry point of the binary
-    this->function = this->analysis.entry;
+    this->function = 0;
     this->update_id = 0;
     this->ready = false;
     this->desired_pos = nullptr;
@@ -47,6 +46,11 @@ DisassemblerGraphView::DisassemblerGraphView(const Analysis & analysis, QWidget*
     this->verticalScrollBar()->setSingleStep(this->charHeight);
     QSize areaSize = this->viewport()->size();
     this->adjustSize(areaSize.width(), areaSize.height());
+
+    //Connect to bridge
+    connect(Bridge::getBridge(), SIGNAL(loadGraph(BridgeCFGraphList*)), this, SLOT(loadGraphSlot(BridgeCFGraphList*)));
+    connect(Bridge::getBridge(), SIGNAL(graphAt(duint)), this, SLOT(graphAtSlot(duint)));
+    connect(Bridge::getBridge(), SIGNAL(updateGraph()), this, SLOT(updateGraphSlot()));
 }
 
 void DisassemblerGraphView::initFont()
@@ -1156,4 +1160,54 @@ void DisassemblerGraphView::fontChanged()
         //Rerender function to update layout
         this->renderFunction(this->analysis.functions[this->function]);
     }
+}
+
+void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
+{
+    BridgeCFGraph graph(graphList);
+    Bridge::getBridge()->setResult();
+    Analysis anal;
+    anal.update_id = this->update_id + 1;
+    anal.entry = graph.entryPoint;
+    anal.ready = true;
+    {
+        Function func;
+        func.entry = graph.entryPoint;
+        func.ready = true;
+        func.update_id = anal.update_id;
+        {
+            for(const auto & nodeIt : graph.nodes)
+            {
+                const BridgeCFNode & node = nodeIt.second;
+                Block block;
+                block.entry = node.start;
+                block.exits = node.exits;
+                block.false_path = node.brfalse;
+                block.true_path = node.brtrue;
+                block.header_text = Text(ToPtrString(block.entry), Qt::red, block.entry);
+                {
+                    //TODO: disassemble blocks
+                    Instr instr;
+                    instr.addr = node.end;
+                    instr.opcode.push_back(0x90);
+                    instr.text = Text(ToPtrString(instr.addr), Qt::blue, instr.addr);
+                    block.instrs.push_back(instr);
+                }
+                func.blocks.push_back(block);
+            }
+        }
+        anal.functions.insert({func.entry, func});
+    }
+    this->analysis = anal;
+    this->function = this->analysis.entry;
+}
+
+void DisassemblerGraphView::graphAtSlot(duint addr)
+{
+    this->navigate(addr);
+}
+
+void DisassemblerGraphView::updateGraphSlot()
+{
+    this->viewport()->update();
 }

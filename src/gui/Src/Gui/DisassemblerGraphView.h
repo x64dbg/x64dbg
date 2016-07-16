@@ -201,6 +201,7 @@ public:
 
         bool find_instr(duint addr, duint & func, duint & instr)
         {
+            //TODO implement
             Q_UNUSED(addr);
             Q_UNUSED(func);
             Q_UNUSED(instr);
@@ -210,7 +211,7 @@ public:
         //dummy class
     };
 
-    DisassemblerGraphView(const Analysis & analysis, QWidget* parent = nullptr);
+    DisassemblerGraphView(QWidget* parent = nullptr);
     void initFont();
     void adjustSize(int width, int height);
     void resizeEvent(QResizeEvent* event);
@@ -249,6 +250,9 @@ public:
 
 public slots:
     void updateTimerEvent();
+    void loadGraphSlot(BridgeCFGraphList* graph);
+    void graphAtSlot(duint addr);
+    void updateGraphSlot();
 
 private:
     QString status;
