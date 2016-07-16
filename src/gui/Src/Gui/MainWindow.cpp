@@ -159,7 +159,11 @@ MainWindow::MainWindow(QWidget* parent)
     mHandlesView = new HandlesView(this);
     mHandlesView->setWindowTitle(tr("Handles"));
     mHandlesView->setWindowIcon(DIcon("handles.png"));
-    mHandlesView->hide();
+
+    // Graph view
+    mGraphView = new DisassemblerGraphView(this);
+    mGraphView->setWindowTitle(tr("Graph"));
+    mGraphView->setWindowIcon(DIcon("graph.png"));
 
     // Create the tab widget
     mTabWidget = new MHTabWidget();
@@ -167,6 +171,8 @@ MainWindow::MainWindow(QWidget* parent)
     // Add all widgets to the list
     mWidgetList.push_back(mCpuWidget);
     mWidgetNativeNameList.push_back("CPUTab");
+    mWidgetList.push_back(mGraphView);
+    mWidgetNativeNameList.push_back("Graph");
     mWidgetList.push_back(mLogView);
     mWidgetNativeNameList.push_back("LogTab");
     mWidgetList.push_back(mNotesManager);
@@ -281,12 +287,14 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionNotes, SIGNAL(triggered()), this, SLOT(displayNotesWidget()));
     connect(ui->actionSnowman, SIGNAL(triggered()), this, SLOT(displaySnowmanWidget()));
     connect(ui->actionHandles, SIGNAL(triggered()), this, SLOT(displayHandlesWidget()));
+    connect(ui->actionGraph, SIGNAL(triggered()), this, SLOT(displayGraphWidget()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
+    connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayGraphWidget()), this, SLOT(displayGraphWidget()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(decompileAt(dsint, dsint)), this, SLOT(decompileAt(dsint, dsint)));
@@ -450,6 +458,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionFunctions, ConfigShortcut("ViewFunctions"));
     setGlobalShortcut(ui->actionSnowman, ConfigShortcut("ViewSnowman"));
     setGlobalShortcut(ui->actionHandles, ConfigShortcut("ViewHandles"));
+    setGlobalShortcut(ui->actionGraph, ConfigShortcut("ViewGraph"));
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
@@ -884,6 +893,11 @@ void MainWindow::displayThreadsWidget()
 void MainWindow::displaySnowmanWidget()
 {
     showQWidgetTab(mSnowmanView);
+}
+
+void MainWindow::displayGraphWidget()
+{
+    showQWidgetTab(mGraphView);
 }
 
 void MainWindow::hideDebugger()
