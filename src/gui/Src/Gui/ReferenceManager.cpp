@@ -38,7 +38,7 @@ void ReferenceManager::newReferenceView(QString name)
 void ReferenceManager::closeTab(int index)
 {
     removeTab(index);
-    if (count() <= 0)
+    if(count() <= 0)
         emit showCpu();
 }
 
