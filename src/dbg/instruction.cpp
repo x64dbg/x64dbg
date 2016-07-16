@@ -2787,3 +2787,32 @@ CMDRESULT cbInstrExinfo(int argc, char* argv[])
         }
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrGraph(int argc, char* argv[])
+{
+    duint entry;
+    if(argc < 2 || !valfromstring(argv[1], &entry))
+        entry = GetContextDataEx(hActiveThread, UE_CIP);
+    duint start, size;
+    if(FunctionGet(entry, &start))
+        entry = start;
+    auto base = MemFindBaseAddr(entry, &size);
+    if(!base || !MemIsValidReadPtr(entry))
+    {
+        dprintf("Invalid memory address " fhex "!\n", entry);
+        return STATUS_ERROR;
+    }
+    RecursiveAnalysis analysis(base, size, entry, 0);
+    analysis.Analyse();
+    analysis.SetMarkers();
+    auto graph = analysis.GetFunctionGraph(entry);
+    if(!graph)
+    {
+        dputs("No graph generated...");
+        return STATUS_ERROR;
+    }
+    auto graphList = graph->ToGraphList();
+    GuiLoadGraph(&graphList);
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
