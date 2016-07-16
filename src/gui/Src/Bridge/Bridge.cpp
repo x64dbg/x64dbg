@@ -578,6 +578,22 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_UPDATE_WATCH_VIEW:
         emit updateWatch();
         break;
+
+    case GUI_LOAD_GRAPH:
+    {
+        BridgeResult result;
+        emit loadGraph((BridgeCFGraphList*)param1);
+        result.Wait();
+    }
+    break;
+
+    case GUI_GRAPH_AT:
+        emit graphAt(duint(param1));
+        break;
+
+    case GUI_UPDATE_GRAPH_VIEW:
+        emit updateGraph();
+        break;
     }
     return nullptr;
 }
