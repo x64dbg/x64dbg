@@ -24,4 +24,26 @@ namespace Exprfunc
     {
         return ModGetParty(addr);
     }
+
+    static duint selstart(int hWindow)
+    {
+        SELECTIONDATA selection;
+        GuiSelectionGet(hWindow, &selection);
+        return selection.start;
+    }
+
+    duint disasmsel()
+    {
+        return selstart(GUI_DISASSEMBLY);
+    }
+
+    duint dumpsel()
+    {
+        return selstart(GUI_DUMP);
+    }
+
+    duint stacksel()
+    {
+        return selstart(GUI_STACK);
+    }
 }
