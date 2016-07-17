@@ -24,13 +24,12 @@ public:
     void expandSelectionUpTo(int to);
     void setSingleSelection(int index);
     int getInitialSelection();
-    QList<int> getSelection();
     void selectNext();
     void selectPrevious();
     bool isSelected(int base, int offset);
 
     // Data Management
-    void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "", SortBy::t sortFn = SortBy::AsText);
+    void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "");
     void setRowCount(int count);
     void deleteAllColumns();
     void setCellContent(int r, int c, QString s);
@@ -61,16 +60,15 @@ private:
     class ColumnCompare
     {
     public:
-        ColumnCompare(int col, bool greater, SortBy::t fn)
+        ColumnCompare(int col, bool greater)
         {
             mCol = col;
             mGreater = greater;
-            mSortFn = fn;
         }
 
         inline bool operator()(const QList<QString> & a, const QList<QString> & b) const
         {
-            bool less = mSortFn(a.at(mCol), b.at(mCol));
+            bool less = QString::compare(a.at(mCol), b.at(mCol), Qt::CaseInsensitive) < 0;
             if(mGreater)
                 return !less;
             return less;
@@ -78,7 +76,6 @@ private:
     private:
         int mCol;
         int mGreater;
-        SortBy::t mSortFn;
     };
 
     enum GuiState_t {NoState, MultiRowsSelectionState};

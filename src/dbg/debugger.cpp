@@ -84,7 +84,7 @@ HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = true;
 bool bTraceRecordEnabledDuringTrace = true;
-uint64 DbgEvents = 0;
+duint DbgEvents = 0;
 
 static duint dbgcleartracecondition()
 {
@@ -280,9 +280,9 @@ bool dbgcmddel(const char* name)
     return true;
 }
 
-uint64 dbggetdbgevents()
+duint dbggetdbgevents()
 {
-    return InterlockedCompareExchange64((int64*)&DbgEvents, -1, -1);
+    return InterlockedExchange(&DbgEvents, 0);
 }
 
 static DWORD WINAPI updateCallStackThread(duint ptr)
@@ -356,56 +356,23 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     GuiFocusView(GUI_DISASSEMBLY);
 }
 
-void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paused, bool setDebugState = true)
+void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paused)
 {
-    if(setDebugState)
-        GuiSetDebugState(state);
-    if(disasm_addr != 0)
-        DebugUpdateGui(disasm_addr, stack);
+    GuiSetDebugState(state);
+    DebugUpdateGui(disasm_addr, stack);
 }
 
-typedef TaskThread_<decltype(&DebugUpdateGuiSetState), duint, bool, DBGSTATE, bool> UpdateGuiSetStateTaskBase;
-struct UpdateGuiSetStateTask : public UpdateGuiSetStateTaskBase
-{
-    UpdateGuiSetStateTask(UpdateGuiSetStateTaskBase::Fn_t f) : UpdateGuiSetStateTaskBase(f) {}
-    virtual UpdateGuiSetStateTaskBase::Args_t CompressArguments(duint && addr, bool && stack, DBGSTATE && state, bool && updateDebugState) override
-    {
-        // Addr and stack args are not simply set; if addr is 0 it doesn't change the current addr and we
-        // stack is sticky until its reset after running.
-        return std::make_tuple(
-                   addr != 0 ? addr : std::get<0>(args),
-                   stack || std::get<1>(args),
-                   updateDebugState ? state : std::get<2>(args),
-                   updateDebugState || std::get<3>(args));
-    }
-    virtual void ResetArgs() override
-    {
-        // Necessary or addr and stack would always be non-zero, and always would run
-        args = std::make_tuple(0, false, paused, false);
-    }
-};
-
-void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state, bool updateDebugState)
+void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
 {
     //correctly orders the GuiSetDebugState DebugUpdateGui to prevent drawing inconsistencies
-    static UpdateGuiSetStateTask DebugUpdateGuiSetStateTask(&DebugUpdateGuiSetState);
-    DebugUpdateGuiSetStateTask.WakeUp(disasm_addr, stack, state, updateDebugState);
+    static TaskThread_<decltype(&DebugUpdateGuiSetState), duint, bool, DBGSTATE> DebugUpdateGuiSetStateTask(&DebugUpdateGuiSetState);
+    DebugUpdateGuiSetStateTask.WakeUp(disasm_addr, stack, state);
 }
 
 void DebugUpdateGuiAsync(duint disasm_addr, bool stack)
 {
-    DebugUpdateGuiSetStateAsync(disasm_addr, stack, paused, false);
-}
-
-void GuiSetDebugStateAsync(DBGSTATE state)
-{
-    DebugUpdateGuiSetStateAsync(0, false, state);
-}
-
-void DebugUpdateBreakpointsViewAsync()
-{
-    static TaskThread_<decltype(&GuiUpdateBreakpointsView)> BreakpointsUpdateGuiTask(&GuiUpdateBreakpointsView);
-    BreakpointsUpdateGuiTask.WakeUp();
+    static TaskThread_<decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiTask(&DebugUpdateGui);
+    DebugUpdateGuiTask.WakeUp(disasm_addr, stack);
 }
 
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
@@ -543,6 +510,12 @@ static bool getConditionValue(const char* expression)
     if(valfromstring(expression, &value))
         return value != 0;
     return true;
+}
+
+void GuiSetDebugStateAsync(DBGSTATE state)
+{
+    static TaskThread_<decltype(&GuiSetDebugState), DBGSTATE> GuiSetDebugStateTask(&GuiSetDebugState);
+    GuiSetDebugStateTask.WakeUp(state);
 }
 
 void cbPauseBreakpoint()
@@ -1668,7 +1641,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 
 static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 {
-    InterlockedIncrement64((int64_t*)&DbgEvents);
+    InterlockedIncrement(&DbgEvents);
     PLUG_CB_DEBUGEVENT debugEventInfo;
     debugEventInfo.DebugEvent = DebugEvent;
     plugincbcall(CB_DEBUGEVENT, &debugEventInfo);
