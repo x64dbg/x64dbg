@@ -17,6 +17,7 @@
 #include "Bridge.h"
 #include "QBeaEngine.h"
 #include "CachedFontMetrics.h"
+#include "MenuBuilder.h"
 
 class DisassemblerGraphView : public QAbstractScrollArea
 {
@@ -227,6 +228,7 @@ public:
     void prepareGraphNode(DisassemblerBlock & block);
     void adjustGraphLayout(DisassemblerBlock & block, int col, int row);
     void computeGraphLayout(DisassemblerBlock & block);
+    void setupContextMenu();
 
     template<typename T>
     using Matrix = std::vector<std::vector<T>>;
@@ -246,6 +248,10 @@ public slots:
     void loadGraphSlot(BridgeCFGraphList* graph);
     void graphAtSlot(duint addr);
     void updateGraphSlot();
+    void followDisassemblerSlot();
+
+signals:
+    void showCpu();
 
 private:
     QString status;
@@ -274,6 +280,10 @@ private:
     std::vector<int> col_edge_x;
     std::vector<int> row_edge_y;
     CachedFontMetrics* mFontMetrics;
+    MenuBuilder* mMenuBuilder;
+
+protected:
+#include "ActionHelpers.h"
 };
 
 #endif // DISASSEMBLERGRAPHVIEW_H

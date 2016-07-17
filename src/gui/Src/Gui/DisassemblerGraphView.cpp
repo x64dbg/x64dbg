@@ -48,6 +48,9 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     QSize areaSize = this->viewport()->size();
     this->adjustSize(areaSize.width(), areaSize.height());
 
+    //Setup context menu
+    setupContextMenu();
+
     //Connect to bridge
     connect(Bridge::getBridge(), SIGNAL(loadGraph(BridgeCFGraphList*)), this, SLOT(loadGraphSlot(BridgeCFGraphList*)));
     connect(Bridge::getBridge(), SIGNAL(graphAt(duint)), this, SLOT(graphAtSlot(duint)));
@@ -459,7 +462,9 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
 
     if((instr != 0) && (event->button() == Qt::RightButton))
     {
-        //TODO: context menu
+        QMenu wMenu(this);
+        mMenuBuilder->build(&wMenu);
+        wMenu.exec(event->globalPos()); //execute context menu
     }
 }
 
@@ -1234,4 +1239,23 @@ void DisassemblerGraphView::graphAtSlot(duint addr)
 void DisassemblerGraphView::updateGraphSlot()
 {
     this->viewport()->update();
+}
+
+void DisassemblerGraphView::setupContextMenu()
+{
+    mMenuBuilder = new MenuBuilder(this, [](QMenu*)
+    {
+        return DbgIsDebugging();
+    });
+
+    mMenuBuilder->addAction(makeAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in &Disassembler"), SLOT(followDisassemblerSlot())), [this](QMenu*)
+    {
+        return this->cur_instr != 0;
+    });
+}
+
+void DisassemblerGraphView::followDisassemblerSlot()
+{
+    DbgCmdExec(QString("disasm %1").arg(ToPtrString(this->cur_instr)).toUtf8().constData());
+    emit showCpu();
 }

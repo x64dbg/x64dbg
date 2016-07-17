@@ -268,7 +268,8 @@ HEADERS += \
     Src/Gui/WatchView.h \
     Src/Gui/FavouriteTools.h \
     Src/Gui/BrowseDialog.h \
-    Src/Gui/DisassemblerGraphView.h
+    Src/Gui/DisassemblerGraphView.h \
+    Src/Utils/ActionHelpers.h
     
 
 FORMS += \

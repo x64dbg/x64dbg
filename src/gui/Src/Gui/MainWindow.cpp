@@ -260,6 +260,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mSymbolView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(mSymbolView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     connect(mReferenceManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+    connect(mGraphView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(ui->actionReferences, SIGNAL(triggered()), this, SLOT(displayReferencesWidget()));
     connect(ui->actionThreads, SIGNAL(triggered()), this, SLOT(displayThreadsWidget()));
     connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(openSettings()));
