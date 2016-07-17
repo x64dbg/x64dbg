@@ -277,7 +277,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         byte_t wBuffer[16];
         if(!DbgMemRead(parVA, wBuffer, 16))
             return 0;
-        QBeaEngine disasm(-1);
+        QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")));
         Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, parVA);
         RichTextPainter::List richText;
         CapstoneTokenizer::TokenToRichText(instr.tokens, richText, 0);

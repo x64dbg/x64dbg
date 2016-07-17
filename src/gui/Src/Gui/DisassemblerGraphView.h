@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <QMutex>
 #include "Bridge.h"
+#include "QBeaEngine.h"
 
 class DisassemblerGraphView : public QAbstractScrollArea
 {
@@ -92,6 +93,7 @@ public:
 
     struct Text
     {
+        //TODO: replace with RichTextPainter
         std::vector<std::vector<Line>> lines;
         std::vector<std::vector<Token>> tokens;
 
@@ -113,6 +115,28 @@ public:
             line.color = color;
             std::vector<Line> lv;
             lv.push_back(line);
+            lines.push_back(lv);
+        }
+
+        Text(const RichTextPainter::List & richText, duint addr)
+        {
+            std::vector<Token> tv;
+            std::vector<Line> lv;
+            int start = 0;
+            for(const RichTextPainter::CustomRichText_t & rtok : richText)
+            {
+                Token tok;
+                tok.start = start;
+                start += tok.length = rtok.text.length();
+                tok.addr = addr;
+                tok.name = rtok.text;
+                tv.push_back(tok);
+                Line line;
+                line.text = rtok.text;
+                line.color = rtok.textColor;
+                lv.push_back(line);
+            }
+            tokens.push_back(tv);
             lines.push_back(lv);
         }
 

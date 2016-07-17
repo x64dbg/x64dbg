@@ -5,7 +5,6 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QMimeData>
-#include "capstone_wrapper.h"
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent)
@@ -1168,7 +1167,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
     BridgeCFGraph graph(graphList);
     Bridge::getBridge()->setResult();
     Analysis anal;
-    Capstone cp;
+    QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")));
     anal.update_id = this->update_id + 1;
     anal.entry = graph.entryPoint;
     anal.ready = true;
@@ -1195,13 +1194,15 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
                         data[0] = 0xFF;
                         memcpy(data, node.data.data() + i, qMin(sizeof(data), node.data.size() - i));
                         auto addr = node.start + i;
-                        cp.Disassemble(addr, data);
-                        auto size = cp.Size();
+                        Instruction_t instrTok = disasm.DisassembleAt((byte_t*)data, sizeof(data), 0, addr);
+                        RichTextPainter::List richText;
+                        CapstoneTokenizer::TokenToRichText(instrTok.tokens, richText, 0);
+                        auto size = instrTok.length;
                         instr.addr = addr;
                         instr.opcode.resize(size);
                         for(size_t j = 0; j < size; j++)
                             instr.opcode[j] = data[j];
-                        instr.text = Text(cp.InstructionText().c_str(), Qt::black, instr.addr);
+                        instr.text = Text(richText, instr.addr);
                         block.instrs.push_back(instr);
                         i += size;
                     }
