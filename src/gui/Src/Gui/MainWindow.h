@@ -28,6 +28,7 @@
 #include "TimeWastedCounter.h"
 #include "NotesManager.h"
 #include "SettingsDialog.h"
+#include "DisassemblerGraphView.h"
 
 namespace Ui
 {
@@ -91,6 +92,7 @@ public slots:
     void displayReferencesWidget();
     void displayThreadsWidget();
     void displaySnowmanWidget();
+    void displayGraphWidget();
     void hideDebugger();
     void openSettings();
     void openAppearance();
@@ -167,6 +169,7 @@ private:
     SnowmanView* mSnowmanView;
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
+    DisassemblerGraphView* mGraphView;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;

@@ -25,8 +25,6 @@ typedef unsigned long duint;
 typedef signed long dsint;
 #endif //_WIN64
 
-#include "bridgegraph.h"
-
 #ifndef BRIDGE_IMPEXP
 #ifdef BUILD_BRIDGE
 #define BRIDGE_IMPEXP __declspec(dllexport)
@@ -56,6 +54,17 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 BRIDGE_IMPEXP bool BridgeSettingFlush();
 BRIDGE_IMPEXP bool BridgeSettingRead(int* errorLine);
 BRIDGE_IMPEXP int BridgeGetDbgVersion();
+
+#ifdef __cplusplus
+}
+#endif
+
+#include "bridgegraph.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 //Debugger defines
 #define MAX_LABEL_SIZE 256

@@ -35,6 +35,7 @@ signals:
     void decompileAt(dsint start, dsint end);
     void displaySnowmanWidget();
     void displayLogWidget();
+    void displayGraphWidget();
 
 public slots:
     void toggleInt3BPActionSlot();
@@ -102,6 +103,7 @@ public slots:
     void removeAnalysisModuleSlot();
     void setEncodeTypeSlot();
     void setEncodeTypeRangeSlot();
+    void graphSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);

@@ -124,6 +124,9 @@ signals:
     void focusDump();
     void focusStack();
     void updateWatch();
+    void loadGraph(BridgeCFGraphList* graph);
+    void graphAt(duint addr);
+    void updateGraph();
 
 private:
     QMutex* mBridgeMutex;

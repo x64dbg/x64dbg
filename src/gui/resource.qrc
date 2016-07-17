@@ -249,5 +249,6 @@
         <file>images/undo.png</file>
         <file>images/binary_save.png</file>
         <file>images/animal-dog.png</file>
+        <file>images/graph.png</file>
     </qresource>
 </RCC>

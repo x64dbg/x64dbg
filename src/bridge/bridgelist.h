@@ -120,6 +120,18 @@ public:
         return true;
     }
 
+    static bool ToVector(const ListInfo* listInfo, std::vector<Type> & listData, bool freedata = true)
+    {
+        if(!listInfo || listInfo->size != listInfo->count * sizeof(Type) || (listInfo->count && !listInfo->data))
+            return false;
+        listData.resize(listInfo->count);
+        for(int i = 0; i < listInfo->count; i++)
+            listData[i] = ((Type*)listInfo->data)[i];
+        if(freedata && listInfo->data)
+            BridgeFree(listInfo->data);
+        return true;
+    }
+
 private:
     ListInfo _listInfo;
 };

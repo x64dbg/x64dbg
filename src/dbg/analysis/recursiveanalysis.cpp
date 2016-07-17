@@ -33,6 +33,8 @@ void RecursiveAnalysis::SetMarkers()
         duint icount = 0;
         for(const auto & node : function.nodes)
         {
+            if(!inRange(node.second.start))
+                continue;
             icount += node.second.icount;
             start = min(node.second.start, start);
             end = max(node.second.end, end);
@@ -64,11 +66,18 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
     {
         auto start = queue.front();
         queue.pop();
-        if(visited.count(start) || !inRange(start)) //already visited or out of range
+        if(visited.count(start)) //already visited
             continue;
         visited.insert(start);
 
         CFNode node(graph.entryPoint, start, start);
+
+        if(!inRange(start)) //out of range
+        {
+            graph.AddNode(node);
+            continue;
+        }
+
         while(true)
         {
             node.icount++;
@@ -151,7 +160,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             addr += size;
         }
     }
-    //third pass: correct the parents + add brtrue and brfalse to the exits
+    //third pass: correct the parents + add brtrue and brfalse to the exits + get data
     graph.parents.clear();
     for(auto & nodeIt : graph.nodes)
     {
@@ -162,6 +171,14 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             node.exits.push_back(node.brtrue);
         if(node.brfalse)
             node.exits.push_back(node.brfalse);
+        if(node.brtrue && !node.brfalse)
+            node.brtrue = 0;
+        if(!node.icount)
+            continue;
+        auto size = node.end - node.start + (mCp.Disassemble(node.end, translateAddr(node.end)) ? mCp.Size() : 1);
+        node.data.resize(size);
+        for(duint i = 0; i < size; i++)
+            node.data[i] = inRange(node.start + i) ? *translateAddr(node.start + i) : 0x90;
     }
     mFunctions.push_back(graph);
 }

@@ -308,6 +308,7 @@ static void registercommands()
     dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
     dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
     dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
+    dbgcmdnew("graph", cbInstrGraph, true); //graph function
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

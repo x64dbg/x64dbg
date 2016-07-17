@@ -277,7 +277,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         byte_t wBuffer[16];
         if(!DbgMemRead(parVA, wBuffer, 16))
             return 0;
-        QBeaEngine disasm(-1);
+        QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")));
         Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, parVA);
         RichTextPainter::List richText;
         CapstoneTokenizer::TokenToRichText(instr.tokens, richText, 0);
@@ -577,6 +577,22 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_UPDATE_WATCH_VIEW:
         emit updateWatch();
+        break;
+
+    case GUI_LOAD_GRAPH:
+    {
+        BridgeResult result;
+        emit loadGraph((BridgeCFGraphList*)param1);
+        result.Wait();
+    }
+    break;
+
+    case GUI_GRAPH_AT:
+        emit graphAt(duint(param1));
+        break;
+
+    case GUI_UPDATE_GRAPH_VIEW:
+        emit updateGraph();
         break;
     }
     return nullptr;

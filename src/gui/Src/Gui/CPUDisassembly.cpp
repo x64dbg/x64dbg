@@ -327,6 +327,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     mMenuBuilder->addMenu(makeMenu(DIcon("snowman.png"), tr("Decompile")), decompileMenu);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("graph.png"), tr("Graph"), SLOT(graphSlot()), "ActionGraph"));
 
     mMenuBuilder->addMenu(makeMenu(DIcon("help.png"), tr("Help on Symbolic Name")), [this](QMenu * menu)
     {
@@ -1652,4 +1653,10 @@ void CPUDisassembly::setEncodeTypeSlot()
     QAction* pAction = qobject_cast<QAction*>(sender());
     mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), (ENCODETYPE)pAction->data().toUInt());
     GuiUpdateDisassemblyView();
+}
+
+void CPUDisassembly::graphSlot()
+{
+    DbgCmdExec(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData());
+    emit displayGraphWidget();
 }

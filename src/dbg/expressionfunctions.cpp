@@ -27,10 +27,15 @@ static T callFunc(const T* argv, T(*cbFunction)(Ts...), seq<S...>)
 template<typename... Ts>
 static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
 {
-    return ExpressionFunctions::Register(name, sizeof...(Ts), [cbFunction](int argc, duint * argv, void* userdata)
-    {
-        return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
-    });
+    auto aliases = StringUtils::Split(name, '\1');
+    if(!ExpressionFunctions::Register(aliases[0], sizeof...(Ts), [cbFunction](int argc, duint * argv, void* userdata)
+{
+    return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
+    }))
+    return false;
+    for(size_t i = 1; i < aliases.size(); i++)
+        ExpressionFunctions::RegisterAlias(aliases[0], aliases[i]);
+    return true;
 }
 
 void ExpressionFunctions::Init()
@@ -47,6 +52,10 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.size", ModSizeFromAddr);
     RegisterEasy("mod.hash", ModHashFromAddr);
     RegisterEasy("mod.entry", ModEntryFromAddr);
+
+    RegisterEasy("disasm.sel\1dis.sel", disasmsel);
+    RegisterEasy("dump.sel", dumpsel);
+    RegisterEasy("stack.sel", stacksel);
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata)
@@ -65,13 +74,28 @@ bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFU
     return true;
 }
 
+bool ExpressionFunctions::RegisterAlias(const String & name, const String & alias)
+{
+    EXCLUSIVE_ACQUIRE(LockExpressionFunctions);
+    auto found = mFunctions.find(name);
+    if(found == mFunctions.end())
+        return false;
+    if(!Register(alias, found->second.argc, found->second.cbFunction, found->second.userdata))
+        return false;
+    found->second.aliases.push_back(alias);
+    return true;
+}
+
 bool ExpressionFunctions::Unregister(const String & name)
 {
     EXCLUSIVE_ACQUIRE(LockExpressionFunctions);
     auto found = mFunctions.find(name);
     if(found == mFunctions.end())
         return false;
+    auto aliases = found->second.aliases;
     mFunctions.erase(found);
+    for(const auto & alias : found->second.aliases)
+        Unregister(alias);
     return true;
 }
 

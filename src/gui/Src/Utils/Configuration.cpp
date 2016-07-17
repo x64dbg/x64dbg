@@ -227,6 +227,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     QMap<QString, duint> tabOrderUint;
     int curTab = 0;
     tabOrderUint.insert("CPUTab", curTab++);
+    tabOrderUint.insert("GraphTab", curTab++);
     tabOrderUint.insert("LogTab", curTab++);
     tabOrderUint.insert("NotesTab", curTab++);
     tabOrderUint.insert("BreakpointsTab", curTab++);
@@ -278,6 +279,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Alt+F", true));
     defaultShortcuts.insert("ViewSnowman", Shortcut(tr("View -> Snowman"), "", true));
     defaultShortcuts.insert("ViewHandles", Shortcut(tr("View -> Handles"), "", true));
+    defaultShortcuts.insert("ViewGraph", Shortcut(tr("View -> Graph"), "Alt+G", true));
 
     defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9", true));
     defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (skip exceptions)"), "Shift+F9", true));
@@ -355,7 +357,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionFindPattern", Shortcut(tr("Actions -> Find Pattern"), "Ctrl+B"));
     defaultShortcuts.insert("ActionFindReferences", Shortcut(tr("Actions -> Find References"), "Ctrl+R"));
     defaultShortcuts.insert("ActionXrefs", Shortcut(tr("Actions -> xrefs..."), "X"));
-    defaultShortcuts.insert("ActionAnalyzeSingleFunction", Shortcut(tr("Actions -> Analyze Single Function"), "Ctrl+Shift+A"));
+    defaultShortcuts.insert("ActionAnalyzeSingleFunction", Shortcut(tr("Actions -> Analyze Single Function"), "A"));
     defaultShortcuts.insert("ActionHelpOnMnemonic", Shortcut(tr("Actions -> Help on Mnemonic"), "Ctrl+F1"));
     defaultShortcuts.insert("ActionToggleMnemonicBrief", Shortcut(tr("Actions -> Toggle Mnemonic Brief"), "Ctrl+Shift+F1"));
     defaultShortcuts.insert("ActionHighlightingMode", Shortcut(tr("Actions -> Highlighting Mode"), "Ctrl+H"));
@@ -410,6 +412,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionAbortScript", Shortcut(tr("Actions -> Abort Script"), "Esc"));
     defaultShortcuts.insert("ActionExecuteCommandScript", Shortcut(tr("Actions -> Execute Script Command"), "X"));
     defaultShortcuts.insert("ActionRefresh", Shortcut(tr("Actions -> Refresh"), "F5"));
+    defaultShortcuts.insert("ActionGraph", Shortcut(tr("Actions -> Graph"), "G"));
 
     Shortcuts = defaultShortcuts;
 

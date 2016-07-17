@@ -9,6 +9,7 @@ public:
 
     static void Init();
     static bool Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata = nullptr);
+    static bool RegisterAlias(const String & name, const String & alias);
     static bool Unregister(const String & name);
     static bool Call(const String & name, std::vector<duint> & argv, duint & result);
     static bool GetArgc(const String & name, int & argc);
@@ -20,6 +21,7 @@ private:
         int argc;
         CBEXPRESSIONFUNCTION cbFunction;
         void* userdata;
+        std::vector<String> aliases;
     };
 
     static bool isValidName(const String & name);

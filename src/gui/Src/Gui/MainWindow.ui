@@ -70,6 +70,7 @@
     <addaction name="actionFunctions"/>
     <addaction name="actionSnowman"/>
     <addaction name="actionHandles"/>
+    <addaction name="actionGraph"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -952,6 +953,15 @@
    </property>
    <property name="text">
     <string>Step into (source)</string>
+   </property>
+  </action>
+  <action name="actionGraph">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/graph.png</normaloff>:/icons/images/graph.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Graph</string>
    </property>
   </action>
  </widget>

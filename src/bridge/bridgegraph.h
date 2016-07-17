@@ -12,14 +12,15 @@ typedef struct
     bool terminal; //node is a RET
     bool split; //node is a split (brtrue points to the next node)
     void* userdata; //user data
-    ListOf(duint) exits; //exits (including brtrue and brfalse)
+    ListInfo exits; //exits (including brtrue and brfalse, duint)
+    ListInfo data; //block data
 } BridgeCFNodeList;
 
 typedef struct
 {
     duint entryPoint; //graph entry point
     void* userdata; //user data
-    ListOf(BridgeCFNodeList) nodes; //graph nodes
+    ListInfo nodes; //graph nodes (BridgeCFNodeList)
 } BridgeCFGraphList;
 
 #ifdef __cplusplus
@@ -27,6 +28,7 @@ typedef struct
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <utility>
 
 struct BridgeCFNode
 {
@@ -40,10 +42,11 @@ struct BridgeCFNode
     bool split; //node is a split (brtrue points to the next node)
     void* userdata; //user data
     std::vector<duint> exits; //exits (including brtrue and brfalse)
+    std::vector<unsigned char> data; //block data
 
-    explicit BridgeCFNode(BridgeCFNodeList* nodeList)
+    explicit BridgeCFNode(BridgeCFNodeList* nodeList, bool freedata = true)
     {
-        if(!nodeList || !nodeList->exits || nodeList->exits->size != nodeList->exits->count * sizeof(duint))
+        if(!nodeList)
             __debugbreak();
         parentGraph = nodeList->parentGraph;
         start = nodeList->start;
@@ -54,10 +57,10 @@ struct BridgeCFNode
         terminal = nodeList->terminal;
         split = nodeList->split;
         userdata = nodeList->userdata;
-        auto data = (duint*)nodeList->exits->data;
-        exits.resize(nodeList->exits->count);
-        for(int i = 0; i < nodeList->exits->count; i++)
-            exits[i] = data[i];
+        if(!BridgeList<duint>::ToVector(&nodeList->exits, exits, freedata))
+            __debugbreak();
+        if(!BridgeList<unsigned char>::ToVector(&nodeList->data, data, freedata))
+            __debugbreak();
     }
 
     explicit BridgeCFNode(duint parentGraph, duint start, duint end)
@@ -77,6 +80,23 @@ struct BridgeCFNode
         : BridgeCFNode(0, 0, 0)
     {
     }
+
+    BridgeCFNodeList ToNodeList() const
+    {
+        BridgeCFNodeList out;
+        out.parentGraph = parentGraph;
+        out.start = start;
+        out.end = end;
+        out.brtrue = brtrue;
+        out.brfalse = brfalse;
+        out.icount = icount;
+        out.terminal = terminal;
+        out.split = split;
+        out.userdata = userdata;
+        BridgeList<duint>::CopyData(&out.exits, exits);
+        BridgeList<unsigned char>::CopyData(&out.data, data);
+        return std::move(out);
+    }
 };
 
 struct BridgeCFGraph
@@ -86,15 +106,17 @@ struct BridgeCFGraph
     std::unordered_map<duint, BridgeCFNode> nodes; //CFNode.start -> CFNode
     std::unordered_map<duint, std::unordered_set<duint>> parents; //CFNode.start -> parents
 
-    explicit BridgeCFGraph(BridgeCFGraphList* graphList)
+    explicit BridgeCFGraph(BridgeCFGraphList* graphList, bool freedata = true)
     {
-        if(!graphList || !graphList->nodes || graphList->nodes->size != graphList->nodes->count * sizeof(BridgeCFNode))
+        if(!graphList || graphList->nodes.size != graphList->nodes.count * sizeof(BridgeCFNodeList))
             __debugbreak();
         entryPoint = graphList->entryPoint;
         userdata = graphList->userdata;
-        auto data = (BridgeCFNode*)graphList->nodes->data;
-        for(int i = 0; i < graphList->nodes->count; i++)
-            AddNode(data[i]);
+        auto data = (BridgeCFNodeList*)graphList->nodes.data;
+        for(int i = 0; i < graphList->nodes.count; i++)
+            AddNode(BridgeCFNode(&data[i], freedata));
+        if(freedata && data)
+            BridgeFree(data);
     }
 
     explicit BridgeCFGraph(duint entryPoint)
@@ -123,6 +145,19 @@ struct BridgeCFGraph
         }
         else
             found->second.insert(parent);
+    }
+
+    BridgeCFGraphList ToGraphList() const
+    {
+        BridgeCFGraphList out;
+        out.entryPoint = entryPoint;
+        out.userdata = userdata;
+        std::vector<BridgeCFNodeList> nodeList;
+        nodeList.reserve(nodes.size());
+        for(const auto & nodeIt : nodes)
+            nodeList.push_back(nodeIt.second.ToNodeList());
+        BridgeList<BridgeCFNodeList>::CopyData(&out.nodes, nodeList);
+        return std::move(out);
     }
 };
 
