@@ -120,7 +120,7 @@ void LogView::redirectLogSlot()
     BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
     if(browse.exec() == QDialog::Accepted)
     {
-        logRedirection = fopen(browse.path.toLocal8Bit().constData(), "ab");
+        logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
         if(logRedirection == NULL)
             addMsgToLogSlot(tr("CreateFile() failed. Log will not be redirected to %1.\n").arg(browse.path));
         else
