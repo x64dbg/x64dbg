@@ -25,7 +25,6 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList = new SearchListView();
     mModuleList->mSearchStartCol = 1;
     int charwidth = mModuleList->mList->getCharWidth();
-    mModuleList->mList->enableMultiSelection(true);
     mModuleList->mList->setCipBase(true);
     mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
     mModuleList->mList->addColumnAt(300, tr("Module"), true);
@@ -36,14 +35,12 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), false);
 
     // Setup symbol list
-    mSearchListView->mList->enableMultiSelection(true);
     mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
     mSearchListView->mList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
     mSearchListView->mList->addColumnAt(charwidth * 80, tr("Symbol"), true);
     mSearchListView->mList->addColumnAt(2000, tr("Symbol (undecorated)"), true);
 
     // Setup search list
-    mSearchListView->mSearchList->enableMultiSelection(true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 80, tr("Symbol"), true);
@@ -226,22 +223,15 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
 
 void SymbolView::moduleSelectionChanged(int index)
 {
-    setUpdatesEnabled(false);
-
+    QString mod = mModuleList->mCurList->getCellContent(index, 1);
+    if(!mModuleBaseList.count(mod))
+        return;
     mSearchListView->mList->setRowCount(0);
-    for(auto index : mModuleList->mCurList->getSelection())
-    {
-        QString mod = mModuleList->mCurList->getCellContent(index, 1);
-        if(!mModuleBaseList.count(mod))
-            continue;
-        DbgSymbolEnumFromCache(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList);
-    }
+    DbgSymbolEnumFromCache(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList);
     mSearchListView->mList->reloadData();
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->setTableOffset(0);
     mSearchListView->mSearchBox->setText("");
-
-    setUpdatesEnabled(true);
 }
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
@@ -400,33 +390,27 @@ void SymbolView::toggleBreakpoint()
 
     if(!mSearchListView->mCurList->getRowCount())
         return;
+    QString addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
+    duint wVA;
+    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
+        return;
 
-    auto selection = mSearchListView->mCurList->getSelection();
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
 
-    for(auto selectedIdx : selection)
+    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
+    QString wCmd;
+
+    if((wBpType & bp_normal) == bp_normal)
     {
-        QString addrText = mSearchListView->mCurList->getCellContent(selectedIdx, 0);
-        duint wVA;
-        if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
-            return;
-
-        if(!DbgMemIsValidReadPtr(wVA))
-            return;
-
-        BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-        QString wCmd;
-
-        if((wBpType & bp_normal) == bp_normal)
-        {
-            wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        }
-        else
-        {
-            wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        }
-
-        DbgCmdExec(wCmd.toUtf8().constData());
+        wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
+    else
+    {
+        wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    }
+
+    DbgCmdExec(wCmd.toUtf8().constData());
 }
 
 void SymbolView::toggleBookmark()

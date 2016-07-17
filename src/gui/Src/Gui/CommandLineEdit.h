@@ -14,8 +14,6 @@ class CommandLineEdit : public HistoryLineEdit
 
 public:
     explicit CommandLineEdit(QWidget* parent = 0);
-    ~CommandLineEdit();
-
     void keyPressEvent(QKeyEvent* event);
     bool focusNextPrevChild(bool next);
 

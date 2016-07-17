@@ -189,16 +189,16 @@ void ThreadView::setupContextMenu()
 ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
 {
     int charwidth = getCharWidth();
-    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("Number"), false, "", SortBy::AsInt);
-    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("ID"), false, "", SortBy::AsHex);
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("Entry"), false, "", SortBy::AsHex);
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("TEB"), false, "", SortBy::AsHex);
+    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("Number"), false);
+    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("ID"), false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("Entry"), false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("TEB"), false);
 #ifdef _WIN64
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("RIP"), false, "", SortBy::AsHex);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("RIP"), false);
 #else
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("EIP"), false, "", SortBy::AsHex);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("EIP"), false);
 #endif //_WIN64
-    addColumnAt(8 + charwidth * 14, tr("Suspend Count"), false, "", SortBy::AsInt);
+    addColumnAt(8 + charwidth * 14, tr("Suspend Count"), false);
     addColumnAt(8 + charwidth * 12, tr("Priority"), false);
     addColumnAt(8 + charwidth * 12, tr("Wait Reason"), false);
     addColumnAt(8 + charwidth * 11, tr("Last Error"), false);

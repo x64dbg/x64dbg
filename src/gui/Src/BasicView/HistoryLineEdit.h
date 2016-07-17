@@ -12,13 +12,11 @@ public:
     void keyPressEvent(QKeyEvent* event);
     void addLineToHistory(QString parLine);
     void setFocus();
-    void loadSettings(QString sectionPrefix);
-    void saveSettings(QString sectionPrefix);
+
 signals:
     void keyPressed(int parKey);
 
 private:
-    int mCmdHistoryMaxSize = 1000;
     QList<QString> mCmdHistory;
     int mCmdIndex;
     bool bSixPressed;

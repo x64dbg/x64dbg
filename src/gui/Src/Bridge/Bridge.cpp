@@ -3,9 +3,7 @@
 #include "QBeaEngine.h"
 #include "main.h"
 #include "Exports.h"
-#include <qmetaobject.h>
 
-#define MEASURE_LATENCY_EVENT ((QEvent::Type)(QEvent::User + 42))
 /************************************************************************************
                             Global Variables
 ************************************************************************************/
@@ -23,49 +21,11 @@ Bridge::Bridge(QObject* parent) : QObject(parent)
     bridgeResult = 0;
     hasBridgeResult = false;
     dbgStopped = false;
-
-    qRegisterMetaType <uint32_t>("uint32_t");
-    connect(this, SIGNAL(measureLatency(uint32_t)),
-            this, SLOT(measureLatencySlot(uint32_t)), Qt::ConnectionType::QueuedConnection);
-
-    latencyThread = std::thread([this]
-    {
-        while(mBridgeMutex)
-        {
-            std::unique_lock<std::mutex> guard(latencyLock);
-            latencyLastRequest = GetTickCount();
-
-            // We can't use a normal signal/slot for this since we can't se the priority on that.
-            // If we don't have the low priority set; this gets scheduled ahead of UI events so
-            // we won't get accurate measurements.
-            QCoreApplication::postEvent(this, new QEvent(MEASURE_LATENCY_EVENT), Qt::LowEventPriority);
-            std::this_thread::sleep_for(std::chrono::milliseconds(40));
-            latencyCV.wait(guard, [this] { return latencyLastRequest < latencyLastResponse; });
-        }
-    });
-}
-void Bridge::customEvent(QEvent* ev)
-{
-    if(ev->type() == MEASURE_LATENCY_EVENT)
-    {
-        std::unique_lock<std::mutex> guard(latencyLock);
-        latencyLastResponse = GetTickCount();
-
-        // TickCount can overflow; just reset lastrequest
-        if(latencyLastResponse < latencyLastRequest)
-            latencyLastRequest = 0;
-
-        latencyMs = latencyLastResponse - latencyLastRequest;
-        latencyCV.notify_one();
-    }
 }
 
 Bridge::~Bridge()
 {
     delete mBridgeMutex;
-    mBridgeMutex = 0;
-    latencyCV.notify_all();
-    latencyThread.join();
 }
 
 void Bridge::CopyToClipboard(const QString & text)
@@ -625,24 +585,6 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 /************************************************************************************
                             Exported Functions
 ************************************************************************************/
-__declspec(dllexport) uint32 _gui_messagelatency()
-{
-    uint32 latencyLastRequest = Bridge::getBridge()->latencyLastRequest;
-    uint32 latencyLastResponse = Bridge::getBridge()->latencyLastResponse;
-    uint32 latencyMs = Bridge::getBridge()->latencyMs;
-
-    // Indicates a pending request
-    if(latencyLastResponse > latencyLastRequest)
-    {
-        // If the current wait time exceeds the last measurement, use that instead.
-        // this makes sure that if the pipeline is super stalled all of a sudden,
-        // the measurement is still somewhat accurate; although it would still be
-        // a floor on the actual latency.
-        uint32 currentWait = GetTickCount() - latencyLastRequest;
-        latencyMs = std::max(latencyMs, currentWait);
-    }
-    return latencyMs;
-}
 __declspec(dllexport) int _gui_guiinit(int argc, char* argv[])
 {
     return main(argc, argv);
