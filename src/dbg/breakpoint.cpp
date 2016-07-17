@@ -230,6 +230,7 @@ bool BpSetBreakCondition(duint Address, BP_TYPE Type, const char* Condition)
         return false;
 
     strcpy_s(bpInfo->breakCondition, Condition);
+    DebugUpdateBreakpointsViewAsync();
     return true;
 }
 
@@ -245,6 +246,7 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log)
         return false;
 
     strcpy_s(bpInfo->logText, Log);
+    DebugUpdateBreakpointsViewAsync();
     return true;
 }
 
@@ -290,6 +292,7 @@ bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition)
         return false;
 
     strcpy_s(bpInfo->commandCondition, Condition);
+    DebugUpdateBreakpointsViewAsync();
     return true;
 }
 
@@ -305,6 +308,8 @@ bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume)
         return false;
 
     bpInfo->fastResume = fastResume;
+    DebugUpdateBreakpointsViewAsync();
+
     return true;
 }
 

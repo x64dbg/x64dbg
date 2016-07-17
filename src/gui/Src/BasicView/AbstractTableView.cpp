@@ -952,10 +952,10 @@ int AbstractTableView::getLineToPrintcount()
  *
  * @param[in]   width           Width of the column in pixel
  * @param[in]   isClickable     Boolean that tells whether the header is clickable or not
- *
+ * @param[in]   sortFn          The sort function to use for this column. Defaults to case insensitve text search
  * @return      Nothing.
  */
-void AbstractTableView::addColumnAt(int width, const QString & title, bool isClickable)
+void AbstractTableView::addColumnAt(int width, const QString & title, bool isClickable, SortBy::t sortFn)
 {
     HeaderButton_t wHeaderButton;
     Column_t wColumn;
@@ -969,6 +969,7 @@ void AbstractTableView::addColumnAt(int width, const QString & title, bool isCli
     wColumn.width = width;
     wColumn.hidden = false;
     wColumn.title = title;
+    wColumn.sortFunction = sortFn;
     wCurrentCount = mColumnList.length();
     mColumnList.append(wColumn);
     mColumnOrder.append(wCurrentCount);
@@ -1006,12 +1007,12 @@ QString AbstractTableView::getColTitle(int index)
 /************************************************************************************
                                 Getter & Setter
 ************************************************************************************/
-dsint AbstractTableView::getRowCount()
+dsint AbstractTableView::getRowCount() const
 {
     return mRowCount;
 }
 
-int AbstractTableView::getColumnCount()
+int AbstractTableView::getColumnCount() const
 {
     return mColumnList.size();
 }
@@ -1042,7 +1043,12 @@ bool AbstractTableView::getColumnHidden(int col)
     else
         return true;
 }
-
+AbstractTableView::SortBy::t AbstractTableView::getColumnSortBy(int col) const
+{
+    if(col < getColumnCount() && col >= 0)
+        return mColumnList[col].sortFunction;
+    return SortBy::AsText;
+}
 void AbstractTableView::setColumnHidden(int col, bool hidden)
 {
     if(col < getColumnCount() && col >= 0)
@@ -1166,7 +1172,6 @@ void AbstractTableView::updateViewport()
     this->viewport()->update();
 }
 
-
 /**
  * @brief       This method is called when data have to be reloaded (e.g. When table offset changes).
  *
@@ -1177,4 +1182,19 @@ void AbstractTableView::prepareData()
     int wViewableRowsCount = getViewableRowsCount();
     dsint wRemainingRowsCount = getRowCount() - mTableOffset;
     mNbrOfLineToPrint = (dsint)wRemainingRowsCount > (dsint)wViewableRowsCount ? (int)wViewableRowsCount : (int)wRemainingRowsCount;
+}
+
+bool AbstractTableView::SortBy::AsText(const QString & a, const QString & b)
+{
+    return QString::compare(a, b, Qt::CaseInsensitive) < 0;
+}
+
+bool AbstractTableView::SortBy::AsInt(const QString & a, const QString & b)
+{
+    return a.toLongLong() < b.toLongLong();
+}
+
+bool AbstractTableView::SortBy::AsHex(const QString & a, const QString & b)
+{
+    return a.toLongLong(0, 16) < b.toLongLong(0, 16);
 }

@@ -16,6 +16,8 @@ CommandLineEdit::CommandLineEdit(QWidget* parent)
     mCompleterModel = (QStringListModel*)mCompleter->model();
     this->setCompleter(mCompleter);
 
+    loadSettings("CommandLine");
+
     //Setup signals & slots
     connect(mCompleter, SIGNAL(activated(const QString &)), this, SLOT(clear()), Qt::QueuedConnection);
     connect(this, SIGNAL(textEdited(QString)), this, SLOT(autoCompleteUpdate(QString)));
@@ -25,6 +27,11 @@ CommandLineEdit::CommandLineEdit(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(registerScriptLang(SCRIPTTYPEINFO*)), this, SLOT(registerScriptType(SCRIPTTYPEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(unregisterScriptLang(int)), this, SLOT(unregisterScriptType(int)));
     connect(mCmdScriptType, SIGNAL(currentIndexChanged(int)), this, SLOT(scriptTypeChanged(int)));
+}
+
+CommandLineEdit::~CommandLineEdit()
+{
+    saveSettings("CommandLine");
 }
 
 void CommandLineEdit::keyPressEvent(QKeyEvent* event)
