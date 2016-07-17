@@ -894,7 +894,7 @@
   <action name="actionRtu">
    <property name="icon">
     <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/recentfiles.png</normaloff>:/icons/images/recentfiles.png</iconset>
+     <normaloff>:/icons/images/runtouser.png</normaloff>:/icons/images/runtouser.png</iconset>
    </property>
    <property name="text">
     <string>Run to &amp;user code</string>
