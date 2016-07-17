@@ -16,6 +16,7 @@
 #include <QMutex>
 #include "Bridge.h"
 #include "QBeaEngine.h"
+#include "CachedFontMetrics.h"
 
 class DisassemblerGraphView : public QAbstractScrollArea
 {
@@ -85,59 +86,27 @@ public:
         }
     };
 
-    struct Line
-    {
-        QString text; //line[0]
-        QColor color; //line[1]
-    };
-
     struct Text
     {
-        //TODO: replace with RichTextPainter
-        std::vector<std::vector<Line>> lines;
-        std::vector<std::vector<Token>> tokens;
+        std::vector<RichTextPainter::List> lines;
 
         Text() {}
 
-        Text(const QString & text, QColor color, duint addr)
+        Text(const QString & text, QColor color)
         {
-            Token tok;
-            tok.start = 0;
-            tok.length = text.length();
-            tok.type = "text";
-            tok.addr = addr;
-            tok.name = text;
-            std::vector<Token> tv;
-            tv.push_back(tok);
-            tokens.push_back(tv);
-            Line line;
-            line.text = text;
-            line.color = color;
-            std::vector<Line> lv;
-            lv.push_back(line);
-            lines.push_back(lv);
+            RichTextPainter::List richText;
+            RichTextPainter::CustomRichText_t rt;
+            rt.highlight = false;
+            rt.flags = RichTextPainter::FlagColor;
+            rt.text = text;
+            rt.textColor = color;
+            richText.push_back(rt);
+            lines.push_back(richText);
         }
 
-        Text(const RichTextPainter::List & richText, duint addr)
+        Text(const RichTextPainter::List & richText)
         {
-            std::vector<Token> tv;
-            std::vector<Line> lv;
-            int start = 0;
-            for(const RichTextPainter::CustomRichText_t & rtok : richText)
-            {
-                Token tok;
-                tok.start = start;
-                start += tok.length = rtok.text.length();
-                tok.addr = addr;
-                tok.name = rtok.text;
-                tv.push_back(tok);
-                Line line;
-                line.text = rtok.text;
-                line.color = rtok.textColor;
-                lv.push_back(line);
-            }
-            tokens.push_back(tv);
-            lines.push_back(lv);
+            lines.push_back(richText);
         }
 
         QString ToQString() const
@@ -304,6 +273,7 @@ private:
     HighlightToken* highlight_token;
     std::vector<int> col_edge_x;
     std::vector<int> row_edge_y;
+    CachedFontMetrics* mFontMetrics;
 };
 
 #endif // DISASSEMBLERGRAPHVIEW_H

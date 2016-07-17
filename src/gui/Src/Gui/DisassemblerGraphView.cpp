@@ -7,7 +7,8 @@
 #include <QMimeData>
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
-    : QAbstractScrollArea(parent)
+    : QAbstractScrollArea(parent),
+      mFontMetrics(nullptr)
 {
     this->status = "Loading...";
 
@@ -61,6 +62,9 @@ void DisassemblerGraphView::initFont()
     this->charWidth = metrics.width('X');
     this->charHeight = metrics.height();
     this->charOffset = 0;
+    if(mFontMetrics)
+        delete mFontMetrics;
+    mFontMetrics = new CachedFontMetrics(this, font());
 }
 
 void DisassemblerGraphView::adjustSize(int width, int height)
@@ -178,8 +182,8 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
         //Render node background
         QLinearGradient gradient = QLinearGradient(QPointF(0, block.y + this->charWidth),
                                    QPointF(0, block.y + block.height - this->charWidth));
-        gradient.setColorAt(0, QColor(255, 255, 252));
-        gradient.setColorAt(1, QColor(255, 255, 232));
+        gradient.setColorAt(0, ConfigColor("DisassemblyBackgroundColor"));
+        gradient.setColorAt(1, ConfigColor("DisassemblyBackgroundColor"));
         p.setPen(Qt::black);
         p.setBrush(QBrush(gradient));
         p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
@@ -194,7 +198,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
                 if(instr.addr == this->cur_instr)
                 {
                     p.setPen(QColor(0, 0, 0, 0));
-                    p.setBrush(QColor(255, 255, 128, 128));
+                    p.setBrush(ConfigColor("DisassemblySelectionColor"));
                     p.drawRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
                                int(instr.text.lines.size()) * this->charHeight);
                 }
@@ -203,7 +207,8 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
         }
 
         //Render highlighted tokens
-        if(this->highlight_token)
+        //TODO
+        /*if(this->highlight_token)
         {
             int x = block.x + (2 * this->charWidth);
             int y = block.y + (2 * this->charWidth);
@@ -238,33 +243,35 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
                     y += this->charHeight;
                 }
             }
-        }
+        }*/
 
         //Render node text
         auto x = block.x + (2 * this->charWidth);
         auto y = block.y + (2 * this->charWidth);
         for(auto & line : block.block.header_text.lines)
         {
-            auto partx = x;
-            for(Line & part : line)
+            RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
+            /*auto partx = x;
+            for(RichTextPainter::CustomRichText_t & part : line)
             {
                 p.setPen(part.color);
                 p.drawText(partx, y + this->charOffset + this->baseline, part.text);
                 partx += part.text.length() * this->charWidth;
-            }
+            }*/
             y += this->charHeight;
         }
         for(Instr & instr : block.block.instrs)
         {
             for(auto & line : instr.text.lines)
             {
-                auto partx = x;
+                RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
+                /*auto partx = x;
                 for(Line & part : line)
                 {
                     p.setPen(part.color);
                     p.drawText(partx, y + this->charOffset + this->baseline, part.text);
                     partx += part.text.length() * this->charWidth;
-                }
+                }*/
                 y += this->charHeight;
             }
         }
@@ -343,6 +350,7 @@ duint DisassemblerGraphView::getInstrForMouseEvent(QMouseEvent* event)
 
 bool DisassemblerGraphView::getTokenForMouseEvent(QMouseEvent* event, Token & tokenOut)
 {
+    /* TODO
     //Convert coordinates to system used in blocks
     int xofs = this->horizontalScrollBar()->value();
     int yofs = this->verticalScrollBar()->value();
@@ -401,7 +409,7 @@ bool DisassemblerGraphView::getTokenForMouseEvent(QMouseEvent* event, Token & to
                 cur_row += 1;
             }
         }
-    }
+    }*/
     return false;
 }
 
@@ -510,27 +518,28 @@ void DisassemblerGraphView::prepareGraphNode(DisassemblerBlock & block)
     int height = 0;
     for(auto & line : block.block.header_text.lines)
     {
-        int chars = 0;
-        for(Line & part : line)
-            chars += part.text.length();
-        if(chars > width)
-            width = chars;
+        int lw = 0;
+        for(auto & part : line)
+            lw += mFontMetrics->width(part.text);
+        if(lw > width)
+            width = lw;
         height += 1;
     }
     for(Instr & instr : block.block.instrs)
     {
         for(auto & line : instr.text.lines)
         {
-            int chars = 0;
-            for(Line & part : line)
-                chars += part.text.length();
-            if(chars > width)
-                width = chars;
+            int lw = 0;
+            for(auto & part : line)
+                lw += mFontMetrics->width(part.text);
+            if(lw > width)
+                width = lw;
             height += 1;
         }
     }
-    block.width = (width + 4) * this->charWidth + 4;
-    block.height = (height * this->charHeight) + (4 * this->charWidth) + 4;
+    int extra = 4 * this->charWidth + 4;
+    block.width = width + extra;
+    block.height = (height * this->charHeight) + extra;
 }
 
 void DisassemblerGraphView::adjustGraphLayout(DisassemblerBlock & block, int col, int row)
@@ -1165,7 +1174,6 @@ void DisassemblerGraphView::fontChanged()
 void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
 {
     BridgeCFGraph graph(graphList);
-    Bridge::getBridge()->setResult();
     Analysis anal;
     QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")));
     anal.update_id = this->update_id + 1;
@@ -1185,7 +1193,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
                 block.exits = node.exits;
                 block.false_path = node.brfalse;
                 block.true_path = node.brtrue;
-                block.header_text = Text(ToPtrString(block.entry), Qt::red, block.entry);
+                block.header_text = Text(ToPtrString(block.entry), Qt::red);
                 {
                     Instr instr;
                     unsigned char data[MAX_DISASM_BUFFER];
@@ -1202,7 +1210,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
                         instr.opcode.resize(size);
                         for(size_t j = 0; j < size; j++)
                             instr.opcode[j] = data[j];
-                        instr.text = Text(richText, instr.addr);
+                        instr.text = Text(richText);
                         block.instrs.push_back(instr);
                         i += size;
                     }
@@ -1214,11 +1222,13 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
     }
     this->analysis = anal;
     this->function = this->analysis.entry;
+    Bridge::getBridge()->setResult();
 }
 
 void DisassemblerGraphView::graphAtSlot(duint addr)
 {
-    this->navigate(addr);
+    this->cur_instr = addr;
+    //this->navigate(addr);
 }
 
 void DisassemblerGraphView::updateGraphSlot()

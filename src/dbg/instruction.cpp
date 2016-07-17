@@ -2793,7 +2793,7 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
     duint entry;
     if(argc < 2 || !valfromstring(argv[1], &entry))
         entry = GetContextDataEx(hActiveThread, UE_CIP);
-    duint start, size;
+    duint start, size, sel = entry;
     if(FunctionGet(entry, &start))
         entry = start;
     auto base = MemFindBaseAddr(entry, &size);
@@ -2811,6 +2811,7 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
         return STATUS_ERROR;
     }
     auto graphList = graph->ToGraphList();
+    GuiGraphAt(sel);
     GuiLoadGraph(&graphList);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
