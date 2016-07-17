@@ -81,11 +81,44 @@ int CPUMultiDump::getMaxCPUTabs()
     return mMaxCPUDumpTabs;
 }
 
+int CPUMultiDump::GetDumpWindowIndex(int dump)
+{
+    QString dumpNativeName = QString("Dump ") + QString::number(dump);
+    for(int i = 0; i < count(); i++)
+    {
+        if(getNativeName(i) == dumpNativeName)
+            return i;
+    }
+    return 2147483647;
+}
+
+int CPUMultiDump::GetWatchWindowIndex()
+{
+    QString watchNativeName = QString("Watch 1");
+    for(int i = 0; i < count(); i++)
+    {
+        if(getNativeName(i) == watchNativeName)
+            return i;
+    }
+    return 2147483647;
+}
+
+void CPUMultiDump::SwitchToDumpWindow()
+{
+    if(!mCurrentCPUDump)
+        setCurrentIndex(GetDumpWindowIndex(1));
+}
+
+void CPUMultiDump::SwitchToWatchWindow()
+{
+    if(mCurrentCPUDump)
+        setCurrentIndex(GetWatchWindowIndex());
+}
+
 void CPUMultiDump::updateCurrentTabSlot(int tabIndex)
 {
-    CPUDump* t = dynamic_cast<CPUDump*>(widget(tabIndex));
-    if(t)
-        mCurrentCPUDump = t;
+    CPUDump* t = qobject_cast<CPUDump*>(widget(tabIndex));
+    mCurrentCPUDump = t;
 }
 
 void CPUMultiDump::printDumpAtSlot(dsint parVa)
@@ -97,7 +130,7 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
         {
             if(!getNativeName(i).startsWith("Dump "))
                 continue;
-            cpuDump = (CPUDump*)widget(i);
+            cpuDump = qobject_cast<CPUDump*>(widget(i));
             cpuDump->historyClear();
             cpuDump->addVaToHistory(parVa);
             cpuDump->printDumpAt(parVa);
@@ -107,6 +140,7 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
     }
     else
     {
+        SwitchToDumpWindow();
         mCurrentCPUDump->printDumpAt(parVa);
         mCurrentCPUDump->addVaToHistory(parVa);
         mCurrentCPUDump->setFocus();
@@ -115,40 +149,33 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
 
 void CPUMultiDump::printDumpAtNSlot(duint parVa, int index)
 {
-    setCurrentIndex(index);
-    CPUDump* current = dynamic_cast<CPUDump*>(widget(index));
-    if(current)
-    {
-        current->printDumpAt(parVa);
-        current->addVaToHistory(parVa);
-    }
-    else if(index > 0 && unsigned int(index) < mMaxCPUDumpTabs)
-    {
-        current = dynamic_cast<CPUDump*>(widget(index + 1));
-        if(current)
-        {
-            current->printDumpAt(parVa);
-            current->addVaToHistory(parVa);
-        }
-    }
+    int tabindex = GetDumpWindowIndex(index);
+    if(tabindex == 2147483647)
+        return;
+    CPUDump* current = qobject_cast<CPUDump*>(widget(tabindex));
+    if(!current)
+        return;
+    setCurrentIndex(tabindex);
+    current->printDumpAt(parVa);
+    current->addVaToHistory(parVa);
 }
 
 void CPUMultiDump::selectionGetSlot(SELECTIONDATA* selectionData)
 {
+    SwitchToDumpWindow();
     mCurrentCPUDump->selectionGet(selectionData);
 }
 
 void CPUMultiDump::selectionSetSlot(const SELECTIONDATA* selectionData)
 {
+    SwitchToDumpWindow();
     mCurrentCPUDump->selectionSet(selectionData);
 }
 
 void CPUMultiDump::dbgStateChangedSlot(DBGSTATE dbgState)
 {
     if(dbgState == initialized)
-    {
         mInitAllDumpTabs = true;
-    }
 }
 
 void CPUMultiDump::openChangeTabTitleDialogSlot(int tabIndex)
@@ -171,5 +198,6 @@ void CPUMultiDump::displayReferencesWidgetSlot()
 
 void CPUMultiDump::focusCurrentDumpSlot()
 {
+    SwitchToDumpWindow();
     mCurrentCPUDump->setFocus();
 }
