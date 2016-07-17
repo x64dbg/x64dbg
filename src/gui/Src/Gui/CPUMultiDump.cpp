@@ -23,7 +23,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     mWatch = new WatchView(this);
 
     //mMaxCPUDumpTabs++;
-    this->addTabEx(mWatch, DIcon("geolocation-goto.png"), tr("Watch ") + QString::number(1), QString("Watch 1"));
+    this->addTabEx(mWatch, DIcon("animal-dog.png"), tr("Watch ") + QString::number(1), QString("Watch 1"));
     mWatch->loadColumnFromConfig("Watch1");
 
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(updateCurrentTabSlot(int)));
