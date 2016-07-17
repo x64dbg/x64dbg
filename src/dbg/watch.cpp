@@ -5,6 +5,7 @@
 #include "threading.h"
 #include "debugger.h"
 #include "symbolinfo.h"
+#include "taskthread.h"
 #include <Windows.h>
 
 std::map<unsigned int, WatchExpr*> watchexpr;
@@ -97,6 +98,14 @@ void WatchExpr::modifyName(const char* newName)
     strcpy_s(WatchName, newName);
 }
 
+// Update GUI
+
+void GuiUpdateWatchViewAsync()
+{
+    auto task = MakeTaskThread(GuiUpdateWatchView);
+    task.WakeUp();
+}
+
 // Global functions
 // Clear all watch
 void WatchClear()
@@ -156,7 +165,7 @@ void WatchModifyName(unsigned int id, const char* newName)
     EXCLUSIVE_ACQUIRE(LockWatch);
     WatchModifyNameUnlocked(id, newName);
     EXCLUSIVE_RELEASE();
-    GuiUpdateWatchView();
+    GuiUpdateWatchViewAsync();
 }
 
 void WatchDelete(unsigned int id)
@@ -168,7 +177,7 @@ void WatchDelete(unsigned int id)
         delete x->second;
         watchexpr.erase(x);
         EXCLUSIVE_RELEASE();
-        GuiUpdateWatchView();
+        GuiUpdateWatchViewAsync();
     }
 }
 
@@ -184,7 +193,7 @@ void WatchSetWatchdogMode(unsigned int id, WATCHDOGMODE mode)
     EXCLUSIVE_ACQUIRE(LockWatch);
     WatchSetWatchdogModeUnlocked(id, mode);
     EXCLUSIVE_RELEASE();
-    GuiUpdateWatchView();
+    GuiUpdateWatchViewAsync();
 }
 
 WATCHDOGMODE WatchGetWatchdogEnabled(unsigned int id)
@@ -244,7 +253,7 @@ void WatchSetWindow(unsigned int id, unsigned int window)
     if(obj != watchexpr.end())
         obj->second->watchWindow = window;
     EXCLUSIVE_RELEASE();
-    GuiUpdateWatchView();
+    GuiUpdateWatchViewAsync();
 }
 
 std::vector<WATCHINFO> WatchGetList()
@@ -402,10 +411,8 @@ CMDRESULT cbWatchdog(int argc, char* argv[])
     }
     EXCLUSIVE_RELEASE();
     if(watchdogTriggered)
-        GuiUpdateWatchView();
+        GuiUpdateWatchViewAsync();
     varset("$result", watchdogTriggered ? 1 : 0, false);
-    if(watchdogTriggered)
-        varset("$breakcondition", 1, false);
     return STATUS_CONTINUE;
 }
 

@@ -37,6 +37,11 @@ private:
     uint mMaxCPUDumpTabs;
 
     WatchView* mWatch;
+
+    int GetDumpWindowIndex(int dump);
+    int GetWatchWindowIndex();
+    void SwitchToDumpWindow();
+    void SwitchToWatchWindow();
 };
 
 #endif // CPUMULTIDUMP_H

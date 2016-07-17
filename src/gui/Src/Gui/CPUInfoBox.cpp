@@ -181,7 +181,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 if(memsize == sizeof(dsint))
                     addrText = getSymbolicName(arg.memvalue);
                 else
-                    addrText = QString("%1").arg(arg.memvalue, memsize * 2, 16, QChar('0')).toUpper();
+                    addrText = ToPtrString(arg.memvalue);
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + addrText);
             }
             j++;
