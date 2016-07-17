@@ -341,9 +341,8 @@ void MainWindow::setupStatusBar()
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
 
     // Time wasted counter
-    QLabel* timeWastedLabel = new QLabel(this);
-    ui->statusBar->addPermanentWidget(timeWastedLabel);
-    mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
+    mTimeWastedCounter = new TimeWastedCounter(this);
+    ui->statusBar->addPermanentWidget(mTimeWastedCounter);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)

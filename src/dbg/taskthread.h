@@ -31,6 +31,8 @@ protected:
     // Reset called after we latch in a value
     virtual void ResetArgs() { }
 public:
+    typedef F Fn_t;
+    typedef std::tuple<Args...> Args_t;
     void WakeUp(Args...);
     TaskThread_(F, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME);
     ~TaskThread_();
@@ -128,7 +130,11 @@ template <typename F, typename... Args> void TaskThread_<F, Args...>::Loop()
         if(active)
         {
             apply_from_tuple(fn, argLatch);
-            std::this_thread::sleep_for(std::chrono::milliseconds(minSleepTimeMs));
+            do
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(minSleepTimeMs));
+            }
+            while(GuiGetLatency() > 100);
             execs++;
         }
     }

@@ -25,6 +25,12 @@ typedef unsigned long duint;
 typedef signed long dsint;
 #endif //_WIN64
 
+typedef int int32;
+typedef unsigned int uint32;
+
+typedef long long int64;
+typedef unsigned long long uint64;
+
 #include "bridgegraph.h"
 
 #ifndef BRIDGE_IMPEXP
@@ -979,6 +985,7 @@ typedef struct
 
 //GUI functions
 //code page is utf8
+BRIDGE_IMPEXP DWORD GuiGetLatency();
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state);
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg);

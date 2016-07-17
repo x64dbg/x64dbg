@@ -1,17 +1,43 @@
 #include "HistoryLineEdit.h"
+#include "Bridge.h"
 
 HistoryLineEdit::HistoryLineEdit(QWidget* parent) : QLineEdit(parent)
 {
-    mCmdHistory.clear();
     mCmdIndex = -1;
     bSixPressed = false;
 }
 
+void HistoryLineEdit::loadSettings(QString sectionPrefix)
+{
+    char buffer[MAX_SETTING_SIZE];
+    for(int i = 1; BridgeSettingGet(sectionPrefix.toUtf8().constData(),
+                                    QString("Line%1").arg(i).toUtf8().constData(),
+                                    buffer) && buffer[0] && i < mCmdHistoryMaxSize; i++)
+    {
+        QString entry = QString::fromUtf8(buffer);
+        mCmdHistory.append(entry);
+    }
+}
+void HistoryLineEdit::saveSettings(QString sectionPrefix)
+{
+    int i = 1;
+    for(i = 1; i <= mCmdHistory.size(); i++)
+    {
+        BridgeSettingSet(sectionPrefix.toUtf8().constData(),
+                         QString("Line%1").arg(i).toUtf8().constData(),
+                         mCmdHistory.at(i - 1).toUtf8().constData());
+    }
+
+    // Sentinel in case we saved less than is in the store currently
+    BridgeSettingSet(sectionPrefix.toUtf8().constData(),
+                     QString("Line%1").arg(i).toUtf8().constData(),
+                     "");
+}
 void HistoryLineEdit::addLineToHistory(QString parLine)
 {
     mCmdHistory.prepend(parLine);
 
-    if(mCmdHistory.size() > 32)
+    if(mCmdHistory.size() > mCmdHistoryMaxSize)
         mCmdHistory.removeLast();
 
     mCmdIndex = -1;

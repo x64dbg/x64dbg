@@ -86,16 +86,24 @@ public:
     int getViewableRowsCount();
     virtual int getLineToPrintcount();
 
+    struct SortBy
+    {
+        typedef std::function<bool(const QString &, const QString &)> t;
+        static bool AsText(const QString & a, const QString & b);
+        static bool AsInt(const QString & a, const QString & b);
+        static bool AsHex(const QString & a, const QString & b);
+    };
+
     // New Columns/New Size
-    virtual void addColumnAt(int width, const QString & title, bool isClickable);
+    virtual void addColumnAt(int width, const QString & title, bool isClickable, SortBy::t sortFn = SortBy::AsText);
     virtual void setRowCount(dsint count);
     virtual void deleteAllColumns();
     void setColTitle(int index, const QString & title);
     QString getColTitle(int index);
 
     // Getter & Setter
-    dsint getRowCount();
-    int getColumnCount();
+    dsint getRowCount() const;
+    int getColumnCount() const;
     int getRowHeight();
     int getColumnWidth(int index);
     void setColumnWidth(int index, int width);
@@ -108,6 +116,7 @@ public:
     int getCharWidth();
     bool getColumnHidden(int col);
     void setColumnHidden(int col, bool hidden);
+    SortBy::t getColumnSortBy(int idx) const;
 
     // UI customization
     void loadColumnFromConfig(const QString & viewName);
@@ -167,6 +176,7 @@ private:
         bool hidden;
         HeaderButton_t header;
         QString title;
+        SortBy::t sortFunction;
     } Column_t;
 
     typedef struct _Header_t

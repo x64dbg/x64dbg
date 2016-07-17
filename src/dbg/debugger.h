@@ -69,7 +69,8 @@ bool dbgisdll();
 void dbgsetattachevent(HANDLE handle);
 void DebugUpdateGui(duint disasm_addr, bool stack);
 void DebugUpdateGuiAsync(duint disasm_addr, bool stack);
-void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state = paused);
+void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state = paused, bool updateDebugState = true);
+void DebugUpdateBreakpointsViewAsync();
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump = false);
 void GuiSetDebugStateAsync(DBGSTATE state);
 void dbgsetskipexceptions(bool skip);
@@ -87,7 +88,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
 duint dbggetdebuggedbase();
-duint dbggetdbgevents();
+uint64 dbggetdbgevents();
 bool dbgsettracecondition(String expression, duint maxCount);
 bool dbgtraceactive();
 
