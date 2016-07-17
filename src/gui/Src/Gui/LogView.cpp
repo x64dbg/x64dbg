@@ -122,7 +122,7 @@ void LogView::redirectLogSlot()
     {
         logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
         if(logRedirection == NULL)
-            addMsgToLogSlot(tr("CreateFile() failed. Log will not be redirected to %1.\n").arg(browse.path));
+            addMsgToLogSlot(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path));
         else
         {
             if(ftell(logRedirection) == 0)
