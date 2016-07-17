@@ -3,7 +3,7 @@
 #include "Bridge.h"
 #include "BrowseDialog.h"
 
-LogView::LogView(QWidget* parent) : QTextEdit(parent), logRedirection(INVALID_HANDLE_VALUE)
+LogView::LogView(QWidget* parent) : QTextEdit(parent), logRedirection(NULL)
 {
     updateStyle();
     this->setUndoRedoEnabled(false);
@@ -20,9 +20,9 @@ LogView::LogView(QWidget* parent) : QTextEdit(parent), logRedirection(INVALID_HA
 
 LogView::~LogView()
 {
-    if(logRedirection != INVALID_HANDLE_VALUE)
-        CloseHandle(logRedirection);
-    logRedirection = INVALID_HANDLE_VALUE;
+    if(logRedirection != NULL)
+        fclose(logRedirection);
+    logRedirection = NULL;
 }
 
 void LogView::updateStyle()
@@ -90,15 +90,13 @@ void LogView::addMsgToLogSlot(QString msg)
     msg.replace(QString("\r\n"), QString("\n"));
     msg.replace(QChar('\n'), QString("\r\n"));
     // redirect the log
-    if(logRedirection != INVALID_HANDLE_VALUE)
+    if(logRedirection != NULL)
     {
-        DWORD written = 0;
-        SetLastError(ERROR_SUCCESS);
-        if(!WriteFile(logRedirection, msg.data_ptr()->data(), msg.size() * 2, &written, nullptr))
+        if(!fwrite(msg.data_ptr()->data(), msg.size() * 2, 1, logRedirection))
         {
-            CloseHandle(logRedirection);
-            logRedirection = INVALID_HANDLE_VALUE;
-            msg += tr("WriteFile() failed (GetLastError()= %1 ). Log redirection stopped.\r\n").arg(GetLastError());
+            fclose(logRedirection);
+            logRedirection = NULL;
+            msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\r\n").arg(GetLastError());
         }
     }
     if(!loggingEnabled)
@@ -116,22 +114,22 @@ void LogView::clearLogSlot()
 
 void LogView::redirectLogSlot()
 {
-    if(logRedirection != INVALID_HANDLE_VALUE)
-        CloseHandle(logRedirection);
-    logRedirection = INVALID_HANDLE_VALUE;
+    if(logRedirection != NULL)
+        fclose(logRedirection);
+    logRedirection = NULL;
     BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
     if(browse.exec() == QDialog::Accepted)
     {
-        logRedirection = CreateFile(browse.path.toStdWString().c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-        if(logRedirection == INVALID_HANDLE_VALUE && GetLastError() == ERROR_FILE_EXISTS) // File already exists. Append to it.
-            logRedirection = CreateFile(browse.path.toStdWString().c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-        if(logRedirection == INVALID_HANDLE_VALUE)
+        logRedirection = fopen(browse.path.toLocal8Bit().constData(), "ab");
+        if(logRedirection == NULL)
             addMsgToLogSlot(tr("CreateFile() failed. Log will not be redirected to %1.\n").arg(browse.path));
         else
         {
-            unsigned short BOM = 0xfeff;
-            DWORD written = 0;
-            WriteFile(logRedirection, &BOM, sizeof(BOM), &written, nullptr);
+            if(ftell(logRedirection) == 0)
+            {
+                unsigned short BOM = 0xfeff;
+                fwrite(&BOM, 2, 1, logRedirection);
+            }
             addMsgToLogSlot(tr("Log will be redirected to %1.\n").arg(browse.path));
         }
     }

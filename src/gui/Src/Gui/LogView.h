@@ -2,7 +2,7 @@
 #define LOGVIEW_H
 
 #include <QTextEdit>
-#include <windows.h>
+#include <cstdio>
 
 class LogView : public QTextEdit
 {
@@ -34,7 +34,7 @@ private:
     QAction* actionToggleLogging;
     QAction* actionRedirectLog;
 
-    HANDLE logRedirection;
+    FILE* logRedirection;
 };
 
 #endif // LOGVIEW_H
