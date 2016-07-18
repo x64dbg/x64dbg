@@ -959,6 +959,22 @@ void cbRtrStep()
         _dbg_dbgtraceexecute(cip);
     if(ch == 0xC3 || ch == 0xC2)
         cbRtrFinalStep();
+    else if(ch == 0x26 || ch == 0x36 || ch == 0x2e || ch == 0x3e || (ch >= 0x64 && ch <= 0x67) || ch == 0xf2 || ch == 0xf3 //instruction prefixes
+#ifdef _WIN64
+        || (ch >= 0x40 && ch <= 0x4f)
+#endif //_WIN64
+        )
+    {
+        Capstone cp;
+        unsigned char data[MAX_DISASM_BUFFER];
+        memset(data, 0, sizeof(data));
+        MemRead(cip, data, MAX_DISASM_BUFFER);
+        cp.Disassemble(cip, data);
+        if(cp.GetId() == X86_INS_RET)
+            cbRtrFinalStep();
+        else
+            StepOver((void*)cbRtrStep);
+    }
     else
     {
         StepOver((void*)cbRtrStep);
