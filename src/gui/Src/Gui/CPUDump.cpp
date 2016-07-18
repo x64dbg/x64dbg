@@ -74,7 +74,7 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("&Follow DWORD in Current Dump"), SLOT(followDataDumpSlot())), wIsValidReadPtrCallback);
 #endif //_WIN64
 
-    MenuBuilder* wFollowInDumpMenu = new MenuBuilder(this, [wIsValidReadPtrCallback, this](QMenu* menu)
+    MenuBuilder* wFollowInDumpMenu = new MenuBuilder(this, [wIsValidReadPtrCallback, this](QMenu * menu)
     {
         if(!wIsValidReadPtrCallback(menu))
             return false;
