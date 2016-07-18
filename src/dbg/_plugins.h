@@ -208,7 +208,7 @@ typedef enum
 typedef void (*CBPLUGIN)(CBTYPE cbType, void* callbackInfo);
 typedef bool (*CBPLUGINCOMMAND)(int argc, char** argv);
 typedef void (*CBPLUGINSCRIPT)();
-typedef duint(*CBPLUGINEXPRFUNCTION)(int argc, const duint* argv, void* userdata);
+typedef duint(*CBPLUGINEXPRFUNCTION)(int argc, duint* argv, void* userdata);
 
 //exports
 #ifdef __cplusplus
