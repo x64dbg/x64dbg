@@ -138,11 +138,7 @@ struct BridgeCFGraph
             return;
         auto found = parents.find(child);
         if(found == parents.end())
-        {
-            std::unordered_set<duint> p;
-            p.insert(parent);
-            parents[child] = p;
-        }
+            parents[child] = std::unordered_set<duint>(std::initializer_list<duint> { parent });
         else
             found->second.insert(parent);
     }
