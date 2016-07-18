@@ -24,7 +24,6 @@ signals:
     void displayReferencesWidget();
 
 public slots:
-    void refreshShortcutsSlot();
     void memoryAccessSingleshootSlot();
     void memoryAccessRestoreSlot();
     void memoryWriteSingleshootSlot();
@@ -92,6 +91,8 @@ public slots:
     void followDataSlot();
     void followDataDumpSlot();
 
+    void watchSlot();
+
     void selectionUpdatedSlot();
     void yaraSlot();
     void dataCopySlot();
@@ -103,97 +104,8 @@ public slots:
     void gotoPrevSlot();
 
 private:
-    QMenu* mBreakpointMenu;
+    MenuBuilder* mMenuBuilder;
 
-    QMenu* mMemoryAccessMenu;
-    QAction* mMemoryAccessSingleshoot;
-    QAction* mMemoryAccessRestore;
-    QMenu* mMemoryWriteMenu;
-    QAction* mMemoryWriteSingleshoot;
-    QAction* mMemoryWriteRestore;
-    QMenu* mMemoryExecuteMenu;
-    QAction* mMemoryExecuteSingleshoot;
-    QAction* mMemoryExecuteRestore;
-    QAction* mMemoryRemove;
-    QMenu* mHardwareAccessMenu;
-    QAction* mHardwareAccess1;
-    QAction* mHardwareAccess2;
-    QAction* mHardwareAccess4;
-#ifdef _WIN64
-    QAction* mHardwareAccess8;
-#endif //_WIN64
-    QMenu* mHardwareWriteMenu;
-    QAction* mHardwareWrite1;
-    QAction* mHardwareWrite2;
-    QAction* mHardwareWrite4;
-#ifdef _WIN64
-    QAction* mHardwareWrite8;
-#endif //_WIN64
-    QAction* mHardwareExecute;
-    QAction* mHardwareRemove;
-
-    QAction* mFollowStack;
-
-    QMenu* mGotoMenu;
-    QAction* mGotoExpression;
-    QAction* mGotoFileOffset;
-    QAction* mGotoPrevious;
-    QAction* mGotoNext;
-    QAction* mGotoStart;
-    QAction* mGotoEnd;
-
-    QAction* mFollowInDisasm;
-
-    QMenu* mHexMenu;
-    QAction* mHexAsciiAction;
-    QAction* mHexUnicodeAction;
-    QAction* mHexCodepageAction;
-
-    QMenu* mTextMenu;
-    QAction* mTextAsciiAction;
-    QAction* mTextUnicodeAction;
-    QAction* mTextCodepageAction;
-
-    QMenu* mIntegerMenu;
-    QAction* mIntegerSignedShortAction;
-    QAction* mIntegerSignedLongAction;
-    QAction* mIntegerSignedLongLongAction;
-    QAction* mIntegerUnsignedShortAction;
-    QAction* mIntegerUnsignedLongAction;
-    QAction* mIntegerUnsignedLongLongAction;
-    QAction* mIntegerHexShortAction;
-    QAction* mIntegerHexLongAction;
-    QAction* mIntegerHexLongLongAction;
-
-    QMenu* mFloatMenu;
-    QAction* mFloatFloatAction;
-    QAction* mFloatDoubleAction;
-    QAction* mFloatLongDoubleAction;
-
-    QAction* mAddressAction;
-    QAction* mDisassemblyAction;
-
-    QAction* mSetLabelAction;
-    QAction* mModifyValueAction;
-
-    QMenu* mBinaryMenu;
-    QAction* mBinaryEditAction;
-    QAction* mBinaryFillAction;
-    QAction* mBinaryCopyAction;
-    QAction* mBinaryPasteAction;
-    QAction* mBinaryPasteIgnoreSizeAction;
-    QAction* mBinarySaveToFile;
-    QAction* mFindPatternAction;
-    QAction* mFindReferencesAction;
-    QAction* mYaraAction;
-    QAction* mDataCopyAction;
-    QAction* mUndoSelection;
-    QAction* mFollowData;
-    QAction* mFollowDataDump;
-    QAction* mSyncWithExpression;
-    QAction* mEntropy;
-    QMenu* mSpecialMenu;
-    QMenu* mCustomMenu;
     QMenu* mPluginMenu;
     QMenu* mFollowInDumpMenu;
     QList<QAction*> mFollowInDumpActions;

@@ -410,7 +410,21 @@ void MainWindow::loadTabSavedOrder()
     {
         QString tabName = mWidgetNativeNameList[i];
         duint tabIndex = Config()->getUint("TabOrder", tabName);
-        tabIndexToWidget.insert(tabIndex, std::make_pair(mWidgetList[i], tabName));
+        if(!tabIndexToWidget.contains(tabIndex))
+            tabIndexToWidget.insert(tabIndex, std::make_pair(mWidgetList[i], tabName));
+        else
+        {
+            // Conflicts. Try to find an unused tab index.
+            for(duint j = 0; j < mWidgetList.size(); j++)
+            {
+                auto item = tabIndexToWidget.find(j);
+                if(item == tabIndexToWidget.end())
+                {
+                    tabIndexToWidget.insert(j, std::make_pair(mWidgetList[i], tabName));
+                    break;
+                }
+            }
+        }
     }
 
     // Setup tabs
