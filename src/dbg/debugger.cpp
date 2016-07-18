@@ -98,6 +98,18 @@ static duint dbgcleartracecondition()
     return steps;
 }
 
+static void dbgClearRtuBreakpoints()
+{
+    EXCLUSIVE_ACQUIRE(LockRunToUserCode);
+    for(auto i : RunToUserCodeBreakpoints)
+    {
+        BREAKPOINT bp;
+        if(!BpGet(i.first, BPMEMORY, nullptr, &bp))
+            RemoveMemoryBPX(i.first, i.second);
+    }
+    RunToUserCodeBreakpoints.clear();
+}
+
 bool dbgsettracecondition(String expression, duint maxSteps)
 {
     if(dbgtraceactive())
@@ -523,6 +535,9 @@ void cbPauseBreakpoint()
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     DeleteBPX(CIP);
     DebugUpdateGuiSetStateAsync(CIP, true);
+    // Clear tracing conditions
+    dbgcleartracecondition();
+    dbgClearRtuBreakpoints();
     // Trace record
     _dbg_dbgtraceexecute(CIP);
     // Watchdog
@@ -672,7 +687,9 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     }
     if(breakCondition)  //break the debugger
     {
+        // Clear tracing conditions
         dbgcleartracecondition();
+        dbgClearRtuBreakpoints();
         SetForegroundWindow(GuiGetWindowHandle());
         bSkipExceptions = false;
     }
@@ -700,20 +717,14 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
 
 void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
 {
-    EXCLUSIVE_ACQUIRE(LockRunToUserCode);
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     auto symbolicname = SymGetSymbolicName(CIP);
     dprintf("User code reached at %s (" fhex ")!", symbolicname.c_str(), CIP);
-    for(auto i : RunToUserCodeBreakpoints)
-    {
-        BREAKPOINT bp;
-        if(!BpGet(i.first, BPMEMORY, nullptr, &bp))
-            RemoveMemoryBPX(i.first, i.second);
-    }
-    RunToUserCodeBreakpoints.clear();
+    // Clear tracing conditions
+    dbgcleartracecondition();
+    dbgClearRtuBreakpoints();
     lock(WAITID_RUN);
-    EXCLUSIVE_RELEASE();
     // Watchdog
     cbWatchdog(0, nullptr);
     // Plugin callback
@@ -1222,6 +1233,8 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     //unload main module
     SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
     //history
+    dbgcleartracecondition();
+    dbgClearRtuBreakpoints();
     HistoryClear();
     ModClear(); //clear all modules
 }
@@ -1458,6 +1471,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         bBreakOnNextDll = false;
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        // Clear tracing conditions
+        dbgcleartracecondition();
+        dbgClearRtuBreakpoints();
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
@@ -1488,6 +1504,9 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         bBreakOnNextDll = false;
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        // Clear tracing conditions
+        dbgcleartracecondition();
+        dbgClearRtuBreakpoints();
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
@@ -1532,6 +1551,9 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     {
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        // Clear tracing conditions
+        dbgcleartracecondition();
+        dbgClearRtuBreakpoints();
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
@@ -1574,6 +1596,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             //update memory map
             MemUpdateMap();
             DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+            // Clear tracing conditions
+            dbgcleartracecondition();
+            dbgClearRtuBreakpoints();
             //lock
             lock(WAITID_RUN);
             SetForegroundWindow(GuiGetWindowHandle());
@@ -1627,6 +1652,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     }
 
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    // Clear tracing conditions
+    dbgcleartracecondition();
+    dbgClearRtuBreakpoints();
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());

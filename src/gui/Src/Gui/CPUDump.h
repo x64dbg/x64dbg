@@ -24,7 +24,6 @@ signals:
     void displayReferencesWidget();
 
 public slots:
-    void refreshShortcutsSlot();
     void memoryAccessSingleshootSlot();
     void memoryAccessRestoreSlot();
     void memoryWriteSingleshootSlot();
@@ -92,6 +91,8 @@ public slots:
     void followDataSlot();
     void followDataDumpSlot();
 
+    void watchSlot();
+
     void selectionUpdatedSlot();
     void yaraSlot();
     void dataCopySlot();
@@ -103,6 +104,8 @@ public slots:
     void gotoPrevSlot();
 
 private:
+    MenuBuilder* mMenuBuilder;
+
     QMenu* mBreakpointMenu;
 
     QMenu* mMemoryAccessMenu;

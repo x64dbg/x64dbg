@@ -57,8 +57,8 @@ public:
         addBuilder(new MenuBuilder(submenu->parent(), [submenu, builder](QMenu * menu)
         {
             submenu->clear();
-            builder->build(submenu);
-            menu->addMenu(submenu);
+            if(builder->build(submenu))
+                menu->addMenu(submenu);
             return true;
         }));
         return submenu;
@@ -70,10 +70,10 @@ public:
         return builder;
     }
 
-    inline void build(QMenu* menu) const
+    inline bool build(QMenu* menu) const
     {
         if(_callback && !_callback(menu))
-            return;
+            return false;
         for(const Container & container : _containers)
         {
             switch(container.type)
@@ -94,6 +94,7 @@ public:
                 break;
             }
         }
+        return true;
     }
 
 private:
