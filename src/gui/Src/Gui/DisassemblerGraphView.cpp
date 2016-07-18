@@ -1202,7 +1202,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
                 {
                     Instr instr;
                     unsigned char data[MAX_DISASM_BUFFER];
-                    for(duint i = 0; i < node.data.size();)
+                    for(size_t i = 0; i < node.data.size();)
                     {
                         data[0] = 0xFF;
                         memcpy(data, node.data.data() + i, qMin(sizeof(data), node.data.size() - i));
