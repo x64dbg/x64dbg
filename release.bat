@@ -89,8 +89,7 @@ copy src\dbg\_plugin_types.h %RELEASEDIR%\pluginsdk\_plugin_types.h
 copy src\dbg\_plugins.h %RELEASEDIR%\pluginsdk\_plugins.h
 copy src\dbg\_scriptapi*.h %RELEASEDIR%\pluginsdk\_scriptapi*.h
 copy src\dbg\_dbgfunctions.h %RELEASEDIR%\pluginsdk\_dbgfunctions.h
-copy src\bridge\bridgelist.h %RELEASEDIR%\pluginsdk\bridgelist.h
-copy src\bridge\bridgemain.h %RELEASEDIR%\pluginsdk\bridgemain.h
+copy src\bridge\bridge*.h %RELEASEDIR%\pluginsdk\bridge*.h
 
 genlib bin\x32\x32bridge.dll
 copy x32bridge.a %RELEASEDIR%\pluginsdk\libx32bridge.a
