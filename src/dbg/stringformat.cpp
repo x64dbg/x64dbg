@@ -1,6 +1,7 @@
 #include "stringformat.h"
 #include "value.h"
 #include "symbolinfo.h"
+#include "module.h"
 
 namespace ValueType
 {
@@ -12,7 +13,8 @@ namespace ValueType
         Hex,
         Pointer,
         String,
-        AddrInfo
+        AddrInfo,
+        Module
     };
 }
 
@@ -46,11 +48,19 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
         case ValueType::AddrInfo:
         {
             auto symbolic = SymGetSymbolicName(valuint);
-            result = StringUtils::sprintf(fhex, valuint);
             if(DbgGetStringAt(valuint, string))
-                result += " " + String(string);
+                result = string;
             else if(symbolic.length())
-                result += " " + symbolic;
+                result = symbolic;
+            else
+                result.clear();
+        }
+        break;
+        case ValueType::Module:
+        {
+            char mod[MAX_MODULE_SIZE] = "";
+            ModNameFromAddr(valuint, mod, true);
+            result = mod;
         }
         break;
         default:
@@ -85,6 +95,9 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
             break;
         case 'a':
             type = ValueType::AddrInfo;
+            break;
+        case 'm':
+            type = ValueType::Module;
             break;
         default: //invalid format
             return nullptr;

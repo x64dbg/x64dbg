@@ -397,6 +397,7 @@ void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
             dumpAddr = selection.start;
     }
     GuiStackDumpAt(dumpAddr, csp);
+    GuiUpdateArgumentWidget();
 }
 
 static void printSoftBpInfo(const BREAKPOINT & bp)
