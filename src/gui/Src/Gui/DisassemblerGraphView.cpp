@@ -176,21 +176,19 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     for(auto & blockIt : this->blocks)
     {
         DisassemblerBlock & block = blockIt.second;
+
+        QRect blockRect = QRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
+                                block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
+
         //Render shadow
         p.setPen(QColor(0, 0, 0, 0));
         p.setBrush(QColor(0, 0, 0, 128));
-        p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
-                   block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
+        p.drawRect(blockRect);
 
         //Render node background
-        QLinearGradient gradient = QLinearGradient(QPointF(0, block.y + this->charWidth),
-                                   QPointF(0, block.y + block.height - this->charWidth));
-        gradient.setColorAt(0, ConfigColor("DisassemblyBackgroundColor"));
-        gradient.setColorAt(1, ConfigColor("DisassemblyBackgroundColor"));
         p.setPen(Qt::black);
-        p.setBrush(QBrush(gradient));
-        p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
-                   block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
+        p.setBrush(QBrush(ConfigColor("DisassemblyBackgroundColor")));
+        p.drawRect(blockRect);
 
         //Print current instruction background
         if(this->cur_instr != 0)
@@ -1213,7 +1211,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
                         auto size = instrTok.length;
                         instr.addr = addr;
                         instr.opcode.resize(size);
-                        for(size_t j = 0; j < size; j++)
+                        for(int j = 0; j < size; j++)
                             instr.opcode[j] = data[j];
                         instr.text = Text(richText);
                         block.instrs.push_back(instr);

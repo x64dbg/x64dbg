@@ -415,7 +415,7 @@ void MainWindow::loadTabSavedOrder()
         else
         {
             // Conflicts. Try to find an unused tab index.
-            for(duint j = 0; j < mWidgetList.size(); j++)
+            for(int j = 0; j < mWidgetList.size(); j++)
             {
                 auto item = tabIndexToWidget.find(j);
                 if(item == tabIndexToWidget.end())
