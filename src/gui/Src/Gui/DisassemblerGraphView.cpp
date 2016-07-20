@@ -176,19 +176,17 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     for(auto & blockIt : this->blocks)
     {
         DisassemblerBlock & block = blockIt.second;
-
-        QRect blockRect = QRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
-                                block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
-
         //Render shadow
         p.setPen(QColor(0, 0, 0, 0));
         p.setBrush(QColor(0, 0, 0, 128));
-        p.drawRect(blockRect);
+        p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
+                   block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
         //Render node background
         p.setPen(Qt::black);
         p.setBrush(QBrush(ConfigColor("DisassemblyBackgroundColor")));
-        p.drawRect(blockRect);
+        p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
+                   block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
         //Print current instruction background
         if(this->cur_instr != 0)
