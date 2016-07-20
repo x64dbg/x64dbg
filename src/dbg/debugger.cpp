@@ -962,9 +962,9 @@ void cbRtrStep()
         cbRtrFinalStep();
     else if(ch == 0x26 || ch == 0x36 || ch == 0x2e || ch == 0x3e || (ch >= 0x64 && ch <= 0x67) || ch == 0xf2 || ch == 0xf3 //instruction prefixes
 #ifdef _WIN64
-        || (ch >= 0x40 && ch <= 0x4f)
+            || (ch >= 0x40 && ch <= 0x4f)
 #endif //_WIN64
-        )
+           )
     {
         Capstone cp;
         unsigned char data[MAX_DISASM_BUFFER];
