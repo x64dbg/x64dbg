@@ -163,71 +163,63 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     }
 
     //Render background
+    QRect viewportRect = this->viewport()->rect();
     QLinearGradient gradient = QLinearGradient(QPointF(-xofs, -yofs), QPointF(this->renderWidth - xofs, this->renderHeight - yofs));
     gradient.setColorAt(0, QColor(232, 232, 232));
     gradient.setColorAt(1, QColor(192, 192, 192));
     p.setPen(QColor(0, 0, 0, 0));
     p.setBrush(QBrush(gradient));
-    p.drawRect(0, 0, this->viewport()->size().width(), this->viewport()->size().height());
+    p.drawRect(viewportRect);
 
-    p.translate(this->renderXOfs - xofs, this->renderYOfs - yofs);
+    QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
+    p.translate(translation);
+    viewportRect.translate(-translation.x(), -translation.y());
 
     //Render each node
     for(auto & blockIt : this->blocks)
     {
         DisassemblerBlock & block = blockIt.second;
-        //Render shadow
-        p.setPen(QColor(0, 0, 0, 0));
-        p.setBrush(QColor(0, 0, 0, 128));
-        p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
-                   block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
-        //Render node background
-        p.setPen(Qt::black);
-        p.setBrush(QBrush(ConfigColor("DisassemblyBackgroundColor")));
-        p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
-                   block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
-
-        //Print current instruction background
-        if(this->cur_instr != 0)
+        //Ignore blocks that are not in view
+        if(viewportRect.intersects(QRect(block.x + this->charWidth , block.y + this->charWidth,
+                                         block.width - (2 * this->charWidth), block.height - (2 * this->charWidth))))
         {
-            int y = block.y + (2 * this->charWidth) + (int(block.block.header_text.lines.size()) * this->charHeight);
-            for(Instr & instr : block.block.instrs)
-            {
-                if(instr.addr == this->cur_instr)
-                {
-                    p.setPen(QColor(0, 0, 0, 0));
-                    p.setBrush(ConfigColor("DisassemblySelectionColor"));
-                    p.drawRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
-                               int(instr.text.lines.size()) * this->charHeight);
-                }
-                y += int(instr.text.lines.size()) * this->charHeight;
-            }
-        }
+            //Render shadow
+            p.setPen(QColor(0, 0, 0, 0));
+            p.setBrush(QColor(0, 0, 0, 128));
+            p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
+                       block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
-        //Render highlighted tokens
-        //TODO
-        /*if(this->highlight_token)
-        {
-            int x = block.x + (2 * this->charWidth);
-            int y = block.y + (2 * this->charWidth);
-            for(auto & line : block.block.header_text.tokens)
+            //Render node background
+            p.setPen(Qt::black);
+            p.setBrush(QBrush(ConfigColor("DisassemblyBackgroundColor")));
+            p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
+                       block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
+
+            //Print current instruction background
+            if(this->cur_instr != 0)
             {
-                for(Token & token : line)
+                int y = block.y + (2 * this->charWidth) + (int(block.block.header_text.lines.size()) * this->charHeight);
+                for(Instr & instr : block.block.instrs)
                 {
-                    if(this->highlight_token->equalsToken(token))
+                    if(instr.addr == this->cur_instr)
                     {
                         p.setPen(QColor(0, 0, 0, 0));
-                        p.setBrush(QColor(192, 0, 0, 64));
-                        p.drawRect(x + token.start * this->charWidth, y,
-                                   token.length * this->charWidth, this->charHeight);
+                        p.setBrush(ConfigColor("DisassemblySelectionColor"));
+                        p.drawRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
+                                   int(instr.text.lines.size()) * this->charHeight);
                     }
+                    y += int(instr.text.lines.size()) * this->charHeight;
                 }
-                y += this->charHeight;
             }
-            for(Instr & instr : block.block.instrs)
+
+            //Render highlighted tokens
+            //TODO
+            /*if(this->highlight_token)
             {
-                for(auto & line : instr.text.tokens)
+                int x = block.x + (2 * this->charWidth);
+                int y = block.y + (2 * this->charWidth);
+                for(auto & line : block.block.header_text.tokens)
                 {
                     for(Token & token : line)
                     {
@@ -241,37 +233,54 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
                     }
                     y += this->charHeight;
                 }
-            }
-        }*/
-
-        //Render node text
-        auto x = block.x + (2 * this->charWidth);
-        auto y = block.y + (2 * this->charWidth);
-        for(auto & line : block.block.header_text.lines)
-        {
-            RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
-            /*auto partx = x;
-            for(RichTextPainter::CustomRichText_t & part : line)
-            {
-                p.setPen(part.color);
-                p.drawText(partx, y + this->charOffset + this->baseline, part.text);
-                partx += part.text.length() * this->charWidth;
+                for(Instr & instr : block.block.instrs)
+                {
+                    for(auto & line : instr.text.tokens)
+                    {
+                        for(Token & token : line)
+                        {
+                            if(this->highlight_token->equalsToken(token))
+                            {
+                                p.setPen(QColor(0, 0, 0, 0));
+                                p.setBrush(QColor(192, 0, 0, 64));
+                                p.drawRect(x + token.start * this->charWidth, y,
+                                           token.length * this->charWidth, this->charHeight);
+                            }
+                        }
+                        y += this->charHeight;
+                    }
+                }
             }*/
-            y += this->charHeight;
-        }
-        for(Instr & instr : block.block.instrs)
-        {
-            for(auto & line : instr.text.lines)
+
+            //Render node text
+            auto x = block.x + (2 * this->charWidth);
+            auto y = block.y + (2 * this->charWidth);
+            for(auto & line : block.block.header_text.lines)
             {
                 RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
                 /*auto partx = x;
-                for(Line & part : line)
+                for(RichTextPainter::CustomRichText_t & part : line)
                 {
                     p.setPen(part.color);
                     p.drawText(partx, y + this->charOffset + this->baseline, part.text);
                     partx += part.text.length() * this->charWidth;
                 }*/
                 y += this->charHeight;
+            }
+            for(Instr & instr : block.block.instrs)
+            {
+                for(auto & line : instr.text.lines)
+                {
+                    RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
+                    /*auto partx = x;
+                    for(Line & part : line)
+                    {
+                        p.setPen(part.color);
+                        p.drawText(partx, y + this->charOffset + this->baseline, part.text);
+                        partx += part.text.length() * this->charWidth;
+                    }*/
+                    y += this->charHeight;
+                }
             }
         }
 
