@@ -78,7 +78,9 @@ int main(int argc, char* argv[])
     char locale[MAX_SETTING_SIZE] = "";
     if(!BridgeSettingGet("Engine", "Language", locale) || !isValidLocale(locale))
     {
-        strcpy_s(locale, QLocale::system().name().toUtf8().constData());
+        QStringList uiLanguages = QLocale::system().uiLanguages();
+        QString sysLocale = uiLanguages.size() ? QLocale(uiLanguages[0]).name() : QLocale::system().name();
+        strcpy_s(locale, sysLocale.toUtf8().constData());
         BridgeSettingSet("Engine", "Language", locale);
     }
 
