@@ -530,7 +530,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 backgroundColor = mCommentBackgroundColor;
             }
 
-            int width = getCharWidth() * comment.length();
+            int width = mFontMetrics->width(comment);
             if(width > w)
                 width = w;
             if(width)
@@ -545,7 +545,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             painter->setPen(mLabelColor);
             backgroundColor = mLabelBackgroundColor;
 
-            int width = getCharWidth() * labelText.length();
+            int width = mFontMetrics->width(labelText);
             if(width > w)
                 width = w;
             if(width)
@@ -568,7 +568,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             QString mnemBrief = brief;
             if(mnemBrief.length())
             {
-                int width = getCharWidth() * mnemBrief.length();
+                int width = mFontMetrics->width(mnemBrief);
                 if(width > w)
                     width = w;
                 if(width)
