@@ -12,9 +12,6 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
 {
     this->status = "Loading...";
 
-    //Create analysis and start it in another thread
-    //Dummy
-
     //Start disassembly view at the entry point of the binary
     this->function = 0;
     this->update_id = 0;
@@ -26,8 +23,6 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->scroll_base_y = 0;
     this->scroll_mode = false;
     this->blocks.clear();
-    //this->show_il = false;
-    //this->simulation = None;
 
     //Create timer to automatically refresh view when it needs to be updated
     this->updateTimer = new QTimer();
@@ -143,33 +138,14 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     int xofs = this->horizontalScrollBar()->value();
     int yofs = this->verticalScrollBar()->value();
 
-    if(!this->ready)
-    {
-        //Analysis for the current function is not yet complete, paint loading screen
-        QLinearGradient gradient = QLinearGradient(QPointF(0, 0),
-                                   QPointF(this->viewport()->size().height(), this->viewport()->size().height()));
-        gradient.setColorAt(0, QColor(232, 232, 232));
-        gradient.setColorAt(1, QColor(192, 192, 192));
-        p.setPen(QColor(0, 0, 0, 0));
-        p.setBrush(QBrush(gradient));
-        p.drawRect(0, 0, this->viewport()->size().width(), this->viewport()->size().height());
-
-        QString text = this->function ? this->status : "No function selected";
-        p.setPen(Qt::black);
-        p.drawText((this->viewport()->size().width() / 2) - ((text.length() * this->charWidth) / 2),
-                   (this->viewport()->size().height() / 2) + this->charOffset + this->baseline - (this->charHeight / 2),
-                   text);
-        return;
-    }
-
     //Render background
     QRect viewportRect = this->viewport()->rect();
-    QLinearGradient gradient = QLinearGradient(QPointF(-xofs, -yofs), QPointF(this->renderWidth - xofs, this->renderHeight - yofs));
-    gradient.setColorAt(0, QColor(232, 232, 232));
-    gradient.setColorAt(1, QColor(192, 192, 192));
-    p.setPen(QColor(0, 0, 0, 0));
-    p.setBrush(QBrush(gradient));
+    p.setBrush(QBrush(ConfigColor("DisassemblySelectionColor")));
     p.drawRect(viewportRect);
+    p.setBrush(Qt::black);
+
+    if(!this->ready || !DbgIsDebugging())
+        return;
 
     QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
     p.translate(translation);
