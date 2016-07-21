@@ -80,6 +80,14 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
 
         while(true)
         {
+            if(!inRange(node.end))
+            {
+                node.end = mCp.Address();
+                node.terminal = true;
+                graph.AddNode(node);
+                break;
+            }
+
             node.icount++;
             if(!mCp.Disassemble(node.end, translateAddr(node.end)))
             {
@@ -110,8 +118,12 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             {
                 //set the branch destinations
                 node.brtrue = mCp.BranchDestination();
-                if(mCp.GetId() != X86_INS_JMP)  //unconditional jumps dont have a brfalse
+                if(mCp.GetId() != X86_INS_JMP && mCp.GetId() != X86_INS_LJMP)  //unconditional jumps dont have a brfalse
                     node.brfalse = node.end + mCp.Size();
+
+                //consider register/memory branches as terminal nodes
+                if(mCp[0].type != X86_OP_IMM)
+                    node.terminal = true;
 
                 //add node to the function graph
                 graph.AddNode(node);
@@ -178,7 +190,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
         auto size = node.end - node.start + (mCp.Disassemble(node.end, translateAddr(node.end)) ? mCp.Size() : 1);
         node.data.resize(size);
         for(duint i = 0; i < size; i++)
-            node.data[i] = inRange(node.start + i) ? *translateAddr(node.start + i) : 0x90;
+            node.data[i] = inRange(node.start + i) ? *translateAddr(node.start + i) : 0;
     }
     mFunctions.push_back(graph);
 }
