@@ -139,6 +139,7 @@ public:
         duint entry = 0;
         duint true_path = 0;
         duint false_path = 0;
+        bool terminal = false;
 
         void print() const
         {

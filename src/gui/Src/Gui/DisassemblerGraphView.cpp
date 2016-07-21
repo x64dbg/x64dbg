@@ -162,7 +162,10 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
         {
             //Render shadow
             p.setPen(QColor(0, 0, 0, 0));
-            p.setBrush(QColor(0, 0, 0, 128));
+            if(block.block.terminal)
+                p.setBrush(QColor(144, 0, 0));
+            else
+                p.setBrush(QColor(0, 0, 0, 128));
             p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
                        block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
@@ -1179,6 +1182,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint ad
                 block.exits = node.exits;
                 block.false_path = node.brfalse;
                 block.true_path = node.brtrue;
+                block.terminal = node.terminal;
                 block.header_text = Text(ToPtrString(block.entry), Qt::red);
                 {
                     Instr instr;
