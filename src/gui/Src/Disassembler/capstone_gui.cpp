@@ -352,6 +352,7 @@ bool CapstoneTokenizer::tokenizeMnemonic()
         switch(id)
         {
         case X86_INS_JMP:
+        case X86_INS_LJMP:
             type = TokenType::MnemonicUncondJump;
             break;
         default:
