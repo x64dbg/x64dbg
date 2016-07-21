@@ -1071,8 +1071,8 @@ BRIDGE_IMPEXP void GuiFocusView(int hWindow);
 BRIDGE_IMPEXP bool GuiIsUpdateDisabled();
 BRIDGE_IMPEXP void GuiUpdateEnable(bool updateNow);
 BRIDGE_IMPEXP void GuiUpdateDisable();
-BRIDGE_IMPEXP void GuiLoadGraph(BridgeCFGraphList* graph);
-BRIDGE_IMPEXP void GuiGraphAt(duint addr);
+BRIDGE_IMPEXP void GuiLoadGraph(BridgeCFGraphList* graph, duint addr);
+BRIDGE_IMPEXP bool GuiGraphAt(duint addr);
 BRIDGE_IMPEXP void GuiUpdateGraphView();
 
 #ifdef __cplusplus

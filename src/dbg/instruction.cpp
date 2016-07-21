@@ -2832,17 +2832,19 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
         dprintf("Invalid memory address " fhex "!\n", entry);
         return STATUS_ERROR;
     }
-    RecursiveAnalysis analysis(base, size, entry, 0);
-    analysis.Analyse();
-    auto graph = analysis.GetFunctionGraph(entry);
-    if(!graph)
+    if(!GuiGraphAt(sel))
     {
-        dputs("No graph generated...");
-        return STATUS_ERROR;
+        RecursiveAnalysis analysis(base, size, entry, 0);
+        analysis.Analyse();
+        auto graph = analysis.GetFunctionGraph(entry);
+        if(!graph)
+        {
+            dputs("No graph generated...");
+            return STATUS_ERROR;
+        }
+        auto graphList = graph->ToGraphList();
+        GuiLoadGraph(&graphList, sel);
     }
-    auto graphList = graph->ToGraphList();
-    GuiGraphAt(sel);
-    GuiLoadGraph(&graphList);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }

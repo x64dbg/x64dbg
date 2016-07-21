@@ -245,7 +245,7 @@ public:
 
 public slots:
     void updateTimerEvent();
-    void loadGraphSlot(BridgeCFGraphList* graph);
+    void loadGraphSlot(BridgeCFGraphList* graph, duint addr);
     void graphAtSlot(duint addr);
     void updateGraphSlot();
     void followDisassemblerSlot();

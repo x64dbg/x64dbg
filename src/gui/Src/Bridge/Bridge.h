@@ -124,7 +124,7 @@ signals:
     void focusDump();
     void focusStack();
     void updateWatch();
-    void loadGraph(BridgeCFGraphList* graph);
+    void loadGraph(BridgeCFGraphList* graph, duint addr);
     void graphAt(duint addr);
     void updateGraph();
 

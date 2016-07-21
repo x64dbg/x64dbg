@@ -47,7 +47,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     setupContextMenu();
 
     //Connect to bridge
-    connect(Bridge::getBridge(), SIGNAL(loadGraph(BridgeCFGraphList*)), this, SLOT(loadGraphSlot(BridgeCFGraphList*)));
+    connect(Bridge::getBridge(), SIGNAL(loadGraph(BridgeCFGraphList*, duint)), this, SLOT(loadGraphSlot(BridgeCFGraphList*, duint)));
     connect(Bridge::getBridge(), SIGNAL(graphAt(duint)), this, SLOT(graphAtSlot(duint)));
     connect(Bridge::getBridge(), SIGNAL(updateGraph()), this, SLOT(updateGraphSlot()));
 }
@@ -1157,7 +1157,7 @@ void DisassemblerGraphView::fontChanged()
     }
 }
 
-void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
+void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint addr)
 {
     BridgeCFGraph graph(graphList);
     Analysis anal;
@@ -1208,13 +1208,13 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList)
     }
     this->analysis = anal;
     this->function = this->analysis.entry;
+    this->cur_instr = addr ? addr : this->function;
     Bridge::getBridge()->setResult();
 }
 
 void DisassemblerGraphView::graphAtSlot(duint addr)
 {
-    this->cur_instr = addr;
-    //this->navigate(addr);
+    Bridge::getBridge()->setResult(this->navigate(addr));
 }
 
 void DisassemblerGraphView::updateGraphSlot()
