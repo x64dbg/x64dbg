@@ -250,6 +250,9 @@ public slots:
     void graphAtSlot(duint addr);
     void updateGraphSlot();
     void followDisassemblerSlot();
+    void colorsUpdatedSlot();
+    void fontsUpdatedSlot();
+    void shortcutsUpdatedSlot();
 
 signals:
     void showCpu();

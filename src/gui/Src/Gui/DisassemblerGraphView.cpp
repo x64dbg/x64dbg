@@ -50,11 +50,16 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(loadGraph(BridgeCFGraphList*, duint)), this, SLOT(loadGraphSlot(BridgeCFGraphList*, duint)));
     connect(Bridge::getBridge(), SIGNAL(graphAt(duint)), this, SLOT(graphAtSlot(duint)));
     connect(Bridge::getBridge(), SIGNAL(updateGraph()), this, SLOT(updateGraphSlot()));
+
+    //Connect to config
+    connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
+    connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(shortcutsUpdatedSlot()));
 }
 
 void DisassemblerGraphView::initFont()
 {
-    setFont(QFont("Courier New", 8));
+    setFont(ConfigFont("Disassembly"));
     QFontMetricsF metrics(this->font());
     this->baseline = int(metrics.ascent());
     this->charWidth = metrics.width('X');
@@ -1243,4 +1248,20 @@ void DisassemblerGraphView::followDisassemblerSlot()
 {
     DbgCmdExec(QString("disasm %1").arg(ToPtrString(this->cur_instr)).toUtf8().constData());
     emit showCpu();
+}
+
+void DisassemblerGraphView::colorsUpdatedSlot()
+{
+    fontChanged();
+}
+
+void DisassemblerGraphView::fontsUpdatedSlot()
+{
+    fontChanged();
+}
+
+void DisassemblerGraphView::shortcutsUpdatedSlot()
+{
+    for(const auto & actionShortcut : actionShortcutPairs)
+        actionShortcut.action->setShortcut(ConfigShortcut(actionShortcut.shortcut));
 }
