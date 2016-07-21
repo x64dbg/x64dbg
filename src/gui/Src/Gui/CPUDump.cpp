@@ -46,6 +46,15 @@ void CPUDump::setupContextMenu()
     wBinaryMenu->addAction(makeAction(DIcon("binary_save.png"), tr("Save To a File"), SLOT(binarySaveToFileSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("B&inary")), wBinaryMenu);
 
+    MenuBuilder* wCopyMenu = new MenuBuilder(this);
+    wCopyMenu->addAction(mCopySelection);
+    wCopyMenu->addAction(mCopyAddress);
+    wCopyMenu->addAction(mCopyRva, [this](QMenu*)
+    {
+        return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
+    });
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), wCopyMenu);
+
     mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
     {
         return DbgFunctions()->PatchInRange(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()));
@@ -62,17 +71,9 @@ void CPUDump::setupContextMenu()
         DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(duint));
         return DbgMemIsValidReadPtr(ptr);
     };
-#ifdef _WIN64
-    mMenuBuilder->addAction(makeAction(DIcon("processor64.png"), tr("&Follow QWORD in Disassembler"), SLOT(followDataSlot())), wIsValidReadPtrCallback);
-#else //x86
-    mMenuBuilder->addAction(makeAction(DIcon("processor32.png"), tr("&Follow DWORD in Disassembler"), SLOT(followDataSlot())), wIsValidReadPtrCallback);
-#endif //_WIN64
 
-#ifdef _WIN64
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("&Follow QWORD in Current Dump"), SLOT(followDataDumpSlot())), wIsValidReadPtrCallback);
-#else //x86
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("&Follow DWORD in Current Dump"), SLOT(followDataDumpSlot())), wIsValidReadPtrCallback);
-#endif //_WIN64
+    mMenuBuilder->addAction(makeAction(DIcon("processor32.png"), ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")), SLOT(followDataSlot())), wIsValidReadPtrCallback);
+    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Current Dump"), tr("&Follow QWORD in Current Dump")), SLOT(followDataDumpSlot())), wIsValidReadPtrCallback);
 
     MenuBuilder* wFollowInDumpMenu = new MenuBuilder(this, [wIsValidReadPtrCallback, this](QMenu * menu)
     {
@@ -92,15 +93,6 @@ void CPUDump::setupContextMenu()
         mFollowInDumpActions.push_back(action);
     }
     mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Dump"), tr("&Follow QWORD in Dump"))), wFollowInDumpMenu);
-
-#ifdef _WIN64
-    mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), tr("Watch QWORD"), SLOT(watchSlot())));
-#else //x86
-    mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), tr("Watch DWORD"), SLOT(watchSlot())));
-#endif
-
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("entropy.png"), tr("Entrop&y..."), SLOT(entropySlot()), "ActionEntropy"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("Set &Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
     mMenuBuilder->addAction(makeAction(DIcon("modify.png"), tr("&Modify Value"), SLOT(modifyValueSlot())), [this](QMenu*)
     {
@@ -167,9 +159,13 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("breakpoint.png"), tr("&Breakpoint")), wBreakpointMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for.png"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("find.png"), tr("Find &References"), SLOT(findReferencesSlot()), "ActionFindReferences"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("yara.png"), tr("&Yara..."), SLOT(yaraSlot()), "ActionYara"));
     mMenuBuilder->addAction(makeAction(DIcon("data-copy.png"), tr("Data co&py..."), SLOT(dataCopySlot())));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("find.png"), tr("Find &References"), SLOT(findReferencesSlot()), "ActionFindReferences"));
+
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
+    mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), ArchValue(tr("Watch QWORD"), tr("Watch DWORD")), SLOT(watchSlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("entropy.png"), tr("Entrop&y..."), SLOT(entropySlot()), "ActionEntropy"));
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
     wGotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("&Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
