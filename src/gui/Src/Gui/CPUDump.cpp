@@ -41,7 +41,7 @@ void CPUDump::setupContextMenu()
     wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_fill.png"), tr("&Fill..."), SLOT(binaryFillSlot()), "ActionBinaryFill"));
     wBinaryMenu->addSeparator();
     wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_copy.png"), tr("&Copy"), SLOT(binaryCopySlot()), "ActionBinaryCopy"));
-    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Copy"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
+    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
     wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"));
     wBinaryMenu->addAction(makeAction(DIcon("binary_save.png"), tr("Save To a File"), SLOT(binarySaveToFileSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("B&inary")), wBinaryMenu);
