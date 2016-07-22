@@ -2,7 +2,6 @@
 
 GUIGUIINIT _gui_guiinit;
 GUISENDMESSAGE _gui_sendmessage;
-GUISENDMESSAGEASYNC _gui_sendmessageasync;
 
 DBGDBGINIT _dbg_dbginit;
 DBGMEMFINDBASEADDR _dbg_memfindbaseaddr;
