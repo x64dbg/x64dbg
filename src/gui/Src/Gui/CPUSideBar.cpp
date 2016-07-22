@@ -145,7 +145,6 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     if(mInstrBuffer->size() == 0)
         return;
 
-
     if(mCodeFoldingManager.isFolded(regDump.regcontext.cip))
     {
         mCodeFoldingManager.expandFoldSegment(regDump.regcontext.cip);
@@ -310,7 +309,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     const int line = y / fontHeight;
     const int width = viewport()->width();
 
-    const int bulletRadius = fontHeight / 2; //14/2=7
+    const int bulletRadius = fontHeight / 2 + 1; //14/2=7
     const int bulletX = width - mBulletXOffset;
     //const int bulletY = line * fontHeight + mBulletYOffset;
 
@@ -432,7 +431,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         painter->setPen(mUnconditionalPen); //JMP
 
     // Pixel adjustment to make drawing lines even
-    int pixel_y_offs = 1;
+    int pixel_y_offs = 0;
 
     if(isactive) //selected
     {

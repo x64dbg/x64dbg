@@ -965,15 +965,16 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
         }
     }
 
+    int halfRow = getRowHeight() / 2 + 1;
 
     painter->setPen(mConditionalTruePen);
     if(curInstDir == GJD_Up)
     {
         QPoint wPoints[] =
         {
-            QPoint(x , y + getRowHeight() / 2 + 1),
-            QPoint(x + 2, y + getRowHeight() / 2 - 1),
-            QPoint(x + 4, y + getRowHeight() / 2 + 1),
+            QPoint(x , y + halfRow + 1),
+            QPoint(x + 2, y + halfRow - 1),
+            QPoint(x + 4, y + halfRow + 1),
         };
 
         painter->drawPolyline(wPoints, 3);
@@ -982,9 +983,9 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
     {
         QPoint wPoints[] =
         {
-            QPoint(x , y + getRowHeight() / 2 - 1),
-            QPoint(x + 2, y + getRowHeight() / 2 + 1),
-            QPoint(x + 4, y + getRowHeight() / 2 - 1),
+            QPoint(x , y + halfRow - 1),
+            QPoint(x + 2, y + halfRow + 1),
+            QPoint(x + 4, y + halfRow - 1),
         };
 
         painter->drawPolyline(wPoints, 3);
@@ -1022,56 +1023,56 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
     }
     else if(wPict == GD_FootToBottom)
     {
-        painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
-        painter->drawLine(x, y + getRowHeight() / 2, x, y + getRowHeight());
+        painter->drawLine(x, y + halfRow, x + 5, y + halfRow);
+        painter->drawLine(x, y + halfRow, x, y + getRowHeight());
     }
     else if(wPict == GD_FootToTop)
     {
-        painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
-        painter->drawLine(x, y, x, y + getRowHeight() / 2);
+        painter->drawLine(x, y + halfRow, x + 5, y + halfRow);
+        painter->drawLine(x, y, x, y + halfRow);
     }
     else if(wPict == GD_HeadFromBottom)
     {
         QPoint wPoints[] =
         {
-            QPoint(x + 3, y + getRowHeight() / 2 - 2),
-            QPoint(x + 5, y + getRowHeight() / 2),
-            QPoint(x + 3, y + getRowHeight() / 2 + 2),
+            QPoint(x + 3, y + halfRow - 2),
+            QPoint(x + 5, y + halfRow),
+            QPoint(x + 3, y + halfRow + 2),
         };
 
-        painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
-        painter->drawLine(x, y + getRowHeight() / 2, x, y + getRowHeight());
+        painter->drawLine(x, y + halfRow, x + 5, y + halfRow);
+        painter->drawLine(x, y + halfRow, x, y + getRowHeight());
         painter->drawPolyline(wPoints, 3);
     }
     else if(wPict == GD_HeadFromTop)
     {
         QPoint wPoints[] =
         {
-            QPoint(x + 3, y + getRowHeight() / 2 - 2),
-            QPoint(x + 5, y + getRowHeight() / 2),
-            QPoint(x + 3, y + getRowHeight() / 2 + 2),
+            QPoint(x + 3, y + halfRow - 2),
+            QPoint(x + 5, y + halfRow),
+            QPoint(x + 3, y + halfRow + 2),
         };
 
-        painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
-        painter->drawLine(x, y, x, y + getRowHeight() / 2);
+        painter->drawLine(x, y + halfRow, x + 5, y + halfRow);
+        painter->drawLine(x, y, x, y + halfRow);
         painter->drawPolyline(wPoints, 3);
     }
     else if(wPict == GD_HeadFromBoth)
     {
         QPoint wPoints[] =
         {
-            QPoint(x + 3, y + getRowHeight() / 2 - 2),
-            QPoint(x + 5, y + getRowHeight() / 2),
-            QPoint(x + 3, y + getRowHeight() / 2 + 2),
+            QPoint(x + 3, y + halfRow - 2),
+            QPoint(x + 5, y + halfRow),
+            QPoint(x + 3, y + halfRow + 2),
         };
 
-        painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
+        painter->drawLine(x, y + halfRow, x + 5, y + halfRow);
         painter->drawLine(x, y, x, y + getRowHeight());
         painter->drawPolyline(wPoints, 3);
     }
     else if(wPict == GD_VertHori)
     {
-        painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
+        painter->drawLine(x, y + halfRow, x + 5, y + halfRow);
         painter->drawLine(x, y, x, y + getRowHeight());
     }
 

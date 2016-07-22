@@ -14,6 +14,7 @@ public:
           mFontMetrics(font)
     {
         memset(mWidths, 0, sizeof(mWidths));
+        mHeight = mFontMetrics.height();
     }
 
     int width(const QChar & ch)
@@ -48,9 +49,15 @@ public:
         return result;
     }
 
+    int height()
+    {
+        return mHeight;
+    }
+
 private:
     QFontMetrics mFontMetrics;
     uchar mWidths[0x10000 - 0xE000 + 0xD800];
+    int mHeight;
 };
 
 #endif // CACHEDFONTMETRICS_H

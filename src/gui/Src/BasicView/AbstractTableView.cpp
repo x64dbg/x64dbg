@@ -85,7 +85,7 @@ void AbstractTableView::updateFonts()
 {
     setFont(ConfigFont("AbstractTableView"));
     invalidateCachedFont();
-    mHeader.height = QFontMetrics(font()).height() + 4;
+    mHeader.height = mFontMetrics->height() + 4;
 }
 
 void AbstractTableView::invalidateCachedFont()
@@ -1019,10 +1019,7 @@ int AbstractTableView::getColumnCount() const
 
 int AbstractTableView::getRowHeight()
 {
-    int wRowsHeight = QFontMetrics(this->font()).height();
-    wRowsHeight = (wRowsHeight * 105) / 100;
-    wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
-    return wRowsHeight;
+    return mFontMetrics->height() | 1;
 }
 
 int AbstractTableView::getColumnWidth(int index)
