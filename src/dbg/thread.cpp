@@ -221,7 +221,6 @@ HANDLE ThreadGetHandle(DWORD ThreadId)
     if(threadList.find(ThreadId) != threadList.end())
         return threadList[ThreadId].Handle;
 
-    ASSERT_ALWAYS("Trying to get handle of a thread that doesn't exist!");
     return nullptr;
 }
 
