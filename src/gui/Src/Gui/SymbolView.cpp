@@ -226,6 +226,7 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
 
 void SymbolView::moduleSelectionChanged(int index)
 {
+    Q_UNUSED(index);
     setUpdatesEnabled(false);
 
     mSearchListView->mList->setRowCount(0);
