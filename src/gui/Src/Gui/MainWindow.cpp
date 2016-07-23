@@ -15,6 +15,7 @@
 #include "StringUtil.h"
 #include "MiscUtil.h"
 #include "FavouriteTools.h"
+#include "main.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -307,6 +308,9 @@ MainWindow::MainWindow(QWidget* parent)
     // Setup favourite tools menu
     updateFavouriteTools();
 
+    // Setup language menu
+    setupLanguagesMenu();
+
     // Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException = 0;
@@ -353,6 +357,53 @@ void MainWindow::setupStatusBar()
     QLabel* timeWastedLabel = new QLabel(this);
     ui->statusBar->addPermanentWidget(timeWastedLabel);
     mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
+}
+
+void MainWindow::setupLanguagesMenu()
+{
+    QDir translationsDir(QString("%1/../translations/").arg(QCoreApplication::applicationDirPath()));
+    QMenu* languageMenu;
+    if(tr("Languages") == QString("Languages"))
+        languageMenu = new QMenu(QString("Languages"));
+    else
+        languageMenu = new QMenu(tr("Languages") + QString(" Languages"), this);
+    QLocale enUS(QLocale::English, QLocale::UnitedStates);
+    QString wCurrentLocale(currentLocale);
+    QAction* action_enUS = new QAction(QString("[%1]%2 - %3").arg(enUS.name()).arg(enUS.nativeLanguageName()).arg(enUS.nativeCountryName()), languageMenu);
+    connect(action_enUS, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
+    action_enUS->setCheckable(true);
+    action_enUS->setChecked(false);
+    languageMenu->addAction(action_enUS);
+    if(!translationsDir.exists())
+    {
+        // translations dir do not exist
+        action_enUS->setChecked(true);
+        ui->menuOptions->addMenu(languageMenu);
+        return;
+    }
+    if(wCurrentLocale == QString("en_US"))
+        action_enUS->setChecked(true);
+    QStringList filter;
+    filter << "x64dbg_*.qm";
+    QFileInfoList fileList = translationsDir.entryInfoList(filter, QDir::Readable | QDir::Files, QDir::Size);
+    auto allLocales = QLocale::matchingLocales(QLocale::AnyLanguage, QLocale::AnyScript, QLocale::AnyCountry);
+    for(auto i : fileList)
+    {
+        QString localeName = i.baseName().mid(7);
+        for(auto j : allLocales)
+        {
+            if(j.name().startsWith(localeName))
+            {
+                QAction* actionLanguage = new QAction(QString("[%1]%2 - %3").arg(localeName).arg(j.nativeLanguageName()).arg(j.nativeCountryName()), languageMenu);
+                connect(actionLanguage, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
+                actionLanguage->setCheckable(true);
+                actionLanguage->setChecked(localeName == wCurrentLocale);
+                languageMenu->addAction(actionLanguage);
+                break;
+            }
+        }
+    }
+    ui->menuOptions->addMenu(languageMenu);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -1563,6 +1614,52 @@ void MainWindow::clickFavouriteTool()
     {
         DbgCmdExec(action->text().toUtf8().constData());
     }
+}
+
+void MainWindow::chooseLanguage()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    QString localeName = action->text();
+    localeName = localeName.mid(1, localeName.indexOf(QChar(']')) - 1);
+    action->setChecked(localeName == QString(currentLocale));
+    if(localeName != "en_US")
+    {
+        QDir translationsDir(QString("%1/../translations/").arg(QCoreApplication::applicationDirPath()));
+        QFile file(translationsDir.absoluteFilePath(QString("x64dbg_%1.qm").arg(localeName)));
+        if(file.size() < 512)
+        {
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            if(tr("Languages") == QString("Languages"))
+            {
+                msg.setWindowTitle(QString("Languages"));
+                msg.setText(QString("The translation is nearly empty. Do you still want to use this language?"));
+            }
+            else
+            {
+                msg.setWindowTitle(tr("Languages") + QString(" Languages"));
+                msg.setText(tr("The translation is nearly empty. Do you still want to use this language?") + QString("\r\nThe translation is nearly empty. Do you still want to use this language?"));
+            }
+            msg.addButton(QMessageBox::Yes);
+            msg.addButton(QMessageBox::No);
+            if(msg.exec() == QMessageBox::No)
+                return;
+        }
+    }
+    BridgeSettingSet("Engine", "Language", localeName.toUtf8().constData());
+    QMessageBox msg(this);
+    msg.setIcon(QMessageBox::Information);
+    if(tr("Languages") == QString("Languages"))
+    {
+        msg.setWindowTitle(QString("Languages"));
+        msg.setText(QString("New language setting will take effect upon restart."));
+    }
+    else
+    {
+        msg.setWindowTitle(tr("Languages") + QString(" Languages"));
+        msg.setText(tr("New language setting will take effect upon restart.") + QString("\r\nNew language setting will take effect upon restart."));
+    }
+    msg.exec();
 }
 
 void MainWindow::on_actionStepIntoSource_triggered()
