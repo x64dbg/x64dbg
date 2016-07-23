@@ -147,6 +147,7 @@ public slots:
     void manageFavourites();
     void updateFavouriteTools();
     void clickFavouriteTool();
+    void chooseLanguage();
 
 private:
     Ui::MainWindow* ui;
@@ -191,6 +192,7 @@ private:
     void removeMRUEntry(QString entry);
     void updateMRUMenu();
     QString getMRUEntry(int index);
+    void setupLanguagesMenu();
 
     //menu api
     struct MenuEntryInfo

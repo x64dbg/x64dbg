@@ -45,6 +45,7 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
 }
 
 static Configuration* mConfiguration;
+char currentLocale[MAX_SETTING_SIZE] = "";
 
 static bool isValidLocale(const QString & locale)
 {
@@ -75,24 +76,23 @@ int main(int argc, char* argv[])
 #endif
 
     // Get the hidden language setting (for testers)
-    char locale[MAX_SETTING_SIZE] = "";
-    if(!BridgeSettingGet("Engine", "Language", locale) || !isValidLocale(locale))
+    if(!BridgeSettingGet("Engine", "Language", currentLocale) || !isValidLocale(currentLocale))
     {
         QStringList uiLanguages = QLocale::system().uiLanguages();
         QString sysLocale = uiLanguages.size() ? QLocale(uiLanguages[0]).name() : QLocale::system().name();
-        strcpy_s(locale, sysLocale.toUtf8().constData());
-        BridgeSettingSet("Engine", "Language", locale);
+        strcpy_s(currentLocale, sysLocale.toUtf8().constData());
+        BridgeSettingSet("Engine", "Language", currentLocale);
     }
 
     // Load translations for Qt
     QTranslator qtTranslator;
-    if(qtTranslator.load(QString("qt_%1").arg(locale), QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+    if(qtTranslator.load(QString("qt_%1").arg(currentLocale), QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
         application.installTranslator(&qtTranslator);
 
     //x64dbg and x32dbg can share the same translation
     QTranslator x64dbgTranslator;
     auto path = QString("%1/../translations").arg(QCoreApplication::applicationDirPath());
-    if(x64dbgTranslator.load(QString("x64dbg_%1").arg(locale), path))
+    if(x64dbgTranslator.load(QString("x64dbg_%1").arg(currentLocale), path))
         application.installTranslator(&x64dbgTranslator);
 
     // initialize capstone

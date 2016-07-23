@@ -1278,7 +1278,7 @@ CMDRESULT cbDebugStepOver(int argc, char* argv[])
 {
     StepOver((void*)cbStep);
     // History
-    HistoryAdd();
+    HistoryClear();
     dbgsetstepping(true);
     return cbDebugRun(argc, argv);
 }
