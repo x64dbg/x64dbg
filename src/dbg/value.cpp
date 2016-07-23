@@ -1281,7 +1281,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
     bool noexports = false;
     if(!apiname) //not found
     {
-        apiname = strrchr(name, '.'); //kernel32.GetProcAddress support
+        apiname = strstr(name, "..") ? strchr(name, '.') : strrchr(name, '.'); //kernel32.GetProcAddress support
         if(!apiname) //not found
         {
             apiname = strchr(name, '?'); //the '?' character cannot be in a path either
@@ -1356,9 +1356,12 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                         else
                         {
                             duint ordinal;
-                            if(valfromstring(apiname, &ordinal))
+                            auto radix = 16;
+                            if(*apiname == '.') //decimal
+                                radix = 10, apiname++;
+                            if(convertNumber(apiname, ordinal, radix) && ordinal <= 0xFFFF)
                             {
-                                addr = (duint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
+                                addr = duint(GetProcAddress(mod, LPCSTR(ordinal)));
                                 if(addr) //found exported function
                                     addr = modbase + (addr - (duint)mod); //correct for loaded base
                                 else if(!ordinal) //support for getting the image base using <modname>:0
