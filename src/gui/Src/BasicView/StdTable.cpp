@@ -444,7 +444,7 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
     }
 }
 
-void StdTable::setupCopyMenu(MenuBuilder *copyMenu)
+void StdTable::setupCopyMenu(MenuBuilder* copyMenu)
 {
     if(!getColumnCount())
         return;
@@ -457,21 +457,21 @@ void StdTable::setupCopyMenu(MenuBuilder *copyMenu)
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->ColName
-    copyMenu->addBuilder(new MenuBuilder(this, [this](QMenu* menu)
+    copyMenu->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
-         for(int i = 0; i < getColumnCount(); i++)
-         {
-             if(!getCellContent(getInitialSelection(), i).length()) //skip empty cells
-                 continue;
-             QString title = mCopyTitles.at(i);
-             if(!title.length()) //skip empty copy titles
-                 continue;
-             QAction* action = new QAction(title, menu);
-             action->setObjectName(QString::number(i));
-             connect(action, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
-             menu->addAction(action);
-         }
-         return true;
+        for(int i = 0; i < getColumnCount(); i++)
+        {
+            if(!getCellContent(getInitialSelection(), i).length()) //skip empty cells
+                continue;
+            QString title = mCopyTitles.at(i);
+            if(!title.length()) //skip empty copy titles
+                continue;
+            QAction* action = new QAction(title, menu);
+            action->setObjectName(QString::number(i));
+            connect(action, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
+            menu->addAction(action);
+        }
+        return true;
     }));
 }
 

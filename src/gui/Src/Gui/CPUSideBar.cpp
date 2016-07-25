@@ -749,7 +749,7 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vec
         if(numLines[i->line + viewableRows] != 0)
             i->endX = viewportWidth - numLines[i->line + viewableRows] * JumpPadding - 15 - fontHeight; // This expression should be consistent with drawJump
         else
-            i->endX = viewportWidth - 1- 11 - (isFoldingGraphicsPresent(i->line) != 0 ? mBulletRadius + fontHeight : 0);
+            i->endX = viewportWidth - 1 - 11 - (isFoldingGraphicsPresent(i->line) != 0 ? mBulletRadius + fontHeight : 0);
     }
     delete[] numLines;
 }
