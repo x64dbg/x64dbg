@@ -1407,7 +1407,8 @@ void MainWindow::changeCommandLine()
 void MainWindow::displayManual()
 {
     // Open the Windows CHM in the upper directory
-    QDesktopServices::openUrl(QUrl(QUrl::fromLocalFile(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath()))));
+    if(!QDesktopServices::openUrl(QUrl(QUrl::fromLocalFile(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath())))))
+        SimpleErrorBox(this, tr("Error"), tr("Manual cannot be opened. Please check if x64dbg.chm exists and ensure there is no other problems with your system."));
 }
 
 void MainWindow::decompileAt(dsint start, dsint end)

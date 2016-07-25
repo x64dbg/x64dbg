@@ -1403,7 +1403,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                     if(szBaseName)
                     {
                         szBaseName++;
-                        HMODULE hModule = LoadLibraryExW(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
+                        HMODULE hModule = LoadLibraryExW(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES);
                         if(hModule)
                         {
                             ULONG_PTR funcAddress = (ULONG_PTR)GetProcAddress(hModule, name);
@@ -1446,6 +1446,21 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
             dprintf(fhex"\n", addrfound()[i]);
     }
     return true;
+}
+
+bool valenvfromstring(const char* string, duint* Address)
+{
+    if(scmp(string, "peb"))
+    {
+        *Address = (duint)GetPEBLocation(fdProcessInfo->hProcess);
+        return true;
+    }
+    else if(scmp(string, "teb"))
+    {
+        *Address = (duint)GetTEBLocation(hActiveThread);
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -1515,6 +1530,11 @@ bool convertLongLongNumber(const char* str, unsigned long long & result, int rad
     return true;
 }
 
+/**
+\brief Check if a character is a valid hexadecimal digit that is smaller than the size of a pointer.
+\param digit The character to check.
+\return true if the character is a valid hexadecimal digit.
+*/
 static bool isdigitduint(char digit)
 {
 #ifdef _WIN64
@@ -1609,7 +1629,8 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
 
         if(!valfromstring(ptrstring.c_str(), value, silent, baseonly))
         {
-            dprintf("noexpr failed on %s\n", ptrstring.c_str());
+            if(!silent)
+                dprintf("noexpr failed on %s\n", ptrstring.c_str());
             return false;
         }
         duint addr = *value;
@@ -1702,6 +1723,8 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
+    else if(valenvfromstring(string, value)) //environment block
+        return true;
     else if(strstr(string, "sub_") == string)  //then come sub_ functions
     {
         auto result = sscanf(string, "sub_%" fext "X", value) == 1;
