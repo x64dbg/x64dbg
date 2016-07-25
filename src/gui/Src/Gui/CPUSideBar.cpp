@@ -193,6 +193,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 #endif //_WIN64
 
     std::vector<JumpLine> jumpLines;
+    std::vector<LabelArrow> labelArrows;
 
     for(int line = 0; line < viewableRows; line++)
     {
@@ -270,7 +271,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         if(regLabelText.size())
         {
             regLabelText.chop(1);
-            drawLabel(&painter, line, regLabelText);
+            labelArrows.push_back(drawLabel(&painter, line, regLabelText));
         }
 
         //debug
@@ -291,10 +292,16 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     }
     if(jumpLines.size())
     {
-        AllocateJumpOffsets(jumpLines);
+        AllocateJumpOffsets(jumpLines, labelArrows);
         for(auto i : jumpLines)
             drawJump(&painter, i.line, i.destLine, i.jumpOffset, i.isConditional, i.isJumpGoingToExecute, i.isSelected);
     }
+    else
+    {
+        for(auto i = labelArrows.begin(); i != labelArrows.end(); i++)
+            i->endX = viewport()->width() - 1 - 11 - (isFoldingGraphicsPresent(i->line) != 0 ? mBulletRadius + fontHeight : 0);
+    }
+    drawLabelArrows(&painter, labelArrows);
 }
 
 void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
@@ -599,7 +606,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
     painter->restore();
 }
 
-void CPUSideBar::drawLabel(QPainter* painter, int Line, const QString & Text)
+CPUSideBar::LabelArrow CPUSideBar::drawLabel(QPainter* painter, int Line, const QString & Text)
 {
     painter->save();
     const int LineCoordinate = fontHeight * (1 + Line);
@@ -630,7 +637,29 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, const QString & Text)
     painter->setBrush(QBrush(IPLabelBG));
     drawStraightArrow(painter, rect.right() + 2, y, this->viewport()->width() - x - 11 - (isFoldingGraphicsPresent(Line) != 0 ? mBulletRadius + fontHeight : 0), y);*/
 
+    LabelArrow labelArrow;
+    labelArrow.line = Line;
+    labelArrow.startX = rect.right() + 2;
+    labelArrow.endX = 0;
+
     painter->restore();
+
+    return labelArrow;
+}
+
+void CPUSideBar::drawLabelArrows(QPainter* painter, const std::vector<LabelArrow> & labelArrows)
+{
+    if(!labelArrows.empty())
+    {
+        painter->save();
+        painter->setPen(QPen(mCipLabelBackgroundColor, 2.0));
+        for(auto i : labelArrows)
+        {
+            int y = fontHeight * (1 + i.line) - 0.5 * fontHeight;
+            drawStraightArrow(painter, i.startX, y, i.endX, y);
+        }
+        painter->restore();
+    }
 }
 
 void CPUSideBar::drawFoldingCheckbox(QPainter* painter, int y, bool state)
@@ -660,10 +689,10 @@ void CPUSideBar::drawStraightArrow(QPainter* painter, int x1, int y1, int x2, in
     painter->drawLine(x2 - 1, y2, x2 - ArrowSizeX, y2 + ArrowSizeY - 1);// Arrow bottom
 }
 
-void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines)
+void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vector<LabelArrow> & labelArrows)
 {
-    unsigned int* numLines = new unsigned int[viewableRows];
-    memset(numLines, 0, sizeof(unsigned int) * viewableRows);
+    unsigned int* numLines = new unsigned int[viewableRows * 2]; // Low:jump offsets of the vertical jumping line, High:jump offsets of the horizontal jumping line.
+    memset(numLines, 0, sizeof(unsigned int) * viewableRows * 2);
     // preprocessing
     for(size_t i = 0; i < jumpLines.size(); i++)
     {
@@ -707,6 +736,20 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines)
             for(int j = jmp.line; j >= jmp.destLine && j >= 0; j--)
                 numLines[j] = jmp.jumpOffset;
         }
+        if(jmp.line >= 0 && jmp.line < viewableRows)
+            numLines[jmp.line + viewableRows] = jmp.jumpOffset;
+        if(jmp.destLine >= 0 && jmp.destLine < viewableRows)
+            numLines[jmp.destLine + viewableRows] = jmp.jumpOffset;
+    }
+    // set label arrows according to jump offsets
+    auto viewportWidth = viewport()->width();
+    const int JumpPadding = 11;
+    for(auto i = labelArrows.begin(); i != labelArrows.end(); i++)
+    {
+        if(numLines[i->line + viewableRows] != 0)
+            i->endX = viewportWidth - numLines[i->line + viewableRows] * JumpPadding - 15 - fontHeight; // This expression should be consistent with drawJump
+        else
+            i->endX = viewportWidth - 1- 11 - (isFoldingGraphicsPresent(i->line) != 0 ? mBulletRadius + fontHeight : 0);
     }
     delete[] numLines;
 }

@@ -164,7 +164,7 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeAction(DIcon("data-copy.png"), tr("Data co&py..."), SLOT(dataCopySlot())));
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
-    mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), ArchValue(tr("Watch QWORD"), tr("Watch DWORD")), SLOT(watchSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), ArchValue(tr("Watch DWORD"), tr("Watch QWORD")), SLOT(watchSlot())));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("entropy.png"), tr("Entrop&y..."), SLOT(entropySlot()), "ActionEntropy"));
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);

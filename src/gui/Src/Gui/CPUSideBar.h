@@ -43,7 +43,6 @@ protected:
     void mouseReleaseEvent(QMouseEvent* e);
     void mouseMoveEvent(QMouseEvent* event);
 
-    void drawLabel(QPainter* painter, int Line, const QString & Text);
     void drawBullets(QPainter* painter, int line, bool ispb, bool isbpdisabled, bool isbookmark);
     bool isJump(int i) const;
     void drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive);
@@ -68,12 +67,21 @@ private:
     {
         int line;
         int destLine;
-        int jumpOffset;
+        unsigned int jumpOffset;
         bool isSelected;
         bool isConditional;
         bool isJumpGoingToExecute;
     };
-    void AllocateJumpOffsets(std::vector<JumpLine> & jumpLines);
+    struct LabelArrow
+    {
+        int line;
+        int startX;
+        int endX;
+    };
+
+    void AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vector<LabelArrow> & labelArrows);
+    LabelArrow drawLabel(QPainter* painter, int Line, const QString & Text);
+    void drawLabelArrows(QPainter* painter, const std::vector<LabelArrow> & labelArrows);
 
     // Configuration
     QColor mBackgroundColor;

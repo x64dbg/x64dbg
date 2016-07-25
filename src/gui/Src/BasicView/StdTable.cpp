@@ -444,6 +444,37 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
     }
 }
 
+void StdTable::setupCopyMenu(MenuBuilder *copyMenu)
+{
+    if(!getColumnCount())
+        return;
+    //Copy->Whole Line
+    copyMenu->addAction(makeAction(tr("&Line"), SLOT(copyLineSlot())));
+    //Copy->Cropped Table
+    copyMenu->addAction(makeAction(tr("Cropped &Table"), SLOT(copyTableSlot())));
+    //Copy->Full Table
+    copyMenu->addAction(makeAction(tr("&Full Table"), SLOT(copyTableResizeSlot())));
+    //Copy->Separator
+    copyMenu->addSeparator();
+    //Copy->ColName
+    copyMenu->addBuilder(new MenuBuilder(this, [this](QMenu* menu)
+    {
+         for(int i = 0; i < getColumnCount(); i++)
+         {
+             if(!getCellContent(getInitialSelection(), i).length()) //skip empty cells
+                 continue;
+             QString title = mCopyTitles.at(i);
+             if(!title.length()) //skip empty copy titles
+                 continue;
+             QAction* action = new QAction(title, menu);
+             action->setObjectName(QString::number(i));
+             connect(action, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
+             menu->addAction(action);
+         }
+         return true;
+    }));
+}
+
 void StdTable::setCopyMenuOnly(bool bSet, bool bDebugOnly)
 {
     mCopyMenuOnly = bSet;

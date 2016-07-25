@@ -17,18 +17,16 @@ UpdateChecker::UpdateChecker(QWidget* parent)
 
 void UpdateChecker::checkForUpdates()
 {
-    get(QNetworkRequest(QUrl("http://jenkins.x64dbg.com/job/vs13/lastSuccessfulBuild/api/json")));
+    //get(QNetworkRequest(QUrl("http://jenkins.x64dbg.com/job/vs13/lastSuccessfulBuild/api/json")));
+    //jenkins is disabled.
+    SimpleErrorBox(mParent, "Error", "Cannot check for updates because the update server is down.");
 }
 
 void UpdateChecker::finishedSlot(QNetworkReply* reply)
 {
     if(reply->error() != QNetworkReply::NoError) //error
     {
-        QMessageBox msg(QMessageBox::Critical, tr("Network Error!"), reply->errorString());
-        msg.setParent(mParent, Qt::Dialog);
-        msg.setWindowIcon(DIcon("compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleErrorBox(mParent, tr("Network Error!"), reply->errorString());
         return;
     }
     bool ok = false;
@@ -40,11 +38,7 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
     reply->close();
     if(!ok)
     {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("File on server could not be parsed..."));
-        msg.setParent(mParent, Qt::Dialog);
-        msg.setWindowIcon(DIcon("compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleErrorBox(mParent, tr("Error!"), tr("File on server could not be parsed..."));
         return;
     }
     auto server = QDateTime::fromTime_t(timestamp).date();

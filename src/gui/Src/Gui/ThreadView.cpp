@@ -202,7 +202,11 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * 12, tr("Priority"), false);
     addColumnAt(8 + charwidth * 12, tr("Wait Reason"), false);
     addColumnAt(8 + charwidth * 11, tr("Last Error"), false);
-    addColumnAt(0, tr("Name"), false);
+    addColumnAt(8 + charwidth * 12, tr("User Time"), false);
+    addColumnAt(8 + charwidth * 12, tr("Kernel Time"), false);
+    addColumnAt(8 + charwidth * 15, tr("Creation Time"), false);
+    addColumnAt(8 + charwidth * 10, tr("CPU Cycles"), false, "", SortBy::AsInt);
+    addColumnAt(8, tr("Name"), false);
     loadColumnFromConfig("Thread");
 
     //setCopyMenuOnly(true);
@@ -223,7 +227,7 @@ void ThreadView::updateThreadList()
     for(int i = 0; i < threadList.count; i++)
     {
         if(!threadList.list[i].BasicInfo.ThreadNumber)
-            setCellContent(i, 0, "Main");
+            setCellContent(i, 0, tr("Main"));
         else
             setCellContent(i, 0, ToDecString(threadList.list[i].BasicInfo.ThreadNumber));
         setCellContent(i, 1, ToHexString(threadList.list[i].BasicInfo.ThreadId));
@@ -380,7 +384,11 @@ void ThreadView::updateThreadList()
         }
         setCellContent(i, 7, waitReasonString);
         setCellContent(i, 8, QString("%1").arg(threadList.list[i].LastError, sizeof(unsigned int) * 2, 16, QChar('0')).toUpper());
-        setCellContent(i, 9, threadList.list[i].BasicInfo.threadName);
+        setCellContent(i, 9, FILETIMEToTime(threadList.list[i].UserTime));
+        setCellContent(i, 10, FILETIMEToTime(threadList.list[i].KernelTime));
+        setCellContent(i, 11, FILETIMEToDate(threadList.list[i].CreationTime));
+        setCellContent(i, 12, ToLongLongHexString(threadList.list[i].Cycles));
+        setCellContent(i, 13, threadList.list[i].BasicInfo.threadName);
     }
     mCurrentThreadId = "NONE";
     if(threadList.count)

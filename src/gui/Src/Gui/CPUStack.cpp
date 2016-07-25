@@ -310,13 +310,10 @@ void CPUStack::refreshShortcutsSlot()
 
 void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
 {
-    // Compute RVA
-    dsint wRva = rva;
-    duint wVa = rvaToVa(wRva);
+    // Compute VA
+    duint wVa = rvaToVa(rva);
 
-    bool wActiveStack = true;
-    if(wVa < mCsp) //inactive stack
-        wActiveStack = false;
+    bool wActiveStack = (wVa >= mCsp); //inactive stack
 
     STACK_COMMENT comment;
     RichTextPainter::CustomRichText_t curData;
@@ -337,7 +334,7 @@ void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & ric
             }
         }
     }
-    else if(col && DbgStackCommentGet(rvaToVa(wRva), &comment)) //paint stack comments
+    else if(col && DbgStackCommentGet(wVa, &comment)) //paint stack comments
     {
         if(wActiveStack)
         {
@@ -407,7 +404,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         if(background.alpha())
             painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background when defined
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(wVa));
-        return "";
+        return QString();
     }
     return HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
 }

@@ -13,22 +13,31 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
-    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
+    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followTo()));
 
     setupContextMenu();
 }
 
 void CallStackView::setupContextMenu()
 {
-    mFollowAddress = new QAction(tr("Follow &Address"), this);
-    connect(mFollowAddress, SIGNAL(triggered()), this, SLOT(followAddress()));
-    mFollowTo = new QAction(tr("Follow &To"), this);
+    mMenuBuilder = new MenuBuilder(this, [](QMenu*)
+    {
+        return DbgIsDebugging();
+    });
+    mMenuBuilder->addAction(makeAction(tr("Follow &Address"), SLOT(followAddress())));
+    QAction* mFollowTo = mMenuBuilder->addAction(makeAction(tr("Follow &To"), SLOT(followTo())));
     mFollowTo->setShortcutContext(Qt::WidgetShortcut);
     mFollowTo->setShortcut(QKeySequence("enter"));
-    connect(mFollowTo, SIGNAL(triggered()), this, SLOT(followTo()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followTo()));
-    mFollowFrom = new QAction(tr("Follow &From"), this);
-    connect(mFollowFrom, SIGNAL(triggered()), this, SLOT(followFrom()));
+    mMenuBuilder->addAction(makeAction(tr("Follow &From"), SLOT(followFrom())), [this](QMenu*)
+    {
+        return !getCellContent(getInitialSelection(), 2).isEmpty();
+    });
+    MenuBuilder* mCopyMenu = new MenuBuilder(this);
+    setupCopyMenu(mCopyMenu);
+    // Column count cannot be zero
+    mMenuBuilder->addSeparator();
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), mCopyMenu);
 }
 
 void CallStackView::updateCallStack()
@@ -41,13 +50,13 @@ void CallStackView::updateCallStack()
     setRowCount(callstack.total);
     for(int i = 0; i < callstack.total; i++)
     {
-        QString addrText = QString("%1").arg((duint)callstack.entries[i].addr, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        QString addrText = ToPtrString(callstack.entries[i].addr);
         setCellContent(i, 0, addrText);
-        addrText = QString("%1").arg((duint)callstack.entries[i].to, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        addrText = ToPtrString(callstack.entries[i].to);
         setCellContent(i, 1, addrText);
         if(callstack.entries[i].from)
         {
-            addrText = QString("%1").arg((duint)callstack.entries[i].from, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+            addrText = ToPtrString(callstack.entries[i].from);
             setCellContent(i, 2, addrText);
         }
         setCellContent(i, 3, callstack.entries[i].comment);
@@ -59,27 +68,9 @@ void CallStackView::updateCallStack()
 
 void CallStackView::contextMenuSlot(const QPoint pos)
 {
-    if(!DbgIsDebugging())
-        return;
     QMenu wMenu(this); //create context menu
-    wMenu.addAction(mFollowAddress);
-    wMenu.addAction(mFollowTo);
-    QString wStr = getCellContent(getInitialSelection(), 2);
-    if(wStr.length())
-        wMenu.addAction(mFollowFrom);
-    QMenu wCopyMenu(tr("&Copy"), this);
-    setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
-    {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
-    }
+    mMenuBuilder->build(&wMenu);
     wMenu.exec(mapToGlobal(pos)); //execute context menu
-}
-
-void CallStackView::doubleClickedSlot()
-{
-    followTo();
 }
 
 void CallStackView::followAddress()

@@ -16,15 +16,12 @@ signals:
 protected slots:
     void updateCallStack();
     void contextMenuSlot(const QPoint pos);
-    void doubleClickedSlot();
     void followAddress();
     void followTo();
     void followFrom();
 
 private:
-    QAction* mFollowAddress;
-    QAction* mFollowTo;
-    QAction* mFollowFrom;
+    MenuBuilder* mMenuBuilder;
 };
 
 #endif // CALLSTACKVIEW_H

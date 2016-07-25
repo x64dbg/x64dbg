@@ -97,6 +97,11 @@ public:
         return true;
     }
 
+    inline bool empty() const
+    {
+        return _containers.empty();
+    }
+
 private:
     struct Container
     {
@@ -109,7 +114,8 @@ private:
         };
 
         inline Container()
-            : type(Separator)
+            : type(Separator),
+              action(nullptr)
         {
         }
 

@@ -209,7 +209,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Script", 3);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Thread", 10);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Thread", 14);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Handle", 5);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "TcpConnection", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Privilege", 2);

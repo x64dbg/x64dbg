@@ -17,11 +17,12 @@ static QString ToPtrString(duint Address)
     // QString::arg():
     // ((int32)0xFFFF0000) == 0xFFFFFFFFFFFF0000 with sign extension
     //
-    char temp[32];
 
 #ifdef _WIN64
+    char temp[33];
     sprintf_s(temp, "%016llX", Address);
 #else
+    char temp[17];
     sprintf_s(temp, "%08X", Address);
 #endif // _WIN64
 
@@ -30,7 +31,7 @@ static QString ToPtrString(duint Address)
 
 static QString ToLongLongHexString(unsigned long long Value)
 {
-    char temp[32];
+    char temp[33];
 
     sprintf_s(temp, "%llX", Value);
 
@@ -39,7 +40,7 @@ static QString ToLongLongHexString(unsigned long long Value)
 
 static QString ToHexString(duint Value)
 {
-    char temp[32];
+    char temp[33];
 
 #ifdef _WIN64
     sprintf_s(temp, "%llX", Value);
@@ -111,6 +112,22 @@ static T & ArchValue(T & x32value, T & x64value)
     return x32value;
 #endif //_WIN64
 }
+
+// Format : d:hh:mm:ss.1234567
+static QString FILETIMEToTime(const FILETIME & time)
+{
+    // FILETIME is in 100ns
+    quint64 time100ns = (quint64)time.dwHighDateTime << 32 | (quint64)time.dwLowDateTime;
+    quint64 milliseconds = time100ns / 10000;
+    quint64 days = milliseconds / (1000 * 60 * 60 * 24);
+    QTime qtime = QTime::fromMSecsSinceStartOfDay(milliseconds % (1000 * 60 * 60 * 24));
+    if(days == 0)
+        return QString().sprintf("%02d:%02d:%02d.%07lld", qtime.hour(), qtime.minute(), qtime.second(), time100ns % 10000000);
+    else
+        return QString().sprintf("%lld:%02d:%02d:%02d.%07lld", days, qtime.hour(), qtime.minute(), qtime.second(), time100ns % 10000000);
+}
+
+QString FILETIMEToDate(const FILETIME & date);
 
 static bool GetCommentFormat(duint addr, QString & comment, bool* autoComment = nullptr)
 {

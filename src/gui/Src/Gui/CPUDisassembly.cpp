@@ -1311,7 +1311,7 @@ void CPUDisassembly::yaraSlot()
     YaraRuleSelectionDialog yaraDialog(this);
     if(yaraDialog.exec() == QDialog::Accepted)
     {
-        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
         DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
         emit displayReferencesWidget();
     }

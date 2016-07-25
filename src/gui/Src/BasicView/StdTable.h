@@ -39,6 +39,7 @@ public:
 
     //context menu helpers
     void setupCopyMenu(QMenu* copyMenu);
+    void setupCopyMenu(MenuBuilder* copyMenu);
     void setCopyMenuOnly(bool bSet, bool bDebugOnly = true);
 
 signals:
