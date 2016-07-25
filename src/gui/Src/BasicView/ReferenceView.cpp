@@ -47,16 +47,6 @@ ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : SearchListView(
     {
         // Add the progress bar and label to the main layout
         layout()->addWidget(progressWidget);
-
-        // Setup signals
-        connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
-        connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(dsint)), this, SLOT(setRowCount(dsint)));
-        connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
-        connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
-        connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
-        connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
-        connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
-        connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
     }
     connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(referenceContextMenu(QMenu*)));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followGenericAddress()));
@@ -95,17 +85,26 @@ void ReferenceView::setupContextMenu()
     mRemoveBreakpointOnAllCommands = new QAction(tr("Remove breakpoint on all commands"), this);
     connect(mRemoveBreakpointOnAllCommands, SIGNAL(triggered()), this, SLOT(removeBreakpointOnAllCommands()));
 
-
     mSetBreakpointOnAllApiCalls = new QAction(tr("Set breakpoint on all api calls"), this);
     connect(mSetBreakpointOnAllApiCalls, SIGNAL(triggered()), this, SLOT(setBreakpointOnAllApiCalls()));
 
     mRemoveBreakpointOnAllApiCalls = new QAction(tr("Remove breakpoint on all api calls"), this);
     connect(mRemoveBreakpointOnAllApiCalls, SIGNAL(triggered()), this, SLOT(removeBreakpointOnAllApiCalls()));
 
-
-
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void ReferenceView::connectBridge()
+{
+    connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(dsint)), this, SLOT(setRowCount(dsint)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
+    connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
 }
 
 void ReferenceView::disconnectBridge()
@@ -116,6 +115,7 @@ void ReferenceView::disconnectBridge()
     disconnect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchTotalProgress, SLOT(setValue(int)));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
 }
 
@@ -141,6 +141,7 @@ void ReferenceView::referenceSetCurrentTaskProgressSlot(int progress, QString ta
 
 void ReferenceView::addColumnAt(int width, QString title)
 {
+    printf("addColumnAt(%d, %s)\n", width, title.toUtf8().constData());
     int charwidth = mList->getCharWidth();
     if(width)
         width = charwidth * width + 8;
@@ -158,6 +159,7 @@ void ReferenceView::addColumnAt(int width, QString title)
 
 void ReferenceView::setRowCount(dsint count)
 {
+    printf("setRowCount(%d)\n", count);
     emit mCountTotalLabel->setText(QString("%1").arg(count));
     mSearchBox->setText("");
     mList->setRowCount(count);
@@ -165,6 +167,7 @@ void ReferenceView::setRowCount(dsint count)
 
 void ReferenceView::setCellContent(int r, int c, QString s)
 {
+    printf("setCellContent(%d, %d, %s)\n", r, c, s.toUtf8().constData());
     mSearchBox->setText("");
     mList->setCellContent(r, c, s);
 }

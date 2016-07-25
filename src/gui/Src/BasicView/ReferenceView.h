@@ -12,6 +12,7 @@ class ReferenceView : public SearchListView
 public:
     ReferenceView(bool sourceView = false, QWidget* parent = nullptr);
     void setupContextMenu();
+    void connectBridge();
     void disconnectBridge();
 
 protected slots:

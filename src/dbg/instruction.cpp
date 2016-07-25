@@ -1904,9 +1904,10 @@ struct YaraScanInfo
     int index;
     bool rawFile;
     const char* modname;
+    bool debug;
 
-    YaraScanInfo(duint base, bool rawFile, const char* modname)
-        : base(base), index(0), rawFile(rawFile), modname(modname)
+    YaraScanInfo(duint base, bool rawFile, const char* modname, bool debug)
+        : base(base), index(0), rawFile(rawFile), modname(modname), debug(debug)
     {
     }
 };
@@ -1914,6 +1915,7 @@ struct YaraScanInfo
 static int yaraScanCallback(int message, void* message_data, void* user_data)
 {
     YaraScanInfo* scanInfo = (YaraScanInfo*)user_data;
+    bool debug = scanInfo->debug;
     switch(message)
     {
     case CALLBACK_MSG_RULE_MATCHING:
@@ -1942,13 +1944,14 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
 
         if(STRING_IS_NULL(yrRule->strings))
         {
-            dprintf("[YARA] Global rule \"%s\' matched!\n", yrRule->identifier);
-            GuiReferenceSetRowCount(1);
+            if(debug)
+                dprintf("[YARA] Global rule \"%s\' matched!\n", yrRule->identifier);
             addReference(base, nullptr, "");
         }
         else
         {
-            dprintf("[YARA] Rule \"%s\" matched:\n", yrRule->identifier);
+            if(debug)
+                dprintf("[YARA] Rule \"%s\" matched:\n", yrRule->identifier);
             YR_STRING* string;
             yr_rule_strings_foreach(yrRule, string)
             {
@@ -1967,7 +1970,8 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                     else
                         addr = base + offset;
 
-                    dprintf("[YARA] String \"%s\" : %s on 0x%" fext "X\n", string->identifier, pattern.c_str(), addr);
+                    if(debug)
+                        dprintf("[YARA] String \"%s\" : %s on 0x%" fext "X\n", string->identifier, pattern.c_str(), addr);
 
                     addReference(addr, string->identifier, pattern);
                 }
@@ -1979,20 +1983,23 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
     case CALLBACK_MSG_RULE_NOT_MATCHING:
     {
         YR_RULE* yrRule = (YR_RULE*)message_data;
-        dprintf("[YARA] Rule \"%s\" did not match!\n", yrRule->identifier);
+        if(debug)
+            dprintf("[YARA] Rule \"%s\" did not match!\n", yrRule->identifier);
     }
     break;
 
     case CALLBACK_MSG_SCAN_FINISHED:
     {
-        dputs("[YARA] Scan finished!");
+        if(debug)
+            dputs("[YARA] Scan finished!");
     }
     break;
 
     case CALLBACK_MSG_IMPORT_MODULE:
     {
         YR_MODULE_IMPORT* yrModuleImport = (YR_MODULE_IMPORT*)message_data;
-        dprintf("[YARA] Imported module \"%s\"!\n", yrModuleImport->module_name);
+        if(debug)
+            dprintf("[YARA] Imported module \"%s\"!\n", yrModuleImport->module_name);
     }
     break;
     }
@@ -2098,7 +2105,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                 GuiReferenceAddColumn(0, "Data");
                 GuiReferenceSetRowCount(0);
                 GuiReferenceReloadData();
-                YaraScanInfo scanInfo(base, rawFile, argv[2]);
+                YaraScanInfo scanInfo(base, rawFile, argv[2], settingboolget("Engine", "YaraDebug"));
                 duint ticks = GetTickCount();
                 dputs("[YARA] Scan started...");
                 int err = yr_rules_scan_mem(yrRules, data(), size, 0, yaraScanCallback, &scanInfo, 0);
