@@ -36,27 +36,23 @@ static QString ToLongLongHexString(unsigned long long Value)
 
 static QString ToHexString(duint Value)
 {
-    char temp[33];
-
+    char temp[32];
 #ifdef _WIN64
     sprintf_s(temp, "%llX", Value);
 #else
     sprintf_s(temp, "%X", Value);
 #endif // _WIN64
-
     return QString(temp);
 }
 
 static QString ToDecString(dsint Value)
 {
     char temp[32];
-
 #ifdef _WIN64
     sprintf_s(temp, "%lld", Value);
 #else
     sprintf_s(temp, "%d", Value);
 #endif // _WIN64
-
     return QString(temp);
 }
 
