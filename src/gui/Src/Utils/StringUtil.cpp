@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "main.h"
 #include "StringUtil.h"
 #include "float128.h"
 #include "MiscUtil.h"
@@ -208,6 +209,7 @@ QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
 
 QString ToDateString(const QDate & date)
 {
+    /*
     static const char* months[] =
     {
         "Jan",
@@ -224,4 +226,23 @@ QString ToDateString(const QDate & date)
         "Dec"
     };
     return QString().sprintf("%s %d %d", months[date.month() - 1], date.day(), date.year());
+    */
+    return QLocale(QString(currentLocale)).toString(date);
+}
+
+QString FILETIMEToDate(const FILETIME & date)
+{
+    FILETIME localdate;
+    FileTimeToLocalFileTime(&date, &localdate);
+    SYSTEMTIME systime;
+    FileTimeToSystemTime(&localdate, &systime);
+    QDate qdate = QDate(systime.wYear, systime.wMonth, systime.wDay);
+    quint64 time100ns = (quint64)localdate.dwHighDateTime << 32 | (quint64)localdate.dwLowDateTime;
+    time100ns %= (1000ull * 60ull * 60ull * 24ull * 10000ull);
+    localdate.dwHighDateTime = time100ns >> 32;
+    localdate.dwLowDateTime = time100ns & 0xFFFFFFFF;
+    if(qdate != QDate::currentDate())
+        return ToDateString(qdate) + FILETIMEToTime(localdate);
+    else // today
+        return FILETIMEToTime(localdate);
 }

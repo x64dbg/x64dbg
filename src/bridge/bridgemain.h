@@ -690,6 +690,10 @@ typedef struct
     THREADPRIORITY Priority;
     THREADWAITREASON WaitReason;
     DWORD LastError;
+    FILETIME UserTime;
+    FILETIME KernelTime;
+    FILETIME CreationTime;
+    ULONG64 Cycles; // Windows Vista or greater
 } THREADALLINFO;
 
 typedef struct

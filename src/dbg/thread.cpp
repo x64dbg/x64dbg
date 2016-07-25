@@ -9,6 +9,15 @@
 #include "threading.h"
 
 static std::unordered_map<DWORD, THREADINFO> threadList;
+// Function pointer for dynamic linking. Do not link statically for Windows XP compatibility.
+// TODO: move this function definition out of thread.cpp
+BOOL(WINAPI* QueryThreadCycleTime)(HANDLE ThreadHandle, PULONG64 CycleTime) = nullptr;
+
+BOOL WINAPI QueryThreadCycleTimeUnsupported(HANDLE ThreadHandle, PULONG64 CycleTime)
+{
+    *CycleTime = 0;
+    return TRUE;
+}
 
 void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
@@ -78,6 +87,13 @@ int ThreadGetCount()
 
 void ThreadGetList(THREADLIST* List)
 {
+    // Initialize function pointer
+    if(QueryThreadCycleTime == nullptr)
+    {
+        QueryThreadCycleTime = (BOOL(WINAPI*)(HANDLE, PULONG64))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "QueryThreadCycleTime");
+        if(QueryThreadCycleTime == nullptr)
+            QueryThreadCycleTime = QueryThreadCycleTimeUnsupported;
+    }
     ASSERT_NONNULL(List);
     SHARED_ACQUIRE(LockThreads);
 
@@ -97,6 +113,9 @@ void ThreadGetList(THREADLIST* List)
     // Fill out the list data
     int index = 0;
 
+    // Unused thread exit time
+    FILETIME threadExitTime;
+
     for(auto & itr : threadList)
     {
         HANDLE threadHandle = itr.second.Handle;
@@ -112,6 +131,8 @@ void ThreadGetList(THREADLIST* List)
         List->list[index].Priority = ThreadGetPriority(threadHandle);
         List->list[index].WaitReason = ThreadGetWaitReason(threadHandle);
         List->list[index].LastError = ThreadGetLastErrorTEB(itr.second.ThreadLocalBase);
+        GetThreadTimes(threadHandle, &List->list[index].CreationTime, &threadExitTime, &List->list[index].KernelTime, &List->list[index].UserTime);
+        QueryThreadCycleTime(threadHandle, &List->list[index].Cycles);
         index++;
     }
 }
