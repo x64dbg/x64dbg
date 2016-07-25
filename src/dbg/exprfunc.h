@@ -12,4 +12,7 @@ namespace Exprfunc
     duint disasmsel();
     duint dumpsel();
     duint stacksel();
+
+    duint peb();
+    duint teb();
 }

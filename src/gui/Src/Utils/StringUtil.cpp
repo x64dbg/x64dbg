@@ -209,7 +209,6 @@ QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
 
 QString ToDateString(const QDate & date)
 {
-    /*
     static const char* months[] =
     {
         "Jan",
@@ -226,8 +225,6 @@ QString ToDateString(const QDate & date)
         "Dec"
     };
     return QString().sprintf("%s %d %d", months[date.month() - 1], date.day(), date.year());
-    */
-    return QLocale(QString(currentLocale)).toString(date);
 }
 
 QString FILETIMEToDate(const FILETIME & date)

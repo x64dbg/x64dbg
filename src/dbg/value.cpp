@@ -1448,21 +1448,6 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
     return true;
 }
 
-bool valenvfromstring(const char* string, duint* Address)
-{
-    if(scmp(string, "peb"))
-    {
-        *Address = (duint)GetPEBLocation(fdProcessInfo->hProcess);
-        return true;
-    }
-    else if(scmp(string, "teb"))
-    {
-        *Address = (duint)GetTEBLocation(hActiveThread);
-        return true;
-    }
-    return false;
-}
-
 /**
 \brief Check if a string is a valid decimal number. This function also accepts "-" or "." as prefix.
 \param string The string to check.
@@ -1723,8 +1708,6 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(valenvfromstring(string, value)) //environment block
-        return true;
     else if(strstr(string, "sub_") == string)  //then come sub_ functions
     {
         auto result = sscanf(string, "sub_%" fext "X", value) == 1;

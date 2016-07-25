@@ -1,6 +1,7 @@
 #include "exprfunc.h"
 #include "symbolinfo.h"
 #include "module.h"
+#include "debugger.h"
 
 namespace Exprfunc
 {
@@ -45,5 +46,15 @@ namespace Exprfunc
     duint stacksel()
     {
         return selstart(GUI_STACK);
+    }
+
+    duint peb()
+    {
+        return duint(GetPEBLocation(fdProcessInfo->hProcess));
+    }
+
+    duint teb()
+    {
+        return duint(GetTEBLocation(hActiveThread));
     }
 }

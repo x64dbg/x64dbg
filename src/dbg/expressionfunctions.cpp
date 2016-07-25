@@ -56,6 +56,9 @@ void ExpressionFunctions::Init()
     RegisterEasy("disasm.sel\1dis.sel", disasmsel);
     RegisterEasy("dump.sel", dumpsel);
     RegisterEasy("stack.sel", stacksel);
+
+    RegisterEasy("peb\1PEB", peb);
+    RegisterEasy("teb\1TEB", teb);
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata)

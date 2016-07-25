@@ -141,7 +141,6 @@ void ReferenceView::referenceSetCurrentTaskProgressSlot(int progress, QString ta
 
 void ReferenceView::addColumnAt(int width, QString title)
 {
-    printf("addColumnAt(%d, %s)\n", width, title.toUtf8().constData());
     int charwidth = mList->getCharWidth();
     if(width)
         width = charwidth * width + 8;
@@ -159,7 +158,6 @@ void ReferenceView::addColumnAt(int width, QString title)
 
 void ReferenceView::setRowCount(dsint count)
 {
-    printf("setRowCount(%d)\n", count);
     emit mCountTotalLabel->setText(QString("%1").arg(count));
     mSearchBox->setText("");
     mList->setRowCount(count);
@@ -167,7 +165,6 @@ void ReferenceView::setRowCount(dsint count)
 
 void ReferenceView::setCellContent(int r, int c, QString s)
 {
-    printf("setCellContent(%d, %d, %s)\n", r, c, s.toUtf8().constData());
     mSearchBox->setText("");
     mList->setCellContent(r, c, s);
 }
