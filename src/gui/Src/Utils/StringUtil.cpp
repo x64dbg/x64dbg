@@ -74,7 +74,7 @@ QString ToLongDoubleString(void* buffer)
         }
 
         // Everything else psuedo denormal
-        // (−1)^s * m * 2^−16382
+        // (-1)^s * m * 2^-16382
     }
     break;
 
