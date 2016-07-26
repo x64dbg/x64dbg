@@ -408,8 +408,14 @@ void MainWindow::setupLanguagesMenu()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    mCloseDialog->show();
-    mCloseDialog->setFocus();
+    duint noClose = 0;
+    if(BridgeSettingGetUint("Gui", "NoCloseDialog", &noClose) && noClose)
+        mCloseDialog->hide();
+    else
+    {
+        mCloseDialog->show();
+        mCloseDialog->setFocus();
+    }
     static volatile bool bExecuteThread = true;
     if(bExecuteThread)
     {

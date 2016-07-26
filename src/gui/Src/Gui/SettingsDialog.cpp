@@ -179,8 +179,10 @@ void SettingsDialog::LoadSettings()
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
     GetSettingBool("Gui", "SaveColumnOrder", &settings.guiSaveColumnOrder);
+    GetSettingBool("Gui", "NoCloseDialog", &settings.guiNoCloseDialog);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
+    ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -289,6 +291,7 @@ void SettingsDialog::SaveSettings()
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
     BridgeSettingSetUint("Gui", "SaveColumnOrder", settings.guiSaveColumnOrder);
+    BridgeSettingSetUint("Gui", "NoCloseDialog", settings.guiNoCloseDialog);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -682,4 +685,9 @@ void SettingsDialog::on_chkSaveColumnOrder_stateChanged(int arg1)
         settings.guiSaveColumnOrder = false;
     else
         settings.guiSaveColumnOrder = true;
+}
+
+void SettingsDialog::on_chkNoCloseDialog_toggled(bool checked)
+{
+    settings.guiNoCloseDialog = checked;
 }

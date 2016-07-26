@@ -63,13 +63,13 @@ private slots:
     //Gui Tab
     void on_chkFpuRegistersLittleEndian_stateChanged(int arg1);
     void on_chkSaveColumnOrder_stateChanged(int arg1);
+    void on_chkSaveLoadTabOrder_stateChanged(int arg1);
+    void on_chkNoCloseDialog_toggled(bool checked);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
-
-    void on_chkSaveLoadTabOrder_stateChanged(int arg1);
 
 private:
     //enums
@@ -135,6 +135,7 @@ private:
         //Gui Tab
         bool guiFpuRegistersLittleEndian;
         bool guiSaveColumnOrder;
+        bool guiNoCloseDialog;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;
