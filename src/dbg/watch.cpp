@@ -348,14 +348,17 @@ void WatchCacheSave(JSON root)
         }
         json_array_append_new(watchroot, watchitem);
     }
-    json_object_set_new(root, "Watch", watchroot);
+    if(json_array_size(watchroot))
+        json_object_set(root, "watch", watchroot);
 }
 
 void WatchCacheLoad(JSON root)
 {
     WatchClear();
     EXCLUSIVE_ACQUIRE(LockWatch);
-    JSON watchroot = json_object_get(root, "Watch");
+    JSON watchroot = json_object_get(root, "watch");
+    if(!watchroot)
+        watchroot = json_object_get(root, "Watch");
     unsigned int i;
     JSON val;
     if(!watchroot)
