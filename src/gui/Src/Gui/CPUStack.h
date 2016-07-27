@@ -126,6 +126,7 @@ private:
 
     GotoDialog* mGoto;
     CPUMultiDump* mMultiDump;
+    QColor mStackFrameColor;
 };
 
 #endif // CPUSTACK_H

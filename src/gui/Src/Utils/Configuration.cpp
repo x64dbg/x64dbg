@@ -153,6 +153,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("StackSelectedAddressBackgroundColor", Qt::transparent);
     defaultColors.insert("StackLabelColor", QColor("#FF0000"));
     defaultColors.insert("StackLabelBackgroundColor", Qt::transparent);
+    defaultColors.insert("StackFrameColor", QColor("#000000"));
 
     defaultColors.insert("HexEditTextColor", QColor("#000000"));
     defaultColors.insert("HexEditWildcardColor", QColor("#FF0000"));

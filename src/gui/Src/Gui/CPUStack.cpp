@@ -59,6 +59,7 @@ void CPUStack::updateColors()
     backgroundColor = ConfigColor("StackBackgroundColor");
     textColor = ConfigColor("StackTextColor");
     selectionColor = ConfigColor("StackSelectionColor");
+    mStackFrameColor = ConfigColor("StackFrameColor");
 }
 
 void CPUStack::updateFonts()
@@ -463,7 +464,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                     return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
                 else
                 {
-                    painter->setPen(QPen(QColor("#000000"), 2));
+                    painter->setPen(QPen(mStackFrameColor, 2));
                     int height = getRowHeight();
                     int halfHeight = height / 2;
                     int width = 6;
