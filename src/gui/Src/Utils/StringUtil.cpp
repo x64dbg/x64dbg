@@ -239,7 +239,7 @@ QString FILETIMEToDate(const FILETIME & date)
     localdate.dwHighDateTime = time100ns >> 32;
     localdate.dwLowDateTime = time100ns & 0xFFFFFFFF;
     if(qdate != QDate::currentDate())
-        return ToDateString(qdate) + FILETIMEToTime(localdate);
+        return QLocale(QString(currentLocale)).toString(qdate) + FILETIMEToTime(localdate);
     else // today
         return FILETIMEToTime(localdate);
 }

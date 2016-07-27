@@ -35,6 +35,9 @@ public slots:
     void gotoExpressionSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
+    void gotoPreviousFrameSlot();
+    void gotoNextFrameSlot();
+    void gotoFrameBaseSlot();
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
     void selectionUpdatedSlot();
@@ -42,6 +45,7 @@ public slots:
     void followDumpSlot();
     void followinDumpNSlot();
     void followStackSlot();
+    void watchDataSlot();
     void binaryEditSlot();
     void binaryFillSlot();
     void binaryCopySlot();
@@ -107,11 +111,15 @@ private:
     QAction* mFreezeStack;
     QAction* mGotoExpression;
     QAction* mGotoPrevious;
+    QAction* mGotoNextFrame;
+    QAction* mGotoPrevFrame;
+    QAction* mGotoFrameBase;
     QAction* mGotoNext;
     QAction* mFindPatternAction;
     QAction* mFollowDisasm;
     QAction* mFollowDump;
     QAction* mFollowStack;
+    QAction* mWatchData;
     QMenu* mPluginMenu;
     QMenu* mFollowInDumpMenu;
     QList<QAction*> mFollowInDumpActions;

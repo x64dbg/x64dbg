@@ -113,7 +113,7 @@ static QString FILETIMEToTime(const FILETIME & time)
     quint64 milliseconds = time100ns / 10000;
     quint64 days = milliseconds / (1000 * 60 * 60 * 24);
     QTime qtime = QTime::fromMSecsSinceStartOfDay(milliseconds % (1000 * 60 * 60 * 24));
-    if(days == 0)
+    if(days == 0) // 0 days
         return QString().sprintf("%02d:%02d:%02d.%07lld", qtime.hour(), qtime.minute(), qtime.second(), time100ns % 10000000);
     else
         return QString().sprintf("%lld:%02d:%02d:%02d.%07lld", days, qtime.hour(), qtime.minute(), qtime.second(), time100ns % 10000000);

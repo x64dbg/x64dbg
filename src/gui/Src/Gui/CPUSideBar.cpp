@@ -655,8 +655,11 @@ void CPUSideBar::drawLabelArrows(QPainter* painter, const std::vector<LabelArrow
         painter->setPen(QPen(mCipLabelBackgroundColor, 2.0));
         for(auto i : labelArrows)
         {
-            int y = fontHeight * (1 + i.line) - 0.5 * fontHeight;
-            drawStraightArrow(painter, i.startX, y, i.endX, y);
+            if(i.startX < i.endX)
+            {
+                int y = fontHeight * (1 + i.line) - 0.5 * fontHeight;
+                drawStraightArrow(painter, i.startX, y, i.endX, y);
+            }
         }
         painter->restore();
     }
