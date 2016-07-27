@@ -6,7 +6,7 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
     : _maxModuleLength(maxModuleLength),
       _success(false)
 {
-    SetConfig(false, false, false, false);
+    SetConfig(false, false, false, false, false);
 }
 
 std::map<CapstoneTokenizer::TokenType, CapstoneTokenizer::TokenColor> CapstoneTokenizer::colorNamesMap;
@@ -138,19 +138,23 @@ bool CapstoneTokenizer::TokenizeData(const QString & datatype, const QString & d
 
 void CapstoneTokenizer::UpdateConfig()
 {
+    duint cocksucker;
+    bool bCocksucker = BridgeSettingGetUint("Engine", "Cocksucker", &cocksucker) && cocksucker;
     SetConfig(ConfigBool("Disassembler", "Uppercase"),
               ConfigBool("Disassembler", "TabbedMnemonic"),
               ConfigBool("Disassembler", "ArgumentSpaces"),
-              ConfigBool("Disassembler", "MemorySpaces"));
+              ConfigBool("Disassembler", "MemorySpaces"),
+              bCocksucker);
     UpdateStringPool();
 }
 
-void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces)
+void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bCocksucker)
 {
     _bUppercase = bUppercase;
     _bTabbedMnemonic = bTabbedMnemonic;
     _bArgumentSpaces = bArgumentSpaces;
     _bMemorySpaces = bMemorySpaces;
+    _bCocksucker = bCocksucker;
 }
 
 int CapstoneTokenizer::Size() const
@@ -387,6 +391,9 @@ bool CapstoneTokenizer::tokenizeMnemonic()
         }
     }
     QString mnemonic = QString(_cp.Mnemonic().c_str());
+
+    if(type == TokenType::MnemonicInt3 && _bCocksucker)
+        mnemonic = "cocksucker!";
 
     tokenizeMnemonic(type, mnemonic);
 

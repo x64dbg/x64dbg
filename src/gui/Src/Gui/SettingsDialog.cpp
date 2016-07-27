@@ -117,6 +117,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "SaveDatabaseInProgramDirectory", &settings.engineSaveDatabaseInProgramDirectory);
     GetSettingBool("Engine", "DisableDatabaseCompression", &settings.engineDisableDatabaseCompression);
     GetSettingBool("Engine", "TraceRecordEnabledDuringTrace", &settings.engineEnableTraceRecordDuringTrace);
+    GetSettingBool("Engine", "Cocksucker", &settings.engineCocksucker);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -144,6 +145,7 @@ void SettingsDialog::LoadSettings()
     ui->chkSaveDatabaseInProgramDirectory->setChecked(settings.engineSaveDatabaseInProgramDirectory);
     ui->chkDisableDatabaseCompression->setChecked(settings.engineDisableDatabaseCompression);
     ui->chkTraceRecordEnabledDuringTrace->setChecked(settings.engineEnableTraceRecordDuringTrace);
+    ui->chkCocksucker->setChecked(settings.engineCocksucker);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -270,6 +272,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "SaveDatabaseInProgramDirectory", settings.engineSaveDatabaseInProgramDirectory);
     BridgeSettingSetUint("Engine", "DisableDatabaseCompression", settings.engineDisableDatabaseCompression);
     BridgeSettingSetUint("Engine", "TraceRecordEnabledDuringTrace", settings.engineEnableTraceRecordDuringTrace);
+    BridgeSettingSetUint("Engine", "Cocksucker", settings.engineCocksucker);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -690,4 +693,10 @@ void SettingsDialog::on_chkSaveColumnOrder_stateChanged(int arg1)
 void SettingsDialog::on_chkNoCloseDialog_toggled(bool checked)
 {
     settings.guiNoCloseDialog = checked;
+}
+
+void SettingsDialog::on_chkCocksucker_toggled(bool checked)
+{
+    bTokenizerConfigUpdated = true;
+    settings.engineCocksucker = checked;
 }

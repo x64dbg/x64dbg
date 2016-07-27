@@ -1259,8 +1259,26 @@ CMDRESULT cbDebugBplist(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+static bool cocksucker(int argc, char* argv[])
+{
+    if(!bCocksucker)
+        return false;
+    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    unsigned char ch;
+    MemRead(cip, &ch, sizeof(ch));
+    if(ch == 0xCC && getLastExceptionInfo().ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
+    {
+        dputs("Cocksucker detected!");
+        cbDebugSkip(argc, argv);
+        return true;
+    }
+    return false;
+}
+
 CMDRESULT cbDebugStepInto(int argc, char* argv[])
 {
+    if(cocksucker(argc, argv))
+        return STATUS_CONTINUE;
     StepInto((void*)cbStep);
     // History
     HistoryAdd();
@@ -1276,6 +1294,8 @@ CMDRESULT cbDebugeStepInto(int argc, char* argv[])
 
 CMDRESULT cbDebugStepOver(int argc, char* argv[])
 {
+    if(cocksucker(argc, argv))
+        return STATUS_CONTINUE;
     StepOver((void*)cbStep);
     // History
     HistoryClear();

@@ -133,5 +133,6 @@ extern char szSymbolCachePath[MAX_PATH];
 extern bool bUndecorateSymbolNames;
 extern bool bEnableSourceDebugging;
 extern bool bTraceRecordEnabledDuringTrace;
+extern bool bCocksucker;
 
 #endif // _DEBUGGER_H
