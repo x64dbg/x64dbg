@@ -639,7 +639,7 @@ CMDRESULT cbInstrAdd(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s+%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s+%s", argv[1], argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrAnd(int argc, char* argv[])
@@ -649,7 +649,7 @@ CMDRESULT cbInstrAnd(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s&%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s&%s", argv[1], argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrDec(int argc, char* argv[])
@@ -659,7 +659,7 @@ CMDRESULT cbInstrDec(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s-1", argv[1], argv[1]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s-1", argv[1], argv[1]).c_str());
 }
 
 CMDRESULT cbInstrDiv(int argc, char* argv[])
@@ -669,7 +669,7 @@ CMDRESULT cbInstrDiv(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s/%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s/%s", argv[1], argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrInc(int argc, char* argv[])
@@ -679,7 +679,7 @@ CMDRESULT cbInstrInc(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s+1", argv[1], argv[1]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s+1", argv[1], argv[1]).c_str());
 }
 
 CMDRESULT cbInstrMul(int argc, char* argv[])
@@ -689,7 +689,7 @@ CMDRESULT cbInstrMul(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s*%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s*%s", argv[1], argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrNeg(int argc, char* argv[])
@@ -699,7 +699,7 @@ CMDRESULT cbInstrNeg(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s*-1", argv[1], argv[1]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s*-1", argv[1], argv[1]).c_str());
 }
 
 CMDRESULT cbInstrNot(int argc, char* argv[])
@@ -709,7 +709,7 @@ CMDRESULT cbInstrNot(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,~%s", argv[1], argv[1]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,~%s", argv[1], argv[1]).c_str());
 }
 
 CMDRESULT cbInstrOr(int argc, char* argv[])
@@ -719,7 +719,7 @@ CMDRESULT cbInstrOr(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s|%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s|%s", argv[1], argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrRol(int argc, char* argv[])
@@ -731,7 +731,7 @@ CMDRESULT cbInstrRol(int argc, char* argv[])
     }
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(true); //rol = signed
-    CMDRESULT res = cmddirectexec("mov %s,%s<%s", argv[1], argv[1], argv[2]);
+    CMDRESULT res = cmddirectexec(StringUtils::sprintf("mov %s,%s<<%s", argv[1], argv[1], argv[2]).c_str());
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -745,7 +745,7 @@ CMDRESULT cbInstrRor(int argc, char* argv[])
     }
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(true); //ror = signed
-    CMDRESULT res = cmddirectexec("mov %s,%s>%s", argv[1], argv[1], argv[2]);
+    CMDRESULT res = cmddirectexec(StringUtils::sprintf("mov %s,%s>>%s", argv[1], argv[1], argv[2]).c_str());
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -759,7 +759,7 @@ CMDRESULT cbInstrShl(int argc, char* argv[])
     }
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(false); //shl = unsigned
-    CMDRESULT res = cmddirectexec("mov %s,%s<%s", argv[1], argv[1], argv[2]);
+    CMDRESULT res = cmddirectexec(StringUtils::sprintf("mov %s,%s<<%s", argv[1], argv[1], argv[2]).c_str());
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -773,7 +773,7 @@ CMDRESULT cbInstrShr(int argc, char* argv[])
     }
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(false); //shr = unsigned
-    CMDRESULT res = cmddirectexec("mov %s,%s>%s", argv[1], argv[1], argv[2]);
+    CMDRESULT res = cmddirectexec(StringUtils::sprintf("mov %s,%s>>%s", argv[1], argv[1], argv[2]).c_str());
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -785,7 +785,7 @@ CMDRESULT cbInstrSub(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s-%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s-%s", argv[1], argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrTest(int argc, char* argv[])
@@ -821,7 +821,7 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    return cmddirectexec("mov %s,%s^%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(StringUtils::sprintf("mov %s,%s^%s", argv[1], argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrPush(int argc, char* argv[])
@@ -1113,7 +1113,7 @@ CMDRESULT cbInstrSetstr(int argc, char* argv[])
         dprintf("failed to set variable \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    cmddirectexec("getstr \"%s\"", argv[1]);
+    cmddirectexec(StringUtils::sprintf("getstr \"%s\"", argv[1]).c_str());
     return STATUS_CONTINUE;
 }
 
@@ -2149,7 +2149,7 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
         dprintf("invalid module \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    return cmddirectexec("yara \"%s\",\"%s\",%s", argv[1], argv[2], argc > 3 && *argv[3] == '1' ? "1" : "0");
+    return cmddirectexec(StringUtils::sprintf("yara \"%s\",\"%s\",%s", argv[1], argv[2], argc > 3 && *argv[3] == '1' ? "1" : "0").c_str());
 }
 
 CMDRESULT cbInstrLog(int argc, char* argv[])
