@@ -49,6 +49,8 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(closeQWidgetTab(QWidget*)), this, SLOT(closeQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(executeOnGuiThread(void*)), this, SLOT(executeOnGuiThread(void*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
+    connect(Bridge::getBridge(), SIGNAL(addFavouriteItem(int, QString, QString)), this, SLOT(addFavouriteItem(int, QString, QString)));
+    connect(Bridge::getBridge(), SIGNAL(setFavouriteItemShortcut(int, QString, QString)), this, SLOT(setFavouriteItemShortcut(int, QString, QString)));
 
     // Setup menu API
     initMenuApi();
@@ -1667,6 +1669,59 @@ void MainWindow::chooseLanguage()
         msg.setText(tr("New language setting will take effect upon restart.") + QString("\r\nNew language setting will take effect upon restart."));
     }
     msg.exec();
+}
+
+void MainWindow::addFavouriteItem(int type, const QString & name, const QString & description)
+{
+    if(type == 0) // Tools
+    {
+        char buffer[MAX_SETTING_SIZE];
+        unsigned int i;
+        for(i = 1; BridgeSettingGet("Favourite", (QString("Tool") + QString::number(i)).toUtf8().constData(), buffer); i++)
+        {
+        }
+        BridgeSettingSet("Favourite", (QString("Tool") + QString::number(i)).toUtf8().constData(), name.toUtf8().constData());
+        BridgeSettingSet("Favourite", (QString("ToolDescription") + QString::number(i)).toUtf8().constData(), description.toUtf8().constData());
+        if(BridgeSettingGet("Favourite", (QString("Tool") + QString::number(i + 1)).toUtf8().constData(), buffer))
+        {
+            buffer[0] = 0;
+            BridgeSettingSet("Favourite", (QString("Tool") + QString::number(i + 1)).toUtf8().constData(), buffer);
+        }
+        updateFavouriteTools();
+    }
+    else if(type == 2) // Commands
+    {
+        char buffer[MAX_SETTING_SIZE];
+        unsigned int i;
+        for(i = 1; BridgeSettingGet("Favourite", (QString("Command") + QString::number(i)).toUtf8().constData(), buffer); i++)
+        {
+        }
+        BridgeSettingSet("Favourite", (QString("Command") + QString::number(i)).toUtf8().constData(), name.toUtf8().constData());
+        BridgeSettingSet("Favourite", (QString("CommandShortcut") + QString::number(i)).toUtf8().constData(), description.toUtf8().constData());
+        if(BridgeSettingGet("Favourite", (QString("Command") + QString::number(i + 1)).toUtf8().constData(), buffer))
+        {
+            buffer[0] = 0;
+            BridgeSettingSet("Favourite", (QString("Command") + QString::number(i + 1)).toUtf8().constData(), buffer);
+        }
+        updateFavouriteTools();
+    }
+}
+
+void MainWindow::setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut)
+{
+    if(type == 0)
+    {
+        char buffer[MAX_SETTING_SIZE];
+        for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Tool%1").arg(i).toUtf8().constData(), buffer); i++)
+        {
+            if(QString(buffer) == name)
+            {
+                BridgeSettingSet("Favourite", (QString("ToolShortcut") + QString::number(i)).toUtf8().constData(), shortcut.toUtf8().constData());
+                updateFavouriteTools();
+                break;
+            }
+        }
+    }
 }
 
 void MainWindow::on_actionStepIntoSource_triggered()

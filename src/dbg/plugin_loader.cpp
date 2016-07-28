@@ -113,6 +113,8 @@ void pluginload(const char* pluginDir)
             pluginregistercallback(curPluginHandle, CB_MENUENTRY, cbPlugin);
             pluginregistercallback(curPluginHandle, CB_WINEVENT, cbPlugin);
             pluginregistercallback(curPluginHandle, CB_WINEVENTGLOBAL, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_LOADDB, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_SAVEDB, cbPlugin);
         }
         cbPlugin = (CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBINITDEBUG");
         if(cbPlugin)
@@ -177,6 +179,12 @@ void pluginload(const char* pluginDir)
         cbPlugin = (CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBWINEVENTGLOBAL");
         if(cbPlugin)
             pluginregistercallback(curPluginHandle, CB_WINEVENTGLOBAL, cbPlugin);
+        cbPlugin = (CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBLOADDB");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_LOADDB, cbPlugin);
+        cbPlugin = (CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBSAVEDB");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_SAVEDB, cbPlugin);
 
         //init plugin
         if(!pluginData.pluginit(&pluginData.initStruct))
@@ -719,7 +727,7 @@ bool pluginexprfuncunregister(int pluginHandle, const char* name)
             EXCLUSIVE_RELEASE();
             if(!ExpressionFunctions::Unregister(name))
                 return false;
-            dprintf("[PLUGIN] command \"%s\" unregistered!\n", name);
+            dprintf("[PLUGIN] expression function \"%s\" unregistered!\n", name);
             return true;
         }
     }

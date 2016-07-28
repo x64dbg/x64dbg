@@ -309,6 +309,12 @@ static void registercommands()
     dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
     dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
     dbgcmdnew("graph", cbInstrGraph, true); //graph function
+    dbgcmdnew("DisableLog\1LogDisable", cbInstrDisableLog, false); //disable log
+    dbgcmdnew("EnableLog\1LogEnable", cbInstrEnableLog, false); //enable log
+    dbgcmdnew("AddFavouriteTool", cbInstrAddFavTool, false); //add favourite tool
+    dbgcmdnew("AddFavouriteCommand", cbInstrAddFavCmd, false); //add favourite command
+    dbgcmdnew("AddFavouriteToolShortcut\1SetFavouriteToolShortcut", cbInstrSetFavToolShortcut, false); //set favourite tool shortcut
+    dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

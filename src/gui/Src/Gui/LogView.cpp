@@ -14,6 +14,7 @@ LogView::LogView(QWidget* parent) : QTextEdit(parent), logRedirection(NULL)
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(addMsgToLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
+    connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
 
     setupContextMenu();
 }
@@ -125,7 +126,7 @@ void LogView::redirectLogSlot()
     {
         logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
         if(logRedirection == NULL)
-            addMsgToLogSlot(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path));
+            GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
         else
         {
             if(ftell(logRedirection) == 0)
@@ -133,14 +134,23 @@ void LogView::redirectLogSlot()
                 unsigned short BOM = 0xfeff;
                 fwrite(&BOM, 2, 1, logRedirection);
             }
-            addMsgToLogSlot(tr("Log will be redirected to %1.\n").arg(browse.path));
+            GuiAddLogMessage(tr("Log will be redirected to %1.\n").arg(browse.path).toUtf8().constData());
         }
     }
 }
 
 void LogView::setLoggingEnabled(bool enabled)
 {
-    loggingEnabled = enabled;
+    if(enabled)
+    {
+        loggingEnabled = true;
+        GuiAddLogMessage(tr("Logging will be enabled.\n").toUtf8().constData());
+    }
+    else
+    {
+        GuiAddLogMessage(tr("Logging will be disabled.\n").toUtf8().constData());
+        loggingEnabled = false;
+    }
 }
 
 bool LogView::getLoggingEnabled()
@@ -156,13 +166,13 @@ void LogView::saveSlot()
     savedLog.open(QIODevice::Append | QIODevice::Text);
     if(savedLog.error() != QFile::NoError)
     {
-        addMsgToLogSlot(tr("Error, log have not been saved.\n"));
+        GuiAddLogMessage(tr("Error, log have not been saved.\n").toUtf8().constData());
     }
     else
     {
         savedLog.write(this->document()->toPlainText().toUtf8().constData());
         savedLog.close();
-        addMsgToLogSlot(tr("Log have been saved as %1\n").arg(fileName));
+        GuiAddLogMessage(tr("Log have been saved as %1\n").arg(fileName).toUtf8().constData());
     }
 }
 

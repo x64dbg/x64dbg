@@ -127,6 +127,10 @@ signals:
     void loadGraph(BridgeCFGraphList* graph, duint addr);
     void graphAt(duint addr);
     void updateGraph();
+    void setLogEnabled(bool enabled);
+    void addFavouriteItem(int type, const QString & name, const QString & description);
+    void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
+    void foldDisassembly(duint startAddr, duint length);
 
 private:
     QMutex* mBridgeMutex;

@@ -598,7 +598,56 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_UPDATE_GRAPH_VIEW:
         emit updateGraph();
         break;
+
+    case GUI_SET_LOG_ENABLED:
+        emit setLogEnabled(param1 != 0);
+        break;
+
+    case GUI_ADD_FAVOURITE_TOOL:
+    {
+        QString name;
+        QString description;
+        if(param1 == nullptr)
+            return nullptr;
+        name = QString::fromUtf8((const char*)param1);
+        if(param2 != nullptr)
+            description = QString::fromUtf8((const char*)param2);
+        emit addFavouriteItem(0, name, description);
     }
+    break;
+
+    case GUI_ADD_FAVOURITE_COMMAND:
+    {
+        QString name;
+        QString shortcut;
+        if(param1 == nullptr)
+            return nullptr;
+        name = QString::fromUtf8((const char*)param1);
+        if(param2 != nullptr)
+            shortcut = QString::fromUtf8((const char*)param2);
+        emit addFavouriteItem(2, name, shortcut);
+    }
+    break;
+
+    case GUI_SET_FAVOURITE_TOOL_SHORTCUT:
+    {
+        QString name;
+        QString shortcut;
+        if(param1 == nullptr)
+            return nullptr;
+        name = QString::fromUtf8((const char*)param1);
+        if(param2 != nullptr)
+            shortcut = QString::fromUtf8((const char*)param2);
+        emit setFavouriteItemShortcut(0, name, shortcut);
+    }
+    break;
+
+    case GUI_FOLD_DISASSEMBLY:
+        emit foldDisassembly(duint(param1), duint(param2));
+        break;
+
+    }
+
     return nullptr;
 }
 

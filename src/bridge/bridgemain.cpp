@@ -1452,6 +1452,36 @@ BRIDGE_IMPEXP void GuiUpdateGraphView()
     _gui_sendmessage(GUI_UPDATE_GRAPH_VIEW, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiDisableLog()
+{
+    _gui_sendmessage(GUI_SET_LOG_ENABLED, (void*)0, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiEnableLog()
+{
+    _gui_sendmessage(GUI_SET_LOG_ENABLED, (void*)1, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiAddFavouriteTool(const char* name, const char* description)
+{
+    _gui_sendmessage(GUI_ADD_FAVOURITE_TOOL, (void*)name, (void*)description);
+}
+
+BRIDGE_IMPEXP void GuiAddFavouriteCommand(const char* name, const char* shortcut)
+{
+    _gui_sendmessage(GUI_ADD_FAVOURITE_COMMAND, (void*)name, (void*)shortcut);
+}
+
+BRIDGE_IMPEXP void GuiSetFavouriteToolShortcut(const char* name, const char* shortcut)
+{
+    _gui_sendmessage(GUI_SET_FAVOURITE_TOOL_SHORTCUT, (void*)name, (void*)shortcut);
+}
+
+BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length)
+{
+    _gui_sendmessage(GUI_FOLD_DISASSEMBLY, (void*)startAddress, (void*)length);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;
