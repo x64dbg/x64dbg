@@ -102,5 +102,11 @@ CMDRESULT cbInstrExhandlers(int argc, char* argv[]);
 CMDRESULT cbInstrInstrUndo(int argc, char* argv[]);
 CMDRESULT cbInstrExinfo(int argc, char* argv[]);
 CMDRESULT cbInstrGraph(int argc, char* argv[]);
+CMDRESULT cbInstrDisableLog(int argc, char* argv[]);
+CMDRESULT cbInstrEnableLog(int argc, char* argv[]);
+CMDRESULT cbInstrAddFavTool(int argc, char* argv[]);
+CMDRESULT cbInstrAddFavCmd(int argc, char* argv[]);
+CMDRESULT cbInstrSetFavToolShortcut(int argc, char* argv[]);
+CMDRESULT cbInstrFoldDisassembly(int argc, char* argv[]);
 
 #endif // _INSTRUCTION_H

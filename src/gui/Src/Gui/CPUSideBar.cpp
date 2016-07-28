@@ -29,6 +29,7 @@ void CPUSideBar::updateSlots()
 {
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateColors()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateFonts()));
+    connect(Bridge::getBridge(), SIGNAL(foldDisassembly(duint, duint)), this, SLOT(foldDisassembly(duint, duint)));
 
     // Init all other updates once
     updateColors();
@@ -782,6 +783,11 @@ int CPUSideBar::isFoldingGraphicsPresent(int line)
 CodeFoldingHelper* CPUSideBar::getCodeFoldingManager()
 {
     return &mCodeFoldingManager;
+}
+
+void CPUSideBar::foldDisassembly(duint startAddress, duint length)
+{
+    mCodeFoldingManager.addFoldSegment(startAddress, length);
 }
 
 void* CPUSideBar::operator new(size_t size)

@@ -37,6 +37,7 @@ public slots:
     void changeTopmostAddress(dsint i);
     void setViewableRows(int rows);
     void setSelection(dsint selVA);
+    void foldDisassembly(duint startAddress, duint length);
 
 protected:
     void paintEvent(QPaintEvent* event);
