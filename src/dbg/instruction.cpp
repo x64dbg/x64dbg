@@ -2529,7 +2529,7 @@ CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
 
 CMDRESULT cbInstrSavedata(int argc, char* argv[])
 {
-    if(argc < 3)  //savedata filename,addr,size
+    if(argc < 4)  //savedata filename,addr,size
     {
         dputs("Not enough arguments...");
         return STATUS_ERROR;
