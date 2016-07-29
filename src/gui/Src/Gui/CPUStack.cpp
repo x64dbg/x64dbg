@@ -59,6 +59,7 @@ void CPUStack::updateColors()
     backgroundColor = ConfigColor("StackBackgroundColor");
     textColor = ConfigColor("StackTextColor");
     selectionColor = ConfigColor("StackSelectionColor");
+    mStackFrameColor = ConfigColor("StackFrameColor");
 }
 
 void CPUStack::updateFonts()
@@ -237,6 +238,18 @@ void CPUStack::setupContextMenu()
     this->addAction(mGotoNext);
     connect(mGotoNext, SIGNAL(triggered(bool)), this, SLOT(gotoNextSlot()));
 
+    //Go to Base of Frame
+    mGotoFrameBase = new QAction(cspIcon, tr("Go to Base of Frame"), this);
+    connect(mGotoFrameBase, SIGNAL(triggered()), this, SLOT(gotoFrameBaseSlot()));
+
+    //Go to Next Frame
+    mGotoNextFrame = new QAction(DIcon("next.png"), tr("Go to Next Stack Frame"), this);
+    connect(mGotoNextFrame, SIGNAL(triggered()), this, SLOT(gotoNextFrameSlot()));
+
+    //Go to Previous Frame
+    mGotoPrevFrame = new QAction(DIcon("previous.png"), tr("Go to Previous Stack Frame"), this);
+    connect(mGotoPrevFrame, SIGNAL(triggered()), this, SLOT(gotoPreviousFrameSlot()));
+
     //Follow in Disassembler
     auto disasmIcon = DIcon(ArchValue("processor32.png", "processor64.png"));
     mFollowDisasm = new QAction(disasmIcon, tr("&Follow in Disassembler"), this);
@@ -266,6 +279,11 @@ void CPUStack::setupContextMenu()
     auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
     mFollowStack = new QAction(DIcon("stack.png"), followStackName, this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
+
+    //Watch data
+    auto watchDataName = ArchValue(tr("Watch DWORD"), tr("Watch QWORD"));
+    mWatchData = new QAction(DIcon("animal-dog.png"), watchDataName, this);
+    connect(mWatchData, SIGNAL(triggered()), this, SLOT(watchDataSlot()));
 
     mPluginMenu = new QMenu(this);
     mPluginMenu->setIcon(DIcon("plugin.png"));
@@ -406,7 +424,80 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(wVa));
         return QString();
     }
-    return HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
+    else if(col == 1) // paint stack data
+    {
+        // get call stack
+        DBGCALLSTACK callstack;
+        memset(&callstack, 0, sizeof(DBGCALLSTACK));
+        // TODO: need to cache the call stack data.
+        DbgFunctions()->GetCallStack(&callstack);
+        if(callstack.total != 0)
+        {
+            // callstack data highest >> lowest
+            std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
+            {
+                DBGCALLSTACKENTRY* p = (DBGCALLSTACKENTRY*)a;
+                DBGCALLSTACKENTRY* q = (DBGCALLSTACKENTRY*)b;
+                if(p->addr < q->addr)
+                    return -1;
+                else
+                    return 1;
+            });
+            int stackFrameBitfield = 0; // 0:none, 1:top of stack frame, 2:bottom of stack frame, 4:middle of stack frame
+            if(wVa >= callstack.entries[0].addr)
+            {
+                for(int i = 0; i < callstack.total - 1; i++)
+                {
+                    if(wVa >= callstack.entries[i].addr + sizeof(duint) && wVa <= callstack.entries[i + 1].addr)
+                    {
+                        stackFrameBitfield |= (callstack.entries[i].addr + sizeof(duint) == wVa) ? 1 : 0;
+                        stackFrameBitfield |= (callstack.entries[i + 1].addr == wVa) ? 2 : 0;
+                        if(stackFrameBitfield == 0)
+                            stackFrameBitfield = 4;
+                        break;
+                    }
+                }
+                // free call stack
+                BridgeFree(callstack.entries);
+                // draw stack frame
+                if(stackFrameBitfield == 0)
+                    return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
+                else
+                {
+                    painter->setPen(QPen(mStackFrameColor, 2));
+                    int height = getRowHeight();
+                    int halfHeight = height / 2;
+                    int width = 6;
+                    int offset = 2;
+                    if((stackFrameBitfield & 1) != 0)
+                    {
+                        painter->drawLine(x + width, y + halfHeight / 2, x + offset, y + halfHeight / 2);
+                        painter->drawLine(x + offset, y + halfHeight / 2, x + offset, y + halfHeight);
+                    }
+                    else
+                        painter->drawLine(x + offset, y, x + offset, y + halfHeight);
+                    if((stackFrameBitfield & 2) != 0)
+                    {
+                        painter->drawLine(x + width, y + height / 4 * 3, x + offset, y + height / 4 * 3);
+                        painter->drawLine(x + offset, y + height / 4 * 3, x + offset, y + halfHeight);
+                    }
+                    else
+                        painter->drawLine(x + offset, y + height, x + offset, y + halfHeight);
+                    return HexDump::paintContent(painter, rowBase, rowOffset, 1, x + width, y, w - width, h);
+                }
+            }
+            else
+            {
+                // free call stack
+                BridgeFree(callstack.entries);
+                return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
+            }
+        }
+        else
+            return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
+    }
+    else
+        return HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }
 
 void CPUStack::contextMenuEvent(QContextMenuEvent* event)
@@ -434,6 +525,9 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(mFindPatternAction);
     wMenu.addAction(mGotoSp);
     wMenu.addAction(mGotoBp);
+    wMenu.addAction(mGotoFrameBase);
+    wMenu.addAction(mGotoPrevFrame);
+    wMenu.addAction(mGotoNextFrame);
     wMenu.addAction(mFreezeStack);
     wMenu.addAction(mGotoExpression);
     if(historyHasPrev())
@@ -443,6 +537,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
+    {
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
             duint stackBegin = mMemPage->getBase();
@@ -453,6 +548,8 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
             wMenu.addAction(mFollowDump);
             wMenu.addMenu(mFollowInDumpMenu);
         }
+    }
+    wMenu.addAction(mWatchData);
 
     wMenu.addSeparator();
     wMenu.addActions(mPluginMenu->actions());
@@ -543,6 +640,105 @@ void CPUStack::gotoBpSlot()
 #endif //_WIN64
 }
 
+void CPUStack::gotoFrameBaseSlot()
+{
+    duint wVa = rvaToVa(getInitialSelection());
+    DBGCALLSTACK callstack;
+    memset(&callstack, 0, sizeof(DBGCALLSTACK));
+    DbgFunctions()->GetCallStack(&callstack);
+    if(callstack.total != 0)
+    {
+        std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
+        {
+            DBGCALLSTACKENTRY* p = (DBGCALLSTACKENTRY*)a;
+            DBGCALLSTACKENTRY* q = (DBGCALLSTACKENTRY*)b;
+            if(p->addr < q->addr)
+                return -1;
+            else
+                return 1;
+        });
+        // callstack data highest >> lowest
+        int frame = 0;
+        for(int i = 0; i < callstack.total - 1; i++)
+        {
+            if(wVa > callstack.entries[i].addr && wVa <= callstack.entries[i + 1].addr)
+            {
+                frame = i + 1;
+                break;
+            }
+        }
+        BridgeFree(callstack.entries);
+        if(frame != 0)
+            DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(callstack.entries[frame].addr)).toUtf8().constData());
+    }
+}
+
+void CPUStack::gotoNextFrameSlot()
+{
+    duint wVa = rvaToVa(getInitialSelection());
+    DBGCALLSTACK callstack;
+    memset(&callstack, 0, sizeof(DBGCALLSTACK));
+    DbgFunctions()->GetCallStack(&callstack);
+    if(callstack.total != 0)
+    {
+        std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
+        {
+            DBGCALLSTACKENTRY* p = (DBGCALLSTACKENTRY*)a;
+            DBGCALLSTACKENTRY* q = (DBGCALLSTACKENTRY*)b;
+            if(p->addr < q->addr)
+                return -1;
+            else
+                return 1;
+        });
+        // callstack data highest >> lowest
+        int frame = 0;
+        for(int i = 0; i < callstack.total - 2; i++)
+        {
+            if(wVa > callstack.entries[i].addr && wVa <= callstack.entries[i + 1].addr)
+            {
+                frame = i + 2;
+                break;
+            }
+        }
+        BridgeFree(callstack.entries);
+        if(frame != 0)
+            DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(callstack.entries[frame].addr)).toUtf8().constData());
+    }
+}
+
+void CPUStack::gotoPreviousFrameSlot()
+{
+    duint wVa = rvaToVa(getInitialSelection());
+    DBGCALLSTACK callstack;
+    memset(&callstack, 0, sizeof(DBGCALLSTACK));
+    DbgFunctions()->GetCallStack(&callstack);
+    if(callstack.total > 1)
+    {
+        std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
+        {
+            DBGCALLSTACKENTRY* p = (DBGCALLSTACKENTRY*)a;
+            DBGCALLSTACKENTRY* q = (DBGCALLSTACKENTRY*)b;
+            if(p->addr < q->addr)
+                return -1;
+            else
+                return 1;
+        });
+        // callstack data highest >> lowest
+        int frame = 0;
+        for(int i = 0; i < callstack.total - 1; i++)
+        {
+            if(wVa > callstack.entries[i].addr && wVa <= callstack.entries[i + 1].addr)
+            {
+                frame = i + 1;
+                break;
+            }
+        }
+        BridgeFree(callstack.entries);
+        if(frame != 0)
+            DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(callstack.entries[frame - 1].addr)).toUtf8().constData());
+    }
+}
+
 void CPUStack::gotoExpressionSlot()
 {
     if(!DbgIsDebugging())
@@ -555,10 +751,7 @@ void CPUStack::gotoExpressionSlot()
     mGoto->validRangeEnd = base + size;
     mGoto->setWindowTitle(tr("Enter expression to follow in Stack..."));
     if(mGoto->exec() == QDialog::Accepted)
-    {
-        QString cmd;
-        DbgCmdExec(cmd.sprintf("sdump \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
-    }
+        DbgCmdExec(QString("sdump \"%1\"").arg(mGoto->expressionText).toUtf8().constData());
 }
 
 void CPUStack::gotoPreviousSlot()
@@ -667,6 +860,11 @@ void CPUStack::followStackSlot()
             QString addrText = QString("%1").arg(selectedData, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             DbgCmdExec(QString("sdump " + addrText).toUtf8().constData());
         }
+}
+
+void CPUStack::watchDataSlot()
+{
+    DbgCmdExec(QString("AddWatch \"[%1]\", \"uint\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData());
 }
 
 void CPUStack::binaryEditSlot()
