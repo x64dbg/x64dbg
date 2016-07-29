@@ -290,6 +290,9 @@ private:
     MenuBuilder* mMenuBuilder;
     bool drawOverview;
     QAction* mToggleOverviewAction;
+    int overviewXOfs;
+    int overviewYOfs;
+    qreal overviewScale;
 
 protected:
 #include "ActionHelpers.h"

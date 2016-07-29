@@ -214,10 +214,27 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
 
 void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, int xofs, int yofs)
 {
-    // Scale
+    // Scale and translate painter
     qreal sx = qreal(viewportRect.width()) / qreal(this->renderWidth);
     qreal sy = qreal(viewportRect.height()) / qreal(this->renderHeight);
     qreal s = qMin(sx, sy);
+    this->overviewScale = s;
+    if(sx < sy)
+    {
+        this->overviewXOfs = this->renderXOfs * s;
+        this->overviewYOfs = this->renderYOfs * s + (qreal(this->renderHeight) * sy - qreal(this->renderHeight) * s) / 2;
+    }
+    else if(sy < sx)
+    {
+        this->overviewXOfs = this->renderXOfs * s + (qreal(this->renderWidth) * sx - qreal(this->renderWidth) * s) / 2;
+        this->overviewYOfs = this->renderYOfs * s;
+    }
+    else
+    {
+        this->overviewXOfs = this->renderXOfs;
+        this->overviewYOfs = this->renderYOfs;
+    }
+    p.translate(this->overviewXOfs, this->overviewYOfs);
     p.scale(s, s);
 
     // Scaled pen
@@ -258,11 +275,14 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
     }
 
     // Draw viewport selection
-    QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
-    viewportRect.translate(-translation.x(), -translation.y());
-    p.setPen(QPen(Qt::black, penWidth, Qt::DotLine));
-    p.setBrush(Qt::transparent);
-    p.drawRect(viewportRect);
+    if(s < 1.0)
+    {
+        QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
+        viewportRect.translate(-translation.x(), -translation.y());
+        p.setPen(QPen(Qt::black, penWidth, Qt::DotLine));
+        p.setBrush(Qt::transparent);
+        p.drawRect(viewportRect);
+    }
 }
 
 void DisassemblerGraphView::paintEvent(QPaintEvent* event)
@@ -433,7 +453,16 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
     {
         if(event->button() == Qt::LeftButton)
         {
-            //TODO: overview scroll
+            //Enter scrolling mode
+            this->scroll_base_x = event->x();
+            this->scroll_base_y = event->y();
+            this->scroll_mode = true;
+            this->setCursor(Qt::ClosedHandCursor);
+            this->viewport()->grabMouse();
+
+            //Scroll to the cursor
+            this->horizontalScrollBar()->setValue(((event->x() - this->overviewXOfs) / this->overviewScale) - this->viewport()->width() / 2);
+            this->verticalScrollBar()->setValue(((event->y() - this->overviewYOfs) / this->overviewScale) - this->viewport()->height() / 2);
         }
         else if(event->button() == Qt::RightButton)
         {
@@ -491,6 +520,11 @@ void DisassemblerGraphView::mouseMoveEvent(QMouseEvent* event)
     {
         int x_delta = this->scroll_base_x - event->x();
         int y_delta = this->scroll_base_y - event->y();
+        if(drawOverview)
+        {
+            x_delta = -x_delta / this->overviewScale;
+            y_delta = -y_delta / this->overviewScale;
+        }
         this->scroll_base_x = event->x();
         this->scroll_base_y = event->y();
         this->horizontalScrollBar()->setValue(this->horizontalScrollBar()->value() + x_delta);
