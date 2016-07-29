@@ -255,6 +255,7 @@ public slots:
     void colorsUpdatedSlot();
     void fontsUpdatedSlot();
     void shortcutsUpdatedSlot();
+    void toggleOverviewSlot();
 
 signals:
     void showCpu();
@@ -287,6 +288,8 @@ private:
     std::vector<int> row_edge_y;
     CachedFontMetrics* mFontMetrics;
     MenuBuilder* mMenuBuilder;
+    bool drawOverview;
+    QAction* mToggleOverviewAction;
 
 protected:
 #include "ActionHelpers.h"

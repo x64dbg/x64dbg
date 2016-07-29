@@ -22,6 +22,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->scroll_base_x = 0;
     this->scroll_base_y = 0;
     this->scroll_mode = false;
+    this->drawOverview = false;
     this->blocks.clear();
 
     //Create timer to automatically refresh view when it needs to be updated
@@ -282,8 +283,10 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     if(!this->ready || !DbgIsDebugging())
         return;
 
-    //paintOverview(p, viewportRect, xofs, yofs);
-    paintNormal(p, viewportRect, xofs, yofs);
+    if(drawOverview)
+        paintOverview(p, viewportRect, xofs, yofs);
+    else
+        paintNormal(p, viewportRect, xofs, yofs);
 }
 
 bool DisassemblerGraphView::isMouseEventInBlock(QMouseEvent* event)
@@ -426,40 +429,58 @@ bool DisassemblerGraphView::find_instr(duint addr, Instr & instrOut)
 
 void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
 {
-    if(event->button() != Qt::LeftButton && event->button() != Qt::RightButton)
-        return;
-
-    if(!this->isMouseEventInBlock(event))
+    if(drawOverview)
     {
-        //Click outside any block, enter scrolling mode
+        if(event->button() == Qt::LeftButton)
+        {
+            //TODO: overview scroll
+        }
+        else if(event->button() == Qt::RightButton)
+        {
+            QMenu wMenu(this);
+            wMenu.addAction(mToggleOverviewAction);
+            wMenu.exec(event->globalPos()); //execute context menu
+        }
+    }
+    else if(this->isMouseEventInBlock(event))
+    {
+        //Check for click on a token and highlight it
+        Token token;
+        if(this->getTokenForMouseEvent(event, token))
+            this->highlight_token = HighlightToken::fromToken(token);
+        else
+            this->highlight_token = nullptr;
+
+        //Update current instruction
+        duint instr = this->getInstrForMouseEvent(event);
+        if(instr != 0)
+            this->cur_instr = instr;
+        else
+            this->cur_instr = 0;
+
+        this->viewport()->update();
+
+        if((instr != 0) && (event->button() == Qt::RightButton))
+        {
+            QMenu wMenu(this);
+            mMenuBuilder->build(&wMenu);
+            wMenu.exec(event->globalPos()); //execute context menu
+        }
+    }
+    else if(event->button() == Qt::LeftButton)
+    {
+        //Left click outside any block, enter scrolling mode
         this->scroll_base_x = event->x();
         this->scroll_base_y = event->y();
         this->scroll_mode = true;
         this->setCursor(Qt::ClosedHandCursor);
         this->viewport()->grabMouse();
-        return;
     }
-
-    //Check for click on a token and highlight it
-    Token token;
-    if(this->getTokenForMouseEvent(event, token))
-        this->highlight_token = HighlightToken::fromToken(token);
-    else
-        this->highlight_token = nullptr;
-
-    //Update current instruction
-    duint instr = this->getInstrForMouseEvent(event);
-    if(instr != 0)
-        this->cur_instr = instr;
-    else
-        this->cur_instr = 0;
-
-    this->viewport()->update();
-
-    if((instr != 0) && (event->button() == Qt::RightButton))
+    else if(event->button() == Qt::RightButton)
     {
+        //Right click outside of block
         QMenu wMenu(this);
-        mMenuBuilder->build(&wMenu);
+        wMenu.addAction(mToggleOverviewAction);
         wMenu.exec(event->globalPos()); //execute context menu
     }
 }
@@ -1249,6 +1270,10 @@ void DisassemblerGraphView::setupContextMenu()
     {
         return this->cur_instr != 0;
     });
+    mMenuBuilder->addSeparator();
+
+    mToggleOverviewAction = makeShortcutAction(DIcon("graph.png"), tr("Toggle &Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview");
+    mMenuBuilder->addAction(mToggleOverviewAction);
 }
 
 void DisassemblerGraphView::followDisassemblerSlot()
@@ -1271,4 +1296,10 @@ void DisassemblerGraphView::shortcutsUpdatedSlot()
 {
     for(const auto & actionShortcut : actionShortcutPairs)
         actionShortcut.action->setShortcut(ConfigShortcut(actionShortcut.shortcut));
+}
+
+void DisassemblerGraphView::toggleOverviewSlot()
+{
+    drawOverview = !drawOverview;
+    this->viewport()->update();
 }
