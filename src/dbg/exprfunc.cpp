@@ -57,4 +57,12 @@ namespace Exprfunc
     {
         return duint(GetTEBLocation(hActiveThread));
     }
+
+    duint bswap(duint value)
+    {
+        duint result = 0;
+        for(size_t i = 0; i < sizeof(value); i++)
+            ((unsigned char*)&result)[sizeof(value) - i - 1] = ((unsigned char*)&value)[i];
+        return result;
+    }
 }

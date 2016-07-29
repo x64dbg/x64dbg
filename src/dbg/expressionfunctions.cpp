@@ -59,6 +59,8 @@ void ExpressionFunctions::Init()
 
     RegisterEasy("peb\1PEB", peb);
     RegisterEasy("teb\1TEB", teb);
+
+    RegisterEasy("bswap", bswap);
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata)
