@@ -13,6 +13,7 @@
 #include "thread.h"
 #include "threading.h"
 #include "exhandlerinfo.h"
+#include "symbolinfo.h"
 
 using SehMap = std::unordered_map<duint, STACK_COMMENT>;
 static SehMap SehCache;
@@ -174,37 +175,19 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint
     Entry->from = From;
     Entry->to = To;
 
-    char label[MAX_LABEL_SIZE] = "";
-    ADDRINFO addrinfo;
-    addrinfo.flags = flaglabel;
-    if(_dbg_addrinfoget(Entry->to, SEG_DEFAULT, &addrinfo))
-        strcpy_s(label, addrinfo.label);
-    char module[MAX_MODULE_SIZE] = "";
-    ModNameFromAddr(Entry->to, module, false);
+    auto getSymAddrName = [](duint addr)
+    {
+        auto symname = SymGetSymbolicName(addr);
+        if(!symname.length())
+            symname = StringUtils::sprintf(fhex, addr);
+        return symname;
+    };
+
     char returnToAddr[MAX_COMMENT_SIZE] = "";
-    if(*module)
-        sprintf(returnToAddr, "%s.", module);
-    if(!*label)
-        sprintf(label, fhex, Entry->to);
-    strcat(returnToAddr, label);
+    strncpy_s(returnToAddr, getSymAddrName(Entry->to).c_str(), _TRUNCATE);
 
     if(Entry->from)
-    {
-        *label = 0;
-        addrinfo.flags = flaglabel;
-        if(_dbg_addrinfoget(Entry->from, SEG_DEFAULT, &addrinfo))
-            strcpy_s(label, addrinfo.label);
-        *module = 0;
-        ModNameFromAddr(Entry->from, module, false);
-        char returnFromAddr[MAX_COMMENT_SIZE] = "";
-        if(*module)
-            sprintf(returnFromAddr, "%s.", module);
-        if(!*label)
-            sprintf(label, fhex, Entry->from);
-        strcat(returnFromAddr, label);
-
-        sprintf_s(Entry->comment, "return to %s from %s", returnToAddr, returnFromAddr);
-    }
+        sprintf_s(Entry->comment, "return to %s from %s", returnToAddr, getSymAddrName(Entry->from).c_str());
     else
         sprintf_s(Entry->comment, "return to %s from ???", returnToAddr);
 }
@@ -296,7 +279,7 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
             CALLSTACKENTRY entry;
             memset(&entry, 0, sizeof(CALLSTACKENTRY));
 
-            StackEntryFromFrame(&entry, (duint)frame.AddrFrame.Offset, (duint)frame.AddrPC.Offset, (duint)frame.AddrReturn.Offset);
+            StackEntryFromFrame(&entry, (duint)frame.AddrFrame.Offset + sizeof(duint), (duint)frame.AddrPC.Offset, (duint)frame.AddrReturn.Offset);
             callstackVector.push_back(entry);
         }
         else
