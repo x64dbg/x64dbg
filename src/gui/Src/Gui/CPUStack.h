@@ -127,6 +127,7 @@ private:
     GotoDialog* mGoto;
     CPUMultiDump* mMultiDump;
     QColor mStackFrameColor;
+    std::vector<DBGCALLSTACKENTRY> mCallstack;
 };
 
 #endif // CPUSTACK_H

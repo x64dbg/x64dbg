@@ -28,7 +28,7 @@ CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
 #endif
-    appendDescriptor(8 + charwidth * 2 * sizeof(duint), "void*", false, wColDesc);
+    appendDescriptor(10 + charwidth * 2 * sizeof(duint), "void*", false, wColDesc);
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 0;
@@ -426,39 +426,22 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
     }
     else if(col == 1) // paint stack data
     {
-        // get call stack
-        DBGCALLSTACK callstack;
-        memset(&callstack, 0, sizeof(DBGCALLSTACK));
-        // TODO: need to cache the call stack data.
-        DbgFunctions()->GetCallStack(&callstack);
-        if(callstack.total != 0)
+        if(mCallstack.size())
         {
-            // callstack data highest >> lowest
-            std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
-            {
-                DBGCALLSTACKENTRY* p = (DBGCALLSTACKENTRY*)a;
-                DBGCALLSTACKENTRY* q = (DBGCALLSTACKENTRY*)b;
-                if(p->addr < q->addr)
-                    return -1;
-                else
-                    return 1;
-            });
             int stackFrameBitfield = 0; // 0:none, 1:top of stack frame, 2:bottom of stack frame, 4:middle of stack frame
-            if(wVa >= callstack.entries[0].addr)
+            if(wVa >= mCallstack[0].addr)
             {
-                for(int i = 0; i < callstack.total - 1; i++)
+                for(size_t i = 0; i < mCallstack.size() - 1; i++)
                 {
-                    if(wVa >= callstack.entries[i].addr + sizeof(duint) && wVa <= callstack.entries[i + 1].addr)
+                    if(wVa >= mCallstack[i].addr && wVa < mCallstack[i + 1].addr)
                     {
-                        stackFrameBitfield |= (callstack.entries[i].addr + sizeof(duint) == wVa) ? 1 : 0;
-                        stackFrameBitfield |= (callstack.entries[i + 1].addr == wVa) ? 2 : 0;
+                        stackFrameBitfield |= (mCallstack[i].addr == wVa) ? 1 : 0;
+                        stackFrameBitfield |= (mCallstack[i + 1].addr == wVa + sizeof(duint)) ? 2 : 0;
                         if(stackFrameBitfield == 0)
                             stackFrameBitfield = 4;
                         break;
                     }
                 }
-                // free call stack
-                BridgeFree(callstack.entries);
                 // draw stack frame
                 if(stackFrameBitfield == 0)
                     return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
@@ -467,7 +450,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                     painter->setPen(QPen(mStackFrameColor, 2));
                     int height = getRowHeight();
                     int halfHeight = height / 2;
-                    int width = 6;
+                    int width = 5;
                     int offset = 2;
                     if((stackFrameBitfield & 1) != 0)
                     {
@@ -483,15 +466,12 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                     }
                     else
                         painter->drawLine(x + offset, y + height, x + offset, y + halfHeight);
+                    width -= 2;
                     return HexDump::paintContent(painter, rowBase, rowOffset, 1, x + width, y, w - width, h);
                 }
             }
             else
-            {
-                // free call stack
-                BridgeFree(callstack.entries);
                 return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
-            }
         }
         else
             return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
@@ -621,6 +601,29 @@ void CPUStack::stackDumpAt(duint addr, duint csp)
     setFocus();
     addVaToHistory(addr);
     mCsp = csp;
+
+    // Get the callstack
+    DBGCALLSTACK callstack;
+    memset(&callstack, 0, sizeof(DBGCALLSTACK));
+    DbgFunctions()->GetCallStack(&callstack);
+    mCallstack.resize(callstack.total);
+    if(mCallstack.size())
+    {
+        // callstack data highest >> lowest
+        std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
+        {
+            auto p = (DBGCALLSTACKENTRY*)a;
+            auto q = (DBGCALLSTACKENTRY*)b;
+            if(p->addr < q->addr)
+                return -1;
+            else
+                return 1;
+        });
+        for(size_t i = 0; i < mCallstack.size(); i++)
+            mCallstack[i] = callstack.entries[i];
+        BridgeFree(callstack.entries);
+    }
+
     printDumpAt(addr);
 }
 
@@ -640,103 +643,34 @@ void CPUStack::gotoBpSlot()
 #endif //_WIN64
 }
 
+static int getCurrentFrame(const std::vector<DBGCALLSTACKENTRY> & mCallstack, duint wVA)
+{
+    if(mCallstack.size())
+        for(size_t i = 0; i < mCallstack.size() - 1; i++)
+            if(wVA >= mCallstack[i].addr && wVA < mCallstack[i + 1].addr)
+                return i;
+    return -1;
+}
+
 void CPUStack::gotoFrameBaseSlot()
 {
-    duint wVa = rvaToVa(getInitialSelection());
-    DBGCALLSTACK callstack;
-    memset(&callstack, 0, sizeof(DBGCALLSTACK));
-    DbgFunctions()->GetCallStack(&callstack);
-    if(callstack.total != 0)
-    {
-        std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
-        {
-            DBGCALLSTACKENTRY* p = (DBGCALLSTACKENTRY*)a;
-            DBGCALLSTACKENTRY* q = (DBGCALLSTACKENTRY*)b;
-            if(p->addr < q->addr)
-                return -1;
-            else
-                return 1;
-        });
-        // callstack data highest >> lowest
-        int frame = 0;
-        for(int i = 0; i < callstack.total - 1; i++)
-        {
-            if(wVa > callstack.entries[i].addr && wVa <= callstack.entries[i + 1].addr)
-            {
-                frame = i + 1;
-                break;
-            }
-        }
-        BridgeFree(callstack.entries);
-        if(frame != 0)
-            DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(callstack.entries[frame].addr)).toUtf8().constData());
-    }
+    int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
+    if(frame != -1)
+        DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame].addr)).toUtf8().constData());
 }
 
 void CPUStack::gotoNextFrameSlot()
 {
-    duint wVa = rvaToVa(getInitialSelection());
-    DBGCALLSTACK callstack;
-    memset(&callstack, 0, sizeof(DBGCALLSTACK));
-    DbgFunctions()->GetCallStack(&callstack);
-    if(callstack.total != 0)
-    {
-        std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
-        {
-            DBGCALLSTACKENTRY* p = (DBGCALLSTACKENTRY*)a;
-            DBGCALLSTACKENTRY* q = (DBGCALLSTACKENTRY*)b;
-            if(p->addr < q->addr)
-                return -1;
-            else
-                return 1;
-        });
-        // callstack data highest >> lowest
-        int frame = 0;
-        for(int i = 0; i < callstack.total - 2; i++)
-        {
-            if(wVa > callstack.entries[i].addr && wVa <= callstack.entries[i + 1].addr)
-            {
-                frame = i + 2;
-                break;
-            }
-        }
-        BridgeFree(callstack.entries);
-        if(frame != 0)
-            DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(callstack.entries[frame].addr)).toUtf8().constData());
-    }
+    int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
+    if(frame != -1 && frame + 1 < int(mCallstack.size()))
+        DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame + 1].addr)).toUtf8().constData());
 }
 
 void CPUStack::gotoPreviousFrameSlot()
 {
-    duint wVa = rvaToVa(getInitialSelection());
-    DBGCALLSTACK callstack;
-    memset(&callstack, 0, sizeof(DBGCALLSTACK));
-    DbgFunctions()->GetCallStack(&callstack);
-    if(callstack.total > 1)
-    {
-        std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
-        {
-            DBGCALLSTACKENTRY* p = (DBGCALLSTACKENTRY*)a;
-            DBGCALLSTACKENTRY* q = (DBGCALLSTACKENTRY*)b;
-            if(p->addr < q->addr)
-                return -1;
-            else
-                return 1;
-        });
-        // callstack data highest >> lowest
-        int frame = 0;
-        for(int i = 0; i < callstack.total - 1; i++)
-        {
-            if(wVa > callstack.entries[i].addr && wVa <= callstack.entries[i + 1].addr)
-            {
-                frame = i + 1;
-                break;
-            }
-        }
-        BridgeFree(callstack.entries);
-        if(frame != 0)
-            DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(callstack.entries[frame - 1].addr)).toUtf8().constData());
-    }
+    int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
+    if(frame != -1 && frame > 0)
+        DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame - 1].addr)).toUtf8().constData());
 }
 
 void CPUStack::gotoExpressionSlot()
