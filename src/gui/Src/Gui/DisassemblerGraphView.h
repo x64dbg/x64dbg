@@ -217,6 +217,8 @@ public:
     void copy_address();
     //void analysis_thread_proc();
     //void closeRequest();
+    void paintNormal(QPainter & p, QRect & viewportRect, int xofs, int yofs);
+    void paintOverview(QPainter & p, QRect & viewportRect, int xofs, int yofs);
     void paintEvent(QPaintEvent* event);
     bool isMouseEventInBlock(QMouseEvent* event);
     duint getInstrForMouseEvent(QMouseEvent* event);

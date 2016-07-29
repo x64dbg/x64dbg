@@ -134,24 +134,9 @@ void DisassemblerGraphView::copy_address()
     clipboard->setMimeData(&mime);
 }
 
-void DisassemblerGraphView::paintEvent(QPaintEvent* event)
+void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int xofs, int yofs)
 {
-    Q_UNUSED(event);
-    QPainter p(this->viewport());
-    p.setFont(this->font());
-
-    int xofs = this->horizontalScrollBar()->value();
-    int yofs = this->verticalScrollBar()->value();
-
-    //Render background
-    QRect viewportRect = this->viewport()->rect();
-    p.setBrush(QBrush(ConfigColor("DisassemblySelectionColor")));
-    p.drawRect(viewportRect);
-    p.setBrush(Qt::black);
-
-    if(!this->ready || !DbgIsDebugging())
-        return;
-
+    //Translate the painter
     QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
     p.translate(translation);
     viewportRect.translate(-translation.x(), -translation.y());
@@ -197,58 +182,12 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
                 }
             }
 
-            //Render highlighted tokens
-            //TODO
-            /*if(this->highlight_token)
-            {
-                int x = block.x + (2 * this->charWidth);
-                int y = block.y + (2 * this->charWidth);
-                for(auto & line : block.block.header_text.tokens)
-                {
-                    for(Token & token : line)
-                    {
-                        if(this->highlight_token->equalsToken(token))
-                        {
-                            p.setPen(QColor(0, 0, 0, 0));
-                            p.setBrush(QColor(192, 0, 0, 64));
-                            p.drawRect(x + token.start * this->charWidth, y,
-                                       token.length * this->charWidth, this->charHeight);
-                        }
-                    }
-                    y += this->charHeight;
-                }
-                for(Instr & instr : block.block.instrs)
-                {
-                    for(auto & line : instr.text.tokens)
-                    {
-                        for(Token & token : line)
-                        {
-                            if(this->highlight_token->equalsToken(token))
-                            {
-                                p.setPen(QColor(0, 0, 0, 0));
-                                p.setBrush(QColor(192, 0, 0, 64));
-                                p.drawRect(x + token.start * this->charWidth, y,
-                                           token.length * this->charWidth, this->charHeight);
-                            }
-                        }
-                        y += this->charHeight;
-                    }
-                }
-            }*/
-
             //Render node text
             auto x = block.x + (2 * this->charWidth);
             auto y = block.y + (2 * this->charWidth);
             for(auto & line : block.block.header_text.lines)
             {
                 RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
-                /*auto partx = x;
-                for(RichTextPainter::CustomRichText_t & part : line)
-                {
-                    p.setPen(part.color);
-                    p.drawText(partx, y + this->charOffset + this->baseline, part.text);
-                    partx += part.text.length() * this->charWidth;
-                }*/
                 y += this->charHeight;
             }
             for(Instr & instr : block.block.instrs)
@@ -256,13 +195,6 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
                 for(auto & line : instr.text.lines)
                 {
                     RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
-                    /*auto partx = x;
-                    for(Line & part : line)
-                    {
-                        p.setPen(part.color);
-                        p.drawText(partx, y + this->charOffset + this->baseline, part.text);
-                        partx += part.text.length() * this->charWidth;
-                    }*/
                     y += this->charHeight;
                 }
             }
@@ -277,6 +209,81 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
             p.drawConvexPolygon(edge.arrow);
         }
     }
+}
+
+void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, int xofs, int yofs)
+{
+    // Scale
+    qreal sx = qreal(viewportRect.width()) / qreal(this->renderWidth);
+    qreal sy = qreal(viewportRect.height()) / qreal(this->renderHeight);
+    qreal s = qMin(sx, sy);
+    p.scale(s, s);
+
+    // Scaled pen
+    QPen pen;
+    qreal penWidth = 1.0 / s;
+    pen.setWidthF(penWidth);
+
+    //Render each node
+    for(auto & blockIt : this->blocks)
+    {
+        DisassemblerBlock & block = blockIt.second;
+
+        // Render edges
+        for(DisassemblerEdge & edge : block.edges)
+        {
+            pen.setColor(edge.color);
+            p.setPen(pen);
+            p.setBrush(edge.color);
+            p.drawPolyline(edge.polyline);
+            p.drawConvexPolygon(edge.arrow);
+        }
+
+        //Render shadow
+        p.setPen(QColor(0, 0, 0, 0));
+        if(block.block.terminal)
+            p.setBrush(QColor(144, 0, 0));
+        else
+            p.setBrush(QColor(0, 0, 0, 128));
+        p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
+                   block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
+
+        //Render node background
+        pen.setColor(Qt::black);
+        p.setPen(pen);
+        p.setBrush(QBrush(ConfigColor("DisassemblyBackgroundColor")));
+        p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
+                   block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
+    }
+
+    // Draw viewport selection
+    QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
+    viewportRect.translate(-translation.x(), -translation.y());
+    p.setPen(QPen(Qt::black, penWidth, Qt::DotLine));
+    p.setBrush(Qt::transparent);
+    p.drawRect(viewportRect);
+}
+
+void DisassemblerGraphView::paintEvent(QPaintEvent* event)
+{
+    Q_UNUSED(event);
+    QPainter p(this->viewport());
+    p.setFont(this->font());
+
+    int xofs = this->horizontalScrollBar()->value();
+    int yofs = this->verticalScrollBar()->value();
+
+    //Render background
+    QRect viewportRect = this->viewport()->rect();
+    p.setBrush(QBrush(ConfigColor("DisassemblySelectionColor")));
+    p.drawRect(viewportRect);
+    p.setBrush(Qt::black);
+
+    if(!this->ready || !DbgIsDebugging())
+        return;
+
+    //paintOverview(p, viewportRect, xofs, yofs);
+    paintNormal(p, viewportRect, xofs, yofs);
 }
 
 bool DisassemblerGraphView::isMouseEventInBlock(QMouseEvent* event)
@@ -907,11 +914,11 @@ void DisassemblerGraphView::renderFunction(Function & func)
         for(duint edge : block.block.exits)
         {
             DisassemblerBlock & end = this->blocks[edge];
-            QColor color(Qt::black);
+            QColor color("#0148FB");
             if(edge == block.block.true_path)
-                color = QColor(0, 144, 0);
+                color = QColor("#387804");
             else if(edge == block.block.false_path)
-                color = QColor(144, 0, 0);
+                color = QColor("#ED4630");
             start.edges.push_back(this->routeEdge(horiz_edges, vert_edges, edge_valid, start, end, color));
         }
     }
