@@ -15,17 +15,23 @@ struct SYMBOLCBDATA
 {
     CBSYMBOLENUM cbSymbolEnum;
     void* user;
+    std::vector<char> decoratedSymbol;
+    std::vector<char> undecoratedSymbol;
 };
 
 BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserContext)
 {
+    SYMBOLCBDATA* cbData = (SYMBOLCBDATA*)UserContext;
+    cbData->decoratedSymbol[0] = '\0';
+    cbData->undecoratedSymbol[0] = '\0';
+
     SYMBOLINFO curSymbol;
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
 
     curSymbol.addr = (duint)SymInfo->Address;
-    curSymbol.decoratedSymbol = (char*)BridgeAlloc(strlen(SymInfo->Name) + 1);
-    curSymbol.undecoratedSymbol = (char*)BridgeAlloc(MAX_SYM_NAME);
-    strcpy_s(curSymbol.decoratedSymbol, strlen(SymInfo->Name) + 1, SymInfo->Name);
+    curSymbol.decoratedSymbol = cbData->decoratedSymbol.data();
+    curSymbol.undecoratedSymbol = cbData->undecoratedSymbol.data();
+    strncpy_s(curSymbol.decoratedSymbol, MAX_SYM_NAME, SymInfo->Name, _TRUNCATE);
 
     // Skip bad ordinals
     if(strstr(SymInfo->Name, "Ordinal"))
@@ -37,17 +43,10 @@ BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserCont
 
     // Convert a mangled/decorated C++ name to a readable format
     if(!SafeUnDecorateSymbolName(SymInfo->Name, curSymbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
-    {
-        BridgeFree(curSymbol.undecoratedSymbol);
         curSymbol.undecoratedSymbol = nullptr;
-    }
     else if(!strcmp(curSymbol.decoratedSymbol, curSymbol.undecoratedSymbol))
-    {
-        BridgeFree(curSymbol.undecoratedSymbol);
         curSymbol.undecoratedSymbol = nullptr;
-    }
 
-    SYMBOLCBDATA* cbData = (SYMBOLCBDATA*)UserContext;
     cbData->cbSymbolEnum(&curSymbol, cbData->user);
     return TRUE;
 }
@@ -70,6 +69,8 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
     SYMBOLCBDATA symbolCbData;
     symbolCbData.cbSymbolEnum = EnumCallback;
     symbolCbData.user = UserData;
+    symbolCbData.decoratedSymbol.resize(MAX_SYM_NAME + 1);
+    symbolCbData.undecoratedSymbol.resize(MAX_SYM_NAME + 1);
 
     // Enumerate every single symbol for the module in 'base'
     if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
