@@ -69,6 +69,14 @@ void CPUStack::updateFonts()
 
 void CPUStack::setupContextMenu()
 {
+    //Push
+    mPushAction = new QAction(ArchValue(tr("P&ush DWORD..."), tr("P&ush QWORD...")), this);
+    connect(mPushAction, SIGNAL(triggered()), this, SLOT(pushSlot()));
+
+    //Pop
+    mPopAction = new QAction(ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), this);
+    connect(mPopAction, SIGNAL(triggered()), this, SLOT(popSlot()));
+
     //Binary menu
     mBinaryMenu = new QMenu(tr("B&inary"), this);
     mBinaryMenu->setIcon(DIcon("binary.png"));
@@ -238,8 +246,8 @@ void CPUStack::setupContextMenu()
     this->addAction(mGotoNext);
     connect(mGotoNext, SIGNAL(triggered(bool)), this, SLOT(gotoNextSlot()));
 
-    //Go to Base of Frame
-    mGotoFrameBase = new QAction(cspIcon, tr("Go to Base of Frame"), this);
+    //Go to Base of Stack Frame
+    mGotoFrameBase = new QAction(cspIcon, tr("Go to Base of Stack Frame"), this);
     connect(mGotoFrameBase, SIGNAL(triggered()), this, SLOT(gotoFrameBaseSlot()));
 
     //Go to Next Frame
@@ -264,7 +272,7 @@ void CPUStack::setupContextMenu()
     mFollowDump = new QAction(DIcon("dump.png"), followDumpName, this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
-    auto followDumpMenuName = ArchValue(tr("&Follow DWORD in Dump"), tr("&Follow QWORD in Dump"));
+    auto followDumpMenuName = ArchValue(tr("Follow DWORD in Dump"), tr("Follow QWORD in Dump"));
     mFollowInDumpMenu = new QMenu(followDumpMenuName, this);
 
     int maxDumps = mMultiDump->getMaxCPUTabs();
@@ -281,7 +289,7 @@ void CPUStack::setupContextMenu()
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     //Watch data
-    auto watchDataName = ArchValue(tr("Watch DWORD"), tr("Watch QWORD"));
+    auto watchDataName = ArchValue(tr("&Watch DWORD"), tr("&Watch QWORD"));
     mWatchData = new QAction(DIcon("animal-dog.png"), watchDataName, this);
     connect(mWatchData, SIGNAL(triggered()), this, SLOT(watchDataSlot()));
 
@@ -488,6 +496,8 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
         return;
 
     QMenu wMenu(this); //create context menu
+    wMenu.addAction(mPushAction);
+    wMenu.addAction(mPopAction);
     wMenu.addAction(mModifyAction);
     wMenu.addMenu(mBinaryMenu);
     QMenu wCopyMenu(tr("&Copy"), this);
@@ -612,8 +622,8 @@ void CPUStack::stackDumpAt(duint addr, duint csp)
         // callstack data highest >> lowest
         std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
         {
-            auto p = (DBGCALLSTACKENTRY*)a;
-            auto q = (DBGCALLSTACKENTRY*)b;
+            auto p = (const DBGCALLSTACKENTRY*)a;
+            auto q = (const DBGCALLSTACKENTRY*)b;
             if(p->addr < q->addr)
                 return -1;
             else
@@ -1010,6 +1020,27 @@ void CPUStack::modifySlot()
         return;
     value = wEditDialog.getVal();
     mMemPage->write(&value, addr, sizeof(dsint));
+    GuiUpdateAllViews();
+}
+
+void CPUStack::pushSlot()
+{
+    WordEditDialog wEditDialog(this);
+    dsint value = 0;
+    wEditDialog.setup(ArchValue(tr("Push DWORD"), tr("Push QWORD")), value, sizeof(dsint));
+    if(wEditDialog.exec() != QDialog::Accepted)
+        return;
+    value = wEditDialog.getVal();
+    mCsp -= sizeof(dsint);
+    DbgValToString("csp", mCsp);
+    DbgMemWrite(mCsp, (const unsigned char*)&value, sizeof(dsint));
+    GuiUpdateAllViews();
+}
+
+void CPUStack::popSlot()
+{
+    mCsp += sizeof(dsint);
+    DbgValToString("csp", mCsp);
     GuiUpdateAllViews();
 }
 

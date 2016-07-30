@@ -25,5 +25,6 @@ DWORD ThreadGetId(HANDLE Thread);
 int ThreadSuspendAll();
 int ThreadResumeAll();
 ULONG_PTR ThreadGetLocalBase(DWORD ThreadId);
+ULONG64 ThreadQueryCycleTime(HANDLE hThread);
 
 #endif // _THREAD_H

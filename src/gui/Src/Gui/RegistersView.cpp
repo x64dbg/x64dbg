@@ -449,6 +449,10 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     wCM_Incrementx87Stack = new QAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
     wCM_Decrementx87Stack = new QAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"), this);
     wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
+    wCM_IncrementPtrSize = new QAction(ArchValue(tr("Increase 4"), tr("Increase 8")), this);
+    wCM_DecrementPtrSize = new QAction(ArchValue(tr("Decrease 4"), tr("Decrease 8")), this);
+    wCM_Push = new QAction(tr("Push"), this);
+    wCM_Pop = new QAction(tr("Pop"), this);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -514,7 +518,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mUINTDISPLAY.insert(CDI);
     mLABELDISPLAY.insert(CDI);
     mMODIFYDISPLAY.insert(CDI);
-
+#ifdef _WIN64
     mSETONEZEROTOGGLE.insert(R8);
     mINCREMENTDECREMET.insert(R8);
     mCANSTOREADDRESS.insert(R8);
@@ -578,9 +582,9 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mMODIFYDISPLAY.insert(R15);
     mUINTDISPLAY.insert(R15);
     mLABELDISPLAY.insert(R15);
+#endif //_WIN64
 
     mSETONEZEROTOGGLE.insert(EFLAGS);
-    mINCREMENTDECREMET.insert(EFLAGS);
     mGPR.insert(EFLAGS);
     mMODIFYDISPLAY.insert(EFLAGS);
     mUINTDISPLAY.insert(EFLAGS);
@@ -1045,21 +1049,27 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
 
     mNoChange.insert(GS);
     mUSHORTDISPLAY.insert(GS);
+    mSEGMENTREGISTER.insert(GS);
 
     mNoChange.insert(FS);
     mUSHORTDISPLAY.insert(FS);
+    mSEGMENTREGISTER.insert(FS);
 
     mNoChange.insert(ES);
     mUSHORTDISPLAY.insert(ES);
+    mSEGMENTREGISTER.insert(ES);
 
     mNoChange.insert(DS);
     mUSHORTDISPLAY.insert(DS);
+    mSEGMENTREGISTER.insert(DS);
 
     mNoChange.insert(CS);
     mUSHORTDISPLAY.insert(CS);
+    mSEGMENTREGISTER.insert(CS);
 
     mNoChange.insert(SS);
     mUSHORTDISPLAY.insert(SS);
+    mSEGMENTREGISTER.insert(SS);
 
     mNoChange.insert(DR0);
     mUINTDISPLAY.insert(DR0);
@@ -1139,6 +1149,10 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(wCM_FollowInDisassembly, SIGNAL(triggered()), this, SLOT(onFollowInDisassembly()));
     connect(wCM_FollowInDump, SIGNAL(triggered()), this, SLOT(onFollowInDump()));
     connect(wCM_FollowInStack, SIGNAL(triggered()), this, SLOT(onFollowInStack()));
+    connect(wCM_IncrementPtrSize, SIGNAL(triggered()), this, SLOT(onIncrementPtrSize()));
+    connect(wCM_DecrementPtrSize, SIGNAL(triggered()), this, SLOT(onDecrementPtrSize()));
+    connect(wCM_Push, SIGNAL(triggered()), this, SLOT(onPushAction()));
+    connect(wCM_Pop, SIGNAL(triggered()), this, SLOT(onPopAction()));
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -2015,6 +2029,41 @@ void RegistersView::onDecrementAction()
         setRegister(mSelected, (* ((duint*) registerValue(&wRegDumpStruct, mSelected))) - 1);
 }
 
+void RegistersView::onIncrementPtrSize()
+{
+    if(mINCREMENTDECREMET.contains(mSelected))
+        setRegister(mSelected, (* ((duint*) registerValue(&wRegDumpStruct, mSelected))) + sizeof(void*));
+}
+
+void RegistersView::onDecrementPtrSize()
+{
+    if(mINCREMENTDECREMET.contains(mSelected))
+        setRegister(mSelected, (* ((duint*) registerValue(&wRegDumpStruct, mSelected))) - sizeof(void*));
+}
+
+void RegistersView::onPushAction()
+{
+    duint csp = (* ((duint*) registerValue(&wRegDumpStruct, CSP))) - sizeof(void*);
+    duint regVal = 0;
+    if(mSEGMENTREGISTER.contains(mSelected))
+        regVal = * ((unsigned short*) registerValue(&wRegDumpStruct, mSelected));
+    else
+        regVal = * ((duint*) registerValue(&wRegDumpStruct, mSelected));
+    setRegister(CSP, csp);
+    DbgMemWrite(csp, (const unsigned char*)&regVal , sizeof(void*));
+}
+
+void RegistersView::onPopAction()
+{
+    duint csp = (* ((duint*) registerValue(&wRegDumpStruct, CSP)));
+    duint newVal;
+    DbgMemRead(csp, (unsigned char*)&newVal, sizeof(void*));
+    setRegister(CSP, csp + sizeof(void*));
+    if(mSEGMENTREGISTER.contains(mSelected))
+        newVal &= 0xFFFF;
+    setRegister(mSelected, newVal);
+}
+
 void RegistersView::onZeroAction()
 {
     if(mSETONEZEROTOGGLE.contains(mSelected))
@@ -2311,6 +2360,14 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         {
             wMenu.addAction(wCM_Increment);
             wMenu.addAction(wCM_Decrement);
+            wMenu.addAction(wCM_IncrementPtrSize);
+            wMenu.addAction(wCM_DecrementPtrSize);
+        }
+
+        if(mGPR.contains(mSelected) || mSEGMENTREGISTER.contains(mSelected))
+        {
+            wMenu.addAction(wCM_Push);
+            wMenu.addAction(wCM_Pop);
         }
 
         if(mMODIFYDISPLAY.contains(mSelected))

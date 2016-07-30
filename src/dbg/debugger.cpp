@@ -187,6 +187,33 @@ static DWORD WINAPI dumpRefreshThread(void* ptr)
     return 0;
 }
 
+/**
+\brief Called when the debugger pauses.
+*/
+void cbDebuggerPaused()
+{
+    // Clear tracing conditions
+    dbgcleartracecondition();
+    dbgClearRtuBreakpoints();
+    // Trace record is not handled by this function currently.
+    // Signal thread switch warning
+    static DWORD PrevThreadId = 0;
+    if(PrevThreadId == 0)
+        PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
+    DWORD currentThreadId = ThreadGetId(hActiveThread);
+    if(currentThreadId != PrevThreadId)
+    {
+        dprintf("Thread switched from %X to %X !\n", PrevThreadId, currentThreadId);
+        PrevThreadId = currentThreadId;
+    }
+    // Watchdog
+    cbWatchdog(0, nullptr);
+    // Plugin callback
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved = nullptr;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+}
+
 void dbginit()
 {
     hTimeWastedCounterThread = CreateThread(nullptr, 0, timeWastedCounterThread, nullptr, 0, nullptr);
@@ -375,6 +402,9 @@ void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paus
 }
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
 {
+    // call paused routine to clean up various tracing states.
+    if(state == DBGSTATE::paused)
+        cbDebuggerPaused();
     //correctly orders the GuiSetDebugState DebugUpdateGui to prevent drawing inconsistencies
     static TaskThread_<decltype(&DebugUpdateGuiSetState), duint, bool, DBGSTATE> DebugUpdateGuiSetStateTask(&DebugUpdateGuiSetState);
     DebugUpdateGuiSetStateTask.WakeUp(disasm_addr, stack, state);
@@ -543,19 +573,11 @@ void cbPauseBreakpoint()
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     DeleteBPX(CIP);
     DebugUpdateGuiSetStateAsync(CIP, true);
-    // Clear tracing conditions
-    dbgcleartracecondition();
-    dbgClearRtuBreakpoints();
     // Trace record
     _dbg_dbgtraceexecute(CIP);
-    // Watchdog
-    cbWatchdog(0, nullptr);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = nullptr;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     wait(WAITID_RUN);
 }
 
@@ -583,9 +605,6 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
             }
         }
         DebugUpdateGuiSetStateAsync(CIP, true);
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = nullptr;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     }
 }
 
@@ -617,9 +636,6 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
         bSkipExceptions = false;
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = nullptr;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
         return;
     }
@@ -695,9 +711,6 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     }
     if(breakCondition)  //break the debugger
     {
-        // Clear tracing conditions
-        dbgcleartracecondition();
-        dbgClearRtuBreakpoints();
         SetForegroundWindow(GuiGetWindowHandle());
         bSkipExceptions = false;
     }
@@ -729,16 +742,6 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     auto symbolicname = SymGetSymbolicName(CIP);
     dprintf("User code reached at %s (" fhex ")!", symbolicname.c_str(), CIP);
-    // Clear tracing conditions
-    dbgcleartracecondition();
-    dbgClearRtuBreakpoints();
-    lock(WAITID_RUN);
-    // Watchdog
-    cbWatchdog(0, nullptr);
-    // Plugin callback
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = nullptr;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     // Trace record
     _dbg_dbgtraceexecute(CIP);
     // Update GUI
@@ -921,8 +924,6 @@ void cbStep()
     DebugUpdateGuiSetStateAsync(CIP, true);
     // Trace record
     _dbg_dbgtraceexecute(CIP);
-    // Watchdog
-    cbWatchdog(0, nullptr);
     // Plugin interaction
     PLUG_CB_STEPPED stepInfo;
     stepInfo.reserved = 0;
@@ -930,9 +931,6 @@ void cbStep()
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = 0;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     plugincbcall(CB_STEPPED, &stepInfo);
     wait(WAITID_RUN);
 }
@@ -945,15 +943,10 @@ static void cbRtrFinalStep()
     // Trace record
     _dbg_dbgtraceexecute(CIP);
     DebugUpdateGuiSetStateAsync(CIP, true);
-    // Watchdog
-    cbWatchdog(0, nullptr);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = 0;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     wait(WAITID_RUN);
 }
 
@@ -1293,9 +1286,6 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = 0;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
 }
@@ -1330,9 +1320,6 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = 0;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
 }
@@ -1364,9 +1351,6 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
         GuiSetDebugStateAsync(paused);
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = 0;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
 }
@@ -1495,15 +1479,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         bBreakOnNextDll = false;
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
-        // Clear tracing conditions
-        dbgcleartracecondition();
-        dbgClearRtuBreakpoints();
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = 0;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
 }
@@ -1528,15 +1506,9 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         bBreakOnNextDll = false;
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
-        // Clear tracing conditions
-        dbgcleartracecondition();
-        dbgClearRtuBreakpoints();
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = 0;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
 
@@ -1575,15 +1547,9 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     {
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
-        // Clear tracing conditions
-        dbgcleartracecondition();
-        dbgClearRtuBreakpoints();
         //lock
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
-        PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved = 0;
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
 }
@@ -1627,9 +1593,6 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             lock(WAITID_RUN);
             SetForegroundWindow(GuiGetWindowHandle());
             bSkipExceptions = false;
-            PLUG_CB_PAUSEDEBUG pauseInfo;
-            pauseInfo.reserved = 0;
-            plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
             plugincbcall(CB_EXCEPTION, &callbackInfo);
             wait(WAITID_RUN);
             return;
@@ -1676,16 +1639,10 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     }
 
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
-    // Clear tracing conditions
-    dbgcleartracecondition();
-    dbgClearRtuBreakpoints();
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = 0;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     plugincbcall(CB_EXCEPTION, &callbackInfo);
     wait(WAITID_RUN);
 }
@@ -2327,6 +2284,8 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
 
     //cleanup
+    dbgcleartracecondition();
+    dbgClearRtuBreakpoints();
     DbClose();
     ModClear();
     ThreadClear();

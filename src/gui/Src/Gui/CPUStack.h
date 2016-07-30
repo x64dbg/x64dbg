@@ -28,6 +28,8 @@ signals:
     void displayReferencesWidget();
 
 public slots:
+    void pushSlot();
+    void popSlot();
     void refreshShortcutsSlot();
     void stackDumpAt(duint addr, duint csp);
     void gotoSpSlot();
@@ -122,6 +124,8 @@ private:
     QAction* mWatchData;
     QMenu* mPluginMenu;
     QMenu* mFollowInDumpMenu;
+    QAction* mPushAction;
+    QAction* mPopAction;
     QList<QAction*> mFollowInDumpActions;
 
     GotoDialog* mGoto;
