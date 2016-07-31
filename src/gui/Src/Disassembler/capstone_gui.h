@@ -139,7 +139,7 @@ public:
     bool Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction);
     bool TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction);
     void UpdateConfig();
-    void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bCocksucker);
+    void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces);
     int Size() const;
     const Capstone & GetCapstone() const;
 
@@ -163,7 +163,6 @@ private:
     bool _bTabbedMnemonic;
     bool _bArgumentSpaces;
     bool _bMemorySpaces;
-    bool _bCocksucker;
 
     void addToken(TokenType type, QString text, const TokenValue & value);
     void addToken(TokenType type, const QString & text);

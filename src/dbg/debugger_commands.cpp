@@ -1259,16 +1259,16 @@ CMDRESULT cbDebugBplist(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-static bool cocksucker(int argc, char* argv[])
+static bool skipInt3Stepping(int argc, char* argv[])
 {
-    if(!bCocksucker)
+    if(!bSkipInt3Stepping)
         return false;
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     unsigned char ch;
     MemRead(cip, &ch, sizeof(ch));
     if(ch == 0xCC && getLastExceptionInfo().ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
     {
-        dputs("Cocksucker detected!");
+        dputs("Skipped INT3!");
         cbDebugSkip(argc, argv);
         return true;
     }
@@ -1277,7 +1277,7 @@ static bool cocksucker(int argc, char* argv[])
 
 CMDRESULT cbDebugStepInto(int argc, char* argv[])
 {
-    if(cocksucker(argc, argv))
+    if(skipInt3Stepping(argc, argv))
         return STATUS_CONTINUE;
     StepInto((void*)cbStep);
     // History
@@ -1294,7 +1294,7 @@ CMDRESULT cbDebugeStepInto(int argc, char* argv[])
 
 CMDRESULT cbDebugStepOver(int argc, char* argv[])
 {
-    if(cocksucker(argc, argv))
+    if(skipInt3Stepping(argc, argv))
         return STATUS_CONTINUE;
     StepOver((void*)cbStep);
     // History

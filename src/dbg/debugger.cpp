@@ -84,7 +84,7 @@ HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = true;
 bool bTraceRecordEnabledDuringTrace = true;
-bool bCocksucker = false;
+bool bSkipInt3Stepping = false;
 duint DbgEvents = 0;
 
 static duint dbgcleartracecondition()

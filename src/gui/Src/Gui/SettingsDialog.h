@@ -50,7 +50,7 @@ private slots:
     void on_chkDisableDatabaseCompression_stateChanged(int arg1);
     void on_chkSaveDatabaseInProgramDirectory_stateChanged(int arg1);
     void on_chkTraceRecordEnabledDuringTrace_stateChanged(int arg1);
-    void on_chkCocksucker_toggled(bool checked);
+    void on_chkSkipInt3Stepping_toggled(bool checked);
     //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
@@ -125,7 +125,7 @@ private:
         bool engineSaveDatabaseInProgramDirectory;
         bool engineDisableDatabaseCompression;
         bool engineEnableTraceRecordDuringTrace;
-        bool engineCocksucker;
+        bool engineSkipInt3Stepping;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
         //Disasm Tab

@@ -117,7 +117,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "SaveDatabaseInProgramDirectory", &settings.engineSaveDatabaseInProgramDirectory);
     GetSettingBool("Engine", "DisableDatabaseCompression", &settings.engineDisableDatabaseCompression);
     GetSettingBool("Engine", "TraceRecordEnabledDuringTrace", &settings.engineEnableTraceRecordDuringTrace);
-    GetSettingBool("Engine", "Cocksucker", &settings.engineCocksucker);
+    GetSettingBool("Engine", "SkipInt3Stepping", &settings.engineSkipInt3Stepping);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -145,7 +145,7 @@ void SettingsDialog::LoadSettings()
     ui->chkSaveDatabaseInProgramDirectory->setChecked(settings.engineSaveDatabaseInProgramDirectory);
     ui->chkDisableDatabaseCompression->setChecked(settings.engineDisableDatabaseCompression);
     ui->chkTraceRecordEnabledDuringTrace->setChecked(settings.engineEnableTraceRecordDuringTrace);
-    ui->chkCocksucker->setChecked(settings.engineCocksucker);
+    ui->chkSkipInt3Stepping->setChecked(settings.engineSkipInt3Stepping);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -272,7 +272,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "SaveDatabaseInProgramDirectory", settings.engineSaveDatabaseInProgramDirectory);
     BridgeSettingSetUint("Engine", "DisableDatabaseCompression", settings.engineDisableDatabaseCompression);
     BridgeSettingSetUint("Engine", "TraceRecordEnabledDuringTrace", settings.engineEnableTraceRecordDuringTrace);
-    BridgeSettingSetUint("Engine", "Cocksucker", settings.engineCocksucker);
+    BridgeSettingSetUint("Engine", "SkipInt3Stepping", settings.engineSkipInt3Stepping);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -695,8 +695,7 @@ void SettingsDialog::on_chkNoCloseDialog_toggled(bool checked)
     settings.guiNoCloseDialog = checked;
 }
 
-void SettingsDialog::on_chkCocksucker_toggled(bool checked)
+void SettingsDialog::on_chkSkipInt3Stepping_toggled(bool checked)
 {
-    bTokenizerConfigUpdated = true;
-    settings.engineCocksucker = checked;
+    settings.engineSkipInt3Stepping = checked;
 }
