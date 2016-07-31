@@ -2525,8 +2525,7 @@ void cbDebugLoadLibBPX()
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = 0;
+    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     wait(WAITID_RUN);
 }

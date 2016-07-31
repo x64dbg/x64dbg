@@ -208,10 +208,6 @@ void cbDebuggerPaused()
     }
     // Watchdog
     cbWatchdog(0, nullptr);
-    // Plugin callback
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved = nullptr;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
 }
 
 void dbginit()
@@ -577,6 +573,9 @@ void cbPauseBreakpoint()
     _dbg_dbgtraceexecute(CIP);
     //lock
     lock(WAITID_RUN);
+    // Plugin callback
+    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     SetForegroundWindow(GuiGetWindowHandle());
     wait(WAITID_RUN);
 }
@@ -605,6 +604,9 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
             }
         }
         DebugUpdateGuiSetStateAsync(CIP, true);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     }
 }
 
@@ -634,6 +636,9 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         SetForegroundWindow(GuiGetWindowHandle());
         bSkipExceptions = false;
         wait(WAITID_RUN);
@@ -742,10 +747,15 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     auto symbolicname = SymGetSymbolicName(CIP);
     dprintf("User code reached at %s (" fhex ")!", symbolicname.c_str(), CIP);
+    // lock
+    lock(WAITID_RUN);
     // Trace record
     _dbg_dbgtraceexecute(CIP);
     // Update GUI
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    // Plugin callback
+    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
     wait(WAITID_RUN);
@@ -929,6 +939,9 @@ void cbStep()
     stepInfo.reserved = 0;
     //lock
     lock(WAITID_RUN);
+    // Plugin callback
+    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
     plugincbcall(CB_STEPPED, &stepInfo);
@@ -945,6 +958,9 @@ static void cbRtrFinalStep()
     DebugUpdateGuiSetStateAsync(CIP, true);
     //lock
     lock(WAITID_RUN);
+    // Plugin callback
+    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
     wait(WAITID_RUN);
@@ -1285,6 +1301,9 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         SetForegroundWindow(GuiGetWindowHandle());
         wait(WAITID_RUN);
     }
@@ -1319,6 +1338,9 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         SetForegroundWindow(GuiGetWindowHandle());
         wait(WAITID_RUN);
     }
@@ -1350,6 +1372,9 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
         //lock
         GuiSetDebugStateAsync(paused);
         lock(WAITID_RUN);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         SetForegroundWindow(GuiGetWindowHandle());
         wait(WAITID_RUN);
     }
@@ -1481,6 +1506,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         SetForegroundWindow(GuiGetWindowHandle());
         wait(WAITID_RUN);
     }
@@ -1508,6 +1536,9 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         SetForegroundWindow(GuiGetWindowHandle());
         wait(WAITID_RUN);
     }
@@ -1549,6 +1580,9 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         SetForegroundWindow(GuiGetWindowHandle());
         wait(WAITID_RUN);
     }
@@ -1591,6 +1625,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             dbgClearRtuBreakpoints();
             //lock
             lock(WAITID_RUN);
+            // Plugin callback
+            PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+            plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
             SetForegroundWindow(GuiGetWindowHandle());
             bSkipExceptions = false;
             plugincbcall(CB_EXCEPTION, &callbackInfo);
@@ -1641,6 +1678,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     //lock
     lock(WAITID_RUN);
+    // Plugin callback
+    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
     plugincbcall(CB_EXCEPTION, &callbackInfo);
