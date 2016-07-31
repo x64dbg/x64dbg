@@ -526,6 +526,12 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Background"), "HexEditBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "HexEditSelectionColor", "");
 
+    colorInfoListAppend(tr("Graph"), "", "");
+    colorInfoListAppend(tr("Unconditional branch line"), "GraphJmpColor", "");
+    colorInfoListAppend(tr("True branch line"), "GraphBrtrueColor", "");
+    colorInfoListAppend(tr("False branch line"), "GraphBrfalseColor", "");
+    colorInfoListAppend(tr("Terminal node shadow"), "GraphRetShadowColor", "");
+
     colorInfoListAppend(tr("Other:"), "", "");
     colorInfoListAppend(tr("Current Thread"), "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
     colorInfoListAppend(tr("Watch (When Watchdog is Triggered)"), "WatchTriggeredColor", "WatchTriggeredBackgroundColor");

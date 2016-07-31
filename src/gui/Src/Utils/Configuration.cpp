@@ -160,6 +160,11 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("HexEditBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("HexEditSelectionColor", QColor("#C0C0C0"));
 
+    defaultColors.insert("GraphJmpColor", QColor("#0148FB"));
+    defaultColors.insert("GraphBrtrueColor", QColor("#387804"));
+    defaultColors.insert("GraphBrfalseColor", QColor("#ED4630"));
+    defaultColors.insert("GraphRetShadowColor", QColor("#900000"));
+
     defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
     defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
     defaultColors.insert("WatchTriggeredColor", QColor("#FF0000"));

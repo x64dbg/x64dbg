@@ -56,6 +56,8 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(shortcutsUpdatedSlot()));
+
+    colorsUpdatedSlot();
 }
 
 void DisassemblerGraphView::initFont()
@@ -154,7 +156,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
             //Render shadow
             p.setPen(QColor(0, 0, 0, 0));
             if(block.block.terminal)
-                p.setBrush(QColor(144, 0, 0));
+                p.setBrush(retShadowColor);
             else
                 p.setBrush(QColor(0, 0, 0, 128));
             p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
@@ -162,7 +164,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
 
             //Render node background
             p.setPen(Qt::black);
-            p.setBrush(QBrush(ConfigColor("DisassemblyBackgroundColor")));
+            p.setBrush(QBrush(disassemblyBackgroundColor));
             p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
                        block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
@@ -175,7 +177,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
                     if(instr.addr == this->cur_instr)
                     {
                         p.setPen(QColor(0, 0, 0, 0));
-                        p.setBrush(ConfigColor("DisassemblySelectionColor"));
+                        p.setBrush(disassemblySelectionColor);
                         p.drawRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
                                    int(instr.text.lines.size()) * this->charHeight);
                     }
@@ -260,7 +262,7 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         //Render shadow
         p.setPen(QColor(0, 0, 0, 0));
         if(block.block.terminal)
-            p.setBrush(QColor(144, 0, 0));
+            p.setBrush(retShadowColor);
         else
             p.setBrush(QColor(0, 0, 0, 128));
         p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
@@ -269,7 +271,7 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         //Render node background
         pen.setColor(Qt::black);
         p.setPen(pen);
-        p.setBrush(QBrush(ConfigColor("DisassemblyBackgroundColor")));
+        p.setBrush(QBrush(disassemblyBackgroundColor));
         p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
                    block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
     }
@@ -296,7 +298,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
 
     //Render background
     QRect viewportRect = this->viewport()->rect();
-    p.setBrush(QBrush(ConfigColor("DisassemblySelectionColor")));
+    p.setBrush(QBrush(disassemblySelectionColor));
     p.drawRect(viewportRect);
     p.setBrush(Qt::black);
 
@@ -969,11 +971,11 @@ void DisassemblerGraphView::renderFunction(Function & func)
         for(duint edge : block.block.exits)
         {
             DisassemblerBlock & end = this->blocks[edge];
-            QColor color("#0148FB");
+            QColor color = jmpColor;
             if(edge == block.block.true_path)
-                color = QColor("#387804");
+                color = brtrueColor;
             else if(edge == block.block.false_path)
-                color = QColor("#ED4630");
+                color = brfalseColor;
             start.edges.push_back(this->routeEdge(horiz_edges, vert_edges, edge_valid, start, end, color));
         }
     }
@@ -1318,6 +1320,14 @@ void DisassemblerGraphView::followDisassemblerSlot()
 
 void DisassemblerGraphView::colorsUpdatedSlot()
 {
+    disassemblyBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    disassemblySelectionColor = ConfigColor("DisassemblySelectionColor");
+
+    jmpColor = ConfigColor("GraphJmpColor");
+    brtrueColor = ConfigColor("GraphBrtrueColor");
+    brfalseColor = ConfigColor("GraphBrfalseColor");
+    retShadowColor = ConfigColor("GraphRetShadowColor");
+
     fontChanged();
 }
 

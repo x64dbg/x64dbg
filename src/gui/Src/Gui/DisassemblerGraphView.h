@@ -294,6 +294,12 @@ private:
     int overviewYOfs;
     qreal overviewScale;
 
+    QColor disassemblyBackgroundColor;
+    QColor disassemblySelectionColor;
+    QColor jmpColor;
+    QColor brtrueColor;
+    QColor brfalseColor;
+    QColor retShadowColor;
 protected:
 #include "ActionHelpers.h"
 };
