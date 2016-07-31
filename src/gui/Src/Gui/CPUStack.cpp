@@ -59,7 +59,8 @@ void CPUStack::updateColors()
     backgroundColor = ConfigColor("StackBackgroundColor");
     textColor = ConfigColor("StackTextColor");
     selectionColor = ConfigColor("StackSelectionColor");
-    mStackFrameColor = ConfigColor("StackFrameColor");
+    mUserStackFrameColor = ConfigColor("StackFrameColor");
+    mSystemStackFrameColor = ConfigColor("StackFrameSystemColor");
 }
 
 void CPUStack::updateFonts()
@@ -437,6 +438,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         if(mCallstack.size())
         {
             int stackFrameBitfield = 0; // 0:none, 1:top of stack frame, 2:bottom of stack frame, 4:middle of stack frame
+            int party = 0;
             if(wVa >= mCallstack[0].addr)
             {
                 for(size_t i = 0; i < mCallstack.size() - 1; i++)
@@ -447,6 +449,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                         stackFrameBitfield |= (mCallstack[i + 1].addr == wVa + sizeof(duint)) ? 2 : 0;
                         if(stackFrameBitfield == 0)
                             stackFrameBitfield = 4;
+                        party = mCallstack[i].party;
                         break;
                     }
                 }
@@ -455,7 +458,10 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                     return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
                 else
                 {
-                    painter->setPen(QPen(mStackFrameColor, 2));
+                    if(party == 0)
+                        painter->setPen(QPen(mUserStackFrameColor, 2));
+                    else
+                        painter->setPen(QPen(mSystemStackFrameColor, 2));
                     int height = getRowHeight();
                     int halfHeight = height / 2;
                     int width = 5;
@@ -630,7 +636,10 @@ void CPUStack::stackDumpAt(duint addr, duint csp)
                 return 1;
         });
         for(size_t i = 0; i < mCallstack.size(); i++)
-            mCallstack[i] = callstack.entries[i];
+        {
+            mCallstack[i].addr = callstack.entries[i].addr;
+            mCallstack[i].party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
+        }
         BridgeFree(callstack.entries);
     }
 
@@ -653,7 +662,7 @@ void CPUStack::gotoBpSlot()
 #endif //_WIN64
 }
 
-static int getCurrentFrame(const std::vector<DBGCALLSTACKENTRY> & mCallstack, duint wVA)
+int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint wVA)
 {
     if(mCallstack.size())
         for(size_t i = 0; i < mCallstack.size() - 1; i++)

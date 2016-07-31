@@ -130,8 +130,16 @@ private:
 
     GotoDialog* mGoto;
     CPUMultiDump* mMultiDump;
-    QColor mStackFrameColor;
-    std::vector<DBGCALLSTACKENTRY> mCallstack;
+    QColor mUserStackFrameColor;
+    QColor mSystemStackFrameColor;
+    struct CPUCallStack
+    {
+        duint addr;
+        int party;
+    };
+
+    std::vector<CPUCallStack> mCallstack;
+    static int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint wVA);
 };
 
 #endif // CPUSTACK_H
