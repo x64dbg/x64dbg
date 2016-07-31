@@ -369,9 +369,10 @@ void MainWindow::setupLanguagesMenu()
         languageMenu = new QMenu(QString("Languages"));
     else
         languageMenu = new QMenu(tr("Languages") + QString(" Languages"), this);
+    languageMenu->setIcon(DIcon("codepage.png"));
     QLocale enUS(QLocale::English, QLocale::UnitedStates);
     QString wCurrentLocale(currentLocale);
-    QAction* action_enUS = new QAction(QString("[%1]%2 - %3").arg(enUS.name()).arg(enUS.nativeLanguageName()).arg(enUS.nativeCountryName()), languageMenu);
+    QAction* action_enUS = new QAction(QString("[%1] %2 - %3").arg(enUS.name()).arg(enUS.nativeLanguageName()).arg(enUS.nativeCountryName()), languageMenu);
     connect(action_enUS, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
     action_enUS->setCheckable(true);
     action_enUS->setChecked(false);
