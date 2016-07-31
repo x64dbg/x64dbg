@@ -142,6 +142,10 @@ protected slots:
     void onFollowInDisassembly();
     void onFollowInDump();
     void onFollowInStack();
+    void onIncrementPtrSize();
+    void onDecrementPtrSize();
+    void onPushAction();
+    void onPopAction();
     void InitMappings();
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
@@ -177,6 +181,7 @@ private:
     QSet<REGISTER_NAME> mFIELDVALUE;
     QSet<REGISTER_NAME> mTAGWORD;
     QSet<REGISTER_NAME> mCANSTOREADDRESS;
+    QSet<REGISTER_NAME> mSEGMENTREGISTER;
     QSet<REGISTER_NAME> mINCREMENTDECREMET;
     QSet<REGISTER_NAME> mFPUx87_80BITSDISPLAY;
     QSet<REGISTER_NAME> mFPU;
@@ -207,6 +212,10 @@ private:
     // context menu actions
     QAction* wCM_Increment;
     QAction* wCM_Decrement;
+    QAction* wCM_IncrementPtrSize;
+    QAction* wCM_DecrementPtrSize;
+    QAction* wCM_Push;
+    QAction* wCM_Pop;
     QAction* wCM_Zero;
     QAction* wCM_SetToOne;
     QAction* wCM_Modify;

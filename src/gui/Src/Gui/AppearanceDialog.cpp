@@ -518,7 +518,8 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Addresses"), "StackAddressColor", "StackAddressBackgroundColor");
     colorInfoListAppend(tr("Selected Addresses"), "StackSelectedAddressColor", "StackSelectedAddressBackgroundColor");
     colorInfoListAppend(tr("Labels"), "StackLabelColor", "StackLabelBackgroundColor");
-    colorInfoListAppend(tr("Stack Frame Line"), "StackFrameColor", "");
+    colorInfoListAppend(tr("User Stack Frame Line"), "StackFrameColor", "");
+    colorInfoListAppend(tr("System Stack Frame Line"), "StackFrameSystemColor", "");
 
     colorInfoListAppend(tr("HexEdit:"), "", "");
     colorInfoListAppend(tr("Text"), "HexEditTextColor", "");
