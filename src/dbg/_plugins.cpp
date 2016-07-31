@@ -51,6 +51,9 @@ PLUG_IMPEXP void _plugin_debugpause()
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
     dbgsetskipexceptions(false);
+    // Plugin callback
+    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     wait(WAITID_RUN);
 }
 

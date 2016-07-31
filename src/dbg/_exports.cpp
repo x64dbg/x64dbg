@@ -1220,6 +1220,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         BridgeList<WATCHINFO>::CopyData((ListInfo*)param1, WatchGetList());
     }
     break;
+
     }
     return 0;
 }

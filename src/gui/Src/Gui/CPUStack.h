@@ -28,6 +28,8 @@ signals:
     void displayReferencesWidget();
 
 public slots:
+    void pushSlot();
+    void popSlot();
     void refreshShortcutsSlot();
     void stackDumpAt(duint addr, duint csp);
     void gotoSpSlot();
@@ -122,12 +124,22 @@ private:
     QAction* mWatchData;
     QMenu* mPluginMenu;
     QMenu* mFollowInDumpMenu;
+    QAction* mPushAction;
+    QAction* mPopAction;
     QList<QAction*> mFollowInDumpActions;
 
     GotoDialog* mGoto;
     CPUMultiDump* mMultiDump;
-    QColor mStackFrameColor;
-    std::vector<DBGCALLSTACKENTRY> mCallstack;
+    QColor mUserStackFrameColor;
+    QColor mSystemStackFrameColor;
+    struct CPUCallStack
+    {
+        duint addr;
+        int party;
+    };
+
+    std::vector<CPUCallStack> mCallstack;
+    static int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint wVA);
 };
 
 #endif // CPUSTACK_H

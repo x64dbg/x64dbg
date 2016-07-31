@@ -87,13 +87,6 @@ int ThreadGetCount()
 
 void ThreadGetList(THREADLIST* List)
 {
-    // Initialize function pointer
-    if(QueryThreadCycleTime == nullptr)
-    {
-        QueryThreadCycleTime = (BOOL(WINAPI*)(HANDLE, PULONG64))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "QueryThreadCycleTime");
-        if(QueryThreadCycleTime == nullptr)
-            QueryThreadCycleTime = QueryThreadCycleTimeUnsupported;
-    }
     ASSERT_NONNULL(List);
     SHARED_ACQUIRE(LockThreads);
 
@@ -132,7 +125,7 @@ void ThreadGetList(THREADLIST* List)
         List->list[index].WaitReason = ThreadGetWaitReason(threadHandle);
         List->list[index].LastError = ThreadGetLastErrorTEB(itr.second.ThreadLocalBase);
         GetThreadTimes(threadHandle, &List->list[index].CreationTime, &threadExitTime, &List->list[index].KernelTime, &List->list[index].UserTime);
-        QueryThreadCycleTime(threadHandle, &List->list[index].Cycles);
+        List->list[index].Cycles = ThreadQueryCycleTime(threadHandle);
         index++;
     }
 }
@@ -297,4 +290,21 @@ ULONG_PTR ThreadGetLocalBase(DWORD ThreadId)
     SHARED_ACQUIRE(LockThreads);
     auto found = threadList.find(ThreadId);
     return found != threadList.end() ? found->second.ThreadLocalBase : 0;
+}
+
+ULONG64 ThreadQueryCycleTime(HANDLE hThread)
+{
+    ULONG64 CycleTime;
+
+    // Initialize function pointer
+    if(QueryThreadCycleTime == nullptr)
+    {
+        QueryThreadCycleTime = (BOOL(WINAPI*)(HANDLE, PULONG64))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "QueryThreadCycleTime");
+        if(QueryThreadCycleTime == nullptr)
+            QueryThreadCycleTime = QueryThreadCycleTimeUnsupported;
+    }
+
+    if(!QueryThreadCycleTime(hThread, &CycleTime))
+        CycleTime = 0;
+    return CycleTime;
 }
