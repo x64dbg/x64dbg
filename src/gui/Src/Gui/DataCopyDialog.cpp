@@ -20,6 +20,7 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     ui->comboType->addItem(tr("Pascal WORD (Hex)"));
     ui->comboType->addItem(tr("Pascal DWORD (Hex)"));
     ui->comboType->addItem(tr("Pascal QWORD (Hex)"));
+    ui->comboType->addItem(tr("GUID"));
 
     ui->comboType->setCurrentIndex(DataCByte);
 
@@ -240,6 +241,19 @@ void DataCopyDialog::printData(DataType type)
             data += QString().sprintf("$%016llX", ((unsigned long long*)mData->constData())[i]);
         }
         data += ");";
+    }
+    break;
+
+    case DataGUID:
+    {
+        int numguids = mData->size() / sizeof(GUID);
+        for(int i = 0; i < numguids; i++)
+        {
+            if(i)
+                data += ", ";
+            GUID guid = ((GUID*)(mData->constData()))[i];
+            data += QString().sprintf("{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", guid.Data1, guid.Data2, guid.Data3, guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+        }
     }
     break;
     }
