@@ -93,12 +93,18 @@ void DisassemblyPopup::setAddress(duint Address)
         mInstBuffer.clear();
         QList<dsint> rvaList;
         dsint nextRva = rva;
-        while(i < mMaxInstructions)
+        do
         {
+            dsint nextRva2;
             rvaList.append(nextRva);
-            nextRva = parent->getNextInstructionRVA(nextRva, 1);
+            nextRva2 = parent->getNextInstructionRVA(nextRva, 1, true);
+            if(nextRva2 == nextRva)
+                break;
+            else
+                nextRva = nextRva2;
             i++;
         }
+        while(i < mMaxInstructions);
         // Disassemble
         parent->prepareDataCount(rvaList, &mInstBuffer);
         for(auto & instruction : mInstBuffer)
@@ -120,7 +126,7 @@ void DisassemblyPopup::setAddress(duint Address)
         mWidth = std::max(mWidth, mFontMetrics->width(addrText) + mFontMetrics->width(addrComment));
         mWidth += charWidth * 6;
         // Resize popup
-        resize(mWidth + 2, charHeight * (mMaxInstructions + 1) + 2);
+        resize(mWidth + 2, charHeight * (mDisassemblyToken.size() + 1) + 2);
     }
     update();
 }

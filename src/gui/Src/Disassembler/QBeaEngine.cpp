@@ -152,7 +152,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
         }
         else
         {
-            if(!cp.DisassembleSafe(0, pdata, (int)size))
+            if(!cp.DisassembleSafe(ip + base, pdata, (int)size))
                 cmdsize = 1;
             else
                 cmdsize = cp.Size();
@@ -225,7 +225,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     else
         wInst.length = len;
     wInst.branchType = branchType;
-    wInst.branchDestination = cp.BranchDestination();
+    wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
     wInst.tokens = cap;
 
     return wInst;

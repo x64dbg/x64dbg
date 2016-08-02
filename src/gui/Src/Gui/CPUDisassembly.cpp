@@ -350,7 +350,12 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
-    mMenuBuilder->addSeparator();
+    QAction* togglePreview = makeShortcutAction(tr("Disable Branch Destination Preview"), SLOT(togglePreviewSlot()), "ActionToggleDestinationPreview");
+    mMenuBuilder->addAction(togglePreview, [this, togglePreview](QMenu*)
+    {
+        togglePreview->setText(mPopupEnabled ? tr("Disable Branch Destination Preview") : tr("Enable Branch Destination Preview"));
+        return true;
+    });
 
     MenuBuilder* labelMenu = new MenuBuilder(this);
     labelMenu->addAction(makeShortcutAction(tr("Label Current Address"), SLOT(setLabelSlot()), "ActionSetLabel"));
@@ -1659,4 +1664,11 @@ void CPUDisassembly::graphSlot()
 {
     DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData());
     emit displayGraphWidget();
+}
+
+void CPUDisassembly::togglePreviewSlot()
+{
+    if(mPopupEnabled == true)
+        ShowDisassemblyPopup(0, 0, 0);
+    mPopupEnabled = !mPopupEnabled;
 }

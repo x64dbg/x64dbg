@@ -104,6 +104,7 @@ public slots:
     void setEncodeTypeSlot();
     void setEncodeTypeRangeSlot();
     void graphSlot();
+    void togglePreviewSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);

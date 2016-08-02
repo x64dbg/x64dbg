@@ -51,7 +51,7 @@ public:
 
     // Instructions Management
     dsint getPreviousInstructionRVA(dsint rva, duint count);
-    dsint getNextInstructionRVA(dsint rva, duint count);
+    dsint getNextInstructionRVA(dsint rva, duint count, bool isGlobal = false);
     dsint getInstructionRVA(dsint index, dsint count);
     Instruction_t DisassembleAt(dsint rva);
     Instruction_t DisassembleAt(dsint rva, dsint count);
@@ -205,6 +205,7 @@ protected:
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;
     bool mHighlightingMode;
+    bool mPopupEnabled;
     MemoryPage* mMemPage;
     QBeaEngine* mDisasm;
     bool mShowMnemonicBrief;

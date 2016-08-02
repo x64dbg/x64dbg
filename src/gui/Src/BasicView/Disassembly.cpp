@@ -29,7 +29,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
     mDisasm->UpdateConfig();
 
     mCodeFoldingManager = nullptr;
-
+    mPopupEnabled = true;
     mIsLastInstDisplayed = false;
 
     mGuiState = Disassembly::NoState;
@@ -640,7 +640,7 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
     }
     else if(mGuiState == Disassembly::NoState)
     {
-        if(!mHighlightingMode)
+        if(!mHighlightingMode && mPopupEnabled)
         {
             bool popupShown = false;
             if(event->y() > getHeaderHeight() && getColumnIndexFromX(event->x()) == 2)
@@ -1246,24 +1246,34 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
  *
  * @param[in]   rva         Instruction RVA
  * @param[in]   count       Instruction count
+ * @param[in]   isGlobal    Whether it rejects rva beyond current page
  *
  * @return      RVA of count-th instructions after the given instruction RVA.
  */
-dsint Disassembly::getNextInstructionRVA(dsint rva, duint count)
+dsint Disassembly::getNextInstructionRVA(dsint rva, duint count, bool isGlobal)
 {
     QByteArray wBuffer;
     dsint wRemainingBytes;
     dsint wMaxByteCountToRead;
     dsint wNewRVA;
 
-    if(mMemPage->getSize() < (duint)rva)
-        return rva;
-    wRemainingBytes = mMemPage->getSize() - rva;
+    if(!isGlobal)
+    {
+        if(mMemPage->getSize() < (duint)rva)
+            return rva;
+        wRemainingBytes = mMemPage->getSize() - rva;
 
-    wMaxByteCountToRead = 16 * (count + 1);
-    if(mCodeFoldingManager)
-        wMaxByteCountToRead += mCodeFoldingManager->getFoldedSize(rvaToVa(rva), rvaToVa(rva + wMaxByteCountToRead));
-    wMaxByteCountToRead = wRemainingBytes > wMaxByteCountToRead ? wMaxByteCountToRead : wRemainingBytes;
+        wMaxByteCountToRead = 16 * (count + 1);
+        if(mCodeFoldingManager)
+            wMaxByteCountToRead += mCodeFoldingManager->getFoldedSize(rvaToVa(rva), rvaToVa(rva + wMaxByteCountToRead));
+        wMaxByteCountToRead = wRemainingBytes > wMaxByteCountToRead ? wMaxByteCountToRead : wRemainingBytes;
+    }
+    else
+    {
+        wMaxByteCountToRead = 16 * (count + 1);
+        if(mCodeFoldingManager)
+            wMaxByteCountToRead += mCodeFoldingManager->getFoldedSize(rvaToVa(rva), rvaToVa(rva + wMaxByteCountToRead));
+    }
     wBuffer.resize(wMaxByteCountToRead);
 
     mMemPage->read(wBuffer.data(), rva, wBuffer.size());
@@ -1895,7 +1905,7 @@ void Disassembly::ShowDisassemblyPopup(duint addr, int x, int y)
 {
     if(mDisassemblyPopup.getAddress() == addr)
         return;
-    if(addr != 0)
+    if(DbgMemIsValidReadPtr(addr))
     {
         mDisassemblyPopup.move(mapToGlobal(QPoint(x + 20, y + mFontMetrics->height() * 2)));
         mDisassemblyPopup.setAddress(addr);
