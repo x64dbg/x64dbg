@@ -132,6 +132,8 @@ private:
     CPUMultiDump* mMultiDump;
     QColor mUserStackFrameColor;
     QColor mSystemStackFrameColor;
+    QColor mStackReturnToColor;
+    QColor mStackSEHChainColor;
     struct CPUCallStack
     {
         duint addr;

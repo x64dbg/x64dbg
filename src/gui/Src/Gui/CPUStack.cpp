@@ -59,6 +59,8 @@ void CPUStack::updateColors()
     backgroundColor = ConfigColor("StackBackgroundColor");
     textColor = ConfigColor("StackTextColor");
     selectionColor = ConfigColor("StackSelectionColor");
+    mStackReturnToColor = ConfigColor("StackReturnToColor");
+    mStackSEHChainColor = ConfigColor("StackSEHChainColor");
     mUserStackFrameColor = ConfigColor("StackFrameColor");
     mSystemStackFrameColor = ConfigColor("StackFrameSystemColor");
 }
@@ -366,7 +368,19 @@ void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & ric
         if(wActiveStack)
         {
             if(*comment.color)
-                curData.textColor = QColor(QString(comment.color));
+            {
+                if(comment.color[0] == '!')
+                {
+                    if(strcmp(comment.color, "!sehclr") == 0)
+                        curData.textColor = QColor("#AE81FF");
+                    else if(strcmp(comment.color, "!rtnclr") == 0)
+                        curData.textColor = QColor("#FF0000");
+                    else
+                        curData.textColor = textColor;
+                }
+                else
+                    curData.textColor = QColor(QString(comment.color));
+            }
             else
                 curData.textColor = textColor;
         }

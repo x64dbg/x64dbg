@@ -118,7 +118,7 @@ bool CPUSideBar::isJump(int i) const
 {
     const Instruction_t & instr = mInstrBuffer->at(i);
     Instruction_t::BranchType branchType = instr.branchType;
-    if(branchType != Instruction_t::None)
+    if(branchType == Instruction_t::Unconditional || branchType == Instruction_t::Conditional)
     {
         duint start = mDisas->getBase();
         duint end = start + mDisas->getSize();

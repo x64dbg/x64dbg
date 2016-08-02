@@ -5,6 +5,7 @@
 #include "QBeaEngine.h"
 #include "MemoryPage.h"
 #include "CodeFolding.h"
+#include "DisassemblyPopup.h"
 
 class Disassembly : public AbstractTableView
 {
@@ -100,6 +101,7 @@ public:
     //misc
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     void unfold(dsint rva);
+    void ShowDisassemblyPopup(duint addr, int x, int y);
 
 signals:
     void selectionChanged(dsint parVA);
@@ -208,6 +210,7 @@ protected:
     bool mShowMnemonicBrief;
     XREF_INFO mXrefInfo;
     CodeFoldingHelper* mCodeFoldingManager;
+    DisassemblyPopup mDisassemblyPopup;
 };
 
 #endif // DISASSEMBLY_H

@@ -3,7 +3,7 @@
 #include "Bridge.h"
 #include "MainWindow.h"
 
-Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
+Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassemblyPopup(this)
 {
     mMemPage = new MemoryPage(0, 0);
 
@@ -27,6 +27,8 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 
     mDisasm = new QBeaEngine(maxModuleSize);
     mDisasm->UpdateConfig();
+
+    mCodeFoldingManager = nullptr;
 
     mIsLastInstDisplayed = false;
 
@@ -406,7 +408,8 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         funcsize += charwidth;
 
         //draw jump arrows
-        int jumpsize = paintJumpsGraphic(painter, x + funcsize, y - 1, wRVA, mInstBuffer.at(rowOffset).branchType != Instruction_t::BranchType::None); //jump line
+        Instruction_t::BranchType branchType = mInstBuffer.at(rowOffset).branchType;
+        int jumpsize = paintJumpsGraphic(painter, x + funcsize, y - 1, wRVA, branchType != Instruction_t::None && branchType != Instruction_t::Call); //jump line
 
         //draw bytes
         RichTextPainter::List richBytes;
@@ -633,6 +636,32 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                     wAccept = false;
                 }
             }
+        }
+    }
+    else if(mGuiState == Disassembly::NoState)
+    {
+        if(!mHighlightingMode)
+        {
+            bool popupShown = false;
+            if(event->y() > getHeaderHeight() && getColumnIndexFromX(event->x()) == 2)
+            {
+                int rowOffset = getIndexOffsetFromY(transY(event->y()));
+                if(rowOffset < mInstBuffer.size())
+                {
+                    auto & instruction = mInstBuffer[rowOffset];
+                    if(instruction.branchType != Instruction_t::None)
+                    {
+                        duint addr = instruction.branchDestination;
+                        if(addr != 0 && (addr - mMemPage->getBase() < mInstBuffer.front().rva || addr - mMemPage->getBase() > mInstBuffer.back().rva))
+                        {
+                            ShowDisassemblyPopup(addr, event->x(), event->y());
+                            popupShown = true;
+                        }
+                    }
+                }
+            }
+            if(popupShown == false)
+                ShowDisassemblyPopup(0, 0, 0); // hide popup
         }
     }
 
@@ -869,7 +898,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
 
     GraphicDump_t wPict = GD_Nothing;
 
-    if(branchType != Instruction_t::None)
+    if(branchType != Instruction_t::None && branchType != Instruction_t::Call)
     {
         dsint base = mMemPage->getBase();
         dsint destVA = DbgGetBranchDestination(rvaToVa(selHeadRVA));
@@ -1859,4 +1888,19 @@ void Disassembly::unfold(dsint rva)
         mCodeFoldingManager->expandFoldSegment(rvaToVa(rva));
         viewport()->update();
     }
+}
+
+
+void Disassembly::ShowDisassemblyPopup(duint addr, int x, int y)
+{
+    if(mDisassemblyPopup.getAddress() == addr)
+        return;
+    if(addr != 0)
+    {
+        mDisassemblyPopup.move(mapToGlobal(QPoint(x + 20, y + mFontMetrics->height() * 2)));
+        mDisassemblyPopup.setAddress(addr);
+        mDisassemblyPopup.show();
+    }
+    else
+        mDisassemblyPopup.hide();
 }

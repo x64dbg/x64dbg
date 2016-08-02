@@ -451,9 +451,7 @@ bool CapstoneTokenizer::tokenizeImmOperand(const cs_x86_op & op)
     duint value = duint(op.imm);
     auto valueType = TokenType::Value;
     if(_cp.InGroup(CS_GRP_JUMP) || _cp.InGroup(CS_GRP_CALL) || _cp.IsLoop())
-    {
         valueType = TokenType::Address;
-    }
     auto tokenValue = TokenValue(op.size, value);
     addToken(valueType, printValue(tokenValue, true, _maxModuleLength), tokenValue);
     return true;

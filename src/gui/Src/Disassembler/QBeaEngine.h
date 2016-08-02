@@ -13,7 +13,8 @@ struct Instruction_t
     {
         None,
         Conditional,
-        Unconditional
+        Unconditional,
+        Call
     };
 
     Instruction_t()

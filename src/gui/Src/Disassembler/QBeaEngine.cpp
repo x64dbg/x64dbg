@@ -198,13 +198,17 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
         return DecodeDataAt(data, size, origBase, origInstRVA, type);
 
     auto branchType = Instruction_t::None;
-    if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop()))
+    if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_CALL)))
     {
         switch(cp.GetId())
         {
         case X86_INS_JMP:
         case X86_INS_LJMP:
             branchType = Instruction_t::Unconditional;
+            break;
+        case X86_INS_CALL:
+        case X86_INS_LCALL:
+            branchType = Instruction_t::Call;
             break;
         default:
             branchType = Instruction_t::Conditional;

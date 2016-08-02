@@ -10,10 +10,10 @@ class MemoryPage : public QObject
 public:
     explicit MemoryPage(duint parBase, duint parSize, QObject* parent = 0);
 
-    bool read(void* parDest, duint parRVA, duint parSize) const;
-    bool read(byte_t* parDest, duint parRVA, duint parSize) const;
-    bool write(const void* parDest, duint parRVA, duint parSize);
-    bool write(const byte_t* parDest, duint parRVA, duint parSize);
+    bool read(void* parDest, dsint parRVA, duint parSize) const;
+    bool read(byte_t* parDest, dsint parRVA, duint parSize) const;
+    bool write(const void* parDest, dsint parRVA, duint parSize);
+    bool write(const byte_t* parDest, dsint parRVA, duint parSize);
     duint getSize() const;
     duint getBase() const;
     duint va(dsint rva) const;
