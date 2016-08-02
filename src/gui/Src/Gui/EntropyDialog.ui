@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>744</width>
-    <height>226</height>
+    <width>689</width>
+    <height>278</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,6 +19,34 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QLabel" name="graphLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>1</width>
+       <height>1</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Panel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QEntropyView" name="entropyView"/>
    </item>
   </layout>
@@ -27,7 +55,7 @@
   <customwidget>
    <class>QEntropyView</class>
    <extends>QGraphicsView</extends>
-   <header>QEntropyView\QEntropyView.h</header>
+   <header location="global">QEntropyView\QEntropyView.h</header>
   </customwidget>
  </customwidgets>
  <resources>

@@ -18,6 +18,12 @@ public:
     void GraphMemory(const unsigned char* data, int dataSize, QColor color = Qt::darkGreen);
     void GraphFile(const QString & fileName, QColor color = Qt::darkGreen);
 
+private slots:
+    void RenderGraph();
+
+private:
+    virtual void resizeEvent(QResizeEvent* event);
+
 private:
     Ui::EntropyDialog* ui;
     int mBlockSize;
