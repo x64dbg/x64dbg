@@ -6,6 +6,7 @@
 #include "YaraRuleSelectionDialog.h"
 #include "EntropyDialog.h"
 #include "LineEditDialog.h"
+#include <QVBoxLayout>
 
 SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {

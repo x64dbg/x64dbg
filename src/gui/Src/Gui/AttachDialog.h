@@ -2,7 +2,10 @@
 #define ATTACHDIALOG_H
 
 #include <QDialog>
-#include "SearchListView.h"
+
+class SearchListView;
+class QMenu;
+class QAction;
 
 namespace Ui
 {

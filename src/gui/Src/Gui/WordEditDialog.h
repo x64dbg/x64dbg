@@ -3,8 +3,10 @@
 
 #include <QDialog>
 #include <QPushButton>
-#include "ValidateExpressionThread.h"
+//#include "ValidateExpressionThread.h"
 #include "Imports.h"
+
+class ValidateExpressionThread;
 
 namespace Ui
 {

@@ -2,7 +2,6 @@
 #define HEXLINEEDITT_H
 
 #include <QLineEdit>
-#include "Configuration.h"
 
 namespace Ui
 {

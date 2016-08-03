@@ -4,7 +4,9 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QSplitter>
-#include "StdTable.h"
+#include "Imports.h"
+
+class StdTable;
 
 class BreakpointsView : public QWidget
 {

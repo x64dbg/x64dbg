@@ -1,18 +1,23 @@
 #include "CPUDisassembly.h"
+#include "CPUSideBar.h"
 #include "CPUWidget.h"
+#include "CPUMultiDump.h"
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QClipboard>
 #include "Configuration.h"
 #include "Bridge.h"
+#include "Imports.h"
 #include "LineEditDialog.h"
 #include "WordEditDialog.h"
+#include "GotoDialog.h"
 #include "HexEditDialog.h"
 #include "YaraRuleSelectionDialog.h"
 #include "AssembleDialog.h"
 #include "StringUtil.h"
 #include "Breakpoints.h"
 #include "XrefBrowseDialog.h"
+#include "SourceViewerManager.h"
 #include "MiscUtil.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)

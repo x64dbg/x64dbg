@@ -7,6 +7,7 @@
 #include <QPaintDevice>
 #include <QDrag>
 #include <QMimeData>
+#include <QMenu>
 
 #include "tabbar.h"
 #include "tabwidget.h"

@@ -5,6 +5,7 @@
 #include <QScrollArea>
 #include <QUndoStack>
 #include <QKeyEvent>
+#include <QTimer>
 #include "XByteArray.h"
 
 class QHexEditPrivate : public QWidget

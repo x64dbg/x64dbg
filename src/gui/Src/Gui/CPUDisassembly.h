@@ -2,11 +2,10 @@
 #define CPUDISASSEMBLY_H
 
 #include "Disassembly.h"
-#include "GotoDialog.h"
-#include "SourceViewerManager.h"
 
 // Needed forward declaration for parent container class
 class CPUWidget;
+class GotoDialog;
 
 class CPUDisassembly : public Disassembly
 {

@@ -1,6 +1,7 @@
 #include "capstone_gui.h"
 #include "Configuration.h"
 #include "StringUtil.h"
+#include "CachedFontMetrics.h"
 
 CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
     : _maxModuleLength(maxModuleLength),

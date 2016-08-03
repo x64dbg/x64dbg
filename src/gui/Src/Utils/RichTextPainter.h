@@ -3,8 +3,10 @@
 
 #include <QString>
 #include <QColor>
-#include <QPainter>
-#include "CachedFontMetrics.h"
+#include <vector>
+
+class CachedFontMetrics;
+class QPainter;
 
 class RichTextPainter
 {

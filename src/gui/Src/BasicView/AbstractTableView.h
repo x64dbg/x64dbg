@@ -12,31 +12,18 @@
 #include "Configuration.h"
 #include "MenuBuilder.h"
 #include "QActionLambda.h"
-#include "CachedFontMetrics.h"
 #include "MiscUtil.h"
+
+class CachedFontMetrics;
 
 //Hacky class that fixes a really annoying cursor problem
 class AbstractTableScrollBar : public QScrollBar
 {
     Q_OBJECT
 public:
-    AbstractTableScrollBar(QScrollBar* scrollbar)
-    {
-        setOrientation(scrollbar->orientation());
-        setParent(scrollbar->parentWidget());
-    }
-
-    void enterEvent(QEvent* event)
-    {
-        Q_UNUSED(event);
-        QApplication::setOverrideCursor(Qt::ArrowCursor);
-    }
-
-    void leaveEvent(QEvent* event)
-    {
-        Q_UNUSED(event);
-        QApplication::restoreOverrideCursor();
-    }
+    AbstractTableScrollBar(QScrollBar* scrollbar);
+    void enterEvent(QEvent* event);
+    void leaveEvent(QEvent* event);
 };
 
 class AbstractTableView : public QAbstractScrollArea

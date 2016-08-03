@@ -2,6 +2,7 @@
 #include <QMessageBox>
 #include <QClipboard>
 #include <QFileDialog>
+#include <QToolTip>
 #include "Configuration.h"
 #include "Bridge.h"
 #include "LineEditDialog.h"
@@ -10,9 +11,10 @@
 #include "DataCopyDialog.h"
 #include "EntropyDialog.h"
 #include "CPUMultiDump.h"
+#include "GotoDialog.h"
+#include "CPUDisassembly.h"
 #include "WordEditDialog.h"
 #include "CodepageSelectionDialog.h"
-#include <QToolTip>
 #include "MiscUtil.h"
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)

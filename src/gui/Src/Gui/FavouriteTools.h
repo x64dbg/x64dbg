@@ -2,7 +2,8 @@
 #define FAVOURITETOOLS_H
 
 #include <QDialog>
-#include <QTableWidget>
+
+class QTableWidget;
 
 namespace Ui
 {

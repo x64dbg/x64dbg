@@ -9,7 +9,7 @@ QByteArray & XByteArray::data()
     return _data;
 }
 
-void XByteArray::setData(QByteArray data)
+void XByteArray::setData(const QByteArray & data)
 {
     _data = data;
 }

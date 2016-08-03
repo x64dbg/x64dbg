@@ -1,5 +1,14 @@
 #include "CPUWidget.h"
 #include "ui_CPUWidget.h"
+#include <QTabWidget>
+#include <QVBoxLayout>
+#include "CPUSideBar.h"
+#include "CPUDisassembly.h"
+#include "CPUMultiDump.h"
+#include "CPUStack.h"
+#include "RegistersView.h"
+#include "CPUInfoBox.h"
+#include "CPUArgumentWidget.h"
 #include "Configuration.h"
 
 CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)

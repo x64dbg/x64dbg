@@ -6,6 +6,7 @@
 #include "HexEditDialog.h"
 #include "WordEditDialog.h"
 #include "CPUMultiDump.h"
+#include "GotoDialog.h"
 
 CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {

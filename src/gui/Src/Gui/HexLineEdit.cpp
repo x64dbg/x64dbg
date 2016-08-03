@@ -1,5 +1,5 @@
 #include <QTextCodec>
-
+#include "Configuration.h"
 #include "HexLineEdit.h"
 #include "ui_HexLineEdit.h"
 #include "Bridge.h"

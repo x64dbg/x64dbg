@@ -28,11 +28,8 @@ public:
         QKeySequence Hotkey;
         bool GlobalShortcut;
 
-        Shortcut(QString n = QString(), QString h = QString(), bool g = false)
+        inline Shortcut(QString n = QString(), QString h = QString(), bool g = false) : Name(n), Hotkey(h), GlobalShortcut(g)
         {
-            Name = n;
-            Hotkey = QKeySequence(h);
-            GlobalShortcut = g;
         }
     };
 

@@ -2,10 +2,11 @@
 #define DISASSEMBLY_H
 
 #include "AbstractTableView.h"
-#include "QBeaEngine.h"
-#include "MemoryPage.h"
-#include "CodeFolding.h"
 #include "DisassemblyPopup.h"
+
+class CodeFoldingHelper;
+class QBeaEngine;
+class MemoryPage;
 
 class Disassembly : public AbstractTableView
 {

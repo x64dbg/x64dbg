@@ -1,8 +1,10 @@
 #ifndef MISCUTIL_H
 #define MISCUTIL_H
 
-#include <QWidget>
 #include <QIcon>
+
+class QWidget;
+class QByteArray;
 
 void SetApplicationIcon(WId winId);
 QByteArray & ByteReverse(QByteArray & array);
@@ -12,7 +14,7 @@ void SimpleWarningBox(QWidget* parent, const QString & title, const QString & te
 
 struct DIcon : QIcon
 {
-    explicit DIcon(const QString & file);
+    inline explicit DIcon(const QString & file) : QIcon(QString(":/icons/images/%1").arg(file)) {}
 };
 
 #endif // MISCUTIL_H

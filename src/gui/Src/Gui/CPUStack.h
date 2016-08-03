@@ -2,10 +2,10 @@
 #define CPUSTACK_H
 
 #include "HexDump.h"
-#include "GotoDialog.h"
 
 //forward declaration
 class CPUMultiDump;
+class GotoDialog;
 
 class CPUStack : public HexDump
 {

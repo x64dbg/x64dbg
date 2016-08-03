@@ -2,7 +2,8 @@
 #define SELECTFIELDS_H
 
 #include <QDialog>
-#include <QListWidget>
+
+class QListWidget;
 
 namespace Ui
 {

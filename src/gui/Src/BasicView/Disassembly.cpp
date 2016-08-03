@@ -2,6 +2,8 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "MainWindow.h"
+#include "QBeaEngine.h"
+#include "MemoryPage.h"
 
 Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassemblyPopup(this)
 {

@@ -2,7 +2,7 @@
 #define ENCODEMAP_H
 
 #include <QObject>
-#include "bridge/bridgemain.h"
+#include "Imports.h"
 
 class EncodeMap : public QObject
 {
@@ -71,7 +71,7 @@ public:
         }
     }
 
-    bool inRange(duint addr)
+    inline bool inRange(duint addr)
     {
         return addr >= mBase && addr < mBase + mSize;
     }

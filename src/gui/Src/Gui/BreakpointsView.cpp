@@ -3,6 +3,7 @@
 #include "Bridge.h"
 #include "Breakpoints.h"
 #include "LineEditDialog.h"
+#include "StdTable.h"
 
 BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 {

@@ -1,6 +1,9 @@
 // Qt includes
 #include "tabbar.h"
 #include "tabwidget.h"
+#include <QMoveEvent>
+#include <QApplication>
+#include <QDesktopWidget>
 
 //////////////////////////////////////////////////////////////
 // Default Constructor
