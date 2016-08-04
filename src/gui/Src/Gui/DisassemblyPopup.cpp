@@ -87,7 +87,8 @@ void DisassemblyPopup::setAddress(duint Address)
     {
         mWidth = 1;
         // Get RVA
-        dsint rva = Address - parent->getBase();
+        duint base = parent->getBase();
+        dsint rva = Address - base;
         // Prepare RVA of every instruction
         unsigned int i = 0;
         mInstBuffer.clear();
@@ -102,6 +103,8 @@ void DisassemblyPopup::setAddress(duint Address)
                 break;
             else
                 nextRva = nextRva2;
+            if(DbgGetFunctionTypeAt(nextRva + base - 1) == FUNC_END)
+                break;
             i++;
         }
         while(i < mMaxInstructions);
