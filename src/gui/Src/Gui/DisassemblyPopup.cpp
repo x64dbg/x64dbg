@@ -126,7 +126,7 @@ void DisassemblyPopup::setAddress(duint Address)
         mWidth = std::max(mWidth, mFontMetrics->width(addrText) + mFontMetrics->width(addrComment));
         mWidth += charWidth * 6;
         // Resize popup
-        resize(mWidth + 2, charHeight * (mDisassemblyToken.size() + 1) + 2);
+        resize(mWidth + 2, charHeight * int(mDisassemblyToken.size() + 1) + 2);
     }
     update();
 }

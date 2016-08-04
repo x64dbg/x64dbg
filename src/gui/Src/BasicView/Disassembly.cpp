@@ -779,6 +779,12 @@ void Disassembly::mouseReleaseEvent(QMouseEvent* event)
         AbstractTableView::mouseReleaseEvent(event);
 }
 
+void Disassembly::leaveEvent(QEvent* event)
+{
+    Q_UNUSED(event);
+    ShowDisassemblyPopup(0, 0, 0);
+}
+
 /************************************************************************************
                             Keyboard Management
 ************************************************************************************/
