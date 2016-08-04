@@ -2,10 +2,10 @@
 #define CPUSTACK_H
 
 #include "HexDump.h"
-#include "GotoDialog.h"
 
 //forward declaration
 class CPUMultiDump;
+class GotoDialog;
 
 class CPUStack : public HexDump
 {
@@ -132,6 +132,8 @@ private:
     CPUMultiDump* mMultiDump;
     QColor mUserStackFrameColor;
     QColor mSystemStackFrameColor;
+    QColor mStackReturnToColor;
+    QColor mStackSEHChainColor;
     struct CPUCallStack
     {
         duint addr;

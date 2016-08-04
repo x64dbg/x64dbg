@@ -1,6 +1,9 @@
 #include "HandlesView.h"
 #include "Bridge.h"
 #include "VersionHelpers.h"
+#include "StdTable.h"
+#include <QVBoxLayout>
+#include <QSplitter>
 
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
 {

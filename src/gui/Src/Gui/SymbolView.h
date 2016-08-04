@@ -2,8 +2,12 @@
 #define SYMBOLVIEW_H
 
 #include <QWidget>
-#include <QVBoxLayout>
+//#include <QVBoxLayout>
 #include "Bridge.h"
+
+class QMenu;
+class SearchListView;
+class QVBoxLayout;
 
 namespace Ui
 {

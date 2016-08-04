@@ -2,6 +2,25 @@
 #include <QStyleOptionButton>
 #include "Configuration.h"
 #include "ColumnReorderDialog.h"
+#include "CachedFontMetrics.h"
+
+AbstractTableScrollBar::AbstractTableScrollBar(QScrollBar* scrollbar)
+{
+    setOrientation(scrollbar->orientation());
+    setParent(scrollbar->parentWidget());
+}
+
+void AbstractTableScrollBar::enterEvent(QEvent* event)
+{
+    Q_UNUSED(event);
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
+}
+
+void AbstractTableScrollBar::leaveEvent(QEvent* event)
+{
+    Q_UNUSED(event);
+    QApplication::restoreOverrideCursor();
+}
 
 AbstractTableView::AbstractTableView(QWidget* parent)
     : QAbstractScrollArea(parent),

@@ -2,11 +2,11 @@
 #define CPUDUMP_H
 
 #include "HexDump.h"
-#include "GotoDialog.h"
-#include "CPUDisassembly.h"
 
 //forward declaration
 class CPUMultiDump;
+class CPUDisassembly;
+class GotoDialog;
 
 class CPUDump : public HexDump
 {

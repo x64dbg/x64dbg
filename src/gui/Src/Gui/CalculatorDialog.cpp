@@ -1,5 +1,6 @@
 #include "CalculatorDialog.h"
 #include "ui_CalculatorDialog.h"
+#include "ValidateExpressionThread.h"
 
 CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui::CalculatorDialog)
 {

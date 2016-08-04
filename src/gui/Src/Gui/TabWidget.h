@@ -5,9 +5,6 @@
 #include <QWidget>
 #include <QTabWidget>
 #include <QMainWindow>
-#include <QMoveEvent>
-#include <QApplication>
-#include <QDesktopWidget>
 #include "TabBar.h"
 
 // Qt forward class definitions

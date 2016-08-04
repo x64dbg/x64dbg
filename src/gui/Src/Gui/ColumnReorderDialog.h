@@ -1,8 +1,9 @@
 #ifndef COLUMNREORDERDIALOG_H
 #define COLUMNREORDERDIALOG_H
 
-#include "AbstractTableView.h"
 #include <QDialog>
+
+class AbstractTableView;
 
 namespace Ui
 {

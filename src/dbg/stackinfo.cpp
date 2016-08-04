@@ -25,7 +25,7 @@ void stackupdateseh()
     if(ExHandlerGetSEH(SEHList))
     {
         STACK_COMMENT comment;
-        strcpy_s(comment.color, "#AE81FF"); //TODO: customize this color
+        strcpy_s(comment.color, "!sehclr"); // Special token for SEH chain color.
         auto count = SEHList.size();
         for(duint i = 0; i < count; i++)
         {
@@ -104,7 +104,7 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
         }
         else
             sprintf_s(comment->comment, "return to %s from ???", returnToAddr);
-        strcpy_s(comment->color, "#ff0000"); //TODO: customize this color
+        strcpy_s(comment->color, "!rtnclr"); // Special token for return address color;
         return true;
     }
 

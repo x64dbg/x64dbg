@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _DBG_TYPES_H_
+#define _DBG_TYPES_H_
 
 /***************************************************************/
 //
@@ -39,3 +40,4 @@ typedef long long int64;
 typedef unsigned long long uint64;
 
 typedef unsigned char byte_t;
+#endif //_DBG_TYPES_H_

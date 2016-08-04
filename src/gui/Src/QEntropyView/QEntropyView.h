@@ -2,7 +2,8 @@
 #define QENTROPYVIEW_H
 
 #include <QGraphicsView>
-#include <QGraphicsScene>
+
+class QGraphicsScene;
 
 class QEntropyView : public QGraphicsView
 {

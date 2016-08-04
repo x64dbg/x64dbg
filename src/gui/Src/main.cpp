@@ -2,6 +2,9 @@
 #include "capstone_wrapper.h"
 #include <QTextCodec>
 #include <QFile>
+#include <QTranslator>
+#include <QTextStream>
+#include <QLibraryInfo>
 
 MyApplication::MyApplication(int & argc, char** argv)
     : QApplication(argc, argv)

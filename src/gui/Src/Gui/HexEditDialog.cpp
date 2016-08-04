@@ -1,3 +1,4 @@
+#include <QTextCodec>
 #include "HexEditDialog.h"
 #include "ui_HexEditDialog.h"
 #include "Configuration.h"

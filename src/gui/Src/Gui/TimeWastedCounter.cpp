@@ -1,5 +1,6 @@
 #include "TimeWastedCounter.h"
 #include "Bridge.h"
+#include <QLabel>
 
 TimeWastedCounter::TimeWastedCounter(QObject* parent, QLabel* label)
     : QObject(parent), mLabel(label)

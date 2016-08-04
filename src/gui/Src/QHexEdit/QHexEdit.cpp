@@ -1,6 +1,7 @@
 #include <QtGui>
 
 #include "QHexEdit.h"
+#include "QHexEditPrivate.h"
 
 QHexEdit::QHexEdit(QWidget* parent) : QScrollArea(parent)
 {

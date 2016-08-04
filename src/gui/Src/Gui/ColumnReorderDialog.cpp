@@ -1,5 +1,6 @@
 #include "ColumnReorderDialog.h"
 #include "ui_ColumnReorderDialog.h"
+#include "AbstractTableView.h"
 #include <QMessageBox>
 
 ColumnReorderDialog::ColumnReorderDialog(AbstractTableView* parent) :

@@ -1,5 +1,7 @@
+#include <QVBoxLayout>
 #include "CommandHelpView.h"
 #include "ui_CommandHelpView.h"
+#include "SearchListView.h"
 
 CommandHelpView::CommandHelpView(QWidget* parent) : QWidget(parent), ui(new Ui::CommandHelpView)
 {

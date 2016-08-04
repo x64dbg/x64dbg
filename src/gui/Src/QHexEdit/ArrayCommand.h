@@ -2,7 +2,9 @@
 #define ARRAYCOMMAND_H
 
 #include <QUndoCommand>
-#include "XByteArray.h"
+#include <QByteArray>
+
+class XByteArray;
 
 class CharCommand : public QUndoCommand
 {

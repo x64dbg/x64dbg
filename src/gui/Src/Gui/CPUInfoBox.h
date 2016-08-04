@@ -2,7 +2,6 @@
 #define INFOBOX_H
 
 #include "StdTable.h"
-#include <QAction>
 
 class CPUInfoBox : public StdTable
 {

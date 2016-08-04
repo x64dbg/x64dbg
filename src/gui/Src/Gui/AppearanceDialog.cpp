@@ -518,6 +518,8 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Addresses"), "StackAddressColor", "StackAddressBackgroundColor");
     colorInfoListAppend(tr("Selected Addresses"), "StackSelectedAddressColor", "StackSelectedAddressBackgroundColor");
     colorInfoListAppend(tr("Labels"), "StackLabelColor", "StackLabelBackgroundColor");
+    colorInfoListAppend(tr("Return To Comment"), "StackReturnToColor", "");
+    colorInfoListAppend(tr("SEH Chain Comment"), "StackSEHChainColor", "");
     colorInfoListAppend(tr("User Stack Frame Line"), "StackFrameColor", "");
     colorInfoListAppend(tr("System Stack Frame Line"), "StackFrameSystemColor", "");
 

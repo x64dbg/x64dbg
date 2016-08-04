@@ -2,7 +2,6 @@
 #include <windows.h>
 #include "LineEditDialog.h"
 #include <QMessageBox>
-#include <QIcon>
 
 void SetApplicationIcon(WId winId)
 {
@@ -55,9 +54,4 @@ void SimpleWarningBox(QWidget* parent, const QString & title, const QString & te
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
-}
-
-DIcon::DIcon(const QString & file)
-    : QIcon(QString(":/icons/images/%1").arg(file))
-{
 }

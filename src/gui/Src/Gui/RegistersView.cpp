@@ -1,5 +1,6 @@
 #include <QClipboard>
 #include <QMessageBox>
+#include <QListWidget>
 #include <stdint.h>
 #include "RegistersView.h"
 #include "Configuration.h"

@@ -243,3 +243,25 @@ QString FILETIMEToDate(const FILETIME & date)
     else // today
         return FILETIMEToTime(localdate);
 }
+
+bool GetCommentFormat(duint addr, QString & comment, bool* autoComment)
+{
+    comment.clear();
+    char commentData[MAX_COMMENT_SIZE] = "";
+    if(!DbgGetCommentAt(addr, commentData))
+        return false;
+    auto a = *commentData == '\1';
+    if(autoComment)
+        *autoComment = a;
+    if(!strstr(commentData, "{"))
+    {
+        comment = commentData + a;
+        return true;
+    }
+    char commentFormat[MAX_SETTING_SIZE] = "";
+    if(DbgFunctions()->StringFormatInline(commentData + a, MAX_SETTING_SIZE, commentFormat))
+        comment = commentFormat;
+    else
+        comment = commentData + a;
+    return true;
+}

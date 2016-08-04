@@ -2,9 +2,11 @@
 #define DISASSEMBLY_H
 
 #include "AbstractTableView.h"
-#include "QBeaEngine.h"
-#include "MemoryPage.h"
-#include "CodeFolding.h"
+#include "DisassemblyPopup.h"
+
+class CodeFoldingHelper;
+class QBeaEngine;
+class MemoryPage;
 
 class Disassembly : public AbstractTableView
 {
@@ -24,6 +26,7 @@ public:
     void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
+    void leaveEvent(QEvent* event) override;
 
     // Keyboard Management
     void keyPressEvent(QKeyEvent* event);
@@ -50,7 +53,7 @@ public:
 
     // Instructions Management
     dsint getPreviousInstructionRVA(dsint rva, duint count);
-    dsint getNextInstructionRVA(dsint rva, duint count);
+    dsint getNextInstructionRVA(dsint rva, duint count, bool isGlobal = false);
     dsint getInstructionRVA(dsint index, dsint count);
     Instruction_t DisassembleAt(dsint rva);
     Instruction_t DisassembleAt(dsint rva, dsint count);
@@ -100,6 +103,7 @@ public:
     //misc
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     void unfold(dsint rva);
+    void ShowDisassemblyPopup(duint addr, int x, int y);
 
 signals:
     void selectionChanged(dsint parVA);
@@ -203,11 +207,13 @@ protected:
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;
     bool mHighlightingMode;
+    bool mPopupEnabled;
     MemoryPage* mMemPage;
     QBeaEngine* mDisasm;
     bool mShowMnemonicBrief;
     XREF_INFO mXrefInfo;
     CodeFoldingHelper* mCodeFoldingManager;
+    DisassemblyPopup mDisassemblyPopup;
 };
 
 #endif // DISASSEMBLY_H

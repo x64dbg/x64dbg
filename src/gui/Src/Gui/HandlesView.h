@@ -1,9 +1,12 @@
 #ifndef HANDLESVIEW_H
 #define HANDLESVIEW_H
 
-#include "StdTable.h"
-#include <QVBoxLayout>
-#include <QSplitter>
+#include <QWidget>
+#include "Imports.h"
+
+class StdTable;
+class QVBoxLayout;
+class QSplitter;
 
 class HandlesView : public QWidget
 {

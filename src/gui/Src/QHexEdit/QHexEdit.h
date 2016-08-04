@@ -2,8 +2,8 @@
 #define QHEXEDIT_H
 
 #include <QScrollArea>
-#include <QHBoxLayout>
-#include "QHexEditPrivate.h"
+
+class QHexEditPrivate;
 
 class QHexEdit : public QScrollArea
 {

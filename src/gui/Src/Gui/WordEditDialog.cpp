@@ -1,5 +1,6 @@
 #include "WordEditDialog.h"
 #include "ui_WordEditDialog.h"
+#include "ValidateExpressionThread.h"
 
 WordEditDialog::WordEditDialog(QWidget* parent)
     : QDialog(parent),
