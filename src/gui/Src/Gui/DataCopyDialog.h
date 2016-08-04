@@ -38,7 +38,8 @@ private:
         DataPascalByte,
         DataPascalWord,
         DataPascalDword,
-        DataPascalQword
+        DataPascalQword,
+        DataGUID
     };
 
     void printData(DataType type);
