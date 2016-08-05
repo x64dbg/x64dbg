@@ -851,7 +851,7 @@ void MainWindow::openFile()
     {
         filename = fileToOpen->text();
     }
-    DbgCmdExecDirect(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
+    DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
 
     //file is from recent menu
     if(fileToOpen != NULL && fileToOpen->objectName().startsWith("MRU"))
