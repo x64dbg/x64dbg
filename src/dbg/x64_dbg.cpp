@@ -86,11 +86,14 @@ static void registercommands()
     dbgcmdnew("DetachDebugger\1detach", cbDebugDetach, true); //detach
     dbgcmdnew("run\1go\1r\1g", cbDebugRun2, true); //unlock WAITID_RUN
     dbgcmdnew("erun\1egun\1er\1eg", cbDebugErun, true); //run + skip first chance exceptions
+    dbgcmdnew("serun\1sego", cbDebugSerun, true); //run + swallow exception
     dbgcmdnew("pause", cbDebugPause, true); //pause debugger
     dbgcmdnew("StepInto\1sti", cbDebugStepInto, true); //StepInto
     dbgcmdnew("eStepInto\1esti", cbDebugeStepInto, true); //StepInto + skip first chance exceptions
+    dbgcmdnew("seStepInto\1sesti", cbDebugseStepInto, true); //StepInto + swallow exception
     dbgcmdnew("StepOver\1step\1sto\1st", cbDebugStepOver, true); //StepOver
     dbgcmdnew("eStepOver\1estep\1esto\1est", cbDebugeStepOver, true); //StepOver + skip first chance exceptions
+    dbgcmdnew("seStepOver\1sestep\1sesto\1sest", cbDebugseStepOver, true); //StepOver + swallow exception
     dbgcmdnew("SingleStep\1sstep\1sst", cbDebugSingleStep, true); //SingleStep arg1:count
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //StepOut

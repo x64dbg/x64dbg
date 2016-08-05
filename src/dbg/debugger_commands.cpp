@@ -164,6 +164,12 @@ CMDRESULT cbDebugErun(int argc, char* argv[])
     return cbDebugRun(argc, argv);
 }
 
+CMDRESULT cbDebugSerun(int argc, char* argv[])
+{
+    cbDebugContinue(argc, argv);
+    return cbDebugRun(argc, argv);
+}
+
 CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
 {
     if(argc < 2)
@@ -1292,6 +1298,12 @@ CMDRESULT cbDebugeStepInto(int argc, char* argv[])
     return cbDebugStepInto(argc, argv);
 }
 
+CMDRESULT cbDebugseStepInto(int argc, char* argv[])
+{
+    cbDebugContinue(argc, argv);
+    return cbDebugStepInto(argc, argv);
+}
+
 CMDRESULT cbDebugStepOver(int argc, char* argv[])
 {
     if(skipInt3Stepping(argc, argv))
@@ -1306,6 +1318,12 @@ CMDRESULT cbDebugStepOver(int argc, char* argv[])
 CMDRESULT cbDebugeStepOver(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
+    return cbDebugStepOver(argc, argv);
+}
+
+CMDRESULT cbDebugseStepOver(int argc, char* argv[])
+{
+    cbDebugContinue(argc, argv);
     return cbDebugStepOver(argc, argv);
 }
 
