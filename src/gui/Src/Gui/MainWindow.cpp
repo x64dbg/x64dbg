@@ -880,15 +880,6 @@ void MainWindow::openFile()
                 break;
             }
 
-    if(DbgValFromString("$pid") == 0) // Cannot open file.
-        return;
-    if(update)
-    {
-        addMRUEntry(filename);
-        updateMRUMenu();
-        saveMRUList();
-    }
-
     mCpuWidget->setDisasmFocus();
 }
 
