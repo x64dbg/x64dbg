@@ -851,7 +851,7 @@ void MainWindow::openFile()
     {
         filename = fileToOpen->text();
     }
-    DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
+    DbgCmdExecDirect(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
 
     //file is from recent menu
     if(fileToOpen != NULL && fileToOpen->objectName().startsWith("MRU"))
@@ -879,6 +879,9 @@ void MainWindow::openFile()
                 update = false;
                 break;
             }
+
+    if(DbgValFromString("$pid") == 0) // Cannot open file.
+        return;
     if(update)
     {
         addMRUEntry(filename);
