@@ -96,6 +96,7 @@
     </widget>
     <addaction name="actionRun"/>
     <addaction name="actioneRun"/>
+    <addaction name="actionseRun"/>
     <addaction name="actionRunSelection"/>
     <addaction name="actionRunExpression"/>
     <addaction name="actionPause"/>
@@ -105,10 +106,12 @@
     <addaction name="separator"/>
     <addaction name="actionStepInto"/>
     <addaction name="actioneStepInto"/>
+    <addaction name="actionseStepInto"/>
     <addaction name="actionStepIntoSource"/>
     <addaction name="actionTicnd"/>
     <addaction name="actionStepOver"/>
     <addaction name="actioneStepOver"/>
+    <addaction name="actionseStepOver"/>
     <addaction name="actionStepOverSource"/>
     <addaction name="actionRtu"/>
     <addaction name="actionTocnd"/>
@@ -391,7 +394,7 @@
      <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
    </property>
    <property name="text">
-    <string>Step into (skip exceptions)</string>
+    <string>Step into (pass exceptions)</string>
    </property>
   </action>
   <action name="actioneStepOver">
@@ -400,7 +403,7 @@
      <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
    </property>
    <property name="text">
-    <string>Step over (skip exceptions)</string>
+    <string>Step over (pass exceptions)</string>
    </property>
   </action>
   <action name="actioneRun">
@@ -409,7 +412,7 @@
      <normaloff>:/icons/images/arrow-run.png</normaloff>:/icons/images/arrow-run.png</iconset>
    </property>
    <property name="text">
-    <string>Run (&amp;skip exceptions)</string>
+    <string>Run (pass exceptions)</string>
    </property>
   </action>
   <action name="actioneRtr">
@@ -418,7 +421,7 @@
      <normaloff>:/icons/images/arrow-step-rtr.png</normaloff>:/icons/images/arrow-step-rtr.png</iconset>
    </property>
    <property name="text">
-    <string>Execute till return (skip exceptions)</string>
+    <string>Execute till return (pass exceptions)</string>
    </property>
   </action>
   <action name="actionScript">
@@ -962,6 +965,33 @@
    </property>
    <property name="text">
     <string>&amp;Graph</string>
+   </property>
+  </action>
+  <action name="actionseStepInto">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
+   </property>
+   <property name="text">
+    <string>Step into (swallow exception)</string>
+   </property>
+  </action>
+  <action name="actionseStepOver">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
+   </property>
+   <property name="text">
+    <string>Step over (swallow exception)</string>
+   </property>
+  </action>
+  <action name="actionseRun">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-run.png</normaloff>:/icons/images/arrow-run.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run (swallow exception)</string>
    </property>
   </action>
  </widget>

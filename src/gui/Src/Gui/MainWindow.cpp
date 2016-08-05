@@ -566,6 +566,7 @@ void MainWindow::refreshShortcuts()
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
+    setGlobalShortcut(ui->actionseRun, ConfigShortcut("DebugseRun"));
     setGlobalShortcut(ui->actionRunSelection, ConfigShortcut("DebugRunSelection"));
     setGlobalShortcut(ui->actionRunExpression, ConfigShortcut("DebugRunExpression"));
     setGlobalShortcut(ui->actionPause, ConfigShortcut("DebugPause"));
@@ -573,9 +574,11 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionClose, ConfigShortcut("DebugClose"));
     setGlobalShortcut(ui->actionStepInto, ConfigShortcut("DebugStepInto"));
     setGlobalShortcut(ui->actioneStepInto, ConfigShortcut("DebugeStepInto"));
+    setGlobalShortcut(ui->actionseStepInto, ConfigShortcut("DebugseStepInto"));
     setGlobalShortcut(ui->actionStepIntoSource, ConfigShortcut("DebugStepIntoSource"));
     setGlobalShortcut(ui->actionStepOver, ConfigShortcut("DebugStepOver"));
     setGlobalShortcut(ui->actioneStepOver, ConfigShortcut("DebugeStepOver"));
+    setGlobalShortcut(ui->actionseStepOver, ConfigShortcut("DebugseStepOver"));
     setGlobalShortcut(ui->actionStepOverSource, ConfigShortcut("DebugStepOverSource"));
     setGlobalShortcut(ui->actionRtr, ConfigShortcut("DebugRtr"));
     setGlobalShortcut(ui->actioneRtr, ConfigShortcut("DebugeRtr"));
@@ -1762,4 +1765,19 @@ void MainWindow::on_actionStepIntoSource_triggered()
 void MainWindow::on_actionStepOverSource_triggered()
 {
     DbgCmdExec("TraceOverConditional src.line(cip) && !src.disp(cip)");
+}
+
+void MainWindow::on_actionseStepInto_triggered()
+{
+    DbgCmdExec("seStepInto");
+}
+
+void MainWindow::on_actionseStepOver_triggered()
+{
+    DbgCmdExec("seStepOver");
+}
+
+void MainWindow::on_actionseRun_triggered()
+{
+    DbgCmdExec("serun");
 }

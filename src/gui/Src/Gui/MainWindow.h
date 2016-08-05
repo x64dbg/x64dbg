@@ -248,6 +248,9 @@ private slots:
     void on_actionReloadStylesheet_triggered();
     void on_actionStepIntoSource_triggered();
     void on_actionStepOverSource_triggered();
+    void on_actionseStepInto_triggered();
+    void on_actionseStepOver_triggered();
+    void on_actionseRun_triggered();
 };
 
 #endif // MAINWINDOW_H

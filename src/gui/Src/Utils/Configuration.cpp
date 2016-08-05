@@ -291,28 +291,31 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewGraph", Shortcut(tr("View -> Graph"), "Alt+G", true));
 
     defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9", true));
-    defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (skip exceptions)"), "Shift+F9", true));
+    defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (pass exceptions)"), "Shift+F9", true));
+    defaultShortcuts.insert("DebugseRun", Shortcut(tr("Debug -> Run (swallow exception)"), "Ctrl+Alt+Shift+F9", true));
     defaultShortcuts.insert("DebugRunSelection", Shortcut(tr("Debug -> Run until selection"), "F4", true));
     defaultShortcuts.insert("DebugRunExpression", Shortcut(tr("Debug -> Run until expression"), "Shift+F4", true));
     defaultShortcuts.insert("DebugPause", Shortcut(tr("Debug -> Pause"), "F12", true));
     defaultShortcuts.insert("DebugRestart", Shortcut(tr("Debug -> Restart"), "Ctrl+F2", true));
     defaultShortcuts.insert("DebugClose", Shortcut(tr("Debug -> Close"), "Alt+F2", true));
     defaultShortcuts.insert("DebugStepInto", Shortcut(tr("Debug -> Step into"), "F7", true));
-    defaultShortcuts.insert("DebugeStepInto", Shortcut(tr("Debug -> Step into (skip execptions)"), "Shift+F7", true));
+    defaultShortcuts.insert("DebugeStepInto", Shortcut(tr("Debug -> Step into (pass execptions)"), "Shift+F7", true));
+    defaultShortcuts.insert("DebugseStepInto", Shortcut(tr("Debug -> Step into (swallow exception)"), "Ctrl+Alt+Shift+F7", true));
     defaultShortcuts.insert("DebugStepIntoSource", Shortcut(tr("Debug -> Step into (source)"), "F11", true));
     defaultShortcuts.insert("DebugStepOver", Shortcut(tr("Debug -> Step over"), "F8", true));
-    defaultShortcuts.insert("DebugeStepOver", Shortcut(tr("Debug -> Step over (skip execptions)"), "Shift+F8", true));
+    defaultShortcuts.insert("DebugeStepOver", Shortcut(tr("Debug -> Step over (pass execptions)"), "Shift+F8", true));
+    defaultShortcuts.insert("DebugseStepOver", Shortcut(tr("Debug -> Step over (swallow exception)"), "Ctrl+Alt+Shift+F8", true));
     defaultShortcuts.insert("DebugStepOverSource", Shortcut(tr("Debug -> Step over (source)"), "F10", true));
     defaultShortcuts.insert("DebugRtr", Shortcut(tr("Debug -> Execute till return"), "Ctrl+F9", true));
-    defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> Execute till return (skip exceptions)"), "Ctrl+Shift+F9", true));
+    defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> Execute till return (pass exceptions)"), "Ctrl+Shift+F9", true));
     defaultShortcuts.insert("DebugRtu", Shortcut(tr("Debug -> Run to user code"), "Alt+F9", true));
     defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut(tr("Debug -> Skip next instruction"), "Ctrl+F8", true));
     defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return", true));
-    defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut(tr("Debug -> Trace Into Conditional"), ""));
-    defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace Over Conditional"), ""));
-    defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut(tr("Debug -> Trace Record -> Bit"), ""));
-    defaultShortcuts.insert("DebugTraceRecordNone", Shortcut(tr("Debug -> Trace Record -> None"), ""));
-    defaultShortcuts.insert("DebugInstrUndo", Shortcut(tr("Debug -> Undo instruction"), "Alt+U"));
+    defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut(tr("Debug -> Trace Into Conditional"), "", true));
+    defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace Over Conditional"), "", true));
+    defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut(tr("Debug -> Trace Record -> Bit"), "", true));
+    defaultShortcuts.insert("DebugTraceRecordNone", Shortcut(tr("Debug -> Trace Record -> None"), "", true));
+    defaultShortcuts.insert("DebugInstrUndo", Shortcut(tr("Debug -> Undo instruction"), "Alt+U", true));
 
     defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
 
