@@ -855,41 +855,8 @@ void MainWindow::openFile()
         filename = fileToOpen->text();
     }
     DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
-
-    //file is from recent menu
-    if(fileToOpen != NULL && fileToOpen->objectName().startsWith("MRU"))
-    {
-        fileToOpen->setObjectName(fileToOpen->objectName().split("U").at(1));
-        int index = fileToOpen->objectName().toInt();
-
-        QString exists = getMRUEntry(index);
-        if(exists.length() == 0)
-        {
-            addMRUEntry(filename);
-            updateMRUMenu();
-            saveMRUList();
-        }
-
-        fileToOpen->setObjectName(fileToOpen->objectName().prepend("MRU"));
-    }
-
-    //file is from open button
-    bool update = true;
-    if(fileToOpen == NULL || fileToOpen->objectName().compare("actionOpen") == 0)
-        for(int i = 0; i < mMRUList.size(); i++)
-            if(mMRUList.at(i) == filename)
-            {
-                update = false;
-                break;
-            }
-    if(update)
-    {
-        addMRUEntry(filename);
-        updateMRUMenu();
-        saveMRUList();
-    }
-
-    mCpuWidget->setDisasmFocus();
+    if(DbgValFromString("$pid") != 0)
+        mCpuWidget->setDisasmFocus();
 }
 
 void MainWindow::execPause()
