@@ -92,6 +92,35 @@ static BOOL isWoW64()
     return isWoW64;
 }
 
+struct RedirectWow
+{
+    PVOID oldValue = NULL;
+    RedirectWow() {}
+    bool DisableRedirect()
+    {
+        if(!isWoW64())
+            return false;
+        else
+        {
+            if(!Wow64DisableWow64FsRedirection(&oldValue))
+            {
+                MessageBox(nullptr, TEXT("Error in Disabling Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
+                return false;
+            }
+        }
+        return true;
+    }
+    ~RedirectWow()
+    {
+        if(oldValue != NULL)
+        {
+            if(!Wow64RevertWow64FsRedirection(oldValue))
+                //Error occured here. Ignore or reset? (does it matter at this point?)
+                MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
+        }
+    }
+};
+
 static TCHAR* GetDesktopPath()
 {
     static TCHAR path[MAX_PATH + 1];
@@ -229,6 +258,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
     //Initialize COM
     CoInitialize(nullptr);
+    RedirectWow rWow;
 
     //Get INI file path
     TCHAR szModulePath[MAX_PATH] = TEXT("");
@@ -352,7 +382,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             }
             cmdLine += L"\"";
         }
-
+        rWow.DisableRedirect();
         switch(GetFileArchitecture(szPath))
         {
         case x32:
