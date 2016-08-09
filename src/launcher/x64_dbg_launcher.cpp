@@ -106,7 +106,7 @@ static BOOL isWowRedirectionSupported()
     _Wow64DisableRedirection = (LPFN_Wow64DisableWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64DisableWow64FsRedirection");
     _Wow64RevertRedirection = (LPFN_Wow64RevertWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64RevertWow64FsRedirection");
     
-    if (!_Wow64DisableRedirection || !_Wow64RevertRedirection)
+    if(!_Wow64DisableRedirection || !_Wow64RevertRedirection)
         return bRedirectSupported;
     else
         return !bRedirectSupported;
@@ -252,11 +252,11 @@ struct RedirectWow
     RedirectWow() {}
     bool DisableRedirect()
     {
-        if (!isWoW64())
+        if(!isWoW64())
             return false;
         else
         {
-            if (!_Wow64DisableRedirection(&oldValue))
+            if(!_Wow64DisableRedirection(&oldValue))
             {
                 MessageBox(nullptr, TEXT("Error in Disabling Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
                 return false;
@@ -266,9 +266,9 @@ struct RedirectWow
     }
     ~RedirectWow()
     {
-        if (oldValue != NULL)
+        if(oldValue != NULL)
         {
-            if (!_Wow64RevertRedirection(oldValue))
+            if(!_Wow64RevertRedirection(oldValue))
                 //Error occured here. Ignore or reset? (does it matter at this point?)
                 MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
         }
@@ -280,7 +280,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     //Initialize COM
     CoInitialize(nullptr);
     
-    if (isWowRedirectionSupported)
+    if(isWowRedirectionSupported())
     {
         RedirectWow rWow;
         rWow.DisableRedirect();
