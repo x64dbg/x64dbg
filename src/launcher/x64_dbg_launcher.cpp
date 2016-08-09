@@ -10,6 +10,12 @@
 #include "../exe/LoadResourceString.h"
 
 typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
+typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
+
+//These need to be global so we can use them with the class
+LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
+LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
 
 enum arch
 {
@@ -92,34 +98,20 @@ static BOOL isWoW64()
     return isWoW64;
 }
 
-struct RedirectWow
+static BOOL isWowRedirectionSupported()
 {
-    PVOID oldValue = NULL;
-    RedirectWow() {}
-    bool DisableRedirect()
-    {
-        if(!isWoW64())
-            return false;
-        else
-        {
-            if(!Wow64DisableWow64FsRedirection(&oldValue))
-            {
-                MessageBox(nullptr, TEXT("Error in Disabling Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
-                return false;
-            }
-        }
-        return true;
-    }
-    ~RedirectWow()
-    {
-        if(oldValue != NULL)
-        {
-            if(!Wow64RevertWow64FsRedirection(oldValue))
-                //Error occured here. Ignore or reset? (does it matter at this point?)
-                MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
-        }
-    }
-};
+
+    BOOL bRedirectSupported = FALSE;
+
+    _Wow64DisableRedirection = (LPFN_Wow64DisableWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64DisableWow64FsRedirection");
+    _Wow64RevertRedirection = (LPFN_Wow64RevertWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64RevertWow64FsRedirection");
+    
+    if (!_Wow64DisableRedirection || !_Wow64RevertRedirection)
+        return bRedirectSupported;
+    else
+        return !bRedirectSupported;
+
+}
 
 static TCHAR* GetDesktopPath()
 {
@@ -254,11 +246,46 @@ static bool ResolveShortcut(HWND hwnd, const TCHAR* szShortcutPath, TCHAR* szRes
     return SUCCEEDED(hres);
 }
 
+struct RedirectWow
+{
+    PVOID oldValue = NULL;
+    RedirectWow() {}
+    bool DisableRedirect()
+    {
+        if (!isWoW64())
+            return false;
+        else
+        {
+            if (!_Wow64DisableRedirection(&oldValue))
+            {
+                MessageBox(nullptr, TEXT("Error in Disabling Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
+                return false;
+            }
+        }
+        return true;
+    }
+    ~RedirectWow()
+    {
+        if (oldValue != NULL)
+        {
+            if (!_Wow64RevertRedirection(oldValue))
+                //Error occured here. Ignore or reset? (does it matter at this point?)
+                MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
+        }
+    }
+};
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     //Initialize COM
     CoInitialize(nullptr);
-    RedirectWow rWow;
+    
+    if (isWowRedirectionSupported)
+    {
+        RedirectWow rWow;
+        rWow.DisableRedirect();
+    }
+
 
     //Get INI file path
     TCHAR szModulePath[MAX_PATH] = TEXT("");
@@ -382,7 +409,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             }
             cmdLine += L"\"";
         }
-        rWow.DisableRedirect();
         switch(GetFileArchitecture(szPath))
         {
         case x32:
