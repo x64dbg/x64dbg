@@ -87,9 +87,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     this->showMaximized();
 
-    mWindowMainTitle = QCoreApplication::applicationName();
-
     // Set window title
+    mWindowMainTitle = QCoreApplication::applicationName();
     setWindowTitle(QString(mWindowMainTitle));
 
     // Load application icon
@@ -251,41 +250,41 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Setup signals/slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
-    connect(ui->actionStepOver, SIGNAL(triggered()), this, SLOT(execStepOver()));
-    connect(ui->actionStepInto, SIGNAL(triggered()), this, SLOT(execStepInto()));
+    makeCommandAction(ui->actionStepOver, "StepOver");
+    makeCommandAction(ui->actionStepInto, "StepInto");
     connect(ui->actionCommand, SIGNAL(triggered()), this, SLOT(setFocusToCommandBar()));
-    connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(execClose()));
+    makeCommandAction(ui->actionClose, "stop");
     connect(ui->actionMemoryMap, SIGNAL(triggered()), this, SLOT(displayMemMapWidget()));
-    connect(ui->actionRun, SIGNAL(triggered()), this, SLOT(execRun()));
-    connect(ui->actionRtr, SIGNAL(triggered()), this, SLOT(execRtr()));
+    makeCommandAction(ui->actionRun, "run");
+    makeCommandAction(ui->actionRtr, "rtr");
     connect(ui->actionLog, SIGNAL(triggered()), this, SLOT(displayLogWidget()));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(displayAboutWidget()));
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openFile()));
-    connect(ui->actionPause, SIGNAL(triggered()), this, SLOT(execPause()));
-    connect(ui->actionScylla, SIGNAL(triggered()), this, SLOT(startScylla()));
+    makeCommandAction(ui->actionPause, "pause");
+    makeCommandAction(ui->actionScylla, "StartScylla");
     connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restartDebugging()));
     connect(ui->actionBreakpoints, SIGNAL(triggered()), this, SLOT(displayBreakpointWidget()));
-    connect(ui->actioneStepOver, SIGNAL(triggered()), this, SLOT(execeStepOver()));
-    connect(ui->actioneStepInto, SIGNAL(triggered()), this, SLOT(execeStepInto()));
-    connect(ui->actioneRun, SIGNAL(triggered()), this, SLOT(execeRun()));
-    connect(ui->actioneRtr, SIGNAL(triggered()), this, SLOT(execeRtr()));
-    connect(ui->actionRtu, SIGNAL(triggered()), this, SLOT(execRtu()));
+    makeCommandAction(ui->actioneStepOver, "eStepOver");
+    makeCommandAction(ui->actionStepInto, "eStepInto");
+    makeCommandAction(ui->actioneRun, "eRun");
+    makeCommandAction(ui->actioneRtr, "eRtr");
+    makeCommandAction(ui->actionRtu, "rtu");
     connect(ui->actionTicnd, SIGNAL(triggered()), this, SLOT(execTicnd()));
     connect(ui->actionTocnd, SIGNAL(triggered()), this, SLOT(execTocnd()));
     connect(ui->actionTRBit, SIGNAL(triggered()), this, SLOT(execTRBit()));
     connect(ui->actionTRByte, SIGNAL(triggered()), this, SLOT(execTRByte()));
     connect(ui->actionTRWord, SIGNAL(triggered()), this, SLOT(execTRWord()));
     connect(ui->actionTRNone, SIGNAL(triggered()), this, SLOT(execTRNone()));
-    connect(ui->actionTRTIBT, SIGNAL(triggered()), this, SLOT(execTRTIBT()));
-    connect(ui->actionTRTOBT, SIGNAL(triggered()), this, SLOT(execTRTOBT()));
-    connect(ui->actionTRTIIT, SIGNAL(triggered()), this, SLOT(execTRTIIT()));
-    connect(ui->actionTRTOIT, SIGNAL(triggered()), this, SLOT(execTRTOIT()));
-    connect(ui->actionInstrUndo, SIGNAL(triggered()), this, SLOT(execInstrUndo()));
-    connect(ui->actionSkipNextInstruction, SIGNAL(triggered()), this, SLOT(execSkip()));
+    makeCommandAction(ui->actionTRTIBT, "tibt");
+    makeCommandAction(ui->actionTRTOBT, "tobt");
+    makeCommandAction(ui->actionTRTIIT, "tiit");
+    makeCommandAction(ui->actionTRTOIT, "toit");
+    makeCommandAction(ui->actionInstrUndo, "InstrUndo");
+    makeCommandAction(ui->actionSkipNextInstruction, "skip");
     connect(ui->actionScript, SIGNAL(triggered()), this, SLOT(displayScriptWidget()));
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
     connect(ui->actionRunExpression, SIGNAL(triggered(bool)), this, SLOT(runExpression()));
-    connect(ui->actionHideDebugger, SIGNAL(triggered()), this, SLOT(hideDebugger()));
+    makeCommandAction(ui->actionHideDebugger, "hide");
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
     connect(ui->actionSource, SIGNAL(triggered()), this, SLOT(displaySourceViewWidget()));
@@ -314,13 +313,18 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(ui->actionCrashDump, SIGNAL(triggered()), this, SLOT(crashDump()));
     connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
-    connect(ui->actionDetach, SIGNAL(triggered()), this, SLOT(detach()));
+    makeCommandAction(ui->actionDetach, "detach");
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
     connect(ui->actionManual, SIGNAL(triggered()), this, SLOT(displayManual()));
     connect(ui->actionNotes, SIGNAL(triggered()), this, SLOT(displayNotesWidget()));
     connect(ui->actionSnowman, SIGNAL(triggered()), this, SLOT(displaySnowmanWidget()));
     connect(ui->actionHandles, SIGNAL(triggered()), this, SLOT(displayHandlesWidget()));
     connect(ui->actionGraph, SIGNAL(triggered()), this, SLOT(displayGraphWidget()));
+    makeCommandAction(ui->actionStepIntoSource, "TraceIntoConditional src.line(cip) && !src.disp(cip)");
+    makeCommandAction(ui->actionStepOverSource, "TraceOverConditional src.line(cip) && !src.disp(cip)");
+    makeCommandAction(ui->actionseStepInto, "seStepInto");
+    makeCommandAction(ui->actionseStepOver, "seStepOver");
+    makeCommandAction(ui->actionseRun, "seRun");
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -705,39 +709,23 @@ void MainWindow::executeCommand()
     mCmdLineEdit->execute();
 }
 
-void MainWindow::execStepOver()
+QAction* MainWindow::makeCommandAction(QAction* action, const QString & command)
 {
-    DbgCmdExec("StepOver");
+    action->setData(QVariant(command));
+    connect(action, SIGNAL(triggered()), this, SLOT(execCommandSlot()));
+    return action;
 }
 
-void MainWindow::execStepInto()
+void MainWindow::execCommandSlot()
 {
-    DbgCmdExec("StepInto");
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action)
+        DbgCmdExec(action->data().toString().toUtf8().constData());
 }
 
 void MainWindow::setFocusToCommandBar()
 {
     mCmdLineEdit->setFocus();
-}
-
-void MainWindow::execClose()
-{
-    DbgCmdExec("stop");
-}
-
-void MainWindow::execRun()
-{
-    DbgCmdExec("run");
-}
-
-void MainWindow::execRtr()
-{
-    DbgCmdExec("rtr");
-}
-
-void MainWindow::execRtu()
-{
-    DbgCmdExec("rtu");
 }
 
 void MainWindow::execTRBit()
@@ -758,31 +746,6 @@ void MainWindow::execTRWord()
 void MainWindow::execTRNone()
 {
     mCpuWidget->getDisasmWidget()->ActionTraceRecordDisableSlot();
-}
-
-void MainWindow::execTRTIBT()
-{
-    DbgCmdExec("tibt");
-}
-
-void MainWindow::execTRTOBT()
-{
-    DbgCmdExec("tobt");
-}
-
-void MainWindow::execTRTIIT()
-{
-    DbgCmdExec("tiit");
-}
-
-void MainWindow::execTRTOIT()
-{
-    DbgCmdExec("toit");
-}
-
-void MainWindow::execInstrUndo()
-{
-    DbgCmdExec("InstrUndo");
 }
 
 void MainWindow::execTicnd()
@@ -859,16 +822,6 @@ void MainWindow::openFile()
         mCpuWidget->setDisasmFocus();
 }
 
-void MainWindow::execPause()
-{
-    DbgCmdExec("pause");
-}
-
-void MainWindow::startScylla() //this is executed
-{
-    DbgCmdExec("StartScylla");
-}
-
 void MainWindow::restartDebugging()
 {
     if(!mMRUList.size())
@@ -915,30 +868,6 @@ void MainWindow::updateWindowTitleSlot(QString filename)
     }
 }
 
-void MainWindow::execeStepOver()
-{
-    DbgCmdExec("eStepOver");
-}
-
-void MainWindow::execeStepInto()
-{
-    DbgCmdExec("eStepInto");
-}
-void MainWindow::execeRun()
-{
-    DbgCmdExec("erun");
-}
-
-void MainWindow::execeRtr()
-{
-    DbgCmdExec("ertr");
-}
-
-void MainWindow::execSkip()
-{
-    DbgCmdExec("skip");
-}
-
 void MainWindow::displayCpuWidget()
 {
     showQWidgetTab(mCpuWidget);
@@ -972,11 +901,6 @@ void MainWindow::displaySnowmanWidget()
 void MainWindow::displayGraphWidget()
 {
     showQWidgetTab(mGraphView);
-}
-
-void MainWindow::hideDebugger()
-{
-    DbgCmdExec("hide");
 }
 
 void MainWindow::openSettings()
@@ -1370,11 +1294,6 @@ void MainWindow::displayAttach()
     mCpuWidget->setDisasmFocus();
 }
 
-void MainWindow::detach()
-{
-    DbgCmdExec("detach");
-}
-
 void MainWindow::changeCommandLine()
 {
     if(!DbgIsDebugging())
@@ -1722,29 +1641,4 @@ void MainWindow::setFavouriteItemShortcut(int type, const QString & name, const 
             }
         }
     }
-}
-
-void MainWindow::on_actionStepIntoSource_triggered()
-{
-    DbgCmdExec("TraceIntoConditional src.line(cip) && !src.disp(cip)");
-}
-
-void MainWindow::on_actionStepOverSource_triggered()
-{
-    DbgCmdExec("TraceOverConditional src.line(cip) && !src.disp(cip)");
-}
-
-void MainWindow::on_actionseStepInto_triggered()
-{
-    DbgCmdExec("seStepInto");
-}
-
-void MainWindow::on_actionseStepOver_triggered()
-{
-    DbgCmdExec("seStepOver");
-}
-
-void MainWindow::on_actionseRun_triggered()
-{
-    DbgCmdExec("serun");
 }
