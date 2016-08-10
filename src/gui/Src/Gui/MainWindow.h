@@ -55,39 +55,22 @@ public:
 
 public slots:
     void executeCommand();
-    void execStepOver();
-    void execStepInto();
+    void execCommandSlot();
     void setFocusToCommandBar();
     void displayMemMapWidget();
     void displayLogWidget();
     void displayScriptWidget();
     void displayAboutWidget();
-    void execClose();
-    void execRun();
-    void execRtr();
-    void execRtu();
     void execTocnd();
     void execTicnd();
     void openFile();
-    void execPause();
-    void startScylla();
     void restartDebugging();
     void displayBreakpointWidget();
     void updateWindowTitleSlot(QString filename);
-    void execeStepOver();
-    void execeStepInto();
-    void execeRun();
-    void execeRtr();
-    void execSkip();
     void execTRBit();
     void execTRByte();
     void execTRWord();
     void execTRNone();
-    void execTRTIBT();
-    void execTRTOBT();
-    void execTRTIIT();
-    void execTRTOIT();
-    void execInstrUndo();
     void displayCpuWidget();
     void displaySymbolWidget();
     void displaySourceViewWidget();
@@ -95,7 +78,6 @@ public slots:
     void displayThreadsWidget();
     void displaySnowmanWidget();
     void displayGraphWidget();
-    void hideDebugger();
     void openSettings();
     void openAppearance();
     void openCalculator();
@@ -131,7 +113,6 @@ public slots:
     void donate();
     void reportBug();
     void displayAttach();
-    void detach();
     void changeCommandLine();
     void displayManual();
     void decompileAt(dsint start, dsint end);
@@ -197,6 +178,7 @@ private:
     void updateMRUMenu();
     QString getMRUEntry(int index);
     void setupLanguagesMenu();
+    QAction* makeCommandAction(QAction* action, const QString & command);
 
     //menu api
     struct MenuEntryInfo
@@ -246,11 +228,6 @@ public:
 private slots:
     void on_actionFaq_triggered();
     void on_actionReloadStylesheet_triggered();
-    void on_actionStepIntoSource_triggered();
-    void on_actionStepOverSource_triggered();
-    void on_actionseStepInto_triggered();
-    void on_actionseStepOver_triggered();
-    void on_actionseRun_triggered();
 };
 
 #endif // MAINWINDOW_H
