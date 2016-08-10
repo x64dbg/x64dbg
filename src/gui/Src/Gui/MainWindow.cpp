@@ -265,7 +265,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restartDebugging()));
     connect(ui->actionBreakpoints, SIGNAL(triggered()), this, SLOT(displayBreakpointWidget()));
     makeCommandAction(ui->actioneStepOver, "eStepOver");
-    makeCommandAction(ui->actionStepInto, "eStepInto");
+    makeCommandAction(ui->actioneStepInto, "eStepInto");
     makeCommandAction(ui->actioneRun, "eRun");
     makeCommandAction(ui->actioneRtr, "eRtr");
     makeCommandAction(ui->actionRtu, "rtu");
