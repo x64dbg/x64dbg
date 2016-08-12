@@ -132,6 +132,7 @@
     </property>
     <addaction name="actionCalculator"/>
     <addaction name="actionCheckUpdates"/>
+    <addaction name="actionBlog"/>
     <addaction name="actionDonate"/>
     <addaction name="actionReportBug"/>
     <addaction name="separator"/>
@@ -992,6 +993,15 @@
    </property>
    <property name="text">
     <string>Run (swallow exception)</string>
+   </property>
+  </action>
+  <action name="actionBlog">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/hex.png</normaloff>:/icons/images/hex.png</iconset>
+   </property>
+   <property name="text">
+    <string>Blog</string>
    </property>
   </action>
  </widget>

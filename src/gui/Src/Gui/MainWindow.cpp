@@ -311,6 +311,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionSEHChain, SIGNAL(triggered()), this, SLOT(displaySEHChain()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
     connect(ui->actionReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
+    connect(ui->actionBlog, SIGNAL(triggered()), this, SLOT(blog()));
     connect(ui->actionCrashDump, SIGNAL(triggered()), this, SLOT(crashDump()));
     connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
     makeCommandAction(ui->actionDetach, "detach");
@@ -1253,6 +1254,19 @@ void MainWindow::donate()
     if(msg.exec() != QMessageBox::Ok)
         return;
     QDesktopServices::openUrl(QUrl("http://donate.x64dbg.com"));
+}
+
+void MainWindow::blog()
+{
+    QMessageBox msg(QMessageBox::Information, tr("Blog"), tr("You will visit x64dbg's official blog."));
+    msg.setWindowIcon(DIcon("hex.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msg.setDefaultButton(QMessageBox::Ok);
+    if(msg.exec() != QMessageBox::Ok)
+        return;
+    QDesktopServices::openUrl(QUrl("http://blog.x64dbg.com"));
 }
 
 void MainWindow::reportBug()
