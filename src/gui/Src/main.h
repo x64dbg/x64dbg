@@ -5,8 +5,6 @@
 #include <QAbstractEventDispatcher>
 #include <QMessageBox>
 #include "Bridge.h"
-#include "Configuration.h"
-#include "MainWindow.h"
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QAbstractNativeEventFilter>
 #endif

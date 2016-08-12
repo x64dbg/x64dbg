@@ -1,4 +1,7 @@
 #include "DisassemblerGraphView.h"
+#include "MenuBuilder.h"
+#include "CachedFontMetrics.h"
+#include "QBeaEngine.h"
 #include <vector>
 #include <QPainter>
 #include <QScrollBar>
@@ -58,6 +61,11 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(shortcutsUpdatedSlot()));
 
     colorsUpdatedSlot();
+}
+
+DisassemblerGraphView::~DisassemblerGraphView()
+{
+    delete this->highlight_token;
 }
 
 void DisassemblerGraphView::initFont()
@@ -477,6 +485,7 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
     {
         //Check for click on a token and highlight it
         Token token;
+        delete this->highlight_token;
         if(this->getTokenForMouseEvent(event, token))
             this->highlight_token = HighlightToken::fromToken(token);
         else

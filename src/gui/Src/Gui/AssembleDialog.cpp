@@ -1,5 +1,6 @@
 #include "AssembleDialog.h"
 #include "ui_AssembleDialog.h"
+#include "ValidateExpressionThread.h"
 #include <QMessageBox>
 
 bool AssembleDialog::bWarningShowedOnce = false;

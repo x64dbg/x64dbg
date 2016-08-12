@@ -1,7 +1,6 @@
 #ifndef WATCHVIEW_H
 #define WATCHVIEW_H
 #include "StdTable.h"
-#include "MenuBuilder.h"
 
 class CPUMultiDump;
 

@@ -2,8 +2,9 @@
 #define GOTODIALOG_H
 
 #include <QDialog>
-#include "ValidateExpressionThread.h"
 #include "Imports.h"
+
+class ValidateExpressionThread;
 
 namespace Ui
 {

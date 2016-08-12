@@ -1,10 +1,11 @@
-#include "CPUDisassembly.h"
-#include "CPUSideBar.h"
-#include "CPUWidget.h"
-#include "CPUMultiDump.h"
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QClipboard>
+#include "CPUDisassembly.h"
+#include "CPUSideBar.h"
+#include "CPUWidget.h"
+#include "EncodeMap.h"
+#include "CPUMultiDump.h"
 #include "Configuration.h"
 #include "Bridge.h"
 #include "Imports.h"

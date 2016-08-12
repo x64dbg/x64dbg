@@ -1,5 +1,6 @@
 #include "DisassemblyPopup.h"
 #include "Disassembly.h"
+#include "CachedFontMetrics.h"
 #include "Configuration.h"
 #include "StringUtil.h"
 #include <QPainter>

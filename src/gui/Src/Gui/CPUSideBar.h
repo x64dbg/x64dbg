@@ -2,7 +2,12 @@
 #define CPUSIDEBAR_H
 
 #include <QAbstractScrollArea>
-#include "CPUDisassembly.h"
+#include <QPen>
+#include "QBeaEngine.h"
+#include "CodeFolding.h"
+#include "Imports.h"
+
+class CPUDisassembly;
 
 class CPUSideBar : public QAbstractScrollArea
 {

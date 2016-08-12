@@ -1,7 +1,10 @@
 #include "Disassembly.h"
 #include "Configuration.h"
+#include "CodeFolding.h"
+#include "EncodeMap.h"
 #include "Bridge.h"
 #include "MainWindow.h"
+#include "CachedFontMetrics.h"
 #include "QBeaEngine.h"
 #include "MemoryPage.h"
 

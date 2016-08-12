@@ -1,4 +1,5 @@
 #include "GotoDialog.h"
+#include "ValidateExpressionThread.h"
 #include "ui_GotoDialog.h"
 
 GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowInvalidAddress)

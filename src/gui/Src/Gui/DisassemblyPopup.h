@@ -2,11 +2,10 @@
 #define DISASSEMBLYPOPUP_H
 #include <QFrame>
 #include "Imports.h"
-#include "RichTextPainter.h"
-#include "CachedFontMetrics.h"
 #include "QBeaEngine.h"
 
 class Disassembly;
+class CachedFontMetrics;
 
 class DisassemblyPopup : public QFrame
 {

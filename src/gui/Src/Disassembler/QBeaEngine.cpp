@@ -1,5 +1,7 @@
 #include "QBeaEngine.h"
 #include "StringUtil.h"
+#include "EncodeMap.h"
+#include "CodeFolding.h"
 
 QBeaEngine::QBeaEngine(int maxModuleSize)
     : _tokenizer(maxModuleSize), mCodeFoldingManager(nullptr)
