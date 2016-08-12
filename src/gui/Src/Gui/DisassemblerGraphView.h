@@ -22,6 +22,7 @@
 class DisassemblerGraphView : public QAbstractScrollArea
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     struct DisassemblerBlock;
 
@@ -261,6 +262,7 @@ signals:
     void showCpu();
 
 private:
+    int m_viewId;
     QString status;
     Analysis analysis;
     duint function;

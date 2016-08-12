@@ -38,6 +38,7 @@ public:
 
     //Public variables
     void* winId;
+	void* activeViewId;
     QWidget* scriptView;
     ReferenceManager* referenceManager;
 

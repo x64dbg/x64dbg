@@ -104,18 +104,21 @@ MainWindow::MainWindow(QWidget* parent)
     mLogView = new LogView();
     mLogView->setWindowTitle(tr("Log"));
     mLogView->setWindowIcon(DIcon("log.png"));
+    mLogView->setProperty("viewId", GUI_VIEW_LOG);
     mLogView->hide();
 
     // Symbol view
     mSymbolView = new SymbolView();
     mSymbolView->setWindowTitle(tr("Symbols"));
     mSymbolView->setWindowIcon(DIcon("pdb.png"));
+    mSymbolView->setProperty("viewId", GUI_VIEW_SYMBOLS);
     mSymbolView->hide();
 
     // Source view
     mSourceViewManager = new SourceViewerManager();
     mSourceViewManager->setWindowTitle(tr("Source"));
     mSourceViewManager->setWindowIcon(DIcon("source.png"));
+    mSourceViewManager->setProperty("viewId", GUI_VIEW_SOURCE);
     mSourceViewManager->hide();
     connect(mSourceViewManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
@@ -123,6 +126,7 @@ MainWindow::MainWindow(QWidget* parent)
     mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle(tr("Breakpoints"));
     mBreakpointsView->setWindowIcon(DIcon("breakpoint.png"));
+    mBreakpointsView->setProperty("viewId", GUI_VIEW_BREAKPOINTS);
     mBreakpointsView->hide();
     connect(mBreakpointsView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
@@ -132,29 +136,34 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mMemMapView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     mMemMapView->setWindowTitle(tr("Memory Map"));
     mMemMapView->setWindowIcon(DIcon("memory-map.png"));
+    mMemMapView->setProperty("viewId", GUI_VIEW_MEMORYMAP);
     mMemMapView->hide();
 
     // Callstack view
     mCallStackView = new CallStackView();
     mCallStackView->setWindowTitle(tr("Call Stack"));
     mCallStackView->setWindowIcon(DIcon("callstack.png"));
+    mCallStackView->setProperty("viewId", GUI_VIEW_CALLSTACK);
     connect(mCallStackView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // SEH Chain view
     mSEHChainView = new SEHChainView();
     mSEHChainView->setWindowTitle(tr("SEH"));
     mSEHChainView->setWindowIcon(DIcon("seh-chain.png"));
+    mSEHChainView->setProperty("viewId", GUI_VIEW_SEH);
     connect(mSEHChainView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Script view
     mScriptView = new ScriptView();
     mScriptView->setWindowTitle(tr("Script"));
     mScriptView->setWindowIcon(DIcon("script-code.png"));
+    mScriptView->setProperty("viewId", GUI_VIEW_SCRIPT);
     mScriptView->hide();
 
     // CPU view
     mCpuWidget = new CPUWidget();
     mCpuWidget->setWindowTitle(tr("CPU"));
+    mCpuWidget->setProperty("viewId", GUI_VIEW_CPU);
 #ifdef _WIN64
     mCpuWidget->setWindowIcon(DIcon("processor64.png"));
 #else
@@ -167,12 +176,14 @@ MainWindow::MainWindow(QWidget* parent)
     Bridge::getBridge()->referenceManager = mReferenceManager;
     mReferenceManager->setWindowTitle(tr("References"));
     mReferenceManager->setWindowIcon(DIcon("search.png"));
+    mReferenceManager->setProperty("viewId", GUI_VIEW_REFERENCES);
 
     // Thread view
     mThreadView = new ThreadView();
     connect(mThreadView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     mThreadView->setWindowTitle(tr("Threads"));
     mThreadView->setWindowIcon(DIcon("arrow-threads.png"));
+    mThreadView->setProperty("viewId", GUI_VIEW_THREADS);
 
     // Snowman view (decompiler)
     mSnowmanView = CreateSnowman(this);
@@ -180,21 +191,25 @@ MainWindow::MainWindow(QWidget* parent)
         mSnowmanView = (SnowmanView*)new QLabel("<center>Snowman is disabled...</center>", this);
     mSnowmanView->setWindowTitle(tr("Snowman"));
     mSnowmanView->setWindowIcon(DIcon("snowman.png"));
+    mSnowmanView->setProperty("viewId", GUI_VIEW_SNOWMAN);
 
     // Notes manager
     mNotesManager = new NotesManager(this);
     mNotesManager->setWindowTitle(tr("Notes"));
     mNotesManager->setWindowIcon(DIcon("notes.png"));
+    mNotesManager->setProperty("viewId", GUI_VIEW_NOTES);
 
     // Handles view
     mHandlesView = new HandlesView(this);
     mHandlesView->setWindowTitle(tr("Handles"));
     mHandlesView->setWindowIcon(DIcon("handles.png"));
+    mHandlesView->setProperty("viewId", GUI_VIEW_HANDLES);
 
     // Graph view
     mGraphView = new DisassemblerGraphView(this);
     mGraphView->setWindowTitle(tr("Graph"));
     mGraphView->setWindowIcon(DIcon("graph.png"));
+    mGraphView->setProperty("viewId", GUI_VIEW_GRAPH);
 
     // Create the tab widget
     mTabWidget = new MHTabWidget();
@@ -1378,6 +1393,7 @@ void MainWindow::showQWidgetTab(QWidget* qWidget)
     qWidget->show();
     qWidget->setFocus();
     setTab(qWidget);
+
 }
 
 void MainWindow::closeQWidgetTab(QWidget* qWidget)

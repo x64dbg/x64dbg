@@ -10,6 +10,7 @@ class GotoDialog;
 class CPUStack : public HexDump
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit CPUStack(CPUMultiDump* multiDump, QWidget* parent = 0);
 
@@ -23,7 +24,7 @@ public:
     void mouseDoubleClickEvent(QMouseEvent* event);
     void setupContextMenu();
     void updateFreezeStackAction();
-
+	
 signals:
     void displayReferencesWidget();
 
@@ -74,6 +75,7 @@ public slots:
     void dbgStateChangedSlot(DBGSTATE state);
 
 private:
+    int m_viewId;
     duint mCsp;
     bool bStackFrozen;
 

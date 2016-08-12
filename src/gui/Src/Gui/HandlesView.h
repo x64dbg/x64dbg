@@ -11,6 +11,7 @@ class QSplitter;
 class HandlesView : public QWidget
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit HandlesView(QWidget* parent = nullptr);
 
@@ -30,6 +31,7 @@ public slots:
     void enableAllPrivilegesSlot();
 
 private:
+    int m_viewId;
     QVBoxLayout* mVertLayout;
     QSplitter* mSplitter;
     StdTable* mHandlesTable;

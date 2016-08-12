@@ -6,6 +6,7 @@
 class MemoryMapView : public StdTable
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit MemoryMapView(StdTable* parent = 0);
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
@@ -42,6 +43,7 @@ public slots:
     void findAddressSlot();
 
 private:
+    int m_viewId;
     QString getProtectionString(DWORD Protect);
 
     QAction* mFollowDump;

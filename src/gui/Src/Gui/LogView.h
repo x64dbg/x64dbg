@@ -7,6 +7,7 @@
 class LogView : public QTextEdit
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit LogView(QWidget* parent = 0);
     ~LogView();
@@ -25,6 +26,7 @@ public slots:
     void saveSlot();
     void toggleLoggingSlot();
 private:
+    int m_viewId;
     bool loggingEnabled;
 
     QAction* actionCopy;

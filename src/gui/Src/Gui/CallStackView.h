@@ -6,10 +6,11 @@
 class CallStackView : public StdTable
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit CallStackView(StdTable* parent = 0);
     void setupContextMenu();
-
+	
 signals:
     void showCpu();
 
@@ -21,6 +22,7 @@ protected slots:
     void followFrom();
 
 private:
+    int m_viewId;
     MenuBuilder* mMenuBuilder;
 };
 

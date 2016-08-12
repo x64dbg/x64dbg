@@ -128,6 +128,107 @@ int main(int argc, char* argv[])
 
     // Set some data
     Bridge::getBridge()->winId = (void*)mainWindow->winId();
+	
+	// Get active view - account for reordered tabs. Tab index 0 will be the active one initially.
+
+	if(!ConfigBool("Miscellaneous", "LoadSaveTabOrder"))
+        Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_CPU;
+	else
+    {
+        //duint tabIndex = 0;
+        duint tabIndex = Config()->getUint("TabOrder", "CPUTab");
+		if(tabIndex == 0)
+            Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_CPU;
+		else
+		{
+			duint tabIndex = Config()->getUint("TabOrder", "GraphTab");
+			if(tabIndex == 0)
+                Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_GRAPH;
+			else
+			{
+				duint tabIndex = Config()->getUint("TabOrder", "LogTab");
+				if(tabIndex == 0)
+                    Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_LOG;
+				else
+				{
+					duint tabIndex = Config()->getUint("TabOrder", "NotesTab");
+					if(tabIndex == 0)
+                        Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_NOTES;
+					else
+					{
+						duint tabIndex = Config()->getUint("TabOrder", "BreakpointsTab");
+						if(tabIndex == 0)
+                            Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_BREAKPOINTS;
+						else
+						{
+							duint tabIndex = Config()->getUint("TabOrder", "MemoryMapTab");
+							if(tabIndex == 0)
+                                Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_MEMORYMAP;
+							else
+							{
+								duint tabIndex = Config()->getUint("TabOrder", "CallStackTab");
+								if(tabIndex == 0)
+                                    Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_CALLSTACK;
+								else
+								{
+									duint tabIndex = Config()->getUint("TabOrder", "SEHTab");
+									if(tabIndex == 0)
+                                        Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_SEH;
+									else
+									{
+										duint tabIndex = Config()->getUint("TabOrder", "ScriptTab");
+										if(tabIndex == 0)
+                                            Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_SCRIPT;
+										else
+										{
+											duint tabIndex = Config()->getUint("TabOrder", "SymbolsTab");
+											if(tabIndex == 0)
+                                                Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_SYMBOLS;
+											else
+											{
+												duint tabIndex = Config()->getUint("TabOrder", "SourceTab");
+												if(tabIndex == 0)
+                                                    Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_SOURCE;
+												else
+												{
+													duint tabIndex = Config()->getUint("TabOrder", "ReferencesTab");
+													if(tabIndex == 0)
+                                                        Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_REFERENCES;
+													else
+													{
+														duint tabIndex = Config()->getUint("TabOrder", "ThreadsTab");
+														if(tabIndex == 0)
+                                                            Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_THREADS;
+														else
+														{
+															duint tabIndex = Config()->getUint("TabOrder", "SnowmanTab");
+															if(tabIndex == 0)
+                                                                Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_SNOWMAN;
+															else
+															{
+																duint tabIndex = Config()->getUint("TabOrder", "HandlesTab");
+																if(tabIndex == 0)
+                                                                    Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_HANDLES;
+																else
+																{
+																	// default ?
+                                                                    Bridge::getBridge()->activeViewId = (void*)GUI_VIEW_CPU;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
     // Init debugger
     const char* errormsg = DbgInit();

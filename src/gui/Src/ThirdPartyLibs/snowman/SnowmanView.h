@@ -6,6 +6,12 @@
 class SnowmanView : public QWidget
 {
     Q_OBJECT
+	Q_PROPERTY(int viewId MEMBER m_viewId)
+public:
+
+private:
+    int m_viewId;
+
 };
 
 extern "C" __declspec(dllexport) SnowmanView* CreateSnowman(QWidget* parent);
