@@ -39,6 +39,7 @@ private slots:
     void moduleDownloadSymbols();
     void moduleDownloadAllSymbols();
     void moduleCopyPath();
+    void moduleBrowse();
     void moduleYara();
     void moduleYaraFile();
     void moduleSetUser();
@@ -77,6 +78,7 @@ private:
     QAction* mModSetUserAction;
     QAction* mModSetSystemAction;
     QAction* mModSetPartyAction;
+    QAction* mBrowseInExplorer;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };
