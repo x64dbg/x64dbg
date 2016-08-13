@@ -4,7 +4,8 @@
 #include <QDialog>
 #include <functional>
 #include "Bridge.h"
-#include "ValidateExpressionThread.h"
+
+class ValidateExpressionThread;
 
 namespace Ui
 {

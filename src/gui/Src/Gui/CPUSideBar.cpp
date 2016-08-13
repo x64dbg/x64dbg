@@ -1,6 +1,7 @@
 #include "CPUSideBar.h"
 #include "Configuration.h"
 #include "Breakpoints.h"
+#include "CPUDisassembly.h"
 #include <QToolTip>
 
 CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollArea(parent)

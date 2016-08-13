@@ -2,10 +2,10 @@
 #define QBEAENGINE_H
 
 #include <QString>
-#include "Imports.h"
 #include "capstone_gui.h"
-#include "EncodeMap.h"
-#include "CodeFolding.h"
+
+class EncodeMap;
+class CodeFoldingHelper;
 
 struct Instruction_t
 {
@@ -65,8 +65,6 @@ private:
     QHash<ENCODETYPE, DataInstructionInfo> dataInstMap;
     bool _bLongDataInst;
     EncodeMap* mEncodeMap;
-
-
     CodeFoldingHelper* mCodeFoldingManager;
 };
 

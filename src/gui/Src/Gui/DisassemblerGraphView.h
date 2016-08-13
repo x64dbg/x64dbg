@@ -15,9 +15,10 @@
 #include <algorithm>
 #include <QMutex>
 #include "Bridge.h"
-#include "QBeaEngine.h"
-#include "CachedFontMetrics.h"
-#include "MenuBuilder.h"
+#include "RichTextPainter.h"
+
+class MenuBuilder;
+class CachedFontMetrics;
 
 class DisassemblerGraphView : public QAbstractScrollArea
 {
@@ -207,6 +208,7 @@ public:
     };
 
     DisassemblerGraphView(QWidget* parent = nullptr);
+    ~DisassemblerGraphView();
     void initFont();
     void adjustSize(int width, int height);
     void resizeEvent(QResizeEvent* event);
