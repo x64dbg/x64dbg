@@ -68,3 +68,4 @@ src/build-*/
 !*.lib
 pin.log
 src/gui/Translations/*.qm
+x64dbg.VC.db
