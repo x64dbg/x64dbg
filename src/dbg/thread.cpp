@@ -139,6 +139,18 @@ void ThreadGetList(std::vector<THREADINFO> & list)
         list.push_back(thread.second);
 }
 
+bool ThreadGetInfo(DWORD ThreadId, THREADINFO & info)
+{
+    SHARED_ACQUIRE(LockThreads);
+
+    auto found = threadList.find(ThreadId);
+    if(found == threadList.end())
+        return false;
+
+    info = found->second;
+    return true;
+}
+
 bool ThreadIsValid(DWORD ThreadId)
 {
     SHARED_ACQUIRE(LockThreads);
@@ -221,7 +233,7 @@ bool ThreadSetName(DWORD ThreadId, const char* Name)
         if(!Name)
             Name = "";
 
-        strcpy_s(threadList[ThreadId].threadName, Name);
+        strncpy_s(threadList[ThreadId].threadName, Name, _TRUNCATE);
         return true;
     }
 
