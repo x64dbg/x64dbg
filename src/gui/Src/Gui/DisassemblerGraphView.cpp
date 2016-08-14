@@ -230,6 +230,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
 
 void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, int xofs, int yofs)
 {
+    auto dbgfunctions = DbgFunctions();
     // Scale and translate painter
     qreal sx = qreal(viewportRect.width()) / qreal(this->renderWidth);
     qreal sy = qreal(viewportRect.height()) / qreal(this->renderHeight);
@@ -285,7 +286,10 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         //Render node background
         pen.setColor(Qt::black);
         p.setPen(pen);
-        p.setBrush(QBrush(disassemblyBackgroundColor));
+        if(dbgfunctions->GetTraceRecordHitCount(block.block.entry) != 0)
+            p.setBrush(QBrush(disassemblyTracedColor));
+        else
+            p.setBrush(QBrush(disassemblyBackgroundColor));
         p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
                    block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
     }
