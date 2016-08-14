@@ -378,7 +378,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         {
             if(isWowRedirectionSupported())
             {
-
                 canDisableRedirect = TRUE;
             }
         }
