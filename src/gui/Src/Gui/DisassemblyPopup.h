@@ -33,6 +33,7 @@ protected:
     unsigned int mMaxInstructions;
 
     QColor disassemblyBackgroundColor;
+    QColor disassemblyTracedColor;
     QColor labelColor;
     QColor labelBackgroundColor;
     QColor commentColor;
@@ -40,8 +41,7 @@ protected:
     QColor commentAutoColor;
     QColor commentAutoBackgroundColor;
 
-    QList<Instruction_t> mInstBuffer;
-    std::vector<RichTextPainter::List> mDisassemblyToken;
+    std::vector<std::pair<RichTextPainter::List, bool>> mDisassemblyToken;
 };
 
 #endif // DISASSEMBLYPOPUP_H
