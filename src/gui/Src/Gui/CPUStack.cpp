@@ -81,6 +81,10 @@ void CPUStack::setupContextMenu()
     mPopAction = new QAction(ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), this);
     connect(mPopAction, SIGNAL(triggered()), this, SLOT(popSlot()));
 
+    //Realign
+    mRealignAction = new QAction(tr("Align Stack Pointer"), this);
+    connect(mRealignAction, SIGNAL(triggered()), this, SLOT(realignSlot()));
+
     //Binary menu
     mBinaryMenu = new QMenu(tr("B&inary"), this);
     mBinaryMenu->setIcon(DIcon("binary.png"));
@@ -519,6 +523,12 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     QMenu wMenu(this); //create context menu
     wMenu.addAction(mPushAction);
     wMenu.addAction(mPopAction);
+#ifdef _WIN64
+    if((mCsp & 0x7) != 0)
+#else //x86
+    if((mCsp & 0x3) != 0)
+#endif //_WIN64
+        wMenu.addAction(mRealignAction);
     wMenu.addAction(mModifyAction);
     wMenu.addMenu(mBinaryMenu);
     QMenu wCopyMenu(tr("&Copy"), this);
@@ -1064,6 +1074,17 @@ void CPUStack::pushSlot()
 void CPUStack::popSlot()
 {
     mCsp += sizeof(dsint);
+    DbgValToString("csp", mCsp);
+    GuiUpdateAllViews();
+}
+
+void CPUStack::realignSlot()
+{
+#ifdef _WIN64
+    mCsp &= ~0x7;
+#else //x86
+    mCsp &= ~0x3;
+#endif //_WIN64
     DbgValToString("csp", mCsp);
     GuiUpdateAllViews();
 }

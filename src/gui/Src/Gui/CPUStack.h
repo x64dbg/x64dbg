@@ -70,6 +70,7 @@ public slots:
     void binaryPasteIgnoreSizeSlot();
     void undoSelectionSlot();
     void modifySlot();
+    void realignSlot();
     void freezeStackSlot();
     void dbgStateChangedSlot(DBGSTATE state);
 
@@ -126,6 +127,7 @@ private:
     QMenu* mFollowInDumpMenu;
     QAction* mPushAction;
     QAction* mPopAction;
+    QAction* mRealignAction;
     QList<QAction*> mFollowInDumpActions;
 
     GotoDialog* mGoto;
