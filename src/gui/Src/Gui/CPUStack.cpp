@@ -823,7 +823,7 @@ void CPUStack::followinDumpNSlot()
             if(mFollowInDumpActions[i] == sender())
             {
                 QString addrText = QString("%1").arg(ToPtrString(selectedData));
-                DbgCmdExec(QString("dump [%1], %2").arg(addrText.toUtf8().constData()).arg(i).toUtf8().constData());
+                DbgCmdExec(QString("dump [%1], %2").arg(addrText.toUtf8().constData()).arg(i+1).toUtf8().constData());
             }
         }
     }
