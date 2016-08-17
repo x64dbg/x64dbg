@@ -58,6 +58,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
 
     // Copy the module path in the struct
     MODINFO info;
+    memset(&info, 0, sizeof(info));
     strcpy_s(info.path, FullPath);
 
     // Break the module path into a directory and file name
