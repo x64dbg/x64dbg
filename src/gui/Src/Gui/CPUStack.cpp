@@ -692,7 +692,7 @@ int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCalls
     if(mCallstack.size())
         for(size_t i = 0; i < mCallstack.size() - 1; i++)
             if(wVA >= mCallstack[i].addr && wVA < mCallstack[i + 1].addr)
-                return i;
+                return int(i);
     return -1;
 }
 
