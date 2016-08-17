@@ -148,6 +148,7 @@ void DisassemblerGraphView::copy_address()
 void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int xofs, int yofs)
 {
     //Translate the painter
+    auto dbgfunctions = DbgFunctions();
     QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
     p.translate(translation);
     viewportRect.translate(-translation.x(), -translation.y());
@@ -189,6 +190,11 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
                         p.drawRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
                                    int(instr.text.lines.size()) * this->charHeight);
                     }
+                    else if(dbgfunctions->GetTraceRecordHitCount(instr.addr) != 0)
+                    {
+                        p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
+                                         int(instr.text.lines.size()) * this->charHeight), disassemblyTracedColor);
+                    }
                     y += int(instr.text.lines.size()) * this->charHeight;
                 }
             }
@@ -224,6 +230,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
 
 void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, int xofs, int yofs)
 {
+    auto dbgfunctions = DbgFunctions();
     // Scale and translate painter
     qreal sx = qreal(viewportRect.width()) / qreal(this->renderWidth);
     qreal sy = qreal(viewportRect.height()) / qreal(this->renderHeight);
@@ -279,7 +286,10 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         //Render node background
         pen.setColor(Qt::black);
         p.setPen(pen);
-        p.setBrush(QBrush(disassemblyBackgroundColor));
+        if(dbgfunctions->GetTraceRecordHitCount(block.block.entry) != 0)
+            p.setBrush(QBrush(disassemblyTracedColor));
+        else
+            p.setBrush(QBrush(disassemblyBackgroundColor));
         p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
                    block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
     }
@@ -1331,6 +1341,7 @@ void DisassemblerGraphView::colorsUpdatedSlot()
 {
     disassemblyBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
     disassemblySelectionColor = ConfigColor("DisassemblySelectionColor");
+    disassemblyTracedColor = ConfigColor("DisassemblyTracedBackgroundColor");
 
     jmpColor = ConfigColor("GraphJmpColor");
     brtrueColor = ConfigColor("GraphBrtrueColor");
