@@ -606,7 +606,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 
 void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    if(event->button() != Qt::LeftButton)
+    if(event->button() != Qt::LeftButton || !DbgIsDebugging())
         return;
     switch(getColumnIndexFromX(event->x()))
     {
