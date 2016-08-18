@@ -1553,6 +1553,8 @@ void CPUDisassembly::editSoftBpActionSlot()
 
 void CPUDisassembly::ActionTraceRecordBitSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     duint base = mMemPage->getBase();
     duint size = mMemPage->getSize();
     for(duint i = base; i < base + size; i += 4096)
@@ -1567,6 +1569,8 @@ void CPUDisassembly::ActionTraceRecordBitSlot()
 
 void CPUDisassembly::ActionTraceRecordByteSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     duint base = mMemPage->getBase();
     duint size = mMemPage->getSize();
     for(duint i = base; i < base + size; i += 4096)
@@ -1581,6 +1585,8 @@ void CPUDisassembly::ActionTraceRecordByteSlot()
 
 void CPUDisassembly::ActionTraceRecordWordSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     duint base = mMemPage->getBase();
     duint size = mMemPage->getSize();
     for(duint i = base; i < base + size; i += 4096)
@@ -1595,6 +1601,8 @@ void CPUDisassembly::ActionTraceRecordWordSlot()
 
 void CPUDisassembly::ActionTraceRecordDisableSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     duint base = mMemPage->getBase();
     duint size = mMemPage->getSize();
     for(duint i = base; i < base + size; i += 4096)
@@ -1633,6 +1641,8 @@ void CPUDisassembly::analyzeSingleFunctionSlot()
 
 void CPUDisassembly::removeAnalysisSelectionSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     WordEditDialog mLineEdit(this);
     mLineEdit.setup(tr("Size"), getSelectionSize(), sizeof(duint));
     if(mLineEdit.exec() != QDialog::Accepted || !mLineEdit.getVal())
@@ -1643,12 +1653,16 @@ void CPUDisassembly::removeAnalysisSelectionSlot()
 
 void CPUDisassembly::removeAnalysisModuleSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     mDisasm->getEncodeMap()->delSegment(rvaToVa(getSelectionStart()));
     GuiUpdateDisassemblyView();
 }
 
 void CPUDisassembly::setEncodeTypeRangeSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     QAction* pAction = qobject_cast<QAction*>(sender());
     WordEditDialog mLineEdit(this);
     mLineEdit.setup(tr("Size"), getSelectionSize(), sizeof(duint));
@@ -1660,6 +1674,8 @@ void CPUDisassembly::setEncodeTypeRangeSlot()
 
 void CPUDisassembly::setEncodeTypeSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     QAction* pAction = qobject_cast<QAction*>(sender());
     mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), (ENCODETYPE)pAction->data().toUInt());
     GuiUpdateDisassemblyView();

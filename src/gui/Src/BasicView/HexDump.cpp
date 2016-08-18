@@ -185,7 +185,7 @@ QString HexDump::makeAddrText(duint va)
     }
     else
         *label = 0;
-    return addrText;
+    return std::move(addrText);
 }
 
 QString HexDump::makeCopyText()
@@ -214,7 +214,7 @@ QString HexDump::makeCopyText()
         curRow += getBytePerRowCount();
         result += "\n";
     }
-    return result;
+    return std::move(result);
 }
 
 void HexDump::addVaToHistory(dsint parVa)

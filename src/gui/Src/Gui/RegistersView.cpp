@@ -1880,7 +1880,7 @@ void RegistersView::ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZ
     setRegister(mSelected, (duint)value);
 }
 
-#define MODIFY_FIELDS_DISPLAY(title, table) ModifyFields(QString("Edit ") + QString(title), (STRING_VALUE_TABLE_t *) & table, SIZE_TABLE(table) )
+#define MODIFY_FIELDS_DISPLAY(title, table) ModifyFields(tr("Edit") + QChar(' ') + QString(title), (STRING_VALUE_TABLE_t *) & table, SIZE_TABLE(table) )
 
 /**
  * @brief   This function displays the appropriate edit dialog according to selected register
@@ -1983,11 +1983,7 @@ void RegistersView::displayEditDialog()
                     {
                         errorinput = true;
 
-                        QMessageBox msg(QMessageBox::Warning, tr("ERROR CONVERTING TO HEX"), tr("ERROR CONVERTING TO HEX"));
-                        msg.setWindowIcon(DIcon("compile-warning.png"));
-                        msg.setParent(this, Qt::Dialog);
-                        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-                        msg.exec();
+                        SimpleWarningBox(this, tr("ERROR CONVERTING TO HEX"), tr("ERROR CONVERTING TO HEX"));
                     }
                     else
                         setRegister(mSelected, fpuvalue);
@@ -2000,7 +1996,7 @@ void RegistersView::displayEditDialog()
     else
     {
         WordEditDialog wEditDial(this);
-        wEditDial.setup(QString("Edit"), (* ((duint*) registerValue(&wRegDumpStruct, mSelected))), sizeof(dsint));
+        wEditDial.setup(tr("Edit"), (* ((duint*) registerValue(&wRegDumpStruct, mSelected))), sizeof(dsint));
         if(wEditDial.exec() == QDialog::Accepted) //OK button clicked
             setRegister(mSelected, wEditDial.getVal());
     }
