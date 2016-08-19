@@ -784,8 +784,8 @@ void Disassembly::mouseReleaseEvent(QMouseEvent* event)
 
 void Disassembly::leaveEvent(QEvent* event)
 {
-    Q_UNUSED(event);
     ShowDisassemblyPopup(0, 0, 0);
+    AbstractTableView::leaveEvent(event);
 }
 
 /************************************************************************************
