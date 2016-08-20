@@ -18,6 +18,7 @@ public slots:
     void SwitchThread();
     void SuspendThread();
     void ResumeThread();
+    void ExecCommand();
     void KillThread();
     void GoToThreadEntry();
     void contextMenuSlot(const QPoint & pos);
@@ -34,7 +35,9 @@ signals:
     void showCpu();
 
 private:
+    QAction* makeCommandAction(QAction* action, const QString & command);
     QString mCurrentThreadId;
+    MenuBuilder* mMenuBuilder;
     QAction* mSwitchThread;
     QAction* mSuspendThread;
     QAction* mGoToThreadEntry;

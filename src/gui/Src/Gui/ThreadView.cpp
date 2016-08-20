@@ -33,7 +33,6 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
         wMenu.addMenu(&wCopyMenu);
     }
 
-
     foreach(QAction * action, mSetPriority->actions())
     {
         action->setCheckable(true);
@@ -135,21 +134,18 @@ void ThreadView::SetPriorityTimeCriticalSlot()
 
 void ThreadView::setupContextMenu()
 {
+    mMenuBuilder = new MenuBuilder(this);
     //Switch thread menu
-    mSwitchThread = new QAction(tr("Switch Thread"), this);
-    connect(mSwitchThread, SIGNAL(triggered()), this, SLOT(SwitchThread()));
+    mMenuBuilder->addAction(makeAction(tr("Switch Thread"), SLOT(SwitchThread())));
 
     //Suspend thread menu
-    mSuspendThread = new QAction(tr("Suspend Thread"), this);
-    connect(mSuspendThread, SIGNAL(triggered()), this, SLOT(SuspendThread()));
+    mMenuBuilder->addAction(makeAction(tr("Suspend Thread"), SLOT(SuspendThread())));
 
     //Resume thread menu
-    mResumeThread = new QAction(tr("Resume Thread"), this);
-    connect(mResumeThread, SIGNAL(triggered()), this, SLOT(ResumeThread()));
+    mMenuBuilder->addAction(makeAction(tr("Resume Thread"), SLOT(ResumeThread())));
 
     //Kill thread menu
-    mKillThread = new QAction(tr("Kill Thread"), this);
-    connect(mKillThread, SIGNAL(triggered()), this, SLOT(KillThread()));
+    mMenuBuilder->addAction(makeAction(tr("Kill Thread"), SLOT(KillThread())));
 
     // Set priority
     mSetPriority = new QMenu(tr("Set Priority"), this);
@@ -189,6 +185,33 @@ void ThreadView::setupContextMenu()
     // Set name
     mSetName = new QAction(tr("Set name"), this);
     connect(mSetName, SIGNAL(triggered()), this, SLOT(SetNameSlot()));
+}
+
+/**
+ * @brief ThreadView::makeCommandAction Make action to execute the command. $ will be replaced with thread id at runtime.
+ * @param action The action to bind
+ * @param command The command to execute when the action is triggered.
+ * @return action
+ */
+QAction* ThreadView::makeCommandAction(QAction* action, const QString & command)
+{
+    action->setData(QVariant(command));
+    connect(action, SIGNAL(triggered()), this, SLOT(execCommandSlot()));
+    return action;
+}
+
+/**
+ * @brief ThreadView::ExecCommand execute command slot for menus. Only used by command that reference thread id.
+ */
+void ThreadView::ExecCommand()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action)
+    {
+        QString command = action->data().toString();
+        command.replace(QChar('$'), getCellContent(getInitialSelection(), 1)); // $ -> Thread Id
+        DbgCmdExec(command.toUtf8().constData());
+    }
 }
 
 ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
