@@ -1863,9 +1863,35 @@ void cbDetach()
     return;
 }
 
-bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
+cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
 {
-    list->clear();
+    cmdline_qoutes_placement_t quotesPos;
+    quotesPos.firstPos = quotesPos.secondPos = 0;
+
+    char quoteSymb = cmdline[0];
+    if(quoteSymb == '"' || quoteSymb == '\'')
+    {
+        for(duint i = 1; i < strlen(cmdline); i++)
+        {
+            if(cmdline[i] == quoteSymb)
+            {
+                quotesPos.posEnum = i == strlen(cmdline) - 1 ? QOUTES_AT_BEGIN_AND_END : QOUTES_AROUND_EXE;
+                quotesPos.secondPos = i;
+                break;
+            }
+        }
+        if(!quotesPos.secondPos)
+            quotesPos.posEnum = NO_CLOSE_QUOTE_FOUND;
+    }
+    else
+        quotesPos.posEnum = NO_QOUTES;
+
+    return quotesPos;
+}
+
+bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::string>* commandList)
+{
+    infoList->clear();
     Handle hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if(!hProcessSnap)
         return false;
@@ -1890,17 +1916,62 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
         wchar_t szExePath[MAX_PATH] = L"";
         if(GetModuleFileNameExW(hProcess, 0, szExePath, MAX_PATH))
             strcpy_s(pe32.szExeFile, StringUtils::Utf16ToUtf8(szExePath).c_str());
-        list->push_back(pe32);
+        infoList->push_back(pe32);
+        //
+        char* cmdline;
+
+        if(!dbggetcmdline(&cmdline, NULL, hProcess))
+            commandList->push_back("");
+        else
+        {
+            cmdline_qoutes_placement_t posEnum = getqoutesplacement(cmdline);
+            char* cmdLineExe = strstr(cmdline, pe32.szExeFile);
+            duint cmdLineExeSize = cmdLineExe ? strlen(pe32.szExeFile) : 0;
+
+            switch(posEnum.posEnum)
+            {
+            case NO_CLOSE_QUOTE_FOUND:
+                if(cmdLineExe)
+                    commandList->push_back(cmdline + cmdLineExeSize + 1);
+                else
+                    commandList->push_back(cmdline);
+                break;
+            case NO_QOUTES:
+                if(cmdLineExe)
+                    commandList->push_back(cmdline + cmdLineExeSize);
+                else
+                    commandList->push_back(cmdline);
+                break;
+            case QOUTES_AROUND_EXE:
+                commandList->push_back(cmdline + cmdLineExeSize + 2);
+                break;
+            case QOUTES_AT_BEGIN_AND_END:
+
+                if(cmdLineExe)
+                {
+                    cmdline[strlen(cmdline) - 1] = '\0';
+                    commandList->push_back(cmdline + cmdLineExeSize + 1);
+                }
+                else
+                    commandList->push_back(cmdline);
+                break;
+            }
+
+            if(!commandList->empty())
+                commandList->back() = StringUtils::Trim(commandList->back());
+
+            efree(cmdline);
+        }
     }
     while(Process32Next(hProcessSnap, &pe32));
     return true;
 }
 
-static bool getcommandlineaddr(duint* addr, cmdline_error_t* cmd_line_error)
+static bool getcommandlineaddr(duint* addr, cmdline_error_t* cmd_line_error, HANDLE hProcess = NULL)
 {
     duint pprocess_parameters;
 
-    cmd_line_error->addr = (duint)GetPEBLocation(fdProcessInfo->hProcess);
+    cmd_line_error->addr = (duint)GetPEBLocation(hProcess ? hProcess : fdProcessInfo->hProcess);
 
     if(cmd_line_error->addr == 0)
     {
@@ -1908,15 +1979,30 @@ static bool getcommandlineaddr(duint* addr, cmdline_error_t* cmd_line_error)
         return false;
     }
 
-    //cast-trick to calculate the address of the remote peb field ProcessParameters
-    cmd_line_error->addr = (duint) & (((PPEB) cmd_line_error->addr)->ProcessParameters);
-    if(!MemRead(cmd_line_error->addr, &pprocess_parameters, sizeof(pprocess_parameters)))
+    if(hProcess)
     {
-        cmd_line_error->type = CMDL_ERR_READ_PEBBASE;
-        return false;
-    }
+        duint NumberOfBytesRead;
+        if(!MemoryReadSafe(hProcess, (LPVOID)((cmd_line_error->addr) + offsetof(PEB, ProcessParameters)),
+                           &pprocess_parameters, sizeof(duint), &NumberOfBytesRead))
+        {
+            cmd_line_error->type = CMDL_ERR_READ_PROCPARM_PTR;
+            return false;
+        }
 
-    *addr = (duint) & (((RTL_USER_PROCESS_PARAMETERS*) pprocess_parameters)->CommandLine);
+        *addr = (pprocess_parameters) + offsetof(RTL_USER_PROCESS_PARAMETERS, CommandLine);
+    }
+    else
+    {
+        //cast-trick to calculate the address of the remote peb field ProcessParameters
+        cmd_line_error->addr = (duint) & (((PPEB)cmd_line_error->addr)->ProcessParameters);
+        if(!MemRead(cmd_line_error->addr, &pprocess_parameters, sizeof(pprocess_parameters)))
+        {
+            cmd_line_error->type = CMDL_ERR_READ_PEBBASE;
+            return false;
+        }
+
+        *addr = (duint) & (((RTL_USER_PROCESS_PARAMETERS*)pprocess_parameters)->CommandLine);
+    }
     return true;
 }
 
@@ -2066,39 +2152,66 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
     return true;
 }
 
-bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
+bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess /* = NULL */)
 {
     UNICODE_STRING CommandLine;
+    Memory<wchar_t*>* wstr_cmd;
     cmdline_error_t cmd_line_error_aux;
 
     if(!cmd_line_error)
         cmd_line_error = &cmd_line_error_aux;
 
-    if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error))
+    if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error, hProcess))
         return false;
 
-    if(!MemRead(cmd_line_error->addr, &CommandLine, sizeof(CommandLine)))
+    if(hProcess)
     {
-        cmd_line_error->type = CMDL_ERR_READ_PROCPARM_PTR;
-        return false;
+        duint NumberOfBytesRead;
+        if(!MemoryReadSafe(hProcess, (LPVOID)cmd_line_error->addr, &CommandLine, sizeof(UNICODE_STRING), &NumberOfBytesRead))
+        {
+            cmd_line_error->type = CMDL_ERR_READ_GETCOMMANDLINEBASE;
+            return false;
+        }
+
+        wstr_cmd = new Memory<wchar_t*>(CommandLine.Length + sizeof(wchar_t));
+
+        cmd_line_error->addr = (duint)CommandLine.Buffer;
+        if(!MemoryReadSafe(hProcess, (LPVOID)cmd_line_error->addr, (*wstr_cmd)(), CommandLine.Length, &NumberOfBytesRead))
+        {
+            cmd_line_error->type = CMDL_ERR_GET_GETCOMMANDLINE;
+            return false;
+        }
     }
-
-    Memory<wchar_t*> wstr_cmd(CommandLine.Length + sizeof(wchar_t));
-
-    cmd_line_error->addr = (duint) CommandLine.Buffer;
-    if(!MemRead(cmd_line_error->addr, wstr_cmd(), CommandLine.Length))
+    else
     {
-        cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
-        return false;
-    }
+        if(!MemRead(cmd_line_error->addr, &CommandLine, sizeof(CommandLine)))
+        {
+            cmd_line_error->type = CMDL_ERR_READ_PROCPARM_PTR;
+            return false;
+        }
 
-    SIZE_T wstr_cmd_size = wcslen(wstr_cmd()) + 1;
+        wstr_cmd = new Memory<wchar_t*>(CommandLine.Length + sizeof(wchar_t));
+
+        cmd_line_error->addr = (duint)CommandLine.Buffer;
+        if(!MemRead(cmd_line_error->addr, (*wstr_cmd)(), CommandLine.Length))
+        {
+            cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
+            return false;
+        }
+    }
+    SIZE_T wstr_cmd_size = wcslen((*wstr_cmd)()) + 1;
     SIZE_T cmd_line_size = wstr_cmd_size * 2;
 
     *cmd_line = (char*)emalloc(cmd_line_size, "dbggetcmdline:cmd_line");
 
+    if(cmd_line_size <= 2)
+    {
+        *cmd_line[0] = '\0';
+        return true;
+    }
+
     //Convert TO UTF-8
-    if(!WideCharToMultiByte(CP_UTF8, 0, wstr_cmd(), (int)wstr_cmd_size, * cmd_line, (int)cmd_line_size, NULL, NULL))
+    if(!WideCharToMultiByte(CP_UTF8, 0, (*wstr_cmd)(), (int)wstr_cmd_size, *cmd_line, (int)cmd_line_size, NULL, NULL))
     {
         efree(*cmd_line);
         *cmd_line = nullptr;

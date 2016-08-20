@@ -31,12 +31,14 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     //setup process list
     int charwidth = mSearchListView->mList->getCharWidth();
     mSearchListView->mList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
-    mSearchListView->mList->addColumnAt(800, tr("Path"), true);
+    mSearchListView->mList->addColumnAt(500, tr("Path"), true);
+    mSearchListView->mList->addColumnAt(800, tr("CommandLine arguments"), true);
     mSearchListView->mList->setDrawDebugOnly(false);
 
     charwidth = mSearchListView->mSearchList->getCharWidth();
     mSearchListView->mSearchList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
-    mSearchListView->mSearchList->addColumnAt(800, tr("Path"), true);
+    mSearchListView->mSearchList->addColumnAt(500, tr("Path"), true);
+    mSearchListView->mSearchList->addColumnAt(800, tr("CommandLine arguments"), true);
     mSearchListView->mSearchList->setDrawDebugOnly(false);
 
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(on_btnAttach_clicked()));
@@ -68,6 +70,7 @@ void AttachDialog::refresh()
     {
         mSearchListView->mList->setCellContent(i, 0, QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
         mSearchListView->mList->setCellContent(i, 1, QString(entries[i].szExeFile));
+        mSearchListView->mList->setCellContent(i, 2, QString(entries[i].szExeArgs));
     }
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->reloadData();
