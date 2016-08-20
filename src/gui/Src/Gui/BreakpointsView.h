@@ -11,13 +11,14 @@ class StdTable;
 class BreakpointsView : public QWidget
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit BreakpointsView(QWidget* parent = 0);
     void setupRightClickContextMenu();
     void setupHardBPRightClickContextMenu();
     void setupSoftBPRightClickContextMenu();
     void setupMemBPRightClickContextMenu();
-
+	
 signals:
     void showCpu();
 
@@ -62,6 +63,7 @@ public slots:
     void editBreakpointSlot();
 
 private:
+    int m_viewId;
     QVBoxLayout* mVertLayout;
     QSplitter* mSplitter ;
     StdTable* mHardBPTable;

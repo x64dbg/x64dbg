@@ -6,6 +6,7 @@
 class ScriptView : public StdTable
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit ScriptView(StdTable* parent = 0);
 
@@ -16,7 +17,7 @@ public:
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void keyPressEvent(QKeyEvent* event);
-
+	
 public slots:
     void refreshShortcutsSlot();
     void contextMenuSlot(const QPoint & pos);
@@ -47,6 +48,7 @@ private:
     bool isScriptCommand(QString text, QString cmd);
 
     //private variables
+    int m_viewId;
     int mIpLine;
     bool mEnableSyntaxHighlighting;
     QString filename;

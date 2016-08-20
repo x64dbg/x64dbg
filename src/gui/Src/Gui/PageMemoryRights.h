@@ -17,7 +17,7 @@ public:
     explicit PageMemoryRights(QWidget* parent = 0);
     void RunAddrSize(duint, duint, QString);
     ~PageMemoryRights();
-
+	
 private slots:
     void on_btnSelectall_clicked();
     void on_btnDeselectall_clicked();

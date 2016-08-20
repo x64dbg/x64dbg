@@ -10,7 +10,8 @@ class GotoDialog;
 class CPUDisassembly : public Disassembly
 {
     Q_OBJECT
-
+    Q_PROPERTY(int viewId MEMBER m_viewId)
+	
 public:
     explicit CPUDisassembly(CPUWidget* parent);
 
@@ -109,6 +110,7 @@ protected:
     void paintEvent(QPaintEvent* event);
 
 private:
+    int m_viewId;
     bool getLabelsFromInstruction(duint addr, QSet<QString> & labels);
 
     // Menus

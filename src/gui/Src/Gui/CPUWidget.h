@@ -20,7 +20,7 @@ namespace Ui
 class CPUWidget : public QWidget
 {
     Q_OBJECT
-
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit CPUWidget(QWidget* parent = 0);
     ~CPUWidget();
@@ -52,6 +52,7 @@ protected:
     CPUArgumentWidget* mArgumentWidget;
 
 private:
+    int m_viewId;
     Ui::CPUWidget* ui;
 };
 

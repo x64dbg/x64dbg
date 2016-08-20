@@ -8,6 +8,7 @@
 class ReferenceManager : public QTabWidget
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit ReferenceManager(QWidget* parent = 0);
     ReferenceView* currentReferenceView();
@@ -21,6 +22,7 @@ signals:
     void showCpu();
 
 private:
+    int m_viewId;
     ReferenceView* mCurrentReferenceView;
     QPushButton* mCloseAllTabs;
 };

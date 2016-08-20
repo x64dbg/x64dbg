@@ -870,6 +870,26 @@ BRIDGE_IMPEXP bool DbgGetWatchList(ListOf(WATCHINFO) list);
 #define GUI_MAX_LINE_SIZE 65536
 #define GUI_MAX_DISASSEMBLY_SIZE 2048
 
+// Active view/tab defines
+typedef enum
+{
+	GUI_VIEW_CPU,
+	GUI_VIEW_GRAPH,
+	GUI_VIEW_LOG,
+	GUI_VIEW_NOTES,
+	GUI_VIEW_BREAKPOINTS,
+	GUI_VIEW_MEMORYMAP,
+	GUI_VIEW_CALLSTACK,
+	GUI_VIEW_SEH,
+	GUI_VIEW_SCRIPT,
+	GUI_VIEW_SYMBOLS,
+	GUI_VIEW_SOURCE,
+	GUI_VIEW_REFERENCES,
+	GUI_VIEW_THREADS,
+	GUI_VIEW_SNOWMAN,
+	GUI_VIEW_HANDLES,
+} GUIVIEWS;
+
 //Gui enums
 typedef enum
 {
@@ -959,7 +979,8 @@ typedef enum
     GUI_ADD_FAVOURITE_TOOL,         // param1=const char* name      param2=const char* description
     GUI_ADD_FAVOURITE_COMMAND,      // param1=const char* command   param2=const char* shortcut
     GUI_SET_FAVOURITE_TOOL_SHORTCUT,// param1=const char* name      param2=const char* shortcut
-    GUI_FOLD_DISASSEMBLY            // param1=duint startAddress    param2=duint length
+    GUI_FOLD_DISASSEMBLY,           // param1=duint startAddress    param2=duint length
+	GUI_GET_ACTIVE_VIEW				// param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1007,6 +1028,7 @@ BRIDGE_IMPEXP void GuiUpdateDisassemblyView();
 BRIDGE_IMPEXP void GuiUpdateBreakpointsView();
 BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename);
 BRIDGE_IMPEXP HWND GuiGetWindowHandle();
+BRIDGE_IMPEXP int GuiGetActiveView();
 BRIDGE_IMPEXP void GuiDumpAt(duint va);
 BRIDGE_IMPEXP void GuiScriptAdd(int count, const char** lines);
 BRIDGE_IMPEXP void GuiScriptClear();

@@ -6,10 +6,11 @@
 class SEHChainView : public StdTable
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit SEHChainView(StdTable* parent = 0);
     void setupContextMenu();
-
+	
 signals:
     void showCpu();
 
@@ -21,6 +22,7 @@ protected slots:
     void followHandler();
 
 private:
+    int m_viewId;
     QAction* mFollowAddress;
     QAction* mFollowHandler;
 };

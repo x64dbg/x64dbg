@@ -1072,6 +1072,11 @@ BRIDGE_IMPEXP HWND GuiGetWindowHandle()
     return (HWND)_gui_sendmessage(GUI_GET_WINDOW_HANDLE, 0, 0);
 }
 
+BRIDGE_IMPEXP int GuiGetActiveView()
+{
+	return (int)_gui_sendmessage(GUI_GET_ACTIVE_VIEW, 0, 0);
+}
+
 BRIDGE_IMPEXP void GuiDumpAt(duint va)
 {
     _gui_sendmessage(GUI_DUMP_AT, (void*)va, 0);

@@ -7,11 +7,12 @@
 class ThreadView : public StdTable
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 public:
     explicit ThreadView(StdTable* parent = 0);
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
-
+	
 public slots:
     void updateThreadList();
     void doubleClickedSlot();
@@ -34,6 +35,7 @@ signals:
     void showCpu();
 
 private:
+    int m_viewId;
     QString mCurrentThreadId;
     QAction* mSwitchThread;
     QAction* mSuspendThread;

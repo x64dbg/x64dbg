@@ -16,6 +16,7 @@ Bridge::Bridge(QObject* parent) : QObject(parent)
 {
     mBridgeMutex = new QMutex();
     winId = 0;
+	activeViewId = 0;
     scriptView = 0;
     referenceManager = 0;
     bridgeResult = 0;
@@ -119,6 +120,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_GET_WINDOW_HANDLE:
         return winId;
 
+    case GUI_GET_ACTIVE_VIEW:
+        return activeViewId;
+		
     case GUI_DUMP_AT:
         emit dumpAt((dsint)param1);
         break;

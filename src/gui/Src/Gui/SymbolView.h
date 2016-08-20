@@ -16,12 +16,13 @@ namespace Ui
 class SymbolView : public QWidget
 {
     Q_OBJECT
+    Q_PROPERTY(int viewId MEMBER m_viewId)
 
 public:
     explicit SymbolView(QWidget* parent = 0);
     ~SymbolView();
     void setupContextMenu();
-
+	
 private slots:
     void updateStyle();
     void addMsgToSymbolLogSlot(QString msg);
@@ -55,6 +56,7 @@ signals:
     void showReferences();
 
 private:
+    int m_viewId;
     Ui::SymbolView* ui;
     QVBoxLayout* mMainLayout;
     QVBoxLayout* mSymbolLayout;
