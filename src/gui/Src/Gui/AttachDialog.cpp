@@ -66,7 +66,7 @@ void AttachDialog::refresh()
     mSearchListView->mList->setRowCount(count);
     for(int i = 0; i < count; i++)
     {
-        mSearchListView->mList->setCellContent(i, 0, QString().sprintf("%.8X", entries[i].dwProcessId));
+        mSearchListView->mList->setCellContent(i, 0, QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
         mSearchListView->mList->setCellContent(i, 1, QString(entries[i].szExeFile));
     }
     mSearchListView->mList->setSingleSelection(0);
@@ -77,6 +77,8 @@ void AttachDialog::refresh()
 void AttachDialog::on_btnAttach_clicked()
 {
     QString pid = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
+    if(!ConfigBool("Gui", "PidInHex"))
+        pid.sprintf("%.8X", pid.toULong());
     DbgCmdExec(QString("attach " + pid).toUtf8().constData());
     accept();
 }
