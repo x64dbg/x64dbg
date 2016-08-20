@@ -2841,6 +2841,9 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
     }
     if(!GuiGraphAt(sel))
     {
+        auto modbase = ModBaseFromAddr(base);
+        if(modbase)
+            base = modbase, size = ModSizeFromAddr(modbase);
         RecursiveAnalysis analysis(base, size, entry, 0);
         analysis.Analyse();
         auto graph = analysis.GetFunctionGraph(entry);
