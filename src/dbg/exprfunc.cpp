@@ -2,6 +2,7 @@
 #include "symbolinfo.h"
 #include "module.h"
 #include "debugger.h"
+#include "thread.h"
 
 namespace Exprfunc
 {
@@ -56,6 +57,11 @@ namespace Exprfunc
     duint teb()
     {
         return duint(GetTEBLocation(hActiveThread));
+    }
+
+    duint tid()
+    {
+        return duint(ThreadGetId(hActiveThread));
     }
 
     duint bswap(duint value)
