@@ -174,10 +174,8 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
     for(int i = 0; i < *count; i++)
     {
         (*entries)[*count - i - 1].dwProcessId = infoList.at(i).th32ProcessID;
-        strncpy((*entries)[*count - i - 1].szExeFile, infoList.at(i).szExeFile, MAX_PATH);
-        strncpy((*entries)[*count - i - 1].szExeArgs, commandList.at(i).c_str(), MAX_COMMAND_LINE_SIZE);
-        (*entries)[*count - i - 1].szExeFile[MAX_PATH - 1] = '\0';
-        (*entries)[*count - i - 1].szExeArgs[MAX_COMMAND_LINE_SIZE - 1] = '\0';
+        strncpy_s((*entries)[*count - i - 1].szExeFile, infoList.at(i).szExeFile, _TRUNCATE);
+        strncpy_s((*entries)[*count - i - 1].szExeArgs, commandList.at(i).c_str(), _TRUNCATE);
     }
     return true;
 }
