@@ -15,20 +15,9 @@ public:
 public slots:
     void updateThreadList();
     void doubleClickedSlot();
-    void SwitchThread();
-    void SuspendThread();
-    void ResumeThread();
     void ExecCommand();
-    void KillThread();
     void GoToThreadEntry();
     void contextMenuSlot(const QPoint & pos);
-    void SetPriorityIdleSlot();
-    void SetPriorityAboveNormalSlot();
-    void SetPriorityBelowNormalSlot();
-    void SetPriorityHighestSlot();
-    void SetPriorityLowestSlot();
-    void SetPriorityNormalSlot();
-    void SetPriorityTimeCriticalSlot();
     void SetNameSlot();
 
 signals:
@@ -38,20 +27,6 @@ private:
     QAction* makeCommandAction(QAction* action, const QString & command);
     QString mCurrentThreadId;
     MenuBuilder* mMenuBuilder;
-    QAction* mSwitchThread;
-    QAction* mSuspendThread;
-    QAction* mGoToThreadEntry;
-    QAction* mResumeThread;
-    QAction* mKillThread;
-    QAction* mSetPriorityIdle;
-    QAction* mSetPriorityAboveNormal;
-    QAction* mSetPriorityBelowNormal;
-    QAction* mSetPriorityHighest;
-    QAction* mSetPriorityLowest;
-    QAction* mSetPriorityNormal;
-    QAction* mSetPriorityTimeCritical;
-    QAction* mSetName;
-    QMenu* mSetPriority;
 };
 
 #endif // THREADVIEW_H

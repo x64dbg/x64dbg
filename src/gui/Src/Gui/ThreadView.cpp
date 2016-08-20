@@ -10,52 +10,7 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
         return;
 
     QMenu wMenu(this); //create context menu
-    wMenu.addAction(mSwitchThread);
-    wMenu.addAction(mSuspendThread);
-    wMenu.addAction(mResumeThread);
-    wMenu.addAction(mKillThread);
-    wMenu.addSeparator();
-    wMenu.addAction(mSetName);
-    wMenu.addMenu(mSetPriority);
-    bool ok;
-    ULONGLONG entry = getCellContent(getInitialSelection(), 2).toULongLong(&ok, 16);
-    if(ok && DbgMemIsValidReadPtr(entry))
-    {
-        wMenu.addSeparator();
-        wMenu.addAction(mGoToThreadEntry);
-    }
-    wMenu.addSeparator();
-    QMenu wCopyMenu(tr("&Copy"), this);
-    setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
-    {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
-    }
-
-    foreach(QAction * action, mSetPriority->actions())
-    {
-        action->setCheckable(true);
-        action->setChecked(false);
-    }
-
-    // TODO: remove locale-dependency here so that these strings can be translated.
-    QString priority = getCellContent(getInitialSelection(), 6);
-    if(priority == tr("Normal"))
-        mSetPriorityNormal->setChecked(true);
-    else if(priority == tr("AboveNormal"))
-        mSetPriorityAboveNormal->setChecked(true);
-    else if(priority == tr("TimeCritical"))
-        mSetPriorityTimeCritical ->setChecked(true);
-    else if(priority == tr("Idle"))
-        mSetPriorityIdle->setChecked(true);
-    else if(priority == tr("BelowNormal"))
-        mSetPriorityBelowNormal->setChecked(true);
-    else if(priority == tr("Highest"))
-        mSetPriorityHighest->setChecked(true);
-    else if(priority == tr("Lowest"))
-        mSetPriorityLowest->setChecked(true);
-
+    mMenuBuilder->build(&wMenu);
     wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
@@ -66,125 +21,99 @@ void ThreadView::GoToThreadEntry()
     emit showCpu();
 }
 
-void ThreadView::SwitchThread()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("switchthread " + threadId).toUtf8().constData());
-}
-
-void ThreadView::SuspendThread()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("suspendthread " + threadId).toUtf8().constData());
-}
-
-void ThreadView::ResumeThread()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("resumethread " + threadId).toUtf8().constData());
-}
-
-void ThreadView::KillThread()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("killthread " + threadId).toUtf8().constData());
-}
-
-void ThreadView::SetPriorityIdleSlot()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Idle").toUtf8().constData());
-}
-
-void ThreadView::SetPriorityAboveNormalSlot()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", AboveNormal").toUtf8().constData());
-}
-
-void ThreadView::SetPriorityBelowNormalSlot()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", BelowNormal").toUtf8().constData());
-}
-
-void ThreadView::SetPriorityHighestSlot()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Highest").toUtf8().constData());
-}
-
-void ThreadView::SetPriorityLowestSlot()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Lowest").toUtf8().constData());
-}
-
-void ThreadView::SetPriorityNormalSlot()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Normal").toUtf8().constData());
-}
-
-void ThreadView::SetPriorityTimeCriticalSlot()
-{
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", TimeCritical").toUtf8().constData());
-}
-
 void ThreadView::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
     //Switch thread menu
-    mMenuBuilder->addAction(makeAction(tr("Switch Thread"), SLOT(SwitchThread())));
+    mMenuBuilder->addAction(makeCommandAction(new QAction(tr("Switch Thread"), this), "switchthread $"));
 
     //Suspend thread menu
-    mMenuBuilder->addAction(makeAction(tr("Suspend Thread"), SLOT(SuspendThread())));
+    mMenuBuilder->addAction(makeCommandAction(new QAction(tr("Suspend Thread"), this), "suspendthread $"));
 
     //Resume thread menu
-    mMenuBuilder->addAction(makeAction(tr("Resume Thread"), SLOT(ResumeThread())));
+    mMenuBuilder->addAction(makeCommandAction(new QAction(tr("Resume Thread"), this), "resumethread $"));
+
+    mMenuBuilder->addAction(makeCommandAction(new QAction(tr("Suspend All Threads"), this), "suspendallthreads"));
+
+    mMenuBuilder->addAction(makeCommandAction(new QAction(tr("Resume All Threads"), this), "resumeallthreads"));
 
     //Kill thread menu
-    mMenuBuilder->addAction(makeAction(tr("Kill Thread"), SLOT(KillThread())));
-
+    mMenuBuilder->addAction(makeCommandAction(new QAction(tr("Kill Thread"), this), "killthread $"));
+    mMenuBuilder->addSeparator();
+    // Set name
+    mMenuBuilder->addAction(makeAction(tr("Set Name"), SLOT(SetNameSlot())));
     // Set priority
-    mSetPriority = new QMenu(tr("Set Priority"), this);
+    QAction* mSetPriorityIdle = makeCommandAction(new QAction(tr("Idle"), this), "setprioritythread $, Idle");
+    QAction* mSetPriorityAboveNormal = makeCommandAction(new QAction(tr("Above Normal"), this), "setprioritythread $, AboveNormal");
+    QAction* mSetPriorityBelowNormal = makeCommandAction(new QAction(tr("Below Normal"), this), "setprioritythread $, BelowNormal");
+    QAction* mSetPriorityHighest = makeCommandAction(new QAction(tr("Highest"), this), "setprioritythread $, Highest");
+    QAction* mSetPriorityLowest = makeCommandAction(new QAction(tr("Lowest"), this), "setprioritythread $, Lowest");
+    QAction* mSetPriorityNormal = makeCommandAction(new QAction(tr("Normal"), this), "setprioritythread $, Normal");
+    QAction* mSetPriorityTimeCritical = makeCommandAction(new QAction(tr("Time Critical"), this), "setprioritythread $, TimeCritical");
+    MenuBuilder* mSetPriority = new MenuBuilder(this, [this, mSetPriorityIdle, mSetPriorityAboveNormal, mSetPriorityBelowNormal,
+            mSetPriorityHighest, mSetPriorityLowest, mSetPriorityNormal, mSetPriorityTimeCritical](QMenu * menu)
+    {
+        QString priority = getCellContent(getInitialSelection(), 6);
+        QAction* selectedaction = nullptr;
+        if(priority == tr("Normal"))
+            selectedaction = mSetPriorityNormal;
+        else if(priority == tr("AboveNormal"))
+            selectedaction = mSetPriorityAboveNormal;
+        else if(priority == tr("TimeCritical"))
+            selectedaction = mSetPriorityTimeCritical;
+        else if(priority == tr("Idle"))
+            selectedaction = mSetPriorityIdle;
+        else if(priority == tr("BelowNormal"))
+            selectedaction = mSetPriorityBelowNormal;
+        else if(priority == tr("Highest"))
+            selectedaction = mSetPriorityHighest;
+        else if(priority == tr("Lowest"))
+            selectedaction = mSetPriorityLowest;
 
-    mSetPriorityIdle = new QAction(tr("Idle"), this);
-    connect(mSetPriorityIdle, SIGNAL(triggered()), this, SLOT(SetPriorityIdleSlot()));
-    mSetPriority->addAction(mSetPriorityIdle);
-
-    mSetPriorityAboveNormal = new QAction(tr("Above Normal"), this);
-    connect(mSetPriorityAboveNormal, SIGNAL(triggered()), this, SLOT(SetPriorityAboveNormalSlot()));
-    mSetPriority->addAction(mSetPriorityAboveNormal);
-
-    mSetPriorityBelowNormal = new QAction(tr("Below Normal"), this);
-    connect(mSetPriorityBelowNormal, SIGNAL(triggered()), this, SLOT(SetPriorityBelowNormalSlot()));
-    mSetPriority->addAction(mSetPriorityBelowNormal);
-
-    mSetPriorityHighest = new QAction(tr("Highest"), this);
-    connect(mSetPriorityHighest, SIGNAL(triggered()), this, SLOT(SetPriorityHighestSlot()));
-    mSetPriority->addAction(mSetPriorityHighest);
-
-    mSetPriorityLowest = new QAction(tr("Lowest"), this);
-    connect(mSetPriorityLowest, SIGNAL(triggered()), this, SLOT(SetPriorityLowestSlot()));
-    mSetPriority->addAction(mSetPriorityLowest);
-
-    mSetPriorityNormal = new QAction(tr("Normal"), this);
-    connect(mSetPriorityNormal, SIGNAL(triggered()), this, SLOT(SetPriorityNormalSlot()));
-    mSetPriority->addAction(mSetPriorityNormal);
-
-    mSetPriorityTimeCritical = new QAction(tr("Time Critical"), this);
-    connect(mSetPriorityTimeCritical, SIGNAL(triggered()), this, SLOT(SetPriorityTimeCriticalSlot()));
+        mSetPriorityAboveNormal->setCheckable(true);
+        mSetPriorityAboveNormal->setChecked(selectedaction == mSetPriorityAboveNormal); // true if mSetPriorityAboveNormal is selected
+        mSetPriorityBelowNormal->setCheckable(true);
+        mSetPriorityBelowNormal->setChecked(selectedaction == mSetPriorityBelowNormal); // true if mSetPriorityBelowNormal is selected
+        mSetPriorityHighest->setCheckable(true);
+        mSetPriorityHighest->setChecked(selectedaction == mSetPriorityHighest); // true if mSetPriorityHighest is selected
+        mSetPriorityIdle->setCheckable(true);
+        mSetPriorityIdle->setChecked(selectedaction == mSetPriorityIdle); // true if mSetPriorityIdle is selected
+        mSetPriorityLowest->setCheckable(true);
+        mSetPriorityLowest->setChecked(selectedaction == mSetPriorityLowest); // true if mSetPriorityLowest is selected
+        mSetPriorityNormal->setCheckable(true);
+        mSetPriorityNormal->setChecked(selectedaction == mSetPriorityNormal); // true if mSetPriorityNormal is selected
+        mSetPriorityTimeCritical->setCheckable(true);
+        mSetPriorityTimeCritical->setChecked(selectedaction == mSetPriorityTimeCritical); // true if mSetPriorityTimeCritical is selected
+        return true;
+    });
     mSetPriority->addAction(mSetPriorityTimeCritical);
+    mSetPriority->addAction(mSetPriorityHighest);
+    mSetPriority->addAction(mSetPriorityAboveNormal);
+    mSetPriority->addAction(mSetPriorityNormal);
+    mSetPriority->addAction(mSetPriorityBelowNormal);
+    mSetPriority->addAction(mSetPriorityLowest);
+    mSetPriority->addAction(mSetPriorityIdle);
+    mMenuBuilder->addMenu(makeMenu(tr("Set Priority")), mSetPriority);
 
     // GoToThreadEntry
-    mGoToThreadEntry = new QAction(tr("Go to Thread Entry"), this);
-    connect(mGoToThreadEntry, SIGNAL(triggered()), this, SLOT(GoToThreadEntry()));
+    mMenuBuilder->addAction(makeAction(tr("Go to Thread Entry"), SLOT(GoToThreadEntry())), [this](QMenu * menu)
+    {
+        bool ok;
+        ULONGLONG entry = getCellContent(getInitialSelection(), 2).toULongLong(&ok, 16);
+        if(ok && DbgMemIsValidReadPtr(entry))
+        {
+            menu->addSeparator();
+            return true;
+        }
+        else
+            return false;
+    });
 
-    // Set name
-    mSetName = new QAction(tr("Set name"), this);
-    connect(mSetName, SIGNAL(triggered()), this, SLOT(SetNameSlot()));
+    MenuBuilder* mCopyMenu = new MenuBuilder(this);
+    setupCopyMenu(mCopyMenu);
+    // Column count cannot be zero
+    mMenuBuilder->addSeparator();
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), mCopyMenu);
 }
 
 /**
@@ -196,7 +125,7 @@ void ThreadView::setupContextMenu()
 QAction* ThreadView::makeCommandAction(QAction* action, const QString & command)
 {
     action->setData(QVariant(command));
-    connect(action, SIGNAL(triggered()), this, SLOT(execCommandSlot()));
+    connect(action, SIGNAL(triggered()), this, SLOT(ExecCommand()));
     return action;
 }
 
