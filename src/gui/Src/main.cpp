@@ -51,6 +51,7 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
 
 static Configuration* mConfiguration;
 char currentLocale[MAX_SETTING_SIZE] = "";
+bool translationsReady = false;
 
 static bool isValidLocale(const QString & locale)
 {
@@ -99,6 +100,12 @@ int main(int argc, char* argv[])
     auto path = QString("%1/../translations").arg(QCoreApplication::applicationDirPath());
     if(x64dbgTranslator.load(QString("x64dbg_%1").arg(currentLocale), path))
         application.installTranslator(&x64dbgTranslator);
+
+    QTranslator x64dbg_dbg_Translator;
+    if(x64dbg_dbg_Translator.load(QString("x64dbg_dbg_%1").arg(currentLocale), path))
+        application.installTranslator(&x64dbg_dbg_Translator);
+
+    translationsReady = true;
 
     // initialize capstone
     Capstone::GlobalInitialize();

@@ -6,6 +6,15 @@
 #include "console.h"
 #include "taskthread.h"
 
+static void GuiAddLogMessageAsync(const char* msg)
+{
+    static StringConcatTaskThread_<void(*)(const std::string &)> task([](const std::string & msg)
+    {
+        GuiAddLogMessage(msg.c_str());
+    });
+    task.WakeUp(msg);
+}
+
 /**
 \brief Print a line with text, terminated with a newline to the console.
 \param text The text to print.
@@ -13,10 +22,18 @@
 void dputs(const char* Text)
 {
     // Only append the newline if the caller didn't
-    if(Text[strlen(Text) - 1] != '\n')
-        dprintf("%s\n", Text);
+    const char* TranslatedText = GuiTranslateDbg(Text);
+    size_t textlen = strlen(TranslatedText);
+    if(TranslatedText[textlen - 1] != '\n')
+    {
+        Memory<char*> buffer(textlen + 2, "dputs");
+        memcpy(buffer(), TranslatedText, textlen);
+        buffer()[textlen] = '\n';
+        buffer()[textlen + 1] = '\0';
+        GuiAddLogMessageAsync(buffer());
+    }
     else
-        dprintf("%s", Text);
+        GuiAddLogMessageAsync(TranslatedText);
 }
 
 /**
@@ -32,16 +49,6 @@ void dprintf(const char* Format, ...)
     va_end(args);
 }
 
-
-void GuiAddLogMessageAsync(const char* msg)
-{
-    static StringConcatTaskThread_<void (*)(const std::string &)> task([](const std::string & msg)
-    {
-        GuiAddLogMessage(msg.c_str());
-    });
-    task.WakeUp(msg);
-}
-
 /**
 \brief Print a formatted string to the console.
 \param format The printf format to use (see documentation of printf for more information).
@@ -50,7 +57,7 @@ void GuiAddLogMessageAsync(const char* msg)
 void dprintf_args(const char* Format, va_list Args)
 {
     char buffer[16384];
-    vsnprintf_s(buffer, _TRUNCATE, Format, Args);
+    vsnprintf_s(buffer, _TRUNCATE, GuiTranslateDbg(Format), Args);
 
     GuiAddLogMessageAsync(buffer);
 }

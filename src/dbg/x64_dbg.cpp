@@ -438,17 +438,17 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     if(sizeof(TITAN_ENGINE_CONTEXT_t) != sizeof(REGISTERCONTEXT))
         return "Invalid REGISTERCONTEXT alignment!";
 
-    dputs("Initializing wait objects...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing wait objects..."));
     waitinitialize();
-    dputs("Initializing debugger...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger..."));
     dbginit();
-    dputs("Initializing debugger functions...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger functions..."));
     dbgfunctionsinit();
-    dputs("Setting JSON memory management functions...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Setting JSON memory management functions..."));
     json_set_alloc_funcs(json_malloc, json_free);
-    dputs("Initializing capstone...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing capstone..."));
     Capstone::GlobalInitialize();
-    dputs("Initializing Yara...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Yara..."));
     if(yr_initialize() != ERROR_SUCCESS)
         return "Failed to initialize Yara!";
     dputs("Getting directory information...");
@@ -474,24 +474,24 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     if(FileHelper::ReadAllText(StringUtils::sprintf("%s\\..\\mnemdb.json", dir), mnemonicHelpData))
     {
         if(MnemonicHelp::loadFromText(mnemonicHelpData.c_str()))
-            dputs("Mnemonic help database loaded!");
+            dputs(QT_TRANSLATE_NOOP("DBG", "Mnemonic help database loaded!"));
         else
-            dputs("Failed to load mnemonic help database...");
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load mnemonic help database..."));
     }
     else
-        dputs("Failed to read mnemonic help database...");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read mnemonic help database..."));
 
     // Load error codes
     if(ErrorCodeInit(StringUtils::sprintf("%s\\..\\errordb.txt", dir)))
-        dputs("Error codes database loaded!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error codes database loaded!"));
     else
-        dputs("Failed to load error codes...");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load error codes..."));
 
     // Load exception codes
     if(ExceptionCodeInit(StringUtils::sprintf("%s\\..\\exceptiondb.txt", dir)))
-        dputs("Exception codes database loaded!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Exception codes database loaded!"));
     else
-        dputs("Failed to load exception codes...");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load exception codes..."));
 
     // Create database directory in the local debugger folder
     DbSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
@@ -521,45 +521,45 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 
         if(strstr(szSymbolCachePath, "http://") || strstr(szSymbolCachePath, "https://"))
         {
-            if(Script::Gui::MessageYesNo("It is strongly discouraged to use symbol servers in your path directly (use the store option instead).\n\nDo you want me to fix this?"))
+            if(Script::Gui::MessageYesNo(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "It is strongly discouraged to use symbol servers in your path directly (use the store option instead).\n\nDo you want me to fix this?"))))
             {
                 strcpy_s(szSymbolCachePath, szLocalSymbolPath);
                 BridgeSettingSet("Symbols", "CachePath", ".\\symbols");
             }
         }
     }
-    dprintf("Symbol Path: %s\n", szSymbolCachePath);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Symbol Path: %s\n"), szSymbolCachePath);
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());
-    dputs("Allocating message stack...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Allocating message stack..."));
     gMsgStack = MsgAllocStack();
     if(!gMsgStack)
         return "Could not allocate message stack!";
-    dputs("Initializing global script variables...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing global script variables..."));
     varinit();
-    dputs("Registering debugger commands...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Registering debugger commands..."));
     registercommands();
-    dputs("Registering GUI command handler...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Registering GUI command handler..."));
     ExpressionFunctions::Init();
-    dputs("Registering expression functions...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Registering expression functions..."));
     SCRIPTTYPEINFO info;
-    strcpy_s(info.name, "Default");
+    strcpy_s(info.name, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Default")));
     info.id = 0;
     info.execute = DbgCmdExec;
     info.completeCommand = nullptr;
     GuiRegisterScriptLanguage(&info);
-    dputs("Registering Script DLL command handler...");
-    strcpy_s(info.name, "Script DLL");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Registering Script DLL command handler..."));
+    strcpy_s(info.name, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Script DLL")));
     info.execute = DbgScriptDllExec;
     GuiRegisterScriptLanguage(&info);
-    dputs("Starting command loop...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Starting command loop..."));
     hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     char plugindir[deflen] = "";
     strcpy_s(plugindir, dir);
     strcat_s(plugindir, "\\plugins");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), 0);
-    dputs("Loading plugins...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Loading plugins..."));
     pluginload(plugindir);
-    dputs("Handling command line...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Handling command line..."));
     //handle command line
     int argc = 0;
     wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -572,12 +572,12 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     else if(argc == 5 && !_wcsicmp(argv[1], L"-a") && !_wcsicmp(argv[3], L"-e"))  //4 arguments (JIT)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, .%s", argv[2], argv[4])).c_str()); //attach pid, event
     LocalFree(argv);
-    dputs("Reading notes file...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes file..."));
     notesFile = String(dir) + "\\notes.txt";
     String text;
     FileHelper::ReadAllText(notesFile, text);
     GuiSetGlobalNotes(text.c_str());
-    dputs("Initialization successful!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initialization successful!"));
     bIsStopped = false;
     return nullptr;
 }

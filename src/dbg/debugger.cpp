@@ -203,7 +203,7 @@ void cbDebuggerPaused()
     DWORD currentThreadId = ThreadGetId(hActiveThread);
     if(currentThreadId != PrevThreadId)
     {
-        dprintf("Thread switched from %X to %X !\n", PrevThreadId, currentThreadId);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Thread switched from %X to %X !\n"), PrevThreadId, currentThreadId);
         PrevThreadId = currentThreadId;
     }
     // Watchdog
@@ -385,7 +385,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     else
         sprintf(modtext, "Module: %s - ", modname);
     char title[1024] = "";
-    sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread));
+    sprintf(title, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %X")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread));
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
     GuiFocusView(GUI_DISASSEMBLY);
@@ -445,22 +445,22 @@ static void printSoftBpInfo(const BREAKPOINT & bp)
     if(symbolicname.length())
     {
         if(*bp.name)
-            dprintf("%s breakpoint \"%s\" at %s (" fhex ")!\n", bptype, bp.name, symbolicname.c_str(), bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint \"%s\" at %s ( %p )!\n"), bptype, bp.name, symbolicname.c_str(), bp.addr);
         else
-            dprintf("%s breakpoint at %s (" fhex ")!\n", bptype, symbolicname.c_str(), bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint at %s ( %p )!\n"), bptype, symbolicname.c_str(), bp.addr);
     }
     else
     {
         if(*bp.name)
-            dprintf("%s breakpoint \"%s\" at " fhex "!\n", bptype, bp.name, bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint \"%s\" at %p!\n"), bptype, bp.name, bp.addr);
         else
-            dprintf("%s breakpoint at " fhex "!\n", bptype, bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint at %p!\n"), bptype, bp.addr);
     }
 }
 
 static void printHwBpInfo(const BREAKPOINT & bp)
 {
-    auto bpsize = "";
+    const char* bpsize = "";
     switch(TITANGETSIZE(bp.titantype))   //size
     {
     case UE_HARDWARE_SIZE_1:
@@ -478,35 +478,38 @@ static void printHwBpInfo(const BREAKPOINT & bp)
         break;
 #endif //_WIN64
     }
-    auto bptype = "";
+    char* bptype;
     switch(TITANGETTYPE(bp.titantype))   //type
     {
     case UE_HARDWARE_EXECUTE:
-        bptype = "execute";
+        bptype = _strdup(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "execute")));
         bpsize = "";
         break;
     case UE_HARDWARE_READWRITE:
-        bptype = "read/write";
+        bptype = _strdup(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "read/write")));
         break;
     case UE_HARDWARE_WRITE:
-        bptype = "write";
+        bptype = _strdup(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "write")));
         break;
+    default:
+        bptype = _strdup(" ");
     }
     auto symbolicname = SymGetSymbolicName(bp.addr);
     if(symbolicname.length())
     {
         if(*bp.name)
-            dprintf("Hardware breakpoint (%s%s) \"%s\" at %s (" fhex ")!\n", bpsize, bptype, bp.name, symbolicname.c_str(), bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) \"%s\" at %s (%p)!\n"), bpsize, bptype, bp.name, symbolicname.c_str(), bp.addr);
         else
-            dprintf("Hardware breakpoint (%s%s) at %s (" fhex ")!\n", bpsize, bptype, symbolicname.c_str(), bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) at %s (%p)!\n"), bpsize, bptype, symbolicname.c_str(), bp.addr);
     }
     else
     {
         if(*bp.name)
-            dprintf("Hardware breakpoint (%s%s) \"%s\" at " fhex "!\n", bpsize, bptype, bp.name, bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) \"%s\" at %p!\n"), bpsize, bptype, bp.name, bp.addr);
         else
-            dprintf("Hardware breakpoint (%s%s) at " fhex "!\n", bpsize, bptype, bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) at %p!\n"), bpsize, bptype, bp.addr);
     }
+    free(bptype);
 }
 
 static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
@@ -531,16 +534,16 @@ static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
     if(symbolicname.length())
     {
         if(*bp.name)
-            dprintf("Memory breakpoint%s \"%s\" at %s (" fhex ", " fhex ")!\n", bptype, bp.name, symbolicname.c_str(), bp.addr, ExceptionAddress);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s \"%s\" at %s (%p, %p)!\n"), bptype, bp.name, symbolicname.c_str(), bp.addr, ExceptionAddress);
         else
-            dprintf("Memory breakpoint%s at %s (" fhex ", " fhex ")!\n", bptype, symbolicname.c_str(), bp.addr, ExceptionAddress);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s at %s (%p, %p)!\n"), bptype, symbolicname.c_str(), bp.addr, ExceptionAddress);
     }
     else
     {
         if(*bp.name)
-            dprintf("Memory breakpoint%s \"%s\" at " fhex " (" fhex ")!\n", bptype, bp.name, bp.addr, ExceptionAddress);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s \"%s\" at %p (%p)!\n"), bptype, bp.name, bp.addr, ExceptionAddress);
         else
-            dprintf("Memory breakpoint%s at " fhex " (" fhex ")!\n", bptype, bp.addr, ExceptionAddress);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s at %p (%p)!\n"), bptype, bp.addr, ExceptionAddress);
     }
 }
 
@@ -746,7 +749,7 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     auto symbolicname = SymGetSymbolicName(CIP);
-    dprintf("User code reached at %s (" fhex ")!", symbolicname.c_str(), CIP);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "User code reached at %s (%p)!"), symbolicname.c_str(), CIP);
     // lock
     lock(WAITID_RUN);
     // Trace record
@@ -850,17 +853,17 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         {
             if(oldbytes != bp->oldbytes)
             {
-                dprintf("Breakpoint " fhex " has been disabled because the bytes don't match! Expected: %02X %02X, Found: %02X %02X\n",
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint %p has been disabled because the bytes don't match! Expected: %02X %02X, Found: %02X %02X\n"),
                         bp->addr,
                         ((unsigned char*)&bp->oldbytes)[0], ((unsigned char*)&bp->oldbytes)[1],
                         ((unsigned char*)&oldbytes)[0], ((unsigned char*)&oldbytes)[1]);
                 BpEnable(bp->addr, BPNORMAL, false);
             }
             else if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
-                dprintf("Could not set breakpoint " fhex "! (SetBPX)\n", bp->addr);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set breakpoint %p! (SetBPX)\n"), bp->addr);
         }
         else
-            dprintf("MemRead failed on breakpoint address" fhex "!\n", bp->addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "MemRead failed on breakpoint address%p!\n"), bp->addr);
     }
     break;
 
@@ -869,7 +872,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         duint size = 0;
         MemFindBaseAddr(bp->addr, &size);
         if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
-            dprintf("Could not set memory breakpoint " fhex "! (SetMemoryBPXEx)\n", bp->addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set memory breakpoint %p! (SetMemoryBPXEx)\n"), bp->addr);
     }
     break;
 
@@ -885,9 +888,9 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         TITANSETDRX(titantype, drx);
         BpSetTitanType(bp->addr, BPHARDWARE, titantype);
         if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), (void*)cbHardwareBreakpoint))
-            dprintf("Could not set hardware breakpoint " fhex "! (SetHardwareBreakPoint)\n", bp->addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set hardware breakpoint %p! (SetHardwareBreakPoint)\n"), bp->addr);
         else
-            dprintf("Set hardware breakpoint on " fhex "!\n", bp->addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Set hardware breakpoint on %p!\n"), bp->addr);
     }
     break;
 
@@ -910,15 +913,15 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
     {
     case BPNORMAL:
         if(!DeleteBPX(bp->addr))
-            dprintf("Could not delete breakpoint " fhex "! (DeleteBPX)\n", bp->addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete breakpoint %p! (DeleteBPX)\n"), bp->addr);
         break;
     case BPMEMORY:
         if(!RemoveMemoryBPX(bp->addr, 0))
-            dprintf("Could not delete memory breakpoint " fhex "! (RemoveMemoryBPX)\n", bp->addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete memory breakpoint %p! (RemoveMemoryBPX)\n"), bp->addr);
         break;
     case BPHARDWARE:
         if(!DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
-            dprintf("Could not delete hardware breakpoint " fhex "! (DeleteHardwareBreakPoint)\n", bp->addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete hardware breakpoint %p! (DeleteHardwareBreakPoint)\n"), bp->addr);
         break;
     default:
         break;
@@ -1010,7 +1013,7 @@ void cbTOCNDStep()
     else
     {
         auto steps = dbgcleartracecondition();
-        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
         cbRtrFinalStep();
     }
 }
@@ -1027,7 +1030,7 @@ void cbTICNDStep()
     else
     {
         auto steps = dbgcleartracecondition();
-        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
         cbRtrFinalStep();
     }
 }
@@ -1040,7 +1043,7 @@ void cbTIBTStep()
     if(!traceCondition)
     {
         _dbg_dbgtraceexecute(CIP);
-        dprintf("Bad tracing state.\n");
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Bad tracing state.\n"));
         cbRtrFinalStep();
         return;
     }
@@ -1048,7 +1051,7 @@ void cbTIBTStep()
     {
         _dbg_dbgtraceexecute(CIP);
         auto steps = dbgcleartracecondition();
-        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
         cbRtrFinalStep();
         return;
     }
@@ -1065,7 +1068,7 @@ void cbTOBTStep()
     if(!traceCondition)
     {
         _dbg_dbgtraceexecute(CIP);
-        dprintf("Bad tracing state.\n");
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Bad tracing state.\n"));
         cbRtrFinalStep();
         return;
     }
@@ -1073,7 +1076,7 @@ void cbTOBTStep()
     {
         _dbg_dbgtraceexecute(CIP);
         auto steps = dbgcleartracecondition();
-        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
         cbRtrFinalStep();
         return;
     }
@@ -1090,7 +1093,7 @@ void cbTIITStep()
     if(!traceCondition)
     {
         _dbg_dbgtraceexecute(CIP);
-        dprintf("Bad tracing state.\n");
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Bad tracing state.\n"));
         cbRtrFinalStep();
         return;
     }
@@ -1098,7 +1101,7 @@ void cbTIITStep()
     {
         _dbg_dbgtraceexecute(CIP);
         auto steps = dbgcleartracecondition();
-        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
         cbRtrFinalStep();
         return;
     }
@@ -1115,7 +1118,7 @@ void cbTOITStep()
     if(!traceCondition)
     {
         _dbg_dbgtraceexecute(CIP);
-        dprintf("Bad tracing state.\n");
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Bad tracing state.\n"));
         cbRtrFinalStep();
         return;
     }
@@ -1123,7 +1126,7 @@ void cbTOITStep()
     {
         _dbg_dbgtraceexecute(CIP);
         auto steps = dbgcleartracecondition();
-        dprintf("Trace finished after %" fext "u steps!\n", steps);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
         cbRtrFinalStep();
         return;
     }
@@ -1138,8 +1141,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     char DebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName) && !GetFileNameFromProcessHandle(CreateProcessInfo->hProcess, DebugFileName))
-        strcpy_s(DebugFileName, "??? (GetFileNameFromHandle failed)");
-    dprintf("Process Started: " fhex " %s\n", base, DebugFileName);
+        strcpy_s(DebugFileName, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Process Started: %p %s\n"), base, DebugFileName);
 
     //update memory map
     MemUpdateMap();
@@ -1181,10 +1184,10 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
             TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, &NumberOfCallBacks);
             if(NumberOfCallBacks)
             {
-                dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "TLS Callbacks: %d\n"), NumberOfCallBacks);
                 Memory<duint*> TLSCallBacks(NumberOfCallBacks * sizeof(duint), "cbCreateProcess:TLSCallBacks");
                 if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), TLSCallBacks(), &NumberOfCallBacks))
-                    dputs("Failed to get TLS callback addresses!");
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get TLS callback addresses!"));
                 else
                 {
                     duint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, UE_IMAGEBASE);
@@ -1194,21 +1197,21 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                         duint callbackVA = TLSCallBacks()[i] - ImageBase + pDebuggedBase;
                         if(MemIsValidReadPtr(callbackVA))
                         {
-                            sprintf_s(command, "bp " fhex ",\"TLS Callback %d\",ss", callbackVA, i + 1);
+                            sprintf_s(command, "bp %p,\"TLS Callback %d\",ss", callbackVA, i + 1);
                             cmddirectexec(command);
                         }
                         else
                             invalidCount++;
                     }
                     if(invalidCount)
-                        dprintf("%d invalid TLS callback addresses...\n", invalidCount);
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "%d invalid TLS callback addresses...\n"), invalidCount);
                 }
             }
         }
 
         if(settingboolget("Events", "EntryBreakpoint"))
         {
-            sprintf_s(command, "bp " fhex ",\"entry breakpoint\",ss", (duint)CreateProcessInfo->lpStartAddress);
+            sprintf_s(command, "bp %p,\"entry breakpoint\",ss", (duint)CreateProcessInfo->lpStartAddress);
             cmddirectexec(command);
         }
 
@@ -1259,7 +1262,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 {
-    dprintf("Process stopped with exit code 0x%X\n", ExitProcess->dwExitCode);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Process stopped with exit code 0x%X\n"), ExitProcess->dwExitCode);
     PLUG_CB_EXITPROCESS callbackInfo;
     callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
@@ -1281,7 +1284,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     if(settingboolget("Events", "ThreadEntry"))
     {
         char command[256] = "";
-        sprintf(command, "bp " fhex ",\"Thread %X\",ss", (duint)CreateThread->lpStartAddress, dwThreadId);
+        sprintf(command, "bp %p,\"Thread %X\",ss", (duint)CreateThread->lpStartAddress, dwThreadId);
         cmddirectexec(command);
     }
 
@@ -1290,7 +1293,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     callbackInfo.dwThreadId = dwThreadId;
     plugincbcall(CB_CREATETHREAD, &callbackInfo);
 
-    dprintf("Thread %X created, Entry: " fhex "\n", dwThreadId, CreateThread->lpStartAddress);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X created, Entry: %p\n"), dwThreadId, CreateThread->lpStartAddress);
 
     if(settingboolget("Events", "ThreadStart"))
     {
@@ -1330,7 +1333,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     plugincbcall(CB_EXITTHREAD, &callbackInfo);
     HistoryClear();
     ThreadExit(dwThreadId);
-    dprintf("Thread %X exit\n", dwThreadId);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X exit\n"), dwThreadId);
 
     if(settingboolget("Events", "ThreadEnd"))
     {
@@ -1414,7 +1417,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         if(settingboolget("Events", "EntryBreakpoint"))
         {
             bAlreadySetEntry = true;
-            sprintf(command, "bp " fhex ",\"entry breakpoint\",ss", pDebuggedBase + pDebuggedEntry);
+            sprintf(command, "bp %p,\"entry breakpoint\",ss", pDebuggedBase + pDebuggedEntry);
             cmddirectexec(command);
         }
     }
@@ -1426,7 +1429,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, &NumberOfCallBacks);
         if(NumberOfCallBacks)
         {
-            dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "TLS Callbacks: %d\n"), NumberOfCallBacks);
             Memory<duint*> TLSCallBacks(NumberOfCallBacks * sizeof(duint), "cbLoadDll:TLSCallBacks");
             if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), TLSCallBacks(), &NumberOfCallBacks))
                 dputs("Failed to get TLS callback addresses!");
@@ -1440,16 +1443,16 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                     if(MemIsValidReadPtr(callbackVA))
                     {
                         if(bIsDebuggingThis)
-                            sprintf(command, "bp " fhex ",\"TLS Callback %d\",ss", callbackVA, i + 1);
+                            sprintf(command, "bp %p,\"TLS Callback %d\",ss", callbackVA, i + 1);
                         else
-                            sprintf(command, "bp " fhex ",\"TLS Callback %d (%s)\",ss", callbackVA, i + 1, modname);
+                            sprintf(command, "bp %p,\"TLS Callback %d (%s)\",ss", callbackVA, i + 1, modname);
                         cmddirectexec(command);
                     }
                     else
                         invalidCount++;
                 }
                 if(invalidCount)
-                    dprintf("%d invalid TLS callback addresses...\n", invalidCount);
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "%d invalid TLS callback addresses...\n"), invalidCount);
             }
         }
     }
@@ -1460,12 +1463,12 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         if(oep)
         {
             char command[256] = "";
-            sprintf(command, "bp " fhex ",\"DllMain (%s)\",ss", oep + (duint)base, modname);
+            sprintf(command, "bp %p,\"DllMain (%s)\",ss", oep + (duint)base, modname);
             cmddirectexec(command);
         }
     }
 
-    dprintf("DLL Loaded: " fhex " %s\n", base, DLLDebugFileName);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Loaded: %p %s\n"), base, DLLDebugFileName);
 
     //plugin callback
     PLUG_CB_LOADDLL callbackInfo;
@@ -1527,7 +1530,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         BpEnumAll(cbRemoveModuleBreakpoints, modname, duint(base));
     GuiUpdateBreakpointsView();
     SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
-    dprintf("DLL Unloaded: " fhex " %s\n", base, modname);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Unloaded: %p %s\n"), base, modname);
 
     if(bBreakOnNextDll || settingboolget("Events", "DllUnload"))
     {
@@ -1566,7 +1569,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
             if(str != lastDebugText)  //fix for every string being printed twice
             {
                 if(str != "\n")
-                    dprintf("DebugString: \"%s\"\n", StringUtils::Escape(str).c_str());
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "DebugString: \"%s\"\n"), StringUtils::Escape(str).c_str());
                 lastDebugText = str;
             }
             else
@@ -1648,7 +1651,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             if(MemRead((duint)nameInfo.szName, ThreadName(), MAX_THREAD_NAME_SIZE - 1))
             {
                 String ThreadNameEscaped = StringUtils::Escape(ThreadName());
-                dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "SetThreadName(%X, \"%s\")\n"), nameInfo.dwThreadID, ThreadNameEscaped.c_str());
                 ThreadSetName(nameInfo.dwThreadID, ThreadNameEscaped.c_str());
             }
         }
@@ -1659,9 +1662,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     if(ExceptionData->dwFirstChance) //first chance exception
     {
         if(exceptionName.size())
-            dprintf("First chance exception on " fhex " (%.8X, %s)!\n", addr, ExceptionCode, exceptionName.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "First chance exception on %p (%.8X, %s)!\n"), addr, ExceptionCode, exceptionName.c_str());
         else
-            dprintf("First chance exception on " fhex " (%.8X)!\n", addr, ExceptionCode);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "First chance exception on %p (%.8X)!\n"), addr, ExceptionCode);
         SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
         if(bSkipExceptions || dbgisignoredexception(ExceptionCode))
             return;
@@ -1669,9 +1672,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     else //lock the exception
     {
         if(exceptionName.size())
-            dprintf("Last chance exception on " fhex " (%.8X, %s)!\n", addr, ExceptionCode, exceptionName.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Last chance exception on %p (%.8X, %s)!\n"), addr, ExceptionCode, exceptionName.c_str());
         else
-            dprintf("Last chance exception on " fhex " (%.8X)!\n", addr, ExceptionCode);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Last chance exception on %p (%.8X)!\n"), addr, ExceptionCode);
         SetNextDbgContinueStatus(DBG_CONTINUE);
     }
 
@@ -1701,12 +1704,12 @@ bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
         return true;
     if(!BpDelete(bp->addr, BPNORMAL))
     {
-        dprintf("Delete breakpoint failed (BpDelete): " fhex "\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (BpDelete): %p\n"), bp->addr);
         return false;
     }
     if(bp->enabled && !DeleteBPX(bp->addr))
     {
-        dprintf("Delete breakpoint failed (DeleteBPX): " fhex "\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), bp->addr);
         return false;
     }
     return true;
@@ -1721,12 +1724,12 @@ bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
     {
         if(!MemIsValidReadPtr(bp->addr))
             return true;
-        dprintf("Could not enable breakpoint " fhex " (SetBPX)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable breakpoint %p (SetBPX)\n"), bp->addr);
         return false;
     }
     if(!BpEnable(bp->addr, BPNORMAL, true))
     {
-        dprintf("Could not enable breakpoint " fhex " (BpEnable)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
     return true;
@@ -1739,12 +1742,12 @@ bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
 
     if(!BpEnable(bp->addr, BPNORMAL, false))
     {
-        dprintf("Could not disable breakpoint " fhex " (BpEnable)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
     if(!DeleteBPX(bp->addr))
     {
-        dprintf("Could not disable breakpoint " fhex " (DeleteBPX)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (DeleteBPX)\n"), bp->addr);
         return false;
     }
     return true;
@@ -1757,7 +1760,7 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
     DWORD drx = 0;
     if(!GetUnusedHardwareBreakPointRegister(&drx))
     {
-        dprintf("Did not enable hardware breakpoint " fhex " (all slots full)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Did not enable hardware breakpoint %p (all slots full)\n"), bp->addr);
         return true;
     }
     int titantype = bp->titantype;
@@ -1765,12 +1768,12 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
     BpSetTitanType(bp->addr, BPHARDWARE, titantype);
     if(!BpEnable(bp->addr, BPHARDWARE, true))
     {
-        dprintf("Could not enable hardware breakpoint " fhex " (BpEnable)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable hardware breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
     if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), (void*)cbHardwareBreakpoint))
     {
-        dprintf("Could not enable hardware breakpoint " fhex " (SetHardwareBreakPoint)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable hardware breakpoint %p (SetHardwareBreakPoint)\n"), bp->addr);
         return false;
     }
     return true;
@@ -1782,12 +1785,12 @@ bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
         return true;
     if(!BpEnable(bp->addr, BPHARDWARE, false))
     {
-        dprintf("Could not disable hardware breakpoint " fhex " (BpEnable)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
     if(bp->enabled && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
-        dprintf("Could not disable hardware breakpoint " fhex " (DeleteHardwareBreakPoint)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (DeleteHardwareBreakPoint)\n"), bp->addr);
         return false;
     }
     return true;
@@ -1801,12 +1804,12 @@ bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
     MemFindBaseAddr(bp->addr, &size);
     if(!BpEnable(bp->addr, BPMEMORY, true))
     {
-        dprintf("Could not enable memory breakpoint " fhex " (BpEnable)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
     if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
     {
-        dprintf("Could not enable memory breakpoint " fhex " (SetMemoryBPXEx)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (SetMemoryBPXEx)\n"), bp->addr);
         return false;
     }
     return true;
@@ -1818,12 +1821,12 @@ bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
         return true;
     if(!BpEnable(bp->addr, BPMEMORY, false))
     {
-        dprintf("Could not disable memory breakpoint " fhex " (BpEnable)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable memory breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
     if(!RemoveMemoryBPX(bp->addr, 0))
     {
-        dprintf("Could not disable memory breakpoint " fhex " (RemoveMemoryBPX)\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable memory breakpoint %p (RemoveMemoryBPX)\n"), bp->addr);
         return false;
     }
     return true;
@@ -1845,9 +1848,9 @@ bool cbBreakpointList(const BREAKPOINT* bp)
         type = "GP";
     bool enabled = bp->enabled;
     if(*bp->name)
-        dprintf("%d:%s:" fhex ":\"%s\"\n", enabled, type, bp->addr, bp->name);
+        dprintf("%d:%s:%p:\"%s\"\n", enabled, type, bp->addr, bp->name);
     else
-        dprintf("%d:%s:" fhex "\n", enabled, type, bp->addr);
+        dprintf("%d:%s:%p\n", enabled, type, bp->addr);
     return true;
 }
 
@@ -1859,12 +1862,12 @@ bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
     MemFindBaseAddr(bp->addr, &size);
     if(!BpDelete(bp->addr, BPMEMORY))
     {
-        dprintf("Delete memory breakpoint failed (BpDelete): " fhex "\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed (BpDelete): %p\n"), bp->addr);
         return false;
     }
     if(bp->enabled && !RemoveMemoryBPX(bp->addr, size))
     {
-        dprintf("Delete memory breakpoint failed (RemoveMemoryBPX): " fhex "\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed (RemoveMemoryBPX): %p\n"), bp->addr);
         return false;
     }
     return true;
@@ -1876,12 +1879,12 @@ bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
         return true;
     if(!BpDelete(bp->addr, BPHARDWARE))
     {
-        dprintf("Delete hardware breakpoint failed (BpDelete): " fhex "\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed (BpDelete): %p\n"), bp->addr);
         return false;
     }
     if(bp->enabled && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
-        dprintf("Delete hardware breakpoint failed (DeleteHardwareBreakPoint): " fhex "\n", bp->addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed (DeleteHardwareBreakPoint): %p\n"), bp->addr);
         return false;
     }
     return true;
@@ -2229,7 +2232,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         if(!fdProcessInfo)
         {
             fdProcessInfo = &g_pi;
-            dprintf("Error starting process (CreateProcess, %s)!\n", ErrorCodeToName(GetLastError()).c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), ErrorCodeToName(GetLastError()).c_str());
             unlock(WAITID_STOP);
             return;
         }

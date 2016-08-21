@@ -42,6 +42,9 @@
 #ifndef DLL_IMPORT
 #define DLL_IMPORT __declspec(dllimport)
 #endif //DLL_IMPORT
+#ifndef QT_TRANSLATE_NOOP
+#define QT_TRANSLATE_NOOP(context, source) source
+#endif //QT_TRANSLATE_NOOP
 
 //defines
 #define deflen 1024

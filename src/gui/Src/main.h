@@ -22,6 +22,7 @@ public:
 
 int main(int argc, char* argv[]);
 extern char currentLocale[MAX_SETTING_SIZE];
+extern bool translationsReady;
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 class x64GlobalFilter : public QAbstractNativeEventFilter

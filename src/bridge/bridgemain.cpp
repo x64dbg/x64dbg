@@ -65,6 +65,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     LOADLIBRARY(gui_lib);
     LOADEXPORT(_gui_guiinit);
     LOADEXPORT(_gui_sendmessage);
+    LOADEXPORT(_gui_translate_dbg);
 
     //DBG Load
     LOADLIBRARY(dbg_lib);
@@ -1480,6 +1481,11 @@ BRIDGE_IMPEXP void GuiSetFavouriteToolShortcut(const char* name, const char* sho
 BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length)
 {
     _gui_sendmessage(GUI_FOLD_DISASSEMBLY, (void*)startAddress, (void*)length);
+}
+
+BRIDGE_IMPEXP const char* GuiTranslateDbg(const char* Source)
+{
+    return _gui_translate_dbg(Source);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

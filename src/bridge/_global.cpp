@@ -2,6 +2,7 @@
 
 GUIGUIINIT _gui_guiinit;
 GUISENDMESSAGE _gui_sendmessage;
+GUITRANSLATEDBG _gui_translate_dbg;
 
 DBGDBGINIT _dbg_dbginit;
 DBGMEMFINDBASEADDR _dbg_memfindbaseaddr;

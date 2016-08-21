@@ -663,3 +663,19 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 {
     return Bridge::getBridge()->processMessage(type, param1, param2);
 }
+
+static char translateBuffer[4096] = {0};
+
+__declspec(dllexport) const char* _gui_translate_dbg(const char* source)
+{
+    if(translationsReady)
+    {
+        QByteArray translatedUtf8 = QCoreApplication::translate("DBG", source).toUtf8();
+        translateBuffer[translatedUtf8.size()] = 0; // Set the string terminator first.
+        memcpy(translateBuffer, translatedUtf8.constData(), std::min((size_t)translatedUtf8.size(), sizeof(translateBuffer) - 1)); // Then copy the string safely.
+        return translateBuffer; // Don't need to free this memory. But this pointer should be used immediately to reduce race condition.
+        //Use a thread-local buffer is probably better.
+    }
+    else // Translators are not initialized yet.
+        return source;
+}
