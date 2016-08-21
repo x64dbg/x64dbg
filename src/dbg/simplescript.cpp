@@ -79,7 +79,8 @@ static bool scriptcreatelinemap(const char* filename)
     String filedata;
     if(!FileHelper::ReadAllText(filename, filedata))
     {
-        GuiScriptError(0, "FileHelper::ReadAllText failed...");
+        String TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "FileHelper::ReadAllText failed..."));
+        GuiScriptError(0, TranslatedString.c_str());
         return false;
     }
     auto len = filedata.length();
@@ -305,7 +306,8 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
     {
         if(!scriptstack.size()) //nothing on the stack
         {
-            GuiScriptMessage("Script finished!");
+            String TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Script finished!"));
+            GuiScriptMessage(TranslatedString.c_str());
             return STATUS_EXIT;
         }
         scriptIp = scriptstack.back(); //set scriptIp to the call address (scriptinternalstep will step over it)

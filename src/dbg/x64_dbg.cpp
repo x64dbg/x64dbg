@@ -41,7 +41,7 @@ static CMDRESULT cbStrLen(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
         return STATUS_ERROR;
     }
     dprintf("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
@@ -69,7 +69,7 @@ static CMDRESULT cbScriptDll(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
         return STATUS_ERROR;
     }
     return DbgScriptDllExec(argv[1]) ? STATUS_CONTINUE : STATUS_ERROR;
@@ -373,13 +373,13 @@ static DWORD WINAPI DbgScriptDllExecThread(void* a)
     auto hScriptDll = info->hScriptDll;
     delete info;
 
-    dprintf("[Script DLL] Calling export \"AsyncStart\"...\n");
+    dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Calling export \"AsyncStart\"...\n"));
     AsyncStart();
-    dprintf("[Script DLL] \"AsyncStart\" returned!\n");
+    dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] \"AsyncStart\" returned!\n"));
 
-    dprintf("[Script DLL] Calling FreeLibrary...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Calling FreeLibrary..."));
     if(FreeLibrary(hScriptDll))
-        dprintf("success!\n");
+        dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
     else
         dprintf("failure (%08X)...\n", GetLastError());
 
@@ -402,7 +402,7 @@ static bool DbgScriptDllExec(const char* dll)
         auto AsyncStart = SCRIPTDLLSTART(GetProcAddress(hScriptDll, "AsyncStart"));
         if(AsyncStart)
         {
-            dprintf("[Script DLL] Creating thread to call the export \"AsyncStart\"...\n");
+            dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Creating thread to call the export \"AsyncStart\"...\n"));
             CloseHandle(CreateThread(nullptr, 0, DbgScriptDllExecThread, new DLLSCRIPTEXECTHREADINFO(hScriptDll, AsyncStart), 0, nullptr)); //on-purpose memory leak here
         }
         else
@@ -410,16 +410,16 @@ static bool DbgScriptDllExec(const char* dll)
             auto Start = SCRIPTDLLSTART(GetProcAddress(hScriptDll, "Start"));
             if(Start)
             {
-                dprintf("[Script DLL] Calling export \"Start\"...\n");
+                dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Calling export \"Start\"...\n"));
                 Start();
-                dprintf("[Script DLL] \"Start\" returned!\n");
+                dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] \"Start\" returned!\n"));
             }
             else
                 dprintf("[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%08X)!\n", GetLastError());
 
             dprintf("[Script DLL] Calling FreeLibrary...");
             if(FreeLibrary(hScriptDll))
-                dprintf("success!\n");
+                dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
             else
                 dprintf("failure (%08X)...\n", GetLastError());
         }
@@ -451,7 +451,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Yara..."));
     if(yr_initialize() != ERROR_SUCCESS)
         return "Failed to initialize Yara!";
-    dputs("Getting directory information...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Getting directory information..."));
     wchar_t wszDir[deflen] = L"";
     if(!GetModuleFileNameW(hInst, wszDir, deflen))
         return "GetModuleFileNameW failed!";
@@ -466,7 +466,9 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy_s(scriptDllDir, dir);
     strcat_s(scriptDllDir, "\\scripts\\");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
+#ifdef ENABLE_MEM_TRACE
     setalloctrace(alloctrace);
+#endif //ENABLE_MEM_TRACE
     initDataInstMap();
 
     // Load mnemonic help database
@@ -584,33 +586,33 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 {
-    dputs("Stopping running debuggee...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Stopping running debuggee..."));
     cbDebugStop(0, 0);
-    dputs("Aborting scripts...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Aborting scripts..."));
     scriptabort();
-    dputs("Waiting for the debuggee to be stopped...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Waiting for the debuggee to be stopped..."));
     wait(WAITID_STOP); //after this, debugging stopped
-    dputs("Unloading plugins...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Unloading plugins..."));
     pluginunload();
-    dputs("Stopping command thread...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Stopping command thread..."));
     bStopCommandLoopThread = true;
     MsgFreeStack(gMsgStack);
     WaitForThreadTermination(hCommandLoopThread);
-    dputs("Cleaning up allocated data...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up allocated data..."));
     cmdfree();
     varfree();
     yr_finalize();
     Capstone::GlobalFinalize();
-    dputs("Checking for mem leaks...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Checking for mem leaks..."));
     if(memleaks())
-        dprintf("%d memory leak(s) found!\n", memleaks());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "%d memory leak(s) found!\n"), memleaks());
     else
         DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
-    dputs("Cleaning up wait objects...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));
     waitdeinitialize();
-    dputs("Cleaning up debugger threads...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up debugger threads..."));
     dbgstop();
-    dputs("Saving notes...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Saving notes..."));
     char* text = nullptr;
     GuiGetGlobalNotes(&text);
     if(text)
@@ -620,7 +622,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     }
     else
         DeleteFileW(StringUtils::Utf8ToUtf16(notesFile).c_str());
-    dputs("Exit signal processed successfully!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Exit signal processed successfully!"));
     bIsStopped = true;
 }
 

@@ -635,7 +635,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     if(!(bpPtr && bpPtr->enabled))  //invalid / disabled breakpoint hit (most likely a bug)
     {
         SHARED_RELEASE();
-        dputs("Breakpoint reached not in list!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint reached not in list!"));
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
         lock(WAITID_RUN);
@@ -881,7 +881,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         DWORD drx = 0;
         if(!GetUnusedHardwareBreakPointRegister(&drx))
         {
-            dputs("You can only set 4 hardware breakpoints");
+            dputs(QT_TRANSLATE_NOOP("DBG", "You can only set 4 hardware breakpoints"));
             return false;
         }
         int titantype = bp->titantype;
@@ -1323,7 +1323,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         std::vector<THREADINFO> threads;
         ThreadGetList(threads);
         if(!threads.size())
-            dputs("No threads left to switch to (bug?)");
+            dputs(QT_TRANSLATE_NOOP("DBG", "No threads left to switch to (bug?)"));
         hActiveThread = threads[0].Handle;
     }
     DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
@@ -1360,9 +1360,9 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
 
     //log message
     if(bIsAttached)
-        dputs("Attach breakpoint reached!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Attach breakpoint reached!"));
     else
-        dputs("System breakpoint reached!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "System breakpoint reached!"));
     bSkipExceptions = false; //we are not skipping first-chance exceptions
 
     //plugin callbacks
@@ -1432,7 +1432,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
             dprintf(QT_TRANSLATE_NOOP("DBG", "TLS Callbacks: %d\n"), NumberOfCallBacks);
             Memory<duint*> TLSCallBacks(NumberOfCallBacks * sizeof(duint), "cbLoadDll:TLSCallBacks");
             if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), TLSCallBacks(), &NumberOfCallBacks))
-                dputs("Failed to get TLS callback addresses!");
+                dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get TLS callback addresses!"));
             else
             {
                 duint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, UE_IMAGEBASE);
@@ -1610,15 +1610,15 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             detachInfo.fdProcessInfo = fdProcessInfo;
             plugincbcall(CB_DETACH, &detachInfo);
             if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
-                dputs("DetachDebuggerEx failed...");
+                dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
             else
-                dputs("Detached!");
+                dputs(QT_TRANSLATE_NOOP("DBG", "Detached!"));
             isDetachedByUser = false;
             return;
         }
         else if(isPausedByUser)
         {
-            dputs("paused!");
+            dputs(QT_TRANSLATE_NOOP("DBG", "paused!"));
             SetNextDbgContinueStatus(DBG_CONTINUE);
             //update memory map
             MemUpdateMap();
@@ -1910,9 +1910,9 @@ void cbDetach()
     detachInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_DETACH, &detachInfo);
     if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
-        dputs("DetachDebuggerEx failed...");
+        dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
     else
-        dputs("Detached!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Detached!"));
     return;
 }
 
@@ -2241,7 +2241,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         BOOL wow64 = false, mewow64 = false;
         if(!IsWow64Process(fdProcessInfo->hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
         {
-            dputs("IsWow64Process failed!");
+            dputs(QT_TRANSLATE_NOOP("DBG", "IsWow64Process failed!"));
             StopDebug();
             unlock(WAITID_STOP);
             return;
@@ -2249,9 +2249,9 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         if((mewow64 && !wow64) || (!mewow64 && wow64))
         {
 #ifdef _WIN64
-            dputs("Use x32dbg to debug this process!");
+            dputs(QT_TRANSLATE_NOOP("DBG", "Use x32dbg to debug this process!"));
 #else
-            dputs("Use x64dbg to debug this process!");
+            dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this process!"));
 #endif // _WIN64
             unlock(WAITID_STOP);
             return;
@@ -2336,7 +2336,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     TraceRecord.clear();
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
-    dputs("Debugging stopped!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Debugging stopped!"));
     varset("$hp", (duint)0, true);
     varset("$pid", (duint)0, true);
     if(hProcessToken)
