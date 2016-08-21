@@ -47,7 +47,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     char szResolvedPath[MAX_PATH] = "";
     if(ResolveShortcut(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(arg1).c_str(), szResolvedPath, _countof(szResolvedPath)))
     {
-        dprintf("Resolved shortcut \"%s\"->\"%s\"\n", arg1, szResolvedPath);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved shortcut \"%s\"->\"%s\"\n"), arg1, szResolvedPath);
         strcpy_s(arg1, szResolvedPath);
     }
     if(!FileExists(arg1))
@@ -205,7 +205,7 @@ CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
     }
     SetBPXOptions(type);
     BridgeSettingSetUint("Engine", "BreakpointType", setting_type);
-    dprintf("Default breakpoint type set to: %s\n", strType);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Default breakpoint type set to: %s\n"), strType);
     return STATUS_CONTINUE;
 }
 
@@ -234,7 +234,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     duint addr = 0;
     if(!valfromstring(argaddr, &addr))
     {
-        dprintf("Invalid addr: \"%s\"\n", argaddr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid addr: \"%s\"\n"), argaddr);
         return STATUS_ERROR;
     }
     int type = 0;
@@ -266,17 +266,17 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     }
     if(IsBPXEnabled(addr))
     {
-        dprintf("Error setting breakpoint at %p! (IsBPXEnabled)\n", addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (IsBPXEnabled)\n"), addr);
         return STATUS_ERROR;
     }
     if(!MemRead(addr, &oldbytes, sizeof(short)))
     {
-        dprintf("Error setting breakpoint at %p! (memread)\n", addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (memread)\n"), addr);
         return STATUS_ERROR;
     }
     if(!BpNew(addr, true, singleshoot, oldbytes, BPNORMAL, type, bpname))
     {
-        dprintf("Error setting breakpoint at %p! (bpnew)\n", addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (bpnew)\n"), addr);
         return STATUS_ERROR;
     }
     GuiUpdateAllViews();
@@ -284,10 +284,10 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     {
         if(!MemIsValidReadPtr(addr))
             return STATUS_CONTINUE;
-        dprintf("Error setting breakpoint at %p! (SetBPX)\n", addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), addr);
         return STATUS_ERROR;
     }
-    dprintf("Breakpoint at %p set!\n", addr);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint at %p set!\n"), addr);
     return STATUS_CONTINUE;
 }
 
@@ -314,7 +314,7 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
     {
         if(!BpDelete(found.addr, BPNORMAL))
         {
-            dprintf("Delete breakpoint failed (bpdel): %p\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (bpdel): %p\n"), found.addr);
             return STATUS_ERROR;
         }
         if(found.enabled && !DeleteBPX(found.addr))
@@ -322,7 +322,7 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
             GuiUpdateAllViews();
             if(!MemIsValidReadPtr(found.addr))
                 return STATUS_CONTINUE;
-            dprintf("Delete breakpoint failed (DeleteBPX): %p\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), found.addr);
             return STATUS_ERROR;
         }
         return STATUS_CONTINUE;
@@ -330,12 +330,12 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
-        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!BpDelete(found.addr, BPNORMAL))
     {
-        dprintf("Delete breakpoint failed (bpdel): %p\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (bpdel): %p\n"), found.addr);
         return STATUS_ERROR;
     }
     if(found.enabled && !DeleteBPX(found.addr))
@@ -343,7 +343,7 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
         GuiUpdateAllViews();
         if(!MemIsValidReadPtr(found.addr))
             return STATUS_CONTINUE;
-        dprintf("Delete breakpoint failed (DeleteBPX): %p\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), found.addr);
         return STATUS_ERROR;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint deleted!"));
@@ -371,12 +371,12 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
     {
         if(!SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
         {
-            dprintf("Could not enable breakpoint %p (SetBPX)\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable breakpoint %p (SetBPX)\n"), found.addr);
             return STATUS_ERROR;
         }
         if(!BpEnable(found.addr, BPNORMAL, true))
         {
-            dprintf("Could not enable breakpoint %p (BpEnable)\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable breakpoint %p (BpEnable)\n"), found.addr);
             return STATUS_ERROR;
         }
         GuiUpdateAllViews();
@@ -385,7 +385,7 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
-        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(found.enabled)
@@ -396,12 +396,12 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
     }
     if(!SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
     {
-        dprintf("Could not enable breakpoint %p (SetBPX)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable breakpoint %p (SetBPX)\n"), found.addr);
         return STATUS_ERROR;
     }
     if(!BpEnable(found.addr, BPNORMAL, true))
     {
-        dprintf("Could not enable breakpoint %p (BpEnable)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable breakpoint %p (BpEnable)\n"), found.addr);
         return STATUS_ERROR;
     }
     GuiUpdateAllViews();
@@ -429,7 +429,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     {
         if(!BpEnable(found.addr, BPNORMAL, false))
         {
-            dprintf("Could not disable breakpoint %p (BpEnable)\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (BpEnable)\n"), found.addr);
             return STATUS_ERROR;
         }
         if(!DeleteBPX(found.addr))
@@ -437,7 +437,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
             GuiUpdateAllViews();
             if(!MemIsValidReadPtr(found.addr))
                 return STATUS_CONTINUE;
-            dprintf("Could not disable breakpoint %p (DeleteBPX)\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (DeleteBPX)\n"), found.addr);
             return STATUS_ERROR;
         }
         GuiUpdateAllViews();
@@ -446,7 +446,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
-        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!found.enabled)
@@ -456,7 +456,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     }
     if(!BpEnable(found.addr, BPNORMAL, false))
     {
-        dprintf("Could not disable breakpoint %p (BpEnable)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (BpEnable)\n"), found.addr);
         return STATUS_ERROR;
     }
     if(!DeleteBPX(found.addr))
@@ -464,7 +464,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
         GuiUpdateAllViews();
         if(!MemIsValidReadPtr(found.addr))
             return STATUS_CONTINUE;
-        dprintf("Could not disable breakpoint %p (DeleteBPX)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (DeleteBPX)\n"), found.addr);
         return STATUS_ERROR;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint disabled!"));
@@ -472,7 +472,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], const char* description, std::function<bool(duint, BP_TYPE, const char*)> setFunction)
+static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], const String & description, std::function<bool(duint, BP_TYPE, const char*)> setFunction)
 {
     BREAKPOINT bp;
     if(argc < 2)
@@ -486,12 +486,12 @@ static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], c
 
     if(!BpGetAny(Type, argv[1], &bp))
     {
-        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!setFunction(bp.addr, Type, value))
     {
-        dprintf("Can't set %s on breakpoint \"%s\"\n", description, argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set %s on breakpoint \"%s\"\n"), description, argv[1]);
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
@@ -499,32 +499,32 @@ static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], c
 
 static CMDRESULT cbDebugSetBPXNameCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, "name", BpSetName);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "breakpoint name"))), BpSetName);
 }
 
 static CMDRESULT cbDebugSetBPXConditionCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, "break condition", BpSetBreakCondition);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "break condition"))), BpSetBreakCondition);
 }
 
 static CMDRESULT cbDebugSetBPXLogCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, "logging text", BpSetLogText);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "logging text"))), BpSetLogText);
 }
 
 static CMDRESULT cbDebugSetBPXLogConditionCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, "logging condition", BpSetLogCondition);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "logging condition"))), BpSetLogCondition);
 }
 
 static CMDRESULT cbDebugSetBPXCommandCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, "command on hit", BpSetCommandText);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "command on hit"))), BpSetCommandText);
 }
 
 static CMDRESULT cbDebugSetBPXCommandConditionCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, "command condition", BpSetCommandCondition);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "command condition"))), BpSetCommandCondition);
 }
 
 static CMDRESULT cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
@@ -537,7 +537,7 @@ static CMDRESULT cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[
     BREAKPOINT bp;
     if(!BpGetAny(Type, argv[1], &bp))
     {
-        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     varset("$result", bp.hitcount, false);
@@ -559,12 +559,12 @@ static CMDRESULT cbDebugResetBPXHitCountCommon(BP_TYPE Type, int argc, char* arg
     BREAKPOINT bp;
     if(!BpGetAny(Type, argv[1], &bp))
     {
-        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!BpResetHitCount(bp.addr, Type, (uint32)value))
     {
-        dprintf("Can't set hit count on breakpoint \"%s\"", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set hit count on breakpoint \"%s\""), argv[1]);
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
@@ -589,12 +589,12 @@ static CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* arg
     }
     if(!BpGetAny(Type, argv[1], &bp))
     {
-        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!BpSetFastResume(bp.addr, Type, fastResume))
     {
-        dprintf("Can't set fast resume on breakpoint \"%1\"", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set fast resume on breakpoint \"%1\""), argv[1]);
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
@@ -618,12 +618,12 @@ static CMDRESULT cbDebugSetBPXSilentCommon(BP_TYPE Type, int argc, char* argv[])
     }
     if(!BpGetAny(Type, argv[1], &bp))
     {
-        dprintf("No such breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!BpSetSilent(bp.addr, Type, silent))
     {
-        dprintf("Can't set fast resume on breakpoint \"%1\"", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set fast resume on breakpoint \"%1\""), argv[1]);
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
@@ -849,7 +849,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         }
         if((addr % size) != 0)
         {
-            dprintf("Address not aligned to %d\n", size);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Address not aligned to %d\n"), size);
             return STATUS_ERROR;
         }
     }
@@ -882,7 +882,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting hardware breakpoint (TitanEngine)!"));
         return STATUS_ERROR;
     }
-    dprintf("Hardware breakpoint at %p set!\n", addr);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint at %p set!\n"), addr);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -907,12 +907,12 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
     {
         if(!BpDelete(found.addr, BPHARDWARE))
         {
-            dprintf("Delete hardware breakpoint failed: %p (BpDelete)\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (BpDelete)\n"), found.addr);
             return STATUS_ERROR;
         }
         if(!DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
         {
-            dprintf("Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), found.addr);
             return STATUS_ERROR;
         }
         return STATUS_CONTINUE;
@@ -920,17 +920,17 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPHARDWARE, 0, &found))  //invalid breakpoint
     {
-        dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such hardware breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!BpDelete(found.addr, BPHARDWARE))
     {
-        dprintf("Delete hardware breakpoint failed: %p (BpDelete)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (BpDelete)\n"), found.addr);
         return STATUS_ERROR;
     }
     if(!DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
     {
-        dprintf("Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), found.addr);
         return STATUS_ERROR;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint deleted!"));
@@ -963,7 +963,7 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPHARDWARE, 0, &found))  //invalid hardware breakpoint
     {
-        dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such hardware breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(found.enabled)
@@ -976,12 +976,12 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
     BpSetTitanType(found.addr, BPHARDWARE, found.titantype);
     if(!SetHardwareBreakPoint(found.addr, drx, TITANGETTYPE(found.titantype), TITANGETSIZE(found.titantype), (void*)cbHardwareBreakpoint))
     {
-        dprintf("Could not enable hardware breakpoint %p (SetHardwareBreakpoint)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable hardware breakpoint %p (SetHardwareBreakpoint)\n"), found.addr);
         return STATUS_ERROR;
     }
     if(!BpEnable(found.addr, BPHARDWARE, true))
     {
-        dprintf("Could not enable hardware breakpoint %p (BpEnable)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable hardware breakpoint %p (BpEnable)\n"), found.addr);
         return STATUS_ERROR;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint enabled!"));
@@ -1008,7 +1008,7 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPHARDWARE, 0, &found))  //invalid hardware breakpoint
     {
-        dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such hardware breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!found.enabled)
@@ -1018,12 +1018,12 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
     }
     if(!BpEnable(found.addr, BPHARDWARE, false))
     {
-        dprintf("Could not disable hardware breakpoint %p (BpEnable)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (BpEnable)\n"), found.addr);
         return STATUS_ERROR;
     }
     if(!DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
     {
-        dprintf("Could not disable hardware breakpoint %p (DeleteHardwareBreakpoint)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (DeleteHardwareBreakpoint)\n"), found.addr);
         return STATUS_ERROR;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint disabled!"));
@@ -1101,7 +1101,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (SetMemoryBPXEx)"));
         return STATUS_ERROR;
     }
-    dprintf("Memory breakpoint at %p set!\n", addr);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint at %p set!\n"), addr);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -1128,12 +1128,12 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         MemFindBaseAddr(found.addr, &size);
         if(!BpDelete(found.addr, BPMEMORY))
         {
-            dprintf("Delete memory breakpoint failed: %p (BpDelete)\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (BpDelete)\n"), found.addr);
             return STATUS_ERROR;
         }
         if(!RemoveMemoryBPX(found.addr, size))
         {
-            dprintf("Delete memory breakpoint failed: %p (RemoveMemoryBPX)\n", found.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (RemoveMemoryBPX)\n"), found.addr);
             return STATUS_ERROR;
         }
         return STATUS_CONTINUE;
@@ -1141,19 +1141,19 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPMEMORY, 0, &found))  //invalid breakpoint
     {
-        dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such memory breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     duint size;
     MemFindBaseAddr(found.addr, &size);
     if(!BpDelete(found.addr, BPMEMORY))
     {
-        dprintf("Delete memory breakpoint failed: %p (BpDelete)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (BpDelete)\n"), found.addr);
         return STATUS_ERROR;
     }
     if(!RemoveMemoryBPX(found.addr, size))
     {
-        dprintf("Delete memory breakpoint failed: %p (RemoveMemoryBPX)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (RemoveMemoryBPX)\n"), found.addr);
         return STATUS_ERROR;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint deleted!"));
@@ -1180,7 +1180,7 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPMEMORY, 0, &found))  //invalid memory breakpoint
     {
-        dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such memory breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(found.enabled)
@@ -1193,12 +1193,12 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
     MemFindBaseAddr(found.addr, &size);
     if(!SetMemoryBPXEx(found.addr, size, found.titantype, !found.singleshoot, (void*)cbMemoryBreakpoint))
     {
-        dprintf("Could not enable memory breakpoint %p (SetMemoryBPXEx)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (SetMemoryBPXEx)\n"), found.addr);
         return STATUS_ERROR;
     }
     if(!BpEnable(found.addr, BPMEMORY, true))
     {
-        dprintf("Could not enable memory breakpoint %p (BpEnable)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (BpEnable)\n"), found.addr);
         return STATUS_ERROR;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint enabled!"));
@@ -1225,7 +1225,7 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPMEMORY, 0, &found))  //invalid memory breakpoint
     {
-        dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such memory breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!found.enabled)
@@ -1237,12 +1237,12 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     MemFindBaseAddr(found.addr, &size);
     if(!RemoveMemoryBPX(found.addr, size))
     {
-        dprintf("Could not disable memory breakpoint %p (RemoveMemoryBPX)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable memory breakpoint %p (RemoveMemoryBPX)\n"), found.addr);
         return STATUS_ERROR;
     }
     if(!BpEnable(found.addr, BPMEMORY, false))
     {
-        dprintf("Could not disable memory breakpoint %p (BpEnable)\n", found.addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable memory breakpoint %p (BpEnable)\n"), found.addr);
         return STATUS_ERROR;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint disabled!"));
@@ -1438,7 +1438,7 @@ static CMDRESULT cbDebugConditionalTrace(void* callBack, bool stepOver, int argc
         return STATUS_ERROR;
     if(!dbgsettracecondition(argv[1], maxCount))
     {
-        dprintf("Invalid expression \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     HistoryClear();
@@ -1586,7 +1586,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
     if(!Fill((void*)addr, size & 0xFFFFFFFF, &fi))
         dputs(QT_TRANSLATE_NOOP("DBG", "Memset failed"));
     else
-        dprintf("Memory %p (size: %.8X) set to %.2X\n", addr, size & 0xFFFFFFFF, value & 0xFF);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Memory %p (size: %.8X) set to %.2X\n"), addr, size & 0xFFFFFFFF, value & 0xFF);
     return STATUS_CONTINUE;
 }
 
@@ -1601,7 +1601,7 @@ CMDRESULT cbDebugBenchmark(int argc, char* argv[])
         BookmarkSet(i, false);
         FunctionAdd(i, i, false);
     }
-    dprintf("%ums\n", GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
     return STATUS_CONTINUE;
 }
 
@@ -1620,7 +1620,7 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
     if(!SetBPX(CIP, UE_BREAKPOINT, (void*)cbPauseBreakpoint))
     {
-        dprintf("Error setting breakpoint at %p! (SetBPX)\n", CIP);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), CIP);
         if(ResumeThread(hActiveThread) == -1)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
@@ -1699,7 +1699,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     Handle hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
     if(!hProcess)
     {
-        dprintf("Could not open process %X!\n", pid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not open process %X!\n"), pid);
         return STATUS_ERROR;
     }
     BOOL wow64 = false, mewow64 = false;
@@ -1720,7 +1720,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     wchar_t wszFileName[MAX_PATH] = L"";
     if(!GetModuleFileNameExW(hProcess, 0, wszFileName, MAX_PATH))
     {
-        dprintf("Could not get module filename %X!\n", pid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), pid);
         return STATUS_ERROR;
     }
     strcpy_s(szFileName, StringUtils::Utf16ToUtf8(wszFileName).c_str());
@@ -1747,7 +1747,7 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr))
     {
-        dprintf("Invalid address \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(argc > 2)
@@ -1755,7 +1755,7 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
         duint index = 0;
         if(!valfromstring(argv[2], &index))
         {
-            dprintf("Invalid address \"%s\"!\n", argv[2]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[2]);
             return STATUS_ERROR;
         }
         GuiDumpAtN(addr, int(index));
@@ -1772,7 +1772,7 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
         addr = GetContextDataEx(hActiveThread, UE_CSP);
     else if(!valfromstring(argv[1], &addr))
     {
-        dprintf("Invalid address \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
@@ -1824,7 +1824,7 @@ CMDRESULT cbDebugBpDll(int argc, char* argv[])
     if(argc > 3)
         singleshoot = false;
     LibrarianSetBreakPoint(argv[1], type, singleshoot, (void*)cbLibrarianBreakpoint);
-    dprintf("Dll breakpoint set on \"%s\"!\n", argv[1]);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Dll breakpoint set on \"%s\"!\n"), argv[1]);
     return STATUS_CONTINUE;
 }
 
@@ -1852,7 +1852,7 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
             return STATUS_ERROR;
     if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
-        dprintf("Invalid thread %X\n", threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
         return STATUS_ERROR;
     }
     //switch thread
@@ -1871,7 +1871,7 @@ CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
             return STATUS_ERROR;
     if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
-        dprintf("Invalid thread %X\n", threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
         return STATUS_ERROR;
     }
     //suspend thread
@@ -1893,7 +1893,7 @@ CMDRESULT cbDebugResumethread(int argc, char* argv[])
             return STATUS_ERROR;
     if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
-        dprintf("Invalid thread %X\n", threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
         return STATUS_ERROR;
     }
     //resume thread
@@ -1919,7 +1919,7 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
             return STATUS_ERROR;
     if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
-        dprintf("Invalid thread %X\n", threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
         return STATUS_ERROR;
     }
     //terminate thread
@@ -1935,7 +1935,7 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
 
 CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[])
 {
-    dprintf("%d/%d thread(s) suspended\n", ThreadSuspendAll(), ThreadGetCount());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d/%d thread(s) suspended\n"), ThreadSuspendAll(), ThreadGetCount());
 
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
@@ -1943,7 +1943,7 @@ CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[])
 
 CMDRESULT cbDebugResumeAllThreads(int argc, char* argv[])
 {
-    dprintf("%d/%d thread(s) resumed\n", ThreadResumeAll(), ThreadGetCount());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d/%d thread(s) resumed\n"), ThreadResumeAll(), ThreadGetCount());
 
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
@@ -2001,7 +2001,7 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
     }
     if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
-        dprintf("Invalid thread %X\n", threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
         return STATUS_ERROR;
     }
     //set thread priority
@@ -2028,19 +2028,19 @@ CMDRESULT cbDebugSetthreadname(int argc, char* argv[])
     THREADINFO info;
     if(!ThreadGetInfo(DWORD(threadid), info))
     {
-        dprintf("Invalid thread %X\n", threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
         return STATUS_ERROR;
     }
     auto newname = argc > 2 ? argv[2] : "";
     if(!ThreadSetName(DWORD(threadid), newname))
     {
-        dprintf("Failed to change the name for thread %X\n", threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to change the name for thread %X\n"), threadid);
         return STATUS_ERROR;
     }
     if(!info.threadName)
-        dprintf("Thread name set to \"%s\"!\n", newname);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Thread name set to \"%s\"!\n"), newname);
     else
-        dprintf("Thread name changed from \"%s\" to \"%s\"!\n", info.threadName, newname);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Thread name changed from \"%s\" to \"%s\"!\n"), info.threadName, newname);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -2066,7 +2066,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     duint modbase = ModBaseFromName(argv[1]);
     if(!modbase)
     {
-        dprintf("Invalid module \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid module \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     wchar_t wszModulePath[MAX_PATH] = L"";
@@ -2147,7 +2147,7 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
             if(rw_error == ERROR_RW_NOTWOW64)
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error using x64 arg the debugger is not a WOW64 process\n"));
             else
-                dprintf("Error getting JIT auto %s\n", argv[1]);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto %s\n"), argv[1]);
             return STATUS_ERROR;
         }
     }
@@ -2336,7 +2336,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         {
             BridgeSettingSet("JIT", "Old", argv[2]);
 
-            dprintf("New OLD JIT stored: %s\n", argv[2]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "New OLD JIT stored: %s\n"), argv[2]);
 
             return STATUS_CONTINUE;
         }
@@ -2367,7 +2367,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    dprintf("New JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", jit_debugger_cmd);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "New JIT %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", jit_debugger_cmd);
 
     return STATUS_CONTINUE;
 }
@@ -2398,7 +2398,7 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
             }
             else
             {
-                dprintf("OLD JIT entry stored: %s\n", oldjit);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "OLD JIT entry stored: %s\n"), oldjit);
                 return STATUS_CONTINUE;
             }
         }
@@ -2417,12 +2417,12 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
             if(rw_error == ERROR_RW_NOTWOW64)
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error using x64 arg. The debugger is not a WOW64 process\n"));
             else
-                dprintf("Error getting JIT %s\n", argv[1]);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT %s\n"), argv[1]);
             return STATUS_ERROR;
         }
     }
 
-    dprintf("JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", get_entry);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "JIT %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", get_entry);
 
     return STATUS_CONTINUE;
 }
@@ -2440,11 +2440,11 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
 
     if(!MemGetPageRights(addr, rights))
     {
-        dprintf("Error getting rights of page: %s\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting rights of page: %s\n"), argv[1]);
         return STATUS_ERROR;
     }
 
-    dprintf("Page: %p, Rights: %s\n", addr, rights);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Page: %p, Rights: %s\n"), addr, rights);
 
     return STATUS_CONTINUE;
 }
@@ -2462,13 +2462,13 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 
     if(!MemSetPageRights(addr, argv[2]))
     {
-        dprintf("Error: Set rights of %p with Rights: %s\n", addr, argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error: Set rights of %p with Rights: %s\n"), addr, argv[2]);
         return STATUS_ERROR;
     }
 
     if(!MemGetPageRights(addr, rights))
     {
-        dprintf("Error getting rights of page: %s\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting rights of page: %s\n"), argv[1]);
         return STATUS_ERROR;
     }
 
@@ -2476,7 +2476,7 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
     MemUpdateMap();
     GuiUpdateMemoryView();
 
-    dprintf("New rights of %p: %s\n", addr, rights);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "New rights of %p: %s\n"), addr, rights);
 
     return STATUS_CONTINUE;
 }
@@ -2635,7 +2635,7 @@ void showcommandlineerror(cmdline_error_t* cmdline_error)
     if(!unkown)
     {
         if(cmdline_error->addr != 0)
-            dprintf(" (Address: %p)", cmdline_error->addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", " (Address: %p)"), cmdline_error->addr);
         dputs(QT_TRANSLATE_NOOP("DBG", ""));
     }
 }
@@ -2651,7 +2651,7 @@ CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    dprintf("Command line: %s\n", cmd_line);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Command line: %s\n"), cmd_line);
 
     efree(cmd_line);
 
@@ -2678,7 +2678,7 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
     MemUpdateMap();
     GuiUpdateMemoryView();
 
-    dprintf("New command line: %s\n", argv[1]);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "New command line: %s\n"), argv[1]);
 
     return STATUS_CONTINUE;
 }

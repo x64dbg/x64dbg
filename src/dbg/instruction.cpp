@@ -308,7 +308,7 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
 #ifdef _WIN64
                     dprintf("%s=%p (%llud)\n", name, value, value);
 #else //x86
-                    dprintf"%s=%p (%ud)\n", name, value, value);
+                    dprintf("%s=%p (%ud)\n", name, value, value);
 #endif //_WIN64
                 else
                     dprintf("%s=%p\n", name, value);
@@ -1178,7 +1178,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable data \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%s=\"%s\"\n"), argv[1], string());
+    dprintf("%s=\"%s\"\n", argv[1], string());
     return STATUS_CONTINUE;
 }
 
@@ -2255,7 +2255,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     const cs_insn* instr = cp.GetInstr();
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%s %s\n"), instr->mnemonic, instr->op_str);
+    dprintf("%s %s\n", instr->mnemonic, instr->op_str);
     dprintf(QT_TRANSLATE_NOOP("DBG", "size: %d, id: %d, opcount: %d\n"), cp.Size(), cp.GetId(), cp.OpCount());
     for(int i = 0; i < argcount; i++)
     {
@@ -2753,7 +2753,7 @@ CMDRESULT cbInstrBriefcheck(int argc, char* argv[])
         if(brief.length() || reported.count(mnem))
             continue;
         reported.insert(mnem);
-        dprintf(QT_TRANSLATE_NOOP("DBG", "%p: %s\n"), cp.Address(), mnem.c_str());
+        dprintf("%p: %s\n", cp.Address(), mnem.c_str());
     }
     return STATUS_CONTINUE;
 }
@@ -2783,14 +2783,14 @@ static void printExhandlers(const char* name, const std::vector<duint> & entries
 {
     if(!entries.size())
         return;
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%s:\n"), name);
+    dprintf("%s:\n", name);
     for(auto entry : entries)
     {
         auto symbolic = SymGetSymbolicName(entry);
         if(symbolic.length())
-            dprintf(QT_TRANSLATE_NOOP("DBG", "%p %s\n"), entry, symbolic.c_str());
+            dprintf("%p %s\n", entry, symbolic.c_str());
         else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "%p\n"), entry);
+            dprintf("%p\n", entry);
     }
 }
 
@@ -2841,30 +2841,30 @@ CMDRESULT cbInstrExinfo(int argc, char* argv[])
 {
     auto info = getLastExceptionInfo();
     const auto & record = info.ExceptionRecord;
-    dputs(QT_TRANSLATE_NOOP("DBG", "EXCEPTION_DEBUG_INFO:"));
-    dprintf(QT_TRANSLATE_NOOP("DBG", "           dwFirstChance: %X\n"), info.dwFirstChance);
+    dputs("EXCEPTION_DEBUG_INFO:");
+    dprintf("           dwFirstChance: %X\n", info.dwFirstChance);
     auto exceptionName = ExceptionCodeToName(record.ExceptionCode);
     if(!exceptionName.size())   //if no exception was found, try the error codes (RPC_S_*)
         exceptionName = ErrorCodeToName(record.ExceptionCode);
     if(exceptionName.size())
-        dprintf(QT_TRANSLATE_NOOP("DBG", "           ExceptionCode: %08X (%s)\n"), record.ExceptionCode, exceptionName.c_str());
+        dprintf("           ExceptionCode: %08X (%s)\n", record.ExceptionCode, exceptionName.c_str());
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "           ExceptionCode: %08X\n"), record.ExceptionCode);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "          ExceptionFlags: %08X\n"), record.ExceptionFlags);
+        dprintf("           ExceptionCode: %08X\n", record.ExceptionCode);
+    dprintf("          ExceptionFlags: %08X\n", record.ExceptionFlags);
     auto symbolic = SymGetSymbolicName(duint(record.ExceptionAddress));
     if(symbolic.length())
-        dprintf(QT_TRANSLATE_NOOP("DBG", "        ExceptionAddress: %p %s\n"), record.ExceptionAddress, symbolic.c_str());
+        dprintf("        ExceptionAddress: %p %s\n", record.ExceptionAddress, symbolic.c_str());
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "        ExceptionAddress: %p\n"), record.ExceptionAddress);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "        NumberParameters: %d\n"), record.NumberParameters);
+        dprintf("        ExceptionAddress: %p\n", record.ExceptionAddress);
+    dprintf("        NumberParameters: %d\n", record.NumberParameters);
     if(record.NumberParameters)
         for(DWORD i = 0; i < record.NumberParameters; i++)
         {
             symbolic = SymGetSymbolicName(duint(record.ExceptionInformation[i]));
             if(symbolic.length())
-                dprintf(QT_TRANSLATE_NOOP("DBG", "ExceptionInformation[%02d]: %p %s\n"), i, record.ExceptionInformation[i], symbolic.c_str());
+                dprintf("ExceptionInformation[%02d]: %p %s\n", i, record.ExceptionInformation[i], symbolic.c_str());
             else
-                dprintf(QT_TRANSLATE_NOOP("DBG", "ExceptionInformation[%02d]: %p\n"), i, record.ExceptionInformation[i]);
+                dprintf("ExceptionInformation[%02d]: %p\n", i, record.ExceptionInformation[i]);
         }
     return STATUS_CONTINUE;
 }

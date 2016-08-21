@@ -59,7 +59,7 @@ void HistoryContext::restore()
     else
     {
         HistoryClear();
-        dputs("Cannot restore last instruction.");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Cannot restore last instruction."));
     }
 }
 
@@ -82,7 +82,7 @@ void HistoryRestore()
         history.pop_back();
     }
     else
-        dputs("History record is empty");
+        dputs(QT_TRANSLATE_NOOP("DBG", "History record is empty"));
 }
 
 bool HistoryIsEmpty()
