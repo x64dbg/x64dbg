@@ -226,7 +226,7 @@ CMDRESULT cmdloop(CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvide
             {
                 if(cmd->debugonly && !DbgIsDebugging())
                 {
-                    dputs("this command is debug-only");
+                    dputs(QT_TRANSLATE_NOOP("DBG", "this command is debug-only"));
                     if(error_is_fatal)
                         bLoop = false;
                 }

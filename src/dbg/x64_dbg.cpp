@@ -604,8 +604,8 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     yr_finalize();
     Capstone::GlobalFinalize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Checking for mem leaks..."));
-    if(memleaks())
-        dprintf(QT_TRANSLATE_NOOP("DBG", "%d memory leak(s) found!\n"), memleaks());
+    if(auto memleakcount = memleaks())
+        dprintf(QT_TRANSLATE_NOOP("DBG", "%d memory leak(s) found!\n"), memleakcount);
     else
         DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));

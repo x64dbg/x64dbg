@@ -2154,6 +2154,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     if(!WideCharToMultiByte(CP_UTF8, 0, wstr_cmd(), (int)wstr_cmd_size, * cmd_line, (int)cmd_line_size, NULL, NULL))
     {
         efree(*cmd_line);
+        *cmd_line = nullptr;
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
         return false;
     }
