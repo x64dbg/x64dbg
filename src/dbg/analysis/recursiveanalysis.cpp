@@ -23,7 +23,7 @@ void RecursiveAnalysis::SetMarkers()
 {
     if(mDump)
         for(const auto & function : mFunctions)
-            FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_" fhex ".dot", function.entryPoint), GraphToDot(function));
+            FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_%p.dot", function.entryPoint), GraphToDot(function));
 
     //set function ranges
     for(const auto & function : mFunctions)

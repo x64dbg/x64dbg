@@ -40,7 +40,7 @@ duint WatchExpr::getIntValue()
                     if(currValue != 0)
                     {
                         duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-                        dprintf("Watchdog %s (expression \"%s\") is triggered at " fhex " ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), cip, origVal, currValue);
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Watchdog %s (expression \"%s\") is triggered at %p ! Original value: %p, New value: %p\n"), WatchName, getExpr().c_str(), cip, origVal, currValue);
                         watchdogTriggered = 1;
                     }
                     break;
@@ -48,7 +48,7 @@ duint WatchExpr::getIntValue()
                     if(currValue == 0)
                     {
                         duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-                        dprintf("Watchdog %s (expression \"%s\") is triggered at " fhex " ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), cip, origVal, currValue);
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Watchdog %s (expression \"%s\") is triggered at %p ! Original value: %p, New value: %p\n"), WatchName, getExpr().c_str(), cip, origVal, currValue);
                         watchdogTriggered = 1;
                     }
                     break;
@@ -56,7 +56,7 @@ duint WatchExpr::getIntValue()
                     if(currValue != origVal || !haveCurrValue)
                     {
                         duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-                        dprintf("Watchdog %s (expression \"%s\") is triggered at " fhex " ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), cip, origVal, currValue);
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Watchdog %s (expression \"%s\") is triggered at %p ! Original value: %p, New value: %p\n"), WatchName, getExpr().c_str(), cip, origVal, currValue);
                         watchdogTriggered = 1;
                     }
                     break;
@@ -64,7 +64,7 @@ duint WatchExpr::getIntValue()
                     if(currValue == origVal || !haveCurrValue)
                     {
                         duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-                        dprintf("Watchdog %s (expression \"%s\") is triggered at " fhex " ! Original value: " fhex ", New value: " fhex "\n", WatchName, getExpr().c_str(), cip, origVal, currValue);
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Watchdog %s (expression \"%s\") is triggered at %p ! Original value: %p, New value: %p\n"), WatchName, getExpr().c_str(), cip, origVal, currValue);
                         watchdogTriggered = 1;
                     }
                     break;
@@ -122,7 +122,7 @@ unsigned int WatchAddExprUnlocked(const char* expr, WATCHVARTYPE type)
 {
     unsigned int newid = InterlockedExchangeAdd(&idCounter, 1);
     char DefaultName[MAX_WATCH_NAME_SIZE];
-    sprintf_s(DefaultName, "Watch %u", newid);
+    sprintf_s(DefaultName, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Watch %u")), newid);
     WatchExpr* newWatch = new WatchExpr(DefaultName, expr, type);
     auto temp = watchexpr.emplace(std::make_pair(newid, newWatch));
     if(temp.second)
@@ -433,7 +433,7 @@ CMDRESULT cbAddWatch(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("No enough arguments for addwatch\n");
+        dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for addwatch\n"));
         return STATUS_ERROR;
     }
     WATCHVARTYPE newtype = WATCHVARTYPE::TYPE_UINT;
@@ -459,14 +459,14 @@ CMDRESULT cbDelWatch(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("No enough arguments for delwatch\n");
+        dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for delwatch\n"));
         return STATUS_ERROR;
     }
     duint id;
     bool ok = valfromstring(argv[1], &id);
     if(!ok)
     {
-        dputs("Error expression in argument 1.\n");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error expression in argument 1.\n"));
         return STATUS_ERROR;
     }
     WatchDelete((unsigned int)id);
@@ -477,7 +477,7 @@ CMDRESULT cbSetWatchName(int argc, char* argv[])
 {
     if(argc < 3)
     {
-        dputs("No enough arguments for SetWatchName");
+        dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for SetWatchName"));
         return STATUS_ERROR;
     }
     duint id;
@@ -489,7 +489,7 @@ CMDRESULT cbSetWatchName(int argc, char* argv[])
     }
     else
     {
-        dputs("Error expression in argument 1.\n");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error expression in argument 1.\n"));
         return STATUS_ERROR;
     }
 }
@@ -498,7 +498,7 @@ CMDRESULT cbSetWatchExpression(int argc, char* argv[])
 {
     if(argc < 3)
     {
-        dputs("No enough arguments for SetWatchExpression");
+        dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for SetWatchExpression"));
         return STATUS_ERROR;
     }
     duint id;
@@ -528,7 +528,7 @@ CMDRESULT cbSetWatchExpression(int argc, char* argv[])
     }
     else
     {
-        dputs("Error expression in argument 1.\n");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error expression in argument 1.\n"));
         return STATUS_ERROR;
     }
 }
@@ -537,14 +537,14 @@ CMDRESULT cbSetWatchdog(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("No enough arguments for delwatch\n");
+        dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for delwatch\n"));
         return STATUS_ERROR;
     }
     duint id;
     bool ok = valfromstring(argv[1], &id);
     if(!ok)
     {
-        dputs("Error expression in argument 1.\n");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error expression in argument 1.\n"));
         return STATUS_ERROR;
     }
     WATCHDOGMODE mode;
@@ -562,7 +562,7 @@ CMDRESULT cbSetWatchdog(int argc, char* argv[])
             mode = WATCHDOGMODE::MODE_ISFALSE;
         else
         {
-            dputs("Unknown watchdog mode.\n");
+            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown watchdog mode.\n"));
             return STATUS_ERROR;
         }
     }

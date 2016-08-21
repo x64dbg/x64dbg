@@ -50,11 +50,11 @@
 #define deflen 1024
 
 #ifdef _WIN64 //defined by default
-#define fhex "%.16llX"
-#define fext "ll"
+//#define fhex "%.16llX"
+//#define fext "ll"
 #else
-#define fhex "%.8X"
-#define fext ""
+//#define fhex "%.8X"
+//#define fext ""
 #endif // _WIN64
 
 enum arch

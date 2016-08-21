@@ -249,7 +249,7 @@ void disasmprint(duint addr)
     disasmget(addr, &instr);
     dprintf(">%d:\"%s\":\n", instr.type, instr.instruction);
     for(int i = 0; i < instr.argcount; i++)
-        dprintf(" %d:%d:%" fext "X:%" fext "X:%" fext "X\n", i, instr.arg[i].type, instr.arg[i].constant, instr.arg[i].value, instr.arg[i].memvalue);
+        dprintf(" %d:%d:%p:%p:%p\n", i, instr.arg[i].type, instr.arg[i].constant, instr.arg[i].value, instr.arg[i].memvalue);
 }
 
 static bool isasciistring(const unsigned char* data, int maxlen)

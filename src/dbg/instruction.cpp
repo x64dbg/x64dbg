@@ -67,14 +67,22 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc())  //signed numbers
-                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "ud)\n", valsize);
+#ifdef _WIN64
+                    sprintf(format_str, "%%s=%%.%llud (%%llud)\n", valsize);
+#else //x86
+                    sprintf(format_str, "%%s=%%.%ud (%%ud)\n", valsize);
+#endif //_WIN64
                 else
-                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "d)\n", valsize);
+#ifdef _WIN64
+                    sprintf(format_str, "%%s=%%.%lld (%%lld)\n", valsize);
+#else //x86
+                    sprintf(format_str, "%%s=%%.%d (%%d)\n", valsize);
+#endif //_WIN64
                 dprintf(format_str, *argv, value, value);
             }
             else
             {
-                sprintf(format_str, "%%s=%%.%d" fext "X\n", valsize);
+                sprintf(format_str, "%%s=%%.%d\n", valsize);
                 dprintf(format_str, *argv, value);
             }
         }
@@ -83,22 +91,34 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc())  //signed numbers
-                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "ud)\n", valsize);
+#ifdef _WIN64
+                    sprintf(format_str, "%%s=%%.%llud (%%llud)\n", valsize);
+#else //x86
+                    sprintf(format_str, "%%s=%%.%ud (%%ud)\n", valsize);
+#endif //_WIN64
                 else
-                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "d)\n", valsize);
-                sprintf(format_str, "%%.%d" fext "X (%%" fext "ud)\n", valsize);
+#ifdef _WIN64
+                    sprintf(format_str, "%%s=%%.%lld (%%lld)\n", valsize);
+#else //x86
+                    sprintf(format_str, "%%s=%%.%d (%%d)\n", valsize);
+#endif //_WIN64
+#ifdef _WIN64
+                sprintf(format_str, "%%.%llud (%%llud)\n", valsize);
+#else //x86
+                sprintf(format_str, "%%.%ud (%%ud)\n", valsize);
+#endif //_WIN64
                 dprintf(format_str, value, value);
             }
             else
             {
-                sprintf(format_str, "%%.%d" fext "X\n", valsize);
+                sprintf(format_str, "%%.%d\n", valsize);
                 dprintf(format_str, value);
             }
         }
     }
     else //unknown command
     {
-        dprintf("unknown command/expression: \"%s\"\n", *argv);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "unknown command/expression: \"%s\"\n"), *argv);
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
@@ -120,25 +140,29 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
         add++;
     if(valfromstring(argv[1] + add, &value))
     {
-        dprintf("invalid variable name \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid variable name \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!valfromstring(arg2, &value))
     {
-        dprintf("invalid value \"%s\"\n", arg2);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid value \"%s\"\n"), arg2);
         return STATUS_ERROR;
     }
     if(!varnew(argv[1], value, VAR_USER))
     {
-        dprintf("error creating variable \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "error creating variable \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     else
     {
         if(value > 15)
-            dprintf("%s=%" fext "X (%" fext "ud)\n", argv[1], value, value);
+#ifdef _WIN64
+            dprintf("DBG", "%s=%p (%llud)\n", argv[1], value, value);
+#else //x86
+            dprintf("%s=%p (%ud)\n", argv[1], value, value);
+#endif //_WIN64
         else
-            dprintf("%s=%" fext "X\n", argv[1], value);
+            dprintf("%s=%p\n", argv[1], value);
     }
     return STATUS_CONTINUE;
 }
@@ -151,9 +175,9 @@ CMDRESULT cbInstrVarDel(int argc, char* argv[])
         return STATUS_ERROR;
     }
     if(!vardel(argv[1], false))
-        dprintf("could not delete variable \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "could not delete variable \"%s\"\n"), argv[1]);
     else
-        dprintf("deleted variable \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "deleted variable \"%s\"\n"), argv[1]);
     return STATUS_CONTINUE;
 }
 
@@ -180,7 +204,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         {
             if(!isxdigit(dataText[i]))
             {
-                dprintf("invalid hex string \"%s\" (contains invalid characters)\n", dataText.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid hex string \"%s\" (contains invalid characters)\n"), dataText.c_str());
                 return STATUS_ERROR;
             }
         }
@@ -188,7 +212,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         duint dest;
         if(!valfromstring(argv[1], &dest) || !MemIsValidReadPtr(dest))
         {
-            dprintf("invalid destination \"%s\"\n", argv[1]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid destination \"%s\"\n"), argv[1]);
             return STATUS_ERROR;
         }
         //Convert text to byte array (very ugly)
@@ -201,7 +225,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             int res = 0;
             if(sscanf_s(b, "%X", &res) != 1)
             {
-                dprintf("invalid hex byte \"%s\"\n", b);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid hex byte \"%s\"\n"), b);
                 return STATUS_ERROR;
             }
             data()[j] = res;
@@ -220,7 +244,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         duint set_value = 0;
         if(!valfromstring(srcText.c_str(), &set_value))
         {
-            dprintf("invalid src \"%s\"\n", argv[2]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid src \"%s\"\n"), argv[2]);
             return STATUS_ERROR;
         }
         bool isvar = false;
@@ -233,7 +257,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             duint value;
             if(valfromstring(argv[1], &value))  //if the var is a value already it's an invalid destination
             {
-                dprintf("invalid dest \"%s\"\n", argv[1]);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid dest \"%s\"\n"), argv[1]);
                 return STATUS_ERROR;
             }
             varnew(argv[1], set_value, VAR_USER);
@@ -278,22 +302,16 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
         duint value = (duint)variables()[i].value.u.value;
         if(variables()[i].type != VAR_HIDDEN)
         {
-            if(filter)
-            {
-                if(variables()[i].type == filter)
-                {
-                    if(value > 15)
-                        dprintf("%s=%" fext "X (%" fext "ud)\n", name, value, value);
-                    else
-                        dprintf("%s=%" fext "X\n", name, value);
-                }
-            }
-            else
+            if(!filter || variables()[i].type == filter)
             {
                 if(value > 15)
-                    dprintf("%s=%" fext "X (%" fext "ud)\n", name, value, value);
+#ifdef _WIN64
+                    dprintf("%s=%p (%llud)\n", name, value, value);
+#else //x86
+                    dprintf"%s=%p (%ud)\n", name, value, value);
+#endif //_WIN64
                 else
-                    dprintf("%s=%" fext "X\n", name, value);
+                    dprintf("%s=%p\n", name, value);
             }
         }
     }
@@ -452,7 +470,7 @@ CMDRESULT cbInstrAssemble(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr))
     {
-        dprintf("invalid expression: \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid expression: \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!DbgMemIsValidReadPtr(addr))
@@ -468,7 +486,7 @@ CMDRESULT cbInstrAssemble(int argc, char* argv[])
     if(!assembleat(addr, argv[2], &size, error, fillnop))
     {
         varset("$result", size, false);
-        dprintf("failed to assemble \"%s\" (%s)\n", argv[2], error);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to assemble \"%s\" (%s)\n"), argv[2], error);
         return STATUS_ERROR;
     }
     varset("$result", size, false);
@@ -834,7 +852,7 @@ CMDRESULT cbInstrPush(int argc, char* argv[])
     duint value;
     if(!valfromstring(argv[1], &value))
     {
-        dprintf("invalid argument \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid argument \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     Script::Stack::Push(value);
@@ -872,7 +890,7 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
         return STATUS_ERROR;
     if(!isvar)
     {
-        dprintf("Invalid expression: \"%s\"", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression: \"%s\""), argv[1]);
         return STATUS_ERROR;
     }
     duint result = arg1;
@@ -1160,7 +1178,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable data \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
-    dprintf("%s=\"%s\"\n", argv[1], string());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%s=\"%s\"\n"), argv[1], string());
     return STATUS_CONTINUE;
 }
 
@@ -1437,7 +1455,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     if(len > 16)
         strcat_s(patternshort, "...");
     char patterntitle[256] = "";
-    sprintf_s(patterntitle, "Pattern: %s", patternshort);
+    sprintf_s(patterntitle, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort);
     GuiReferenceInitialize(patterntitle);
     GuiReferenceAddColumn(2 * sizeof(duint), "Address");
     if(findData)
@@ -1696,11 +1714,17 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 CMDRESULT cbInstrArgumentList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceInitialize("Arguments");
-    GuiReferenceAddColumn(2 * sizeof(duint), "Start");
-    GuiReferenceAddColumn(2 * sizeof(duint), "End");
-    GuiReferenceAddColumn(64, "Disassembly (Start)");
-    GuiReferenceAddColumn(0, "Label/Comment");
+    String TranslatedString;
+    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Arguments"));
+    GuiReferenceInitialize(TranslatedString.c_str());
+    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Start"));
+    GuiReferenceAddColumn(2 * sizeof(duint), TranslatedString.c_str());
+    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "End"));
+    GuiReferenceAddColumn(2 * sizeof(duint), TranslatedString.c_str());
+    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)"));
+    GuiReferenceAddColumn(64, TranslatedString.c_str());
+    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Label/Comment"));
+    GuiReferenceAddColumn(10, TranslatedString.c_str());
     GuiReferenceReloadData();
     size_t cbsize;
     ArgumentEnum(0, &cbsize);
@@ -1853,7 +1877,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     char error[MAX_ERROR_SIZE] = "";
     if(!assemble(addr + size / 2, dest, &asmsize, argv[1], error))
     {
-        dprintf("failed to assemble \"%s\" (%s)!\n", argv[1], error);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to assemble \"%s\" (%s)!\n"), argv[1], error);
         return STATUS_ERROR;
     }
     BASIC_INSTRUCTION_INFO basicinfo;
@@ -1880,7 +1904,7 @@ static void yaraCompilerCallback(int error_level, const char* file_name, int lin
         dprintf("[YARA WARNING] ");
         break;
     }
-    dprintf("File: \"%s\", Line: %d, Message: \"%s\"\n", file_name, line_number, message);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "File: \"%s\", Line: %d, Message: \"%s\"\n"), file_name, line_number, message);
 }
 
 static String yara_print_string(const uint8_t* data, int length)
@@ -1961,13 +1985,13 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
         if(STRING_IS_NULL(yrRule->strings))
         {
             if(debug)
-                dprintf("[YARA] Global rule \"%s\' matched!\n", yrRule->identifier);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Global rule \"%s\' matched!\n"), yrRule->identifier);
             addReference(base, nullptr, "");
         }
         else
         {
             if(debug)
-                dprintf("[YARA] Rule \"%s\" matched:\n", yrRule->identifier);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Rule \"%s\" matched:\n"), yrRule->identifier);
             YR_STRING* string;
             yr_rule_strings_foreach(yrRule, string)
             {
@@ -1987,7 +2011,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                         addr = base + offset;
 
                     if(debug)
-                        dprintf("[YARA] String \"%s\" : %s on %p\n", string->identifier, pattern.c_str(), addr);
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] String \"%s\" : %s on %p\n"), string->identifier, pattern.c_str(), addr);
 
                     addReference(addr, string->identifier, pattern);
                 }
@@ -2000,7 +2024,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
     {
         YR_RULE* yrRule = (YR_RULE*)message_data;
         if(debug)
-            dprintf("[YARA] Rule \"%s\" did not match!\n", yrRule->identifier);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Rule \"%s\" did not match!\n"), yrRule->identifier);
     }
     break;
 
@@ -2015,7 +2039,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
     {
         YR_MODULE_IMPORT* yrModuleImport = (YR_MODULE_IMPORT*)message_data;
         if(debug)
-            dprintf("[YARA] Imported module \"%s\"!\n", yrModuleImport->module_name);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Imported module \"%s\"!\n"), yrModuleImport->module_name);
     }
     break;
     }
@@ -2048,7 +2072,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     {
         if(!valfromstring(argv[2], &addr))
         {
-            dprintf("invalid value \"%s\"!\n", argv[2]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid value \"%s\"!\n"), argv[2]);
             return STATUS_ERROR;
         }
 
@@ -2071,7 +2095,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         }
         if(!FileHelper::ReadAllData(modPath, rawFileData))
         {
-            dprintf("failed to read file \"%s\"!\n", modPath);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "failed to read file \"%s\"!\n"), modPath);
             return STATUS_ERROR;
         }
         size = rawFileData.size();
@@ -2088,7 +2112,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     String rulesContent;
     if(!FileHelper::ReadAllText(argv[1], rulesContent))
     {
-        dprintf("Failed to read the rules file \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to read the rules file \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
 
@@ -2166,7 +2190,7 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
     }
     if(!ModBaseFromName(argv[2]))
     {
-        dprintf("invalid module \"%s\"!\n", argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid module \"%s\"!\n"), argv[2]);
         return STATUS_ERROR;
     }
     return cmddirectexec(StringUtils::sprintf("yara \"%s\",\"%s\",%s", argv[1], argv[2], argc > 3 && *argv[3] == '1' ? "1" : "0").c_str());
@@ -2231,12 +2255,12 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     const cs_insn* instr = cp.GetInstr();
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
-    dprintf("%s %s\n", instr->mnemonic, instr->op_str);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%s %s\n"), instr->mnemonic, instr->op_str);
     dprintf(QT_TRANSLATE_NOOP("DBG", "size: %d, id: %d, opcount: %d\n"), cp.Size(), cp.GetId(), cp.OpCount());
     for(int i = 0; i < argcount; i++)
     {
         const cs_x86_op & op = x86.operands[i];
-        dprintf("operand \"%s\" %d, ", cp.OperandText(i).c_str(), i + 1);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "operand \"%s\" %d, "), cp.OperandText(i).c_str(), i + 1);
         switch(op.type)
         {
         case X86_OP_REG:
@@ -2396,7 +2420,7 @@ CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
     if(ModNameFromAddr(base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname);
 
-    dprintf("Virtual module \"%s\" loaded on %p[%p]!\n", argv[1], base, size);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Virtual module \"%s\" loaded on %p[%p]!\n"), argv[1], base, size);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -2540,7 +2564,7 @@ CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
     duint num;
     if(!valfromstring(argv[1], &num))
     {
-        dprintf("Invalid expression: \"%s\"", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression: \"%s\""), argv[1]);
         return STATUS_ERROR;
     }
     maxFindResults = int(num & 0x7FFFFFFF);
@@ -2571,7 +2595,7 @@ CMDRESULT cbInstrSavedata(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    dprintf("%p[%p] written to \"%s\" !\n", addr, size, argv[1]);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[%p] written to \"%s\" !\n"), addr, size, argv[1]);
 
     return STATUS_CONTINUE;
 }

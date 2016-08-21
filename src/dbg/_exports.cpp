@@ -169,7 +169,7 @@ static bool getLabel(duint addr, char* label)
             duint start;
             if(FunctionGet(addr, &start, nullptr) && addr == start)
             {
-                sprintf_s(label, MAX_LABEL_SIZE, "sub_%" fext "X", start);
+                sprintf_s(label, MAX_LABEL_SIZE, "sub_%p", start);
                 retval = true;
             }
         }

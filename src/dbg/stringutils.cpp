@@ -365,7 +365,7 @@ String StringUtils::ToCompressedHex(unsigned char* buffer, size_t size)
             result.push_back(HEXLOOKUP[lastCh & 0xF]);
         }
         else if(repeat > 2)
-            result.append(StringUtils::sprintf("{%" fext "X}", repeat));
+            result.append(StringUtils::sprintf("{%p}", repeat));
     }
     return result;
 }

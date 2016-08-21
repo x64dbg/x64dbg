@@ -1312,7 +1312,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
         {
             if(!silent)
-                dprintf("could not get filename of module " fhex "\n", modbase);
+                dprintf("could not get filename of module %p\n", modbase);
         }
         else
         {
@@ -1435,7 +1435,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
             return true;
         for(int i = 0; i < found; i++)
             if(i != kernel32)
-                dprintf(fhex"\n", addrfound()[i]);
+                dprintf("%p\n", addrfound()[i]);
     }
     else
     {
@@ -1443,7 +1443,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         if(!printall || silent)
             return true;
         for(int i = 1; i < found; i++)
-            dprintf(fhex"\n", addrfound()[i]);
+            dprintf("%p\n", addrfound()[i]);
     }
     return true;
 }
@@ -1710,7 +1710,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
     }
     else if(strstr(string, "sub_") == string)  //then come sub_ functions
     {
-        auto result = sscanf(string, "sub_%" fext "X", value) == 1;
+        auto result = sscanf(string, "sub_%p", value) == 1;
         duint start;
         return result && FunctionGet(*value, &start, nullptr) && *value == start;
     }
