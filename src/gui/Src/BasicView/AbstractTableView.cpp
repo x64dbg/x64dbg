@@ -1202,15 +1202,51 @@ void AbstractTableView::prepareData()
 
 bool AbstractTableView::SortBy::AsText(const QString & a, const QString & b)
 {
-    return QString::compare(a, b, Qt::CaseInsensitive) < 0;
+    int i = QString::compare(a, b, Qt::CaseInsensitive);
+    if(i < 0)
+    {
+        return true;
+    }
+    else if(i > 0)
+    {
+        return false;
+    }
+    else
+    {
+        return (size_t)&a < (size_t)&b;
+    }
 }
 
 bool AbstractTableView::SortBy::AsInt(const QString & a, const QString & b)
 {
-    return a.toLongLong() < b.toLongLong();
+    auto i = a.toLongLong() - b.toLongLong();
+    if(i < 0)
+    {
+        return true;
+    }
+    else if(i > 0)
+    {
+        return false;
+    }
+    else
+    {
+        return (size_t)&a < (size_t)&b;
+    }
 }
 
 bool AbstractTableView::SortBy::AsHex(const QString & a, const QString & b)
 {
-    return a.toLongLong(0, 16) < b.toLongLong(0, 16);
+    auto i = a.toLongLong(0, 16) - b.toLongLong(0, 16);
+    if(i < 0)
+    {
+        return true;
+    }
+    else if(i > 0)
+    {
+        return false;
+    }
+    else
+    {
+        return (size_t)&a < (size_t)&b;
+    }
 }
