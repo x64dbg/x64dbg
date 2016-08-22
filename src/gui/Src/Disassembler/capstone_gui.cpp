@@ -5,7 +5,8 @@
 
 CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
     : _maxModuleLength(maxModuleLength),
-      _success(false)
+      _success(false),
+      isNop(false)
 {
     SetConfig(false, false, false, false);
 }
@@ -100,6 +101,7 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
     _success = _cp.DisassembleSafe(addr, data, datasize);
     if(_success)
     {
+        isNop = _cp.IsNop();
         if(!tokenizeMnemonic())
             return false;
 
@@ -116,7 +118,10 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
         }
     }
     else
+    {
+        isNop = false;
         addToken(TokenType::Uncategorized, "???");
+    }
 
     instruction = _inst;
 
@@ -126,6 +131,7 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
 bool CapstoneTokenizer::TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction)
 {
     _inst = InstructionToken();
+    isNop = false;
 
     if(!tokenizeMnemonic(TokenType::MnemonicNormal, datatype))
         return false;
@@ -262,7 +268,7 @@ void CapstoneTokenizer::addToken(TokenType type, QString text, const TokenValue 
     }
     if(_bUppercase && !value.size)
         text = text.toUpper();
-    _inst.tokens.push_back(SingleToken(_cp.IsNop() ? TokenType::MnemonicNop : type, text, value));
+    _inst.tokens.push_back(SingleToken(isNop ? TokenType::MnemonicNop : type, text, value));
 }
 
 void CapstoneTokenizer::addToken(TokenType type, const QString & text)
@@ -340,11 +346,15 @@ bool CapstoneTokenizer::tokenizePrefix()
 
 bool CapstoneTokenizer::tokenizeMnemonic()
 {
+    QString mnemonic = QString(_cp.Mnemonic().c_str());
+    if(isNop)
+    {
+        tokenizeMnemonic(TokenType::MnemonicNop, mnemonic);
+        return true;
+    }
     auto type = TokenType::MnemonicNormal;
     auto id = _cp.GetId();
-    if(_cp.IsNop())
-        type = TokenType::MnemonicNop;
-    else if(_cp.InGroup(CS_GRP_CALL))
+    if(_cp.InGroup(CS_GRP_CALL))
         type = TokenType::MnemonicCall;
     else if(_cp.InGroup(CS_GRP_RET))
         type = TokenType::MnemonicRet;
@@ -387,7 +397,6 @@ bool CapstoneTokenizer::tokenizeMnemonic()
             break;
         }
     }
-    QString mnemonic = QString(_cp.Mnemonic().c_str());
 
     tokenizeMnemonic(type, mnemonic);
 

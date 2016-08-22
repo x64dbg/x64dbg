@@ -2,6 +2,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "StringUtil.h"
+#include "LineEditDialog.h"
 
 void ThreadView::contextMenuSlot(const QPoint & pos)
 {
@@ -14,6 +15,7 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
     wMenu.addAction(mResumeThread);
     wMenu.addAction(mKillThread);
     wMenu.addSeparator();
+    wMenu.addAction(mSetName);
     wMenu.addMenu(mSetPriority);
     bool ok;
     ULONGLONG entry = getCellContent(getInitialSelection(), 2).toULongLong(&ok, 16);
@@ -184,6 +186,9 @@ void ThreadView::setupContextMenu()
     mGoToThreadEntry = new QAction(tr("Go to Thread Entry"), this);
     connect(mGoToThreadEntry, SIGNAL(triggered()), this, SLOT(GoToThreadEntry()));
 
+    // Set name
+    mSetName = new QAction(tr("Set name"), this);
+    connect(mSetName, SIGNAL(triggered()), this, SLOT(SetNameSlot()));
 }
 
 ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
@@ -201,10 +206,10 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * 14, tr("Suspend Count"), false, "", SortBy::AsInt);
     addColumnAt(8 + charwidth * 12, tr("Priority"), false);
     addColumnAt(8 + charwidth * 12, tr("Wait Reason"), false);
-    addColumnAt(8 + charwidth * 11, tr("Last Error"), false);
-    addColumnAt(8 + charwidth * 12, tr("User Time"), false);
-    addColumnAt(8 + charwidth * 12, tr("Kernel Time"), false);
-    addColumnAt(8 + charwidth * 15, tr("Creation Time"), false);
+    addColumnAt(8 + charwidth * 10, tr("Last Error"), false);
+    addColumnAt(8 + charwidth * 16, tr("User Time"), false);
+    addColumnAt(8 + charwidth * 16, tr("Kernel Time"), false);
+    addColumnAt(8 + charwidth * 16, tr("Creation Time"), false);
     addColumnAt(8 + charwidth * 10, tr("CPU Cycles"), false, "", SortBy::AsInt);
     addColumnAt(8, tr("Name"), false);
     loadColumnFromConfig("Thread");
@@ -420,4 +425,15 @@ void ThreadView::doubleClickedSlot()
     QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("switchthread " + threadId).toUtf8().constData());
     emit showCpu();
+}
+
+void ThreadView::SetNameSlot()
+{
+    QString threadId = getCellContent(getInitialSelection(), 1);
+    LineEditDialog mLineEdit(this);
+    mLineEdit.setText(getCellContent(getInitialSelection(), 13));
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    QString escapedName = mLineEdit.editText.replace("\"", "\\\"");
+    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(threadId).arg(escapedName).toUtf8().constData());
 }

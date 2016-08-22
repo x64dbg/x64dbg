@@ -15,6 +15,7 @@ namespace Exprfunc
 
     duint peb();
     duint teb();
+    duint tid();
 
     duint bswap(duint value);
 }

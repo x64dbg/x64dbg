@@ -81,6 +81,10 @@ void CPUStack::setupContextMenu()
     mPopAction = new QAction(ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), this);
     connect(mPopAction, SIGNAL(triggered()), this, SLOT(popSlot()));
 
+    //Realign
+    mRealignAction = new QAction(tr("Align Stack Pointer"), this);
+    connect(mRealignAction, SIGNAL(triggered()), this, SLOT(realignSlot()));
+
     //Binary menu
     mBinaryMenu = new QMenu(tr("B&inary"), this);
     mBinaryMenu->setIcon(DIcon("binary.png"));
@@ -519,6 +523,12 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     QMenu wMenu(this); //create context menu
     wMenu.addAction(mPushAction);
     wMenu.addAction(mPopAction);
+#ifdef _WIN64
+    if((mCsp & 0x7) != 0)
+#else //x86
+    if((mCsp & 0x3) != 0)
+#endif //_WIN64
+        wMenu.addAction(mRealignAction);
     wMenu.addAction(mModifyAction);
     wMenu.addMenu(mBinaryMenu);
     QMenu wCopyMenu(tr("&Copy"), this);
@@ -596,7 +606,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 
 void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    if(event->button() != Qt::LeftButton)
+    if(event->button() != Qt::LeftButton || !DbgIsDebugging())
         return;
     switch(getColumnIndexFromX(event->x()))
     {
@@ -682,7 +692,7 @@ int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCalls
     if(mCallstack.size())
         for(size_t i = 0; i < mCallstack.size() - 1; i++)
             if(wVA >= mCallstack[i].addr && wVA < mCallstack[i + 1].addr)
-                return i;
+                return int(i);
     return -1;
 }
 
@@ -813,7 +823,7 @@ void CPUStack::followinDumpNSlot()
             if(mFollowInDumpActions[i] == sender())
             {
                 QString addrText = QString("%1").arg(ToPtrString(selectedData));
-                DbgCmdExec(QString("dump [%1], %2").arg(addrText.toUtf8().constData()).arg(i).toUtf8().constData());
+                DbgCmdExec(QString("dump [%1], %2").arg(addrText.toUtf8().constData()).arg(i + 1).toUtf8().constData());
             }
         }
     }
@@ -1064,6 +1074,17 @@ void CPUStack::pushSlot()
 void CPUStack::popSlot()
 {
     mCsp += sizeof(dsint);
+    DbgValToString("csp", mCsp);
+    GuiUpdateAllViews();
+}
+
+void CPUStack::realignSlot()
+{
+#ifdef _WIN64
+    mCsp &= ~0x7;
+#else //x86
+    mCsp &= ~0x3;
+#endif //_WIN64
     DbgValToString("csp", mCsp);
     GuiUpdateAllViews();
 }

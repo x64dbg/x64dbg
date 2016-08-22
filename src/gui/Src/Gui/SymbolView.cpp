@@ -7,6 +7,7 @@
 #include "EntropyDialog.h"
 #include "LineEditDialog.h"
 #include <QVBoxLayout>
+#include <QProcess>
 
 SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {
@@ -139,6 +140,9 @@ void SymbolView::setupContextMenu()
 
     mCopyPathAction = new QAction(tr("Copy File &Path"), this);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
+
+    mBrowseInExplorer = new QAction(tr("Browse in Explorer"), this);
+    connect(mBrowseInExplorer, SIGNAL(triggered()), this, SLOT(moduleBrowse()));
 
     mYaraAction = new QAction(DIcon("yara.png"), tr("&Yara Memory..."), this);
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(moduleYara()));
@@ -323,7 +327,10 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
     duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+    {
         wMenu->addAction(mCopyPathAction);
+        wMenu->addAction(mBrowseInExplorer);
+    }
     wMenu->addAction(mYaraAction);
     wMenu->addAction(mYaraFileAction);
     wMenu->addAction(mEntropyAction);
@@ -361,6 +368,16 @@ void SymbolView::moduleCopyPath()
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         Bridge::CopyToClipboard(szModPath);
+}
+
+void SymbolView::moduleBrowse()
+{
+    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
+    char szModPath[MAX_PATH] = "";
+    if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+    {
+        QProcess::startDetached("explorer.exe", QStringList(QString("/select,").append(QString::fromUtf8(szModPath))));
+    }
 }
 
 void SymbolView::moduleYara()

@@ -1,7 +1,10 @@
 #include "Disassembly.h"
 #include "Configuration.h"
+#include "CodeFolding.h"
+#include "EncodeMap.h"
 #include "Bridge.h"
 #include "MainWindow.h"
+#include "CachedFontMetrics.h"
 #include "QBeaEngine.h"
 #include "MemoryPage.h"
 
@@ -781,8 +784,8 @@ void Disassembly::mouseReleaseEvent(QMouseEvent* event)
 
 void Disassembly::leaveEvent(QEvent* event)
 {
-    Q_UNUSED(event);
     ShowDisassemblyPopup(0, 0, 0);
+    AbstractTableView::leaveEvent(event);
 }
 
 /************************************************************************************

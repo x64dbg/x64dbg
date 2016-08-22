@@ -1,5 +1,7 @@
 #include "main.h"
 #include "capstone_wrapper.h"
+#include "MainWindow.h"
+#include "Configuration.h"
 #include <QTextCodec>
 #include <QFile>
 #include <QTranslator>

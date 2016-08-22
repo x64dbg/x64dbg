@@ -2,8 +2,6 @@
 #define CODEFOLDING_H
 #include "Imports.h"
 #include <map>
-#include <forward_list>
-
 
 class CodeFoldingHelper
 {

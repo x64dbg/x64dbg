@@ -1,5 +1,7 @@
 #include "QBeaEngine.h"
 #include "StringUtil.h"
+#include "EncodeMap.h"
+#include "CodeFolding.h"
 
 QBeaEngine::QBeaEngine(int maxModuleSize)
     : _tokenizer(maxModuleSize), mCodeFoldingManager(nullptr)
@@ -182,6 +184,10 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
 
 Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA)
 {
+    ENCODETYPE type = mEncodeMap->getDataType(origBase + origInstRVA);
+
+    if(type != enc_unknown && type != enc_code && type != enc_middle)
+        return DecodeDataAt(data, size, origBase, origInstRVA, type);
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
     _tokenizer.Tokenize(origBase + origInstRVA, data, size, cap);
@@ -190,16 +196,12 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     const auto & cp = _tokenizer.GetCapstone();
     bool success = cp.Success();
 
-    ENCODETYPE type = enc_code;
-
-    type = mEncodeMap->getDataType(origBase + origInstRVA);
-
-    if(type != enc_unknown && type != enc_code && type != enc_middle)
-        return DecodeDataAt(data, size, origBase, origInstRVA, type);
 
     auto branchType = Instruction_t::None;
+    Instruction_t wInst;
     if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_CALL)))
     {
+        wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
         switch(cp.GetId())
         {
         case X86_INS_JMP:
@@ -215,8 +217,9 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
             break;
         }
     }
+    else
+        wInst.branchDestination = 0;
 
-    Instruction_t wInst;
     wInst.instStr = QString(cp.InstructionText().c_str());
     wInst.dump = QByteArray((const char*)data, len);
     wInst.rva = origInstRVA;
@@ -225,7 +228,6 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     else
         wInst.length = len;
     wInst.branchType = branchType;
-    wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
     wInst.tokens = cap;
 
     return wInst;

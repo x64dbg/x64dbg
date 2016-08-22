@@ -28,6 +28,7 @@ public slots:
     void SetPriorityLowestSlot();
     void SetPriorityNormalSlot();
     void SetPriorityTimeCriticalSlot();
+    void SetNameSlot();
 
 signals:
     void showCpu();
@@ -46,6 +47,7 @@ private:
     QAction* mSetPriorityLowest;
     QAction* mSetPriorityNormal;
     QAction* mSetPriorityTimeCritical;
+    QAction* mSetName;
     QMenu* mSetPriority;
 };
 

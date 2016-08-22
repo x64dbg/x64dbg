@@ -156,6 +156,7 @@ private:
     static bool tokenTextPoolEquals(const QString & a, const QString & b);
 
     Capstone _cp;
+    bool isNop;
     InstructionToken _inst;
     bool _success;
     int _maxModuleLength;

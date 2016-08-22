@@ -96,6 +96,7 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[]);
 CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[]);
 CMDRESULT cbDebugResumeAllThreads(int argc, char* argv[]);
 CMDRESULT cbDebugSetPriority(int argc, char* argv[]);
+CMDRESULT cbDebugSetthreadname(int argc, char* argv[]);
 CMDRESULT cbDebugGetCmdline(int argc, char* argv[]);
 CMDRESULT cbDebugSetCmdline(int argc, char* argv[]);
 CMDRESULT cbDebugLoadLib(int argc, char* argv[]);

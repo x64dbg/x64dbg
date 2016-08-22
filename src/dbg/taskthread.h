@@ -39,7 +39,7 @@ public:
 template <typename F>
 class StringConcatTaskThread_ : public TaskThread_<F, std::string>
 {
-    virtual std::tuple<std::string> CompressArguments(std::string && msg) override
+    virtual std::tuple<std::string> CompressArguments(std::string && msg)
     {
         std::get<0>(args) += msg;
         return args;

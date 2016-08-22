@@ -10,6 +10,12 @@
 #include "../exe/LoadResourceString.h"
 
 typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
+typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
+
+
+LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
+LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
 
 enum arch
 {
@@ -90,6 +96,21 @@ static BOOL isWoW64()
         }
     }
     return isWoW64;
+}
+
+static BOOL isWowRedirectionSupported()
+{
+
+    BOOL bRedirectSupported = FALSE;
+
+    _Wow64DisableRedirection = (LPFN_Wow64DisableWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64DisableWow64FsRedirection");
+    _Wow64RevertRedirection = (LPFN_Wow64RevertWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64RevertWow64FsRedirection");
+
+    if(!_Wow64DisableRedirection || !_Wow64RevertRedirection)
+        return bRedirectSupported;
+    else
+        return !bRedirectSupported;
+
 }
 
 static TCHAR* GetDesktopPath()
@@ -225,10 +246,34 @@ static bool ResolveShortcut(HWND hwnd, const TCHAR* szShortcutPath, TCHAR* szRes
     return SUCCEEDED(hres);
 }
 
+struct RedirectWow
+{
+    PVOID oldValue = NULL;
+    RedirectWow() {}
+    bool DisableRedirect()
+    {
+        if(!_Wow64DisableRedirection(&oldValue))
+        {
+            return false;
+        }
+        return true;
+    }
+    ~RedirectWow()
+    {
+        if(oldValue != NULL)
+        {
+            if(!_Wow64RevertRedirection(oldValue))
+                //Error occured here. Ignore or reset? (does it matter at this point?)
+                MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
+        }
+    }
+};
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     //Initialize COM
     CoInitialize(nullptr);
+
 
     //Get INI file path
     TCHAR szModulePath[MAX_PATH] = TEXT("");
@@ -326,6 +371,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     }
     else if(argc >= 2)  //one or more arguments -> execute debugger
     {
+        BOOL canDisableRedirect = FALSE;
+        RedirectWow rWow;
+        //check for redirection and disable it.
+        if(isWoW64())
+        {
+            if(isWowRedirectionSupported())
+            {
+                canDisableRedirect = TRUE;
+            }
+        }
+
         TCHAR szPath[MAX_PATH] = TEXT("");
         if(PathIsRelative(argv[1]))  //resolve the full path if a relative path is specified
         {
@@ -352,7 +408,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             }
             cmdLine += L"\"";
         }
-
         switch(GetFileArchitecture(szPath))
         {
         case x32:
@@ -364,7 +419,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
         case x64:
             if(sz64Path[0])
-                ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
+                if(canDisableRedirect)
+                {
+                    rWow.DisableRedirect();
+                    ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
+                }
+                else
+                    //Execute anyways but without redirect disabled
+                    ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
             else
                 MessageBox(nullptr, LoadResString(IDS_INVDPATH64), LoadResString(IDS_ERROR), MB_ICONERROR);
             break;

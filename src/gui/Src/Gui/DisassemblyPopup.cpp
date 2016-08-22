@@ -1,5 +1,6 @@
 #include "DisassemblyPopup.h"
 #include "Disassembly.h"
+#include "CachedFontMetrics.h"
 #include "Configuration.h"
 #include "StringUtil.h"
 #include <QPainter>
@@ -27,6 +28,7 @@ DisassemblyPopup::~DisassemblyPopup()
 void DisassemblyPopup::updateColors()
 {
     disassemblyBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    disassemblyTracedColor = ConfigColor("DisassemblyTracedBackgroundColor");
     labelColor = ConfigColor("DisassemblyLabelColor");
     labelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
     commentColor = ConfigColor("DisassemblyCommentColor");
@@ -72,7 +74,9 @@ void DisassemblyPopup::paintEvent(QPaintEvent* event)
     int y = charHeight + 1;
     for(auto & instruction : mDisassemblyToken)
     {
-        RichTextPainter::paintRichText(&p, 2, y, mWidth - 2, charHeight, 0, instruction, mFontMetrics);
+        if(instruction.second)
+            p.fillRect(QRect(2, y, mWidth - 2, charHeight), disassemblyTracedColor);
+        RichTextPainter::paintRichText(&p, 2, y, mWidth - 2, charHeight, 0, instruction.first, mFontMetrics);
         y += charHeight;
     }
     QFrame::paintEvent(event);
@@ -81,7 +85,7 @@ void DisassemblyPopup::paintEvent(QPaintEvent* event)
 void DisassemblyPopup::setAddress(duint Address)
 {
     addr = Address;
-    mInstBuffer.clear();
+    QList<Instruction_t> mInstBuffer;
     mDisassemblyToken.clear();
     if(addr != 0)
     {
@@ -119,7 +123,7 @@ void DisassemblyPopup::setAddress(duint Address)
             for(auto & token : richText)
                 currentInstructionWidth += mFontMetrics->width(token.text);
             mWidth = std::max(mWidth, currentInstructionWidth);
-            mDisassemblyToken.push_back(std::move(richText));
+            mDisassemblyToken.push_back(std::make_pair(std::move(richText), DbgFunctions()->GetTraceRecordHitCount(instruction.rva + base) != 0));
         }
         // Address
         addrText = parent->getAddrText(addr, nullptr);

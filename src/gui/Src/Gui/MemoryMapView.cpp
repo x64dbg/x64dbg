@@ -11,6 +11,7 @@
 #include "MiscUtil.h"
 #include "GotoDialog.h"
 #include "WordEditDialog.h"
+#include "VirtualModDialog.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent)
     : StdTable(parent),
@@ -140,6 +141,10 @@ void MemoryMapView::setupContextMenu()
     mDumpMemory = new QAction(tr("&Dump Memory to File"), this);
     connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemory()));
 
+    //Add virtual module
+    mAddVirtualMod = new QAction(tr("Add virtual module"), this);
+    connect(mAddVirtualMod, SIGNAL(triggered()), this, SLOT(addVirtualModSlot()));
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -160,9 +165,9 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     if(!DbgIsDebugging())
         return;
     QMenu wMenu(this); //create context menu
-    wMenu.addAction(mDumpMemory);
     wMenu.addAction(mFollowDisassembly);
     wMenu.addAction(mFollowDump);
+    wMenu.addAction(mDumpMemory);
     wMenu.addAction(mYara);
     wMenu.addAction(mEntropy);
     wMenu.addAction(mFindPattern);
@@ -171,6 +176,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addAction(mMemoryAllocate);
     wMenu.addAction(mMemoryFree);
     wMenu.addAction(mFindAddress);
+    wMenu.addAction(mAddVirtualMod);
     wMenu.addSeparator();
     wMenu.addAction(mPageMemoryRights);
     wMenu.addSeparator();
@@ -203,6 +209,8 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
         mMemoryExecuteMenu->menuAction()->setVisible(true);
         mMemoryRemove->setVisible(false);
     }
+
+    mAddVirtualMod->setVisible(!DbgFunctions()->ModBaseFromAddr(selectedAddr));
 
     wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
@@ -581,4 +589,18 @@ void MemoryMapView::findAddressSlot()
     {
         selectAddress(DbgValFromString(mGoto.expressionText.toUtf8().constData()));
     }
+}
+
+void MemoryMapView::addVirtualModSlot()
+{
+    auto base = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
+    auto size = duint(getCellContent(getInitialSelection(), 1).toULongLong(nullptr, 16));
+    VirtualModDialog mDialog(this);
+    mDialog.setData("", base, size);
+    if(mDialog.exec() != QDialog::Accepted)
+        return;
+    QString modname;
+    if(!mDialog.getData(modname, base, size))
+        return;
+    DbgCmdExec(QString("virtualmod \"%1\", %2, %3").arg(modname).arg(ToHexString(base)).arg(ToHexString(size)).toUtf8().constData());
 }

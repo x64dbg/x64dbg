@@ -2339,7 +2339,7 @@ CMDRESULT cbInstrAnalxrefs(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrVirtualmod(int argc, char* argv[]) //virtualmod base, size, "name"
+CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
 {
     if(argc < 3)
     {
@@ -2841,6 +2841,9 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
     }
     if(!GuiGraphAt(sel))
     {
+        auto modbase = ModBaseFromAddr(base);
+        if(modbase)
+            base = modbase, size = ModSizeFromAddr(modbase);
         RecursiveAnalysis analysis(base, size, entry, 0);
         analysis.Analyse();
         auto graph = analysis.GetFunctionGraph(entry);

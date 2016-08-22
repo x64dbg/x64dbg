@@ -2,11 +2,10 @@
 #define DISASSEMBLYPOPUP_H
 #include <QFrame>
 #include "Imports.h"
-#include "RichTextPainter.h"
-#include "CachedFontMetrics.h"
 #include "QBeaEngine.h"
 
 class Disassembly;
+class CachedFontMetrics;
 
 class DisassemblyPopup : public QFrame
 {
@@ -34,6 +33,7 @@ protected:
     unsigned int mMaxInstructions;
 
     QColor disassemblyBackgroundColor;
+    QColor disassemblyTracedColor;
     QColor labelColor;
     QColor labelBackgroundColor;
     QColor commentColor;
@@ -41,8 +41,7 @@ protected:
     QColor commentAutoColor;
     QColor commentAutoBackgroundColor;
 
-    QList<Instruction_t> mInstBuffer;
-    std::vector<RichTextPainter::List> mDisassemblyToken;
+    std::vector<std::pair<RichTextPainter::List, bool>> mDisassemblyToken;
 };
 
 #endif // DISASSEMBLYPOPUP_H

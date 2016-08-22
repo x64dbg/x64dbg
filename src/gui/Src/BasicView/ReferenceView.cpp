@@ -240,7 +240,7 @@ void ReferenceView::followDumpAddress()
 void ReferenceView::followApiAddress()
 {
     dsint apiValue = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
-    DbgCmdExecDirect(QString("disasm " + QString().sprintf("%p", apiValue)).toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + ToPtrString(apiValue)).toUtf8().constData());
     emit showCpu();
 }
 

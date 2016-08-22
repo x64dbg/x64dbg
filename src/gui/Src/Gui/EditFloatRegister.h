@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QLineEdit>
-#include <HexValidator.h>
+#include "HexValidator.h"
 #include "LongLongValidator.h"
 #include <QDoubleValidator>
 

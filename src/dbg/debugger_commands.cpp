@@ -2015,6 +2015,36 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbDebugSetthreadname(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments!");
+        return STATUS_ERROR;
+    }
+    duint threadid;
+    if(!valfromstring(argv[1], &threadid, false))
+        return STATUS_ERROR;
+    THREADINFO info;
+    if(!ThreadGetInfo(DWORD(threadid), info))
+    {
+        dprintf("Invalid thread %X\n", threadid);
+        return STATUS_ERROR;
+    }
+    auto newname = argc > 2 ? argv[2] : "";
+    if(!ThreadSetName(DWORD(threadid), newname))
+    {
+        dprintf("Failed to change the name for thread %X\n", threadid);
+        return STATUS_ERROR;
+    }
+    if(!info.threadName)
+        dprintf("Thread name set to \"%s\"!\n", newname);
+    else
+        dprintf("Thread name changed from \"%s\" to \"%s\"!\n", info.threadName, newname);
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
 {
     dputs("This may take very long, depending on your network connection and data in the debug directory...");

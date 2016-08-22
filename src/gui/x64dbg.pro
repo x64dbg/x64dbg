@@ -167,7 +167,8 @@ SOURCES += \
     Src/Gui/FavouriteTools.cpp \
     Src/Gui/BrowseDialog.cpp \
     Src/Gui/DisassemblerGraphView.cpp \
-    Src/Gui/DisassemblyPopup.cpp
+    Src/Gui/DisassemblyPopup.cpp \
+    Src/Gui/VirtualModDialog.cpp
 
 
 HEADERS += \
@@ -271,7 +272,8 @@ HEADERS += \
     Src/Gui/BrowseDialog.h \
     Src/Gui/DisassemblerGraphView.h \
     Src/Utils/ActionHelpers.h \
-    Src/Gui/DisassemblyPopup.h
+    Src/Gui/DisassemblyPopup.h \
+    Src/Gui/VirtualModDialog.h
     
 
 FORMS += \
@@ -306,7 +308,8 @@ FORMS += \
     Src/Gui/CodepageSelectionDialog.ui \
     Src/Gui/ColumnReorderDialog.ui \
     Src/Gui/FavouriteTools.ui \
-    Src/Gui/BrowseDialog.ui
+    Src/Gui/BrowseDialog.ui \
+    Src/Gui/VirtualModDialog.ui
 
 TRANSLATIONS = \
     Translations/x64dbg.ts

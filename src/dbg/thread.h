@@ -10,6 +10,7 @@ void ThreadClear();
 int ThreadGetCount();
 void ThreadGetList(THREADLIST* list);
 void ThreadGetList(std::vector<THREADINFO> & list);
+bool ThreadGetInfo(DWORD ThreadId, THREADINFO & info);
 bool ThreadIsValid(DWORD ThreadId);
 bool ThreadSetName(DWORD ThreadId, const char* name);
 bool ThreadGetTib(duint TEBAddress, NT_TIB* Tib);
