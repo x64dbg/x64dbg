@@ -1515,9 +1515,13 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     if(!disasm || !basicinfo)  //initialize
     {
         GuiReferenceInitialize(refinfo->name);
-        GuiReferenceAddColumn(2 * sizeof(duint), "Address");
-        GuiReferenceAddColumn(20, "Disassembly");
-        GuiReferenceAddColumn(MAX_LABEL_SIZE, "Destination");
+        String TranslatedString;
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address"));
+        GuiReferenceAddColumn(2 * sizeof(duint), TranslatedString.c_str());
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly"));
+        GuiReferenceAddColumn(20, TranslatedString.c_str());
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Destination"));
+        GuiReferenceAddColumn(MAX_LABEL_SIZE, TranslatedString.c_str());
         GuiReferenceReloadData();
         return true;
     }
@@ -1568,7 +1572,8 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
             refFindType = CURRENT_REGION;
 
     duint ticks = GetTickCount();
-    int found = RefFind(addr, size, cbModCallFind, 0, false, "Calls", (REFFINDTYPE)refFindType, false);
+    String Calls = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Calls"));
+    int found = RefFind(addr, size, cbModCallFind, 0, false, Calls.c_str(), (REFFINDTYPE)refFindType, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%u call(s) in %ums\n"), found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;

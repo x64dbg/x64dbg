@@ -383,7 +383,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     if(!ModNameFromAddr(disasm_addr, modname, true))
         *modname = 0;
     else
-        sprintf(modtext, "Module: %s - ", modname);
+        sprintf(modtext, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module: %s - ")), modname);
     char title[1024] = "";
     sprintf(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %X")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread));
     GuiUpdateWindowTitle(title);
@@ -1044,7 +1044,7 @@ static void cbTXXTStep(bool bStepInto, bool bInto, void (*callback)())
         cbRtrFinalStep();
         return;
     }
-    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(CIP) == 0 ^ bInto)) || !traceCondition->ContinueTrace())
+    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && ((TraceRecord.getHitCount(CIP) == 0) ^ bInto)) || !traceCondition->ContinueTrace())
     {
         _dbg_dbgtraceexecute(CIP);
         auto steps = dbgcleartracecondition();
@@ -1143,7 +1143,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                         duint callbackVA = TLSCallBacks()[i] - ImageBase + pDebuggedBase;
                         if(MemIsValidReadPtr(callbackVA))
                         {
-                            sprintf_s(command, "bp %p,\"TLS Callback %d\",ss", callbackVA, i + 1);
+                            String breakpointname = StringUtils::sprintf(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback %d")), i + 1);
+                            sprintf_s(command, "bp %p,\"%s\",ss", callbackVA, breakpointname.c_str());
                             cmddirectexec(command);
                         }
                         else
@@ -1157,7 +1158,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
         if(settingboolget("Events", "EntryBreakpoint"))
         {
-            sprintf_s(command, "bp %p,\"entry breakpoint\",ss", (duint)CreateProcessInfo->lpStartAddress);
+            sprintf_s(command, "bp %p,\"%s\",ss", (duint)CreateProcessInfo->lpStartAddress, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "entry breakpoint")));
             cmddirectexec(command);
         }
 

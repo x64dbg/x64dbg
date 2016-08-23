@@ -67,7 +67,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     LOADLIBRARY(gui_lib);
     LOADEXPORT(_gui_guiinit);
     LOADEXPORT(_gui_sendmessage);
-    LOADEXPORT(_gui_translate_dbg);
+    LOADEXPORT(_gui_translate_text);
 
     //DBG Load
     LOADLIBRARY(dbg_lib);
