@@ -499,32 +499,32 @@ static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], c
 
 static CMDRESULT cbDebugSetBPXNameCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "breakpoint name"))), BpSetName);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "breakpoint name"))), BpSetName);
 }
 
 static CMDRESULT cbDebugSetBPXConditionCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "break condition"))), BpSetBreakCondition);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "break condition"))), BpSetBreakCondition);
 }
 
 static CMDRESULT cbDebugSetBPXLogCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "logging text"))), BpSetLogText);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "logging text"))), BpSetLogText);
 }
 
 static CMDRESULT cbDebugSetBPXLogConditionCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "logging condition"))), BpSetLogCondition);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "logging condition"))), BpSetLogCondition);
 }
 
 static CMDRESULT cbDebugSetBPXCommandCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "command on hit"))), BpSetCommandText);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "command on hit"))), BpSetCommandText);
 }
 
 static CMDRESULT cbDebugSetBPXCommandConditionCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "command condition"))), BpSetCommandCondition);
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "command condition"))), BpSetCommandCondition);
 }
 
 static CMDRESULT cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])

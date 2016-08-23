@@ -35,7 +35,7 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     // The first thread (#0) is always the main program thread
     if(curInfo.ThreadNumber <= 0)
-        strcpy_s(curInfo.threadName, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Main Thread")));
+        strcpy_s(curInfo.threadName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Main Thread")));
 
     // Modify global thread list
     EXCLUSIVE_ACQUIRE(LockThreads);

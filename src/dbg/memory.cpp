@@ -58,9 +58,9 @@ void MemUpdateMap()
                     if(bReserved)
                     {
                         if(duint(curPage.mbi.BaseAddress) != allocationBase)
-                            sprintf_s(curPage.info, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Reserved (%p)")), allocationBase);
+                            sprintf_s(curPage.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Reserved (%p)")), allocationBase);
                         else
-                            strcpy_s(curPage.info, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Reserved")));
+                            strcpy_s(curPage.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Reserved")));
                     }
                     else if(!ModNameFromAddr(pageStart, curPage.info, true))
                     {
@@ -199,7 +199,7 @@ void MemUpdateMap()
 
             if(pageBase == tebBase)
             {
-                sprintf_s(page.info, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Thread %X TEB")), threadId);
+                sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X TEB")), threadId);
                 break;
             }
             else if(pageBase == tebBaseWow64)
@@ -207,7 +207,7 @@ void MemUpdateMap()
 #ifndef _WIN64
                 if(pageSize == (3 * PAGE_SIZE))
                 {
-                    sprintf_s(page.info, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Thread %X WoW64 TEB")), threadId);
+                    sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X WoW64 TEB")), threadId);
                     break;
                 }
 #endif // ndef _WIN64
@@ -224,7 +224,7 @@ void MemUpdateMap()
             duint stackAddr = (duint)tib.StackLimit;
 
             if(stackAddr >= pageBase && stackAddr < (pageBase + pageSize))
-                sprintf_s(page.info, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Thread %X Stack")), threadId);
+                sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X Stack")), threadId);
         }
     }
 

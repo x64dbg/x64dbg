@@ -136,7 +136,7 @@ static String handleFormatString(const String & formatString, const FormatValueV
     auto argnum = getArgNumType(formatString, type);
     if(type != ValueType::Unknown && argnum < values.size())
         return printValue(values.at(argnum), type);
-    return GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "[Formatting Error]"));
+    return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Formatting Error]"));
 }
 
 String stringformat(String format, const FormatValueVector & values)
@@ -194,7 +194,7 @@ static String handleFormatStringInline(const String & formatString)
     auto value = getArgExpressionType(formatString, type);
     if(value && *value)
         return printValue(value, type);
-    return GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "[Formatting Error]"));
+    return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Formatting Error]"));
 }
 
 String stringformatinline(String format)

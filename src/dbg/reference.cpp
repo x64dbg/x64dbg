@@ -47,9 +47,9 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
         // Determine the full module name
         if(ModNameFromAddr(scanStart, moduleName, true))
-            sprintf_s(fullName, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "%s (Region %s)")), Name, moduleName);
+            sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s (Region %s)")), Name, moduleName);
         else
-            sprintf_s(fullName, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "%s (Region %p)")), Name, scanStart);
+            sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s (Region %p)")), Name, scanStart);
 
         // Initialize disassembler
         Capstone cp;
@@ -61,7 +61,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
         RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
         {
-            GuiReferenceSetCurrentTaskProgress(percent, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Region Search")));
+            GuiReferenceSetCurrentTaskProgress(percent, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Region Search")));
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
@@ -102,7 +102,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
         RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
         {
-            GuiReferenceSetCurrentTaskProgress(percent, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Module Search")));
+            GuiReferenceSetCurrentTaskProgress(percent, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module Search")));
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
@@ -124,7 +124,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         Capstone cp;
 
         // Determine the full module
-        sprintf_s(fullName, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "All Modules (%s)")), Name);
+        sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "All Modules (%s)")), Name);
 
         // Allow an "initialization" notice
         refInfo.refcount = 0;

@@ -30,9 +30,9 @@ void stackupdateseh()
         for(duint i = 0; i < count; i++)
         {
             if(i + 1 != count)
-                sprintf_s(comment.comment, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Pointer to SEH_Record[%d]")), i + 1);
+                sprintf_s(comment.comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pointer to SEH_Record[%d]")), i + 1);
             else
-                sprintf_s(comment.comment, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "End of SEH Chain")));
+                sprintf_s(comment.comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End of SEH Chain")));
             newcache.insert({ SEHList[i], comment });
         }
     }
@@ -100,10 +100,10 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
             if(!*label)
                 sprintf(label, "%p", data);
             strcat_s(returnFromAddr, label);
-            sprintf_s(comment->comment, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+            sprintf_s(comment->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
         }
         else
-            sprintf_s(comment->comment, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "return to %s from ???")), returnToAddr);
+            sprintf_s(comment->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from ???")), returnToAddr);
         strcpy_s(comment->color, "!rtnclr"); // Special token for return address color;
         return true;
     }
@@ -187,9 +187,9 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint
     strncpy_s(returnToAddr, getSymAddrName(Entry->to).c_str(), _TRUNCATE);
 
     if(Entry->from)
-        sprintf_s(Entry->comment, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, getSymAddrName(Entry->from).c_str());
+        sprintf_s(Entry->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, getSymAddrName(Entry->from).c_str());
     else
-        sprintf_s(Entry->comment, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "return to %s from ???")), returnToAddr);
+        sprintf_s(Entry->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from ???")), returnToAddr);
 }
 
 #define MAX_CALLSTACK_CACHE 20

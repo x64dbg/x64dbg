@@ -909,11 +909,11 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
 {
     String TranslatedString;
-    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Script"));
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script"));
     GuiReferenceInitialize(TranslatedString.c_str());
-    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Address"));
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address"));
     GuiReferenceAddColumn(sizeof(duint) * 2, TranslatedString.c_str());
-    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Data"));
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data"));
     GuiReferenceAddColumn(0, TranslatedString.c_str());
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
@@ -955,9 +955,9 @@ static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     {
         String TranslatedString;
         GuiReferenceInitialize(refinfo->name);
-        TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Address"));
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address"));
         GuiReferenceAddColumn(sizeof(duint) * 2, TranslatedString.c_str());
-        TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Disassembly"));
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly"));
         GuiReferenceAddColumn(10, TranslatedString.c_str());
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
@@ -1039,9 +1039,9 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
     duint ticks = GetTickCount();
     char title[256] = "";
     if(range.start == range.end)
-        sprintf_s(title, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Constant: %p")), range.start);
+        sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Constant: %p")), range.start);
     else
-        sprintf_s(title, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Range: %p-%p")), range.start, range.end);
+        sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Range: %p-%p")), range.start, range.end);
 
     duint refFindType = CURRENT_REGION;
     if(argc >= 6 && valfromstring(argv[5], &refFindType, true))
@@ -1060,11 +1060,11 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
     {
         String TranslatedString;
         GuiReferenceInitialize(refinfo->name);
-        TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Address"));
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address"));
         GuiReferenceAddColumn(2 * sizeof(duint), TranslatedString.c_str());
-        TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Disassembly"));
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly"));
         GuiReferenceAddColumn(64, TranslatedString.c_str());
-        TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "String"));
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String"));
         GuiReferenceAddColumn(500, TranslatedString.c_str());
         GuiReferenceSetSearchStartCol(2); //only search the strings
         GuiReferenceReloadData();
@@ -1119,7 +1119,7 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
         if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
             refFindType = CURRENT_REGION;
 
-    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Strings"));
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Strings"));
     int found = RefFind(addr, size, cbRefStr, 0, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%u string(s) in %ums\n"), found, GetTickCount() - ticks);
     varset("$result", found, false);
@@ -1336,7 +1336,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     if(len > 16)
         strcat_s(patternshort, "...");
     char patterntitle[256] = "";
-    sprintf_s(patterntitle, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort);
+    sprintf_s(patterntitle, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort);
     GuiReferenceInitialize(patterntitle);
     GuiReferenceAddColumn(2 * sizeof(duint), "Address");
     if(findData)
@@ -1455,7 +1455,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     if(len > 16)
         strcat_s(patternshort, "...");
     char patterntitle[256] = "";
-    sprintf_s(patterntitle, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort);
+    sprintf_s(patterntitle, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort);
     GuiReferenceInitialize(patterntitle);
     GuiReferenceAddColumn(2 * sizeof(duint), "Address");
     if(findData)
@@ -1715,15 +1715,15 @@ CMDRESULT cbInstrArgumentList(int argc, char* argv[])
 {
     //setup reference view
     String TranslatedString;
-    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Arguments"));
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Arguments"));
     GuiReferenceInitialize(TranslatedString.c_str());
-    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Start"));
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Start"));
     GuiReferenceAddColumn(2 * sizeof(duint), TranslatedString.c_str());
-    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "End"));
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End"));
     GuiReferenceAddColumn(2 * sizeof(duint), TranslatedString.c_str());
-    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)"));
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)"));
     GuiReferenceAddColumn(64, TranslatedString.c_str());
-    TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Label/Comment"));
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment"));
     GuiReferenceAddColumn(10, TranslatedString.c_str());
     GuiReferenceReloadData();
     size_t cbsize;
@@ -1827,9 +1827,9 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     {
         String TranslatedString;
         GuiReferenceInitialize(refinfo->name);
-        TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Address"));
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address"));
         GuiReferenceAddColumn(2 * sizeof(duint), TranslatedString.c_str());
-        TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Disassembly"));
+        TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly"));
         GuiReferenceAddColumn(0, TranslatedString.c_str());
         GuiReferenceReloadData();
         return true;
@@ -2141,11 +2141,11 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                 fullName += ")"; //nanana, very ugly code (long live open source)
                 GuiReferenceInitialize(fullName.c_str());
                 String TranslatedString;
-                TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Address"));
+                TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address"));
                 GuiReferenceAddColumn(sizeof(duint) * 2, TranslatedString.c_str());
-                TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Rule"));
+                TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Rule"));
                 GuiReferenceAddColumn(48, TranslatedString.c_str());
-                TranslatedString = GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Data"));
+                TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data"));
                 GuiReferenceAddColumn(10, TranslatedString.c_str());
                 GuiReferenceSetRowCount(0);
                 GuiReferenceReloadData();

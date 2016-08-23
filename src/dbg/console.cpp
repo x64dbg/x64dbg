@@ -22,7 +22,7 @@ static void GuiAddLogMessageAsync(const char* msg)
 void dputs(const char* Text)
 {
     // Only append the newline if the caller didn't
-    const char* TranslatedText = GuiTranslateDbg(Text);
+    const char* TranslatedText = GuiTranslateText(Text);
     size_t textlen = strlen(TranslatedText);
     if(TranslatedText[textlen - 1] != '\n')
     {
@@ -57,7 +57,7 @@ void dprintf(const char* Format, ...)
 void dprintf_args(const char* Format, va_list Args)
 {
     char buffer[16384];
-    vsnprintf_s(buffer, _TRUNCATE, GuiTranslateDbg(Format), Args);
+    vsnprintf_s(buffer, _TRUNCATE, GuiTranslateText(Format), Args);
 
     GuiAddLogMessageAsync(buffer);
 }

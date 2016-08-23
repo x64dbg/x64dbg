@@ -523,7 +523,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 
         if(strstr(szSymbolCachePath, "http://") || strstr(szSymbolCachePath, "https://"))
         {
-            if(Script::Gui::MessageYesNo(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "It is strongly discouraged to use symbol servers in your path directly (use the store option instead).\n\nDo you want me to fix this?"))))
+            if(Script::Gui::MessageYesNo(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "It is strongly discouraged to use symbol servers in your path directly (use the store option instead).\n\nDo you want me to fix this?"))))
             {
                 strcpy_s(szSymbolCachePath, szLocalSymbolPath);
                 BridgeSettingSet("Symbols", "CachePath", ".\\symbols");
@@ -544,13 +544,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     ExpressionFunctions::Init();
     dputs(QT_TRANSLATE_NOOP("DBG", "Registering expression functions..."));
     SCRIPTTYPEINFO info;
-    strcpy_s(info.name, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Default")));
+    strcpy_s(info.name, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Default")));
     info.id = 0;
     info.execute = DbgCmdExec;
     info.completeCommand = nullptr;
     GuiRegisterScriptLanguage(&info);
     dputs(QT_TRANSLATE_NOOP("DBG", "Registering Script DLL command handler..."));
-    strcpy_s(info.name, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Script DLL")));
+    strcpy_s(info.name, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script DLL")));
     info.execute = DbgScriptDllExec;
     GuiRegisterScriptLanguage(&info);
     dputs(QT_TRANSLATE_NOOP("DBG", "Starting command loop..."));

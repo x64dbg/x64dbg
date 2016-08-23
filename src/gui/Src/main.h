@@ -22,7 +22,12 @@ public:
 
 int main(int argc, char* argv[]);
 extern char currentLocale[MAX_SETTING_SIZE];
-extern bool translationsReady;
+
+struct TranslatedStringStorage
+{
+    char Data[4096];
+};
+extern std::map<DWORD, TranslatedStringStorage>* TLS_TranslatedStringMap;
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 class x64GlobalFilter : public QAbstractNativeEventFilter

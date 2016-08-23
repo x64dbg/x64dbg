@@ -385,7 +385,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     else
         sprintf(modtext, "Module: %s - ", modname);
     char title[1024] = "";
-    sprintf(title, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %X")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread));
+    sprintf(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %X")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread));
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
     GuiFocusView(GUI_DISASSEMBLY);
@@ -482,14 +482,14 @@ static void printHwBpInfo(const BREAKPOINT & bp)
     switch(TITANGETTYPE(bp.titantype))   //type
     {
     case UE_HARDWARE_EXECUTE:
-        bptype = _strdup(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "execute")));
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "execute")));
         bpsize = "";
         break;
     case UE_HARDWARE_READWRITE:
-        bptype = _strdup(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "read/write")));
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "read/write")));
         break;
     case UE_HARDWARE_WRITE:
-        bptype = _strdup(GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "write")));
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "write")));
         break;
     default:
         bptype = _strdup(" ");
@@ -1141,7 +1141,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     char DebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName) && !GetFileNameFromProcessHandle(CreateProcessInfo->hProcess, DebugFileName))
-        strcpy_s(DebugFileName, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
+        strcpy_s(DebugFileName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
     dprintf(QT_TRANSLATE_NOOP("DBG", "Process Started: %p %s\n"), base, DebugFileName);
 
     //update memory map

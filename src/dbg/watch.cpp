@@ -122,7 +122,7 @@ unsigned int WatchAddExprUnlocked(const char* expr, WATCHVARTYPE type)
 {
     unsigned int newid = InterlockedExchangeAdd(&idCounter, 1);
     char DefaultName[MAX_WATCH_NAME_SIZE];
-    sprintf_s(DefaultName, GuiTranslateDbg(QT_TRANSLATE_NOOP("DBG", "Watch %u")), newid);
+    sprintf_s(DefaultName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Watch %u")), newid);
     WatchExpr* newWatch = new WatchExpr(DefaultName, expr, type);
     auto temp = watchexpr.emplace(std::make_pair(newid, newWatch));
     if(temp.second)
