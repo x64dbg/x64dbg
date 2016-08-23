@@ -409,6 +409,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     MenuBuilder* analysisMenu = new MenuBuilder(this);
     QAction* toggleFunctionAction = makeShortcutAction(DIcon("functions.png"), tr("Function"), SLOT(toggleFunctionSlot()), "ActionToggleFunction");
+    analysisMenu->addAction(makeShortcutAction(tr("Analyze module"), SLOT(analyzeModuleSlot()), "ActionAnalyzeModule"));
     analysisMenu->addAction(toggleFunctionAction, [this, toggleFunctionAction](QMenu*)
     {
         if(!DbgFunctionOverlaps(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd())))
@@ -1693,4 +1694,9 @@ void CPUDisassembly::togglePreviewSlot()
     if(mPopupEnabled == true)
         ShowDisassemblyPopup(0, 0, 0);
     mPopupEnabled = !mPopupEnabled;
+}
+
+void CPUDisassembly::analyzeModuleSlot()
+{
+    DbgCmdExec("cfanal");
 }
