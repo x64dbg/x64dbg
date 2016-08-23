@@ -1001,138 +1001,84 @@ void cbRtrStep()
     }
 }
 
-void cbTOCNDStep()
+static void cbTXCNDStep(bool bStepInto, void (*callback)())
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     if(traceCondition && traceCondition->ContinueTrace())
     {
         if(bTraceRecordEnabledDuringTrace)
             _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
-        StepOver((void*)cbTOCNDStep);
+        (bStepInto ? StepInto : StepOver)(callback);
     }
     else
     {
         auto steps = dbgcleartracecondition();
+#ifdef _WIN64
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %llu steps!\n"), steps);
+#else //x86
         dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
+#endif //_WIN64
         cbRtrFinalStep();
     }
+}
+
+void cbTOCNDStep()
+{
+    cbTXCNDStep(false, cbTOCNDStep);
 }
 
 void cbTICNDStep()
 {
+    cbTXCNDStep(true, cbTICNDStep);
+}
+
+static void cbTXXTStep(bool bStepInto, bool bInto, void (*callback)())
+{
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    if(traceCondition && traceCondition->ContinueTrace())
+    // Trace record
+    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    if(!traceCondition)
     {
-        if(bTraceRecordEnabledDuringTrace)
-            _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
-        StepInto((void*)cbTICNDStep);
-    }
-    else
-    {
-        auto steps = dbgcleartracecondition();
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
+        _dbg_dbgtraceexecute(CIP);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Bad tracing state.\n"));
         cbRtrFinalStep();
+        return;
     }
+    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(CIP) == 0 ^ bInto)) || !traceCondition->ContinueTrace())
+    {
+        _dbg_dbgtraceexecute(CIP);
+        auto steps = dbgcleartracecondition();
+#ifdef _WIN64
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %llu steps!\n"), steps);
+#else //x86
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
+#endif //_WIN64
+        cbRtrFinalStep();
+        return;
+    }
+    if(bTraceRecordEnabledDuringTrace)
+        _dbg_dbgtraceexecute(CIP);
+    (bStepInto ? StepInto : StepOver)(callback);
 }
 
 void cbTIBTStep()
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    // Trace record
-    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    if(!traceCondition)
-    {
-        _dbg_dbgtraceexecute(CIP);
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Bad tracing state.\n"));
-        cbRtrFinalStep();
-        return;
-    }
-    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && TraceRecord.getHitCount(CIP) == 0) || !traceCondition->ContinueTrace())
-    {
-        _dbg_dbgtraceexecute(CIP);
-        auto steps = dbgcleartracecondition();
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
-        cbRtrFinalStep();
-        return;
-    }
-    if(bTraceRecordEnabledDuringTrace)
-        _dbg_dbgtraceexecute(CIP);
-    StepInto((void*)cbTIBTStep);
+    cbTXXTStep(true, false, cbTIBTStep);
 }
 
 void cbTOBTStep()
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    // Trace record
-    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    if(!traceCondition)
-    {
-        _dbg_dbgtraceexecute(CIP);
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Bad tracing state.\n"));
-        cbRtrFinalStep();
-        return;
-    }
-    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && TraceRecord.getHitCount(CIP) == 0) || !traceCondition->ContinueTrace())
-    {
-        _dbg_dbgtraceexecute(CIP);
-        auto steps = dbgcleartracecondition();
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
-        cbRtrFinalStep();
-        return;
-    }
-    if(bTraceRecordEnabledDuringTrace)
-        _dbg_dbgtraceexecute(CIP);
-    StepOver((void*)cbTOBTStep);
+    cbTXXTStep(false, false, cbTIBTStep);
 }
 
 void cbTIITStep()
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    // Trace record
-    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    if(!traceCondition)
-    {
-        _dbg_dbgtraceexecute(CIP);
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Bad tracing state.\n"));
-        cbRtrFinalStep();
-        return;
-    }
-    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && TraceRecord.getHitCount(CIP) != 0) || !traceCondition->ContinueTrace())
-    {
-        _dbg_dbgtraceexecute(CIP);
-        auto steps = dbgcleartracecondition();
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
-        cbRtrFinalStep();
-        return;
-    }
-    if(bTraceRecordEnabledDuringTrace)
-        _dbg_dbgtraceexecute(CIP);
-    StepInto((void*)cbTIITStep);
+    cbTXXTStep(true, true, cbTIBTStep);
 }
 
 void cbTOITStep()
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    // Trace record
-    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    if(!traceCondition)
-    {
-        _dbg_dbgtraceexecute(CIP);
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Bad tracing state.\n"));
-        cbRtrFinalStep();
-        return;
-    }
-    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && TraceRecord.getHitCount(CIP) != 0) || !traceCondition->ContinueTrace())
-    {
-        _dbg_dbgtraceexecute(CIP);
-        auto steps = dbgcleartracecondition();
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
-        cbRtrFinalStep();
-        return;
-    }
-    if(bTraceRecordEnabledDuringTrace)
-        _dbg_dbgtraceexecute(CIP);
-    StepOver((void*)cbTOITStep);
+    cbTXXTStep(false, true, cbTIBTStep);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)

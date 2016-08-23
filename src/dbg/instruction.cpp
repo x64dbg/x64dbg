@@ -68,15 +68,15 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             {
                 if(!valuesignedcalc())  //signed numbers
 #ifdef _WIN64
-                    sprintf(format_str, "%%s=%%.%llud (%%llud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%dllX (%%llud)\n", valsize); // TODO: This and the following statements use "%llX" for a "int"-typed variable. Maybe we can use "%X" everywhere?
 #else //x86
-                    sprintf(format_str, "%%s=%%.%ud (%%ud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
 #endif //_WIN64
                 else
 #ifdef _WIN64
-                    sprintf(format_str, "%%s=%%.%lld (%%lld)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
 #else //x86
-                    sprintf(format_str, "%%s=%%.%d (%%d)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%dX (%%d)\n", valsize);
 #endif //_WIN64
                 dprintf(format_str, *argv, value, value);
             }
@@ -92,27 +92,31 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             {
                 if(!valuesignedcalc())  //signed numbers
 #ifdef _WIN64
-                    sprintf(format_str, "%%s=%%.%llud (%%llud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%dllX (%%llud)\n", valsize);
 #else //x86
-                    sprintf(format_str, "%%s=%%.%ud (%%ud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
 #endif //_WIN64
                 else
 #ifdef _WIN64
-                    sprintf(format_str, "%%s=%%.%lld (%%lld)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
 #else //x86
-                    sprintf(format_str, "%%s=%%.%d (%%d)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%dX (%%d)\n", valsize);
 #endif //_WIN64
 #ifdef _WIN64
-                sprintf(format_str, "%%.%llud (%%llud)\n", valsize);
+                sprintf(format_str, "%%.%dllX (%%llud)\n", valsize);
 #else //x86
-                sprintf(format_str, "%%.%ud (%%ud)\n", valsize);
+                sprintf(format_str, "%%.%dX (%%ud)\n", valsize);
 #endif //_WIN64
                 dprintf(format_str, value, value);
             }
             else
             {
-                sprintf(format_str, "%%.%d\n", valsize);
-                dprintf(format_str, value);
+#ifdef _WIN64
+                sprintf(format_str, "%%.%dllX\n", valsize);
+#else //x86
+                sprintf(format_str, "%%.%dX\n", valsize);
+#endif //_WIN64
+                dprintf_untranslated(format_str, value);
             }
         }
     }
@@ -157,12 +161,16 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
     {
         if(value > 15)
 #ifdef _WIN64
-            dprintf("DBG", "%s=%p (%llud)\n", argv[1], value, value);
+            dprintf_untranslated("%s=%llX (%llud)\n", argv[1], value, value);
 #else //x86
-            dprintf("%s=%p (%ud)\n", argv[1], value, value);
+            dprintf_untranslated("%s=%X (%ud)\n", argv[1], value, value);
 #endif //_WIN64
         else
-            dprintf("%s=%p\n", argv[1], value);
+#ifdef _WIN64
+            dprintf_untranslated("%s=%llX\n", argv[1], value);
+#else //x86
+            dprintf_untranslated("%s=%X\n", argv[1], value);
+#endif //_WIN64
     }
     return STATUS_CONTINUE;
 }
@@ -306,12 +314,16 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
             {
                 if(value > 15)
 #ifdef _WIN64
-                    dprintf("%s=%p (%llud)\n", name, value, value);
+                    dprintf_untranslated("%s=%llX (%llud)\n", name, value, value);
 #else //x86
-                    dprintf("%s=%p (%ud)\n", name, value, value);
+                    dprintf_untranslated("%s=%X (%ud)\n", name, value, value);
 #endif //_WIN64
                 else
-                    dprintf("%s=%p\n", name, value);
+#ifdef _WIN64
+                    dprintf_untranslated("%s=%llX\n", name, value);
+#else //x86
+                    dprintf_untranslated("%s=%X\n", name, value);
+#endif //_WIN64
             }
         }
     }
@@ -2594,8 +2606,11 @@ CMDRESULT cbInstrSavedata(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to write file..."));
         return STATUS_ERROR;
     }
-
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[%p] written to \"%s\" !\n"), addr, size, argv[1]);
+#ifdef _WIN64
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% llX] written to \"%s\" !\n"), addr, size, argv[1]);
+#else //x86
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% X] written to \"%s\" !\n"), addr, size, argv[1]);
+#endif
 
     return STATUS_CONTINUE;
 }
@@ -2721,7 +2736,11 @@ CMDRESULT cbHandleClose(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "DuplicateHandle failed: %s\n"), ErrorCodeToName(GetLastError()).c_str());
         return STATUS_ERROR;
     }
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Handle %p closed!\n"), handle);
+#ifdef _WIN64
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Handle %llX closed!\n"), handle);
+#else //x86
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Handle %X closed!\n"), handle);
+#endif
     return STATUS_CONTINUE;
 }
 

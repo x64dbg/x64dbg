@@ -49,6 +49,15 @@ void dprintf(const char* Format, ...)
     va_end(args);
 }
 
+void dprintf_untranslated(const char* Format, ...)
+{
+    va_list args;
+
+    va_start(args, Format);
+    dprintf_args_untranslated(Format, args);
+    va_end(args);
+}
+
 /**
 \brief Print a formatted string to the console.
 \param format The printf format to use (see documentation of printf for more information).

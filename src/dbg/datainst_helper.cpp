@@ -192,7 +192,11 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
         }
         if(data.size() != retsize)
         {
-            sprintf_s(error, MAX_ERROR_SIZE, "invalid size (expected %p, got %p)", retsize, data.size()); //TODO: %llu or %u
+#ifdef _WIN64
+            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid size (expected %llu, got %llu)")), retsize, data.size());
+#else //x86
+            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid size (expected %u, got %u)")), retsize, data.size());
+#endif //_WIN64
             return false;
         }
         buffer = String((char*)data.data(), data.size());
@@ -211,7 +215,11 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
         }
         if(data.size() != retsize)
         {
-            sprintf_s(error, MAX_ERROR_SIZE, "invalid size (expected %p, got %p)", retsize, data.size()); //TODO: %llu or %u
+#ifdef _WIN64
+            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid size (expected %llu, got %llu)")), retsize, data.size());
+#else //x86
+            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid size (expected %u, got %u)")), retsize, data.size());
+#endif //_WIN64
             return false;
         }
         buffer = String((char*)data.data(), data.size());

@@ -19,7 +19,11 @@ public:
 
     static String NodeToString(const CFNode & n)
     {
-        return StringUtils::sprintf("start: %p, %p\nend: %p\nfunction: %p", n.start, n.icount, n.end, n.parentGraph); //TODO: %llu or %u
+#ifdef _WIN64
+        return StringUtils::sprintf("start: %p, %lld\nend: %p\nfunction: %p", n.start, n.icount, n.end, n.parentGraph); //TODO: %llu or %u
+#else //x86
+        return StringUtils::sprintf("start: %p, %d\nend: %p\nfunction: %p", n.start, n.icount, n.end, n.parentGraph); //TODO: %llu or %u
+#endif //_WIN64
     }
 
     static const char* GetNodeColor(const CFGraph & graph, const CFNode & node)
@@ -62,7 +66,7 @@ public:
                                                parent.first);
         }
         result += "}";
-        return result;
+        return std::move(result);
     }
 
     const CFGraph* GetFunctionGraph(duint entry) const

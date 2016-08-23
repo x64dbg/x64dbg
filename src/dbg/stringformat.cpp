@@ -36,6 +36,9 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
         case ValueType::UnsignedDecimal:
             result = StringUtils::sprintf("%llu", valuint);
             break;
+        case ValueType::Hex:
+            result = StringUtils::sprintf("%llX", valuint);
+            break;
 #else //x86
         case ValueType::SignedDecimal:
             result = StringUtils::sprintf("%d", valuint);
@@ -43,10 +46,10 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
         case ValueType::UnsignedDecimal:
             result = StringUtils::sprintf("%u", valuint);
             break;
-#endif //_WIN64
         case ValueType::Hex:
-            result = StringUtils::sprintf("%p", valuint);
+            result = StringUtils::sprintf("%X", valuint);
             break;
+#endif //_WIN64
         case ValueType::Pointer:
             result = StringUtils::sprintf("%p", valuint);
             break;
