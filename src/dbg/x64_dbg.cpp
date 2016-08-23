@@ -260,6 +260,7 @@ static void registercommands()
     dbgcmdnew("ror", cbInstrRor, false);
     dbgcmdnew("shl", cbInstrShl, false);
     dbgcmdnew("shr", cbInstrShr, false);
+    dbgcmdnew("sar", cbInstrSar, false);
     dbgcmdnew("sub", cbInstrSub, false);
     dbgcmdnew("test", cbInstrTest, false);
     dbgcmdnew("xor", cbInstrXor, false);
