@@ -311,9 +311,6 @@ FORMS += \
     Src/Gui/BrowseDialog.ui \
     Src/Gui/VirtualModDialog.ui
 
-TRANSLATIONS = \
-    Translations/x64dbg.ts
-
 ##
 ## Libraries
 ##

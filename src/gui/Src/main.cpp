@@ -103,10 +103,6 @@ int main(int argc, char* argv[])
     if(x64dbgTranslator.load(QString("x64dbg_%1").arg(currentLocale), path))
         application.installTranslator(&x64dbgTranslator);
 
-    QTranslator x64dbg_dbg_Translator;
-    if(x64dbg_dbg_Translator.load(QString("x64dbg_dbg_%1").arg(currentLocale), path))
-        application.installTranslator(&x64dbg_dbg_Translator);
-
     TLS_TranslatedStringMap = new std::map<DWORD, TranslatedStringStorage>();
 
     // initialize capstone
