@@ -1871,7 +1871,7 @@ cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
     char quoteSymb = cmdline[0];
     if(quoteSymb == '"' || quoteSymb == '\'')
     {
-        for(duint i = 1; i < strlen(cmdline); i++)
+        for(size_t i = 1; i < strlen(cmdline); i++)
         {
             if(cmdline[i] == quoteSymb)
             {

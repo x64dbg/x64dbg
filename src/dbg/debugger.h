@@ -49,8 +49,8 @@ typedef enum
 typedef struct
 {
     cmdline_qoutes_placement_t_enum posEnum;
-    unsigned firstPos;
-    unsigned secondPos;
+    size_t firstPos;
+    size_t secondPos;
 } cmdline_qoutes_placement_t;
 
 typedef struct

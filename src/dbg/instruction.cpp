@@ -132,7 +132,7 @@ inline bool IsArgumentsLessThan(int argc, int minimumCount)
 {
     if(argc < minimumCount)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At lease %d arguments must be specified.\n"), minimumCount - 1);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At least %d arguments must be specified.\n"), minimumCount - 1);
         return true;
     }
     else
