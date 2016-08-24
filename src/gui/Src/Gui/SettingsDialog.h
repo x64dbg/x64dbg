@@ -66,6 +66,7 @@ private slots:
     void on_chkSaveColumnOrder_stateChanged(int arg1);
     void on_chkSaveLoadTabOrder_stateChanged(int arg1);
     void on_chkNoCloseDialog_toggled(bool checked);
+    void on_chkPidInHex_clicked(bool checked);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
@@ -138,6 +139,7 @@ private:
         bool guiFpuRegistersLittleEndian;
         bool guiSaveColumnOrder;
         bool guiNoCloseDialog;
+        bool guiPidInHex;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;

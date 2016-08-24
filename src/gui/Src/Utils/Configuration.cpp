@@ -203,6 +203,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     QMap<QString, bool> guiBool;
     guiBool.insert("FpuRegistersLittleEndian", false);
     guiBool.insert("SaveColumnOrder", true);
+    guiBool.insert("NoCloseDialog", false);
+    guiBool.insert("PidInHex", true);
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;

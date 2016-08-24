@@ -37,6 +37,22 @@ typedef enum
 
 } cmdline_error_type_t;
 
+typedef enum
+{
+    NO_QOUTES = 0,
+    QOUTES_AROUND_EXE,
+    QOUTES_AT_BEGIN_AND_END,
+    NO_CLOSE_QUOTE_FOUND
+
+} cmdline_qoutes_placement_t_enum;
+
+typedef struct
+{
+    cmdline_qoutes_placement_t_enum posEnum;
+    unsigned firstPos;
+    unsigned secondPos;
+} cmdline_qoutes_placement_t;
+
 typedef struct
 {
     cmdline_error_type_t type;
@@ -83,9 +99,10 @@ void dbgaddignoredexception(ExceptionRange range);
 bool dbgisignoredexception(unsigned int exception);
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
-bool dbglistprocesses(std::vector<PROCESSENTRY32>* list);
+bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::string>* commandList);
 bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
-bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error);
+bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess = NULL);
+cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
 duint dbggetdebuggedbase();
 duint dbggetdbgevents();
