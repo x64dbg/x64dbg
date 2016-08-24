@@ -6,7 +6,7 @@
 AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AttachDialog)
 {
     ui->setupUi(this);
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     // Setup actions/shortcuts
     //
@@ -32,13 +32,13 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     int charwidth = mSearchListView->mList->getCharWidth();
     mSearchListView->mList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
     mSearchListView->mList->addColumnAt(500, tr("Path"), true);
-    mSearchListView->mList->addColumnAt(800, tr("CommandLine arguments"), true);
+    mSearchListView->mList->addColumnAt(800, tr("Command Line Arguments"), true);
     mSearchListView->mList->setDrawDebugOnly(false);
 
     charwidth = mSearchListView->mSearchList->getCharWidth();
     mSearchListView->mSearchList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
     mSearchListView->mSearchList->addColumnAt(500, tr("Path"), true);
-    mSearchListView->mSearchList->addColumnAt(800, tr("CommandLine arguments"), true);
+    mSearchListView->mSearchList->addColumnAt(800, tr("Command Line Arguments"), true);
     mSearchListView->mSearchList->setDrawDebugOnly(false);
 
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(on_btnAttach_clicked()));
