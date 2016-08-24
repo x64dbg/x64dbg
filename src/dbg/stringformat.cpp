@@ -29,17 +29,29 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
         {
         case ValueType::Unknown:
             break;
+#ifdef _WIN64
         case ValueType::SignedDecimal:
-            result = StringUtils::sprintf("%" fext "d", valuint);
+            result = StringUtils::sprintf("%lld", valuint);
             break;
         case ValueType::UnsignedDecimal:
-            result = StringUtils::sprintf("%" fext "u", valuint);
+            result = StringUtils::sprintf("%llu", valuint);
             break;
         case ValueType::Hex:
-            result = StringUtils::sprintf("%" fext "X", valuint);
+            result = StringUtils::sprintf("%llX", valuint);
             break;
+#else //x86
+        case ValueType::SignedDecimal:
+            result = StringUtils::sprintf("%d", valuint);
+            break;
+        case ValueType::UnsignedDecimal:
+            result = StringUtils::sprintf("%u", valuint);
+            break;
+        case ValueType::Hex:
+            result = StringUtils::sprintf("%X", valuint);
+            break;
+#endif //_WIN64
         case ValueType::Pointer:
-            result = StringUtils::sprintf(fhex, valuint);
+            result = StringUtils::sprintf("%p", valuint);
             break;
         case ValueType::String:
             if(DbgGetStringAt(valuint, string))
@@ -127,7 +139,7 @@ static String handleFormatString(const String & formatString, const FormatValueV
     auto argnum = getArgNumType(formatString, type);
     if(type != ValueType::Unknown && argnum < values.size())
         return printValue(values.at(argnum), type);
-    return "[Formatting Error]";
+    return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Formatting Error]"));
 }
 
 String stringformat(String format, const FormatValueVector & values)
@@ -185,7 +197,7 @@ static String handleFormatStringInline(const String & formatString)
     auto value = getArgExpressionType(formatString, type);
     if(value && *value)
         return printValue(value, type);
-    return "[Formatting Error]";
+    return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Formatting Error]"));
 }
 
 String stringformatinline(String format)

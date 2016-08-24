@@ -26,7 +26,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         if(!regionBase || !regionSize)
         {
             if(!Silent)
-                dprintf("Invalid memory page 0x%p\n", Address);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid memory page 0x%p\n"), Address);
 
             return 0;
         }
@@ -47,9 +47,9 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
         // Determine the full module name
         if(ModNameFromAddr(scanStart, moduleName, true))
-            sprintf_s(fullName, "%s (Region %s)", Name, moduleName);
+            sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s (Region %s)")), Name, moduleName);
         else
-            sprintf_s(fullName, "%s (Region %p)", Name, scanStart);
+            sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s (Region %p)")), Name, scanStart);
 
         // Initialize disassembler
         Capstone cp;
@@ -61,7 +61,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
         RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
         {
-            GuiReferenceSetCurrentTaskProgress(percent, "Region Search");
+            GuiReferenceSetCurrentTaskProgress(percent, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Region Search")));
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
@@ -73,7 +73,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         if(!modInfo)
         {
             if(!Silent)
-                dprintf("Couldn't locate module for 0x%p\n", Address);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Couldn't locate module for 0x%p\n"), Address);
 
             return 0;
         }
@@ -102,7 +102,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
         RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
         {
-            GuiReferenceSetCurrentTaskProgress(percent, "Module Search");
+            GuiReferenceSetCurrentTaskProgress(percent, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module Search")));
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
@@ -115,7 +115,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         if(!modList.size())
         {
             if(!Silent)
-                dprintf("Couldn't get module list");
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Couldn't get module list"));
 
             return 0;
         }
@@ -124,7 +124,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         Capstone cp;
 
         // Determine the full module
-        sprintf_s(fullName, "All Modules (%s)", Name);
+        sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "All Modules (%s)")), Name);
 
         // Allow an "initialization" notice
         refInfo.refcount = 0;
@@ -168,7 +168,7 @@ int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserDa
     if(!MemRead(scanStart, data(), scanSize))
     {
         if(!Silent)
-            dprintf("Error reading memory in reference search\n");
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Error reading memory in reference search\n"));
 
         return 0;
     }

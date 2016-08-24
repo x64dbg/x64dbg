@@ -74,7 +74,7 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 
     // Enumerate every single symbol for the module in 'base'
     if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
-        dputs("SymEnumSymbols failed!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "SymEnumSymbols failed!"));
 
     // Emit pseudo entry point symbol
     SYMBOLINFO symbol;
@@ -113,7 +113,7 @@ bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
     // Execute the symbol enumerator (Force cast to STDCALL)
     if(!SafeSymEnumerateModules64(fdProcessInfo->hProcess, EnumModules, List))
     {
-        dputs("SymEnumerateModules64 failed!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "SymEnumerateModules64 failed!"));
         return false;
     }
 
@@ -163,7 +163,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
 
     if(!SafeSymGetSearchPathW(fdProcessInfo->hProcess, oldSearchPath, MAX_PATH))
     {
-        dputs("SymGetSearchPathW failed!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "SymGetSearchPathW failed!"));
         return;
     }
 
@@ -173,7 +173,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
 
     if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(customSearchPath).c_str()))
     {
-        dputs("SymSetSearchPathW (1) failed!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPathW (1) failed!"));
         return;
     }
 
@@ -183,24 +183,24 @@ void SymDownloadAllSymbols(const char* SymbolStore)
     // Reload
     for(auto & module : modList)
     {
-        dprintf("Downloading symbols for %s...\n", module.name);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Downloading symbols for %s...\n"), module.name);
 
         wchar_t modulePath[MAX_PATH];
         if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)module.base, modulePath, MAX_PATH))
         {
-            dprintf("GetModuleFileNameExW(" fhex ") failed!\n", module.base);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExW(%p) failed!\n"), module.base);
             continue;
         }
 
         if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)module.base))
         {
-            dprintf("SymUnloadModule64(" fhex ") failed!\n", module.base);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "SymUnloadModule64(%p) failed!\n"), module.base);
             continue;
         }
 
         if(!SafeSymLoadModuleExW(fdProcessInfo->hProcess, 0, modulePath, 0, (DWORD64)module.base, 0, 0, 0))
         {
-            dprintf("SymLoadModuleEx(" fhex ") failed!\n", module.base);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx(%p) failed!\n"), module.base);
             continue;
         }
     }
@@ -209,7 +209,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
 
     // Restore the old search path
     if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, oldSearchPath))
-        dputs("SymSetSearchPathW (2) failed!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPathW (2) failed!"));
 }
 
 bool SymAddrFromName(const char* Name, duint* Address)
@@ -254,7 +254,7 @@ String SymGetSymbolicName(duint Address)
     if(!DbgGetLabelAt(Address, SEG_DEFAULT, label))
     {
         if(hasModule)
-            return StringUtils::sprintf("%s." fhex, modname, Address);
+            return StringUtils::sprintf("%s.%p", modname, Address);
         return "";
     }
 

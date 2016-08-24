@@ -34,7 +34,7 @@ void AdvancedAnalysis::SetMarkers()
 {
     if(mDump)
         for(const auto & function : mFunctions)
-            FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_" fhex ".dot", function.entryPoint), function.ToDot());
+            FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_%p.dot", function.entryPoint), function.ToDot());
 
     byte* buffer = (byte*)EncodeMapGetBuffer(mBase, true);
     memcpy(buffer, mEncMap, mSize);

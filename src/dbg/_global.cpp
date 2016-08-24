@@ -11,16 +11,18 @@
 \brief x64dbg library instance.
 */
 HINSTANCE hInst;
+//#define ENABLE_MEM_TRACE
 
 /**
 \brief Number of allocated buffers by emalloc(). This should be 0 when x64dbg ends.
 */
 static int emalloc_count = 0;
-
+#ifdef ENABLE_MEM_TRACE
 /**
 \brief Path for debugging, used to create an allocation trace file on emalloc() or efree(). Not used.
 */
-static char alloctrace[MAX_PATH] = "";
+static char alloctrace[MAX_PATH] = "memtrace.txt";
+#endif
 
 /**
 \brief Allocates a new buffer.
@@ -40,11 +42,11 @@ void* emalloc(size_t size, const char* reason)
     }
     memset(a, 0, size);
     emalloc_count++;
-    /*
+#ifdef ENABLE_MEM_TRACE
     FILE* file = fopen(alloctrace, "a+");
-    fprintf(file, "DBG%.5d:  alloc:" fhex ":%s:" fhex "\n", emalloc_count, a, reason, size);
+    fprintf(file, "DBG%.5d:  alloc:%p:%s:%p\n", emalloc_count, a, reason, size);
     fclose(file);
-    */
+#endif //ENABLE_MEM_TRACE
     return a;
 }
 
@@ -74,11 +76,11 @@ void* erealloc(void* ptr, size_t size, const char* reason)
 void efree(void* ptr, const char* reason)
 {
     emalloc_count--;
-    /*
+#ifdef ENABLE_MEM_TRACE
     FILE* file = fopen(alloctrace, "a+");
-    fprintf(file, "DBG%.5d:   free:" fhex ":%s\n", emalloc_count, ptr, reason);
+    fprintf(file, "DBG%.5d:   free:%p:%s\n", emalloc_count, ptr, reason);
     fclose(file);
-    */
+#endif //ENABLE_MEM_TRACE
     GlobalFree(ptr);
 }
 
@@ -101,6 +103,7 @@ int memleaks()
     return emalloc_count;
 }
 
+#ifdef ENABLE_MEM_TRACE
 /**
 \brief Sets the path for the allocation trace file.
 \param file UTF-8 filepath.
@@ -109,6 +112,7 @@ void setalloctrace(const char* file)
 {
     strcpy_s(alloctrace, file);
 }
+#endif //ENABLE_MEM_TRACE
 
 /**
 \brief A function to determine if a string is contained in a specifically formatted 'array string'.

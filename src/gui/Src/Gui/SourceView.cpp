@@ -11,9 +11,9 @@ SourceView::SourceView(QString path, int line, StdTable* parent)
     mList->enableColumnSorting(false);
     mSearchList->enableColumnSorting(false);
 
-    addColumnAt(sizeof(duint) * 2, "Address");
-    addColumnAt(6, "Line");
-    addColumnAt(0, "Code");
+    addColumnAt(sizeof(duint) * 2, tr("Address"));
+    addColumnAt(6, tr("Line"));
+    addColumnAt(0, tr("Code"));
 
     loadFile();
     setSelection(line);

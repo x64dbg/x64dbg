@@ -103,6 +103,7 @@ public slots:
     void setEncodeTypeSlot();
     void setEncodeTypeRangeSlot();
     void graphSlot();
+    void analyzeModuleSlot();
     void togglePreviewSlot();
 
 protected:
