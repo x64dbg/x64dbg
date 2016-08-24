@@ -321,7 +321,17 @@ bool vardel(const char* Name, bool DelSystem)
 
     if(!DelSystem && found->second.type != VAR_USER)
         return false;
-    variables.erase(found);
+    found = variables.begin();
+    String NameString(Name);
+    while(found != variables.end())
+    {
+        if(found->first == NameString || found->second.alias == NameString)
+        {
+            found = variables.erase(found); // Invalidate iterators
+        }
+        else
+            found++;
+    }
     return true;
 }
 
