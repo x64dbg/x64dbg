@@ -36,13 +36,13 @@ PLUG_IMPEXP void _plugin_logprintf(const char* format, ...)
     va_list args;
 
     va_start(args, format);
-    dprintf_args(format, args);
+    dprintf_args_untranslated(format, args);
     va_end(args);
 }
 
 PLUG_IMPEXP void _plugin_logputs(const char* text)
 {
-    dputs(text);
+    dputs_untranslated(text);
 }
 
 PLUG_IMPEXP void _plugin_debugpause()

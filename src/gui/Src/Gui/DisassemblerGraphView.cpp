@@ -321,7 +321,11 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     p.setBrush(Qt::black);
 
     if(!this->ready || !DbgIsDebugging())
+    {
+        p.setPen(Qt::black);
+        p.drawText(viewportRect, Qt::AlignCenter | Qt::AlignVCenter, tr("Use Graph command or menu action to draw control flow graph here..."));
         return;
+    }
 
     if(drawOverview)
         paintOverview(p, viewportRect, xofs, yofs);

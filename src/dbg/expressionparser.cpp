@@ -609,7 +609,7 @@ static bool handleAssignment(const char* variable, duint resultv, bool silent, b
         if(valfromstring(variable, &value))    //if the var is a value already it's an invalid destination
         {
             if(!silent)
-                dprintf("invalid dest \"%s\"\n", variable);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid dest \"%s\"\n"), variable);
             return false;
         }
         varnew(variable, resultv, VAR_USER);

@@ -43,7 +43,7 @@ public:
 
         String ToString() const
         {
-            return StringUtils::sprintf("start: " fhex "\nend: " fhex "\nfunction: " fhex, start, end, parentGraph);
+            return StringUtils::sprintf("start: p\nend: p\nfunction: %p", start, end, parentGraph);
         }
     };
 
@@ -93,7 +93,7 @@ public:
         {
             String result = "digraph CFGraph {\n";
             for(const auto & node : nodes)
-                result += StringUtils::sprintf("    n" fhex "[label=\"%s\" style=filled fillcolor=%s shape=box]\n",
+                result += StringUtils::sprintf("    n%p[label=\"%s\" style=filled fillcolor=%s shape=box]\n",
                                                node.second.start,
                                                node.second.ToString().c_str(),
                                                GetNodeColor(node.second));
@@ -101,11 +101,11 @@ public:
             for(const auto & node : nodes)
             {
                 if(node.second.brtrue)
-                    result += StringUtils::sprintf("    n" fhex "-> n" fhex " [color=green]\n",
+                    result += StringUtils::sprintf("    n%p-> n%p [color=green]\n",
                                                    node.second.start,
                                                    node.second.brtrue);
                 if(node.second.brfalse)
-                    result += StringUtils::sprintf("    n" fhex "-> n" fhex " [color=red]\n",
+                    result += StringUtils::sprintf("    n%p-> n%p [color=red]\n",
                                                    node.second.start,
                                                    node.second.brfalse);
             }
@@ -114,7 +114,7 @@ public:
             for(const auto & parent : parents)
             {
                 for(const auto & node : parent.second)
-                    result += StringUtils::sprintf("    n" fhex "-> n" fhex " [style=dotted color=grey]\n",
+                    result += StringUtils::sprintf("    n%p-> n%p [style=dotted color=grey]\n",
                                                    node,
                                                    parent.first);
             }
