@@ -2205,7 +2205,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess /* = NULL */)
 {
     UNICODE_STRING CommandLine;
-    Memory<wchar_t*>* wstr_cmd;
+    Memory<wchar_t*> wstr_cmd;
     cmdline_error_t cmd_line_error_aux;
 
     if(!cmd_line_error)
@@ -2223,10 +2223,10 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hPro
             return false;
         }
 
-        wstr_cmd = new Memory<wchar_t*>(CommandLine.Length + sizeof(wchar_t));
+        wstr_cmd.realloc(CommandLine.Length + sizeof(wchar_t));
 
         cmd_line_error->addr = (duint)CommandLine.Buffer;
-        if(!MemoryReadSafe(hProcess, (LPVOID)cmd_line_error->addr, (*wstr_cmd)(), CommandLine.Length, &NumberOfBytesRead))
+        if(!MemoryReadSafe(hProcess, (LPVOID)cmd_line_error->addr, wstr_cmd(), CommandLine.Length, &NumberOfBytesRead))
         {
             cmd_line_error->type = CMDL_ERR_GET_GETCOMMANDLINE;
             return false;
@@ -2240,16 +2240,16 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hPro
             return false;
         }
 
-        wstr_cmd = new Memory<wchar_t*>(CommandLine.Length + sizeof(wchar_t));
+        wstr_cmd.realloc(CommandLine.Length + sizeof(wchar_t));
 
         cmd_line_error->addr = (duint)CommandLine.Buffer;
-        if(!MemRead(cmd_line_error->addr, (*wstr_cmd)(), CommandLine.Length))
+        if(!MemRead(cmd_line_error->addr, wstr_cmd(), CommandLine.Length))
         {
             cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
             return false;
         }
     }
-    SIZE_T wstr_cmd_size = wcslen((*wstr_cmd)()) + 1;
+    SIZE_T wstr_cmd_size = wcslen(wstr_cmd()) + 1;
     SIZE_T cmd_line_size = wstr_cmd_size * 2;
 
     *cmd_line = (char*)emalloc(cmd_line_size, "dbggetcmdline:cmd_line");
@@ -2261,7 +2261,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hPro
     }
 
     //Convert TO UTF-8
-    if(!WideCharToMultiByte(CP_UTF8, 0, (*wstr_cmd)(), (int)wstr_cmd_size, *cmd_line, (int)cmd_line_size, NULL, NULL))
+    if(!WideCharToMultiByte(CP_UTF8, 0, wstr_cmd(), (int)wstr_cmd_size, *cmd_line, (int)cmd_line_size, NULL, NULL))
     {
         efree(*cmd_line);
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
