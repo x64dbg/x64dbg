@@ -331,7 +331,7 @@ static bool cbCommandProvider(char* cmd, int maxlen)
     char* newcmd = (char*)msg.param1;
     if(strlen(newcmd) >= deflen)
     {
-        dprintf("command cut at ~%d characters\n", deflen);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "command cut at ~%d characters\n"), deflen);
         newcmd[deflen - 2] = 0;
     }
     strcpy_s(cmd, deflen, newcmd);
@@ -382,7 +382,7 @@ static DWORD WINAPI DbgScriptDllExecThread(void* a)
     if(FreeLibrary(hScriptDll))
         dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
     else
-        dprintf("failure (%08X)...\n", GetLastError());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%08X)...\n"), GetLastError());
 
     return 0;
 }
@@ -393,12 +393,12 @@ static bool DbgScriptDllExec(const char* dll)
     if(dllPath.find('\\') == String::npos)
         dllPath = String(scriptDllDir) + String(dll);
 
-    dprintf("[Script DLL] Loading Script DLL \"%s\"...\n", dllPath.c_str());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Loading Script DLL \"%s\"...\n"), dllPath.c_str());
 
     auto hScriptDll = LoadLibraryW(StringUtils::Utf8ToUtf16(dllPath).c_str());
     if(hScriptDll)
     {
-        dprintf("[Script DLL] DLL loaded on 0x%p!\n", hScriptDll);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] DLL loaded on 0x%p!\n"), hScriptDll);
 
         auto AsyncStart = SCRIPTDLLSTART(GetProcAddress(hScriptDll, "AsyncStart"));
         if(AsyncStart)
@@ -416,17 +416,17 @@ static bool DbgScriptDllExec(const char* dll)
                 dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] \"Start\" returned!\n"));
             }
             else
-                dprintf("[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%08X)!\n", GetLastError());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%08X)!\n"), GetLastError());
 
-            dprintf("[Script DLL] Calling FreeLibrary...");
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Calling FreeLibrary..."));
             if(FreeLibrary(hScriptDll))
                 dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
             else
-                dprintf("failure (%08X)...\n", GetLastError());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%08X)...\n"), GetLastError());
         }
     }
     else
-        dprintf("[Script DLL] LoadLibary failed (%08X)!\n", GetLastError());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] LoadLibary failed (%08X)!\n"), GetLastError());
 
     return true;
 }

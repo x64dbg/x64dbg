@@ -132,7 +132,7 @@ inline bool IsArgumentsLessThan(int argc, int minimumCount)
 {
     if(argc < minimumCount)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At lease %d arguments must be specified."), minimumCount);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At lease %d arguments must be specified.\n"), minimumCount - 1);
         return true;
     }
     else
@@ -2615,11 +2615,8 @@ CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
 
 CMDRESULT cbInstrSavedata(int argc, char* argv[])
 {
-    if(argc < 4)  //savedata filename,addr,size
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments..."));
+    if(IsArgumentsLessThan(argc, 4))
         return STATUS_ERROR;
-    }
     duint addr, size;
     if(!valfromstring(argv[2], &addr, false) || !valfromstring(argv[3], &size, false))
         return STATUS_ERROR;
