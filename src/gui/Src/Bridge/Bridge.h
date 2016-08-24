@@ -8,12 +8,18 @@
 #include "Imports.h"
 #include "ReferenceManager.h"
 #include "BridgeResult.h"
+#include <thread>
+#include <condition_variable>
+#include <mutex>
 
 class Bridge : public QObject
 {
     Q_OBJECT
 
     friend class BridgeResult;
+    std::thread latencyThread;
+    std::mutex latencyLock;
+    std::condition_variable latencyCV;
 
 public:
     explicit Bridge(QObject* parent = 0);
@@ -21,6 +27,10 @@ public:
 
     static Bridge* getBridge();
     static void initBridge();
+
+    uint32 latencyMs = 0;
+    uint32 latencyLastRequest = 0;
+    uint32 latencyLastResponse = 0;
 
     // Message processing function
     void* processMessage(GUIMSG type, void* param1, void* param2);
@@ -40,6 +50,9 @@ public:
     void* winId;
     QWidget* scriptView;
     ReferenceManager* referenceManager;
+
+protected:
+    virtual void customEvent(QEvent* event) override;
 
 signals:
     void disassembleAt(dsint va, dsint eip);

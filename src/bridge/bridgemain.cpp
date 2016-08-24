@@ -64,6 +64,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     //GUI Load
     LOADLIBRARY(gui_lib);
     LOADEXPORT(_gui_guiinit);
+    LOADEXPORT(_gui_messagelatency);
     LOADEXPORT(_gui_sendmessage);
 
     //DBG Load
@@ -994,6 +995,13 @@ BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
 {
     _gui_sendmessage(GUI_SET_DEBUG_STATE, (void*)state, 0);
 }
+
+BRIDGE_IMPEXP DWORD GuiGetLatency()
+{
+    return _gui_messagelatency();
+}
+
+
 
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
 {

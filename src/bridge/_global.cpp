@@ -1,6 +1,7 @@
 #include "_global.h"
 
 GUIGUIINIT _gui_guiinit;
+GUIMESSAGELATENCY _gui_messagelatency;
 GUISENDMESSAGE _gui_sendmessage;
 
 DBGDBGINIT _dbg_dbginit;

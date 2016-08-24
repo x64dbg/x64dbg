@@ -7,6 +7,7 @@ TimeWastedCounter::TimeWastedCounter(QObject* parent, QLabel* label)
 {
     mLabel->setFrameStyle(QFrame::Sunken | QFrame::Panel); //sunken style
     mLabel->setStyleSheet("QLabel { background-color : #c0c0c0; }");
+
     connect(Bridge::getBridge(), SIGNAL(updateTimeWastedCounter()), this, SLOT(updateTimeWastedCounter()));
 }
 
@@ -15,7 +16,7 @@ void TimeWastedCounter::updateTimeWastedCounter()
     duint dbgEvents = DbgFunctions()->GetDbgEvents();
     if(dbgEvents > 4)
     {
-        mLabel->setText(tr("%1 events/s").arg(dbgEvents));
+        mLabel->setText(tr("%1 events/s (%2ms)").arg(dbgEvents).arg(Bridge::getBridge()->latencyMs));
     }
     else
     {
