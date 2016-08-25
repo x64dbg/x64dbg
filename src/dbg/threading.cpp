@@ -13,6 +13,11 @@ void wait(WAIT_ID id)
     WaitForSingleObject(waitArray[id], INFINITE);
 }
 
+bool waitfor(WAIT_ID id, unsigned int Milliseconds)
+{
+    return WaitForSingleObject(waitArray[id], Milliseconds) == 0;
+}
+
 void lock(WAIT_ID id)
 {
     ResetEvent(waitArray[id]);
