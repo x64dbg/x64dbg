@@ -129,6 +129,8 @@ void DisassemblyPopup::setAddress(duint Address)
         addrText = parent->getAddrText(addr, nullptr);
         // Comments
         GetCommentFormat(addr, addrComment, &addrCommentAuto);
+        if(addrComment.length())
+            addrText.append(' ');
         // Calculate width of address
         mWidth = std::max(mWidth, mFontMetrics->width(addrText) + mFontMetrics->width(addrComment));
         mWidth += charWidth * 6;
