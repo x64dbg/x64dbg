@@ -1938,21 +1938,94 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
             {
                 char* exeName = strrchr(pe32.szExeFile, '\\') ? strrchr(pe32.szExeFile, '\\') + 1 :
                                 strrchr(pe32.szExeFile, '/') ? strrchr(pe32.szExeFile, '/') + 1 : pe32.szExeFile;
+                size_t exeNameLen = strlen(exeName);
 
-                char* exeNameInCmd = strstr(cmdline, exeName);
-                if(exeNameInCmd)
-                    cmdLineExeSize = (size_t)(((LPBYTE)exeNameInCmd - (LPBYTE)cmdline) + strlen(exeName));
+                char* peNameInCmd = strstr(cmdline, exeName);
+                //check for exe name is used in path to exe
+                for(char* exeNameInCmdTmp = peNameInCmd; exeNameInCmdTmp;)
+                {
+                    exeNameInCmdTmp = strstr(exeNameInCmdTmp + exeNameLen, exeName);
+                    if(!exeNameInCmdTmp)
+                        break;
+
+                    char* nextSlash = strchr(exeNameInCmdTmp, '\\') ? strchr(exeNameInCmdTmp, '\\') :
+                                      strchr(exeNameInCmdTmp, '/') ? strchr(exeNameInCmdTmp, '/') : NULL;
+                    if(nextSlash && posEnum.posEnum == NO_QOUTES)  //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
+                    {
+                        if(strchr(exeNameInCmdTmp, ' ') < nextSlash)  //slash is in arguments
+                        {
+                            peNameInCmd = exeNameInCmdTmp;
+                            break;
+                        }
+                        else
+                            continue;
+                    }
+                    else if(nextSlash && posEnum.posEnum == QOUTES_AROUND_EXE)
+                    {
+                        if((cmdline + posEnum.secondPos) < nextSlash)  //slash is in arguments
+                        {
+                            peNameInCmd = exeNameInCmdTmp;
+                            break;
+                        }
+                        else
+                            continue;
+                    }
+                    else
+                    {
+                        peNameInCmd = exeNameInCmdTmp;
+                        break;
+                    }
+                }
+
+                if(peNameInCmd)
+                    cmdLineExeSize = (size_t)(((LPBYTE)peNameInCmd - (LPBYTE)cmdline) + exeNameLen);
                 else
                 {
                     //try to locate basic name, without extension
-                    char* basicName = (char*)emalloc(strlen(exeName) + 1, "dbglistprocesses:basicName");;
-                    strncpy_s(basicName, sizeof(char) * strlen(exeName), exeName, _TRUNCATE);
-                    char* dotInName = strrchr(basicName, '.');
+                    Memory<char*> basicName(strlen(exeName) + 1, "dbglistprocesses:basicName");
+                    strncpy_s(basicName(), sizeof(char) * strlen(exeName) + 1, exeName, _TRUNCATE);
+                    char* dotInName = strrchr(basicName(), '.');
                     dotInName[0] = '\0';
-                    exeNameInCmd = strstr(cmdline, basicName);
-                    if(exeNameInCmd)
-                        cmdLineExeSize = (size_t)(((LPBYTE)exeNameInCmd - (LPBYTE)cmdline) + strlen(basicName));
-                    efree(basicName);
+                    size_t basicNameLen = strlen(basicName());
+                    peNameInCmd = strstr(cmdline, basicName());
+                    //check for basic name is used in path to exe
+                    for(char* basicNameInCmdTmp = peNameInCmd; basicNameInCmdTmp;)
+                    {
+                        basicNameInCmdTmp = strstr(basicNameInCmdTmp + basicNameLen, basicName());
+                        if(!basicNameInCmdTmp)
+                            break;
+
+                        char* nextSlash = strchr(basicNameInCmdTmp, '\\') ? strchr(basicNameInCmdTmp, '\\') :
+                                          strchr(basicNameInCmdTmp, '/') ? strchr(basicNameInCmdTmp, '/') : NULL;
+                        if(nextSlash && posEnum.posEnum == NO_QOUTES)  //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
+                        {
+                            if(strchr(basicNameInCmdTmp, ' ') < nextSlash)  //slash is in arguments
+                            {
+                                peNameInCmd = basicNameInCmdTmp;
+                                break;
+                            }
+                            else
+                                continue;
+                        }
+                        else if(nextSlash && posEnum.posEnum == QOUTES_AROUND_EXE)
+                        {
+                            if((cmdline + posEnum.secondPos) < nextSlash)  //slash is in arguments
+                            {
+                                peNameInCmd = basicNameInCmdTmp;
+                                break;
+                            }
+                            else
+                                continue;
+                        }
+                        else
+                        {
+                            peNameInCmd = basicNameInCmdTmp;
+                            break;
+                        }
+                    }
+
+                    if(peNameInCmd)
+                        cmdLineExeSize = (size_t)(((LPBYTE)peNameInCmd - (LPBYTE)cmdline) + basicNameLen);
                 }
             }
 
