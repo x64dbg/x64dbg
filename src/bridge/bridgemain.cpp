@@ -13,6 +13,7 @@ static HINSTANCE hInst;
 static Utf8Ini settings;
 static wchar_t szIniFile[MAX_PATH] = L"";
 static CRITICAL_SECTION csIni;
+static CRITICAL_SECTION csTranslate;
 static bool bDisableGUIUpdate;
 
 #define CHECK_GUI_UPDATE_DISABLED \
@@ -45,6 +46,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
 {
     //Initialize critial section
     InitializeCriticalSection(&csIni);
+    InitializeCriticalSection(&csTranslate);
 
     //Settings load
     if(!GetModuleFileNameW(0, szIniFile, MAX_PATH))
@@ -65,6 +67,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     LOADLIBRARY(gui_lib);
     LOADEXPORT(_gui_guiinit);
     LOADEXPORT(_gui_sendmessage);
+    LOADEXPORT(_gui_translate_text);
 
     //DBG Load
     LOADLIBRARY(dbg_lib);
@@ -1480,6 +1483,11 @@ BRIDGE_IMPEXP void GuiSetFavouriteToolShortcut(const char* name, const char* sho
 BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length)
 {
     _gui_sendmessage(GUI_FOLD_DISASSEMBLY, (void*)startAddress, (void*)length);
+}
+
+BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
+{
+    return _gui_translate_text(Source);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

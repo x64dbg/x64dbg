@@ -38,7 +38,7 @@ void DbSave(DbLoadSaveType saveType)
 {
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
-    dputs("Saving database...");
+    dputs(QT_TRANSLATE_NOOP("DBG", "Saving database..."));
     DWORD ticks = GetTickCount();
     JSON root = json_object();
 
@@ -106,7 +106,7 @@ void DbSave(DbLoadSaveType saveType)
             // Dump JSON to disk (overwrite any old files)
             if(!FileHelper::WriteAllText(dbpath, jsonText))
             {
-                dputs("\nFailed to write database file!");
+                dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file!"));
                 json_free(jsonText);
                 json_decref(root);
                 return;
@@ -134,9 +134,9 @@ void DbLoad(DbLoadSaveType loadType)
         return;
 
     if(loadType == DbLoadSaveType::CommandLine)
-        dputs("Loading commandline...");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Loading commandline..."));
     else
-        dprintf("Loading database...");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Loading database..."));
     DWORD ticks = GetTickCount();
 
     // Multi-byte (UTF8) file path converted to UTF16
@@ -151,7 +151,7 @@ void DbLoad(DbLoadSaveType loadType)
         // Check return code
         if(useCompression && lzmaStatus != LZ4_SUCCESS && lzmaStatus != LZ4_INVALID_ARCHIVE)
         {
-            dputs("\nInvalid database file!");
+            dputs(QT_TRANSLATE_NOOP("DBG", "\nInvalid database file!"));
             return;
         }
     }
@@ -161,7 +161,7 @@ void DbLoad(DbLoadSaveType loadType)
 
     if(!FileHelper::ReadAllText(dbpath, databaseText))
     {
-        dputs("\nFailed to read database file!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file!"));
         return;
     }
 
@@ -175,7 +175,7 @@ void DbLoad(DbLoadSaveType loadType)
 
     if(!root)
     {
-        dputs("\nInvalid database file (JSON)!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "\nInvalid database file (JSON)!"));
         return;
     }
 
@@ -264,7 +264,7 @@ void DbSetPath(const char* Directory, const char* ModulePath)
         if(!CreateDirectoryW(StringUtils::Utf8ToUtf16(Directory).c_str(), nullptr))
         {
             if(GetLastError() != ERROR_ALREADY_EXISTS)
-                dprintf("Warning: Failed to create database folder '%s'. Path may be read only.\n", Directory);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Warning: Failed to create database folder '%s'. Path may be read only.\n"), Directory);
         }
     }
 
@@ -312,6 +312,6 @@ void DbSetPath(const char* Directory, const char* ModulePath)
             sprintf_s(dbpath, "%s\\%s.%s", dbbasepath, dbName, dbType);
         }
 
-        dprintf("Database file: %s\n", dbpath);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Database file: %s\n"), dbpath);
     }
 }

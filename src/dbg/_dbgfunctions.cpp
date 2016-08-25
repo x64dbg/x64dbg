@@ -163,17 +163,19 @@ static bool _getjit(char* jit, bool jit64)
 
 bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
 {
-    std::vector<PROCESSENTRY32> list;
-    if(!dbglistprocesses(&list))
+    std::vector<PROCESSENTRY32> infoList;
+    std::vector<std::string> commandList;
+    if(!dbglistprocesses(&infoList, &commandList))
         return false;
-    *count = (int)list.size();
+    *count = (int)infoList.size();
     if(!*count)
         return false;
     *entries = (DBGPROCESSINFO*)BridgeAlloc(*count * sizeof(DBGPROCESSINFO));
     for(int i = 0; i < *count; i++)
     {
-        (*entries)[*count - i - 1].dwProcessId = list.at(i).th32ProcessID;
-        strcpy_s((*entries)[*count - i - 1].szExeFile, list.at(i).szExeFile);
+        (*entries)[*count - i - 1].dwProcessId = infoList.at(i).th32ProcessID;
+        strncpy_s((*entries)[*count - i - 1].szExeFile, infoList.at(i).szExeFile, _TRUNCATE);
+        strncpy_s((*entries)[*count - i - 1].szExeArgs, commandList.at(i).c_str(), _TRUNCATE);
     }
     return true;
 }

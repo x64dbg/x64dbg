@@ -98,7 +98,7 @@ bool FunctionPass::Analyse()
     std::sort(funcs.begin(), funcs.end());
     funcs.erase(std::unique(funcs.begin(), funcs.end()), funcs.end());
 
-    dprintf("%u functions\n", funcs.size());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u functions\n"), funcs.size());
 
     FunctionDelRange(m_VirtualStart, m_VirtualEnd - 1, false);
     for(auto & func : funcs)
@@ -142,7 +142,7 @@ void FunctionPass::AnalysisWorker(duint Start, duint End, std::vector<FunctionDe
                 if(!MemIsValidReadPtr(destination))
                     continue;
 
-                dprintf("Indirect pointer: 0x%p 0x%p\n", blockItr->Target, destination);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Indirect pointer: 0x%p 0x%p\n"), blockItr->Target, destination);
             }
 
             // Destination must be within analysis limits

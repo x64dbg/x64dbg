@@ -185,7 +185,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     {
         // Notify the user of the error
         if(Error)
-            strcpy_s(Error, MAX_ERROR_SIZE, "No patches to apply");
+            strcpy_s(Error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "No patches to apply")));
 
         return -1;
     }
@@ -200,7 +200,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
         if(_stricmp(List[i].mod, moduleName))
         {
             if(Error)
-                sprintf_s(Error, MAX_ERROR_SIZE, "Not all patches are in module %s", moduleName);
+                sprintf_s(Error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Not all patches are in module %s")), moduleName);
 
             return -1;
         }
@@ -212,7 +212,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     if(!moduleBase)
     {
         if(Error)
-            sprintf_s(Error, MAX_ERROR_SIZE, "Failed to get base of module %s", moduleName);
+            sprintf_s(Error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed to get base of module %s")), moduleName);
 
         return -1;
     }
@@ -222,7 +222,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     if(!ModPathFromAddr(moduleBase, modPath, MAX_PATH))
     {
         if(Error)
-            sprintf_s(Error, MAX_ERROR_SIZE, "Failed to get module path of module %s", moduleName);
+            sprintf_s(Error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed to get module path of module %s")), moduleName);
 
         return -1;
     }
@@ -234,7 +234,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     if(!CopyFileW(srcPath.c_str(), dstPath.c_str(), false))
     {
         if(Error)
-            strcpy_s(Error, MAX_ERROR_SIZE, "Failed to make a copy of the original file (patch target is in use?)");
+            strcpy_s(Error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed to make a copy of the original file (patch target is in use?)")));
 
         return -1;
     }
@@ -245,7 +245,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     if(fileAttrs == INVALID_FILE_ATTRIBUTES)
     {
         if(Error)
-            strcpy_s(Error, MAX_ERROR_SIZE, "Unable to obtain attributes for copied file");
+            strcpy_s(Error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Unable to obtain attributes for copied file")));
 
         return -1;
     }
@@ -260,7 +260,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     if(!StaticFileLoadW(dstPath.c_str(), UE_ACCESS_ALL, false, &fileHandle, &loadedSize, &fileMap, &fileMapVa))
     {
         if(Error)
-            strcpy_s(Error, MAX_ERROR_SIZE, "StaticFileLoad failed");
+            strcpy_s(Error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "StaticFileLoad failed")));
 
         return -1;
     }
@@ -285,7 +285,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     if(!StaticFileUnloadW(dstPath.c_str(), true, fileHandle, loadedSize, fileMap, fileMapVa))
     {
         if(Error)
-            strcpy_s(Error, MAX_ERROR_SIZE, "StaticFileUnload failed");
+            strcpy_s(Error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "StaticFileUnload failed")));
 
         return -1;
     }

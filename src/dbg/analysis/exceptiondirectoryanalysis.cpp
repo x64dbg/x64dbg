@@ -75,9 +75,9 @@ void ExceptionDirectoryAnalysis::Analyse()
 
         return true;
     });
-    dprintf("%u functions discovered!\n", mFunctions.size());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u functions discovered!\n"), mFunctions.size());
 #else //x32
-    dprintf("This kind of analysis doesn't work on x32 executables...\n");
+    dputs(QT_TRANSLATE_NOOP("DBG", "This kind of analysis doesn't work on x32 executables...\n"));
 #endif // _WIN64
 }
 

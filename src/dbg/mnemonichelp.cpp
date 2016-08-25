@@ -85,9 +85,9 @@ String MnemonicHelp::getUniversalMnemonic(const String & mnem)
 String MnemonicHelp::getDescription(const char* mnem, int depth)
 {
     if(mnem == nullptr)
-        return "Invalid mnemonic!";
+        return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid mnemonic!"));
     if(depth == 10)
-        return "Too many redirections...";
+        return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Too many redirections..."));
     SHARED_ACQUIRE(LockMnemonicHelp);
     auto mnemuni = getUniversalMnemonic(mnem);
     auto found = MnemonicMap.find(mnemuni);
@@ -114,11 +114,11 @@ String MnemonicHelp::getDescription(const char* mnem, int depth)
 String MnemonicHelp::getBriefDescription(const char* mnem)
 {
     if(mnem == nullptr)
-        return "Invalid mnemonic!";
+        return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid mnemonic!"));
     SHARED_ACQUIRE(LockMnemonicHelp);
     auto mnemLower = StringUtils::ToLower(mnem);
     if(mnemLower == "???")
-        return "invalid instruction";
+        return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid instruction"));
     auto found = MnemonicBriefMap.find(mnemLower);
     if(found == MnemonicBriefMap.end())
     {

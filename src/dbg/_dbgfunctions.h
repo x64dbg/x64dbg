@@ -43,6 +43,7 @@ typedef struct
 {
     DWORD dwProcessId;
     char szExeFile[MAX_PATH];
+    char szExeArgs[MAX_COMMAND_LINE_SIZE];
 } DBGPROCESSINFO;
 
 typedef enum
