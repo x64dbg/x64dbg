@@ -67,7 +67,7 @@ static QString stringFormatInline(const QString & format)
     char result[MAX_SETTING_SIZE] = "";
     if(DbgFunctions()->StringFormatInline(format.toUtf8().constData(), MAX_SETTING_SIZE, result))
         return result;
-    return "[Formatting Error]";
+    return CPUArgumentWidget::tr("[Formatting Error]");
 
 }
 
