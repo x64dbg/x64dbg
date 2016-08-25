@@ -1884,7 +1884,13 @@ cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
             quotesPos.posEnum = NO_CLOSE_QUOTE_FOUND;
     }
     else
+    {
         quotesPos.posEnum = NO_QOUTES;
+        //try to locate first quote
+        for(size_t i = 1; i < strlen(cmdline); i++)
+            if(cmdline[i] == '"' || cmdline[i] == '\'')
+                quotesPos.secondPos = i;
+    }
 
     return quotesPos;
 }
@@ -1921,39 +1927,54 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
         char* cmdline;
 
         if(!dbggetcmdline(&cmdline, NULL, hProcess))
-            commandList->push_back("");
+            commandList->push_back("ARG_GET_ERROR");
         else
         {
             cmdline_qoutes_placement_t posEnum = getqoutesplacement(cmdline);
             char* cmdLineExe = strstr(cmdline, pe32.szExeFile);
-            duint cmdLineExeSize = cmdLineExe ? strlen(pe32.szExeFile) : 0;
+            size_t cmdLineExeSize = cmdLineExe ? strlen(pe32.szExeFile) : 0;
+
+            if(!cmdLineExe)
+            {
+                char* exeName = strrchr(pe32.szExeFile, '\\') ? strrchr(pe32.szExeFile, '\\') + 1 :
+                                strrchr(pe32.szExeFile, '/') ? strrchr(pe32.szExeFile, '/') + 1 : pe32.szExeFile;
+
+                char* exeNameInCmd = strstr(cmdline, exeName);
+                if(exeNameInCmd)
+                    cmdLineExeSize = (size_t)(((LPBYTE)exeNameInCmd - (LPBYTE)cmdline) + strlen(exeName));
+                else
+                {
+                    //try to locate basic name, without extension
+                    char* basicName = (char*)emalloc(strlen(exeName) + 1, "dbglistprocesses:basicName");;
+                    strncpy_s(basicName, sizeof(char) * strlen(exeName), exeName, _TRUNCATE);
+                    char* dotInName = strrchr(basicName, '.');
+                    dotInName[0] = '\0';
+                    exeNameInCmd = strstr(cmdline, basicName);
+                    if(exeNameInCmd)
+                        cmdLineExeSize = (size_t)(((LPBYTE)exeNameInCmd - (LPBYTE)cmdline) + strlen(basicName));
+                    efree(basicName);
+                }
+            }
+            dprintf("cmdline - %s\npe32.szExeFile - %s\ncmdLineExeSize - %u\n", cmdline, pe32.szExeFile, cmdLineExeSize);
+
 
             switch(posEnum.posEnum)
             {
             case NO_CLOSE_QUOTE_FOUND:
-                if(cmdLineExe)
-                    commandList->push_back(cmdline + cmdLineExeSize + 1);
-                else
-                    commandList->push_back(cmdline);
+                commandList->push_back(cmdline + cmdLineExeSize + 1);
                 break;
             case NO_QOUTES:
-                if(cmdLineExe)
+                if(!posEnum.secondPos)
                     commandList->push_back(cmdline + cmdLineExeSize);
                 else
-                    commandList->push_back(cmdline);
+                    commandList->push_back(cmdline + (cmdLineExeSize > posEnum.secondPos + 1 ? cmdLineExeSize : posEnum.secondPos + 1));
                 break;
             case QOUTES_AROUND_EXE:
                 commandList->push_back(cmdline + cmdLineExeSize + 2);
                 break;
             case QOUTES_AT_BEGIN_AND_END:
-
-                if(cmdLineExe)
-                {
-                    cmdline[strlen(cmdline) - 1] = '\0';
-                    commandList->push_back(cmdline + cmdLineExeSize + 1);
-                }
-                else
-                    commandList->push_back(cmdline);
+                cmdline[strlen(cmdline) - 1] = '\0';
+                commandList->push_back(cmdline + cmdLineExeSize + 1);
                 break;
             }
 
