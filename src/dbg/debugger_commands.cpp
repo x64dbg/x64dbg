@@ -120,10 +120,17 @@ CMDRESULT cbDebugStop(int argc, char* argv[])
     StopDebug();
     //history
     HistoryClear();
+    DWORD BeginTick = GetTickCount();
     while(waitislocked(WAITID_STOP))  //custom waiting
     {
         unlock(WAITID_RUN);
-        Sleep(1);
+        Sleep(100);
+        DWORD CurrentTick = GetTickCount();
+        if(CurrentTick - BeginTick > 10000)
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "The debuggee does not stop after 10 seconds. The debugger state may be corrupted."));
+            return STATUS_ERROR;
+        }
     }
     return STATUS_CONTINUE;
 }
