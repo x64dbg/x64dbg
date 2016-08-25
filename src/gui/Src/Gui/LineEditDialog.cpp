@@ -40,6 +40,11 @@ void LineEditDialog::setText(const QString & text)
     ui->textEdit->selectAll();
 }
 
+void LineEditDialog::setPlaceholderText(const QString & text)
+{
+    ui->textEdit->setPlaceholderText(text);
+}
+
 void LineEditDialog::enableCheckBox(bool bEnable)
 {
     if(bEnable)

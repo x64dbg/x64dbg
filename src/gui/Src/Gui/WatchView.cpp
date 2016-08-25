@@ -184,7 +184,7 @@ void WatchView::contextMenuSlot(const QPoint & pos)
 void WatchView::addWatchSlot()
 {
     QString name;
-    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", name))
+    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", name, tr("Example: [EAX]")))
         DbgCmdExecDirect(QString("AddWatch ").append(name).toUtf8().constData());
     updateWatch();
 }
@@ -198,7 +198,8 @@ void WatchView::delWatchSlot()
 void WatchView::renameWatchSlot()
 {
     QString name;
-    if(SimpleInputBox(this, tr("Enter the name of the watch variable"), getCellContent(getInitialSelection(), 0), name))
+    QString originalName = getCellContent(getInitialSelection(), 0);
+    if(SimpleInputBox(this, tr("Enter the name of the watch variable"), originalName, name, originalName))
         DbgCmdExecDirect(QString("SetWatchName ").append(getSelectedId() + "," + name).toUtf8().constData());
     updateWatch();
 }
@@ -206,7 +207,7 @@ void WatchView::renameWatchSlot()
 void WatchView::editWatchSlot()
 {
     QString expr;
-    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", expr))
+    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", expr, tr("Example: [EAX]")))
         DbgCmdExecDirect(QString("SetWatchExpression ").append(getSelectedId()).append(",").append(expr).toUtf8().constData());
     updateWatch();
 }

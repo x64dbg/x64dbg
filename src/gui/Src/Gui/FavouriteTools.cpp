@@ -178,7 +178,7 @@ void FavouriteTools::on_btnDescriptionFavouriteTool_clicked()
     if(!table->rowCount())
         return;
     QString description = table->item(table->currentRow(), 2)->text();
-    if(SimpleInputBox(this, tr("Enter the description"), description, description))
+    if(SimpleInputBox(this, tr("Enter the description"), description, description, tr("This string will appear in the menu.")))
         table->item(table->currentRow(), 2)->setText(description);
 }
 
@@ -225,7 +225,7 @@ void FavouriteTools::on_btnDescriptionFavouriteScript_clicked()
     if(!table->rowCount())
         return;
     QString description = table->item(table->currentRow(), 2)->text();
-    if(SimpleInputBox(this, tr("Enter the description"), description, description))
+    if(SimpleInputBox(this, tr("Enter the description"), description, description, tr("This string will appear in the menu.")))
         table->item(table->currentRow(), 2)->setText(description);
 }
 
@@ -242,7 +242,7 @@ void FavouriteTools::on_btnDownFavouriteScript_clicked()
 void FavouriteTools::on_btnAddFavouriteCommand_clicked()
 {
     QString cmd;
-    if(SimpleInputBox(this, tr("Enter the command that you want to create a shortcut for :"), "", cmd))
+    if(SimpleInputBox(this, tr("Enter the command that you want to create a shortcut for :"), "", cmd, tr("Example: bphws ESP")))
     {
         int rows = ui->listCommand->rowCount();
         ui->listCommand->setRowCount(rows + 1);

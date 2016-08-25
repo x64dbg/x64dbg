@@ -8,7 +8,7 @@ class QByteArray;
 
 void SetApplicationIcon(WId winId);
 QByteArray & ByteReverse(QByteArray & array);
-bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue, QString & output);
+bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue, QString & output, const QString & placeholderText);
 void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text);
 void SimpleWarningBox(QWidget* parent, const QString & title, const QString & text);
 
