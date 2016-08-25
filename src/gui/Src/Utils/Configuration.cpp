@@ -203,6 +203,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     QMap<QString, bool> guiBool;
     guiBool.insert("FpuRegistersLittleEndian", false);
     guiBool.insert("SaveColumnOrder", true);
+    guiBool.insert("NoCloseDialog", false);
+    guiBool.insert("PidInHex", true);
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
@@ -370,6 +372,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionFindReferences", Shortcut(tr("Actions -> Find References"), "Ctrl+R"));
     defaultShortcuts.insert("ActionXrefs", Shortcut(tr("Actions -> xrefs..."), "X"));
     defaultShortcuts.insert("ActionAnalyzeSingleFunction", Shortcut(tr("Actions -> Analyze Single Function"), "A"));
+    defaultShortcuts.insert("ActionAnalyzeModule", Shortcut(tr("Actions -> Analyze Module"), "Ctrl+A"));
     defaultShortcuts.insert("ActionHelpOnMnemonic", Shortcut(tr("Actions -> Help on Mnemonic"), "Ctrl+F1"));
     defaultShortcuts.insert("ActionToggleMnemonicBrief", Shortcut(tr("Actions -> Toggle Mnemonic Brief"), "Ctrl+Shift+F1"));
     defaultShortcuts.insert("ActionHighlightingMode", Shortcut(tr("Actions -> Highlighting Mode"), "Ctrl+H"));

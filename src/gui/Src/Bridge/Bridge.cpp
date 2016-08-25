@@ -663,3 +663,20 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 {
     return Bridge::getBridge()->processMessage(type, param1, param2);
 }
+
+__declspec(dllexport) const char* _gui_translate_text(const char* source)
+{
+    if(TLS_TranslatedStringMap)
+    {
+        QByteArray translatedUtf8 = QCoreApplication::translate("DBG", source).toUtf8();
+        // Boom... VS does not support "thread_local"... and cannot use "__declspec(thread)" in a DLL... https://blogs.msdn.microsoft.com/oldnewthing/20101122-00/?p=12233
+        // Simulating Thread Local Storage with a map...
+        DWORD ThreadId = GetCurrentThreadId();
+        TranslatedStringStorage & TranslatedString = (*TLS_TranslatedStringMap)[ThreadId];
+        TranslatedString.Data[translatedUtf8.size()] = 0; // Set the string terminator first.
+        memcpy(TranslatedString.Data, translatedUtf8.constData(), std::min((size_t)translatedUtf8.size(), sizeof(TranslatedString.Data) - 1)); // Then copy the string safely.
+        return TranslatedString.Data; // Don't need to free this memory. But this pointer should be used immediately to reduce race condition.
+    }
+    else // Translators are not initialized yet.
+        return source;
+}

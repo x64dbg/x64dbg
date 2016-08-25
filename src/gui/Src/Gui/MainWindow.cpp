@@ -1571,6 +1571,7 @@ void MainWindow::chooseLanguage()
         if(file.size() < 512)
         {
             QMessageBox msg(this);
+            msg.setWindowIcon(QIcon("codepage.png"));
             msg.setIcon(QMessageBox::Information);
             if(tr("Languages") == QString("Languages"))
             {
@@ -1591,6 +1592,7 @@ void MainWindow::chooseLanguage()
     BridgeSettingSet("Engine", "Language", localeName.toUtf8().constData());
     QMessageBox msg(this);
     msg.setIcon(QMessageBox::Information);
+    msg.setWindowIcon(QIcon("codepage.png"));
     if(tr("Languages") == QString("Languages"))
     {
         msg.setWindowTitle(QString("Languages"));

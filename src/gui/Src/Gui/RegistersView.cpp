@@ -1880,7 +1880,7 @@ void RegistersView::ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZ
     setRegister(mSelected, (duint)value);
 }
 
-#define MODIFY_FIELDS_DISPLAY(title, table) ModifyFields(tr("Edit") + QChar(' ') + QString(title), (STRING_VALUE_TABLE_t *) & table, SIZE_TABLE(table) )
+#define MODIFY_FIELDS_DISPLAY(prefix, title, table) ModifyFields(prefix + QChar(' ') + QString(title), (STRING_VALUE_TABLE_t *) & table, SIZE_TABLE(table) )
 
 /**
  * @brief   This function displays the appropriate edit dialog according to selected register
@@ -1892,15 +1892,15 @@ void RegistersView::displayEditDialog()
     if(mFPU.contains(mSelected))
     {
         if(mTAGWORD.contains(mSelected))
-            MODIFY_FIELDS_DISPLAY("Tag " + mRegisterMapping.constFind(mSelected).value(), TagWordValueStringTable);
+            MODIFY_FIELDS_DISPLAY(tr("Edit"), "Tag " + mRegisterMapping.constFind(mSelected).value(), TagWordValueStringTable);
         else if(mSelected == MxCsr_RC)
-            MODIFY_FIELDS_DISPLAY("MxCsr_RC", MxCsrRCValueStringTable);
+            MODIFY_FIELDS_DISPLAY(tr("Edit"), "MxCsr_RC", MxCsrRCValueStringTable);
         else if(mSelected == x87CW_RC)
-            MODIFY_FIELDS_DISPLAY("x87CW_RC", ControlWordRCValueStringTable);
+            MODIFY_FIELDS_DISPLAY(tr("Edit"), "x87CW_RC", ControlWordRCValueStringTable);
         else if(mSelected == x87CW_PC)
-            MODIFY_FIELDS_DISPLAY("x87CW_PC", ControlWordPCValueStringTable);
+            MODIFY_FIELDS_DISPLAY(tr("Edit"), "x87CW_PC", ControlWordPCValueStringTable);
         else if(mSelected == x87SW_TOP)
-            MODIFY_FIELDS_DISPLAY("x87SW_TOP ST0=", StatusWordTOPValueStringTable);
+            MODIFY_FIELDS_DISPLAY(tr("Edit"), "x87SW_TOP ST0=", StatusWordTOPValueStringTable);
         else if(mFPUYMM.contains(mSelected))
         {
             EditFloatRegister mEditFloat(256, this);

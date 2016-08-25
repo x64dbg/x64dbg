@@ -42,17 +42,12 @@
 #ifndef DLL_IMPORT
 #define DLL_IMPORT __declspec(dllimport)
 #endif //DLL_IMPORT
+#ifndef QT_TRANSLATE_NOOP
+#define QT_TRANSLATE_NOOP(context, source) source
+#endif //QT_TRANSLATE_NOOP
 
 //defines
 #define deflen 1024
-
-#ifdef _WIN64 //defined by default
-#define fhex "%.16llX"
-#define fext "ll"
-#else
-#define fhex "%.8X"
-#define fext ""
-#endif // _WIN64
 
 enum arch
 {

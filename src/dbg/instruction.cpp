@@ -56,7 +56,7 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
     if(valfromstring(*argv, &value, false, false, &valsize, &isvar, &hexonly, true))  //dump variable/value/register/etc
     {
         varset("$ans", value, true);
-        //dprintf("[DEBUG] valsize: %d\n", valsize);
+        //dprintf(QT_TRANSLATE_NOOP("DBG", "[DEBUG] valsize: %d\n"), valsize);
         if(valsize)
             valsize *= 2;
         else
@@ -67,14 +67,22 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc())  //signed numbers
-                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "ud)\n", valsize);
+#ifdef _WIN64
+                    sprintf(format_str, "%%s=%%.%dllX (%%llud)\n", valsize); // TODO: This and the following statements use "%llX" for a "int"-typed variable. Maybe we can use "%X" everywhere?
+#else //x86
+                    sprintf(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
+#endif //_WIN64
                 else
-                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "d)\n", valsize);
+#ifdef _WIN64
+                    sprintf(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
+#else //x86
+                    sprintf(format_str, "%%s=%%.%dX (%%d)\n", valsize);
+#endif //_WIN64
                 dprintf(format_str, *argv, value, value);
             }
             else
             {
-                sprintf(format_str, "%%s=%%.%d" fext "X\n", valsize);
+                sprintf(format_str, "%%s=%%.%d\n", valsize);
                 dprintf(format_str, *argv, value);
             }
         }
@@ -83,34 +91,58 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc())  //signed numbers
-                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "ud)\n", valsize);
+#ifdef _WIN64
+                    sprintf(format_str, "%%s=%%.%dllX (%%llud)\n", valsize);
+#else //x86
+                    sprintf(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
+#endif //_WIN64
                 else
-                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "d)\n", valsize);
-                sprintf(format_str, "%%.%d" fext "X (%%" fext "ud)\n", valsize);
+#ifdef _WIN64
+                    sprintf(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
+#else //x86
+                    sprintf(format_str, "%%s=%%.%dX (%%d)\n", valsize);
+#endif //_WIN64
+#ifdef _WIN64
+                sprintf(format_str, "%%.%dllX (%%llud)\n", valsize);
+#else //x86
+                sprintf(format_str, "%%.%dX (%%ud)\n", valsize);
+#endif //_WIN64
                 dprintf(format_str, value, value);
             }
             else
             {
-                sprintf(format_str, "%%.%d" fext "X\n", valsize);
-                dprintf(format_str, value);
+#ifdef _WIN64
+                sprintf(format_str, "%%.%dllX\n", valsize);
+#else //x86
+                sprintf(format_str, "%%.%dX\n", valsize);
+#endif //_WIN64
+                dprintf_untranslated(format_str, value);
             }
         }
     }
     else //unknown command
     {
-        dprintf("unknown command/expression: \"%s\"\n", *argv);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "unknown command/expression: \"%s\"\n"), *argv);
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
 }
 
+inline bool IsArgumentsLessThan(int argc, int minimumCount)
+{
+    if(argc < minimumCount)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At least %d arguments must be specified.\n"), minimumCount - 1);
+        return true;
+    }
+    else
+        return false;
+}
+
 CMDRESULT cbInstrVar(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     char arg2[deflen] = ""; //var value (optional)
     if(argc > 2)
         strcpy_s(arg2, argv[2]);
@@ -120,51 +152,52 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
         add++;
     if(valfromstring(argv[1] + add, &value))
     {
-        dprintf("invalid variable name \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid variable name \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!valfromstring(arg2, &value))
     {
-        dprintf("invalid value \"%s\"\n", arg2);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid value \"%s\"\n"), arg2);
         return STATUS_ERROR;
     }
     if(!varnew(argv[1], value, VAR_USER))
     {
-        dprintf("error creating variable \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "error creating variable \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     else
     {
         if(value > 15)
-            dprintf("%s=%" fext "X (%" fext "ud)\n", argv[1], value, value);
+#ifdef _WIN64
+            dprintf_untranslated("%s=%llX (%llud)\n", argv[1], value, value);
+#else //x86
+            dprintf_untranslated("%s=%X (%ud)\n", argv[1], value, value);
+#endif //_WIN64
         else
-            dprintf("%s=%" fext "X\n", argv[1], value);
+#ifdef _WIN64
+            dprintf_untranslated("%s=%llX\n", argv[1], value);
+#else //x86
+            dprintf_untranslated("%s=%X\n", argv[1], value);
+#endif //_WIN64
     }
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrVarDel(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     if(!vardel(argv[1], false))
-        dprintf("could not delete variable \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "could not delete variable \"%s\"\n"), argv[1]);
     else
-        dprintf("deleted variable \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "deleted variable \"%s\"\n"), argv[1]);
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrMov(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-
     String srcText = argv[2];
     if(srcText[0] == '#' && srcText[srcText.length() - 1] == '#')  //handle mov addr, #DATA#
     {
@@ -180,7 +213,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         {
             if(!isxdigit(dataText[i]))
             {
-                dprintf("invalid hex string \"%s\" (contains invalid characters)\n", dataText.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid hex string \"%s\" (contains invalid characters)\n"), dataText.c_str());
                 return STATUS_ERROR;
             }
         }
@@ -188,7 +221,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         duint dest;
         if(!valfromstring(argv[1], &dest) || !MemIsValidReadPtr(dest))
         {
-            dprintf("invalid destination \"%s\"\n", argv[1]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid destination \"%s\"\n"), argv[1]);
             return STATUS_ERROR;
         }
         //Convert text to byte array (very ugly)
@@ -201,7 +234,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             int res = 0;
             if(sscanf_s(b, "%X", &res) != 1)
             {
-                dprintf("invalid hex byte \"%s\"\n", b);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid hex byte \"%s\"\n"), b);
                 return STATUS_ERROR;
             }
             data()[j] = res;
@@ -209,7 +242,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         //Move data to destination
         if(!MemWrite(dest, data(), data.size()))
         {
-            dprintf("failed to write to " fhex "\n", dest);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "failed to write to %p\n"), dest);
             return STATUS_ERROR;
         }
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
@@ -220,7 +253,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         duint set_value = 0;
         if(!valfromstring(srcText.c_str(), &set_value))
         {
-            dprintf("invalid src \"%s\"\n", argv[2]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid src \"%s\"\n"), argv[2]);
             return STATUS_ERROR;
         }
         bool isvar = false;
@@ -233,7 +266,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             duint value;
             if(valfromstring(argv[1], &value))  //if the var is a value already it's an invalid destination
             {
-                dprintf("invalid dest \"%s\"\n", argv[1]);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid dest \"%s\"\n"), argv[1]);
                 return STATUS_ERROR;
             }
             varnew(argv[1], set_value, VAR_USER);
@@ -258,13 +291,13 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
     size_t cbsize = 0;
     if(!varenum(0, &cbsize))
     {
-        dputs("no variables!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "no variables!"));
         return STATUS_CONTINUE;
     }
     Memory<VAR*> variables(cbsize, "cbInstrVarList:variables");
     if(!varenum(variables(), 0))
     {
-        dputs("error listing variables!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "error listing variables!"));
         return STATUS_ERROR;
     }
 
@@ -278,22 +311,20 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
         duint value = (duint)variables()[i].value.u.value;
         if(variables()[i].type != VAR_HIDDEN)
         {
-            if(filter)
-            {
-                if(variables()[i].type == filter)
-                {
-                    if(value > 15)
-                        dprintf("%s=%" fext "X (%" fext "ud)\n", name, value, value);
-                    else
-                        dprintf("%s=%" fext "X\n", name, value);
-                }
-            }
-            else
+            if(!filter || variables()[i].type == filter)
             {
                 if(value > 15)
-                    dprintf("%s=%" fext "X (%" fext "ud)\n", name, value, value);
+#ifdef _WIN64
+                    dprintf_untranslated("%s=%llX (%llud)\n", name, value, value);
+#else //x86
+                    dprintf_untranslated("%s=%X (%ud)\n", name, value, value);
+#endif //_WIN64
                 else
-                    dprintf("%s=%" fext "X\n", name, value);
+#ifdef _WIN64
+                    dprintf_untranslated("%s=%llX\n", name, value);
+#else //x86
+                    dprintf_untranslated("%s=%X\n", name, value);
+#endif //_WIN64
             }
         }
     }
@@ -302,34 +333,28 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
 
 CMDRESULT cbInstrChd(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     if(!DirExists(argv[1]))
     {
-        dputs("directory doesn't exist");
+        dputs(QT_TRANSLATE_NOOP("DBG", "directory doesn't exist"));
         return STATUS_ERROR;
     }
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(argv[1]).c_str());
-    dputs("current directory changed!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "current directory changed!"));
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrCmt(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!CommentSet(addr, argv[2], true))
     {
-        dputs("error setting comment");
+        dputs(QT_TRANSLATE_NOOP("DBG", "error setting comment"));
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
@@ -337,17 +362,14 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
 
 CMDRESULT cbInstrCmtdel(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!CommentDelete(addr))
     {
-        dputs("error deleting comment");
+        dputs(QT_TRANSLATE_NOOP("DBG", "error deleting comment"));
         return STATUS_ERROR;
     }
     GuiUpdateAllViews();
@@ -356,17 +378,14 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
 
 CMDRESULT cbInstrLbl(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!LabelSet(addr, argv[2], true))
     {
-        dputs("error setting label");
+        dputs(QT_TRANSLATE_NOOP("DBG", "error setting label"));
         return STATUS_ERROR;
     }
     GuiUpdateAllViews();
@@ -375,17 +394,14 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
 
 CMDRESULT cbInstrLbldel(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!LabelDelete(addr))
     {
-        dputs("error deleting label");
+        dputs(QT_TRANSLATE_NOOP("DBG", "error deleting label"));
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
@@ -393,39 +409,33 @@ CMDRESULT cbInstrLbldel(int argc, char* argv[])
 
 CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!BookmarkSet(addr, true))
     {
-        dputs("failed to set bookmark!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to set bookmark!"));
         return STATUS_ERROR;
     }
-    dputs("bookmark set!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "bookmark set!"));
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!BookmarkDelete(addr))
     {
-        dputs("failed to delete bookmark!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to delete bookmark!"));
         return STATUS_ERROR;
     }
-    dputs("bookmark deleted!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "bookmark deleted!"));
     return STATUS_CONTINUE;
 }
 
@@ -444,20 +454,17 @@ CMDRESULT cbInstrSavedb(int argc, char* argv[])
 
 CMDRESULT cbInstrAssemble(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr))
     {
-        dprintf("invalid expression: \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid expression: \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!DbgMemIsValidReadPtr(addr))
     {
-        dprintf("invalid address: " fhex "!\n", addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid address: %p!\n"), addr);
         return STATUS_ERROR;
     }
     bool fillnop = false;
@@ -468,7 +475,7 @@ CMDRESULT cbInstrAssemble(int argc, char* argv[])
     if(!assembleat(addr, argv[2], &size, error, fillnop))
     {
         varset("$result", size, false);
-        dprintf("failed to assemble \"%s\" (%s)\n", argv[2], error);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to assemble \"%s\" (%s)\n"), argv[2], error);
         return STATUS_ERROR;
     }
     varset("$result", size, false);
@@ -478,41 +485,35 @@ CMDRESULT cbInstrAssemble(int argc, char* argv[])
 
 CMDRESULT cbInstrFunctionAdd(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint start = 0;
     duint end = 0;
     if(!valfromstring(argv[1], &start, false) || !valfromstring(argv[2], &end, false))
         return STATUS_ERROR;
     if(!FunctionAdd(start, end, true))
     {
-        dputs("failed to add function");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to add function"));
         return STATUS_ERROR;
     }
-    dputs("function added!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "function added!"));
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrFunctionDel(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!FunctionDelete(addr))
     {
-        dputs("failed to delete function");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to delete function"));
         return STATUS_ERROR;
     }
-    dputs("function deleted!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "function deleted!"));
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -521,47 +522,41 @@ CMDRESULT cbInstrFunctionClear(int argc, char* argv[])
 {
     FunctionClear();
     GuiUpdateAllViews();
-    dputs("all functions deleted!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "all functions deleted!"));
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrArgumentAdd(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint start = 0;
     duint end = 0;
     if(!valfromstring(argv[1], &start, false) || !valfromstring(argv[2], &end, false))
         return STATUS_ERROR;
     if(!ArgumentAdd(start, end, true))
     {
-        dputs("failed to add argument");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to add argument"));
         return STATUS_ERROR;
     }
-    dputs("argument added!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "argument added!"));
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrArgumentDel(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!ArgumentDelete(addr))
     {
-        dputs("failed to delete argument");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to delete argument"));
         return STATUS_ERROR;
     }
-    dputs("argument deleted!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "argument deleted!"));
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -570,17 +565,14 @@ CMDRESULT cbInstrArgumentClear(int argc, char* argv[])
 {
     ArgumentClear();
     GuiUpdateAllViews();
-    dputs("all arguments deleted!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "all arguments deleted!"));
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrCmp(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint arg1 = 0;
     if(!valfromstring(argv[1], &arg1, false))
         return STATUS_ERROR;
@@ -609,17 +601,14 @@ CMDRESULT cbInstrCmp(int argc, char* argv[])
     }
     varset("$_EZ_FLAG", ezflag, true);
     varset("$_BS_FLAG", bsflag, true);
-    //dprintf("$_EZ_FLAG=%d, $_BS_FLAG=%d\n", ezflag, bsflag);
+    //dprintf(QT_TRANSLATE_NOOP("DBG", "$_EZ_FLAG=%d, $_BS_FLAG=%d\n"), ezflag, bsflag);
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrGpa(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     char newcmd[deflen] = "";
     if(argc >= 3)
         sprintf(newcmd, "%s:%s", argv[2], argv[1]);
@@ -632,170 +621,309 @@ CMDRESULT cbInstrGpa(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrAdd(int argc, char* argv[])
+static CMDRESULT ReadWriteVariable(const char* varname, std::function<CMDRESULT(duint*, int)> callback)
 {
-    if(argc < 3)
+    duint set_value = 0;
+    bool isvar;
+    int varsize;
+    if(!valfromstring(varname, &set_value, true, false, &varsize, &isvar))
     {
-        dputs("not enough arguments!");
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid variable \"%s\"\n"), varname);
         return STATUS_ERROR;
     }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s+%s", argv[1], argv[1], argv[2]).c_str());
+    CMDRESULT retVal = callback(&set_value, varsize);
+    if(retVal != STATUS_CONTINUE)
+        return retVal;
+    duint temp = 0;
+    valfromstring(varname, &temp, true, false, 0, nullptr, 0); //there is no return check on this because the destination might not exist yet
+    if(!isvar)
+        isvar = vargettype(varname, 0);
+    if(!isvar || !valtostring(varname, set_value, true))
+    {
+        duint value;
+        if(valfromstring(varname, &value))  //if the var is a value already it's an invalid destination
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid variable \"%s\"\n"), varname);
+            return STATUS_ERROR;
+        }
+        varnew(varname, set_value, VAR_USER);
+    }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrAdd(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return STATUS_ERROR;
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            *value += value2;
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrAnd(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s&%s", argv[1], argv[1], argv[2]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            *value &= value2;
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrDec(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s-1", argv[1], argv[1]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        *value--;
+        return STATUS_CONTINUE;
+    });
 }
 
 CMDRESULT cbInstrDiv(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s/%s", argv[1], argv[1], argv[2]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            *value /= value2;
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrInc(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s+1", argv[1], argv[1]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        *value++;
+        return STATUS_CONTINUE;
+    });
 }
 
 CMDRESULT cbInstrMul(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s*%s", argv[1], argv[1], argv[2]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            *value *= value2;
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrNeg(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s*-1", argv[1], argv[1]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        dsint* value1 = reinterpret_cast<dsint*>(value);
+        *value1 = -*value1;
+        return STATUS_CONTINUE;
+    });
 }
 
 CMDRESULT cbInstrNot(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,~%s", argv[1], argv[1]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        *value = ~*value;
+        return STATUS_CONTINUE;
+    });
 }
 
 CMDRESULT cbInstrOr(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s|%s", argv[1], argv[1], argv[2]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            *value |= value2;
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrRol(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    bool signedcalc = valuesignedcalc();
-    valuesetsignedcalc(true); //rol = signed
-    CMDRESULT res = cmddirectexec(StringUtils::sprintf("mov %s,%s<<%s", argv[1], argv[1], argv[2]).c_str());
-    valuesetsignedcalc(signedcalc);
-    return res;
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            duint value1 = *value;
+            *value = value1 << value2 | value1 >> (varsize * 8 - value2);
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrRor(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    bool signedcalc = valuesignedcalc();
-    valuesetsignedcalc(true); //ror = signed
-    CMDRESULT res = cmddirectexec(StringUtils::sprintf("mov %s,%s>>%s", argv[1], argv[1], argv[2]).c_str());
-    valuesetsignedcalc(signedcalc);
-    return res;
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            duint value1 = *value;
+            *value = value1 >> value2 | value1 << (varsize * 8 - value2);
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrShl(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    bool signedcalc = valuesignedcalc();
-    valuesetsignedcalc(false); //shl = unsigned
-    CMDRESULT res = cmddirectexec(StringUtils::sprintf("mov %s,%s<<%s", argv[1], argv[1], argv[2]).c_str());
-    valuesetsignedcalc(signedcalc);
-    return res;
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            *value <<= value2;
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrShr(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    bool signedcalc = valuesignedcalc();
-    valuesetsignedcalc(false); //shr = unsigned
-    CMDRESULT res = cmddirectexec(StringUtils::sprintf("mov %s,%s>>%s", argv[1], argv[1], argv[2]).c_str());
-    valuesetsignedcalc(signedcalc);
-    return res;
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            *value >>= value2;
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
+}
+
+CMDRESULT cbInstrSar(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return STATUS_ERROR;
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            dsint* value1 = reinterpret_cast<dsint*>(value);
+            *value1 >>= value2; // signed
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrSub(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s-%s", argv[1], argv[1], argv[2]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            *value -= value2;
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrTest(int argc, char* argv[])
 {
     //TODO: test
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint arg1 = 0;
     if(!valfromstring(argv[1], &arg1, false))
         return STATUS_ERROR;
@@ -810,31 +938,41 @@ CMDRESULT cbInstrTest(int argc, char* argv[])
         ezflag = 0;
     varset("$_EZ_FLAG", ezflag, true);
     varset("$_BS_FLAG", bsflag, true);
-    //dprintf("$_EZ_FLAG=%d, $_BS_FLAG=%d\n", ezflag, bsflag);
+    //dprintf(QT_TRANSLATE_NOOP("DBG", "$_EZ_FLAG=%d, $_BS_FLAG=%d\n"), ezflag, bsflag);
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrXor(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
-    return cmddirectexec(StringUtils::sprintf("mov %s,%s^%s", argv[1], argv[1], argv[2]).c_str());
+    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    {
+        duint value2;
+        if(valfromstring(argv[2], &value2))
+        {
+            *value ^= value2;
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            return STATUS_ERROR;
+        }
+    });
 }
 
 CMDRESULT cbInstrPush(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
         return STATUS_ERROR;
     }
     duint value;
     if(!valfromstring(argv[1], &value))
     {
-        dprintf("invalid argument \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid argument \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     Script::Stack::Push(value);
@@ -860,39 +998,32 @@ CMDRESULT cbInstrPop(int argc, char* argv[])
 
 CMDRESULT cbInstrBswap(int argc, char* argv[])
 {
-    if(argc < 2)
+    if(IsArgumentsLessThan(argc, 2))
+        return STATUS_ERROR;
+    return ReadWriteVariable(argv[1], [argv](duint * value, int size)
     {
-        dputs("not enough arguments!");
-        return STATUS_ERROR;
-    }
-    duint arg1 = 0;
-    int size = 0;
-    bool isvar = false;
-    if(!valfromstring(argv[1], &arg1, false, false, &size, &isvar))
-        return STATUS_ERROR;
-    if(!isvar)
-    {
-        dprintf("Invalid expression: \"%s\"", argv[1]);
-        return STATUS_ERROR;
-    }
-    duint result = arg1;
-    if(size == 2)
-        result = _byteswap_ushort((uint16)arg1);
-    else if(size == 4)
-        result = _byteswap_ulong((uint32)arg1);
+        if(size == 2)
+            *value = _byteswap_ushort((uint16) * value);
+        else if(size == 4)
+            *value = _byteswap_ulong((uint32) * value);
 #ifdef _WIN64
-    else if(size == 8)
-        result = _byteswap_uint64(arg1);
-#endif
-    String swapcmd = StringUtils::sprintf("mov %s, " fhex, argv[1], result);
-    return cmddirectexec(swapcmd.c_str());
+        else if(size == 8)
+            *value = _byteswap_uint64(*value);
+#endif //_WIN64
+        else
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Variable size not supported."));
+            return STATUS_ERROR;
+        }
+        return STATUS_CONTINUE;
+    });
 }
 
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
 {
-    GuiReferenceInitialize("Script");
-    GuiReferenceAddColumn(sizeof(duint) * 2, "Address");
-    GuiReferenceAddColumn(0, "Data");
+    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script")));
+    GuiReferenceAddColumn(sizeof(duint) * 2, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     bRefinit = true;
@@ -901,11 +1032,8 @@ CMDRESULT cbInstrRefinit(int argc, char* argv[])
 
 CMDRESULT cbInstrRefadd(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
@@ -914,7 +1042,7 @@ CMDRESULT cbInstrRefadd(int argc, char* argv[])
     int index = GuiReferenceGetRowCount();
     GuiReferenceSetRowCount(index + 1);
     char addr_text[deflen] = "";
-    sprintf(addr_text, fhex, addr);
+    sprintf(addr_text, "%p", addr);
     GuiReferenceSetCellContent(index, 0, addr_text);
     GuiReferenceSetCellContent(index, 1, stringformatinline(argv[2]).c_str());
     GuiReferenceReloadData();
@@ -932,8 +1060,8 @@ static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     if(!disasm || !basicinfo)  //initialize
     {
         GuiReferenceInitialize(refinfo->name);
-        GuiReferenceAddColumn(2 * sizeof(duint), "Address");
-        GuiReferenceAddColumn(0, "Disassembly");
+        GuiReferenceAddColumn(sizeof(duint) * 2, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
@@ -977,11 +1105,8 @@ static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
 
 CMDRESULT cbInstrRefFind(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     std::string newCommand = std::string("reffindrange ") + argv[1] + std::string(",") + argv[1];
     if(argc > 2)
         newCommand += std::string(",") + argv[2];
@@ -994,11 +1119,8 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
 
 CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     VALUERANGE range;
     if(!valfromstring(argv[1], &range.start, false))
         return STATUS_ERROR;
@@ -1014,9 +1136,9 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
     duint ticks = GetTickCount();
     char title[256] = "";
     if(range.start == range.end)
-        sprintf_s(title, "Constant: %" fext "X", range.start);
+        sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Constant: %p")), range.start);
     else
-        sprintf_s(title, "Range: %" fext "X-%" fext "X", range.start, range.end);
+        sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Range: %p-%p")), range.start, range.end);
 
     duint refFindType = CURRENT_REGION;
     if(argc >= 6 && valfromstring(argv[5], &refFindType, true))
@@ -1024,7 +1146,7 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
             refFindType = CURRENT_REGION;
 
     int found = RefFind(addr, size, cbRefFind, &range, false, title, (REFFINDTYPE)refFindType, false);
-    dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u reference(s) in %ums\n"), found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -1034,9 +1156,9 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
     if(!disasm || !basicinfo)  //initialize
     {
         GuiReferenceInitialize(refinfo->name);
-        GuiReferenceAddColumn(2 * sizeof(duint), "Address");
-        GuiReferenceAddColumn(64, "Disassembly");
-        GuiReferenceAddColumn(500, "String");
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(500, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String")));
         GuiReferenceSetSearchStartCol(2); //only search the strings
         GuiReferenceReloadData();
         return true;
@@ -1058,7 +1180,7 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, fhex, disasm->Address());
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[4096] = "";
@@ -1073,8 +1195,10 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
 
 CMDRESULT cbInstrRefStr(int argc, char* argv[])
 {
+    duint ticks = GetTickCount();
     duint addr;
     duint size = 0;
+    String TranslatedString;
 
     // If not specified, assume CURRENT_REGION by default
     if(argc < 2 || !valfromstring(argv[1], &addr, true))
@@ -1088,29 +1212,26 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
         if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
             refFindType = CURRENT_REGION;
 
-    duint ticks = GetTickCount();
-    int found = RefFind(addr, size, cbRefStr, 0, false, "Strings", (REFFINDTYPE)refFindType, false);
-    dprintf("%u string(s) in %ums\n", found, GetTickCount() - ticks);
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Strings"));
+    int found = RefFind(addr, size, cbRefStr, 0, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u string(s) in %ums\n"), found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrSetstr(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     varnew(argv[1], 0, VAR_USER);
     if(!vargettype(argv[1], 0))
     {
-        dprintf("no such variable \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "no such variable \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!varset(argv[1], argv[2], false))
     {
-        dprintf("failed to set variable \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to set variable \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     cmddirectexec(StringUtils::sprintf("getstr \"%s\"", argv[1]).c_str());
@@ -1119,32 +1240,29 @@ CMDRESULT cbInstrSetstr(int argc, char* argv[])
 
 CMDRESULT cbInstrGetstr(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     VAR_VALUE_TYPE valtype;
     if(!vargettype(argv[1], 0, &valtype))
     {
-        dprintf("no such variable \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "no such variable \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(valtype != VAR_STRING)
     {
-        dprintf("variable \"%s\" is not a string!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "variable \"%s\" is not a string!\n"), argv[1]);
         return STATUS_ERROR;
     }
     int size;
     if(!varget(argv[1], (char*)0, &size, 0) || !size)
     {
-        dprintf("failed to get variable size \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable size \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     Memory<char*> string(size + 1, "cbInstrGetstr:string");
     if(!varget(argv[1], string(), &size, 0))
     {
-        dprintf("failed to get variable data \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable data \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     dprintf("%s=\"%s\"\n", argv[1], string());
@@ -1153,46 +1271,43 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
 
 CMDRESULT cbInstrCopystr(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     VAR_VALUE_TYPE valtype;
     if(!vargettype(argv[2], 0, &valtype))
     {
-        dprintf("no such variable \"%s\"!\n", argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "no such variable \"%s\"!\n"), argv[2]);
         return STATUS_ERROR;
     }
     if(valtype != VAR_STRING)
     {
-        dprintf("variable \"%s\" is not a string!\n", argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "variable \"%s\" is not a string!\n"), argv[2]);
         return STATUS_ERROR;
     }
     int size;
     if(!varget(argv[2], (char*)0, &size, 0) || !size)
     {
-        dprintf("failed to get variable size \"%s\"!\n", argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable size \"%s\"!\n"), argv[2]);
         return STATUS_ERROR;
     }
     Memory<char*> string(size + 1, "cbInstrGetstr:string");
     if(!varget(argv[2], string(), &size, 0))
     {
-        dprintf("failed to get variable data \"%s\"!\n", argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable data \"%s\"!\n"), argv[2]);
         return STATUS_ERROR;
     }
     duint addr;
     if(!valfromstring(argv[1], &addr))
     {
-        dprintf("invalid address \"%s\"!\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid address \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
     if(!MemPatch(addr, string(), strlen(string())))
     {
-        dputs("memwrite failed!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "memwrite failed!"));
         return STATUS_ERROR;
     }
-    dputs("string written!");
+    dputs(QT_TRANSLATE_NOOP("DBG", "string written!"));
     GuiUpdateAllViews();
     GuiUpdatePatches();
     return STATUS_CONTINUE;
@@ -1200,11 +1315,8 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
 
 CMDRESULT cbInstrFind(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
@@ -1221,13 +1333,13 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf("invalid memory address " fhex "!\n", addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid memory address %p!\n"), addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
     if(!MemRead(base, data(), size))
     {
-        dputs("failed to read memory!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to read memory!"));
         return STATUS_ERROR;
     }
     duint start = addr - base;
@@ -1251,11 +1363,8 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
 
 CMDRESULT cbInstrFindAll(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
@@ -1273,13 +1382,13 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf("invalid memory address " fhex "!\n", addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid memory address %p!\n"), addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
     if(!MemRead(base, data(), size))
     {
-        dputs("failed to read memory!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to read memory!"));
         return STATUS_ERROR;
     }
     duint start = addr - base;
@@ -1305,13 +1414,13 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     if(len > 16)
         strcat_s(patternshort, "...");
     char patterntitle[256] = "";
-    sprintf_s(patterntitle, "Pattern: %s", patternshort);
+    sprintf_s(patterntitle, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort);
     GuiReferenceInitialize(patterntitle);
-    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
     if(findData)
-        GuiReferenceAddColumn(0, "&Data&");
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "&Data&")));
     else
-        GuiReferenceAddColumn(0, "Disassembly");
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
     GuiReferenceReloadData();
     DWORD ticks = GetTickCount();
     int refCount = 0;
@@ -1320,7 +1429,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     std::vector<PatternByte> searchpattern;
     if(!patterntransform(pattern, searchpattern))
     {
-        dputs("failed to transform pattern!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to transform pattern!"));
         return STATUS_ERROR;
     }
     while(refCount < maxFindResults)
@@ -1331,7 +1440,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         i += foundoffset + 1;
         result = addr + i - 1;
         char msg[deflen] = "";
-        sprintf(msg, fhex, result);
+        sprintf(msg, "%p", result);
         GuiReferenceSetRowCount(refCount + 1);
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
@@ -1348,25 +1457,22 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         else
         {
             if(!GuiGetDisassembly(result, msg))
-                strcpy_s(msg, "[Error disassembling]");
+                strcpy_s(msg, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Error disassembling]")));
         }
         GuiReferenceSetCellContent(refCount, 1, msg);
         result++;
         refCount++;
     }
     GuiReferenceReloadData();
-    dprintf("%d occurrences found in %ums\n", refCount, GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, GetTickCount() - ticks);
     varset("$result", refCount, false);
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
@@ -1383,7 +1489,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     std::vector<PatternByte> searchpattern;
     if(!patterntransform(pattern, searchpattern))
     {
-        dputs("failed to transform pattern!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to transform pattern!"));
         return STATUS_ERROR;
     }
 
@@ -1414,7 +1520,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     std::vector<duint> results;
     if(!MemFindInMap(searchPages, searchpattern, results, maxFindResults))
     {
-        dputs("MemFindInMap failed!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "MemFindInMap failed!"));
         return STATUS_ERROR;
     }
 
@@ -1424,20 +1530,20 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     if(len > 16)
         strcat_s(patternshort, "...");
     char patterntitle[256] = "";
-    sprintf_s(patterntitle, "Pattern: %s", patternshort);
+    sprintf_s(patterntitle, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort);
     GuiReferenceInitialize(patterntitle);
-    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
     if(findData)
-        GuiReferenceAddColumn(0, "&Data&");
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "&Data&")));
     else
-        GuiReferenceAddColumn(0, "Disassembly");
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
     GuiReferenceReloadData();
 
     int refCount = 0;
     for(duint result : results)
     {
         char msg[deflen] = "";
-        sprintf(msg, fhex, result);
+        sprintf(msg, "%p", result);
         GuiReferenceSetRowCount(refCount + 1);
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
@@ -1454,14 +1560,14 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
         else
         {
             if(!GuiGetDisassembly(result, msg))
-                strcpy_s(msg, "[Error disassembling]");
+                strcpy_s(msg, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Error disassembling]")));
         }
         GuiReferenceSetCellContent(refCount, 1, msg);
         refCount++;
     }
 
     GuiReferenceReloadData();
-    dprintf("%d occurrences found in %ums\n", refCount, GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, GetTickCount() - ticks);
     varset("$result", refCount, false);
 
     return STATUS_CONTINUE;
@@ -1472,9 +1578,9 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     if(!disasm || !basicinfo)  //initialize
     {
         GuiReferenceInitialize(refinfo->name);
-        GuiReferenceAddColumn(2 * sizeof(duint), "Address");
-        GuiReferenceAddColumn(20, "Disassembly");
-        GuiReferenceAddColumn(MAX_LABEL_SIZE, "Destination");
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(MAX_LABEL_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Destination")));
         GuiReferenceReloadData();
         return true;
     }
@@ -1525,8 +1631,9 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
             refFindType = CURRENT_REGION;
 
     duint ticks = GetTickCount();
-    int found = RefFind(addr, size, cbModCallFind, 0, false, "Calls", (REFFINDTYPE)refFindType, false);
-    dprintf("%u call(s) in %ums\n", found, GetTickCount() - ticks);
+    String Calls = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Calls"));
+    int found = RefFind(addr, size, cbModCallFind, 0, false, Calls.c_str(), (REFFINDTYPE)refFindType, false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u call(s) in %ums\n"), found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -1534,16 +1641,16 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
 CMDRESULT cbInstrCommentList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceInitialize("Comments");
-    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
-    GuiReferenceAddColumn(64, "Disassembly");
-    GuiReferenceAddColumn(0, "Comment");
+    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comments")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comment")));
     GuiReferenceReloadData();
     size_t cbsize;
     CommentEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs("no comments");
+        dputs(QT_TRANSLATE_NOOP("DBG", "no comments"));
         return STATUS_CONTINUE;
     }
     Memory<COMMENTSINFO*> comments(cbsize, "cbInstrCommentList:comments");
@@ -1561,7 +1668,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
         GuiReferenceSetCellContent(i, 2, comments()[i].text);
     }
     varset("$result", count, false);
-    dprintf("%d comment(s) listed in Reference View\n", count);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d comment(s) listed in Reference View\n"), count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
@@ -1569,16 +1676,16 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
 CMDRESULT cbInstrLabelList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceInitialize("Labels");
-    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
-    GuiReferenceAddColumn(64, "Disassembly");
-    GuiReferenceAddColumn(0, "Label");
+    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Labels")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
     GuiReferenceReloadData();
     size_t cbsize;
     LabelEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs("no labels");
+        dputs(QT_TRANSLATE_NOOP("DBG", "no labels"));
         return STATUS_CONTINUE;
     }
     Memory<LABELSINFO*> labels(cbsize, "cbInstrLabelList:labels");
@@ -1596,7 +1703,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
         GuiReferenceSetCellContent(i, 2, labels()[i].text);
     }
     varset("$result", count, false);
-    dprintf("%d label(s) listed in Reference View\n", count);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d label(s) listed in Reference View\n"), count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
@@ -1604,15 +1711,15 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
 CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceInitialize("Bookmarks");
-    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
-    GuiReferenceAddColumn(0, "Disassembly");
+    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Bookmarks")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
     GuiReferenceReloadData();
     size_t cbsize;
     BookmarkEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs("No bookmarks found");
+        dputs(QT_TRANSLATE_NOOP("DBG", "No bookmarks found"));
         return STATUS_CONTINUE;
     }
     Memory<BOOKMARKSINFO*> bookmarks(cbsize, "cbInstrBookmarkList:bookmarks");
@@ -1629,7 +1736,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
             GuiReferenceSetCellContent(i, 1, disassembly);
     }
     varset("$result", count, false);
-    dprintf("%d bookmark(s) listed\n", count);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d bookmark(s) listed\n"), count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
@@ -1637,17 +1744,17 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceInitialize("Functions");
-    GuiReferenceAddColumn(2 * sizeof(duint), "Start");
-    GuiReferenceAddColumn(2 * sizeof(duint), "End");
-    GuiReferenceAddColumn(64, "Disassembly (Start)");
-    GuiReferenceAddColumn(0, "Label/Comment");
+    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Functions")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Start")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
+    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
     GuiReferenceReloadData();
     size_t cbsize;
     FunctionEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs("No functions");
+        dputs(QT_TRANSLATE_NOOP("DBG", "No functions"));
         return STATUS_CONTINUE;
     }
     Memory<FUNCTIONSINFO*> functions(cbsize, "cbInstrFunctionList:functions");
@@ -1675,7 +1782,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         }
     }
     varset("$result", count, false);
-    dprintf("%d function(s) listed\n", count);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d function(s) listed\n"), count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
@@ -1683,17 +1790,17 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 CMDRESULT cbInstrArgumentList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceInitialize("Arguments");
-    GuiReferenceAddColumn(2 * sizeof(duint), "Start");
-    GuiReferenceAddColumn(2 * sizeof(duint), "End");
-    GuiReferenceAddColumn(64, "Disassembly (Start)");
-    GuiReferenceAddColumn(0, "Label/Comment");
+    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Arguments")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Start")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
+    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
+    GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
     GuiReferenceReloadData();
     size_t cbsize;
     ArgumentEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs("No arguments");
+        dputs(QT_TRANSLATE_NOOP("DBG", "No arguments"));
         return STATUS_CONTINUE;
     }
     Memory<ARGUMENTSINFO*> arguments(cbsize, "cbInstrArgumentList:arguments");
@@ -1721,7 +1828,7 @@ CMDRESULT cbInstrArgumentList(int argc, char* argv[])
         }
     }
     varset("$result", count, false);
-    dprintf("%d argument(s) listed\n", count);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d argument(s) listed\n"), count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
@@ -1729,17 +1836,17 @@ CMDRESULT cbInstrArgumentList(int argc, char* argv[])
 CMDRESULT cbInstrLoopList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceInitialize("Loops");
-    GuiReferenceAddColumn(2 * sizeof(duint), "Start");
-    GuiReferenceAddColumn(2 * sizeof(duint), "End");
-    GuiReferenceAddColumn(64, "Disassembly (Start)");
-    GuiReferenceAddColumn(0, "Label/Comment");
+    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Loops")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Start")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
+    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
     GuiReferenceReloadData();
     size_t cbsize;
     LoopEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs("no loops");
+        dputs(QT_TRANSLATE_NOOP("DBG", "no loops"));
         return STATUS_CONTINUE;
     }
     Memory<LOOPSINFO*> loops(cbsize, "cbInstrLoopList:loops");
@@ -1767,7 +1874,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         }
     }
     varset("$result", count, false);
-    dprintf("%d loop(s) listed\n", count);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d loop(s) listed\n"), count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
@@ -1789,8 +1896,8 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     if(!disasm || !basicinfo)  //initialize
     {
         GuiReferenceInitialize(refinfo->name);
-        GuiReferenceAddColumn(2 * sizeof(duint), "Address");
-        GuiReferenceAddColumn(0, "Disassembly");
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceReloadData();
         return true;
     }
@@ -1799,7 +1906,7 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, fhex, disasm->Address());
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
@@ -1813,11 +1920,8 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
 
 CMDRESULT cbInstrFindAsm(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
 
     duint addr = 0;
     if(argc < 3 || !valfromstring(argv[2], &addr))
@@ -1837,7 +1941,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     char error[MAX_ERROR_SIZE] = "";
     if(!assemble(addr + size / 2, dest, &asmsize, argv[1], error))
     {
-        dprintf("failed to assemble \"%s\" (%s)!\n", argv[1], error);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to assemble \"%s\" (%s)!\n"), argv[1], error);
         return STATUS_ERROR;
     }
     BASIC_INSTRUCTION_INFO basicinfo;
@@ -1846,9 +1950,9 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
 
     duint ticks = GetTickCount();
     char title[256] = "";
-    sprintf_s(title, "Command: \"%s\"", basicinfo.instruction);
+    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Command: \"%s\"")), basicinfo.instruction);
     int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title, (REFFINDTYPE)refFindType, true);
-    dprintf("%u result(s) in %ums\n", found, GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u result(s) in %ums\n"), found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -1858,13 +1962,13 @@ static void yaraCompilerCallback(int error_level, const char* file_name, int lin
     switch(error_level)
     {
     case YARA_ERROR_LEVEL_ERROR:
-        dprintf("[YARA ERROR] ");
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA ERROR] "));
         break;
     case YARA_ERROR_LEVEL_WARNING:
-        dprintf("[YARA WARNING] ");
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA WARNING] "));
         break;
     }
-    dprintf("File: \"%s\", Line: %d, Message: \"%s\"\n", file_name, line_number, message);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "File: \"%s\", Line: %d, Message: \"%s\"\n"), file_name, line_number, message);
 }
 
 static String yara_print_string(const uint8_t* data, int length)
@@ -1929,7 +2033,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
             scanInfo->index++;
 
             char addr_text[deflen] = "";
-            sprintf(addr_text, fhex, addr);
+            sprintf(addr_text, "%p", addr);
             GuiReferenceSetCellContent(index, 0, addr_text); //Address
             String ruleFullName = "";
             ruleFullName += yrRule->identifier;
@@ -1945,13 +2049,13 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
         if(STRING_IS_NULL(yrRule->strings))
         {
             if(debug)
-                dprintf("[YARA] Global rule \"%s\' matched!\n", yrRule->identifier);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Global rule \"%s\' matched!\n"), yrRule->identifier);
             addReference(base, nullptr, "");
         }
         else
         {
             if(debug)
-                dprintf("[YARA] Rule \"%s\" matched:\n", yrRule->identifier);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Rule \"%s\" matched:\n"), yrRule->identifier);
             YR_STRING* string;
             yr_rule_strings_foreach(yrRule, string)
             {
@@ -1971,7 +2075,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                         addr = base + offset;
 
                     if(debug)
-                        dprintf("[YARA] String \"%s\" : %s on 0x%" fext "X\n", string->identifier, pattern.c_str(), addr);
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] String \"%s\" : %s on %p\n"), string->identifier, pattern.c_str(), addr);
 
                     addReference(addr, string->identifier, pattern);
                 }
@@ -1984,14 +2088,14 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
     {
         YR_RULE* yrRule = (YR_RULE*)message_data;
         if(debug)
-            dprintf("[YARA] Rule \"%s\" did not match!\n", yrRule->identifier);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Rule \"%s\" did not match!\n"), yrRule->identifier);
     }
     break;
 
     case CALLBACK_MSG_SCAN_FINISHED:
     {
         if(debug)
-            dputs("[YARA] Scan finished!");
+            dputs(QT_TRANSLATE_NOOP("DBG", "[YARA] Scan finished!"));
     }
     break;
 
@@ -1999,7 +2103,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
     {
         YR_MODULE_IMPORT* yrModuleImport = (YR_MODULE_IMPORT*)message_data;
         if(debug)
-            dprintf("[YARA] Imported module \"%s\"!\n", yrModuleImport->module_name);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Imported module \"%s\"!\n"), yrModuleImport->module_name);
     }
     break;
     }
@@ -2008,11 +2112,8 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
 
 CMDRESULT cbInstrYara(int argc, char* argv[])
 {
-    if(argc < 2)  //yara rulesFile, addr_of_mempage, size_of_scan
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     duint addr = 0;
     SELECTIONDATA sel;
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
@@ -2032,7 +2133,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     {
         if(!valfromstring(argv[2], &addr))
         {
-            dprintf("invalid value \"%s\"!\n", argv[2]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid value \"%s\"!\n"), argv[2]);
             return STATUS_ERROR;
         }
 
@@ -2050,12 +2151,12 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         char modPath[MAX_PATH] = "";
         if(!ModPathFromAddr(base, modPath, MAX_PATH))
         {
-            dprintf("failed to get module path for " fhex "!\n", base);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get module path for %p!\n"), base);
             return STATUS_ERROR;
         }
         if(!FileHelper::ReadAllData(modPath, rawFileData))
         {
-            dprintf("failed to read file \"%s\"!\n", modPath);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "failed to read file \"%s\"!\n"), modPath);
             return STATUS_ERROR;
         }
         size = rawFileData.size();
@@ -2065,14 +2166,14 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         memcpy(data(), rawFileData.data(), size);
     else if(!MemRead(base, data(), size))
     {
-        dprintf("failed to read memory page %p[%X]!\n", base, size);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to read memory page %p[%X]!\n"), base, size);
         return STATUS_ERROR;
     }
 
     String rulesContent;
     if(!FileHelper::ReadAllText(argv[1], rulesContent))
     {
-        dprintf("Failed to read the rules file \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to read the rules file \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
 
@@ -2100,53 +2201,50 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                 fullName += modname;
                 fullName += ")"; //nanana, very ugly code (long live open source)
                 GuiReferenceInitialize(fullName.c_str());
-                GuiReferenceAddColumn(sizeof(duint) * 2, "Address");
-                GuiReferenceAddColumn(48, "Rule");
-                GuiReferenceAddColumn(0, "Data");
+                GuiReferenceAddColumn(sizeof(duint) * 2, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+                GuiReferenceAddColumn(48, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Rule")));
+                GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data")));
                 GuiReferenceSetRowCount(0);
                 GuiReferenceReloadData();
                 YaraScanInfo scanInfo(base, rawFile, argv[2], settingboolget("Engine", "YaraDebug"));
                 duint ticks = GetTickCount();
-                dputs("[YARA] Scan started...");
+                dputs(QT_TRANSLATE_NOOP("DBG", "[YARA] Scan started..."));
                 int err = yr_rules_scan_mem(yrRules, data(), size, 0, yaraScanCallback, &scanInfo, 0);
                 GuiReferenceReloadData();
                 switch(err)
                 {
                 case ERROR_SUCCESS:
-                    dprintf("%u scan results in %ums...\n", scanInfo.index, GetTickCount() - ticks);
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "%u scan results in %ums...\n"), scanInfo.index, GetTickCount() - ticks);
                     bSuccess = true;
                     break;
                 case ERROR_TOO_MANY_MATCHES:
-                    dputs("too many matches!");
+                    dputs(QT_TRANSLATE_NOOP("DBG", "too many matches!"));
                     break;
                 default:
-                    dputs("error while scanning memory!");
+                    dputs(QT_TRANSLATE_NOOP("DBG", "error while scanning memory!"));
                     break;
                 }
                 yr_rules_destroy(yrRules);
             }
             else
-                dputs("error while getting the rules!");
+                dputs(QT_TRANSLATE_NOOP("DBG", "error while getting the rules!"));
         }
         else
-            dputs("errors in the rules file!");
+            dputs(QT_TRANSLATE_NOOP("DBG", "errors in the rules file!"));
         yr_compiler_destroy(yrCompiler);
     }
     else
-        dputs("yr_compiler_create failed!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "yr_compiler_create failed!"));
     return bSuccess ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
 CMDRESULT cbInstrYaramod(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     if(!ModBaseFromName(argv[2]))
     {
-        dprintf("invalid module \"%s\"!\n", argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid module \"%s\"!\n"), argv[2]);
         return STATUS_ERROR;
     }
     return cmddirectexec(StringUtils::sprintf("yara \"%s\",\"%s\",%s", argv[1], argv[2], argc > 3 && *argv[3] == '1' ? "1" : "0").c_str());
@@ -2177,23 +2275,20 @@ CMDRESULT cbInstrLog(int argc, char* argv[])
 
 CMDRESULT cbInstrCapstone(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("not enough arguments...");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
 
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !MemIsValidReadPtr(addr))
     {
-        dprintf("invalid address \"%s\"\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid address \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
 
     unsigned char data[16];
     if(!MemRead(addr, data, sizeof(data)))
     {
-        dprintf("could not read memory at %p\n", addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "could not read memory at %p\n"), addr);
         return STATUS_ERROR;
     }
 
@@ -2204,7 +2299,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     Capstone cp;
     if(!cp.Disassemble(addr, data))
     {
-        dprintf("failed to disassemble!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "failed to disassemble!\n"));
         return STATUS_ERROR;
     }
 
@@ -2212,24 +2307,24 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
     dprintf("%s %s\n", instr->mnemonic, instr->op_str);
-    dprintf("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), cp.OpCount());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "size: %d, id: %d, opcount: %d\n"), cp.Size(), cp.GetId(), cp.OpCount());
     for(int i = 0; i < argcount; i++)
     {
         const cs_x86_op & op = x86.operands[i];
-        dprintf("operand \"%s\" %d, ", cp.OperandText(i).c_str(), i + 1);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "operand \"%s\" %d, "), cp.OperandText(i).c_str(), i + 1);
         switch(op.type)
         {
         case X86_OP_REG:
-            dprintf("register: %s\n", cp.RegName((x86_reg)op.reg));
+            dprintf(QT_TRANSLATE_NOOP("DBG", "register: %s\n"), cp.RegName((x86_reg)op.reg));
             break;
         case X86_OP_IMM:
-            dprintf("immediate: 0x%p\n", op.imm);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "immediate: 0x%p\n"), op.imm);
             break;
         case X86_OP_MEM:
         {
             //[base + index * scale +/- disp]
             const x86_op_mem & mem = op.mem;
-            dprintf("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
+            dprintf(QT_TRANSLATE_NOOP("DBG", "memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n"),
                     cp.RegName((x86_reg)mem.segment),
                     cp.RegName((x86_reg)mem.base),
                     cp.RegName((x86_reg)mem.index),
@@ -2311,7 +2406,7 @@ CMDRESULT cbInstrExanalyse(int argc, char* argv[])
 
 CMDRESULT cbInstrAnalrecur(int argc, char* argv[])
 {
-    if(argc < 2)
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
     duint entry;
     if(!valfromstring(argv[1], &entry, false))
@@ -2341,20 +2436,17 @@ CMDRESULT cbInstrAnalxrefs(int argc, char* argv[])
 
 CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("Not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint base;
     if(!valfromstring(argv[2], &base))
     {
-        dputs("Invalid parameter [base]!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid parameter [base]!"));
         return STATUS_ERROR;
     }
     if(!MemIsValidReadPtr(base))
     {
-        dputs("Invalid memory address!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid memory address!"));
         return STATUS_ERROR;
     }
     duint size;
@@ -2362,13 +2454,13 @@ CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
         base = MemFindBaseAddr(base, &size);
     else if(!valfromstring(argv[3], &size))
     {
-        dputs("Invalid parameter [size]");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid parameter [size]"));
         return STATUS_ERROR;
     }
     auto name = String("virtual:\\") + (argv[1]);
     if(!ModLoad(base, size, name.c_str()))
     {
-        dputs("Failed to load module (ModLoad)...");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load module (ModLoad)..."));
         return STATUS_ERROR;
     }
 
@@ -2376,23 +2468,20 @@ CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
     if(ModNameFromAddr(base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname);
 
-    dprintf("Virtual module \"%s\" loaded on %p[%p]!\n", argv[1], base, size);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Virtual module \"%s\" loaded on %p[%p]!\n"), argv[1], base, size);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrVisualize(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     duint start;
     duint maxaddr;
     if(!valfromstring(argv[1], &start) || !valfromstring(argv[2], &maxaddr))
     {
-        dputs("invalid arguments!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "invalid arguments!"));
         return STATUS_ERROR;
     }
     //actual algorithm
@@ -2484,43 +2573,40 @@ CMDRESULT cbInstrMeminfo(int argc, char* argv[])
 {
     if(argc < 3)
     {
-        dputs("usage: meminfo a/r, addr");
+        dputs(QT_TRANSLATE_NOOP("DBG", "usage: meminfo a/r, addr"));
         return STATUS_ERROR;
     }
     duint addr;
     if(!valfromstring(argv[2], &addr))
     {
-        dputs("invalid argument");
+        dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
         return STATUS_ERROR;
     }
     if(argv[1][0] == 'a')
     {
         unsigned char buf = 0;
         if(!ReadProcessMemory(fdProcessInfo->hProcess, (void*)addr, &buf, sizeof(buf), nullptr))
-            dputs("ReadProcessMemory failed!");
+            dputs(QT_TRANSLATE_NOOP("DBG", "ReadProcessMemory failed!"));
         else
-            dprintf("data: %02X\n", buf);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "data: %02X\n"), buf);
     }
     else if(argv[1][0] == 'r')
     {
         MemUpdateMap();
         GuiUpdateMemoryView();
-        dputs("memory map updated!");
+        dputs(QT_TRANSLATE_NOOP("DBG", "memory map updated!"));
     }
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("Not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     duint num;
     if(!valfromstring(argv[1], &num))
     {
-        dprintf("Invalid expression: \"%s\"", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression: \"%s\""), argv[1]);
         return STATUS_ERROR;
     }
     maxFindResults = int(num & 0x7FFFFFFF);
@@ -2529,11 +2615,8 @@ CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
 
 CMDRESULT cbInstrSavedata(int argc, char* argv[])
 {
-    if(argc < 4)  //savedata filename,addr,size
-    {
-        dputs("Not enough arguments...");
+    if(IsArgumentsLessThan(argc, 4))
         return STATUS_ERROR;
-    }
     duint addr, size;
     if(!valfromstring(argv[2], &addr, false) || !valfromstring(argv[3], &size, false))
         return STATUS_ERROR;
@@ -2541,28 +2624,31 @@ CMDRESULT cbInstrSavedata(int argc, char* argv[])
     Memory<unsigned char*> data(size);
     if(!MemRead(addr, data(), data.size()))
     {
-        dputs("Failed to read memory...");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read memory..."));
         return STATUS_ERROR;
     }
 
     if(!FileHelper::WriteAllData(argv[1], data(), data.size()))
     {
-        dputs("Failed to write file...");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to write file..."));
         return STATUS_ERROR;
     }
-
-    dprintf("%p[% " fext "X] written to \"%s\" !\n", addr, size, argv[1]);
+#ifdef _WIN64
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% llX] written to \"%s\" !\n"), addr, size, argv[1]);
+#else //x86
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% X] written to \"%s\" !\n"), addr, size, argv[1]);
+#endif
 
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrMnemonichelp(int argc, char* argv[])
 {
-    if(argc < 2)
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
     auto description = MnemonicHelp::getDescription(argv[1]);
     if(!description.length())
-        dputs("no description or empty description");
+        dputs(QT_TRANSLATE_NOOP("DBG", "no description or empty description"));
     else
     {
         auto padding = "================================================================";
@@ -2574,7 +2660,7 @@ CMDRESULT cbInstrMnemonichelp(int argc, char* argv[])
 
 CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[])
 {
-    if(argc < 2)
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
     dputs(MnemonicHelp::getBriefDescription(argv[1]).c_str());
     return STATUS_CONTINUE;
@@ -2582,11 +2668,8 @@ CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[])
 
 CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("Not enough arguments");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     DWORD returnLength;
     LUID luid;
     if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
@@ -2622,15 +2705,12 @@ CMDRESULT cbGetPrivilegeState(int argc, char* argv[])
 
 CMDRESULT cbEnablePrivilege(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("Not enough arguments");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     LUID luid;
     if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
     {
-        dprintf("Could not find the specified privilege: %s\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not find the specified privilege: %s\n"), argv[1]);
         return STATUS_ERROR;
     }
     TOKEN_PRIVILEGES Privilege;
@@ -2643,15 +2723,12 @@ CMDRESULT cbEnablePrivilege(int argc, char* argv[])
 
 CMDRESULT cbDisablePrivilege(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("Not enough arguments");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     LUID luid;
     if(LookupPrivilegeValueW(nullptr, StringUtils::Utf8ToUtf16(argv[1]).c_str(), &luid) == 0)
     {
-        dprintf("Could not find the specified privilege: %s\n", argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not find the specified privilege: %s\n"), argv[1]);
         return STATUS_ERROR;
     }
     TOKEN_PRIVILEGES Privilege;
@@ -2664,26 +2741,27 @@ CMDRESULT cbDisablePrivilege(int argc, char* argv[])
 
 CMDRESULT cbHandleClose(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs("Not enough arguments");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     duint handle;
     if(!valfromstring(argv[1], &handle, false))
         return STATUS_ERROR;
     if(!DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), NULL, NULL, 0, FALSE, DUPLICATE_CLOSE_SOURCE))
     {
-        dprintf("DuplicateHandle failed: %s\n", ErrorCodeToName(GetLastError()).c_str());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DuplicateHandle failed: %s\n"), ErrorCodeToName(GetLastError()).c_str());
         return STATUS_ERROR;
     }
-    dprintf("Handle %" fext "X closed!\n", handle);
+#ifdef _WIN64
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Handle %llX closed!\n"), handle);
+#else //x86
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Handle %X closed!\n"), handle);
+#endif
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrBriefcheck(int argc, char* argv[])
 {
-    if(argc < 2)
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
     duint addr;
     if(!valfromstring(argv[1], &addr, false))
@@ -2709,7 +2787,7 @@ CMDRESULT cbInstrBriefcheck(int argc, char* argv[])
         if(brief.length() || reported.count(mnem))
             continue;
         reported.insert(mnem);
-        dprintf(fhex ": %s\n", cp.Address(), mnem.c_str());
+        dprintf("%p: %s\n", cp.Address(), mnem.c_str());
     }
     return STATUS_CONTINUE;
 }
@@ -2744,9 +2822,9 @@ static void printExhandlers(const char* name, const std::vector<duint> & entries
     {
         auto symbolic = SymGetSymbolicName(entry);
         if(symbolic.length())
-            dprintf(fhex " %s\n", entry, symbolic.c_str());
+            dprintf("%p %s\n", entry, symbolic.c_str());
         else
-            dprintf(fhex "\n", entry);
+            dprintf("%p\n", entry);
     }
 }
 
@@ -2766,23 +2844,23 @@ CMDRESULT cbInstrExhandlers(int argc, char* argv[])
         printExhandlers("StructuredExceptionHandler (SEH)", handlers);
     }
     else
-        dputs("Failed to get SEH (disabled?)");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get SEH (disabled?)"));
 #endif //_WIN64
 
     if(ExHandlerGetInfo(EX_HANDLER_VEH, entries))
         printExhandlers("VectoredExceptionHandler (VEH)", entries);
     else
-        dputs("Failed to get VEH (loaded symbols for ntdll.dll?)");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get VEH (loaded symbols for ntdll.dll?)"));
 
     if(ExHandlerGetInfo(EX_HANDLER_VCH, entries))
         printExhandlers("VectoredContinueHandler (VCH)", entries);
     else
-        dputs("Failed to get VCH (loaded symbols for ntdll.dll?)");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get VCH (loaded symbols for ntdll.dll?)"));
 
     if(ExHandlerGetInfo(EX_HANDLER_UNHANDLED, entries))
         printExhandlers("UnhandledExceptionFilter", entries);
     else
-        dputs("Failed to get UnhandledExceptionFilter (loaded symbols for kernelbase.dll?)");
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get UnhandledExceptionFilter (loaded symbols for kernelbase.dll?)"));
     return STATUS_CONTINUE;
 }
 
@@ -2809,18 +2887,18 @@ CMDRESULT cbInstrExinfo(int argc, char* argv[])
     dprintf("          ExceptionFlags: %08X\n", record.ExceptionFlags);
     auto symbolic = SymGetSymbolicName(duint(record.ExceptionAddress));
     if(symbolic.length())
-        dprintf("        ExceptionAddress: " fhex " %s\n", record.ExceptionAddress, symbolic.c_str());
+        dprintf("        ExceptionAddress: %p %s\n", record.ExceptionAddress, symbolic.c_str());
     else
-        dprintf("        ExceptionAddress: " fhex "\n", record.ExceptionAddress);
+        dprintf("        ExceptionAddress: %p\n", record.ExceptionAddress);
     dprintf("        NumberParameters: %d\n", record.NumberParameters);
     if(record.NumberParameters)
         for(DWORD i = 0; i < record.NumberParameters; i++)
         {
             symbolic = SymGetSymbolicName(duint(record.ExceptionInformation[i]));
             if(symbolic.length())
-                dprintf("ExceptionInformation[%02d]: " fhex " %s\n", i, record.ExceptionInformation[i], symbolic.c_str());
+                dprintf("ExceptionInformation[%02d]: %p %s\n", i, record.ExceptionInformation[i], symbolic.c_str());
             else
-                dprintf("ExceptionInformation[%02d]: " fhex "\n", i, record.ExceptionInformation[i]);
+                dprintf("ExceptionInformation[%02d]: %p\n", i, record.ExceptionInformation[i]);
         }
     return STATUS_CONTINUE;
 }
@@ -2836,17 +2914,20 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
     auto base = MemFindBaseAddr(entry, &size);
     if(!base || !MemIsValidReadPtr(entry))
     {
-        dprintf("Invalid memory address " fhex "!\n", entry);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid memory address %p!\n"), entry);
         return STATUS_ERROR;
     }
     if(!GuiGraphAt(sel))
     {
+        auto modbase = ModBaseFromAddr(base);
+        if(modbase)
+            base = modbase, size = ModSizeFromAddr(modbase);
         RecursiveAnalysis analysis(base, size, entry, 0);
         analysis.Analyse();
         auto graph = analysis.GetFunctionGraph(entry);
         if(!graph)
         {
-            dputs("No graph generated...");
+            dputs(QT_TRANSLATE_NOOP("DBG", "No graph generated..."));
             return STATUS_ERROR;
         }
         auto graphList = graph->ToGraphList();
@@ -2869,11 +2950,8 @@ CMDRESULT cbInstrEnableLog(int argc, char* argv[])
 CMDRESULT cbInstrAddFavTool(int argc, char* argv[])
 {
     // filename, description
-    if(argc < 2)
-    {
-        dputs("Not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     else if(argc == 2)
         GuiAddFavouriteTool(argv[1], nullptr);
     else
@@ -2884,11 +2962,8 @@ CMDRESULT cbInstrAddFavTool(int argc, char* argv[])
 CMDRESULT cbInstrAddFavCmd(int argc, char* argv[])
 {
     // command, shortcut
-    if(argc < 2)
-    {
-        dputs("Not enough arguments!");
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     else if(argc == 2)
         GuiAddFavouriteCommand(argv[1], nullptr);
     else
@@ -2899,11 +2974,8 @@ CMDRESULT cbInstrAddFavCmd(int argc, char* argv[])
 CMDRESULT cbInstrSetFavToolShortcut(int argc, char* argv[])
 {
     // filename, shortcut
-    if(argc < 3)
-    {
-        dputs("Not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     else
     {
         GuiSetFavouriteToolShortcut(argv[1], argv[2]);
@@ -2913,22 +2985,19 @@ CMDRESULT cbInstrSetFavToolShortcut(int argc, char* argv[])
 
 CMDRESULT cbInstrFoldDisassembly(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs("Not enough arguments!");
+    if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    }
     else
     {
         duint start, length;
         if(!valfromstring(argv[1], &start))
         {
-            dprintf("Invalid argument 1 : %s\n", argv[1]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid argument 1 : %s\n"), argv[1]);
             return STATUS_ERROR;
         }
         if(!valfromstring(argv[2], &length))
         {
-            dprintf("Invalid argument 2 : %s\n", argv[2]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid argument 2 : %s\n"), argv[2]);
             return STATUS_ERROR;
         }
         GuiFoldDisassembly(start, length);

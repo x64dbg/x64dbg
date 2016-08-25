@@ -51,6 +51,9 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
 
 static Configuration* mConfiguration;
 char currentLocale[MAX_SETTING_SIZE] = "";
+// Boom... VS does not support "thread_local"... and cannot use "__declspec(thread)" in a DLL... https://blogs.msdn.microsoft.com/oldnewthing/20101122-00/?p=12233
+// Simulating Thread Local Storage with a map...
+std::map<DWORD, TranslatedStringStorage>* TLS_TranslatedStringMap; //key = Thread Id, value = Translate Buffer
 
 static bool isValidLocale(const QString & locale)
 {
@@ -99,6 +102,8 @@ int main(int argc, char* argv[])
     auto path = QString("%1/../translations").arg(QCoreApplication::applicationDirPath());
     if(x64dbgTranslator.load(QString("x64dbg_%1").arg(currentLocale), path))
         application.installTranslator(&x64dbgTranslator);
+
+    TLS_TranslatedStringMap = new std::map<DWORD, TranslatedStringStorage>();
 
     // initialize capstone
     Capstone::GlobalInitialize();
@@ -151,6 +156,12 @@ int main(int argc, char* argv[])
 #endif
     delete mainWindow;
     mConfiguration->save(); //save config on exit
+    {
+        //delete tls
+        auto temp = TLS_TranslatedStringMap;
+        TLS_TranslatedStringMap = nullptr;
+        delete temp;
+    }
 
     //TODO free capstone/config/bridge and prevent use after free.
 

@@ -17,13 +17,13 @@ bool ErrorCodeInit(const String & errorFile)
         auto split = StringUtils::Split(line, ' ');
         if(int(split.size()) < 2)
         {
-            dprintf("Invalid line: \"%s\"\n", line.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid line: \"%s\"\n"), line.c_str());
             return false;
         }
         duint code;
         if(!convertNumber(split[0].c_str(), code, 10))
         {
-            dprintf("Failed to convert number \"%s\"\n", split[0].c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to convert number \"%s\"\n"), split[0].c_str());
             return false;
         }
         ErrorNames.insert({ (unsigned int)code, split[1] });

@@ -130,11 +130,17 @@ bool varnew(const char* Name, duint Value, VAR_TYPE Type)
     {
         String name_;
         Name = names.at(i).c_str();
-        if(*Name != '$')
+        if(*Name == '$')
+        {
+            name_ = Name;
+        }
+        else
+        {
             name_ = "$";
-        name_ += Name;
+            name_ += Name;
+        }
         if(!i)
-            firstName = Name;
+            firstName = name_;
         if(variables.find(name_) != variables.end()) //found
             return false;
         VAR var;
@@ -163,9 +169,15 @@ bool varget(const char* Name, VAR_VALUE* Value, int* Size, VAR_TYPE* Type)
     SHARED_ACQUIRE(LockVariables);
 
     String name_;
-    if(*Name != '$')
+    if(*Name == '$')
+    {
+        name_ = Name;
+    }
+    else
+    {
         name_ = "$";
-    name_ += Name;
+        name_ += Name;
+    }
     auto found = variables.find(name_);
     if(found == variables.end()) //not found
         return false;
@@ -310,12 +322,15 @@ bool vardel(const char* Name, bool DelSystem)
     if(!DelSystem && found->second.type != VAR_USER)
         return false;
     found = variables.begin();
+    String NameString(Name);
     while(found != variables.end())
     {
-        auto del = found;
-        found++;
-        if(found->second.name == String(Name))
-            variables.erase(del);
+        if(found->first == NameString || found->second.alias == NameString)
+        {
+            found = variables.erase(found); // Invalidate iterators
+        }
+        else
+            found++;
     }
     return true;
 }

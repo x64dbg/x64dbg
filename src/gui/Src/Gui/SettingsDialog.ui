@@ -481,6 +481,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkPidInHex">
+         <property name="text">
+          <string>Show PID in HEX</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

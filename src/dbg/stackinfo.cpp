@@ -30,9 +30,9 @@ void stackupdateseh()
         for(duint i = 0; i < count; i++)
         {
             if(i + 1 != count)
-                sprintf_s(comment.comment, "Pointer to SEH_Record[%d]", i + 1);
+                sprintf_s(comment.comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pointer to SEH_Record[%d]")), i + 1);
             else
-                sprintf_s(comment.comment, "End of SEH Chain");
+                sprintf_s(comment.comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End of SEH Chain")));
             newcache.insert({ SEHList[i], comment });
         }
     }
@@ -82,7 +82,7 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
         if(*module)
             sprintf(returnToAddr, "%s.", module);
         if(!*label)
-            sprintf(label, fhex, data);
+            sprintf(label, "%p", data);
         strcat(returnToAddr, label);
 
         data = basicinfo.addr;
@@ -98,12 +98,12 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
             if(*module)
                 sprintf(returnFromAddr, "%s.", module);
             if(!*label)
-                sprintf(label, fhex, data);
+                sprintf(label, "%p", data);
             strcat_s(returnFromAddr, label);
-            sprintf_s(comment->comment, "return to %s from %s", returnToAddr, returnFromAddr);
+            sprintf_s(comment->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
         }
         else
-            sprintf_s(comment->comment, "return to %s from ???", returnToAddr);
+            sprintf_s(comment->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from ???")), returnToAddr);
         strcpy_s(comment->color, "!rtnclr"); // Special token for return address color;
         return true;
     }
@@ -130,7 +130,7 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
         if(*label) //+label
             sprintf(comment->comment, "%s.%s", module, label);
         else //module only
-            sprintf(comment->comment, "%s." fhex, module, data);
+            sprintf(comment->comment, "%s.%p", module, data);
         return true;
     }
     else if(*label) //label only
@@ -179,7 +179,7 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint
     {
         auto symname = SymGetSymbolicName(addr);
         if(!symname.length())
-            symname = StringUtils::sprintf(fhex, addr);
+            symname = StringUtils::sprintf("%p", addr);
         return symname;
     };
 
@@ -187,9 +187,9 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint
     strncpy_s(returnToAddr, getSymAddrName(Entry->to).c_str(), _TRUNCATE);
 
     if(Entry->from)
-        sprintf_s(Entry->comment, "return to %s from %s", returnToAddr, getSymAddrName(Entry->from).c_str());
+        sprintf_s(Entry->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, getSymAddrName(Entry->from).c_str());
     else
-        sprintf_s(Entry->comment, "return to %s from ???", returnToAddr);
+        sprintf_s(Entry->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from ???")), returnToAddr);
 }
 
 #define MAX_CALLSTACK_CACHE 20

@@ -182,9 +182,11 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
     GetSettingBool("Gui", "SaveColumnOrder", &settings.guiSaveColumnOrder);
     GetSettingBool("Gui", "NoCloseDialog", &settings.guiNoCloseDialog);
+    GetSettingBool("Gui", "PidInHex", &settings.guiPidInHex);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
+    ui->chkPidInHex->setChecked(settings.guiPidInHex);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -295,6 +297,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
     BridgeSettingSetUint("Gui", "SaveColumnOrder", settings.guiSaveColumnOrder);
     BridgeSettingSetUint("Gui", "NoCloseDialog", settings.guiNoCloseDialog);
+    BridgeSettingSetUint("Gui", "PidInHex", settings.guiPidInHex);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -698,4 +701,9 @@ void SettingsDialog::on_chkNoCloseDialog_toggled(bool checked)
 void SettingsDialog::on_chkSkipInt3Stepping_toggled(bool checked)
 {
     settings.engineSkipInt3Stepping = checked;
+}
+
+void SettingsDialog::on_chkPidInHex_clicked(bool checked)
+{
+    settings.guiPidInHex = checked;
 }

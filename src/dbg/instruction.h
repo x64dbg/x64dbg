@@ -41,6 +41,7 @@ CMDRESULT cbInstrRol(int argc, char* argv[]);
 CMDRESULT cbInstrRor(int argc, char* argv[]);
 CMDRESULT cbInstrShl(int argc, char* argv[]);
 CMDRESULT cbInstrShr(int argc, char* argv[]);
+CMDRESULT cbInstrSar(int argc, char* argv[]);
 CMDRESULT cbInstrSub(int argc, char* argv[]);
 CMDRESULT cbInstrTest(int argc, char* argv[]);
 CMDRESULT cbInstrXor(int argc, char* argv[]);
