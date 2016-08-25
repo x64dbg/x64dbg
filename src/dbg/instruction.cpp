@@ -68,21 +68,21 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             {
                 if(!valuesignedcalc())  //signed numbers
 #ifdef _WIN64
-                    sprintf(format_str, "%%s=%%.%dllX (%%llud)\n", valsize); // TODO: This and the following statements use "%llX" for a "int"-typed variable. Maybe we can use "%X" everywhere?
+                    sprintf_s(format_str, "%%s=%%.%dllX (%%llud)\n", valsize); // TODO: This and the following statements use "%llX" for a "int"-typed variable. Maybe we can use "%X" everywhere?
 #else //x86
-                    sprintf(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
 #endif //_WIN64
                 else
 #ifdef _WIN64
-                    sprintf(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
 #else //x86
-                    sprintf(format_str, "%%s=%%.%dX (%%d)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dX (%%d)\n", valsize);
 #endif //_WIN64
                 dprintf(format_str, *argv, value, value);
             }
             else
             {
-                sprintf(format_str, "%%s=%%.%d\n", valsize);
+                sprintf_s(format_str, "%%s=%%.%d\n", valsize);
                 dprintf(format_str, *argv, value);
             }
         }
@@ -92,29 +92,29 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             {
                 if(!valuesignedcalc())  //signed numbers
 #ifdef _WIN64
-                    sprintf(format_str, "%%s=%%.%dllX (%%llud)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dllX (%%llud)\n", valsize);
 #else //x86
-                    sprintf(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
 #endif //_WIN64
                 else
 #ifdef _WIN64
-                    sprintf(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
 #else //x86
-                    sprintf(format_str, "%%s=%%.%dX (%%d)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dX (%%d)\n", valsize);
 #endif //_WIN64
 #ifdef _WIN64
-                sprintf(format_str, "%%.%dllX (%%llud)\n", valsize);
+                sprintf_s(format_str, "%%.%dllX (%%llud)\n", valsize);
 #else //x86
-                sprintf(format_str, "%%.%dX (%%ud)\n", valsize);
+                sprintf_s(format_str, "%%.%dX (%%ud)\n", valsize);
 #endif //_WIN64
                 dprintf(format_str, value, value);
             }
             else
             {
 #ifdef _WIN64
-                sprintf(format_str, "%%.%dllX\n", valsize);
+                sprintf_s(format_str, "%%.%dllX\n", valsize);
 #else //x86
-                sprintf(format_str, "%%.%dX\n", valsize);
+                sprintf_s(format_str, "%%.%dX\n", valsize);
 #endif //_WIN64
                 dprintf_untranslated(format_str, value);
             }
@@ -611,9 +611,9 @@ CMDRESULT cbInstrGpa(int argc, char* argv[])
         return STATUS_ERROR;
     char newcmd[deflen] = "";
     if(argc >= 3)
-        sprintf(newcmd, "%s:%s", argv[2], argv[1]);
+        sprintf_s(newcmd, "%s:%s", argv[2], argv[1]);
     else
-        sprintf(newcmd, "%s", argv[1]);
+        sprintf_s(newcmd, "%s", argv[1]);
     duint result = 0;
     if(!valfromstring(newcmd, &result, false))
         return STATUS_ERROR;
@@ -1041,8 +1041,8 @@ CMDRESULT cbInstrRefadd(int argc, char* argv[])
         cbInstrRefinit(argc, argv);
     int index = GuiReferenceGetRowCount();
     GuiReferenceSetRowCount(index + 1);
-    char addr_text[deflen] = "";
-    sprintf(addr_text, "%p", addr);
+    char addr_text[32] = "";
+    sprintf_s(addr_text, "%p", addr);
     GuiReferenceSetCellContent(index, 0, addr_text);
     GuiReferenceSetCellContent(index, 1, stringformatinline(argv[2]).c_str());
     GuiReferenceReloadData();

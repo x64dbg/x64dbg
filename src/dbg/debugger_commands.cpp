@@ -2530,21 +2530,21 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
     // Arch specific asm code
 #ifdef _WIN64
-    sprintf(command, "mov rcx, %p", (duint)DLLNameMem);
+    sprintf_s(command, "mov rcx, %p", (duint)DLLNameMem);
 #else
-    sprintf(command, "push %p", DLLNameMem);
+    sprintf_s(command, "push %p", DLLNameMem);
 #endif // _WIN64
 
     assembleat((duint)ASMAddr, command, &size, error, true);
     counter += size;
 
 #ifdef _WIN64
-    sprintf(command, "mov rax, %p", LoadLibraryA);
+    sprintf_s(command, "mov rax, %p", LoadLibraryA);
     assembleat((duint)ASMAddr + counter, command, &size, error, true);
     counter += size;
-    sprintf(command, "call rax");
+    sprintf_s(command, "call rax");
 #else
-    sprintf(command, "call %p", LoadLibraryA);
+    sprintf_s(command, "call %p", LoadLibraryA);
 #endif // _WIN64
 
     assembleat((duint)ASMAddr + counter, command, &size, error, true);
