@@ -197,14 +197,17 @@ void cbDebuggerPaused()
     dbgClearRtuBreakpoints();
     // Trace record is not handled by this function currently.
     // Signal thread switch warning
-    static DWORD PrevThreadId = 0;
-    if(PrevThreadId == 0)
-        PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
-    DWORD currentThreadId = ThreadGetId(hActiveThread);
-    if(currentThreadId != PrevThreadId)
+    if(settingboolget("Engine", "HardcoreThreadSwitchWarning"))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Thread switched from %X to %X !\n"), PrevThreadId, currentThreadId);
-        PrevThreadId = currentThreadId;
+        static DWORD PrevThreadId = 0;
+        if(PrevThreadId == 0)
+            PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
+        DWORD currentThreadId = ThreadGetId(hActiveThread);
+        if(currentThreadId != PrevThreadId)
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Thread switched from %X to %X !\n"), PrevThreadId, currentThreadId);
+            PrevThreadId = currentThreadId;
+        }
     }
     // Watchdog
     cbWatchdog(0, nullptr);
@@ -383,9 +386,21 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     if(!ModNameFromAddr(disasm_addr, modname, true))
         *modname = 0;
     else
-        sprintf(modtext, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module: %s - ")), modname);
+        sprintf_s(modtext, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module: %s - ")), modname);
+    char threadswitch[256] = "";
+    {
+        static DWORD PrevThreadId = 0;
+        if(PrevThreadId == 0)
+            PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
+        DWORD currentThreadId = ThreadGetId(hActiveThread);
+        if(currentThreadId != PrevThreadId)
+        {
+            sprintf_s(threadswitch, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %X)")), PrevThreadId);
+            PrevThreadId = currentThreadId;
+        }
+    }
     char title[1024] = "";
-    sprintf(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %X")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread));
+    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread), threadswitch);
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
     GuiFocusView(GUI_DISASSEMBLY);
@@ -445,9 +460,9 @@ static void printSoftBpInfo(const BREAKPOINT & bp)
     if(symbolicname.length())
     {
         if(*bp.name)
-            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint \"%s\" at %s ( %p )!\n"), bptype, bp.name, symbolicname.c_str(), bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint \"%s\" at %s (%p)!\n"), bptype, bp.name, symbolicname.c_str(), bp.addr);
         else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint at %s ( %p )!\n"), bptype, symbolicname.c_str(), bp.addr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint at %s (%p)!\n"), bptype, symbolicname.c_str(), bp.addr);
     }
     else
     {
@@ -1231,7 +1246,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     if(settingboolget("Events", "ThreadEntry"))
     {
         char command[256] = "";
-        sprintf(command, "bp %p,\"Thread %X\",ss", (duint)CreateThread->lpStartAddress, dwThreadId);
+        sprintf_s(command, "bp %p,\"Thread %X\",ss", (duint)CreateThread->lpStartAddress, dwThreadId);
         cmddirectexec(command);
     }
 
@@ -1364,7 +1379,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         if(settingboolget("Events", "EntryBreakpoint"))
         {
             bAlreadySetEntry = true;
-            sprintf(command, "bp %p,\"entry breakpoint\",ss", pDebuggedBase + pDebuggedEntry);
+            sprintf_s(command, "bp %p,\"entry breakpoint\",ss", pDebuggedBase + pDebuggedEntry);
             cmddirectexec(command);
         }
     }
@@ -1390,9 +1405,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                     if(MemIsValidReadPtr(callbackVA))
                     {
                         if(bIsDebuggingThis)
-                            sprintf(command, "bp %p,\"TLS Callback %d\",ss", callbackVA, i + 1);
+                            sprintf_s(command, "bp %p,\"TLS Callback %d\",ss", callbackVA, i + 1);
                         else
-                            sprintf(command, "bp %p,\"TLS Callback %d (%s)\",ss", callbackVA, i + 1, modname);
+                            sprintf_s(command, "bp %p,\"TLS Callback %d (%s)\",ss", callbackVA, i + 1, modname);
                         cmddirectexec(command);
                     }
                     else
@@ -1410,7 +1425,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         if(oep)
         {
             char command[256] = "";
-            sprintf(command, "bp %p,\"DllMain (%s)\",ss", oep + (duint)base, modname);
+            sprintf_s(command, "bp %p,\"DllMain (%s)\",ss", oep + (duint)base, modname);
             cmddirectexec(command);
         }
     }
