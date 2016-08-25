@@ -1955,8 +1955,6 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                     efree(basicName);
                 }
             }
-            dprintf("cmdline - %s\npe32.szExeFile - %s\ncmdLineExeSize - %u\n", cmdline, pe32.szExeFile, cmdLineExeSize);
-
 
             switch(posEnum.posEnum)
             {
