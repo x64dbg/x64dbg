@@ -1925,7 +1925,7 @@ void RegistersView::displayEditDialog()
             LineEditDialog mLineEdit(this);
 
             mLineEdit.setText(GetRegStringValueFromValue(mSelected,  registerValue(&wRegDumpStruct, mSelected)));
-            mLineEdit.setWindowTitle("Edit FPU register");
+            mLineEdit.setWindowTitle(tr("Edit FPU register"));
             mLineEdit.setWindowIcon(DIcon("log.png"));
             mLineEdit.setCursorPosition(0);
             mLineEdit.ForceSize(GetSizeRegister(mSelected) * 2);

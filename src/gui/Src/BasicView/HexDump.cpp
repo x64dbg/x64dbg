@@ -446,6 +446,16 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
             wAccept = false;
         }
     }
+    if((event->button() & Qt::BackButton) != 0)
+    {
+        wAccept = true;
+        historyPrev();
+    }
+    else if((event->button() & Qt::ForwardButton) != 0)
+    {
+        wAccept = true;
+        historyNext();
+    }
 
     if(wAccept == true)
         AbstractTableView::mouseReleaseEvent(event);

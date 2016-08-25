@@ -80,6 +80,10 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     else
         actionToggleLogging->setText(tr("Enable &Logging"));
     wMenu.addAction(actionToggleLogging);
+    if(logRedirection == NULL)
+        actionRedirectLog->setText(tr("&Redirect Log..."));
+    else
+        actionRedirectLog->setText(tr("Stop &Redirection"));
     wMenu.addAction(actionRedirectLog);
 
     wMenu.exec(event->globalPos());
@@ -119,22 +123,27 @@ void LogView::clearLogSlot()
 void LogView::redirectLogSlot()
 {
     if(logRedirection != NULL)
-        fclose(logRedirection);
-    logRedirection = NULL;
-    BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
-    if(browse.exec() == QDialog::Accepted)
     {
-        logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
-        if(logRedirection == NULL)
-            GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
-        else
+        fclose(logRedirection);
+        logRedirection = NULL;
+    }
+    else
+    {
+        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
+        if(browse.exec() == QDialog::Accepted)
         {
-            if(ftell(logRedirection) == 0)
+            logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
+            if(logRedirection == NULL)
+                GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
+            else
             {
-                unsigned short BOM = 0xfeff;
-                fwrite(&BOM, 2, 1, logRedirection);
+                if(ftell(logRedirection) == 0)
+                {
+                    unsigned short BOM = 0xfeff;
+                    fwrite(&BOM, 2, 1, logRedirection);
+                }
+                GuiAddLogMessage(tr("Log will be redirected to %1.\n").arg(browse.path).toUtf8().constData());
             }
-            GuiAddLogMessage(tr("Log will be redirected to %1.\n").arg(browse.path).toUtf8().constData());
         }
     }
 }
