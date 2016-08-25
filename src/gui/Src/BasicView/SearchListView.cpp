@@ -5,16 +5,16 @@
 #include "SearchListView.h"
 #include "FlickerThread.h"
 
-SearchListView::SearchListView(bool EnableRegex, QWidget* parent) : QWidget(parent)
+SearchListView::SearchListView(bool EnableRegex, QWidget* parent, bool EnableLock) : QWidget(parent)
 {
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     // Create the main button/bar view with QSplitter
     //
-    // |- Splitter ----------------------------|
-    // | LISTVIEW                              |
-    // | SEARCH: | SEARCH BOX | REGEX CHECKBOX |
-    // |---------------------------------------|
+    // |- Splitter --------------------------------------------|
+    // | LISTVIEW                                              |
+    // | SEARCH: | SEARCH BOX | LOCK CHECKBOX | REGEX CHECKBOX |
+    // |-------------------------------------------------------|
     QSplitter* barSplitter = new QSplitter(Qt::Vertical);
     {
         // Create list layout (contains both ListViews)
@@ -47,15 +47,22 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent) : QWidget(pare
             // Regex parsing checkbox
             mRegexCheckbox = new QCheckBox(tr("Regex"));
 
+            // Lock checkbox
+            mLockCheckbox = new QCheckBox(tr("Lock"));
+
             if(!EnableRegex)
                 mRegexCheckbox->hide();
 
+            if(!EnableLock)
+                mLockCheckbox->hide();
+
             // Horizontal layout
             QHBoxLayout* horzLayout = new QHBoxLayout();
-            horzLayout->setContentsMargins(4, 0, (EnableRegex) ? 0 : 4, 0);
+            horzLayout->setContentsMargins(4, 0, (EnableRegex || EnableLock) ? 0 : 4, 0);
             horzLayout->setSpacing(2);
             horzLayout->addWidget(new QLabel(tr("Search: ")));
             horzLayout->addWidget(mSearchBox);
+            horzLayout->addWidget(mLockCheckbox);
             horzLayout->addWidget(mRegexCheckbox);
 
             // Add searchbar placeholder
@@ -98,6 +105,7 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent) : QWidget(pare
     connect(mSearchList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(mSearchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
     connect(mRegexCheckbox, SIGNAL(toggled(bool)), this, SLOT(on_checkBoxRegex_toggled(bool)));
+    connect(mLockCheckbox, SIGNAL(toggled(bool)), this, SLOT(on_checkBoxLock_toggled(bool)));
 
     // List input should always be forwarded to the filter edit
     mSearchList->setFocusProxy(mSearchBox);
@@ -223,6 +231,16 @@ void SearchListView::on_checkBoxRegex_toggled(bool checked)
 {
     Q_UNUSED(checked);
     refreshSearchList();
+}
+
+void SearchListView::on_checkBoxLock_toggled(bool checked)
+{
+    mSearchBox->setDisabled(checked);
+}
+
+bool SearchListView::isSearchBoxLocked()
+{
+    return mLockCheckbox->isChecked();
 }
 
 bool SearchListView::eventFilter(QObject* obj, QEvent* event)
