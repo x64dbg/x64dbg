@@ -20,7 +20,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     setLayout(mMainLayout);
 
     // Create reference view
-    mSearchListView = new SearchListView();
+    mSearchListView = new SearchListView(true, 0, true);
     mSearchListView->mSearchStartCol = 1;
 
     // Create module list
@@ -245,7 +245,10 @@ void SymbolView::moduleSelectionChanged(int index)
     mSearchListView->mList->reloadData();
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->setTableOffset(0);
-    mSearchListView->mSearchBox->setText("");
+    if(!mSearchListView->isSearchBoxLocked())
+        mSearchListView->mSearchBox->setText("");
+    else
+        mSearchListView->refreshSearchList();
 
     setUpdatesEnabled(true);
 }
