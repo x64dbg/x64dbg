@@ -753,20 +753,18 @@ void MainWindow::execTicnd()
 {
     if(!DbgIsDebugging())
         return;
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle(tr("Enter trace into finishing condition."));
-    if(mLineEdit.exec() == QDialog::Accepted)
-        DbgCmdExec(QString("ticnd \"%1\"").arg(mLineEdit.editText).toUtf8().constData());
+    QString text;
+    if(SimpleInputBox(this, tr("Enter trace into finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0")))
+        DbgCmdExec(QString("ticnd \"%1\"").arg(text).toUtf8().constData());
 }
 
 void MainWindow::execTocnd()
 {
     if(!DbgIsDebugging())
         return;
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle(tr("Enter trace over finishing condition."));
-    if(mLineEdit.exec() == QDialog::Accepted)
-        DbgCmdExec(QString("tocnd \"%1\"").arg(mLineEdit.editText).toUtf8().constData());
+    QString text;
+    if(SimpleInputBox(this, tr("Enter trace over finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0")))
+        DbgCmdExec(QString("tocnd \"%1\"").arg(text).toUtf8().constData());
 }
 
 void MainWindow::displayMemMapWidget()

@@ -817,20 +817,7 @@ void CPUDisassembly::toggleFunctionSlot()
     duint function_end = 0;
     if(!DbgFunctionOverlaps(start, end))
     {
-        QString start_text = QString("%1").arg(start, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        QString end_text = QString("%1").arg(end, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        char labeltext[MAX_LABEL_SIZE] = "";
-        QString label_text = "";
-        if(DbgGetLabelAt(start, SEG_DEFAULT, labeltext))
-            label_text = " (" + QString(labeltext) + ")";
-
-        QMessageBox msg(QMessageBox::Question, tr("Define function?"), start_text + "-" + end_text + label_text, QMessageBox::Yes | QMessageBox::No);
-        msg.setWindowIcon(DIcon("compile.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() != QMessageBox::Yes)
-            return;
-        QString cmd = "functionadd " + start_text + "," + end_text;
+        QString cmd = QString("functionadd ") + ToPtrString(start) + "," + ToPtrString(end);
         DbgCmdExec(cmd.toUtf8().constData());
     }
     else
@@ -840,20 +827,7 @@ void CPUDisassembly::toggleFunctionSlot()
             if(DbgFunctionGet(i, &function_start, &function_end))
                 break;
         }
-        QString start_text = QString("%1").arg(function_start, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        QString end_text = QString("%1").arg(function_end, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        char labeltext[MAX_LABEL_SIZE] = "";
-        QString label_text = "";
-        if(DbgGetLabelAt(function_start, SEG_DEFAULT, labeltext))
-            label_text = " (" + QString(labeltext) + ")";
-
-        QMessageBox msg(QMessageBox::Warning, tr("Delete function?"), start_text + "-" + end_text + label_text, QMessageBox::Ok | QMessageBox::Cancel);
-        msg.setWindowIcon(DIcon("compile-warning.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() != QMessageBox::Ok)
-            return;
-        QString cmd = "functiondel " + start_text;
+        QString cmd = QString("functiondel ") + ToPtrString(function_start);
         DbgCmdExec(cmd.toUtf8().constData());
     }
 }
@@ -870,17 +844,7 @@ void CPUDisassembly::toggleArgumentSlot()
     {
         QString start_text = QString("%1").arg(start, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         QString end_text = QString("%1").arg(end, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        char labeltext[MAX_LABEL_SIZE] = "";
-        QString label_text = "";
-        if(DbgGetLabelAt(start, SEG_DEFAULT, labeltext))
-            label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Question, tr("Define argument?"), start_text + "-" + end_text + label_text, QMessageBox::Yes | QMessageBox::No);
-        msg.setWindowIcon(DIcon("compile.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() != QMessageBox::Yes)
-            return;
         QString cmd = "argumentadd " + start_text + "," + end_text;
         DbgCmdExec(cmd.toUtf8().constData());
     }
@@ -892,18 +856,7 @@ void CPUDisassembly::toggleArgumentSlot()
                 break;
         }
         QString start_text = QString("%1").arg(argument_start, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        QString end_text = QString("%1").arg(argument_end, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        char labeltext[MAX_LABEL_SIZE] = "";
-        QString label_text = "";
-        if(DbgGetLabelAt(argument_start, SEG_DEFAULT, labeltext))
-            label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Warning, tr("Delete argument?"), start_text + "-" + end_text + label_text, QMessageBox::Ok | QMessageBox::Cancel);
-        msg.setWindowIcon(DIcon("compile-warning.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() != QMessageBox::Ok)
-            return;
         QString cmd = "argumentdel " + start_text;
         DbgCmdExec(cmd.toUtf8().constData());
     }

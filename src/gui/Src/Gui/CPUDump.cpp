@@ -168,6 +168,7 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
     mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), ArchValue(tr("Watch DWORD"), tr("Watch QWORD")), SLOT(watchSlot())));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("entropy.png"), tr("Entrop&y..."), SLOT(entropySlot()), "ActionEntropy"));
+    mMenuBuilder->addAction(makeAction(tr("Allocate Memory"), SLOT(allocMemorySlot())));
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
     wGotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("&Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
@@ -1338,6 +1339,37 @@ void CPUDump::followInDumpNSlot()
 void CPUDump::watchSlot()
 {
     DbgCmdExec(QString("AddWatch \"[%1]\", \"uint\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData());
+}
+
+void CPUDump::allocMemorySlot()
+{
+    WordEditDialog mLineEdit(this);
+    mLineEdit.setup(tr("Size"), 0x1000, sizeof(duint));
+    if(mLineEdit.exec() == QDialog::Accepted)
+    {
+        duint memsize = mLineEdit.getVal();
+        if(memsize == 0) // 1GB
+        {
+            SimpleWarningBox(this, tr("Warning"), tr("You're trying to allocate a zero-sized buffer just now."));
+            return;
+        }
+        if(memsize > 1024 * 1024 * 1024)
+        {
+            SimpleErrorBox(this, tr("Error"), tr("The size of buffer you're trying to allocate exceeds 1GB. Please check your expression to ensure nothing is wrong."));
+            return;
+        }
+        DbgCmdExecDirect(QString("alloc %1").arg(ToPtrString(memsize)).toUtf8().constData());
+        duint addr = DbgValFromString("$result");
+        if(addr != 0)
+        {
+            DbgCmdExec("Dump $result");
+        }
+        else
+        {
+            SimpleErrorBox(this, tr("Error"), tr("Memory allocation failed!"));
+            return;
+        }
+    }
 }
 
 void CPUDump::gotoNextSlot()

@@ -99,6 +99,7 @@ public slots:
     void entropySlot();
     void syncWithExpressionSlot();
     void followInDumpNSlot();
+    void allocMemorySlot();
 
     void gotoNextSlot();
     void gotoPrevSlot();
