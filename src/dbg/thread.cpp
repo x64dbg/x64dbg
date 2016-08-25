@@ -163,13 +163,13 @@ bool ThreadGetTib(duint TEBAddress, NT_TIB* Tib)
     TEBAddress += offsetof(TEB, Tib);
 
     memset(Tib, 0, sizeof(NT_TIB));
-    return MemRead(TEBAddress, Tib, sizeof(NT_TIB));
+    return MemReadUnsafe(TEBAddress, Tib, sizeof(NT_TIB));
 }
 
 bool ThreadGetTeb(duint TEBAddress, TEB* Teb)
 {
     memset(Teb, 0, sizeof(TEB));
-    return MemRead(TEBAddress, Teb, sizeof(TEB));
+    return MemReadUnsafe(TEBAddress, Teb, sizeof(TEB));
 }
 
 int ThreadGetSuspendCount(HANDLE Thread)
@@ -208,7 +208,7 @@ DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)
     DWORD lastError = 0;
     duint structOffset = ThreadLocalBase + offsetof(TEB, LastErrorValue);
 
-    MemRead(structOffset, &lastError, sizeof(DWORD));
+    MemReadUnsafe(structOffset, &lastError, sizeof(DWORD));
     return lastError;
 }
 
