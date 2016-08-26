@@ -79,11 +79,6 @@ extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr)
     return MemIsValidReadPtr(addr, true);
 }
 
-extern "C" DLL_EXPORT bool _dbg_memiscodepage(duint addr)
-{
-    return MemIsCodePage(addr, true);
-}
-
 extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
 {
     return valfromstring(string, value);
