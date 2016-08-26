@@ -479,11 +479,6 @@ BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
     return _dbg_memisvalidreadptr(addr);
 }
 
-BRIDGE_IMPEXP bool DbgMemIsCodePage(duint addr)
-{
-    return _dbg_memiscodepage(addr);
-}
-
 // FIXME return
 BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list)
 {
