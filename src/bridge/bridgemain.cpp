@@ -1487,7 +1487,10 @@ BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length)
 
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
-    return _gui_translate_text(Source);
+    EnterCriticalSection(&csTranslate);
+    const char* text = _gui_translate_text(Source);
+    LeaveCriticalSection(&csTranslate);
+    return text;
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
