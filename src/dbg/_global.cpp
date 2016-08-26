@@ -11,7 +11,6 @@
 \brief x64dbg library instance.
 */
 HINSTANCE hInst;
-//#define ENABLE_MEM_TRACE
 
 /**
 \brief Number of allocated buffers by emalloc(). This should be 0 when x64dbg ends.

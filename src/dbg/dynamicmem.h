@@ -17,9 +17,11 @@ public:
 
     explicit Memory(size_t Size, const char* Reason = "Memory:???")
     {
-        m_Ptr = reinterpret_cast<T>(emalloc(Size));
+        m_Ptr = reinterpret_cast<T>(emalloc(Size, Reason));
         m_Size = Size;
+#ifdef ENABLE_MEM_TRACE
         m_Reason = Reason;
+#endif //ENABLE_MEM_TRACE
 
         memset(m_Ptr, 0, Size);
     }
@@ -27,14 +29,20 @@ public:
     ~Memory()
     {
         if(m_Ptr)
+#ifdef ENABLE_MEM_TRACE
+            efree(m_Ptr, m_Reason);
+#else
             efree(m_Ptr);
+#endif //ENABLE_MEM_TRACE
     }
 
     T realloc(size_t Size, const char* Reason = "Memory:???")
     {
-        m_Ptr = reinterpret_cast<T>(erealloc(m_Ptr, Size));
+        m_Ptr = reinterpret_cast<T>(erealloc(m_Ptr, Size, Reason));
         m_Size = Size;
+#ifdef ENABLE_MEM_TRACE
         m_Reason = Reason;
+#endif //ENABLE_MEM_TRACE
 
         return (T)memset(m_Ptr, 0, m_Size);
     }
@@ -52,5 +60,7 @@ public:
 private:
     T           m_Ptr;
     size_t      m_Size;
+#ifdef ENABLE_MEM_TRACE
     const char* m_Reason;
+#endif //ENABLE_MEM_TRACE
 };

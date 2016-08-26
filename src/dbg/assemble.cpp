@@ -75,7 +75,7 @@ namespace Keystone
         ks_err err = ks_open(KS_ARCH_X86, XEDParse->x64 ? KS_MODE_64 : KS_MODE_32, &ks);
         if(err != KS_ERR_OK)
         {
-            strcpy_s(XEDParse->error, "Failed on ks_open()...");
+            strcpy_s(XEDParse->error, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed on ks_open()...")));
             return XEDPARSE_ERROR;
         }
         //ks_option(ks, KS_OPT_SYNTAX, KS_OPT_SYNTAX_INTEL);
@@ -85,7 +85,7 @@ namespace Keystone
         size_t count;
         if(ks_asm(ks, XEDParse->instr, XEDParse->cip, &encode, &size, &count) != KS_ERR_OK)
         {
-            sprintf_s(XEDParse->error, "ks_asm() failed: count = %lu, error = %u", count, ks_errno(ks));
+            sprintf_s(XEDParse->error, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "ks_asm() failed: count = %lu, error = %u")), count, ks_errno(ks));
             result = XEDPARSE_ERROR;
         }
         else
@@ -216,7 +216,13 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
 
     // Check if the instruction doesn't set IP to non-executable memory
     if(!isInstructionPointingToExMemory(addr, dest()))
-        GuiDisplayWarning("Non-executable memory region", "Assembled branch does not point to an executable memory region!");
+    {
+        String Title;
+        String Text;
+        Title = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Non-executable memory region"));
+        Text = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Assembled branch does not point to an executable memory region!"));
+        GuiDisplayWarning(Title.c_str(), Text.c_str());
+    }
 
     bool ret = MemPatch(addr, dest(), destSize);
 
@@ -237,7 +243,7 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
     else
     {
         // Tell the user writing is blocked
-        strcpy_s(error, MAX_ERROR_SIZE, "Error while writing process memory");
+        strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Error while writing process memory")));
     }
 
     return ret;

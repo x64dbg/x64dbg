@@ -45,6 +45,8 @@
 #ifndef QT_TRANSLATE_NOOP
 #define QT_TRANSLATE_NOOP(context, source) source
 #endif //QT_TRANSLATE_NOOP
+// Uncomment the following line to allow memory leak tracing
+//#define ENABLE_MEM_TRACE
 
 //defines
 #define deflen 1024
