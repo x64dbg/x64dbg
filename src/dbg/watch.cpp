@@ -350,6 +350,8 @@ void WatchCacheSave(JSON root)
     }
     if(json_array_size(watchroot))
         json_object_set(root, "watch", watchroot);
+
+    json_decref(watchroot);
 }
 
 void WatchCacheLoad(JSON root)

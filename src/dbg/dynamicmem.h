@@ -12,7 +12,9 @@ public:
     {
         m_Ptr = nullptr;
         m_Size = 0;
+#ifdef ENABLE_MEM_TRACE
         m_Reason = Reason;
+#endif //ENABLE_MEM_TRACE
     }
 
     explicit Memory(size_t Size, const char* Reason = "Memory:???")

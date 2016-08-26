@@ -63,9 +63,15 @@ enum arch
 extern HINSTANCE hInst;
 
 //functions
+#ifdef ENABLE_MEM_TRACE
 void* emalloc(size_t size, const char* reason = "emalloc:???");
 void* erealloc(void* ptr, size_t size, const char* reason = "erealloc:???");
 void efree(void* ptr, const char* reason = "efree:???");
+#else
+void* emalloc(size_t size, const char* reason = nullptr);
+void* erealloc(void* ptr, size_t size, const char* reason = nullptr);
+void efree(void* ptr, const char* reason = nullptr);
+#endif //ENABLE_MEM_TRACE
 void* json_malloc(size_t size);
 void json_free(void* ptr);
 int memleaks();
