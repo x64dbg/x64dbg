@@ -1899,7 +1899,13 @@ cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
             quotesPos.posEnum = NO_CLOSE_QUOTE_FOUND;
     }
     else
+    {
         quotesPos.posEnum = NO_QOUTES;
+        //try to locate first quote
+        for(size_t i = 1; i < strlen(cmdline); i++)
+            if(cmdline[i] == '"' || cmdline[i] == '\'')
+                quotesPos.secondPos = i;
+    }
 
     return quotesPos;
 }
@@ -1936,39 +1942,125 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
         char* cmdline;
 
         if(!dbggetcmdline(&cmdline, NULL, hProcess))
-            commandList->push_back("");
+            commandList->push_back("ARG_GET_ERROR");
         else
         {
             cmdline_qoutes_placement_t posEnum = getqoutesplacement(cmdline);
             char* cmdLineExe = strstr(cmdline, pe32.szExeFile);
-            duint cmdLineExeSize = cmdLineExe ? strlen(pe32.szExeFile) : 0;
+            size_t cmdLineExeSize = cmdLineExe ? strlen(pe32.szExeFile) : 0;
+
+            if(!cmdLineExe)
+            {
+                char* exeName = strrchr(pe32.szExeFile, '\\') ? strrchr(pe32.szExeFile, '\\') + 1 :
+                                strrchr(pe32.szExeFile, '/') ? strrchr(pe32.szExeFile, '/') + 1 : pe32.szExeFile;
+                size_t exeNameLen = strlen(exeName);
+
+                char* peNameInCmd = strstr(cmdline, exeName);
+                //check for exe name is used in path to exe
+                for(char* exeNameInCmdTmp = peNameInCmd; exeNameInCmdTmp;)
+                {
+                    exeNameInCmdTmp = strstr(exeNameInCmdTmp + exeNameLen, exeName);
+                    if(!exeNameInCmdTmp)
+                        break;
+
+                    char* nextSlash = strchr(exeNameInCmdTmp, '\\') ? strchr(exeNameInCmdTmp, '\\') :
+                                      strchr(exeNameInCmdTmp, '/') ? strchr(exeNameInCmdTmp, '/') : NULL;
+                    if(nextSlash && posEnum.posEnum == NO_QOUTES)  //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
+                    {
+                        if(strchr(exeNameInCmdTmp, ' ') < nextSlash)  //slash is in arguments
+                        {
+                            peNameInCmd = exeNameInCmdTmp;
+                            break;
+                        }
+                        else
+                            continue;
+                    }
+                    else if(nextSlash && posEnum.posEnum == QOUTES_AROUND_EXE)
+                    {
+                        if((cmdline + posEnum.secondPos) < nextSlash)  //slash is in arguments
+                        {
+                            peNameInCmd = exeNameInCmdTmp;
+                            break;
+                        }
+                        else
+                            continue;
+                    }
+                    else
+                    {
+                        peNameInCmd = exeNameInCmdTmp;
+                        break;
+                    }
+                }
+
+                if(peNameInCmd)
+                    cmdLineExeSize = (size_t)(((LPBYTE)peNameInCmd - (LPBYTE)cmdline) + exeNameLen);
+                else
+                {
+                    //try to locate basic name, without extension
+                    Memory<char*> basicName(strlen(exeName) + 1, "dbglistprocesses:basicName");
+                    strncpy_s(basicName(), sizeof(char) * strlen(exeName) + 1, exeName, _TRUNCATE);
+                    char* dotInName = strrchr(basicName(), '.');
+                    dotInName[0] = '\0';
+                    size_t basicNameLen = strlen(basicName());
+                    peNameInCmd = strstr(cmdline, basicName());
+                    //check for basic name is used in path to exe
+                    for(char* basicNameInCmdTmp = peNameInCmd; basicNameInCmdTmp;)
+                    {
+                        basicNameInCmdTmp = strstr(basicNameInCmdTmp + basicNameLen, basicName());
+                        if(!basicNameInCmdTmp)
+                            break;
+
+                        char* nextSlash = strchr(basicNameInCmdTmp, '\\') ? strchr(basicNameInCmdTmp, '\\') :
+                                          strchr(basicNameInCmdTmp, '/') ? strchr(basicNameInCmdTmp, '/') : NULL;
+                        if(nextSlash && posEnum.posEnum == NO_QOUTES)  //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
+                        {
+                            if(strchr(basicNameInCmdTmp, ' ') < nextSlash)  //slash is in arguments
+                            {
+                                peNameInCmd = basicNameInCmdTmp;
+                                break;
+                            }
+                            else
+                                continue;
+                        }
+                        else if(nextSlash && posEnum.posEnum == QOUTES_AROUND_EXE)
+                        {
+                            if((cmdline + posEnum.secondPos) < nextSlash)  //slash is in arguments
+                            {
+                                peNameInCmd = basicNameInCmdTmp;
+                                break;
+                            }
+                            else
+                                continue;
+                        }
+                        else
+                        {
+                            peNameInCmd = basicNameInCmdTmp;
+                            break;
+                        }
+                    }
+
+                    if(peNameInCmd)
+                        cmdLineExeSize = (size_t)(((LPBYTE)peNameInCmd - (LPBYTE)cmdline) + basicNameLen);
+                }
+            }
 
             switch(posEnum.posEnum)
             {
             case NO_CLOSE_QUOTE_FOUND:
-                if(cmdLineExe)
-                    commandList->push_back(cmdline + cmdLineExeSize + 1);
-                else
-                    commandList->push_back(cmdline);
+                commandList->push_back(cmdline + cmdLineExeSize + 1);
                 break;
             case NO_QOUTES:
-                if(cmdLineExe)
+                if(!posEnum.secondPos)
                     commandList->push_back(cmdline + cmdLineExeSize);
                 else
-                    commandList->push_back(cmdline);
+                    commandList->push_back(cmdline + (cmdLineExeSize > posEnum.secondPos + 1 ? cmdLineExeSize : posEnum.secondPos + 1));
                 break;
             case QOUTES_AROUND_EXE:
                 commandList->push_back(cmdline + cmdLineExeSize + 2);
                 break;
             case QOUTES_AT_BEGIN_AND_END:
-
-                if(cmdLineExe)
-                {
-                    cmdline[strlen(cmdline) - 1] = '\0';
-                    commandList->push_back(cmdline + cmdLineExeSize + 1);
-                }
-                else
-                    commandList->push_back(cmdline);
+                cmdline[strlen(cmdline) - 1] = '\0';
+                commandList->push_back(cmdline + cmdLineExeSize + 1);
                 break;
             }
 
