@@ -88,7 +88,6 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     LOADEXPORT(_dbg_getregdump);
     LOADEXPORT(_dbg_valtostring);
     LOADEXPORT(_dbg_memisvalidreadptr);
-    LOADEXPORT(_dbg_memiscodepage);
     LOADEXPORT(_dbg_getbplist);
     LOADEXPORT(_dbg_dbgcmddirectexec);
     LOADEXPORT(_dbg_getbranchdestination);
