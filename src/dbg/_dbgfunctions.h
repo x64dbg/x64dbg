@@ -144,7 +144,8 @@ typedef bool (*ENUMTCPCONNECTIONS)(ListOf(TCPCONNECTIONINFO) connections);
 typedef duint(*GETDBGEVENTS)();
 typedef int (*MODGETPARTY)(duint base);
 typedef void (*MODSETPARTY)(duint base, int party);
-typedef bool (*WATCHISWATCHDOGTRIGGERED)(unsigned int id);
+typedef bool(*WATCHISWATCHDOGTRIGGERED)(unsigned int id);
+typedef bool(*MEMISCODEPAGE)(duint addr, bool refresh);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -199,6 +200,7 @@ typedef struct DBGFUNCTIONS_
     MODGETPARTY ModGetParty;
     MODSETPARTY ModSetParty;
     WATCHISWATCHDOGTRIGGERED WatchIsWatchdogTriggered;
+    MEMISCODEPAGE MemIsCodePage;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

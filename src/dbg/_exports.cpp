@@ -86,10 +86,7 @@ extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
 
 extern "C" DLL_EXPORT bool _dbg_isdebugging()
 {
-    if(IsFileBeingDebugged())
-        return true;
-
-    return false;
+    return IsFileBeingDebugged();
 }
 
 extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)

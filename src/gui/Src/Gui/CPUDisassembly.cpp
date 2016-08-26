@@ -619,6 +619,16 @@ void CPUDisassembly::toggleInt3BPActionSlot()
     }
     else
     {
+        if(!DbgFunctions()->MemIsCodePage(wVA, false))
+        {
+            QMessageBox msgyn(QMessageBox::Warning, tr("Current address is not executable"),
+                              tr("Setting software breakpoint here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
+            msgyn.setWindowIcon(DIcon("compile-warning.png"));
+            msgyn.setParent(this, Qt::Dialog);
+            msgyn.setWindowFlags(msgyn.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+            if(msgyn.exec() == QMessageBox::No)
+                return;
+        }
         wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
 

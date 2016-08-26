@@ -462,12 +462,12 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     while(dir[len] != '\\')
         len--;
     dir[len] = 0;
+#ifdef ENABLE_MEM_TRACE
     strcpy_s(alloctrace, dir);
     strcat_s(alloctrace, "\\alloctrace.txt");
     strcpy_s(scriptDllDir, dir);
     strcat_s(scriptDllDir, "\\scripts\\");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
-#ifdef ENABLE_MEM_TRACE
     setalloctrace(alloctrace);
 #endif //ENABLE_MEM_TRACE
     initDataInstMap();
