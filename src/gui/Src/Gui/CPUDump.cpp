@@ -1210,13 +1210,12 @@ void CPUDump::binarySaveToFileSlot()
     if(fileName.length())
     {
         // Get starting selection and selection size, then convert selStart to VA
-        dsint rvaSelStart = getSelectionStart();
-        dsint selSize = getSelectionEnd() - rvaSelStart + 1;
-        dsint vaSelStart = rvaToVa(rvaSelStart);
+        dsint selStart = getSelectionStart();
+        dsint selSize = getSelectionEnd() - selStart + 1;
 
         // Prepare command
         fileName = QDir::toNativeSeparators(fileName);
-        QString cmd = QString("savedata %1,%2,%3").arg(fileName, QString::number(vaSelStart, 16), QString::number(selSize));
+        QString cmd = QString("savedata \"%1\",%2,%3").arg(fileName, ToHexString(rvaToVa(selStart)), ToHexString(selSize));
         DbgCmdExec(cmd.toUtf8().constData());
     }
 }
