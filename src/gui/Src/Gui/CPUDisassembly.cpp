@@ -619,7 +619,7 @@ void CPUDisassembly::toggleInt3BPActionSlot()
     }
     else
     {
-        if(!DbgMemIsCodePage(wVA))
+        if(!DbgFunctions()->MemIsCodePage(wVA, false))
         {
             QMessageBox msgyn(QMessageBox::Warning, tr("Current address is not executable"),
                               tr("Setting software breakpoint here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);

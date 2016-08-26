@@ -789,7 +789,6 @@ BRIDGE_IMPEXP duint DbgValFromString(const char* string);
 BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump);
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value);
 BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
-BRIDGE_IMPEXP bool DbgMemIsCodePage(duint addr);
 BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);
 BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr);
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth);
