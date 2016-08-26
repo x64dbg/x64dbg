@@ -107,6 +107,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeStart()
         return L"Failed to save settings!";
     _dbg_sendmessage(DBG_DEINITIALIZE_LOCKS, nullptr, nullptr); //deinitialize locks when only one thread is left (hopefully)
     DeleteCriticalSection(&csIni);
+    DeleteCriticalSection(&csTranslate);
     return 0;
 }
 
