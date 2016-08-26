@@ -681,7 +681,7 @@ bool MemDecodePointer(duint* Pointer, bool vistaPlus)
         OUT PULONG ReturnLength
     );
 
-    static auto NtQIP = (pfnNtQueryInformationProcess)GetProcAddress(GetModuleHandle("ntdll.dll"), "NtQueryInformationProcess");
+    static auto NtQIP = (pfnNtQueryInformationProcess)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess");
 
     // Verify
     if(!NtQIP || !Pointer)

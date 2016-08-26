@@ -1245,9 +1245,9 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     if(settingboolget("Events", "ThreadEntry"))
     {
-        char command[256] = "";
-        sprintf_s(command, "bp %p,\"Thread %X\",ss", (duint)CreateThread->lpStartAddress, dwThreadId);
-        cmddirectexec(command);
+        String command;
+        command = StringUtils::sprintf("bp %p,\"%s %X\",ss", (duint)CreateThread->lpStartAddress, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread")), dwThreadId);
+        cmddirectexec(command.c_str());
     }
 
     PLUG_CB_CREATETHREAD callbackInfo;
@@ -1379,7 +1379,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         if(settingboolget("Events", "EntryBreakpoint"))
         {
             bAlreadySetEntry = true;
-            sprintf_s(command, "bp %p,\"entry breakpoint\",ss", pDebuggedBase + pDebuggedEntry);
+            sprintf_s(command, "bp %p,\"%s\",ss", pDebuggedBase + pDebuggedEntry, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "entry breakpoint")));
             cmddirectexec(command);
         }
     }
@@ -1405,9 +1405,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                     if(MemIsValidReadPtr(callbackVA))
                     {
                         if(bIsDebuggingThis)
-                            sprintf_s(command, "bp %p,\"TLS Callback %d\",ss", callbackVA, i + 1);
+                            sprintf_s(command, "bp %p,\"%s %d\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1);
                         else
-                            sprintf_s(command, "bp %p,\"TLS Callback %d (%s)\",ss", callbackVA, i + 1, modname);
+                            sprintf_s(command, "bp %p,\"%s %d (%s)\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1, modname);
                         cmddirectexec(command);
                     }
                     else
