@@ -47,7 +47,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
 
-    mGeneralRegs = new RegistersView(0);
+    mGeneralRegs = new RegistersView(this);
     mGeneralRegs->setFixedWidth(1000);
     mGeneralRegs->ShowFPU(true);
     mGeneralRegs->setFixedHeight(mGeneralRegs->getEstimateHeight());

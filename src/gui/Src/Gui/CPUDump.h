@@ -57,9 +57,11 @@ public slots:
     void textUnicodeSlot();
     void textCodepageSlot();
 
+    void integerSignedByteSlot();
     void integerSignedShortSlot();
     void integerSignedLongSlot();
     void integerSignedLongLongSlot();
+    void integerUnsignedByteSlot();
     void integerUnsignedShortSlot();
     void integerUnsignedLongSlot();
     void integerUnsignedLongLongSlot();
@@ -133,7 +135,9 @@ private:
         ViewFloatFloat,
         ViewFloatDouble,
         ViewFloatLongDouble,
-        ViewAddress
+        ViewAddress,
+        ViewIntegerSignedByte,
+        ViewIntegerUnsignedByte
     };
 
     void setView(ViewEnum_t view);

@@ -3,6 +3,8 @@
 #include <QListWidget>
 #include <stdint.h>
 #include "RegistersView.h"
+#include "CPUWidget.h"
+#include "CPUDisassembly.h"
 #include "Configuration.h"
 #include "WordEditDialog.h"
 #include "LineEditDialog.h"
@@ -413,7 +415,7 @@ void RegistersView::InitMappings()
     mRowsNeeded = offset + 1;
 }
 
-RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOffset(0)
+RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
     mChangeViewButton = NULL;
 
@@ -454,6 +456,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     wCM_DecrementPtrSize = new QAction(ArchValue(tr("Decrease 4"), tr("Decrease 8")), this);
     wCM_Push = new QAction(tr("Push"), this);
     wCM_Pop = new QAction(tr("Pop"), this);
+    wCM_Highlight = new QAction(tr("Highlight"), this);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1112,6 +1115,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mLABELDISPLAY.insert(CIP);
     mONLYMODULEANDLABELDISPLAY.insert(CIP);
     mCANSTOREADDRESS.insert(CIP);
+    mMODIFYDISPLAY.insert(CIP);
 
     InitMappings();
 
@@ -1154,6 +1158,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(wCM_DecrementPtrSize, SIGNAL(triggered()), this, SLOT(onDecrementPtrSize()));
     connect(wCM_Push, SIGNAL(triggered()), this, SLOT(onPushAction()));
     connect(wCM_Pop, SIGNAL(triggered()), this, SLOT(onPopAction()));
+    connect(wCM_Highlight, SIGNAL(triggered()), this, SLOT(onHighlightSlot()));
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -1251,7 +1256,22 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
         // do we find a corresponding register?
         if(identifyRegister(y, x, &r))
         {
-            mSelected = r;
+            Disassembly* CPUDisassemblyView = mParent->getDisasmWidget();
+            if(CPUDisassemblyView->isHighlightMode())
+            {
+                if(mGPR.contains(r) && r != REGISTER_NAME::EFLAGS)
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(r).value()));
+                else if(mFPUMMX.contains(r))
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(r).value()));
+                else if(mFPUXMM.contains(r))
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(r).value()));
+                else if(mFPUYMM.contains(r))
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(r).value()));
+                else
+                    mSelected = r;
+            }
+            else
+                mSelected = r;
             emit refresh();
         }
         else
@@ -1271,15 +1291,13 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     // do we find a corresponding register?
     if(!identifyRegister(y, x, 0))
         return;
+    if(mSelected == CIP) //double clicked on CIP register
+        DbgCmdExec("disasm cip");
     // is current register general purposes register or FPU register?
-    if(mMODIFYDISPLAY.contains(mSelected))
-    {
+    else if(mMODIFYDISPLAY.contains(mSelected))
         wCM_Modify->trigger();
-    }
     else if(mBOOLDISPLAY.contains(mSelected))  // is flag ?
         wCM_ToggleValue->trigger();
-    else if(mSelected == CIP) //double clicked on CIP register
-        DbgCmdExec("disasm cip");
 }
 
 void RegistersView::paintEvent(QPaintEvent* event)
@@ -2119,6 +2137,19 @@ void RegistersView::onCopySymbolToClipboardAction()
     }
 }
 
+void RegistersView::onHighlightSlot()
+{
+    Disassembly* CPUDisassemblyView = mParent->getDisasmWidget();
+    if(mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS)
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mFPUMMX.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mFPUXMM.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mFPUYMM.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(mSelected).value()));
+}
+
 void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32)
 {
     QString symbol;
@@ -2361,7 +2392,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             wMenu.addAction(wCM_DecrementPtrSize);
         }
 
-        if(mGPR.contains(mSelected) || mSEGMENTREGISTER.contains(mSelected))
+        if(mGPR.contains(mSelected) || mSEGMENTREGISTER.contains(mSelected) || mSelected == CIP)
         {
             wMenu.addAction(wCM_Push);
             wMenu.addAction(wCM_Pop);
@@ -2391,6 +2422,11 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             QString symbol = getRegisterLabel(mSelected);
             if(symbol != "")
                 wMenu.addAction(wCM_CopySymbolToClipboard);
+        }
+
+        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        {
+            wMenu.addAction(wCM_Highlight);
         }
 
         wMenu.addAction(wCM_CopyToClipboard);
