@@ -1935,3 +1935,15 @@ void Disassembly::ShowDisassemblyPopup(duint addr, int x, int y)
     else
         mDisassemblyPopup.hide();
 }
+
+bool Disassembly::hightlightToken(const CapstoneTokenizer::SingleToken & token)
+{
+    mHighlightToken = token;
+    mHighlightingMode = false;
+    return true;
+}
+
+bool Disassembly::isHighlightMode()
+{
+    return mHighlightingMode;
+}

@@ -104,6 +104,8 @@ public:
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     void unfold(dsint rva);
     void ShowDisassemblyPopup(duint addr, int x, int y);
+    bool hightlightToken(const CapstoneTokenizer::SingleToken & token);
+    bool isHighlightMode();
 
 signals:
     void selectionChanged(dsint parVA);

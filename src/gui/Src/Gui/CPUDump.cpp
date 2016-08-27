@@ -202,9 +202,11 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("strings.png"), tr("&Text")), wTextMenu);
 
     MenuBuilder* wIntegerMenu = new MenuBuilder(this);
+    wIntegerMenu->addAction(makeAction(DIcon("byte.png"), tr("Signed byte (8-bit)"), SLOT(integerSignedByteSlot())));
     wIntegerMenu->addAction(makeAction(DIcon("word.png"), tr("Signed short (16-bit)"), SLOT(integerSignedShortSlot())));
     wIntegerMenu->addAction(makeAction(DIcon("dword.png"), tr("Signed long (32-bit)"), SLOT(integerSignedLongSlot())));
     wIntegerMenu->addAction(makeAction(DIcon("qword.png"), tr("Signed long long (64-bit)"), SLOT(integerSignedLongLongSlot())));
+    wIntegerMenu->addAction(makeAction(DIcon("byte.png"), tr("Unsigned byte (8-bit)"), SLOT(integerUnsignedByteSlot())));
     wIntegerMenu->addAction(makeAction(DIcon("word.png"), tr("Unsigned short (16-bit)"), SLOT(integerUnsignedShortSlot())));
     wIntegerMenu->addAction(makeAction(DIcon("dword.png"), tr("Unsigned long (32-bit)"), SLOT(integerUnsignedLongSlot())));
     wIntegerMenu->addAction(makeAction(DIcon("qword.png"), tr("Unsigned long long (64-bit)"), SLOT(integerUnsignedLongLongSlot())));
@@ -647,6 +649,31 @@ void CPUDump::textCodepageSlot()
     reloadData();
 }
 
+void CPUDump::integerSignedByteSlot()
+{
+    Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerSignedByte);
+    int charwidth = getCharWidth();
+    ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
+
+    wColDesc.isData = true; //signed short
+    wColDesc.itemCount = 8;
+    wColDesc.separator = 0;
+    wColDesc.data.itemSize = Byte;
+    wColDesc.data.wordMode = SignedDecWord;
+    appendResetDescriptor(8 + charwidth * 40, tr("Signed byte (8-bit)"), false, wColDesc);
+
+    wColDesc.isData = false; //empty column
+    wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendDescriptor(0, "", false, wColDesc);
+
+    reloadData();
+}
+
 void CPUDump::integerSignedShortSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerSignedShort);
@@ -710,6 +737,31 @@ void CPUDump::integerSignedLongLongSlot()
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = SignedDecQword;
     appendResetDescriptor(8 + charwidth * 41, tr("Signed long long (64-bit)"), false, wColDesc);
+
+    wColDesc.isData = false; //empty column
+    wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendDescriptor(0, "", false, wColDesc);
+
+    reloadData();
+}
+
+void CPUDump::integerUnsignedByteSlot()
+{
+    Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerUnsignedByte);
+    int charwidth = getCharWidth();
+    ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
+
+    wColDesc.isData = true; //unsigned short
+    wColDesc.itemCount = 8;
+    wColDesc.separator = 0;
+    wColDesc.data.itemSize = Byte;
+    wColDesc.data.wordMode = UnsignedDecWord;
+    appendResetDescriptor(8 + charwidth * 32, tr("Unsigned byte (8-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -1397,6 +1449,9 @@ void CPUDump::setView(ViewEnum_t view)
     case ViewTextUnicode:
         textUnicodeSlot();
         break;
+    case ViewIntegerSignedByte:
+        integerSignedByteSlot();
+        break;
     case ViewIntegerSignedShort:
         integerSignedShortSlot();
         break;
@@ -1405,6 +1460,9 @@ void CPUDump::setView(ViewEnum_t view)
         break;
     case ViewIntegerSignedLongLong:
         integerSignedLongLongSlot();
+        break;
+    case ViewIntegerUnsignedByte:
+        integerUnsignedByteSlot();
         break;
     case ViewIntegerUnsignedShort:
         integerUnsignedShortSlot();
