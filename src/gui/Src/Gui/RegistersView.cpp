@@ -1114,6 +1114,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     mLABELDISPLAY.insert(CIP);
     mONLYMODULEANDLABELDISPLAY.insert(CIP);
     mCANSTOREADDRESS.insert(CIP);
+    mMODIFYDISPLAY.insert(CIP);
 
     InitMappings();
 
@@ -1288,15 +1289,13 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     // do we find a corresponding register?
     if(!identifyRegister(y, x, 0))
         return;
+    if(mSelected == CIP) //double clicked on CIP register
+        DbgCmdExec("disasm cip");
     // is current register general purposes register or FPU register?
-    if(mMODIFYDISPLAY.contains(mSelected))
-    {
+    else if(mMODIFYDISPLAY.contains(mSelected))
         wCM_Modify->trigger();
-    }
     else if(mBOOLDISPLAY.contains(mSelected))  // is flag ?
         wCM_ToggleValue->trigger();
-    else if(mSelected == CIP) //double clicked on CIP register
-        DbgCmdExec("disasm cip");
 }
 
 void RegistersView::paintEvent(QPaintEvent* event)
@@ -2378,7 +2377,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             wMenu.addAction(wCM_DecrementPtrSize);
         }
 
-        if(mGPR.contains(mSelected) || mSEGMENTREGISTER.contains(mSelected))
+        if(mGPR.contains(mSelected) || mSEGMENTREGISTER.contains(mSelected) || mSelected == CIP)
         {
             wMenu.addAction(wCM_Push);
             wMenu.addAction(wCM_Pop);
