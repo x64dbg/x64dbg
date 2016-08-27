@@ -148,6 +148,7 @@ protected slots:
     void onDecrementPtrSize();
     void onPushAction();
     void onPopAction();
+    void onHighlightSlot();
     void InitMappings();
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
@@ -232,6 +233,7 @@ private:
     QAction* wCM_Incrementx87Stack;
     QAction* wCM_Decrementx87Stack;
     QAction* wCM_ChangeFPUView;
+    QAction* wCM_Highlight;
     dsint mCip;
 };
 

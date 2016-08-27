@@ -456,6 +456,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     wCM_DecrementPtrSize = new QAction(ArchValue(tr("Decrease 4"), tr("Decrease 8")), this);
     wCM_Push = new QAction(tr("Push"), this);
     wCM_Pop = new QAction(tr("Pop"), this);
+    wCM_Highlight = new QAction(tr("Highlight"), this);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1157,6 +1158,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     connect(wCM_DecrementPtrSize, SIGNAL(triggered()), this, SLOT(onDecrementPtrSize()));
     connect(wCM_Push, SIGNAL(triggered()), this, SLOT(onPushAction()));
     connect(wCM_Pop, SIGNAL(triggered()), this, SLOT(onPopAction()));
+    connect(wCM_Highlight, SIGNAL(triggered()), this, SLOT(onHighlightSlot()));
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -2135,6 +2137,19 @@ void RegistersView::onCopySymbolToClipboardAction()
     }
 }
 
+void RegistersView::onHighlightSlot()
+{
+    Disassembly* CPUDisassemblyView = mParent->getDisasmWidget();
+    if(mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS)
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mFPUMMX.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mFPUXMM.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mFPUYMM.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(mSelected).value()));
+}
+
 void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32)
 {
     QString symbol;
@@ -2407,6 +2422,11 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             QString symbol = getRegisterLabel(mSelected);
             if(symbol != "")
                 wMenu.addAction(wCM_CopySymbolToClipboard);
+        }
+
+        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        {
+            wMenu.addAction(wCM_Highlight);
         }
 
         wMenu.addAction(wCM_CopyToClipboard);
