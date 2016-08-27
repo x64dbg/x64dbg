@@ -231,7 +231,7 @@ bool CapstoneTokenizer::IsHighlightableToken(const SingleToken & token)
 
 bool CapstoneTokenizer::tokenTextPoolEquals(const QString & a, const QString & b)
 {
-    if(a == b)
+    if(a.compare(b, Qt::CaseInsensitive) == 0)
         return true;
     auto found1 = stringPoolMap.find(a);
     auto found2 = stringPoolMap.find(b);

@@ -69,6 +69,7 @@ void CPUStack::updateColors()
 void CPUStack::updateFonts()
 {
     setFont(ConfigFont("Stack"));
+    invalidateCachedFont();
 }
 
 void CPUStack::setupContextMenu()

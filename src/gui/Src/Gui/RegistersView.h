@@ -8,6 +8,8 @@
 
 #define IsCharacterRegister(x) ((x>=CAX && x<CIP))
 
+class CPUWidget;
+
 typedef struct
 {
     QString string;
@@ -89,7 +91,7 @@ public:
     };
 
 
-    explicit RegistersView(QWidget* parent = 0);
+    explicit RegistersView(CPUWidget* parent);
     ~RegistersView();
 
     QSize sizeHint() const;
@@ -165,6 +167,7 @@ protected slots:
     void appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32);
 private:
     QPushButton* mChangeViewButton;
+    CPUWidget* mParent;
     bool mShowFpu;
     int mVScrollOffset;
     int mRowsNeeded;

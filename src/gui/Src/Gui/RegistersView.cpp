@@ -3,6 +3,8 @@
 #include <QListWidget>
 #include <stdint.h>
 #include "RegistersView.h"
+#include "CPUWidget.h"
+#include "CPUDisassembly.h"
 #include "Configuration.h"
 #include "WordEditDialog.h"
 #include "LineEditDialog.h"
@@ -413,7 +415,7 @@ void RegistersView::InitMappings()
     mRowsNeeded = offset + 1;
 }
 
-RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOffset(0)
+RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
     mChangeViewButton = NULL;
 
@@ -1251,7 +1253,22 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
         // do we find a corresponding register?
         if(identifyRegister(y, x, &r))
         {
-            mSelected = r;
+            Disassembly* CPUDisassemblyView = mParent->getDisasmWidget();
+            if(CPUDisassemblyView->isHighlightMode())
+            {
+                if(mGPR.contains(r) && r != REGISTER_NAME::EFLAGS)
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(r).value()));
+                else if(mFPUMMX.contains(r))
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(r).value()));
+                else if(mFPUXMM.contains(r))
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(r).value()));
+                else if(mFPUYMM.contains(r))
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(r).value()));
+                else
+                    mSelected = r;
+            }
+            else
+                mSelected = r;
             emit refresh();
         }
         else
