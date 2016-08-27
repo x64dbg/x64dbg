@@ -408,6 +408,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             }
             cmdLine += L"\"";
         }
+
+        if(canDisableRedirect)
+            rWow.DisableRedirect();
+
         switch(GetFileArchitecture(szPath))
         {
         case x32:
@@ -419,14 +423,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
         case x64:
             if(sz64Path[0])
-                if(canDisableRedirect)
-                {
-                    rWow.DisableRedirect();
-                    ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
-                }
-                else
-                    //Execute anyways but without redirect disabled
-                    ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
+                ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
             else
                 MessageBox(nullptr, LoadResString(IDS_INVDPATH64), LoadResString(IDS_ERROR), MB_ICONERROR);
             break;
