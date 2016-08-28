@@ -653,11 +653,18 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                 int rowOffset = getIndexOffsetFromY(transY(event->y()));
                 if(rowOffset < mInstBuffer.size())
                 {
-                    auto & instruction = mInstBuffer[rowOffset];
-                    if(instruction.branchType != Instruction_t::None)
+                    CapstoneTokenizer::SingleToken token;
+                    auto & instruction = mInstBuffer.at(rowOffset);
+                    if(CapstoneTokenizer::TokenFromX(instruction.tokens, token, event->x(), mFontMetrics))
                     {
-                        duint addr = instruction.branchDestination;
-                        if(addr != 0 && (addr - mMemPage->getBase() < mInstBuffer.front().rva || addr - mMemPage->getBase() > mInstBuffer.back().rva))
+                        duint addr = token.value.value;
+                        bool isCodePage = DbgFunctions()->MemIsCodePage(addr, false);
+                        if(!isCodePage && instruction.branchDestination)
+                        {
+                            addr = instruction.branchDestination;
+                            isCodePage = DbgFunctions()->MemIsCodePage(addr, false);
+                        }
+                        if(isCodePage && (addr - mMemPage->getBase() < mInstBuffer.front().rva || addr - mMemPage->getBase() > mInstBuffer.back().rva))
                         {
                             ShowDisassemblyPopup(addr, event->x(), event->y());
                             popupShown = true;
@@ -814,6 +821,8 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
 
     if(key == Qt::Key_Up || key == Qt::Key_Down)
     {
+        ShowDisassemblyPopup(0, 0, 0);
+
         dsint botRVA = getTableOffset();
         dsint topRVA = getInstructionRVA(getTableOffset(), getNbrOfLineToPrint() - 1);
 
@@ -844,6 +853,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
     }
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
+        ShowDisassemblyPopup(0, 0, 0);
         duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
         if(!dest)
             return;
@@ -870,6 +880,8 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
  */
 dsint Disassembly::sliderMovedHook(int type, dsint value, dsint delta)
 {
+    ShowDisassemblyPopup(0, 0, 0);
+
     // QAbstractSlider::SliderNoAction is used to disassembe at a specific address
     if(type == QAbstractSlider::SliderNoAction)
         return value + delta;
