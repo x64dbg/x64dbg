@@ -1,17 +1,30 @@
 /*
 Copyright (c) 2013. The YARA Authors. All Rights Reserved.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
-   http://www.apache.org/licenses/LICENSE-2.0
+1. Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation and/or
+other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+may be used to endorse or promote products derived from this software without
+specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #ifndef YR_TYPES_H
@@ -182,30 +195,15 @@ typedef struct _YR_META
 } YR_META;
 
 
-typedef struct _YR_MATCH
-{
-    int64_t base;
-    int64_t offset;
-    int32_t length;
-
-    union
-    {
-        uint8_t* data;           // Confirmed matches use "data",
-        int32_t chain_length;    // unconfirmed ones use "chain_length"
-    } YR_ALIGN(8);
-
-    YR_ALIGN(8) struct _YR_MATCH* prev;
-    YR_ALIGN(8) struct _YR_MATCH* next;
-
-} YR_MATCH;
+struct _YR_MATCH;
 
 
 typedef struct _YR_MATCHES
 {
     int32_t count;
 
-    DECLARE_REFERENCE(YR_MATCH*, head);
-    DECLARE_REFERENCE(YR_MATCH*, tail);
+    DECLARE_REFERENCE(struct _YR_MATCH*, head);
+    DECLARE_REFERENCE(struct _YR_MATCH*, tail);
 
 } YR_MATCHES;
 
@@ -311,6 +309,29 @@ typedef struct _YARA_RULES_FILE_HEADER
 // Structs defined below are never stored in the compiled rules file
 //
 
+typedef struct _YR_MATCH
+{
+    int64_t base;              // Base address for the match
+    int64_t offset;            // Offset relative to base for the match
+    int32_t match_length;      // Match length
+    int32_t data_length;
+
+    // Pointer to a buffer containing a portion of the matched data. The size of
+    // the buffer is data_length. data_length is always <= length and is limited
+    // to MAX_MATCH_DATA bytes.
+
+    uint8_t* data;
+
+    // If the match belongs to a chained string chain_length contains the
+    // length of the chain. This field is used only in unconfirmed matches.
+
+    int32_t chain_length;
+
+    struct _YR_MATCH* prev;
+    struct _YR_MATCH* next;
+
+} YR_MATCH;
+
 
 struct _YR_AC_STATE;
 
@@ -363,15 +384,39 @@ typedef struct _YR_RULES
 } YR_RULES;
 
 
+
+struct _YR_MEMORY_BLOCK;
+struct _YR_MEMORY_BLOCK_ITERATOR;
+
+
+typedef uint8_t* (*YR_MEMORY_BLOCK_FETCH_DATA_FUNC)(
+    struct _YR_MEMORY_BLOCK* self);
+
+
+typedef struct _YR_MEMORY_BLOCK* (*YR_MEMORY_BLOCK_ITERATOR_FUNC)(
+    struct _YR_MEMORY_BLOCK_ITERATOR* self);
+
+
 typedef struct _YR_MEMORY_BLOCK
 {
-    uint8_t* data;
     size_t size;
     size_t base;
 
-    struct _YR_MEMORY_BLOCK* next;
+    void* context;
+
+    YR_MEMORY_BLOCK_FETCH_DATA_FUNC fetch_data;
 
 } YR_MEMORY_BLOCK;
+
+
+typedef struct _YR_MEMORY_BLOCK_ITERATOR
+{
+    void* context;
+
+    YR_MEMORY_BLOCK_ITERATOR_FUNC  first;
+    YR_MEMORY_BLOCK_ITERATOR_FUNC  next;
+
+} YR_MEMORY_BLOCK_ITERATOR;
 
 
 typedef int (*YR_CALLBACK_FUNC)(
@@ -390,7 +435,7 @@ typedef struct _YR_SCAN_CONTEXT
 
     void* user_data;
 
-    YR_MEMORY_BLOCK*  mem_block;
+    YR_MEMORY_BLOCK_ITERATOR*  iterator;
     YR_HASH_TABLE*  objects_table;
     YR_CALLBACK_FUNC  callback;
 

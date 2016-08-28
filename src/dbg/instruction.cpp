@@ -2064,9 +2064,9 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                 {
                     String pattern;
                     if(STRING_IS_HEX(string))
-                        pattern = yara_print_hex_string(match->data, match->length);
+                        pattern = yara_print_hex_string(match->data, match->match_length);
                     else
-                        pattern = yara_print_string(match->data, match->length);
+                        pattern = yara_print_string(match->data, match->match_length);
                     auto offset = duint(match->base + match->offset);
                     duint addr;
                     if(scanInfo->rawFile)  //convert raw offset to virtual offset

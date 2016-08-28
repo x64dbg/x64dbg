@@ -784,5 +784,11 @@
     <ClInclude Include="exprfunc.h">
       <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
+    <ClInclude Include="yara\yara\integers.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\threading.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
