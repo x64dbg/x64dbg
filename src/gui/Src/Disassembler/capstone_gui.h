@@ -49,7 +49,9 @@ public:
         MmxRegister,
         XmmRegister,
         YmmRegister,
-        ZmmRegister
+        ZmmRegister,
+        //last
+        Last
     };
 
     struct TokenValue
@@ -133,6 +135,11 @@ public:
             else
                 this->flags = RichTextPainter::FlagNone;
         }
+
+        TokenColor()
+            : TokenColor("", "")
+        {
+        }
     };
 
     CapstoneTokenizer(int maxModuleLength);
@@ -170,7 +177,6 @@ private:
     void addMemoryOperator(char operatorText);
     QString printValue(const TokenValue & value, bool expandModule, int maxModuleLength) const;
 
-    static std::map<TokenType, TokenColor> colorNamesMap;
     static QHash<QString, int> stringPoolMap;
     static int poolId;
 
