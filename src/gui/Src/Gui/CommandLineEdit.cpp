@@ -263,4 +263,5 @@ void CommandLineEdit::scriptTypeChanged(int index)
 void CommandLineEdit::fontsUpdated()
 {
     setFont(ConfigFont("Log"));
+    mCompleter->popup()->setFont(ConfigFont("Log"));
 }
