@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2016. The YARA Authors. All Rights Reserved.
+Copyright (c) 2007-2015. The YARA Authors. All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -27,39 +27,40 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef YR_MUTEX_H
-#define YR_MUTEX_H
+#ifndef YR_INTEGERS_H
+#define YR_INTEGERS_H
 
+/* Integer type definitions
+ */
+#if ( defined( _MSC_VER ) && ( _MSC_VER < 1600 ) ) || ( defined( __BORLANDC__ ) && ( __BORLANDC__ <= 0x0560 ) )
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#if defined(_WIN32) || defined(__CYGWIN__)
+/* Microsoft Visual Studio C++ before Visual Studio 2010 or earlier versions of the Borland C++ Builder
+ * do not support the (u)int#_t type definitions but have __int# defintions instead
+ */
+typedef __int8 int8_t;
+typedef unsigned __int8 uint8_t;
+typedef __int16 int16_t;
+typedef unsigned __int16 uint16_t;
+typedef __int32 int32_t;
+typedef unsigned __int32 uint32_t;
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
 
-#include <windows.h>
-
-typedef DWORD YR_THREAD_ID;
-typedef DWORD YR_THREAD_STORAGE_KEY;
-typedef HANDLE YR_MUTEX;
+#ifdef __cplusplus
+}
+#endif
 
 #else
 
-#include <pthread.h>
-
-typedef pthread_t YR_THREAD_ID;
-typedef pthread_key_t YR_THREAD_STORAGE_KEY;
-typedef pthread_mutex_t YR_MUTEX;
+/* Other "compilers" and later versions of Microsoft Visual Studio C++ and
+ * Borland C/C++ define the types in <stdint.h>
+ */
+#include <stdint.h>
 
 #endif
-
-YR_THREAD_ID yr_current_thread_id(void);
-
-int yr_mutex_create(YR_MUTEX*);
-int yr_mutex_destroy(YR_MUTEX*);
-int yr_mutex_lock(YR_MUTEX*);
-int yr_mutex_unlock(YR_MUTEX*);
-
-int yr_thread_storage_create(YR_THREAD_STORAGE_KEY*);
-int yr_thread_storage_destroy(YR_THREAD_STORAGE_KEY*);
-int yr_thread_storage_set_value(YR_THREAD_STORAGE_KEY*, void*);
-void* yr_thread_storage_get_value(YR_THREAD_STORAGE_KEY*);
 
 #endif
