@@ -11,13 +11,13 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
     SetConfig(false, false, false, false);
 }
 
-std::map<CapstoneTokenizer::TokenType, CapstoneTokenizer::TokenColor> CapstoneTokenizer::colorNamesMap;
+CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
 QHash<QString, int> CapstoneTokenizer::stringPoolMap;
 int CapstoneTokenizer::poolId = 0;
 
 void CapstoneTokenizer::addColorName(TokenType type, QString color, QString backgroundColor)
 {
-    colorNamesMap.insert({type, TokenColor(color, backgroundColor)});
+    colorNamesMap[int(type)] = TokenColor(color, backgroundColor);
 }
 
 void CapstoneTokenizer::addStringsToPool(const QString & strings)
@@ -30,8 +30,6 @@ void CapstoneTokenizer::addStringsToPool(const QString & strings)
 
 void CapstoneTokenizer::UpdateColors()
 {
-    //color names map
-    colorNamesMap.clear();
     //filling
     addColorName(TokenType::Comma, "InstructionCommaColor", "InstructionCommaBackgroundColor");
     addColorName(TokenType::Space, "", "");
@@ -196,10 +194,9 @@ void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, RichText
         richText.highlightColor = highlightColor;
         richText.flags = RichTextPainter::FlagNone;
         richText.text = token.text;
-        auto found = colorNamesMap.find(token.type);
-        if(found != colorNamesMap.end())
+        if(token.type < TokenType::Last)
         {
-            auto tokenColor = found->second;
+            const auto & tokenColor = colorNamesMap[int(token.type)];
             richText.flags = tokenColor.flags;
             richText.textColor = tokenColor.color;
             richText.textBackground = tokenColor.backgroundColor;
