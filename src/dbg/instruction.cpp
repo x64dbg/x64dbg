@@ -2064,9 +2064,9 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                 {
                     String pattern;
                     if(STRING_IS_HEX(string))
-                        pattern = yara_print_hex_string(match->data, match->length);
+                        pattern = yara_print_hex_string(match->data, match->match_length);
                     else
-                        pattern = yara_print_string(match->data, match->length);
+                        pattern = yara_print_string(match->data, match->match_length);
                     auto offset = duint(match->base + match->offset);
                     duint addr;
                     if(scanInfo->rawFile)  //convert raw offset to virtual offset
@@ -3003,4 +3003,71 @@ CMDRESULT cbInstrFoldDisassembly(int argc, char* argv[])
         GuiFoldDisassembly(start, length);
         return STATUS_CONTINUE;
     }
+}
+
+CMDRESULT cbInstrImageinfo(int argc, char* argv[])
+{
+    duint mod;
+    if(argc < 2 || !valfromstring(argv[1], &mod) || !ModBaseFromAddr(mod))
+    {
+        dputs("invalid argument");
+        return STATUS_ERROR;
+    }
+
+    SHARED_ACQUIRE(LockModules);
+    auto info = ModInfoFromAddr(mod);
+    auto c = GetPE32DataFromMappedFile(info->fileMapVA, 0, UE_CHARACTERISTICS);
+    auto dllc = GetPE32DataFromMappedFile(info->fileMapVA, 0, UE_DLLCHARACTERISTICS);
+    SHARED_RELEASE();
+
+    auto pFlag = [](ULONG_PTR value, ULONG_PTR flag, const char* name)
+    {
+        if((value & flag) == flag)
+        {
+            dprintf("  ");
+            dputs(name);
+        }
+    };
+
+    char modname[MAX_MODULE_SIZE] = "";
+    ModNameFromAddr(mod, modname, true);
+
+    dputs("---------------");
+
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Image information for %s\n"), modname);
+
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Characteristics (0x%X):\n"), c);
+    if(!c)
+        dputs(QT_TRANSLATE_NOOP("DBG", "  None\n"));
+    pFlag(c, IMAGE_FILE_RELOCS_STRIPPED, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_RELOCS_STRIPPED: Relocation info stripped from file."));
+    pFlag(c, IMAGE_FILE_EXECUTABLE_IMAGE, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_EXECUTABLE_IMAGE: File is executable (i.e. no unresolved externel references)."));
+    pFlag(c, IMAGE_FILE_LINE_NUMS_STRIPPED, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_LINE_NUMS_STRIPPED: Line nunbers stripped from file."));
+    pFlag(c, IMAGE_FILE_LOCAL_SYMS_STRIPPED, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_LOCAL_SYMS_STRIPPED: Local symbols stripped from file."));
+    pFlag(c, IMAGE_FILE_AGGRESIVE_WS_TRIM, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_AGGRESIVE_WS_TRIM: Agressively trim working set"));
+    pFlag(c, IMAGE_FILE_LARGE_ADDRESS_AWARE, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_LARGE_ADDRESS_AWARE: App can handle >2gb addresses"));
+    pFlag(c, IMAGE_FILE_BYTES_REVERSED_LO, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_BYTES_REVERSED_LO: Bytes of machine word are reversed."));
+    pFlag(c, IMAGE_FILE_32BIT_MACHINE, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_32BIT_MACHINE: 32 bit word machine."));
+    pFlag(c, IMAGE_FILE_DEBUG_STRIPPED, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_DEBUG_STRIPPED: Debugging info stripped from file in .DBG file"));
+    pFlag(c, IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP: If Image is on removable media, copy and run from the swap file."));
+    pFlag(c, IMAGE_FILE_NET_RUN_FROM_SWAP, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_NET_RUN_FROM_SWAP: If Image is on Net, copy and run from the swap file."));
+    pFlag(c, IMAGE_FILE_SYSTEM, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_SYSTEM: System File."));
+    pFlag(c, IMAGE_FILE_DLL, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_DLL: File is a DLL."));
+    pFlag(c, IMAGE_FILE_UP_SYSTEM_ONLY, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_UP_SYSTEM_ONLY: File should only be run on a UP machine"));
+    pFlag(c, IMAGE_FILE_BYTES_REVERSED_HI, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_BYTES_REVERSED_HI: Bytes of machine word are reversed."));
+
+    dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Characteristics (0x%X):\n"), dllc);
+    if(!dllc)
+        dputs(QT_TRANSLATE_NOOP("DBG", "  None\n"));
+    pFlag(dllc, IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE: DLL can move."));
+    pFlag(dllc, IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY: Code Integrity Image"));
+    pFlag(dllc, IMAGE_DLLCHARACTERISTICS_NX_COMPAT, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_NX_COMPAT: Image is NX compatible"));
+    pFlag(dllc, IMAGE_DLLCHARACTERISTICS_NO_ISOLATION, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_NO_ISOLATION: Image understands isolation and doesn't want it"));
+    pFlag(dllc, IMAGE_DLLCHARACTERISTICS_NO_SEH, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_NO_SEH: Image does not use SEH. No SE handler may reside in this image"));
+    pFlag(dllc, IMAGE_DLLCHARACTERISTICS_NO_BIND, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_NO_BIND: Do not bind this image."));
+    pFlag(dllc, IMAGE_DLLCHARACTERISTICS_WDM_DRIVER, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_WDM_DRIVER: Driver uses WDM model."));
+    pFlag(dllc, IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE: Remote Desktop Services aware."));
+
+    dputs("---------------");
+
+    return STATUS_CONTINUE;
 }
