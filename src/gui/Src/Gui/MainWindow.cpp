@@ -754,7 +754,7 @@ void MainWindow::execTicnd()
     if(!DbgIsDebugging())
         return;
     QString text;
-    if(SimpleInputBox(this, tr("Enter trace into finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0")))
+    if(SimpleInputBox(this, tr("Enter trace into finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceinto.png")))
         DbgCmdExec(QString("ticnd \"%1\"").arg(text).toUtf8().constData());
 }
 
@@ -763,7 +763,7 @@ void MainWindow::execTocnd()
     if(!DbgIsDebugging())
         return;
     QString text;
-    if(SimpleInputBox(this, tr("Enter trace over finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0")))
+    if(SimpleInputBox(this, tr("Enter trace over finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceover.png")))
         DbgCmdExec(QString("tocnd \"%1\"").arg(text).toUtf8().constData());
 }
 
