@@ -100,7 +100,7 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - [Nukem](https://github.com/Nukem9)
 - [Herz3h](https://github.com/Herz3h)
 
-## Contributers
+## Contributors
 
 - [torusrxxx](https://github.com/torusrxxx)
 - [blaquee](https://github.com/blaquee)
