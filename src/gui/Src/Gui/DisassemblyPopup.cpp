@@ -98,11 +98,16 @@ void DisassemblyPopup::setAddress(duint Address)
         mInstBuffer.clear();
         QList<dsint> rvaList;
         dsint nextRva = rva;
+        bool hadBranch = false;
         do
         {
-            dsint nextRva2;
             rvaList.append(nextRva);
-            nextRva2 = parent->getNextInstructionRVA(nextRva, 1, true);
+            Instruction_t instruction = parent->DisassembleAt(nextRva);
+            if(!hadBranch && instruction.tokens.tokens[0].text.toLower() == "ret")
+                break;
+            if(instruction.branchDestination)
+                hadBranch = true;
+            auto nextRva2 = nextRva + instruction.length;
             if(nextRva2 == nextRva)
                 break;
             else
