@@ -1,6 +1,5 @@
 #include "animate.h"
 #include "x64_dbg.h"
-#include <Windows.h>
 
 static char animate_command[deflen];
 static unsigned int animate_interval = 50;
