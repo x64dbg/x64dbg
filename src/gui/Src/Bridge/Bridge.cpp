@@ -279,12 +279,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
             return 0;
         QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")));
         Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, parVA);
-        RichTextPainter::List richText;
-        CapstoneTokenizer::TokenToRichText(instr.tokens, richText, 0);
-        QString finalInstruction = "";
-        for(const auto & curRichText : richText)
-            finalInstruction += curRichText.text;
-        strcpy_s(text, GUI_MAX_DISASSEMBLY_SIZE, finalInstruction.toUtf8().constData());
+        QString finalInstruction;
+        for(const auto & curToken : instr.tokens.tokens)
+            finalInstruction += curToken.text;
+        strncpy_s(text, GUI_MAX_DISASSEMBLY_SIZE, finalInstruction.toUtf8().constData(), _TRUNCATE);
         return (void*)1;
     }
     break;

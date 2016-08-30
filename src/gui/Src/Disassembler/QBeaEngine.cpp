@@ -199,7 +199,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     auto branchType = Instruction_t::None;
     Instruction_t wInst;
-    if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_CALL)))
+    if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_CALL) || cp.InGroup(CS_GRP_RET)))
     {
         wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
         switch(cp.GetId())
@@ -213,7 +213,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
             branchType = Instruction_t::Call;
             break;
         default:
-            branchType = Instruction_t::Conditional;
+            branchType = cp.InGroup(CS_GRP_RET) ? Instruction_t::None : Instruction_t::Conditional;
             break;
         }
     }
