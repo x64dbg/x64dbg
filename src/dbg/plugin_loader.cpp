@@ -74,13 +74,13 @@ void pluginload(const char* pluginDir)
         pluginData.hPlugin = LoadLibraryW(StringUtils::Utf8ToUtf16(szPluginPath).c_str()); //load the plugin library
         if(!pluginData.hPlugin)
         {
-            dprintf("[PLUGIN] Failed to load plugin: %s\n", StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Failed to load plugin: %s\n"), StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
             continue;
         }
         pluginData.pluginit = (PLUGINIT)GetProcAddress(pluginData.hPlugin, "pluginit");
         if(!pluginData.pluginit)
         {
-            dprintf("[PLUGIN] Export \"pluginit\" not found in plugin: %s\n", StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Export \"pluginit\" not found in plugin: %s\n"), StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
             FreeLibrary(pluginData.hPlugin);
             continue;
         }
@@ -189,18 +189,18 @@ void pluginload(const char* pluginDir)
         //init plugin
         if(!pluginData.pluginit(&pluginData.initStruct))
         {
-            dprintf("[PLUGIN] pluginit failed for plugin: %s\n", StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] pluginit failed for plugin: %s\n"), StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
             FreeLibrary(pluginData.hPlugin);
             continue;
         }
         else if(pluginData.initStruct.sdkVersion < PLUG_SDKVERSION) //the plugin SDK is not compatible
         {
-            dprintf("[PLUGIN] %s is incompatible with this SDK version\n", pluginData.initStruct.pluginName);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s is incompatible with this SDK version\n"), pluginData.initStruct.pluginName);
             FreeLibrary(pluginData.hPlugin);
             continue;
         }
         else
-            dprintf("[PLUGIN] %s v%d Loaded!\n", pluginData.initStruct.pluginName, pluginData.initStruct.pluginVersion);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s v%d Loaded!\n"), pluginData.initStruct.pluginName, pluginData.initStruct.pluginVersion);
 
         SectionLocker<LockPluginMenuList, false> menuLock; //exclusive lock
 
@@ -208,7 +208,7 @@ void pluginload(const char* pluginDir)
         int hNewMenu = GuiMenuAdd(GUI_PLUGIN_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
         {
-            dprintf("[PLUGIN] GuiMenuAdd(GUI_PLUGIN_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] GuiMenuAdd(GUI_PLUGIN_MENU) failed for plugin: %s\n"), pluginData.initStruct.pluginName);
             pluginData.hMenu = -1;
         }
         else
@@ -225,7 +225,7 @@ void pluginload(const char* pluginDir)
         hNewMenu = GuiMenuAdd(GUI_DISASM_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
         {
-            dprintf("[PLUGIN] GuiMenuAdd(GUI_DISASM_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] GuiMenuAdd(GUI_DISASM_MENU) failed for plugin: %s\n"), pluginData.initStruct.pluginName);
             pluginData.hMenu = -1;
         }
         else
@@ -242,7 +242,7 @@ void pluginload(const char* pluginDir)
         hNewMenu = GuiMenuAdd(GUI_DUMP_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
         {
-            dprintf("[PLUGIN] GuiMenuAdd(GUI_DUMP_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] GuiMenuAdd(GUI_DUMP_MENU) failed for plugin: %s\n"), pluginData.initStruct.pluginName);
             pluginData.hMenu = -1;
         }
         else
@@ -259,7 +259,7 @@ void pluginload(const char* pluginDir)
         hNewMenu = GuiMenuAdd(GUI_STACK_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
         {
-            dprintf("[PLUGIN] GuiMenuAdd(GUI_STACK_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] GuiMenuAdd(GUI_STACK_MENU) failed for plugin: %s\n"), pluginData.initStruct.pluginName);
             pluginData.hMenu = -1;
         }
         else
@@ -451,7 +451,7 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
     EXCLUSIVE_ACQUIRE(LockPluginCommandList);
     pluginCommandList.push_back(plugCmd);
     EXCLUSIVE_RELEASE();
-    dprintf("[PLUGIN] command \"%s\" registered!\n", command);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] command \"%s\" registered!\n"), command);
     return true;
 }
 
@@ -475,7 +475,7 @@ bool plugincmdunregister(int pluginHandle, const char* command)
             EXCLUSIVE_RELEASE();
             if(!dbgcmddel(command))
                 return false;
-            dprintf("[PLUGIN] command \"%s\" unregistered!\n", command);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] command \"%s\" unregistered!\n"), command);
             return true;
         }
     }
@@ -711,7 +711,7 @@ bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUG
     EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
     pluginExprfunctionList.push_back(plugExprfunction);
     EXCLUSIVE_RELEASE();
-    dprintf("[PLUGIN] expression function \"%s\" registered!\n", name);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] expression function \"%s\" registered!\n"), name);
     return true;
 }
 
@@ -727,7 +727,7 @@ bool pluginexprfuncunregister(int pluginHandle, const char* name)
             EXCLUSIVE_RELEASE();
             if(!ExpressionFunctions::Unregister(name))
                 return false;
-            dprintf("[PLUGIN] expression function \"%s\" unregistered!\n", name);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] expression function \"%s\" unregistered!\n"), name);
             return true;
         }
     }

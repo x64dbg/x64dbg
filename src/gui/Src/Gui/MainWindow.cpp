@@ -326,6 +326,9 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actionseStepInto, "seStepInto");
     makeCommandAction(ui->actionseStepOver, "seStepOver");
     makeCommandAction(ui->actionseRun, "seRun");
+    connect(ui->actionAnimateInto, SIGNAL(triggered()), this, SLOT(animateIntoSlot()));
+    connect(ui->actionAnimateOver, SIGNAL(triggered()), this, SLOT(animateOverSlot()));
+    connect(ui->actionAnimateCommand, SIGNAL(triggered()), this, SLOT(animateCommandSlot()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -1655,4 +1658,21 @@ void MainWindow::setFavouriteItemShortcut(int type, const QString & name, const 
             }
         }
     }
+}
+
+void MainWindow::animateIntoSlot()
+{
+    DbgFunctions()->AnimateCommand("StepInto");
+}
+
+void MainWindow::animateOverSlot()
+{
+    DbgFunctions()->AnimateCommand("StepOver");
+}
+
+void MainWindow::animateCommandSlot()
+{
+    QString command;
+    if(SimpleInputBox(this, tr("Animate command"), "", command, tr("Example: StepInto")))
+        DbgFunctions()->AnimateCommand(command.toUtf8().constData());
 }

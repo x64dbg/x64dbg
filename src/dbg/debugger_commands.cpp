@@ -25,6 +25,7 @@
 #include "function.h"
 #include "historycontext.h"
 #include "taskthread.h"
+#include "animate.h"
 
 static bool bScyllaLoaded = false;
 duint LoadLibThreadID;
@@ -1616,8 +1617,16 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
 {
     if(!dbgisrunning())
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Program is not running"));
-        return STATUS_ERROR;
+        if(_dbg_isanimating())
+        {
+            _dbg_animatestop(); // pause when animating
+            return STATUS_CONTINUE;
+        }
+        else
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Program is not running"));
+            return STATUS_ERROR;
+        }
     }
     if(SuspendThread(hActiveThread) == -1)
     {
