@@ -32,6 +32,7 @@
     <ClCompile Include="analysis\LinearPass.cpp" />
     <ClCompile Include="analysis\recursiveanalysis.cpp" />
     <ClCompile Include="analysis\xrefsanalysis.cpp" />
+    <ClCompile Include="animate.cpp" />
     <ClCompile Include="argument.cpp" />
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="analysis\LinearPass.h" />
     <ClInclude Include="analysis\recursiveanalysis.h" />
     <ClInclude Include="analysis\xrefsanalysis.h" />
+    <ClInclude Include="animate.h" />
     <ClInclude Include="argument.h" />
     <ClInclude Include="assemble.h" />
     <ClInclude Include="bookmark.h" />

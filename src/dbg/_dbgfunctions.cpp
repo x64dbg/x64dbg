@@ -25,6 +25,7 @@
 #include "../bridge/bridgelist.h"
 #include "tcpconnections.h"
 #include "watch.h"
+#include "animate.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -341,4 +342,5 @@ void dbgfunctionsinit()
     _dbgfunctions.EnumTcpConnections = _enumtcpconnections;
     _dbgfunctions.GetDbgEvents = dbggetdbgevents;
     _dbgfunctions.MemIsCodePage = MemIsCodePage;
+    _dbgfunctions.AnimateCommand = _dbg_animatecommand;
 }

@@ -27,6 +27,7 @@
 #include "TraceRecord.h"
 #include "historycontext.h"
 #include "taskthread.h"
+#include "animate.h"
 
 struct TraceCondition
 {
@@ -587,6 +588,7 @@ void cbPauseBreakpoint()
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     DeleteBPX(CIP);
     DebugUpdateGuiSetStateAsync(CIP, true);
+    _dbg_animatestop(); // Stop animating when paused
     // Trace record
     _dbg_dbgtraceexecute(CIP);
     //lock
@@ -625,6 +627,7 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
         // Plugin callback
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+        _dbg_animatestop(); // Stop animating when a breakpoint is hit
     }
 }
 
@@ -710,7 +713,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
 
     if(*bp.logText && logCondition)  //log
     {
-        dprintf("%s\n", stringformatinline(bp.logText).c_str());
+        dprintf_untranslated("%s\n", stringformatinline(bp.logText).c_str());
     }
     if(*bp.commandText && commandCondition)  //command
     {
@@ -1228,6 +1231,7 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     PLUG_CB_EXITPROCESS callbackInfo;
     callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
+    _dbg_animatestop(); // Stop animating
     //unload main module
     SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
     //history
@@ -1576,12 +1580,14 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             else
                 dputs(QT_TRANSLATE_NOOP("DBG", "Detached!"));
             isDetachedByUser = false;
+            _dbg_animatestop(); // Stop animating
             return;
         }
         else if(isPausedByUser)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "paused!"));
             SetNextDbgContinueStatus(DBG_CONTINUE);
+            _dbg_animatestop(); // Stop animating
             //update memory map
             MemUpdateMap();
             DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
@@ -1810,9 +1816,9 @@ bool cbBreakpointList(const BREAKPOINT* bp)
         type = "GP";
     bool enabled = bp->enabled;
     if(*bp->name)
-        dprintf("%d:%s:%p:\"%s\"\n", enabled, type, bp->addr, bp->name);
+        dprintf_untranslated("%d:%s:%p:\"%s\"\n", enabled, type, bp->addr, bp->name);
     else
-        dprintf("%d:%s:%p\n", enabled, type, bp->addr);
+        dprintf_untranslated("%d:%s:%p\n", enabled, type, bp->addr);
     return true;
 }
 

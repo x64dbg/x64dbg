@@ -437,8 +437,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     if(!EngineCheckStructAlignment(UE_STRUCT_TITAN_ENGINE_CONTEXT, sizeof(TITAN_ENGINE_CONTEXT_t)))
         return "Invalid TITAN_ENGINE_CONTEXT_t alignment!";
 
-    if(sizeof(TITAN_ENGINE_CONTEXT_t) != sizeof(REGISTERCONTEXT))
-        return "Invalid REGISTERCONTEXT alignment!";
+    static_assert(sizeof(TITAN_ENGINE_CONTEXT_t) == sizeof(REGISTERCONTEXT), "Invalid REGISTERCONTEXT alignment!");
 
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing wait objects..."));
     waitinitialize();
