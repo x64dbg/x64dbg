@@ -156,12 +156,20 @@ String ExpressionParser::fixClosingBrackets(const String & expression)
 void ExpressionParser::tokenize()
 {
     size_t stateMemory = 0;
+    auto stateQuote = false;
     auto len = mExpression.length();
     for(size_t i = 0; i < len; i++)
     {
         auto ch = mExpression[i];
         switch(ch)
         {
+        case '\'':
+        case '\"':
+        {
+            stateQuote = !stateQuote;
+        }
+        break;
+
         case '[':
         {
             stateMemory++;
@@ -179,7 +187,7 @@ void ExpressionParser::tokenize()
 
         default:
         {
-            if(stateMemory)
+            if(stateMemory || stateQuote)
                 mCurToken += ch;
             else
             {
