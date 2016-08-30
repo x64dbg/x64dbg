@@ -27,6 +27,7 @@ void EditBreakpointDialog::loadFromBp()
     ui->editBreakCondition->setText(mBp.breakCondition);
     ui->checkBoxFastResume->setChecked(mBp.fastResume);
     ui->checkBoxSilent->setChecked(mBp.silent);
+    ui->checkBoxSingleshoot->setChecked(mBp.singleshoot);
     ui->editLogText->setText(mBp.logText);
     ui->editLogCondition->setText(mBp.logCondition);
     ui->editCommandText->setText(mBp.commandText);
@@ -82,4 +83,9 @@ void EditBreakpointDialog::on_spinHitCount_valueChanged(int arg1)
 void EditBreakpointDialog::on_checkBoxSilent_toggled(bool checked)
 {
     mBp.silent = checked;
+}
+
+void EditBreakpointDialog::on_checkBoxSingleshoot_toggled(bool checked)
+{
+    mBp.singleshoot = checked;
 }
