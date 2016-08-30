@@ -730,7 +730,10 @@ void CPUStack::gotoExpressionSlot()
     mGoto->validRangeEnd = base + size;
     mGoto->setWindowTitle(tr("Enter expression to follow in Stack..."));
     if(mGoto->exec() == QDialog::Accepted)
-        DbgCmdExec(QString("sdump \"%1\"").arg(mGoto->expressionText).toUtf8().constData());
+    {
+        duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
+        DbgCmdExec(QString().sprintf("sdump %p", value).toUtf8().constData());
+    }
 }
 
 void CPUStack::gotoPreviousSlot()

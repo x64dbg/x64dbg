@@ -967,7 +967,8 @@ void CPUDisassembly::gotoExpressionSlot()
         mGoto = new GotoDialog(this);
     if(mGoto->exec() == QDialog::Accepted)
     {
-        DbgCmdExec(QString().sprintf("disasm \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
+        duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
+        DbgCmdExec(QString().sprintf("disasm %p", value).toUtf8().constData());
     }
 }
 
