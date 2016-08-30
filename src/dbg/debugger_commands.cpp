@@ -502,6 +502,7 @@ static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], c
         dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set %s on breakpoint \"%s\"\n"), description, argv[1]);
         return STATUS_ERROR;
     }
+    DebugUpdateBreakpointsViewAsync();
     return STATUS_CONTINUE;
 }
 
@@ -575,8 +576,8 @@ static CMDRESULT cbDebugResetBPXHitCountCommon(BP_TYPE Type, int argc, char* arg
         dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set hit count on breakpoint \"%s\""), argv[1]);
         return STATUS_ERROR;
     }
+    DebugUpdateBreakpointsViewAsync();
     return STATUS_CONTINUE;
-
 }
 
 static CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* argv[])
@@ -605,6 +606,37 @@ static CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* arg
         dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set fast resume on breakpoint \"%1\""), argv[1]);
         return STATUS_ERROR;
     }
+    DebugUpdateBreakpointsViewAsync();
+    return STATUS_CONTINUE;
+}
+
+static CMDRESULT cbDebugSetBPXSingleshootCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    BREAKPOINT bp;
+    if(argc < 2)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+        return STATUS_ERROR;
+    }
+    auto singleshoot = true;
+    if(argc > 2)
+    {
+        duint value;
+        if(!valfromstring(argv[2], &value, false))
+            return STATUS_ERROR;
+        singleshoot = value != 0;
+    }
+    if(!BpGetAny(Type, argv[1], &bp))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!BpSetSingleshoot(bp.addr, Type, singleshoot))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set singleshoot on breakpoint \"%1\""), argv[1]);
+        return STATUS_ERROR;
+    }
+    DebugUpdateBreakpointsViewAsync();
     return STATUS_CONTINUE;
 }
 
@@ -634,6 +666,7 @@ static CMDRESULT cbDebugSetBPXSilentCommon(BP_TYPE Type, int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set fast resume on breakpoint \"%1\""), argv[1]);
         return STATUS_ERROR;
     }
+    DebugUpdateBreakpointsViewAsync();
     return STATUS_CONTINUE;
 }
 
@@ -670,6 +703,11 @@ CMDRESULT cbDebugSetBPXCommandCondition(int argc, char* argv[])
 CMDRESULT cbDebugSetBPXFastResume(int argc, char* argv[])
 {
     return cbDebugSetBPXFastResumeCommon(BPNORMAL, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXSingleshoot(int argc, char* argv[])
+{
+    return cbDebugSetBPXSingleshootCommon(BPNORMAL, argc, argv);
 }
 
 CMDRESULT cbDebugSetBPXSilent(int argc, char* argv[])
@@ -715,6 +753,11 @@ CMDRESULT cbDebugSetBPXHardwareCommandCondition(int argc, char* argv[])
 CMDRESULT cbDebugSetBPXHardwareFastResume(int argc, char* argv[])
 {
     return cbDebugSetBPXFastResumeCommon(BPHARDWARE, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXHardwareSingleshoot(int argc, char* argv[])
+{
+    return cbDebugSetBPXSingleshootCommon(BPHARDWARE, argc, argv);
 }
 
 CMDRESULT cbDebugSetBPXHardwareSilent(int argc, char* argv[])
@@ -765,6 +808,11 @@ CMDRESULT cbDebugResetBPXMemoryHitCount(int argc, char* argv[])
 CMDRESULT cbDebugSetBPXMemoryFastResume(int argc, char* argv[])
 {
     return cbDebugSetBPXFastResumeCommon(BPMEMORY, argc, argv);
+}
+
+CMDRESULT cbDebugSetBPXMemorySingleshoot(int argc, char* argv[])
+{
+    return cbDebugSetBPXSingleshootCommon(BPMEMORY, argc, argv);
 }
 
 CMDRESULT cbDebugSetBPXMemorySilent(int argc, char* argv[])

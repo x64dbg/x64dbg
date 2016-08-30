@@ -147,6 +147,7 @@ static void registercommands()
     dbgcmdnew("SetBreakpointCommand", cbDebugSetBPXCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetBreakpointCommandCondition", cbDebugSetBPXCommandCondition, true); //set breakpoint commandCondition
     dbgcmdnew("SetBreakpointFastResume", cbDebugSetBPXFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetBreakpointSingleshoot", cbDebugSetBPXSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetBreakpointSilent", cbDebugSetBPXSilent, true); //set breakpoint fast resume
     dbgcmdnew("GetBreakpointHitCount", cbDebugGetBPXHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetBreakpointHitCount", cbDebugResetBPXHitCount, true); //reset breakpoint hit count
@@ -157,6 +158,7 @@ static void registercommands()
     dbgcmdnew("SetHardwareBreakpointCommand", cbDebugSetBPXHardwareCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetHardwareBreakpointCommandCondition", cbDebugSetBPXHardwareCommandCondition, true); //set breakpoint commandCondition
     dbgcmdnew("SetHardwareBreakpointFastResume", cbDebugSetBPXHardwareFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetHardwareBreakpointSingleshoot", cbDebugSetBPXHardwareSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetHardwareBreakpointSilent", cbDebugSetBPXHardwareSilent, true); //set breakpoint fast resume
     dbgcmdnew("GetHardwareBreakpointHitCount", cbDebugGetBPXHardwareHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetHardwareBreakpointHitCount", cbDebugResetBPXHardwareHitCount, true); //reset breakpoint hit count
@@ -167,6 +169,7 @@ static void registercommands()
     dbgcmdnew("SetMemoryBreakpointCommand", cbDebugSetBPXMemoryCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetMemoryBreakpointCommandCondition", cbDebugSetBPXMemoryCommandCondition, true); //set breakpoint commandCondition
     dbgcmdnew("SetMemoryBreakpointFastResume", cbDebugSetBPXMemoryFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetMemoryBreakpointSingleshoot", cbDebugSetBPXMemorySingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetMemoryBreakpointSilent", cbDebugSetBPXMemorySilent, true); //set breakpoint fast resume
     dbgcmdnew("SetMemoryGetBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetMemoryBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
@@ -212,6 +215,7 @@ static void registercommands()
     dbgcmdnew("mnemonichelp", cbInstrMnemonichelp, false); //mnemonic help
     dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
     dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
+    dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
@@ -284,7 +288,16 @@ static void registercommands()
     dbgcmdnew("reffindrange\1findrefrange\1refrange", cbInstrRefFindRange, true);
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
+    dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
+
+    //analysis
     dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
+    dbgcmdnew("cfanal\1cfanalyse\1cfanalyze", cbInstrCfanalyse, true); //control flow analysis
+    dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
+    dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
+    dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
+    dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
+    dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
 
     //Operating System Control
     dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state
@@ -302,17 +315,9 @@ static void registercommands()
     dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
-    dbgcmdnew("cfanal\1cfanalyse\1cfanalyze", cbInstrCfanalyse, true); //control flow analysis
-    dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
-    dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
     dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
-    dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
-    dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
-    dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
-    dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
-    dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
     dbgcmdnew("graph", cbInstrGraph, true); //graph function
     dbgcmdnew("DisableLog\1LogDisable", cbInstrDisableLog, false); //disable log
     dbgcmdnew("EnableLog\1LogEnable", cbInstrEnableLog, false); //enable log
