@@ -143,6 +143,12 @@ void HexEditDialog::on_btnCodepage_clicked()
         return;
     LineEditDialog lineEdit(this);
     lineEdit.setWindowTitle(tr("Enter text to convert..."));
+    QString oldText;
+    oldText = textCodec->toUnicode(mHexEdit->data());
+    for(auto & i : oldText)
+        if(!i.isPrint())
+            i = QChar('.');
+    lineEdit.setText(oldText);
     if(lineEdit.exec() != QDialog::Accepted)
         return;
     mHexEdit->setData(resizeData(textCodec->fromUnicode(lineEdit.editText)));

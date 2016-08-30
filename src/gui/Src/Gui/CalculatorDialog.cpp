@@ -92,7 +92,7 @@ void CalculatorDialog::expressionChanged(bool validExpression, bool validPointer
         ui->txtAscii->setCursorPosition(1);
         if((value == (value & 0xFFF)))  //UNICODE?
         {
-            QChar c = QChar::fromLatin1((wchar_t)value);
+            QChar c = QChar((ushort)value);
             if(c.isPrint())
                 ui->txtUnicode->setText("L'" + QString(c) + "'");
             else
@@ -233,7 +233,7 @@ void CalculatorDialog::on_txtAscii_textEdited(const QString & arg1)
         return;
     }
     ui->txtAscii->setStyleSheet("");
-    ui->txtExpression->setText(QString().sprintf("%X", text[0].toLatin1()));
+    ui->txtExpression->setText(QString().sprintf("%X", text[0].unicode()));
     ui->txtAscii->setCursorPosition(1);
 }
 
