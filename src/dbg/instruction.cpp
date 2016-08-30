@@ -2628,15 +2628,19 @@ CMDRESULT cbInstrSavedata(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    if(!FileHelper::WriteAllData(argv[1], data(), data.size()))
+    String name = argv[1];
+    if(name == ":memdump:")
+        name = StringUtils::sprintf("memdump_%X_%p_%x.bin", fdProcessInfo->dwProcessId, addr, size);
+
+    if(!FileHelper::WriteAllData(name, data(), data.size()))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to write file..."));
         return STATUS_ERROR;
     }
 #ifdef _WIN64
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% llX] written to \"%s\" !\n"), addr, size, argv[1]);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% llX] written to \"%s\" !\n"), addr, size, name.c_str());
 #else //x86
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% X] written to \"%s\" !\n"), addr, size, argv[1]);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% X] written to \"%s\" !\n"), addr, size, name.c_str());
 #endif
 
     return STATUS_CONTINUE;
