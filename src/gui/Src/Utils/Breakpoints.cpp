@@ -431,9 +431,10 @@ void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
         exec(QString("SetBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(bp.logCondition));
         exec(QString("SetBreakpointCommand %1, \"%2\"").arg(addrText).arg(bp.commandText));
         exec(QString("SetBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
-        exec(QString("ResetBreakpointHitCount %1, \"%2\"").arg(addrText).arg(bp.hitCount));
-        exec(QString("SetBreakpointFastResume %1, \"%2\"").arg(addrText).arg(bp.fastResume));
-        exec(QString("SetBreakpointSilent %1, \"%2\"").arg(addrText).arg(bp.silent));
+        exec(QString("ResetBreakpointHitCount %1, %2").arg(addrText).arg(bp.hitCount));
+        exec(QString("SetBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
+        exec(QString("SetBreakpointSilent %1, %2").arg(addrText).arg(bp.silent));
+        exec(QString("SetBreakpointSingleshoot %1, %2").arg(addrText).arg(bp.singleshoot));
         break;
     case bp_hardware:
         exec(QString("SetHardwareBreakpointName %1, \"%2\"").arg(addrText).arg(bp.name));
@@ -445,6 +446,7 @@ void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
         exec(QString("ResetHardwareBreakpointHitCount %1, %2").arg(addrText).arg(bp.hitCount));
         exec(QString("SetHardwareBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
         exec(QString("SetHardwareBreakpointSilent %1, %2").arg(addrText).arg(bp.silent));
+        exec(QString("SetHardwareBreakpointSingleshoot %1, %2").arg(addrText).arg(bp.singleshoot));
         break;
     case bp_memory:
         exec(QString("SetMemoryBreakpointName %1, \"\"%2\"\"").arg(addrText).arg(bp.name));
@@ -455,7 +457,8 @@ void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
         exec(QString("SetMemoryBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
         exec(QString("ResetMemoryBreakpointHitCount %1, %2").arg(addrText).arg(bp.hitCount));
         exec(QString("SetMemoryBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
-        exec(QString("SetMemoryBreakpointSilent %1, \"%2\"").arg(addrText).arg(bp.silent));
+        exec(QString("SetMemoryBreakpointSilent %1, %2").arg(addrText).arg(bp.silent));
+        exec(QString("SetMemoryBreakpointSingleshoot %1, %2").arg(addrText).arg(bp.singleshoot));
         break;
     default:
         return;
