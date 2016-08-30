@@ -139,9 +139,18 @@ void WatchView::setupContextMenu()
         return DbgIsDebugging();
     });
     mMenu->addAction(makeAction(tr("&Add..."), SLOT(addWatchSlot())));
-    mMenu->addAction(makeAction(tr("&Delete"), SLOT(delWatchSlot())));
-    mMenu->addAction(makeAction(tr("Rename"), SLOT(renameWatchSlot())));
-    mMenu->addAction(makeAction(tr("&Edit..."), SLOT(editWatchSlot())));
+    mMenu->addAction(makeAction(tr("&Delete"), SLOT(delWatchSlot())), [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    });
+    mMenu->addAction(makeAction(tr("Rename"), SLOT(renameWatchSlot())), [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    });
+    mMenu->addAction(makeAction(tr("&Edit..."), SLOT(editWatchSlot())), [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    });
     QMenu* watchdogMenu = new QMenu(tr("Watchdog"), this);
     watchdogMenu->addAction(makeAction(DIcon("close-all-tabs.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
     watchdogMenu->addSeparator();
@@ -149,7 +158,10 @@ void WatchView::setupContextMenu()
     watchdogMenu->addAction(makeAction(tr("Not changed"), SLOT(watchdogUnchangedSlot())));
     watchdogMenu->addAction(makeAction(tr("Is true"), SLOT(watchdogIsTrueSlot())));
     watchdogMenu->addAction(makeAction(tr("Is false"), SLOT(watchdogIsFalseSlot())));
-    mMenu->addMenu(watchdogMenu);
+    mMenu->addMenu(watchdogMenu, [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    });
 }
 
 QString WatchView::getSelectedId()
