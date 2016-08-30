@@ -95,7 +95,7 @@ QString CPUInfoBox::getSymbolicName(dsint addr)
         }
         else if(addr == (addr & 0xFFF)) //UNICODE?
         {
-            QChar c = QChar::fromLatin1((wchar_t)addr);
+            QChar c = QChar((ushort)addr);
             if(c.isPrint())
                 finalText += " L'" + QString(c) + "'";
         }

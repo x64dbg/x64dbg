@@ -192,12 +192,32 @@ void CPUDump::setupContextMenu()
     MenuBuilder* wHexMenu = new MenuBuilder(this);
     wHexMenu->addAction(makeAction(DIcon("ascii.png"), tr("&ASCII"), SLOT(hexAsciiSlot())));
     wHexMenu->addAction(makeAction(DIcon("ascii-extended.png"), tr("&Extended ASCII"), SLOT(hexUnicodeSlot())));
+    QAction* wHexLastCodepage = makeAction(DIcon("codepage.png"), "?", SLOT(hexLastCodepageSlot()));
+    wHexMenu->addAction(wHexLastCodepage, [wHexLastCodepage](QMenu*)
+    {
+        duint lastCodepage;
+        auto allCodecs = QTextCodec::availableCodecs();
+        if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
+            return false;
+        wHexLastCodepage->setText(QString::fromLocal8Bit(allCodecs.at(lastCodepage)));
+        return true;
+    });
     wHexMenu->addAction(makeAction(DIcon("codepage.png"), tr("&Codepage..."), SLOT(hexCodepageSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("hex.png"), tr("&Hex")), wHexMenu);
 
     MenuBuilder* wTextMenu = new MenuBuilder(this);
     wTextMenu->addAction(makeAction(DIcon("ascii.png"), tr("&ASCII"), SLOT(textAsciiSlot())));
     wTextMenu->addAction(makeAction(DIcon("ascii-extended.png"), tr("&Extended ASCII"), SLOT(textUnicodeSlot())));
+    QAction* wTextLastCodepage = makeAction(DIcon("codepage.png"), "?", SLOT(textLastCodepageSlot()));
+    wTextMenu->addAction(wTextLastCodepage, [wTextLastCodepage](QMenu*)
+    {
+        duint lastCodepage;
+        auto allCodecs = QTextCodec::availableCodecs();
+        if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
+            return false;
+        wTextLastCodepage->setText(QString::fromLocal8Bit(allCodecs.at(lastCodepage)));
+        return true;
+    });
     wTextMenu->addAction(makeAction(DIcon("codepage.png"), tr("&Codepage..."), SLOT(textCodepageSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("strings.png"), tr("&Text")), wTextMenu);
 
@@ -571,6 +591,57 @@ void CPUDump::hexCodepageSlot()
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
     appendDescriptor(0, codepage, false, wColDesc);
+
+    reloadData();
+}
+
+void CPUDump::hexLastCodepageSlot()
+{
+    int charwidth = getCharWidth();
+    ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
+    duint lastCodepage;
+    auto allCodecs = QTextCodec::availableCodecs();
+    if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
+        return;
+
+    wColDesc.isData = true; //hex byte
+    wColDesc.itemCount = 16;
+    wColDesc.separator = 4;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = HexByte;
+    wColDesc.data = dDesc;
+    appendResetDescriptor(8 + charwidth * 47, tr("Hex"), false, wColDesc);
+
+    wColDesc.isData = true; //text (in code page)
+    wColDesc.itemCount = 16;
+    wColDesc.separator = 0;
+    wColDesc.textCodec = QTextCodec::codecForName(allCodecs.at(lastCodepage));
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendDescriptor(0, allCodecs.at(lastCodepage), false, wColDesc);
+
+    reloadData();
+}
+
+void CPUDump::textLastCodepageSlot()
+{
+    ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
+    duint lastCodepage;
+    auto allCodecs = QTextCodec::availableCodecs();
+    if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
+        return;
+
+    wColDesc.isData = true; //text (in code page)
+    wColDesc.itemCount = 64;
+    wColDesc.separator = 0;
+    wColDesc.textCodec = QTextCodec::codecForName(allCodecs.at(lastCodepage));
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendResetDescriptor(0, allCodecs.at(lastCodepage), false, wColDesc);
 
     reloadData();
 }

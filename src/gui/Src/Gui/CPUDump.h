@@ -52,10 +52,12 @@ public slots:
     void hexAsciiSlot();
     void hexUnicodeSlot();
     void hexCodepageSlot();
+    void hexLastCodepageSlot();
 
     void textAsciiSlot();
     void textUnicodeSlot();
     void textCodepageSlot();
+    void textLastCodepageSlot();
 
     void integerSignedByteSlot();
     void integerSignedShortSlot();
