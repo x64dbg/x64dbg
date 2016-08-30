@@ -52,9 +52,11 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
     }
     else
     {
+        mHighlightContextMenu = false;
         Disassembly::mousePressEvent(event);
         if(mHighlightingMode) //disable highlighting mode after clicked
         {
+            mHighlightContextMenu = true;
             mHighlightingMode = false;
             reloadData();
         }
@@ -201,8 +203,12 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
 void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 {
     QMenu wMenu(this);
-    mMenuBuilder->build(&wMenu);
-    wMenu.exec(event->globalPos());
+    if(!mHighlightContextMenu)
+        mMenuBuilder->build(&wMenu);
+    else if(mHighlightToken.text.length())
+        mHighlightMenuBuilder->build(&wMenu);
+    if(wMenu.actions().length())
+        wMenu.exec(event->globalPos());
 }
 
 /************************************************************************************
@@ -595,6 +601,9 @@ void CPUDisassembly::setupRightClickContextMenu()
         menu->addActions(mPluginMenu->actions());
         return true;
     }));
+
+    // Highlight menu
+    mHighlightMenuBuilder = new MenuBuilder(this);
 }
 
 void CPUDisassembly::gotoOriginSlot()
