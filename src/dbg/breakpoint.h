@@ -56,6 +56,7 @@ bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd);
 bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume);
+bool BpSetSingleshoot(duint Address, BP_TYPE Type, bool singleshoot);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base = 0);
 bool BpSetSilent(duint Address, BP_TYPE Type, bool silent);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback);

@@ -78,7 +78,7 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     memset(&bp, 0, sizeof(BREAKPOINT));
 
     ModNameFromAddr(Address, bp.mod, true);
-    strcpy_s(bp.name, Name);
+    strncpy_s(bp.name, Name, _TRUNCATE);
 
     bp.active = true;
     bp.addr = Address - ModBaseFromAddr(Address);
@@ -199,7 +199,7 @@ bool BpSetName(duint Address, BP_TYPE Type, const char* Name)
     if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->name, Name);
+    strncpy_s(bpInfo->name, Name, _TRUNCATE);
     return true;
 }
 
@@ -229,8 +229,7 @@ bool BpSetBreakCondition(duint Address, BP_TYPE Type, const char* Condition)
     if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->breakCondition, Condition);
-    DebugUpdateBreakpointsViewAsync();
+    strncpy_s(bpInfo->breakCondition, Condition, _TRUNCATE);
     return true;
 }
 
@@ -245,8 +244,7 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log)
     if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->logText, Log);
-    DebugUpdateBreakpointsViewAsync();
+    strncpy_s(bpInfo->logText, Log, _TRUNCATE);
     return true;
 }
 
@@ -261,7 +259,7 @@ bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition)
     if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->logCondition, Condition);
+    strncpy_s(bpInfo->logCondition, Condition, _TRUNCATE);
     return true;
 }
 
@@ -276,7 +274,7 @@ bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd)
     if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->commandText, Cmd);
+    strncpy_s(bpInfo->commandText, Cmd, _TRUNCATE);
     return true;
 }
 
@@ -291,8 +289,7 @@ bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition)
     if(!bpInfo)
         return false;
 
-    strcpy_s(bpInfo->commandCondition, Condition);
-    DebugUpdateBreakpointsViewAsync();
+    strncpy_s(bpInfo->commandCondition, Condition, _TRUNCATE);
     return true;
 }
 
@@ -308,8 +305,21 @@ bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume)
         return false;
 
     bpInfo->fastResume = fastResume;
-    DebugUpdateBreakpointsViewAsync();
+    return true;
+}
 
+bool BpSetSingleshoot(duint Address, BP_TYPE Type, bool singleshoot)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set breakpoint fast resume
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    bpInfo->singleshoot = singleshoot;
     return true;
 }
 
@@ -433,13 +443,13 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
     ASSERT_NONNULL(BridgeBp);
 
     memset(BridgeBp, 0, sizeof(BRIDGEBP));
-    strcpy_s(BridgeBp->mod, Bp->mod);
-    strcpy_s(BridgeBp->name, Bp->name);
-    strcpy_s(BridgeBp->breakCondition, Bp->breakCondition);
-    strcpy_s(BridgeBp->logText, Bp->logText);
-    strcpy_s(BridgeBp->logCondition, Bp->logCondition);
-    strcpy_s(BridgeBp->commandText, Bp->commandText);
-    strcpy_s(BridgeBp->commandCondition, Bp->commandCondition);
+    strncpy_s(BridgeBp->mod, Bp->mod, _TRUNCATE);
+    strncpy_s(BridgeBp->name, Bp->name, _TRUNCATE);
+    strncpy_s(BridgeBp->breakCondition, Bp->breakCondition, _TRUNCATE);
+    strncpy_s(BridgeBp->logText, Bp->logText, _TRUNCATE);
+    strncpy_s(BridgeBp->logCondition, Bp->logCondition, _TRUNCATE);
+    strncpy_s(BridgeBp->commandText, Bp->commandText, _TRUNCATE);
+    strncpy_s(BridgeBp->commandCondition, Bp->commandCondition, _TRUNCATE);
 
     BridgeBp->active = Bp->active;
     BridgeBp->addr = Bp->addr;
