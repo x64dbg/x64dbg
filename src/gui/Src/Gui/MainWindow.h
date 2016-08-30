@@ -63,6 +63,9 @@ public slots:
     void displayAboutWidget();
     void execTocnd();
     void execTicnd();
+    void animateIntoSlot();
+    void animateOverSlot();
+    void animateCommandSlot();
     void openFile();
     void restartDebugging();
     void displayBreakpointWidget();

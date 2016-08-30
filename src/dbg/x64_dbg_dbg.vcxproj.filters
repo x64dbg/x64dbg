@@ -347,6 +347,9 @@
     <ClCompile Include="exprfunc.cpp">
       <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
+    <ClCompile Include="animate.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -789,6 +792,9 @@
     </ClInclude>
     <ClInclude Include="yara\yara\threading.h">
       <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="animate.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

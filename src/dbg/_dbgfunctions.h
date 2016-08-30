@@ -146,6 +146,7 @@ typedef int (*MODGETPARTY)(duint base);
 typedef void (*MODSETPARTY)(duint base, int party);
 typedef bool(*WATCHISWATCHDOGTRIGGERED)(unsigned int id);
 typedef bool(*MEMISCODEPAGE)(duint addr, bool refresh);
+typedef bool(*ANIMATECOMMAND)(const char* command);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -201,6 +202,7 @@ typedef struct DBGFUNCTIONS_
     MODSETPARTY ModSetParty;
     WATCHISWATCHDOGTRIGGERED WatchIsWatchdogTriggered;
     MEMISCODEPAGE MemIsCodePage;
+    ANIMATECOMMAND AnimateCommand;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

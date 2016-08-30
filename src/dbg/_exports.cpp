@@ -33,6 +33,7 @@
 #include "encodemap.h"
 #include "argument.h"
 #include "watch.h"
+#include "animate.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -883,6 +884,12 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
             // Trim the buffer to fit inside MAX_PATH
             strncpy_s(szSymbolCachePath, cachePath, _TRUNCATE);
         }
+
+        duint animateInterval;
+        if(BridgeSettingGetUint("Engine", "AnimateInterval", &animateInterval))
+            _dbg_setanimateinterval(animateInterval);
+        else
+            _dbg_setanimateinterval(50); // 20 commands per second
     }
     break;
 

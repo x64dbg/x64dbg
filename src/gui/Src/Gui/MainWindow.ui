@@ -109,16 +109,19 @@
     <addaction name="actionseStepInto"/>
     <addaction name="actionStepIntoSource"/>
     <addaction name="actionTicnd"/>
+    <addaction name="actionAnimateInto"/>
     <addaction name="actionStepOver"/>
     <addaction name="actioneStepOver"/>
     <addaction name="actionseStepOver"/>
     <addaction name="actionStepOverSource"/>
     <addaction name="actionRtu"/>
     <addaction name="actionTocnd"/>
+    <addaction name="actionAnimateOver"/>
+    <addaction name="separator"/>
     <addaction name="actionRtr"/>
     <addaction name="actioneRtr"/>
     <addaction name="actionSkipNextInstruction"/>
-    <addaction name="separator"/>
+    <addaction name="actionAnimateCommand"/>
     <addaction name="menuTrace_record"/>
     <addaction name="actionInstrUndo"/>
     <addaction name="separator"/>
@@ -1002,6 +1005,21 @@
    </property>
    <property name="text">
     <string>Blog</string>
+   </property>
+  </action>
+  <action name="actionAnimateInto">
+   <property name="text">
+    <string>Animate into</string>
+   </property>
+  </action>
+  <action name="actionAnimateOver">
+   <property name="text">
+    <string>Animate over</string>
+   </property>
+  </action>
+  <action name="actionAnimateCommand">
+   <property name="text">
+    <string>Animate command...</string>
    </property>
   </action>
  </widget>

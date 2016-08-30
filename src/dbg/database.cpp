@@ -121,7 +121,7 @@ void DbSave(DbLoadSaveType saveType)
     else //remove database when nothing is in there
         DeleteFileW(wdbpath.c_str());
 
-    dprintf("%ums\n", GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
     json_decref(root); //free root
 }
 
@@ -230,7 +230,7 @@ void DbLoad(DbLoadSaveType loadType)
     json_decref(root);
 
     if(loadType != DbLoadSaveType::CommandLine)
-        dprintf("%ums\n", GetTickCount() - ticks);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
 }
 
 void DbClose()
