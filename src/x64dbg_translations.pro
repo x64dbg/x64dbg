@@ -188,7 +188,8 @@ SOURCES += \
     dbg/analysis/linearanalysis.cpp \
     dbg/analysis/LinearPass.cpp \
     dbg/analysis/recursiveanalysis.cpp \
-    dbg/analysis/xrefsanalysis.cpp
+    dbg/analysis/xrefsanalysis.cpp \
+    dbg/animate.cpp
 
 TRANSLATIONS = \
     gui/Translations/x64dbg.ts
@@ -393,7 +394,8 @@ HEADERS += \
     dbg/analysis/linearanalysis.h \
     dbg/analysis/LinearPass.h \
     dbg/analysis/recursiveanalysis.h \
-    dbg/analysis/xrefsanalysis.h
+    dbg/analysis/xrefsanalysis.h \
+    dbg/animate.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
