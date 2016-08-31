@@ -107,9 +107,22 @@ namespace Exprfunc
         return info.branch;
     }
 
+    duint disisret(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return strstr(info.instruction, "ret") != nullptr;
+    }
+
     duint disbranchdest(duint addr)
     {
-        return DbgIsJumpGoingToExecute(addr) ? DbgGetBranchDestination(addr) : disbrfalse(addr);
+        return DbgGetBranchDestination(addr);
+    }
+
+    duint disbranchexec(duint addr)
+    {
+        return DbgIsJumpGoingToExecute(addr);
     }
 
     duint disimm(duint addr)
