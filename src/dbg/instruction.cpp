@@ -82,7 +82,7 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             }
             else
             {
-                sprintf_s(format_str, "%%s=%%.%dd\n", valsize);
+                sprintf_s(format_str, "%%s=%%.%dX\n", valsize);
                 dprintf_untranslated(format_str, *argv, value);
             }
         }
@@ -264,7 +264,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         if(!isvar || !valtostring(argv[1], set_value, true))
         {
             duint value;
-            if(valfromstring(argv[1], &value))  //if the var is a value already it's an invalid destination
+            if(valfromstring(argv[1], &value)) //if the var is a value already it's an invalid destination
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "invalid dest \"%s\"\n"), argv[1]);
                 return STATUS_ERROR;
@@ -611,7 +611,7 @@ CMDRESULT cbInstrGpa(int argc, char* argv[])
         return STATUS_ERROR;
     char newcmd[deflen] = "";
     if(argc >= 3)
-        sprintf_s(newcmd, "%s:%s", argv[2], argv[1]);
+        sprintf_s(newcmd, "\"%s\":%s", argv[2], argv[1]);
     else
         sprintf_s(newcmd, "%s", argv[1]);
     duint result = 0;
@@ -641,7 +641,7 @@ static CMDRESULT ReadWriteVariable(const char* varname, std::function<CMDRESULT(
     if(!isvar || !valtostring(varname, set_value, true))
     {
         duint value;
-        if(valfromstring(varname, &value))  //if the var is a value already it's an invalid destination
+        if(valfromstring(varname, &value)) //if the var is a value already it's an invalid destination
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "invalid variable \"%s\"\n"), varname);
             return STATUS_ERROR;
@@ -655,186 +655,114 @@ CMDRESULT cbInstrAdd(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            *value += value2;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    return cmddirectexec(StringUtils::sprintf("%s+=%s", argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrAnd(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            *value &= value2;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    return cmddirectexec(StringUtils::sprintf("%s&=%s", argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrDec(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [](duint * value, int varsize)
-    {
-        *value = *value - 1;
-        return STATUS_CONTINUE;
-    });
+    return cmddirectexec(StringUtils::sprintf("%s--", argv[1]).c_str());
 }
 
 CMDRESULT cbInstrDiv(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            *value /= value2;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    return cmddirectexec(StringUtils::sprintf("%s/=%s", argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrInc(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [](duint * value, int varsize)
-    {
-        *value = *value + 1;
-        return STATUS_CONTINUE;
-    });
+    return cmddirectexec(StringUtils::sprintf("%s++", argv[1]).c_str());
 }
 
 CMDRESULT cbInstrMul(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            *value *= value2;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    return cmddirectexec(StringUtils::sprintf("%s*=%s", argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrNeg(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [](duint * value, int varsize)
-    {
-        dsint* value1 = reinterpret_cast<dsint*>(value);
-        *value1 = -*value1;
-        return STATUS_CONTINUE;
-    });
+    return cmddirectexec(StringUtils::sprintf("%s=-%s", argv[1], argv[1]).c_str());
 }
 
 CMDRESULT cbInstrNot(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [](duint * value, int varsize)
-    {
-        *value = ~*value;
-        return STATUS_CONTINUE;
-    });
+    return cmddirectexec(StringUtils::sprintf("%s=~%s", argv[1], argv[1]).c_str());
 }
 
 CMDRESULT cbInstrOr(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            *value |= value2;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    return cmddirectexec(StringUtils::sprintf("%s|=%s", argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrRol(int argc, char* argv[])
 {
-    if(IsArgumentsLessThan(argc, 3))
+    duint value2;
+    if(IsArgumentsLessThan(argc, 3) || !valfromstring(argv[2], &value2, false))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    return ReadWriteVariable(argv[1], [value2](duint * value, int size)
     {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            duint value1 = *value;
-            *value = value1 << value2 | value1 >> (varsize * 8 - value2);
-            return STATUS_CONTINUE;
-        }
+        if(size == 1)
+            *value = _rotl8((uint8_t) * value, value2 % 8);
+        else if(size == 2)
+            *value = _rotl16((uint16) * value, value2 % 16);
+        else if(size == 4)
+            *value = _rotl((uint32) * value, value2 % 32);
+#ifdef _WIN64
+        else if(size == 8)
+            *value = _rotl64(*value, value2 % 64);
+#endif //_WIN64
         else
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            dputs(QT_TRANSLATE_NOOP("DBG", "Variable size not supported."));
             return STATUS_ERROR;
         }
+        return STATUS_CONTINUE;
     });
 }
 
 CMDRESULT cbInstrRor(int argc, char* argv[])
 {
-    if(IsArgumentsLessThan(argc, 3))
+    duint value2;
+    if(IsArgumentsLessThan(argc, 3) || !valfromstring(argv[2], &value2, false))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    return ReadWriteVariable(argv[1], [value2](duint * value, int size)
     {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            duint value1 = *value;
-            *value = value1 >> value2 | value1 << (varsize * 8 - value2);
-            return STATUS_CONTINUE;
-        }
+        if(size == 1)
+            *value = _rotr8((uint8_t) * value, value2 % 8);
+        else if(size == 2)
+            *value = _rotr16((uint16) * value, value2 % 16);
+        else if(size == 4)
+            *value = _rotr((uint32) * value, value2 % 32);
+#ifdef _WIN64
+        else if(size == 8)
+            *value = _rotr64(*value, value2 % 64);
+#endif //_WIN64
         else
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
+            dputs(QT_TRANSLATE_NOOP("DBG", "Variable size not supported."));
             return STATUS_ERROR;
         }
+        return STATUS_CONTINUE;
     });
 }
 
@@ -842,81 +770,37 @@ CMDRESULT cbInstrShl(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            *value <<= value2;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    //SHL and SAL have the same semantics
+    return cmddirectexec(StringUtils::sprintf("%s<<=%s", argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrShr(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            *value >>= value2;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    auto oldType = valuesignedcalc();
+    valuesetsignedcalc(false); //SHR is unsigned
+    auto result = cmddirectexec(StringUtils::sprintf("%s>>=%s", argv[1], argv[2]).c_str());
+    valuesetsignedcalc(oldType);
+    return result;
 }
 
 CMDRESULT cbInstrSar(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            dsint* value1 = reinterpret_cast<dsint*>(value);
-            *value1 >>= value2; // signed
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    auto oldType = valuesignedcalc();
+    valuesetsignedcalc(true); //SAR is signed
+    auto result = cmddirectexec(StringUtils::sprintf("%s>>=%s", argv[1], argv[2]).c_str());
+    valuesetsignedcalc(oldType);
+    return result;
 }
 
 CMDRESULT cbInstrSub(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            *value -= value2;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    return cmddirectexec(StringUtils::sprintf("%s-=%s", argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrTest(int argc, char* argv[])
@@ -946,20 +830,7 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
-    {
-        duint value2;
-        if(valfromstring(argv[2], &value2))
-        {
-            *value ^= value2;
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot evaluate expression: \"%s\""), argv[2]);
-            return STATUS_ERROR;
-        }
-    });
+    return cmddirectexec(StringUtils::sprintf("%s^=%s", argv[1], argv[2]).c_str());
 }
 
 CMDRESULT cbInstrPush(int argc, char* argv[])
@@ -1002,7 +873,9 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
         return STATUS_ERROR;
     return ReadWriteVariable(argv[1], [argv](duint * value, int size)
     {
-        if(size == 2)
+        if(size == 1)
+            *value = *value;
+        else if(size == 2)
             *value = _byteswap_ushort((uint16) * value);
         else if(size == 4)
             *value = _byteswap_ulong((uint32) * value);

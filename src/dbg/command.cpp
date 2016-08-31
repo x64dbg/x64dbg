@@ -277,9 +277,8 @@ CMDRESULT cmddirectexec(const char* cmd)
     {
         ExpressionParser parser(command);
         duint result;
-        if(!parser.Calculate(result, valuesignedcalc(), true))
+        if(!parser.Calculate(result, valuesignedcalc(), true, false))
             return STATUS_ERROR;
-        varset("$result", result, false);
         varset("$ans", result, true);
         return STATUS_CONTINUE;
     }
