@@ -1554,6 +1554,7 @@ void MainWindow::clickFavouriteTool()
         QString scriptPath = data.mid(7);
         DbgScriptUnload();
         DbgScriptLoad(scriptPath.toUtf8().constData());
+        displayScriptWidget();
     }
     else if(data.compare("Command") == 0)
     {
