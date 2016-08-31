@@ -43,6 +43,7 @@
 #include "argument.h"
 #include "historycontext.h"
 #include "exception.h"
+#include "TraceRecord.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -2819,17 +2820,20 @@ CMDRESULT cbInstrDisableLog(int argc, char* argv[])
     GuiDisableLog();
     return STATUS_CONTINUE;
 }
+
 CMDRESULT cbInstrEnableLog(int argc, char* argv[])
 {
     GuiEnableLog();
     return STATUS_CONTINUE;
 }
+
 CMDRESULT cbInstrAddFavTool(int argc, char* argv[])
 {
     // filename, description
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    else if(argc == 2)
+
+    if(argc == 2)
         GuiAddFavouriteTool(argv[1], nullptr);
     else
         GuiAddFavouriteTool(argv[1], argv[2]);
@@ -2841,7 +2845,8 @@ CMDRESULT cbInstrAddFavCmd(int argc, char* argv[])
     // command, shortcut
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    else if(argc == 2)
+
+    if(argc == 2)
         GuiAddFavouriteCommand(argv[1], nullptr);
     else
         GuiAddFavouriteCommand(argv[1], argv[2]);
@@ -2853,33 +2858,30 @@ CMDRESULT cbInstrSetFavToolShortcut(int argc, char* argv[])
     // filename, shortcut
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    else
-    {
-        GuiSetFavouriteToolShortcut(argv[1], argv[2]);
-        return STATUS_CONTINUE;
-    }
+
+    GuiSetFavouriteToolShortcut(argv[1], argv[2]);
+    return STATUS_CONTINUE;
+
 }
 
 CMDRESULT cbInstrFoldDisassembly(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
-    else
+
+    duint start, length;
+    if(!valfromstring(argv[1], &start))
     {
-        duint start, length;
-        if(!valfromstring(argv[1], &start))
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid argument 1 : %s\n"), argv[1]);
-            return STATUS_ERROR;
-        }
-        if(!valfromstring(argv[2], &length))
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid argument 2 : %s\n"), argv[2]);
-            return STATUS_ERROR;
-        }
-        GuiFoldDisassembly(start, length);
-        return STATUS_CONTINUE;
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid argument 1 : %s\n"), argv[1]);
+        return STATUS_ERROR;
     }
+    if(!valfromstring(argv[2], &length))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid argument 2 : %s\n"), argv[2]);
+        return STATUS_ERROR;
+    }
+    GuiFoldDisassembly(start, length);
+    return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrImageinfo(int argc, char* argv[])
@@ -2946,5 +2948,16 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[])
 
     dputs("---------------");
 
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrTraceexecute(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return STATUS_ERROR;
+    duint addr;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
+    _dbg_dbgtraceexecute(addr);
     return STATUS_CONTINUE;
 }

@@ -110,5 +110,6 @@ CMDRESULT cbInstrAddFavCmd(int argc, char* argv[]);
 CMDRESULT cbInstrSetFavToolShortcut(int argc, char* argv[]);
 CMDRESULT cbInstrFoldDisassembly(int argc, char* argv[]);
 CMDRESULT cbInstrImageinfo(int argc, char* argv[]);
+CMDRESULT cbInstrTraceexecute(int argc, char* argv[]);
 
 #endif // _INSTRUCTION_H

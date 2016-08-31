@@ -326,6 +326,7 @@ static void registercommands()
     dbgcmdnew("AddFavouriteToolShortcut\1SetFavouriteToolShortcut", cbInstrSetFavToolShortcut, false); //set favourite tool shortcut
     dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
     dbgcmdnew("imageinfo\1modimageinfo", cbInstrImageinfo, true); //print module image information
+    dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
