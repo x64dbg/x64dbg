@@ -21,6 +21,8 @@ ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() 
     case Type::OperatorAssignSub:
     case Type::OperatorAssignShl:
     case Type::OperatorAssignShr:
+    case Type::OperatorAssignRol:
+    case Type::OperatorAssignRor:
     case Type::OperatorAssignAnd:
     case Type::OperatorAssignXor:
     case Type::OperatorAssignOr:
@@ -35,6 +37,8 @@ ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() 
     case Type::OperatorSub:
     case Type::OperatorShl:
     case Type::OperatorShr:
+    case Type::OperatorRol:
+    case Type::OperatorRor:
     case Type::OperatorAnd:
     case Type::OperatorXor:
     case Type::OperatorOr:
@@ -81,6 +85,8 @@ int ExpressionParser::Token::precedence() const
         return 4;
     case Type::OperatorShl:
     case Type::OperatorShr:
+    case Type::OperatorRol:
+    case Type::OperatorRor:
         return 5;
     case Type::OperatorSmaller:
     case Type::OperatorSmallerEqual:
@@ -110,6 +116,8 @@ int ExpressionParser::Token::precedence() const
     case Type::OperatorAssignSub:
     case Type::OperatorAssignShl:
     case Type::OperatorAssignShr:
+    case Type::OperatorAssignRol:
+    case Type::OperatorAssignRor:
     case Type::OperatorAssignAnd:
     case Type::OperatorAssignXor:
     case Type::OperatorAssignOr:
@@ -261,7 +269,14 @@ void ExpressionParser::tokenize()
                         addOperatorToken("<=", Token::Type::OperatorSmallerEqual);
                     else if(tryEatNextCh(i, '<'))
                     {
-                        if(tryEatNextCh(i, '='))
+                        if(tryEatNextCh(i, '<'))
+                        {
+                            if(tryEatNextCh(i, '='))
+                                addOperatorToken("<<<=", Token::Type::OperatorAssignRol);
+                            else
+                                addOperatorToken("<<<", Token::Type::OperatorRol);
+                        }
+                        else if(tryEatNextCh(i, '='))
                             addOperatorToken("<<=", Token::Type::OperatorAssignShl);
                         else
                             addOperatorToken("<<", Token::Type::OperatorShl);
@@ -274,7 +289,14 @@ void ExpressionParser::tokenize()
                         addOperatorToken(">=", Token::Type::OperatorBiggerEqual);
                     else if(tryEatNextCh(i, '>'))
                     {
-                        if(tryEatNextCh(i, '='))
+                        if(tryEatNextCh(i, '>'))
+                        {
+                            if(tryEatNextCh(i, '='))
+                                addOperatorToken(">>>=", Token::Type::OperatorAssignRor);
+                            else
+                                addOperatorToken(">>>", Token::Type::OperatorRor);
+                        }
+                        else if(tryEatNextCh(i, '='))
                             addOperatorToken(">>=", Token::Type::OperatorAssignShr);
                         else
                             addOperatorToken(">>", Token::Type::OperatorShr);
@@ -513,6 +535,20 @@ static bool operation(const ExpressionParser::Token::Type type, const T op1, con
     case ExpressionParser::Token::Type::OperatorShr:
         result = op1 >> op2;
         break;
+    case ExpressionParser::Token::Type::OperatorRol:
+#ifdef _WIN64
+        result = _rotl64(op1, int(op2) % 64);
+#else
+        result = _rotl(op1, int(op2) % 32);
+#endif
+        break;
+    case ExpressionParser::Token::Type::OperatorRor:
+#ifdef _WIN64
+        result = _rotr64(op1, int(op2) % 64);
+#else
+        result = _rotr(op1, int(op2) % 32);
+#endif
+        break;
     case ExpressionParser::Token::Type::OperatorAnd:
         result = op1 & op2;
         break;
@@ -585,6 +621,12 @@ static bool getAssignmentOperator(ExpressionParser::Token::Type type, Expression
     case ExpressionParser::Token::Type::OperatorAssignShr:
         result = ExpressionParser::Token::Type::OperatorShr;
         break;
+    case ExpressionParser::Token::Type::OperatorAssignRol:
+        result = ExpressionParser::Token::Type::OperatorRol;
+        break;
+    case ExpressionParser::Token::Type::OperatorAssignRor:
+        result = ExpressionParser::Token::Type::OperatorRor;
+        break;
     case ExpressionParser::Token::Type::OperatorAssignAnd:
         result = ExpressionParser::Token::Type::OperatorAnd;
         break;
@@ -638,6 +680,8 @@ static bool evalOperation(ExpressionParser::Token::Type type, const ExpressionPa
     case ExpressionParser::Token::Type::OperatorAssignSub:
     case ExpressionParser::Token::Type::OperatorAssignShl:
     case ExpressionParser::Token::Type::OperatorAssignShr:
+    case ExpressionParser::Token::Type::OperatorAssignRol:
+    case ExpressionParser::Token::Type::OperatorAssignRor:
     case ExpressionParser::Token::Type::OperatorAssignAnd:
     case ExpressionParser::Token::Type::OperatorAssignXor:
     case ExpressionParser::Token::Type::OperatorAssignOr:
@@ -767,6 +811,8 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
             case Token::Type::OperatorSub:
             case Token::Type::OperatorShl:
             case Token::Type::OperatorShr:
+            case Token::Type::OperatorRol:
+            case Token::Type::OperatorRor:
             case Token::Type::OperatorAnd:
             case Token::Type::OperatorXor:
             case Token::Type::OperatorOr:
@@ -788,6 +834,8 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
             case Token::Type::OperatorAssignSub:
             case Token::Type::OperatorAssignShl:
             case Token::Type::OperatorAssignShr:
+            case Token::Type::OperatorAssignRol:
+            case Token::Type::OperatorAssignRor:
             case Token::Type::OperatorAssignAnd:
             case Token::Type::OperatorAssignXor:
             case Token::Type::OperatorAssignOr:
