@@ -163,7 +163,6 @@ void ExpressionParser::tokenize()
         auto ch = mExpression[i];
         switch(ch)
         {
-        case '\'':
         case '\"':
         {
             stateQuote = !stateQuote;
