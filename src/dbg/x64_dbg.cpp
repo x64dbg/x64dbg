@@ -262,7 +262,7 @@ static void registercommands()
     dbgcmdnew("or", cbInstrOr, false);
     dbgcmdnew("rol", cbInstrRol, false);
     dbgcmdnew("ror", cbInstrRor, false);
-    dbgcmdnew("shl", cbInstrShl, false);
+    dbgcmdnew("shl\1sal", cbInstrShl, false);
     dbgcmdnew("shr", cbInstrShr, false);
     dbgcmdnew("sar", cbInstrSar, false);
     dbgcmdnew("sub", cbInstrSub, false);
@@ -270,7 +270,7 @@ static void registercommands()
     dbgcmdnew("xor", cbInstrXor, false);
     dbgcmdnew("push", cbInstrPush, true);
     dbgcmdnew("pop", cbInstrPop, true);
-    dbgcmdnew("bswap", cbInstrBswap, true);
+    dbgcmdnew("bswap", cbInstrBswap, false);
 
     //script
     dbgcmdnew("scriptload", cbScriptLoad, false);
