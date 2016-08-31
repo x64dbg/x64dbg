@@ -119,7 +119,7 @@ void FavouriteTools::on_btnAddFavouriteTool_clicked()
     memset(buffer, 0, sizeof(buffer));
     BridgeSettingGet("Favourite", "LastToolPath", buffer);
     BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString::fromUtf8(buffer), false);
-    if(browse.exec() != QDialog::Accepted)
+    if(browse.exec() != QDialog::Accepted && browse.path.length())
         return;
     filename = browse.path;
     BridgeSettingSet("Favourite", "LastToolPath", filename.toUtf8().constData());
@@ -142,7 +142,7 @@ void FavouriteTools::on_btnEditFavouriteTool_clicked()
     memset(buffer, 0, sizeof(buffer));
     BridgeSettingGet("Favourite", "LastToolPath", buffer);
     BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString::fromUtf8(buffer), false);
-    if(browse.exec() != QDialog::Accepted)
+    if(browse.exec() != QDialog::Accepted && browse.path.length())
         return;
     filename = browse.path;
     BridgeSettingSet("Favourite", "LastToolPath", filename.toUtf8().constData());
@@ -294,7 +294,7 @@ void FavouriteTools::on_btnEditFavouriteCommand_clicked()
     if(!table->rowCount())
         return;
     QString cmd;
-    if(SimpleInputBox(this, tr("Enter a new command"), table->item(table->currentRow(), 0)->text(), cmd, tr("Example: bphws ESP")))
+    if(SimpleInputBox(this, tr("Enter a new command"), table->item(table->currentRow(), 0)->text(), cmd, tr("Example: bphws ESP")) && cmd.length())
         table->item(table->currentRow(), 0)->setText(cmd);
 }
 
