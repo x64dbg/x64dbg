@@ -693,31 +693,21 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
 {
     bool wAccept = false;
 
-    if(DbgIsDebugging() && ((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
+    if(mHighlightingMode)
     {
-        if(getGuiState() == AbstractTableView::NoState)
+        if(getColumnIndexFromX(event->x()) == 2) //click in instruction column
         {
-            if(mHighlightingMode)
+            int rowOffset = getIndexOffsetFromY(transY(event->y()));
+            if(rowOffset < mInstBuffer.size())
             {
-                if(getColumnIndexFromX(event->x()) == 2) //click in instruction column
+                CapstoneTokenizer::SingleToken token;
+                if(CapstoneTokenizer::TokenFromX(mInstBuffer.at(rowOffset).tokens, token, event->x(), mFontMetrics))
                 {
-                    int rowOffset = getIndexOffsetFromY(transY(event->y()));
-                    if(rowOffset < mInstBuffer.size())
+                    if(CapstoneTokenizer::IsHighlightableToken(token) && !CapstoneTokenizer::TokenEquals(&token, &mHighlightToken))
+                        mHighlightToken = token;
+                    else
                     {
-                        CapstoneTokenizer::SingleToken token;
-                        if(CapstoneTokenizer::TokenFromX(mInstBuffer.at(rowOffset).tokens, token, event->x(), mFontMetrics))
-                        {
-                            if(CapstoneTokenizer::IsHighlightableToken(token) && !CapstoneTokenizer::TokenEquals(&token, &mHighlightToken))
-                                mHighlightToken = token;
-                            else
-                            {
-                                mHighlightToken = CapstoneTokenizer::SingleToken();
-                            }
-                        }
-                        else
-                        {
-                            mHighlightToken = CapstoneTokenizer::SingleToken();
-                        }
+                        mHighlightToken = CapstoneTokenizer::SingleToken();
                     }
                 }
                 else
@@ -725,7 +715,19 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                     mHighlightToken = CapstoneTokenizer::SingleToken();
                 }
             }
-            else if(event->y() > getHeaderHeight())
+        }
+        else
+        {
+            mHighlightToken = CapstoneTokenizer::SingleToken();
+        }
+        return;
+    }
+
+    if(DbgIsDebugging() && ((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
+    {
+        if(getGuiState() == AbstractTableView::NoState)
+        {
+            if(event->y() > getHeaderHeight())
             {
                 dsint wIndex = getIndexOffsetFromY(transY(event->y()));
 

@@ -140,7 +140,8 @@ private:
     CPUWidget* mParentCPUWindow;
 
     MenuBuilder* mMenuBuilder;
-
+    MenuBuilder* mHighlightMenuBuilder;
+    bool mHighlightContextMenu = false;
 };
 
 #endif // CPUDISASSEMBLY_H

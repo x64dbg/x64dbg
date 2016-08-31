@@ -75,7 +75,7 @@ void HexLineEdit::setData(const QByteArray & data)
         break;
 
     case Encoding::Unicode:
-        text = QString::fromUtf16((const ushort *)data.constData());
+        text = QString::fromUtf16((const ushort*)data.constData());
         break;
     }
     for(auto & i : text)

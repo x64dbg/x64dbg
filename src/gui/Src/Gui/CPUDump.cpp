@@ -458,8 +458,8 @@ void CPUDump::gotoExpressionSlot()
     mGoto->setWindowTitle(tr("Enter expression to follow in Dump..."));
     if(mGoto->exec() == QDialog::Accepted)
     {
-        QString cmd;
-        DbgCmdExec(cmd.sprintf("dump \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
+        duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
+        DbgCmdExec(QString().sprintf("dump %p", value).toUtf8().constData());
     }
 }
 
@@ -1447,8 +1447,7 @@ void CPUDump::syncWithExpressionSlot()
     if(gotoDialog.exec() != QDialog::Accepted)
         return;
     mSyncAddrExpression = gotoDialog.expressionText;
-    if(mSyncAddrExpression.length())
-        DbgCmdExec(QString("dump \"%1\"").arg(mSyncAddrExpression).toUtf8().constData());
+    updateDumpSlot();
 }
 
 void CPUDump::followInDumpNSlot()

@@ -150,7 +150,6 @@ private:
 
     QList<HistoryData_t> mVaHistory;
     int mCurrentVa;
-    CapstoneTokenizer::SingleToken mHighlightToken;
 
 protected:
     // Configuration
@@ -216,6 +215,7 @@ protected:
     XREF_INFO mXrefInfo;
     CodeFoldingHelper* mCodeFoldingManager;
     DisassemblyPopup mDisassemblyPopup;
+    CapstoneTokenizer::SingleToken mHighlightToken;
 };
 
 #endif // DISASSEMBLY_H
