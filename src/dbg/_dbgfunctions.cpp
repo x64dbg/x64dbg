@@ -343,4 +343,6 @@ void dbgfunctionsinit()
     _dbgfunctions.GetDbgEvents = dbggetdbgevents;
     _dbgfunctions.MemIsCodePage = MemIsCodePage;
     _dbgfunctions.AnimateCommand = _dbg_animatecommand;
+    _dbgfunctions.DbgSetDebuggeeInitScript = dbgsetdebuggeeinitscript;
+    _dbgfunctions.DbgGetDebuggeeInitScript = dbggetdebuggeeinitscript;
 }

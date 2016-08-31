@@ -109,7 +109,7 @@ duint dbggetdbgevents();
 bool dbgsettracecondition(String expression, duint maxCount);
 bool dbgtraceactive();
 void dbgsetdebuggeeinitscript(const char* fileName);
-char* dbggetdebuggeeinitscript();
+const char* dbggetdebuggeeinitscript();
 
 void cbStep();
 void cbRtrStep();

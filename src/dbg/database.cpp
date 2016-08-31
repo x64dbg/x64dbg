@@ -73,10 +73,10 @@ void DbSave(DbLoadSaveType saveType)
         }
 
         //save initialization script
-        text = dbggetdebuggeeinitscript();
-        if(text[0] != 0)
+        const char* initscript = dbggetdebuggeeinitscript();
+        if(initscript[0] != 0)
         {
-            json_object_set_new(root, "initscript", json_string(text));
+            json_object_set_new(root, "initscript", json_string(initscript));
         }
 
         //plugin data

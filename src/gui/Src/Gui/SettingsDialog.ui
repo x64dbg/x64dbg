@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>325</height>
+    <height>420</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -297,6 +297,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkNoScriptTimeout">
+         <property name="text">
+          <string>No Script Timeout Warning</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -488,6 +495,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkSaveLoadTabOrder">
+         <property name="text">
+          <string>Enable Load/Save Tab Order</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -581,10 +595,15 @@
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="chkSaveLoadTabOrder">
-           <property name="text">
-            <string>Enable Load/Save Tab Order</string>
+          <widget class="QGroupBox" name="groupBox_3">
+           <property name="title">
+            <string>Search Engine URL</string>
            </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLineEdit" name="editHelpOnSymbolicNameUrl"/>
+            </item>
+           </layout>
           </widget>
          </item>
         </layout>
