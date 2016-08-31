@@ -44,6 +44,7 @@
 #include "CPUMultiDump.h"
 #include "CPUStack.h"
 #include "GotoDialog.h"
+#include "BrowseDialog.h"
 #include "main.h"
 
 QString MainWindow::windowTitle = "";
@@ -329,6 +330,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionAnimateInto, SIGNAL(triggered()), this, SLOT(animateIntoSlot()));
     connect(ui->actionAnimateOver, SIGNAL(triggered()), this, SLOT(animateOverSlot()));
     connect(ui->actionAnimateCommand, SIGNAL(triggered()), this, SLOT(animateCommandSlot()));
+    connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitialzationScript()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -1675,4 +1677,26 @@ void MainWindow::animateCommandSlot()
     QString command;
     if(SimpleInputBox(this, tr("Animate command"), "", command, tr("Example: StepInto")))
         DbgFunctions()->AnimateCommand(command.toUtf8().constData());
+}
+
+void MainWindow::setInitialzationScript()
+{
+    QString global, debuggee;
+    char globalChar[MAX_SETTING_SIZE];
+    if(DbgIsDebugging())
+    {
+        debuggee = QString::fromUtf8(DbgFunctions()->DbgGetDebuggeeInitScript());
+        BrowseDialog browseScript(this, tr("Set Initialzation Script for Debuggee"), tr("Set Initialzation Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
+        if(browseScript.exec() == QDialog::Accepted)
+            DbgFunctions()->DbgSetDebuggeeInitScript(browseScript.path.toUtf8().constData());
+    }
+    if(BridgeSettingGet("Engine", "InitializeScript", globalChar))
+        global = QString::fromUtf8(globalChar);
+    else
+        global = QString();
+    BrowseDialog browseScript(this, tr("Set Global Initialzation Script"), tr("Set Global Initialzation Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);
+    if(browseScript.exec() == QDialog::Accepted)
+    {
+        BridgeSettingSet("Engine", "InitializeScript", browseScript.path.toUtf8().constData());
+    }
 }

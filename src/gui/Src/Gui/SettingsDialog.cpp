@@ -57,6 +57,7 @@ void SettingsDialog::LoadSettings()
     settings.engineUndecorateSymbolNames = true;
     settings.engineEnableSourceDebugging = true;
     settings.engineEnableTraceRecordDuringTrace = true;
+    settings.engineNoScriptTimeout = false;
     settings.exceptionRanges = &realExceptionRanges;
     settings.disasmArgumentSpaces = false;
     settings.disasmMemorySpaces = false;
@@ -118,6 +119,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "DisableDatabaseCompression", &settings.engineDisableDatabaseCompression);
     GetSettingBool("Engine", "TraceRecordEnabledDuringTrace", &settings.engineEnableTraceRecordDuringTrace);
     GetSettingBool("Engine", "SkipInt3Stepping", &settings.engineSkipInt3Stepping);
+    GetSettingBool("Engine", "NoScriptTimeout", &settings.engineNoScriptTimeout);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -146,6 +148,7 @@ void SettingsDialog::LoadSettings()
     ui->chkDisableDatabaseCompression->setChecked(settings.engineDisableDatabaseCompression);
     ui->chkTraceRecordEnabledDuringTrace->setChecked(settings.engineEnableTraceRecordDuringTrace);
     ui->chkSkipInt3Stepping->setChecked(settings.engineSkipInt3Stepping);
+    ui->chkNoScriptTimeout->setChecked(settings.engineNoScriptTimeout);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -233,15 +236,17 @@ void SettingsDialog::LoadSettings()
     }
     char setting[MAX_SETTING_SIZE] = "";
     if(BridgeSettingGet("Symbols", "DefaultStore", setting))
-        ui->editSymbolStore->setText(QString(setting));
+        ui->editSymbolStore->setText(QString::fromUtf8(setting));
     else
     {
-        QString defaultStore = "http://msdl.microsoft.com/download/symbols";
+        QString defaultStore("http://msdl.microsoft.com/download/symbols");
         ui->editSymbolStore->setText(defaultStore);
         BridgeSettingSet("Symbols", "DefaultStore", defaultStore.toUtf8().constData());
     }
     if(BridgeSettingGet("Symbols", "CachePath", setting))
-        ui->editSymbolCache->setText(QString(setting));
+        ui->editSymbolCache->setText(QString::fromUtf8(setting));
+    if(BridgeSettingGet("Misc", "HelpOnSymbolicNameUrl", setting))
+        ui->editHelpOnSymbolicNameUrl->setText(QString::fromUtf8(setting));
 
     bJitOld = settings.miscSetJIT;
     bJitAutoOld = settings.miscSetJITAuto;
@@ -275,6 +280,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "DisableDatabaseCompression", settings.engineDisableDatabaseCompression);
     BridgeSettingSetUint("Engine", "TraceRecordEnabledDuringTrace", settings.engineEnableTraceRecordDuringTrace);
     BridgeSettingSetUint("Engine", "SkipInt3Stepping", settings.engineSkipInt3Stepping);
+    BridgeSettingSetUint("Engine", "NoScriptTimeout", settings.engineNoScriptTimeout);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -305,23 +311,24 @@ void SettingsDialog::SaveSettings()
         if(bJitOld != settings.miscSetJIT)
         {
             if(settings.miscSetJIT)
-                DbgCmdExecDirect("setjit oldsave");
+                DbgCmdExec("setjit oldsave");
             else
-                DbgCmdExecDirect("setjit restore");
+                DbgCmdExec("setjit restore");
         }
 
         if(bJitAutoOld != settings.miscSetJITAuto)
         {
             if(!settings.miscSetJITAuto)
-                DbgCmdExecDirect("setjitauto on");
+                DbgCmdExec("setjitauto on");
             else
-                DbgCmdExecDirect("setjitauto off");
+                DbgCmdExec("setjitauto off");
         }
     }
     if(settings.miscSymbolStore)
         BridgeSettingSet("Symbols", "DefaultStore", ui->editSymbolStore->text().toUtf8().constData());
     if(settings.miscSymbolCache)
         BridgeSettingSet("Symbols", "CachePath", ui->editSymbolCache->text().toUtf8().constData());
+    BridgeSettingSet("Misc", "HelpOnSymbolicNameUrl", ui->editHelpOnSymbolicNameUrl->text().toUtf8().constData());
 
     BridgeSettingSetUint("Miscellaneous", "LoadSaveTabOrder", settings.miscLoadSaveTabOrder);
 
@@ -477,42 +484,27 @@ void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
 
 void SettingsDialog::on_chkDllLoad_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventDllLoad = false;
-    else
-        settings.eventDllLoad = true;
+    settings.eventDllLoad = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkDllUnload_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventDllUnload = false;
-    else
-        settings.eventDllUnload = true;
+    settings.eventDllUnload = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkThreadStart_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventThreadStart = false;
-    else
-        settings.eventThreadStart = true;
+    settings.eventThreadStart = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkThreadEnd_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventThreadEnd = false;
-    else
-        settings.eventThreadEnd = true;
+    settings.eventThreadEnd = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkDebugStrings_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventDebugStrings = false;
-    else
-        settings.eventDebugStrings = true;
+    settings.eventDebugStrings = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_radioUnsigned_clicked()
@@ -617,36 +609,24 @@ void SettingsDialog::on_btnAddLast_clicked()
 void SettingsDialog::on_chkArgumentSpaces_stateChanged(int arg1)
 {
     bTokenizerConfigUpdated = true;
-    if(arg1 == Qt::Unchecked)
-        settings.disasmArgumentSpaces = false;
-    else
-        settings.disasmArgumentSpaces = true;
+    settings.disasmArgumentSpaces = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkMemorySpaces_stateChanged(int arg1)
 {
     bTokenizerConfigUpdated = true;
-    if(arg1 == Qt::Unchecked)
-        settings.disasmMemorySpaces = false;
-    else
-        settings.disasmMemorySpaces = true;
+    settings.disasmMemorySpaces = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkUppercase_stateChanged(int arg1)
 {
     bTokenizerConfigUpdated = true;
-    if(arg1 == Qt::Unchecked)
-        settings.disasmUppercase = false;
-    else
-        settings.disasmUppercase = true;
+    settings.disasmUppercase = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkOnlyCipAutoComments_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.disasmOnlyCipAutoComments = false;
-    else
-        settings.disasmOnlyCipAutoComments = true;
+    settings.disasmOnlyCipAutoComments = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1)
@@ -669,28 +649,18 @@ void SettingsDialog::on_editSymbolCache_textEdited(const QString & arg1)
 
 void SettingsDialog::on_chkSaveLoadTabOrder_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.miscLoadSaveTabOrder = false;
-    else
-        settings.miscLoadSaveTabOrder = true;
-
+    settings.miscLoadSaveTabOrder = arg1 != Qt::Unchecked;
     emit chkSaveLoadTabOrderStateChanged((bool)arg1);
 }
 
 void SettingsDialog::on_chkFpuRegistersLittleEndian_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.guiFpuRegistersLittleEndian = false;
-    else
-        settings.guiFpuRegistersLittleEndian = true;
+    settings.guiFpuRegistersLittleEndian = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkSaveColumnOrder_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.guiSaveColumnOrder = false;
-    else
-        settings.guiSaveColumnOrder = true;
+    settings.guiSaveColumnOrder = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkNoCloseDialog_toggled(bool checked)
@@ -706,4 +676,9 @@ void SettingsDialog::on_chkSkipInt3Stepping_toggled(bool checked)
 void SettingsDialog::on_chkPidInHex_clicked(bool checked)
 {
     settings.guiPidInHex = checked;
+}
+
+void SettingsDialog::on_chkNoScriptTimeout_stateChanged(int arg1)
+{
+    settings.engineNoScriptTimeout = arg1 != Qt::Unchecked;
 }

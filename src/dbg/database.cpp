@@ -23,6 +23,7 @@
 #include "encodemap.h"
 #include "plugin_loader.h"
 #include "argument.h"
+#include "debugger.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -69,6 +70,13 @@ void DbSave(DbLoadSaveType saveType)
         {
             json_object_set_new(root, "notes", json_string(text));
             BridgeFree(text);
+        }
+
+        //save initialization script
+        const char* initscript = dbggetdebuggeeinitscript();
+        if(initscript[0] != 0)
+        {
+            json_object_set_new(root, "initscript", json_string(initscript));
         }
 
         //plugin data
@@ -203,6 +211,10 @@ void DbLoad(DbLoadSaveType loadType)
         // Load notes
         const char* text = json_string_value(json_object_get(root, "notes"));
         GuiSetDebuggeeNotes(text);
+
+        // Initialization script
+        text = json_string_value(json_object_get(root, "initscript"));
+        dbgsetdebuggeeinitscript(text);
 
         // Plugins
         JSON pluginRoot = json_object_get(root, "plugins");
