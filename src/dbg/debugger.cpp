@@ -28,6 +28,7 @@
 #include "historycontext.h"
 #include "taskthread.h"
 #include "animate.h"
+#include "simplescript.h"
 
 struct TraceCondition
 {
@@ -75,6 +76,7 @@ static bool bStopDumpRefreshThread = false;
 static String lastDebugText;
 static duint timeWastedDebugging = 0;
 static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
+static char szDebuggeeInitializationScript[MAX_PATH] = "";
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
 char sqlitedb[deflen] = "";
@@ -530,21 +532,23 @@ static void printHwBpInfo(const BREAKPOINT & bp)
 
 static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
 {
-    const char* bptype = "";
+    char* bptype;
     switch(bp.titantype)
     {
     case UE_MEMORY_READ:
-        bptype = " (read)";
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (read)")));
         break;
     case UE_MEMORY_WRITE:
-        bptype = " (write)";
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (write)")));
         break;
     case UE_MEMORY_EXECUTE:
-        bptype = " (execute)";
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (execute)")));
         break;
     case UE_MEMORY:
-        bptype = " (read/write/execute)";
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (read/write/execute)")));
         break;
+    default:
+        bptype = _strdup("");
     }
     auto symbolicname = SymGetSymbolicName(bp.addr);
     if(symbolicname.length())
@@ -561,6 +565,7 @@ static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
         else
             dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s at %p (%p)!\n"), bptype, bp.addr, ExceptionAddress);
     }
+    free(bptype);
 }
 
 static bool getConditionValue(const char* expression)
@@ -1336,17 +1341,38 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
     callbackInfo.reserved = 0;
     plugincbcall(CB_SYSTEMBREAKPOINT, &callbackInfo);
 
+    lock(WAITID_RUN); // Allow the user to run a script file now
     if(bIsAttached ? settingboolget("Events", "AttachBreakpoint") : settingboolget("Events", "SystemBreakpoint"))
     {
         //lock
         GuiSetDebugStateAsync(paused);
-        lock(WAITID_RUN);
         // Plugin callback
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         SetForegroundWindow(GuiGetWindowHandle());
-        wait(WAITID_RUN);
+        char script[MAX_SETTING_SIZE];
+        if(BridgeSettingGet("Engine", "InitializeScript", script)) // Global script file
+        {
+            if(scriptLoadSync(script) == 0)
+                scriptRunSync((void*)0);
+            else
+                dputs(QT_TRANSLATE_NOOP("DBG", "Error: Cannot load global initialization script."));
+        }
+
     }
+    else
+    {
+        char script[MAX_SETTING_SIZE];
+        if(BridgeSettingGet("Engine", "InitializeScript", script)) // Global script file
+        {
+            if(scriptLoadSync(script) == 0)
+                scriptRunSync((void*)0);
+            else
+                dputs(QT_TRANSLATE_NOOP("DBG", "Error: Cannot load global initialization script."));
+        }
+        unlock(WAITID_RUN);
+    }
+    wait(WAITID_RUN);
 }
 
 static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
@@ -1356,7 +1382,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     char DLLDebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
-        strcpy_s(DLLDebugFileName, "??? (GetFileNameFromHandle failed)");
+        strcpy_s(DLLDebugFileName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
 
     SafeSymLoadModuleExW(fdProcessInfo->hProcess, LoadDll->hFile, StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULEW64 modInfo;
@@ -2520,6 +2546,19 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     pDebuggedBase = 0;
     pCreateProcessBase = 0;
     isDetachedByUser = false;
+}
+
+void dbgsetdebuggeeinitscript(const char* fileName)
+{
+    if(fileName)
+        strcpy_s(szDebuggeeInitializationScript, fileName);
+    else
+        szDebuggeeInitializationScript[0] = 0;
+}
+
+char* dbggetdebuggeeinitscript()
+{
+    return szDebuggeeInitializationScript;
 }
 
 DWORD WINAPI threadDebugLoop(void* lpParameter)

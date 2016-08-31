@@ -78,12 +78,12 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
 #else //x86
                     sprintf_s(format_str, "%%s=%%.%dX (%%d)\n", valsize);
 #endif //_WIN64
-                dprintf(format_str, *argv, value, value);
+                dprintf_untranslated(format_str, *argv, value, value);
             }
             else
             {
-                sprintf_s(format_str, "%%s=%%.%d\n", valsize);
-                dprintf(format_str, *argv, value);
+                sprintf_s(format_str, "%%s=%%.%dd\n", valsize);
+                dprintf_untranslated(format_str, *argv, value);
             }
         }
         else
@@ -107,7 +107,7 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
 #else //x86
                 sprintf_s(format_str, "%%.%dX (%%ud)\n", valsize);
 #endif //_WIN64
-                dprintf(format_str, value, value);
+                dprintf_untranslated(format_str, value, value);
             }
             else
             {
@@ -695,9 +695,9 @@ CMDRESULT cbInstrDec(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    return ReadWriteVariable(argv[1], [](duint * value, int varsize)
     {
-        *value--;
+        *value = *value - 1;
         return STATUS_CONTINUE;
     });
 }
@@ -726,9 +726,9 @@ CMDRESULT cbInstrInc(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    return ReadWriteVariable(argv[1], [](duint * value, int varsize)
     {
-        *value++;
+        *value = *value + 1;
         return STATUS_CONTINUE;
     });
 }
@@ -757,7 +757,7 @@ CMDRESULT cbInstrNeg(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    return ReadWriteVariable(argv[1], [](duint * value, int varsize)
     {
         dsint* value1 = reinterpret_cast<dsint*>(value);
         *value1 = -*value1;
@@ -769,7 +769,7 @@ CMDRESULT cbInstrNot(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int varsize)
+    return ReadWriteVariable(argv[1], [](duint * value, int varsize)
     {
         *value = ~*value;
         return STATUS_CONTINUE;
