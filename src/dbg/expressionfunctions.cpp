@@ -62,6 +62,20 @@ void ExpressionFunctions::Init()
     RegisterEasy("tid\1TID\1ThreadId", tid);
 
     RegisterEasy("bswap", bswap);
+    RegisterEasy("ternary\1tern", ternary);
+
+    RegisterEasy("mem.valid", memvalid);
+
+    RegisterEasy("dis.len", dislen);
+    RegisterEasy("dis.iscond", disiscond);
+    RegisterEasy("dis.isbranch", disisbranch);
+    RegisterEasy("dis.branchdest", disbranchdest);
+    RegisterEasy("dis.imm", disimm);
+    RegisterEasy("dis.brtrue", disbrtrue);
+    RegisterEasy("dis.brfalse", disbrfalse);
+
+    RegisterEasy("tr.enabled", trenabled);
+    RegisterEasy("tr.hitcount", trhitcount);
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata)
