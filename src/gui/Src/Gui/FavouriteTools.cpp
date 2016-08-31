@@ -127,9 +127,26 @@ void FavouriteTools::on_btnAddFavouriteTool_clicked()
     ui->listTools->setRowCount(rows + 1);
     ui->listTools->setItem(rows, 0, new QTableWidgetItem(filename));
     ui->listTools->setItem(rows, 1, new QTableWidgetItem(QString()));
-    ui->listTools->setItem(rows, 2, new QTableWidgetItem(filename));
+    ui->listTools->setItem(rows, 2, new QTableWidgetItem(QString()));
     if(rows == 0)
         ui->listTools->selectRow(0);
+}
+
+void FavouriteTools::on_btnEditFavouriteTool_clicked()
+{
+    QTableWidget* table = ui->listTools;
+    if(!table->rowCount())
+        return;
+    QString filename;
+    char buffer[MAX_SETTING_SIZE];
+    memset(buffer, 0, sizeof(buffer));
+    BridgeSettingGet("Favourite", "LastToolPath", buffer);
+    BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString::fromUtf8(buffer), false);
+    if(browse.exec() != QDialog::Accepted)
+        return;
+    filename = browse.path;
+    BridgeSettingSet("Favourite", "LastToolPath", filename.toUtf8().constData());
+    table->item(table->currentRow(), 0)->setText(filename);
 }
 
 void FavouriteTools::upbutton(QTableWidget* table)
@@ -201,14 +218,32 @@ void FavouriteTools::on_btnAddFavouriteScript_clicked()
     filename = QFileDialog::getOpenFileName(this, tr("Select script"), QString::fromUtf8(buffer), tr("Script files (*.txt *.scr);;All files (*.*)"));
     if(filename.size() == 0)
         return;
+    filename = QDir::toNativeSeparators(filename);
     BridgeSettingSet("Favourite", "LastScriptPath", filename.toUtf8().constData());
     int rows = ui->listScript->rowCount();
     ui->listScript->setRowCount(rows + 1);
     ui->listScript->setItem(rows, 0, new QTableWidgetItem(filename));
-    ui->listScript->setItem(rows, 1, new QTableWidgetItem(QString("NOT_SET")));
-    ui->listScript->setItem(rows, 2, new QTableWidgetItem(filename));
+    ui->listScript->setItem(rows, 1, new QTableWidgetItem(QString()));
+    ui->listScript->setItem(rows, 2, new QTableWidgetItem(QString()));
     if(rows == 0)
         ui->listScript->selectRow(0);
+}
+
+void FavouriteTools::on_btnEditFavouriteScript_clicked()
+{
+    QTableWidget* table = ui->listScript;
+    if(!table->rowCount())
+        return;
+    QString filename;
+    char buffer[MAX_SETTING_SIZE];
+    memset(buffer, 0, sizeof(buffer));
+    BridgeSettingGet("Favourite", "LastScriptPath", buffer);
+    filename = QFileDialog::getOpenFileName(this, tr("Select script"), QString::fromUtf8(buffer), tr("Script files (*.txt *.scr);;All files (*.*)"));
+    if(filename.size() == 0)
+        return;
+    filename = QDir::toNativeSeparators(filename);
+    BridgeSettingSet("Favourite", "LastScriptPath", filename.toUtf8().constData());
+    table->item(table->currentRow(), 0)->setText(filename);
 }
 
 void FavouriteTools::on_btnRemoveFavouriteScript_clicked()
@@ -242,15 +277,25 @@ void FavouriteTools::on_btnDownFavouriteScript_clicked()
 void FavouriteTools::on_btnAddFavouriteCommand_clicked()
 {
     QString cmd;
-    if(SimpleInputBox(this, tr("Enter the command that you want to create a shortcut for :"), "", cmd, tr("Example: bphws ESP")))
+    if(SimpleInputBox(this, tr("Enter the command you want to favourite"), "", cmd, tr("Example: bphws csp")))
     {
         int rows = ui->listCommand->rowCount();
         ui->listCommand->setRowCount(rows + 1);
         ui->listCommand->setItem(rows, 0, new QTableWidgetItem(cmd));
-        ui->listCommand->setItem(rows, 1, new QTableWidgetItem(QString("NOT_SET")));
+        ui->listCommand->setItem(rows, 1, new QTableWidgetItem(QString()));
         if(rows == 0)
             ui->listCommand->selectRow(0);
     }
+}
+
+void FavouriteTools::on_btnEditFavouriteCommand_clicked()
+{
+    QTableWidget* table = ui->listCommand;
+    if(!table->rowCount())
+        return;
+    QString cmd;
+    if(SimpleInputBox(this, tr("Enter a new command"), table->item(table->currentRow(), 0)->text(), cmd, tr("Example: bphws ESP")))
+        table->item(table->currentRow(), 0)->setText(cmd);
 }
 
 void FavouriteTools::on_btnRemoveFavouriteCommand_clicked()

@@ -41,6 +41,13 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="btnEditFavouriteTool">
+           <property name="text">
+            <string>&amp;Edit</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="btnRemoveFavouriteTool">
            <property name="text">
             <string>&amp;Remove</string>
@@ -90,6 +97,13 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="btnEditFavouriteScript">
+           <property name="text">
+            <string>&amp;Edit</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="btnRemoveFavouriteScript">
            <property name="text">
             <string>&amp;Remove</string>
@@ -135,6 +149,13 @@
           <widget class="QPushButton" name="btnAddFavouriteCommand">
            <property name="text">
             <string>&amp;Add...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnEditFavouriteCommand">
+           <property name="text">
+            <string>&amp;Edit</string>
            </property>
           </widget>
          </item>
