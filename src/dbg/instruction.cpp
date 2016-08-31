@@ -64,7 +64,7 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
         char format_str[deflen] = "";
         if(isvar) // and *cmd!='.' and *cmd!='x') //prevent stupid 0=0 stuff
         {
-            if(value > 15 && !hexonly)
+            if(value > 9 && !hexonly)
             {
                 if(!valuesignedcalc())  //signed numbers
 #ifdef _WIN64
@@ -88,7 +88,7 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
         }
         else
         {
-            if(value > 15 && !hexonly)
+            if(value > 9 && !hexonly)
             {
                 if(!valuesignedcalc())  //signed numbers
 #ifdef _WIN64
