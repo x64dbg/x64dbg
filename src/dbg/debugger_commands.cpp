@@ -142,12 +142,6 @@ CMDRESULT cbDebugRun(int argc, char* argv[])
     // Don't "run" twice if the program is already running
     if(dbgisrunning())
         return STATUS_ERROR;
-    if(!ThreaderIsAnyThreadActive())
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "There is no active thread to run."));
-        return STATUS_ERROR;
-    }
-
     dbgsetispausedbyuser(false);
     GuiSetDebugStateAsync(running);
     unlock(WAITID_RUN);
