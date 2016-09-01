@@ -183,7 +183,7 @@ static bool scriptcreatelinemap(const char* filename)
             if(!*cur.u.label || !strcmp(cur.u.label, "\"\"")) //no label text
             {
                 char message[256] = "";
-                sprintf(message, "Empty label detected on line %d!", i + 1);
+                sprintf(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Empty label detected on line %d!")), i + 1);
                 GuiScriptError(0, message);
                 std::vector<LINEMAPENTRY>().swap(linemap);
                 return false;
@@ -192,7 +192,7 @@ static bool scriptcreatelinemap(const char* filename)
             if(foundlabel) //label defined twice
             {
                 char message[256] = "";
-                sprintf(message, "Duplicate label \"%s\" detected on lines %d and %d!", cur.u.label, foundlabel, i + 1);
+                sprintf(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Duplicate label \"%s\" detected on lines %d and %d!")), cur.u.label, foundlabel, i + 1);
                 GuiScriptError(0, message);
                 std::vector<LINEMAPENTRY>().swap(linemap);
                 return false;
@@ -233,7 +233,7 @@ static bool scriptcreatelinemap(const char* filename)
             if(!labelline) //invalid branch label
             {
                 char message[256] = "";
-                sprintf(message, "Invalid branch label \"%s\" detected on line %d!", currentLine.u.branch.branchlabel, i + 1);
+                sprintf(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid branch label \"%s\" detected on line %d!")), currentLine.u.branch.branchlabel, i + 1);
                 GuiScriptError(0, message);
                 std::vector<LINEMAPENTRY>().swap(linemap);
                 return false;
@@ -327,9 +327,8 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
     {
         ExpressionParser parser(command);
         duint result;
-        if(!parser.Calculate(result, valuesignedcalc(), true))
+        if(!parser.Calculate(result, valuesignedcalc(), true, false))
             return STATUS_ERROR;
-        varset("$result", result, false);
         varset("$ans", result, true);
         return STATUS_CONTINUE;
     }
@@ -400,7 +399,7 @@ static bool scriptinternalcmd()
             break;
         case STATUS_ERROR:
             bContinue = false;
-            GuiScriptError(scriptIp, "Error executing command!");
+            GuiScriptError(scriptIp, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Error executing command!")));
             break;
         case STATUS_EXIT:
             bContinue = false;
@@ -424,7 +423,7 @@ static bool scriptinternalcmd()
     return bContinue;
 }
 
-static DWORD WINAPI scriptRunThread(void* arg)
+DWORD WINAPI scriptRunSync(void* arg)
 {
     int destline = (int)(duint)arg;
     if(!destline || destline > (int)linemap.size()) //invalid line
@@ -440,6 +439,9 @@ static DWORD WINAPI scriptRunThread(void* arg)
         scriptIp--;
     scriptIp = scriptinternalstep(scriptIp);
     bool bContinue = true;
+    bool bIgnoreTimeout = settingboolget("Engine", "NoScriptTimeout");
+    unsigned long long kernelTime, userTime;
+    FILETIME creationTime, exitTime; // unused
     while(bContinue && !bAbort) //run loop
     {
         bContinue = scriptinternalcmd();
@@ -452,14 +454,26 @@ static DWORD WINAPI scriptRunThread(void* arg)
             scriptIp = scriptinternalstep(scriptIp); //this is the next ip
         if(scriptinternalbpget(scriptIp)) //breakpoint=stop run loop
             bContinue = false;
-        Sleep(1); //don't fry the processor
+        if(bContinue && !bIgnoreTimeout && GetThreadTimes(GetCurrentThread(), &creationTime, &exitTime, reinterpret_cast<LPFILETIME>(&kernelTime), reinterpret_cast<LPFILETIME>(&userTime)) != 0)
+        {
+            if(userTime + kernelTime >= 10 * 10000000) // time out in 10 seconds of CPU time
+            {
+                if(GuiScriptMsgyn(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "The script is too busy. Would you like to terminate it now?"))) != 0)
+                {
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Script is terminated by user."));
+                    break;
+                }
+                else
+                    bIgnoreTimeout = true;
+            }
+        }
     }
     bIsRunning = false; //not running anymore
     GuiScriptSetIp(scriptIp);
     return 0;
 }
 
-static DWORD WINAPI scriptLoadThread(void* filename)
+DWORD WINAPI scriptLoadSync(void* filename)
 {
     GuiScriptClear();
     GuiScriptEnableHighlighting(true); //enable default script syntax highlighting
@@ -467,10 +481,10 @@ static DWORD WINAPI scriptLoadThread(void* filename)
     std::vector<SCRIPTBP>().swap(scriptbplist); //clear breakpoints
     std::vector<int>().swap(scriptstack); //clear script stack
     bAbort = false;
-    if(!scriptcreatelinemap((const char*)filename))
-        return 0;
+    if(!scriptcreatelinemap(reinterpret_cast<const char*>(filename)))
+        return 1; // Script load failed
     int lines = (int)linemap.size();
-    const char** script = (const char**)BridgeAlloc(lines * sizeof(const char*));
+    const char** script = reinterpret_cast<const char**>(BridgeAlloc(lines * sizeof(const char*)));
     for(int i = 0; i < lines; i++) //add script lines
         script[i] = linemap.at(i).raw;
     GuiScriptAdd(lines, script);
@@ -483,7 +497,7 @@ void scriptload(const char* filename)
 {
     static char filename_[MAX_PATH] = "";
     strcpy_s(filename_, filename);
-    CloseHandle(CreateThread(0, 0, scriptLoadThread, filename_, 0, 0));
+    CloseHandle(CreateThread(0, 0, scriptLoadSync, filename_, 0, 0));
 }
 
 void scriptunload()
@@ -498,13 +512,13 @@ void scriptrun(int destline)
 {
     if(DbgIsDebugging() && dbgisrunning())
     {
-        GuiScriptError(0, "Debugger must be paused to run a script!");
+        GuiScriptError(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debugger must be paused to run a script!")));
         return;
     }
     if(bIsRunning) //already running
         return;
     bIsRunning = true;
-    CloseHandle(CreateThread(0, 0, scriptRunThread, (void*)(duint)destline, 0, 0));
+    CloseHandle(CreateThread(0, 0, scriptRunSync, (void*)(duint)destline, 0, 0));
 }
 
 DWORD WINAPI scriptStepThread(void* param)
@@ -637,7 +651,7 @@ CMDRESULT cbScriptMsg(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "not enough arguments!")));
         return STATUS_ERROR;
     }
     GuiScriptMessage(stringformatinline(argv[1]).c_str());
@@ -648,7 +662,7 @@ CMDRESULT cbScriptMsgyn(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "not enough arguments!")));
         return STATUS_ERROR;
     }
     varset("$RESULT", GuiScriptMsgyn(stringformatinline(argv[1]).c_str()), false);

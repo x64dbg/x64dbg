@@ -1540,6 +1540,7 @@ void CPUDisassembly::ActionTraceRecordBitSlot()
             break;
         }
     }
+    DbgCmdExec("traceexecute cip");
 }
 
 void CPUDisassembly::ActionTraceRecordByteSlot()
@@ -1556,6 +1557,7 @@ void CPUDisassembly::ActionTraceRecordByteSlot()
             break;
         }
     }
+    DbgCmdExec("traceexecute cip");
 }
 
 void CPUDisassembly::ActionTraceRecordWordSlot()
@@ -1572,6 +1574,7 @@ void CPUDisassembly::ActionTraceRecordWordSlot()
             break;
         }
     }
+    DbgCmdExec("traceexecute cip");
 }
 
 void CPUDisassembly::ActionTraceRecordDisableSlot()

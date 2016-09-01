@@ -18,4 +18,20 @@ namespace Exprfunc
     duint tid();
 
     duint bswap(duint value);
+    duint ternary(duint condition, duint value1, duint value2);
+
+    duint memvalid(duint addr);
+
+    duint dislen(duint addr);
+    duint disiscond(duint addr);
+    duint disisbranch(duint addr);
+    duint disisret(duint addr);
+    duint disbranchdest(duint addr);
+    duint disbranchexec(duint addr);
+    duint disimm(duint addr);
+    duint disbrtrue(duint addr);
+    duint disbrfalse(duint addr);
+
+    duint trenabled(duint addr);
+    duint trhitcount(duint addr);
 }

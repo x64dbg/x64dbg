@@ -160,6 +160,7 @@
     <addaction name="actionShortcuts"/>
     <addaction name="actionTopmost"/>
     <addaction name="actionReloadStylesheet"/>
+    <addaction name="actionSetInitializationScript"/>
    </widget>
    <widget class="QMenu" name="menuFavourites">
     <property name="title">
@@ -1020,6 +1021,11 @@
   <action name="actionAnimateCommand">
    <property name="text">
     <string>Animate command...</string>
+   </property>
+  </action>
+  <action name="actionSetInitializationScript">
+   <property name="text">
+    <string>Set Initialization Script</string>
    </property>
   </action>
  </widget>
