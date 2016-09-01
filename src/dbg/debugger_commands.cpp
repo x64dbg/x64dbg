@@ -142,7 +142,6 @@ CMDRESULT cbDebugRun(int argc, char* argv[])
     // Don't "run" twice if the program is already running
     if(dbgisrunning())
         return STATUS_ERROR;
-
     dbgsetispausedbyuser(false);
     GuiSetDebugStateAsync(running);
     unlock(WAITID_RUN);
@@ -1430,8 +1429,7 @@ CMDRESULT cbDebugRtr(int argc, char* argv[])
 {
     HistoryClear();
     StepOver((void*)cbRtrStep);
-    cbDebugRun(argc, argv);
-    return STATUS_CONTINUE;
+    return cbDebugRun(argc, argv);
 }
 
 CMDRESULT cbDebugeRtr(int argc, char* argv[])
@@ -1467,8 +1465,7 @@ CMDRESULT cbDebugRunToParty(int argc, char* argv[])
             }
         }
     }
-    cbDebugRun(argc, argv);
-    return STATUS_CONTINUE;
+    return cbDebugRun(argc, argv);
 }
 
 CMDRESULT cbDebugRtu(int argc, char* argv[])
@@ -1502,8 +1499,7 @@ static CMDRESULT cbDebugConditionalTrace(void* callBack, bool stepOver, int argc
         StepOver(callBack);
     else
         StepInto(callBack);
-    cbDebugRun(argc, argv);
-    return STATUS_CONTINUE;
+    return cbDebugRun(argc, argv);
 }
 
 CMDRESULT cbDebugTocnd(int argc, char* argv[])
@@ -1920,10 +1916,13 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
         return STATUS_ERROR;
     }
     //switch thread
-    hActiveThread = ThreadGetHandle((DWORD)threadid);
-    HistoryClear();
-    DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
-    dputs(QT_TRANSLATE_NOOP("DBG", "Thread switched!"));
+    if(ThreadGetId(hActiveThread) != threadid)
+    {
+        hActiveThread = ThreadGetHandle((DWORD)threadid);
+        HistoryClear();
+        DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        dputs(QT_TRANSLATE_NOOP("DBG", "Thread switched!"));
+    }
     return STATUS_CONTINUE;
 }
 
@@ -1995,6 +1994,41 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Error terminating thread!"));
     return STATUS_ERROR;
+}
+
+CMDRESULT cbDebugCreatethread(int argc, char* argv[])
+{
+    if(argc < 2)
+        return STATUS_ERROR;
+    duint Entry = 0;
+    duint Argument = 0;
+    if(!valfromstring(argv[1], &Entry))
+        return STATUS_ERROR;
+    if(!MemIsCodePage(Entry, false))
+        return STATUS_ERROR;
+    if(argc > 2)
+    {
+        if(!valfromstring(argv[2], &Argument))
+            return STATUS_ERROR;
+    }
+    DWORD ThreadId = 0;
+    if(ThreaderCreateRemoteThread(Entry, true, reinterpret_cast<LPVOID>(Argument), &ThreadId) != 0)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Create thread failed!"));
+        return STATUS_ERROR;
+    }
+    else
+    {
+        char label[MAX_LABEL_SIZE];
+        if(!LabelGet(Entry, label))
+            label[0] = 0;
+#ifdef _WIN64
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X created at %s %p(Argument=%llX)\n"), ThreadId, label, Entry, Argument);
+#else //x86
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X created at %s %p(Argument=%X)\n"), ThreadId, label, Entry, Argument);
+#endif
+        return STATUS_CONTINUE;
+    }
 }
 
 CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[])

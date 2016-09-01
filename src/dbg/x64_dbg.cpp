@@ -327,6 +327,7 @@ static void registercommands()
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
     dbgcmdnew("imageinfo\1modimageinfo", cbInstrImageinfo, true); //print module image information
     dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
+    dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
