@@ -1920,10 +1920,13 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
         return STATUS_ERROR;
     }
     //switch thread
-    hActiveThread = ThreadGetHandle((DWORD)threadid);
-    HistoryClear();
-    DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
-    dputs(QT_TRANSLATE_NOOP("DBG", "Thread switched!"));
+    if(ThreadGetId(hActiveThread) != threadid)
+    {
+        hActiveThread = ThreadGetHandle((DWORD)threadid);
+        HistoryClear();
+        DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        dputs(QT_TRANSLATE_NOOP("DBG", "Thread switched!"));
+    }
     return STATUS_CONTINUE;
 }
 
