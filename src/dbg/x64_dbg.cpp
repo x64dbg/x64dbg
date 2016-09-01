@@ -216,6 +216,13 @@ static void registercommands()
     dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
     dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
     dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
+    dbgcmdnew("graph", cbInstrGraph, true); //graph function
+    dbgcmdnew("DisableLog\1LogDisable", cbInstrDisableLog, false); //disable log
+    dbgcmdnew("EnableLog\1LogEnable", cbInstrEnableLog, false); //enable log
+    dbgcmdnew("AddFavouriteTool", cbInstrAddFavTool, false); //add favourite tool
+    dbgcmdnew("AddFavouriteCommand", cbInstrAddFavCmd, false); //add favourite command
+    dbgcmdnew("AddFavouriteToolShortcut\1SetFavouriteToolShortcut", cbInstrSetFavToolShortcut, false); //set favourite tool shortcut
+    dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
@@ -318,13 +325,6 @@ static void registercommands()
     dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
-    dbgcmdnew("graph", cbInstrGraph, true); //graph function
-    dbgcmdnew("DisableLog\1LogDisable", cbInstrDisableLog, false); //disable log
-    dbgcmdnew("EnableLog\1LogEnable", cbInstrEnableLog, false); //enable log
-    dbgcmdnew("AddFavouriteTool", cbInstrAddFavTool, false); //add favourite tool
-    dbgcmdnew("AddFavouriteCommand", cbInstrAddFavCmd, false); //add favourite command
-    dbgcmdnew("AddFavouriteToolShortcut\1SetFavouriteToolShortcut", cbInstrSetFavToolShortcut, false); //set favourite tool shortcut
-    dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
     dbgcmdnew("imageinfo\1modimageinfo", cbInstrImageinfo, true); //print module image information
     dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
 }
