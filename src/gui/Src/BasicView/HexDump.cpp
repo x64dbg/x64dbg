@@ -355,6 +355,14 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
 
             wAccept = true;
         }
+        else if(y > this->height() && mGuiState == HexDump::MultiRowsSelectionState)
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        }
+        else if(transY(y) < 0 && mGuiState == HexDump::MultiRowsSelectionState)
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        }
     }
 
     if(wAccept == true)
