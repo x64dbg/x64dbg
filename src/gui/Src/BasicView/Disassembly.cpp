@@ -607,14 +607,15 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
     //qDebug() << "Disassembly::mouseMoveEvent";
 
     bool wAccept = true;
+    int y = event->y();
 
     if(mGuiState == Disassembly::MultiRowsSelectionState)
     {
         //qDebug() << "State = MultiRowsSelectionState";
 
-        if((transY(event->y()) >= 0) && (transY(event->y()) <= this->getTableHeigth()))
+        if((transY(y) >= 0) && (transY(y) <= this->getTableHeigth()))
         {
-            int wI = getIndexOffsetFromY(transY(event->y()));
+            int wI = getIndexOffsetFromY(transY(y));
 
             if(mMemPage->getSize() > 0)
             {
@@ -642,15 +643,23 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                 }
             }
         }
+        else if(y > this->height())
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        }
+        else if(transY(y) < 0)
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        }
     }
     else if(mGuiState == Disassembly::NoState)
     {
         if(!mHighlightingMode && mPopupEnabled)
         {
             bool popupShown = false;
-            if(event->y() > getHeaderHeight() && getColumnIndexFromX(event->x()) == 2)
+            if(y > getHeaderHeight() && getColumnIndexFromX(event->x()) == 2)
             {
-                int rowOffset = getIndexOffsetFromY(transY(event->y()));
+                int rowOffset = getIndexOffsetFromY(transY(y));
                 if(rowOffset < mInstBuffer.size())
                 {
                     CapstoneTokenizer::SingleToken token;
@@ -666,7 +675,7 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                         }
                         if(isCodePage && (addr - mMemPage->getBase() < mInstBuffer.front().rva || addr - mMemPage->getBase() > mInstBuffer.back().rva))
                         {
-                            ShowDisassemblyPopup(addr, event->x(), event->y());
+                            ShowDisassemblyPopup(addr, event->x(), y);
                             popupShown = true;
                         }
                     }
