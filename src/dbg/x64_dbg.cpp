@@ -327,7 +327,7 @@ static void registercommands()
     dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
     dbgcmdnew("imageinfo\1modimageinfo", cbInstrImageinfo, true); //print module image information
     dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
-    dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //kill thread
+    dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
