@@ -34,14 +34,15 @@ QString StdTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
 void StdTable::mouseMoveEvent(QMouseEvent* event)
 {
     bool wAccept = true;
+    int y = transY(event->y());
 
     if(mGuiState == StdTable::MultiRowsSelectionState)
     {
         //qDebug() << "State = MultiRowsSelectionState";
 
-        if((transY(event->y()) >= 0) && (transY(event->y()) <= this->getTableHeigth()))
+        if(y >= 0 && y <= this->getTableHeigth())
         {
-            int wRowIndex = getTableOffset() + getIndexOffsetFromY(transY(event->y()));
+            int wRowIndex = getTableOffset() + getIndexOffsetFromY(y);
 
             if(wRowIndex < getRowCount())
             {
@@ -54,6 +55,14 @@ void StdTable::mouseMoveEvent(QMouseEvent* event)
 
                 wAccept = false;
             }
+        }
+        else if(y < 0)
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        }
+        else if(y > getTableHeigth())
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
         }
     }
 
