@@ -1067,7 +1067,7 @@ static void cbTXXTStep(bool bStepInto, bool bInto, void (*callback)())
         cbRtrFinalStep();
         return;
     }
-    if(!traceCondition->ContinueTrace() || (TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(CIP) == 0 ^ bInto)))
+    if(!traceCondition->ContinueTrace() || (TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(CIP) == 0) ^ bInto))
     {
         _dbg_dbgtraceexecute(CIP);
         auto steps = dbgcleartracecondition();
