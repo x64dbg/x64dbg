@@ -1502,17 +1502,17 @@ static CMDRESULT cbDebugConditionalTrace(void* callBack, bool stepOver, int argc
     return cbDebugRun(argc, argv);
 }
 
-CMDRESULT cbDebugTocnd(int argc, char* argv[])
+CMDRESULT cbDebugTraceOverConditional(int argc, char* argv[])
 {
     return cbDebugConditionalTrace((void*)cbTOCNDStep, true, argc, argv);
 }
 
-CMDRESULT cbDebugTicnd(int argc, char* argv[])
+CMDRESULT cbDebugTraceIntoConditional(int argc, char* argv[])
 {
     return cbDebugConditionalTrace((void*)cbTICNDStep, false, argc, argv);
 }
 
-CMDRESULT cbDebugTibt(int argc, char* argv[])
+CMDRESULT cbDebugTraceIntoBeyondTraceRecord(int argc, char* argv[])
 {
     if(argc == 1)
     {
@@ -1523,7 +1523,7 @@ CMDRESULT cbDebugTibt(int argc, char* argv[])
         return cbDebugConditionalTrace((void*)cbTIBTStep, false, argc, argv);
 }
 
-CMDRESULT cbDebugTobt(int argc, char* argv[])
+CMDRESULT cbDebugTraceOverBeyondTraceRecord(int argc, char* argv[])
 {
     if(argc == 1)
     {
@@ -1534,7 +1534,7 @@ CMDRESULT cbDebugTobt(int argc, char* argv[])
         return cbDebugConditionalTrace((void*)cbTOBTStep, true, argc, argv);
 }
 
-CMDRESULT cbDebugTiit(int argc, char* argv[])
+CMDRESULT cbDebugTraceIntoIntoTraceRecord(int argc, char* argv[])
 {
     if(argc == 1)
     {
@@ -1545,7 +1545,7 @@ CMDRESULT cbDebugTiit(int argc, char* argv[])
         return cbDebugConditionalTrace((void*)cbTIITStep, false, argc, argv);
 }
 
-CMDRESULT cbDebugToit(int argc, char* argv[])
+CMDRESULT cbDebugTraceOverIntoTraceRecord(int argc, char* argv[])
 {
     if(argc == 1)
     {

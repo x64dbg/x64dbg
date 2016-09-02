@@ -98,12 +98,12 @@ static void registercommands()
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //StepOut
     dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
-    dbgcmdnew("TraceOverConditional\1tocnd", cbDebugTocnd, true); //Trace over conditional
-    dbgcmdnew("TraceIntoConditional\1ticnd", cbDebugTicnd, true); //Trace into conditional
-    dbgcmdnew("TraceIntoBeyondTraceRecord\1tibt", cbDebugTibt, true); //Trace into beyond trace record
-    dbgcmdnew("TraceOverBeyondTraceRecord\1tobt", cbDebugTobt, true); //Trace over beyond trace record
-    dbgcmdnew("TraceIntoIntoTraceRecord\1tiit", cbDebugTiit, true); //Trace into into trace record
-    dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugToit, true); //Trace over into trace record
+    dbgcmdnew("TraceOverConditional\1tocnd", cbDebugTraceOverConditional, true); //Trace over conditional
+    dbgcmdnew("TraceIntoConditional\1ticnd", cbDebugTraceIntoConditional, true); //Trace into conditional
+    dbgcmdnew("TraceIntoBeyondTraceRecord\1tibt", cbDebugTraceIntoBeyondTraceRecord, true); //Trace into beyond trace record
+    dbgcmdnew("TraceOverBeyondTraceRecord\1tobt", cbDebugTraceOverBeyondTraceRecord, true); //Trace over beyond trace record
+    dbgcmdnew("TraceIntoIntoTraceRecord\1tiit", cbDebugTraceIntoIntoTraceRecord, true); //Trace into into trace record
+    dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
     dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true); //switch thread
     dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread

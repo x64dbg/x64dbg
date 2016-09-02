@@ -67,8 +67,8 @@ CMDRESULT cbDebugeStepOver(int argc, char* argv[]);
 CMDRESULT cbDebugseStepOver(int argc, char* argv[]);
 CMDRESULT cbDebugSingleStep(int argc, char* argv[]);
 CMDRESULT cbDebugeSingleStep(int argc, char* argv[]);
-CMDRESULT cbDebugTocnd(int argc, char* argv[]);
-CMDRESULT cbDebugTicnd(int argc, char* argv[]);
+CMDRESULT cbDebugTraceOverConditional(int argc, char* argv[]);
+CMDRESULT cbDebugTraceIntoConditional(int argc, char* argv[]);
 CMDRESULT cbDebugHide(int argc, char* argv[]);
 CMDRESULT cbDebugDisasm(int argc, char* argv[]);
 CMDRESULT cbDebugRtr(int argc, char* argv[]);
@@ -109,10 +109,10 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[]);
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[]);
 CMDRESULT cbDebugSkip(int argc, char* argv[]);
 CMDRESULT cbDebugSetfreezestack(int argc, char* argv[]);
-CMDRESULT cbDebugTibt(int argc, char* argv[]);
-CMDRESULT cbDebugTobt(int argc, char* argv[]);
-CMDRESULT cbDebugTiit(int argc, char* argv[]);
-CMDRESULT cbDebugToit(int argc, char* argv[]);
+CMDRESULT cbDebugTraceIntoBeyondTraceRecord(int argc, char* argv[]);
+CMDRESULT cbDebugTraceOverBeyondTraceRecord(int argc, char* argv[]);
+CMDRESULT cbDebugTraceIntoIntoTraceRecord(int argc, char* argv[]);
+CMDRESULT cbDebugTraceOverIntoTraceRecord(int argc, char* argv[]);
 
 //misc
 void showcommandlineerror(cmdline_error_t* cmdline_error);
