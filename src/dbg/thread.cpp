@@ -36,6 +36,8 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     // The first thread (#0) is always the main program thread
     if(curInfo.ThreadNumber <= 0)
         strcpy_s(curInfo.threadName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Main Thread")));
+    else
+        curInfo.threadName[0] = 0;
 
     // Modify global thread list
     EXCLUSIVE_ACQUIRE(LockThreads);
@@ -237,6 +239,23 @@ bool ThreadSetName(DWORD ThreadId, const char* Name)
         return true;
     }
 
+    return false;
+}
+
+/**
+@brief ThreadGetName Get the name of the thread.
+@param ThreadId The id of the thread.
+@param Name The returned name of the thread. Must be at least MAX_THREAD_NAME_SIZE size
+@return True if the function succeeds. False otherwise.
+*/
+bool ThreadGetName(DWORD ThreadId, char* Name)
+{
+    SHARED_ACQUIRE(LockThreads);
+    if(threadList.find(ThreadId) != threadList.end())
+    {
+        strcpy_s(Name, MAX_THREAD_NAME_SIZE, threadList[ThreadId].threadName);
+        return true;
+    }
     return false;
 }
 

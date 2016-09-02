@@ -133,15 +133,31 @@ void SymbolView::setupContextMenu()
     connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
 
     mDownloadSymbolsAction = new QAction(tr("&Download Symbols for This Module"), this);
+    mDownloadSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mDownloadSymbolsAction);
+    mModuleList->mList->addAction(mDownloadSymbolsAction);
+    mModuleList->mSearchList->addAction(mDownloadSymbolsAction);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 
     mDownloadAllSymbolsAction = new QAction(tr("Download Symbols for &All Modules"), this);
+    mDownloadAllSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mDownloadAllSymbolsAction);
+    mModuleList->mList->addAction(mDownloadAllSymbolsAction);
+    mModuleList->mSearchList->addAction(mDownloadAllSymbolsAction);
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
 
     mCopyPathAction = new QAction(tr("Copy File &Path"), this);
+    mCopyPathAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mCopyPathAction);
+    mModuleList->mList->addAction(mCopyPathAction);
+    mModuleList->mSearchList->addAction(mCopyPathAction);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
 
     mBrowseInExplorer = new QAction(tr("Browse in Explorer"), this);
+    mBrowseInExplorer->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mBrowseInExplorer);
+    mModuleList->mList->addAction(mBrowseInExplorer);
+    mModuleList->mSearchList->addAction(mBrowseInExplorer);
     connect(mBrowseInExplorer, SIGNAL(triggered()), this, SLOT(moduleBrowse()));
 
     mYaraAction = new QAction(DIcon("yara.png"), tr("&Yara Memory..."), this);
@@ -151,6 +167,10 @@ void SymbolView::setupContextMenu()
     connect(mYaraFileAction, SIGNAL(triggered()), this, SLOT(moduleYaraFile()));
 
     mEntropyAction = new QAction(DIcon("entropy.png"), tr("Entropy..."), this);
+    mEntropyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mEntropyAction);
+    mModuleList->mList->addAction(mEntropyAction);
+    mModuleList->mSearchList->addAction(mEntropyAction);
     connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
 
     mModSetUserAction = new QAction(tr("Mark as &user module"), this);
@@ -186,6 +206,11 @@ void SymbolView::refreshShortcutsSlot()
     mModSetUserAction->setShortcut(ConfigShortcut("ActionMarkAsUser"));
     mModSetSystemAction->setShortcut(ConfigShortcut("ActionMarkAsSystem"));
     mModSetPartyAction->setShortcut(ConfigShortcut("ActionMarkAsParty"));
+    mEntropyAction->setShortcut(ConfigShortcut("ActionEntropy"));
+    mBrowseInExplorer->setShortcut(ConfigShortcut("ActionBrowseInExplorer"));
+    mDownloadSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadSymbol"));
+    mDownloadAllSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadAllSymbol"));
+    mCopyPathAction->setShortcut(ConfigShortcut("ActionCopy"));
 }
 
 void SymbolView::updateStyle()

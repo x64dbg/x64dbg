@@ -391,19 +391,25 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     else
         sprintf_s(modtext, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module: %s - ")), modname);
     char threadswitch[256] = "";
+    DWORD currentThreadId = ThreadGetId(hActiveThread);
     {
         static DWORD PrevThreadId = 0;
         if(PrevThreadId == 0)
             PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
-        DWORD currentThreadId = ThreadGetId(hActiveThread);
         if(currentThreadId != PrevThreadId)
         {
-            sprintf_s(threadswitch, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %X)")), PrevThreadId);
+            char threadName2[MAX_THREAD_NAME_SIZE] = "";
+            if(!ThreadGetName(PrevThreadId, threadName2) || threadName2[0] == 0)
+                sprintf_s(threadName2, "%X", PrevThreadId);
+            sprintf_s(threadswitch, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %s)")), threadName2);
             PrevThreadId = currentThreadId;
         }
     }
     char title[1024] = "";
-    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread), threadswitch);
+    char threadName1[MAX_THREAD_NAME_SIZE] = "";
+    if(!ThreadGetName(currentThreadId, threadName1) || threadName1[0] == 0)
+        sprintf_s(threadName1, "%X", currentThreadId);
+    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName1, threadswitch);
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
     GuiFocusView(GUI_DISASSEMBLY);

@@ -64,6 +64,8 @@ FavouriteTools::FavouriteTools(QWidget* parent) :
     connect(ui->listTools, SIGNAL(itemSelectionChanged()), this, SLOT(onListSelectionChanged()));
     connect(ui->listScript, SIGNAL(itemSelectionChanged()), this, SLOT(onListSelectionChanged()));
     connect(ui->listCommand, SIGNAL(itemSelectionChanged()), this, SLOT(onListSelectionChanged()));
+    connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+    emit ui->listTools->itemSelectionChanged();
 }
 
 void FavouriteTools::setupTools(QString name, QTableWidget* list)
@@ -325,8 +327,7 @@ void FavouriteTools::onListSelectionChanged()
     if(indexes.count() < 1)
         return;
     ui->shortcutEdit->setErrorState(false);
-    currentShortcut = QKeySequence(table->item(table->currentRow(), 1)->text());
-    ui->shortcutEdit->setText(currentShortcut.toString(QKeySequence::NativeText));
+    ui->shortcutEdit->setText(table->item(table->currentRow(), 1)->text());
 }
 
 void FavouriteTools::on_shortcutEdit_askForSave()
@@ -376,6 +377,30 @@ void FavouriteTools::on_shortcutEdit_askForSave()
             ui->shortcutEdit->setErrorState(true);
         }
     }
+}
+
+void FavouriteTools::on_btnClearShortcut_clicked()
+{
+    QTableWidget* table;
+    switch(ui->tabWidget->currentIndex())
+    {
+    case 0:
+        table = ui->listTools;
+        break;
+    case 1:
+        table = ui->listScript;
+        break;
+    case 2:
+        table = ui->listCommand;
+        break;
+    default:
+        return;
+    }
+    if(!table->rowCount())
+        return;
+    QString emptyString;
+    ui->shortcutEdit->setText(emptyString);
+    table->item(table->currentRow(), 1)->setText(emptyString);
 }
 
 void FavouriteTools::on_btnOK_clicked()
@@ -435,6 +460,22 @@ void FavouriteTools::on_btnOK_clicked()
             BridgeSettingSet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), "");
         }
     this->done(QDialog::Accepted);
+}
+
+void FavouriteTools::tabChanged(int i)
+{
+    switch(i)
+    {
+    case 0:
+        emit ui->listTools->itemSelectionChanged();
+        break;
+    case 1:
+        emit ui->listScript->itemSelectionChanged();
+        break;
+    case 2:
+        emit ui->listCommand->itemSelectionChanged();
+        break;
+    }
 }
 
 FavouriteTools::~FavouriteTools()

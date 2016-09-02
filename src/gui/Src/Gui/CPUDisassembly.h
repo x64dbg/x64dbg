@@ -105,6 +105,7 @@ public slots:
     void graphSlot();
     void analyzeModuleSlot();
     void togglePreviewSlot();
+    void createThreadSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);

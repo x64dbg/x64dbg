@@ -507,6 +507,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addSeparator();
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("neworigin.png"), tr("Set New Origin Here"), SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere"));
+    mMenuBuilder->addAction(makeShortcutAction(tr("Create New Thread Here"), SLOT(createThreadSlot()), "ActionCreateNewThreadHere"));
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
@@ -1455,11 +1456,7 @@ void CPUDisassembly::decompileFunctionSlot()
 
 void CPUDisassembly::displayWarningSlot(QString title, QString text)
 {
-    QMessageBox msg(QMessageBox::Warning, title, text, QMessageBox::Ok);
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowIcon(DIcon("compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    SimpleWarningBox(this, title, text);
 }
 
 void CPUDisassembly::paintEvent(QPaintEvent* event)
@@ -1675,4 +1672,14 @@ void CPUDisassembly::togglePreviewSlot()
 void CPUDisassembly::analyzeModuleSlot()
 {
     DbgCmdExec("cfanal");
+}
+
+void CPUDisassembly::createThreadSlot()
+{
+    WordEditDialog argWindow(this);
+    argWindow.setup(tr("Argument for the new thread"), 0, sizeof(duint));
+    if(argWindow.exec() != QDialog::Accepted)
+        return;
+    duint addr = rvaToVa(getSelectionStart());
+    DbgCmdExec(QString("createthread %1, %2").arg(ToPtrString(addr)).arg(ToPtrString(argWindow.getVal())).toUtf8().constData());
 }

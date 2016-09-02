@@ -32,31 +32,23 @@ void LogView::updateStyle()
     setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
 }
 
+template<class T> static QAction* setupAction(const QString & text, LogView* this_object, T slot)
+{
+    QAction* action = new QAction(text, this_object);
+    action->setShortcutContext(Qt::WidgetShortcut);
+    this_object->addAction(action);
+    this_object->connect(action, SIGNAL(triggered()), this_object, slot);
+    return action;
+}
+
 void LogView::setupContextMenu()
 {
-    actionClear = new QAction(tr("Clea&r"), this);
-    connect(actionClear, SIGNAL(triggered()), this, SLOT(clearLogSlot()));
-    actionClear->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(actionClear);
-    actionCopy = new QAction(tr("&Copy"), this);
-    connect(actionCopy, SIGNAL(triggered()), this, SLOT(copy()));
-    actionCopy->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(actionCopy);
-    actionSelectAll = new QAction(tr("Select &All"), this);
-    connect(actionSelectAll, SIGNAL(triggered()), this, SLOT(selectAll()));
-    actionSelectAll->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(actionSelectAll);
-    actionSave = new QAction(tr("&Save"), this);
-    actionSave->setShortcutContext(Qt::WidgetShortcut);
-    connect(actionSave, SIGNAL(triggered()), this, SLOT(saveSlot()));
-    this->addAction(actionSave);
-    actionToggleLogging = new QAction(tr("Disable &Logging"), this);
-    actionToggleLogging->setShortcutContext(Qt::WidgetShortcut);
-    connect(actionToggleLogging, SIGNAL(triggered()), this, SLOT(toggleLoggingSlot()));
-    this->addAction(actionToggleLogging);
-    actionRedirectLog = new QAction(tr("&Redirect Log..."), this);
-    connect(actionRedirectLog, SIGNAL(triggered()), this, SLOT(redirectLogSlot()));
-    this->addAction(actionRedirectLog);
+    actionClear = setupAction(tr("Clea&r"), this, SLOT(clearLogSlot()));
+    actionCopy = setupAction(tr("&Copy"), this, SLOT(copy()));
+    actionSelectAll = setupAction(tr("Select &All"), this, SLOT(selectAll()));
+    actionSave = setupAction(tr("&Save"), this, SLOT(saveSlot()));
+    actionToggleLogging = setupAction(tr("Disable &Logging"), this, SLOT(toggleLoggingSlot()));
+    actionRedirectLog = setupAction(tr("&Redirect Log..."), this, SLOT(redirectLogSlot()));
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -66,6 +58,7 @@ void LogView::refreshShortcutsSlot()
 {
     actionCopy->setShortcut(ConfigShortcut("ActionCopy"));
     actionToggleLogging->setShortcut(ConfigShortcut("ActionToggleLogging"));
+    actionRedirectLog->setShortcut(ConfigShortcut("ActionRedirectLog"));
 }
 
 void LogView::contextMenuEvent(QContextMenuEvent* event)

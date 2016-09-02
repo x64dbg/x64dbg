@@ -415,48 +415,48 @@ void RegistersView::InitMappings()
     mRowsNeeded = offset + 1;
 }
 
+static QAction* setupAction(const QIcon & icon, const QString & text, RegistersView* this_object)
+{
+    QAction* action = new QAction(icon, text, this_object);
+    action->setShortcutContext(Qt::WidgetShortcut);
+    this_object->addAction(action);
+    return action;
+}
+
+static QAction* setupAction(const QString & text, RegistersView* this_object)
+{
+    QAction* action = new QAction(text, this_object);
+    action->setShortcutContext(Qt::WidgetShortcut);
+    this_object->addAction(action);
+    return action;
+}
+
 RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
     mChangeViewButton = NULL;
 
     // precreate ContextMenu Actions
-    wCM_Increment = new QAction(DIcon("register_inc.png"), tr("Increment"), this);
-    wCM_Increment->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(wCM_Increment);
-    wCM_Decrement = new QAction(DIcon("register_dec.png"), tr("Decrement"), this);
-    wCM_Decrement->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(wCM_Decrement);
-    wCM_Zero = new QAction(DIcon("register_zero.png"), tr("Zero"), this);
-    wCM_Zero->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(wCM_Zero);
-    wCM_SetToOne = new QAction(DIcon("register_one.png"), tr("Set to 1"), this);
-    wCM_SetToOne->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(wCM_SetToOne);
+    wCM_Increment = setupAction(DIcon("register_inc.png"), tr("Increment"), this);
+    wCM_Decrement = setupAction(DIcon("register_dec.png"), tr("Decrement"), this);
+    wCM_Zero = setupAction(DIcon("register_zero.png"), tr("Zero"), this);
+    wCM_SetToOne = setupAction(DIcon("register_one.png"), tr("Set to 1"), this);
     wCM_Modify = new QAction(DIcon("register_edit.png"), tr("Modify value"), this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
-    wCM_ToggleValue = new QAction(DIcon("register_toggle.png"), tr("Toggle"), this);
-    wCM_ToggleValue->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(wCM_ToggleValue);
-    wCM_CopyToClipboard = new QAction(DIcon("copy.png"), tr("Copy value to clipboard"), this);
-    wCM_CopyToClipboard->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(wCM_CopyToClipboard);
-    wCM_CopySymbolToClipboard = new QAction(DIcon("pdb.png"), tr("Copy Symbol Value to Clipboard"), this);
-    wCM_CopySymbolToClipboard->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(wCM_CopySymbolToClipboard);
-    wCM_CopyAll = new QAction(DIcon("copy-alt.png"), tr("Copy all registers"), this);
-    wCM_CopyAll->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(wCM_CopyAll);
+    wCM_ToggleValue = setupAction(DIcon("register_toggle.png"), tr("Toggle"), this);
+    wCM_CopyToClipboard = setupAction(DIcon("copy.png"), tr("Copy value to clipboard"), this);
+    wCM_CopySymbolToClipboard = setupAction(DIcon("pdb.png"), tr("Copy Symbol Value to Clipboard"), this);
+    wCM_CopyAll = setupAction(DIcon("copy-alt.png"), tr("Copy all registers"), this);
     wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
     wCM_FollowInStack = new QAction(DIcon("stack.png"), tr("Follow in Stack"), this);
-    wCM_Incrementx87Stack = new QAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
-    wCM_Decrementx87Stack = new QAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"), this);
+    wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
+    wCM_Decrementx87Stack = setupAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"), this);
     wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
-    wCM_IncrementPtrSize = new QAction(ArchValue(tr("Increase 4"), tr("Increase 8")), this);
-    wCM_DecrementPtrSize = new QAction(ArchValue(tr("Decrease 4"), tr("Decrease 8")), this);
-    wCM_Push = new QAction(tr("Push"), this);
-    wCM_Pop = new QAction(tr("Pop"), this);
-    wCM_Highlight = new QAction(tr("Highlight"), this);
+    wCM_IncrementPtrSize = setupAction(ArchValue(tr("Increase 4"), tr("Increase 8")), this);
+    wCM_DecrementPtrSize = setupAction(ArchValue(tr("Decrease 4"), tr("Decrease 8")), this);
+    wCM_Push = setupAction(tr("Push"), this);
+    wCM_Pop = setupAction(tr("Pop"), this);
+    wCM_Highlight = setupAction(tr("Highlight"), this);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1174,6 +1174,13 @@ void RegistersView::refreshShortcutsSlot()
     wCM_CopyToClipboard->setShortcut(ConfigShortcut("ActionCopy"));
     wCM_CopySymbolToClipboard->setShortcut(ConfigShortcut("ActionCopySymbol"));
     wCM_CopyAll->setShortcut(ConfigShortcut("ActionCopyAllRegisters"));
+    wCM_Highlight->setShortcut(ConfigShortcut("ActionHighlightingMode"));
+    wCM_IncrementPtrSize->setShortcut(ConfigShortcut("ActionIncreaseRegisterPtrSize"));
+    wCM_DecrementPtrSize->setShortcut(ConfigShortcut("ActionDecreaseRegisterPtrSize"));
+    wCM_Incrementx87Stack->setShortcut(ConfigShortcut("ActionIncrementx87Stack"));
+    wCM_Decrementx87Stack->setShortcut(ConfigShortcut("ActionDecrementx87Stack"));
+    wCM_Push->setShortcut(ConfigShortcut("ActionPush"));
+    wCM_Pop->setShortcut(ConfigShortcut("ActionPop"));
 }
 
 RegistersView::~RegistersView()

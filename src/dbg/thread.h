@@ -21,6 +21,7 @@ THREADWAITREASON ThreadGetWaitReason(HANDLE Thread);
 DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase);
 DWORD ThreadGetLastError(DWORD ThreadId);
 bool ThreadSetName(DWORD dwThreadId, const char* name);
+bool ThreadGetName(DWORD ThreadId, char* Name);
 HANDLE ThreadGetHandle(DWORD ThreadId);
 DWORD ThreadGetId(HANDLE Thread);
 int ThreadSuspendAll();

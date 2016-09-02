@@ -35,7 +35,9 @@ public slots:
     void on_btnRemoveFavouriteCommand_clicked();
     void on_btnUpFavouriteCommand_clicked();
     void on_btnDownFavouriteCommand_clicked();
+    void on_btnClearShortcut_clicked();
     void onListSelectionChanged();
+    void tabChanged(int i);
     void on_shortcutEdit_askForSave();
     void on_btnOK_clicked();
 
