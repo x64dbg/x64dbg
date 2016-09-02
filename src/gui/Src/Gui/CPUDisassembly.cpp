@@ -1678,7 +1678,7 @@ void CPUDisassembly::createThreadSlot()
 {
     WordEditDialog argWindow(this);
     argWindow.setup(tr("Argument for the new thread"), 0, sizeof(duint));
-    if(argWindow.exec() != QDialog::Accepted || !argWindow.getVal())
+    if(argWindow.exec() != QDialog::Accepted)
         return;
     duint addr = rvaToVa(getSelectionStart());
     DbgCmdExec(QString("createthread %1, %2").arg(ToPtrString(addr)).arg(ToPtrString(argWindow.getVal())).toUtf8().constData());
