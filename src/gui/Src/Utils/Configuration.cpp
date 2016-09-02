@@ -440,6 +440,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionBrowseInExplorer", Shortcut(tr("Actions -> Browse in Explorer")));
     defaultShortcuts.insert("ActionDownloadSymbol", Shortcut(tr("Actions -> Download Symbols for This Module")));
     defaultShortcuts.insert("ActionDownloadAllSymbol", Shortcut(tr("Actions -> Download Symbols for All Modules")));
+    defaultShortcuts.insert("ActionCreateNewThreadHere", Shortcut(tr("Actions -> Create New Thread Here")));
 
     Shortcuts = defaultShortcuts;
 
