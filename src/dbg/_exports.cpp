@@ -312,10 +312,13 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         retval = true;
                     }
                 }
-                comment.resize(MAX_COMMENT_SIZE - 2);
+
+                StringUtils::ReplaceAll(comment, "{", "{{");
+                StringUtils::ReplaceAll(comment, "}", "}}");
+
                 String fullComment = "\1";
                 fullComment += comment;
-                strcpy_s(addrinfo->comment, fullComment.c_str());
+                strncpy_s(addrinfo->comment, fullComment.c_str(), _TRUNCATE);
             }
         }
     }
