@@ -76,10 +76,14 @@ void CPUStack::setupContextMenu()
 {
     //Push
     mPushAction = new QAction(ArchValue(tr("P&ush DWORD..."), tr("P&ush QWORD...")), this);
+    mPushAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mPushAction);
     connect(mPushAction, SIGNAL(triggered()), this, SLOT(pushSlot()));
 
     //Pop
     mPopAction = new QAction(ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), this);
+    mPopAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mPopAction);
     connect(mPopAction, SIGNAL(triggered()), this, SLOT(popSlot()));
 
     //Realign
@@ -341,6 +345,8 @@ void CPUStack::refreshShortcutsSlot()
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
     mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
     mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
+    mPushAction->setShortcut(ConfigShortcut("ActionPush"));
+    mPopAction->setShortcut(ConfigShortcut("ActionPop"));
 }
 
 void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)

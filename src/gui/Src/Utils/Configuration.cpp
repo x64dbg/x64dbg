@@ -412,6 +412,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionTreatSelectionAsYMMWord", Shortcut(tr("Actions -> Treat Selection As YMMWord"), ""));
     defaultShortcuts.insert("ActionIncreaseRegister", Shortcut(tr("Actions -> Increase Register"), "+"));
     defaultShortcuts.insert("ActionDecreaseRegister", Shortcut(tr("Actions -> Decrease Register"), "-"));
+    defaultShortcuts.insert("ActionIncreaseRegisterPtrSize", Shortcut(tr("Actions -> Increase Register by") + ArchValue(QString(" 4"), QString(" 8"))));
+    defaultShortcuts.insert("ActionDecreaseRegisterPtrSize", Shortcut(tr("Actions -> Decrease Register by") + ArchValue(QString(" 4"), QString(" 8"))));
     defaultShortcuts.insert("ActionZeroRegister", Shortcut(tr("Actions -> Zero Register"), "0"));
     defaultShortcuts.insert("ActionSetOneRegister", Shortcut(tr("Actions -> Set Register to One"), "1"));
     defaultShortcuts.insert("ActionToggleRegisterValue", Shortcut(tr("Actions -> Toggle Register Value"), "Space"));
@@ -430,6 +432,14 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionRefresh", Shortcut(tr("Actions -> Refresh"), "F5"));
     defaultShortcuts.insert("ActionGraph", Shortcut(tr("Actions -> Graph"), "G"));
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut(tr("Actions -> Graph -> Toggle overview"), "O"));
+    defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut(tr("Actions -> Increment x87 Stack")));
+    defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut(tr("Actions -> Decrement x87 Stack")));
+    defaultShortcuts.insert("ActionPush", Shortcut(tr("Actions -> Push")));
+    defaultShortcuts.insert("ActionPop", Shortcut(tr("Actions -> Pop")));
+    defaultShortcuts.insert("ActionRedirectLog", Shortcut(tr("Actions -> Redirect Log")));
+    defaultShortcuts.insert("ActionBrowseInExplorer", Shortcut(tr("Actions -> Browse in Explorer")));
+    defaultShortcuts.insert("ActionDownloadSymbol", Shortcut(tr("Actions -> Download Symbols for This Module")));
+    defaultShortcuts.insert("ActionDownloadAllSymbol", Shortcut(tr("Actions -> Download Symbols for All Modules")));
 
     Shortcuts = defaultShortcuts;
 
