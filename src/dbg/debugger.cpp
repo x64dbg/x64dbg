@@ -1067,7 +1067,7 @@ static void cbTXXTStep(bool bStepInto, bool bInto, void (*callback)())
         cbRtrFinalStep();
         return;
     }
-    if((TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && ((TraceRecord.getHitCount(CIP) == 0) ^ bInto)) || !traceCondition->ContinueTrace())
+    if(!traceCondition->ContinueTrace() || (TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(CIP) == 0 ^ bInto)))
     {
         _dbg_dbgtraceexecute(CIP);
         auto steps = dbgcleartracecondition();
@@ -1091,17 +1091,17 @@ void cbTIBTStep()
 
 void cbTOBTStep()
 {
-    cbTXXTStep(false, false, cbTIBTStep);
+    cbTXXTStep(false, false, cbTOBTStep);
 }
 
 void cbTIITStep()
 {
-    cbTXXTStep(true, true, cbTIBTStep);
+    cbTXXTStep(true, true, cbTIITStep);
 }
 
 void cbTOITStep()
 {
-    cbTXXTStep(false, true, cbTIBTStep);
+    cbTXXTStep(false, true, cbTOITStep);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
