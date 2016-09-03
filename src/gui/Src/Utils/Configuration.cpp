@@ -167,6 +167,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("GraphBrtrueColor", QColor("#387804"));
     defaultColors.insert("GraphBrfalseColor", QColor("#ED4630"));
     defaultColors.insert("GraphRetShadowColor", QColor("#900000"));
+    defaultColors.insert("GraphBackgroundColor", Qt::transparent);
 
     defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
     defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));

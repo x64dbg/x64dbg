@@ -303,6 +303,7 @@ private:
     QColor brtrueColor;
     QColor brfalseColor;
     QColor retShadowColor;
+    QColor backgroundColor;
 protected:
 #include "ActionHelpers.h"
 };
