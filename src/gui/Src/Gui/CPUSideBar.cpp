@@ -70,8 +70,8 @@ void CPUSideBar::updateFonts()
     fontWidth  = metrics.width(' ');
     fontHeight = metrics.height();
 
-    mBulletRadius = fontHeight / 2;
-    mBulletYOffset = (fontHeight - mBulletRadius) / 2;
+    mBulletYOffset = 2;
+    mBulletRadius = fontHeight - 2 * mBulletYOffset;
 }
 
 QSize CPUSideBar::sizeHint() const
