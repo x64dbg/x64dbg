@@ -2128,7 +2128,7 @@ CMDRESULT cbInstrLog(int argc, char* argv[])
 {
     if(argc == 1)  //just log newline
     {
-        dputs("\n");
+        dputs_untranslated("");
         return STATUS_CONTINUE;
     }
     if(argc == 2) //inline logging: log "format {rax}"
