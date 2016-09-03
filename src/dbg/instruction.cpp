@@ -207,7 +207,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         int len = (int)dataText.length();
         if(len % 2)
         {
-            dprintf("invalid hex string \"%s\" (length not divisible by 2)\n");
+            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid hex string \"%s\" (length not divisible by 2)\n"), dataText.c_str());
             return STATUS_ERROR;
         }
         for(int i = 0; i < len; i++)
@@ -1139,7 +1139,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable data \"%s\"!\n"), argv[1]);
         return STATUS_ERROR;
     }
-    dprintf("%s=\"%s\"\n", argv[1], string());
+    dprintf_untranslated("%s=\"%s\"\n", argv[1], string());
     return STATUS_CONTINUE;
 }
 
@@ -2128,19 +2128,19 @@ CMDRESULT cbInstrLog(int argc, char* argv[])
 {
     if(argc == 1)  //just log newline
     {
-        dprintf("\n");
+        dputs("\n");
         return STATUS_CONTINUE;
     }
     if(argc == 2) //inline logging: log "format {rax}"
     {
-        dputs(stringformatinline(argv[1]).c_str());
+        dputs_untranslated(stringformatinline(argv[1]).c_str());
     }
     else //log "format {0} string", arg1, arg2, argN
     {
         FormatValueVector formatArgs;
         for(auto i = 2; i < argc; i++)
             formatArgs.push_back(argv[i]);
-        dputs(stringformat(argv[1], formatArgs).c_str());
+        dputs_untranslated(stringformat(argv[1], formatArgs).c_str());
     }
     return STATUS_CONTINUE;
 }
@@ -2889,7 +2889,7 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[])
     duint mod;
     if(argc < 2 || !valfromstring(argv[1], &mod) || !ModBaseFromAddr(mod))
     {
-        dputs("invalid argument");
+        dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
         return STATUS_ERROR;
     }
 
@@ -2911,7 +2911,7 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[])
     char modname[MAX_MODULE_SIZE] = "";
     ModNameFromAddr(mod, modname, true);
 
-    dputs("---------------");
+    dputs_untranslated("---------------");
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "Image information for %s\n"), modname);
 
@@ -2946,7 +2946,7 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[])
     pFlag(dllc, IMAGE_DLLCHARACTERISTICS_WDM_DRIVER, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_WDM_DRIVER: Driver uses WDM model."));
     pFlag(dllc, IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE: Remote Desktop Services aware."));
 
-    dputs("---------------");
+    dputs_untranslated("---------------");
 
     return STATUS_CONTINUE;
 }

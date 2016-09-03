@@ -2027,6 +2027,7 @@ CMDRESULT cbDebugCreatethread(int argc, char* argv[])
 #else //x86
         dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X created at %s %p(Argument=%X)\n"), ThreadId, label, Entry, Argument);
 #endif
+        varset("$result", ThreadId, false);
         return STATUS_CONTINUE;
     }
 }
@@ -2287,7 +2288,10 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
 
         if(!dbgsetjitauto(set_jit_auto, notfound, & actual_arch, NULL))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT auto %s\n"), (actual_arch == x64) ? "x64" : "x32");
+            if(actual_arch == x64)
+                dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT auto x64"));
+            else
+                dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT auto x32"));
             return STATUS_ERROR;
         }
     }
@@ -2321,8 +2325,12 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
             if(rw_error == ERROR_RW_NOTWOW64)
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error using x64 arg the debugger is not a WOW64 process\n"));
             else
-
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto %s\n"), (actual_arch == x64) ? "x64" : "x32");
+            {
+                if(actual_arch == x64)
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x64"));
+                else
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x32"));
+            }
             return STATUS_ERROR;
         }
     }
