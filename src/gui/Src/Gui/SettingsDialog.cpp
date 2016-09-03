@@ -186,10 +186,12 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "SaveColumnOrder", &settings.guiSaveColumnOrder);
     GetSettingBool("Gui", "NoCloseDialog", &settings.guiNoCloseDialog);
     GetSettingBool("Gui", "PidInHex", &settings.guiPidInHex);
+    GetSettingBool("Gui", "SidebarWatchLabels", &settings.guiSidebarWatchLabels);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
     ui->chkPidInHex->setChecked(settings.guiPidInHex);
+    ui->chkSidebarWatchLabels->setChecked(settings.guiSidebarWatchLabels);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -304,6 +306,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "SaveColumnOrder", settings.guiSaveColumnOrder);
     BridgeSettingSetUint("Gui", "NoCloseDialog", settings.guiNoCloseDialog);
     BridgeSettingSetUint("Gui", "PidInHex", settings.guiPidInHex);
+    BridgeSettingSetUint("Gui", "SidebarWatchLabels", settings.guiSidebarWatchLabels);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -681,4 +684,9 @@ void SettingsDialog::on_chkPidInHex_clicked(bool checked)
 void SettingsDialog::on_chkNoScriptTimeout_stateChanged(int arg1)
 {
     settings.engineNoScriptTimeout = arg1 != Qt::Unchecked;
+}
+
+void SettingsDialog::on_chkSidebarWatchLabels_stateChanged(int arg1)
+{
+    settings.guiSidebarWatchLabels = arg1 != Qt::Unchecked;
 }

@@ -205,6 +205,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("SaveColumnOrder", true);
     guiBool.insert("NoCloseDialog", false);
     guiBool.insert("PidInHex", true);
+    guiBool.insert("SidebarWatchLabels", true);
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;

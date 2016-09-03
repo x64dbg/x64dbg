@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -498,6 +498,13 @@
         <widget class="QCheckBox" name="chkSaveLoadTabOrder">
          <property name="text">
           <string>Enable Load/Save Tab Order</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkSidebarWatchLabels">
+         <property name="text">
+          <string>Show Watch Labels in Side Bar</string>
          </property>
         </widget>
        </item>

@@ -305,15 +305,15 @@ void MemoryMapView::refreshMap()
         MEMORY_BASIC_INFORMATION wMbi = (wMemMapStruct.page)[wI].mbi;
 
         // Base address
-        wS = QString("%1").arg((duint)wMbi.BaseAddress, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        wS = ToPtrString((duint)wMbi.BaseAddress);
         setCellContent(wI, 0, wS);
 
         // Size
-        wS = QString("%1").arg((duint)wMbi.RegionSize, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        wS = ToPtrString((duint)wMbi.RegionSize);
         setCellContent(wI, 1, wS);
 
         // Information
-        wS = QString((wMemMapStruct.page)[wI].info);
+        wS = QString::fromUtf8((wMemMapStruct.page)[wI].info);
         setCellContent(wI, 2, wS);
 
         // State
