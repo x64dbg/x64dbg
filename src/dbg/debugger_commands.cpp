@@ -2324,10 +2324,13 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
         {
             if(rw_error == ERROR_RW_NOTWOW64)
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error using x64 arg the debugger is not a WOW64 process\n"));
-            else if(actual_arch == x64)
-                dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x64"));
             else
-                dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x32"));
+            {
+                if(actual_arch == x64)
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x64"));
+                else
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x32"));
+            }
             return STATUS_ERROR;
         }
     }
