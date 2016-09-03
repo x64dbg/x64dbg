@@ -503,6 +503,12 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load exception codes..."));
 
+    // Load NTSTATUS codes
+    if(NtStatusCodeInit(StringUtils::sprintf("%s\\..\\ntstatusdb.txt", dir)))
+        dputs(QT_TRANSLATE_NOOP("DBG", "NTSTATUS codes database loaded!"));
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load NTSTATUS codes..."));
+
     // Create database directory in the local debugger folder
     DbSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
 
