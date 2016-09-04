@@ -118,6 +118,7 @@ CMDRESULT cbDebugStop(int argc, char* argv[])
 {
     // HACK: TODO: Don't kill script on debugger ending a process
     //scriptreset(); //reset the currently-loaded script
+    _dbg_animatestop();
     StopDebug();
     //history
     HistoryClear();
