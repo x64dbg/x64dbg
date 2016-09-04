@@ -69,5 +69,6 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp);
 void BpCacheSave(JSON Root);
 void BpCacheLoad(JSON Root);
 void BpClear();
+bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo);
 
 #endif // _BREAKPOINT_H

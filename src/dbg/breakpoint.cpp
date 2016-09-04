@@ -191,6 +191,37 @@ bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
     return false;
 }
 
+bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
+{
+    const char* dashPos1 = max(strrchr(module1, '\\'), strrchr(module1, '/'));
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+    for(auto & i : breakpoints)
+    {
+        if(i.second.type == BPDLL)
+        {
+            if(_stricmp(i.second.mod, module1) == 0)
+            {
+                strcpy_s(i.second.mod, module1);
+                *newBpInfo = &i.second;
+                return true;
+            }
+            const char* dashPos = max(strrchr(i.second.mod, '\\'), strrchr(i.second.mod, '/'));
+            if(dashPos == nullptr)
+                dashPos = i.second.mod;
+            else
+                dashPos += 1;
+            if(dashPos1 != nullptr && _stricmp(dashPos, dashPos1 + 1) == 0) // filename matches
+            {
+                strcpy_s(i.second.mod, module1);
+                *newBpInfo = &i.second;
+                return true;
+            }
+        }
+    }
+    *newBpInfo = nullptr;
+    return false;
+}
+
 bool BpDelete(duint Address, BP_TYPE Type)
 {
     ASSERT_DEBUGGING("Command function call");
@@ -538,6 +569,9 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
             break;
         case UE_ON_LIB_UNLOAD:
             BridgeBp->slot = 1;
+            break;
+        case UE_ON_LIB_ALL:
+            BridgeBp->slot = 2;
             break;
         }
         break;

@@ -718,59 +718,6 @@ CMDRESULT cbDebugContinue(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugBpDll(int argc, char* argv[])
-{
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
-        return STATUS_ERROR;
-    }
-    DWORD type = UE_ON_LIB_ALL;
-    if(argc > 2)
-    {
-        switch(*argv[2])
-        {
-        case 'l':
-            type = UE_ON_LIB_LOAD;
-            break;
-        case 'u':
-            type = UE_ON_LIB_UNLOAD;
-            break;
-        }
-    }
-    bool singleshoot = true;
-    if(argc > 3)
-        singleshoot = false;
-    if(!BpNewDll(argv[1], true, true, type, ""))
-    {
-        return STATUS_ERROR;
-    }
-    if(!LibrarianSetBreakPoint(argv[1], type, singleshoot, (void*)cbLibrarianBreakpoint))
-        return STATUS_ERROR;
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Dll breakpoint set on \"%s\"!\n"), argv[1]);
-    return STATUS_CONTINUE;
-}
-
-CMDRESULT cbDebugBcDll(int argc, char* argv[])
-{
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments"));
-        return STATUS_ERROR;
-    }
-    if(!BpDelete(ModHashFromName(argv[1]), BPDLL))
-    {
-        return STATUS_ERROR;
-    }
-    if(!LibrarianRemoveBreakPoint(argv[1], UE_ON_LIB_ALL))
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint..."));
-        return STATUS_ERROR;
-    }
-    dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint removed!"));
-    return STATUS_CONTINUE;
-}
-
 CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
 {
     duint threadid = fdProcessInfo->dwThreadId; //main thread
