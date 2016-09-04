@@ -60,16 +60,21 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
 
     if(bp.type == bp_hardware)
     {
-        wCmd = "bphwe " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = QString("bphwe %1").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = "be " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = QString("be %1").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = "bpme " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = QString("bpme %1").arg(ToPtrString(bp.addr));
     }
+    else if(bp.type == bp_dll)
+    {
+        wCmd = QString("LibrarianEnableBreakPoint \"%1\"").arg(QString::fromUtf8(bp.mod));
+    }
+
 
     DbgCmdExec(wCmd.toUtf8().constData());
 }
@@ -117,15 +122,19 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
 
     if(bp.type == bp_hardware)
     {
-        wCmd = "bphwd " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = QString("bphwd %1").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = "bd " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = QString("bd %1").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = "bpmd " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = QString("bpmd %1").arg(ToPtrString(bp.addr));
+    }
+    else if(bp.type == bp_dll)
+    {
+        wCmd = QString("LibrarianDisableBreakPoint \"%1\"").arg(QString::fromUtf8(bp.mod));
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -175,22 +184,20 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
     switch(bp.type)
     {
     case bp_normal:
-    {
-        wCmd = "bc " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    }
-    break;
+        wCmd = QString("bc %1").arg(ToPtrString(bp.addr));
+        break;
 
     case bp_hardware:
-    {
-        wCmd = "bphc " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    }
-    break;
+        wCmd = QString("bphc %1").arg(ToPtrString(bp.addr));
+        break;
 
     case bp_memory:
-    {
-        wCmd = "bpmc " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    }
-    break;
+        wCmd = QString("bpmc %1").arg(ToPtrString(bp.addr));
+        break;
+
+    case bp_dll:
+        wCmd = QString("bcdll \"%1\"").arg(QString::fromUtf8(bp.mod));
+        break;
 
     default:
     {
@@ -224,6 +231,25 @@ void Breakpoints::removeBP(BPXTYPE type, duint va)
     for(int wI = 0; wI < wBPList.count; wI++)
     {
         if(wBPList.bp[wI].addr == va)
+        {
+            removeBP(wBPList.bp[wI]);
+        }
+    }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
+}
+
+void Breakpoints::removeBP(const QString & DLLName)
+{
+    BPMAP wBPList;
+
+    // Get breakpoints list
+    DbgGetBpList(bp_dll, &wBPList);
+
+    // Find breakpoint at DLLName
+    for(int wI = 0; wI < wBPList.count; wI++)
+    {
+        if(QString::fromUtf8(wBPList.bp[wI].mod) == DLLName)
         {
             removeBP(wBPList.bp[wI]);
         }
@@ -271,6 +297,25 @@ void Breakpoints::toggleBPByDisabling(BPXTYPE type, duint va)
     for(int wI = 0; wI < wBPList.count; wI++)
     {
         if(wBPList.bp[wI].addr == va)
+        {
+            toggleBPByDisabling(wBPList.bp[wI]);
+        }
+    }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
+}
+
+void Breakpoints::toggleBPByDisabling(const QString & DLLName)
+{
+    BPMAP wBPList;
+
+    // Get breakpoints list
+    DbgGetBpList(bp_dll, &wBPList);
+
+    // Find breakpoint at module name
+    for(int wI = 0; wI < wBPList.count; wI++)
+    {
+        if(QString::fromUtf8(wBPList.bp[wI].mod) == DLLName)
         {
             toggleBPByDisabling(wBPList.bp[wI]);
         }
@@ -410,9 +455,14 @@ void Breakpoints::toggleBPByRemoving(BPXTYPE type, duint va)
 
 void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget)
 {
-    duint addr = addrText.toULongLong(nullptr, 16);
     BRIDGEBP bridgebp;
-    if(!DbgFunctions()->GetBridgeBp(type, addr, &bridgebp))
+    if(type != bp_dll)
+    {
+        duint addr = addrText.toULongLong(nullptr, 16);
+        if(!DbgFunctions()->GetBridgeBp(type, addr, &bridgebp))
+            return;
+    }
+    else if(!DbgFunctions()->GetBridgeBp(type, reinterpret_cast<duint>(addrText.toUtf8().constData()), &bridgebp))
         return;
     EditBreakpointDialog dialog(widget, bridgebp);
     if(dialog.exec() != QDialog::Accepted)
@@ -459,6 +509,18 @@ void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
         exec(QString("SetMemoryBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
         exec(QString("SetMemoryBreakpointSilent %1, %2").arg(addrText).arg(bp.silent));
         exec(QString("SetMemoryBreakpointSingleshoot %1, %2").arg(addrText).arg(bp.singleshoot));
+        break;
+    case bp_dll:
+        exec(QString("SetLibrarianBreakpointName %1, \"\"%2\"\"").arg(addrText).arg(bp.name));
+        exec(QString("SetLibrarianBreakpointCondition %1, \"%2\"").arg(addrText).arg(bp.breakCondition));
+        exec(QString("SetLibrarianBreakpointLog %1, \"%2\"").arg(addrText).arg(bp.logText));
+        exec(QString("SetLibrarianBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(bp.logCondition));
+        exec(QString("SetLibrarianBreakpointCommand %1, \"%2\"").arg(addrText).arg(bp.commandText));
+        exec(QString("SetLibrarianBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
+        exec(QString("ResetLibrarianBreakpointHitCount %1, %2").arg(addrText).arg(bp.hitCount));
+        exec(QString("SetLibrarianBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
+        exec(QString("SetLibrarianBreakpointSilent %1, %2").arg(addrText).arg(bp.silent));
+        exec(QString("SetLibrarianBreakpointSingleshoot %1, %2").arg(addrText).arg(bp.singleshoot));
         break;
     default:
         return;

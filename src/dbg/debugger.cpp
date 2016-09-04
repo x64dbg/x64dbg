@@ -592,9 +592,9 @@ static void printDllBpInfo(const BREAKPOINT & bp)
         bptype = _strdup("");
     }
     if(*bp.name)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint %s(%s):Module %s"), bp.name, bptype, bp.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint %s(%s):Module %s\n"), bp.name, bptype, bp.mod);
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint(%s):Module %s"), bptype, bp.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint(%s):Module %s\n"), bptype, bp.mod);
     free(bptype);
 }
 
@@ -965,6 +965,16 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+bool cbSetDLLBreakpoints(const BREAKPOINT* bp)
+{
+    if(!bp->enabled)
+        return true;
+    if(bp->type != BPDLL)
+        return true;
+    LibrarianSetBreakPoint(bp->mod, bp->titantype, bp->singleshoot, (void*)cbLibrarianBreakpoint);
+    return true;
+}
+
 EXCEPTION_DEBUG_INFO getLastExceptionInfo()
 {
     return lastExceptionInfo;
@@ -1181,6 +1191,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     char modname[256] = "";
     if(ModNameFromAddr((duint)base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname, duint(base));
+    BpEnumAll(cbSetDLLBreakpoints);
     BpEnumAll(cbSetModuleBreakpoints, "");
     GuiUpdateBreakpointsView();
     pCreateProcessBase = (duint)CreateProcessInfo->lpBaseOfImage;
@@ -1884,6 +1895,42 @@ bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
     if(!RemoveMemoryBPX(bp->addr, 0))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable memory breakpoint %p (RemoveMemoryBPX)\n"), bp->addr);
+        return false;
+    }
+    return true;
+}
+
+bool cbEnableAllDllBreakpoints(const BREAKPOINT* bp)
+{
+    if(bp->type != BPDLL || bp->enabled)
+        return true;
+
+    if(!BpEnable(bp->addr, BPDLL, true))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %p (BpEnable)\n"), bp->addr);
+        return false;
+    }
+    if(!LibrarianSetBreakPoint(bp->mod, bp->titantype, bp->singleshoot, (void*)cbLibrarianBreakpoint))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %p (LibrarianSetBreakPoint)\n"), bp->addr);
+        return false;
+    }
+    return true;
+}
+
+bool cbDisableAllDllBreakpoints(const BREAKPOINT* bp)
+{
+    if(bp->type != BPDLL || !bp->enabled)
+        return true;
+
+    if(!BpEnable(bp->addr, BPDLL, false))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %p (BpEnable)\n"), bp->addr);
+        return false;
+    }
+    if(!LibrarianRemoveBreakPoint(bp->mod, bp->titantype))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %p (LibrarianRemoveBreakPoint)\n"), bp->addr);
         return false;
     }
     return true;

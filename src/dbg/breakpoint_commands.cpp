@@ -314,7 +314,7 @@ static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], c
         dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
         return STATUS_ERROR;
     }
-    auto value = "";
+    char* value = "";
     if(argc > 2)
         value = argv[2];
 
@@ -399,7 +399,7 @@ static CMDRESULT cbDebugResetBPXHitCountCommon(BP_TYPE Type, int argc, char* arg
     }
     if(!BpResetHitCount(bp.addr, Type, (uint32)value))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set hit count on breakpoint \"%s\""), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set hit count on breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     DebugUpdateBreakpointsViewAsync();
@@ -429,7 +429,7 @@ static CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* arg
     }
     if(!BpSetFastResume(bp.addr, Type, fastResume))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set fast resume on breakpoint \"%1\""), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set fast resume on breakpoint \"%1\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     DebugUpdateBreakpointsViewAsync();
@@ -459,7 +459,7 @@ static CMDRESULT cbDebugSetBPXSingleshootCommon(BP_TYPE Type, int argc, char* ar
     }
     if(!BpSetSingleshoot(bp.addr, Type, singleshoot))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set singleshoot on breakpoint \"%1\""), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set singleshoot on breakpoint \"%1\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     DebugUpdateBreakpointsViewAsync();
@@ -489,7 +489,7 @@ static CMDRESULT cbDebugSetBPXSilentCommon(BP_TYPE Type, int argc, char* argv[])
     }
     if(!BpSetSilent(bp.addr, Type, silent))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set silent on breakpoint \"%1\""), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set silent on breakpoint \"%1\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     DebugUpdateBreakpointsViewAsync();
@@ -1140,7 +1140,7 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
 
 CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
 {
-    if(argc < 2)  //delete all memory breakpoints
+    if(argc < 2)  //disable all memory breakpoints
     {
         if(!BpGetCount(BPMEMORY))
         {
@@ -1232,6 +1232,7 @@ CMDRESULT cbDebugBpDll(int argc, char* argv[])
     if(!LibrarianSetBreakPoint(argv[1], type, singleshoot, (void*)cbLibrarianBreakpoint))
         return STATUS_ERROR;
     dprintf(QT_TRANSLATE_NOOP("DBG", "Dll breakpoint set on \"%s\"!\n"), argv[1]);
+    DebugUpdateBreakpointsViewAsync();
     return STATUS_CONTINUE;
 }
 
@@ -1242,15 +1243,101 @@ CMDRESULT cbDebugBcDll(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments"));
         return STATUS_ERROR;
     }
-    if(!BpDelete(ModHashFromName(argv[1]), BPDLL))
+    BREAKPOINT bp;
+    if(!BpGetAny(BPDLL, argv[1], &bp))
+        return STATUS_ERROR;
+    if(!BpDelete(ModHashFromName(bp.mod), BPDLL))
     {
         return STATUS_ERROR;
     }
-    if(!LibrarianRemoveBreakPoint(argv[1], UE_ON_LIB_ALL))
+    if(!LibrarianRemoveBreakPoint(bp.mod, bp.titantype))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint..."));
         return STATUS_ERROR;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint removed!"));
+    DebugUpdateBreakpointsViewAsync();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugBpDllDisable(int argc, char* argv[])
+{
+    if(argc < 2)  //disable all DLL breakpoints
+    {
+        if(!BpGetCount(BPDLL))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "No DLL breakpoints to disable!"));
+            return STATUS_CONTINUE;
+        }
+        if(!BpEnumAll(cbDisableAllDllBreakpoints))  //at least one deletion failed
+            return STATUS_ERROR;
+        dputs(QT_TRANSLATE_NOOP("DBG", "All DLL breakpoints disabled!"));
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    BREAKPOINT found;
+    duint addr = 0;
+    if(!BpGetAny(BPDLL, argv[1], &found))  //invalid DLL breakpoint
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such DLL breakpoint \"%s\"\n"), argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!found.enabled)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint already disabled!"));
+        return STATUS_CONTINUE;
+    }
+    if(!BpEnable(found.addr, BPDLL, false))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (BpEnable)\n"), found.mod);
+        return STATUS_ERROR;
+    }
+    if(!LibrarianSetBreakPoint(found.mod, found.titantype, found.singleshoot, (void*)cbLibrarianBreakpoint))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), found.mod);
+    }
+    dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint disabled!"));
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugBpDllEnable(int argc, char* argv[])
+{
+    if(argc < 2)  //disable all DLL breakpoints
+    {
+        if(!BpGetCount(BPDLL))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "No DLL breakpoints to enable!"));
+            return STATUS_CONTINUE;
+        }
+        if(!BpEnumAll(cbEnableAllDllBreakpoints))  //at least one deletion failed
+            return STATUS_ERROR;
+        dputs(QT_TRANSLATE_NOOP("DBG", "All DLL breakpoints enabled!"));
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    BREAKPOINT found;
+    duint addr = 0;
+    if(!BpGetAny(BPDLL, argv[1], &found))  //invalid DLL breakpoint
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such DLL breakpoint \"%s\"\n"), argv[1]);
+        return STATUS_ERROR;
+    }
+    if(found.enabled)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint already enabled!"));
+        return STATUS_CONTINUE;
+    }
+    if(!BpEnable(found.addr, BPDLL, true))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), found.mod);
+        return STATUS_ERROR;
+    }
+    if(!LibrarianRemoveBreakPoint(found.mod, found.titantype))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), found.mod);
+    }
+    dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint enable!"));
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }

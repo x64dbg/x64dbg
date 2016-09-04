@@ -138,6 +138,8 @@ static void registercommands()
     dbgcmdnew("DisableMemoryBreakpoint\1membpd\1bpmd", cbDebugDisableMemoryBreakpoint, true); //enable memory breakpoint
     dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
     dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
+    dbgcmdnew("LibrarianDisableBreakPoint", cbDebugBpDllDisable, true);
+    dbgcmdnew("LibrarianEnableBreakPoint", cbDebugBpDllEnable, true);
 
     //breakpoints (conditional)
     dbgcmdnew("SetBreakpointName\1bpname", cbDebugSetBPXName, true); //set breakpoint name

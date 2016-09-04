@@ -116,11 +116,12 @@ bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType,
     bp.singleshoot = Singleshot;
     bp.titantype = TitanType;
     bp.type = BPDLL;
+    bp.addr = ModHashFromName(module);
 
     // Insert new entry to the global list
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    return breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, ModHashFromName(bp.mod)), bp)).second;
+    return breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, bp.addr), bp)).second;
 }
 
 bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
@@ -185,7 +186,7 @@ bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
     }
     else
     {
-        if(BpGet(ModHashFromName(Name), Type, Name, Bp))
+        if(BpGet(ModHashFromName(Name), Type, 0, Bp))
             return true;
     }
     return false;
@@ -201,8 +202,13 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
         {
             if(_stricmp(i.second.mod, module1) == 0)
             {
-                strcpy_s(i.second.mod, module1);
-                *newBpInfo = &i.second;
+                BREAKPOINT temp;
+                temp = i.second;
+                strcpy_s(temp.mod, module1);
+                temp.addr = ModHashFromName(module1);
+                breakpoints.erase(i.first);
+                auto newItem = breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, temp.addr), temp));
+                *newBpInfo = &newItem.first->second;
                 return true;
             }
             const char* dashPos = max(strrchr(i.second.mod, '\\'), strrchr(i.second.mod, '/'));
@@ -212,8 +218,13 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
                 dashPos += 1;
             if(dashPos1 != nullptr && _stricmp(dashPos, dashPos1 + 1) == 0) // filename matches
             {
-                strcpy_s(i.second.mod, module1);
-                *newBpInfo = &i.second;
+                BREAKPOINT temp;
+                temp = i.second;
+                strcpy_s(temp.mod, module1);
+                temp.addr = ModHashFromName(module1);
+                breakpoints.erase(i.first);
+                auto newItem = breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, temp.addr), temp));
+                *newBpInfo = &newItem.first->second;
                 return true;
             }
         }
@@ -589,9 +600,9 @@ void BpCacheSave(JSON Root)
     const JSON jsonBreakpoints = json_array();
 
     // Loop all breakpoints
-    for(auto & i : breakpoints)
+    for(const auto & i : breakpoints)
     {
-        auto & breakpoint = i.second;
+        const auto & breakpoint = i.second;
 
         // Ignore single-shot breakpoints
         if(breakpoint.singleshoot)
@@ -676,7 +687,15 @@ void BpCacheLoad(JSON Root)
         breakpoint.silent = json_boolean_value(json_object_get(value, "silent"));
 
         // Build the hash map key: MOD_HASH + ADDRESS
-        duint key = ModHashFromName(breakpoint.mod) + breakpoint.addr;
+        duint key;
+        if(breakpoint.type != BPDLL)
+        {
+            key = ModHashFromName(breakpoint.mod) + breakpoint.addr;
+        }
+        else
+        {
+            key = ModHashFromName(breakpoint.mod);
+        }
         breakpoints.insert(std::make_pair(BreakpointKey(breakpoint.type, key), breakpoint));
     }
 }

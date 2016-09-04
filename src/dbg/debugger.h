@@ -131,6 +131,8 @@ bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp);
 bool cbBreakpointList(const BREAKPOINT* bp);
 bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp);
 bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp);
+bool cbEnableAllDllBreakpoints(const BREAKPOINT* bp);
+bool cbDisableAllDllBreakpoints(const BREAKPOINT* bp);
 void cbTOCNDStep();
 void cbTICNDStep();
 void cbTIBTStep();

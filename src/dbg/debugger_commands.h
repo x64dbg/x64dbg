@@ -69,6 +69,8 @@ CMDRESULT cbDebugSetBPXDLLFastResume(int argc, char* argv[]);
 CMDRESULT cbDebugSetBPXDLLSingleshoot(int argc, char* argv[]);
 CMDRESULT cbDebugSetBPXDLLSilent(int argc, char* argv[]);
 CMDRESULT cbDebugResetBPXDLLHitCount(int argc, char* argv[]);
+CMDRESULT cbDebugBpDllDisable(int argc, char* argv[]);
+CMDRESULT cbDebugBpDllEnable(int argc, char* argv[]);
 CMDRESULT cbDebugBplist(int argc, char* argv[]);
 CMDRESULT cbDebugStepInto(int argc, char* argv[]);
 CMDRESULT cbDebugeStepInto(int argc, char* argv[]);

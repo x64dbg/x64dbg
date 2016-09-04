@@ -17,6 +17,7 @@ public:
     void setupHardBPRightClickContextMenu();
     void setupSoftBPRightClickContextMenu();
     void setupMemBPRightClickContextMenu();
+    void setupDLLBPRightClickContextMenu();
 
 signals:
     void showCpu();
@@ -58,6 +59,13 @@ public slots:
     void selectionChangedMemorySlot();
     void resetMemoryHitCountSlot();
 
+    // DLL
+    void DLLBPContextMenuSlot(const QPoint & pos);
+    void removeDLLBPActionSlot();
+    void enableDisableDLLBPActionSlot();
+    void selectionChangedDLLSlot();
+    void resetDLLHitCountSlot();
+
     // Conditional
     void editBreakpointSlot();
 
@@ -67,6 +75,7 @@ private:
     StdTable* mHardBPTable;
     StdTable* mSoftBPTable;
     StdTable* mMemBPTable;
+    StdTable* mDLLBPTable;
     // Conditional BP Context Menu
     BPXTYPE mCurrentType;
     QAction* mEditBreakpointAction;
@@ -94,6 +103,11 @@ private:
     QAction* mMemBPResetHitCountAction;
     QAction* mMemBPEnableAllAction;
     QAction* mMemBPDisableAllAction;
+
+    // DLL BP Context Menu
+    QAction* mDLLBPRemoveAction;
+    QAction* mDLLBPEnableDisableAction;
+    QAction* mDLLBPResetHitCountAction;
 };
 
 #endif // BREAKPOINTSVIEW_H
