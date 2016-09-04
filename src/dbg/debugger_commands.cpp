@@ -1011,7 +1011,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     }
     auto symOptions = SafeSymGetOptions();
     SafeSymSetOptions(symOptions & ~SYMOPT_IGNORE_CVREC);
-    if(!SafeSymLoadModuleExW(fdProcessInfo->hProcess, 0, wszModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
+    if(!SymLoadModuleExW(fdProcessInfo->hProcess, 0, wszModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx failed!"));
         SafeSymSetOptions(symOptions);
