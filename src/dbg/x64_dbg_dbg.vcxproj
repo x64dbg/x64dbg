@@ -37,6 +37,7 @@
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
+    <ClCompile Include="breakpoint_commands.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="commandline.cpp" />
     <ClCompile Include="commandparser.cpp" />

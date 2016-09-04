@@ -574,6 +574,30 @@ static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
     free(bptype);
 }
 
+static void printDllBpInfo(const BREAKPOINT & bp)
+{
+    char* bptype;
+    switch(bp.titantype)
+    {
+    case UE_ON_LIB_LOAD:
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "DLL Load")));
+        break;
+    case UE_ON_LIB_UNLOAD:
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "DLL Unload")));
+        break;
+    case UE_ON_LIB_ALL:
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "DLL Load and unload")));
+        break;
+    default:
+        bptype = _strdup("");
+    }
+    if(*bp.name)
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint %s(%s):Module %s"), bp.name, bptype, bp.mod);
+    else
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint(%s):Module %s"), bptype, bp.mod);
+    free(bptype);
+}
+
 static bool getConditionValue(const char* expression)
 {
     auto word = *(uint16*)expression;
@@ -630,6 +654,9 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
             case BPMEMORY:
                 printMemBpInfo(bp, ExceptionAddress);
                 break;
+            case BPDLL:
+                printDllBpInfo(bp);
+                break;
             default:
                 break;
             }
@@ -658,23 +685,32 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         break;
     case BPMEMORY:
         bpPtr = BpInfoFromAddr(bptype, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
+        break;
+    case BPDLL:
+        bpPtr = BpInfoFromAddr(BPDLL, ModHashFromName(reinterpret_cast<const char*>(ExceptionAddress)));
+        break;
     default:
         break;
     }
     if(!(bpPtr && bpPtr->enabled))  //invalid / disabled breakpoint hit (most likely a bug)
     {
         SHARED_RELEASE();
-        dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint reached not in list!"));
-        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
-        //lock
-        lock(WAITID_RUN);
-        // Plugin callback
-        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-        SetForegroundWindow(GuiGetWindowHandle());
-        bSkipExceptions = false;
-        wait(WAITID_RUN);
-        return;
+        if(bptype != BPDLL || !BpUpdateDllPath(reinterpret_cast<const char*>(ExceptionAddress), &bpPtr))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint reached not in list!"));
+            DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+            //lock
+            lock(WAITID_RUN);
+            // Plugin callback
+            PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+            plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+            SetForegroundWindow(GuiGetWindowHandle());
+            bSkipExceptions = false;
+            wait(WAITID_RUN);
+            return;
+        }
+        else if(bptype == BPDLL)
+            SHARED_REACQUIRE();
     }
 
     // increment hit count
@@ -1513,9 +1549,13 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     callbackInfo.modname = modname;
     plugincbcall(CB_LOADDLL, &callbackInfo);
 
-    if(bBreakOnNextDll || settingboolget("Events", "DllLoad"))
+    if(bBreakOnNextDll)
     {
         bBreakOnNextDll = false;
+        cbGenericBreakpoint(BPDLL, DLLDebugFileName);
+    }
+    else if(settingboolget("Events", "DllLoad"))
+    {
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
@@ -1543,9 +1583,13 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Unloaded: %p %s\n"), base, modname);
 
-    if(bBreakOnNextDll || settingboolget("Events", "DllUnload"))
+    if(bBreakOnNextDll)
     {
         bBreakOnNextDll = false;
+        cbGenericBreakpoint(BPDLL, modname);
+    }
+    else if(settingboolget("Events", "DllUnload"))
+    {
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
@@ -1859,8 +1903,17 @@ bool cbBreakpointList(const BREAKPOINT* bp)
         type = "HW";
     else if(bp->type == BPMEMORY)
         type = "GP";
+    else if(bp->type == BPDLL)
+        type = "DLL";
     bool enabled = bp->enabled;
-    if(*bp->name)
+    if(bp->type == BPDLL)
+    {
+        if(*bp->name)
+            dprintf_untranslated("%d:%s:\"%s\":\"%s\"\n", enabled, type, bp->mod, bp->name);
+        else
+            dprintf_untranslated("%d:%s:\"%s\"\n", enabled, type, bp->mod);
+    }
+    else if(*bp->name)
         dprintf_untranslated("%d:%s:%p:\"%s\"\n", enabled, type, bp->addr, bp->name);
     else
         dprintf_untranslated("%d:%s:%p\n", enabled, type, bp->addr);

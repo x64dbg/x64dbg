@@ -18,6 +18,8 @@ static void setBpActive(BREAKPOINT & bp)
 {
     if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
         bp.active = true;
+    else if(bp.type == BPDLL)
+        bp.active = true;
     else
         bp.active = MemIsValidReadPtr(bp.addr);
 }
@@ -27,7 +29,11 @@ BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address)
     //
     // NOTE: THIS DOES _NOT_ USE LOCKS
     //
-    auto found = breakpoints.find(BreakpointKey(Type, ModHashFromAddr(Address)));
+    std::map<BreakpointKey, BREAKPOINT>::iterator found;
+    if(Type != BPDLL)
+        found = breakpoints.find(BreakpointKey(Type, ModHashFromAddr(Address)));
+    else
+        found = breakpoints.find(BreakpointKey(Type, Address)); // Address = ModHashFromName(ModuleName)
 
     // Was the module found with this address?
     if(found == breakpoints.end())
@@ -48,7 +54,8 @@ int BpGetList(std::vector<BREAKPOINT>* List)
         for(auto & i : breakpoints)
         {
             BREAKPOINT currentBp = i.second;
-            currentBp.addr += ModBaseFromName(currentBp.mod);
+            if(currentBp.type != BPDLL)
+                currentBp.addr += ModBaseFromName(currentBp.mod);
             setBpActive(currentBp);
 
             List->push_back(currentBp);
@@ -91,8 +98,29 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     // Insert new entry to the global list
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    breakpoints.insert(std::make_pair(BreakpointKey(Type, ModHashFromAddr(Address)), bp));
-    return true;
+    return breakpoints.insert(std::make_pair(BreakpointKey(Type, ModHashFromAddr(Address)), bp)).second;
+}
+
+bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType, const char* Name)
+{
+    // Default to an empty name if one wasn't supplied
+    if(!Name)
+        Name = "";
+
+    BREAKPOINT bp;
+    memset(&bp, 0, sizeof(BREAKPOINT));
+    strcpy_s(bp.mod, module);
+    strcpy_s(bp.name, Name);
+    bp.active = true;
+    bp.enabled = Enable;
+    bp.singleshoot = Singleshot;
+    bp.titantype = TitanType;
+    bp.type = BPDLL;
+
+    // Insert new entry to the global list
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    return breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, ModHashFromName(bp.mod)), bp)).second;
 }
 
 bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
@@ -115,7 +143,8 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
             return true;
 
         *Bp = *bpInfo;
-        Bp->addr += ModBaseFromAddr(Address);
+        if(bpInfo->type != BPDLL)
+            Bp->addr += ModBaseFromAddr(Address);
         setBpActive(*Bp);
         return true;
     }
@@ -131,7 +160,8 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         if(Bp)
         {
             *Bp = i.second;
-            Bp->addr += ModBaseFromAddr(Address);
+            if(i.second.type != BPDLL)
+                Bp->addr += ModBaseFromAddr(Address);
             setBpActive(*Bp);
         }
 
@@ -144,12 +174,51 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 
 bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 {
-    if(BpGet(0, Type, Name, Bp))
-        return true;
-    duint addr;
-    if(valfromstring(Name, &addr))
-        if(BpGet(addr, Type, 0, Bp))
+    if(Type != BPDLL)
+    {
+        if(BpGet(0, Type, Name, Bp))
             return true;
+        duint addr;
+        if(valfromstring(Name, &addr))
+            if(BpGet(addr, Type, 0, Bp))
+                return true;
+    }
+    else
+    {
+        if(BpGet(ModHashFromName(Name), Type, Name, Bp))
+            return true;
+    }
+    return false;
+}
+
+bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
+{
+    const char* dashPos1 = max(strrchr(module1, '\\'), strrchr(module1, '/'));
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+    for(auto & i : breakpoints)
+    {
+        if(i.second.type == BPDLL)
+        {
+            if(_stricmp(i.second.mod, module1) == 0)
+            {
+                strcpy_s(i.second.mod, module1);
+                *newBpInfo = &i.second;
+                return true;
+            }
+            const char* dashPos = max(strrchr(i.second.mod, '\\'), strrchr(i.second.mod, '/'));
+            if(dashPos == nullptr)
+                dashPos = i.second.mod;
+            else
+                dashPos += 1;
+            if(dashPos1 != nullptr && _stricmp(dashPos, dashPos1 + 1) == 0) // filename matches
+            {
+                strcpy_s(i.second.mod, module1);
+                *newBpInfo = &i.second;
+                return true;
+            }
+        }
+    }
+    *newBpInfo = nullptr;
     return false;
 }
 
@@ -159,7 +228,10 @@ bool BpDelete(duint Address, BP_TYPE Type)
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
     // Erase the index from the global list
-    return (breakpoints.erase(BreakpointKey(Type, ModHashFromAddr(Address))) > 0);
+    if(Type != BPDLL)
+        return (breakpoints.erase(BreakpointKey(Type, ModHashFromAddr(Address))) > 0);
+    else
+        return (breakpoints.erase(BreakpointKey(BPDLL, Address)) > 0);
 }
 
 bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
@@ -359,10 +431,13 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
         }
 
         BREAKPOINT bpInfo = j->second;
-        if(base)  //workaround for some Windows bullshit with compatibility mode
-            bpInfo.addr += base;
-        else
-            bpInfo.addr += ModBaseFromName(bpInfo.mod);
+        if(bpInfo.type != BPDLL)
+        {
+            if(base)  //workaround for some Windows bullshit with compatibility mode
+                bpInfo.addr += base;
+            else
+                bpInfo.addr += ModBaseFromName(bpInfo.mod);
+        }
         setBpActive(bpInfo);
 
         // Lock must be released due to callback sub-locks
@@ -484,6 +559,21 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         break;
     case BPMEMORY:
         BridgeBp->type = bp_memory;
+        break;
+    case BPDLL:
+        BridgeBp->type = bp_dll;
+        switch(Bp->titantype)
+        {
+        case UE_ON_LIB_LOAD:
+            BridgeBp->slot = 0;
+            break;
+        case UE_ON_LIB_UNLOAD:
+            BridgeBp->slot = 1;
+            break;
+        case UE_ON_LIB_ALL:
+            BridgeBp->slot = 2;
+            break;
+        }
         break;
     default:
         BridgeBp->type = bp_none;

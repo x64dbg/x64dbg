@@ -2,11 +2,11 @@
 #define BREAKPOINTSVIEW_H
 
 #include <QWidget>
-#include <QVBoxLayout>
-#include <QSplitter>
 #include "Imports.h"
 
 class StdTable;
+class QVBoxLayout;
+class LabeledSplitter;
 
 class BreakpointsView : public QWidget
 {
@@ -63,7 +63,7 @@ public slots:
 
 private:
     QVBoxLayout* mVertLayout;
-    QSplitter* mSplitter ;
+    LabeledSplitter* mSplitter;
     StdTable* mHardBPTable;
     StdTable* mSoftBPTable;
     StdTable* mMemBPTable;

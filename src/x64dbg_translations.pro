@@ -189,7 +189,9 @@ SOURCES += \
     dbg/analysis/LinearPass.cpp \
     dbg/analysis/recursiveanalysis.cpp \
     dbg/analysis/xrefsanalysis.cpp \
-    dbg/animate.cpp
+    dbg/animate.cpp \
+    gui/Src/BasicView/LabeledSplitter.cpp \
+    dbg/breakpoint_commands.cpp
 
 TRANSLATIONS = \
     gui/Translations/x64dbg.ts
@@ -395,7 +397,8 @@ HEADERS += \
     dbg/analysis/LinearPass.h \
     dbg/analysis/recursiveanalysis.h \
     dbg/analysis/xrefsanalysis.h \
-    dbg/animate.h
+    dbg/animate.h \
+    gui/Src/BasicView/LabeledSplitter.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
