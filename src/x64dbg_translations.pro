@@ -190,7 +190,8 @@ SOURCES += \
     dbg/analysis/recursiveanalysis.cpp \
     dbg/analysis/xrefsanalysis.cpp \
     dbg/animate.cpp \
-    gui/Src/BasicView/LabeledSplitter.cpp
+    gui/Src/BasicView/LabeledSplitter.cpp \
+    dbg/breakpoint_commands.cpp
 
 TRANSLATIONS = \
     gui/Translations/x64dbg.ts
