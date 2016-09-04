@@ -2,10 +2,10 @@
 #define BREAKPOINTSVIEW_H
 
 #include <QWidget>
-#include <QVBoxLayout>
 #include "Imports.h"
 
 class StdTable;
+class QVBoxLayout;
 class LabeledSplitter;
 
 class BreakpointsView : public QWidget

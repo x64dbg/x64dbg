@@ -29,6 +29,7 @@ public:
     LabeledSplitter(QWidget* parent);
     void addWidget(QWidget* widget, const QString & name);
     void insertWidget(int index, QWidget* widget, const QString & name);
+    void collapseLowerTabs();
     QString getName(int index) const;
 protected:
     void setOrientation(Qt::Orientation o); // LabeledSplitter is always vertical

@@ -575,6 +575,9 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     case bp_memory:
         currentBpType = BPMEMORY;
         break;
+    case bp_dll:
+        currentBpType = BPDLL;
+        break;
     default:
         return 0;
     }

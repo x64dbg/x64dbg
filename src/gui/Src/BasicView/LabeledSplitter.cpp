@@ -1,6 +1,7 @@
 #include "LabeledSplitter.h"
 #include <QPainter>
 #include <QpaintEvent>
+#include "bridge.h"
 
 //LabeledSplitterHandle class
 LabeledSplitterHandle::LabeledSplitterHandle(Qt::Orientation o, LabeledSplitter* parent) : QSplitterHandle(o, parent)
@@ -124,6 +125,19 @@ void LabeledSplitter::addWidget(QWidget* widget, const QString & name)
 void LabeledSplitter::addWidget(QWidget* widget)
 {
     QSplitter::addWidget(widget);
+}
+
+void LabeledSplitter::collapseLowerTabs()
+{
+    if(count() > 2)
+    {
+        auto size = sizes();
+        size[0] = 1;
+        size[1] = 1;
+        for(int i = 2; i < size.count(); i++)
+            size[i] = 0;
+        setSizes(size);
+    }
 }
 
 void LabeledSplitter::insertWidget(int index, QWidget* widget, const QString & name)

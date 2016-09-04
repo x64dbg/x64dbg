@@ -1,3 +1,4 @@
+#include <QVBoxLayout>
 #include "BreakpointsView.h"
 #include "Configuration.h"
 #include "Bridge.h"
@@ -59,6 +60,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mSplitter->addWidget(mSoftBPTable, tr("Software breakpoint"));
     mSplitter->addWidget(mHardBPTable, tr("Hardware breakpoint"));
     mSplitter->addWidget(mMemBPTable, tr("Memory breakpoint"));
+    mSplitter->collapseLowerTabs();
 
     // Layout
     mVertLayout = new QVBoxLayout;

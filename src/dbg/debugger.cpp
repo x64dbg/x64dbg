@@ -658,6 +658,10 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         break;
     case BPMEMORY:
         bpPtr = BpInfoFromAddr(bptype, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
+        break;
+    case BPDLL:
+        bpPtr = BpInfoFromAddr(BPDLL, ModHashFromName(reinterpret_cast<const char*>(ExceptionAddress)));
+        break;
     default:
         break;
     }
@@ -1513,9 +1517,13 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     callbackInfo.modname = modname;
     plugincbcall(CB_LOADDLL, &callbackInfo);
 
-    if(bBreakOnNextDll || settingboolget("Events", "DllLoad"))
+    if(bBreakOnNextDll)
     {
         bBreakOnNextDll = false;
+        cbGenericBreakpoint(BPDLL, DLLDebugFileName);
+    }
+    else if(settingboolget("Events", "DllLoad"))
+    {
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock
@@ -1543,9 +1551,13 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Unloaded: %p %s\n"), base, modname);
 
-    if(bBreakOnNextDll || settingboolget("Events", "DllUnload"))
+    if(bBreakOnNextDll)
     {
         bBreakOnNextDll = false;
+        cbGenericBreakpoint(BPDLL, modname);
+    }
+    else if(settingboolget("Events", "DllUnload"))
+    {
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         //lock

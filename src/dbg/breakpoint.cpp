@@ -174,12 +174,20 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 
 bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 {
-    if(BpGet(0, Type, Name, Bp))
-        return true;
-    duint addr;
-    if(valfromstring(Name, &addr))
-        if(BpGet(addr, Type, 0, Bp))
+    if(Type != BPDLL)
+    {
+        if(BpGet(0, Type, Name, Bp))
             return true;
+        duint addr;
+        if(valfromstring(Name, &addr))
+            if(BpGet(addr, Type, 0, Bp))
+                return true;
+    }
+    else
+    {
+        if(BpGet(ModHashFromName(Name), Type, Name, Bp))
+            return true;
+    }
     return false;
 }
 
@@ -523,6 +531,15 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         break;
     case BPDLL:
         BridgeBp->type = bp_dll;
+        switch(Bp->titantype)
+        {
+        case UE_ON_LIB_LOAD:
+            BridgeBp->slot = 0;
+            break;
+        case UE_ON_LIB_UNLOAD:
+            BridgeBp->slot = 1;
+            break;
+        }
         break;
     default:
         BridgeBp->type = bp_none;
