@@ -14,7 +14,8 @@ enum BP_TYPE
 {
     BPNORMAL = 0,
     BPHARDWARE = 1,
-    BPMEMORY = 2
+    BPMEMORY = 2,
+    BPDLL = 3
 };
 
 struct BREAKPOINT
@@ -44,6 +45,7 @@ typedef bool (*BPENUMCALLBACK)(const BREAKPOINT* bp);
 BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address);
 int BpGetList(std::vector<BREAKPOINT>* List);
 bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name);
+bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType, const char* Name);
 bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
 bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
 bool BpDelete(duint Address, BP_TYPE Type);

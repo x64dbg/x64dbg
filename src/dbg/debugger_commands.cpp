@@ -1883,7 +1883,12 @@ CMDRESULT cbDebugBpDll(int argc, char* argv[])
     bool singleshoot = true;
     if(argc > 3)
         singleshoot = false;
-    LibrarianSetBreakPoint(argv[1], type, singleshoot, (void*)cbLibrarianBreakpoint);
+    if(!BpNewDll(argv[1], true, true, type, ""))
+    {
+        return STATUS_ERROR;
+    }
+    if(!LibrarianSetBreakPoint(argv[1], type, singleshoot, (void*)cbLibrarianBreakpoint))
+        return STATUS_ERROR;
     dprintf(QT_TRANSLATE_NOOP("DBG", "Dll breakpoint set on \"%s\"!\n"), argv[1]);
     return STATUS_CONTINUE;
 }
@@ -1893,6 +1898,10 @@ CMDRESULT cbDebugBcDll(int argc, char* argv[])
     if(argc < 2)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments"));
+        return STATUS_ERROR;
+    }
+    if(!BpDelete(ModHashFromName(argv[1]), BPDLL))
+    {
         return STATUS_ERROR;
     }
     if(!LibrarianRemoveBreakPoint(argv[1], UE_ON_LIB_ALL))
