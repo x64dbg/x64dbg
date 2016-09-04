@@ -2,8 +2,8 @@
 #include "Bridge.h"
 #include "VersionHelpers.h"
 #include "StdTable.h"
+#include "LabeledSplitter.h"
 #include <QVBoxLayout>
-#include <QSplitter>
 
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
 {
@@ -34,11 +34,10 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mPrivilegesTable->loadColumnFromConfig("Privilege");
 
     // Splitter
-    mSplitter = new QSplitter(this);
-    mSplitter->setOrientation(Qt::Vertical);
-    mSplitter->addWidget(mHandlesTable);
-    mSplitter->addWidget(mTcpConnectionsTable);
-    mSplitter->addWidget(mPrivilegesTable);
+    mSplitter = new LabeledSplitter(this);
+    mSplitter->addWidget(mHandlesTable, tr("Handles"));
+    mSplitter->addWidget(mTcpConnectionsTable, tr("TCP Connections"));
+    mSplitter->addWidget(mPrivilegesTable, tr("Privileges"));
 
     // Layout
     mVertLayout = new QVBoxLayout;

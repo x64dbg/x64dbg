@@ -6,7 +6,7 @@
 
 class StdTable;
 class QVBoxLayout;
-class QSplitter;
+class LabeledSplitter;
 
 class HandlesView : public QWidget
 {
@@ -31,7 +31,7 @@ public slots:
 
 private:
     QVBoxLayout* mVertLayout;
-    QSplitter* mSplitter;
+    LabeledSplitter* mSplitter;
     StdTable* mHandlesTable;
     StdTable* mTcpConnectionsTable;
     StdTable* mPrivilegesTable;

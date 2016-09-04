@@ -168,7 +168,8 @@ SOURCES += \
     Src/Gui/BrowseDialog.cpp \
     Src/Gui/DisassemblerGraphView.cpp \
     Src/Gui/DisassemblyPopup.cpp \
-    Src/Gui/VirtualModDialog.cpp
+    Src/Gui/VirtualModDialog.cpp \
+    Src/BasicView/LabeledSplitter.cpp
 
 
 HEADERS += \
@@ -273,7 +274,8 @@ HEADERS += \
     Src/Gui/DisassemblerGraphView.h \
     Src/Utils/ActionHelpers.h \
     Src/Gui/DisassemblyPopup.h \
-    Src/Gui/VirtualModDialog.h
+    Src/Gui/VirtualModDialog.h \
+    Src/BasicView/LabeledSplitter.h
     
 
 FORMS += \

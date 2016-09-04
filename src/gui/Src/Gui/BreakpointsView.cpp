@@ -4,6 +4,7 @@
 #include "Breakpoints.h"
 #include "LineEditDialog.h"
 #include "StdTable.h"
+#include "LabeledSplitter.h"
 
 BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 {
@@ -54,11 +55,10 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mMemBPTable->loadColumnFromConfig("MemoryBreakpoint");
 
     // Splitter
-    mSplitter = new QSplitter(this);
-    mSplitter->setOrientation(Qt::Vertical);
-    mSplitter->addWidget(mSoftBPTable);
-    mSplitter->addWidget(mHardBPTable);
-    mSplitter->addWidget(mMemBPTable);
+    mSplitter = new LabeledSplitter(this);
+    mSplitter->addWidget(mSoftBPTable, tr("Software breakpoint"));
+    mSplitter->addWidget(mHardBPTable, tr("Hardware breakpoint"));
+    mSplitter->addWidget(mMemBPTable, tr("Memory breakpoint"));
 
     // Layout
     mVertLayout = new QVBoxLayout;
