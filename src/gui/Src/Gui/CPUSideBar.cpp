@@ -205,7 +205,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         {
             if(WatchList[i].varType == WATCHVARTYPE::TYPE_UINT || WatchList[i].varType == WATCHVARTYPE::TYPE_ASCII || WatchList[i].varType == WATCHVARTYPE::TYPE_UNICODE)
             {
-                appendReg(QString::fromUtf8(WatchList[i].WatchName), WatchList[i].value);
+                appendReg(QString(WatchList[i].WatchName), WatchList[i].value);
             }
         }
     }

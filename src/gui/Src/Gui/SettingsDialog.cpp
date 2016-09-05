@@ -238,7 +238,7 @@ void SettingsDialog::LoadSettings()
     }
     char setting[MAX_SETTING_SIZE] = "";
     if(BridgeSettingGet("Symbols", "DefaultStore", setting))
-        ui->editSymbolStore->setText(QString::fromUtf8(setting));
+        ui->editSymbolStore->setText(QString(setting));
     else
     {
         QString defaultStore("http://msdl.microsoft.com/download/symbols");
@@ -246,9 +246,9 @@ void SettingsDialog::LoadSettings()
         BridgeSettingSet("Symbols", "DefaultStore", defaultStore.toUtf8().constData());
     }
     if(BridgeSettingGet("Symbols", "CachePath", setting))
-        ui->editSymbolCache->setText(QString::fromUtf8(setting));
+        ui->editSymbolCache->setText(QString(setting));
     if(BridgeSettingGet("Misc", "HelpOnSymbolicNameUrl", setting))
-        ui->editHelpOnSymbolicNameUrl->setText(QString::fromUtf8(setting));
+        ui->editHelpOnSymbolicNameUrl->setText(QString(setting));
 
     bJitOld = settings.miscSetJIT;
     bJitAutoOld = settings.miscSetJITAuto;

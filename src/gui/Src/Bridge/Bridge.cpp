@@ -607,9 +607,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         QString description;
         if(param1 == nullptr)
             return nullptr;
-        name = QString::fromUtf8((const char*)param1);
+        name = QString((const char*)param1);
         if(param2 != nullptr)
-            description = QString::fromUtf8((const char*)param2);
+            description = QString((const char*)param2);
         emit addFavouriteItem(0, name, description);
     }
     break;
@@ -620,9 +620,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         QString shortcut;
         if(param1 == nullptr)
             return nullptr;
-        name = QString::fromUtf8((const char*)param1);
+        name = QString((const char*)param1);
         if(param2 != nullptr)
-            shortcut = QString::fromUtf8((const char*)param2);
+            shortcut = QString((const char*)param2);
         emit addFavouriteItem(2, name, shortcut);
     }
     break;
@@ -633,9 +633,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         QString shortcut;
         if(param1 == nullptr)
             return nullptr;
-        name = QString::fromUtf8((const char*)param1);
+        name = QString((const char*)param1);
         if(param2 != nullptr)
-            shortcut = QString::fromUtf8((const char*)param2);
+            shortcut = QString((const char*)param2);
         emit setFavouriteItemShortcut(0, name, shortcut);
     }
     break;

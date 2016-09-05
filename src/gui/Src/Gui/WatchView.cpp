@@ -33,8 +33,8 @@ void WatchView::updateWatch()
     setRowCount(WatchList.Count());
     for(int i = 0; i < WatchList.Count(); i++)
     {
-        setCellContent(i, 0, QString::fromUtf8(WatchList[i].WatchName));
-        setCellContent(i, 1, QString::fromUtf8(WatchList[i].Expression));
+        setCellContent(i, 0, QString(WatchList[i].WatchName));
+        setCellContent(i, 1, QString(WatchList[i].Expression));
         switch(WatchList[i].varType)
         {
         case WATCHVARTYPE::TYPE_UINT:

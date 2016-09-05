@@ -313,7 +313,7 @@ void MemoryMapView::refreshMap()
         setCellContent(wI, 1, wS);
 
         // Information
-        wS = QString::fromUtf8((wMemMapStruct.page)[wI].info);
+        wS = QString((wMemMapStruct.page)[wI].info);
         setCellContent(wI, 2, wS);
 
         // State

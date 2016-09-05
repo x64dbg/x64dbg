@@ -12,7 +12,7 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     setFixedSize(this->size()); //fixed size
     if(bp.type == bp_dll)
     {
-        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(QString::fromUtf8(bp.mod)));
+        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(QString(bp.mod)));
     }
     else
     {

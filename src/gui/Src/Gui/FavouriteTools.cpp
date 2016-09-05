@@ -38,10 +38,10 @@ FavouriteTools::FavouriteTools(QWidget* parent) :
     std::vector<QString> allToolShortcut;
     for(i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QString command = QString::fromUtf8(buffer);
+        QString command = QString(buffer);
         QString commandShortcut("");
         if(BridgeSettingGet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), buffer))
-            commandShortcut = QString::fromUtf8(buffer);
+            commandShortcut = QString(buffer);
         allCommand.push_back(command);
         allToolShortcut.push_back(commandShortcut);
     }
@@ -89,13 +89,13 @@ void FavouriteTools::setupTools(QString name, QTableWidget* list)
     std::vector<QString> allToolDescription;
     for(i = 1; BridgeSettingGet("Favourite", (name + QString::number(i)).toUtf8().constData(), buffer); i++)
     {
-        QString toolPath = QString::fromUtf8(buffer);
+        QString toolPath = QString(buffer);
         QString toolShortcut("");
         QString toolDescription("");
         if(BridgeSettingGet("Favourite", (name + "Shortcut" + QString::number(i)).toUtf8().constData(), buffer))
-            toolShortcut = QString::fromUtf8(buffer);
+            toolShortcut = QString(buffer);
         if(BridgeSettingGet("Favourite", (name + "Description" + QString::number(i)).toUtf8().constData(), buffer))
-            toolDescription = QString::fromUtf8(buffer);
+            toolDescription = QString(buffer);
         allToolPath.push_back(toolPath);
         allToolShortcut.push_back(toolShortcut);
         allToolDescription.push_back(toolDescription);
@@ -120,7 +120,7 @@ void FavouriteTools::on_btnAddFavouriteTool_clicked()
     char buffer[MAX_SETTING_SIZE];
     memset(buffer, 0, sizeof(buffer));
     BridgeSettingGet("Favourite", "LastToolPath", buffer);
-    BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString::fromUtf8(buffer), false);
+    BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString(buffer), false);
     if(browse.exec() != QDialog::Accepted && browse.path.length())
         return;
     filename = browse.path;
@@ -143,7 +143,7 @@ void FavouriteTools::on_btnEditFavouriteTool_clicked()
     char buffer[MAX_SETTING_SIZE];
     memset(buffer, 0, sizeof(buffer));
     BridgeSettingGet("Favourite", "LastToolPath", buffer);
-    BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString::fromUtf8(buffer), false);
+    BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString(buffer), false);
     if(browse.exec() != QDialog::Accepted && browse.path.length())
         return;
     filename = browse.path;
@@ -217,7 +217,7 @@ void FavouriteTools::on_btnAddFavouriteScript_clicked()
     char buffer[MAX_SETTING_SIZE];
     memset(buffer, 0, sizeof(buffer));
     BridgeSettingGet("Favourite", "LastScriptPath", buffer);
-    filename = QFileDialog::getOpenFileName(this, tr("Select script"), QString::fromUtf8(buffer), tr("Script files (*.txt *.scr);;All files (*.*)"));
+    filename = QFileDialog::getOpenFileName(this, tr("Select script"), QString(buffer), tr("Script files (*.txt *.scr);;All files (*.*)"));
     if(filename.size() == 0)
         return;
     filename = QDir::toNativeSeparators(filename);
@@ -240,7 +240,7 @@ void FavouriteTools::on_btnEditFavouriteScript_clicked()
     char buffer[MAX_SETTING_SIZE];
     memset(buffer, 0, sizeof(buffer));
     BridgeSettingGet("Favourite", "LastScriptPath", buffer);
-    filename = QFileDialog::getOpenFileName(this, tr("Select script"), QString::fromUtf8(buffer), tr("Script files (*.txt *.scr);;All files (*.*)"));
+    filename = QFileDialog::getOpenFileName(this, tr("Select script"), QString(buffer), tr("Script files (*.txt *.scr);;All files (*.*)"));
     if(filename.size() == 0)
         return;
     filename = QDir::toNativeSeparators(filename);

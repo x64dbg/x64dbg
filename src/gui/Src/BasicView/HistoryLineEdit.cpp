@@ -14,7 +14,7 @@ void HistoryLineEdit::loadSettings(QString sectionPrefix)
                                     QString("Line%1").arg(i).toUtf8().constData(),
                                     buffer) && buffer[0] && i < mCmdHistoryMaxSize; i++)
     {
-        QString entry = QString::fromUtf8(buffer);
+        QString entry = QString(buffer);
         mCmdHistory.append(entry);
     }
 }

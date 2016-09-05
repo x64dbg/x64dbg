@@ -122,14 +122,14 @@ void BreakpointsView::reloadData()
     {
         QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         mHardBPTable->setCellContent(wI, 0, addr_text);
-        mHardBPTable->setCellContent(wI, 1, QString::fromUtf8(wBPList.bp[wI].name));
+        mHardBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
         char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(wBPList.bp[wI].addr, SEG_DEFAULT, label))
-            label_text = "<" + QString::fromUtf8(wBPList.bp[wI].mod) + "." + QString::fromUtf8(label) + ">";
+            label_text = "<" + QString(wBPList.bp[wI].mod) + "." + QString(label) + ">";
         else
-            label_text = QString::fromUtf8(wBPList.bp[wI].mod);
+            label_text = QString(wBPList.bp[wI].mod);
         mHardBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
@@ -163,14 +163,14 @@ void BreakpointsView::reloadData()
     {
         QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         mSoftBPTable->setCellContent(wI, 0, addr_text);
-        mSoftBPTable->setCellContent(wI, 1, QString::fromUtf8(wBPList.bp[wI].name));
+        mSoftBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
         char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(wBPList.bp[wI].addr, SEG_DEFAULT, label))
-            label_text = "<" + QString::fromUtf8(wBPList.bp[wI].mod) + "." + QString::fromUtf8(label) + ">";
+            label_text = "<" + QString(wBPList.bp[wI].mod) + "." + QString(label) + ">";
         else
-            label_text = QString::fromUtf8(wBPList.bp[wI].mod);
+            label_text = QString(wBPList.bp[wI].mod);
         mSoftBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
@@ -203,14 +203,14 @@ void BreakpointsView::reloadData()
     {
         QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         mMemBPTable->setCellContent(wI, 0, addr_text);
-        mMemBPTable->setCellContent(wI, 1, QString::fromUtf8(wBPList.bp[wI].name));
+        mMemBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
         char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(wBPList.bp[wI].addr, SEG_DEFAULT, label))
-            label_text = "<" + QString::fromUtf8(wBPList.bp[wI].mod) + "." + QString::fromUtf8(label) + ">";
+            label_text = "<" + QString(wBPList.bp[wI].mod) + "." + QString(label) + ">";
         else
-            label_text = QString::fromUtf8(wBPList.bp[wI].mod);
+            label_text = QString(wBPList.bp[wI].mod);
         mMemBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
@@ -239,8 +239,8 @@ void BreakpointsView::reloadData()
     mDLLBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        mDLLBPTable->setCellContent(wI, 0, QString::fromUtf8(wBPList.bp[wI].name));
-        mDLLBPTable->setCellContent(wI, 1, QString::fromUtf8(wBPList.bp[wI].mod));
+        mDLLBPTable->setCellContent(wI, 0, QString(wBPList.bp[wI].name));
+        mDLLBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].mod));
 
         if(wBPList.bp[wI].active == false)
             mDLLBPTable->setCellContent(wI, 2, tr("Inactive"));
@@ -814,7 +814,7 @@ void BreakpointsView::DLLBPContextMenuSlot(const QPoint & pos)
 
         for(wI = 0; wI < wBPList.count; wI++)
         {
-            if(QString::fromUtf8(wBPList.bp[wI].mod) == wName)
+            if(QString(wBPList.bp[wI].mod) == wName)
             {
                 if(wBPList.bp[wI].active == false)
                 {

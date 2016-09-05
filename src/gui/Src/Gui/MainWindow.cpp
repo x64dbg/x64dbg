@@ -1478,14 +1478,14 @@ void MainWindow::updateFavouriteTools()
     ui->menuFavourites->clear();
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Tool%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QString exePath = QString::fromUtf8(buffer);
+        QString exePath = QString(buffer);
         QAction* newAction = new QAction(this);
         newAction->setData(QVariant(QString("Tool,%1").arg(exePath)));
         if(BridgeSettingGet("Favourite", QString("ToolShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
-                setGlobalShortcut(newAction, QKeySequence(QString::fromUtf8(buffer)));
+                setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
         if(BridgeSettingGet("Favourite", QString("ToolDescription%1").arg(i).toUtf8().constData(), buffer))
-            newAction->setText(QString::fromUtf8(buffer));
+            newAction->setText(QString(buffer));
         else
             newAction->setText(exePath);
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
@@ -1499,14 +1499,14 @@ void MainWindow::updateFavouriteTools()
     }
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Script%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QString scriptPath = QString::fromUtf8(buffer);
+        QString scriptPath = QString(buffer);
         QAction* newAction = new QAction(this);
         newAction->setData(QVariant(QString("Script,%1").arg(scriptPath)));
         if(BridgeSettingGet("Favourite", QString("ScriptShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
-                setGlobalShortcut(newAction, QKeySequence(QString::fromUtf8(buffer)));
+                setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
         if(BridgeSettingGet("Favourite", QString("ScriptDescription%1").arg(i).toUtf8().constData(), buffer))
-            newAction->setText(QString::fromUtf8(buffer));
+            newAction->setText(QString(buffer));
         else
             newAction->setText(scriptPath);
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
@@ -1520,11 +1520,11 @@ void MainWindow::updateFavouriteTools()
     }
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QAction* newAction = new QAction(QString::fromUtf8(buffer), this);
+        QAction* newAction = new QAction(QString(buffer), this);
         newAction->setData(QVariant(QString("Command")));
         if(BridgeSettingGet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
-                setGlobalShortcut(newAction, QKeySequence(QString::fromUtf8(buffer)));
+                setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
         ui->menuFavourites->addAction(newAction);
         isanythingexists = true;
@@ -1694,13 +1694,13 @@ void MainWindow::setInitialzationScript()
     char globalChar[MAX_SETTING_SIZE];
     if(DbgIsDebugging())
     {
-        debuggee = QString::fromUtf8(DbgFunctions()->DbgGetDebuggeeInitScript());
+        debuggee = QString(DbgFunctions()->DbgGetDebuggeeInitScript());
         BrowseDialog browseScript(this, tr("Set Initialzation Script for Debuggee"), tr("Set Initialzation Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
         if(browseScript.exec() == QDialog::Accepted)
             DbgFunctions()->DbgSetDebuggeeInitScript(browseScript.path.toUtf8().constData());
     }
     if(BridgeSettingGet("Engine", "InitializeScript", globalChar))
-        global = QString::fromUtf8(globalChar);
+        global = QString(globalChar);
     else
         global = QString();
     BrowseDialog browseScript(this, tr("Set Global Initialzation Script"), tr("Set Global Initialzation Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);

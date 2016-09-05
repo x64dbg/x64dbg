@@ -72,7 +72,7 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
     }
     else if(bp.type == bp_dll)
     {
-        wCmd = QString("LibrarianEnableBreakPoint \"%1\"").arg(QString::fromUtf8(bp.mod));
+        wCmd = QString("LibrarianEnableBreakPoint \"%1\"").arg(QString(bp.mod));
     }
 
 
@@ -134,7 +134,7 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
     }
     else if(bp.type == bp_dll)
     {
-        wCmd = QString("LibrarianDisableBreakPoint \"%1\"").arg(QString::fromUtf8(bp.mod));
+        wCmd = QString("LibrarianDisableBreakPoint \"%1\"").arg(QString(bp.mod));
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -196,7 +196,7 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
         break;
 
     case bp_dll:
-        wCmd = QString("bcdll \"%1\"").arg(QString::fromUtf8(bp.mod));
+        wCmd = QString("bcdll \"%1\"").arg(QString(bp.mod));
         break;
 
     default:
@@ -249,7 +249,7 @@ void Breakpoints::removeBP(const QString & DLLName)
     // Find breakpoint at DLLName
     for(int wI = 0; wI < wBPList.count; wI++)
     {
-        if(QString::fromUtf8(wBPList.bp[wI].mod) == DLLName)
+        if(QString(wBPList.bp[wI].mod) == DLLName)
         {
             removeBP(wBPList.bp[wI]);
         }
@@ -315,7 +315,7 @@ void Breakpoints::toggleBPByDisabling(const QString & DLLName)
     // Find breakpoint at module name
     for(int wI = 0; wI < wBPList.count; wI++)
     {
-        if(QString::fromUtf8(wBPList.bp[wI].mod) == DLLName)
+        if(QString(wBPList.bp[wI].mod) == DLLName)
         {
             toggleBPByDisabling(wBPList.bp[wI]);
         }
