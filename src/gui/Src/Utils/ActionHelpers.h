@@ -3,7 +3,7 @@ struct ActionShortcut
     QAction* action;
     QString shortcut;
 
-    ActionShortcut(QAction* action, const char* shortcut)
+    inline ActionShortcut(QAction* action, const char* shortcut)
         : action(action),
           shortcut(shortcut)
     {

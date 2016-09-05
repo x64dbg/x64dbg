@@ -138,6 +138,8 @@ static void registercommands()
     dbgcmdnew("DisableMemoryBreakpoint\1membpd\1bpmd", cbDebugDisableMemoryBreakpoint, true); //enable memory breakpoint
     dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
     dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
+    dbgcmdnew("LibrarianDisableBreakPoint", cbDebugBpDllDisable, true);
+    dbgcmdnew("LibrarianEnableBreakPoint", cbDebugBpDllEnable, true);
 
     //breakpoints (conditional)
     dbgcmdnew("SetBreakpointName\1bpname", cbDebugSetBPXName, true); //set breakpoint name
@@ -174,16 +176,16 @@ static void registercommands()
     dbgcmdnew("SetMemoryGetBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetMemoryBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
     dbgcmdnew("SetLibrarianBreakpointName", cbDebugSetBPXDLLName, true); //set breakpoint name
-    dbgcmdnew("SetLibrarianBreakpointCondition", cbDebugSetBPXMemoryCondition, true); //set breakpoint breakCondition
-    dbgcmdnew("SetLibrarianBreakpointLog", cbDebugSetBPXMemoryLog, true); //set breakpoint log
-    dbgcmdnew("SetLibrarianBreakpointLogCondition", cbDebugSetBPXMemoryLogCondition, true); //set breakpoint logCondition
-    dbgcmdnew("SetLibrarianBreakpointCommand", cbDebugSetBPXMemoryCommand, true); //set breakpoint command on hit
-    dbgcmdnew("SetLibrarianBreakpointCommandCondition", cbDebugSetBPXMemoryCommandCondition, true); //set breakpoint commandCondition
-    dbgcmdnew("SetLibrarianBreakpointFastResume", cbDebugSetBPXMemoryFastResume, true); //set breakpoint fast resume
-    dbgcmdnew("SetLibrarianBreakpointSingleshoot", cbDebugSetBPXMemorySingleshoot, true); //set breakpoint singleshoot
-    dbgcmdnew("SetLibrarianBreakpointSilent", cbDebugSetBPXMemorySilent, true); //set breakpoint fast resume
-    dbgcmdnew("SetLibrarianGetBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
-    dbgcmdnew("ResetLibrarianBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
+    dbgcmdnew("SetLibrarianBreakpointCondition", cbDebugSetBPXDLLCondition, true); //set breakpoint breakCondition
+    dbgcmdnew("SetLibrarianBreakpointLog", cbDebugSetBPXDLLLog, true); //set breakpoint log
+    dbgcmdnew("SetLibrarianBreakpointLogCondition", cbDebugSetBPXDLLLogCondition, true); //set breakpoint logCondition
+    dbgcmdnew("SetLibrarianBreakpointCommand", cbDebugSetBPXDLLCommand, true); //set breakpoint command on hit
+    dbgcmdnew("SetLibrarianBreakpointCommandCondition", cbDebugSetBPXDLLCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetLibrarianBreakpointFastResume", cbDebugSetBPXDLLFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetLibrarianBreakpointSingleshoot", cbDebugSetBPXDLLSingleshoot, true); //set breakpoint singleshoot
+    dbgcmdnew("SetLibrarianBreakpointSilent", cbDebugSetBPXDLLSilent, true); //set breakpoint fast resume
+    dbgcmdnew("SetLibrarianGetBreakpointHitCount", cbDebugGetBPXDLLHitCount, true); //get breakpoint hit count
+    dbgcmdnew("ResetLibrarianBreakpointHitCount", cbDebugResetBPXDLLHitCount, true); //reset breakpoint hit count
 
     dbgcmdnew("bpgoto", cbDebugSetBPGoto, true);
 

@@ -24,8 +24,10 @@ public:
     static void disableBP(BPXTYPE type, duint va);
     static void removeBP(const BRIDGEBP & bp);
     static void removeBP(BPXTYPE type, duint va);
+    static void removeBP(const QString & DLLName);
     static void toggleBPByDisabling(const BRIDGEBP & bp);
     static void toggleBPByDisabling(BPXTYPE type, duint va);
+    static void toggleBPByDisabling(const QString & DLLName);
     static void toggleAllBP(BPXTYPE type, bool bEnable);
     static void toggleBPByRemoving(BPXTYPE type, duint va);
     static BPXSTATE BPState(BPXTYPE type, duint va);

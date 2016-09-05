@@ -10,7 +10,14 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
-    setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(ToHexString(bp.addr)));
+    if(bp.type == bp_dll)
+    {
+        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(QString::fromUtf8(bp.mod)));
+    }
+    else
+    {
+        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(ToHexString(bp.addr)));
+    }
     setWindowIcon(DIcon("breakpoint.png"));
     loadFromBp();
 }
@@ -35,8 +42,10 @@ void EditBreakpointDialog::loadFromBp()
 }
 
 template<typename T>
-void copyTruncate(T & dest, const QString & src)
+void copyTruncate(T & dest, QString src)
 {
+    src.replace(QChar('\\'), QString("\\\\"));
+    src.replace(QChar('"'), QString("\\\""));
     strncpy_s(dest, src.toUtf8().constData(), _TRUNCATE);
 }
 

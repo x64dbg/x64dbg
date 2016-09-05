@@ -256,7 +256,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionCommand, SIGNAL(triggered()), this, SLOT(setFocusToCommandBar()));
     makeCommandAction(ui->actionClose, "stop");
     connect(ui->actionMemoryMap, SIGNAL(triggered()), this, SLOT(displayMemMapWidget()));
-    makeCommandAction(ui->actionRun, "run");
+    connect(ui->actionRun, SIGNAL(triggered()), this, SLOT(runSlot()));
     makeCommandAction(ui->actionRtr, "rtr");
     connect(ui->actionLog, SIGNAL(triggered()), this, SLOT(displayLogWidget()));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(displayAboutWidget()));
@@ -824,6 +824,14 @@ void MainWindow::openFile()
     DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
     if(DbgValFromString("$pid") != 0)
         mCpuWidget->setDisasmFocus();
+}
+
+void MainWindow::runSlot()
+{
+    if(DbgIsDebugging())
+        DbgCmdExec("run");
+    else
+        restartDebugging();
 }
 
 void MainWindow::restartDebugging()
