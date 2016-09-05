@@ -459,6 +459,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     wCM_Pop = setupAction(tr("Pop"), this);
     wCM_Highlight = setupAction(tr("Highlight"), this);
     mMultiDump = multiDump;
+    mFollowInDumpMenu = CreateDumpNMenu();
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1249,17 +1250,17 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
 QMenu *RegistersView::CreateDumpNMenu()
 {
     auto followInDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWord in &Dump"));
-    mFollowInDumpMenu = new QMenu(followInDumpName, this);
+    QMenu *dumpMenu = new QMenu(followInDumpName, this);
 
     int maxDumps = mMultiDump->getMaxCPUTabs();
     for(int i = 0; i < maxDumps; i++)
     {
         QAction *action = new QAction(tr("Dump %1").arg(i + 1), this);
         connect(action, SIGNAL(triggered()), this, SLOT(onFollowInDumpN()));
-        mFollowInDumpMenu->addAction(action);
+        dumpMenu->addAction(action);
         action->setData(i + 1);
     }
-    return mFollowInDumpMenu;
+    return dumpMenu;
 }
 
 void RegistersView::mousePressEvent(QMouseEvent* event)
@@ -2448,7 +2449,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             if(DbgMemIsValidReadPtr(addr))
             {
                 wMenu.addAction(wCM_FollowInDump);
-                wMenu.addMenu(CreateDumpNMenu());
+                wMenu.addMenu(mFollowInDumpMenu);
                 wMenu.addAction(wCM_FollowInDisassembly);
                 duint size = 0;
                 duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
