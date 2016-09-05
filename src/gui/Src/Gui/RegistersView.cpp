@@ -458,8 +458,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     wCM_Push = setupAction(tr("Push"), this);
     wCM_Pop = setupAction(tr("Pop"), this);
     wCM_Highlight = setupAction(tr("Highlight"), this);
-    mMultiDump = multiDump;
-    mFollowInDumpMenu = CreateDumpNMenu();
+    mFollowInDumpMenu = CreateDumpNMenu(multiDump);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1247,15 +1246,14 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
     return found_flag;
 }
 
-QMenu *RegistersView::CreateDumpNMenu()
+QMenu* RegistersView::CreateDumpNMenu(CPUMultiDump* multiDump)
 {
-    auto followInDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWord in &Dump"));
-    QMenu *dumpMenu = new QMenu(followInDumpName, this);
-
-    int maxDumps = mMultiDump->getMaxCPUTabs();
+    QMenu* dumpMenu = new QMenu(tr("Follow in &Dump"), this);
+    dumpMenu->setIcon(DIcon("dump.png"));
+    int maxDumps = multiDump->getMaxCPUTabs();
     for(int i = 0; i < maxDumps; i++)
     {
-        QAction *action = new QAction(tr("Dump %1").arg(i + 1), this);
+        QAction* action = new QAction(tr("Dump %1").arg(i + 1), this);
         connect(action, SIGNAL(triggered()), this, SLOT(onFollowInDumpN()));
         dumpMenu->addAction(action);
         action->setData(i + 1);

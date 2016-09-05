@@ -126,7 +126,7 @@ protected:
     void setRegisters(REGDUMP* reg);
     char* registerValue(const REGDUMP* regd, const REGISTER_NAME reg);
     bool identifyRegister(const int y, const int x, REGISTER_NAME* clickedReg);
-    QMenu *CreateDumpNMenu();
+    QMenu* CreateDumpNMenu(CPUMultiDump* multiDump);
 
     void displayEditDialog();
 
@@ -240,8 +240,6 @@ private:
     QAction* wCM_ChangeFPUView;
     QAction* wCM_Highlight;
     dsint mCip;
-
-    CPUMultiDump* mMultiDump;
 };
 
 #endif // REGISTERSVIEW_H
