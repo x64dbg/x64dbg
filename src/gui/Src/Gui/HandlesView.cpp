@@ -112,13 +112,16 @@ void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)
     StdTable & table = *mHandlesTable;
     QMenu wMenu;
     wMenu.addAction(mActionRefresh);
-    wMenu.addAction(mActionCloseHandle);
-    QMenu wCopyMenu(tr("&Copy"));
-    table.setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
+    if(mHandlesTable->getRowCount() != 0)
     {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
+        wMenu.addAction(mActionCloseHandle);
+        QMenu wCopyMenu(tr("&Copy"));
+        table.setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
+        }
     }
     wMenu.exec(table.mapToGlobal(pos));
 }
@@ -128,12 +131,15 @@ void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
     StdTable & table = *mTcpConnectionsTable;
     QMenu wMenu;
     wMenu.addAction(mActionRefresh);
-    QMenu wCopyMenu(tr("&Copy"));
-    table.setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
+    if(mTcpConnectionsTable->getRowCount() != 0)
     {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
+        QMenu wCopyMenu(tr("&Copy"));
+        table.setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
+        }
     }
     wMenu.exec(table.mapToGlobal(pos));
 }
@@ -143,7 +149,7 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 {
     StdTable & table = *mPrivilegesTable;
     QMenu wMenu;
-    bool isValid = (mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 1) != tr("Unknown"));
+    bool isValid = (mPrivilegesTable->getRowCount() != 0 && mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 1) != tr("Unknown"));
     wMenu.addAction(mActionRefresh);
     if(isValid)
     {

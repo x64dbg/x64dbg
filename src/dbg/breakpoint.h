@@ -61,6 +61,7 @@ bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume);
 bool BpSetSingleshoot(duint Address, BP_TYPE Type, bool singleshoot);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base = 0);
 bool BpSetSilent(duint Address, BP_TYPE Type, bool silent);
+duint BpGetDLLBpAddr(const char* fileName);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback);
 int BpGetCount(BP_TYPE Type, bool EnabledOnly = false);
 uint32 BpGetHitCount(duint Address, BP_TYPE Type);

@@ -1225,12 +1225,16 @@ CMDRESULT cbDebugBpDll(int argc, char* argv[])
     bool singleshoot = true;
     if(argc > 3)
         singleshoot = false;
-    if(!BpNewDll(argv[1], true, true, type, ""))
+    if(!BpNewDll(argv[1], true, false, type, ""))
     {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error creating Dll breakpoint! (BpNewDll)"));
         return STATUS_ERROR;
     }
     if(!LibrarianSetBreakPoint(argv[1], type, singleshoot, (void*)cbLibrarianBreakpoint))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error creating Dll breakpoint! (LibrarianSetBreakPoint)"));
         return STATUS_ERROR;
+    }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Dll breakpoint set on \"%s\"!\n"), argv[1]);
     DebugUpdateBreakpointsViewAsync();
     return STATUS_CONTINUE;
@@ -1246,8 +1250,9 @@ CMDRESULT cbDebugBcDll(int argc, char* argv[])
     BREAKPOINT bp;
     if(!BpGetAny(BPDLL, argv[1], &bp))
         return STATUS_ERROR;
-    if(!BpDelete(ModHashFromName(bp.mod), BPDLL))
+    if(!BpDelete(bp.addr, BPDLL))
     {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint..."));
         return STATUS_ERROR;
     }
     if(!LibrarianRemoveBreakPoint(bp.mod, bp.titantype))

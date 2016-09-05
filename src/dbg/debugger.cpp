@@ -687,7 +687,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         bpPtr = BpInfoFromAddr(bptype, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
         break;
     case BPDLL:
-        bpPtr = BpInfoFromAddr(BPDLL, ModHashFromName(reinterpret_cast<const char*>(ExceptionAddress)));
+        bpPtr = BpInfoFromAddr(BPDLL, BpGetDLLBpAddr(reinterpret_cast<const char*>(ExceptionAddress)));
         break;
     default:
         break;

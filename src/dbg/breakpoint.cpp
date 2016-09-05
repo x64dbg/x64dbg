@@ -116,7 +116,7 @@ bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType,
     bp.singleshoot = Singleshot;
     bp.titantype = TitanType;
     bp.type = BPDLL;
-    bp.addr = ModHashFromName(module);
+    bp.addr = BpGetDLLBpAddr(module);
 
     // Insert new entry to the global list
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
@@ -186,7 +186,7 @@ bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
     }
     else
     {
-        if(BpGet(ModHashFromName(Name), Type, 0, Bp))
+        if(BpGet(BpGetDLLBpAddr(Name), Type, 0, Bp))
             return true;
     }
     return false;
@@ -220,8 +220,8 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
             {
                 BREAKPOINT temp;
                 temp = i.second;
-                strcpy_s(temp.mod, module1);
-                temp.addr = ModHashFromName(module1);
+                strcpy_s(temp.mod, dashPos1 + 1);
+                temp.addr = ModHashFromName(dashPos1 + 1);
                 breakpoints.erase(i.first);
                 auto newItem = breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, temp.addr), temp));
                 *newBpInfo = &newItem.first->second;
@@ -231,6 +231,16 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
     }
     *newBpInfo = nullptr;
     return false;
+}
+
+duint BpGetDLLBpAddr(const char* fileName)
+{
+    const char* dashPos1 = max(strrchr(fileName, '\\'), strrchr(fileName, '/'));
+    if(dashPos1 == nullptr)
+        dashPos1 = fileName;
+    else
+        dashPos1++;
+    return ModHashFromName(dashPos1);
 }
 
 bool BpDelete(duint Address, BP_TYPE Type)
@@ -694,7 +704,7 @@ void BpCacheLoad(JSON Root)
         }
         else
         {
-            key = ModHashFromName(breakpoint.mod);
+            key = BpGetDLLBpAddr(breakpoint.mod);
         }
         breakpoints.insert(std::make_pair(BreakpointKey(breakpoint.type, key), breakpoint));
     }
