@@ -70,6 +70,7 @@ public slots:
     void restartDebugging();
     void displayBreakpointWidget();
     void updateWindowTitleSlot(QString filename);
+    void runSlot();
     void execTRBit();
     void execTRByte();
     void execTRWord();
