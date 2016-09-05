@@ -218,7 +218,6 @@ private:
     unsigned int mRowHeight, mCharWidth;
     // context menu actions
     QMenu* mFollowInDumpMenu;
-    QList<QAction*> mFollowInDumpActions;
     QAction* mFollowInDump;
     QAction* wCM_Increment;
     QAction* wCM_Decrement;

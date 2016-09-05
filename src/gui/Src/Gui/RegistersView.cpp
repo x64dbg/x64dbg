@@ -1248,7 +1248,6 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
 
 QMenu *RegistersView::CreateDumpNMenu()
 {
-    mFollowInDumpActions.clear();
     auto followInDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWord in &Dump"));
     mFollowInDumpMenu = new QMenu(followInDumpName, this);
 
