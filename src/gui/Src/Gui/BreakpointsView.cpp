@@ -783,7 +783,7 @@ void BreakpointsView::setupDLLBPRightClickContextMenu()
     // Reset hit count
     mDLLBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
     mDLLBPTable->addAction(mDLLBPResetHitCountAction);
-    connect(mDLLBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetDLLoryHitCountSlot()));
+    connect(mDLLBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetDLLHitCountSlot()));
 
     // Enable All
     mDLLBPEnableAllAction = new QAction(tr("Enable All"), this);
@@ -887,8 +887,8 @@ void BreakpointsView::selectionChangedDLLSlot()
 void BreakpointsView::resetDLLHitCountSlot()
 {
     StdTable* table = mDLLBPTable;
-    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
-    DbgCmdExecDirect(QString("ResetLibrarianBreakpointHitCount " + addrText).toUtf8().constData());
+    QString addrText = table->getCellContent(table->getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("ResetLibrarianBreakpointHitCount \"%1\"").arg(addrText).toUtf8().constData());
     reloadData();
 }
 
@@ -900,6 +900,11 @@ void BreakpointsView::enableAllDLLBPActionSlot()
 void BreakpointsView::disableAllDLLBPActionSlot()
 {
     DbgCmdExec("LibrarianDisableBreakPoint");
+}
+
+void BreakpointsView::removeAllDLLBPActionSlot()
+{
+    DbgCmdExec("LibrarianRemoveBreakPoint");
 }
 
 /************************************************************************************

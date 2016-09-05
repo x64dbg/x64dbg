@@ -63,6 +63,7 @@ public slots:
     // DLL
     void DLLBPContextMenuSlot(const QPoint & pos);
     void removeDLLBPActionSlot();
+    void removeAllDLLBPActionSlot();
     void enableDisableDLLBPActionSlot();
     void enableAllDLLBPActionSlot();
     void disableAllDLLBPActionSlot();
