@@ -7,6 +7,7 @@
 class StdTable;
 class QVBoxLayout;
 class LabeledSplitter;
+class MenuBuilder;
 
 class BreakpointsView : public QWidget
 {
@@ -63,6 +64,8 @@ public slots:
     void DLLBPContextMenuSlot(const QPoint & pos);
     void removeDLLBPActionSlot();
     void enableDisableDLLBPActionSlot();
+    void enableAllDLLBPActionSlot();
+    void disableAllDLLBPActionSlot();
     void selectionChangedDLLSlot();
     void resetDLLHitCountSlot();
 
@@ -106,8 +109,11 @@ private:
 
     // DLL BP Context Menu
     QAction* mDLLBPRemoveAction;
+    QAction* mDLLBPRemoveAllAction;
     QAction* mDLLBPEnableDisableAction;
     QAction* mDLLBPResetHitCountAction;
+    QAction* mDLLBPEnableAllAction;
+    QAction* mDLLBPDisableAllAction;
 };
 
 #endif // BREAKPOINTSVIEW_H

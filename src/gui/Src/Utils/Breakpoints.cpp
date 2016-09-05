@@ -60,15 +60,15 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
 
     if(bp.type == bp_hardware)
     {
-        wCmd = QString("bphwe %1").arg(ToPtrString(bp.addr));
+        wCmd = QString("bphwe \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = QString("be %1").arg(ToPtrString(bp.addr));
+        wCmd = QString("be \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = QString("bpme %1").arg(ToPtrString(bp.addr));
+        wCmd = QString("bpme \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_dll)
     {
@@ -122,15 +122,15 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
 
     if(bp.type == bp_hardware)
     {
-        wCmd = QString("bphwd %1").arg(ToPtrString(bp.addr));
+        wCmd = QString("bphwd \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = QString("bd %1").arg(ToPtrString(bp.addr));
+        wCmd = QString("bd \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = QString("bpmd %1").arg(ToPtrString(bp.addr));
+        wCmd = QString("bpmd \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_dll)
     {
@@ -184,15 +184,15 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
     switch(bp.type)
     {
     case bp_normal:
-        wCmd = QString("bc %1").arg(ToPtrString(bp.addr));
+        wCmd = QString("bc \"%1\"").arg(ToPtrString(bp.addr));
         break;
 
     case bp_hardware:
-        wCmd = QString("bphc %1").arg(ToPtrString(bp.addr));
+        wCmd = QString("bphc \"%1\"").arg(ToPtrString(bp.addr));
         break;
 
     case bp_memory:
-        wCmd = QString("bpmc %1").arg(ToPtrString(bp.addr));
+        wCmd = QString("bpmc \"%1\"").arg(ToPtrString(bp.addr));
         break;
 
     case bp_dll:
@@ -511,16 +511,16 @@ void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
         exec(QString("SetMemoryBreakpointSingleshoot %1, %2").arg(addrText).arg(bp.singleshoot));
         break;
     case bp_dll:
-        exec(QString("SetLibrarianBreakpointName %1, \"\"%2\"\"").arg(addrText).arg(bp.name));
-        exec(QString("SetLibrarianBreakpointCondition %1, \"%2\"").arg(addrText).arg(bp.breakCondition));
-        exec(QString("SetLibrarianBreakpointLog %1, \"%2\"").arg(addrText).arg(bp.logText));
-        exec(QString("SetLibrarianBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(bp.logCondition));
-        exec(QString("SetLibrarianBreakpointCommand %1, \"%2\"").arg(addrText).arg(bp.commandText));
-        exec(QString("SetLibrarianBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
-        exec(QString("ResetLibrarianBreakpointHitCount %1, %2").arg(addrText).arg(bp.hitCount));
-        exec(QString("SetLibrarianBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
-        exec(QString("SetLibrarianBreakpointSilent %1, %2").arg(addrText).arg(bp.silent));
-        exec(QString("SetLibrarianBreakpointSingleshoot %1, %2").arg(addrText).arg(bp.singleshoot));
+        exec(QString("SetLibrarianBreakpointName \"%1\", \"\"%2\"\"").arg(addrText).arg(bp.name));
+        exec(QString("SetLibrarianBreakpointCondition \"%1\", \"%2\"").arg(addrText).arg(bp.breakCondition));
+        exec(QString("SetLibrarianBreakpointLog \"%1\", \"%2\"").arg(addrText).arg(bp.logText));
+        exec(QString("SetLibrarianBreakpointLogCondition \"%1\", \"%2\"").arg(addrText).arg(bp.logCondition));
+        exec(QString("SetLibrarianBreakpointCommand \"%1\", \"%2\"").arg(addrText).arg(bp.commandText));
+        exec(QString("SetLibrarianBreakpointCommandCondition \"%1\", \"%2\"").arg(addrText).arg(bp.commandCondition));
+        exec(QString("ResetLibrarianBreakpointHitCount \"%1\", %2").arg(addrText).arg(bp.hitCount));
+        exec(QString("SetLibrarianBreakpointFastResume \"%1\", %2").arg(addrText).arg(bp.fastResume));
+        exec(QString("SetLibrarianBreakpointSilent \"%1\", %2").arg(addrText).arg(bp.silent));
+        exec(QString("SetLibrarianBreakpointSingleshoot \"%1\", %2").arg(addrText).arg(bp.singleshoot));
         break;
     default:
         return;

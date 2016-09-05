@@ -770,6 +770,10 @@ void BreakpointsView::setupDLLBPRightClickContextMenu()
     mDLLBPTable->addAction(mDLLBPRemoveAction);
     connect(mDLLBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeDLLBPActionSlot()));
 
+    // Remove All
+    mDLLBPRemoveAllAction = new QAction(tr("Remove All"), this);
+    connect(mDLLBPRemoveAllAction, SIGNAL(triggered()), this, SLOT(removeAllDLLBPActionSlot()));
+
     // Enable/Disable
     mDLLBPEnableDisableAction = new QAction(tr("Enable"), this);
     mDLLBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
@@ -779,7 +783,17 @@ void BreakpointsView::setupDLLBPRightClickContextMenu()
     // Reset hit count
     mDLLBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
     mDLLBPTable->addAction(mDLLBPResetHitCountAction);
-    connect(mDLLBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetDLLHitCountSlot()));
+    connect(mDLLBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetDLLoryHitCountSlot()));
+
+    // Enable All
+    mDLLBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mDLLBPTable->addAction(mDLLBPEnableAllAction);
+    connect(mDLLBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllDLLBPActionSlot()));
+
+    // Disable All
+    mDLLBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mDLLBPTable->addAction(mDLLBPDisableAllAction);
+    connect(mDLLBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllDLLBPActionSlot()));
 }
 
 void BreakpointsView::DLLBPContextMenuSlot(const QPoint & pos)
@@ -789,7 +803,7 @@ void BreakpointsView::DLLBPContextMenuSlot(const QPoint & pos)
     {
         int wI = 0;
         QMenu wMenu(this);
-        QString module = table->getCellContent(table->getInitialSelection(), 1);
+        QString wName = table->getCellContent(table->getInitialSelection(), 1);
         BPMAP wBPList;
 
         // Remove
@@ -800,7 +814,7 @@ void BreakpointsView::DLLBPContextMenuSlot(const QPoint & pos)
 
         for(wI = 0; wI < wBPList.count; wI++)
         {
-            if(QString::fromUtf8(wBPList.bp[wI].mod) == module)
+            if(QString::fromUtf8(wBPList.bp[wI].mod) == wName)
             {
                 if(wBPList.bp[wI].active == false)
                 {
@@ -829,6 +843,15 @@ void BreakpointsView::DLLBPContextMenuSlot(const QPoint & pos)
 
         // Separator
         wMenu.addSeparator();
+
+        // Enable All
+        wMenu.addAction(mDLLBPEnableAllAction);
+
+        // Disable All
+        wMenu.addAction(mDLLBPDisableAllAction);
+
+        // Remove All
+        wMenu.addAction(mDLLBPRemoveAllAction);
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
@@ -867,6 +890,16 @@ void BreakpointsView::resetDLLHitCountSlot()
     QString addrText = table->getCellContent(table->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("ResetLibrarianBreakpointHitCount " + addrText).toUtf8().constData());
     reloadData();
+}
+
+void BreakpointsView::enableAllDLLBPActionSlot()
+{
+    DbgCmdExec("LibrarianEnableBreakPoint");
+}
+
+void BreakpointsView::disableAllDLLBPActionSlot()
+{
+    DbgCmdExec("LibrarianDisableBreakPoint");
 }
 
 /************************************************************************************

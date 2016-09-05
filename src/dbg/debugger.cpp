@@ -971,6 +971,7 @@ bool cbSetDLLBreakpoints(const BREAKPOINT* bp)
         return true;
     if(bp->type != BPDLL)
         return true;
+    dputs("debug:dll breakpoint in database\n");
     LibrarianSetBreakPoint(bp->mod, bp->titantype, bp->singleshoot, (void*)cbLibrarianBreakpoint);
     return true;
 }
