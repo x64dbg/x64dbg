@@ -9,6 +9,7 @@
 #define IsCharacterRegister(x) ((x>=CAX && x<CIP))
 
 class CPUWidget;
+class CPUMultiDump;
 
 typedef struct
 {
@@ -91,7 +92,7 @@ public:
     };
 
 
-    explicit RegistersView(CPUWidget* parent);
+    explicit RegistersView(CPUWidget* parent, CPUMultiDump* multiDump);
     ~RegistersView();
 
     QSize sizeHint() const;
@@ -125,6 +126,7 @@ protected:
     void setRegisters(REGDUMP* reg);
     char* registerValue(const REGDUMP* regd, const REGISTER_NAME reg);
     bool identifyRegister(const int y, const int x, REGISTER_NAME* clickedReg);
+    QMenu *CreateDumpNMenu();
 
     void displayEditDialog();
 
@@ -143,6 +145,7 @@ protected slots:
     void onCopyAllAction();
     void onFollowInDisassembly();
     void onFollowInDump();
+    void onFollowInDumpN();
     void onFollowInStack();
     void onIncrementPtrSize();
     void onDecrementPtrSize();
@@ -214,6 +217,9 @@ private:
     // font measures (TODO: create a class that calculates all thos values)
     unsigned int mRowHeight, mCharWidth;
     // context menu actions
+    QMenu* mFollowInDumpMenu;
+    QList<QAction*> mFollowInDumpActions;
+    QAction* mFollowInDump;
     QAction* wCM_Increment;
     QAction* wCM_Decrement;
     QAction* wCM_IncrementPtrSize;
@@ -235,6 +241,8 @@ private:
     QAction* wCM_ChangeFPUView;
     QAction* wCM_Highlight;
     dsint mCip;
+
+    CPUMultiDump* mMultiDump;
 };
 
 #endif // REGISTERSVIEW_H
