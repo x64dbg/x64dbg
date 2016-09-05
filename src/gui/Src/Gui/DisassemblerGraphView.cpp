@@ -316,7 +316,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
 
     //Render background
     QRect viewportRect = this->viewport()->rect();
-    p.setBrush(QBrush(disassemblySelectionColor));
+    p.setBrush(QBrush(backgroundColor));
     p.drawRect(viewportRect);
     p.setBrush(Qt::black);
 
@@ -1351,6 +1351,9 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     brtrueColor = ConfigColor("GraphBrtrueColor");
     brfalseColor = ConfigColor("GraphBrfalseColor");
     retShadowColor = ConfigColor("GraphRetShadowColor");
+    backgroundColor = ConfigColor("GraphBackgroundColor");
+    if(!backgroundColor.alpha())
+        backgroundColor = disassemblySelectionColor;
 
     fontChanged();
 }

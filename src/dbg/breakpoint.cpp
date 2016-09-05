@@ -586,6 +586,21 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
             break;
         }
         break;
+    case BPDLL:
+        BridgeBp->type = bp_dll;
+        switch(Bp->titantype)
+        {
+        case UE_ON_LIB_LOAD:
+            BridgeBp->slot = 0;
+            break;
+        case UE_ON_LIB_UNLOAD:
+            BridgeBp->slot = 1;
+            break;
+        case UE_ON_LIB_ALL:
+            BridgeBp->slot = 2;
+            break;
+        }
+        break;
     default:
         BridgeBp->type = bp_none;
         break;

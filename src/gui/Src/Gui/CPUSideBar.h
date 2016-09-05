@@ -56,6 +56,7 @@ protected:
     CodeFoldingHelper mCodeFoldingManager;
 
 private:
+    CachedFontMetrics* mFontMetrics;
     dsint topVA;
     dsint selectedVA;
     QFont m_DefaultFont;

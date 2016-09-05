@@ -99,10 +99,10 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - [Dreg](http://www.fr33project.org)
 - [Nukem](https://github.com/Nukem9)
 - [Herz3h](https://github.com/Herz3h)
+- [torusrxxx](https://github.com/torusrxxx)
 
 ## Contributors
 
-- [torusrxxx](https://github.com/torusrxxx)
 - [blaquee](https://github.com/blaquee)
 - [wk-952](https://github.com/wk-952)
 - [RaMMicHaeL](http://rammichael.com)
@@ -121,3 +121,4 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - [Atvaark](https://github.com/Atvaark)
 - [Avin](https://github.com/Avinm)
 - [mrfearless](https://github.com/mrfearless)
+- [Storm Shadow](https://github.com/techbliss)

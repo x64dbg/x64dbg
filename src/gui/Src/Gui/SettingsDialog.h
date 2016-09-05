@@ -68,6 +68,7 @@ private slots:
     void on_chkSaveLoadTabOrder_stateChanged(int arg1);
     void on_chkNoCloseDialog_toggled(bool checked);
     void on_chkPidInHex_clicked(bool checked);
+    void on_chkSidebarWatchLabels_stateChanged(int arg1);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
@@ -142,6 +143,7 @@ private:
         bool guiSaveColumnOrder;
         bool guiNoCloseDialog;
         bool guiPidInHex;
+        bool guiSidebarWatchLabels;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;

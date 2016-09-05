@@ -534,6 +534,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("True branch line"), "GraphBrtrueColor", "");
     colorInfoListAppend(tr("False branch line"), "GraphBrfalseColor", "");
     colorInfoListAppend(tr("Terminal node shadow"), "GraphRetShadowColor", "");
+    colorInfoListAppend(tr("Background"), "", "GraphBackgroundColor");
 
     colorInfoListAppend(tr("Other:"), "", "");
     colorInfoListAppend(tr("Current Thread"), "ThreadCurrentColor", "ThreadCurrentBackgroundColor");

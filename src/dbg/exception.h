@@ -7,5 +7,7 @@
 
 bool ExceptionCodeInit(const String & exceptionFile);
 String ExceptionCodeToName(unsigned int ExceptionCode);
+bool NtStatusCodeInit(const String & ntStatusFile);
+String NtStatusCodeToName(unsigned int NtStatusCode);
 
 #endif // _EXCEPTION_H

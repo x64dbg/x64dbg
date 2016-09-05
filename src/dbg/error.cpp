@@ -4,7 +4,7 @@
 #include "value.h"
 #include "console.h"
 
-std::unordered_map<unsigned int, String> ErrorNames;
+static std::unordered_map<unsigned int, String> ErrorNames;
 
 bool ErrorCodeInit(const String & errorFile)
 {

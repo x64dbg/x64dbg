@@ -502,6 +502,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkSidebarWatchLabels">
+         <property name="text">
+          <string>Show Watch Labels in Side Bar</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

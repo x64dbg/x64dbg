@@ -4,15 +4,16 @@
 #include "value.h"
 #include "console.h"
 
-std::unordered_map<unsigned int, String> ExceptionNames;
+static std::unordered_map<unsigned int, String> ExceptionNames;
+static std::unordered_map<unsigned int, String> NtStatusNames;
 
-bool ExceptionCodeInit(const String & exceptionFile)
+bool UniversalCodeInit(const String & file, std::unordered_map<unsigned int, String> & names)
 {
-    ExceptionNames.clear();
+    names.clear();
     std::vector<String> lines;
-    if(!FileHelper::ReadAllLines(exceptionFile, lines))
+    if(!FileHelper::ReadAllLines(file, lines))
         return false;
-    auto parseLine = [](const String & line)
+    auto parseLine = [&names](const String & line)
     {
         auto split = StringUtils::Split(line, ' ');
         if(int(split.size()) < 2)
@@ -26,7 +27,7 @@ bool ExceptionCodeInit(const String & exceptionFile)
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to convert number \"%s\"\n"), split[0].c_str());
             return false;
         }
-        ExceptionNames.insert({ (unsigned int)code, split[1] });
+        names.insert({ (unsigned int)code, split[1] });
         return true;
     };
     auto result = true;
@@ -36,10 +37,28 @@ bool ExceptionCodeInit(const String & exceptionFile)
     return result;
 }
 
+bool ExceptionCodeInit(const String & exceptionFile)
+{
+    return UniversalCodeInit(exceptionFile, ExceptionNames);
+}
+
 String ExceptionCodeToName(unsigned int ExceptionCode)
 {
     if(ExceptionNames.find(ExceptionCode) == ExceptionNames.end())
-        return "";
+        return NtStatusCodeToName(ExceptionCode); //try NTSTATUS codes next
 
     return ExceptionNames[ExceptionCode];
+}
+
+bool NtStatusCodeInit(const String & ntStatusFile)
+{
+    return UniversalCodeInit(ntStatusFile, NtStatusNames);
+}
+
+String NtStatusCodeToName(unsigned NtStatusCode)
+{
+    if(NtStatusNames.find(NtStatusCode) == NtStatusNames.end())
+        return "";
+
+    return NtStatusNames[NtStatusCode];
 }

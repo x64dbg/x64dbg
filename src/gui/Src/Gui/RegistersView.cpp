@@ -5,6 +5,7 @@
 #include "RegistersView.h"
 #include "CPUWidget.h"
 #include "CPUDisassembly.h"
+#include "CPUMultiDump.h"
 #include "Configuration.h"
 #include "WordEditDialog.h"
 #include "LineEditDialog.h"
@@ -431,7 +432,7 @@ static QAction* setupAction(const QString & text, RegistersView* this_object)
     return action;
 }
 
-RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
+RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
     mChangeViewButton = NULL;
 
@@ -457,6 +458,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     wCM_Push = setupAction(tr("Push"), this);
     wCM_Pop = setupAction(tr("Pop"), this);
     wCM_Highlight = setupAction(tr("Highlight"), this);
+    mFollowInDumpMenu = CreateDumpNMenu(multiDump);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1242,6 +1244,21 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
         ++it;
     }
     return found_flag;
+}
+
+QMenu* RegistersView::CreateDumpNMenu(CPUMultiDump* multiDump)
+{
+    QMenu* dumpMenu = new QMenu(tr("Follow in &Dump"), this);
+    dumpMenu->setIcon(DIcon("dump.png"));
+    int maxDumps = multiDump->getMaxCPUTabs();
+    for(int i = 0; i < maxDumps; i++)
+    {
+        QAction* action = new QAction(tr("Dump %1").arg(i + 1), this);
+        connect(action, SIGNAL(triggered()), this, SLOT(onFollowInDumpN()));
+        dumpMenu->addAction(action);
+        action->setData(i + 1);
+    }
+    return dumpMenu;
 }
 
 void RegistersView::mousePressEvent(QMouseEvent* event)
@@ -2350,6 +2367,20 @@ void RegistersView::onFollowInDump()
     }
 }
 
+void RegistersView::onFollowInDumpN()
+{
+    if(mCANSTOREADDRESS.contains(mSelected))
+    {
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
+        {
+            QAction* action = qobject_cast<QAction*>(sender());
+            int numDump = action->data().toInt();
+            DbgCmdExec(QString("dump %1, .%2").arg(addr).arg(numDump).toUtf8().constData());
+        }
+    }
+}
+
 void RegistersView::onFollowInStack()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
@@ -2416,6 +2447,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             if(DbgMemIsValidReadPtr(addr))
             {
                 wMenu.addAction(wCM_FollowInDump);
+                wMenu.addMenu(mFollowInDumpMenu);
                 wMenu.addAction(wCM_FollowInDisassembly);
                 duint size = 0;
                 duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);

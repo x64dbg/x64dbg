@@ -151,17 +151,18 @@ void WatchView::setupContextMenu()
     {
         return getRowCount() != 0;
     });
-    QMenu* watchdogMenu = new QMenu(tr("Watchdog"), this);
-    watchdogMenu->addAction(makeAction(DIcon("close-all-tabs.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
-    watchdogMenu->addSeparator();
-    watchdogMenu->addAction(makeAction(tr("Changed"), SLOT(watchdogChangedSlot())));
-    watchdogMenu->addAction(makeAction(tr("Not changed"), SLOT(watchdogUnchangedSlot())));
-    watchdogMenu->addAction(makeAction(tr("Is true"), SLOT(watchdogIsTrueSlot())));
-    watchdogMenu->addAction(makeAction(tr("Is false"), SLOT(watchdogIsFalseSlot())));
-    mMenu->addMenu(watchdogMenu, [this](QMenu*)
+    MenuBuilder* watchdogBuilder = new MenuBuilder(this, [this](QMenu*)
     {
         return getRowCount() != 0;
     });
+    QMenu* watchdogMenu = new QMenu(tr("Watchdog"), this);
+    watchdogBuilder->addAction(makeAction(DIcon("close-all-tabs.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
+    watchdogBuilder->addSeparator();
+    watchdogBuilder->addAction(makeAction(tr("Changed"), SLOT(watchdogChangedSlot())));
+    watchdogBuilder->addAction(makeAction(tr("Not changed"), SLOT(watchdogUnchangedSlot())));
+    watchdogBuilder->addAction(makeAction(tr("Is true"), SLOT(watchdogIsTrueSlot())));
+    watchdogBuilder->addAction(makeAction(tr("Is false"), SLOT(watchdogIsFalseSlot())));
+    mMenu->addMenu(watchdogMenu, watchdogBuilder);
 }
 
 QString WatchView::getSelectedId()
