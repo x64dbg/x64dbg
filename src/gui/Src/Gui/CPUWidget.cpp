@@ -47,7 +47,10 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
 
-    mGeneralRegs = new RegistersView(this);
+    mDump = new CPUMultiDump(mDisas, 5, 0); //dump widget
+    ui->mBotLeftFrameLayout->addWidget(mDump);
+
+    mGeneralRegs = new RegistersView(this, mDump);
     mGeneralRegs->setFixedWidth(1000);
     mGeneralRegs->ShowFPU(true);
     mGeneralRegs->setFixedHeight(mGeneralRegs->getEstimateHeight());
@@ -73,9 +76,6 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->mTopRightUpperFrameLayout->addWidget(upperScrollArea);
 
     ui->mTopRightLowerFrameLayout->addWidget(mArgumentWidget);
-
-    mDump = new CPUMultiDump(mDisas, 5, 0); //dump widget
-    ui->mBotLeftFrameLayout->addWidget(mDump);
 
     mStack = new CPUStack(mDump, 0); //stack widget
     ui->mBotRightFrameLayout->addWidget(mStack);
