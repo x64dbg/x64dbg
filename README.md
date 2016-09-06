@@ -14,7 +14,7 @@ For a complete guide on compiling *x64dbg* read [this](https://github.com/x64dbg
 
 Releases of *x64dbg* can be found [here](http://releases.x64dbg.com).
 
-Jenkins build server can be found [here](http://jenkins.x64dbg.com).
+~~Jenkins build server can be found [here](http://jenkins.x64dbg.com).~~
 
 ## Overview
 
