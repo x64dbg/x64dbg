@@ -36,6 +36,7 @@
 #include "animate.h"
 
 static bool bOnlyCipAutoComments = false;
+static duint cacheCflags = 0;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -95,9 +96,9 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
     static duint cacheFlags;
     static duint cacheAddr;
     static bool cacheResult;
-    if(cacheAddr != addr || cacheFlags != GetContextDataEx(hActiveThread, UE_EFLAGS))
+    if(cacheAddr != addr || cacheFlags != cacheCflags)
     {
-        cacheFlags = GetContextDataEx(hActiveThread, UE_EFLAGS);
+        cacheFlags = cacheCflags;
         cacheAddr = addr;
         cacheResult = IsJumpGoingToExecuteEx(fdProcessInfo->hProcess, fdProcessInfo->hThread, (ULONG_PTR)cacheAddr, cacheFlags);
     }
@@ -516,7 +517,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return false;
     TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
 
-    duint cflags = regdump->regcontext.eflags;
+    duint cflags = cacheCflags = regdump->regcontext.eflags;
     regdump->flags.c = valflagfromstring(cflags, "cf");
     regdump->flags.p = valflagfromstring(cflags, "pf");
     regdump->flags.a = valflagfromstring(cflags, "af");
