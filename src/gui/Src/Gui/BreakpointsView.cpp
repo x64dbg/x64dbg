@@ -383,6 +383,7 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -540,6 +541,7 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -697,6 +699,7 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -862,6 +865,7 @@ void BreakpointsView::DLLBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {

@@ -115,7 +115,8 @@ void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)
     if(mHandlesTable->getRowCount() != 0)
     {
         wMenu.addAction(mActionCloseHandle);
-        QMenu wCopyMenu(tr("&Copy"));
+        QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table.setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -133,7 +134,8 @@ void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
     wMenu.addAction(mActionRefresh);
     if(mTcpConnectionsTable->getRowCount() != 0)
     {
-        QMenu wCopyMenu(tr("&Copy"));
+        QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table.setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -166,7 +168,8 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
     }
     wMenu.addAction(mActionDisableAllPrivileges);
     wMenu.addAction(mActionEnableAllPrivileges);
-    QMenu wCopyMenu(tr("&Copy"));
+    QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
     table.setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {

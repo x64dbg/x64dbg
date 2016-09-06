@@ -95,14 +95,14 @@ void CPUStack::setupContextMenu()
     mBinaryMenu->setIcon(DIcon("binary.png"));
 
     //Binary->Edit
-    mBinaryEditAction = new QAction(tr("&Edit"), this);
+    mBinaryEditAction = new QAction(DIcon("binary_edit.png"), tr("&Edit"), this);
     mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryEditAction);
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
     mBinaryMenu->addAction(mBinaryEditAction);
 
     //Binary->Fill
-    mBinaryFillAction = new QAction(tr("&Fill..."), this);
+    mBinaryFillAction = new QAction(DIcon("binary_fill.png"), tr("&Fill..."), this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
@@ -112,21 +112,21 @@ void CPUStack::setupContextMenu()
     mBinaryMenu->addSeparator();
 
     //Binary->Copy
-    mBinaryCopyAction = new QAction(tr("&Copy"), this);
+    mBinaryCopyAction = new QAction(DIcon("binary_copy.png"), tr("&Copy"), this);
     mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryCopyAction);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
     mBinaryMenu->addAction(mBinaryCopyAction);
 
     //Binary->Paste
-    mBinaryPasteAction = new QAction(tr("&Paste"), this);
+    mBinaryPasteAction = new QAction(DIcon("binary_paste.png"), tr("&Paste"), this);
     mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteAction);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
     //Binary->Paste (Ignore Size)
-    mBinaryPasteIgnoreSizeAction = new QAction(tr("Paste (&Ignore Size)"), this);
+    mBinaryPasteIgnoreSizeAction = new QAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), this);
     mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
