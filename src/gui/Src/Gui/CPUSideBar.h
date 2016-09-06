@@ -38,7 +38,7 @@ public slots:
     void updateFonts();
 
     void debugStateChangedSlot(DBGSTATE state);
-    void repaint();
+    void reload();
     void changeTopmostAddress(dsint i);
     void setViewableRows(int rows);
     void setSelection(dsint selVA);

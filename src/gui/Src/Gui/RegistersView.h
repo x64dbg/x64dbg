@@ -107,10 +107,11 @@ public slots:
     void displayCustomContextMenuSlot(QPoint pos);
     void setRegister(REGISTER_NAME reg, duint value);
     void debugStateChangedSlot(DBGSTATE state);
-    void repaint();
+    void reload();
     void ShowFPU(bool set_showfpu);
     void onChangeFPUViewAction();
     void SetChangeButton(QPushButton* push_button);
+
 signals:
     void refresh();
 

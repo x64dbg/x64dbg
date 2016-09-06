@@ -1466,7 +1466,7 @@ void CPUDisassembly::paintEvent(QPaintEvent* event)
     auto sidebar = mParentCPUWindow->getSidebarWidget();
 
     if(sidebar)
-        sidebar->repaint();
+        sidebar->reload();
 
     // Signal to render the original content
     Disassembly::paintEvent(event);
