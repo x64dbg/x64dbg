@@ -60,7 +60,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("peb\1PEB", peb);
     RegisterEasy("teb\1TEB", teb);
     RegisterEasy("tid\1TID\1ThreadId", tid);
-    RegisterEasy("gettickcount", gettickcount);
+    RegisterEasy("GetTickCount\1gettickcount", gettickcount);
 
     RegisterEasy("bswap", bswap);
     RegisterEasy("ternary\1tern", ternary);
