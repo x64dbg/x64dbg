@@ -718,7 +718,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
 
     auto bp = *bpPtr;
     SHARED_RELEASE();
-    bp.addr += ModBaseFromAddr(CIP);
+    if(bptype != BPDLL)
+        bp.addr += ModBaseFromAddr(CIP);
     bp.active = true; //a breakpoint that has been hit is active
 
     varset("$breakpointcounter", bp.hitcount, false); //save the breakpoint counter as a variable

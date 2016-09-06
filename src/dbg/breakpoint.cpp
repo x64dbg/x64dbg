@@ -18,7 +18,7 @@ static void setBpActive(BREAKPOINT & bp)
 {
     if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
         bp.active = true;
-    else if(bp.type == BPDLL)
+    else if(bp.type == BPDLL || bp.type == BPEXCEPTION)
         bp.active = true;
     else
         bp.active = MemIsValidReadPtr(bp.addr);
@@ -30,7 +30,7 @@ BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address)
     // NOTE: THIS DOES _NOT_ USE LOCKS
     //
     std::map<BreakpointKey, BREAKPOINT>::iterator found;
-    if(Type != BPDLL)
+    if(Type != BPDLL && Type != BPEXCEPTION)
         found = breakpoints.find(BreakpointKey(Type, ModHashFromAddr(Address)));
     else
         found = breakpoints.find(BreakpointKey(Type, Address)); // Address = ModHashFromName(ModuleName)
@@ -54,7 +54,7 @@ int BpGetList(std::vector<BREAKPOINT>* List)
         for(auto & i : breakpoints)
         {
             BREAKPOINT currentBp = i.second;
-            if(currentBp.type != BPDLL)
+            if(currentBp.type != BPDLL && currentBp.type != BPEXCEPTION)
                 currentBp.addr += ModBaseFromName(currentBp.mod);
             setBpActive(currentBp);
 
@@ -88,7 +88,10 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     strncpy_s(bp.name, Name, _TRUNCATE);
 
     bp.active = true;
-    bp.addr = Address - ModBaseFromAddr(Address);
+    if(Type != BPDLL && Type != BPEXCEPTION)
+        bp.addr = Address - ModBaseFromAddr(Address);
+    else
+        bp.addr = Address;
     bp.enabled = Enable;
     bp.oldbytes = OldBytes;
     bp.singleshoot = Singleshot;
@@ -144,7 +147,7 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
             return true;
 
         *Bp = *bpInfo;
-        if(bpInfo->type != BPDLL)
+        if(bpInfo->type != BPDLL && bpInfo->type != BPEXCEPTION)
             Bp->addr += ModBaseFromAddr(Address);
         setBpActive(*Bp);
         return true;
@@ -161,7 +164,7 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         if(Bp)
         {
             *Bp = i.second;
-            if(i.second.type != BPDLL)
+            if(i.second.type != BPDLL && i.second.type != BPEXCEPTION)
                 Bp->addr += ModBaseFromAddr(Address);
             setBpActive(*Bp);
         }
@@ -452,7 +455,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
         }
 
         BREAKPOINT bpInfo = j->second;
-        if(bpInfo.type != BPDLL)
+        if(bpInfo.type != BPDLL && bpInfo.type != BPEXCEPTION)
         {
             if(base)  //workaround for some Windows bullshit with compatibility mode
                 bpInfo.addr += base;
@@ -595,6 +598,10 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
             BridgeBp->slot = 2;
             break;
         }
+        break;
+    case BPEXCEPTION:
+        BridgeBp->type = bp_exception;
+        BridgeBp->slot = Bp->titantype; //1:First-chance, 2:Second-chance
         break;
     default:
         BridgeBp->type = bp_none;

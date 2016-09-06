@@ -5,5 +5,6 @@
 
 bool ErrorCodeInit(const String & errorFile);
 String ErrorCodeToName(unsigned int ErrorCode);
+bool ErrorNameToCode(const char* Name, unsigned int* ErrorCode);
 
 #endif // _ERROR_H

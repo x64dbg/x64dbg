@@ -3,6 +3,18 @@
 #include "console.h"
 #include "memory.h"
 #include "variable.h"
+#include "error.h"
+
+inline bool IsArgumentsLessThan(int argc, int minimumCount)
+{
+    if(argc < minimumCount)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At least %d arguments must be specified.\n"), minimumCount - 1);
+        return true;
+    }
+    else
+        return false;
+}
 
 // breakpoint enumeration callbacks
 static bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
@@ -208,6 +220,8 @@ static bool cbBreakpointList(const BREAKPOINT* bp)
         type = "GP";
     else if(bp->type == BPDLL)
         type = "DLL";
+    else if(bp->type == BPEXCEPTION)
+        type = "EX";
     bool enabled = bp->enabled;
     if(bp->type == BPDLL)
     {
@@ -262,11 +276,8 @@ static bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
 // command callbacks
 CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     DWORD type = 0;
     const char* strType = 0;
     duint setting_type;
@@ -301,11 +312,8 @@ CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
 
 CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     char argaddr[deflen] = "";
     strcpy_s(argaddr, argv[1]);
     char argname[deflen] = "";
@@ -562,14 +570,41 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbDebugSetExceptionBPX(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return STATUS_ERROR;
+    duint ExceptionCode;
+    if(!valfromstring(argv[1], &ExceptionCode))
+    {
+        ExceptionCode = 0;
+        if(!ErrorNameToCode(argv[1], reinterpret_cast<unsigned int*>(&ExceptionCode)))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Invalid exception code."));
+            return STATUS_ERROR;
+        }
+    }
+    String ExceptionName = ErrorCodeToName(ExceptionCode);
+    if(BpGet(ExceptionCode, BPEXCEPTION, nullptr, nullptr))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception breakpoint %X(%s) already exists!\n"), ExceptionCode, ExceptionName.c_str());
+        return STATUS_ERROR;
+    }
+    duint chance = 1;
+    if(argc > 2)
+    {
+        if(strcmp(argv[2], "2") == 0)
+            chance = 2;
+    }
+
+    return STATUS_CONTINUE;
+}
+
 static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], const String & description, std::function<bool(duint, BP_TYPE, const char*)> setFunction)
 {
     BREAKPOINT bp;
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    }
     char* value = "";
     if(argc > 2)
         value = argv[2];
