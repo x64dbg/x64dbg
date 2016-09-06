@@ -2523,7 +2523,7 @@ void RegistersView::debugStateChangedSlot(DBGSTATE state)
 
 void RegistersView::repaint()
 {
-    this->viewport()->repaint();
+    this->viewport()->update();
 }
 
 SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)

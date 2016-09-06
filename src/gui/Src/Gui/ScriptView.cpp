@@ -329,7 +329,7 @@ void ScriptView::keyPressEvent(QKeyEvent* event)
         {
             setTableOffset(getInitialSelection() - getNbrOfLineToPrint() + 2);
         }
-        repaint();
+        reloadData();
     }
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
