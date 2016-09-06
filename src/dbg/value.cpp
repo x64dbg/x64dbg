@@ -1534,7 +1534,7 @@ static bool isdigitduint(char digit)
 \param string The string to parse.
 \param [out] value The value of the expression. This value cannot be null.
 \param silent true to not output anything to the console.
-\param baseonly true to skip parsing API names, labels, symbols and variables (basic expressions only).
+\param baseonly true to skip parsing API names, labels and symbols (basic expressions only).
 \param [out] value_size This function can output the value size parsed (for example memory location size or register size). Can be null.
 \param [out] isvar This function can output if the expression is variable (for example memory locations, registers or variables are variable). Can be null.
 \param [out] hexonly This function can output if the output value should only be printed as hexadecimal (for example addresses). Can be null.
@@ -1694,6 +1694,12 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             inc = 1;
         return convertNumber(string + inc, *value, 16);
     }
+    else if(varget(string, value, value_size, 0))   //then come variables
+    {
+        if(isvar)
+            *isvar = true;
+        return true;
+    }
     if(baseonly)
         return false;
     else if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
@@ -1702,12 +1708,6 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         return true;
     else if(SymAddrFromName(string, value))  //then come symbols
         return true;
-    else if(varget(string, value, value_size, 0))  //then come variables
-    {
-        if(isvar)
-            *isvar = true;
-        return true;
-    }
     else if(strstr(string, "sub_") == string)  //then come sub_ functions
     {
 #ifdef _WIN64

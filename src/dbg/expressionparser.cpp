@@ -649,7 +649,7 @@ static bool handleAssignment(const char* variable, duint resultv, bool silent, b
     bool destIsVar = false;
     duint temp;
     //TODO: implement destIsVar without retrieving the value
-    valfromstring_noexpr(variable, &temp, true, false, nullptr, &destIsVar, nullptr); //there is no return check on this because the destination might not exist yet
+    valfromstring_noexpr(variable, &temp, true, true, nullptr, &destIsVar, nullptr); //there is no return check on this because the destination might not exist yet
     if(!destIsVar)
         destIsVar = vargettype(variable, nullptr);
     if(!destIsVar || !valtostring(variable, resultv, true))

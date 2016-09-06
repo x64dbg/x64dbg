@@ -320,26 +320,9 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_PAUSE;
     else if(scriptisinternalcommand(cmd, "nop")) //do nothing
         return STATUS_CONTINUE;
-    char command[deflen] = "";
-    strcpy_s(command, StringUtils::Trim(cmd).c_str());
-    COMMAND* found = cmdget(command);
-    if(!found) //invalid command
-    {
-        ExpressionParser parser(command);
-        duint result;
-        if(!parser.Calculate(result, valuesignedcalc(), true, false))
-            return STATUS_ERROR;
-        varset("$ans", result, true);
-        return STATUS_CONTINUE;
-    }
-    if(arraycontains(found->name, "var")) //var
-    {
-        cmddirectexec(command);
-        return STATUS_CONTINUE;
-    }
-    CMDRESULT res = cmddirectexec(command);
-    while(DbgIsDebugging() && dbgisrunning()) //while not locked (NOTE: possible deadlock)
-        Sleep(10);
+    CMDRESULT res = cmddirectexec(cmd);
+    while(DbgIsDebugging() && dbgisrunning())  //while not locked (NOTE: possible deadlock)
+        Sleep(1);
     return res;
 }
 

@@ -259,7 +259,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         }
         bool isvar = false;
         duint temp = 0;
-        valfromstring(argv[1], &temp, true, false, 0, &isvar, 0); //there is no return check on this because the destination might not exist yet
+        valfromstring(argv[1], &temp, true, true, 0, &isvar, 0); //there is no return check on this because the destination might not exist yet
         if(!isvar)
             isvar = vargettype(argv[1], 0);
         if(!isvar || !valtostring(argv[1], set_value, true))
@@ -627,7 +627,7 @@ static CMDRESULT ReadWriteVariable(const char* varname, std::function<CMDRESULT(
     duint set_value = 0;
     bool isvar;
     int varsize;
-    if(!valfromstring(varname, &set_value, true, false, &varsize, &isvar))
+    if(!valfromstring(varname, &set_value, true, true, &varsize, &isvar))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "invalid variable \"%s\"\n"), varname);
         return STATUS_ERROR;
@@ -636,7 +636,7 @@ static CMDRESULT ReadWriteVariable(const char* varname, std::function<CMDRESULT(
     if(retVal != STATUS_CONTINUE)
         return retVal;
     duint temp = 0;
-    valfromstring(varname, &temp, true, false, 0, nullptr, 0); //there is no return check on this because the destination might not exist yet
+    valfromstring(varname, &temp, true, true, 0, nullptr, 0); //there is no return check on this because the destination might not exist yet
     if(!isvar)
         isvar = vargettype(varname, 0);
     if(!isvar || !valtostring(varname, set_value, true))
