@@ -2961,3 +2961,21 @@ CMDRESULT cbInstrTraceexecute(int argc, char* argv[])
     _dbg_dbgtraceexecute(addr);
     return STATUS_CONTINUE;
 }
+
+#ifdef _WIN64
+static duint(*GetTickCount64)() = nullptr;
+#endif //_WIN64
+CMDRESULT cbInstrGetTickCount(int argc, char* argv[])
+{
+#ifdef _WIN64
+    if(GetTickCount64 == nullptr)
+        GetTickCount64 = (duint(*)())GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetTickCount64");
+    if(GetTickCount64 != nullptr)
+        varset("$result", GetTickCount64(), false);
+    else
+        varset("$result", GetTickCount(), false);
+#else //x86
+    varset("$result", GetTickCount(), false);
+#endif //_WIN64
+    return STATUS_CONTINUE;
+}
