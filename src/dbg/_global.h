@@ -76,7 +76,6 @@ void* json_malloc(size_t size);
 void json_free(void* ptr);
 int memleaks();
 void setalloctrace(const char* file);
-bool arraycontains(const char* cmd_list, const char* cmd);
 bool scmp(const char* a, const char* b);
 void formathex(char* string);
 void formatdec(char* string);

@@ -13,6 +13,14 @@
 
 COMMAND* cmd_list = 0;
 
+static bool vecContains(std::vector<String>* names, const char* name)
+{
+    for(const auto & cmd : *names)
+        if(!_stricmp(cmd.c_str(), name))
+            return true;
+    return false;
+}
+
 /**
 \brief Finds a ::COMMAND in a command list.
 \param [in] command list.
@@ -23,12 +31,12 @@ COMMAND* cmd_list = 0;
 COMMAND* cmdfind(const char* name, COMMAND** link)
 {
     COMMAND* cur = cmd_list;
-    if(!cur->name)
+    if(!cur->names)
         return 0;
     COMMAND* prev = 0;
     while(cur)
     {
-        if(arraycontains(cur->name, name))
+        if(vecContains(cur->names, name))
         {
             if(link)
                 *link = prev;
@@ -60,7 +68,7 @@ void cmdfree()
     COMMAND* cur = cmd_list;
     while(cur)
     {
-        efree(cur->name, "cmdfree:cur->name");
+        efree(cur->names, "cmdfree:cur->name");
         COMMAND* next = cur->next;
         efree(cur, "cmdfree:cur");
         cur = next;
@@ -81,7 +89,7 @@ bool cmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
         return false;
     COMMAND* cmd;
     bool nonext = false;
-    if(!cmd_list->name)
+    if(!cmd_list->names)
     {
         cmd = cmd_list;
         nonext = true;
@@ -89,8 +97,14 @@ bool cmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
     else
         cmd = (COMMAND*)emalloc(sizeof(COMMAND), "cmdnew:cmd");
     memset(cmd, 0, sizeof(COMMAND));
-    cmd->name = (char*)emalloc(strlen(name) + 1, "cmdnew:cmd->name");
-    strcpy(cmd->name, name);
+    cmd->names = new std::vector<String>;
+    auto split = StringUtils::Split(name, '\1');
+    for(const auto & s : split)
+    {
+        auto trimmed = StringUtils::Trim(s);
+        if(trimmed.length())
+            cmd->names->push_back(trimmed);
+    }
     cmd->cbCommand = cbCommand;
     cmd->debugonly = debugonly;
     COMMAND* cur = cmd_list;
@@ -157,7 +171,7 @@ bool cmddel(const char* name)
     COMMAND* found = cmdfind(name, &prev);
     if(!found)
         return false;
-    efree(found->name, "cmddel:found->name");
+    delete found->names;
     if(found == cmd_list)
     {
         COMMAND* next = cmd_list->next;

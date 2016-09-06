@@ -136,6 +136,9 @@ ExpressionParser::ExpressionParser(const String & expression)
     : mExpression(fixClosingBrackets(expression)),
       mIsValidExpression(true)
 {
+    const size_t r = 50;
+    mTokens.reserve(r);
+    mCurToken.reserve(r);
     tokenize();
     shuntingYard();
 }
@@ -180,7 +183,7 @@ void ExpressionParser::tokenize()
         case '[':
         {
             stateMemory++;
-            mCurToken += ch;
+            mCurToken.push_back(ch);
         }
         break;
 
@@ -188,14 +191,14 @@ void ExpressionParser::tokenize()
         {
             if(stateMemory)
                 stateMemory--;
-            mCurToken += ch;
+            mCurToken.push_back(ch);
         }
         break;
 
         default:
         {
             if(stateMemory || stateQuote)
-                mCurToken += ch;
+                mCurToken.push_back(ch);
             else
             {
                 switch(ch)
@@ -336,7 +339,7 @@ void ExpressionParser::tokenize()
                 case '\t': //ignore tabs
                     break;
                 default:
-                    mCurToken += ch;
+                    mCurToken.push_back(ch);
                     break;
                 }
             }
@@ -372,19 +375,21 @@ void ExpressionParser::shuntingYard()
 {
     //Implementation of Dijkstra's Shunting-yard algorithm (https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
     std::vector<Token> queue;
-    std::stack<Token> stack;
+    std::vector<Token> stack;
     auto len = mTokens.size();
+    queue.reserve(len);
+    stack.reserve(len);
     //process the tokens
     for(size_t i = 0; i < len; i++)
     {
-        auto & token = mTokens[i];
+        const auto & token = mTokens[i];
         switch(token.type())
         {
         case Token::Type::Data:
             queue.push_back(token);
             break;
         case Token::Type::Function:
-            stack.push(token);
+            stack.push_back(token);
             break;
         case Token::Type::Comma:
             while(true)
@@ -394,68 +399,71 @@ void ExpressionParser::shuntingYard()
                     mIsValidExpression = false;
                     return;
                 }
-                auto curToken = stack.top();
+                const auto & curToken = stack[stack.size() - 1];
                 if(curToken.type() == Token::Type::OpenBracket)
                     break;
-                stack.pop();
                 queue.push_back(curToken);
+                stack.pop_back();
             }
             break;
         case Token::Type::OpenBracket:
-            stack.push(token);
+            stack.push_back(token);
             break;
         case Token::Type::CloseBracket:
+        {
             while(true)
             {
-                if(stack.empty()) //empty stack = bracket mismatch
+                if(stack.empty())  //empty stack = bracket mismatch
                 {
                     mIsValidExpression = false;
                     return;
                 }
-                auto curToken = stack.top();
-                stack.pop();
-                if(curToken.type() == Token::Type::OpenBracket) //the bracket is already popped here
+                auto curToken = stack[stack.size() - 1];
+                stack.pop_back();
+                if(curToken.type() == Token::Type::OpenBracket)  //the bracket is already popped here
                     break;
                 queue.push_back(curToken);
             }
-            if(!stack.empty() && stack.top().type() == Token::Type::Function)
+            const auto & top = stack[stack.size() - 1];
+            if(!stack.empty() && top.type() == Token::Type::Function)
             {
-                queue.push_back(stack.top());
-                stack.pop();
+                queue.push_back(top);
+                stack.pop_back();
             }
-            break;
+        }
+        break;
         default: //operator
-            auto & o1 = token;
+            const auto & o1 = token;
             while(!stack.empty())
             {
-                auto o2 = stack.top();
+                const auto & o2 = stack[stack.size() - 1];
                 if(o2.isOperator() &&
                         (o1.associativity() == Token::Associativity::LeftToRight && o1.precedence() >= o2.precedence()) ||
                         (o1.associativity() == Token::Associativity::RightToLeft && o1.precedence() > o2.precedence()))
                 {
                     queue.push_back(o2);
-                    stack.pop();
+                    stack.pop_back();
                 }
                 else
                     break;
             }
-            stack.push(o1);
+            stack.push_back(o1);
             break;
         }
     }
     //pop the remaining operators
     while(!stack.empty())
     {
-        auto curToken = stack.top();
-        stack.pop();
+        const auto & curToken = stack[stack.size() - 1];
         if(curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket)  //brackets on the stack means invalid expression
         {
             mIsValidExpression = false;
             return;
         }
         queue.push_back(curToken);
+        stack.pop_back();
     }
-    mPrefixTokens = queue;
+    mPrefixTokens = std::move(queue);
 }
 
 #ifdef _WIN64
@@ -770,7 +778,8 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
     value = 0;
     if(!mPrefixTokens.size() || !mIsValidExpression)
         return false;
-    std::stack<EvalValue> stack;
+    std::vector<EvalValue> stack;
+    stack.reserve(mPrefixTokens.size());
     //calculate the result from the RPN queue
     for(const auto & token : mPrefixTokens)
     {
@@ -793,15 +802,15 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
             case Token::Type::OperatorSuffixDec:
                 if(stack.size() < 1)
                     return false;
-                op1 = stack.top();
-                stack.pop();
+                op1 = stack[stack.size() - 1];
+                stack.pop_back();
                 if(signedcalc)
                     operationSuccess = signedOperation(type, op1, op2, result, silent, baseonly, allowassign);
                 else
                     operationSuccess = unsignedOperation(type, op1, op2, result, silent, baseonly, allowassign);
                 if(!operationSuccess)
                     return false;
-                stack.push(result);
+                stack.push_back(result);
                 break;
             case Token::Type::OperatorMul:
             case Token::Type::OperatorHiMul:
@@ -841,17 +850,17 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
             case Token::Type::OperatorAssignOr:
                 if(stack.size() < 2)
                     return false;
-                op2 = stack.top();
-                stack.pop();
-                op1 = stack.top();
-                stack.pop();
+                op2 = stack[stack.size() - 1];
+                stack.pop_back();
+                op1 = stack[stack.size() - 1];
+                stack.pop_back();
                 if(signedcalc)
                     operationSuccess = signedOperation(type, op1, op2, result, silent, baseonly, allowassign);
                 else
                     operationSuccess = unsignedOperation(type, op1, op2, result, silent, baseonly, allowassign);
                 if(!operationSuccess)
                     return false;
-                stack.push(result);
+                stack.push_back(result);
                 break;
             case Token::Type::Error:
                 return false;
@@ -872,20 +881,20 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
             for(auto i = 0; i < argc; i++)
             {
                 duint arg;
-                if(!stack.top().DoEvaluate(arg, silent, baseonly))
+                if(!stack[stack.size() - 1].DoEvaluate(arg, silent, baseonly))
                     return false;
-                stack.pop();
+                stack.pop_back();
                 argv[argc - i - 1] = arg;
             }
             duint result;
             if(!ExpressionFunctions::Call(name, argv, result))
                 return false;
-            stack.push(EvalValue(result));
+            stack.push_back(EvalValue(result));
         }
         else
-            stack.push(EvalValue(token.data()));
+            stack.push_back(EvalValue(token.data()));
     }
     if(stack.size() != 1) //there should only be one value left on the stack
         return false;
-    return stack.top().DoEvaluate(value, silent, baseonly, value_size, isvar, hexonly);
+    return stack[stack.size() - 1].DoEvaluate(value, silent, baseonly, value_size, isvar, hexonly);
 }

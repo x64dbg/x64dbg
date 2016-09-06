@@ -158,39 +158,6 @@ void setalloctrace(const char* file)
 #endif //ENABLE_MEM_TRACE
 
 /**
-\brief A function to determine if a string is contained in a specifically formatted 'array string'.
-\param cmd_list Array of strings separated by '\1'.
-\param cmd The string to look for.
-\return true if \p cmd is contained in \p cmd_list.
-*/
-bool arraycontains(const char* cmd_list, const char* cmd)
-{
-    //TODO: fix this function a little
-    if(!cmd_list || !cmd)
-        return false;
-    char temp[deflen] = "";
-    strcpy_s(temp, cmd_list);
-    int len = (int)strlen(cmd_list);
-    if(len >= deflen)
-        return false;
-    for(int i = 0; i < len; i++)
-        if(temp[i] == 1)
-            temp[i] = 0;
-    if(!_stricmp(temp, cmd))
-        return true;
-    for(int i = (int)strlen(temp); i < len; i++)
-    {
-        if(!temp[i])
-        {
-            if(!_stricmp(temp + i + 1, cmd))
-                return true;
-            i += (int)strlen(temp + i + 1);
-        }
-    }
-    return false;
-}
-
-/**
 \brief Compares two strings without case-sensitivity.
 \param a The first string.
 \param b The second string.

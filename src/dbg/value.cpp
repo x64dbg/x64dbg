@@ -1632,6 +1632,12 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
+    else if(varget(string, value, value_size, 0))    //then come variables
+    {
+        if(isvar)
+            *isvar = true;
+        return true;
+    }
     else if(isregister(string))  //register
     {
         if(!DbgIsDebugging())
@@ -1693,12 +1699,6 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         if(*string == 'x')
             inc = 1;
         return convertNumber(string + inc, *value, 16);
-    }
-    else if(varget(string, value, value_size, 0))   //then come variables
-    {
-        if(isvar)
-            *isvar = true;
-        return true;
     }
     if(baseonly)
         return false;
