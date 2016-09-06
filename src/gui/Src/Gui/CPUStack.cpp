@@ -287,6 +287,7 @@ void CPUStack::setupContextMenu()
 
     auto followDumpMenuName = ArchValue(tr("Follow DWORD in Dump"), tr("Follow QWORD in Dump"));
     mFollowInDumpMenu = new QMenu(followDumpMenuName, this);
+    mFollowInDumpMenu->setIcon(DIcon("dump.png"));
 
     int maxDumps = mMultiDump->getMaxCPUTabs();
     for(int i = 0; i < maxDumps; i++)
