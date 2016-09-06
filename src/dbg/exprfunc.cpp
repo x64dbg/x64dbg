@@ -158,4 +158,21 @@ namespace Exprfunc
     {
         return trenabled(addr) ? TraceRecord.getHitCount(addr) : 0;
     }
+
+#ifdef _WIN64
+    static duint(*GetTickCount64)() = nullptr;
+#endif //_WIN64
+    duint gettickcount()
+    {
+#ifdef _WIN64
+        if(GetTickCount64 == nullptr)
+            GetTickCount64 = (duint(*)())GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetTickCount64");
+        if(GetTickCount64 != nullptr)
+            return GetTickCount64();
+        else
+            return GetTickCount();
+#else //x86
+        return GetTickCount();
+#endif //_WIN64
+    }
 }
