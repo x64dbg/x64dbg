@@ -250,5 +250,7 @@
         <file>images/binary_save.png</file>
         <file>images/animal-dog.png</file>
         <file>images/graph.png</file>
+        <file>images/enable.png</file>
+        <file>images/disable.png</file>
     </qresource>
 </RCC>

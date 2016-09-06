@@ -50,15 +50,15 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mActionRefresh = new QAction(DIcon("arrow-restart.png"), tr("&Refresh"), this);
     connect(mActionRefresh, SIGNAL(triggered()), this, SLOT(reloadData()));
     addAction(mActionRefresh);
-    mActionCloseHandle = new QAction(DIcon("close-all-tabs.png"), tr("Close handle"), this);
+    mActionCloseHandle = new QAction(DIcon("disable.png"), tr("Close handle"), this);
     connect(mActionCloseHandle, SIGNAL(triggered()), this, SLOT(closeHandleSlot()));
-    mActionDisablePrivilege = new QAction(DIcon("close-all-tabs.png"), tr("Disable Privilege: "), this);
+    mActionDisablePrivilege = new QAction(DIcon("disable.png"), tr("Disable Privilege: "), this);
     connect(mActionDisablePrivilege, SIGNAL(triggered()), this, SLOT(disablePrivilegeSlot()));
-    mActionEnablePrivilege = new QAction(tr("Enable Privilege: "), this);
+    mActionEnablePrivilege = new QAction(DIcon("enable.png"), tr("Enable Privilege: "), this);
     connect(mActionEnablePrivilege, SIGNAL(triggered()), this, SLOT(enablePrivilegeSlot()));
-    mActionDisableAllPrivileges = new QAction(DIcon("close-all-tabs.png"), tr("Disable all privileges"), this);
+    mActionDisableAllPrivileges = new QAction(DIcon("disable.png"), tr("Disable all privileges"), this);
     connect(mActionDisableAllPrivileges, SIGNAL(triggered()), this, SLOT(disableAllPrivilegesSlot()));
-    mActionEnableAllPrivileges = new QAction(tr("Enable all privileges"), this);
+    mActionEnableAllPrivileges = new QAction(DIcon("enable.png"), tr("Enable all privileges"), this);
     connect(mActionEnableAllPrivileges, SIGNAL(triggered()), this, SLOT(enableAllPrivilegesSlot()));
 
     connect(mHandlesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(handlesTableContextMenuSlot(const QPoint &)));
