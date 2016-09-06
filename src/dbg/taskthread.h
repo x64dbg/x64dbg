@@ -1,9 +1,9 @@
 #ifndef _TASKTHREAD_H
 #define _TASKTHREAD_H
-#include "_global.h"
-#include <thread>
 
-#include <cstddef>
+#include "_global.h"
+
+#include <thread>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -32,8 +32,8 @@ protected:
     virtual void ResetArgs() { }
 public:
     void WakeUp(Args...);
-    TaskThread_(F, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME);
-    ~TaskThread_();
+    explicit TaskThread_(F, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME);
+    virtual ~TaskThread_();
 };
 
 template <typename F>
@@ -46,21 +46,13 @@ class StringConcatTaskThread_ : public TaskThread_<F, std::string>
     }
 
     // Reset called after we latch in a value
-    virtual void ResetArgs()
+    void ResetArgs() override
     {
         std::get<0>(args).resize(0);
     }
 public:
-    StringConcatTaskThread_(F fn, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME) : TaskThread_(fn, minSleepTimeMs) {}
+    explicit StringConcatTaskThread_(F fn, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME) : TaskThread_(fn, minSleepTimeMs) {}
 };
-
-template <typename F>
-static inline TaskThread_<F> MakeTaskThread(F f, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME)
-{
-    return TaskThread_<F>(f, minSleepTimeMs);
-}
-
-typedef TaskThread_<LPTHREAD_START_ROUTINE, void*> TaskThread;
 
 // using aliases for cleaner syntax
 template<class T> using Invoke = typename T::type;
@@ -110,7 +102,7 @@ template <typename F, typename... Args> void TaskThread_<F, Args...>::WakeUp(Arg
     args = CompressArguments(std::forward<Args>(_args)...);
     LeaveCriticalSection(&access);
     // This will fail silently if it's redundant, which is what we want.
-    ReleaseSemaphore(wakeupSemaphore, 1, 0);
+    ReleaseSemaphore(wakeupSemaphore, 1, nullptr);
 }
 
 template <typename F, typename... Args> void TaskThread_<F, Args...>::Loop()
@@ -133,12 +125,12 @@ template <typename F, typename... Args> void TaskThread_<F, Args...>::Loop()
         }
     }
 }
+
 template <typename F, typename... Args>
 TaskThread_<F, Args...>::TaskThread_(F fn,
                                      size_t minSleepTimeMs) : fn(fn), minSleepTimeMs(minSleepTimeMs)
 {
-
-    wakeupSemaphore = CreateSemaphore(0, 0, 1, 0);
+    wakeupSemaphore = CreateSemaphoreW(nullptr, 0, 1, nullptr);
     InitializeCriticalSection(&access);
 
     thread = std::thread([this]
@@ -153,7 +145,7 @@ TaskThread_<F, Args...>::~TaskThread_()
     EnterCriticalSection(&access);
     active = false;
     LeaveCriticalSection(&access);
-    ReleaseSemaphore(wakeupSemaphore, 1, 0);
+    ReleaseSemaphore(wakeupSemaphore, 1, nullptr);
 
     thread.join();
 

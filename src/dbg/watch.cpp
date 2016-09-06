@@ -102,7 +102,7 @@ void WatchExpr::modifyName(const char* newName)
 
 void GuiUpdateWatchViewAsync()
 {
-    auto task = MakeTaskThread(GuiUpdateWatchView);
+    static TaskThread_<decltype(&GuiUpdateWatchView)> task(&GuiUpdateWatchView);
     task.WakeUp();
 }
 

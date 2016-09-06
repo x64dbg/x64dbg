@@ -349,7 +349,7 @@ DWORD WINAPI updateSEHChainThread()
 
 void updateSEHChainAsync()
 {
-    static auto updateSEHChainTask = MakeTaskThread(&updateSEHChainThread);
+    static TaskThread_<decltype(&updateSEHChainThread)> updateSEHChainTask(&updateSEHChainThread);
     updateSEHChainTask.WakeUp();
 }
 
