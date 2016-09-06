@@ -29,6 +29,7 @@
 #include "taskthread.h"
 #include "animate.h"
 #include "simplescript.h"
+#include "capstone_wrapper.h"
 
 struct TraceCondition
 {

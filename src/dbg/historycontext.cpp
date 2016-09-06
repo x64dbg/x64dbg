@@ -3,10 +3,10 @@
 #include "memory.h"
 #include "console.h"
 #include "watch.h"
-#include "_exports.h"
+#include "threading.h"
 
-duint HistoryMaxCount = 4096;
-std::deque<HistoryContext> history;
+static const duint HistoryMaxCount = 4096;
+static std::deque<HistoryContext> history;
 
 //This will capture the current instruction
 HistoryContext::HistoryContext()
@@ -69,6 +69,7 @@ HistoryContext::~HistoryContext()
 
 void HistoryAdd()
 {
+    EXCLUSIVE_ACQUIRE(LockHistory);
     if(history.size() > HistoryMaxCount)
         history.pop_front();
     history.emplace_back();
@@ -76,6 +77,7 @@ void HistoryAdd()
 
 void HistoryRestore()
 {
+    EXCLUSIVE_ACQUIRE(LockHistory);
     if(!history.empty())
     {
         history.back().restore();
@@ -87,10 +89,12 @@ void HistoryRestore()
 
 bool HistoryIsEmpty()
 {
+    SHARED_ACQUIRE(LockHistory);
     return history.empty();
 }
 
 void HistoryClear()
 {
+    EXCLUSIVE_ACQUIRE(LockHistory);
     history.clear();
 }
