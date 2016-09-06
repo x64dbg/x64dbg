@@ -62,6 +62,7 @@ public slots:
 
     // DLL
     void DLLBPContextMenuSlot(const QPoint & pos);
+    void addDLLBPActionSlot();
     void removeDLLBPActionSlot();
     void removeAllDLLBPActionSlot();
     void enableDisableDLLBPActionSlot();
@@ -109,6 +110,7 @@ private:
     QAction* mMemBPDisableAllAction;
 
     // DLL BP Context Menu
+    QAction* mDLLBPAddAction;
     QAction* mDLLBPRemoveAction;
     QAction* mDLLBPRemoveAllAction;
     QAction* mDLLBPEnableDisableAction;

@@ -321,6 +321,9 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut(tr("Debug -> Trace Record -> Bit"), "", true));
     defaultShortcuts.insert("DebugTraceRecordNone", Shortcut(tr("Debug -> Trace Record -> None"), "", true));
     defaultShortcuts.insert("DebugInstrUndo", Shortcut(tr("Debug -> Undo instruction"), "Alt+U", true));
+    defaultShortcuts.insert("DebugAnimateInto", Shortcut(tr("Debug -> Animate into"), "Ctrl+F7", true));
+    defaultShortcuts.insert("DebugAnimateOver", Shortcut(tr("Debug -> Animate over"), "Ctrl+F8", true));
+    defaultShortcuts.insert("DebugAnimateCommand", Shortcut(tr("Debug -> Animate command"), "", true));
 
     defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
 
