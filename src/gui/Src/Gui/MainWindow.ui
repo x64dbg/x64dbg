@@ -161,6 +161,7 @@
     <addaction name="actionTopmost"/>
     <addaction name="actionReloadStylesheet"/>
     <addaction name="actionSetInitializationScript"/>
+    <addaction name="actionImportSettings"/>
    </widget>
    <widget class="QMenu" name="menuFavourites">
     <property name="title">
@@ -1026,6 +1027,11 @@
   <action name="actionSetInitializationScript">
    <property name="text">
     <string>Set Initialization Script</string>
+   </property>
+  </action>
+  <action name="actionImportSettings">
+   <property name="text">
+    <string>Import settings...</string>
    </property>
   </action>
  </widget>

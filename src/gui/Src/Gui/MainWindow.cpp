@@ -1712,3 +1712,38 @@ void MainWindow::setInitialzationScript()
         BridgeSettingSet("Engine", "InitializeScript", browseScript.path.toUtf8().constData());
     }
 }
+
+#include "../src/bridge/Utf8Ini.h"
+
+void MainWindow::on_actionImportSettings_triggered()
+{
+    auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), QCoreApplication::applicationDirPath(), tr("Settings (*.ini);;All files (*.*)"));
+    if(!filename.length())
+        return;
+    QFile f(QDir::toNativeSeparators(filename));
+    if(f.open(QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream in(&f);
+        auto style = in.readAll();
+        f.close();
+        Utf8Ini ini;
+        int errorLine;
+        if(ini.Deserialize(style.toStdString(), errorLine))
+        {
+            auto sections = ini.Sections();
+            for(const auto & section : sections)
+            {
+                auto keys = ini.Keys(section);
+                for(const auto & key : keys)
+                    BridgeSettingSet(section.c_str(), key.c_str(), ini.GetValue(section, key).c_str());
+            }
+            Config()->load();
+            DbgSettingsUpdated();
+            Config()->emitColorsUpdated();
+            Config()->emitFontsUpdated();
+            Config()->emitShortcutsUpdated();
+            Config()->emitTokenizerConfigUpdated();
+            GuiUpdateAllViews();
+        }
+    }
+}

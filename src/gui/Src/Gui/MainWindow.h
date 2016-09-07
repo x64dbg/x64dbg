@@ -234,6 +234,7 @@ public:
 private slots:
     void on_actionFaq_triggered();
     void on_actionReloadStylesheet_triggered();
+    void on_actionImportSettings_triggered();
 };
 
 #endif // MAINWINDOW_H

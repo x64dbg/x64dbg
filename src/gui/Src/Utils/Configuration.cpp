@@ -644,6 +644,11 @@ void Configuration::writeShortcuts()
     emit shortcutsUpdated();
 }
 
+void Configuration::emitShortcutsUpdated()
+{
+    emit shortcutsUpdated();
+}
+
 const QColor Configuration::getColor(const QString id) const
 {
     if(Colors.contains(id))
