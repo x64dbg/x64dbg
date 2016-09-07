@@ -58,6 +58,7 @@ void SettingsDialog::LoadSettings()
     settings.engineEnableSourceDebugging = true;
     settings.engineEnableTraceRecordDuringTrace = true;
     settings.engineNoScriptTimeout = false;
+    settings.engineIgnoreInconsistentBreakpoints = false;
     settings.exceptionRanges = &realExceptionRanges;
     settings.disasmArgumentSpaces = false;
     settings.disasmMemorySpaces = false;
@@ -120,6 +121,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "TraceRecordEnabledDuringTrace", &settings.engineEnableTraceRecordDuringTrace);
     GetSettingBool("Engine", "SkipInt3Stepping", &settings.engineSkipInt3Stepping);
     GetSettingBool("Engine", "NoScriptTimeout", &settings.engineNoScriptTimeout);
+    GetSettingBool("Engine", "IgnoreInconsistentBreakpoints", &settings.engineIgnoreInconsistentBreakpoints);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -149,6 +151,7 @@ void SettingsDialog::LoadSettings()
     ui->chkTraceRecordEnabledDuringTrace->setChecked(settings.engineEnableTraceRecordDuringTrace);
     ui->chkSkipInt3Stepping->setChecked(settings.engineSkipInt3Stepping);
     ui->chkNoScriptTimeout->setChecked(settings.engineNoScriptTimeout);
+    ui->chkIgnoreInconsistentBreakpoints->setChecked(settings.engineIgnoreInconsistentBreakpoints);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -283,6 +286,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "TraceRecordEnabledDuringTrace", settings.engineEnableTraceRecordDuringTrace);
     BridgeSettingSetUint("Engine", "SkipInt3Stepping", settings.engineSkipInt3Stepping);
     BridgeSettingSetUint("Engine", "NoScriptTimeout", settings.engineNoScriptTimeout);
+    BridgeSettingSetUint("Engine", "IgnoreInconsistentBreakpoints", settings.engineIgnoreInconsistentBreakpoints);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -689,4 +693,9 @@ void SettingsDialog::on_chkNoScriptTimeout_stateChanged(int arg1)
 void SettingsDialog::on_chkSidebarWatchLabels_stateChanged(int arg1)
 {
     settings.guiSidebarWatchLabels = arg1 != Qt::Unchecked;
+}
+
+void SettingsDialog::on_chkIgnoreInconsistentBreakpoints_toggled(bool checked)
+{
+    settings.engineIgnoreInconsistentBreakpoints = checked;
 }

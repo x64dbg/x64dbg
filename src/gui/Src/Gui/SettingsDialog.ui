@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -300,6 +300,13 @@
         <widget class="QCheckBox" name="chkNoScriptTimeout">
          <property name="text">
           <string>No Script Timeout Warning</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkIgnoreInconsistentBreakpoints">
+         <property name="text">
+          <string>&amp;Ignore inconsistent breakpoints</string>
          </property>
         </widget>
        </item>

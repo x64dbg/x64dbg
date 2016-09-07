@@ -75,6 +75,8 @@ private slots:
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
 
+    void on_chkIgnoreInconsistentBreakpoints_toggled(bool checked);
+
 private:
     //enums
     enum CalcType
@@ -130,6 +132,7 @@ private:
         bool engineEnableTraceRecordDuringTrace;
         bool engineSkipInt3Stepping;
         bool engineNoScriptTimeout;
+        bool engineIgnoreInconsistentBreakpoints;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
         //Disasm Tab
