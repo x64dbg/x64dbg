@@ -53,6 +53,7 @@ AbstractTableView::AbstractTableView(QWidget* parent)
 
     mShouldReload = true;
     mAllowPainting = true;
+    mDrawDebugOnly = false;
 
     // ScrollBar Init
     setVerticalScrollBar(new AbstractTableScrollBar(verticalScrollBar()));

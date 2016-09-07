@@ -11,6 +11,7 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     mEnableSyntaxHighlighting = false;
     enableMultiSelection(false);
     enableColumnSorting(false);
+    setDrawDebugOnly(false);
 
     int charwidth = getCharWidth();
 
