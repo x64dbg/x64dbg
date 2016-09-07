@@ -1637,7 +1637,8 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     duint wSize;
     auto wBase = DbgMemFindBaseAddr(parVA, &wSize);
 
-    if(!wBase || !wSize)
+    unsigned char test;
+    if(!wBase || !wSize || !DbgMemRead(parVA, &test, sizeof(test)))
         return;
     dsint wRVA = parVA - wBase;
     dsint wCipRva = parCIP - wBase;

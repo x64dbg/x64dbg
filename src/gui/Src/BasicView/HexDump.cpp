@@ -88,7 +88,8 @@ void HexDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTab
 {
     duint wSize;
     auto wBase = DbgMemFindBaseAddr(parVA, &wSize); //get memory base
-    if(!wBase || !wSize)
+    unsigned char test;
+    if(!wBase || !wSize || !DbgMemRead(wBase, &test, sizeof(test)))
         return;
     dsint wRVA = parVA - wBase; //calculate rva
     int wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
