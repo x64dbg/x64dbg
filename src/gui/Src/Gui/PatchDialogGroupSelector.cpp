@@ -7,7 +7,6 @@ PatchDialogGroupSelector::PatchDialogGroupSelector(QWidget* parent) :
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     setModal(false); //non-modal window
 
     mGroup = 0;

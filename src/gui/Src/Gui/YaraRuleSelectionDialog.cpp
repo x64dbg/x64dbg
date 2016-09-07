@@ -12,7 +12,6 @@ YaraRuleSelectionDialog::YaraRuleSelectionDialog(QWidget* parent, const QString 
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     setWindowTitle(title);
 
     char setting[MAX_SETTING_SIZE] = "";

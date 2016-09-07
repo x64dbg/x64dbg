@@ -12,7 +12,6 @@ PatchDialog::PatchDialog(QWidget* parent) :
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     setModal(false); //non-modal window
 
     connect(Bridge::getBridge(), SIGNAL(updatePatches()), this, SLOT(updatePatches()));

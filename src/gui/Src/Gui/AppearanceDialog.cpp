@@ -13,7 +13,6 @@ AppearanceDialog::AppearanceDialog(QWidget* parent) : QDialog(parent), ui(new Ui
     //set window flags
     setModal(true);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     //Colors
     colorMap = &Config()->Colors;
     colorBackupMap = *colorMap;

@@ -9,7 +9,6 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     if(bp.type == bp_dll)
     {
         setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(QString(bp.mod)));

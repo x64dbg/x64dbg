@@ -8,7 +8,6 @@ BrowseDialog::BrowseDialog(QWidget* parent, const QString & title, const QString
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     setWindowTitle(title);
     ui->label->setText(text);
     ui->lineEdit->setText(defaultPath);

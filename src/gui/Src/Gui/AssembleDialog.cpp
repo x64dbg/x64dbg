@@ -11,7 +11,6 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
 {
     ui->setupUi(this);
     setModal(true);
-    setFixedSize(size()); //fixed size
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
 
     mSelectedInstrVa = 0;

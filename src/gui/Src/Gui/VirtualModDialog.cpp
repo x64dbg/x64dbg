@@ -8,7 +8,6 @@ VirtualModDialog::VirtualModDialog(QWidget* parent) :
 {
     ui->setupUi(this);
     setModal(true);
-    setFixedSize(this->size()); //fixed size
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
 }
 

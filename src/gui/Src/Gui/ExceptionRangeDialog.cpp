@@ -9,7 +9,6 @@ ExceptionRangeDialog::ExceptionRangeDialog(QWidget* parent) :
     //set window flags
     setModal(true);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     ui->editStart->setCursorPosition(0);
     ui->editEnd->setCursorPosition(0);
     ui->btnOk->setEnabled(false);
