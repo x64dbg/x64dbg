@@ -1035,6 +1035,7 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
         GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(500, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String")));
         GuiReferenceSetSearchStartCol(2); //only search the strings
+        GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
     }
@@ -1296,6 +1297,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "&Data&")));
     else
         GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     DWORD ticks = GetTickCount();
     int refCount = 0;
@@ -1412,6 +1414,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
         GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "&Data&")));
     else
         GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
 
     int refCount = 0;
@@ -1456,6 +1459,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
         GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(MAX_LABEL_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Destination")));
+        GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
     }
@@ -1520,6 +1524,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
     GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
     GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comment")));
+    GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
     CommentEnum(0, &cbsize);
@@ -1555,6 +1560,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
     GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
     GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
+    GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
     LabelEnum(0, &cbsize);
@@ -1589,6 +1595,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Bookmarks")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
     GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
     BookmarkEnum(0, &cbsize);
@@ -1624,6 +1631,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
     GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
     GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
+    GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
     FunctionEnum(0, &cbsize);
@@ -1670,6 +1678,7 @@ CMDRESULT cbInstrArgumentList(int argc, char* argv[])
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
     GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
     GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
+    GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
     ArgumentEnum(0, &cbsize);
@@ -1716,6 +1725,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
     GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
     GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
+    GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
     LoopEnum(0, &cbsize);
@@ -1773,6 +1783,7 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
         GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
     }
