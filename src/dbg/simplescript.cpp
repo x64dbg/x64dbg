@@ -321,7 +321,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
     else if(scriptisinternalcommand(cmd, "nop")) //do nothing
         return STATUS_CONTINUE;
     CMDRESULT res = cmddirectexec(cmd);
-    while(DbgIsDebugging() && dbgisrunning())  //while not locked (NOTE: possible deadlock)
+    while(DbgIsDebugging() && dbgisrunning() && !bAbort) //while not locked (NOTE: possible deadlock)
         Sleep(1);
     return res;
 }
