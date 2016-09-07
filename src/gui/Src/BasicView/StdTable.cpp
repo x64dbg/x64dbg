@@ -425,15 +425,15 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
     if(!getColumnCount())
         return;
     //Copy->Whole Line
-    QAction* mCopyLine = new QAction(tr("&Line"), copyMenu);
+    QAction* mCopyLine = new QAction(DIcon("copy_table_line.png"), tr("&Line"), copyMenu);
     connect(mCopyLine, SIGNAL(triggered()), this, SLOT(copyLineSlot()));
     copyMenu->addAction(mCopyLine);
     //Copy->Cropped Table
-    QAction* mCopyTable = new QAction(tr("Cropped &Table"), copyMenu);
+    QAction* mCopyTable = new QAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), copyMenu);
     connect(mCopyTable, SIGNAL(triggered()), this, SLOT(copyTableSlot()));
     copyMenu->addAction(mCopyTable);
     //Copy->Full Table
-    QAction* mCopyTableResize = new QAction(tr("&Full Table"), copyMenu);
+    QAction* mCopyTableResize = new QAction(DIcon("copy_full_table.png"), tr("&Full Table"), copyMenu);
     connect(mCopyTableResize, SIGNAL(triggered()), this, SLOT(copyTableResizeSlot()));
     copyMenu->addAction(mCopyTableResize);
     //Copy->Separator

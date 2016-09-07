@@ -60,7 +60,7 @@ void MemoryMapView::setupContextMenu()
     connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
 
     //Switch View
-    mSwitchView = new QAction(tr("&Switch View"), this);
+    mSwitchView = new QAction(DIcon("change-view.png"), tr("&Switch View"), this);
     connect(mSwitchView, SIGNAL(triggered()), this, SLOT(switchView()));
 
     //Breakpoint menu
@@ -142,7 +142,7 @@ void MemoryMapView::setupContextMenu()
     connect(mFindPattern, SIGNAL(triggered()), this, SLOT(findPatternSlot()));
 
     //Dump
-    mDumpMemory = new QAction(tr("&Dump Memory to File"), this);
+    mDumpMemory = new QAction(DIcon("binary_save.png"), tr("&Dump Memory to File"), this);
     connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemory()));
 
     //Add virtual module

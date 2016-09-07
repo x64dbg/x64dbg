@@ -18,7 +18,6 @@ public:
     void keyPressEvent(QKeyEvent* event);
 
 public slots:
-    void refreshShortcutsSlot();
     void contextMenuSlot(const QPoint & pos);
     void add(int count, const char** lines);
     void clear();
@@ -51,17 +50,7 @@ private:
     bool mEnableSyntaxHighlighting;
     QString filename;
 
-    QMenu* mLoadMenu;
-    QAction* mScriptLoad;
-    QAction* mScriptReload;
-    QAction* mScriptUnload;
-    QAction* mScriptRun;
-    QAction* mScriptRunCursor;
-    QAction* mScriptStep;
-    QAction* mScriptBpToggle;
-    QAction* mScriptCmdExec;
-    QAction* mScriptAbort;
-    QAction* mScriptNewIp;
+    MenuBuilder* mMenu;
 };
 
 #endif // SCRIPTVIEW_H

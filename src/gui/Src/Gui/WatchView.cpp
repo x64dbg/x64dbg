@@ -143,11 +143,11 @@ void WatchView::setupContextMenu()
     {
         return getRowCount() != 0;
     });
-    mMenu->addAction(makeAction(tr("Rename"), SLOT(renameWatchSlot())), [this](QMenu*)
+    mMenu->addAction(makeAction(DIcon("labels.png"), tr("Rename"), SLOT(renameWatchSlot())), [this](QMenu*)
     {
         return getRowCount() != 0;
     });
-    mMenu->addAction(makeAction(tr("&Edit..."), SLOT(editWatchSlot())), [this](QMenu*)
+    mMenu->addAction(makeAction(DIcon("modify.png"), tr("&Edit..."), SLOT(editWatchSlot())), [this](QMenu*)
     {
         return getRowCount() != 0;
     });
@@ -156,13 +156,18 @@ void WatchView::setupContextMenu()
         return getRowCount() != 0;
     });
     QMenu* watchdogMenu = new QMenu(tr("Watchdog"), this);
-    watchdogBuilder->addAction(makeAction(DIcon("close-all-tabs.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
+    watchdogMenu->setIcon(DIcon("animal-dog.png"));
+    watchdogBuilder->addAction(makeAction(DIcon("disable.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
     watchdogBuilder->addSeparator();
-    watchdogBuilder->addAction(makeAction(tr("Changed"), SLOT(watchdogChangedSlot())));
-    watchdogBuilder->addAction(makeAction(tr("Not changed"), SLOT(watchdogUnchangedSlot())));
-    watchdogBuilder->addAction(makeAction(tr("Is true"), SLOT(watchdogIsTrueSlot())));
-    watchdogBuilder->addAction(makeAction(tr("Is false"), SLOT(watchdogIsFalseSlot())));
+    watchdogBuilder->addAction(makeAction(DIcon("arrow-restart.png"), tr("Changed"), SLOT(watchdogChangedSlot())));
+    watchdogBuilder->addAction(makeAction(DIcon("control-pause.png"), tr("Not changed"), SLOT(watchdogUnchangedSlot())));
+    watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_tbyte.png"), tr("Is true"), SLOT(watchdogIsTrueSlot()))); // TODO: better icon
+    watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_fword.png"), tr("Is false"), SLOT(watchdogIsFalseSlot())));
     mMenu->addMenu(watchdogMenu, watchdogBuilder);
+    mMenu->addSeparator();
+    MenuBuilder* copyMenu = new MenuBuilder(this);
+    setupCopyMenu(copyMenu);
+    mMenu->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
 }
 
 QString WatchView::getSelectedId()
