@@ -10,7 +10,7 @@ static DWORD WINAPI animateThread(void* arg1)
     while(animate_command[0] != 0)
     {
         auto beforeTime = GetTickCount();
-        if(_dbg_dbgcmdexec(animate_command) != true)
+        if(!DbgCmdExecDirect(animate_command))
             // An error occurs
             break;
         auto currentTime = GetTickCount();

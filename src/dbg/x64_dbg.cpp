@@ -87,7 +87,7 @@ static void registercommands()
     dbgcmdnew("run\1go\1r\1g", cbDebugRun2, true); //unlock WAITID_RUN
     dbgcmdnew("erun\1egun\1er\1eg", cbDebugErun, true); //run + skip first chance exceptions
     dbgcmdnew("serun\1sego", cbDebugSerun, true); //run + swallow exception
-    dbgcmdnew("pause", cbDebugPause, true); //pause debugger
+    dbgcmdnew("pause", cbDebugPause, false); //pause debugger
     dbgcmdnew("StepInto\1sti", cbDebugStepInto, true); //StepInto
     dbgcmdnew("eStepInto\1esti", cbDebugeStepInto, true); //StepInto + skip first chance exceptions
     dbgcmdnew("seStepInto\1sesti", cbDebugseStepInto, true); //StepInto + swallow exception

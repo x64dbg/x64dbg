@@ -182,7 +182,7 @@ CMDRESULT cbDebugSerun(int argc, char* argv[])
 
 static bool skipInt3Stepping(int argc, char* argv[])
 {
-    if(!bSkipInt3Stepping)
+    if(!bSkipInt3Stepping || dbgisrunning())
         return false;
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     unsigned char ch;
@@ -519,18 +519,20 @@ CMDRESULT cbDebugBenchmark(int argc, char* argv[])
 
 CMDRESULT cbDebugPause(int argc, char* argv[])
 {
+    if(_dbg_isanimating())
+    {
+        _dbg_animatestop(); // pause when animating
+        return STATUS_CONTINUE;
+    }
+    if(!DbgIsDebugging())
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
+        return STATUS_ERROR;
+    }
     if(!dbgisrunning())
     {
-        if(_dbg_isanimating())
-        {
-            _dbg_animatestop(); // pause when animating
-            return STATUS_CONTINUE;
-        }
-        else
-        {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Program is not running"));
-            return STATUS_ERROR;
-        }
+        dputs(QT_TRANSLATE_NOOP("DBG", "Program is not running"));
+        return STATUS_ERROR;
     }
     if(SuspendThread(hActiveThread) == -1)
     {
