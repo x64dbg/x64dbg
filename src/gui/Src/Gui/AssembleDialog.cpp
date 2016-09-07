@@ -27,8 +27,13 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
     mValidateThread->start();
 
     duint setting;
-    if(BridgeSettingGetUint("Engine", "Assembler", &setting) && setting == 1)
-        ui->radioKeystone->setChecked(true);
+    if(BridgeSettingGetUint("Engine", "Assembler", &setting))
+    {
+        if(setting == 1)
+            ui->radioKeystone->setChecked(true);
+        else if(setting == 2)
+            ui->radioAsmjit->setChecked(true);
+    }
 }
 
 AssembleDialog::~AssembleDialog()
