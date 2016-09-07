@@ -36,7 +36,7 @@ ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : SearchListView(
     layoutProgress->addWidget(mSearchTotalProgress);
 
     // Label for the number of references
-    mCountTotalLabel = new QLabel("tst");
+    mCountTotalLabel = new QLabel("");
     mCountTotalLabel->setAlignment(Qt::AlignCenter);
     mCountTotalLabel->setMaximumHeight(16);
     mCountTotalLabel->setMinimumWidth(40);
