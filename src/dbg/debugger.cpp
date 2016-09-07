@@ -695,7 +695,6 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     }
     if(!(bpPtr && bpPtr->enabled))  //invalid / disabled breakpoint hit (most likely a bug)
     {
-        SHARED_RELEASE();
         if(bptype != BPDLL || !BpUpdateDllPath(reinterpret_cast<const char*>(ExceptionAddress), &bpPtr))
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint reached not in list!"));
@@ -710,8 +709,6 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
             wait(WAITID_RUN);
             return;
         }
-        else if(bptype == BPDLL)
-            SHARED_REACQUIRE();
     }
 
     // increment hit count

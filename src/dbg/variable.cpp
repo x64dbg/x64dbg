@@ -46,12 +46,7 @@ bool varset(const char* Name, VAR_VALUE* Value, bool ReadOnly)
     if(found == variables.end())  //not found
         return false;
     if(found->second.alias.length())
-    {
-        // Release the lock (potential deadlock here)
-        EXCLUSIVE_RELEASE();
-
         return varset(found->second.alias.c_str(), Value, ReadOnly);
-    }
 
     if(!ReadOnly && (found->second.type == VAR_READONLY || found->second.type == VAR_HIDDEN))
         return false;
@@ -182,12 +177,7 @@ bool varget(const char* Name, VAR_VALUE* Value, int* Size, VAR_TYPE* Type)
     if(found == variables.end()) //not found
         return false;
     if(found->second.alias.length())
-    {
-        // Release the lock (potential deadlock here)
-        SHARED_RELEASE();
-
         return varget(found->second.alias.c_str(), Value, Size, Type);
-    }
     if(Type)
         *Type = found->second.type;
     if(Size)
