@@ -309,6 +309,25 @@ static void registercommands()
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
     dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
+    dbgcmdnew("DataUnknown", cbInstrDataUnknown, true); //mark as Unknown
+    dbgcmdnew("DataByte\1db", cbInstrDataByte, true); //mark as Byte
+    dbgcmdnew("DataWord\1dw", cbInstrDataWord, true); //mark as Word
+    dbgcmdnew("DataDword\1dd", cbInstrDataDword, true); //mark as Dword
+    dbgcmdnew("DataFword", cbInstrDataFword, true); //mark as Fword
+    dbgcmdnew("DataQword", cbInstrDataQword, true); //mark as Qword
+    dbgcmdnew("DataTbyte", cbInstrDataTbyte, true); //mark as Tbyte
+    dbgcmdnew("DataOword", cbInstrDataOword, true); //mark as Oword
+    dbgcmdnew("DataMmword", cbInstrDataMmword, true); //mark as Mmword
+    dbgcmdnew("DataXmmword", cbInstrDataXmmword, true); //mark as Xmmword
+    dbgcmdnew("DataYmmword", cbInstrDataYmmword, true); //mark as Ymmword
+    dbgcmdnew("DataFloat\1DataReal4\1df", cbInstrDataFloat, true); //mark as Float
+    dbgcmdnew("DataDouble\1DataReal8", cbInstrDataDouble, true); //mark as Double
+    dbgcmdnew("DataLongdouble\1DataReal10", cbInstrDataLongdouble, true); //mark as Longdouble
+    dbgcmdnew("DataAscii\1da", cbInstrDataAscii, true); //mark as Ascii
+    dbgcmdnew("DataUnicode\1du", cbInstrDataUnicode, true); //mark as Unicode
+    dbgcmdnew("DataCode\1dc", cbInstrDataCode, true); //mark as Code
+    dbgcmdnew("DataJunk", cbInstrDataJunk, true); //mark as Junk
+    dbgcmdnew("DataMiddle", cbInstrDataMiddle, true); //mark as Middle
 
     //analysis
     dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
