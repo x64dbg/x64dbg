@@ -26,6 +26,7 @@ namespace Exprfunc
     duint disiscond(duint addr);
     duint disisbranch(duint addr);
     duint disisret(duint addr);
+    duint disismem(duint addr);
     duint disbranchdest(duint addr);
     duint disbranchexec(duint addr);
     duint disimm(duint addr);

@@ -71,6 +71,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("dis.iscond", disiscond);
     RegisterEasy("dis.isbranch", disisbranch);
     RegisterEasy("dis.isret", disisret);
+    RegisterEasy("dis.ismem", disismem);
     RegisterEasy("dis.branchdest", disbranchdest);
     RegisterEasy("dis.branchexec", disbranchexec);
     RegisterEasy("dis.imm", disimm);

@@ -115,6 +115,14 @@ namespace Exprfunc
         return strstr(info.instruction, "ret") != nullptr;
     }
 
+    duint disismem(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return (info.type & TYPE_MEMORY) == TYPE_MEMORY;
+    }
+
     duint disbranchdest(duint addr)
     {
         return DbgGetBranchDestination(addr);
