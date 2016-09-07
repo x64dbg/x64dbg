@@ -224,18 +224,18 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         else
         {
             DWORD dwDisplacement;
-            IMAGEHLP_LINE64 line;
+            IMAGEHLP_LINEW64 line;
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-            if(SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) && !dwDisplacement)
+            if(SafeSymGetLineFromAddrW64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) && !dwDisplacement)
             {
-                char filename[deflen] = "";
-                strcpy_s(filename, line.FileName);
-                int len = (int)strlen(filename);
-                while(filename[len] != '\\' && len != 0)
+                wchar_t filename[deflen] = L"";
+                wcsncpy_s(filename, line.FileName, _TRUNCATE);
+                auto len = wcslen(filename);
+                while(filename[len] != L'\\' && len != 0)
                     len--;
                 if(len)
                     len++;
-                sprintf_s(addrinfo->comment, "\1%s:%u", filename + len, line.LineNumber);
+                sprintf_s(addrinfo->comment, "\1%s:%u", StringUtils::Utf16ToUtf8(filename + len).c_str(), line.LineNumber);
                 retval = true;
             }
             else if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
