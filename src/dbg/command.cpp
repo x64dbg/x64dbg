@@ -68,7 +68,7 @@ void cmdfree()
     COMMAND* cur = cmd_list;
     while(cur)
     {
-        efree(cur->names, "cmdfree:cur->name");
+        delete cur->names;
         COMMAND* next = cur->next;
         efree(cur, "cmdfree:cur");
         cur = next;
