@@ -67,6 +67,8 @@ enum SectionLock
     LockWatch,
     LockExpressionFunctions,
     LockHistory,
+    LockSymbolCache,
+    LockLineCache,
 
     // Number of elements in this enumeration. Must always be the last
     // index.

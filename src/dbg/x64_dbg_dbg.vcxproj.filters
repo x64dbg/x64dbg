@@ -353,6 +353,9 @@
     <ClCompile Include="breakpoint_commands.cpp">
       <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
+    <ClCompile Include="symcache.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -798,6 +801,9 @@
     </ClInclude>
     <ClInclude Include="animate.h">
       <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="symcache.h">
+      <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

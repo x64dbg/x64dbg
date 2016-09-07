@@ -80,6 +80,7 @@
     <ClCompile Include="stringformat.cpp" />
     <ClCompile Include="stringutils.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
+    <ClCompile Include="symcache.cpp" />
     <ClCompile Include="tcpconnections.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />
+    <ClInclude Include="symcache.h" />
     <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
