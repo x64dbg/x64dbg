@@ -314,7 +314,7 @@ static void registercommands()
     dbgcmdnew("DataWord\1dw", cbInstrDataWord, true); //mark as Word
     dbgcmdnew("DataDword\1dd", cbInstrDataDword, true); //mark as Dword
     dbgcmdnew("DataFword", cbInstrDataFword, true); //mark as Fword
-    dbgcmdnew("DataQword", cbInstrDataQword, true); //mark as Qword
+    dbgcmdnew("DataQword\1dq", cbInstrDataQword, true); //mark as Qword
     dbgcmdnew("DataTbyte", cbInstrDataTbyte, true); //mark as Tbyte
     dbgcmdnew("DataOword", cbInstrDataOword, true); //mark as Oword
     dbgcmdnew("DataMmword", cbInstrDataMmword, true); //mark as Mmword
