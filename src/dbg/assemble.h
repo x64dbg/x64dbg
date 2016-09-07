@@ -6,7 +6,8 @@
 enum class AssemblerEngine
 {
     XEDParse = 0,
-    Keystone = 1
+    Keystone = 1,
+    asmjit = 2
 };
 
 extern AssemblerEngine assemblerEngine;

@@ -100,6 +100,18 @@ namespace Keystone
     }
 }
 
+namespace asmjit
+{
+    static XEDPARSE_STATUS XEDParseAssemble(XEDPARSE* XEDParse)
+    {
+        static auto asmjitAssemble = (XEDPARSE_STATUS(*)(XEDPARSE*))GetProcAddress(LoadLibraryW(L"asmjit.dll"), "XEDParseAssemble");
+        if(asmjitAssemble)
+            return asmjitAssemble(XEDParse);
+        strcpy_s(XEDParse->error, "asmjit not found!");
+        return XEDPARSE_ERROR;
+    }
+}
+
 static bool cbUnknown(const char* text, ULONGLONG* value)
 {
     if(!text || !value)
@@ -132,6 +144,8 @@ bool assemble(duint addr, unsigned char* dest, int destsize, int* size, const ch
     auto DoAssemble = XEDParseAssemble;
     if(assemblerEngine == AssemblerEngine::Keystone)
         DoAssemble = Keystone::XEDParseAssemble;
+    else if(assemblerEngine == AssemblerEngine::asmjit)
+        DoAssemble = asmjit::XEDParseAssemble;
     if(DoAssemble(&parse) == XEDPARSE_ERROR)
     {
         if(error)

@@ -115,7 +115,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
     // If there was an error
     if(error.length())
     {
-        setKeepSizeLabel(tr("<font color='orange'><b>Instruction encoding error : %1</b></font>").arg(error));
+        setKeepSizeLabel(tr("<font color='orange'><b>Instruction encoding error: %1</b></font>").arg(error));
         setOkButtonEnabled(false);
     }
     else if(ui->checkBoxKeepSize->isChecked())
@@ -184,6 +184,13 @@ void AssembleDialog::on_radioXEDParse_clicked()
 void AssembleDialog::on_radioKeystone_clicked()
 {
     BridgeSettingSetUint("Engine", "Assembler", 1);
+    DbgSettingsUpdated();
+    validateInstruction(ui->lineEdit->text());
+}
+
+void AssembleDialog::on_radioAsmjit_clicked()
+{
+    BridgeSettingSetUint("Engine", "Assembler", 2);
     DbgSettingsUpdated();
     validateInstruction(ui->lineEdit->text());
 }
