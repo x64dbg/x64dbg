@@ -678,6 +678,13 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
         });
         if(cp[0].type == X86_OP_MEM)
         {
+#ifdef _WIN64
+            auto const tebseg = X86_REG_GS;
+#else
+            auto const tebseg = X86_REG_FS;
+#endif //_WIN64
+            if(cp[0].mem.segment == tebseg)
+                opValue += duint(GetTEBLocation(hActiveThread));
             if(MemRead(opValue, &opValue, sizeof(opValue)))
                 return opValue;
         }
