@@ -894,11 +894,28 @@ void CPUDisassembly::assembleSlot()
         dsint wRVA = getInitialSelection();
         duint wVA = rvaToVa(wRVA);
         unfold(wRVA);
-        QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = ToPtrString(wVA);
 
         Instruction_t instr = this->DisassembleAt(wRVA);
 
         QString actual_inst = instr.instStr;
+
+        //replace [rip +/- 0x?] with the actual address
+        bool ripPlus = true;
+        auto found = actual_inst.indexOf("[rip + ");
+        if(found == -1)
+        {
+            ripPlus = false;
+            found = actual_inst.indexOf("[rip - ");
+        }
+        if(found != -1)
+        {
+            auto end = actual_inst.indexOf("]", found);
+            auto ripStr = actual_inst.mid(found + 1, end - found - 1);
+            auto offset = ripStr.mid(ripStr.lastIndexOf(' ') + 1).toULongLong(nullptr, 16);
+            auto dest = ripPlus ? (wVA + offset + instr.length) : (wVA - offset + instr.length);
+            actual_inst.replace(ripStr, "0x" + ToHexString(dest).toLower());
+        }
 
         bool assembly_error;
         do
