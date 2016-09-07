@@ -89,6 +89,7 @@ bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = true;
 bool bTraceRecordEnabledDuringTrace = true;
 bool bSkipInt3Stepping = false;
+bool bIgnoreInconsistentBreakpoints = false;
 duint DbgEvents = 0;
 
 static duint dbgcleartracecondition()
@@ -914,7 +915,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         unsigned short oldbytes;
         if(MemRead(bp->addr, &oldbytes, sizeof(oldbytes)))
         {
-            if(oldbytes != bp->oldbytes)
+            if(oldbytes != bp->oldbytes && !bIgnoreInconsistentBreakpoints)
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint %p has been disabled because the bytes don't match! Expected: %02X %02X, Found: %02X %02X\n"),
                         bp->addr,

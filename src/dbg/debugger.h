@@ -143,5 +143,6 @@ extern bool bUndecorateSymbolNames;
 extern bool bEnableSourceDebugging;
 extern bool bTraceRecordEnabledDuringTrace;
 extern bool bSkipInt3Stepping;
+extern bool bIgnoreInconsistentBreakpoints;
 
 #endif // _DEBUGGER_H
