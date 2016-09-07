@@ -1233,7 +1233,12 @@ void AbstractTableView::prepareData()
 
 bool AbstractTableView::SortBy::AsText(const QString & a, const QString & b)
 {
-    return QString::compare(a, b, Qt::CaseInsensitive) < 0;
+    auto i = QString::compare(a, b);
+    if(i < 0)
+        return true;
+    if(i > 0)
+        return false;
+    return duint(&a) < duint(&b);
 }
 
 bool AbstractTableView::SortBy::AsInt(const QString & a, const QString & b)
