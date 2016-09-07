@@ -133,6 +133,8 @@ CMDRESULT cbDebugStop(int argc, char* argv[])
             dputs(QT_TRANSLATE_NOOP("DBG", "The debuggee does not stop after 10 seconds. The debugger state may be corrupted."));
             return STATUS_ERROR;
         }
+        if(CurrentTick - BeginTick >= 300)
+            TerminateProcess(fdProcessInfo->hProcess, -1);
     }
     return STATUS_CONTINUE;
 }
