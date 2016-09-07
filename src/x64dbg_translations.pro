@@ -191,7 +191,8 @@ SOURCES += \
     dbg/analysis/xrefsanalysis.cpp \
     dbg/animate.cpp \
     gui/Src/BasicView/LabeledSplitter.cpp \
-    dbg/breakpoint_commands.cpp
+    dbg/breakpoint_commands.cpp \
+    dbg/symcache.cpp
 
 TRANSLATIONS = \
     gui/Translations/x64dbg.ts
@@ -398,7 +399,8 @@ HEADERS += \
     dbg/analysis/recursiveanalysis.h \
     dbg/analysis/xrefsanalysis.h \
     dbg/animate.h \
-    gui/Src/BasicView/LabeledSplitter.h
+    gui/Src/BasicView/LabeledSplitter.h \
+    dbg/symcache.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
