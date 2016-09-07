@@ -289,7 +289,7 @@ void BreakpointsView::setupHardBPRightClickContextMenu()
     connect(mHardBPRemoveAllAction, SIGNAL(triggered()), this, SLOT(removeAllHardBPActionSlot()));
 
     // Enable/Disable
-    mHardBPEnableDisableAction = new QAction(tr("E&nable"), this);
+    mHardBPEnableDisableAction = new QAction(DIcon("enable.png"), tr("E&nable"), this);
     mHardBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mHardBPTable->addAction(mHardBPEnableDisableAction);
     connect(mHardBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableHardBPActionSlot()));
@@ -300,12 +300,12 @@ void BreakpointsView::setupHardBPRightClickContextMenu()
     connect(mHardBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetHardwareHitCountSlot()));
 
     // Enable All
-    mHardBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mHardBPEnableAllAction = new QAction(DIcon("enable.png"), tr("Enable All"), this);
     mHardBPTable->addAction(mHardBPEnableAllAction);
     connect(mHardBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllHardBPActionSlot()));
 
     // Disable All
-    mHardBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mHardBPDisableAllAction = new QAction(DIcon("disable.png"), tr("Disable All"), this);
     mHardBPTable->addAction(mHardBPDisableAllAction);
     connect(mHardBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllHardBPActionSlot()));
 }
@@ -347,16 +347,19 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
                 if(wBPList.bp[wI].active == false)
                 {
                     mHardBPEnableDisableAction->setText(tr("E&nable"));
+                    mHardBPEnableDisableAction->setIcon(DIcon("enable.png"));
                     wMenu.addAction(mHardBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
                     mHardBPEnableDisableAction->setText(tr("&Disable"));
+                    mHardBPEnableDisableAction->setIcon(DIcon("disable.png"));
                     wMenu.addAction(mHardBPEnableDisableAction);
                 }
                 else
                 {
                     mHardBPEnableDisableAction->setText(tr("E&nable"));
+                    mHardBPEnableDisableAction->setIcon(DIcon("enable.png"));
                     wMenu.addAction(mHardBPEnableDisableAction);
                 }
             }
@@ -383,6 +386,7 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -460,7 +464,7 @@ void BreakpointsView::setupSoftBPRightClickContextMenu()
     connect(mSoftBPRemoveAllAction, SIGNAL(triggered()), this, SLOT(removeAllSoftBPActionSlot()));
 
     // Enable/Disable
-    mSoftBPEnableDisableAction = new QAction(tr("E&nable"), this);
+    mSoftBPEnableDisableAction = new QAction(DIcon("enable.png"), tr("E&nable"), this);
     mSoftBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mSoftBPTable->addAction(mSoftBPEnableDisableAction);
     connect(mSoftBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableSoftBPActionSlot()));
@@ -471,12 +475,12 @@ void BreakpointsView::setupSoftBPRightClickContextMenu()
     connect(mSoftBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetSoftwareHitCountSlot()));
 
     // Enable All
-    mSoftBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mSoftBPEnableAllAction = new QAction(DIcon("enable.png"), tr("Enable All"), this);
     mSoftBPTable->addAction(mSoftBPEnableAllAction);
     connect(mSoftBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllSoftBPActionSlot()));
 
     // Disable All
-    mSoftBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mSoftBPDisableAllAction = new QAction(DIcon("disable.png"), tr("Disable All"), this);
     mSoftBPTable->addAction(mSoftBPDisableAllAction);
     connect(mSoftBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllSoftBPActionSlot()));
 }
@@ -504,16 +508,19 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
                 if(wBPList.bp[wI].active == false)
                 {
                     mSoftBPEnableDisableAction->setText(tr("E&nable"));
+                    mSoftBPEnableDisableAction->setIcon(DIcon("enable.png"));
                     wMenu.addAction(mSoftBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
                     mSoftBPEnableDisableAction->setText(tr("&Disable"));
+                    mSoftBPEnableDisableAction->setIcon(DIcon("disable.png"));
                     wMenu.addAction(mSoftBPEnableDisableAction);
                 }
                 else
                 {
                     mSoftBPEnableDisableAction->setText(tr("E&nable"));
+                    mSoftBPEnableDisableAction->setIcon(DIcon("enable.png"));
                     wMenu.addAction(mSoftBPEnableDisableAction);
                 }
             }
@@ -540,6 +547,7 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -617,7 +625,7 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
     connect(mMemBPRemoveAllAction, SIGNAL(triggered()), this, SLOT(removeAllMemBPActionSlot()));
 
     // Enable/Disable
-    mMemBPEnableDisableAction = new QAction(tr("E&nable"), this);
+    mMemBPEnableDisableAction = new QAction(DIcon("enable.png"), tr("E&nable"), this);
     mMemBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mMemBPTable->addAction(mMemBPEnableDisableAction);
     connect(mMemBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableMemBPActionSlot()));
@@ -628,12 +636,12 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
     connect(mMemBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetMemoryHitCountSlot()));
 
     // Enable All
-    mMemBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mMemBPEnableAllAction = new QAction(DIcon("enable.png"), tr("Enable All"), this);
     mMemBPTable->addAction(mMemBPEnableAllAction);
     connect(mMemBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllMemBPActionSlot()));
 
     // Disable All
-    mMemBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mMemBPDisableAllAction = new QAction(DIcon("disable.png"), tr("Disable All"), this);
     mMemBPTable->addAction(mMemBPDisableAllAction);
     connect(mMemBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllMemBPActionSlot()));
 }
@@ -661,16 +669,19 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
                 if(wBPList.bp[wI].active == false)
                 {
                     mMemBPEnableDisableAction->setText(tr("E&nable"));
+                    mMemBPEnableDisableAction->setIcon(DIcon("enable.png"));
                     wMenu.addAction(mMemBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
                     mMemBPEnableDisableAction->setText(tr("&Disable"));
+                    mMemBPEnableDisableAction->setIcon(DIcon("disable.png"));
                     wMenu.addAction(mMemBPEnableDisableAction);
                 }
                 else
                 {
                     mMemBPEnableDisableAction->setText(tr("E&nable"));
+                    mMemBPEnableDisableAction->setIcon(DIcon("enable.png"));
                     wMenu.addAction(mMemBPEnableDisableAction);
                 }
             }
@@ -697,6 +708,7 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -790,12 +802,12 @@ void BreakpointsView::setupDLLBPRightClickContextMenu()
     connect(mDLLBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetDLLHitCountSlot()));
 
     // Enable All
-    mDLLBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mDLLBPEnableAllAction = new QAction(DIcon("enable.png"), tr("Enable All"), this);
     mDLLBPTable->addAction(mDLLBPEnableAllAction);
     connect(mDLLBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllDLLBPActionSlot()));
 
     // Disable All
-    mDLLBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mDLLBPDisableAllAction = new QAction(DIcon("disable.png"), ("Disable All"), this);
     mDLLBPTable->addAction(mDLLBPDisableAllAction);
     connect(mDLLBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllDLLBPActionSlot()));
 }
@@ -826,16 +838,19 @@ void BreakpointsView::DLLBPContextMenuSlot(const QPoint & pos)
                 if(wBPList.bp[wI].active == false)
                 {
                     mDLLBPEnableDisableAction->setText(tr("E&nable"));
+                    mDLLBPEnableDisableAction->setIcon(DIcon("enable.png"));
                     wMenu.addAction(mDLLBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
                     mDLLBPEnableDisableAction->setText(tr("&Disable"));
+                    mDLLBPEnableDisableAction->setIcon(DIcon("disable.png"));
                     wMenu.addAction(mDLLBPEnableDisableAction);
                 }
                 else
                 {
                     mDLLBPEnableDisableAction->setText(tr("E&nable"));
+                    mDLLBPEnableDisableAction->setIcon(DIcon("enable.png"));
                     wMenu.addAction(mDLLBPEnableDisableAction);
                 }
             }
@@ -862,6 +877,7 @@ void BreakpointsView::DLLBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu(tr("&Copy"), this);
+        wCopyMenu.setIcon(DIcon("copy.png"));
         table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {

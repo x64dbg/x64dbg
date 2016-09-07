@@ -453,11 +453,11 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
     wCM_Decrementx87Stack = setupAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"), this);
     wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
-    wCM_IncrementPtrSize = setupAction(ArchValue(tr("Increase 4"), tr("Increase 8")), this);
-    wCM_DecrementPtrSize = setupAction(ArchValue(tr("Decrease 4"), tr("Decrease 8")), this);
+    wCM_IncrementPtrSize = setupAction(DIcon("register_inc.png"), ArchValue(tr("Increase 4"), tr("Increase 8")), this);
+    wCM_DecrementPtrSize = setupAction(DIcon("register_dec.png"), ArchValue(tr("Decrease 4"), tr("Decrease 8")), this);
     wCM_Push = setupAction(tr("Push"), this);
     wCM_Pop = setupAction(tr("Pop"), this);
-    wCM_Highlight = setupAction(tr("Highlight"), this);
+    wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"), this);
     mFollowInDumpMenu = CreateDumpNMenu(multiDump);
 
     // general purposes register (we allow the user to modify the value)

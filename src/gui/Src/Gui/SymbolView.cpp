@@ -100,23 +100,24 @@ SymbolView::~SymbolView()
 
 void SymbolView::setupContextMenu()
 {
+    QIcon disassembler = DIcon(ArchValue("processor32.png", "processor64.png"));
     //Symbols
-    mFollowSymbolAction = new QAction(tr("&Follow in Disassembler"), this);
+    mFollowSymbolAction = new QAction(disassembler, tr("&Follow in Disassembler"), this);
     mFollowSymbolAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     mFollowSymbolAction->setShortcut(QKeySequence("enter"));
     connect(mFollowSymbolAction, SIGNAL(triggered()), this, SLOT(symbolFollow()));
 
-    mFollowSymbolDumpAction = new QAction(tr("Follow in &Dump"), this);
+    mFollowSymbolDumpAction = new QAction(DIcon("dump.png"), tr("Follow in &Dump"), this);
     connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
 
-    mToggleBreakpoint = new QAction(tr("Toggle Breakpoint"), this);
+    mToggleBreakpoint = new QAction(DIcon("breakpoint.png"), tr("Toggle Breakpoint"), this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBreakpoint);
     mSearchListView->mList->addAction(mToggleBreakpoint);
     mSearchListView->mSearchList->addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
-    mToggleBookmark = new QAction(tr("Toggle Bookmark"), this);
+    mToggleBookmark = new QAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), this);
     mToggleBookmark->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBookmark);
     mSearchListView->mList->addAction(mToggleBookmark);
@@ -124,12 +125,12 @@ void SymbolView::setupContextMenu()
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 
     //Modules
-    mFollowModuleAction = new QAction(tr("&Follow in Disassembler"), this);
+    mFollowModuleAction = new QAction(disassembler, tr("&Follow in Disassembler"), this);
     mFollowModuleAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     mFollowModuleAction->setShortcut(QKeySequence("enter"));
     connect(mFollowModuleAction, SIGNAL(triggered()), this, SLOT(moduleFollow()));
 
-    mFollowModuleEntryAction = new QAction(tr("Follow &Entry Point in Disassembler"), this);
+    mFollowModuleEntryAction = new QAction(disassembler, tr("Follow &Entry Point in Disassembler"), this);
     connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
 
     mDownloadSymbolsAction = new QAction(tr("&Download Symbols for This Module"), this);

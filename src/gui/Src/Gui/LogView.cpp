@@ -32,6 +32,15 @@ void LogView::updateStyle()
     setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
 }
 
+template<class T> static QAction* setupAction(const QIcon & icon, const QString & text, LogView* this_object, T slot)
+{
+    QAction* action = new QAction(icon, text, this_object);
+    action->setShortcutContext(Qt::WidgetShortcut);
+    this_object->addAction(action);
+    this_object->connect(action, SIGNAL(triggered()), this_object, slot);
+    return action;
+}
+
 template<class T> static QAction* setupAction(const QString & text, LogView* this_object, T slot)
 {
     QAction* action = new QAction(text, this_object);
@@ -43,10 +52,10 @@ template<class T> static QAction* setupAction(const QString & text, LogView* thi
 
 void LogView::setupContextMenu()
 {
-    actionClear = setupAction(tr("Clea&r"), this, SLOT(clearLogSlot()));
-    actionCopy = setupAction(tr("&Copy"), this, SLOT(copy()));
+    actionClear = setupAction(DIcon("eraser.png"), tr("Clea&r"), this, SLOT(clearLogSlot()));
+    actionCopy = setupAction(DIcon("copy.png"), tr("&Copy"), this, SLOT(copy()));
     actionSelectAll = setupAction(tr("Select &All"), this, SLOT(selectAll()));
-    actionSave = setupAction(tr("&Save"), this, SLOT(saveSlot()));
+    actionSave = setupAction(DIcon("binary_save.png"), tr("&Save"), this, SLOT(saveSlot()));
     actionToggleLogging = setupAction(tr("Disable &Logging"), this, SLOT(toggleLoggingSlot()));
     actionRedirectLog = setupAction(tr("&Redirect Log..."), this, SLOT(redirectLogSlot()));
 
