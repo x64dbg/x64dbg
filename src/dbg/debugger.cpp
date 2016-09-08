@@ -678,16 +678,19 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     switch(bptype)
     {
     case BPNORMAL:
-        bpPtr = BpInfoFromAddr(bptype, CIP);
+        bpPtr = BpInfoFromAddr(BPNORMAL, CIP);
         break;
     case BPHARDWARE:
-        bpPtr = BpInfoFromAddr(bptype, duint(ExceptionAddress));
+        bpPtr = BpInfoFromAddr(BPHARDWARE, duint(ExceptionAddress));
         break;
     case BPMEMORY:
-        bpPtr = BpInfoFromAddr(bptype, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
+        bpPtr = BpInfoFromAddr(BPMEMORY, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
         break;
     case BPDLL:
         bpPtr = BpInfoFromAddr(BPDLL, BpGetDLLBpAddr(reinterpret_cast<const char*>(ExceptionAddress)));
+        break;
+    case BPEXCEPTION:
+        bpPtr = BpInfoFromAddr(BPEXCEPTION, ((EXCEPTION_DEBUG_INFO*)ExceptionAddress)->ExceptionRecord.ExceptionCode);
         break;
     default:
         break;
@@ -1670,6 +1673,14 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         lastExceptionInfo = *ExceptionData;
 
     duint addr = (duint)ExceptionData->ExceptionRecord.ExceptionAddress;
+    {
+        BREAKPOINT bp;
+        if(BpGet(ExceptionCode, BPEXCEPTION, nullptr, &bp) && bp.enabled)
+        {
+            cbGenericBreakpoint(BPEXCEPTION, ExceptionData);
+            return;
+        }
+    }
     if(ExceptionData->ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
     {
         if(isDetachedByUser)

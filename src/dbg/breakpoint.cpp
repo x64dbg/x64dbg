@@ -201,7 +201,7 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
     for(auto & i : breakpoints)
     {
-        if(i.second.type == BPDLL)
+        if(i.second.type == BPDLL && i.second.enabled)
         {
             if(_stricmp(i.second.mod, module1) == 0)
             {
