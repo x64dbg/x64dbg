@@ -19,6 +19,7 @@ public:
 
     void showEntireBlock(bool show);
     void showKeepSize(bool show);
+    void updateCodepage();
 
     bool entireBlock();
 
@@ -31,10 +32,12 @@ private slots:
     void dataEditedSlot();
     void on_lineEditAscii_dataEdited();
     void on_lineEditUnicode_dataEdited();
+    void on_lineEditCodepage_dataEdited();
     void on_btnCodepage_clicked();
 
 private:
     Ui::HexEditDialog* ui;
+    void updateCodepage(const QByteArray & name);
 
     bool mDataInitialized;
 

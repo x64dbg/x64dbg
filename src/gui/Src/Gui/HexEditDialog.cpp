@@ -14,8 +14,8 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     setModal(true); //modal window
 
     //setup text fields
-    ui->lineEditAscii->setEncoding(HexLineEdit::Encoding::Ascii);
-    ui->lineEditUnicode->setEncoding(HexLineEdit::Encoding::Unicode);
+    ui->lineEditAscii->setEncoding(QTextCodec::codecForName("System"));
+    ui->lineEditUnicode->setEncoding(QTextCodec::codecForName("UTF-16"));
 
     ui->chkEntireBlock->hide();
 
@@ -35,6 +35,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(updateStyle()));
 
     updateStyle();
+    updateCodepage();
 }
 
 HexEditDialog::~HexEditDialog()
@@ -58,6 +59,24 @@ void HexEditDialog::showKeepSize(bool show)
         ui->chkKeepSize->hide();
 }
 
+void HexEditDialog::updateCodepage()
+{
+    duint lastCodepage;
+    auto allCodecs = QTextCodec::availableCodecs();
+    if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
+        return;
+    ui->lineEditCodepage->setEncoding(QTextCodec::codecForName(allCodecs.at(lastCodepage)));
+    ui->lineEditCodepage->setData(mHexEdit->data());
+    ui->labelLastCodepage->setText(QString(allCodecs.at(lastCodepage).constData()));
+}
+
+void HexEditDialog::updateCodepage(const QByteArray & name)
+{
+    ui->lineEditCodepage->setEncoding(QTextCodec::codecForName(name));
+    ui->lineEditCodepage->setData(mHexEdit->data());
+    ui->labelLastCodepage->setText(QString(name));
+}
+
 bool HexEditDialog::entireBlock()
 {
     return ui->chkEntireBlock->isChecked();
@@ -68,6 +87,7 @@ void HexEditDialog::updateStyle()
     QString style = QString("QLineEdit { border-style: outset; border-width: 1px; border-color: %1; color: %1; background-color: %2 }").arg(ConfigColor("HexEditTextColor").name(), ConfigColor("HexEditBackgroundColor").name());
     ui->lineEditAscii->setStyleSheet(style);
     ui->lineEditUnicode->setStyleSheet(style);
+    ui->lineEditCodepage->setStyleSheet(style);
 
     mHexEdit->setTextColor(ConfigColor("HexEditTextColor"));
     mHexEdit->setWildcardColor(ConfigColor("HexEditWildcardColor"));
@@ -80,6 +100,7 @@ void HexEditDialog::on_chkKeepSize_toggled(bool checked)
     mHexEdit->setKeepSize(checked);
     ui->lineEditAscii->setKeepSize(checked);
     ui->lineEditUnicode->setKeepSize(checked);
+    ui->lineEditCodepage->setKeepSize(checked);
 }
 
 void HexEditDialog::dataChangedSlot()
@@ -90,6 +111,7 @@ void HexEditDialog::dataChangedSlot()
         QByteArray data = mHexEdit->data();
         ui->lineEditAscii->setData(data);
         ui->lineEditUnicode->setData(data);
+        ui->lineEditCodepage->setData(data);
         mDataInitialized = true;
     }
 }
@@ -99,6 +121,7 @@ void HexEditDialog::dataEditedSlot()
     QByteArray data = mHexEdit->data();
     ui->lineEditAscii->setData(data);
     ui->lineEditUnicode->setData(data);
+    ui->lineEditCodepage->setData(data);
 }
 
 void HexEditDialog::on_lineEditAscii_dataEdited()
@@ -106,6 +129,7 @@ void HexEditDialog::on_lineEditAscii_dataEdited()
     QByteArray data = ui->lineEditAscii->data();
     data = resizeData(data);
     ui->lineEditUnicode->setData(data);
+    ui->lineEditCodepage->setData(data);
     mHexEdit->setData(data);
 }
 
@@ -114,6 +138,16 @@ void HexEditDialog::on_lineEditUnicode_dataEdited()
     QByteArray data = ui->lineEditUnicode->data();
     data = resizeData(data);
     ui->lineEditAscii->setData(data);
+    ui->lineEditCodepage->setData(data);
+    mHexEdit->setData(data);
+}
+
+void HexEditDialog::on_lineEditCodepage_dataEdited()
+{
+    QByteArray data = ui->lineEditCodepage->data();
+    data = resizeData(data);
+    ui->lineEditAscii->setData(data);
+    ui->lineEditUnicode->setData(data);
     mHexEdit->setData(data);
 }
 
@@ -123,10 +157,11 @@ QByteArray HexEditDialog::resizeData(QByteArray & data)
     if(mHexEdit->keepSize())
     {
         int dataSize = mHexEdit->data().size();
-        if(dataSize < data.size())
+        int data_size = data.size();
+        if(dataSize < data_size)
             data.resize(dataSize);
-        else if(dataSize > data.size())
-            data.append(QByteArray(dataSize - data.size(), 0));
+        else if(dataSize > data_size)
+            data.append(QByteArray(dataSize - data_size, 0));
     }
 
     return data;
@@ -137,19 +172,5 @@ void HexEditDialog::on_btnCodepage_clicked()
     CodepageSelectionDialog codepageDialog(this);
     if(codepageDialog.exec() != QDialog::Accepted)
         return;
-    auto textCodec = QTextCodec::codecForName(codepageDialog.getSelectedCodepage());
-    if(!textCodec)
-        return;
-    LineEditDialog lineEdit(this);
-    lineEdit.setWindowTitle(tr("Enter text to convert..."));
-    QString oldText;
-    oldText = textCodec->toUnicode(mHexEdit->data());
-    for(auto & i : oldText)
-        if(!i.isPrint())
-            i = QChar('.');
-    lineEdit.setText(oldText);
-    if(lineEdit.exec() != QDialog::Accepted)
-        return;
-    mHexEdit->setData(resizeData(textCodec->fromUnicode(lineEdit.editText)));
-    dataEditedSlot();
+    updateCodepage(codepageDialog.getSelectedCodepage());
 }
