@@ -113,16 +113,14 @@ void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)
     QMenu wMenu;
     wMenu.addAction(mActionRefresh);
     if(mHandlesTable->getRowCount() != 0)
-    {
         wMenu.addAction(mActionCloseHandle);
-        QMenu wCopyMenu(tr("&Copy"), this);
-        wCopyMenu.setIcon(DIcon("copy.png"));
-        table.setupCopyMenu(&wCopyMenu);
-        if(wCopyMenu.actions().length())
-        {
-            wMenu.addSeparator();
-            wMenu.addMenu(&wCopyMenu);
-        }
+    QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
+    table.setupCopyMenu(&wCopyMenu);
+    if(wCopyMenu.actions().length())
+    {
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
     wMenu.exec(table.mapToGlobal(pos));
 }
@@ -132,16 +130,13 @@ void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
     StdTable & table = *mTcpConnectionsTable;
     QMenu wMenu;
     wMenu.addAction(mActionRefresh);
-    if(mTcpConnectionsTable->getRowCount() != 0)
+    QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
+    table.setupCopyMenu(&wCopyMenu);
+    if(wCopyMenu.actions().length())
     {
-        QMenu wCopyMenu(tr("&Copy"), this);
-        wCopyMenu.setIcon(DIcon("copy.png"));
-        table.setupCopyMenu(&wCopyMenu);
-        if(wCopyMenu.actions().length())
-        {
-            wMenu.addSeparator();
-            wMenu.addMenu(&wCopyMenu);
-        }
+        wMenu.addSeparator();
+        wMenu.addMenu(&wCopyMenu);
     }
     wMenu.exec(table.mapToGlobal(pos));
 }
