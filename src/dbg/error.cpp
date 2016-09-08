@@ -48,7 +48,7 @@ bool ErrorNameToCode(const char* Name, unsigned int* ErrorCode)
 {
     for(const auto & i : ErrorNames)
     {
-        if(stricmp(Name, i.second.c_str()) == 0)
+        if(_stricmp(Name, i.second.c_str()) == 0)
         {
             *ErrorCode = i.first;
             return true;
