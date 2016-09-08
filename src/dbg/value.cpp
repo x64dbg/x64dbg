@@ -1332,7 +1332,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                     if(scmp(apiname, "base") || scmp(apiname, "imagebase") || scmp(apiname, "header")) //get loaded base
                         addr = modbase;
                     else if(scmp(apiname, "entrypoint") || scmp(apiname, "entry") || scmp(apiname, "oep") || scmp(apiname, "ep")) //get entry point
-                        addr = modbase + GetPE32DataW(szModName, 0, UE_OEP);
+                        addr = ModEntryFromAddr(modbase);
                     else if(*apiname == '$') //RVA
                     {
                         duint rva;
@@ -1702,6 +1702,8 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
     }
     if(baseonly)
         return false;
+    if(isvar)
+        *isvar = false;
     else if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
         return true;
     else if(LabelFromString(string, value))  //then come labels

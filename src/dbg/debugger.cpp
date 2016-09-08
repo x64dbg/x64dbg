@@ -1517,11 +1517,10 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     if((bBreakOnNextDll || settingboolget("Events", "DllEntry")) && !bAlreadySetEntry)
     {
-        duint oep = GetPE32DataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, UE_OEP);
-        if(oep)
+        auto entry = ModEntryFromAddr(duint(base));
+        if(entry)
         {
-            char command[256] = "";
-            sprintf_s(command, "bp %p,\"DllMain (%s)\",ss", oep + (duint)base, modname);
+            sprintf_s(command, "bp %p,\"DllMain (%s)\",ss", entry, modname);
             cmddirectexec(command);
         }
     }
