@@ -456,8 +456,8 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
     wCM_IncrementPtrSize = setupAction(DIcon("register_inc.png"), ArchValue(tr("Increase 4"), tr("Increase 8")), this);
     wCM_DecrementPtrSize = setupAction(DIcon("register_dec.png"), ArchValue(tr("Decrease 4"), tr("Decrease 8")), this);
-    wCM_Push = setupAction(tr("Push"), this);
-    wCM_Pop = setupAction(tr("Pop"), this);
+    wCM_Push = setupAction(DIcon("arrow-small-down.png"), tr("Push"), this);
+    wCM_Pop = setupAction(DIcon("arrow-small-up.png"), tr("Pop"), this);
     wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"), this);
     mFollowInDumpMenu = CreateDumpNMenu(multiDump);
 

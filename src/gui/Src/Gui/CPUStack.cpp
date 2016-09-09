@@ -75,13 +75,13 @@ void CPUStack::updateFonts()
 void CPUStack::setupContextMenu()
 {
     //Push
-    mPushAction = new QAction(ArchValue(tr("P&ush DWORD..."), tr("P&ush QWORD...")), this);
+    mPushAction = new QAction(DIcon("arrow-small-down.png"), ArchValue(tr("P&ush DWORD..."), tr("P&ush QWORD...")), this);
     mPushAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mPushAction);
     connect(mPushAction, SIGNAL(triggered()), this, SLOT(pushSlot()));
 
     //Pop
-    mPopAction = new QAction(ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), this);
+    mPopAction = new QAction(DIcon("arrow-small-up.png"), ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), this);
     mPopAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mPopAction);
     connect(mPopAction, SIGNAL(triggered()), this, SLOT(popSlot()));
@@ -572,7 +572,6 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     if(historyHasNext())
         wMenu.addAction(mGotoNext);
 
-    wMenu.addAction(mFollowInDump);
     wMenu.addAction(mFollowInMemoryMap);
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
@@ -584,10 +583,15 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
             if(selectedData >= stackBegin && selectedData < stackEnd)
                 wMenu.addAction(mFollowStack);
             wMenu.addAction(mFollowDisasm);
+            wMenu.addAction(mFollowInDump);
             wMenu.addAction(mFollowPtrDump);
             wMenu.addMenu(mFollowInDumpMenu);
         }
+        else
+            wMenu.addAction(mFollowInDump);
     }
+    else
+        wMenu.addAction(mFollowInDump);
     wMenu.addAction(mWatchData);
 
     wMenu.addSeparator();
