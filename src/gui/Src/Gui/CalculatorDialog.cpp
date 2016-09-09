@@ -152,7 +152,6 @@ QString CalculatorDialog::inFormat(const duint val, CalculatorDialog::NUMBERFORM
 void CalculatorDialog::on_btnGoto_clicked()
 {
     DbgCmdExecDirect(QString("disasm " + ui->txtExpression->text()).toUtf8().constData());
-    emit showCpu();
 }
 
 void CalculatorDialog::on_txtHex_textEdited(const QString & arg1)
@@ -253,5 +252,4 @@ void CalculatorDialog::on_txtUnicode_textEdited(const QString & arg1)
 void CalculatorDialog::on_btnGotoDump_clicked()
 {
     DbgCmdExecDirect(QString("dump " + ui->txtExpression->text()).toUtf8().constData());
-    emit showCpu();
 }

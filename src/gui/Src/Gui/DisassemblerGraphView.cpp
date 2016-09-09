@@ -1338,7 +1338,6 @@ void DisassemblerGraphView::setupContextMenu()
 void DisassemblerGraphView::followDisassemblerSlot()
 {
     DbgCmdExec(QString("disasm %1").arg(ToPtrString(this->cur_instr)).toUtf8().constData());
-    emit showCpu();
 }
 
 void DisassemblerGraphView::colorsUpdatedSlot()

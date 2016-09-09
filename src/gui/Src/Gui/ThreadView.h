@@ -20,9 +20,6 @@ public slots:
     void contextMenuSlot(const QPoint & pos);
     void SetNameSlot();
 
-signals:
-    void showCpu();
-
 private:
     QAction* makeCommandAction(QAction* action, const QString & command);
     QString mCurrentThreadId;

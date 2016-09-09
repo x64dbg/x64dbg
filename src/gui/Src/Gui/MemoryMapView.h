@@ -12,7 +12,6 @@ public:
     void setupContextMenu();
 
 signals:
-    void showCpu();
     void showReferences();
 
 public slots:
@@ -20,6 +19,7 @@ public slots:
     void stateChangedSlot(DBGSTATE state);
     void followDumpSlot();
     void followDisassemblerSlot();
+    void doubleClickedSlot();
     void yaraSlot();
     void memoryAccessSingleshootSlot();
     void memoryAccessRestoreSlot();

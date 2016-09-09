@@ -90,7 +90,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(symbolRefreshCurrent()), this, SLOT(symbolRefreshCurrent()));
     connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(symbolContextMenu(QMenu*)));
-    connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(symbolFollow()));
+    connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(enterPressedSlot()));
 }
 
 SymbolView::~SymbolView()
@@ -103,8 +103,6 @@ void SymbolView::setupContextMenu()
     QIcon disassembler = DIcon(ArchValue("processor32.png", "processor64.png"));
     //Symbols
     mFollowSymbolAction = new QAction(disassembler, tr("&Follow in Disassembler"), this);
-    mFollowSymbolAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    mFollowSymbolAction->setShortcut(QKeySequence("enter"));
     connect(mFollowSymbolAction, SIGNAL(triggered()), this, SLOT(symbolFollow()));
 
     mFollowSymbolDumpAction = new QAction(DIcon("dump.png"), tr("Follow in &Dump"), this);
@@ -334,14 +332,23 @@ void SymbolView::symbolRefreshCurrent()
 
 void SymbolView::symbolFollow()
 {
-    DbgCmdExecDirect(QString("disasm " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
-    emit showCpu();
+    DbgCmdExec(QString("disasm " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void SymbolView::symbolFollowDump()
 {
-    DbgCmdExecDirect(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
-    emit showCpu();
+    DbgCmdExec(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+}
+
+void SymbolView::enterPressedSlot()
+{
+    auto addr = DbgValFromString(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0).toUtf8().constData());
+    if(!addr)
+        return;
+    if(DbgFunctions()->MemIsCodePage(addr, false))
+        symbolFollow();
+    else
+        symbolFollowDump();
 }
 
 void SymbolView::moduleContextMenu(QMenu* wMenu)
@@ -382,13 +389,11 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
 void SymbolView::moduleFollow()
 {
     DbgCmdExecDirect(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0) + "+1000").toUtf8().constData());
-    emit showCpu();
 }
 
 void SymbolView::moduleEntryFollow()
 {
     DbgCmdExecDirect(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1) + ":entry").toUtf8().constData());
-    emit showCpu();
 }
 
 void SymbolView::moduleCopyPath()

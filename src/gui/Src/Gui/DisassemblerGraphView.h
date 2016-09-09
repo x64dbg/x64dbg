@@ -259,9 +259,6 @@ public slots:
     void shortcutsUpdatedSlot();
     void toggleOverviewSlot();
 
-signals:
-    void showCpu();
-
 private:
     QString status;
     Analysis analysis;

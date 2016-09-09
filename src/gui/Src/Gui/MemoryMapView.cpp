@@ -46,11 +46,9 @@ void MemoryMapView::setupContextMenu()
 
     //Follow in Disassembler
     mFollowDisassembly = new QAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in &Disassembler"), this);
-    mFollowDisassembly->setShortcutContext(Qt::WidgetShortcut);
-    mFollowDisassembly->setShortcut(QKeySequence("enter"));
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
-    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
-    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followDisassemblerSlot()));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickedSlot()));
+    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
 
     //Yara
     mYara = new QAction(DIcon("yara.png"), "&Yara...", this);
@@ -379,22 +377,23 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 
 void MemoryMapView::followDumpSlot()
 {
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExecDirect(QString("dump " + addr_text).toUtf8().constData());
-    emit showCpu();
+    DbgCmdExec(QString("dump %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void MemoryMapView::followDisassemblerSlot()
 {
-    QString commandText = QString("disasm %1").arg(getCellContent(getInitialSelection(), 0));
+    DbgCmdExec(QString("disasm %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
+}
 
-    // If there was no address loaded, the length
-    // will only be the command length
-    if(commandText.length() <= 8)
+void MemoryMapView::doubleClickedSlot()
+{
+    auto addr = DbgValFromString(getCellContent(getInitialSelection(), 0).toUtf8().constData());
+    if(!addr)
         return;
-
-    DbgCmdExecDirect(commandText.toUtf8().constData());
-    emit showCpu();
+    if(DbgFunctions()->MemIsCodePage(addr, false))
+        followDisassemblerSlot();
+    else
+        followDumpSlot();
 }
 
 void MemoryMapView::yaraSlot()
@@ -522,8 +521,7 @@ void MemoryMapView::memoryAllocateSlot()
         duint addr = DbgValFromString("$result");
         if(addr != 0)
         {
-            DbgCmdExec("Dump $result");
-            emit showCpu();
+            DbgCmdExec("dump $result");
         }
         else
         {

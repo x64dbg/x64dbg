@@ -10,7 +10,6 @@ ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : SearchListView(
 {
     // Setup SearchListView settings
     mSearchStartCol = 1;
-    mFollowDumpDefault = false;
 
     // Widget container for progress
     QWidget* progressWidget = new QWidget();
@@ -148,10 +147,7 @@ void ReferenceView::addColumnAt(int width, QString title)
         width = 0;
     mSearchBox->setText("");
     if(title.toLower() == "&data&")
-    {
-        mFollowDumpDefault = true;
         title = "Data";
-    }
     mList->addColumnAt(width, title, true);
     mSearchList->addColumnAt(width, title, true);
 }
@@ -228,28 +224,28 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
 void ReferenceView::followAddress()
 {
     DbgCmdExecDirect(QString("disasm " + mCurList->getCellContent(mCurList->getInitialSelection(), 0)).toUtf8().constData());
-    emit showCpu();
 }
 
 void ReferenceView::followDumpAddress()
 {
     DbgCmdExecDirect(QString("dump " + mCurList->getCellContent(mCurList->getInitialSelection(), 0)).toUtf8().constData());
-    emit showCpu();
 }
 
 void ReferenceView::followApiAddress()
 {
     dsint apiValue = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
     DbgCmdExecDirect(QString("disasm " + ToPtrString(apiValue)).toUtf8().constData());
-    emit showCpu();
 }
 
 void ReferenceView::followGenericAddress()
 {
-    if(mFollowDumpDefault)
-        followDumpAddress();
-    else
+    auto addr = DbgValFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 0).toUtf8().constData());
+    if(!addr)
+        return;
+    if(DbgFunctions()->MemIsCodePage(addr, false))
         followAddress();
+    else
+        followDumpAddress();
 }
 
 void ReferenceView::setBreakpointAt(int row, BPSetAction action)

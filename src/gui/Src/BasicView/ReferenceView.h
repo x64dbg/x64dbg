@@ -54,8 +54,6 @@ private:
     QAction* mRemoveBreakpointOnAllApiCalls;
     QLabel* mCountTotalLabel;
 
-    bool mFollowDumpDefault;
-
     enum BPSetAction
     {
         Enable,

@@ -432,7 +432,6 @@ void BreakpointsView::doubleClickHardwareSlot()
     StdTable* table = mHardBPTable;
     QString addrText = table->getCellContent(table->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    emit showCpu();
 }
 
 void BreakpointsView::selectionChangedHardwareSlot()
@@ -593,7 +592,6 @@ void BreakpointsView::doubleClickSoftwareSlot()
     StdTable* table = mSoftBPTable;
     QString addrText = table->getCellContent(table->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    emit showCpu();
 }
 
 void BreakpointsView::selectionChangedSoftwareSlot()
@@ -754,7 +752,6 @@ void BreakpointsView::doubleClickMemorySlot()
     StdTable* table = mMemBPTable;
     QString addrText = table->getCellContent(table->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    emit showCpu();
 }
 
 void BreakpointsView::selectionChangedMemorySlot()

@@ -82,6 +82,10 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(addFavouriteItem(int, QString, QString)), this, SLOT(addFavouriteItem(int, QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(setFavouriteItemShortcut(int, QString, QString)), this, SLOT(setFavouriteItemShortcut(int, QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(displayMemMapWidget()));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(displayCpuWidget()));
+    connect(Bridge::getBridge(), SIGNAL(dumpAt(dsint)), this, SLOT(displayCpuWidget()));
+    connect(Bridge::getBridge(), SIGNAL(dumpAtN(duint, int)), this, SLOT(displayCpuWidget()));
+    connect(Bridge::getBridge(), SIGNAL(stackDumpAt(duint, duint)), this, SLOT(displayCpuWidget()));
 
     // Setup menu API
     initMenuApi();
@@ -119,18 +123,16 @@ MainWindow::MainWindow(QWidget* parent)
     mSourceViewManager->setWindowTitle(tr("Source"));
     mSourceViewManager->setWindowIcon(DIcon("source.png"));
     mSourceViewManager->hide();
-    connect(mSourceViewManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle(tr("Breakpoints"));
     mBreakpointsView->setWindowIcon(DIcon("breakpoint.png"));
     mBreakpointsView->hide();
-    connect(mBreakpointsView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Memory map view
     mMemMapView = new MemoryMapView();
-    connect(mMemMapView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+
     connect(mMemMapView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     mMemMapView->setWindowTitle(tr("Memory Map"));
     mMemMapView->setWindowIcon(DIcon("memory-map.png"));
@@ -140,13 +142,11 @@ MainWindow::MainWindow(QWidget* parent)
     mCallStackView = new CallStackView();
     mCallStackView->setWindowTitle(tr("Call Stack"));
     mCallStackView->setWindowIcon(DIcon("callstack.png"));
-    connect(mCallStackView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // SEH Chain view
     mSEHChainView = new SEHChainView();
     mSEHChainView->setWindowTitle(tr("SEH"));
     mSEHChainView->setWindowIcon(DIcon("seh-chain.png"));
-    connect(mSEHChainView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Script view
     mScriptView = new ScriptView();
@@ -172,7 +172,6 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Thread view
     mThreadView = new ThreadView();
-    connect(mThreadView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     mThreadView->setWindowTitle(tr("Threads"));
     mThreadView->setWindowIcon(DIcon("arrow-threads.png"));
 
@@ -248,7 +247,6 @@ MainWindow::MainWindow(QWidget* parent)
     // Patch dialog
     mPatchDialog = new PatchDialog(this);
     mCalculatorDialog = new CalculatorDialog(this);
-    connect(mCalculatorDialog, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Setup signals/slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
@@ -290,10 +288,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
     connect(ui->actionSource, SIGNAL(triggered()), this, SLOT(displaySourceViewWidget()));
-    connect(mSymbolView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(mSymbolView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
-    connect(mReferenceManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
-    connect(mGraphView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(ui->actionReferences, SIGNAL(triggered()), this, SLOT(displayReferencesWidget()));
     connect(ui->actionThreads, SIGNAL(triggered()), this, SLOT(displayThreadsWidget()));
     connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(openSettings()));

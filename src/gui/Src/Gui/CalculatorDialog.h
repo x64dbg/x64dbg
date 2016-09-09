@@ -36,7 +36,6 @@ public:
 
 signals:
     bool validAddress(bool valid);
-    void showCpu();
 
 private slots:
     void expressionChanged(bool validExpression, bool validPointer, dsint value);

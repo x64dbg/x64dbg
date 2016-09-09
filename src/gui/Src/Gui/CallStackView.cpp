@@ -77,19 +77,16 @@ void CallStackView::followAddress()
 {
     QString addrText = getCellContent(getInitialSelection(), 0);
     DbgCmdExecDirect(QString("sdump " + addrText).toUtf8().constData());
-    emit showCpu();
 }
 
 void CallStackView::followTo()
 {
     QString addrText = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    emit showCpu();
 }
 
 void CallStackView::followFrom()
 {
     QString addrText = getCellContent(getInitialSelection(), 2);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    emit showCpu();
 }

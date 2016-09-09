@@ -18,7 +18,6 @@ void ThreadView::GoToThreadEntry()
 {
     QString addr_text = getCellContent(getInitialSelection(), 2);
     DbgCmdExecDirect(QString("disasm " + addr_text).toUtf8().constData());
-    emit showCpu();
 }
 
 void ThreadView::setupContextMenu()
@@ -376,7 +375,6 @@ void ThreadView::doubleClickedSlot()
 {
     QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("switchthread " + threadId).toUtf8().constData());
-    emit showCpu();
 }
 
 void ThreadView::SetNameSlot()

@@ -20,9 +20,6 @@ public:
     void setupMemBPRightClickContextMenu();
     void setupDLLBPRightClickContextMenu();
 
-signals:
-    void showCpu();
-
 public slots:
     void refreshShortcutsSlot();
     void reloadData();
