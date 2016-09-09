@@ -488,7 +488,10 @@ void CPUDisassembly::setupRightClickContextMenu()
                 action = makeAction(icon, tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()));
             action->setData(enctypeTable[i]);
             encodeTypeRangeMenu->addAction(action);
-            action = makeAction(icon, tr(strTable[i]), SLOT(setEncodeTypeSlot()));
+            if(shortcutTable[i])
+                action = makeShortcutAction(icon, tr(strTable[i]), SLOT(setEncodeTypeSlot()), QString("ActionTreatSelectionHeadAs%1").arg(shortcutTable[i]).toUtf8().constData());
+            else
+                action = makeAction(icon, tr(strTable[i]), SLOT(setEncodeTypeSlot()));
             action->setData(enctypeTable[i]);
             encodeTypeMenu->addAction(action);
         }
@@ -1670,6 +1673,7 @@ void CPUDisassembly::setEncodeTypeRangeSlot()
     if(mLineEdit.exec() != QDialog::Accepted || !mLineEdit.getVal())
         return;
     mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), mLineEdit.getVal(), (ENCODETYPE)pAction->data().toUInt());
+    setSingleSelection(getSelectionStart());
     GuiUpdateDisassemblyView();
 }
 
@@ -1679,6 +1683,7 @@ void CPUDisassembly::setEncodeTypeSlot()
         return;
     QAction* pAction = qobject_cast<QAction*>(sender());
     mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), (ENCODETYPE)pAction->data().toUInt());
+    setSingleSelection(getSelectionStart());
     GuiUpdateDisassemblyView();
 }
 
