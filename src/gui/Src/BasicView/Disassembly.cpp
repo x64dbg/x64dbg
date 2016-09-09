@@ -170,7 +170,17 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     isTraced = dbgFuncs->GetTraceRecordHitCount(cur_addr) != 0;
 
     // Highlight if selected
-    if(wIsSelected)
+    if(wIsSelected && isTraced)
+    {
+        QLinearGradient brush;
+        brush.setColorAt(0.0, mSelectionColor);
+        brush.setColorAt(1.0 / 2.0, mTracedAddressBackgroundColor);
+        brush.setColorAt(1.0, mSelectionColor);
+        brush.setStart(x, y);
+        brush.setFinalStop(x, y + h);
+        painter->fillRect(QRect(x, y, w, h), QBrush(brush));
+    }
+    else if(wIsSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
     else if(isTraced)
         painter->fillRect(QRect(x, y, w, h), QBrush(mTracedAddressBackgroundColor));
