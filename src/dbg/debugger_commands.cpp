@@ -707,6 +707,20 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbDebugMemmapdump(int argc, char* argv[])
+{
+    if(argc < 2)
+        return STATUS_ERROR;
+    duint addr;
+    if(!valfromstring(argv[1], &addr, false) || !MemIsValidReadPtr(addr, true))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[1]);
+        return STATUS_ERROR;
+    }
+    GuiSelectInMemoryMap(addr);
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbDebugContinue(int argc, char* argv[])
 {
     if(argc < 2)

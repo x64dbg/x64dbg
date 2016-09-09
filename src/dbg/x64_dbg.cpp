@@ -211,6 +211,7 @@ static void registercommands()
     dbgcmdnew("HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     dbgcmdnew("dump", cbDebugDump, true); //dump at address
     dbgcmdnew("sdump", cbDebugStackDump, true); //dump at stack address
+    dbgcmdnew("memmapdump", cbDebugMemmapdump, true);
     dbgcmdnew("refinit", cbInstrRefinit, false);
     dbgcmdnew("refadd", cbInstrRefadd, false);
     dbgcmdnew("asm", cbInstrAssemble, true); //assemble instruction
