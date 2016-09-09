@@ -407,11 +407,11 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
             PrevThreadId = currentThreadId;
         }
     }
-    char title[1024] = "";
-    char threadName1[MAX_THREAD_NAME_SIZE] = "";
-    if(!ThreadGetName(currentThreadId, threadName1) || threadName1[0] == 0)
-        sprintf_s(threadName1, "%X", currentThreadId);
-    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName1, threadswitch);
+    char title[deflen] = "";
+    char threadName[MAX_THREAD_NAME_SIZE + 1] = "";
+    if(ThreadGetName(currentThreadId, threadName))
+        strcat_s(threadName, " ");
+    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName, currentThreadId, threadswitch);
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
     GuiFocusView(GUI_DISASSEMBLY);
