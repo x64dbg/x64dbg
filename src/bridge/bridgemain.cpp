@@ -1486,6 +1486,11 @@ BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length)
     _gui_sendmessage(GUI_FOLD_DISASSEMBLY, (void*)startAddress, (void*)length);
 }
 
+BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr)
+{
+    _gui_sendmessage(GUI_SELECT_IN_MEMORY_MAP, (void*)addr, nullptr);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);
