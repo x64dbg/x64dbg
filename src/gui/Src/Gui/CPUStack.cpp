@@ -281,9 +281,17 @@ void CPUStack::setupContextMenu()
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     //Follow in Dump
+    mFollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
+    connect(mFollowInDump, SIGNAL(triggered()), this, SLOT(followInDumpSlot()));
+
+    //Follow in Memory Map
+    mFollowInMemoryMap = new QAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), this);
+    connect(mFollowInMemoryMap, SIGNAL(triggered()), this, SLOT(followInMemoryMapSlot()));
+
+    //Follow PTR in Dump
     auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
-    mFollowDump = new QAction(DIcon("dump.png"), followDumpName, this);
-    connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
+    mFollowPtrDump = new QAction(DIcon("dump.png"), followDumpName, this);
+    connect(mFollowPtrDump, SIGNAL(triggered()), this, SLOT(followDumpPtrSlot()));
 
     auto followDumpMenuName = ArchValue(tr("Follow DWORD in Dump"), tr("Follow QWORD in Dump"));
     mFollowInDumpMenu = new QMenu(followDumpMenuName, this);
@@ -564,6 +572,8 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     if(historyHasNext())
         wMenu.addAction(mGotoNext);
 
+    wMenu.addAction(mFollowInDump);
+    wMenu.addAction(mFollowInMemoryMap);
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
     {
@@ -574,7 +584,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
             if(selectedData >= stackBegin && selectedData < stackEnd)
                 wMenu.addAction(mFollowStack);
             wMenu.addAction(mFollowDisasm);
-            wMenu.addAction(mFollowDump);
+            wMenu.addAction(mFollowPtrDump);
             wMenu.addMenu(mFollowInDumpMenu);
         }
     }
@@ -812,7 +822,7 @@ void CPUStack::followDisasmSlot()
         }
 }
 
-void CPUStack::followDumpSlot()
+void CPUStack::followDumpPtrSlot()
 {
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
@@ -1118,4 +1128,14 @@ void CPUStack::dbgStateChangedSlot(DBGSTATE state)
         bStackFrozen = false;
 
     updateFreezeStackAction();
+}
+
+void CPUStack::followInMemoryMapSlot()
+{
+    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
+}
+
+void CPUStack::followInDumpSlot()
+{
+    DbgCmdExec(QString("dump %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
 }

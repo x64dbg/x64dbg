@@ -328,6 +328,8 @@ void CPUDisassembly::setupRightClickContextMenu()
         return menu->actions().length() != 0; //only add this menu if there is something to follow
     });
 
+    mMenuBuilder->addAction(makeAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot())));
+
     mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open Source File"), SLOT(openSourceSlot())), [this](QMenu*)
     {
         return DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), 0, 0);
@@ -1749,4 +1751,9 @@ bool CPUDisassembly::getTokenValueText(QString & text)
         return false;
     text = ToHexString(value);
     return true;
+}
+
+void CPUDisassembly::followInMemoryMapSlot()
+{
+    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
 }

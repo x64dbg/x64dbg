@@ -107,6 +107,7 @@ public slots:
 
     void gotoNextSlot();
     void gotoPrevSlot();
+    void followInMemoryMapSlot();
 
 private:
     MenuBuilder* mMenuBuilder;

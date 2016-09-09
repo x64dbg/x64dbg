@@ -450,6 +450,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
     wCM_FollowInStack = new QAction(DIcon("stack.png"), tr("Follow in Stack"), this);
+    wCM_FollowInMemoryMap = new QAction(DIcon("memmap_find_address_page"), tr("Follow in Memory Map"), this);
     wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
     wCM_Decrementx87Stack = setupAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"), this);
     wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
@@ -1156,6 +1157,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     connect(wCM_FollowInDisassembly, SIGNAL(triggered()), this, SLOT(onFollowInDisassembly()));
     connect(wCM_FollowInDump, SIGNAL(triggered()), this, SLOT(onFollowInDump()));
     connect(wCM_FollowInStack, SIGNAL(triggered()), this, SLOT(onFollowInStack()));
+    connect(wCM_FollowInMemoryMap, SIGNAL(triggered()), this, SLOT(onFollowInMemoryMap()));
     connect(wCM_IncrementPtrSize, SIGNAL(triggered()), this, SLOT(onIncrementPtrSize()));
     connect(wCM_DecrementPtrSize, SIGNAL(triggered()), this, SLOT(onDecrementPtrSize()));
     connect(wCM_Push, SIGNAL(triggered()), this, SLOT(onPushAction()));
@@ -2391,6 +2393,16 @@ void RegistersView::onFollowInStack()
     }
 }
 
+void RegistersView::onFollowInMemoryMap()
+{
+    if(mCANSTOREADDRESS.contains(mSelected))
+    {
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
+            DbgCmdExec(QString().sprintf("memmapdump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
+    }
+}
+
 void RegistersView::onChangeFPUViewAction()
 {
     if(mShowFpu == true)
@@ -2449,6 +2461,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
                 wMenu.addAction(wCM_FollowInDump);
                 wMenu.addMenu(mFollowInDumpMenu);
                 wMenu.addAction(wCM_FollowInDisassembly);
+                wMenu.addAction(wCM_FollowInMemoryMap);
                 duint size = 0;
                 duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
                 if(addr >= base && addr < base + size)

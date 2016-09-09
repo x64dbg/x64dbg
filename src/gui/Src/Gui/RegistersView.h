@@ -148,6 +148,7 @@ protected slots:
     void onFollowInDump();
     void onFollowInDumpN();
     void onFollowInStack();
+    void onFollowInMemoryMap();
     void onIncrementPtrSize();
     void onDecrementPtrSize();
     void onPushAction();
@@ -236,6 +237,7 @@ private:
     QAction* wCM_FollowInDisassembly;
     QAction* wCM_FollowInDump;
     QAction* wCM_FollowInStack;
+    QAction* wCM_FollowInMemoryMap;
     QAction* wCM_Incrementx87Stack;
     QAction* wCM_Decrementx87Stack;
     QAction* wCM_ChangeFPUView;

@@ -109,6 +109,7 @@ public slots:
     void createThreadSlot();
     void copyTokenTextSlot();
     void copyTokenValueSlot();
+    void followInMemoryMapSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);
