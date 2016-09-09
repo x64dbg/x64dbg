@@ -1713,6 +1713,7 @@ void CPUDisassembly::togglePreviewSlot()
     if(mPopupEnabled == true)
         ShowDisassemblyPopup(0, 0, 0);
     mPopupEnabled = !mPopupEnabled;
+    BridgeSettingSetUint("GUI", "DisableBranchDestinationPreview", !mPopupEnabled);
 }
 
 void CPUDisassembly::analyzeModuleSlot()
