@@ -513,6 +513,8 @@ static DWORD WINAPI loadDbThread(LPVOID)
     FileHelper::ReadAllText(notesFile, text);
     GuiSetGlobalNotes(text.c_str());
 
+    dputs(QT_TRANSLATE_NOOP("DBG", "File read thread finished!"));
+
     return 0;
 }
 
@@ -555,6 +557,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 #endif //ENABLE_MEM_TRACE
     initDataInstMap();
 
+    dputs(QT_TRANSLATE_NOOP("DBG", "Start file read thread..."));
     CloseHandle(CreateThread(nullptr, 0, loadDbThread, nullptr, 0, nullptr));
 
     // Create database directory in the local debugger folder
