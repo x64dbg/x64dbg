@@ -2,12 +2,20 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "BrowseDialog.h"
+#include <QRegularExpression>
+#include <QDesktopServices>
 
-LogView::LogView(QWidget* parent) : QTextEdit(parent), logRedirection(NULL)
+/**
+ * @brief LogView::LogView The constructor constructs a rich text browser
+ * @param parent The parent
+ */
+LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
 {
     updateStyle();
     this->setUndoRedoEnabled(false);
     this->setReadOnly(true);
+    this->setOpenExternalLinks(false);
+    this->setOpenLinks(false);
     this->setLoggingEnabled(true);
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
@@ -15,10 +23,14 @@ LogView::LogView(QWidget* parent) : QTextEdit(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(addMsgToLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
+    connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
 
     setupContextMenu();
 }
 
+/**
+ * @brief LogView::~LogView The destructor
+ */
 LogView::~LogView()
 {
     if(logRedirection != NULL)
@@ -91,6 +103,22 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.exec(event->globalPos());
 }
 
+/**
+ * @brief linkify Add hyperlink HTML to the message where applicable.
+ * @param msg The message passed by reference.
+ * Url format:
+ * x64dbg:// localhost                                                                                          /  address64 # address
+ * ^fixed    ^host(probably will be changed to PID + Host when remote debugging and child debugging are supported) ^token      ^parameter
+ */
+static void linkify(QString & msg)
+{
+#ifdef _WIN64
+    msg.replace(QRegularExpression("([\\dA-Fa-f]{16})"), "<a href=\"x64dbg://localhost/address64#\\1\">\\1</a>");
+#else //x86
+    msg.replace(QRegularExpression("([\\dA-Fa-f]{8})"), "<a href=\"x64dbg://localhost/address32#\\1\">\\1</a>");
+#endif //_WIN64
+}
+
 void LogView::addMsgToLogSlot(QString msg)
 {
     // fix Unix-style line endings.
@@ -112,9 +140,54 @@ void LogView::addMsgToLogSlot(QString msg)
         this->clear();
     // This sets the cursor to the end for the next insert
     this->moveCursor(QTextCursor::End);
-    this->insertPlainText(msg);
-    // This sets the cursor to the end to display the new text
-    this->moveCursor(QTextCursor::End);
+    msg.replace(QChar('&'), QString("&amp;"));
+    msg.replace(QChar('<'), QString("&lt;"));
+    msg.replace(QChar('>'), QString("&gt;"));
+    msg.replace(QString("\r\n"), QString("<br/>\r\n"));
+    msg.replace(QChar(' '), QString("&nbsp;"));
+    linkify(msg);
+    this->insertHtml(msg);
+}
+
+/**
+ * @brief LogView::onAnchorClicked Called when a hyperlink is clicked
+ * @param link The clicked link
+ */
+void LogView::onAnchorClicked(const QUrl & link)
+{
+    if(link.scheme() == "x64dbg")
+    {
+        if(link.path() == "/address64")
+        {
+            bool ok = false;
+            duint address = link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16);
+            if(ok && DbgMemIsValidReadPtr(address))
+            {
+                if(DbgFunctions()->MemIsCodePage(address, true))
+                    DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
+                else
+                    DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+            }
+            else
+                SimpleErrorBox(this, "1", QString("disasm %1").arg(link.fragment()) + link.toDisplayString());
+        }
+        else if(link.path() == "/address32")
+        {
+            bool ok = false;
+            duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
+            if(ok)
+            {
+                if(DbgFunctions()->MemIsCodePage(address, true))
+                    DbgCmdExec(QString("disasm %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+                else if(DbgMemIsValidReadPtr(address))
+                    DbgCmdExec(QString("dump %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+            }
+        }
+        else
+            SimpleErrorBox(this, tr("Url is not valid!"), tr("The Url %1 is not supported").arg(link.toString()));
+    }
+    else
+        QDesktopServices::openUrl(link); // external Url
 }
 
 void LogView::clearLogSlot()
@@ -169,6 +242,9 @@ bool LogView::getLoggingEnabled()
     return loggingEnabled;
 }
 
+/**
+ * @brief LogView::saveSlot Called by "save" action
+ */
 void LogView::saveSlot()
 {
     QString fileName;
