@@ -644,6 +644,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit foldDisassembly(duint(param1), duint(param2));
         break;
 
+    case GUI_SELECT_IN_MEMORY_MAP:
+        emit selectInMemoryMap(duint(param1));
+        break;
     }
 
     return nullptr;

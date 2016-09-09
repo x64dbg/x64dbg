@@ -131,6 +131,7 @@ signals:
     void addFavouriteItem(int type, const QString & name, const QString & description);
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
     void foldDisassembly(duint startAddr, duint length);
+    void selectInMemoryMap(duint addr);
 
 private:
     QMutex* mBridgeMutex;
