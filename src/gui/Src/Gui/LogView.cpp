@@ -168,8 +168,6 @@ void LogView::onAnchorClicked(const QUrl & link)
                 else
                     DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
             }
-            else
-                SimpleErrorBox(this, "1", QString("disasm %1").arg(link.fragment()) + link.toDisplayString());
         }
         else if(link.path() == "/address32")
         {
