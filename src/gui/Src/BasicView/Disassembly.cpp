@@ -712,7 +712,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                 CapstoneTokenizer::SingleToken token;
                 if(CapstoneTokenizer::TokenFromX(mInstBuffer.at(rowOffset).tokens, token, event->x(), mFontMetrics))
                 {
-                    if(CapstoneTokenizer::IsHighlightableToken(token) && !CapstoneTokenizer::TokenEquals(&token, &mHighlightToken))
+                    if(CapstoneTokenizer::IsHighlightableToken(token) && (!CapstoneTokenizer::TokenEquals(&token, &mHighlightToken) || event->button() == Qt::RightButton))
                         mHighlightToken = token;
                     else
                     {
