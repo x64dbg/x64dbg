@@ -458,17 +458,17 @@ static bool DbgScriptDllExec(const char* dll)
                 dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] \"Start\" returned!\n"));
             }
             else
-                dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%08X)!\n"), GetLastError());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%s)!\n"), ErrorCodeToName(GetLastError()).c_str());
 
             dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Calling FreeLibrary..."));
             if(FreeLibrary(hScriptDll))
                 dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
             else
-                dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%08X)...\n"), GetLastError());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%s)...\n"), ErrorCodeToName(GetLastError()).c_str());
         }
     }
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] LoadLibary failed (%08X)!\n"), GetLastError());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] LoadLibary failed (%s)!\n"), ErrorCodeToName(GetLastError()).c_str());
 
     return true;
 }
@@ -549,13 +549,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         len--;
     programDir[len] = 0;
 #ifdef ENABLE_MEM_TRACE
-    strcpy_s(alloctrace, dir);
+    strcpy_s(alloctrace, programDir);
     strcat_s(alloctrace, "\\alloctrace.txt");
-    strcpy_s(scriptDllDir, dir);
-    strcat_s(scriptDllDir, "\\scripts\\");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
 #endif //ENABLE_MEM_TRACE
+    strcpy_s(scriptDllDir, programDir);
+    strcat_s(scriptDllDir, "\\scripts\\");
     initDataInstMap();
 
     dputs(QT_TRANSLATE_NOOP("DBG", "Start file read thread..."));
