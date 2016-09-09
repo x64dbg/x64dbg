@@ -461,9 +461,15 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
         }
         setBpActive(bpInfo);
 
+        // Lock must be released due to callback sub-locks
+        SHARED_RELEASE();
+
         // Execute the callback
         if(!EnumCallback(&bpInfo))
             callbackStatus = false;
+
+        // Restore the breakpoint map lock
+        SHARED_REACQUIRE();
     }
 
     return callbackStatus;
