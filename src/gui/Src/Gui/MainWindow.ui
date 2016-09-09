@@ -44,6 +44,7 @@
     <addaction name="menuRecentFiles"/>
     <addaction name="actionAttach"/>
     <addaction name="actionDetach"/>
+    <addaction name="actionPatches"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -553,7 +554,7 @@
      <normaloff>:/icons/images/patch.png</normaloff>:/icons/images/patch.png</iconset>
    </property>
    <property name="text">
-    <string>Patches</string>
+    <string>Patch file...</string>
    </property>
    <property name="toolTip">
     <string>Patches</string>
