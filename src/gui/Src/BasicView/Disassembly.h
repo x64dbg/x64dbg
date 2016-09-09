@@ -176,6 +176,7 @@ protected:
     QColor mSelectedAddressColor;
     QColor mAddressBackgroundColor;
     QColor mAddressColor;
+    QColor mTracedSelectedAddressBackgroundColor;
 
     QColor mBytesColor;
     QColor mModifiedBytesColor;

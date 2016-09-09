@@ -114,6 +114,9 @@ void Disassembly::updateColors()
     mLoopColor = ConfigColor("DisassemblyLoopColor");
     mFunctionColor = ConfigColor("DisassemblyFunctionColor");
 
+    auto a = mSelectionColor, b = mTracedAddressBackgroundColor;
+    mTracedSelectedAddressBackgroundColor = QColor((a.red() + b.red()) / 2, (a.green() + b.green()) / 2, (a.blue() + b.blue()) / 2);
+
     mLoopPen = QPen(mLoopColor, 2);
     mFunctionPen = QPen(mFunctionColor, 2);
     mUnconditionalPen = QPen(mUnconditionalJumpLineColor);
@@ -174,7 +177,9 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     isTraced = dbgFuncs->GetTraceRecordHitCount(cur_addr) != 0;
 
     // Highlight if selected
-    if(wIsSelected)
+    if(wIsSelected & isTraced)
+        painter->fillRect(QRect(x, y, w, h), QBrush(mTracedSelectedAddressBackgroundColor));
+    else if(wIsSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
     else if(isTraced)
         painter->fillRect(QRect(x, y, w, h), QBrush(mTracedAddressBackgroundColor));
