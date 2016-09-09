@@ -605,6 +605,15 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     // Highlight menu
     mHighlightMenuBuilder = new MenuBuilder(this);
+
+    mHighlightMenuBuilder->addAction(makeAction(DIcon("copy.png"), tr("Copy token &text"), SLOT(copyTokenTextSlot())));
+    mHighlightMenuBuilder->addAction(makeAction(DIcon("copy_address.png"), tr("Copy token &value"), SLOT(copyTokenValueSlot())), [this](QMenu*)
+    {
+        QString text;
+        if(!getTokenValueText(text))
+            return false;
+        return text != mHighlightToken.text;
+    });
 }
 
 void CPUDisassembly::gotoOriginSlot()
@@ -1699,4 +1708,27 @@ void CPUDisassembly::createThreadSlot()
         return;
     duint addr = rvaToVa(getSelectionStart());
     DbgCmdExec(QString("createthread %1, %2").arg(ToPtrString(addr)).arg(ToPtrString(argWindow.getVal())).toUtf8().constData());
+}
+
+void CPUDisassembly::copyTokenTextSlot()
+{
+    Bridge::CopyToClipboard(mHighlightToken.text);
+}
+
+void CPUDisassembly::copyTokenValueSlot()
+{
+    QString text;
+    if(getTokenValueText(text))
+        Bridge::CopyToClipboard(text);
+}
+
+bool CPUDisassembly::getTokenValueText(QString & text)
+{
+    if(mHighlightToken.type <= CapstoneTokenizer::TokenType::MnemonicUnusual)
+        return false;
+    duint value = mHighlightToken.value.value;
+    if(!mHighlightToken.value.size && !DbgFunctions()->ValFromString(mHighlightToken.text.toUtf8().constData(), &value))
+        return false;
+    text = ToHexString(value);
+    return true;
 }

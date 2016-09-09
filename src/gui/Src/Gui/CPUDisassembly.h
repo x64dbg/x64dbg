@@ -106,12 +106,15 @@ public slots:
     void analyzeModuleSlot();
     void togglePreviewSlot();
     void createThreadSlot();
+    void copyTokenTextSlot();
+    void copyTokenValueSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);
 
 private:
     bool getLabelsFromInstruction(duint addr, QSet<QString> & labels);
+    bool getTokenValueText(QString & text);
 
     // Menus
     QMenu* mHwSlotSelectMenu;

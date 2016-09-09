@@ -21,8 +21,6 @@ public:
         //general instruction parts
         Prefix,
         Uncategorized,
-        Address, //jump/call destinations or displacements inside memory
-        Value,
         //mnemonics
         MnemonicNormal,
         MnemonicPushPop,
@@ -34,6 +32,9 @@ public:
         MnemonicFar,
         MnemonicInt3,
         MnemonicUnusual,
+        //values
+        Address, //jump/call destinations or displacements inside memory
+        Value,
         //memory
         MemorySize,
         MemorySegment,
