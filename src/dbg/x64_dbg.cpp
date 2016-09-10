@@ -493,13 +493,11 @@ static bool DbgScriptDllExec(const char* dll)
     return true;
 }
 
-static char programDir[deflen] = "";
-
 static DWORD WINAPI loadDbThread(LPVOID)
 {
     // Load mnemonic help database
     String mnemonicHelpData;
-    if(FileHelper::ReadAllText(StringUtils::sprintf("%s\\..\\mnemdb.json", programDir), mnemonicHelpData))
+    if(FileHelper::ReadAllText(StringUtils::sprintf("%s\\..\\mnemdb.json", szProgramDir), mnemonicHelpData))
     {
         if(MnemonicHelp::loadFromText(mnemonicHelpData.c_str()))
             dputs(QT_TRANSLATE_NOOP("DBG", "Mnemonic help database loaded!"));
@@ -510,26 +508,26 @@ static DWORD WINAPI loadDbThread(LPVOID)
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read mnemonic help database..."));
 
     // Load error codes
-    if(ErrorCodeInit(StringUtils::sprintf("%s\\..\\errordb.txt", programDir)))
+    if(ErrorCodeInit(StringUtils::sprintf("%s\\..\\errordb.txt", szProgramDir)))
         dputs(QT_TRANSLATE_NOOP("DBG", "Error codes database loaded!"));
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load error codes..."));
 
     // Load exception codes
-    if(ExceptionCodeInit(StringUtils::sprintf("%s\\..\\exceptiondb.txt", programDir)))
+    if(ExceptionCodeInit(StringUtils::sprintf("%s\\..\\exceptiondb.txt", szProgramDir)))
         dputs(QT_TRANSLATE_NOOP("DBG", "Exception codes database loaded!"));
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load exception codes..."));
 
     // Load NTSTATUS codes
-    if(NtStatusCodeInit(StringUtils::sprintf("%s\\..\\ntstatusdb.txt", programDir)))
+    if(NtStatusCodeInit(StringUtils::sprintf("%s\\..\\ntstatusdb.txt", szProgramDir)))
         dputs(QT_TRANSLATE_NOOP("DBG", "NTSTATUS codes database loaded!"));
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load NTSTATUS codes..."));
 
     // Load global notes
     dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes file..."));
-    notesFile = String(programDir) + "\\notes.txt";
+    notesFile = String(szProgramDir) + "\\notes.txt";
     String text;
     FileHelper::ReadAllText(notesFile, text);
     GuiSetGlobalNotes(text.c_str());
@@ -563,18 +561,18 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     wchar_t wszDir[deflen] = L"";
     if(!GetModuleFileNameW(hInst, wszDir, deflen))
         return "GetModuleFileNameW failed!";
-    strcpy_s(programDir, StringUtils::Utf16ToUtf8(wszDir).c_str());
-    int len = (int)strlen(programDir);
-    while(programDir[len] != '\\')
+    strcpy_s(szProgramDir, StringUtils::Utf16ToUtf8(wszDir).c_str());
+    int len = (int)strlen(szProgramDir);
+    while(szProgramDir[len] != '\\')
         len--;
-    programDir[len] = 0;
+    szProgramDir[len] = 0;
 #ifdef ENABLE_MEM_TRACE
-    strcpy_s(alloctrace, programDir);
+    strcpy_s(alloctrace, szProgramDir);
     strcat_s(alloctrace, "\\alloctrace.txt");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
 #endif //ENABLE_MEM_TRACE
-    strcpy_s(scriptDllDir, programDir);
+    strcpy_s(scriptDllDir, szProgramDir);
     strcat_s(scriptDllDir, "\\scripts\\");
     initDataInstMap();
 
@@ -582,10 +580,10 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     CloseHandle(CreateThread(nullptr, 0, loadDbThread, nullptr, 0, nullptr));
 
     // Create database directory in the local debugger folder
-    DbSetPath(StringUtils::sprintf("%s\\db", programDir).c_str(), nullptr);
+    DbSetPath(StringUtils::sprintf("%s\\db", szProgramDir).c_str(), nullptr);
 
     char szLocalSymbolPath[MAX_PATH] = "";
-    strcpy_s(szLocalSymbolPath, programDir);
+    strcpy_s(szLocalSymbolPath, szProgramDir);
     strcat_s(szLocalSymbolPath, "\\symbols");
 
     char cachePath[MAX_SETTING_SIZE];
@@ -598,7 +596,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     {
         if(_strnicmp(cachePath, ".\\", 2) == 0)
         {
-            strncpy_s(szSymbolCachePath, programDir, _TRUNCATE);
+            strncpy_s(szSymbolCachePath, szProgramDir, _TRUNCATE);
             strncat_s(szSymbolCachePath, cachePath + 1, _TRUNCATE);
         }
         else
@@ -617,7 +615,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         }
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Symbol Path: %s\n"), szSymbolCachePath);
-    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(programDir).c_str());
+    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(szProgramDir).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "Allocating message stack..."));
     gMsgStack = MsgAllocStack();
     if(!gMsgStack)
@@ -642,7 +640,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dputs(QT_TRANSLATE_NOOP("DBG", "Starting command loop..."));
     hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     char plugindir[deflen] = "";
-    strcpy_s(plugindir, programDir);
+    strcpy_s(plugindir, szProgramDir);
     strcat_s(plugindir, "\\plugins");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), 0);
     dputs(QT_TRANSLATE_NOOP("DBG", "Loading plugins..."));

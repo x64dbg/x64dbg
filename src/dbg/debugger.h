@@ -138,6 +138,7 @@ EXCEPTION_DEBUG_INFO getLastExceptionInfo();
 extern PROCESS_INFORMATION* fdProcessInfo;
 extern HANDLE hActiveThread;
 extern HANDLE hProcessToken;
+extern char szProgramDir[MAX_PATH];
 extern char szFileName[MAX_PATH];
 extern char szSymbolCachePath[MAX_PATH];
 extern bool bUndecorateSymbolNames;

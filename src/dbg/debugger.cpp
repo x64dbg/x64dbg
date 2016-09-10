@@ -77,6 +77,7 @@ static String lastDebugText;
 static duint timeWastedDebugging = 0;
 static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
 static char szDebuggeeInitializationScript[MAX_PATH] = "";
+char szProgramDir[MAX_PATH] = "";
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
 char sqlitedb[deflen] = "";
@@ -594,18 +595,18 @@ static void printDllBpInfo(const BREAKPOINT & bp)
         bptype = _strdup("");
     }
     if(*bp.name)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint %s(%s):Module %s\n"), bp.name, bptype, bp.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint %s (%s): Module %s\n"), bp.name, bptype, bp.mod);
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint(%s):Module %s\n"), bptype, bp.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint (%s): Module %s\n"), bptype, bp.mod);
     free(bptype);
 }
 
 static void printExceptionBpInfo(const BREAKPOINT & bp, duint CIP)
 {
     if(*bp.name != 0)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s(%p) at %p!\n"), bp.name, bp.addr, CIP);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s (%p) at %p!\n"), bp.name, bp.addr, CIP);
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s(%p) at %p!\n"), ExceptionCodeToName(bp.addr).c_str(), bp.addr, CIP);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s (%p) at %p!\n"), ExceptionCodeToName((unsigned int)bp.addr).c_str(), bp.addr, CIP);
 }
 
 static bool getConditionValue(const char* expression)

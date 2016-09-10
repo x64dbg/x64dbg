@@ -623,7 +623,7 @@ CMDRESULT cbDebugSetExceptionBPX(int argc, char* argv[])
             return STATUS_ERROR;
         }
     }
-    const String & ExceptionName = ExceptionCodeToName(ExceptionCode);
+    const String & ExceptionName = ExceptionCodeToName((unsigned int)ExceptionCode);
     if(BpGet(ExceptionCode, BPEXCEPTION, nullptr, nullptr))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Exception breakpoint %X(%s) already exists!\n"), ExceptionCode, ExceptionName.c_str());
@@ -644,7 +644,7 @@ CMDRESULT cbDebugSetExceptionBPX(int argc, char* argv[])
         if(chance == 0)
             chance = 1;
     }
-    if(!BpNew(ExceptionCode, true, false, 0, BPEXCEPTION, chance, ""))
+    if(!BpNew(ExceptionCode, true, false, 0, BPEXCEPTION, DWORD(chance), ""))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to set exception breakpoint! (BpNew)"));
         return STATUS_ERROR;

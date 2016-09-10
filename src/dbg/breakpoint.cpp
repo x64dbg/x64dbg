@@ -622,7 +622,7 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         break;
     case BPEXCEPTION:
         BridgeBp->type = bp_exception;
-        BridgeBp->slot = Bp->titantype; //1:First-chance, 2:Second-chance, 3:Both
+        BridgeBp->slot = (unsigned short)Bp->titantype; //1:First-chance, 2:Second-chance, 3:Both
         break;
     default:
         BridgeBp->type = bp_none;
