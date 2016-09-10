@@ -108,10 +108,9 @@ void MemUpdateMap()
         if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages))   //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
-        duint base = ModBaseFromName(currentPage.info);
-        if(!base)
+        if(!ModBaseFromName(currentPage.info))
             continue;
-        base = duint(currentPage.mbi.AllocationBase);
+        auto base = duint(currentPage.mbi.AllocationBase);
         std::vector<MODSECTIONINFO> sections;
         if(!ModSectionsFromAddr(base, &sections))
             continue;
