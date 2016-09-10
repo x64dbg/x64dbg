@@ -24,7 +24,6 @@
 #include "database.h"
 #include "mnemonichelp.h"
 #include "datainst_helper.h"
-#include "error.h"
 #include "exception.h"
 #include "expressionfunctions.h"
 #include "historycontext.h"

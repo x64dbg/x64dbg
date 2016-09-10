@@ -5,7 +5,6 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
-#include "_global.h"
 
 typedef std::string String;
 typedef std::wstring WString;

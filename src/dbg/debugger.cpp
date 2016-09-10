@@ -19,7 +19,6 @@
 #include "variable.h"
 #include "x64_dbg.h"
 #include "exception.h"
-#include "error.h"
 #include "module.h"
 #include "commandline.h"
 #include "stackinfo.h"

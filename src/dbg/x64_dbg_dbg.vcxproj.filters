@@ -182,9 +182,6 @@
     <ClCompile Include="loop.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
-    <ClCompile Include="error.cpp">
-      <Filter>Source Files\Information</Filter>
-    </ClCompile>
     <ClCompile Include="exception.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
@@ -491,9 +488,6 @@
       <Filter>Header Files\Information</Filter>
     </ClInclude>
     <ClInclude Include="patches.h">
-      <Filter>Header Files\Information</Filter>
-    </ClInclude>
-    <ClInclude Include="error.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
     <ClInclude Include="exception.h">

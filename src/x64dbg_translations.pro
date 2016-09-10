@@ -107,7 +107,6 @@ SOURCES += \
     dbg/disasm_fast.cpp \
     dbg/disasm_helper.cpp \
     dbg/encodemap.cpp \
-    dbg/error.cpp \
     dbg/exception.cpp \
     dbg/exhandlerinfo.cpp \
     dbg/expressionfunctions.cpp \
@@ -305,7 +304,6 @@ HEADERS += \
     dbg/disasm_helper.h \
     dbg/dynamicmem.h \
     dbg/encodemap.h \
-    dbg/error.h \
     dbg/exception.h \
     dbg/exhandlerinfo.h \
     dbg/expressionfunctions.h \
