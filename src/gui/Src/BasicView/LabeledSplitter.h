@@ -4,23 +4,9 @@
 #include <QSplitter>
 
 class LabeledSplitter;
-
-class LabeledSplitterHandle : public QSplitterHandle
-{
-    Q_OBJECT
-public:
-    LabeledSplitterHandle(Qt::Orientation o, LabeledSplitter* parent);
-    QSize sizeHint() const override;
-    QSize minimumSizeHint() const override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void mousePressEvent(QMouseEvent* event) override;
-    void paintEvent(QPaintEvent* event) override;
-protected:
-    int getIndex();
-    int charHeight;
-    int originalSize;
-    LabeledSplitter* getParent() const;
-};
+class QMenu;
+class QAction;
+class LabeledSplitterDetachedWindow;
 
 class LabeledSplitter : public QSplitter
 {
@@ -30,13 +16,17 @@ public:
     void addWidget(QWidget* widget, const QString & name);
     void insertWidget(int index, QWidget* widget, const QString & name);
     void collapseLowerTabs();
-    QString getName(int index) const;
+    QList<QString> names;
+    QList<QWidget*> m_Windows;
+public slots:
+    void attachSlot(LabeledSplitterDetachedWindow* widget);
 protected:
     void setOrientation(Qt::Orientation o); // LabeledSplitter is always vertical
     void addWidget(QWidget* widget);
     void insertWidget(int index, QWidget* widget);
     QSplitterHandle* createHandle() override;
-    QList<QString> names;
+
+    friend class LabeledSplitterHandle;
 };
 
 #endif //LABELEDSPLITTER_H
