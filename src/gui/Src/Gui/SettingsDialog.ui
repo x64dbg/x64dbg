@@ -516,6 +516,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkNoForegroundWindow">
+         <property name="text">
+          <string>Do not call SetForegroundWindow</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

@@ -190,11 +190,13 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "NoCloseDialog", &settings.guiNoCloseDialog);
     GetSettingBool("Gui", "PidInHex", &settings.guiPidInHex);
     GetSettingBool("Gui", "SidebarWatchLabels", &settings.guiSidebarWatchLabels);
+    GetSettingBool("Gui", "NoForegroundWindow", &settings.guiNoForegroundWindow);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
     ui->chkPidInHex->setChecked(settings.guiPidInHex);
     ui->chkSidebarWatchLabels->setChecked(settings.guiSidebarWatchLabels);
+    ui->chkNoForegroundWindow->setChecked(settings.guiNoForegroundWindow);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -311,6 +313,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "NoCloseDialog", settings.guiNoCloseDialog);
     BridgeSettingSetUint("Gui", "PidInHex", settings.guiPidInHex);
     BridgeSettingSetUint("Gui", "SidebarWatchLabels", settings.guiSidebarWatchLabels);
+    BridgeSettingSetUint("Gui", "NoForegroundWindow", settings.guiNoForegroundWindow);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -698,4 +701,9 @@ void SettingsDialog::on_chkSidebarWatchLabels_stateChanged(int arg1)
 void SettingsDialog::on_chkIgnoreInconsistentBreakpoints_toggled(bool checked)
 {
     settings.engineIgnoreInconsistentBreakpoints = checked;
+}
+
+void SettingsDialog::on_chkNoForegroundWindow_toggled(bool checked)
+{
+    settings.guiNoForegroundWindow = checked;
 }

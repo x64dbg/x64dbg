@@ -52,6 +52,7 @@ private slots:
     void on_chkTraceRecordEnabledDuringTrace_stateChanged(int arg1);
     void on_chkSkipInt3Stepping_toggled(bool checked);
     void on_chkNoScriptTimeout_stateChanged(int arg1);
+    void on_chkIgnoreInconsistentBreakpoints_toggled(bool checked);
     //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
@@ -69,13 +70,12 @@ private slots:
     void on_chkNoCloseDialog_toggled(bool checked);
     void on_chkPidInHex_clicked(bool checked);
     void on_chkSidebarWatchLabels_stateChanged(int arg1);
+    void on_chkNoForegroundWindow_toggled(bool checked);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
-
-    void on_chkIgnoreInconsistentBreakpoints_toggled(bool checked);
 
 private:
     //enums
@@ -147,6 +147,7 @@ private:
         bool guiNoCloseDialog;
         bool guiPidInHex;
         bool guiSidebarWatchLabels;
+        bool guiNoForegroundWindow;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;
