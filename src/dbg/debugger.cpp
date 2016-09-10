@@ -598,6 +598,14 @@ static void printDllBpInfo(const BREAKPOINT & bp)
     free(bptype);
 }
 
+static void printExceptionBpInfo(const BREAKPOINT & bp, duint CIP)
+{
+    if(*bp.name != 0)
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s(%p) at %p!\n"), bp.name, bp.addr, CIP);
+    else
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s(%p) at %p!\n"), ExceptionCodeToName(bp.addr).c_str(), bp.addr, CIP);
+}
+
 static bool getConditionValue(const char* expression)
 {
     auto word = *(uint16*)expression;
@@ -656,6 +664,9 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
                 break;
             case BPDLL:
                 printDllBpInfo(bp);
+                break;
+            case BPEXCEPTION:
+                printExceptionBpInfo(bp, CIP);
                 break;
             default:
                 break;
@@ -721,7 +732,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
 
     auto bp = *bpPtr;
     SHARED_RELEASE();
-    if(bptype != BPDLL)
+    if(bptype != BPDLL && bptype != BPEXCEPTION)
         bp.addr += ModBaseFromAddr(CIP);
     bp.active = true; //a breakpoint that has been hit is active
 

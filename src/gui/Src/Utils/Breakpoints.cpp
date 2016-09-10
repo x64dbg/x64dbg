@@ -530,6 +530,18 @@ void Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
         exec(QString("SetLibrarianBreakpointSilent \"%1\", %2").arg(addrText).arg(bp.silent));
         exec(QString("SetLibrarianBreakpointSingleshoot \"%1\", %2").arg(addrText).arg(bp.singleshoot));
         break;
+    case bp_exception:
+        exec(QString("SetExceptionBreakpointName %1, \"%2\"").arg(addrText).arg(bp.name));
+        exec(QString("SetExceptionBreakpointCondition %1, \"%2\"").arg(addrText).arg(bp.breakCondition));
+        exec(QString("SetExceptionBreakpointLog %1, \"%2\"").arg(addrText).arg(bp.logText));
+        exec(QString("SetExceptionBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(bp.logCondition));
+        exec(QString("SetExceptionBreakpointCommand %1, \"%2\"").arg(addrText).arg(bp.commandText));
+        exec(QString("SetExceptionBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(bp.commandCondition));
+        exec(QString("ResetExceptionBreakpointHitCount %1, %2").arg(addrText).arg(ToPtrString(bp.hitCount)));
+        exec(QString("SetExceptionBreakpointFastResume %1, %2").arg(addrText).arg(bp.fastResume));
+        exec(QString("SetExceptionBreakpointSilent %1, %2").arg(addrText).arg(bp.silent));
+        exec(QString("SetExceptionBreakpointSingleshoot %1, %2").arg(addrText).arg(bp.singleshoot));
+        break;
     default:
         return;
     }

@@ -1151,6 +1151,9 @@ void BreakpointsView::editBreakpointSlot()
         table = mDLLBPTable;
         Breakpoints::editBP(mCurrentType, table->getCellContent(table->getInitialSelection(), 1), this);
         return;
+    case bp_exception:
+        table = mExceptionBPTable;
+        break;
     default:
         return;
     }
