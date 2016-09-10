@@ -25,7 +25,7 @@
 #include "bookmark.h"
 #include "function.h"
 #include "loop.h"
-#include "error.h"
+#include "exception.h"
 #include "x64_dbg.h"
 #include "threading.h"
 #include "stringformat.h"
@@ -578,6 +578,9 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         break;
     case bp_dll:
         currentBpType = BPDLL;
+        break;
+    case bp_exception:
+        currentBpType = BPEXCEPTION;
         break;
     default:
         return 0;

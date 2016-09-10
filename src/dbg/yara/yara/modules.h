@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "utils.h"
 #include "limits.h"
-#include "error.h"
+#include "exception.h"
 #include "exec.h"
 #include "types.h"
 #include "object.h"

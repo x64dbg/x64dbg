@@ -24,7 +24,6 @@
 #include "database.h"
 #include "mnemonichelp.h"
 #include "datainst_helper.h"
-#include "error.h"
 #include "exception.h"
 #include "expressionfunctions.h"
 #include "historycontext.h"
@@ -44,7 +43,7 @@ static CMDRESULT cbStrLen(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
         return STATUS_ERROR;
     }
-    dprintf("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
+    dprintf_untranslated("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
     return STATUS_CONTINUE;
 }
 
@@ -75,6 +74,9 @@ static CMDRESULT cbScriptDll(int argc, char* argv[])
     return DbgScriptDllExec(argv[1]) ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
+/**
+\brief register the all the commands
+*/
 static void registercommands()
 {
     cmdinit();
@@ -138,8 +140,12 @@ static void registercommands()
     dbgcmdnew("DisableMemoryBreakpoint\1membpd\1bpmd", cbDebugDisableMemoryBreakpoint, true); //enable memory breakpoint
     dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
     dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
-    dbgcmdnew("LibrarianDisableBreakPoint", cbDebugBpDllDisable, true);
-    dbgcmdnew("LibrarianEnableBreakPoint", cbDebugBpDllEnable, true);
+    dbgcmdnew("LibrarianDisableBreakPoint\1bpddll", cbDebugBpDllDisable, true);
+    dbgcmdnew("LibrarianEnableBreakPoint\1bpedll", cbDebugBpDllEnable, true);
+    dbgcmdnew("SetExceptionBPX", cbDebugSetExceptionBPX, true); //set exception breakpoint
+    dbgcmdnew("DeleteExceptionBPX", cbDebugDeleteExceptionBPX, true); //delete exception breakpoint
+    dbgcmdnew("EnableExceptionBPX", cbDebugEnableExceptionBPX, true);
+    dbgcmdnew("DisableExceptionBPX", cbDebugDisableExceptionBPX, true);
 
     //breakpoints (conditional)
     dbgcmdnew("SetBreakpointName\1bpname", cbDebugSetBPXName, true); //set breakpoint name
@@ -186,6 +192,17 @@ static void registercommands()
     dbgcmdnew("SetLibrarianBreakpointSilent", cbDebugSetBPXDLLSilent, true); //set breakpoint fast resume
     dbgcmdnew("SetLibrarianGetBreakpointHitCount", cbDebugGetBPXDLLHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetLibrarianBreakpointHitCount", cbDebugResetBPXDLLHitCount, true); //reset breakpoint hit count
+    dbgcmdnew("SetExceptionBreakpointName", cbDebugSetBPXExceptionName, true); //set breakpoint name
+    dbgcmdnew("SetExceptionBreakpointCondition", cbDebugSetBPXExceptionCondition, true); //set breakpoint breakCondition
+    dbgcmdnew("SetExceptionBreakpointLog", cbDebugSetBPXExceptionLog, true); //set breakpoint log
+    dbgcmdnew("SetExceptionBreakpointLogCondition", cbDebugSetBPXExceptionLogCondition, true); //set breakpoint logCondition
+    dbgcmdnew("SetExceptionBreakpointCommand", cbDebugSetBPXExceptionCommand, true); //set breakpoint command on hit
+    dbgcmdnew("SetExceptionBreakpointCommandCondition", cbDebugSetBPXExceptionCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetExceptionBreakpointFastResume", cbDebugSetBPXExceptionFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetExceptionBreakpointSingleshoot", cbDebugSetBPXExceptionSingleshoot, true); //set breakpoint singleshoot
+    dbgcmdnew("SetExceptionBreakpointSilent", cbDebugSetBPXExceptionSilent, true); //set breakpoint fast resume
+    dbgcmdnew("SetExceptionGetBreakpointHitCount", cbDebugGetBPXExceptionHitCount, true); //get breakpoint hit count
+    dbgcmdnew("ResetExceptionBreakpointHitCount", cbDebugResetBPXExceptionHitCount, true); //reset breakpoint hit count
 
     dbgcmdnew("bpgoto", cbDebugSetBPGoto, true);
 
@@ -271,7 +288,7 @@ static void registercommands()
 
     //general purpose
     dbgcmdnew("cmp", cbInstrCmp, false); //compare
-    dbgcmdnew("gpa", cbInstrGpa, true);
+    dbgcmdnew("gpa", cbInstrGpa, true); //get proc address
     dbgcmdnew("add", cbInstrAdd, false);
     dbgcmdnew("and", cbInstrAnd, false);
     dbgcmdnew("dec", cbInstrDec, false);
@@ -381,6 +398,9 @@ static bool cbCommandProvider(char* cmd, int maxlen)
     return true;
 }
 
+/**
+\brief Execute command asynchronized.
+*/
 extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 {
     int len = (int)strlen(cmd);

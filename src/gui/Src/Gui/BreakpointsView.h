@@ -19,6 +19,7 @@ public:
     void setupSoftBPRightClickContextMenu();
     void setupMemBPRightClickContextMenu();
     void setupDLLBPRightClickContextMenu();
+    void setupExceptionBPRightClickContextMenu();
 
 public slots:
     void refreshShortcutsSlot();
@@ -68,6 +69,17 @@ public slots:
     void selectionChangedDLLSlot();
     void resetDLLHitCountSlot();
 
+    // Exception
+    void ExceptionBPContextMenuSlot(const QPoint & pos);
+    void addExceptionBPActionSlot();
+    void removeExceptionBPActionSlot();
+    void removeAllExceptionBPActionSlot();
+    void enableDisableExceptionBPActionSlot();
+    void enableAllExceptionBPActionSlot();
+    void disableAllExceptionBPActionSlot();
+    void selectionChangedExceptionSlot();
+    void resetExceptionHitCountSlot();
+
     // Conditional
     void editBreakpointSlot();
 
@@ -78,6 +90,7 @@ private:
     StdTable* mSoftBPTable;
     StdTable* mMemBPTable;
     StdTable* mDLLBPTable;
+    StdTable* mExceptionBPTable;
     // Conditional BP Context Menu
     BPXTYPE mCurrentType;
     QAction* mEditBreakpointAction;
@@ -114,6 +127,15 @@ private:
     QAction* mDLLBPResetHitCountAction;
     QAction* mDLLBPEnableAllAction;
     QAction* mDLLBPDisableAllAction;
+
+    // Exception BP Context Menu
+    QAction* mExceptionBPAddAction;
+    QAction* mExceptionBPRemoveAction;
+    QAction* mExceptionBPRemoveAllAction;
+    QAction* mExceptionBPEnableDisableAction;
+    QAction* mExceptionBPResetHitCountAction;
+    QAction* mExceptionBPEnableAllAction;
+    QAction* mExceptionBPDisableAllAction;
 };
 
 #endif // BREAKPOINTSVIEW_H

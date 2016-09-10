@@ -54,7 +54,6 @@
     <ClCompile Include="expressionfunctions.cpp" />
     <ClCompile Include="exprfunc.cpp" />
     <ClCompile Include="handles.cpp" />
-    <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exhandlerinfo.cpp" />
     <ClCompile Include="expressionparser.cpp" />
@@ -150,7 +149,6 @@
     <ClInclude Include="expressionfunctions.h" />
     <ClInclude Include="exprfunc.h" />
     <ClInclude Include="handles.h" />
-    <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="exhandlerinfo.h" />
     <ClInclude Include="expressionparser.h" />

@@ -34,7 +34,6 @@
 #include "_scriptapi_stack.h"
 #include "threading.h"
 #include "mnemonichelp.h"
-#include "error.h"
 #include "recursiveanalysis.h"
 #include "xrefsanalysis.h"
 #include "advancedanalysis.h"

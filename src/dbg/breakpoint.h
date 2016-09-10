@@ -15,7 +15,8 @@ enum BP_TYPE
     BPNORMAL = 0,
     BPHARDWARE = 1,
     BPMEMORY = 2,
-    BPDLL = 3
+    BPDLL = 3,
+    BPEXCEPTION = 4
 };
 
 struct BREAKPOINT

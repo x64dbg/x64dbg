@@ -122,7 +122,8 @@ typedef enum
     bp_normal = 1,
     bp_hardware = 2,
     bp_memory = 4,
-    bp_dll = 8
+    bp_dll = 8,
+    bp_exception = 16
 } BPXTYPE;
 
 typedef enum

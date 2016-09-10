@@ -10,6 +10,7 @@
 #include "module.h"
 #include "value.h"
 #include "debugger.h"
+#include "exception.h"
 
 typedef std::pair<BP_TYPE, duint> BreakpointKey;
 std::map<BreakpointKey, BREAKPOINT> breakpoints;
@@ -18,7 +19,7 @@ static void setBpActive(BREAKPOINT & bp)
 {
     if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
         bp.active = true;
-    else if(bp.type == BPDLL)
+    else if(bp.type == BPDLL || bp.type == BPEXCEPTION)
         bp.active = true;
     else
         bp.active = MemIsValidReadPtr(bp.addr);
@@ -30,7 +31,7 @@ BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address)
     // NOTE: THIS DOES _NOT_ USE LOCKS
     //
     std::map<BreakpointKey, BREAKPOINT>::iterator found;
-    if(Type != BPDLL)
+    if(Type != BPDLL && Type != BPEXCEPTION)
         found = breakpoints.find(BreakpointKey(Type, ModHashFromAddr(Address)));
     else
         found = breakpoints.find(BreakpointKey(Type, Address)); // Address = ModHashFromName(ModuleName)
@@ -54,7 +55,7 @@ int BpGetList(std::vector<BREAKPOINT>* List)
         for(auto & i : breakpoints)
         {
             BREAKPOINT currentBp = i.second;
-            if(currentBp.type != BPDLL)
+            if(currentBp.type != BPDLL && currentBp.type != BPEXCEPTION)
                 currentBp.addr += ModBaseFromName(currentBp.mod);
             setBpActive(currentBp);
 
@@ -70,8 +71,11 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     ASSERT_DEBUGGING("Export call");
 
     // Fail if the address is a bad memory region
-    if(!MemIsValidReadPtr(Address))
-        return false;
+    if(Type != BPDLL && Type != BPEXCEPTION)
+    {
+        if(!MemIsValidReadPtr(Address))
+            return false;
+    }
 
     // Fail if the breakpoint already exists
     if(BpGet(Address, Type, Name, nullptr))
@@ -84,11 +88,17 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     BREAKPOINT bp;
     memset(&bp, 0, sizeof(BREAKPOINT));
 
-    ModNameFromAddr(Address, bp.mod, true);
+    if(Type != BPDLL && Type != BPEXCEPTION)
+    {
+        ModNameFromAddr(Address, bp.mod, true);
+    }
     strncpy_s(bp.name, Name, _TRUNCATE);
 
     bp.active = true;
-    bp.addr = Address - ModBaseFromAddr(Address);
+    if(Type != BPDLL && Type != BPEXCEPTION)
+        bp.addr = Address - ModBaseFromAddr(Address);
+    else
+        bp.addr = Address;
     bp.enabled = Enable;
     bp.oldbytes = OldBytes;
     bp.singleshoot = Singleshot;
@@ -98,7 +108,14 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     // Insert new entry to the global list
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    return breakpoints.insert(std::make_pair(BreakpointKey(Type, ModHashFromAddr(Address)), bp)).second;
+    if(Type != BPDLL && Type != BPEXCEPTION)
+    {
+        return breakpoints.insert(std::make_pair(BreakpointKey(Type, ModHashFromAddr(Address)), bp)).second;
+    }
+    else
+    {
+        return breakpoints.insert(std::make_pair(BreakpointKey(Type, Address), bp)).second;
+    }
 }
 
 bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType, const char* Name)
@@ -144,7 +161,7 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
             return true;
 
         *Bp = *bpInfo;
-        if(bpInfo->type != BPDLL)
+        if(bpInfo->type != BPDLL && bpInfo->type != BPEXCEPTION)
             Bp->addr += ModBaseFromAddr(Address);
         setBpActive(*Bp);
         return true;
@@ -161,7 +178,7 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         if(Bp)
         {
             *Bp = i.second;
-            if(i.second.type != BPDLL)
+            if(i.second.type != BPDLL && i.second.type != BPEXCEPTION)
                 Bp->addr += ModBaseFromAddr(Address);
             setBpActive(*Bp);
         }
@@ -183,6 +200,13 @@ bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         if(valfromstring(Name, &addr))
             if(BpGet(addr, Type, 0, Bp))
                 return true;
+        if(Type == BPEXCEPTION)
+        {
+            addr = 0;
+            if(ExceptionNameToCode(Name, reinterpret_cast<unsigned int*>(&addr)))
+                if(BpGet(addr, BPEXCEPTION, 0, Bp))
+                    return true;
+        }
     }
     else
     {
@@ -198,7 +222,7 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
     for(auto & i : breakpoints)
     {
-        if(i.second.type == BPDLL)
+        if(i.second.type == BPDLL && i.second.enabled)
         {
             if(_stricmp(i.second.mod, module1) == 0)
             {
@@ -452,7 +476,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
         }
 
         BREAKPOINT bpInfo = j->second;
-        if(bpInfo.type != BPDLL)
+        if(bpInfo.type != BPDLL && bpInfo.type != BPEXCEPTION)
         {
             if(base)  //workaround for some Windows bullshit with compatibility mode
                 bpInfo.addr += base;
@@ -596,6 +620,10 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
             break;
         }
         break;
+    case BPEXCEPTION:
+        BridgeBp->type = bp_exception;
+        BridgeBp->slot = Bp->titantype; //1:First-chance, 2:Second-chance, 3:Both
+        break;
     default:
         BridgeBp->type = bp_none;
         break;
@@ -629,7 +657,8 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "type", json_integer(breakpoint.type));
         json_object_set_new(jsonObj, "titantype", json_hex(breakpoint.titantype));
         json_object_set_new(jsonObj, "name", json_string(breakpoint.name));
-        json_object_set_new(jsonObj, "module", json_string(breakpoint.mod));
+        if(breakpoint.type != BPEXCEPTION)
+            json_object_set_new(jsonObj, "module", json_string(breakpoint.mod));
         json_object_set_new(jsonObj, "breakCondition", json_string(breakpoint.breakCondition));
         json_object_set_new(jsonObj, "logText", json_string(breakpoint.logText));
         json_object_set_new(jsonObj, "logCondition", json_string(breakpoint.logCondition));
@@ -685,7 +714,8 @@ void BpCacheLoad(JSON Root)
 
         // String values
         loadStringValue(value, breakpoint.name, "name");
-        loadStringValue(value, breakpoint.mod, "module");
+        if(breakpoint.type != BPEXCEPTION)
+            loadStringValue(value, breakpoint.mod, "module");
         loadStringValue(value, breakpoint.breakCondition, "breakCondition");
         loadStringValue(value, breakpoint.logText, "logText");
         loadStringValue(value, breakpoint.logCondition, "logCondition");

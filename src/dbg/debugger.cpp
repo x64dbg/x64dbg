@@ -19,7 +19,6 @@
 #include "variable.h"
 #include "x64_dbg.h"
 #include "exception.h"
-#include "error.h"
 #include "module.h"
 #include "commandline.h"
 #include "stackinfo.h"
@@ -600,6 +599,14 @@ static void printDllBpInfo(const BREAKPOINT & bp)
     free(bptype);
 }
 
+static void printExceptionBpInfo(const BREAKPOINT & bp, duint CIP)
+{
+    if(*bp.name != 0)
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s(%p) at %p!\n"), bp.name, bp.addr, CIP);
+    else
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s(%p) at %p!\n"), ExceptionCodeToName(bp.addr).c_str(), bp.addr, CIP);
+}
+
 static bool getConditionValue(const char* expression)
 {
     auto word = *(uint16*)expression;
@@ -659,6 +666,9 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
             case BPDLL:
                 printDllBpInfo(bp);
                 break;
+            case BPEXCEPTION:
+                printExceptionBpInfo(bp, CIP);
+                break;
             default:
                 break;
             }
@@ -680,16 +690,19 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     switch(bptype)
     {
     case BPNORMAL:
-        bpPtr = BpInfoFromAddr(bptype, CIP);
+        bpPtr = BpInfoFromAddr(BPNORMAL, CIP);
         break;
     case BPHARDWARE:
-        bpPtr = BpInfoFromAddr(bptype, duint(ExceptionAddress));
+        bpPtr = BpInfoFromAddr(BPHARDWARE, duint(ExceptionAddress));
         break;
     case BPMEMORY:
-        bpPtr = BpInfoFromAddr(bptype, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
+        bpPtr = BpInfoFromAddr(BPMEMORY, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
         break;
     case BPDLL:
         bpPtr = BpInfoFromAddr(BPDLL, BpGetDLLBpAddr(reinterpret_cast<const char*>(ExceptionAddress)));
+        break;
+    case BPEXCEPTION:
+        bpPtr = BpInfoFromAddr(BPEXCEPTION, ((EXCEPTION_DEBUG_INFO*)ExceptionAddress)->ExceptionRecord.ExceptionCode);
         break;
     default:
         break;
@@ -717,7 +730,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
 
     auto bp = *bpPtr;
     SHARED_RELEASE();
-    bp.addr += ModBaseFromAddr(CIP);
+    if(bptype != BPDLL && bptype != BPEXCEPTION)
+        bp.addr += ModBaseFromAddr(CIP);
     bp.active = true; //a breakpoint that has been hit is active
 
     varset("$breakpointcounter", bp.hitcount, false); //save the breakpoint counter as a variable
@@ -1659,6 +1673,14 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         lastExceptionInfo = *ExceptionData;
 
     duint addr = (duint)ExceptionData->ExceptionRecord.ExceptionAddress;
+    {
+        BREAKPOINT bp;
+        if(BpGet(ExceptionCode, BPEXCEPTION, nullptr, &bp) && bp.enabled && ((bp.titantype == 1 && ExceptionData->dwFirstChance) || (bp.titantype == 2 && !ExceptionData->dwFirstChance) || bp.titantype == 3))
+        {
+            cbGenericBreakpoint(BPEXCEPTION, ExceptionData);
+            return;
+        }
+    }
     if(ExceptionData->ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
     {
         if(isDetachedByUser)

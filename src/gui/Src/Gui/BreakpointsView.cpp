@@ -68,12 +68,26 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mDLLBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
     mDLLBPTable->loadColumnFromConfig("DLLBreakpoint");
 
+    // Exception
+    mExceptionBPTable = new StdTable(this);
+    mExceptionBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
+    mExceptionBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Excetion Code"), false);
+    mExceptionBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
+    mExceptionBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
+    mExceptionBPTable->addColumnAt(8 + wCharWidth * 10, tr("Hit count"), false);
+    mExceptionBPTable->addColumnAt(8 + wCharWidth * 32, tr("Log text"), false);
+    mExceptionBPTable->addColumnAt(8 + wCharWidth * 32, tr("Condition"), false);
+    mExceptionBPTable->addColumnAt(8 + wCharWidth * 2, tr("Chance"), false);
+    mExceptionBPTable->addColumnAt(8 + wCharWidth * 16, tr("Command on hit"), false);
+    mExceptionBPTable->loadColumnFromConfig("ExceptionBreakpoint");
+
     // Splitter
     mSplitter = new LabeledSplitter(this);
     mSplitter->addWidget(mSoftBPTable, tr("Software breakpoint"));
     mSplitter->addWidget(mHardBPTable, tr("Hardware breakpoint"));
     mSplitter->addWidget(mMemBPTable, tr("Memory breakpoint"));
     mSplitter->addWidget(mDLLBPTable, tr("DLL breakpoint"));
+    mSplitter->addWidget(mExceptionBPTable, tr("Exception breakpoint"));
     mSplitter->collapseLowerTabs();
 
     // Layout
@@ -105,7 +119,8 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     connect(mMemBPTable, SIGNAL(selectionChangedSignal(int)), this, SLOT(selectionChangedMemorySlot()));
     connect(mDLLBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(DLLBPContextMenuSlot(const QPoint &)));
     connect(mDLLBPTable, SIGNAL(selectionChangedSignal(int)), this, SLOT(selectionChangedDLLSlot()));
-
+    connect(mExceptionBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(ExceptionBPContextMenuSlot(const QPoint &)));
+    connect(mExceptionBPTable, SIGNAL(selectionChangedSignal(int)), this, SLOT(selectionChangedExceptionSlot()));
 
     mCurrentType = bp_normal;
 }
@@ -140,10 +155,10 @@ void BreakpointsView::reloadData()
             mHardBPTable->setCellContent(wI, 3, tr("Disabled"));
 
         mHardBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
-        mHardBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].logText));
-        mHardBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].breakCondition));
+        mHardBPTable->setCellContent(wI, 5, QString::fromUtf8(wBPList.bp[wI].logText));
+        mHardBPTable->setCellContent(wI, 6, QString::fromUtf8(wBPList.bp[wI].breakCondition));
         mHardBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
-        mHardBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
+        mHardBPTable->setCellContent(wI, 8, QString::fromUtf8(wBPList.bp[wI].commandText));
 
         QString comment;
         if(GetCommentFormat(wBPList.bp[wI].addr, comment))
@@ -181,10 +196,10 @@ void BreakpointsView::reloadData()
             mSoftBPTable->setCellContent(wI, 3, tr("Disabled"));
 
         mSoftBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
-        mSoftBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].logText));
-        mSoftBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].breakCondition));
+        mSoftBPTable->setCellContent(wI, 5, QString::fromUtf8(wBPList.bp[wI].logText));
+        mSoftBPTable->setCellContent(wI, 6, QString::fromUtf8(wBPList.bp[wI].breakCondition));
         mSoftBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
-        mSoftBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
+        mSoftBPTable->setCellContent(wI, 8, QString::fromUtf8(wBPList.bp[wI].commandText));
 
         QString comment;
         if(GetCommentFormat(wBPList.bp[wI].addr, comment))
@@ -221,10 +236,10 @@ void BreakpointsView::reloadData()
             mMemBPTable->setCellContent(wI, 3, tr("Disabled"));
 
         mMemBPTable->setCellContent(wI, 4, QString("%1").arg(wBPList.bp[wI].hitCount));
-        mMemBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].logText));
-        mMemBPTable->setCellContent(wI, 6, QString().fromUtf8(wBPList.bp[wI].breakCondition));
+        mMemBPTable->setCellContent(wI, 5, QString::fromUtf8(wBPList.bp[wI].logText));
+        mMemBPTable->setCellContent(wI, 6, QString::fromUtf8(wBPList.bp[wI].breakCondition));
         mMemBPTable->setCellContent(wI, 7, wBPList.bp[wI].fastResume ? "X" : "");
-        mMemBPTable->setCellContent(wI, 8, QString().fromUtf8(wBPList.bp[wI].commandText));
+        mMemBPTable->setCellContent(wI, 8, QString::fromUtf8(wBPList.bp[wI].commandText));
 
         QString comment;
         if(GetCommentFormat(wBPList.bp[wI].addr, comment))
@@ -250,15 +265,41 @@ void BreakpointsView::reloadData()
             mDLLBPTable->setCellContent(wI, 2, tr("Disabled"));
 
         mDLLBPTable->setCellContent(wI, 3, QString("%1").arg(wBPList.bp[wI].hitCount));
-        mDLLBPTable->setCellContent(wI, 4, QString().fromUtf8(wBPList.bp[wI].logText));
-        mDLLBPTable->setCellContent(wI, 5, QString().fromUtf8(wBPList.bp[wI].breakCondition));
+        mDLLBPTable->setCellContent(wI, 4, QString::fromUtf8(wBPList.bp[wI].logText));
+        mDLLBPTable->setCellContent(wI, 5, QString::fromUtf8(wBPList.bp[wI].breakCondition));
         mDLLBPTable->setCellContent(wI, 6, wBPList.bp[wI].fastResume ? "X" : "");
-        mDLLBPTable->setCellContent(wI, 7, QString().fromUtf8(wBPList.bp[wI].commandText));
+        mDLLBPTable->setCellContent(wI, 7, QString::fromUtf8(wBPList.bp[wI].commandText));
     }
     mDLLBPTable->reloadData();
 
+    // Exception
+    DbgGetBpList(bp_exception, &wBPList);
+    mExceptionBPTable->setRowCount(wBPList.count);
+    for(wI = 0; wI < wBPList.count; wI++)
+    {
+        mExceptionBPTable->setCellContent(wI, 0, ToPtrString(wBPList.bp[wI].addr));
+        mExceptionBPTable->setCellContent(wI, 1, QString::fromUtf8(wBPList.bp[wI].name));
+        if(wBPList.bp[wI].active == false)
+            mExceptionBPTable->setCellContent(wI, 2, tr("Inactive"));
+        else if(wBPList.bp[wI].enabled == true)
+            mExceptionBPTable->setCellContent(wI, 2, tr("Enabled"));
+        else
+            mExceptionBPTable->setCellContent(wI, 2, tr("Disabled"));
+        mExceptionBPTable->setCellContent(wI, 3, QString("%1").arg(wBPList.bp[wI].hitCount));
+        mExceptionBPTable->setCellContent(wI, 4, QString::fromUtf8(wBPList.bp[wI].logText));
+        mExceptionBPTable->setCellContent(wI, 5, QString::fromUtf8(wBPList.bp[wI].breakCondition));
+        if(wBPList.bp[wI].slot == 1)
+            mExceptionBPTable->setCellContent(wI, 6, tr("First-chance"));
+        else if(wBPList.bp[wI].slot == 2)
+            mExceptionBPTable->setCellContent(wI, 6, tr("Second-chance"));
+        else if(wBPList.bp[wI].slot == 3)
+            mExceptionBPTable->setCellContent(wI, 6, tr("All")); // both first-chance and second-chance
+        mExceptionBPTable->setCellContent(wI, 7, QString::fromUtf8(wBPList.bp[wI].commandText));
+    }
+
     if(wBPList.count)
         BridgeFree(wBPList.bp);
+    mExceptionBPTable->reloadData();
 }
 
 void BreakpointsView::setupRightClickContextMenu()
@@ -271,6 +312,7 @@ void BreakpointsView::setupRightClickContextMenu()
     setupHardBPRightClickContextMenu();
     setupMemBPRightClickContextMenu();
     setupDLLBPRightClickContextMenu();
+    setupExceptionBPRightClickContextMenu();
 }
 
 /************************************************************************************
@@ -936,6 +978,171 @@ void BreakpointsView::removeAllDLLBPActionSlot()
     DbgCmdExec("LibrarianRemoveBreakPoint");
 }
 
+
+/************************************************************************************
+                         Exception Context Menu Management
+************************************************************************************/
+void BreakpointsView::setupExceptionBPRightClickContextMenu()
+{
+    // Add
+    mExceptionBPAddAction = new QAction(tr("&Add"), this);
+    connect(mExceptionBPAddAction, SIGNAL(triggered()), this, SLOT(addExceptionBPActionSlot()));
+
+    // Remove
+    mExceptionBPRemoveAction = new QAction(tr("&Remove"), this);
+    mExceptionBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
+    mExceptionBPTable->addAction(mExceptionBPRemoveAction);
+    connect(mExceptionBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeExceptionBPActionSlot()));
+
+    // Remove All
+    mExceptionBPRemoveAllAction = new QAction(tr("Remove All"), this);
+    connect(mExceptionBPRemoveAllAction, SIGNAL(triggered()), this, SLOT(removeAllExceptionBPActionSlot()));
+
+    // Enable/Disable
+    mExceptionBPEnableDisableAction = new QAction(tr("E&nable"), this);
+    mExceptionBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
+    mExceptionBPTable->addAction(mExceptionBPEnableDisableAction);
+    connect(mExceptionBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableExceptionBPActionSlot()));
+
+    // Reset hit count
+    mExceptionBPResetHitCountAction = new QAction(tr("Reset hit count"), this);
+    mExceptionBPTable->addAction(mExceptionBPResetHitCountAction);
+    connect(mExceptionBPResetHitCountAction, SIGNAL(triggered()), this, SLOT(resetExceptionHitCountSlot()));
+
+    // Enable All
+    mExceptionBPEnableAllAction = new QAction(tr("Enable All"), this);
+    mExceptionBPTable->addAction(mExceptionBPEnableAllAction);
+    connect(mExceptionBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllExceptionBPActionSlot()));
+
+    // Disable All
+    mExceptionBPDisableAllAction = new QAction(tr("Disable All"), this);
+    mExceptionBPTable->addAction(mExceptionBPDisableAllAction);
+    connect(mExceptionBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllExceptionBPActionSlot()));
+}
+
+void BreakpointsView::ExceptionBPContextMenuSlot(const QPoint & pos)
+{
+    if(!DbgIsDebugging())
+        return;
+    StdTable* table = mExceptionBPTable;
+    QMenu wMenu(this);
+    wMenu.addAction(mExceptionBPAddAction);
+    if(table->getRowCount() != 0)
+    {
+        int wI = 0;
+        duint wExceptionCode = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
+        BPMAP wBPList;
+
+        // Remove
+        wMenu.addAction(mExceptionBPRemoveAction);
+
+        // Enable/Disable
+        DbgGetBpList(bp_exception, &wBPList);
+
+        for(wI = 0; wI < wBPList.count; wI++)
+        {
+            if(wBPList.bp[wI].addr == wExceptionCode)
+            {
+                if(wBPList.bp[wI].active == false)
+                {
+                    mExceptionBPEnableDisableAction->setText(tr("E&nable"));
+                    wMenu.addAction(mExceptionBPEnableDisableAction);
+                }
+                else if(wBPList.bp[wI].enabled == true)
+                {
+                    mExceptionBPEnableDisableAction->setText(tr("&Disable"));
+                    wMenu.addAction(mExceptionBPEnableDisableAction);
+                }
+                else
+                {
+                    mExceptionBPEnableDisableAction->setText(tr("E&nable"));
+                    wMenu.addAction(mExceptionBPEnableDisableAction);
+                }
+            }
+        }
+        if(wBPList.count)
+            BridgeFree(wBPList.bp);
+
+        // Conditional
+        mCurrentType = bp_exception;
+        wMenu.addAction(mEditBreakpointAction);
+        wMenu.addAction(mExceptionBPResetHitCountAction);
+
+        // Separator
+        wMenu.addSeparator();
+
+        // Enable All
+        wMenu.addAction(mExceptionBPEnableAllAction);
+
+        // Disable All
+        wMenu.addAction(mExceptionBPDisableAllAction);
+
+        // Remove All
+        wMenu.addAction(mExceptionBPRemoveAllAction);
+
+        //Copy
+        QMenu wCopyMenu(tr("&Copy"), this);
+        table->setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
+        }
+
+    }
+    wMenu.exec(table->mapToGlobal(pos));
+}
+
+void BreakpointsView::removeExceptionBPActionSlot()
+{
+    StdTable* table = mExceptionBPTable;
+    Breakpoints::removeBP(bp_exception, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
+}
+
+void BreakpointsView::enableDisableExceptionBPActionSlot()
+{
+    StdTable* table = mExceptionBPTable;
+    Breakpoints::toggleBPByDisabling(bp_exception, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
+    table->selectNext();
+}
+
+void BreakpointsView::selectionChangedExceptionSlot()
+{
+    mCurrentType = bp_exception;
+}
+
+void BreakpointsView::resetExceptionHitCountSlot()
+{
+    StdTable* table = mExceptionBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("ResetExceptionBreakpointHitCount \"%1\"").arg(addrText).toUtf8().constData());
+    reloadData();
+}
+
+void BreakpointsView::addExceptionBPActionSlot()
+{
+    QString fileName;
+    if(SimpleInputBox(this, tr("Enter the exception code"), "", fileName, tr("Example: EXCEPTION_ACCESS_VIOLATION"), &DIcon("breakpoint.png")) && !fileName.isEmpty())
+    {
+        DbgCmdExec((QString("SetExceptionBPX ") + fileName).toUtf8().constData());
+    }
+}
+
+void BreakpointsView::enableAllExceptionBPActionSlot()
+{
+    DbgCmdExec("EnableExceptionBPX");
+}
+
+void BreakpointsView::disableAllExceptionBPActionSlot()
+{
+    DbgCmdExec("DisableExceptionBPX");
+}
+
+void BreakpointsView::removeAllExceptionBPActionSlot()
+{
+    DbgCmdExec("DeleteExceptionBPX");
+}
+
 /************************************************************************************
            Conditional Breakpoint Context Menu Management (Sub-menu only)
 ************************************************************************************/
@@ -957,6 +1164,9 @@ void BreakpointsView::editBreakpointSlot()
         table = mDLLBPTable;
         Breakpoints::editBP(mCurrentType, table->getCellContent(table->getInitialSelection(), 1), this);
         return;
+    case bp_exception:
+        table = mExceptionBPTable;
+        break;
     default:
         return;
     }

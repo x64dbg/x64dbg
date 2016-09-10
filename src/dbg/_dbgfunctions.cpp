@@ -235,6 +235,9 @@ static bool _getbridgebp(BPXTYPE type, duint addr, BRIDGEBP* bp)
         bptype = BPDLL;
         addr = ModHashFromName(reinterpret_cast<const char*>(addr));
         break;
+    case bp_exception:
+        bptype = BPEXCEPTION;
+        break;
     default:
         return false;
     }
