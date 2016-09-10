@@ -638,11 +638,12 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     info.execute = DbgScriptDllExec;
     GuiRegisterScriptLanguage(&info);
     dputs(QT_TRANSLATE_NOOP("DBG", "Starting command loop..."));
-    hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
+    hCommandLoopThread = CreateThread(nullptr, 0, DbgCommandLoopThread, nullptr, 0, nullptr);
     char plugindir[deflen] = "";
     strcpy_s(plugindir, szProgramDir);
     strcat_s(plugindir, "\\plugins");
-    CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), 0);
+    CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), nullptr);
+    CreateDirectoryW(StringUtils::Utf8ToUtf16(StringUtils::sprintf("%s\\memdumps", szProgramDir)).c_str(), nullptr);
     dputs(QT_TRANSLATE_NOOP("DBG", "Loading plugins..."));
     pluginload(plugindir);
     dputs(QT_TRANSLATE_NOOP("DBG", "Handling command line..."));
