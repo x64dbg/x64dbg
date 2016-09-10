@@ -3050,7 +3050,7 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "  None\n"));
     pFlag(c, IMAGE_FILE_RELOCS_STRIPPED, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_RELOCS_STRIPPED: Relocation info stripped from file."));
     pFlag(c, IMAGE_FILE_EXECUTABLE_IMAGE, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_EXECUTABLE_IMAGE: File is executable (i.e. no unresolved externel references)."));
-    pFlag(c, IMAGE_FILE_LINE_NUMS_STRIPPED, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_LINE_NUMS_STRIPPED: Line nunbers stripped from file."));
+    pFlag(c, IMAGE_FILE_LINE_NUMS_STRIPPED, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_LINE_NUMS_STRIPPED: Line numbers stripped from file."));
     pFlag(c, IMAGE_FILE_LOCAL_SYMS_STRIPPED, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_LOCAL_SYMS_STRIPPED: Local symbols stripped from file."));
     pFlag(c, IMAGE_FILE_AGGRESIVE_WS_TRIM, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_AGGRESIVE_WS_TRIM: Agressively trim working set"));
     pFlag(c, IMAGE_FILE_LARGE_ADDRESS_AWARE, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_LARGE_ADDRESS_AWARE: App can handle >2gb addresses"));
