@@ -50,6 +50,7 @@ void LabeledSplitterHandle::setupContextMenu()
 
 void LabeledSplitterHandle::contextMenuEvent(QContextMenuEvent* event)
 {
+    event->accept();
     LabeledSplitter* parent = getParent();
     int index = parent->indexOf(this);
     if(parent->sizes().at(index) != 0)
@@ -57,7 +58,6 @@ void LabeledSplitterHandle::contextMenuEvent(QContextMenuEvent* event)
     else
         mExpandCollapseAction->setText(tr("&Expand"));
     mMenu->exec(mapToGlobal(event->pos()));
-    event->accept();
 }
 
 void LabeledSplitterHandle::collapseSlot()
@@ -66,24 +66,24 @@ void LabeledSplitterHandle::collapseSlot()
     mousePressEvent(&event);
 }
 
-static void func1(LabeledSplitter* parent, int index)
+// Convert a tab to an external window
+void LabeledSplitterHandle::detachSlot()
 {
+    auto parent = getParent();
+    int index = parent->indexOf(this);
     // Create the window
     LabeledSplitterDetachedWindow* detachedWidget = new LabeledSplitterDetachedWindow(parent, parent);
     detachedWidget->setWindowModality(Qt::NonModal);
 
     // Find Widget and connect
-    parent->connect(detachedWidget, SIGNAL(OnClose(QWidget*)), parent, SLOT(attachSlot(QWidget*)));
+    parent->connect(detachedWidget, SIGNAL(OnClose(LabeledSplitterDetachedWindow*)), parent, SLOT(attachSlot(LabeledSplitterDetachedWindow*)));
 
     detachedWidget->setWindowTitle(parent->names.at(index));
     detachedWidget->index = index;
-    //!!after
     // Remove from splitter
     QWidget* tearOffWidget = parent->widget(index);
-    //!!mid
     tearOffWidget->setParent(detachedWidget);
-    parent->names.removeAt(index);
-    //!!before
+
     // Add it to the windows list
     parent->m_Windows.append(tearOffWidget);
 
@@ -100,22 +100,13 @@ static void func1(LabeledSplitter* parent, int index)
     detachedWidget->showNormal();
     detachedWidget->setGeometry(x, y, w, h);
     detachedWidget->showNormal();
+    parent->names.removeAt(index);
 }
 
-// Convert a tab to an external window
-void LabeledSplitterHandle::detachSlot()
-{
-    auto parent = getParent();
-    int index = parent->indexOf(this);
-    func1(parent, index);
-}
-
-
-void LabeledSplitter::attachSlot(QWidget* widget)
+void LabeledSplitter::attachSlot(LabeledSplitterDetachedWindow* widget)
 {
     // Retrieve widget
-    LabeledSplitterDetachedWindow* detachedWidget = qobject_cast<LabeledSplitterDetachedWindow*>(sender());
-    QWidget* tearOffWidget = detachedWidget->centralWidget();
+    QWidget* tearOffWidget = widget->centralWidget();
 
     // Remove it from the windows list
     for(int i = 0; i < m_Windows.size(); i++)
@@ -127,12 +118,12 @@ void LabeledSplitter::attachSlot(QWidget* widget)
     }
 
     // Make Active
-    insertWidget(detachedWidget->index, tearOffWidget, tearOffWidget->windowTitle());
+    insertWidget(widget->index, tearOffWidget, widget->windowTitle());
 
     // Cleanup Window
-    disconnect(detachedWidget, SIGNAL(OnClose(QWidget*)), this, SLOT(AttachTab(QWidget*)));
-    detachedWidget->hide();
-    detachedWidget->close();
+    disconnect(widget, SIGNAL(OnClose(QWidget*)), this, SLOT(attachSlot(LabeledSplitterDetachedWindow*)));
+    widget->hide();
+    widget->close();
 }
 
 void LabeledSplitterHandle::paintEvent(QPaintEvent* event)
