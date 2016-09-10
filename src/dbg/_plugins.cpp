@@ -49,7 +49,7 @@ PLUG_IMPEXP void _plugin_debugpause()
 {
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     lock(WAITID_RUN);
-    SetForegroundWindow(GuiGetWindowHandle());
+    dbgsetforeground();
     dbgsetskipexceptions(false);
     // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };

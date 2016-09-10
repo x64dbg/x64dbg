@@ -110,6 +110,7 @@ bool dbgsettracecondition(String expression, duint maxCount);
 bool dbgtraceactive();
 void dbgsetdebuggeeinitscript(const char* fileName);
 const char* dbggetdebuggeeinitscript();
+void dbgsetforeground();
 
 void cbStep();
 void cbRtrStep();
@@ -144,5 +145,6 @@ extern bool bEnableSourceDebugging;
 extern bool bTraceRecordEnabledDuringTrace;
 extern bool bSkipInt3Stepping;
 extern bool bIgnoreInconsistentBreakpoints;
+extern bool bNoForegroundWindow;
 
 #endif // _DEBUGGER_H

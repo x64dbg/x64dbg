@@ -1510,7 +1510,7 @@ void cbDebugLoadLibBPX()
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     //lock
     lock(WAITID_RUN);
-    SetForegroundWindow(GuiGetWindowHandle());
+    dbgsetforeground();
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     wait(WAITID_RUN);

@@ -89,6 +89,7 @@ bool bEnableSourceDebugging = true;
 bool bTraceRecordEnabledDuringTrace = true;
 bool bSkipInt3Stepping = false;
 bool bIgnoreInconsistentBreakpoints = false;
+bool bNoForegroundWindow = false;
 duint DbgEvents = 0;
 
 static duint dbgcleartracecondition()
@@ -640,7 +641,7 @@ void cbPauseBreakpoint()
     // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    SetForegroundWindow(GuiGetWindowHandle());
+    dbgsetforeground();
     wait(WAITID_RUN);
 }
 
@@ -718,7 +719,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
             // Plugin callback
             PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
             plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-            SetForegroundWindow(GuiGetWindowHandle());
+            dbgsetforeground();
             bSkipExceptions = false;
             wait(WAITID_RUN);
             return;
@@ -797,7 +798,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     }
     if(breakCondition)  //break the debugger
     {
-        SetForegroundWindow(GuiGetWindowHandle());
+        dbgsetforeground();
         bSkipExceptions = false;
     }
     else //resume immediately
@@ -837,7 +838,7 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    SetForegroundWindow(GuiGetWindowHandle());
+    dbgsetforeground();
     bSkipExceptions = false;
     wait(WAITID_RUN);
 }
@@ -1034,7 +1035,7 @@ void cbStep()
     // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    SetForegroundWindow(GuiGetWindowHandle());
+    dbgsetforeground();
     bSkipExceptions = false;
     plugincbcall(CB_STEPPED, &stepInfo);
     wait(WAITID_RUN);
@@ -1053,7 +1054,7 @@ static void cbRtrFinalStep()
     // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    SetForegroundWindow(GuiGetWindowHandle());
+    dbgsetforeground();
     bSkipExceptions = false;
     wait(WAITID_RUN);
 }
@@ -1345,7 +1346,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         // Plugin callback
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-        SetForegroundWindow(GuiGetWindowHandle());
+        dbgsetforeground();
         wait(WAITID_RUN);
     }
 }
@@ -1382,7 +1383,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         // Plugin callback
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-        SetForegroundWindow(GuiGetWindowHandle());
+        dbgsetforeground();
         wait(WAITID_RUN);
     }
 }
@@ -1436,7 +1437,7 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
         // Plugin callback
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-        SetForegroundWindow(GuiGetWindowHandle());
+        dbgsetforeground();
         CloseHandle(CreateThread(NULL, 0, cbInitializationScriptThread, NULL, 0, NULL));
     }
     else
@@ -1579,7 +1580,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         // Plugin callback
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-        SetForegroundWindow(GuiGetWindowHandle());
+        dbgsetforeground();
         wait(WAITID_RUN);
     }
 }
@@ -1613,7 +1614,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         // Plugin callback
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-        SetForegroundWindow(GuiGetWindowHandle());
+        dbgsetforeground();
         wait(WAITID_RUN);
     }
 
@@ -1657,7 +1658,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         // Plugin callback
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-        SetForegroundWindow(GuiGetWindowHandle());
+        dbgsetforeground();
         wait(WAITID_RUN);
     }
 }
@@ -1712,7 +1713,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             // Plugin callback
             PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
             plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-            SetForegroundWindow(GuiGetWindowHandle());
+            dbgsetforeground();
             bSkipExceptions = false;
             plugincbcall(CB_EXCEPTION, &callbackInfo);
             wait(WAITID_RUN);
@@ -1765,7 +1766,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    SetForegroundWindow(GuiGetWindowHandle());
+    dbgsetforeground();
     bSkipExceptions = false;
     plugincbcall(CB_EXCEPTION, &callbackInfo);
     wait(WAITID_RUN);
@@ -2454,6 +2455,12 @@ void dbgsetdebuggeeinitscript(const char* fileName)
 const char* dbggetdebuggeeinitscript()
 {
     return szDebuggeeInitializationScript;
+}
+
+void dbgsetforeground()
+{
+    if(!bNoForegroundWindow)
+        SetForegroundWindow(GuiGetWindowHandle());
 }
 
 DWORD WINAPI threadDebugLoop(void* lpParameter)
