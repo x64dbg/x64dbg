@@ -299,6 +299,7 @@ void BreakpointsView::reloadData()
 
     if(wBPList.count)
         BridgeFree(wBPList.bp);
+    mExceptionBPTable->reloadData();
 }
 
 void BreakpointsView::setupRightClickContextMenu()
@@ -1016,7 +1017,7 @@ void BreakpointsView::ExceptionBPContextMenuSlot(const QPoint & pos)
     if(table->getRowCount() != 0)
     {
         int wI = 0;
-        duint wExceptionCode = table->getCellContent(table->getInitialSelection(), 1).toULongLong(0, 16);
+        duint wExceptionCode = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -1082,13 +1083,13 @@ void BreakpointsView::ExceptionBPContextMenuSlot(const QPoint & pos)
 void BreakpointsView::removeExceptionBPActionSlot()
 {
     StdTable* table = mExceptionBPTable;
-    Breakpoints::removeBP(table->getCellContent(table->getInitialSelection(), 0));
+    Breakpoints::removeBP(bp_exception, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
 }
 
 void BreakpointsView::enableDisableExceptionBPActionSlot()
 {
     StdTable* table = mExceptionBPTable;
-    Breakpoints::toggleBPByDisabling(table->getCellContent(table->getInitialSelection(), 0));
+    Breakpoints::toggleBPByDisabling(bp_exception, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
     table->selectNext();
 }
 

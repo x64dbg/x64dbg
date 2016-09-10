@@ -74,7 +74,10 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
     {
         wCmd = QString("LibrarianEnableBreakPoint \"%1\"").arg(QString(bp.mod));
     }
-
+    else if(bp.type == bp_exception)
+    {
+        wCmd = QString("EnableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
+    }
 
     DbgCmdExec(wCmd.toUtf8().constData());
 }
@@ -135,6 +138,10 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
     else if(bp.type == bp_dll)
     {
         wCmd = QString("LibrarianDisableBreakPoint \"%1\"").arg(QString(bp.mod));
+    }
+    else if(bp.type == bp_exception)
+    {
+        wCmd = QString("DisableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -199,11 +206,12 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
         wCmd = QString("bcdll \"%1\"").arg(QString(bp.mod));
         break;
 
-    default:
-    {
+    case bp_exception:
+        wCmd = QString("DeleteExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
+        break;
 
-    }
-    break;
+    default:
+        break;
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());

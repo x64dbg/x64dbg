@@ -10,6 +10,7 @@
 #include "module.h"
 #include "value.h"
 #include "debugger.h"
+#include "exception.h"
 
 typedef std::pair<BP_TYPE, duint> BreakpointKey;
 std::map<BreakpointKey, BREAKPOINT> breakpoints;
@@ -199,6 +200,13 @@ bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         if(valfromstring(Name, &addr))
             if(BpGet(addr, Type, 0, Bp))
                 return true;
+        if(Type == BPEXCEPTION)
+        {
+            addr = 0;
+            if(ExceptionNameToCode(Name, reinterpret_cast<unsigned int*>(&addr)))
+                if(BpGet(addr, BPEXCEPTION, 0, Bp))
+                    return true;
+        }
     }
     else
     {

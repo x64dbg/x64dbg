@@ -145,8 +145,8 @@ static void registercommands()
     dbgcmdnew("LibrarianEnableBreakPoint\1bpedll", cbDebugBpDllEnable, true);
     dbgcmdnew("SetExceptionBPX", cbDebugSetExceptionBPX, true); //set exception breakpoint
     dbgcmdnew("DeleteExceptionBPX", cbDebugDeleteExceptionBPX, true); //delete exception breakpoint
-    dbgcmdnew("EnableExceptionBPX", cbDebugEnableBPX, true);
-    dbgcmdnew("DisableExceptionBPX", cbDebugDisableBPX, true);
+    dbgcmdnew("EnableExceptionBPX", cbDebugEnableExceptionBPX, true);
+    dbgcmdnew("DisableExceptionBPX", cbDebugDisableExceptionBPX, true);
 
     //breakpoints (conditional)
     dbgcmdnew("SetBreakpointName\1bpname", cbDebugSetBPXName, true); //set breakpoint name
