@@ -111,6 +111,7 @@ void MemUpdateMap()
         duint base = ModBaseFromName(currentPage.info);
         if(!base)
             continue;
+        base = duint(currentPage.mbi.AllocationBase);
         std::vector<MODSECTIONINFO> sections;
         if(!ModSectionsFromAddr(base, &sections))
             continue;
