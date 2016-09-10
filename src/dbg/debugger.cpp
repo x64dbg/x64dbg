@@ -1675,7 +1675,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     duint addr = (duint)ExceptionData->ExceptionRecord.ExceptionAddress;
     {
         BREAKPOINT bp;
-        if(BpGet(ExceptionCode, BPEXCEPTION, nullptr, &bp) && bp.enabled)
+        if(BpGet(ExceptionCode, BPEXCEPTION, nullptr, &bp) && bp.enabled && ((bp.titantype == 1 && ExceptionData->dwFirstChance) || (bp.titantype == 2 && !ExceptionData->dwFirstChance) || bp.titantype == 3))
         {
             cbGenericBreakpoint(BPEXCEPTION, ExceptionData);
             return;

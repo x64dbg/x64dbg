@@ -219,6 +219,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "HardwareBreakpoint", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryBreakpoint", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "DLLBreakpoint", 8);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "ExceptionBreakpoint", 8);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 7);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);

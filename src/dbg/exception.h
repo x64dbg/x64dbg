@@ -6,8 +6,11 @@
 #include "_global.h"
 
 bool ExceptionCodeInit(const String & exceptionFile);
-String ExceptionCodeToName(unsigned int ExceptionCode);
+const String & ExceptionCodeToName(unsigned int ExceptionCode);
 bool NtStatusCodeInit(const String & ntStatusFile);
-String NtStatusCodeToName(unsigned int NtStatusCode);
+const String & NtStatusCodeToName(unsigned int NtStatusCode);
+bool ErrorCodeInit(const String & errorFile);
+const String & ErrorCodeToName(unsigned int ErrorCode);
+bool ExceptionNameToCode(const char* Name, unsigned int* ErrorCode);
 
 #endif // _EXCEPTION_H

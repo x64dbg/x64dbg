@@ -3,7 +3,7 @@
 #include "console.h"
 #include "memory.h"
 #include "variable.h"
-#include "error.h"
+#include "exception.h"
 
 inline bool IsArgumentsLessThan(int argc, int minimumCount)
 {
@@ -617,13 +617,13 @@ CMDRESULT cbDebugSetExceptionBPX(int argc, char* argv[])
     if(!valfromstring(argv[1], &ExceptionCode))
     {
         ExceptionCode = 0;
-        if(!ErrorNameToCode(argv[1], reinterpret_cast<unsigned int*>(&ExceptionCode)))
+        if(!ExceptionNameToCode(argv[1], reinterpret_cast<unsigned int*>(&ExceptionCode)))
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Invalid exception code."));
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid exception code: %s.\n"), argv[1]);
             return STATUS_ERROR;
         }
     }
-    String ExceptionName = ErrorCodeToName(ExceptionCode);
+    const String & ExceptionName = ExceptionCodeToName(ExceptionCode);
     if(BpGet(ExceptionCode, BPEXCEPTION, nullptr, nullptr))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Exception breakpoint %X(%s) already exists!\n"), ExceptionCode, ExceptionName.c_str());
@@ -638,6 +638,7 @@ CMDRESULT cbDebugSetExceptionBPX(int argc, char* argv[])
             return STATUS_ERROR;
         }
         // range limit
+        // chance: 1=first chance, 2=second chance, 3=all
         if(chance > 3)
             chance = 3;
         if(chance == 0)
@@ -678,7 +679,7 @@ CMDRESULT cbDebugDeleteExceptionBPX(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     duint addr = 0;
-    if(ErrorNameToCode(argv[1], reinterpret_cast<unsigned int*>(&addr)) && (!valfromstring(argv[1], &addr) || !BpGet(addr, BPEXCEPTION, 0, &found))) //invalid breakpoint
+    if(ExceptionNameToCode(argv[1], reinterpret_cast<unsigned int*>(&addr)) && (!valfromstring(argv[1], &addr) || !BpGet(addr, BPEXCEPTION, 0, &found))) //invalid breakpoint
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "No such exception breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
@@ -720,7 +721,7 @@ CMDRESULT cbDebugEnableExceptionBPX(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     duint addr = 0;
-    if(!ErrorNameToCode(argv[1], reinterpret_cast<unsigned int*>(&addr)) && (!valfromstring(argv[1], &addr) || !BpGet(addr, BPEXCEPTION, 0, &found))) //invalid breakpoint
+    if(!ExceptionNameToCode(argv[1], reinterpret_cast<unsigned int*>(&addr)) && (!valfromstring(argv[1], &addr) || !BpGet(addr, BPEXCEPTION, 0, &found))) //invalid breakpoint
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "No such exception breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
@@ -775,7 +776,7 @@ CMDRESULT cbDebugDisableExceptionBPX(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     duint addr = 0;
-    if(!ErrorNameToCode(argv[1], reinterpret_cast<unsigned int*>(&addr)) && (!valfromstring(argv[1], &addr) || !BpGet(addr, BPEXCEPTION, 0, &found))) //invalid breakpoint
+    if(!ExceptionNameToCode(argv[1], reinterpret_cast<unsigned int*>(&addr)) && (!valfromstring(argv[1], &addr) || !BpGet(addr, BPEXCEPTION, 0, &found))) //invalid breakpoint
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "No such exception breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;

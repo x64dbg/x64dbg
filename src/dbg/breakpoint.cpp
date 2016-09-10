@@ -70,8 +70,11 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     ASSERT_DEBUGGING("Export call");
 
     // Fail if the address is a bad memory region
-    if(!MemIsValidReadPtr(Address))
-        return false;
+    if(Type != BPDLL && Type != BPEXCEPTION)
+    {
+        if(!MemIsValidReadPtr(Address))
+            return false;
+    }
 
     // Fail if the breakpoint already exists
     if(BpGet(Address, Type, Name, nullptr))
@@ -84,7 +87,10 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     BREAKPOINT bp;
     memset(&bp, 0, sizeof(BREAKPOINT));
 
-    ModNameFromAddr(Address, bp.mod, true);
+    if(Type != BPDLL && Type != BPEXCEPTION)
+    {
+        ModNameFromAddr(Address, bp.mod, true);
+    }
     strncpy_s(bp.name, Name, _TRUNCATE);
 
     bp.active = true;
@@ -101,7 +107,14 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     // Insert new entry to the global list
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    return breakpoints.insert(std::make_pair(BreakpointKey(Type, ModHashFromAddr(Address)), bp)).second;
+    if(Type != BPDLL && Type != BPEXCEPTION)
+    {
+        return breakpoints.insert(std::make_pair(BreakpointKey(Type, ModHashFromAddr(Address)), bp)).second;
+    }
+    else
+    {
+        return breakpoints.insert(std::make_pair(BreakpointKey(Type, Address), bp)).second;
+    }
 }
 
 bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType, const char* Name)
@@ -601,7 +614,7 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         break;
     case BPEXCEPTION:
         BridgeBp->type = bp_exception;
-        BridgeBp->slot = Bp->titantype; //1:First-chance, 2:Second-chance
+        BridgeBp->slot = Bp->titantype; //1:First-chance, 2:Second-chance, 3:Both
         break;
     default:
         BridgeBp->type = bp_none;
@@ -636,7 +649,8 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "type", json_integer(breakpoint.type));
         json_object_set_new(jsonObj, "titantype", json_hex(breakpoint.titantype));
         json_object_set_new(jsonObj, "name", json_string(breakpoint.name));
-        json_object_set_new(jsonObj, "module", json_string(breakpoint.mod));
+        if(breakpoint.type != BPEXCEPTION)
+            json_object_set_new(jsonObj, "module", json_string(breakpoint.mod));
         json_object_set_new(jsonObj, "breakCondition", json_string(breakpoint.breakCondition));
         json_object_set_new(jsonObj, "logText", json_string(breakpoint.logText));
         json_object_set_new(jsonObj, "logCondition", json_string(breakpoint.logCondition));
@@ -692,7 +706,8 @@ void BpCacheLoad(JSON Root)
 
         // String values
         loadStringValue(value, breakpoint.name, "name");
-        loadStringValue(value, breakpoint.mod, "module");
+        if(breakpoint.type != BPEXCEPTION)
+            loadStringValue(value, breakpoint.mod, "module");
         loadStringValue(value, breakpoint.breakCondition, "breakCondition");
         loadStringValue(value, breakpoint.logText, "logText");
         loadStringValue(value, breakpoint.logCondition, "logCondition");

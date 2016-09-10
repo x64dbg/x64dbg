@@ -1,6 +1,6 @@
 #include "handles.h"
 #include "undocumented.h"
-#include "error.h"
+#include "exception.h"
 
 typedef struct _OBJECT_NAME_INFORMATION
 {
@@ -152,7 +152,7 @@ bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String 
         if(result != WAIT_OBJECT_0)
         {
             TerminateThread(hThread, 0);
-            name = ErrorCodeToName(result);
+            name = String(ErrorCodeToName(result));
         }
         else
             CloseHandle(hThread);
@@ -160,6 +160,6 @@ bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String 
         CloseHandle(hLocalHandle);
     }
     else
-        name = ErrorCodeToName(GetLastError());
+        name = String(ErrorCodeToName(GetLastError()));
     return true;
 }
