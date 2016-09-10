@@ -282,6 +282,7 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     }
     DebugUpdateGuiAsync(addr, false);
+    GuiShowCpu();
     return STATUS_CONTINUE;
 }
 
@@ -684,6 +685,7 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
     }
     else
         GuiDumpAt(addr);
+    GuiShowCpu();
     return STATUS_CONTINUE;
 }
 
@@ -704,6 +706,7 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
         DebugUpdateStack(addr, csp, true);
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Invalid stack address!"));
+    GuiShowCpu();
     return STATUS_CONTINUE;
 }
 
@@ -718,6 +721,7 @@ CMDRESULT cbDebugMemmapdump(int argc, char* argv[])
         return STATUS_ERROR;
     }
     GuiSelectInMemoryMap(addr);
+    GuiShowCpu();
     return STATUS_CONTINUE;
 }
 

@@ -81,11 +81,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(addFavouriteItem(int, QString, QString)), this, SLOT(addFavouriteItem(int, QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(setFavouriteItemShortcut(int, QString, QString)), this, SLOT(setFavouriteItemShortcut(int, QString, QString)));
-    connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(displayMemMapWidget()));
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(displayCpuWidget()));
-    connect(Bridge::getBridge(), SIGNAL(dumpAt(dsint)), this, SLOT(displayCpuWidget()));
-    connect(Bridge::getBridge(), SIGNAL(dumpAtN(duint, int)), this, SLOT(displayCpuWidget()));
-    connect(Bridge::getBridge(), SIGNAL(stackDumpAt(duint, duint)), this, SLOT(displayCpuWidget()));
 
     // Setup menu API
     initMenuApi();
