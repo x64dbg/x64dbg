@@ -26,6 +26,7 @@ public slots:
     void setTitle(QString title);
     void setInfoLine(int line, QString info);
     void openFile();
+    void paste();
     void reload();
     void unload();
     void run();
