@@ -113,9 +113,9 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
 static void linkify(QString & msg)
 {
 #ifdef _WIN64
-    msg.replace(QRegularExpression("([\\dA-Fa-f]{16})"), "<a href=\"x64dbg://localhost/address64#\\1\">\\1</a>");
+    msg.replace(QRegularExpression("([0-9A-Fa-f]{16})"), "<a href=\"x64dbg://localhost/address64#\\1\">\\1</a>");
 #else //x86
-    msg.replace(QRegularExpression("([\\dA-Fa-f]{8})"), "<a href=\"x64dbg://localhost/address32#\\1\">\\1</a>");
+    msg.replace(QRegularExpression("([0-9A-Fa-f]{8})"), "<a href=\"x64dbg://localhost/address32#\\1\">\\1</a>");
 #endif //_WIN64
 }
 

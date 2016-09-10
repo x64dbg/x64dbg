@@ -1432,7 +1432,7 @@ void CPUDump::entropySlot()
     mMemPage->read(data.data(), selStart, selSize);
 
     EntropyDialog entropyDialog(this);
-    entropyDialog.setWindowTitle(tr("Entropy (Address: %1, Size: %2)").arg(ToPtrString(selStart)).arg(ToPtrString(selSize)));
+    entropyDialog.setWindowTitle(tr("Entropy (Address: %1, Size: %2)").arg(ToPtrString(rvaToVa(selStart))).arg(ToHexString(selSize)));
     entropyDialog.show();
     entropyDialog.GraphMemory(data.constData(), data.size());
     entropyDialog.exec();
