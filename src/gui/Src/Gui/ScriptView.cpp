@@ -337,6 +337,7 @@ void ScriptView::setupContextMenu()
     mMenu = new MenuBuilder(this);
     MenuBuilder* mLoadMenu = new MenuBuilder(this);
     mLoadMenu->addAction(makeShortcutAction(DIcon("folder-horizontal-open.png"), tr("&Open..."), SLOT(openFile()), "ActionLoadScript"));
+    mLoadMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(paste()), "ActionBinaryPaste"));
     mMenu->addMenu(makeMenu(tr("Load Script")), mLoadMenu);
     auto isempty = [this](QMenu*)
     {
@@ -454,6 +455,12 @@ void ScriptView::openFile()
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
     DbgScriptUnload();
     DbgScriptLoad(filename.toUtf8().constData());
+}
+
+void ScriptView::paste()
+{
+    DbgScriptUnload();
+    DbgScriptLoad("clipboard://localhost");
 }
 
 void ScriptView::reload()
