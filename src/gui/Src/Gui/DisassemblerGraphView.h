@@ -296,6 +296,7 @@ private:
     QColor disassemblyBackgroundColor;
     QColor disassemblySelectionColor;
     QColor disassemblyTracedColor;
+    QColor disassemblyTracedSelectionColor;
     QColor jmpColor;
     QColor brtrueColor;
     QColor brfalseColor;

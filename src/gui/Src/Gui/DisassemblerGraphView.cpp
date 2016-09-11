@@ -183,14 +183,19 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
                 int y = block.y + (2 * this->charWidth) + (int(block.block.header_text.lines.size()) * this->charHeight);
                 for(Instr & instr : block.block.instrs)
                 {
-                    if(instr.addr == this->cur_instr)
+                    auto selected = instr.addr == this->cur_instr;
+                    auto traced = dbgfunctions->GetTraceRecordHitCount(instr.addr) != 0;
+                    if(selected && traced)
                     {
-                        p.setPen(QColor(0, 0, 0, 0));
-                        p.setBrush(disassemblySelectionColor);
-                        p.drawRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
-                                   int(instr.text.lines.size()) * this->charHeight);
+                        p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
+                                         int(instr.text.lines.size()) * this->charHeight), disassemblyTracedSelectionColor);
                     }
-                    else if(dbgfunctions->GetTraceRecordHitCount(instr.addr) != 0)
+                    else if(selected)
+                    {
+                        p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
+                                         int(instr.text.lines.size()) * this->charHeight), disassemblySelectionColor);
+                    }
+                    else if(traced)
                     {
                         p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
                                          int(instr.text.lines.size()) * this->charHeight), disassemblyTracedColor);
@@ -1348,6 +1353,8 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     disassemblyBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
     disassemblySelectionColor = ConfigColor("DisassemblySelectionColor");
     disassemblyTracedColor = ConfigColor("DisassemblyTracedBackgroundColor");
+    auto a = disassemblySelectionColor, b = disassemblyTracedColor;
+    disassemblyTracedSelectionColor = QColor((a.red() + b.red()) / 2, (a.green() + b.green()) / 2, (a.blue() + b.blue()) / 2);
 
     jmpColor = ConfigColor("GraphJmpColor");
     brtrueColor = ConfigColor("GraphBrtrueColor");
