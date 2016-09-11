@@ -17,6 +17,7 @@ DisassemblyPopup::DisassemblyPopup(Disassembly* parent) :
     updateFont();
     updateColors();
     setFrameStyle(QFrame::Panel);
+    setLineWidth(2);
     mMaxInstructions = 20;
 }
 
@@ -35,6 +36,9 @@ void DisassemblyPopup::updateColors()
     commentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
     commentAutoColor = ConfigColor("DisassemblyAutoCommentColor");
     commentAutoBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
+    QPalette palette;
+    palette.setColor(QPalette::Foreground, ConfigColor("AbstractTableViewSeparatorColor"));
+    setPalette(palette);
 }
 
 void DisassemblyPopup::updateFont()
@@ -59,24 +63,24 @@ void DisassemblyPopup::paintEvent(QPaintEvent* event)
     // Draw Address
     p.setPen(QPen(labelColor));
     int addrWidth = mFontMetrics->width(addrText);
-    p.fillRect(2, 1, addrWidth, charHeight, QBrush(labelBackgroundColor));
-    p.drawText(2, 1, addrWidth, charHeight, 0, addrText);
+    p.fillRect(3, 2 + lineWidth(), addrWidth, charHeight, QBrush(labelBackgroundColor));
+    p.drawText(3, 2, addrWidth, charHeight, 0, addrText);
     // Draw Comments
     if(!addrComment.isEmpty())
     {
         int commentWidth = mFontMetrics->width(addrComment);
         QBrush background = QBrush(addrCommentAuto ? commentAutoBackgroundColor : commentBackgroundColor);
         p.setPen(addrCommentAuto ? commentAutoColor : commentColor);
-        p.fillRect(2 + addrWidth, 1, commentWidth, charHeight, background);
-        p.drawText(2 + addrWidth, 1, commentWidth, charHeight, 0, addrComment);
+        p.fillRect(3 + addrWidth, 2, commentWidth, charHeight, background);
+        p.drawText(3 + addrWidth, 2, commentWidth, charHeight, 0, addrComment);
     }
     // Draw Instructions
     int y = charHeight + 1;
     for(auto & instruction : mDisassemblyToken)
     {
         if(instruction.second)
-            p.fillRect(QRect(2, y, mWidth - 2, charHeight), disassemblyTracedColor);
-        RichTextPainter::paintRichText(&p, 2, y, mWidth - 2, charHeight, 0, instruction.first, mFontMetrics);
+            p.fillRect(QRect(3, y, mWidth - 3, charHeight), disassemblyTracedColor);
+        RichTextPainter::paintRichText(&p, 3, y, mWidth - 3, charHeight, 0, instruction.first, mFontMetrics);
         y += charHeight;
     }
     QFrame::paintEvent(event);
