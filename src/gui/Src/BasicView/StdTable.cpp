@@ -458,11 +458,11 @@ void StdTable::setupCopyMenu(MenuBuilder* copyMenu)
     if(!getColumnCount())
         return;
     //Copy->Whole Line
-    copyMenu->addAction(makeAction(tr("&Line"), SLOT(copyLineSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_table_line.png"), tr("&Line"), SLOT(copyLineSlot())));
     //Copy->Cropped Table
-    copyMenu->addAction(makeAction(tr("Cropped &Table"), SLOT(copyTableSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), SLOT(copyTableSlot())));
     //Copy->Full Table
-    copyMenu->addAction(makeAction(tr("&Full Table"), SLOT(copyTableResizeSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_full_table.png"), tr("&Full Table"), SLOT(copyTableResizeSlot())));
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->ColName

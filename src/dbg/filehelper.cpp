@@ -4,7 +4,7 @@
 
 bool FileHelper::ReadAllData(const String & fileName, std::vector<unsigned char> & content)
 {
-    if(fileName.compare("clipboard://localhost") != 0)
+    if(fileName.compare("x64dbg://localhost/clipboard") != 0)
     {
         Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(fileName).c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
         if(hFile == INVALID_HANDLE_VALUE)

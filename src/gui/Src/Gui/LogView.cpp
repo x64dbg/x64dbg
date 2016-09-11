@@ -17,6 +17,7 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     this->setOpenExternalLinks(false);
     this->setOpenLinks(false);
     this->setLoggingEnabled(true);
+    autoScroll = true;
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
@@ -70,6 +71,9 @@ void LogView::setupContextMenu()
     actionSave = setupAction(DIcon("binary_save.png"), tr("&Save"), this, SLOT(saveSlot()));
     actionToggleLogging = setupAction(tr("Disable &Logging"), this, SLOT(toggleLoggingSlot()));
     actionRedirectLog = setupAction(tr("&Redirect Log..."), this, SLOT(redirectLogSlot()));
+    actionAutoScroll = setupAction(tr("Auto Scrolling"), this, SLOT(autoScrollSlot()));
+    actionAutoScroll->setCheckable(true);
+    actionAutoScroll->setChecked(autoScroll);
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -94,6 +98,8 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     else
         actionToggleLogging->setText(tr("Enable &Logging"));
     wMenu.addAction(actionToggleLogging);
+    actionAutoScroll->setChecked(autoScroll);
+    wMenu.addAction(actionAutoScroll);
     if(logRedirection == NULL)
         actionRedirectLog->setText(tr("&Redirect Log..."));
     else
@@ -139,14 +145,17 @@ void LogView::addMsgToLogSlot(QString msg)
     if(this->document()->characterCount() > 10000 * 100) //limit the log to ~100mb
         this->clear();
     // This sets the cursor to the end for the next insert
-    this->moveCursor(QTextCursor::End);
+    QTextCursor cursor = this->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    if(autoScroll)
+        this->moveCursor(QTextCursor::End);
     msg.replace(QChar('&'), QString("&amp;"));
     msg.replace(QChar('<'), QString("&lt;"));
     msg.replace(QChar('>'), QString("&gt;"));
     msg.replace(QString("\r\n"), QString("<br/>\r\n"));
     msg.replace(QChar(' '), QString("&nbsp;"));
     linkify(msg);
-    this->insertHtml(msg);
+    cursor.insertHtml(msg);
 }
 
 /**
@@ -238,6 +247,11 @@ void LogView::setLoggingEnabled(bool enabled)
 bool LogView::getLoggingEnabled()
 {
     return loggingEnabled;
+}
+
+void LogView::autoScrollSlot()
+{
+    autoScroll = !autoScroll;
 }
 
 /**

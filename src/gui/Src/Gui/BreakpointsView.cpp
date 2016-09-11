@@ -86,8 +86,8 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mSplitter->addWidget(mSoftBPTable, tr("Software breakpoint"));
     mSplitter->addWidget(mHardBPTable, tr("Hardware breakpoint"));
     mSplitter->addWidget(mMemBPTable, tr("Memory breakpoint"));
-    mSplitter->addWidget(mDLLBPTable, tr("DLL breakpoint"));
     mSplitter->addWidget(mExceptionBPTable, tr("Exception breakpoint"));
+    mSplitter->addWidget(mDLLBPTable, tr("DLL breakpoint"));
     mSplitter->collapseLowerTabs();
 
     // Layout
