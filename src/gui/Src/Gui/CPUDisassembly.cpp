@@ -551,7 +551,10 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     MenuBuilder* searchMenu = new MenuBuilder(this);
     MenuBuilder* mSearchRegionMenu = new MenuBuilder(this);
-    MenuBuilder* mSearchModuleMenu = new MenuBuilder(this);
+    MenuBuilder* mSearchModuleMenu = new MenuBuilder(this, [this](QMenu*)
+    {
+        return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
+    });
     MenuBuilder* mSearchAllMenu = new MenuBuilder(this);
 
     // Search in Current Region menu
@@ -559,21 +562,24 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindConstantRegion = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsRegion = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsRegion = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindPatternRegion = makeShortcutAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPattern");
     mSearchRegionMenu->addAction(mFindCommandRegion);
     mSearchRegionMenu->addAction(mFindConstantRegion);
     mSearchRegionMenu->addAction(mFindStringsRegion);
     mSearchRegionMenu->addAction(mFindCallsRegion);
-    mSearchRegionMenu->addAction(makeShortcutAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPattern"));
+    mSearchRegionMenu->addAction(mFindPatternRegion);
 
     // Search in Current Module menu
     mFindCommandModule = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
     mFindConstantModule = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsModule = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsModule = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindPatternModule = makeAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()));
     mSearchModuleMenu->addAction(mFindCommandModule);
     mSearchModuleMenu->addAction(mFindConstantModule);
     mSearchModuleMenu->addAction(mFindStringsModule);
     mSearchModuleMenu->addAction(mFindCallsModule);
+    mSearchModuleMenu->addAction(mFindPatternModule);
 
     // Search in All Modules menu
     mFindCommandAll = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
@@ -1117,9 +1123,10 @@ void CPUDisassembly::findConstantSlot()
     wordEdit.setup(tr("Enter Constant"), 0, sizeof(dsint));
     if(wordEdit.exec() != QDialog::Accepted) //cancel pressed
         return;
-    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    QString constText = QString("%1").arg(wordEdit.getVal(), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("findref " + constText + ", " + addrText + ", 0, %1").arg(refFindType).toUtf8().constData());
+
+    auto addrText = ToHexString(rvaToVa(getInitialSelection()));
+    auto constText = ToHexString(wordEdit.getVal());
+    DbgCmdExec(QString("findref %1, %2, 0, %3").arg(addrText).arg(constText).arg(refFindType).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
@@ -1133,8 +1140,8 @@ void CPUDisassembly::findStringsSlot()
     else if(sender() == mFindStringsAll)
         refFindType = 2;
 
-    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("strref " + addrText + ", 0, %1").arg(refFindType).toUtf8().constData());
+    auto addrText = ToHexString(rvaToVa(getInitialSelection()));
+    DbgCmdExec(QString("strref %1, 0, %2").arg(addrText).arg(refFindType).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
@@ -1149,8 +1156,8 @@ void CPUDisassembly::findCallsSlot()
     else if(sender() == mFindCallsAll)
         refFindType = 2;
 
-    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("modcallfind " + addrText + ", 0, 0").toUtf8().constData());
+    auto addrText = ToHexString(rvaToVa(getInitialSelection()));
+    DbgCmdExec(QString("modcallfind %1, 0, %2").arg(addrText).arg(refFindType).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
@@ -1162,11 +1169,22 @@ void CPUDisassembly::findPatternSlot()
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
+
     dsint addr = rvaToVa(getSelectionStart());
     if(hexEdit.entireBlock())
         addr = DbgMemFindBaseAddr(addr, 0);
-    QString addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern()).toUtf8().constData());
+
+    QString command;
+    if(sender() == mFindPatternModule)
+    {
+        auto base = DbgFunctions()->ModBaseFromAddr(addr);
+        if(base)
+            command = QString("findall %1, %2, %3").arg(ToHexString(base), hexEdit.mHexEdit->pattern(), ToHexString(DbgFunctions()->ModSizeFromAddr(base)));
+    }
+    if(!command.length())
+        command = QString("findall %1, %2").arg(ToHexString(addr), hexEdit.mHexEdit->pattern());
+
+    DbgCmdExec(command.toUtf8().constData());
     emit displayReferencesWidget();
 }
 

@@ -128,11 +128,13 @@ private:
     QAction* mFindConstantRegion;
     QAction* mFindStringsRegion;
     QAction* mFindCallsRegion;
+    QAction* mFindPatternRegion;
 
     QAction* mFindCommandModule;
     QAction* mFindConstantModule;
     QAction* mFindStringsModule;
     QAction* mFindCallsModule;
+    QAction* mFindPatternModule;
 
     QAction* mFindCommandAll;
     QAction* mFindConstantAll;
