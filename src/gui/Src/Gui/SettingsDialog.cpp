@@ -65,6 +65,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmUppercase = false;
     settings.disasmOnlyCipAutoComments = false;
     settings.disasmTabBetweenMnemonicAndArguments = false;
+    settings.guiNoForegroundWindow = true;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
