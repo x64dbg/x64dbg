@@ -1260,6 +1260,12 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "invalid memory address %p!\n"), addr);
         return STATUS_ERROR;
     }
+    if(argc >= 4)
+    {
+        duint usersize;
+        if(valfromstring(argv[3], &usersize))
+            size = usersize;
+    }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
     if(!MemRead(base, data(), size))
     {
@@ -1276,9 +1282,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
             find_size = size - start;
             findData = true;
         }
-        else if(!valfromstring(argv[3], &find_size))
-            find_size = size - start;
-        else if(find_size > (size - start))
+        else
             find_size = size - start;
     }
     else
