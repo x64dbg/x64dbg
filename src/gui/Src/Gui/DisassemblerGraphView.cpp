@@ -533,9 +533,12 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
     else if(event->button() == Qt::RightButton)
     {
         //Right click outside of block
-        QMenu wMenu(this);
-        wMenu.addAction(mToggleOverviewAction);
-        wMenu.exec(event->globalPos()); //execute context menu
+        if(this->ready && DbgIsDebugging())
+        {
+            QMenu wMenu(this);
+            wMenu.addAction(mToggleOverviewAction);
+            wMenu.exec(event->globalPos()); //execute context menu
+        }
     }
 }
 

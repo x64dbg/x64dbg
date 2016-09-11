@@ -11,7 +11,6 @@ LabeledSplitterHandle::LabeledSplitterHandle(Qt::Orientation o, LabeledSplitter*
 {
     charHeight = QFontMetrics(font()).height();
     setMouseTracking(true);
-    setupContextMenu();
     originalSize = 0;
 }
 
@@ -37,7 +36,7 @@ int LabeledSplitterHandle::getIndex()
     return getParent()->indexOf(this);
 }
 
-void LabeledSplitterHandle::setupContextMenu()
+void LabeledSplitter::setupContextMenu()
 {
     mMenu = new QMenu(this);
     mExpandCollapseAction = new QAction(this);
@@ -50,42 +49,53 @@ void LabeledSplitterHandle::setupContextMenu()
 
 void LabeledSplitterHandle::contextMenuEvent(QContextMenuEvent* event)
 {
-    event->accept();
-    LabeledSplitter* parent = getParent();
-    int index = parent->indexOf(this);
-    if(parent->sizes().at(index) != 0)
-        mExpandCollapseAction->setText(tr("&Collapse"));
-    else
-        mExpandCollapseAction->setText(tr("&Expand"));
-    mMenu->exec(mapToGlobal(event->pos()));
+    getParent()->currentIndex = getIndex();
+    QSplitterHandle::contextMenuEvent(event);
+    return;
 }
 
-void LabeledSplitterHandle::collapseSlot()
+void LabeledSplitter::collapseSlot()
 {
-    QMouseEvent event(QMouseEvent::MouseButtonPress, QPointF(0, 0), Qt::LeftButton, Qt::LeftButton, 0);
-    mousePressEvent(&event);
+    auto sizes = this->sizes();
+    int index2;
+    int* originalSize = &(qobject_cast<LabeledSplitterHandle*>(handle(currentIndex))->originalSize);
+    for(index2 = currentIndex - 1; sizes.at(index2) == 0 && index2 != 0; index2--);
+    if(sizes.at(currentIndex) == 0)
+    {
+        if(*originalSize == 0)
+            *originalSize = 100;
+        if(sizes[index2] > *originalSize)
+            sizes[index2] -= *originalSize;
+        sizes[currentIndex] = *originalSize;
+    }
+    else
+    {
+        *originalSize = sizes[currentIndex];
+        sizes[currentIndex] = 0;
+        sizes[index2] += *originalSize;
+    }
+    setSizes(sizes);
 }
 
 // Convert a tab to an external window
-void LabeledSplitterHandle::detachSlot()
+void LabeledSplitter::detachSlot()
 {
-    auto parent = getParent();
-    int index = parent->indexOf(this);
+
     // Create the window
-    LabeledSplitterDetachedWindow* detachedWidget = new LabeledSplitterDetachedWindow(parent, parent);
+    LabeledSplitterDetachedWindow* detachedWidget = new LabeledSplitterDetachedWindow(this, this);
     detachedWidget->setWindowModality(Qt::NonModal);
 
     // Find Widget and connect
-    parent->connect(detachedWidget, SIGNAL(OnClose(LabeledSplitterDetachedWindow*)), parent, SLOT(attachSlot(LabeledSplitterDetachedWindow*)));
+    connect(detachedWidget, SIGNAL(OnClose(LabeledSplitterDetachedWindow*)), this, SLOT(attachSlot(LabeledSplitterDetachedWindow*)));
 
-    detachedWidget->setWindowTitle(parent->names.at(index));
-    detachedWidget->index = index;
+    detachedWidget->setWindowTitle(names.at(currentIndex));
+    detachedWidget->index = currentIndex;
     // Remove from splitter
-    QWidget* tearOffWidget = parent->widget(index);
+    QWidget* tearOffWidget = widget(currentIndex);
     tearOffWidget->setParent(detachedWidget);
 
     // Add it to the windows list
-    parent->m_Windows.append(tearOffWidget);
+    m_Windows.append(tearOffWidget);
 
     // Create and show
     detachedWidget->setCentralWidget(tearOffWidget);
@@ -100,7 +110,7 @@ void LabeledSplitterHandle::detachSlot()
     detachedWidget->showNormal();
     detachedWidget->setGeometry(x, y, w, h);
     detachedWidget->showNormal();
-    parent->names.removeAt(index);
+    names.removeAt(currentIndex);
 }
 
 void LabeledSplitter::attachSlot(LabeledSplitterDetachedWindow* widget)
@@ -201,7 +211,7 @@ void LabeledSplitterHandle::mousePressEvent(QMouseEvent* event)
 // LabeledSplitter class
 LabeledSplitter::LabeledSplitter(QWidget* parent) : QSplitter(Qt::Vertical, parent)
 {
-
+    setupContextMenu();
 }
 
 QSplitterHandle* LabeledSplitter::createHandle()
@@ -222,12 +232,13 @@ void LabeledSplitter::addWidget(QWidget* widget)
 
 void LabeledSplitter::collapseLowerTabs()
 {
-    if(count() > 2)
+    if(count() > 3)
     {
         auto size = sizes();
         size[0] = 1;
         size[1] = 1;
-        for(int i = 2; i < size.count(); i++)
+        size[2] = 1;
+        for(int i = 3; i < size.count(); i++)
             size[i] = 0;
         setSizes(size);
     }
@@ -242,4 +253,14 @@ void LabeledSplitter::insertWidget(int index, QWidget* widget, const QString & n
 void LabeledSplitter::insertWidget(int index, QWidget* widget)
 {
     QSplitter::insertWidget(index, widget);
+}
+
+void LabeledSplitter::contextMenuEvent(QContextMenuEvent* event)
+{
+    event->accept();
+    if(sizes().at(currentIndex) != 0)
+        mExpandCollapseAction->setText(tr("&Collapse"));
+    else
+        mExpandCollapseAction->setText(tr("&Expand"));
+    mMenu->exec(mapToGlobal(event->pos()));
 }

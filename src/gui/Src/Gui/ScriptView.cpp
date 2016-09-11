@@ -460,7 +460,7 @@ void ScriptView::openFile()
 void ScriptView::paste()
 {
     DbgScriptUnload();
-    DbgScriptLoad("clipboard://localhost");
+    DbgScriptLoad("x64dbg://localhost/clipboard");
 }
 
 void ScriptView::reload()
