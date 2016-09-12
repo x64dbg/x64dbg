@@ -43,34 +43,40 @@ void ExpressionFunctions::Init()
     //TODO: register more functions
     using namespace Exprfunc;
 
-    //undocumented
+    //GUI interaction
+    RegisterEasy("disasm.sel\1dis.sel", disasmsel);
+    RegisterEasy("dump.sel", dumpsel);
+    RegisterEasy("stack.sel", stacksel);
+
+    //Source
     RegisterEasy("src.line", srcline);
     RegisterEasy("src.disp", srcdisp);
 
+    //Modules
     RegisterEasy("mod.party", modparty);
     RegisterEasy("mod.base", ModBaseFromAddr);
     RegisterEasy("mod.size", ModSizeFromAddr);
     RegisterEasy("mod.hash", ModHashFromAddr);
     RegisterEasy("mod.entry", ModEntryFromAddr);
 
-    RegisterEasy("disasm.sel\1dis.sel", disasmsel);
-    RegisterEasy("dump.sel", dumpsel);
-    RegisterEasy("stack.sel", stacksel);
-
+    //Process information
     RegisterEasy("peb\1PEB", peb);
     RegisterEasy("teb\1TEB", teb);
     RegisterEasy("tid\1TID\1ThreadId", tid);
-    RegisterEasy("GetTickCount\1gettickcount", gettickcount);
 
+    //General purpose
     RegisterEasy("bswap", bswap);
     RegisterEasy("ternary\1tern", ternary);
+    RegisterEasy("GetTickCount\1gettickcount", gettickcount);
 
+    //Memory
     RegisterEasy("mem.valid", memvalid);
     RegisterEasy("mem.base", membase);
     RegisterEasy("mem.size", memsize);
     RegisterEasy("mem.iscode", memiscode);
     RegisterEasy("mem.decodepointer", memdecodepointer);
 
+    //Disassembly
     RegisterEasy("dis.len", dislen);
     RegisterEasy("dis.iscond", disiscond);
     RegisterEasy("dis.isbranch", disisbranch);
@@ -82,6 +88,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("dis.brtrue", disbrtrue);
     RegisterEasy("dis.brfalse", disbrfalse);
 
+    //Trace record
     RegisterEasy("tr.enabled", trenabled);
     RegisterEasy("tr.hitcount", trhitcount);
 }
