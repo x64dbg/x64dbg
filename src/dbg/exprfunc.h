@@ -21,6 +21,10 @@ namespace Exprfunc
     duint ternary(duint condition, duint value1, duint value2);
 
     duint memvalid(duint addr);
+    duint membase(duint addr);
+    duint memsize(duint addr);
+    duint memiscode(duint addr);
+    duint memdecodepointer(duint ptr);
 
     duint dislen(duint addr);
     duint disiscond(duint addr);

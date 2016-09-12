@@ -66,6 +66,10 @@ void ExpressionFunctions::Init()
     RegisterEasy("ternary\1tern", ternary);
 
     RegisterEasy("mem.valid", memvalid);
+    RegisterEasy("mem.base", membase);
+    RegisterEasy("mem.size", memsize);
+    RegisterEasy("mem.iscode", memiscode);
+    RegisterEasy("mem.decodepointer", memdecodepointer);
 
     RegisterEasy("dis.len", dislen);
     RegisterEasy("dis.iscond", disiscond);

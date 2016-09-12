@@ -85,6 +85,28 @@ namespace Exprfunc
         return MemIsValidReadPtr(addr, true);
     }
 
+    duint membase(duint addr)
+    {
+        return MemFindBaseAddr(addr, nullptr);
+    }
+
+    duint memsize(duint addr)
+    {
+        duint size;
+        return MemFindBaseAddr(addr, &size) ? size : 0;
+    }
+
+    duint memiscode(duint addr)
+    {
+        return MemIsCodePage(addr, false);
+    }
+
+    duint memdecodepointer(duint ptr)
+    {
+        auto decoded = ptr;
+        return MemDecodePointer(&decoded, true) ? decoded : ptr;
+    }
+
     duint dislen(duint addr)
     {
         BASIC_INSTRUCTION_INFO info;
