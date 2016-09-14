@@ -71,7 +71,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     // Exception
     mExceptionBPTable = new StdTable(this);
     mExceptionBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mExceptionBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Excetion Code"), false);
+    mExceptionBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Exception Code"), false);
     mExceptionBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
     mExceptionBPTable->addColumnAt(8 + wCharWidth * 8, tr("State"), false);
     mExceptionBPTable->addColumnAt(8 + wCharWidth * 10, tr("Hit count"), false);
