@@ -44,6 +44,7 @@
 #include "exception.h"
 #include "TraceRecord.h"
 #include "encodemap.h"
+#include "plugin_loader.h"
 
 static bool bRefinit = false;
 static int maxFindResults = 5000;
@@ -3108,4 +3109,14 @@ CMDRESULT cbInstrGetTickCount(int argc, char* argv[])
     varset("$result", GetTickCount(), false);
 #endif //_WIN64
     return STATUS_CONTINUE;
+}
+
+CMDRESULT cbPluginUnload(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 1))
+        return STATUS_ERROR;
+    if(pluginunload(argv[1]))
+        return STATUS_CONTINUE;
+    else
+        return STATUS_ERROR;
 }

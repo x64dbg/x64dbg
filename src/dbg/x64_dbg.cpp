@@ -379,7 +379,8 @@ static void registercommands()
     dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
     dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
     dbgcmdnew("GetTickCount", cbInstrGetTickCount, false); // GetTickCount
-}
+    dbgcmdnew("plugunload", cbPluginUnload, true);
+};
 
 static bool cbCommandProvider(char* cmd, int maxlen)
 {
@@ -645,7 +646,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), nullptr);
     CreateDirectoryW(StringUtils::Utf8ToUtf16(StringUtils::sprintf("%s\\memdumps", szProgramDir)).c_str(), nullptr);
     dputs(QT_TRANSLATE_NOOP("DBG", "Loading plugins..."));
-    pluginload(plugindir);
+    pluginloadall(plugindir);
     dputs(QT_TRANSLATE_NOOP("DBG", "Handling command line..."));
     //handle command line
     int argc = 0;
@@ -680,7 +681,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     dputs(QT_TRANSLATE_NOOP("DBG", "Aborting scripts..."));
     scriptabort();
     dputs(QT_TRANSLATE_NOOP("DBG", "Unloading plugins..."));
-    pluginunload();
+    pluginunloadall();
     dputs(QT_TRANSLATE_NOOP("DBG", "Stopping command thread..."));
     bStopCommandLoopThread = true;
     MsgFreeStack(gMsgStack);

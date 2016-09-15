@@ -16,6 +16,16 @@
 static std::vector<PLUG_DATA> pluginList;
 
 /**
+\brief Shadow plugin list
+*/
+static std::vector<PLUG_DATA> spluginList;
+
+/**
+\brief Saved plugin directory
+*/
+static std::wstring pluginDirectory;
+
+/**
 \brief The current plugin handle.
 */
 static int curPluginHandle = 0;
@@ -45,10 +55,11 @@ static std::vector<PLUG_EXPRFUNCTION> pluginExprfunctionList;
 \brief Loads plugins from a specified directory.
 \param pluginDir The directory to load plugins from.
 */
-void pluginload(const char* pluginDir)
+void pluginloadall(const char* pluginDir)
 {
     //load new plugins
     wchar_t currentDir[deflen] = L"";
+    pluginDirectory = StringUtils::Utf8ToUtf16(pluginDir).c_str();
     GetCurrentDirectoryW(deflen, currentDir);
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(pluginDir).c_str());
     char searchName[deflen] = "";
@@ -87,6 +98,8 @@ void pluginload(const char* pluginDir)
         pluginData.plugstop = (PLUGSTOP)GetProcAddress(pluginData.hPlugin, "plugstop");
         pluginData.plugsetup = (PLUGSETUP)GetProcAddress(pluginData.hPlugin, "plugsetup");
 
+        strncpy_s(pluginData.plugpath, szPluginPath, MAX_PATH);
+        strncpy_s(pluginData.plugname, StringUtils::Utf16ToUtf8(foundData.cFileName).c_str(), MAX_PATH);
         //auto-register callbacks for certain export names
         CBPLUGIN cbPlugin;
         cbPlugin = (CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBALLEVENTS");
@@ -276,6 +289,7 @@ void pluginload(const char* pluginDir)
         //add the plugin to the list
         SectionLocker<LockPluginList, false> pluginLock; //exclusive lock
         pluginList.push_back(pluginData);
+        spluginList.push_back(pluginData);
         pluginLock.Unlock();
 
         //setup plugin
@@ -340,11 +354,134 @@ static void pluginexprfuncunregisterall(int pluginHandle)
             ++i;
     }
 }
+bool pluginload(const char *pluginName)
+{
+    if(strlen(pluginName) == 0)
+        return false;
+
+    bool mustSearch = false;
+    char name[260] = "";
+    strncpy(name, pluginName, MAX_PATH);
+
+
+#ifdef _WIN64
+    strcat(name, ".dp64");
+#else
+    strcat(name, ".dp32");
+#endif
+
+    wchar_t currentDir[deflen] = L"";
+    GetCurrentDirectoryW(deflen, currentDir);
+    SetCurrentDirectoryW(pluginDirectory.c_str());
+    char searchName[deflen] = "";
+#ifdef _WIN64
+    sprintf(searchName, "%s\\%s", StringUtils::Utf16ToUtf8(pluginDirectory.c_str()).c_str(), name);
+#else
+    sprintf(searchName, "%s\\%s", StringUtils::Utf16ToUtf8(pluginDirectory.c_str()).c_str(), name);
+#endif // _WIN64
+
+    PLUG_DATA currPlugin;
+    //search the shadow plugin list first to see if we can load this quickly
+    auto pbegin = spluginList.begin();
+    auto pend = spluginList.end();
+
+    //check the current plugin list
+    auto entry = std::find_if(pbegin, pend, [&](PLUG_DATA & plugData)
+    {
+        if(_stricmp(plugData.plugname, pluginName) == 0)
+            return true;
+        return false;
+    });
+    if(entry == pend)
+    {
+        //Now we gotta load it
+        WIN32_FIND_DATAW foundData;
+        HANDLE hSearch = FindFirstFileW(StringUtils::Utf8ToUtf16(searchName).c_str(), &foundData);
+        if(hSearch == INVALID_HANDLE_VALUE)
+        {
+            SetCurrentDirectoryW(currentDir);
+            return false;
+        }
+    }
+    else
+    {
+        //found it
+        currPlugin = *entry;
+    }
+    return false;
+}
+bool pluginunload(const char *pluginName)
+{
+    bool callStop = false;
+    PLUGSTOP stop;
+    PLUG_DATA currentPlugin;
+    char name[MAX_PATH] = "";
+    strncpy(name, pluginName, MAX_PATH);
+
+
+#ifdef _WIN64
+    strcat(name, ".dp64");
+#else
+    strcat(name, ".dp32");
+#endif
+
+    {
+        EXCLUSIVE_ACQUIRE(LockPluginList);
+        for(const auto & currentPlugin : pluginList)
+        {
+            if(_stricmp(currentPlugin.plugname, name))
+            {
+                stop = currentPlugin.plugstop;
+                callStop = true;
+                break;
+            }
+        }
+    }
+    if(callStop)
+    {
+        if(stop)
+            stop();
+        plugincmdunregisterall(currentPlugin.initStruct.pluginHandle);
+        pluginexprfuncunregisterall(currentPlugin.initStruct.pluginHandle);
+
+        //remove the callbacks
+        {
+            EXCLUSIVE_ACQUIRE(LockPluginCallbackList);
+            auto it = pluginCallbackList.begin();
+            while(it != pluginCallbackList.end())
+            {
+                auto currCallback = *it;
+                if(currCallback.pluginHandle == currentPlugin.initStruct.pluginHandle)
+                    pluginCallbackList.erase(it);
+            }
+        }
+        EXCLUSIVE_ACQUIRE(LockPluginList);
+        //Clear the GUI menu first
+        GuiMenuClear(currentPlugin.hMenu);
+        //remove this menu from the list (needed?)
+        //pluginmenuclear(currentPlugin.hMenu);
+       
+        //remove from main pluginlist. We do this so unloadall doesnt break
+        auto pbegin = pluginList.begin();
+        auto pend = pluginList.end();
+        auto new_pend = std::remove_if(pbegin, pend, [&](PLUG_DATA & pData)
+        {
+            if(_stricmp(pData.plugname, currentPlugin.plugname) == 0)
+                return true;
+            return false;
+         });
+        pluginList.erase(new_pend, pluginList.end());
+        
+        FreeLibrary(currentPlugin.hPlugin);
+        return true;
+    }
+    return false;
+}
 
 /**
 \brief Unloads all plugins.
 */
-void pluginunload()
+void pluginunloadall()
 {
     {
         EXCLUSIVE_ACQUIRE(LockPluginList);

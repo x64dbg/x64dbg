@@ -132,5 +132,6 @@ CMDRESULT cbInstrFoldDisassembly(int argc, char* argv[]);
 CMDRESULT cbInstrImageinfo(int argc, char* argv[]);
 CMDRESULT cbInstrTraceexecute(int argc, char* argv[]);
 CMDRESULT cbInstrGetTickCount(int argc, char* argv[]);
+CMDRESULT cbPluginUnload(int argc, char* argv[]);
 
 #endif // _INSTRUCTION_H
