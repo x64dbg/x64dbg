@@ -452,14 +452,15 @@ bool pluginunload(const char *pluginName)
             {
                 auto currCallback = *it;
                 if(currCallback.pluginHandle == currentPlugin.initStruct.pluginHandle)
-                    pluginCallbackList.erase(it);
+                    it = pluginCallbackList.erase(it);
+                ++it;
             }
         }
         EXCLUSIVE_ACQUIRE(LockPluginList);
         //Clear the GUI menu first
-        GuiMenuClear(currentPlugin.hMenu);
+        //GuiMenuClear(currentPlugin.hMenu);
         //remove this menu from the list (needed?)
-        //pluginmenuclear(currentPlugin.hMenu);
+        pluginmenuclear(currentPlugin.hMenu);
        
         //remove from main pluginlist. We do this so unloadall doesnt break
         auto pbegin = pluginList.begin();
