@@ -1,6 +1,7 @@
 #include <QClipboard>
 #include <QMessageBox>
 #include <QListWidget>
+#include <QToolTip>
 #include <stdint.h>
 #include "RegistersView.h"
 #include "CPUWidget.h"
@@ -1133,6 +1134,8 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mButtonHeight = 0;
     yTopSpacing = 4; //set top spacing (in pixels)
 
+    this->setMouseTracking(true);
+
     // Context Menu
     this->setContextMenuPolicy(Qt::CustomContextMenu);
     // foreign messages
@@ -1248,6 +1251,67 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
     return found_flag;
 }
 
+/**
+ * @brief RegistersView::helpRegister Get the help information of a register. The help information is from Intel's manual.
+ * @param reg The register name
+ * @return The help information, possibly translated to the native language, or empty if the help information is not available yet.
+ */
+QString RegistersView::helpRegister(REGISTER_NAME reg)
+{
+    switch(reg)
+    {
+    //We don't display help messages for general purpose registers as they are very well-known.
+    case CF:
+        return tr("CF (bit 0) : Carry flag - Set if an arithmetic operation generates a carry or a borrow out of the mostsignificant bit of the result; cleared otherwise.\r\n"
+                  "This flag indicates an overflow condition for unsigned-integer arithmetic. It is also used in multiple-precision arithmetic.");
+    case PF:
+        return tr("PF (bit 2) : Parity flag - Set if the least-significant byte of the result contains an even number of 1 bits; cleared otherwise.");
+    case AF:
+        return tr("AF (bit 4) : Auxiliary Carry flag - Set if an arithmetic operation generates a carry or a borrow out of bit\r\n"
+                  "3 of the result; cleared otherwise. This flag is used in binary-coded decimal (BCD) arithmetic.");
+    case ZF:
+        return tr("ZF (bit 6) : Zero flag - Set if the result is zero; cleared otherwise.");
+    case SF:
+        return tr("SF (bit 7) : Sign flag - Set equal to the most-significant bit of the result, which is the sign bit of a signed\r\n"
+                  "integer. (0 indicates a positive value and 1 indicates a negative value.)");
+    case OF:
+        return tr("OF (bit 11) : Overflow flag - Set if the integer result is too large a positive number or too small a negative\r\n"
+                  "number (excluding the sign-bit) to fit in the destination operand; cleared otherwise. This flag indicates an overflow\r\n"
+                  "condition for signed-integer (two’s complement) arithmetic.");
+    case DF:
+        return tr("DF (bit 10) : The direction flag controls string instructions (MOVS, CMPS, SCAS, LODS, and STOS). Setting the DF flag causes the string instructions\r\n"
+                  "to auto-decrement (to process strings from high addresses to low addresses). Clearing the DF flag causes the string instructions to auto-increment\r\n"
+                  "(process strings from low addresses to high addresses).");
+    case TF:
+        return tr("TF (bit 8) : Trap flag - Set to enable single-step mode for debugging; clear to disable single-step mode.");
+    case IF:
+        return tr("IF (bit 9) : Interrupt enable flag - Controls the response of the processor to maskable interrupt requests. Set to respond to maskable interrupts; cleared to inhibit maskable interrupts.");
+    case x87ControlWord:
+        return tr("The 16-bit x87 FPU control word controls the precision of the x87 FPU and rounding method used. It also contains the x87 FPU floating-point exception mask bits.");
+    case x87StatusWord:
+        return tr("The 16-bit x87 FPU status register indicates the current state of the x87 FPU.");
+    case x87TagWord:
+        return tr("The 16-bit tag word indicates the contents of each the 8 registers in the x87 FPU data-register stack (one 2-bit tag per register).");
+    case x87SW_SF:
+        return tr("The stack fault flag (bit 6 of the x87 FPU status word) indicates that stack overflow or stack underflow has occurred with data\r\nin the x87 FPU data register stack.");
+    case x87SW_TOP:
+        return tr("A pointer to the x87 FPU data register that is currently at the top of the x87 FPU register stack is contained in bits 11 through 13\r\n"
+                  "of the x87 FPU status word. This pointer, which is commonly referred to as TOP (for top-of-stack), is a binary value from 0 to 7.");
+    case MxCsr:
+        return tr("The 32-bit MXCSR register contains control and status information for SIMD floating-point operations.");
+    case MxCsr_FZ:
+        return tr("Bit 15 (FZ) of the MXCSR register enables the flush-to-zero mode, which controls the masked response to a SIMD floating-point underflow condition.");
+    case MxCsr_DAZ:
+        return tr("Bit 6 (DAZ) of the MXCSR register enables the denormals-are-zeros mode, which controls the processor’s response to a SIMD floating-point\r\n"
+                  "denormal operand condition.");
+    case LastError:
+        //TODO: display help message of the specific error instead of this very generic message.
+        return tr("The value of GetLastError(). This value is stored in the TEB.");
+    default:
+        return "";
+    }
+}
+
 QMenu* RegistersView::CreateDumpNMenu(CPUMultiDump* multiDump)
 {
     QMenu* dumpMenu = new QMenu(tr("Follow in &Dump"), this);
@@ -1305,9 +1369,27 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
     }
 }
 
+void RegistersView::mouseMoveEvent(QMouseEvent* event)
+{
+    if(!DbgIsDebugging())
+        return;
+
+    REGISTER_NAME r = REGISTER_NAME::UNKNOWN;
+    QString registerHelpInformation;
+    // do we find a corresponding register?
+    if(identifyRegister((event->y() - yTopSpacing) / (double)mRowHeight, event->x() / (double)mCharWidth, &r))\
+        registerHelpInformation = helpRegister(r);
+    else
+        registerHelpInformation = "";
+    if(!registerHelpInformation.isEmpty())
+        QToolTip::showText(event->globalPos(), registerHelpInformation, this);
+    else
+        QToolTip::hideText();
+    QScrollArea::mouseMoveEvent(event);
+}
+
 void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    Q_UNUSED(event);
     if(!DbgIsDebugging() || event->button() != Qt::LeftButton)
         return;
     // get mouse position
@@ -1960,6 +2042,18 @@ void RegistersView::displayEditDialog()
             EditFloatRegister mEditFloat(128, this);
             mEditFloat.setWindowTitle(tr("Edit XMM register"));
             mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
+            mEditFloat.show();
+            mEditFloat.selectAllText();
+            if(mEditFloat.exec() == QDialog::Accepted)
+                setRegister(mSelected, (duint)mEditFloat.getData());
+        }
+        else if(mFPUMMX.contains(mSelected))
+        {
+            EditFloatRegister mEditFloat(64, this);
+            mEditFloat.setWindowTitle(tr("Edit MMX register"));
+            mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
+            mEditFloat.show();
+            mEditFloat.selectAllText();
             if(mEditFloat.exec() == QDialog::Accepted)
                 setRegister(mSelected, (duint)mEditFloat.getData());
         }

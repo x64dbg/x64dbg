@@ -81,6 +81,7 @@ private:
     QDoubleValidator doubleValidator;
 
     void hideUpperPart();
+    void hideNonMMXPart();
 
     void reloadDataLow();
     void reloadDataHigh();
