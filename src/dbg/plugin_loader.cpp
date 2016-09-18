@@ -365,7 +365,6 @@ bool pluginload(const char *pluginName)
     if(!pluginName)
         return false;
 
-    bool alreadyLoaded = false;
     char name[260] = "";
     strncpy(name, pluginName, MAX_PATH);
     PLUG_DATA pluginData;
