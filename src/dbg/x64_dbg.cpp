@@ -379,7 +379,8 @@ static void registercommands()
     dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
     dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
     dbgcmdnew("GetTickCount", cbInstrGetTickCount, false); // GetTickCount
-    dbgcmdnew("plugunload", cbPluginUnload, true);
+    dbgcmdnew("plugunload", cbPluginUnload, false);
+    dbgcmdnew("plugload", cbPluginLoad, false);
 };
 
 static bool cbCommandProvider(char* cmd, int maxlen)

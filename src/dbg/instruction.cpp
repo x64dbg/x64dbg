@@ -3117,6 +3117,14 @@ CMDRESULT cbPluginUnload(int argc, char* argv[])
         return STATUS_ERROR;
     if(pluginunload(argv[1]))
         return STATUS_CONTINUE;
-    else
+    return STATUS_ERROR;
+}
+
+CMDRESULT cbPluginLoad(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 1))
         return STATUS_ERROR;
+    if(pluginload(argv[1]))
+        return STATUS_CONTINUE;
+    return STATUS_ERROR;
 }

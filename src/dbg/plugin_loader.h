@@ -21,6 +21,7 @@ struct PLUG_DATA
 {
     char plugpath[MAX_PATH];
     char plugname[MAX_PATH];
+    bool isLoaded;
     HINSTANCE hPlugin;
     PLUGINIT pluginit;
     PLUGSTOP plugstop;
