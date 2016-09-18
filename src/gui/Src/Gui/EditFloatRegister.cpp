@@ -36,11 +36,17 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
         hideUpperPart();
         ui->labelLowRegister->setText(QString("XMM:"));
         break;
+    case 64:
+        hideUpperPart();
+        hideNonMMXPart();
+        ui->hexEdit_2->setMaxLength(16);
+        ui->labelLowRegister->setText(QString("MM:"));
+        break;
     case 256:
         break;
     case 512:
     default:
-        GuiAddLogMessage(QString(tr("Error, register size %1 is not supported.\n")).arg(RegisterSize).toUtf8().constData());
+        GuiAddLogMessage(tr("Error, register size %1 is not supported.\n").arg(RegisterSize).toUtf8().constData());
         break;
     }
     setFixedWidth(width());
@@ -58,54 +64,93 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
     connect(ui->shortEdit1_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort1FinishedSlot(QString)));
     connect(ui->shortEdit2_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort2FinishedSlot(QString)));
     connect(ui->shortEdit3_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort3FinishedSlot(QString)));
-    connect(ui->shortEdit4_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort4FinishedSlot(QString)));
-    connect(ui->shortEdit5_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort5FinishedSlot(QString)));
-    connect(ui->shortEdit6_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort6FinishedSlot(QString)));
-    connect(ui->shortEdit7_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort7FinishedSlot(QString)));
-    connect(ui->shortEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort0FinishedSlot(QString)));
-    connect(ui->shortEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort1FinishedSlot(QString)));
-    connect(ui->shortEdit2, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort2FinishedSlot(QString)));
-    connect(ui->shortEdit3, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort3FinishedSlot(QString)));
-    connect(ui->shortEdit4, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort4FinishedSlot(QString)));
-    connect(ui->shortEdit5, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort5FinishedSlot(QString)));
-    connect(ui->shortEdit6, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort6FinishedSlot(QString)));
-    connect(ui->shortEdit7, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort7FinishedSlot(QString)));
+    if(RegisterSize > 64)
+    {
+        connect(ui->shortEdit4_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort4FinishedSlot(QString)));
+        connect(ui->shortEdit5_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort5FinishedSlot(QString)));
+        connect(ui->shortEdit6_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort6FinishedSlot(QString)));
+        connect(ui->shortEdit7_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerShort7FinishedSlot(QString)));
+        if(RegisterSize > 128)
+        {
+            connect(ui->shortEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort0FinishedSlot(QString)));
+            connect(ui->shortEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort1FinishedSlot(QString)));
+            connect(ui->shortEdit2, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort2FinishedSlot(QString)));
+            connect(ui->shortEdit3, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort3FinishedSlot(QString)));
+            connect(ui->shortEdit4, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort4FinishedSlot(QString)));
+            connect(ui->shortEdit5, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort5FinishedSlot(QString)));
+            connect(ui->shortEdit6, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort6FinishedSlot(QString)));
+            connect(ui->shortEdit7, SIGNAL(textEdited(QString)), this, SLOT(editingUpperShort7FinishedSlot(QString)));
+        }
+    }
     connect(ui->longEdit0_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLong0FinishedSlot(QString)));
     connect(ui->longEdit1_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLong1FinishedSlot(QString)));
-    connect(ui->longEdit2_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLong2FinishedSlot(QString)));
-    connect(ui->longEdit3_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLong3FinishedSlot(QString)));
-    connect(ui->longEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLong0FinishedSlot(QString)));
-    connect(ui->longEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLong1FinishedSlot(QString)));
-    connect(ui->longEdit2, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLong2FinishedSlot(QString)));
-    connect(ui->longEdit3, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLong3FinishedSlot(QString)));
+    if(RegisterSize > 64)
+    {
+        connect(ui->longEdit2_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLong2FinishedSlot(QString)));
+        connect(ui->longEdit3_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLong3FinishedSlot(QString)));
+        if(RegisterSize > 128)
+        {
+            connect(ui->longEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLong0FinishedSlot(QString)));
+            connect(ui->longEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLong1FinishedSlot(QString)));
+            connect(ui->longEdit2, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLong2FinishedSlot(QString)));
+            connect(ui->longEdit3, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLong3FinishedSlot(QString)));
+        }
+    }
     connect(ui->floatEdit0_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerFloat0FinishedSlot(QString)));
     connect(ui->floatEdit1_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerFloat1FinishedSlot(QString)));
-    connect(ui->floatEdit2_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerFloat2FinishedSlot(QString)));
-    connect(ui->floatEdit3_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerFloat3FinishedSlot(QString)));
-    connect(ui->floatEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperFloat0FinishedSlot(QString)));
-    connect(ui->floatEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperFloat1FinishedSlot(QString)));
-    connect(ui->floatEdit2, SIGNAL(textEdited(QString)), this, SLOT(editingUpperFloat2FinishedSlot(QString)));
-    connect(ui->floatEdit3, SIGNAL(textEdited(QString)), this, SLOT(editingUpperFloat3FinishedSlot(QString)));
-    connect(ui->doubleEdit0_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerDouble0FinishedSlot(QString)));
-    connect(ui->doubleEdit1_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerDouble1FinishedSlot(QString)));
-    connect(ui->doubleEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperDouble0FinishedSlot(QString)));
-    connect(ui->doubleEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperDouble1FinishedSlot(QString)));
-    connect(ui->longLongEdit0_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLongLong0FinishedSlot(QString)));
-    connect(ui->longLongEdit1_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLongLong1FinishedSlot(QString)));
-    connect(ui->longLongEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLongLong0FinishedSlot(QString)));
-    connect(ui->longLongEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLongLong1FinishedSlot(QString)));
+    if(RegisterSize > 64)
+    {
+        connect(ui->floatEdit2_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerFloat2FinishedSlot(QString)));
+        connect(ui->floatEdit3_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerFloat3FinishedSlot(QString)));
+        if(RegisterSize > 128)
+        {
+            connect(ui->floatEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperFloat0FinishedSlot(QString)));
+            connect(ui->floatEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperFloat1FinishedSlot(QString)));
+            connect(ui->floatEdit2, SIGNAL(textEdited(QString)), this, SLOT(editingUpperFloat2FinishedSlot(QString)));
+            connect(ui->floatEdit3, SIGNAL(textEdited(QString)), this, SLOT(editingUpperFloat3FinishedSlot(QString)));
+        }
+    }
+    if(RegisterSize > 64)
+    {
+        connect(ui->doubleEdit0_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerDouble0FinishedSlot(QString)));
+        connect(ui->doubleEdit1_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerDouble1FinishedSlot(QString)));
+        if(RegisterSize > 128)
+        {
+            connect(ui->doubleEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperDouble0FinishedSlot(QString)));
+            connect(ui->doubleEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperDouble1FinishedSlot(QString)));
+        }
+        connect(ui->longLongEdit0_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLongLong0FinishedSlot(QString)));
+        connect(ui->longLongEdit1_2, SIGNAL(textEdited(QString)), this, SLOT(editingLowerLongLong1FinishedSlot(QString)));
+        if(RegisterSize > 128)
+        {
+            connect(ui->longLongEdit0, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLongLong0FinishedSlot(QString)));
+            connect(ui->longLongEdit1, SIGNAL(textEdited(QString)), this, SLOT(editingUpperLongLong1FinishedSlot(QString)));
+        }
+    }
     ui->floatEdit0_2->setValidator(&doubleValidator);
     ui->floatEdit1_2->setValidator(&doubleValidator);
-    ui->floatEdit2_2->setValidator(&doubleValidator);
-    ui->floatEdit3_2->setValidator(&doubleValidator);
-    ui->floatEdit0->setValidator(&doubleValidator);
-    ui->floatEdit1->setValidator(&doubleValidator);
-    ui->floatEdit2->setValidator(&doubleValidator);
-    ui->floatEdit3->setValidator(&doubleValidator);
-    ui->doubleEdit0_2->setValidator(&doubleValidator);
-    ui->doubleEdit1_2->setValidator(&doubleValidator);
-    ui->doubleEdit0->setValidator(&doubleValidator);
-    ui->doubleEdit1->setValidator(&doubleValidator);
+    if(RegisterSize > 64)
+    {
+        ui->floatEdit2_2->setValidator(&doubleValidator);
+        ui->floatEdit3_2->setValidator(&doubleValidator);
+        if(RegisterSize > 128)
+        {
+            ui->floatEdit0->setValidator(&doubleValidator);
+            ui->floatEdit1->setValidator(&doubleValidator);
+            ui->floatEdit2->setValidator(&doubleValidator);
+            ui->floatEdit3->setValidator(&doubleValidator);
+        }
+    }
+    if(RegisterSize > 64)
+    {
+        ui->doubleEdit0_2->setValidator(&doubleValidator);
+        ui->doubleEdit1_2->setValidator(&doubleValidator);
+        if(RegisterSize > 128)
+        {
+            ui->doubleEdit0->setValidator(&doubleValidator);
+            ui->doubleEdit1->setValidator(&doubleValidator);
+        }
+    }
 }
 
 void EditFloatRegister::hideUpperPart()
@@ -149,6 +194,28 @@ void EditFloatRegister::hideUpperPart()
     ui->longLongEdit1->hide();
 }
 
+void EditFloatRegister::hideNonMMXPart()
+{
+    ui->labelL4->hide();
+    ui->labelL5->hide();
+    ui->labelL6->hide();
+    ui->labelL7->hide();
+    ui->labelLC->hide();
+    ui->labelLD->hide();
+    ui->doubleEdit0_2->hide();
+    ui->doubleEdit1_2->hide();
+    ui->longLongEdit0_2->hide();
+    ui->longLongEdit1_2->hide();
+    ui->shortEdit4_2->hide();
+    ui->shortEdit5_2->hide();
+    ui->shortEdit6_2->hide();
+    ui->shortEdit7_2->hide();
+    ui->longEdit2_2->hide();
+    ui->longEdit3_2->hide();
+    ui->floatEdit2_2->hide();
+    ui->floatEdit3_2->hide();
+}
+
 /**
  * @brief                    Load register data into the dialog
  * @param[in] RegisterData   the data to be loaded. It must be at lease the same size as the size specified in RegisterSize
@@ -172,7 +239,8 @@ const char* EditFloatRegister::getData()
 
 void EditFloatRegister::selectAllText()
 {
-    ui->hexEdit->selectAll();
+    ui->hexEdit_2->setFocus();
+    ui->hexEdit_2->selectAll();
 }
 
 /**
@@ -182,28 +250,47 @@ void EditFloatRegister::reloadDataLow()
 {
     if(mutex == nullptr)
         mutex = this;
+    int maxBytes;
+    if(RegSize >= 128)
+        maxBytes = 16;
+    else
+        maxBytes = RegSize / 8;
     if(mutex != ui->hexEdit_2)
-        ui->hexEdit_2->setText(QString(QByteArray(Data, 16).toHex()).toUpper());
+    {
+        if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
+            ui->hexEdit_2->setText(QString(QByteArray(Data, maxBytes).toHex()).toUpper());
+        else
+            ui->hexEdit_2->setText(QString(ByteReverse(QByteArray(Data, maxBytes)).toHex()).toUpper());
+    }
     reloadLongData(*ui->longEdit0_2, Data);
     reloadLongData(*ui->longEdit1_2, Data + 4);
-    reloadLongData(*ui->longEdit2_2, Data + 8);
-    reloadLongData(*ui->longEdit3_2, Data + 12);
+    if(RegSize > 64)
+    {
+        reloadLongData(*ui->longEdit2_2, Data + 8);
+        reloadLongData(*ui->longEdit3_2, Data + 12);
+    }
     reloadShortData(*ui->shortEdit0_2, Data);
     reloadShortData(*ui->shortEdit1_2, Data + 2);
     reloadShortData(*ui->shortEdit2_2, Data + 4);
     reloadShortData(*ui->shortEdit3_2, Data + 6);
-    reloadShortData(*ui->shortEdit4_2, Data + 8);
-    reloadShortData(*ui->shortEdit5_2, Data + 10);
-    reloadShortData(*ui->shortEdit6_2, Data + 12);
-    reloadShortData(*ui->shortEdit7_2, Data + 14);
+    if(RegSize > 64)
+    {
+        reloadShortData(*ui->shortEdit4_2, Data + 8);
+        reloadShortData(*ui->shortEdit5_2, Data + 10);
+        reloadShortData(*ui->shortEdit6_2, Data + 12);
+        reloadShortData(*ui->shortEdit7_2, Data + 14);
+    }
     reloadFloatData(*ui->floatEdit0_2, Data);
     reloadFloatData(*ui->floatEdit1_2, Data + 4);
-    reloadFloatData(*ui->floatEdit2_2, Data + 8);
-    reloadFloatData(*ui->floatEdit3_2, Data + 12);
-    reloadDoubleData(*ui->doubleEdit0_2, Data);
-    reloadDoubleData(*ui->doubleEdit1_2, Data + 8);
-    reloadLongLongData(*ui->longLongEdit0_2, Data);
-    reloadLongLongData(*ui->longLongEdit1_2, Data + 8);
+    if(RegSize > 64)
+    {
+        reloadFloatData(*ui->floatEdit2_2, Data + 8);
+        reloadFloatData(*ui->floatEdit3_2, Data + 12);
+        reloadDoubleData(*ui->doubleEdit0_2, Data);
+        reloadDoubleData(*ui->doubleEdit1_2, Data + 8);
+        reloadLongLongData(*ui->longLongEdit0_2, Data);
+        reloadLongLongData(*ui->longLongEdit1_2, Data + 8);
+    }
     mutex = nullptr;
 }
 
@@ -215,7 +302,12 @@ void EditFloatRegister::reloadDataHigh()
     if(mutex == nullptr)
         mutex = this;
     if(mutex != ui->hexEdit)
-        ui->hexEdit->setText(QString(QByteArray(Data + 16, 16).toHex()).toUpper());
+    {
+        if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
+            ui->hexEdit->setText(QString(QByteArray(Data + 16, 16).toHex()).toUpper());
+        else
+            ui->hexEdit->setText(QString(ByteReverse(QByteArray(Data + 16, 16)).toHex()).toUpper());
+    }
     reloadLongData(*ui->longEdit0, Data + 16);
     reloadLongData(*ui->longEdit1, Data + 20);
     reloadLongData(*ui->longEdit2, Data + 24);
@@ -257,7 +349,7 @@ void EditFloatRegister::reloadLongData(QLineEdit & txtbox, char* Data)
     if(mutex != &txtbox)
     {
         if(ui->radioHex->isChecked())
-            txtbox.setText(QString().number(*(int*)Data, 16).toUpper());
+            txtbox.setText(QString().number(*(unsigned int*)Data, 16).toUpper());
         else if(ui->radioSigned->isChecked())
             txtbox.setText(QString().number(*(int*)Data));
         else
@@ -303,58 +395,82 @@ void EditFloatRegister::editingModeChangedSlot(bool arg)
         ui->shortEdit1_2->setMaxLength(4);
         ui->shortEdit2_2->setMaxLength(4);
         ui->shortEdit3_2->setMaxLength(4);
-        ui->shortEdit4_2->setMaxLength(4);
-        ui->shortEdit5_2->setMaxLength(4);
-        ui->shortEdit6_2->setMaxLength(4);
-        ui->shortEdit7_2->setMaxLength(4);
-        ui->shortEdit0->setMaxLength(4);
-        ui->shortEdit1->setMaxLength(4);
-        ui->shortEdit2->setMaxLength(4);
-        ui->shortEdit3->setMaxLength(4);
-        ui->shortEdit4->setMaxLength(4);
-        ui->shortEdit5->setMaxLength(4);
-        ui->shortEdit6->setMaxLength(4);
-        ui->shortEdit7->setMaxLength(4);
+        if(RegSize > 64)
+        {
+            ui->shortEdit4_2->setMaxLength(4);
+            ui->shortEdit5_2->setMaxLength(4);
+            ui->shortEdit6_2->setMaxLength(4);
+            ui->shortEdit7_2->setMaxLength(4);
+            if(RegSize > 128)
+            {
+                ui->shortEdit0->setMaxLength(4);
+                ui->shortEdit1->setMaxLength(4);
+                ui->shortEdit2->setMaxLength(4);
+                ui->shortEdit3->setMaxLength(4);
+                ui->shortEdit4->setMaxLength(4);
+                ui->shortEdit5->setMaxLength(4);
+                ui->shortEdit6->setMaxLength(4);
+                ui->shortEdit7->setMaxLength(4);
+            }
+        }
         ui->longEdit0_2->setMaxLength(8);
         ui->longEdit1_2->setMaxLength(8);
-        ui->longEdit2_2->setMaxLength(8);
-        ui->longEdit3_2->setMaxLength(8);
-        ui->longEdit0->setMaxLength(8);
-        ui->longEdit1->setMaxLength(8);
-        ui->longEdit2->setMaxLength(8);
-        ui->longEdit3->setMaxLength(8);
-        ui->longLongEdit0->setMaxLength(16);
-        ui->longLongEdit1->setMaxLength(16);
-        ui->longLongEdit0_2->setMaxLength(16);
-        ui->longLongEdit1_2->setMaxLength(16);
+        if(RegSize > 64)
+        {
+            ui->longEdit2_2->setMaxLength(8);
+            ui->longEdit3_2->setMaxLength(8);
+            if(RegSize > 128)
+            {
+                ui->longEdit0->setMaxLength(8);
+                ui->longEdit1->setMaxLength(8);
+                ui->longEdit2->setMaxLength(8);
+                ui->longEdit3->setMaxLength(8);
+                ui->longLongEdit0->setMaxLength(16);
+                ui->longLongEdit1->setMaxLength(16);
+            }
+            ui->longLongEdit0_2->setMaxLength(16);
+            ui->longLongEdit1_2->setMaxLength(16);
+        }
         ui->shortEdit0_2->setValidator(&hexValidate);
         ui->shortEdit1_2->setValidator(&hexValidate);
         ui->shortEdit2_2->setValidator(&hexValidate);
         ui->shortEdit3_2->setValidator(&hexValidate);
-        ui->shortEdit4_2->setValidator(&hexValidate);
-        ui->shortEdit5_2->setValidator(&hexValidate);
-        ui->shortEdit6_2->setValidator(&hexValidate);
-        ui->shortEdit7_2->setValidator(&hexValidate);
-        ui->shortEdit0->setValidator(&hexValidate);
-        ui->shortEdit1->setValidator(&hexValidate);
-        ui->shortEdit2->setValidator(&hexValidate);
-        ui->shortEdit3->setValidator(&hexValidate);
-        ui->shortEdit4->setValidator(&hexValidate);
-        ui->shortEdit5->setValidator(&hexValidate);
-        ui->shortEdit6->setValidator(&hexValidate);
-        ui->shortEdit7->setValidator(&hexValidate);
+        if(RegSize > 64)
+        {
+            ui->shortEdit4_2->setValidator(&hexValidate);
+            ui->shortEdit5_2->setValidator(&hexValidate);
+            ui->shortEdit6_2->setValidator(&hexValidate);
+            ui->shortEdit7_2->setValidator(&hexValidate);
+            if(RegSize > 128)
+            {
+                ui->shortEdit0->setValidator(&hexValidate);
+                ui->shortEdit1->setValidator(&hexValidate);
+                ui->shortEdit2->setValidator(&hexValidate);
+                ui->shortEdit3->setValidator(&hexValidate);
+                ui->shortEdit4->setValidator(&hexValidate);
+                ui->shortEdit5->setValidator(&hexValidate);
+                ui->shortEdit6->setValidator(&hexValidate);
+                ui->shortEdit7->setValidator(&hexValidate);
+            }
+        }
         ui->longEdit0_2->setValidator(&hexValidate);
         ui->longEdit1_2->setValidator(&hexValidate);
-        ui->longEdit2_2->setValidator(&hexValidate);
-        ui->longEdit3_2->setValidator(&hexValidate);
-        ui->longEdit0->setValidator(&hexValidate);
-        ui->longEdit1->setValidator(&hexValidate);
-        ui->longEdit2->setValidator(&hexValidate);
-        ui->longEdit3->setValidator(&hexValidate);
-        ui->longLongEdit0->setValidator(&hexValidate);
-        ui->longLongEdit1->setValidator(&hexValidate);
-        ui->longLongEdit0_2->setValidator(&hexValidate);
-        ui->longLongEdit1_2->setValidator(&hexValidate);
+        if(RegSize > 64)
+        {
+            ui->longEdit2_2->setValidator(&hexValidate);
+            ui->longEdit3_2->setValidator(&hexValidate);
+            if(RegSize > 128)
+            {
+                ui->longEdit0->setValidator(&hexValidate);
+                ui->longEdit1->setValidator(&hexValidate);
+                ui->longEdit2->setValidator(&hexValidate);
+                ui->longEdit3->setValidator(&hexValidate);
+                ui->longLongEdit0->setValidator(&hexValidate);
+                ui->longLongEdit1->setValidator(&hexValidate);
+            }
+            ui->longLongEdit0_2->setValidator(&hexValidate);
+            ui->longLongEdit1_2->setValidator(&hexValidate);
+        }
     }
     else if(ui->radioSigned->isChecked())
     {
@@ -471,7 +587,8 @@ void EditFloatRegister::editingModeChangedSlot(bool arg)
         ui->longLongEdit1_2->setValidator(&unsignedLongLongValidator);
     }
     reloadDataLow();
-    reloadDataHigh();
+    if(RegSize > 128)
+        reloadDataHigh();
 }
 
 /**
@@ -492,9 +609,18 @@ void EditFloatRegister::editingHex1FinishedSlot(QString arg)
 {
     mutex = sender();
     QString filled(arg.toUpper());
-    filled.append(QString(16 - filled.length(), QChar('0')));
-    for(int i = 0; i < 16; i++)
-        Data[i + 16] = filled.mid(i * 2, 2).toInt(0, 16);
+    if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
+    {
+        filled.append(QString(16 - filled.length(), QChar('0')));
+        for(int i = 0; i < 16; i++)
+            Data[i + 16] = filled.mid(i * 2, 2).toInt(0, 16);
+    }
+    else
+    {
+        filled.prepend(QString(16 - filled.length(), QChar('0')));
+        for(int i = 0; i < 16; i++)
+            Data[i + 16] = filled.mid(30 - i * 2, 2).toInt(0, 16);
+    }
     reloadDataHigh();
 }
 
@@ -506,9 +632,23 @@ void EditFloatRegister::editingHex2FinishedSlot(QString arg)
 {
     mutex = sender();
     QString filled(arg.toUpper());
-    filled.append(QString(16 - filled.length(), QChar('0')));
-    for(int i = 0; i < 16; i++)
-        Data[i] = filled.mid(i * 2, 2).toInt(0, 16);
+    int maxBytes;
+    if(RegSize >= 128)
+        maxBytes = 16;
+    else
+        maxBytes = RegSize / 8;
+    if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
+    {
+        filled.append(QString(maxBytes - filled.length(), QChar('0')));
+        for(int i = 0; i < maxBytes; i++)
+            Data[i] = filled.mid(i * 2, 2).toInt(0, 16);
+    }
+    else
+    {
+        filled.prepend(QString(maxBytes - filled.length(), QChar('0')));
+        for(int i = 0; i < maxBytes; i++)
+            Data[i] = filled.mid((maxBytes - i - 1) * 2, 2).toInt(0, 16);
+    }
     reloadDataLow();
 }
 

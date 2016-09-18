@@ -119,6 +119,7 @@ protected:
     // events
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void mouseDoubleClickEvent(QMouseEvent* event);
+    virtual void mouseMoveEvent(QMouseEvent* event);
     virtual void paintEvent(QPaintEvent* event);
     virtual void keyPressEvent(QKeyEvent* event);
 
@@ -127,6 +128,7 @@ protected:
     void setRegisters(REGDUMP* reg);
     char* registerValue(const REGDUMP* regd, const REGISTER_NAME reg);
     bool identifyRegister(const int y, const int x, REGISTER_NAME* clickedReg);
+    QString helpRegister(REGISTER_NAME reg);
     QMenu* CreateDumpNMenu(CPUMultiDump* multiDump);
 
     void displayEditDialog();
