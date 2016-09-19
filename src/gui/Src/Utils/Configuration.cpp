@@ -228,6 +228,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Handle", 5);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "TcpConnection", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Privilege", 2);
+    guiUint.insert("SIMDRegistersDisplayMode", 0);
     defaultUints.insert("Gui", guiUint);
 
     //uint settings
