@@ -146,8 +146,8 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         {
             bool ok;
             argMnemonic.toULongLong(&ok, 16);
-            if(!ok)
-                argMnemonic = QString("%1]=[%2").arg(argMnemonic).arg(DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value));
+            QString valText = DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value);
+            argMnemonic = !ok ? QString("%1]=[%2").arg(argMnemonic).arg(valText) : valText;
             QString sizeName = "";
             int memsize = basicinfo.memory.size;
             switch(memsize)
@@ -181,7 +181,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=???");
             else
             {
-                QString addrText = memsize == sizeof(dsint) ? getSymbolicName(arg.memvalue) : ToHexString(arg.memvalue);
+                QString addrText = getSymbolicName(arg.memvalue);
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + addrText);
             }
             j++;
