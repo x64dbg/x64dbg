@@ -16,16 +16,6 @@
 static std::vector<PLUG_DATA> pluginList;
 
 /**
-\brief Shadow plugin list
-*/
-static std::vector<PLUG_DATA> spluginList;
-
-/*
-\brief List of currently unloaded plugins
-*/
-static std::vector<PLUG_DATA> unLoadedPluginList;
-
-/**
 \brief Saved plugin directory
 */
 static std::wstring pluginDirectory;
