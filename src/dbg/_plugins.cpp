@@ -113,3 +113,13 @@ bool _plugin_unregisterexprfunction(int pluginHandle, const char* name)
 {
     return pluginexprfuncunregister(pluginHandle, name);
 }
+
+PLUG_IMPEXP bool _plugin_unload(const char* pluginName)
+{
+    return pluginunload(pluginName);
+}
+
+PLUG_IMPEXP bool _plugin_load(const char* pluginName)
+{
+    return pluginload(pluginName);
+}

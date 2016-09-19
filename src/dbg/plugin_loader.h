@@ -19,6 +19,9 @@ struct PLUG_MENU
 
 struct PLUG_DATA
 {
+    char plugpath[MAX_PATH];
+    char plugname[MAX_PATH];
+    bool isLoaded;
     HINSTANCE hPlugin;
     PLUGINIT pluginit;
     PLUGSTOP plugstop;
@@ -50,8 +53,10 @@ struct PLUG_EXPRFUNCTION
 };
 
 //plugin management functions
-void pluginload(const char* pluginDir);
-void pluginunload();
+void pluginloadall(const char* pluginDir);
+bool pluginload(const char* pluginname);
+void pluginunloadall();
+bool pluginunload(const char* pluginname);
 void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin);
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType);
 void plugincbcall(CBTYPE cbType, void* callbackInfo);
