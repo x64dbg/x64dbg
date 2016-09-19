@@ -349,7 +349,7 @@ static void pluginexprfuncunregisterall(int pluginHandle)
             ++i;
     }
 }
-bool pluginload(const char *pluginName)
+bool pluginload(const char* pluginName)
 {
     //no empty plugin names allowed
     if(!pluginName)
@@ -624,7 +624,7 @@ bool pluginload(const char *pluginName)
     return true;
 }
 
-bool pluginunload(const char *pluginName)
+bool pluginunload(const char* pluginName)
 {
     bool foundPlugin = false;
     PLUGSTOP stop;
@@ -686,7 +686,7 @@ bool pluginunload(const char *pluginName)
             });
             pluginList.erase(new_pend, pluginList.end());
         }
-        
+
         FreeLibrary(currentPlugin.hPlugin);
         dputs(QT_TRANSLATE_NOOP("DBG", "Plugin unloaded"));
         // unLoadedPluginList.push_back(currentPlugin);
