@@ -394,6 +394,7 @@ bool pluginload(const char *pluginName)
             if(_stricmp(it->plugname, name) == 0 && it->isLoaded)
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Plugin already loaded"));
+                SetCurrentDirectoryW(currentDir);
                 return false;
             }
         }
@@ -407,6 +408,7 @@ bool pluginload(const char *pluginName)
     if(!pluginData.hPlugin)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Failed to load plugin: %s\n"), name);
+        SetCurrentDirectoryW(currentDir);
         return false;
     }
     pluginData.pluginit = (PLUGINIT)GetProcAddress(pluginData.hPlugin, "pluginit");
@@ -414,6 +416,7 @@ bool pluginload(const char *pluginName)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Export \"pluginit\" not found in plugin: %s\n"), name);
         FreeLibrary(pluginData.hPlugin);
+        SetCurrentDirectoryW(currentDir);
         return false;
     }
     pluginData.plugstop = (PLUGSTOP)GetProcAddress(pluginData.hPlugin, "plugstop");
@@ -525,12 +528,14 @@ bool pluginload(const char *pluginName)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] pluginit failed for plugin: %s\n"), name);
         FreeLibrary(pluginData.hPlugin);
+        SetCurrentDirectoryW(currentDir);
         return false;
     }
     else if(pluginData.initStruct.sdkVersion < PLUG_SDKVERSION) //the plugin SDK is not compatible
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s is incompatible with this SDK version\n"), pluginData.initStruct.pluginName);
         FreeLibrary(pluginData.hPlugin);
+        SetCurrentDirectoryW(currentDir);
         return false;
     }
     else
@@ -625,6 +630,7 @@ bool pluginload(const char *pluginName)
     }
     pluginData.isLoaded = true;
     curPluginHandle++;
+    SetCurrentDirectoryW(currentDir);
     return true;
 }
 
