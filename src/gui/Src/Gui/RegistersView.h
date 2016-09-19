@@ -13,7 +13,7 @@ class CPUMultiDump;
 
 typedef struct
 {
-    QString string;
+    const char* string;
     unsigned int value;
 } STRING_VALUE_TABLE_t;
 
@@ -65,6 +65,22 @@ public:
         YMM9, YMM10, YMM11, YMM12, YMM13, YMM14, YMM15,
 
         UNKNOWN
+    };
+
+    enum SIMD_REG_DISP_MODE
+    {
+        SIMD_REG_DISP_HEX,
+        SIMD_REG_DISP_FLOAT,
+        SIMD_REG_DISP_DOUBLE,
+        SIMD_REG_DISP_WORD_SIGNED,
+        SIMD_REG_DISP_DWORD_SIGNED,
+        SIMD_REG_DISP_QWORD_SIGNED,
+        SIMD_REG_DISP_WORD_UNSIGNED,
+        SIMD_REG_DISP_DWORD_UNSIGNED,
+        SIMD_REG_DISP_QWORD_UNSIGNED,
+        SIMD_REG_DISP_WORD_HEX,
+        SIMD_REG_DISP_DWORD_HEX,
+        SIMD_REG_DISP_QWORD_HEX
     };
 
     // contains viewport position of register
@@ -157,20 +173,33 @@ protected slots:
     void onPopAction();
     void onHighlightSlot();
     void InitMappings();
+    // switch SIMD display modes
+    void onSIMDHex();
+    void onSIMDFloat();
+    void onSIMDDouble();
+    void onSIMDSWord();
+    void onSIMDUWord();
+    void onSIMDHWord();
+    void onSIMDSDWord();
+    void onSIMDUDWord();
+    void onSIMDHDWord();
+    void onSIMDSQWord();
+    void onSIMDUQWord();
+    void onSIMDHQWord();
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
-    QString GetRegStringValueFromValue(REGISTER_NAME reg , char* value);
+    QString GetRegStringValueFromValue(REGISTER_NAME reg , const char* value);
     QString GetTagWordStateString(unsigned short);
-    unsigned int GetTagWordValueFromString(QString string);
+    //unsigned int GetTagWordValueFromString(const char* string);
     QString GetControlWordPCStateString(unsigned short);
-    unsigned int GetControlWordPCValueFromString(QString string);
+    //unsigned int GetControlWordPCValueFromString(const char* string);
     QString GetControlWordRCStateString(unsigned short);
-    unsigned int GetControlWordRCValueFromString(QString string);
+    //unsigned int GetControlWordRCValueFromString(const char* string);
     QString GetMxCsrRCStateString(unsigned short);
-    unsigned int GetMxCsrRCValueFromString(QString string);
-    void ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZE_T size);
-    unsigned int GetStatusWordTOPValueFromString(QString string);
+    //unsigned int GetMxCsrRCValueFromString(const char* string);
+    void ModifyFields(const QString & title, STRING_VALUE_TABLE_t* table, SIZE_T size);
+    //unsigned int GetStatusWordTOPValueFromString(const char* string);
     QString GetStatusWordTOPStateString(unsigned short state);
     void appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32);
 private:
@@ -220,8 +249,11 @@ private:
     REGDUMP wCipRegDumpStruct;
     // font measures (TODO: create a class that calculates all thos values)
     unsigned int mRowHeight, mCharWidth;
+    // SIMD registers display mode
+    SIMD_REG_DISP_MODE wSIMDRegDispMode;
     // context menu actions
     QMenu* mFollowInDumpMenu;
+    QMenu* mSwitchSIMDDispMode;
     QAction* mFollowInDump;
     QAction* wCM_Increment;
     QAction* wCM_Decrement;
@@ -244,6 +276,18 @@ private:
     QAction* wCM_Decrementx87Stack;
     QAction* wCM_ChangeFPUView;
     QAction* wCM_Highlight;
+    QAction* SIMDHex;
+    QAction* SIMDFloat;
+    QAction* SIMDDouble;
+    QAction* SIMDSWord;
+    QAction* SIMDUWord;
+    QAction* SIMDHWord;
+    QAction* SIMDSDWord;
+    QAction* SIMDUDWord;
+    QAction* SIMDHDWord;
+    QAction* SIMDSQWord;
+    QAction* SIMDUQWord;
+    QAction* SIMDHQWord;
     dsint mCip;
 };
 
