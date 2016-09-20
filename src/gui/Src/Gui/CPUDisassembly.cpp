@@ -1126,7 +1126,7 @@ void CPUDisassembly::findConstantSlot()
 
     auto addrText = ToHexString(rvaToVa(getInitialSelection()));
     auto constText = ToHexString(wordEdit.getVal());
-    DbgCmdExec(QString("findref %1, %2, 0, %3").arg(addrText).arg(constText).arg(refFindType).toUtf8().constData());
+    DbgCmdExec(QString("findref %1, %2, 0, %3").arg(constText).arg(addrText).arg(refFindType).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
