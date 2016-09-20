@@ -52,6 +52,9 @@ private:
     void downbutton(QTableWidget* table);
 
     void setupTools(QString name, QTableWidget* list);
+    void updateToolsBtnEnabled();
+    void updateScriptsBtnEnabled();
+    void updateCommandsBtnEnabled();
 };
 
 #endif // FAVOURITETOOLS_H
