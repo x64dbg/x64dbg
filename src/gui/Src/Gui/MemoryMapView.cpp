@@ -124,7 +124,7 @@ void MemoryMapView::setupContextMenu()
     connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
     this->addAction(mMemoryFree);
 
-    mFindAddress = new QAction(DIcon("find.png"), tr("Find address &page"), this);
+    mFindAddress = new QAction(DIcon("memmap_find_address_page.png"), tr("Find address &page"), this);
     connect(mFindAddress, SIGNAL(triggered()), this, SLOT(findAddressSlot()));
     this->addAction(mFindAddress);
 
