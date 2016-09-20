@@ -608,6 +608,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionReloadStylesheet, ConfigShortcut("OptionsReloadStylesheet"));
 
     setGlobalShortcut(ui->actionAbout, ConfigShortcut("HelpAbout"));
+    setGlobalShortcut(ui->actionBlog, ConfigShortcut("HelpBlog"));
     setGlobalShortcut(ui->actionDonate, ConfigShortcut("HelpDonate"));
     setGlobalShortcut(ui->actionCheckUpdates, ConfigShortcut("HelpCheckForUpdates"));
     setGlobalShortcut(ui->actionCalculator, ConfigShortcut("HelpCalculator"));

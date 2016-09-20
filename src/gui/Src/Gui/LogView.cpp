@@ -139,6 +139,10 @@ static void linkify(QString & msg)
 #endif //_WIN64
 }
 
+/**
+ * @brief LogView::addMsgToLogSlot Adds a message to the log view. This function is a slot for Bridge::addMsgToLog.
+ * @param msg The log message
+ */
 void LogView::addMsgToLogSlot(QString msg)
 {
     // fix Unix-style line endings.
