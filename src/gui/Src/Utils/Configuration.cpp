@@ -401,8 +401,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionMarkAsParty", Shortcut(tr("Actions -> Mark As Party"), ""));
     defaultShortcuts.insert("ActionSetHwBpE", Shortcut(tr("Actions -> Set Hardware Breakpoint (Execute)"), ""));
     defaultShortcuts.insert("ActionRemoveHwBp", Shortcut(tr("Actions -> Remove Hardware Breakpoint"), ""));
-    defaultShortcuts.insert("ActionRemoveAnalysisFromModule", Shortcut(tr("Actions -> Remove Analysis From Module"), "Ctrl+Shift+U"));
-    defaultShortcuts.insert("ActionRemoveAnalysisFromSelection", Shortcut(tr("Actions -> Remove Analysis From Selection"), "U"));
+    defaultShortcuts.insert("ActionRemoveTypeAnalysisFromModule", Shortcut(tr("Actions -> Remove Type Analysis From Module"), "Ctrl+Shift+U"));
+    defaultShortcuts.insert("ActionRemoveTypeAnalysisFromSelection", Shortcut(tr("Actions -> Remove Type Analysis From Selection"), "U"));
     defaultShortcuts.insert("ActionTreatSelectionAsCode", Shortcut(tr("Actions -> Treat Selection As Code"), "C"));
     defaultShortcuts.insert("ActionTreatSelectionAsByte", Shortcut(tr("Actions -> Treat Selection As Byte"), "B"));
     defaultShortcuts.insert("ActionTreatSelectionAsWord", Shortcut(tr("Actions -> Treat Selection As Word"), "W"));
