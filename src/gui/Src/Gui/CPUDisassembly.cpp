@@ -947,6 +947,8 @@ void CPUDisassembly::assembleSlot()
             assembly_error = false;
 
             assembleDialog.setSelectedInstrVa(wVA);
+            if(ConfigBool("Disassembler", "Uppercase"))
+                actual_inst = actual_inst.toUpper().replace(QRegularExpression("0X([0-9A-F]+)"), "0x\\1");
             assembleDialog.setTextEditValue(actual_inst);
             assembleDialog.setWindowTitle(tr("Assemble at %1").arg(addr_text));
             assembleDialog.setFillWithNopsChecked(ConfigBool("Disassembler", "FillNOPs"));
