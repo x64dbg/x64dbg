@@ -868,6 +868,9 @@ BRIDGE_IMPEXP bool DbgGetWatchList(ListOf(WATCHINFO) list);
 #define GUI_DISASSEMBLY 0
 #define GUI_DUMP 1
 #define GUI_STACK 2
+#define GUI_GRAPH 3
+#define GUI_MEMMAP 4
+#define GUI_SYMMOD 5
 
 #define GUI_MAX_LINE_SIZE 65536
 #define GUI_MAX_DISASSEMBLY_SIZE 2048

@@ -258,6 +258,7 @@ public slots:
     void fontsUpdatedSlot();
     void shortcutsUpdatedSlot();
     void toggleOverviewSlot();
+    void selectionGetSlot(SELECTIONDATA* selection);
 
 private:
     QString status;
