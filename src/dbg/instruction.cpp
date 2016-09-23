@@ -443,6 +443,7 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
 
 CMDRESULT cbInstrLoaddb(int argc, char* argv[])
 {
+    DbClear();
     DbLoad(DbLoadSaveType::All);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;

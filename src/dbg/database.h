@@ -13,6 +13,7 @@ enum class DbLoadSaveType
 void DbSave(DbLoadSaveType saveType);
 void DbLoad(DbLoadSaveType loadType);
 void DbClose();
+void DbClear();
 void DbSetPath(const char* Directory, const char* ModulePath);
 
 #endif // _DATABASE_H

@@ -248,6 +248,11 @@ void DbLoad(DbLoadSaveType loadType)
 void DbClose()
 {
     DbSave(DbLoadSaveType::All);
+    DbClear();
+}
+
+void DbClear()
+{
     CommentClear();
     LabelClear();
     BookmarkClear();
