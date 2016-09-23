@@ -315,6 +315,8 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
         moduleText.truncate(maxModuleLength);
     if(moduleText.length())
         moduleText += ".";
+    if(_bUppercase)
+        moduleText = moduleText.toUpper();
     QString addrText = ToHexString(addr);
     QString finalText;
     if(bHasLabel && bHasModule)  //<module.label>

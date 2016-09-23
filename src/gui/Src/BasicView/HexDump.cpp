@@ -272,7 +272,7 @@ void HexDump::historyClear()
 void HexDump::setupCopyMenu()
 {
     // Copy -> Data
-    mCopySelection = new QAction(DIcon("copy_selection.png"), tr("&Selection"), this);
+    mCopySelection = new QAction(DIcon("copy_selection.png"), tr("&Selected lines"), this);
     connect(mCopySelection, SIGNAL(triggered(bool)), this, SLOT(copySelectionSlot()));
     mCopySelection->setShortcutContext(Qt::WidgetShortcut);
     addAction(mCopySelection);

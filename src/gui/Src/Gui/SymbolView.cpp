@@ -81,6 +81,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(addMsgToSymbolLog(QString)), this, SLOT(addMsgToSymbolLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
+    connect(Bridge::getBridge(), SIGNAL(selectionSymmodGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(mModuleList->mList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(mModuleList->mSearchList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(mModuleList, SIGNAL(emptySearchResult()), this, SLOT(emptySearchResultSlot()));
@@ -588,4 +589,10 @@ void SymbolView::emptySearchResultSlot()
 {
     // No result after search
     mSearchListView->mCurList->setRowCount(0);
+}
+
+void SymbolView::selectionGetSlot(SELECTIONDATA* selection)
+{
+    selection->start = selection->end = duint(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toULongLong(nullptr, 16));
+    Bridge::getBridge()->setResult(1);
 }

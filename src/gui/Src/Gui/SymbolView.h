@@ -50,6 +50,7 @@ private slots:
     void refreshShortcutsSlot();
     void moduleEntropy();
     void emptySearchResultSlot();
+    void selectionGetSlot(SELECTIONDATA* selection);
 
 signals:
     void showReferences();

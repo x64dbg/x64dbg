@@ -41,6 +41,7 @@ public slots:
     void selectAddress(duint va);
     void findAddressSlot();
     void addVirtualModSlot();
+    void selectionGetSlot(SELECTIONDATA* selection);
 
 private:
     QString getProtectionString(DWORD Protect);

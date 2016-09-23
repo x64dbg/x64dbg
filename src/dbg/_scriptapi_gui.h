@@ -30,6 +30,21 @@ namespace Script
             SCRIPT_EXPORT duint SelectionGetStart();
             SCRIPT_EXPORT duint SelectionGetEnd();
         }; //Stack
+
+        namespace Graph
+        {
+            SCRIPT_EXPORT duint SelectionGetStart();
+        }; //Graph
+
+        namespace MemMap
+        {
+            SCRIPT_EXPORT duint SelectionGetStart();
+        }; //MemoryMap
+
+        namespace SymMod
+        {
+            SCRIPT_EXPORT duint SelectionGetStart();
+        }; //SymMod
     }; //Gui
 
     namespace Gui
@@ -38,7 +53,10 @@ namespace Script
         {
             DisassemblyWindow,
             DumpWindow,
-            StackWindow
+            StackWindow,
+            GraphWindow,
+            MemMapWindow,
+            SymModWindow
         };
 
         SCRIPT_EXPORT bool SelectionGet(Window window, duint* start, duint* end);

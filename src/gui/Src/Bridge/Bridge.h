@@ -91,6 +91,9 @@ signals:
     void selectionDumpSet(const SELECTIONDATA* selection);
     void selectionStackGet(SELECTIONDATA* selection);
     void selectionStackSet(const SELECTIONDATA* selection);
+    void selectionGraphGet(SELECTIONDATA* selection);
+    void selectionMemmapGet(SELECTIONDATA* selection);
+    void selectionSymmodGet(SELECTIONDATA* selection);
     void getStrWindow(const QString title, QString* text);
     void autoCompleteAddCmd(const QString cmd);
     void autoCompleteDelCmd(const QString cmd);

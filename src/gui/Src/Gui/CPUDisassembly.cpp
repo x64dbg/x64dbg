@@ -440,8 +440,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     analysisMenu->addAction(makeShortcutAction(DIcon("analysis_single_function.png"), tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
     analysisMenu->addSeparator();
 
-    analysisMenu->addAction(makeShortcutAction(DIcon("remove_analysis_from_module.png"), tr("Remove analysis from module"), SLOT(removeAnalysisModuleSlot()), "ActionRemoveAnalysisFromModule"));
-    analysisMenu->addAction(makeShortcutAction(DIcon("remove_analysis_from_selection.png"), tr("Remove analysis from selection"), SLOT(removeAnalysisSelectionSlot()), "ActionRemoveAnalysisFromSelection"));
+    analysisMenu->addAction(makeShortcutAction(DIcon("remove_analysis_from_module.png"), tr("Remove type analysis from module"), SLOT(removeAnalysisModuleSlot()), "ActionRemoveTypeAnalysisFromModule"));
+    analysisMenu->addAction(makeShortcutAction(DIcon("remove_analysis_from_selection.png"), tr("Remove type analysis from selection"), SLOT(removeAnalysisSelectionSlot()), "ActionRemoveTypeAnalysisFromSelection"));
     analysisMenu->addSeparator();
 
     QMenu* encodeTypeMenu = makeMenu(DIcon("treat_selection_head_as.png"), tr("Treat selection &head as"));
@@ -947,6 +947,8 @@ void CPUDisassembly::assembleSlot()
             assembly_error = false;
 
             assembleDialog.setSelectedInstrVa(wVA);
+            if(ConfigBool("Disassembler", "Uppercase"))
+                actual_inst = actual_inst.toUpper().replace(QRegularExpression("0X([0-9A-F]+)"), "0x\\1");
             assembleDialog.setTextEditValue(actual_inst);
             assembleDialog.setWindowTitle(tr("Assemble at %1").arg(addr_text));
             assembleDialog.setFillWithNopsChecked(ConfigBool("Disassembler", "FillNOPs"));
