@@ -338,6 +338,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("OptionsReloadStylesheet", Shortcut(tr("Options -> Reload style.css") , "", true));
 
     defaultShortcuts.insert("HelpAbout", Shortcut(tr("Help -> About"), "", true));
+    defaultShortcuts.insert("HelpBlog", Shortcut(tr("Help -> Blog"), "", true));
     defaultShortcuts.insert("HelpDonate", Shortcut(tr("Help -> Donate"), "", true));
     defaultShortcuts.insert("HelpCheckForUpdates", Shortcut(tr("Help -> Check for Updates"), "", true));
     defaultShortcuts.insert("HelpCalculator", Shortcut(tr("Help -> Calculator"), "?"));
