@@ -3123,7 +3123,7 @@ CMDRESULT cbInstrGetTickCount(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbPluginUnload(int argc, char* argv[])
+CMDRESULT cbInstrPluginUnload(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 1))
         return STATUS_ERROR;
@@ -3132,11 +3132,53 @@ CMDRESULT cbPluginUnload(int argc, char* argv[])
     return STATUS_ERROR;
 }
 
-CMDRESULT cbPluginLoad(int argc, char* argv[])
+CMDRESULT cbInstrPluginLoad(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 1))
         return STATUS_ERROR;
     if(pluginload(argv[1]))
         return STATUS_CONTINUE;
     return STATUS_ERROR;
+}
+
+CMDRESULT cbInstrGrs(int argc, char* argv[])
+{
+    //Original tool "GetRelocSize" by Killboy/SND
+    if(argc < 2)
+    {
+        _plugin_logputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+        return STATUS_ERROR;
+    }
+
+    duint RelocDirAddr;
+    if(!valfromstring(argv[1], &RelocDirAddr, false))
+        return STATUS_ERROR;
+
+    duint RelocSize = 0;
+    varset("$result", RelocSize, false);
+    IMAGE_RELOCATION RelocDir;
+    do
+    {
+        if(!MemRead(RelocDirAddr, &RelocDir, sizeof(IMAGE_RELOCATION)))
+        {
+            _plugin_logputs(QT_TRANSLATE_NOOP("DBG", "Invalid relocation table!"));
+            return STATUS_ERROR;
+        }
+        if(!RelocDir.SymbolTableIndex)
+            break;
+        RelocSize += RelocDir.SymbolTableIndex;
+        RelocDirAddr += RelocDir.SymbolTableIndex;
+    }
+    while(RelocDir.VirtualAddress);
+
+    if(!RelocSize)
+    {
+        _plugin_logputs(QT_TRANSLATE_NOOP("DBG", "Invalid relocation table!"));
+        return STATUS_ERROR;
+    }
+
+    varset("$result", RelocSize, false);
+    _plugin_logprintf(QT_TRANSLATE_NOOP("DBG", "Relocation table size: %X\n"), RelocSize);
+
+    return STATUS_CONTINUE;
 }

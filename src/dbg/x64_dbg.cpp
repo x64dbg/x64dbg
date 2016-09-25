@@ -122,6 +122,7 @@ static void registercommands()
     dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
     dbgcmdnew("RunToUserCode\1rtu", cbDebugRtu, true); //Run to user code
     dbgcmdnew("InstrUndo", cbInstrInstrUndo, true); //Instruction undo
+    dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
@@ -254,6 +255,8 @@ static void registercommands()
     dbgcmdnew("AddFavouriteCommand", cbInstrAddFavCmd, false); //add favourite command
     dbgcmdnew("AddFavouriteToolShortcut\1SetFavouriteToolShortcut", cbInstrSetFavToolShortcut, false); //set favourite tool shortcut
     dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
+    dbgcmdnew("GetTickCount", cbInstrGetTickCount, false); // GetTickCount
+    dbgcmdnew("GetRelocSize\1grs", cbInstrGrs, true); //get relocation table size
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
@@ -286,6 +289,8 @@ static void registercommands()
 
     //plugins
     dbgcmdnew("StartScylla\1scylla\1imprec", cbDebugStartScylla, false); //start scylla
+    dbgcmdnew("plugunload\1pluginunload\1unloadplugin", cbInstrPluginUnload, false); //unload plugin
+    dbgcmdnew("plugload\1pluginload\1loadplugin", cbInstrPluginLoad, false); //load plugin
 
     //general purpose
     dbgcmdnew("cmp", cbInstrCmp, false); //compare
@@ -347,6 +352,7 @@ static void registercommands()
     dbgcmdnew("DataCode\1dc", cbInstrDataCode, true); //mark as Code
     dbgcmdnew("DataJunk", cbInstrDataJunk, true); //mark as Junk
     dbgcmdnew("DataMiddle", cbInstrDataMiddle, true); //mark as Middle
+    dbgcmdnew("imageinfo\1modimageinfo", cbInstrImageinfo, true); //print module image information
 
     //analysis
     dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
@@ -376,12 +382,7 @@ static void registercommands()
     dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
-    dbgcmdnew("imageinfo\1modimageinfo", cbInstrImageinfo, true); //print module image information
     dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
-    dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
-    dbgcmdnew("GetTickCount", cbInstrGetTickCount, false); // GetTickCount
-    dbgcmdnew("plugunload", cbPluginUnload, false);
-    dbgcmdnew("plugload", cbPluginLoad, false);
 };
 
 static bool cbCommandProvider(char* cmd, int maxlen)
