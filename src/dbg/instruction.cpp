@@ -455,6 +455,13 @@ CMDRESULT cbInstrSavedb(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbInstrCleardb(int argc, char* argv[])
+{
+    DbClear();
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbInstrAssemble(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))

@@ -264,6 +264,7 @@ static void registercommands()
     dbgcmdnew("bookmarkc\1bookmarkdel", cbInstrBookmarkDel, true); //delete bookmark
     dbgcmdnew("savedb\1dbsave", cbInstrSavedb, true); //save program database
     dbgcmdnew("loaddb\1dbload", cbInstrLoaddb, true); //load program database
+    dbgcmdnew("cleardb\1dbclear", cbInstrCleardb, true); //clear program database
     dbgcmdnew("functionadd\1func", cbInstrFunctionAdd, true); //function
     dbgcmdnew("functiondel\1funcc", cbInstrFunctionDel, true); //function
     dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions

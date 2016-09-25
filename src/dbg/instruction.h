@@ -18,6 +18,7 @@ CMDRESULT cbInstrBookmarkSet(int argc, char* argv[]);
 CMDRESULT cbInstrBookmarkDel(int argc, char* argv[]);
 CMDRESULT cbInstrLoaddb(int argc, char* argv[]);
 CMDRESULT cbInstrSavedb(int argc, char* argv[]);
+CMDRESULT cbInstrCleardb(int argc, char* argv[]);
 CMDRESULT cbInstrAssemble(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionAdd(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionDel(int argc, char* argv[]);
