@@ -29,6 +29,7 @@
 #include "animate.h"
 #include "simplescript.h"
 #include "capstone_wrapper.h"
+#include "cmd-watch-control.h"
 
 struct TraceCondition
 {
@@ -216,7 +217,7 @@ void cbDebuggerPaused()
         }
     }
     // Watchdog
-    cbWatchdog(0, nullptr);
+    cbCheckWatchdog(0, nullptr);
 }
 
 void dbginit()
@@ -771,7 +772,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     _dbg_dbgtraceexecute(CIP);
 
     // Watchdog
-    cbWatchdog(0, nullptr);
+    cbCheckWatchdog(0, nullptr);
 
     if(*bp.logText && logCondition)  //log
     {

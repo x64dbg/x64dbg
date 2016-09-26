@@ -23,3 +23,4 @@ CMDRESULT cbInstrPush(int argc, char* argv[]);
 CMDRESULT cbInstrPop(int argc, char* argv[]);
 CMDRESULT cbInstrTest(int argc, char* argv[]);
 CMDRESULT cbInstrCmp(int argc, char* argv[]);
+CMDRESULT cbInstrMov(int argc, char* argv[]);

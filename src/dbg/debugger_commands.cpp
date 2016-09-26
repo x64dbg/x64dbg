@@ -26,7 +26,7 @@
 #include "historycontext.h"
 #include "taskthread.h"
 #include "animate.h"
-#include "debug-control.h"
+#include "cmd-debug-control.h"
 
 static bool bScyllaLoaded = false;
 duint LoadLibThreadID;
@@ -330,7 +330,7 @@ CMDRESULT cbDebugRunToParty(int argc, char* argv[])
     return cbDebugRunInternal(argc, argv);
 }
 
-CMDRESULT cbDebugRtu(int argc, char* argv[])
+CMDRESULT cbDebugRunToUserCode(int argc, char* argv[])
 {
     char* newargv[] = { "RunToParty", "0" };
     return cbDebugRunToParty(argc, newargv);

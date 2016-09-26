@@ -347,7 +347,7 @@ CMDRESULT cbInstrChd(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrCmt(int argc, char* argv[])
+CMDRESULT cbInstrCommentSet(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
@@ -362,7 +362,7 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrCmtdel(int argc, char* argv[])
+CMDRESULT cbInstrCommentDel(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
@@ -378,7 +378,7 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrLbl(int argc, char* argv[])
+CMDRESULT cbInstrLabelSet(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;
@@ -394,7 +394,7 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrLbldel(int argc, char* argv[])
+CMDRESULT cbInstrLabelDel(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
@@ -441,7 +441,7 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrLoaddb(int argc, char* argv[])
+CMDRESULT cbInstrDbload(int argc, char* argv[])
 {
     DbClear();
     DbLoad(DbLoadSaveType::All);
@@ -449,13 +449,13 @@ CMDRESULT cbInstrLoaddb(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrSavedb(int argc, char* argv[])
+CMDRESULT cbInstrDbsave(int argc, char* argv[])
 {
     DbSave(DbLoadSaveType::All);
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrCleardb(int argc, char* argv[])
+CMDRESULT cbInstrDbclear(int argc, char* argv[])
 {
     DbClear();
     GuiUpdateAllViews();
@@ -1565,6 +1565,14 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbInstrCommentClear(int argc, char* argv[])
+{
+    CommentClear();
+    GuiUpdateAllViews();
+    dputs(QT_TRANSLATE_NOOP("DBG", "all comments deleted!"));
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbInstrLabelList(int argc, char* argv[])
 {
     //setup reference view
@@ -1601,6 +1609,14 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbInstrLabelClear(int argc, char* argv[])
+{
+    LabelClear();
+    GuiUpdateAllViews();
+    dputs(QT_TRANSLATE_NOOP("DBG", "all labels deleted!"));
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 {
     //setup reference view
@@ -1632,6 +1648,14 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d bookmark(s) listed\n"), count);
     GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrBookmarkClear(int argc, char* argv[])
+{
+    LabelClear();
+    GuiUpdateAllViews();
+    dputs(QT_TRANSLATE_NOOP("DBG", "all bookmarks deleted!"));
     return STATUS_CONTINUE;
 }
 
@@ -3141,7 +3165,7 @@ CMDRESULT cbInstrPluginLoad(int argc, char* argv[])
     return STATUS_ERROR;
 }
 
-CMDRESULT cbInstrGrs(int argc, char* argv[])
+CMDRESULT cbInstrGetRelocSize(int argc, char* argv[])
 {
     //Original tool "GetRelocSize" by Killboy/SND
     if(argc < 2)

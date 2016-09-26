@@ -71,9 +71,9 @@ std::vector<WATCHINFO> WatchGetList();
 void WatchCacheSave(JSON root); // Save watch data to database
 void WatchCacheLoad(JSON root); // Load watch data from database
 
-CMDRESULT cbWatchdog(int argc, char* argv[]);
-CMDRESULT cbAddWatch(int argc, char* argv[]);
-CMDRESULT cbDelWatch(int argc, char* argv[]);
-CMDRESULT cbSetWatchName(int argc, char* argv[]);
-CMDRESULT cbSetWatchExpression(int argc, char* argv[]);
-CMDRESULT cbSetWatchdog(int argc, char* argv[]);
+
+
+
+
+
+

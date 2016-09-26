@@ -413,7 +413,7 @@ void WatchCacheLoad(JSON root)
     WatchInitIdCounter(); // Initialize id counter so that it begin with a unused value
 }
 
-CMDRESULT cbWatchdog(int argc, char* argv[])
+CMDRESULT cbCheckWatchdog(int argc, char* argv[])
 {
     EXCLUSIVE_ACQUIRE(LockWatch);
     bool watchdogTriggered = false;

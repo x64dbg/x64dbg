@@ -802,13 +802,64 @@
     <ClInclude Include="symcache.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
-    <ClInclude Include="commands\breakpoint-control.h">
+    <ClInclude Include="commands\cmd-breakpoint-control.h">
       <Filter>Header Files\Commands</Filter>
     </ClInclude>
-    <ClInclude Include="commands\debug-control.h">
+    <ClInclude Include="commands\cmd-conditional-breakpoint-control.h">
       <Filter>Header Files\Commands</Filter>
     </ClInclude>
-    <ClInclude Include="commands\general-purpose.h">
+    <ClInclude Include="commands\cmd-debug-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-general-purpose.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-memory-operations.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-operating-system-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-thread-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-tracing.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-watch-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-variables.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-data.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-user-database.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-analysis.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-types.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-plugins.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-script.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-misc.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-undocumented.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-all.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-gui.h">
       <Filter>Header Files\Commands</Filter>
     </ClInclude>
   </ItemGroup>
