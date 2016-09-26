@@ -1664,6 +1664,20 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     }
 }
 
+static bool dbgdetachDisableAllBreakpoints(const BREAKPOINT* bp)
+{
+    if(bp->enabled)
+    {
+        if(bp->type == BPNORMAL)
+            DeleteBPX(bp->addr);
+        else if(bp->type == BPMEMORY)
+            RemoveMemoryBPX(bp->addr, 0);
+        else if(bp->type == BPDLL)
+            LibrarianRemoveBreakPoint(bp->mod, bp->titantype);
+    }
+    return true;
+}
+
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -1690,6 +1704,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             PLUG_CB_DETACH detachInfo;
             detachInfo.fdProcessInfo = fdProcessInfo;
             plugincbcall(CB_DETACH, &detachInfo);
+            BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
             if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
                 dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
             else
@@ -1800,6 +1815,7 @@ void cbDetach()
     PLUG_CB_DETACH detachInfo;
     detachInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_DETACH, &detachInfo);
+    BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
     if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
         dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
     else
@@ -2403,7 +2419,11 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     //run debug loop (returns when process debugging is stopped)
     if(attach)
     {
-        AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger);
+        if(AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger) == false)
+        {
+            unsigned int errorCode = GetLastError();
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %d(%s)\n"), errorCode, ErrorCodeToName(errorCode).c_str());
+        }
     }
     else
     {
