@@ -14,16 +14,16 @@ MyApplication::MyApplication(int & argc, char** argv)
 }
 
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+bool MyApplication::winEventFilter(MSG* message, long* result)
+{
+    return DbgWinEvent(message, result);
+}
+
 bool MyApplication::globalEventFilter(void* message)
 {
     return DbgWinEventGlobal((MSG*)message);
 }
 #endif
-
-bool MyApplication::winEventFilter(MSG* message, long* result)
-{
-    return DbgWinEvent(message, result);
-}
 
 bool MyApplication::notify(QObject* receiver, QEvent* event)
 {
@@ -79,8 +79,8 @@ int main(int argc, char* argv[])
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);
 #else
-    x64GlobalFilter* filter = new x64GlobalFilter();
-    QAbstractEventDispatcher::instance(application.thread())->installNativeEventFilter(filter);
+    auto eventFilter = new MyEventFilter();
+    application.installNativeEventFilter(eventFilter);
 #endif
 
     // Get the hidden language setting (for testers)
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
     //execute the application
     int result = application.exec();
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-    QAbstractEventDispatcher::instance(application.thread())->removeNativeEventFilter(filter);
+    application.removeNativeEventFilter(eventFilter);
 #else
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(nullptr);
 #endif

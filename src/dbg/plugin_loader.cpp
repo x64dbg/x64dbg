@@ -998,7 +998,7 @@ bool pluginwinevent(MSG* message, long* result)
     PLUG_CB_WINEVENT winevent;
     winevent.message = message;
     winevent.result = result;
-    winevent.retval = false;
+    winevent.retval = false; //false=handle event, true=ignore event
     plugincbcall(CB_WINEVENT, &winevent);
     return winevent.retval;
 }
@@ -1012,7 +1012,7 @@ bool pluginwineventglobal(MSG* message)
 {
     PLUG_CB_WINEVENTGLOBAL winevent;
     winevent.message = message;
-    winevent.retval = false;
+    winevent.retval = false; //false=handle event, true=ignore event
     plugincbcall(CB_WINEVENTGLOBAL, &winevent);
     return winevent.retval;
 }
