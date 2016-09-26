@@ -16,3 +16,4 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[]);
 CMDRESULT cbInstrGetRelocSize(int argc, char* argv[]);
 CMDRESULT cbInstrExhandlers(int argc, char* argv[]);
 CMDRESULT cbInstrExinfo(int argc, char* argv[]);
+CMDRESULT cbInstrTraceexecute(int argc, char* argv[]);

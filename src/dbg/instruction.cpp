@@ -1358,7 +1358,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
+CMDRESULT cbInstrFindAllMem(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return STATUS_ERROR;

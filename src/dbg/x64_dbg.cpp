@@ -267,6 +267,7 @@ static void registercommands()
     //data
     dbgcmdnew("find", cbInstrFind, true); //find a pattern
     dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
+    dbgcmdnew("findallmem\1findmemall", cbInstrFindAllMem, true); //memory map pattern find
     dbgcmdnew("findasm\1asmfind", cbInstrFindAsm, true); //find instruction
     dbgcmdnew("reffind\1findref\1ref", cbInstrRefFind, true); //find references to a value
     dbgcmdnew("reffindrange\1findrefrange\1refrange", cbInstrRefFindRange, true);
@@ -406,7 +407,6 @@ static void registercommands()
     dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
-    dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
     dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
 };

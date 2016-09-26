@@ -4,6 +4,7 @@
 
 CMDRESULT cbInstrFind(int argc, char* argv[]);
 CMDRESULT cbInstrFindAll(int argc, char* argv[]);
+CMDRESULT cbInstrFindAllMem(int argc, char* argv[]);
 CMDRESULT cbInstrFindAsm(int argc, char* argv[]);
 CMDRESULT cbInstrRefFind(int argc, char* argv[]);
 CMDRESULT cbInstrRefFindRange(int argc, char* argv[]);
