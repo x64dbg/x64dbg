@@ -26,6 +26,7 @@
 #include "historycontext.h"
 #include "taskthread.h"
 #include "animate.h"
+#include "debug-control.h"
 
 static bool bScyllaLoaded = false;
 duint LoadLibThreadID;
@@ -140,7 +141,7 @@ CMDRESULT cbDebugStop(int argc, char* argv[])
 }
 
 // Run
-CMDRESULT cbDebugRun(int argc, char* argv[])
+CMDRESULT cbDebugRunInternal(int argc, char* argv[])
 {
     // Don't "run" twice if the program is already running
     if(dbgisrunning())
@@ -155,10 +156,10 @@ CMDRESULT cbDebugRun(int argc, char* argv[])
 }
 
 // Run and clear history
-CMDRESULT cbDebugRun2(int argc, char* argv[])
+CMDRESULT cbDebugRun(int argc, char* argv[])
 {
     HistoryClear();
-    return cbDebugRun(argc, argv);
+    return cbDebugRunInternal(argc, argv);
 }
 
 CMDRESULT cbDebugErun(int argc, char* argv[])
@@ -171,13 +172,13 @@ CMDRESULT cbDebugErun(int argc, char* argv[])
         dbgsetskipexceptions(false);
         return STATUS_CONTINUE;
     }
-    return cbDebugRun(argc, argv);
+    return cbDebugRunInternal(argc, argv);
 }
 
 CMDRESULT cbDebugSerun(int argc, char* argv[])
 {
     cbDebugContinue(argc, argv);
-    return cbDebugRun(argc, argv);
+    return cbDebugRunInternal(argc, argv);
 }
 
 static bool skipInt3Stepping(int argc, char* argv[])
@@ -204,7 +205,7 @@ CMDRESULT cbDebugStepInto(int argc, char* argv[])
     // History
     HistoryAdd();
     dbgsetstepping(true);
-    return cbDebugRun(argc, argv);
+    return cbDebugRunInternal(argc, argv);
 }
 
 CMDRESULT cbDebugeStepInto(int argc, char* argv[])
@@ -227,7 +228,7 @@ CMDRESULT cbDebugStepOver(int argc, char* argv[])
     // History
     HistoryClear();
     dbgsetstepping(true);
-    return cbDebugRun(argc, argv);
+    return cbDebugRunInternal(argc, argv);
 }
 
 CMDRESULT cbDebugeStepOver(int argc, char* argv[])
@@ -251,7 +252,7 @@ CMDRESULT cbDebugSingleStep(int argc, char* argv[])
     SingleStep((DWORD)stepcount, (void*)cbStep);
     HistoryClear();
     dbgsetstepping(true);
-    return cbDebugRun(argc, argv);
+    return cbDebugRunInternal(argc, argv);
 }
 
 CMDRESULT cbDebugeSingleStep(int argc, char* argv[])
@@ -286,17 +287,17 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugRtr(int argc, char* argv[])
+CMDRESULT cbDebugStepOut(int argc, char* argv[])
 {
     HistoryClear();
     StepOver((void*)cbRtrStep);
-    return cbDebugRun(argc, argv);
+    return cbDebugRunInternal(argc, argv);
 }
 
-CMDRESULT cbDebugeRtr(int argc, char* argv[])
+CMDRESULT cbDebugeStepOut(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
-    return cbDebugRtr(argc, argv);
+    return cbDebugStepOut(argc, argv);
 }
 
 CMDRESULT cbDebugRunToParty(int argc, char* argv[])
@@ -326,7 +327,7 @@ CMDRESULT cbDebugRunToParty(int argc, char* argv[])
             }
         }
     }
-    return cbDebugRun(argc, argv);
+    return cbDebugRunInternal(argc, argv);
 }
 
 CMDRESULT cbDebugRtu(int argc, char* argv[])
@@ -360,7 +361,7 @@ static CMDRESULT cbDebugConditionalTrace(void* callBack, bool stepOver, int argc
         StepOver(callBack);
     else
         StepInto(callBack);
-    return cbDebugRun(argc, argv);
+    return cbDebugRunInternal(argc, argv);
 }
 
 CMDRESULT cbDebugTraceOverConditional(int argc, char* argv[])

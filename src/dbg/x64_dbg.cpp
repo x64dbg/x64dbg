@@ -74,6 +74,9 @@ static CMDRESULT cbScriptDll(int argc, char* argv[])
     return DbgScriptDllExec(argv[1]) ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
+#include "general-purpose.h"
+#include "debug-control.h"
+
 /**
 \brief register the all the commands
 */
@@ -81,15 +84,39 @@ static void registercommands()
 {
     cmdinit();
 
+    //general purpose
+    dbgcmdnew("inc", cbInstrInc, false);
+    dbgcmdnew("dec", cbInstrDec, false);
+    dbgcmdnew("add", cbInstrAdd, false);
+    dbgcmdnew("sub", cbInstrSub, false);
+    dbgcmdnew("mul", cbInstrMul, false);
+    dbgcmdnew("div", cbInstrDiv, false);
+    dbgcmdnew("and", cbInstrAnd, false);
+    dbgcmdnew("or", cbInstrOr, false);
+    dbgcmdnew("xor", cbInstrXor, false);
+    dbgcmdnew("neg", cbInstrNeg, false);
+    dbgcmdnew("not", cbInstrNot, false);
+    dbgcmdnew("bswap", cbInstrBswap, false);
+    dbgcmdnew("rol", cbInstrRol, false);
+    dbgcmdnew("ror", cbInstrRor, false);
+    dbgcmdnew("shl\1sal", cbInstrShl, false);
+    dbgcmdnew("shr", cbInstrShr, false);
+    dbgcmdnew("sar", cbInstrSar, false);
+    dbgcmdnew("push", cbInstrPush, true);
+    dbgcmdnew("pop", cbInstrPop, true);
+    dbgcmdnew("test", cbInstrTest, false);
+    dbgcmdnew("cmp", cbInstrCmp, false);
+
     //debug control
     dbgcmdnew("InitDebug\1init\1initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
     dbgcmdnew("StopDebug\1stop\1dbgstop", cbDebugStop, true); //stop debugger
     dbgcmdnew("AttachDebugger\1attach", cbDebugAttach, false); //attach
     dbgcmdnew("DetachDebugger\1detach", cbDebugDetach, true); //detach
-    dbgcmdnew("run\1go\1r\1g", cbDebugRun2, true); //unlock WAITID_RUN
+    dbgcmdnew("run\1go\1r\1g", cbDebugRun, true); //unlock WAITID_RUN
     dbgcmdnew("erun\1egun\1er\1eg", cbDebugErun, true); //run + skip first chance exceptions
     dbgcmdnew("serun\1sego", cbDebugSerun, true); //run + swallow exception
     dbgcmdnew("pause", cbDebugPause, false); //pause debugger
+    dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
     dbgcmdnew("StepInto\1sti", cbDebugStepInto, true); //StepInto
     dbgcmdnew("eStepInto\1esti", cbDebugeStepInto, true); //StepInto + skip first chance exceptions
     dbgcmdnew("seStepInto\1sesti", cbDebugseStepInto, true); //StepInto + swallow exception
@@ -98,35 +125,12 @@ static void registercommands()
     dbgcmdnew("seStepOver\1sestep\1sesto\1sest", cbDebugseStepOver, true); //StepOver + swallow exception
     dbgcmdnew("SingleStep\1sstep\1sst", cbDebugSingleStep, true); //SingleStep arg1:count
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
-    dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //StepOut
-    dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
-    dbgcmdnew("TraceOverConditional\1tocnd", cbDebugTraceOverConditional, true); //Trace over conditional
-    dbgcmdnew("TraceIntoConditional\1ticnd", cbDebugTraceIntoConditional, true); //Trace into conditional
-    dbgcmdnew("TraceIntoBeyondTraceRecord\1tibt", cbDebugTraceIntoBeyondTraceRecord, true); //Trace into beyond trace record
-    dbgcmdnew("TraceOverBeyondTraceRecord\1tobt", cbDebugTraceOverBeyondTraceRecord, true); //Trace over beyond trace record
-    dbgcmdnew("TraceIntoIntoTraceRecord\1tiit", cbDebugTraceIntoIntoTraceRecord, true); //Trace into into trace record
-    dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
-    dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
-    dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true); //switch thread
-    dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread
-    dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true); //resume thread
-    dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true); //kill thread
-    dbgcmdnew("suspendallthreads\1threadsuspendall", cbDebugSuspendAllThreads, true); //suspend all threads
-    dbgcmdnew("resumeallthreads\1threadresumeall", cbDebugResumeAllThreads, true); //resume all threads
-    dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
-    dbgcmdnew("threadsetname\1setthreadname", cbDebugSetthreadname, true); //set thread name
-    dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
-    dbgcmdnew("getcmdline\1getcommandline", cbDebugGetCmdline, true); //Get CmdLine
-    dbgcmdnew("setcmdline\1setcommandline", cbDebugSetCmdline, true); //Set CmdLine
+    dbgcmdnew("StepOut\1rtr", cbDebugStepOut, true); //StepOut
+    dbgcmdnew("eStepOut\1ertr", cbDebugeStepOut, true); //rtr + skip first chance exceptions
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
-    dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
-    dbgcmdnew("RunToUserCode\1rtu", cbDebugRtu, true); //Run to user code
     dbgcmdnew("InstrUndo", cbInstrInstrUndo, true); //Instruction undo
-    dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
 
-    //breakpoints
-    dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
-    dbgcmdnew("SetBPXOptions\1bptype", cbDebugSetBPXOptions, false); //breakpoint type
+    //Breakpoint control
     dbgcmdnew("SetBPX\1bp\1bpx", cbDebugSetBPX, true); //breakpoint
     dbgcmdnew("DeleteBPX\1bpc\1bc", cbDebugDeleteBPX, true); //breakpoint delete
     dbgcmdnew("EnableBPX\1bpe\1be", cbDebugEnableBPX, true); //breakpoint enable
@@ -139,16 +143,19 @@ static void registercommands()
     dbgcmdnew("DeleteMemoryBPX\1membpc\1bpmc", cbDebugDeleteMemoryBreakpoint, true); //delete memory breakpoint
     dbgcmdnew("EnableMemoryBreakpoint\1membpe\1bpme", cbDebugEnableMemoryBreakpoint, true); //enable memory breakpoint
     dbgcmdnew("DisableMemoryBreakpoint\1membpd\1bpmd", cbDebugDisableMemoryBreakpoint, true); //enable memory breakpoint
-    dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
-    dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
-    dbgcmdnew("LibrarianDisableBreakPoint\1bpddll", cbDebugBpDllDisable, true);
-    dbgcmdnew("LibrarianEnableBreakPoint\1bpedll", cbDebugBpDllEnable, true);
+    dbgcmdnew("LibrarianSetBreakpoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
+    dbgcmdnew("LibrarianRemoveBreakpoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
+    dbgcmdnew("LibrarianEnableBreakpoint\1bpedll", cbDebugBpDllEnable, true); //enable dll breakpoint
+    dbgcmdnew("LibrarianDisableBreakpoint\1bpddll", cbDebugBpDllDisable, true); //disable dll breakpoint
     dbgcmdnew("SetExceptionBPX", cbDebugSetExceptionBPX, true); //set exception breakpoint
     dbgcmdnew("DeleteExceptionBPX", cbDebugDeleteExceptionBPX, true); //delete exception breakpoint
-    dbgcmdnew("EnableExceptionBPX", cbDebugEnableExceptionBPX, true);
-    dbgcmdnew("DisableExceptionBPX", cbDebugDisableExceptionBPX, true);
+    dbgcmdnew("EnableExceptionBPX", cbDebugEnableExceptionBPX, true); //enable exception breakpoint
+    dbgcmdnew("DisableExceptionBPX", cbDebugDisableExceptionBPX, true); //disable exception breakpoint
+    dbgcmdnew("bpgoto", cbDebugSetBPGoto, true);
+    dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
+    dbgcmdnew("SetBPXOptions\1bptype", cbDebugSetBPXOptions, false); //breakpoint type
 
-    //breakpoints (conditional)
+    //conditional breakpoint control
     dbgcmdnew("SetBreakpointName\1bpname", cbDebugSetBPXName, true); //set breakpoint name
     dbgcmdnew("SetBreakpointCondition\1bpcond\1bpcnd", cbDebugSetBPXCondition, true); //set breakpoint breakCondition
     dbgcmdnew("SetBreakpointLog\1bplog\1bpl", cbDebugSetBPXLog, true); //set breakpoint logText
@@ -160,6 +167,7 @@ static void registercommands()
     dbgcmdnew("SetBreakpointSilent", cbDebugSetBPXSilent, true); //set breakpoint fast resume
     dbgcmdnew("GetBreakpointHitCount", cbDebugGetBPXHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetBreakpointHitCount", cbDebugResetBPXHitCount, true); //reset breakpoint hit count
+
     dbgcmdnew("SetHardwareBreakpointName\1bphwname", cbDebugSetBPXHardwareName, true); //set breakpoint name
     dbgcmdnew("SetHardwareBreakpointCondition\1bphwcond", cbDebugSetBPXHardwareCondition, true); //set breakpoint breakCondition
     dbgcmdnew("SetHardwareBreakpointLog\1bphwlog", cbDebugSetBPXHardwareLog, true); //set breakpoint logText
@@ -171,6 +179,7 @@ static void registercommands()
     dbgcmdnew("SetHardwareBreakpointSilent", cbDebugSetBPXHardwareSilent, true); //set breakpoint fast resume
     dbgcmdnew("GetHardwareBreakpointHitCount", cbDebugGetBPXHardwareHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetHardwareBreakpointHitCount", cbDebugResetBPXHardwareHitCount, true); //reset breakpoint hit count
+
     dbgcmdnew("SetMemoryBreakpointName\1bpmname", cbDebugSetBPXMemoryName, true); //set breakpoint name
     dbgcmdnew("SetMemoryBreakpointCondition\1bpmcond", cbDebugSetBPXMemoryCondition, true); //set breakpoint breakCondition
     dbgcmdnew("SetMemoryBreakpointLog\1bpmlog", cbDebugSetBPXMemoryLog, true); //set breakpoint log
@@ -180,8 +189,9 @@ static void registercommands()
     dbgcmdnew("SetMemoryBreakpointFastResume", cbDebugSetBPXMemoryFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetMemoryBreakpointSingleshoot", cbDebugSetBPXMemorySingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetMemoryBreakpointSilent", cbDebugSetBPXMemorySilent, true); //set breakpoint fast resume
-    dbgcmdnew("SetMemoryGetBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
+    dbgcmdnew("GetMemoryBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetMemoryBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
+
     dbgcmdnew("SetLibrarianBreakpointName", cbDebugSetBPXDLLName, true); //set breakpoint name
     dbgcmdnew("SetLibrarianBreakpointCondition", cbDebugSetBPXDLLCondition, true); //set breakpoint breakCondition
     dbgcmdnew("SetLibrarianBreakpointLog", cbDebugSetBPXDLLLog, true); //set breakpoint log
@@ -191,8 +201,9 @@ static void registercommands()
     dbgcmdnew("SetLibrarianBreakpointFastResume", cbDebugSetBPXDLLFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetLibrarianBreakpointSingleshoot", cbDebugSetBPXDLLSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetLibrarianBreakpointSilent", cbDebugSetBPXDLLSilent, true); //set breakpoint fast resume
-    dbgcmdnew("SetLibrarianGetBreakpointHitCount", cbDebugGetBPXDLLHitCount, true); //get breakpoint hit count
+    dbgcmdnew("GetLibrarianBreakpointHitCount", cbDebugGetBPXDLLHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetLibrarianBreakpointHitCount", cbDebugResetBPXDLLHitCount, true); //reset breakpoint hit count
+
     dbgcmdnew("SetExceptionBreakpointName", cbDebugSetBPXExceptionName, true); //set breakpoint name
     dbgcmdnew("SetExceptionBreakpointCondition", cbDebugSetBPXExceptionCondition, true); //set breakpoint breakCondition
     dbgcmdnew("SetExceptionBreakpointLog", cbDebugSetBPXExceptionLog, true); //set breakpoint log
@@ -202,10 +213,42 @@ static void registercommands()
     dbgcmdnew("SetExceptionBreakpointFastResume", cbDebugSetBPXExceptionFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetExceptionBreakpointSingleshoot", cbDebugSetBPXExceptionSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetExceptionBreakpointSilent", cbDebugSetBPXExceptionSilent, true); //set breakpoint fast resume
-    dbgcmdnew("SetExceptionGetBreakpointHitCount", cbDebugGetBPXExceptionHitCount, true); //get breakpoint hit count
+    dbgcmdnew("GetExceptionBreakpointHitCount", cbDebugGetBPXExceptionHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetExceptionBreakpointHitCount", cbDebugResetBPXExceptionHitCount, true); //reset breakpoint hit count
 
-    dbgcmdnew("bpgoto", cbDebugSetBPGoto, true);
+    //Tracing
+    dbgcmdnew("TraceIntoConditional\1ticnd", cbDebugTraceIntoConditional, true); //Trace into conditional
+    dbgcmdnew("TraceOverConditional\1tocnd", cbDebugTraceOverConditional, true); //Trace over conditional
+    dbgcmdnew("TraceIntoBeyondTraceRecord\1tibt", cbDebugTraceIntoBeyondTraceRecord, true); //Trace into beyond trace record
+    dbgcmdnew("TraceOverBeyondTraceRecord\1tobt", cbDebugTraceOverBeyondTraceRecord, true); //Trace over beyond trace record
+    dbgcmdnew("TraceIntoIntoTraceRecord\1tiit", cbDebugTraceIntoIntoTraceRecord, true); //Trace into into trace record
+    dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
+    dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
+    dbgcmdnew("RunToUserCode\1rtu", cbDebugRtu, true); //Run to user code
+
+    //Thread control
+    dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true); //switch thread
+    dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread
+    dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true); //resume thread
+    dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true); //kill thread
+    dbgcmdnew("suspendallthreads\1threadsuspendall", cbDebugSuspendAllThreads, true); //suspend all threads
+    dbgcmdnew("resumeallthreads\1threadresumeall", cbDebugResumeAllThreads, true); //resume all threads
+    dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
+    dbgcmdnew("threadsetname\1setthreadname", cbDebugSetthreadname, true); //set thread name
+    dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
+
+    //memory operations
+    dbgcmdnew("alloc", cbDebugAlloc, true); //allocate memory
+    dbgcmdnew("free", cbDebugFree, true); //free memory
+    dbgcmdnew("Fill\1memset", cbDebugMemset, true); //memset
+    dbgcmdnew("getpagerights\1getrightspage", cbDebugGetPageRights, true);
+    dbgcmdnew("setpagerights\1setrightspage", cbDebugSetPageRights, true);
+
+    //Operating System Control
+    dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state
+    dbgcmdnew("EnablePrivilege", cbEnablePrivilege, true); //enable priv
+    dbgcmdnew("DisablePrivilege", cbDisablePrivilege, true); //disable priv
+    dbgcmdnew("handleclose\1closehandle", cbHandleClose, true); //close remote handle
 
     //watch
     dbgcmdnew("AddWatch", cbAddWatch, true); // add watch
@@ -220,6 +263,82 @@ static void registercommands()
     dbgcmdnew("vardel", cbInstrVarDel, false); //delete a variable, arg1:variable name
     dbgcmdnew("varlist", cbInstrVarList, false); //list variables[arg1:type filter]
     dbgcmdnew("mov\1set", cbInstrMov, false); //mov a variable, arg1:dest,arg2:src
+
+    //data
+    dbgcmdnew("reffind\1findref\1ref", cbInstrRefFind, true); //find references to a value
+    dbgcmdnew("refstr\1strref", cbInstrRefStr, true); //find string references
+    dbgcmdnew("find", cbInstrFind, true); //find a pattern
+    dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
+    dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
+    dbgcmdnew("findasm\1asmfind", cbInstrFindAsm, true); //find instruction
+    dbgcmdnew("reffindrange\1findrefrange\1refrange", cbInstrRefFindRange, true);
+    dbgcmdnew("yara", cbInstrYara, true); //yara test command
+    dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
+    dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
+    dbgcmdnew("imageinfo\1modimageinfo", cbInstrImageinfo, true); //print module image information
+
+    //user database
+    dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
+    dbgcmdnew("cmtc\1cmtdel\1commentdel", cbInstrCmtdel, true); //delete comment
+    dbgcmdnew("lbl\1lblset\1labelset", cbInstrLbl, true); //set/edit label
+    dbgcmdnew("lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
+    dbgcmdnew("bookmark\1bookmarkset", cbInstrBookmarkSet, true); //set bookmark
+    dbgcmdnew("bookmarkc\1bookmarkdel", cbInstrBookmarkDel, true); //delete bookmark
+    dbgcmdnew("savedb\1dbsave", cbInstrSavedb, true); //save program database
+    dbgcmdnew("loaddb\1dbload", cbInstrLoaddb, true); //load program database
+    dbgcmdnew("cleardb\1dbclear", cbInstrCleardb, true); //clear program database
+    dbgcmdnew("functionadd\1func", cbInstrFunctionAdd, true); //function
+    dbgcmdnew("functiondel\1funcc", cbInstrFunctionDel, true); //function
+    dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions
+    dbgcmdnew("functionclear", cbInstrFunctionClear, false); //delete all functions
+    dbgcmdnew("commentlist", cbInstrCommentList, true); //list comments
+    dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
+    dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
+    dbgcmdnew("argumentadd\1func", cbInstrArgumentAdd, true); //argument
+    dbgcmdnew("argumentdel\1funcc", cbInstrArgumentDel, true); //argument
+    dbgcmdnew("argumentlist", cbInstrArgumentList, true); //list arguments
+    dbgcmdnew("argumentclear", cbInstrArgumentClear, false); //delete all arguments
+
+    //analysis
+    dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
+    dbgcmdnew("cfanal\1cfanalyse\1cfanalyze", cbInstrCfanalyse, true); //control flow analysis
+    dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
+    dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
+    dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
+    dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
+    dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
+
+    //Types
+    dbgcmdnew("DataUnknown", cbInstrDataUnknown, true); //mark as Unknown
+    dbgcmdnew("DataByte\1db", cbInstrDataByte, true); //mark as Byte
+    dbgcmdnew("DataWord\1dw", cbInstrDataWord, true); //mark as Word
+    dbgcmdnew("DataDword\1dd", cbInstrDataDword, true); //mark as Dword
+    dbgcmdnew("DataFword", cbInstrDataFword, true); //mark as Fword
+    dbgcmdnew("DataQword\1dq", cbInstrDataQword, true); //mark as Qword
+    dbgcmdnew("DataTbyte", cbInstrDataTbyte, true); //mark as Tbyte
+    dbgcmdnew("DataOword", cbInstrDataOword, true); //mark as Oword
+    dbgcmdnew("DataMmword", cbInstrDataMmword, true); //mark as Mmword
+    dbgcmdnew("DataXmmword", cbInstrDataXmmword, true); //mark as Xmmword
+    dbgcmdnew("DataYmmword", cbInstrDataYmmword, true); //mark as Ymmword
+    dbgcmdnew("DataFloat\1DataReal4\1df", cbInstrDataFloat, true); //mark as Float
+    dbgcmdnew("DataDouble\1DataReal8", cbInstrDataDouble, true); //mark as Double
+    dbgcmdnew("DataLongdouble\1DataReal10", cbInstrDataLongdouble, true); //mark as Longdouble
+    dbgcmdnew("DataAscii\1da", cbInstrDataAscii, true); //mark as Ascii
+    dbgcmdnew("DataUnicode\1du", cbInstrDataUnicode, true); //mark as Unicode
+    dbgcmdnew("DataCode\1dc", cbInstrDataCode, true); //mark as Code
+    dbgcmdnew("DataJunk", cbInstrDataJunk, true); //mark as Junk
+    dbgcmdnew("DataMiddle", cbInstrDataMiddle, true); //mark as Middle
+
+    //plugins
+    dbgcmdnew("StartScylla\1scylla\1imprec", cbDebugStartScylla, false); //start scylla
+    dbgcmdnew("plugunload\1pluginunload\1unloadplugin", cbInstrPluginUnload, false); //unload plugin
+    dbgcmdnew("plugload\1pluginload\1loadplugin", cbInstrPluginLoad, false); //load plugin
+
+    //script
+    dbgcmdnew("scriptload", cbScriptLoad, false);
+    dbgcmdnew("msg", cbScriptMsg, false);
+    dbgcmdnew("msgyn", cbScriptMsgyn, false);
+    dbgcmdnew("log", cbInstrLog, false); //log command with superawesome hax
 
     //misc
     dbgcmdnew("strlen\1charcount\1ccount", cbStrLen, false); //get strlen, arg1:string
@@ -257,117 +376,10 @@ static void registercommands()
     dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
     dbgcmdnew("GetTickCount", cbInstrGetTickCount, false); // GetTickCount
     dbgcmdnew("GetRelocSize\1grs", cbInstrGrs, true); //get relocation table size
-
-    //user database
-    dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
-    dbgcmdnew("cmtc\1cmtdel\1commentdel", cbInstrCmtdel, true); //delete comment
-    dbgcmdnew("lbl\1lblset\1labelset", cbInstrLbl, true); //set/edit label
-    dbgcmdnew("lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
-    dbgcmdnew("bookmark\1bookmarkset", cbInstrBookmarkSet, true); //set bookmark
-    dbgcmdnew("bookmarkc\1bookmarkdel", cbInstrBookmarkDel, true); //delete bookmark
-    dbgcmdnew("savedb\1dbsave", cbInstrSavedb, true); //save program database
-    dbgcmdnew("loaddb\1dbload", cbInstrLoaddb, true); //load program database
-    dbgcmdnew("cleardb\1dbclear", cbInstrCleardb, true); //clear program database
-    dbgcmdnew("functionadd\1func", cbInstrFunctionAdd, true); //function
-    dbgcmdnew("functiondel\1funcc", cbInstrFunctionDel, true); //function
-    dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions
-    dbgcmdnew("functionclear", cbInstrFunctionClear, false); //delete all functions
-    dbgcmdnew("commentlist", cbInstrCommentList, true); //list comments
-    dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
-    dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
-    dbgcmdnew("argumentadd\1func", cbInstrArgumentAdd, true); //argument
-    dbgcmdnew("argumentdel\1funcc", cbInstrArgumentDel, true); //argument
-    dbgcmdnew("argumentlist", cbInstrArgumentList, true); //list arguments
-    dbgcmdnew("argumentclear", cbInstrArgumentClear, false); //delete all arguments
-
-    //memory operations
-    dbgcmdnew("alloc", cbDebugAlloc, true); //allocate memory
-    dbgcmdnew("free", cbDebugFree, true); //free memory
-    dbgcmdnew("Fill\1memset", cbDebugMemset, true); //memset
-    dbgcmdnew("getpagerights\1getrightspage", cbDebugGetPageRights, true);
-    dbgcmdnew("setpagerights\1setrightspage", cbDebugSetPageRights, true);
-
-    //plugins
-    dbgcmdnew("StartScylla\1scylla\1imprec", cbDebugStartScylla, false); //start scylla
-    dbgcmdnew("plugunload\1pluginunload\1unloadplugin", cbInstrPluginUnload, false); //unload plugin
-    dbgcmdnew("plugload\1pluginload\1loadplugin", cbInstrPluginLoad, false); //load plugin
-
-    //general purpose
-    dbgcmdnew("cmp", cbInstrCmp, false); //compare
+    dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
+    dbgcmdnew("getcmdline\1getcommandline", cbDebugGetCmdline, true); //Get CmdLine
+    dbgcmdnew("setcmdline\1setcommandline", cbDebugSetCmdline, true); //Set CmdLine
     dbgcmdnew("gpa", cbInstrGpa, true); //get proc address
-    dbgcmdnew("add", cbInstrAdd, false);
-    dbgcmdnew("and", cbInstrAnd, false);
-    dbgcmdnew("dec", cbInstrDec, false);
-    dbgcmdnew("div", cbInstrDiv, false);
-    dbgcmdnew("inc", cbInstrInc, false);
-    dbgcmdnew("mul", cbInstrMul, false);
-    dbgcmdnew("neg", cbInstrNeg, false);
-    dbgcmdnew("not", cbInstrNot, false);
-    dbgcmdnew("or", cbInstrOr, false);
-    dbgcmdnew("rol", cbInstrRol, false);
-    dbgcmdnew("ror", cbInstrRor, false);
-    dbgcmdnew("shl\1sal", cbInstrShl, false);
-    dbgcmdnew("shr", cbInstrShr, false);
-    dbgcmdnew("sar", cbInstrSar, false);
-    dbgcmdnew("sub", cbInstrSub, false);
-    dbgcmdnew("test", cbInstrTest, false);
-    dbgcmdnew("xor", cbInstrXor, false);
-    dbgcmdnew("push", cbInstrPush, true);
-    dbgcmdnew("pop", cbInstrPop, true);
-    dbgcmdnew("bswap", cbInstrBswap, false);
-
-    //script
-    dbgcmdnew("scriptload", cbScriptLoad, false);
-    dbgcmdnew("msg", cbScriptMsg, false);
-    dbgcmdnew("msgyn", cbScriptMsgyn, false);
-    dbgcmdnew("log", cbInstrLog, false); //log command with superawesome hax
-
-    //data
-    dbgcmdnew("reffind\1findref\1ref", cbInstrRefFind, true); //find references to a value
-    dbgcmdnew("refstr\1strref", cbInstrRefStr, true); //find string references
-    dbgcmdnew("find", cbInstrFind, true); //find a pattern
-    dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
-    dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
-    dbgcmdnew("findasm\1asmfind", cbInstrFindAsm, true); //find instruction
-    dbgcmdnew("reffindrange\1findrefrange\1refrange", cbInstrRefFindRange, true);
-    dbgcmdnew("yara", cbInstrYara, true); //yara test command
-    dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
-    dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
-    dbgcmdnew("DataUnknown", cbInstrDataUnknown, true); //mark as Unknown
-    dbgcmdnew("DataByte\1db", cbInstrDataByte, true); //mark as Byte
-    dbgcmdnew("DataWord\1dw", cbInstrDataWord, true); //mark as Word
-    dbgcmdnew("DataDword\1dd", cbInstrDataDword, true); //mark as Dword
-    dbgcmdnew("DataFword", cbInstrDataFword, true); //mark as Fword
-    dbgcmdnew("DataQword\1dq", cbInstrDataQword, true); //mark as Qword
-    dbgcmdnew("DataTbyte", cbInstrDataTbyte, true); //mark as Tbyte
-    dbgcmdnew("DataOword", cbInstrDataOword, true); //mark as Oword
-    dbgcmdnew("DataMmword", cbInstrDataMmword, true); //mark as Mmword
-    dbgcmdnew("DataXmmword", cbInstrDataXmmword, true); //mark as Xmmword
-    dbgcmdnew("DataYmmword", cbInstrDataYmmword, true); //mark as Ymmword
-    dbgcmdnew("DataFloat\1DataReal4\1df", cbInstrDataFloat, true); //mark as Float
-    dbgcmdnew("DataDouble\1DataReal8", cbInstrDataDouble, true); //mark as Double
-    dbgcmdnew("DataLongdouble\1DataReal10", cbInstrDataLongdouble, true); //mark as Longdouble
-    dbgcmdnew("DataAscii\1da", cbInstrDataAscii, true); //mark as Ascii
-    dbgcmdnew("DataUnicode\1du", cbInstrDataUnicode, true); //mark as Unicode
-    dbgcmdnew("DataCode\1dc", cbInstrDataCode, true); //mark as Code
-    dbgcmdnew("DataJunk", cbInstrDataJunk, true); //mark as Junk
-    dbgcmdnew("DataMiddle", cbInstrDataMiddle, true); //mark as Middle
-    dbgcmdnew("imageinfo\1modimageinfo", cbInstrImageinfo, true); //print module image information
-
-    //analysis
-    dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
-    dbgcmdnew("cfanal\1cfanalyse\1cfanalyze", cbInstrCfanalyse, true); //control flow analysis
-    dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
-    dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
-    dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
-    dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
-    dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
-
-    //Operating System Control
-    dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state
-    dbgcmdnew("EnablePrivilege", cbEnablePrivilege, true); //enable priv
-    dbgcmdnew("DisablePrivilege", cbDisablePrivilege, true); //disable priv
-    dbgcmdnew("handleclose", cbHandleClose, true); //close remote handle
 
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)

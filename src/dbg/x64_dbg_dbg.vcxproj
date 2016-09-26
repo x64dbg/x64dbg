@@ -133,6 +133,9 @@
     <ClInclude Include="command.h" />
     <ClInclude Include="commandline.h" />
     <ClInclude Include="commandparser.h" />
+    <ClInclude Include="commands\breakpoint-control.h" />
+    <ClInclude Include="commands\debug-control.h" />
+    <ClInclude Include="commands\general-purpose.h" />
     <ClInclude Include="comment.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="database.h" />
@@ -325,26 +328,26 @@
     <OutDir>$(ProjectDir)..\..\bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x32d\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64d\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

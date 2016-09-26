@@ -81,6 +81,9 @@
     <Filter Include="Header Files\Third Party\keystone">
       <UniqueIdentifier>{ccc8108c-36f5-4b8d-8152-7208f109d752}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Commands">
+      <UniqueIdentifier>{c753866f-f2d5-4469-b8b0-0c7a6cea607e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -798,6 +801,15 @@
     </ClInclude>
     <ClInclude Include="symcache.h">
       <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\breakpoint-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\debug-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\general-purpose.h">
+      <Filter>Header Files\Commands</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
