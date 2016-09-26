@@ -2422,7 +2422,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         if(AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger) == false)
         {
             unsigned int errorCode = GetLastError();
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %d(%s)\n"), errorCode, ErrorCodeToName(errorCode).c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %d (%s)\n"), errorCode, ErrorCodeToName(errorCode).c_str());
         }
     }
     else
