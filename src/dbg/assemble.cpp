@@ -12,6 +12,7 @@
 #include "disasm_helper.h"
 #include "keystone\keystone.h"
 #include "datainst_helper.h"
+#include "debugger.h"
 
 AssemblerEngine assemblerEngine = AssemblerEngine::XEDParse;
 
