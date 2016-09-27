@@ -476,6 +476,7 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
 {
     if(!getColumnCount())
         return;
+    copyMenu->setIcon(DIcon("copy.png"));
     //Copy->Whole Line
     QAction* mCopyLine = new QAction(DIcon("copy_table_line.png"), tr("&Line"), copyMenu);
     connect(mCopyLine, SIGNAL(triggered()), this, SLOT(copyLineSlot()));

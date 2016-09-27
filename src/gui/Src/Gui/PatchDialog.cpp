@@ -491,22 +491,10 @@ void PatchDialog::on_btnPatchFile_clicked()
 
 void PatchDialog::on_btnImport_clicked()
 {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open patch"), "", tr("Patch files (*.1337)"));
-    if(!filename.length())
-        return;
-    filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
-    QFile file(filename);
-    file.open(QFile::ReadOnly | QFile::Text);
-    QTextStream in(&file);
-    QString patch = in.readAll();
-    file.close();
-    patch = patch.replace("\r\n", "\n");
-    QStringList lines = patch.split("\n", QString::SkipEmptyParts);
-    if(!lines.size())
-    {
-        SimpleErrorBox(this, tr("Error!"), tr("The patch file is empty..."));
-        return;
-    }
+    QStringList filenamelist = QFileDialog::getOpenFileNames(this, tr("Open patch"), "", tr("Patch files (*.1337)"));
+    int patched = 0;
+    bool bBadOriginal = false;
+    bool bAlreadyDone = false;
 
     typedef struct _IMPORTSTATUS
     {
@@ -515,48 +503,68 @@ void PatchDialog::on_btnImport_clicked()
     } IMPORTSTATUS;
     QList<QPair<DBGPATCHINFO, IMPORTSTATUS>> patchList;
     DBGPATCHINFO curPatch;
-    dsint modbase = 0;
-    bool bBadOriginal = false;
-    bool bAlreadyDone = false;
-    for(int i = 0; i < lines.size(); i++)
+
+    for(const auto & filename1 : filenamelist)
     {
-        ULONGLONG rva;
-        unsigned int oldbyte;
-        unsigned int newbyte;
-        QString curLine = lines.at(i);
-        if(curLine.startsWith(">")) //module
+        if(!filename1.length())
+            continue;
+        QString filename = QDir::toNativeSeparators(filename1); //convert to native path format (with backlashes)
+        QFile file(filename);
+        file.open(QFile::ReadOnly | QFile::Text);
+        QTextStream in(&file);
+        QString patch = in.readAll();
+        file.close();
+        patch = patch.replace("\r\n", "\n");
+        QStringList lines = patch.split("\n", QString::SkipEmptyParts);
+        if(!lines.size())
         {
-            strcpy_s(curPatch.mod, curLine.toUtf8().constData() + 1);
-            modbase = DbgFunctions()->ModBaseFromName(curPatch.mod);
+            SimpleErrorBox(this, tr("Error!"), tr("The patch file is empty..."));
             continue;
         }
-        if(!modbase)
-            continue;
-        curLine = curLine.replace(" ", "");
-        if(sscanf_s(curLine.toUtf8().constData(), "%llX:%X->%X", &rva, &oldbyte, &newbyte) != 3)
+
+        dsint modbase = 0;
+        for(int i = 0; i < lines.size(); i++)
         {
-            SimpleErrorBox(this, tr("Error!"), tr("Patch file format is incorrect..."));
-            return;
+            ULONGLONG rva;
+            unsigned int oldbyte;
+            unsigned int newbyte;
+            QString curLine = lines.at(i);
+            if(curLine.startsWith(">")) //module
+            {
+                strcpy_s(curPatch.mod, curLine.toUtf8().constData() + 1);
+                modbase = DbgFunctions()->ModBaseFromName(curPatch.mod);
+                continue;
+            }
+            if(!modbase)
+                continue;
+            curLine = curLine.replace(" ", "");
+            if(sscanf_s(curLine.toUtf8().constData(), "%llX:%X->%X", &rva, &oldbyte, &newbyte) != 3)
+            {
+                //File format is error. Don't continue processing this file
+                SimpleErrorBox(this, tr("Error!"), tr("Patch file format is incorrect..."));
+                break;
+            }
+            oldbyte &= 0xFF;
+            newbyte &= 0xFF;
+            curPatch.addr = rva + modbase;
+            if(!DbgMemIsValidReadPtr(curPatch.addr))
+                continue;
+            unsigned char checkbyte = 0;
+            DbgMemRead(curPatch.addr, &checkbyte, sizeof(checkbyte));
+            IMPORTSTATUS status;
+            status.alreadypatched = (checkbyte == newbyte);
+            status.badoriginal = (checkbyte != oldbyte);
+            if(status.alreadypatched)
+                bAlreadyDone = true;
+            else if(status.badoriginal)
+                bBadOriginal = true;
+            curPatch.oldbyte = oldbyte;
+            curPatch.newbyte = newbyte;
+            patchList.push_back(QPair<DBGPATCHINFO, IMPORTSTATUS>(curPatch, status));
         }
-        oldbyte &= 0xFF;
-        newbyte &= 0xFF;
-        curPatch.addr = rva + modbase;
-        if(!DbgMemIsValidReadPtr(curPatch.addr))
-            continue;
-        unsigned char checkbyte = 0;
-        DbgMemRead(curPatch.addr, &checkbyte, sizeof(checkbyte));
-        IMPORTSTATUS status;
-        status.alreadypatched = (checkbyte == newbyte);
-        status.badoriginal = (checkbyte != oldbyte);
-        if(status.alreadypatched)
-            bAlreadyDone = true;
-        else if(status.badoriginal)
-            bBadOriginal = true;
-        curPatch.oldbyte = oldbyte;
-        curPatch.newbyte = newbyte;
-        patchList.push_back(QPair<DBGPATCHINFO, IMPORTSTATUS>(curPatch, status));
     }
 
+    //Check if any patch exists
     if(!patchList.size())
     {
         QMessageBox msg(QMessageBox::Information, tr("Information"), tr("No patches to apply in the current process."));
@@ -567,6 +575,7 @@ void PatchDialog::on_btnImport_clicked()
         return;
     }
 
+    //Warn if some are already patched
     bool bUndoPatched = false;
     if(bAlreadyDone)
     {
@@ -589,7 +598,7 @@ void PatchDialog::on_btnImport_clicked()
             bPatchBadOriginals = true;
     }
 
-    int patched = 0;
+    //Apply all of the patches
     for(int i = 0; i < patchList.size(); i++)
     {
         if(!bPatchBadOriginals && patchList.at(i).second.badoriginal)
