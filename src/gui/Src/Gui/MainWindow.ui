@@ -178,6 +178,9 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
+   <property name="windowTitle">
+    <string>Toolbar</string>
+   </property>
    <property name="movable">
     <bool>false</bool>
    </property>
@@ -245,7 +248,7 @@
   </widget>
   <widget class="QToolBar" name="cmdBar">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>CommandBar</string>
    </property>
    <property name="movable">
     <bool>false</bool>

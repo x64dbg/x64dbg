@@ -447,6 +447,7 @@ static QAction* setupAction(const QString & text, RegistersView* this_object)
 
 RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
+    setWindowTitle("Registers");
     mChangeViewButton = NULL;
     switch(ConfigUint("Gui", "SIMDRegistersDisplayMode"))
     {

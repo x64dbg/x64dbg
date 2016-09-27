@@ -7,6 +7,7 @@
 
 CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollArea(parent)
 {
+    setWindowTitle("SideBar");
     topVA = -1;
     selectedVA = -1;
     viewableRows = 0;

@@ -24,6 +24,8 @@
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
+    setWindowTitle("Disassembly");
+
     // Set specific widget handles
     mGoto = nullptr;
     mParentCPUWindow = parent;

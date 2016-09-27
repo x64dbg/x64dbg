@@ -4,6 +4,7 @@
 
 CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
 {
+    setWindowTitle("InfoBox");
     enableMultiSelection(false);
     setShowHeader(false);
     addColumnAt(0, "", true);
