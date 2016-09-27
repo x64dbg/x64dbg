@@ -10,7 +10,6 @@
 #include "threading.h"
 #include "command.h"
 #include "database.h"
-#include "addrinfo.h"
 #include "watch.h"
 #include "thread.h"
 #include "plugin_loader.h"

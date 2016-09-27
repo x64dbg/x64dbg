@@ -2,6 +2,7 @@
 
 #include "command.h"
 
+CMDRESULT cbBadCmd(int argc, char* argv[]);
 CMDRESULT cbDebugBenchmark(int argc, char* argv[]);
 CMDRESULT cbInstrSetstr(int argc, char* argv[]);
 CMDRESULT cbInstrGetstr(int argc, char* argv[]);

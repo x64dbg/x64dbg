@@ -3,7 +3,9 @@
 
 #include "_global.h"
 #include "command.h"
+#include "debugger.h"
 
+void showcommandlineerror(cmdline_error_t* cmdline_error);
 bool isCmdLineEmpty();
 char* getCommandLineArgs();
 void CmdLineCacheSave(JSON Root);

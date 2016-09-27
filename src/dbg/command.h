@@ -2,6 +2,18 @@
 #define _COMMAND_H
 
 #include "_global.h"
+#include "console.h"
+
+inline bool IsArgumentsLessThan(int argc, int minimumCount)
+{
+    if(argc < minimumCount)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At least %d arguments must be specified.\n"), minimumCount - 1);
+        return true;
+    }
+    else
+        return false;
+}
 
 //typedefs
 

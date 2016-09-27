@@ -149,12 +149,6 @@
     <ClCompile Include="symbolinfo.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
-    <ClCompile Include="instruction.cpp">
-      <Filter>Source Files\Debugger Core</Filter>
-    </ClCompile>
-    <ClCompile Include="debugger_commands.cpp">
-      <Filter>Source Files\Debugger Core</Filter>
-    </ClCompile>
     <ClCompile Include="debugger.cpp">
       <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
@@ -350,9 +344,6 @@
     <ClCompile Include="animate.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="breakpoint_commands.cpp">
-      <Filter>Source Files\Debugger Core</Filter>
-    </ClCompile>
     <ClCompile Include="symcache.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
@@ -467,12 +458,6 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="debugger.h">
-      <Filter>Header Files\Debugger Core</Filter>
-    </ClInclude>
-    <ClInclude Include="debugger_commands.h">
-      <Filter>Header Files\Debugger Core</Filter>
-    </ClInclude>
-    <ClInclude Include="instruction.h">
       <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
     <ClInclude Include="addrinfo.h">

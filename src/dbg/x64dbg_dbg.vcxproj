@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -37,7 +37,6 @@
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
-    <ClCompile Include="breakpoint_commands.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="commandline.cpp" />
     <ClCompile Include="commandparser.cpp" />
@@ -66,7 +65,6 @@
     <ClCompile Include="datainst_helper.cpp" />
     <ClCompile Include="dbghelp_safe.cpp" />
     <ClCompile Include="debugger.cpp" />
-    <ClCompile Include="debugger_commands.cpp" />
     <ClCompile Include="encodemap.cpp" />
     <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
@@ -80,7 +78,6 @@
     <ClCompile Include="function.cpp" />
     <ClCompile Include="historycontext.cpp" />
     <ClCompile Include="jit.cpp" />
-    <ClCompile Include="instruction.cpp" />
     <ClCompile Include="label.cpp" />
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
@@ -179,7 +176,6 @@
     <ClInclude Include="dbghelp\dbghelp.h" />
     <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />
-    <ClInclude Include="debugger_commands.h" />
     <ClInclude Include="encodemap.h" />
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h" />
     <ClInclude Include="disasm_fast.h" />
@@ -205,7 +201,6 @@
     <ClInclude Include="keystone\systemz.h" />
     <ClInclude Include="keystone\x86.h" />
     <ClInclude Include="handle.h" />
-    <ClInclude Include="instruction.h" />
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
     <ClInclude Include="jansson\jansson_x64dbg.h" />

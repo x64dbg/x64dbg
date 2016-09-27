@@ -27,8 +27,6 @@
 #include "loop.h"
 #include "exception.h"
 #include "x64dbg.h"
-#include "threading.h"
-#include "stringformat.h"
 #include "xrefs.h"
 #include "encodemap.h"
 #include "argument.h"

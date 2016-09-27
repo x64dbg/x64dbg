@@ -103,7 +103,6 @@ SOURCES += \
     dbg/datainst_helper.cpp \
     dbg/dbghelp_safe.cpp \
     dbg/debugger.cpp \
-    dbg/debugger_commands.cpp \
     dbg/disasm_fast.cpp \
     dbg/disasm_helper.cpp \
     dbg/encodemap.cpp \
@@ -116,7 +115,6 @@ SOURCES += \
     dbg/function.cpp \
     dbg/handles.cpp \
     dbg/historycontext.cpp \
-    dbg/instruction.cpp \
     dbg/jit.cpp \
     dbg/label.cpp \
     dbg/log.cpp \
@@ -191,7 +189,25 @@ SOURCES += \
     dbg/animate.cpp \
     gui/Src/BasicView/LabeledSplitter.cpp \
     dbg/breakpoint_commands.cpp \
-    dbg/symcache.cpp
+    dbg/symcache.cpp \
+    dbg/commands/cmd-breakpoint-control.cpp \
+    dbg/commands/cmd-conditional-breakpoint-control.cpp \
+    dbg/commands/cmd-data.cpp \
+    dbg/commands/cmd-debug-control.cpp \
+    dbg/commands/cmd-general-purpose.cpp \
+    dbg/commands/cmd-gui.cpp \
+    dbg/commands/cmd-memory-operations.cpp \
+    dbg/commands/cmd-misc.cpp \
+    dbg/commands/cmd-operating-system-control.cpp \
+    dbg/commands/cmd-plugins.cpp \
+    dbg/commands/cmd-script.cpp \
+    dbg/commands/cmd-thread-control.cpp \
+    dbg/commands/cmd-tracing.cpp \
+    dbg/commands/cmd-types.cpp \
+    dbg/commands/cmd-undocumented.cpp \
+    dbg/commands/cmd-user-database.cpp \
+    dbg/commands/cmd-variables.cpp \
+    dbg/commands/cmd-watch-control.cpp
 
 TRANSLATIONS = \
     gui/Translations/x64dbg.ts
@@ -300,7 +316,6 @@ HEADERS += \
     dbg/datainst_helper.h \
     dbg/dbghelp_safe.h \
     dbg/debugger.h \
-    dbg/debugger_commands.h \
     dbg/disasm_fast.h \
     dbg/disasm_helper.h \
     dbg/dynamicmem.h \
@@ -315,7 +330,6 @@ HEADERS += \
     dbg/handle.h \
     dbg/handles.h \
     dbg/historycontext.h \
-    dbg/instruction.h \
     dbg/jit.h \
     dbg/label.h \
     dbg/loop.h \
@@ -398,7 +412,25 @@ HEADERS += \
     dbg/analysis/xrefsanalysis.h \
     dbg/animate.h \
     gui/Src/BasicView/LabeledSplitter.h \
-    dbg/symcache.h
+    dbg/symcache.h \
+    dbg/commands/cmd-breakpoint-control.h \
+    dbg/commands/cmd-conditional-breakpoint-control.h \
+    dbg/commands/cmd-data.h \
+    dbg/commands/cmd-debug-control.h \
+    dbg/commands/cmd-general-purpose.h \
+    dbg/commands/cmd-gui.h \
+    dbg/commands/cmd-memory-operations.h \
+    dbg/commands/cmd-misc.h \
+    dbg/commands/cmd-operating-system-control.h \
+    dbg/commands/cmd-plugins.h \
+    dbg/commands/cmd-script.h \
+    dbg/commands/cmd-thread-control.h \
+    dbg/commands/cmd-tracing.h \
+    dbg/commands/cmd-types.h \
+    dbg/commands/cmd-undocumented.h \
+    dbg/commands/cmd-user-database.h \
+    dbg/commands/cmd-variables.h \
+    dbg/commands/cmd-watch-control.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \

@@ -9,9 +9,7 @@
 #include "XEDParse\XEDParse.h"
 #include "value.h"
 #include "disasm_fast.h"
-#include "debugger.h"
 #include "disasm_helper.h"
-#include "memory.h"
 #include "keystone\keystone.h"
 #include "datainst_helper.h"
 

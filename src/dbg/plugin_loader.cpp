@@ -627,7 +627,7 @@ bool pluginload(const char* pluginName)
 bool pluginunload(const char* pluginName)
 {
     bool foundPlugin = false;
-    PLUGSTOP stop;
+    PLUGSTOP stop = nullptr;
     PLUG_DATA currentPlugin;
     char name[MAX_PATH] = "";
     strncpy(name, pluginName, MAX_PATH);

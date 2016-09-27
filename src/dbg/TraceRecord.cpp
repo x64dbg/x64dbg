@@ -3,8 +3,6 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
-#include "console.h"
-#include <algorithm>
 
 TraceRecordManager TraceRecord;
 

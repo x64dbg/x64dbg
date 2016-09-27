@@ -10,7 +10,6 @@
 #include "threading.h"
 #include "thread.h"
 #include "module.h"
-#include "console.h"
 #include "taskthread.h"
 
 #define PAGE_SHIFT              (12)

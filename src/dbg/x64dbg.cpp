@@ -7,7 +7,6 @@
 #include "_global.h"
 #include "command.h"
 #include "variable.h"
-#include "instruction.h"
 #include "debugger.h"
 #include "simplescript.h"
 #include "console.h"
@@ -17,7 +16,6 @@
 #include "watch.h"
 #include "plugin_loader.h"
 #include "_dbgfunctions.h"
-#include "debugger_commands.h"
 #include <capstone_wrapper.h>
 #include "_scriptapi_gui.h"
 #include "filehelper.h"
@@ -26,7 +24,6 @@
 #include "datainst_helper.h"
 #include "exception.h"
 #include "expressionfunctions.h"
-#include "historycontext.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;

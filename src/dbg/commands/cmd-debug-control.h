@@ -2,6 +2,7 @@
 
 #include "command.h"
 
+CMDRESULT cbDebugRunInternal(int argc, char* argv[]);
 CMDRESULT cbDebugInit(int argc, char* argv[]);
 CMDRESULT cbDebugStop(int argc, char* argv[]);
 CMDRESULT cbDebugAttach(int argc, char* argv[]);

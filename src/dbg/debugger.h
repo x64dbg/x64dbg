@@ -5,9 +5,6 @@
 #include "TitanEngine\TitanEngine.h"
 #include "command.h"
 #include "breakpoint.h"
-#include "undocumented.h"
-#include "expressionparser.h"
-#include "value.h"
 #include "_plugins.h"
 
 //structures
