@@ -356,7 +356,7 @@
     <ClCompile Include="commands\cmd-conditional-breakpoint-control.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="commands\cmd-data.cpp">
+    <ClCompile Include="commands\cmd-searching.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
     <ClCompile Include="commands\cmd-debug-control.cpp">
@@ -874,7 +874,7 @@
     <ClInclude Include="commands\cmd-variables.h">
       <Filter>Header Files\Commands</Filter>
     </ClInclude>
-    <ClInclude Include="commands\cmd-data.h">
+    <ClInclude Include="commands\cmd-searching.h">
       <Filter>Header Files\Commands</Filter>
     </ClInclude>
     <ClInclude Include="commands\cmd-user-database.h">

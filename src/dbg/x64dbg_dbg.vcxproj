@@ -43,7 +43,7 @@
     <ClCompile Include="commands\cmd-analysis.cpp" />
     <ClCompile Include="commands\cmd-breakpoint-control.cpp" />
     <ClCompile Include="commands\cmd-conditional-breakpoint-control.cpp" />
-    <ClCompile Include="commands\cmd-data.cpp" />
+    <ClCompile Include="commands\cmd-searching.cpp" />
     <ClCompile Include="commands\cmd-debug-control.cpp" />
     <ClCompile Include="commands\cmd-general-purpose.cpp" />
     <ClCompile Include="commands\cmd-gui.cpp" />
@@ -153,7 +153,7 @@
     <ClInclude Include="commands\cmd-analysis.h" />
     <ClInclude Include="commands\cmd-breakpoint-control.h" />
     <ClInclude Include="commands\cmd-conditional-breakpoint-control.h" />
-    <ClInclude Include="commands\cmd-data.h" />
+    <ClInclude Include="commands\cmd-searching.h" />
     <ClInclude Include="commands\cmd-debug-control.h" />
     <ClInclude Include="commands\cmd-general-purpose.h" />
     <ClInclude Include="commands\cmd-gui.h" />

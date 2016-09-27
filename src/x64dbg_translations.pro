@@ -192,7 +192,7 @@ SOURCES += \
     dbg/symcache.cpp \
     dbg/commands/cmd-breakpoint-control.cpp \
     dbg/commands/cmd-conditional-breakpoint-control.cpp \
-    dbg/commands/cmd-data.cpp \
+    dbg/commands/cmd-searching.cpp \
     dbg/commands/cmd-debug-control.cpp \
     dbg/commands/cmd-general-purpose.cpp \
     dbg/commands/cmd-gui.cpp \
@@ -415,7 +415,7 @@ HEADERS += \
     dbg/symcache.h \
     dbg/commands/cmd-breakpoint-control.h \
     dbg/commands/cmd-conditional-breakpoint-control.h \
-    dbg/commands/cmd-data.h \
+    dbg/commands/cmd-searching.h \
     dbg/commands/cmd-debug-control.h \
     dbg/commands/cmd-general-purpose.h \
     dbg/commands/cmd-gui.h \

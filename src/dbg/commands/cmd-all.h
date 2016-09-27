@@ -10,7 +10,7 @@
 #include "cmd-operating-system-control.h"
 #include "cmd-watch-control.h"
 #include "cmd-variables.h"
-#include "cmd-data.h"
+#include "cmd-searching.h"
 #include "cmd-user-database.h"
 #include "cmd-analysis.h"
 #include "cmd-types.h"
