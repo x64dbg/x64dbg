@@ -5,7 +5,7 @@
 #include <QTabBar>
 
 CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* parent)
-    : MHTabWidget(parent, false)
+    : MHTabWidget(parent, true)
 {
     mMaxCPUDumpTabs = nbCpuDumpTabs;
     mInitAllDumpTabs = false;
@@ -131,9 +131,12 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
             if(!getNativeName(i).startsWith("Dump "))
                 continue;
             cpuDump = qobject_cast<CPUDump*>(widget(i));
-            cpuDump->historyClear();
-            cpuDump->addVaToHistory(parVa);
-            cpuDump->printDumpAt(parVa);
+            if(cpuDump)
+            {
+                cpuDump->historyClear();
+                cpuDump->addVaToHistory(parVa);
+                cpuDump->printDumpAt(parVa);
+            }
         }
 
         mInitAllDumpTabs = false;
