@@ -17,7 +17,7 @@ public slots:
 
 private:
     QString labelText;
-
+    QString statusTexts[4];
 };
 
 #endif // LABELCLASS_H
