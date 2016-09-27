@@ -14,7 +14,7 @@
 #include "assemble.h"
 #include "debugger.h"
 #include "memory.h"
-#include "x64_dbg.h"
+#include "x64dbg.h"
 #include "disasm_fast.h"
 #include "reference.h"
 #include "disasm_helper.h"

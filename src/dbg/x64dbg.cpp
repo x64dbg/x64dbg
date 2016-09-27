@@ -1,5 +1,5 @@
 /**
- @file x64_dbg.cpp
+ @file x64dbg.cpp
 
  @brief Implements the 64 debug class.
  */
@@ -11,7 +11,7 @@
 #include "debugger.h"
 #include "simplescript.h"
 #include "console.h"
-#include "x64_dbg.h"
+#include "x64dbg.h"
 #include "msgqueue.h"
 #include "threading.h"
 #include "watch.h"

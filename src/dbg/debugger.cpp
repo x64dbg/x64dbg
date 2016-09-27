@@ -17,7 +17,7 @@
 #include "breakpoint.h"
 #include "symbolinfo.h"
 #include "variable.h"
-#include "x64_dbg.h"
+#include "x64dbg.h"
 #include "exception.h"
 #include "module.h"
 #include "commandline.h"

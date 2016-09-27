@@ -1,5 +1,5 @@
 /**
- @file x64_dbg_exe.cpp
+ @file x64dbg_exe.cpp
 
  @brief Implements the 64 debug executable class.
  */

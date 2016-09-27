@@ -4,7 +4,7 @@
  @brief Implements the debugger commands class.
  */
 
-#include "x64_dbg.h"
+#include "x64dbg.h"
 #include "debugger_commands.h"
 #include "jit.h"
 #include "console.h"

@@ -143,7 +143,7 @@ SOURCES += \
     dbg/value.cpp \
     dbg/variable.cpp \
     dbg/watch.cpp \
-    dbg/x64_dbg.cpp \
+    dbg/x64dbg.cpp \
     dbg/xrefs.cpp \
     gui/Src/Bridge/Bridge.cpp \
     gui/Src/Bridge/BridgeResult.cpp \
@@ -343,7 +343,7 @@ HEADERS += \
     dbg/value.h \
     dbg/variable.h \
     dbg/watch.h \
-    dbg/x64_dbg.h \
+    dbg/x64dbg.h \
     dbg/xrefs.h \
     gui/Src/Bridge/Bridge.h \
     gui/Src/Bridge/BridgeResult.h \

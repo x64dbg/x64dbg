@@ -776,10 +776,10 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = src \
-                         x64_dbg_gui/Project/Src \
-                         x64_dbg_launcher \
-                         x64_dbg_exe \
-                         x64_dbg_bridge
+                         x64dbg_gui/Project/Src \
+                         x64dbg_launcher \
+                         x64dbg_exe \
+                         x64dbg_bridge
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

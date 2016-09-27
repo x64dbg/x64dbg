@@ -1,4 +1,4 @@
-#include "x64_dbg.h"
+#include "x64dbg.h"
 #include "debugger_commands.h"
 #include "console.h"
 #include "memory.h"

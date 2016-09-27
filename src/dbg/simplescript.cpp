@@ -7,7 +7,7 @@
 #include "simplescript.h"
 #include "console.h"
 #include "variable.h"
-#include "x64_dbg.h"
+#include "x64dbg.h"
 #include "debugger.h"
 #include "filehelper.h"
 #include "stringformat.h"

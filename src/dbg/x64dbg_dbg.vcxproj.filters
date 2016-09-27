@@ -92,9 +92,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="x64_dbg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="_dbgfunctions.cpp">
       <Filter>Source Files\Interfaces/Exports</Filter>
     </ClCompile>
@@ -416,11 +413,11 @@
     <ClCompile Include="commands\cmd-watch-control.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
+    <ClCompile Include="x64dbg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="x64_dbg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dbghelp\dbghelp.h">
       <Filter>Header Files\Third Party\dbghelp</Filter>
     </ClInclude>
@@ -921,6 +918,9 @@
     </ClInclude>
     <ClInclude Include="commands\cmd-gui.h">
       <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="x64dbg.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
