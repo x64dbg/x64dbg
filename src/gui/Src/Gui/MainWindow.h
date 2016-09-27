@@ -21,7 +21,8 @@ class ReferenceManager;
 class ThreadView;
 class PatchDialog;
 class CalculatorDialog;
-class StatusLabel;
+class DebugStatusLabel;
+class LogStatusLabel;
 class UpdateChecker;
 class SourceViewerManager;
 class SnowmanView;
@@ -163,8 +164,8 @@ private:
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
 
-    StatusLabel* mStatusLabel;
-    StatusLabel* mLastLogLabel;
+    DebugStatusLabel* mStatusLabel;
+    LogStatusLabel* mLastLogLabel;
 
     UpdateChecker* mUpdateChecker;
     TimeWastedCounter* mTimeWastedCounter;

@@ -55,7 +55,8 @@ SOURCES += \
     gui/Src/Gui/ShortcutsDialog.cpp \
     gui/Src/Gui/SourceView.cpp \
     gui/Src/Gui/SourceViewerManager.cpp \
-    gui/Src/Gui/StatusLabel.cpp \
+    gui/Src/Gui/DebugStatusLabel.cpp \
+    gui/Src/Gui/LogStatusLabel.cpp \
     gui/Src/Gui/SymbolView.cpp \
     gui/Src/Gui/TabBar.cpp \
     gui/Src/Gui/TabWidget.cpp \
@@ -267,7 +268,8 @@ HEADERS += \
     gui/Src/Gui/ShortcutsDialog.h \
     gui/Src/Gui/SourceView.h \
     gui/Src/Gui/SourceViewerManager.h \
-    gui/Src/Gui/StatusLabel.h \
+    gui/Src/Gui/DebugStatusLabel.h \
+    gui/Src/Gui/LogStatusLabel.h \
     gui/Src/Gui/SymbolView.h \
     gui/Src/Gui/TabBar.h \
     gui/Src/Gui/TabWidget.h \

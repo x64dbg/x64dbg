@@ -89,7 +89,6 @@ SOURCES += \
     Src/Gui/MemoryMapView.cpp \
     Src/Gui/LogView.cpp \
     Src/Gui/GotoDialog.cpp \
-    Src/Gui/StatusLabel.cpp \
     Src/Gui/WordEditDialog.cpp \
     Src/Gui/CPUDisassembly.cpp \
     Src/Gui/LineEditDialog.cpp \
@@ -170,7 +169,9 @@ SOURCES += \
     Src/Gui/DisassemblyPopup.cpp \
     Src/Gui/VirtualModDialog.cpp \
     Src/BasicView/LabeledSplitter.cpp \
-    Src/BasicView/LabeledSplitterDetachedWindow.cpp
+    Src/BasicView/LabeledSplitterDetachedWindow.cpp \
+    Src/Gui/LogStatusLabel.cpp \
+    Src/Gui/DebugStatusLabel.cpp
 
 
 HEADERS += \
@@ -192,7 +193,6 @@ HEADERS += \
     Src/Gui/LogView.h \
     Src/Gui/GotoDialog.h \
     Src/Gui/RegistersView.h \
-    Src/Gui/StatusLabel.h \
     Src/Gui/WordEditDialog.h \
     Src/Gui/CPUDisassembly.h \
     Src/Gui/LineEditDialog.h \
@@ -277,7 +277,9 @@ HEADERS += \
     Src/Gui/DisassemblyPopup.h \
     Src/Gui/VirtualModDialog.h \
     Src/BasicView/LabeledSplitter.h \
-    Src/BasicView/LabeledSplitterDetachedWindow.h
+    Src/BasicView/LabeledSplitterDetachedWindow.h \
+    Src/Gui/LogStatusLabel.h \
+    Src/Gui/DebugStatusLabel.h
     
 
 FORMS += \
