@@ -224,14 +224,13 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
 CMDRESULT cbInstrImageinfo(int argc, char* argv[])
 {
     duint mod;
-    if(argc < 2 || !valfromstring(argv[1], &mod) || !ModBaseFromAddr(mod))
+    SHARED_ACQUIRE(LockModules);
+    MODINFO* info;
+    if(argc < 2 || !valfromstring(argv[1], &mod) || !((info = ModInfoFromAddr(mod))))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
         return STATUS_ERROR;
     }
-
-    SHARED_ACQUIRE(LockModules);
-    auto info = ModInfoFromAddr(mod);
     auto c = GetPE32DataFromMappedFile(info->fileMapVA, 0, UE_CHARACTERISTICS);
     auto dllc = GetPE32DataFromMappedFile(info->fileMapVA, 0, UE_DLLCHARACTERISTICS);
     SHARED_RELEASE();

@@ -5,7 +5,8 @@
 #include "Configuration.h"
 
 SourceView::SourceView(QString path, int line, StdTable* parent)
-    : ReferenceView(true, parent)
+    : ReferenceView(true, parent),
+      mIpLine(0)
 {
     mSourcePath = path;
     mList->enableColumnSorting(false);

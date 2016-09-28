@@ -19,7 +19,7 @@ private:
     std::vector<std::pair<duint, duint>> mFunctions;
 
 #ifdef _WIN64
-    void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const;
+    void EnumerateFunctionRuntimeEntries64(const std::function<bool(PRUNTIME_FUNCTION)> & Callback) const;
 #endif // _WIN64
 };
 

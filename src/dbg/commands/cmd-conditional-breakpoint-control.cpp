@@ -5,7 +5,7 @@
 #include "variable.h"
 #include "value.h"
 
-static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], const String & description, std::function<bool(duint, BP_TYPE, const char*)> setFunction)
+static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], const String & description, const std::function<bool(duint, BP_TYPE, const char*)> & setFunction)
 {
     BREAKPOINT bp;
     if(IsArgumentsLessThan(argc, 2))
@@ -21,7 +21,7 @@ static CMDRESULT cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], c
     }
     if(!setFunction(bp.addr, Type, value))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set %s on breakpoint \"%s\"\n"), description, argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set %s on breakpoint \"%s\"\n"), description.c_str(), argv[1]);
         return STATUS_ERROR;
     }
     DebugUpdateBreakpointsViewAsync();

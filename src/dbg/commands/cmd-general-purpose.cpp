@@ -5,7 +5,7 @@
 #include "_scriptapi_stack.h"
 #include "debugger.h"
 
-static CMDRESULT ReadWriteVariable(const char* varname, std::function<CMDRESULT(duint*, int)> callback)
+static CMDRESULT ReadWriteVariable(const char* varname, const std::function<CMDRESULT(duint*, int)> & callback)
 {
     duint set_value = 0;
     bool isvar;
@@ -118,9 +118,7 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
         return STATUS_ERROR;
     return ReadWriteVariable(argv[1], [argv](duint * value, int size)
     {
-        if(size == 1)
-            *value = *value;
-        else if(size == 2)
+        if(size == 2)
             *value = _byteswap_ushort((uint16) * value);
         else if(size == 4)
             *value = _byteswap_ulong((uint32) * value);
@@ -128,7 +126,7 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
         else if(size == 8)
             *value = _byteswap_uint64(*value);
 #endif //_WIN64
-        else
+        else if(size != 1)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Variable size not supported."));
             return STATUS_ERROR;

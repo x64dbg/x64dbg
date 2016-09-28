@@ -27,6 +27,6 @@ private:
     bool ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlock);
 
 #ifdef _WIN64
-    void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);
+    void EnumerateFunctionRuntimeEntries64(const std::function<bool(PRUNTIME_FUNCTION)> & Callback);
 #endif // _WIN64
 };

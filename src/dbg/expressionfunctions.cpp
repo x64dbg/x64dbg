@@ -102,7 +102,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("ReadPtr,ReadPointer,ptr,Pointer,pointer", readptr);
 }
 
-bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata)
+bool ExpressionFunctions::Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)
 {
     if(!isValidName(name))
         return false;

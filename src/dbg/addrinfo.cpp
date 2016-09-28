@@ -10,7 +10,7 @@
 #include "module.h"
 
 ///api functions
-bool apienumexports(duint base, EXPORTENUMCALLBACK cbEnum)
+bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
 {
     MEMORY_BASIC_INFORMATION mbi;
     VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
@@ -81,7 +81,7 @@ bool apienumexports(duint base, EXPORTENUMCALLBACK cbEnum)
     return true;
 }
 
-bool apienumimports(duint base, IMPORTENUMCALLBACK cbEnum)
+bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
 {
     // Variables
     bool readSuccess;

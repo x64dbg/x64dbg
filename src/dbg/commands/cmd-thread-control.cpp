@@ -240,7 +240,7 @@ CMDRESULT cbDebugSetthreadname(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to change the name for thread %X\n"), threadid);
         return STATUS_ERROR;
     }
-    if(!info.threadName)
+    if(!*info.threadName)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Thread name set to \"%s\"!\n"), newname);
     else
         dprintf(QT_TRANSLATE_NOOP("DBG", "Thread name changed from \"%s\" to \"%s\"!\n"), info.threadName, newname);

@@ -15,7 +15,7 @@ json_t* json_hex(unsigned json_int_t value)
 static JSON_INLINE
 unsigned json_int_t json_hex_value(const json_t* hex)
 {
-    unsigned json_int_t ret;
+    unsigned json_int_t ret = 0;
     const char* hexvalue;
     hexvalue = json_string_value(hex);
     if(!hexvalue)

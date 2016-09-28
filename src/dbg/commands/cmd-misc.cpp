@@ -243,13 +243,14 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         }
         else if(!_strcmpi(argv[1], "oldsave"))
         {
-            char path[JIT_ENTRY_DEF_SIZE];
             dbggetdefjit(path);
             char get_entry[JIT_ENTRY_MAX_SIZE] = "";
             bool get_last_jit = true;
 
             if(!dbggetjit(get_entry, notfound, &actual_arch, NULL))
+            {
                 get_last_jit = false;
+            }
             else
                 strcpy_s(oldjit, get_entry);
 
@@ -355,7 +356,7 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
         char oldjit[MAX_SETTING_SIZE] = "";
         if(_strcmpi(argv[1], "OLD") == 0)
         {
-            if(!BridgeSettingGet("JIT", "Old", (char*)& oldjit))
+            if(!BridgeSettingGet("JIT", "Old", oldjit))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error: there is not an OLD JIT entry stored yet."));
                 return STATUS_ERROR;

@@ -345,7 +345,7 @@ void ControlFlowAnalysis::FunctionRanges()
     }
 }
 
-void ControlFlowAnalysis::insertBlock(BasicBlock block)
+void ControlFlowAnalysis::insertBlock(const BasicBlock & block)
 {
     if(mBlocks.find(block.start) != mBlocks.end())
         DebugBreak();
@@ -435,7 +435,7 @@ duint ControlFlowAnalysis::getReferenceOperand() const
 }
 
 #ifdef _WIN64
-void ControlFlowAnalysis::enumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const
+void ControlFlowAnalysis::enumerateFunctionRuntimeEntries64(const std::function<bool(PRUNTIME_FUNCTION)> & Callback) const
 {
     if(!mFunctionInfoData)
         return;

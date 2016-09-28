@@ -22,7 +22,6 @@ protected slots:
 protected:
     int getIndex();
     int charHeight;
-    int originalIndex;
     LabeledSplitter* getParent() const;
 };
 

@@ -151,7 +151,7 @@ CMDRESULT cbCheckWatchdog(int argc, char* argv[])
 {
     EXCLUSIVE_ACQUIRE(LockWatch);
     bool watchdogTriggered = false;
-    for(auto j = watchexpr.begin(); j != watchexpr.end(); j++)
+    for(auto j = watchexpr.begin(); j != watchexpr.end(); ++j)
     {
         std::pair<unsigned int, WatchExpr*> i = *j;
         i.second->watchdogTriggered = false;

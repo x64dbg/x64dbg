@@ -160,7 +160,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
     return refInfo.refcount;
 }
 
-int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, CBPROGRESS cbUpdateProgress, bool disasmText)
+int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, const CBPROGRESS & cbUpdateProgress, bool disasmText)
 {
     // Allocate and read a buffer from the remote process
     Memory<unsigned char*> data(scanSize, "reffind:data");

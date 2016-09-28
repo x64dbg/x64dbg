@@ -49,7 +49,7 @@ public:
         return (T)memset(m_Ptr, 0, m_Size);
     }
 
-    size_t size()
+    size_t size() const
     {
         return m_Size;
     }

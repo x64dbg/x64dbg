@@ -117,7 +117,7 @@ static void dbgClearRtuBreakpoints()
     RunToUserCodeBreakpoints.clear();
 }
 
-bool dbgsettracecondition(String expression, duint maxSteps)
+bool dbgsettracecondition(const String & expression, duint maxSteps)
 {
     if(dbgtraceactive())
         return false;
@@ -1080,8 +1080,7 @@ void cbRtrStep()
         unsigned char data[MAX_DISASM_BUFFER];
         memset(data, 0, sizeof(data));
         MemRead(cip, data, MAX_DISASM_BUFFER);
-        cp.Disassemble(cip, data);
-        if(cp.GetId() == X86_INS_RET)
+        if(cp.Disassemble(cip, data) && cp.GetId() == X86_INS_RET)
             cbRtrFinalStep();
         else
             StepOver((void*)cbRtrStep);
@@ -1509,9 +1508,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                     if(MemIsValidReadPtr(callbackVA))
                     {
                         if(bIsDebuggingThis)
-                            sprintf_s(command, "bp %p,\"%s %d\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1);
+                            sprintf_s(command, "bp %p,\"%s %u\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1);
                         else
-                            sprintf_s(command, "bp %p,\"%s %d (%s)\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1, modname);
+                            sprintf_s(command, "bp %p,\"%s %u (%s)\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1, modname);
                         cmddirectexec(command);
                     }
                     else
@@ -1685,8 +1684,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     callbackInfo.Exception = ExceptionData;
     unsigned int ExceptionCode = ExceptionData->ExceptionRecord.ExceptionCode;
     GuiSetLastException(ExceptionCode);
-    if(ExceptionData)
-        lastExceptionInfo = *ExceptionData;
+    lastExceptionInfo = *ExceptionData;
 
     duint addr = (duint)ExceptionData->ExceptionRecord.ExceptionAddress;
     {
@@ -1828,14 +1826,16 @@ cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
     cmdline_qoutes_placement_t quotesPos;
     quotesPos.firstPos = quotesPos.secondPos = 0;
 
+    auto len = strlen(cmdline);
+
     char quoteSymb = cmdline[0];
     if(quoteSymb == '"' || quoteSymb == '\'')
     {
-        for(size_t i = 1; i < strlen(cmdline); i++)
+        for(size_t i = 1; i < len; i++)
         {
             if(cmdline[i] == quoteSymb)
             {
-                quotesPos.posEnum = i == strlen(cmdline) - 1 ? QOUTES_AT_BEGIN_AND_END : QOUTES_AROUND_EXE;
+                quotesPos.posEnum = i == len - 1 ? QOUTES_AT_BEGIN_AND_END : QOUTES_AROUND_EXE;
                 quotesPos.secondPos = i;
                 break;
             }
@@ -1847,7 +1847,7 @@ cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
     {
         quotesPos.posEnum = NO_QOUTES;
         //try to locate first quote
-        for(size_t i = 1; i < strlen(cmdline); i++)
+        for(size_t i = 1; i < len; i++)
             if(cmdline[i] == '"' || cmdline[i] == '\'')
                 quotesPos.secondPos = i;
     }

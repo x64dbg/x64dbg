@@ -5,7 +5,8 @@
 
 SearchListViewTable::SearchListViewTable(StdTable* parent)
     : StdTable(parent),
-      bCipBase(false)
+      bCipBase(false),
+      mCip(0)
 {
     highlightText = "";
     updateColors();

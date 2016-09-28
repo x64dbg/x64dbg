@@ -8,7 +8,13 @@
 std::map<unsigned int, WatchExpr*> watchexpr;
 unsigned int idCounter = 1;
 
-WatchExpr::WatchExpr(const char* name, const char* expression, WATCHVARTYPE type) : expr(expression), varType(type), currValue(0), haveCurrValue(false), watchdogTriggered(false), watchWindow(0)
+WatchExpr::WatchExpr(const char* name, const char* expression, WATCHVARTYPE type) :
+    expr(expression),
+    haveCurrValue(false),
+    varType(type), currValue(0),
+    watchdogTriggered(false),
+    watchWindow(0),
+    watchdogMode(MODE_DISABLED)
 {
     if(!expr.IsValidExpression())
         varType = WATCHVARTYPE::TYPE_INVALID;
