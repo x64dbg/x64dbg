@@ -10,14 +10,13 @@
 #include "threading.h"
 #include "command.h"
 #include "database.h"
-#include "addrinfo.h"
 #include "watch.h"
 #include "thread.h"
 #include "plugin_loader.h"
 #include "breakpoint.h"
 #include "symbolinfo.h"
 #include "variable.h"
-#include "x64_dbg.h"
+#include "x64dbg.h"
 #include "exception.h"
 #include "module.h"
 #include "commandline.h"
@@ -29,6 +28,7 @@
 #include "animate.h"
 #include "simplescript.h"
 #include "capstone_wrapper.h"
+#include "cmd-watch-control.h"
 
 struct TraceCondition
 {
@@ -117,7 +117,7 @@ static void dbgClearRtuBreakpoints()
     RunToUserCodeBreakpoints.clear();
 }
 
-bool dbgsettracecondition(String expression, duint maxSteps)
+bool dbgsettracecondition(const String & expression, duint maxSteps)
 {
     if(dbgtraceactive())
         return false;
@@ -216,7 +216,7 @@ void cbDebuggerPaused()
         }
     }
     // Watchdog
-    cbWatchdog(0, nullptr);
+    cbCheckWatchdog(0, nullptr);
 }
 
 void dbginit()
@@ -771,7 +771,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     _dbg_dbgtraceexecute(CIP);
 
     // Watchdog
-    cbWatchdog(0, nullptr);
+    cbCheckWatchdog(0, nullptr);
 
     if(*bp.logText && logCondition)  //log
     {
@@ -1080,8 +1080,7 @@ void cbRtrStep()
         unsigned char data[MAX_DISASM_BUFFER];
         memset(data, 0, sizeof(data));
         MemRead(cip, data, MAX_DISASM_BUFFER);
-        cp.Disassemble(cip, data);
-        if(cp.GetId() == X86_INS_RET)
+        if(cp.Disassemble(cip, data) && cp.GetId() == X86_INS_RET)
             cbRtrFinalStep();
         else
             StepOver((void*)cbRtrStep);
@@ -1509,9 +1508,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                     if(MemIsValidReadPtr(callbackVA))
                     {
                         if(bIsDebuggingThis)
-                            sprintf_s(command, "bp %p,\"%s %d\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1);
+                            sprintf_s(command, "bp %p,\"%s %u\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1);
                         else
-                            sprintf_s(command, "bp %p,\"%s %d (%s)\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1, modname);
+                            sprintf_s(command, "bp %p,\"%s %u (%s)\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1, modname);
                         cmddirectexec(command);
                     }
                     else
@@ -1664,6 +1663,20 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     }
 }
 
+static bool dbgdetachDisableAllBreakpoints(const BREAKPOINT* bp)
+{
+    if(bp->enabled)
+    {
+        if(bp->type == BPNORMAL)
+            DeleteBPX(bp->addr);
+        else if(bp->type == BPMEMORY)
+            RemoveMemoryBPX(bp->addr, 0);
+        else if(bp->type == BPDLL)
+            LibrarianRemoveBreakPoint(bp->mod, bp->titantype);
+    }
+    return true;
+}
+
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -1671,8 +1684,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     callbackInfo.Exception = ExceptionData;
     unsigned int ExceptionCode = ExceptionData->ExceptionRecord.ExceptionCode;
     GuiSetLastException(ExceptionCode);
-    if(ExceptionData)
-        lastExceptionInfo = *ExceptionData;
+    lastExceptionInfo = *ExceptionData;
 
     duint addr = (duint)ExceptionData->ExceptionRecord.ExceptionAddress;
     {
@@ -1690,6 +1702,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             PLUG_CB_DETACH detachInfo;
             detachInfo.fdProcessInfo = fdProcessInfo;
             plugincbcall(CB_DETACH, &detachInfo);
+            BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
             if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
                 dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
             else
@@ -1800,6 +1813,7 @@ void cbDetach()
     PLUG_CB_DETACH detachInfo;
     detachInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_DETACH, &detachInfo);
+    BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
     if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
         dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
     else
@@ -1812,14 +1826,16 @@ cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
     cmdline_qoutes_placement_t quotesPos;
     quotesPos.firstPos = quotesPos.secondPos = 0;
 
+    auto len = strlen(cmdline);
+
     char quoteSymb = cmdline[0];
     if(quoteSymb == '"' || quoteSymb == '\'')
     {
-        for(size_t i = 1; i < strlen(cmdline); i++)
+        for(size_t i = 1; i < len; i++)
         {
             if(cmdline[i] == quoteSymb)
             {
-                quotesPos.posEnum = i == strlen(cmdline) - 1 ? QOUTES_AT_BEGIN_AND_END : QOUTES_AROUND_EXE;
+                quotesPos.posEnum = i == len - 1 ? QOUTES_AT_BEGIN_AND_END : QOUTES_AROUND_EXE;
                 quotesPos.secondPos = i;
                 break;
             }
@@ -1831,7 +1847,7 @@ cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
     {
         quotesPos.posEnum = NO_QOUTES;
         //try to locate first quote
-        for(size_t i = 1; i < strlen(cmdline); i++)
+        for(size_t i = 1; i < len; i++)
             if(cmdline[i] == '"' || cmdline[i] == '\'')
                 quotesPos.secondPos = i;
     }
@@ -2403,7 +2419,11 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     //run debug loop (returns when process debugging is stopped)
     if(attach)
     {
-        AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger);
+        if(AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger) == false)
+        {
+            unsigned int errorCode = GetLastError();
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %d (%s)\n"), errorCode, ErrorCodeToName(errorCode).c_str());
+        }
     }
     else
     {

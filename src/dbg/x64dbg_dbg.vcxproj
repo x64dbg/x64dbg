@@ -37,17 +37,34 @@
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
-    <ClCompile Include="breakpoint_commands.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="commandline.cpp" />
     <ClCompile Include="commandparser.cpp" />
+    <ClCompile Include="commands\cmd-analysis.cpp" />
+    <ClCompile Include="commands\cmd-breakpoint-control.cpp" />
+    <ClCompile Include="commands\cmd-conditional-breakpoint-control.cpp" />
+    <ClCompile Include="commands\cmd-searching.cpp" />
+    <ClCompile Include="commands\cmd-debug-control.cpp" />
+    <ClCompile Include="commands\cmd-general-purpose.cpp" />
+    <ClCompile Include="commands\cmd-gui.cpp" />
+    <ClCompile Include="commands\cmd-memory-operations.cpp" />
+    <ClCompile Include="commands\cmd-misc.cpp" />
+    <ClCompile Include="commands\cmd-operating-system-control.cpp" />
+    <ClCompile Include="commands\cmd-plugins.cpp" />
+    <ClCompile Include="commands\cmd-script.cpp" />
+    <ClCompile Include="commands\cmd-thread-control.cpp" />
+    <ClCompile Include="commands\cmd-tracing.cpp" />
+    <ClCompile Include="commands\cmd-types.cpp" />
+    <ClCompile Include="commands\cmd-undocumented.cpp" />
+    <ClCompile Include="commands\cmd-user-database.cpp" />
+    <ClCompile Include="commands\cmd-variables.cpp" />
+    <ClCompile Include="commands\cmd-watch-control.cpp" />
     <ClCompile Include="comment.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="database.cpp" />
     <ClCompile Include="datainst_helper.cpp" />
     <ClCompile Include="dbghelp_safe.cpp" />
     <ClCompile Include="debugger.cpp" />
-    <ClCompile Include="debugger_commands.cpp" />
     <ClCompile Include="encodemap.cpp" />
     <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
@@ -61,7 +78,6 @@
     <ClCompile Include="function.cpp" />
     <ClCompile Include="historycontext.cpp" />
     <ClCompile Include="jit.cpp" />
-    <ClCompile Include="instruction.cpp" />
     <ClCompile Include="label.cpp" />
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
@@ -87,7 +103,7 @@
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="watch.cpp" />
-    <ClCompile Include="x64_dbg.cpp" />
+    <ClCompile Include="x64dbg.cpp" />
     <ClCompile Include="xrefs.cpp" />
     <ClCompile Include="_exports.cpp" />
     <ClCompile Include="_dbgfunctions.cpp" />
@@ -133,6 +149,26 @@
     <ClInclude Include="command.h" />
     <ClInclude Include="commandline.h" />
     <ClInclude Include="commandparser.h" />
+    <ClInclude Include="commands\cmd-all.h" />
+    <ClInclude Include="commands\cmd-analysis.h" />
+    <ClInclude Include="commands\cmd-breakpoint-control.h" />
+    <ClInclude Include="commands\cmd-conditional-breakpoint-control.h" />
+    <ClInclude Include="commands\cmd-searching.h" />
+    <ClInclude Include="commands\cmd-debug-control.h" />
+    <ClInclude Include="commands\cmd-general-purpose.h" />
+    <ClInclude Include="commands\cmd-gui.h" />
+    <ClInclude Include="commands\cmd-memory-operations.h" />
+    <ClInclude Include="commands\cmd-misc.h" />
+    <ClInclude Include="commands\cmd-operating-system-control.h" />
+    <ClInclude Include="commands\cmd-plugins.h" />
+    <ClInclude Include="commands\cmd-script.h" />
+    <ClInclude Include="commands\cmd-thread-control.h" />
+    <ClInclude Include="commands\cmd-tracing.h" />
+    <ClInclude Include="commands\cmd-types.h" />
+    <ClInclude Include="commands\cmd-undocumented.h" />
+    <ClInclude Include="commands\cmd-user-database.h" />
+    <ClInclude Include="commands\cmd-variables.h" />
+    <ClInclude Include="commands\cmd-watch-control.h" />
     <ClInclude Include="comment.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="database.h" />
@@ -140,7 +176,6 @@
     <ClInclude Include="dbghelp\dbghelp.h" />
     <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />
-    <ClInclude Include="debugger_commands.h" />
     <ClInclude Include="encodemap.h" />
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h" />
     <ClInclude Include="disasm_fast.h" />
@@ -166,7 +201,6 @@
     <ClInclude Include="keystone\systemz.h" />
     <ClInclude Include="keystone\x86.h" />
     <ClInclude Include="handle.h" />
-    <ClInclude Include="instruction.h" />
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
     <ClInclude Include="jansson\jansson_x64dbg.h" />
@@ -206,7 +240,7 @@
     <ClInclude Include="undocumented.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="variable.h" />
-    <ClInclude Include="x64_dbg.h" />
+    <ClInclude Include="x64dbg.h" />
     <ClInclude Include="XEDParse\XEDParse.h" />
     <ClInclude Include="yara\yara.h" />
     <ClInclude Include="yara\yara\ahocorasick.h" />
@@ -261,7 +295,7 @@
     <ClInclude Include="_scriptapi_symbol.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\bridge\x64_dbg_bridge.vcxproj">
+    <ProjectReference Include="..\bridge\x64dbg_bridge.vcxproj">
       <Project>{944d9923-cb1a-6f6c-bcbc-9e00a71954c1}</Project>
       <Private>true</Private>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
@@ -325,30 +359,30 @@
     <OutDir>$(ProjectDir)..\..\bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x32d\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64d\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -373,7 +407,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -394,7 +428,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -421,7 +455,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>

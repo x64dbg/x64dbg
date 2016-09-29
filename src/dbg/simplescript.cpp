@@ -7,10 +7,8 @@
 #include "simplescript.h"
 #include "console.h"
 #include "variable.h"
-#include "x64_dbg.h"
 #include "debugger.h"
 #include "filehelper.h"
-#include "stringformat.h"
 
 static std::vector<LINEMAPENTRY> linemap;
 
@@ -620,34 +618,4 @@ bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info)
         return false;
     memcpy(info, &linemap.at(line - 1).u.branch, sizeof(SCRIPTBRANCH));
     return true;
-}
-
-CMDRESULT cbScriptLoad(int argc, char* argv[])
-{
-    if(argc < 2)
-        return STATUS_ERROR;
-    scriptload(argv[1]);
-    return STATUS_CONTINUE;
-}
-
-CMDRESULT cbScriptMsg(int argc, char* argv[])
-{
-    if(argc < 2)
-    {
-        dputs(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "not enough arguments!")));
-        return STATUS_ERROR;
-    }
-    GuiScriptMessage(stringformatinline(argv[1]).c_str());
-    return STATUS_CONTINUE;
-}
-
-CMDRESULT cbScriptMsgyn(int argc, char* argv[])
-{
-    if(argc < 2)
-    {
-        dputs(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "not enough arguments!")));
-        return STATUS_ERROR;
-    }
-    varset("$RESULT", GuiScriptMsgyn(stringformatinline(argv[1]).c_str()), false);
-    return STATUS_CONTINUE;
 }

@@ -9,8 +9,10 @@ class CPUInfoBox : public StdTable
 public:
     explicit CPUInfoBox(StdTable* parent = 0);
     int getHeight();
-    void addFollowMenuItem(QMenu* menu, QString name, dsint value);
-    void setupFollowMenu(QMenu* menu, dsint wVA);
+    void addFollowMenuItem(QMenu* menu, QString name, duint value);
+    void setupFollowMenu(QMenu* menu, duint wVA);
+    void addWatchMenuItem(QMenu* menu, QString name, duint value);
+    void setupWatchMenu(QMenu* menu, duint wVA);
     int followInDump(dsint wVA);
 
 public slots:

@@ -5,9 +5,6 @@
 #include "TitanEngine\TitanEngine.h"
 #include "command.h"
 #include "breakpoint.h"
-#include "undocumented.h"
-#include "expressionparser.h"
-#include "value.h"
 #include "_plugins.h"
 
 //structures
@@ -106,7 +103,7 @@ cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
 duint dbggetdebuggedbase();
 duint dbggetdbgevents();
-bool dbgsettracecondition(String expression, duint maxCount);
+bool dbgsettracecondition(const String & expression, duint maxCount);
 bool dbgtraceactive();
 void dbgsetdebuggeeinitscript(const char* fileName);
 const char* dbggetdebuggeeinitscript();

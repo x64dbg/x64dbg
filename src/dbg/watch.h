@@ -1,8 +1,7 @@
+#pragma once
+
 #include "_global.h"
-#include "command.h"
 #include "expressionparser.h"
-#include "jansson\jansson.h"
-#include "..\bridge\bridgemain.h"
 
 class WatchExpr
 {
@@ -56,24 +55,19 @@ public:
 
 extern std::map<unsigned int, WatchExpr*> watchexpr;
 
+void GuiUpdateWatchViewAsync();
 void WatchClear();
 unsigned int WatchAddExpr(const char* expr, WATCHVARTYPE type);
 bool WatchModifyExpr(unsigned int id, const char* expr, WATCHVARTYPE type);
 void WatchModifyName(unsigned int id, const char* newName);
 void WatchDelete(unsigned int id);
-void WatchSetWatchdogMode(unsigned int id, bool isEnabled);
+void WatchSetWatchdogMode(unsigned int id, WATCHDOGMODE mode);
 bool WatchIsWatchdogTriggered(unsigned int id);
 WATCHDOGMODE WatchGetWatchdogMode(unsigned int id);
+WATCHDOGMODE WatchGetWatchdogEnabled(unsigned int id);
 duint WatchGetUnsignedValue(unsigned int id);
 WATCHVARTYPE WatchGetType(unsigned int id);
 std::vector<WATCHINFO> WatchGetList();
 
 void WatchCacheSave(JSON root); // Save watch data to database
 void WatchCacheLoad(JSON root); // Load watch data from database
-
-CMDRESULT cbWatchdog(int argc, char* argv[]);
-CMDRESULT cbAddWatch(int argc, char* argv[]);
-CMDRESULT cbDelWatch(int argc, char* argv[]);
-CMDRESULT cbSetWatchName(int argc, char* argv[]);
-CMDRESULT cbSetWatchExpression(int argc, char* argv[]);
-CMDRESULT cbSetWatchdog(int argc, char* argv[]);

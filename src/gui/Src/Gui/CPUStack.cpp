@@ -10,6 +10,7 @@
 
 CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
+    setWindowTitle("Stack");
     setShowHeader(false);
     int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;

@@ -3,8 +3,6 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
-#include "console.h"
-#include <algorithm>
 
 TraceRecordManager TraceRecord;
 
@@ -21,7 +19,7 @@ TraceRecordManager::~TraceRecordManager()
 void TraceRecordManager::clear()
 {
     EXCLUSIVE_ACQUIRE(LockTraceRecord);
-    for(auto i = TraceRecord.begin(); i != TraceRecord.end(); i++)
+    for(auto i = TraceRecord.begin(); i != TraceRecord.end(); ++i)
         efree(i->second.rawPtr, "TraceRecordManager");
     TraceRecord.clear();
     ModuleNames.clear();
@@ -356,7 +354,7 @@ void TraceRecordManager::loadFromDb(JSON root)
     }
 }
 
-unsigned int TraceRecordManager::getModuleIndex(std::string moduleName)
+unsigned int TraceRecordManager::getModuleIndex(const String & moduleName)
 {
     auto iterator = std::find(ModuleNames.begin(), ModuleNames.end(), moduleName);
     if(iterator != ModuleNames.end())

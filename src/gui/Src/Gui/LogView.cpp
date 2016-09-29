@@ -186,26 +186,32 @@ void LogView::onAnchorClicked(const QUrl & link)
     {
         if(link.path() == "/address64")
         {
-            bool ok = false;
-            duint address = link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16);
-            if(ok && DbgMemIsValidReadPtr(address))
+            if(DbgIsDebugging())
             {
-                if(DbgFunctions()->MemIsCodePage(address, true))
-                    DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
-                else
-                    DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+                bool ok = false;
+                duint address = link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16);
+                if(ok && DbgMemIsValidReadPtr(address))
+                {
+                    if(DbgFunctions()->MemIsCodePage(address, true))
+                        DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
+                    else
+                        DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+                }
             }
         }
         else if(link.path() == "/address32")
         {
-            bool ok = false;
-            duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
-            if(ok)
+            if(DbgIsDebugging())
             {
-                if(DbgFunctions()->MemIsCodePage(address, true))
-                    DbgCmdExec(QString("disasm %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
-                else if(DbgMemIsValidReadPtr(address))
-                    DbgCmdExec(QString("dump %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+                bool ok = false;
+                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
+                if(ok)
+                {
+                    if(DbgFunctions()->MemIsCodePage(address, true))
+                        DbgCmdExec(QString("disasm %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+                    else if(DbgMemIsValidReadPtr(address))
+                        DbgCmdExec(QString("dump %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+                }
             }
         }
         else

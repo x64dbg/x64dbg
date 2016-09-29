@@ -2,9 +2,71 @@
 #include "threading.h"
 #include "memory.h"
 #include "debugger.h"
-#include "debugger_commands.h"
+#include "console.h"
 
 char commandLine[MAX_COMMAND_LINE_SIZE];
+
+void showcommandlineerror(cmdline_error_t* cmdline_error)
+{
+    bool unkown = false;
+
+    switch(cmdline_error->type)
+    {
+    case CMDL_ERR_ALLOC:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error allocating memory for cmdline"));
+        break;
+    case CMDL_ERR_CONVERTUNICODE:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error converting UNICODE cmdline"));
+        break;
+    case CMDL_ERR_READ_PEBBASE:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error reading PEB base addres"));
+        break;
+    case CMDL_ERR_READ_PROCPARM_CMDLINE:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error reading PEB -> ProcessParameters -> CommandLine UNICODE_STRING"));
+        break;
+    case CMDL_ERR_READ_PROCPARM_PTR:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error reading PEB -> ProcessParameters pointer address"));
+        break;
+    case CMDL_ERR_GET_PEB:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error Getting remote PEB address"));
+        break;
+    case CMDL_ERR_READ_GETCOMMANDLINEBASE:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error Getting command line base address"));
+        break;
+    case CMDL_ERR_CHECK_GETCOMMANDLINESTORED:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error checking the pattern of the commandline stored"));
+        break;
+    case CMDL_ERR_WRITE_GETCOMMANDLINESTORED:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error writing the new command line stored"));
+        break;
+    case CMDL_ERR_GET_GETCOMMANDLINE:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error getting getcommandline"));
+        break;
+    case CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error allocating the page with UNICODE and ANSI command lines"));
+        break;
+    case CMDL_ERR_WRITE_ANSI_COMMANDLINE:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error writing the ANSI command line in the page"));
+        break;
+    case CMDL_ERR_WRITE_UNICODE_COMMANDLINE:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error writing the UNICODE command line in the page"));
+        break;
+    case CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE:
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error writing command line UNICODE in PEB"));
+        break;
+    default:
+        unkown = true;
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error getting cmdline"));
+        break;
+    }
+
+    if(!unkown)
+    {
+        if(cmdline_error->addr != 0)
+            dprintf(QT_TRANSLATE_NOOP("DBG", " (Address: %p)"), cmdline_error->addr);
+        dputs(QT_TRANSLATE_NOOP("DBG", ""));
+    }
+}
 
 bool isCmdLineEmpty()
 {

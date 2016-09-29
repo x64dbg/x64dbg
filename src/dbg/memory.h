@@ -39,7 +39,7 @@ bool MemSetPageRights(duint Address, const char* Rights);
 bool MemGetPageRights(duint Address, char* Rights);
 bool MemPageRightsToString(DWORD Protect, char* Rights);
 bool MemPageRightsFromString(DWORD* Protect, const char* Rights);
-bool MemFindInPage(SimplePage page, duint startoffset, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults);
+bool MemFindInPage(const SimplePage & page, duint startoffset, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults);
 bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults, bool progress = true);
 bool MemDecodePointer(duint* Pointer, bool vistaPlus);
 

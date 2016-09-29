@@ -8,7 +8,7 @@ public:
     using CBEXPRESSIONFUNCTION = std::function<duint(int argc, duint* argv, void* userdata)>;
 
     static void Init();
-    static bool Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata = nullptr);
+    static bool Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata = nullptr);
     static bool RegisterAlias(const String & name, const String & alias);
     static bool Unregister(const String & name);
     static bool Call(const String & name, std::vector<duint> & argv, duint & result);

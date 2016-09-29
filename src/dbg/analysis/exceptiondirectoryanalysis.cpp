@@ -89,7 +89,7 @@ void ExceptionDirectoryAnalysis::SetMarkers()
 }
 
 #ifdef _WIN64
-void ExceptionDirectoryAnalysis::EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const
+void ExceptionDirectoryAnalysis::EnumerateFunctionRuntimeEntries64(const std::function<bool(PRUNTIME_FUNCTION)> & Callback) const
 {
     if(!mFunctionInfoData)
         return;

@@ -40,4 +40,10 @@ namespace Exprfunc
     duint trenabled(duint addr);
     duint trhitcount(duint addr);
     duint gettickcount();
+
+    duint readbyte(duint addr);
+    duint readword(duint addr);
+    duint readdword(duint addr);
+    duint readqword(duint addr);
+    duint readptr(duint addr);
 }

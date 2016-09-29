@@ -54,9 +54,9 @@ void pluginloadall(const char* pluginDir)
 {
     //load new plugins
     wchar_t currentDir[deflen] = L"";
-    pluginDirectory = StringUtils::Utf8ToUtf16(pluginDir).c_str();
+    pluginDirectory = StringUtils::Utf8ToUtf16(pluginDir);
     GetCurrentDirectoryW(deflen, currentDir);
-    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(pluginDir).c_str());
+    SetCurrentDirectoryW(pluginDirectory.c_str());
     char searchName[deflen] = "";
 #ifdef _WIN64
     sprintf(searchName, "%s\\*.dp64", pluginDir);
@@ -356,7 +356,7 @@ bool pluginload(const char* pluginName)
         return false;
 
     char name[260] = "";
-    strncpy(name, pluginName, MAX_PATH);
+    strncpy_s(name, pluginName, _TRUNCATE);
     PLUG_DATA pluginData;
 
 #ifdef _WIN64
@@ -627,10 +627,10 @@ bool pluginload(const char* pluginName)
 bool pluginunload(const char* pluginName)
 {
     bool foundPlugin = false;
-    PLUGSTOP stop;
+    PLUGSTOP stop = nullptr;
     PLUG_DATA currentPlugin;
     char name[MAX_PATH] = "";
-    strncpy(name, pluginName, MAX_PATH);
+    strncpy_s(name, pluginName, _TRUNCATE);
 
 #ifdef _WIN64
     strcat(name, ".dp64");
@@ -776,14 +776,8 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
     auto callbackList = pluginCallbackList; //copy for thread-safety reasons
     SHARED_RELEASE();
     for(const auto & currentCallback : callbackList)
-    {
         if(currentCallback.cbType == cbType)
-        {
-            CBPLUGIN cbPlugin = currentCallback.cbPlugin;
-            if(!IsBadReadPtr((const void*)cbPlugin, sizeof(duint)))
-                cbPlugin(cbType, callbackInfo);
-        }
-    }
+            currentCallback.cbPlugin(cbType, callbackInfo);
 }
 
 /**
@@ -998,7 +992,7 @@ bool pluginwinevent(MSG* message, long* result)
     PLUG_CB_WINEVENT winevent;
     winevent.message = message;
     winevent.result = result;
-    winevent.retval = false;
+    winevent.retval = false; //false=handle event, true=ignore event
     plugincbcall(CB_WINEVENT, &winevent);
     return winevent.retval;
 }
@@ -1012,7 +1006,7 @@ bool pluginwineventglobal(MSG* message)
 {
     PLUG_CB_WINEVENTGLOBAL winevent;
     winevent.message = message;
-    winevent.retval = false;
+    winevent.retval = false; //false=handle event, true=ignore event
     plugincbcall(CB_WINEVENTGLOBAL, &winevent);
     return winevent.retval;
 }

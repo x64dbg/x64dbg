@@ -535,7 +535,7 @@ uint32 BpGetHitCount(duint Address, BP_TYPE Type)
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
     if(!bpInfo)
-        return false;
+        return 0;
 
     return bpInfo->hitcount;
 }

@@ -24,6 +24,8 @@
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
+    setWindowTitle("Disassembly");
+
     // Set specific widget handles
     mGoto = nullptr;
     mParentCPUWindow = parent;
@@ -751,6 +753,16 @@ void CPUDisassembly::setNewOriginHereActionSlot()
     if(!DbgIsDebugging())
         return;
     duint wVA = rvaToVa(getInitialSelection());
+    if(!DbgFunctions()->MemIsCodePage(wVA, false))
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
+                        tr("Setting new origin here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            return;
+    }
     QString wCmd = "cip=" + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(wCmd.toUtf8().constData());
 }
@@ -1743,11 +1755,21 @@ void CPUDisassembly::analyzeModuleSlot()
 
 void CPUDisassembly::createThreadSlot()
 {
+    duint addr = rvaToVa(getSelectionStart());
+    if(!DbgFunctions()->MemIsCodePage(addr, false))
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
+                        tr("Creating new thread here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            return;
+    }
     WordEditDialog argWindow(this);
     argWindow.setup(tr("Argument for the new thread"), 0, sizeof(duint));
     if(argWindow.exec() != QDialog::Accepted)
         return;
-    duint addr = rvaToVa(getSelectionStart());
     DbgCmdExec(QString("createthread %1, %2").arg(ToPtrString(addr)).arg(ToPtrString(argWindow.getVal())).toUtf8().constData());
 }
 

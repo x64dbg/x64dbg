@@ -5,19 +5,17 @@
 #include <QStatusBar>
 #include "Bridge.h"
 
-class StatusLabel : public QLabel
+class DebugStatusLabel : public QLabel
 {
     Q_OBJECT
 public:
-    explicit StatusLabel(QStatusBar* parent = 0);
+    explicit DebugStatusLabel(QStatusBar* parent = 0);
 
 public slots:
     void debugStateChangedSlot(DBGSTATE state);
-    void logUpdate(QString message);
 
 private:
-    QString labelText;
-
+    QString statusTexts[4];
 };
 
 #endif // LABELCLASS_H

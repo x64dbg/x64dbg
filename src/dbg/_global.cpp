@@ -124,7 +124,6 @@ void json_free(void* ptr)
 #else
     return efree(ptr);
 #endif
-    efree(ptr, "json:ptr");
 }
 
 /**
@@ -165,9 +164,7 @@ void setalloctrace(const char* file)
 */
 bool scmp(const char* a, const char* b)
 {
-    if(_stricmp(a, b))
-        return false;
-    return true;
+    return !_stricmp(a, b);
 }
 
 /**
@@ -240,7 +237,7 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName)
 {
     wchar_t wszDosFileName[MAX_PATH] = L"";
-    if(!GetProcessImageFileNameW(hProcess, wszDosFileName, sizeof(wszDosFileName)))
+    if(!GetProcessImageFileNameW(hProcess, wszDosFileName, _countof(wszDosFileName)))
         return false;
 
     wchar_t wszFileName[MAX_PATH] = L"";

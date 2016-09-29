@@ -447,6 +447,7 @@ static QAction* setupAction(const QString & text, RegistersView* this_object)
 
 RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
+    setWindowTitle("Registers");
     mChangeViewButton = NULL;
     switch(ConfigUint("Gui", "SIMDRegistersDisplayMode"))
     {
@@ -2907,6 +2908,41 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 
     if(mSelected != UNKNOWN)
     {
+        if(mMODIFYDISPLAY.contains(mSelected))
+        {
+            wMenu.addAction(wCM_Modify);
+        }
+
+        if(mCANSTOREADDRESS.contains(mSelected))
+        {
+            duint addr = (* ((duint*) registerValue(&wRegDumpStruct, mSelected)));
+            if(DbgMemIsValidReadPtr(addr))
+            {
+                wMenu.addAction(wCM_FollowInDump);
+                wMenu.addMenu(mFollowInDumpMenu);
+                wMenu.addAction(wCM_FollowInDisassembly);
+                wMenu.addAction(wCM_FollowInMemoryMap);
+                duint size = 0;
+                duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
+                if(addr >= base && addr < base + size)
+                    wMenu.addAction(wCM_FollowInStack);
+            }
+        }
+
+        wMenu.addAction(wCM_CopyToClipboard);
+        wMenu.addAction(wCM_CopyAll);
+        if(mLABELDISPLAY.contains(mSelected))
+        {
+            QString symbol = getRegisterLabel(mSelected);
+            if(symbol != "")
+                wMenu.addAction(wCM_CopySymbolToClipboard);
+        }
+
+        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        {
+            wMenu.addAction(wCM_Highlight);
+        }
+
         if(mSETONEZEROTOGGLE.contains(mSelected))
         {
             if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) >= 1)
@@ -2936,42 +2972,10 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             wMenu.addAction(wCM_Pop);
         }
 
-        if(mMODIFYDISPLAY.contains(mSelected))
+        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
-            wMenu.addAction(wCM_Modify);
+            wMenu.addMenu(mSwitchSIMDDispMode);
         }
-
-        if(mCANSTOREADDRESS.contains(mSelected))
-        {
-            duint addr = (* ((duint*) registerValue(&wRegDumpStruct, mSelected)));
-            if(DbgMemIsValidReadPtr(addr))
-            {
-                wMenu.addAction(wCM_FollowInDump);
-                wMenu.addMenu(mFollowInDumpMenu);
-                wMenu.addAction(wCM_FollowInDisassembly);
-                wMenu.addAction(wCM_FollowInMemoryMap);
-                duint size = 0;
-                duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
-                if(addr >= base && addr < base + size)
-                    wMenu.addAction(wCM_FollowInStack);
-            }
-        }
-
-        if(mLABELDISPLAY.contains(mSelected))
-        {
-            QString symbol = getRegisterLabel(mSelected);
-            if(symbol != "")
-                wMenu.addAction(wCM_CopySymbolToClipboard);
-        }
-
-        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
-        {
-            wMenu.addAction(wCM_Highlight);
-        }
-
-        wMenu.addAction(wCM_CopyToClipboard);
-        wMenu.addAction(wCM_CopyAll);
-        wMenu.addMenu(mSwitchSIMDDispMode);
 
         wMenu.exec(this->mapToGlobal(pos));
     }

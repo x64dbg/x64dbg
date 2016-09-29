@@ -60,7 +60,7 @@ private:
     void BasicBlocks();
     void Functions();
     void FunctionRanges();
-    void insertBlock(BasicBlock block);
+    void insertBlock(const BasicBlock & block);
     const BasicBlock* findBlock(duint start) const;
     void insertParent(duint child, duint parent);
     const UintSet* findParents(duint child) const;
@@ -69,7 +69,7 @@ private:
     duint getReferenceOperand() const;
 
 #ifdef _WIN64
-    void enumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const;
+    void enumerateFunctionRuntimeEntries64(const std::function<bool(PRUNTIME_FUNCTION)> & Callback) const;
 #endif // _WIN64
 };
 

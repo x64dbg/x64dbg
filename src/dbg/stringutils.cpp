@@ -73,7 +73,7 @@ String StringUtils::Escape(const String & s)
 
 bool StringUtils::Unescape(const String & s, String & result, bool quoted)
 {
-    int mLastChar;
+    int mLastChar = EOF;
     size_t i = 0;
     auto nextChar = [&]()
     {
@@ -155,18 +155,18 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
 //Trim functions taken from: http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring/16743707#16743707
 const String StringUtils::WHITESPACE = " \n\r\t";
 
-String StringUtils::Trim(const String & s, String delim)
+String StringUtils::Trim(const String & s, const String & delim)
 {
     return TrimRight(TrimLeft(s));
 }
 
-String StringUtils::TrimLeft(const String & s, String delim)
+String StringUtils::TrimLeft(const String & s, const String & delim)
 {
     size_t startpos = s.find_first_not_of(delim);
     return (startpos == String::npos) ? "" : s.substr(startpos);
 }
 
-String StringUtils::TrimRight(const String & s, String delim)
+String StringUtils::TrimRight(const String & s, const String & delim)
 {
     size_t endpos = s.find_last_not_of(delim);
     return (endpos == String::npos) ? "" : s.substr(0, endpos + 1);

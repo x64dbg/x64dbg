@@ -132,14 +132,14 @@ void SymbolView::setupContextMenu()
     mFollowModuleEntryAction = new QAction(disassembler, tr("Follow &Entry Point in Disassembler"), this);
     connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
 
-    mDownloadSymbolsAction = new QAction(tr("&Download Symbols for This Module"), this);
+    mDownloadSymbolsAction = new QAction(DIcon("pdb.png"), tr("&Download Symbols for This Module"), this);
     mDownloadSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mDownloadSymbolsAction);
     mModuleList->mList->addAction(mDownloadSymbolsAction);
     mModuleList->mSearchList->addAction(mDownloadSymbolsAction);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 
-    mDownloadAllSymbolsAction = new QAction(tr("Download Symbols for &All Modules"), this);
+    mDownloadAllSymbolsAction = new QAction(DIcon("pdb.png"), tr("Download Symbols for &All Modules"), this);
     mDownloadAllSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mDownloadAllSymbolsAction);
     mModuleList->mList->addAction(mDownloadAllSymbolsAction);
@@ -379,6 +379,7 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
         wMenu->addAction(mModSetSystemAction);
     wMenu->addAction(mModSetPartyAction);
     QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
     mModuleList->mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {

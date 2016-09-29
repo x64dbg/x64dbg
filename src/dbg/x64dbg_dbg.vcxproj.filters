@@ -81,12 +81,15 @@
     <Filter Include="Header Files\Third Party\keystone">
       <UniqueIdentifier>{ccc8108c-36f5-4b8d-8152-7208f109d752}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Commands">
+      <UniqueIdentifier>{c753866f-f2d5-4469-b8b0-0c7a6cea607e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Commands">
+      <UniqueIdentifier>{c42aba29-6104-475b-9838-ffa2034485aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="x64_dbg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="_dbgfunctions.cpp">
@@ -145,12 +148,6 @@
     </ClCompile>
     <ClCompile Include="symbolinfo.cpp">
       <Filter>Source Files\Information</Filter>
-    </ClCompile>
-    <ClCompile Include="instruction.cpp">
-      <Filter>Source Files\Debugger Core</Filter>
-    </ClCompile>
-    <ClCompile Include="debugger_commands.cpp">
-      <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
     <ClCompile Include="debugger.cpp">
       <Filter>Source Files\Debugger Core</Filter>
@@ -347,17 +344,71 @@
     <ClCompile Include="animate.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="breakpoint_commands.cpp">
-      <Filter>Source Files\Debugger Core</Filter>
-    </ClCompile>
     <ClCompile Include="symcache.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="commands\cmd-analysis.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-breakpoint-control.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-conditional-breakpoint-control.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-searching.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-debug-control.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-general-purpose.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-gui.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-memory-operations.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-misc.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-operating-system-control.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-plugins.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-script.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-thread-control.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-tracing.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-types.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-undocumented.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-user-database.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-variables.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="commands\cmd-watch-control.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="x64dbg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="x64_dbg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dbghelp\dbghelp.h">
       <Filter>Header Files\Third Party\dbghelp</Filter>
     </ClInclude>
@@ -407,12 +458,6 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="debugger.h">
-      <Filter>Header Files\Debugger Core</Filter>
-    </ClInclude>
-    <ClInclude Include="debugger_commands.h">
-      <Filter>Header Files\Debugger Core</Filter>
-    </ClInclude>
-    <ClInclude Include="instruction.h">
       <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
     <ClInclude Include="addrinfo.h">
@@ -798,6 +843,69 @@
     </ClInclude>
     <ClInclude Include="symcache.h">
       <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-breakpoint-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-conditional-breakpoint-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-debug-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-general-purpose.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-memory-operations.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-operating-system-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-thread-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-tracing.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-watch-control.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-variables.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-searching.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-user-database.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-analysis.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-types.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-plugins.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-script.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-misc.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-undocumented.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-all.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="commands\cmd-gui.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="x64dbg.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

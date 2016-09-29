@@ -2,7 +2,6 @@
 #define _MSGQUEUE_H
 
 #include "_global.h"
-#include <windows.h>
 #include <agents.h>
 
 #define MAX_MESSAGES 256

@@ -6,20 +6,11 @@
 
 #include "addrinfo.h"
 #include "debugger.h"
-#include "console.h"
 #include "memory.h"
-#include "breakpoint.h"
-#include "lz4\lz4file.h"
-#include "patches.h"
 #include "module.h"
-#include "comment.h"
-#include "label.h"
-#include "bookmark.h"
-#include "function.h"
-#include "loop.h"
 
 ///api functions
-bool apienumexports(duint base, EXPORTENUMCALLBACK cbEnum)
+bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
 {
     MEMORY_BASIC_INFORMATION mbi;
     VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
@@ -90,7 +81,7 @@ bool apienumexports(duint base, EXPORTENUMCALLBACK cbEnum)
     return true;
 }
 
-bool apienumimports(duint base, IMPORTENUMCALLBACK cbEnum)
+bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
 {
     // Variables
     bool readSuccess;

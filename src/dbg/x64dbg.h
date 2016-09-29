@@ -1,5 +1,4 @@
-#ifndef _X64_DBG_H
-#define _X64_DBG_H
+#pragma once
 
 #include "_global.h"
 
@@ -18,5 +17,3 @@ DLL_EXPORT void _dbg_dbgexitsignal();
 #endif
 
 bool dbgisstopped();
-
-#endif // _X64_DBG_H

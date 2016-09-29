@@ -10,6 +10,7 @@ XrefBrowseDialog::XrefBrowseDialog(QWidget* parent, duint address) :
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setWindowIcon(DIcon("xrefs.png"));
     mAddress = address;
+    mPrevSelectionSize = 0;
     if(DbgXrefGet(address, &mXrefInfo))
     {
         char disasm[GUI_MAX_DISASSEMBLY_SIZE] = "";
@@ -21,7 +22,6 @@ XrefBrowseDialog::XrefBrowseDialog(QWidget* parent, duint address) :
             else
                 ui->listWidget->addItem("???");
         }
-        mPrevSelectionSize = 0;
         ui->listWidget->setCurrentRow(0);
     }
 }

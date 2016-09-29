@@ -1,6 +1,4 @@
 #include "bookmark.h"
-#include "module.h"
-#include "memory.h"
 
 struct BookmarkSerializer : AddrInfoSerializer<BOOKMARKSINFO>
 {

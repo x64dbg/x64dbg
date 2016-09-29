@@ -1,8 +1,5 @@
 #include "mnemonichelp.h"
 #include "threading.h"
-#include <algorithm>
-#include <string>
-#include <locale>
 
 static std::unordered_map<String, String> MnemonicMap;
 static std::unordered_map<String, String> MnemonicBriefMap;

@@ -31,7 +31,8 @@
 #include "ThreadView.h"
 #include "PatchDialog.h"
 #include "CalculatorDialog.h"
-#include "StatusLabel.h"
+#include "DebugStatusLabel.h"
+#include "LogStatusLabel.h"
 #include "UpdateChecker.h"
 #include "SourceViewerManager.h"
 #include "SnowmanView.h"
@@ -379,12 +380,12 @@ void MainWindow::setupCommandBar()
 void MainWindow::setupStatusBar()
 {
     // Status label (Ready, Paused, ...)
-    mStatusLabel = new StatusLabel(ui->statusBar);
+    mStatusLabel = new DebugStatusLabel(ui->statusBar);
     mStatusLabel->setText(tr("Ready"));
     ui->statusBar->addWidget(mStatusLabel);
 
     // Log line
-    mLastLogLabel = new StatusLabel();
+    mLastLogLabel = new LogStatusLabel(ui->statusBar);
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
 
     // Time wasted counter
