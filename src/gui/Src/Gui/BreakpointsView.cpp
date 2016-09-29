@@ -96,6 +96,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mVertLayout->setContentsMargins(0, 0, 0, 0);
     mVertLayout->addWidget(mSplitter);
     this->setLayout(mVertLayout);
+    mSplitter->loadFromConfig("BreakpointsViewSplitter");
 
     // Create the action list for the right click context menu
     setupRightClickContextMenu();

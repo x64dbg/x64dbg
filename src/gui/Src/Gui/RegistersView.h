@@ -186,6 +186,7 @@ protected slots:
     void onSIMDSQWord();
     void onSIMDUQWord();
     void onSIMDHQWord();
+    void onClose();
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);

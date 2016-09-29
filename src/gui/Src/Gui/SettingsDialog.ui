@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -483,7 +483,7 @@
        <item>
         <widget class="QCheckBox" name="chkSaveColumnOrder">
          <property name="text">
-          <string>Save column order and width</string>
+          <string>Save GUI layout and column orders</string>
          </property>
         </widget>
        </item>
