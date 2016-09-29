@@ -4,7 +4,7 @@
 #include <QMessageBox>
 #include "Configuration.h"
 
-SourceView::SourceView(QString path, int line, StdTable* parent)
+SourceView::SourceView(QString path, int line, QWidget* parent)
     : ReferenceView(true, parent),
       mIpLine(0)
 {

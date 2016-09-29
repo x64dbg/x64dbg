@@ -20,11 +20,11 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     setLayout(mMainLayout);
 
     // Create reference view
-    mSearchListView = new SearchListView(true, 0, true);
+    mSearchListView = new SearchListView(true, this, true);
     mSearchListView->mSearchStartCol = 1;
 
     // Create module list
-    mModuleList = new SearchListView();
+    mModuleList = new SearchListView(true, this);
     mModuleList->mSearchStartCol = 1;
     int charwidth = mModuleList->mList->getCharWidth();
     mModuleList->mList->enableMultiSelection(true);

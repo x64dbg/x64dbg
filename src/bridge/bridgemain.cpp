@@ -989,6 +989,14 @@ BRIDGE_IMPEXP void DbgDelEncodeTypeSegment(duint start)
     _dbg_sendmessage(DBG_DELETE_ENCODE_TYPE_SEG, (void*)start, 0);
 }
 
+BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
+{
+    EnterCriticalSection(&csTranslate);
+    const char* text = _gui_translate_text(Source);
+    LeaveCriticalSection(&csTranslate);
+    return text;
+}
+
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
     _gui_sendmessage(GUI_DISASSEMBLE_AT, (void*)addr, (void*)cip);
@@ -1491,12 +1499,9 @@ BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr)
     _gui_sendmessage(GUI_SELECT_IN_MEMORY_MAP, (void*)addr, nullptr);
 }
 
-BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
+BRIDGE_IMPEXP void GuiGetActiveView(ACTIVEVIEW* activeView)
 {
-    EnterCriticalSection(&csTranslate);
-    const char* text = _gui_translate_text(Source);
-    LeaveCriticalSection(&csTranslate);
-    return text;
+    _gui_sendmessage(GUI_GET_ACTIVE_VIEW, activeView, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

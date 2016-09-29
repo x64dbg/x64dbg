@@ -34,6 +34,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(selectAddress(duint)));
     connect(Bridge::getBridge(), SIGNAL(selectionMemmapGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     setupContextMenu();
@@ -300,7 +301,6 @@ void MemoryMapView::refreshMap()
     memset(&wMemMapStruct, 0, sizeof(MEMMAP));
 
     DbgMemMap(&wMemMapStruct);
-    mCipBase = DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr);
 
     setRowCount(wMemMapStruct.count);
 
@@ -615,4 +615,10 @@ void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = selection->end = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
     Bridge::getBridge()->setResult(1);
+}
+
+void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)
+{
+    Q_UNUSED(va)
+    mCipBase = DbgMemFindBaseAddr(cip, nullptr);;
 }

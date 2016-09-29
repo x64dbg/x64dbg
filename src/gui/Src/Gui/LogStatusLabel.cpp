@@ -41,35 +41,42 @@ void LogStatusLabel::focusChanged(QWidget* old, QWidget* now)
         old->setFocus();
         return;
     }
-    /* //Debug output
-        if(!now)
-            return;
 
-        auto findTitle = [](QWidget * w) -> QString
+    auto findTitle = [](QWidget * w, void* & hwnd) -> QString
+    {
+        if(!w)
+            return "(null)";
+        if(!w->windowTitle().length())
         {
-            if(!w)
-                return "(null)";
-            if(!w->windowTitle().length())
+            auto p = w->parentWidget();
+            if(p && p->windowTitle().length())
             {
-                auto p = w->parentWidget();
-                if(p && p->windowTitle().length())
-                    return p->windowTitle();
+                hwnd = (void*)p->winId();
+                return p->windowTitle();
             }
-            return w->windowTitle();
-        };
-        auto className = [](QWidget * w) -> QString
-        {
-            if(!w)
-                return "";
-            return QString(" (%1)").arg(w->metaObject()->className());
-        };
+        }
+        hwnd = (void*)w->winId();
+        return w->windowTitle();
+    };
+    auto className = [](QWidget * w, void* & hwnd) -> QString
+    {
+        if(!w)
+            return "(null)";
+        hwnd = (void*)w->winId();
+        return w->metaObject()->className();
+    };
 
-        QString oldTitle = findTitle(old);
-        QString oldClass = className(old);
-        QString nowTitle = findTitle(now);
-        QString nowClass = className(now);
+    ACTIVEVIEW activeView;
+    memset(&activeView, 0, sizeof(ACTIVEVIEW));
+    strncpy_s(activeView.title, findTitle(now, activeView.titleHwnd).toUtf8().constData(), _TRUNCATE);
+    strncpy_s(activeView.className, className(now, activeView.classHwnd).toUtf8().constData(), _TRUNCATE);
+    Bridge::getBridge()->activeView = activeView;
 
-        printf("[FOCUS] old: %s%s, now: %s%s\n",
-               oldTitle.toUtf8().constData(), oldClass.toUtf8().constData(),
-               nowTitle.toUtf8().constData(), nowClass.toUtf8().constData());*/
+    /*QString oldTitle = findTitle(old);
+    QString oldClass = className(old);
+    QString nowTitle = findTitle(now);
+    QString nowClass = className(now);
+    printf("[FOCUS] old: %s%s, now: %s%s\n",
+           oldTitle.toUtf8().constData(), oldClass.toUtf8().constData(),
+           nowTitle.toUtf8().constData(), nowClass.toUtf8().constData());*/
 }

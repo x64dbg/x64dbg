@@ -11,7 +11,7 @@ class SourceView : public ReferenceView
 {
     Q_OBJECT
 public:
-    explicit SourceView(QString path, int line = 0, StdTable* parent = 0);
+    explicit SourceView(QString path, int line = 0, QWidget* parent = 0);
     QString getSourcePath();
     void setupContextMenu();
     void setSelection(int line);

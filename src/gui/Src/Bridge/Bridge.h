@@ -40,6 +40,7 @@ public:
     void* winId;
     QWidget* scriptView;
     ReferenceManager* referenceManager;
+    ACTIVEVIEW activeView;
 
 signals:
     void disassembleAt(dsint va, dsint eip);
