@@ -41,35 +41,35 @@ void LogStatusLabel::focusChanged(QWidget* old, QWidget* now)
         old->setFocus();
         return;
     }
+    /* //Debug output
+        if(!now)
+            return;
 
-    if(!now)
-        return;
-
-    auto findTitle = [](QWidget * w) -> QString
-    {
-        if(!w)
-            return "(null)";
-        if(!w->windowTitle().length())
+        auto findTitle = [](QWidget * w) -> QString
         {
-            auto p = w->parentWidget();
-            if(p && p->windowTitle().length())
-                return p->windowTitle();
-        }
-        return w->windowTitle();
-    };
-    auto className = [](QWidget * w) -> QString
-    {
-        if(!w)
-            return "";
-        return QString(" (%1)").arg(w->metaObject()->className());
-    };
+            if(!w)
+                return "(null)";
+            if(!w->windowTitle().length())
+            {
+                auto p = w->parentWidget();
+                if(p && p->windowTitle().length())
+                    return p->windowTitle();
+            }
+            return w->windowTitle();
+        };
+        auto className = [](QWidget * w) -> QString
+        {
+            if(!w)
+                return "";
+            return QString(" (%1)").arg(w->metaObject()->className());
+        };
 
-    QString oldTitle = findTitle(old);
-    QString oldClass = className(old);
-    QString nowTitle = findTitle(now);
-    QString nowClass = className(now);
+        QString oldTitle = findTitle(old);
+        QString oldClass = className(old);
+        QString nowTitle = findTitle(now);
+        QString nowClass = className(now);
 
-    printf("[FOCUS] old: %s%s, now: %s%s\n",
-           oldTitle.toUtf8().constData(), oldClass.toUtf8().constData(),
-           nowTitle.toUtf8().constData(), nowClass.toUtf8().constData());
+        printf("[FOCUS] old: %s%s, now: %s%s\n",
+               oldTitle.toUtf8().constData(), oldClass.toUtf8().constData(),
+               nowTitle.toUtf8().constData(), nowClass.toUtf8().constData());*/
 }
