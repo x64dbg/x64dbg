@@ -703,14 +703,17 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
     {
         switch(*arg3)
         {
-        case 'r':
+        case 'a': //read+write+execute
+            type = UE_MEMORY;
+            break;
+        case 'r': //read
             type = UE_MEMORY_READ;
             break;
-        case 'w':
+        case 'w': //write
             type = UE_MEMORY_WRITE;
             break;
-        case 'x':
-            type = UE_MEMORY_EXECUTE; //EXECUTE
+        case 'x': //execute
+            type = UE_MEMORY_EXECUTE;
             break;
         default:
             dputs(QT_TRANSLATE_NOOP("DBG", "Invalid type (argument ignored)"));
