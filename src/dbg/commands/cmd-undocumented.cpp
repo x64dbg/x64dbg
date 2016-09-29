@@ -10,6 +10,7 @@
 #include "capstone_wrapper.h"
 #include "mnemonichelp.h"
 #include "value.h"
+#include "symbolinfo.h"
 
 CMDRESULT cbBadCmd(int argc, char* argv[])
 {
@@ -26,28 +27,31 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
         else
             valsize = 1;
         char format_str[deflen] = "";
+        auto symbolic = SymGetSymbolicName(value);
+        if(symbolic.length())
+            symbolic = " " + symbolic;
         if(isvar)  // and *cmd!='.' and *cmd!='x') //prevent stupid 0=0 stuff
         {
             if(value > 9 && !hexonly)
             {
                 if(!valuesignedcalc())   //signed numbers
 #ifdef _WIN64
-                    sprintf_s(format_str, "%%s=%%.%dllX (%%llud)\n", valsize); // TODO: This and the following statements use "%llX" for a "int"-typed variable. Maybe we can use "%X" everywhere?
+                    sprintf_s(format_str, "%%s=%%.%dllX (%%llud)%%s\n", valsize); // TODO: This and the following statements use "%llX" for a "int"-typed variable. Maybe we can use "%X" everywhere?
 #else //x86
-                    sprintf_s(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dX (%%ud)%%s\n", valsize);
 #endif //_WIN64
                 else
 #ifdef _WIN64
-                    sprintf_s(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dllX (%%lld)%%s\n", valsize);
 #else //x86
-                    sprintf_s(format_str, "%%s=%%.%dX (%%d)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dX (%%d)%%s\n", valsize);
 #endif //_WIN64
-                dprintf_untranslated(format_str, *argv, value, value);
+                dprintf_untranslated(format_str, *argv, value, value, symbolic.c_str());
             }
             else
             {
-                sprintf_s(format_str, "%%s=%%.%dX\n", valsize);
-                dprintf_untranslated(format_str, *argv, value);
+                sprintf_s(format_str, "%%s=%%.%dX%%s\n", valsize);
+                dprintf_untranslated(format_str, *argv, value, symbolic.c_str());
             }
         }
         else
@@ -56,31 +60,31 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             {
                 if(!valuesignedcalc())   //signed numbers
 #ifdef _WIN64
-                    sprintf_s(format_str, "%%s=%%.%dllX (%%llud)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dllX (%%llud)%%s\n", valsize);
 #else //x86
-                    sprintf_s(format_str, "%%s=%%.%dX (%%ud)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dX (%%ud)%%s\n", valsize);
 #endif //_WIN64
                 else
 #ifdef _WIN64
-                    sprintf_s(format_str, "%%s=%%.%dllX (%%lld)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dllX (%%lld)%%s\n", valsize);
 #else //x86
-                    sprintf_s(format_str, "%%s=%%.%dX (%%d)\n", valsize);
+                    sprintf_s(format_str, "%%s=%%.%dX (%%d)%%s\n", valsize);
 #endif //_WIN64
 #ifdef _WIN64
-                sprintf_s(format_str, "%%.%dllX (%%llud)\n", valsize);
+                sprintf_s(format_str, "%%.%dllX (%%llud)%%s\n", valsize);
 #else //x86
-                sprintf_s(format_str, "%%.%dX (%%ud)\n", valsize);
+                sprintf_s(format_str, "%%.%dX (%%ud)%%s\n", valsize);
 #endif //_WIN64
-                dprintf_untranslated(format_str, value, value);
+                dprintf_untranslated(format_str, value, value, symbolic.c_str());
             }
             else
             {
 #ifdef _WIN64
-                sprintf_s(format_str, "%%.%dllX\n", valsize);
+                sprintf_s(format_str, "%%.%dllX%%s\n", valsize);
 #else //x86
-                sprintf_s(format_str, "%%.%dX\n", valsize);
+                sprintf_s(format_str, "%%.%dX%%s\n", valsize);
 #endif //_WIN64
-                dprintf_untranslated(format_str, value);
+                dprintf_untranslated(format_str, value, symbolic.c_str());
             }
         }
     }

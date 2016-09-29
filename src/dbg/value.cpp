@@ -1435,7 +1435,13 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
             return true;
         for(int i = 0; i < found; i++)
             if(i != kernel32)
-                dprintf_untranslated("%p\n", addrfound()[i]);
+            {
+                auto symbolic = SymGetSymbolicName(addrfound()[i]);
+                if(symbolic.length())
+                    dprintf_untranslated("%p %s\n", addrfound()[i], symbolic.c_str());
+                else
+                    dprintf_untranslated("%p\n", addrfound()[i]);
+            }
     }
     else
     {
@@ -1443,7 +1449,13 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         if(!printall || silent)
             return true;
         for(int i = 1; i < found; i++)
-            dprintf_untranslated("%p\n", addrfound()[i]);
+        {
+            auto symbolic = SymGetSymbolicName(addrfound()[i]);
+            if(symbolic.length())
+                dprintf_untranslated("%p %s\n", addrfound()[i], symbolic.c_str());
+            else
+                dprintf_untranslated("%p\n", addrfound()[i]);
+        }
     }
     return true;
 }
@@ -1704,7 +1716,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         return false;
     if(isvar)
         *isvar = false;
-    else if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
+    if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
         return true;
     else if(LabelFromString(string, value))  //then come labels
         return true;
