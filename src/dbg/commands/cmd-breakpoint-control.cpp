@@ -824,7 +824,7 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
     }
     if(found.enabled)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Memory memory already enabled!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint already enabled!"));
         GuiUpdateAllViews();
         return STATUS_CONTINUE;
     }
