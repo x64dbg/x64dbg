@@ -338,9 +338,9 @@ static void printExhandlers(const char* name, const std::vector<duint> & entries
     {
         auto symbolic = SymGetSymbolicName(entry);
         if(symbolic.length())
-            dprintf("%p %s\n", entry, symbolic.c_str());
+            dprintf_untranslated("%p %s\n", entry, symbolic.c_str());
         else
-            dprintf("%p\n", entry);
+            dprintf_untranslated("%p\n", entry);
     }
 }
 

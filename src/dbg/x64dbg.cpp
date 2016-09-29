@@ -373,10 +373,7 @@ static void registercommands()
     dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
 
     //misc
-    dbgcmdnew("strlen\1charcount\1ccount", cbStrLen, false); //get strlen, arg1:string
     dbgcmdnew("chd", cbInstrChd, false); //Change directory
-    dbgcmdnew("gettickcount\1tickcount\1gtc", cbInstrGetTickCount, false); // GetTickCount
-    dbgcmdnew("sleep", cbInstrSleep, false); //Sleep
 
     dbgcmdnew("HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL

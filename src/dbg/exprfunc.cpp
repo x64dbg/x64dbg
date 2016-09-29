@@ -199,6 +199,14 @@ namespace Exprfunc
         return GetTickCount();
     }
 
+    duint sleep(duint ms)
+    {
+        if(ms >= 0xFFFFFFFF)
+            ms = 100;
+        Sleep(DWORD(ms));
+        return ms;
+    }
+
     static duint readMem(duint addr, duint size)
     {
         duint value = 0;

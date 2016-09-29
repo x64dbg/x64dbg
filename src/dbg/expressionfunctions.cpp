@@ -68,6 +68,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("bswap", bswap);
     RegisterEasy("ternary,tern", ternary);
     RegisterEasy("GetTickCount,gettickcount", gettickcount);
+    RegisterEasy("Sleep,sleep", sleep);
 
     //Memory
     RegisterEasy("mem.valid", memvalid);

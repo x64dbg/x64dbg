@@ -26,24 +26,6 @@ CMDRESULT cbInstrChd(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrGetTickCount(int argc, char* argv[])
-{
-    varset("$result", Exprfunc::gettickcount(), false);
-    return STATUS_CONTINUE;
-}
-
-CMDRESULT cbInstrSleep(int argc, char* argv[])
-{
-    duint ms = 100;
-    if(argc > 1)
-        if(!valfromstring(argv[1], &ms, false))
-            return STATUS_ERROR;
-    if(ms >= 0xFFFFFFFF)
-        ms = 100;
-    Sleep((DWORD)ms);
-    return STATUS_CONTINUE;
-}
-
 CMDRESULT cbDebugHide(int argc, char* argv[])
 {
     if(HideDebugger(fdProcessInfo->hProcess, UE_HIDE_PEBONLY))
