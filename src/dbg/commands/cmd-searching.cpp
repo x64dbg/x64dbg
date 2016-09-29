@@ -672,7 +672,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
         if(STRING_IS_NULL(yrRule->strings))
         {
             if(debug)
-                dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Global rule \"%s\' matched!\n"), yrRule->identifier);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[YARA] Global rule \"%s\" matched!\n"), yrRule->identifier);
             addReference(base, nullptr, "");
         }
         else
