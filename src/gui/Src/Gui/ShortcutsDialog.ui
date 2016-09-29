@@ -58,14 +58,14 @@
      <item>
       <widget class="QPushButton" name="btnSave">
        <property name="text">
-        <string>&amp;Save</string>
+        <string>Save</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="btnCancel">
        <property name="text">
-        <string>&amp;Cancel</string>
+        <string>Cancel</string>
        </property>
       </widget>
      </item>
