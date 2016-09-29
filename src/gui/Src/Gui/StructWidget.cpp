@@ -6,6 +6,7 @@ StructWidget::StructWidget(QWidget* parent) :
     ui(new Ui::StructWidget)
 {
     ui->setupUi(this);
+    ui->treeWidget->setStyleSheet("QTreeWidget { color: #000000; background-color: #FFF8F0; alternate-background-color: #DCD9CF; }");
     showTree();
 }
 
