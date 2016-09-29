@@ -38,6 +38,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mSplitter->addWidget(mHandlesTable, tr("Handles"));
     mSplitter->addWidget(mTcpConnectionsTable, tr("TCP Connections"));
     mSplitter->addWidget(mPrivilegesTable, tr("Privileges"));
+    mSplitter->collapseLowerTabs();
 
     // Layout
     mVertLayout = new QVBoxLayout;
@@ -45,6 +46,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mVertLayout->setContentsMargins(0, 0, 0, 0);
     mVertLayout->addWidget(mSplitter);
     this->setLayout(mVertLayout);
+    mSplitter->loadFromConfig("HandlesViewSplitter");
 
     // Create the action list for the right click context menu
     mActionRefresh = new QAction(DIcon("arrow-restart.png"), tr("&Refresh"), this);

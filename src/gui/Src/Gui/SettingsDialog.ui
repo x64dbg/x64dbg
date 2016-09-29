@@ -483,7 +483,7 @@
        <item>
         <widget class="QCheckBox" name="chkSaveColumnOrder">
          <property name="text">
-          <string>Save column order and width</string>
+          <string>Save GUI layout and column orders</string>
          </property>
         </widget>
        </item>

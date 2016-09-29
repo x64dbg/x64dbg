@@ -445,6 +445,8 @@ void MainWindow::setupLanguagesMenu()
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     duint noClose = 0;
+    if(bCanClose)
+        emit Bridge::getBridge()->close();
     if(BridgeSettingGetUint("Gui", "NoCloseDialog", &noClose) && noClose)
         mCloseDialog->hide();
     else

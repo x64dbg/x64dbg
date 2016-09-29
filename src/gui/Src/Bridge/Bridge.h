@@ -47,6 +47,7 @@ signals:
     void dbgStateChanged(DBGSTATE state);
     void addMsgToLog(QString msg);
     void clearLog();
+    void close();
     void updateRegisters();
     void updateBreakpoints();
     void updateWindowTitle(QString filename);

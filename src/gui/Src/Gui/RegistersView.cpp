@@ -449,6 +449,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
 {
     setWindowTitle("Registers");
     mChangeViewButton = NULL;
+    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(onClose()));
     switch(ConfigUint("Gui", "SIMDRegistersDisplayMode"))
     {
     case 0:
@@ -1304,9 +1305,13 @@ void RegistersView::refreshShortcutsSlot()
 }
 
 /**
- * @brief RegistersView::~RegistersView The destructor. It also saves the current SIMD display mode into the config file.
+ * @brief RegistersView::~RegistersView The destructor.
  */
 RegistersView::~RegistersView()
+{
+}
+
+void RegistersView::onClose()
 {
     duint cfg = 0;
     switch(wSIMDRegDispMode)

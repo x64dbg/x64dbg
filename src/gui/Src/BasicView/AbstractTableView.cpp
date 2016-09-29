@@ -3,6 +3,7 @@
 #include "Configuration.h"
 #include "ColumnReorderDialog.h"
 #include "CachedFontMetrics.h"
+#include "Bridge.h"
 #include <windows.h>
 
 int AbstractTableView::mMouseWheelScrollDelta = 0;
@@ -98,6 +99,10 @@ AbstractTableView::AbstractTableView(QWidget* parent)
 
 AbstractTableView::~AbstractTableView()
 {
+}
+
+void AbstractTableView::slot_close()
+{
     if(ConfigBool("Gui", "SaveColumnOrder"))
         saveColumnToConfig();
 }
@@ -176,6 +181,7 @@ void AbstractTableView::loadColumnFromConfig(const QString & viewName)
             mColumnOrder[i] = order - 1;
     }
     mViewName = viewName;
+    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(slot_close()));
 }
 
 void AbstractTableView::saveColumnToConfig()
