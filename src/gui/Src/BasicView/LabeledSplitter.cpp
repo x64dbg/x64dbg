@@ -275,7 +275,7 @@ void LabeledSplitter::loadFromConfig(const QString & configName)
         BridgeSettingGet("Gui", mConfigName.toUtf8().constData(), state);
         size_t sizeofState = strlen(state);
         if(sizeofState > 0)
-            this->restoreState(QByteArray::fromBase64(QByteArray(state, sizeofState)));
+            this->restoreState(QByteArray::fromBase64(QByteArray(state, int(sizeofState))));
         connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeSlot()));
     }
 }
