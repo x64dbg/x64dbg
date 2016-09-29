@@ -1133,13 +1133,13 @@ void CPUDump::selectionSet(const SELECTIONDATA* selection)
 void CPUDump::memoryAccessSingleshootSlot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, r").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, a").toUtf8().constData());
 }
 
 void CPUDump::memoryAccessRestoreSlot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, r").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, a").toUtf8().constData());
 }
 
 void CPUDump::memoryWriteSingleshootSlot()
