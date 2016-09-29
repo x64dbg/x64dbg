@@ -933,7 +933,7 @@ void CPUDump::integerHexShortSlot()
     wColDesc.separator = 0;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = HexWord;
-    appendResetDescriptor(8 + charwidth * 34, tr("Hex short (16-bit)"), false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 39, tr("Hex short (16-bit)"), false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
