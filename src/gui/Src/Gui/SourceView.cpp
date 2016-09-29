@@ -25,17 +25,7 @@ SourceView::SourceView(QString path, int line, StdTable* parent)
 
 void SourceView::setSelection(int line)
 {
-    int offset = line - 1;
-    if(mCurList->isValidIndex(offset, 0))
-    {
-        int rangefrom = mCurList->getTableOffset();
-        int rangeto = rangefrom + mCurList->getViewableRowsCount() - 1;
-        if(offset < rangefrom) //ip lays before the current view
-            mCurList->setTableOffset(offset);
-        else if(offset > (rangeto - 1)) //ip lays after the current view
-            mCurList->setTableOffset(offset - mCurList->getViewableRowsCount() + 2);
-        mCurList->setSingleSelection(offset);
-    }
+    mCurList->scrollSelect(line - 1);
     reloadData(); //repaint
 }
 

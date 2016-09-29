@@ -251,6 +251,21 @@ bool StdTable::isSelected(int base, int offset)
         return false;
 }
 
+bool StdTable::scrollSelect(int offset)
+{
+    if(!isValidIndex(offset, 0))
+        return false;
+
+    int rangefrom = getTableOffset();
+    int rangeto = rangefrom + getViewableRowsCount() - 1;
+    if(offset < rangefrom) //offset lays before the current view
+        setTableOffset(offset);
+    else if(offset > (rangeto - 1)) //offset lays after the current view
+        setTableOffset(offset - getViewableRowsCount() + 2);
+    setSingleSelection(offset);
+    return true;
+}
+
 /************************************************************************************
                                 Data Management
 ************************************************************************************/

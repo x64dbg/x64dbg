@@ -576,7 +576,8 @@ void MemoryMapView::selectAddress(duint va)
         for(dsint row = 0; row < rows; row++)
             if(getCellContent(row, 0) == baseText)
             {
-                setSingleSelection(row);
+                scrollSelect(row);
+                reloadData();
                 return;
             }
     }

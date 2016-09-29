@@ -389,35 +389,13 @@ void ScriptView::clear()
 
 void ScriptView::setIp(int line)
 {
-    int offset = line - 1;
-    if(!isValidIndex(offset, 0))
-    {
-        mIpLine = 0;
-        return;
-    }
-    mIpLine = line;
-    int rangefrom = getTableOffset();
-    int rangeto = rangefrom + getViewableRowsCount() - 1;
-    if(offset < rangefrom) //ip lays before the current view
-        setTableOffset(offset);
-    else if(offset > (rangeto - 1)) //ip lays after the current view
-        setTableOffset(offset - getViewableRowsCount() + 2);
-    setSingleSelection(offset);
+    mIpLine = scrollSelect(line - 1) ? line : 0;
     reloadData(); //repaint
 }
 
 void ScriptView::setSelection(int line)
 {
-    int offset = line - 1;
-    if(!isValidIndex(offset, 0))
-        return;
-    int rangefrom = getTableOffset();
-    int rangeto = rangefrom + getViewableRowsCount() - 1;
-    if(offset < rangefrom) //ip lays before the current view
-        setTableOffset(offset);
-    else if(offset > (rangeto - 1)) //ip lays after the current view
-        setTableOffset(offset - getViewableRowsCount() + 2);
-    setSingleSelection(offset);
+    scrollSelect(line - 1);
     reloadData(); //repaint
 }
 

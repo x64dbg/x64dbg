@@ -28,6 +28,7 @@ public:
     void selectNext();
     void selectPrevious();
     bool isSelected(int base, int offset);
+    bool scrollSelect(int offset);
 
     // Data Management
     void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "", SortBy::t sortFn = SortBy::AsText);
