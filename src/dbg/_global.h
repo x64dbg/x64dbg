@@ -56,7 +56,8 @@ enum arch
     notfound,
     invalid,
     x32,
-    x64
+    x64,
+    dotnet
 };
 
 //superglobal variables

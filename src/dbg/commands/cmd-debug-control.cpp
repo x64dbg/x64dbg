@@ -68,6 +68,9 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this file!"));
 #endif //_WIN64
         return STATUS_ERROR;
+    case dotnet:
+        dputs(QT_TRANSLATE_NOOP("DBG", "This file is a dotNET application."));
+        break;
     default:
         break;
     }
