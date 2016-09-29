@@ -5,6 +5,7 @@
 #include "CPUDump.h"
 #include "TabWidget.h"
 #include "WatchView.h"
+#include "StructWidget.h"
 
 class CPUDump;
 
@@ -37,6 +38,7 @@ private:
     uint mMaxCPUDumpTabs;
 
     WatchView* mWatch;
+    StructWidget* mStructWidget;
 
     int GetDumpWindowIndex(int dump);
     int GetWatchWindowIndex();
