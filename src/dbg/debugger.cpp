@@ -423,6 +423,7 @@ void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paus
     GuiSetDebugState(state);
     DebugUpdateGui(disasm_addr, stack);
 }
+
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
 {
     // call paused routine to clean up various tracing states.
@@ -444,7 +445,6 @@ void DebugUpdateBreakpointsViewAsync()
     static TaskThread_<decltype(&GuiUpdateBreakpointsView)> BreakpointsUpdateGuiTask(&GuiUpdateBreakpointsView);
     BreakpointsUpdateGuiTask.WakeUp();
 }
-
 
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
 {
