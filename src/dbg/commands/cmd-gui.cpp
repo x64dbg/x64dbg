@@ -85,7 +85,6 @@ CMDRESULT cbDebugMemmapdump(int argc, char* argv[])
         return STATUS_ERROR;
     }
     GuiSelectInMemoryMap(addr);
-    GuiShowCpu();
     return STATUS_CONTINUE;
 }
 
