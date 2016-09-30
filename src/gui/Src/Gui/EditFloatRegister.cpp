@@ -611,13 +611,13 @@ void EditFloatRegister::editingHex1FinishedSlot(QString arg)
     QString filled(arg.toUpper());
     if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
     {
-        filled.append(QString(16 - filled.length(), QChar('0')));
+        filled.append(QString(32 - filled.length(), QChar('0')));
         for(int i = 0; i < 16; i++)
             Data[i + 16] = filled.mid(i * 2, 2).toInt(0, 16);
     }
     else
     {
-        filled.prepend(QString(16 - filled.length(), QChar('0')));
+        filled.prepend(QString(32 - filled.length(), QChar('0')));
         for(int i = 0; i < 16; i++)
             Data[i + 16] = filled.mid(30 - i * 2, 2).toInt(0, 16);
     }
@@ -639,13 +639,13 @@ void EditFloatRegister::editingHex2FinishedSlot(QString arg)
         maxBytes = RegSize / 8;
     if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
     {
-        filled.append(QString(maxBytes - filled.length(), QChar('0')));
+        filled.append(QString(maxBytes * 2 - filled.length(), QChar('0')));
         for(int i = 0; i < maxBytes; i++)
             Data[i] = filled.mid(i * 2, 2).toInt(0, 16);
     }
     else
     {
-        filled.prepend(QString(maxBytes - filled.length(), QChar('0')));
+        filled.prepend(QString(maxBytes * 2 - filled.length(), QChar('0')));
         for(int i = 0; i < maxBytes; i++)
             Data[i] = filled.mid((maxBytes - i - 1) * 2, 2).toInt(0, 16);
     }
