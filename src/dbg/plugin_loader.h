@@ -53,10 +53,12 @@ struct PLUG_EXPRFUNCTION
 };
 
 //plugin management functions
+bool pluginload(const char* pluginname, bool loadall = false);
+bool pluginunload(const char* pluginname, bool unloadall = false);
 void pluginloadall(const char* pluginDir);
-bool pluginload(const char* pluginname);
 void pluginunloadall();
-bool pluginunload(const char* pluginname);
+void plugincmdunregisterall(int pluginHandle);
+void pluginexprfuncunregisterall(int pluginHandle);
 void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin);
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType);
 void plugincbcall(CBTYPE cbType, void* callbackInfo);
