@@ -1296,7 +1296,7 @@ void MainWindow::reportBug()
 
 void MainWindow::crashDump()
 {
-    QMessageBox msg(QMessageBox::Critical, tr("Generate crash dump"), tr("This action will crash the debugger and generate a crash dump. You will LOSE ALL YOUR DATA. Do you really want to continue?"));
+    QMessageBox msg(QMessageBox::Critical, tr("Generate crash dump"), tr("This action will crash the debugger and generate a crash dump. You will LOSE ALL YOUR UNSAVED DATA. Do you really want to continue?"));
     msg.setWindowIcon(DIcon("fatal-error.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
