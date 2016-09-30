@@ -611,13 +611,13 @@ void EditFloatRegister::editingHex1FinishedSlot(QString arg)
     QString filled(arg.toUpper());
     if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
     {
-        filled.append(QString(16 - filled.length(), QChar('0')));
+        filled.append(QString(32 - filled.length(), QChar('0')));
         for(int i = 0; i < 16; i++)
             Data[i + 16] = filled.mid(i * 2, 2).toInt(0, 16);
     }
     else
     {
-        filled.prepend(QString(16 - filled.length(), QChar('0')));
+        filled.prepend(QString(32 - filled.length(), QChar('0')));
         for(int i = 0; i < 16; i++)
             Data[i + 16] = filled.mid(30 - i * 2, 2).toInt(0, 16);
     }
