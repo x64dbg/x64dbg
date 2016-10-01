@@ -1928,7 +1928,7 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE])
         *label_ = 0;
     if(label)
         strcpy_s(label, MAX_LABEL_SIZE, label_);
-    return std::move(addrText);
+    return addrText;
 }
 
 /**
