@@ -290,7 +290,7 @@ void HexDump::setupCopyMenu()
 
 void HexDump::copyAddressSlot()
 {
-    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
     Bridge::CopyToClipboard(addrText);
 }
 
@@ -377,7 +377,7 @@ void HexDump::mousePressEvent(QMouseEvent* event)
         if(!DbgIsDebugging())
             return;
         MessageBeep(MB_OK);
-        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
         Bridge::CopyToClipboard(addrText);
         return;
     }
@@ -697,7 +697,7 @@ QString HexDump::byteToString(byte_t byte, ByteViewMode_e mode)
     {
     case HexByte:
     {
-        wStr = QString("%1").arg((unsigned char)byte, 2, 16, QChar('0')).toUpper();
+        wStr = ToByteString((unsigned char)byte);
     }
     break;
 
@@ -742,7 +742,7 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
     {
     case HexWord:
     {
-        wStr = QString("%1").arg((unsigned short)word, 4, 16, QChar('0')).toUpper();
+        wStr = ToWordString((unsigned short)word);
     }
     break;
 

@@ -268,15 +268,15 @@ void ReferenceView::setBreakpointAt(int row, BPSetAction action)
     if((wBpType & bp_normal) == bp_normal)
     {
         if(action == Toggle || action == Remove)
-            wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            wCmd = "bc " + ToPtrString(wVA);
         else if(action == Disable)
-            wCmd = "bpd " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            wCmd = "bpd " + ToPtrString(wVA);
         else if(action == Enable)
-            wCmd = "bpe " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            wCmd = "bpe " + ToPtrString(wVA);
     }
     else if(wBpType == bp_none && (action == Toggle || action == Enable))
     {
-        wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bp " + ToPtrString(wVA);
     }
 
     DbgCmdExecDirect(wCmd.toUtf8().constData());

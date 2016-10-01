@@ -8,6 +8,8 @@
 #include <QLocale>
 #include "Imports.h"
 
+const QChar HexAlphabet[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
 static QString ToPtrString(duint Address)
 {
     //
@@ -18,13 +20,29 @@ static QString ToPtrString(duint Address)
     // ((int32)0xFFFF0000) == 0xFFFFFFFFFFFF0000 with sign extension
     //
 
-    char temp[32];
+    duint mask = 0xF;
 #ifdef _WIN64
-    sprintf_s(temp, "%016llX", Address);
-#else
-    sprintf_s(temp, "%08X", Address);
-#endif // _WIN64
-    return QString(temp);
+    QChar temp[16];
+    for(int i = 0; i < 16; i += 2)
+    {
+        temp[15 - i] = HexAlphabet[(Address & mask) >> (i << 2)];
+        mask <<= 4;
+        temp[14 - i] = HexAlphabet[(Address & mask) >> ((i << 2) + 4)];
+#else //x86
+    QChar temp[8];
+    for(int i = 0; i < 8; i++)
+    {
+        temp[7 - i] = HexAlphabet[(Address & mask) >> (i << 2)];
+        mask <<= 4;
+        temp[6 - i] = HexAlphabet[(Address & mask) >> ((i << 2) + 4)];
+#endif //_WIN64
+        mask <<= 4;
+    }
+#ifdef _WIN64
+    return QString(temp, 16);
+#else //x86
+    return QString(temp, 8);
+#endif //_WIN64
 }
 
 static QString ToLongLongHexString(unsigned long long Value)
@@ -32,6 +50,24 @@ static QString ToLongLongHexString(unsigned long long Value)
     char temp[32];
     sprintf_s(temp, "%llX", Value);
     return QString(temp);
+}
+
+static QString ToByteString(unsigned char Value)
+{
+    QChar temp[2];
+    temp[1] = HexAlphabet[Value & 0xF];
+    temp[0] = HexAlphabet[(Value & 0xF0) >> 4];
+    return QString(temp, 2);
+}
+
+static QString ToWordString(unsigned short Value)
+{
+    QChar temp[4];
+    temp[3] = HexAlphabet[Value & 0xF];
+    temp[2] = HexAlphabet[(Value & 0xF0) >> 4];
+    temp[1] = HexAlphabet[(Value & 0xF00) >> 8];
+    temp[0] = HexAlphabet[(Value & 0xF000) >> 12];
+    return QString(temp, 4);
 }
 
 static QString ToHexString(duint Value)

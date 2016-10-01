@@ -649,7 +649,7 @@ void CPUDisassembly::toggleInt3BPActionSlot()
 
     if((wBpType & bp_normal) == bp_normal)
     {
-        wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bc " + ToPtrString(wVA);
     }
     else
     {
@@ -663,7 +663,7 @@ void CPUDisassembly::toggleInt3BPActionSlot()
             if(msgyn.exec() == QMessageBox::No)
                 return;
         }
-        wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bp " + ToPtrString(wVA);
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -679,11 +679,11 @@ void CPUDisassembly::toggleHwBpActionSlot()
 
     if((wBpType & bp_hardware) == bp_hardware)
     {
-        wCmd = "bphwc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bphwc " + ToPtrString(wVA);
     }
     else
     {
-        wCmd = "bphws " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bphws " + ToPtrString(wVA);
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -731,17 +731,17 @@ void CPUDisassembly::setHwBpAt(duint va, int slot)
 
     if(wSlotIndex < 0) // Slot not used
     {
-        wCmd = "bphws " + QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bphws " + ToPtrString(va);
         DbgCmdExec(wCmd.toUtf8().constData());
     }
     else // Slot used
     {
-        wCmd = "bphwc " + QString("%1").arg((duint)(wBPList.bp[wSlotIndex].addr), sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bphwc " + ToPtrString((duint)(wBPList.bp[wSlotIndex].addr));
         DbgCmdExec(wCmd.toUtf8().constData());
 
         Sleep(200);
 
-        wCmd = "bphws " + QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bphws " + ToPtrString(va);
         DbgCmdExec(wCmd.toUtf8().constData());
     }
     if(wBPList.count)
@@ -763,7 +763,7 @@ void CPUDisassembly::setNewOriginHereActionSlot()
         if(msg.exec() == QMessageBox::No)
             return;
     }
-    QString wCmd = "cip=" + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString wCmd = "cip=" + ToPtrString(wVA);
     DbgCmdExec(wCmd.toUtf8().constData());
 }
 
@@ -773,7 +773,7 @@ void CPUDisassembly::setLabelSlot()
         return;
     duint wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
-    QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(wVA);
     char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
