@@ -826,7 +826,7 @@ QString HexDump::qwordToString(uint64 qword, QwordViewMode_e mode)
     {
     case HexQword:
     {
-        wStr = ToLongLongHexString((unsigned long long)qword);
+        wStr = QString("%1").arg((unsigned long long)qword, 16, 16, QChar('0')).toUpper();
     }
     break;
 
