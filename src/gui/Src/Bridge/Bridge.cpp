@@ -658,9 +658,15 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_GET_ACTIVE_VIEW:
+    {
         if(param1)
-            memcpy(param1, &activeView, sizeof(ACTIVEVIEW));
-        break;
+        {
+            BridgeResult result;
+            emit getActiveView((ACTIVEVIEW*)param1);
+            result.Wait();
+        }
+    }
+    break;
     }
 
     return nullptr;

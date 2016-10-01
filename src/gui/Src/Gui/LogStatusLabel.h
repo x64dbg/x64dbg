@@ -14,6 +14,7 @@ public:
 public slots:
     void logUpdate(QString message);
     void focusChanged(QWidget* old, QWidget* now);
+    void getActiveView(ACTIVEVIEW* active);
 
 private:
     QString labelText;

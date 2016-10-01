@@ -10,8 +10,8 @@ LogStatusLabel::LogStatusLabel(QStatusBar* parent) : QLabel(parent)
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(logUpdate(QString)));
     connect(Bridge::getBridge(), SIGNAL(addMsgToStatusBar(QString)), this, SLOT(logUpdate(QString)));
-    QApplication* app = (QApplication*)QApplication::instance();
-    connect(app, SIGNAL(focusChanged(QWidget*, QWidget*)), this, SLOT(focusChanged(QWidget*, QWidget*)));
+    connect(Bridge::getBridge(), SIGNAL(getActiveView(ACTIVEVIEW*)), this, SLOT(getActiveView(ACTIVEVIEW*)));
+    connect(QApplication::instance(), SIGNAL(focusChanged(QWidget*, QWidget*)), this, SLOT(focusChanged(QWidget*, QWidget*)));
 }
 
 void LogStatusLabel::logUpdate(QString message)
@@ -41,7 +41,10 @@ void LogStatusLabel::focusChanged(QWidget* old, QWidget* now)
         old->setFocus();
         return;
     }
+}
 
+void LogStatusLabel::getActiveView(ACTIVEVIEW* active)
+{
     auto findTitle = [](QWidget * w, void* & hwnd) -> QString
     {
         if(!w)
@@ -66,17 +69,9 @@ void LogStatusLabel::focusChanged(QWidget* old, QWidget* now)
         return w->metaObject()->className();
     };
 
-    ACTIVEVIEW activeView;
-    memset(&activeView, 0, sizeof(ACTIVEVIEW));
-    strncpy_s(activeView.title, findTitle(now, activeView.titleHwnd).toUtf8().constData(), _TRUNCATE);
-    strncpy_s(activeView.className, className(now, activeView.classHwnd).toUtf8().constData(), _TRUNCATE);
-    Bridge::getBridge()->activeView = activeView;
-
-    /*QString oldTitle = findTitle(old);
-    QString oldClass = className(old);
-    QString nowTitle = findTitle(now);
-    QString nowClass = className(now);
-    printf("[FOCUS] old: %s%s, now: %s%s\n",
-           oldTitle.toUtf8().constData(), oldClass.toUtf8().constData(),
-           nowTitle.toUtf8().constData(), nowClass.toUtf8().constData());*/
+    memset(active, 0, sizeof(ACTIVEVIEW));
+    QWidget* now = QApplication::focusWidget();
+    strncpy_s(active->title, findTitle(now, active->titleHwnd).toUtf8().constData(), _TRUNCATE);
+    strncpy_s(active->className, className(now, active->classHwnd).toUtf8().constData(), _TRUNCATE);
+    Bridge::getBridge()->setResult();
 }

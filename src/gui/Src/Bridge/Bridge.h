@@ -40,7 +40,6 @@ public:
     void* winId;
     QWidget* scriptView;
     ReferenceManager* referenceManager;
-    ACTIVEVIEW activeView;
 
 signals:
     void disassembleAt(dsint va, dsint eip);
@@ -137,6 +136,7 @@ signals:
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
     void foldDisassembly(duint startAddr, duint length);
     void selectInMemoryMap(duint addr);
+    void getActiveView(ACTIVEVIEW* activeView);
 
 private:
     QMutex* mBridgeMutex;
