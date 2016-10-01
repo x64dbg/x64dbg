@@ -18,7 +18,6 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     LoadSettings(); //load settings from file
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
     lastException = 0;
-    ui->chkSystemBreakpoint->setFocus();
 }
 
 SettingsDialog::~SettingsDialog()

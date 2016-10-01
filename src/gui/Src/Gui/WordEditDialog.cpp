@@ -76,7 +76,7 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         ui->expressionLineEdit->setStyleSheet("");
         ui->signedLineEdit->setStyleSheet("");
         ui->unsignedLineEdit->setStyleSheet("");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
+        ui->btnOk->setEnabled(true);
 
         //hex
         mWord = value;
@@ -115,7 +115,7 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
     else
     {
         ui->expressionLineEdit->setStyleSheet("border: 1px solid red");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->btnOk->setEnabled(false);
     }
 }
 
@@ -125,13 +125,13 @@ void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)
     if(sscanf_s(arg1.toUtf8().constData(), "%lld", &value) == 1)
     {
         ui->signedLineEdit->setStyleSheet("");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
+        ui->btnOk->setEnabled(true);
         ui->expressionLineEdit->setText(QString("%1").arg((duint)value, sizeof(duint) * 2, 16, QChar('0')).toUpper());
     }
     else
     {
         ui->signedLineEdit->setStyleSheet("border: 1px solid red");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->btnOk->setEnabled(false);
     }
 }
 
@@ -141,13 +141,13 @@ void WordEditDialog::on_unsignedLineEdit_textEdited(const QString & arg1)
     if(sscanf_s(arg1.toUtf8().constData(), "%llu", &value) == 1)
     {
         ui->unsignedLineEdit->setStyleSheet("");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
+        ui->btnOk->setEnabled(true);
         ui->expressionLineEdit->setText(QString("%1").arg((duint)value, sizeof(duint) * 2, 16, QChar('0')).toUpper());
     }
     else
     {
         ui->unsignedLineEdit->setStyleSheet("border: 1px solid red");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->btnOk->setEnabled(false);
     }
 }
 

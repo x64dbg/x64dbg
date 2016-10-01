@@ -23,22 +23,6 @@
    <iconset resource="../../resource.qrc">
     <normaloff>:/icons/images/ui-combo-box-edit.png</normaloff>:/icons/images/ui-combo-box-edit.png</iconset>
   </property>
-  <widget class="QDialogButtonBox" name="buttons">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>130</y>
-     <width>161</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
@@ -211,6 +195,32 @@
     </font>
    </property>
   </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>130</y>
+     <width>158</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QPushButton" name="btnOk">
+      <property name="text">
+       <string>&amp;OK</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btnCancel">
+      <property name="text">
+       <string>&amp;Cancel</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
  </widget>
  <tabstops>
   <tabstop>expressionLineEdit</tabstop>
@@ -223,34 +233,34 @@
  </resources>
  <connections>
   <connection>
-   <sender>buttons</sender>
-   <signal>accepted()</signal>
+   <sender>btnOk</sender>
+   <signal>clicked()</signal>
    <receiver>WordEditDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>109</x>
+     <y>147</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
+     <x>48</x>
+     <y>136</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>buttons</sender>
-   <signal>rejected()</signal>
+   <sender>btnCancel</sender>
+   <signal>clicked()</signal>
    <receiver>WordEditDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>215</x>
+     <y>138</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>260</x>
+     <y>128</y>
     </hint>
    </hints>
   </connection>
