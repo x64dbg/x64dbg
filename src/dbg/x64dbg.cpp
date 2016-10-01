@@ -24,6 +24,7 @@
 #include "datainst_helper.h"
 #include "exception.h"
 #include "expressionfunctions.h"
+#include "yara/yara.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -340,6 +341,20 @@ static void registercommands()
     dbgcmdnew("DataCode\1dc", cbInstrDataCode, true); //mark as Code
     dbgcmdnew("DataJunk", cbInstrDataJunk, true); //mark as Junk
     dbgcmdnew("DataMiddle", cbInstrDataMiddle, true); //mark as Middle
+
+    dbgcmdnew("AddType", cbInstrAddType, false); //AddType
+    dbgcmdnew("AddStruct", cbInstrAddStruct, false); //AddStruct
+    dbgcmdnew("AddUnion", cbInstrAddUnion, false); //AddUnion
+    dbgcmdnew("AddMember", cbInstrAddMember, false); //AddMember
+    dbgcmdnew("AppendMember", cbInstrAppendMember, false); //AppendMember
+    dbgcmdnew("AddFunction", cbInstrAddFunction, false); //AddFunction
+    dbgcmdnew("AddArg", cbInstrAddArg, false); //AddArg
+    dbgcmdnew("AppendArg", cbInstrAppendArg, false); //AppendArg
+    dbgcmdnew("SizeofType", cbInstrSizeofType, false); //SizeofType
+    dbgcmdnew("VisitType", cbInstrVisitType, false); //VisitType
+    dbgcmdnew("ClearTypes", cbInstrClearTypes, false); //ClearTypes
+    dbgcmdnew("RemoveType", cbInstrRemoveType, false); //RemoveType
+    dbgcmdnew("EnumTypes", cbInstrEnumTypes, false); //EnumTypes
 
     //plugins
     dbgcmdnew("StartScylla\1scylla\1imprec", cbDebugStartScylla, false); //start scylla

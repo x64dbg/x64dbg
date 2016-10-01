@@ -21,3 +21,17 @@ CMDRESULT cbInstrDataUnicode(int argc, char* argv[]);
 CMDRESULT cbInstrDataCode(int argc, char* argv[]);
 CMDRESULT cbInstrDataJunk(int argc, char* argv[]);
 CMDRESULT cbInstrDataMiddle(int argc, char* argv[]);
+
+CMDRESULT cbInstrAddType(int argc, char* argv[]);
+CMDRESULT cbInstrAddStruct(int argc, char* argv[]);
+CMDRESULT cbInstrAddUnion(int argc, char* argv[]);
+CMDRESULT cbInstrAddMember(int argc, char* argv[]);
+CMDRESULT cbInstrAppendMember(int argc, char* argv[]);
+CMDRESULT cbInstrAddFunction(int argc, char* argv[]);
+CMDRESULT cbInstrAddArg(int argc, char* argv[]);
+CMDRESULT cbInstrAppendArg(int argc, char* argv[]);
+CMDRESULT cbInstrSizeofType(int argc, char* argv[]);
+CMDRESULT cbInstrVisitType(int argc, char* argv[]);
+CMDRESULT cbInstrClearTypes(int argc, char* argv[]);
+CMDRESULT cbInstrRemoveType(int argc, char* argv[]);
+CMDRESULT cbInstrEnumTypes(int argc, char* argv[]);

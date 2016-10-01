@@ -7,6 +7,7 @@
 #include "debugger.h"
 #include "filehelper.h"
 #include "label.h"
+#include "yara/yara.h"
 
 static int maxFindResults = 5000;
 

@@ -100,6 +100,7 @@
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
     <ClCompile Include="TraceRecord.cpp" />
+    <ClCompile Include="types.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="watch.cpp" />
@@ -223,6 +224,7 @@
     <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
+    <ClInclude Include="types.h" />
     <ClInclude Include="watch.h" />
     <ClInclude Include="xrefs.h" />
     <ClInclude Include="yara\yara\integers.h" />
