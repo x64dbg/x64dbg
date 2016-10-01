@@ -47,16 +47,9 @@ static QString ToPtrString(duint Address)
 
 static QString ToLongLongHexString(unsigned long long Value)
 {
-    QChar temp[16];
-    duint mask = 0xF;
-    for(int i = 0; i < 16; i += 2)
-    {
-        temp[15 - i] = HexAlphabet[(Value & mask) >> (i << 2)];
-        mask <<= 4;
-        temp[14 - i] = HexAlphabet[(Value & mask) >> ((i << 2) + 4)];
-        mask <<= 4;
-    }
-    return QString(temp, 16);
+    char temp[32];
+    sprintf_s(temp, "%llX", Value);
+    return QString(temp);
 }
 
 static QString ToByteString(unsigned char Value)
