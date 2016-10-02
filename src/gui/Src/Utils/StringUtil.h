@@ -8,9 +8,7 @@
 #include <QLocale>
 #include "Imports.h"
 
-const QChar HexAlphabet[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-static QString ToPtrString(duint Address)
+inline QString ToPtrString(duint Address)
 {
     //
     // This function exists because of how QT handles
@@ -20,57 +18,23 @@ static QString ToPtrString(duint Address)
     // ((int32)0xFFFF0000) == 0xFFFFFFFFFFFF0000 with sign extension
     //
 
-    duint mask = 0xF;
+    char temp[32];
 #ifdef _WIN64
-    QChar temp[16];
-    for(int i = 0; i < 16; i += 2)
-    {
-        temp[15 - i] = HexAlphabet[(Address & mask) >> (i << 2)];
-        mask <<= 4;
-        temp[14 - i] = HexAlphabet[(Address & mask) >> ((i << 2) + 4)];
-#else //x86
-    QChar temp[8];
-    for(int i = 0; i < 8; i++)
-    {
-        temp[7 - i] = HexAlphabet[(Address & mask) >> (i << 2)];
-        mask <<= 4;
-        temp[6 - i] = HexAlphabet[(Address & mask) >> ((i << 2) + 4)];
-#endif //_WIN64
-        mask <<= 4;
-    }
-#ifdef _WIN64
-    return QString(temp, 16);
-#else //x86
-    return QString(temp, 8);
-#endif //_WIN64
+    sprintf_s(temp, "%016llX", Address);
+#else
+    sprintf_s(temp, "%08X", Address);
+#endif // _WIN64
+    return QString(temp);
 }
 
-static QString ToLongLongHexString(unsigned long long Value)
+inline QString ToLongLongHexString(unsigned long long Value)
 {
     char temp[32];
     sprintf_s(temp, "%llX", Value);
     return QString(temp);
 }
 
-static QString ToByteString(unsigned char Value)
-{
-    QChar temp[2];
-    temp[1] = HexAlphabet[Value & 0xF];
-    temp[0] = HexAlphabet[(Value & 0xF0) >> 4];
-    return QString(temp, 2);
-}
-
-static QString ToWordString(unsigned short Value)
-{
-    QChar temp[4];
-    temp[3] = HexAlphabet[Value & 0xF];
-    temp[2] = HexAlphabet[(Value & 0xF0) >> 4];
-    temp[1] = HexAlphabet[(Value & 0xF00) >> 8];
-    temp[0] = HexAlphabet[(Value & 0xF000) >> 12];
-    return QString(temp, 4);
-}
-
-static QString ToHexString(duint Value)
+inline QString ToHexString(duint Value)
 {
     char temp[32];
 #ifdef _WIN64
@@ -81,7 +45,7 @@ static QString ToHexString(duint Value)
     return QString(temp);
 }
 
-static QString ToDecString(dsint Value)
+inline QString ToDecString(dsint Value)
 {
     char temp[32];
 #ifdef _WIN64
@@ -92,8 +56,22 @@ static QString ToDecString(dsint Value)
     return QString(temp);
 }
 
+inline QString ToByteString(unsigned char Value)
+{
+    char temp[4];
+    sprintf_s(temp, "%02X", Value);
+    return QString(temp);
+}
+
+inline QString ToWordString(unsigned short Value)
+{
+    char temp[4];
+    sprintf_s(temp, "%04X", Value);
+    return QString(temp);
+}
+
 template<typename T>
-static QString ToFloatingString(void* buffer)
+inline QString ToFloatingString(void* buffer)
 {
     auto value = *(T*)buffer;
     std::stringstream wFloatingStr;
@@ -102,18 +80,18 @@ static QString ToFloatingString(void* buffer)
 }
 
 template<typename T>
-static QString ToIntegralString(void* buffer)
+inline QString ToIntegralString(void* buffer)
 {
     auto value = *(T*)buffer;
     return ToLongLongHexString(value);
 }
 
-static QString ToFloatString(void* buffer)
+inline QString ToFloatString(void* buffer)
 {
     return ToFloatingString<float>(buffer);
 }
 
-static QString ToDoubleString(void* buffer)
+inline QString ToDoubleString(void* buffer)
 {
     return ToFloatingString<double>(buffer);
 }
@@ -124,13 +102,13 @@ QString ToDateString(const QDate & date);
 
 QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type);
 
-static QDate GetCompileDate()
+inline QDate GetCompileDate()
 {
     return QLocale("en_US").toDate(QString(__DATE__).simplified(), "MMM d yyyy");
 }
 
 template<typename T>
-static T & ArchValue(T & x32value, T & x64value)
+inline T & ArchValue(T & x32value, T & x64value)
 {
 #ifdef _WIN64
     Q_UNUSED(x32value);
@@ -142,7 +120,7 @@ static T & ArchValue(T & x32value, T & x64value)
 }
 
 // Format : d:hh:mm:ss.1234567
-static QString FILETIMEToTime(const FILETIME & time)
+inline QString FILETIMEToTime(const FILETIME & time)
 {
     // FILETIME is in 100ns
     quint64 time100ns = (quint64)time.dwHighDateTime << 32 | (quint64)time.dwLowDateTime;

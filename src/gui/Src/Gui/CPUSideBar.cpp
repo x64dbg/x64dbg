@@ -389,17 +389,17 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     {
     case bp_enabled:
         // breakpoint exists and is enabled --> disable breakpoint
-        wCmd = "bd " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bd " + ToPtrString(wVA);
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
     case bp_disabled:
         // is disabled --> delete
-        wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bc " + ToPtrString(wVA);
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
     case bp_non_existent:
         // no breakpoint was found --> create breakpoint
-        wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bp " + ToPtrString(wVA);
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
     }

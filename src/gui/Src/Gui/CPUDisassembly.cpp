@@ -118,9 +118,9 @@ void CPUDisassembly::addFollowReferenceMenuItem(QString name, dsint value, QMenu
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
     if(isFollowInCPU)
-        newAction->setObjectName(QString("CPU|") + QString("%1").arg(value, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+        newAction->setObjectName(QString("CPU|") + ToPtrString(value));
     else
-        newAction->setObjectName(QString(isReferences ? "REF|" : "DUMP|") + QString("%1").arg(value, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+        newAction->setObjectName(QString(isReferences ? "REF|" : "DUMP|") + ToPtrString(value));
 
     connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
 }
@@ -164,7 +164,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
                     addFollowReferenceMenuItem(tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
                 if(arg.value != arg.constant)
                 {
-                    QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+                    QString constant = ToHexString(arg.constant);
                     if(DbgMemIsValidReadPtr(arg.constant))
                         addFollowReferenceMenuItem(tr("&Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
                 }
@@ -183,7 +183,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
         for(int i = 0; i < instr.argcount; i++)
         {
             const DISASM_ARG arg = instr.arg[i];
-            QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+            QString constant = ToHexString(arg.constant);
             if(DbgMemIsValidReadPtr(arg.constant))
                 addFollowReferenceMenuItem(tr("Address: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
             else if(arg.constant)
@@ -821,7 +821,7 @@ void CPUDisassembly::setCommentSlot()
         return;
     duint wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
-    QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(wVA);
     char comment_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetCommentAt((duint)wVA, comment_text))
     {
@@ -896,8 +896,8 @@ void CPUDisassembly::toggleArgumentSlot()
     duint argument_end = 0;
     if(!DbgArgumentOverlaps(start, end))
     {
-        QString start_text = QString("%1").arg(start, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        QString end_text = QString("%1").arg(end, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString start_text = ToPtrString(start);
+        QString end_text = ToPtrString(end);
 
         QString cmd = "argumentadd " + start_text + "," + end_text;
         DbgCmdExec(cmd.toUtf8().constData());
@@ -909,7 +909,7 @@ void CPUDisassembly::toggleArgumentSlot()
             if(DbgArgumentGet(i, &argument_start, &argument_end))
                 break;
         }
-        QString start_text = QString("%1").arg(argument_start, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString start_text = ToPtrString(argument_start);
 
         QString cmd = "argumentdel " + start_text;
         DbgCmdExec(cmd.toUtf8().constData());
@@ -1092,7 +1092,7 @@ void CPUDisassembly::followActionSlot()
         DbgCmdExec(QString().sprintf("dump \"%s\"", action->objectName().mid(5).toUtf8().constData()).toUtf8().constData());
     else if(action->objectName().startsWith("REF|"))
     {
-        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
         QString value = action->objectName().mid(4);
         DbgCmdExec(QString("findref \"" + value +  "\", " + addrText).toUtf8().constData());
         emit displayReferencesWidget();
@@ -1116,9 +1116,9 @@ void CPUDisassembly::gotoNextSlot()
 
 void CPUDisassembly::findReferencesSlot()
 {
-    QString addrStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    QString addrEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    QString addrDisasm = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addrStart = ToPtrString(rvaToVa(getSelectionStart()));
+    QString addrEnd = ToPtrString(rvaToVa(getSelectionEnd()));
+    QString addrDisasm = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm).toUtf8().constData());
     emit displayReferencesWidget();
 }
@@ -1244,7 +1244,7 @@ void CPUDisassembly::binaryEditSlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    hexEdit.setWindowTitle(tr("Edit code at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Edit code at %1").arg(ToPtrString(rvaToVa(selStart))));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     dsint dataSize = hexEdit.mHexEdit->data().size();
@@ -1262,7 +1262,7 @@ void CPUDisassembly::binaryFillSlot()
     hexEdit.showKeepSize(false);
     hexEdit.mHexEdit->setOverwriteMode(false);
     dsint selStart = getSelectionStart();
-    hexEdit.setWindowTitle(tr("Fill code at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Fill code at %1").arg(ToPtrString(rvaToVa(selStart))));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     QString pattern = hexEdit.mHexEdit->pattern();
@@ -1387,7 +1387,7 @@ void CPUDisassembly::copySelectionSlot(bool copyBytes)
         {
             if(j)
                 bytes += " ";
-            bytes += QString("%1").arg((unsigned char)(instBuffer.at(i).dump.at(j)), 2, 16, QChar('0')).toUpper();
+            bytes += ToByteString((unsigned char)(instBuffer.at(i).dump.at(j)));
         }
         QString disassembly;
         for(const auto & token : instBuffer.at(i).tokens.tokens)
@@ -1416,7 +1416,7 @@ void CPUDisassembly::copySelectionNoBytesSlot()
 
 void CPUDisassembly::copyAddressSlot()
 {
-    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
     Bridge::CopyToClipboard(addrText);
 }
 
@@ -1426,7 +1426,7 @@ void CPUDisassembly::copyRvaSlot()
     duint base = DbgFunctions()->ModBaseFromAddr(addr);
     if(base)
     {
-        QString addrText = QString("%1").arg(addr - base, 0, 16, QChar('0')).toUpper();
+        QString addrText = ToHexString(addr - base);
         Bridge::CopyToClipboard(addrText);
     }
     else
@@ -1492,7 +1492,7 @@ void CPUDisassembly::findCommandSlot()
         return;
     }
 
-    QString addr_text = QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(va);
 
     dsint size = mMemPage->getSize();
     DbgCmdExec(QString("findasm \"%1\", %2, .%3, %4").arg(mLineEdit.editText).arg(addr_text).arg(size).arg(refFindType).toUtf8().constData());

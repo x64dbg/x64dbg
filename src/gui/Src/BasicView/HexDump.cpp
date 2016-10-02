@@ -300,7 +300,7 @@ void HexDump::copyRvaSlot()
     duint base = DbgFunctions()->ModBaseFromAddr(addr);
     if(base)
     {
-        QString addrText = QString("%1").arg(addr - base, 0, 16, QChar('0')).toUpper();
+        QString addrText = ToHexString(addr - base);
         Bridge::CopyToClipboard(addrText);
     }
     else

@@ -234,7 +234,7 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
     StdTable* symbolList = (StdTable*)user;
     dsint index = symbolList->getRowCount();
     symbolList->setRowCount(index + 1);
-    symbolList->setCellContent(index, 0, QString("%1").arg(symbol->addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    symbolList->setCellContent(index, 0, ToPtrString(symbol->addr));
     if(symbol->decoratedSymbol)
     {
         symbolList->setCellContent(index, 2, symbol->decoratedSymbol);
@@ -473,11 +473,11 @@ void SymbolView::toggleBreakpoint()
 
         if((wBpType & bp_normal) == bp_normal)
         {
-            wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            wCmd = "bc " + ToPtrString(wVA);
         }
         else
         {
-            wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            wCmd = "bp " + ToPtrString(wVA);
         }
 
         DbgCmdExec(wCmd.toUtf8().constData());

@@ -965,13 +965,13 @@ void MainWindow::setLastException(unsigned int exceptionCode)
 
 void MainWindow::findStrings()
 {
-    DbgCmdExec(QString("strref " + QString("%1").arg(mCpuWidget->getDisasmWidget()->getSelectedVa(), sizeof(dsint) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
+    DbgCmdExec(QString("strref " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa())).toUtf8().constData());
     displayReferencesWidget();
 }
 
 void MainWindow::findModularCalls()
 {
-    DbgCmdExec(QString("modcallfind " + QString("%1").arg(mCpuWidget->getDisasmWidget()->getSelectedVa(), sizeof(dsint) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
+    DbgCmdExec(QString("modcallfind " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa())).toUtf8().constData());
     displayReferencesWidget();
 }
 
@@ -1166,7 +1166,7 @@ void MainWindow::runSelection()
     if(!DbgIsDebugging())
         return;
 
-    QString command = "bp " + QString("%1").arg(mCpuWidget->getDisasmWidget()->getSelectedVa(), sizeof(dsint) * 2, 16, QChar('0')).toUpper() + ", ss";
+    QString command = "bp " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa()) + ", ss";
     if(DbgCmdExecDirect(command.toUtf8().constData()))
         DbgCmdExecDirect("run");
 }

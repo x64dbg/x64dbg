@@ -548,7 +548,7 @@ void MemoryMapView::findPatternSlot()
     duint addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
     if(hexEdit.entireBlock())
         addr = 0;
-    QString addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addrText = ToPtrString(addr);
     DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&").toUtf8().constData());
     emit showReferences();
 }

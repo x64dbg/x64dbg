@@ -38,9 +38,9 @@ void SEHChainView::updateSEHChain()
     setRowCount(sehchain.total);
     for(duint i = 0; i < sehchain.total; i++)
     {
-        QString cellText = QString("%1").arg(sehchain.records[i].addr, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        QString cellText = ToPtrString(sehchain.records[i].addr);
         setCellContent(i, 0, cellText);
-        cellText = QString("%1").arg(sehchain.records[i].handler, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        cellText = ToPtrString(sehchain.records[i].handler);
         setCellContent(i, 1, cellText);
 
         char label[MAX_LABEL_SIZE] = "";

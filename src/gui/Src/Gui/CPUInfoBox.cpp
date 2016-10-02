@@ -232,11 +232,11 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         // Module RVA
         curRva = parVA - modbase;
         if(modbase)
-            info += QString(":$%1 ").arg(curRva, 0, 16, QChar('0')).toUpper();
+            info += QString(":$%1 ").arg(ToHexString(curRva));
 
         // File offset
         curOffset = DbgFunctions()->VaToFileOffset(parVA);
-        info += QString("#%1 ").arg(curOffset, 0, 16, QChar('0')).toUpper();
+        info += QString("#%1 ").arg(ToHexString(curOffset));
     }
 
     // Function/label name
@@ -321,7 +321,7 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, duint wVA)
                 addFollowMenuItem(menu, tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
             if(arg.value != arg.constant)
             {
-                QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+                QString constant = QString("%1").arg(ToHexString(arg.constant));
                 if(DbgMemIsValidReadPtr(arg.constant))
                     addFollowMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }
@@ -386,7 +386,7 @@ void CPUInfoBox::setupWatchMenu(QMenu* menu, duint wVA)
                 addWatchMenuItem(menu, tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
             if(arg.value != arg.constant)
             {
-                QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+                QString constant = QString("%1").arg(ToHexString(arg.constant));
                 if(DbgMemIsValidReadPtr(arg.constant))
                     addWatchMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }

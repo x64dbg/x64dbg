@@ -1,6 +1,7 @@
 #include "WordEditDialog.h"
 #include "ui_WordEditDialog.h"
 #include "ValidateExpressionThread.h"
+#include "StringUtil.h"
 
 WordEditDialog::WordEditDialog(QWidget* parent)
     : QDialog(parent),
@@ -103,7 +104,7 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         saveCursorPositions();
 
         // Byte edit line
-        ui->hexLineEdit->setText(QString("%1").arg(hexWord, sizeof(duint) * 2, 16, QChar('0')).toUpper());
+        ui->hexLineEdit->setText(ToPtrString(hexWord));
         // Signed edit
         ui->signedLineEdit->setText(QString::number((dsint)mWord));
         // Unsigned edit
@@ -126,7 +127,7 @@ void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)
     {
         ui->signedLineEdit->setStyleSheet("");
         ui->btnOk->setEnabled(true);
-        ui->expressionLineEdit->setText(QString("%1").arg((duint)value, sizeof(duint) * 2, 16, QChar('0')).toUpper());
+        ui->expressionLineEdit->setText(ToPtrString((duint)value));
     }
     else
     {
@@ -142,7 +143,7 @@ void WordEditDialog::on_unsignedLineEdit_textEdited(const QString & arg1)
     {
         ui->unsignedLineEdit->setStyleSheet("");
         ui->btnOk->setEnabled(true);
-        ui->expressionLineEdit->setText(QString("%1").arg((duint)value, sizeof(duint) * 2, 16, QChar('0')).toUpper());
+        ui->expressionLineEdit->setText(ToPtrString((duint)value));
     }
     else
     {
