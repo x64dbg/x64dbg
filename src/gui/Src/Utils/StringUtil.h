@@ -65,7 +65,7 @@ inline QString ToByteString(unsigned char Value)
 
 inline QString ToWordString(unsigned short Value)
 {
-    char temp[4];
+    char temp[8];
     sprintf_s(temp, "%04X", Value);
     return QString(temp);
 }
