@@ -226,7 +226,25 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[])
     duint mod;
     SHARED_ACQUIRE(LockModules);
     MODINFO* info;
-    if(argc < 2 || !valfromstring(argv[1], &mod) || !((info = ModInfoFromAddr(mod))))
+    duint address;
+    if(argc < 2)
+        address = GetContextDataEx(hActiveThread, UE_CIP);
+    else
+    {
+        if(!valfromstring(argv[1], &address))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
+            return STATUS_ERROR;
+        }
+    }
+    mod = MemFindBaseAddr(address, nullptr);
+    if(mod == 0)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
+        return STATUS_ERROR;
+    }
+    info = ModInfoFromAddr(mod);
+    if(info == nullptr)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
         return STATUS_ERROR;
