@@ -116,7 +116,7 @@ CMDRESULT cbInstrBswap(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
-    return ReadWriteVariable(argv[1], [argv](duint * value, int size)
+    return ReadWriteVariable(argv[1], [](duint * value, int size)
     {
         if(size == 2)
             *value = _byteswap_ushort((uint16) * value);

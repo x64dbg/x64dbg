@@ -84,7 +84,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", comments()[i].addr);
+        sprintf_s(addrText, "%p", comments()[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(comments()[i].addr, disassembly))
@@ -159,7 +159,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", labels()[i].addr);
+        sprintf_s(addrText, "%p", labels()[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(labels()[i].addr, disassembly))
@@ -235,7 +235,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", bookmarks()[i].addr);
+        sprintf_s(addrText, "%p", bookmarks()[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(bookmarks()[i].addr, disassembly))
@@ -323,9 +323,9 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", functions()[i].start);
+        sprintf_s(addrText, "%p", functions()[i].start);
         GuiReferenceSetCellContent(i, 0, addrText);
-        sprintf(addrText, "%p", functions()[i].end);
+        sprintf_s(addrText, "%p", functions()[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(functions()[i].start, disassembly))
@@ -413,9 +413,9 @@ CMDRESULT cbInstrArgumentList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", arguments()[i].start);
+        sprintf_s(addrText, "%p", arguments()[i].start);
         GuiReferenceSetCellContent(i, 0, addrText);
-        sprintf(addrText, "%p", arguments()[i].end);
+        sprintf_s(addrText, "%p", arguments()[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(arguments()[i].start, disassembly))

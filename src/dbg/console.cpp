@@ -6,7 +6,7 @@
 #include "console.h"
 #include "taskthread.h"
 
-static void GuiAddLogMessageAsync(const char* msg)
+static void GuiAddLogMessageAsync(_In_z_ const char* msg)
 {
     static StringConcatTaskThread_<void(*)(const std::string &)> task([](const std::string & msg)
     {
@@ -19,7 +19,7 @@ static void GuiAddLogMessageAsync(const char* msg)
 \brief Print a line with text, terminated with a newline to the console.
 \param text The text to print.
 */
-void dputs(const char* Text)
+void dputs(_In_z_ const char* Text)
 {
     // Only append the newline if the caller didn't
     const char* TranslatedText = GuiTranslateText(Text);
@@ -40,7 +40,7 @@ void dputs(const char* Text)
 \brief Print a formatted string to the console.
 \param format The printf format to use (see documentation of printf for more information).
 */
-void dprintf(const char* Format, ...)
+void dprintf(_In_z_ _Printf_format_string_ const char* Format, ...)
 {
     va_list args;
 
@@ -49,7 +49,7 @@ void dprintf(const char* Format, ...)
     va_end(args);
 }
 
-void dprintf_untranslated(const char* Format, ...)
+void dprintf_untranslated(_In_z_ _Printf_format_string_ const char* Format, ...)
 {
     va_list args;
 
@@ -63,7 +63,7 @@ void dprintf_untranslated(const char* Format, ...)
 \param format The printf format to use (see documentation of printf for more information).
 \param Args The argument buffer passed to the string parser.
 */
-void dprintf_args(const char* Format, va_list Args)
+void dprintf_args(_In_z_ _Printf_format_string_ const char* Format, va_list Args)
 {
     char buffer[16384];
     vsnprintf_s(buffer, _TRUNCATE, GuiTranslateText(Format), Args);
@@ -75,7 +75,7 @@ void dprintf_args(const char* Format, va_list Args)
 \brief Print a line with text, terminated with a newline to the console.
 \param text The text to print.
 */
-void dputs_untranslated(const char* Text)
+void dputs_untranslated(_In_z_ const char* Text)
 {
     // Only append the newline if the caller didn't
     size_t textlen = strlen(Text);
@@ -95,7 +95,7 @@ void dputs_untranslated(const char* Text)
 \param format The printf format to use (see documentation of printf for more information).
 \param Args The argument buffer passed to the string parser.
 */
-void dprintf_args_untranslated(const char* Format, va_list Args)
+void dprintf_args_untranslated(_In_z_ _Printf_format_string_ const char* Format, va_list Args)
 {
     char buffer[16384];
     vsnprintf_s(buffer, _TRUNCATE, Format, Args);

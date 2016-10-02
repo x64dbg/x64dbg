@@ -229,9 +229,9 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", loops()[i].start);
+        sprintf_s(addrText, "%p", loops()[i].start);
         GuiReferenceSetCellContent(i, 0, addrText);
-        sprintf(addrText, "%p", loops()[i].end);
+        sprintf_s(addrText, "%p", loops()[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(loops()[i].start, disassembly))

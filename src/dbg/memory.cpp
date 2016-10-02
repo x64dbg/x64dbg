@@ -339,7 +339,7 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
 
 bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead)
 {
-    SIZE_T read;
+    SIZE_T read = 0;
     auto result = !!ReadProcessMemory(fdProcessInfo->hProcess, LPCVOID(BaseAddress), Buffer, Size, &read);
     if(NumberOfBytesRead)
         *NumberOfBytesRead = read;

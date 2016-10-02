@@ -41,7 +41,7 @@ static CMDRESULT cbStrLen(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
         return STATUS_ERROR;
     }
-    dprintf_untranslated("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
+    dprintf_untranslated("\"%s\"[%d]\n", argv[1], int(strlen(argv[1])));
     return STATUS_CONTINUE;
 }
 
@@ -627,23 +627,23 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy_s(szLocalSymbolPath, szProgramDir);
     strcat_s(szLocalSymbolPath, "\\symbols");
 
-    char cachePath[MAX_SETTING_SIZE];
-    if(!BridgeSettingGet("Symbols", "CachePath", cachePath) || !*cachePath)
+    Memory<char*> cachePath(MAX_SETTING_SIZE + 1);
+    if(!BridgeSettingGet("Symbols", "CachePath", cachePath()) || !*cachePath())
     {
         strcpy_s(szSymbolCachePath, szLocalSymbolPath);
         BridgeSettingSet("Symbols", "CachePath", ".\\symbols");
     }
     else
     {
-        if(_strnicmp(cachePath, ".\\", 2) == 0)
+        if(_strnicmp(cachePath(), ".\\", 2) == 0)
         {
             strncpy_s(szSymbolCachePath, szProgramDir, _TRUNCATE);
-            strncat_s(szSymbolCachePath, cachePath + 1, _TRUNCATE);
+            strncat_s(szSymbolCachePath, cachePath() + 1, _TRUNCATE);
         }
         else
         {
             // Trim the buffer to fit inside MAX_PATH
-            strncpy_s(szSymbolCachePath, cachePath, _TRUNCATE);
+            strncpy_s(szSymbolCachePath, cachePath(), _TRUNCATE);
         }
 
         if(strstr(szSymbolCachePath, "http://") || strstr(szSymbolCachePath, "https://"))

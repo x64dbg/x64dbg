@@ -380,7 +380,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     if(stack)
         DebugUpdateStack(csp, csp);
-    static duint cacheCsp = 0;
+    static volatile duint cacheCsp = 0;
     if(csp != cacheCsp)
     {
         InterlockedExchange(&cacheCsp, csp);
@@ -849,10 +849,8 @@ void cbLibrarianBreakpoint(void* lpData)
     bBreakOnNextDll = true;
 }
 
-static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
+static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE, ULONG ActionCode, ULONG64 CallbackData, ULONG64)
 {
-    UNREFERENCED_PARAMETER(hProcess);
-    UNREFERENCED_PARAMETER(UserContext);
     PIMAGEHLP_CBA_EVENT evt;
     switch(ActionCode)
     {
@@ -1221,7 +1219,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
             TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, &NumberOfCallBacks);
             if(NumberOfCallBacks)
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "TLS Callbacks: %d\n"), NumberOfCallBacks);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "TLS Callbacks: %d\n"), int(NumberOfCallBacks));
                 Memory<duint*> TLSCallBacks(NumberOfCallBacks * sizeof(duint), "cbCreateProcess:TLSCallBacks");
                 if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), TLSCallBacks(), &NumberOfCallBacks))
                     dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get TLS callback addresses!"));
@@ -1390,10 +1388,10 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 
 static DWORD WINAPI cbInitializationScriptThread(void*)
 {
-    char script[MAX_SETTING_SIZE];
-    if(BridgeSettingGet("Engine", "InitializeScript", script)) // Global script file
+    Memory<char*> script(MAX_SETTING_SIZE + 1);
+    if(BridgeSettingGet("Engine", "InitializeScript", script())) // Global script file
     {
-        if(scriptLoadSync(script) == 0)
+        if(scriptLoadSync(script()) == 0)
             scriptRunSync((void*)0);
         else
             dputs(QT_TRANSLATE_NOOP("DBG", "Error: Cannot load global initialization script."));
@@ -1494,7 +1492,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, &NumberOfCallBacks);
         if(NumberOfCallBacks)
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "TLS Callbacks: %d\n"), NumberOfCallBacks);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "TLS Callbacks: %d\n"), int(NumberOfCallBacks));
             Memory<duint*> TLSCallBacks(NumberOfCallBacks * sizeof(duint), "cbLoadDll:TLSCallBacks");
             if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), TLSCallBacks(), &NumberOfCallBacks))
                 dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get TLS callback addresses!"));
@@ -2422,7 +2420,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         if(AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger) == false)
         {
             unsigned int errorCode = GetLastError();
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %d (%s)\n"), errorCode, ErrorCodeToName(errorCode).c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %d (%s)\n"), int(errorCode), ErrorCodeToName(errorCode).c_str());
         }
     }
     else
@@ -2437,7 +2435,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     plugincbcall(CB_STOPDEBUG, &stopInfo);
 
     //cleanup dbghelp
-    SafeSymRegisterCallbackW64(hProcess, nullptr, 0);
     SafeSymCleanup(hProcess);
 
     //message the user/do final stuff

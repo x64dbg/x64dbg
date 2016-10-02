@@ -13,7 +13,7 @@ void LinearAnalysis::Analyse()
     auto ticks = GetTickCount();
 
     populateReferences();
-    dprintf("%u called functions populated\n", mFunctions.size());
+    dprintf("%u called functions populated\n", DWORD(mFunctions.size()));
     analyseFunctions();
 
     dprintf("Analysis finished in %ums!\n", GetTickCount() - ticks);

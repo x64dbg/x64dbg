@@ -878,11 +878,11 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         else
             assemblerEngine = AssemblerEngine::XEDParse;
 
-        char exceptionRange[MAX_SETTING_SIZE] = "";
+        Memory<char*> settingText(MAX_SETTING_SIZE + 1);
         dbgclearignoredexceptions();
-        if(BridgeSettingGet("Exceptions", "IgnoreRange", exceptionRange))
+        if(BridgeSettingGet("Exceptions", "IgnoreRange", settingText()))
         {
-            char* entry = strtok(exceptionRange, ",");
+            auto entry = strtok(settingText(), ",");
             while(entry)
             {
                 unsigned long start;
@@ -894,15 +894,14 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
                     range.end = end;
                     dbgaddignoredexception(range);
                 }
-                entry = strtok(0, ",");
+                entry = strtok(nullptr, ",");
             }
         }
 
-        char cachePath[MAX_SETTING_SIZE];
-        if(BridgeSettingGet("Symbols", "CachePath", cachePath))
+        if(BridgeSettingGet("Symbols", "CachePath", settingText()))
         {
             // Trim the buffer to fit inside MAX_PATH
-            strncpy_s(szSymbolCachePath, cachePath, _TRUNCATE);
+            strncpy_s(szSymbolCachePath, settingText(), _TRUNCATE);
         }
 
         duint animateInterval;

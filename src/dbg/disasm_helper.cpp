@@ -19,6 +19,7 @@ duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
 {
     int i;
     duint abuf[131], addr, back, cmdsize;
+    memset(abuf, 0, sizeof(abuf));
     unsigned char* pdata;
 
     // Reset Disasm Structure

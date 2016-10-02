@@ -8,11 +8,14 @@
 
 CMDRESULT cbDebugAlloc(int argc, char* argv[])
 {
-    duint size = 0x1000;
+    duint size = 0x1000, addr = 0;
     if(argc > 1)
         if(!valfromstring(argv[1], &size, false))
             return STATUS_ERROR;
-    duint mem = (duint)MemAllocRemote(0, size);
+    if(argc > 2)
+        if(!valfromstring(argv[2], &addr, false))
+            return STATUS_ERROR;
+    duint mem = (duint)MemAllocRemote(addr, size);
     if(!mem)
         dputs(QT_TRANSLATE_NOOP("DBG", "VirtualAllocEx failed"));
     else
@@ -88,7 +91,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
     if(!Fill((void*)addr, size & 0xFFFFFFFF, &fi))
         dputs(QT_TRANSLATE_NOOP("DBG", "Memset failed"));
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Memory %p (size: %.8X) set to %.2X\n"), addr, size & 0xFFFFFFFF, value & 0xFF);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Memory %p (size: %.8X) set to %.2X\n"), addr, DWORD(size & 0xFFFFFFFF), BYTE(value & 0xFF));
     return STATUS_CONTINUE;
 }
 

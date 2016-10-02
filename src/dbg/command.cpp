@@ -48,6 +48,16 @@ COMMAND* cmdfind(const char* name, COMMAND** link)
     return 0;
 }
 
+bool IsArgumentsLessThan(int argc, int minimumCount)
+{
+    if(argc < minimumCount)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At least %d arguments must be specified.\n"), minimumCount - 1);
+        return true;
+    }
+    return false;
+}
+
 /**
 \brief Initialize a command list.
 \return a ::COMMAND*

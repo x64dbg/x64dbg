@@ -4,6 +4,7 @@
 #include "value.h"
 #include "types.h"
 #include "memory.h"
+#include "variable.h"
 
 using namespace Types;
 
@@ -314,6 +315,7 @@ CMDRESULT cbInstrSizeofType(int argc, char* argv[])
         return STATUS_ERROR;
     }
     dprintf_untranslated("sizeof(%s) = %d\n", argv[1], size);
+    varset("$result", size, false);
     return STATUS_CONTINUE;
 }
 

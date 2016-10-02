@@ -81,7 +81,7 @@ static CMDRESULT cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* arg
     }
     if(!BpSetFastResume(bp.addr, Type, fastResume))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set fast resume on breakpoint \"%1\"\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set fast resume on breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     DebugUpdateBreakpointsViewAsync();
@@ -111,7 +111,7 @@ static CMDRESULT cbDebugSetBPXSingleshootCommon(BP_TYPE Type, int argc, char* ar
     }
     if(!BpSetSingleshoot(bp.addr, Type, singleshoot))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set singleshoot on breakpoint \"%1\"\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set singleshoot on breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     DebugUpdateBreakpointsViewAsync();
@@ -141,7 +141,7 @@ static CMDRESULT cbDebugSetBPXSilentCommon(BP_TYPE Type, int argc, char* argv[])
     }
     if(!BpSetSilent(bp.addr, Type, silent))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set silent on breakpoint \"%1\"\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Can't set silent on breakpoint \"%s\"\n"), argv[1]);
         return STATUS_ERROR;
     }
     DebugUpdateBreakpointsViewAsync();

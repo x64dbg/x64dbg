@@ -106,28 +106,28 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
     // Arch specific asm code
 #ifdef _WIN64
-    sprintf_s(command, "mov rcx, %p", (duint)DLLNameMem);
+    sprintf_s(command, "mov rcx, %p", DLLNameMem);
 #else
     sprintf_s(command, "push %p", DLLNameMem);
 #endif // _WIN64
 
-    assembleat((duint)ASMAddr, command, &size, error, true);
+    assembleat(ASMAddr, command, &size, error, true);
     counter += size;
 
 #ifdef _WIN64
     sprintf_s(command, "mov rax, %p", LoadLibraryA);
-    assembleat((duint)ASMAddr + counter, command, &size, error, true);
+    assembleat(ASMAddr + counter, command, &size, error, true);
     counter += size;
     sprintf_s(command, "call rax");
 #else
     sprintf_s(command, "call %p", LoadLibraryA);
 #endif // _WIN64
 
-    assembleat((duint)ASMAddr + counter, command, &size, error, true);
+    assembleat(ASMAddr + counter, command, &size, error, true);
     counter += size;
 
-    SetContextDataEx(LoadLibThread, UE_CIP, (duint)ASMAddr);
-    auto ok = SetBPX((duint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugLoadLibBPX);
+    SetContextDataEx(LoadLibThread, UE_CIP, ASMAddr);
+    auto ok = SetBPX(ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugLoadLibBPX);
 
     ThreadSuspendAll();
     ResumeThread(LoadLibThread);
@@ -188,7 +188,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 {
     arch actual_arch = invalid;
     char* jit_debugger_cmd = "";
-    char oldjit[MAX_SETTING_SIZE] = "";
+    Memory<char*> oldjit(MAX_SETTING_SIZE + 1);
     char path[JIT_ENTRY_DEF_SIZE];
     if(!IsProcessElevated())
     {
@@ -210,7 +210,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     {
         if(!_strcmpi(argv[1], "old"))
         {
-            jit_debugger_cmd = oldjit;
+            jit_debugger_cmd = oldjit();
             if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error there is no old JIT entry stored."));
@@ -234,7 +234,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
                 get_last_jit = false;
             }
             else
-                strcpy_s(oldjit, get_entry);
+                strcpy_s(oldjit(), MAX_SETTING_SIZE, get_entry);
 
             jit_debugger_cmd = path;
             if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
@@ -244,13 +244,13 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             }
             if(get_last_jit)
             {
-                if(_stricmp(oldjit, path))
-                    BridgeSettingSet("JIT", "Old", oldjit);
+                if(_stricmp(oldjit(), path))
+                    BridgeSettingSet("JIT", "Old", oldjit());
             }
         }
         else if(!_strcmpi(argv[1], "restore"))
         {
-            jit_debugger_cmd = oldjit;
+            jit_debugger_cmd = oldjit();
 
             if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
             {
@@ -335,17 +335,17 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
     else
     {
         readwritejitkey_error_t rw_error;
-        char oldjit[MAX_SETTING_SIZE] = "";
+        Memory<char*> oldjit(MAX_SETTING_SIZE + 1);
         if(_strcmpi(argv[1], "OLD") == 0)
         {
-            if(!BridgeSettingGet("JIT", "Old", oldjit))
+            if(!BridgeSettingGet("JIT", "Old", oldjit()))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error: there is not an OLD JIT entry stored yet."));
                 return STATUS_ERROR;
             }
             else
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "OLD JIT entry stored: %s\n"), oldjit);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "OLD JIT entry stored: %s\n"), oldjit());
                 return STATUS_CONTINUE;
             }
         }

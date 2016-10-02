@@ -15,7 +15,6 @@ static DWORD WINAPI scyllaThread(void* lpParam)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error loading Scylla.dll!"));
         bScyllaLoaded = false;
-        FreeLibrary(hScylla);
         return 0;
     }
     ScyllaStartGui = (SCYLLASTARTGUI)GetProcAddress(hScylla, "ScyllaStartGui");
