@@ -763,6 +763,14 @@ typedef struct
     XREF_RECORD* references;
 } XREF_INFO;
 
+//using at DbgGetStringAt
+typedef struct
+{
+    duint addr;
+    duint maxLength;
+    bool lengthSpecified;
+} STRING_GET_INFO;
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP void DbgExit();
@@ -843,7 +851,7 @@ BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr);
 BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end);
 BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end);
-BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text);
+BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text, duint bytes = 0);
 BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions();
 BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result);
 BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);

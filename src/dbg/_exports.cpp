@@ -1159,32 +1159,32 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_STRING_AT:
     {
-        auto addr = duint(param1);
-        if(!MemIsValidReadPtrUnsafe(addr, true))
+        STRING_GET_INFO* stringInfo = (STRING_GET_INFO*)param1;
+        if(!MemIsValidReadPtrUnsafe(stringInfo->addr, true))
             return false;
 
         auto dest = (char*)param2;
         *dest = '\0';
-        char string[MAX_STRING_SIZE];
+        char string[MAX_STRING_SIZE] = { 0 };
         duint addrPtr;
         STRING_TYPE strtype;
-        if(MemReadUnsafe(addr, &addrPtr, sizeof(addr)) && MemIsValidReadPtrUnsafe(addrPtr, true))
+        if(MemReadUnsafe(stringInfo->addr, &addrPtr, sizeof(stringInfo->addr)) && MemIsValidReadPtrUnsafe(addrPtr, true))
         {
-            if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 5))
+            if(disasmgetstringat(addrPtr, &strtype, string, string, stringInfo->maxLength, stringInfo->lengthSpecified))
             {
                 if(strtype == str_ascii)
-                    sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
+                    sprintf_s(dest, stringInfo->maxLength + 4, "&\"%s\"", string);
                 else //unicode
-                    sprintf_s(dest, MAX_STRING_SIZE, "&L\"%s\"", string);
+                    sprintf_s(dest, stringInfo->maxLength + 5, "&L\"%s\"", string);
                 return true;
             }
         }
-        if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 4))
+        if(disasmgetstringat(stringInfo->addr, &strtype, string, string, stringInfo->maxLength, stringInfo->lengthSpecified))
         {
             if(strtype == str_ascii)
-                sprintf_s(dest, MAX_STRING_SIZE, "\"%s\"", string);
+                sprintf_s(dest, stringInfo->maxLength + 3, "\"%s\"", string);
             else //unicode
-                sprintf_s(dest, MAX_STRING_SIZE, "L\"%s\"", string);
+                sprintf_s(dest, stringInfo->maxLength + 4, "L\"%s\"", string);
             return true;
         }
         return false;

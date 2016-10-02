@@ -899,10 +899,13 @@ BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end)
     _dbg_sendmessage(DBG_DELETE_AUTO_FUNCTION_RANGE, (void*)start, (void*)end);
 }
 
-// FIXME size of the buffer?
-BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
+BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text, duint length)
 {
-    if(_dbg_sendmessage(DBG_GET_STRING_AT, (void*)addr, text))
+    STRING_GET_INFO stringInfo;
+    stringInfo.maxLength = length != 0 ? (length > (MAX_STRING_SIZE - 5) ? MAX_STRING_SIZE - 5 : length) : MAX_STRING_SIZE - 5;
+    stringInfo.lengthSpecified = length != 0 ? true : false;
+    stringInfo.addr = addr;
+    if(_dbg_sendmessage(DBG_GET_STRING_AT, (void*)&stringInfo, text))
         return true;
     return false;
 }

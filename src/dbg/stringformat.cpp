@@ -13,6 +13,7 @@ namespace ValueType
         Hex,
         Pointer,
         String,
+        StringLength,
         AddrInfo,
         Module
     };
@@ -23,7 +24,8 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
     duint valuint = 0;
     char string[MAX_STRING_SIZE] = "";
     String result = "???";
-    if(valfromstring(value, &valuint))
+    bool valFromString = type != ValueType::StringLength ? valfromstring(value, &valuint) : true;
+    if(valFromString)
     {
         switch(type)
         {
@@ -57,6 +59,22 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
             if(DbgGetStringAt(valuint, string))
                 result = string;
             break;
+        case ValueType::StringLength:
+        {
+            duint length = 0;
+            auto delimPointer = strchr(value, '|');
+            duint delimPos = delimPointer - value;
+            auto lengthValue = String(value);
+            lengthValue[delimPos] = '\0';
+
+            if(!valfromstring(lengthValue.c_str(), &length))
+                break;
+            if(!valfromstring(delimPointer + 1, &valuint))
+                break;
+            if(DbgGetStringAt(valuint, string, length))
+                result = string;
+        }
+        break;
         case ValueType::AddrInfo:
         {
             auto symbolic = SymGetSymbolicName(valuint);
@@ -82,11 +100,11 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
     return result;
 }
 
-static const char* getArgExpressionType(const String & formatString, ValueType::ValueType & type)
+static const char* getArgExpressionType(String & formatString, ValueType::ValueType & type)
 {
     auto hasExplicitType = false;
     type = ValueType::Hex;
-    if(formatString.size() > 2 && formatString[1] == ':')
+    if(formatString.size() > 2 && (formatString[1] == ':' || formatString[1] == '|'))
     {
         switch(formatString[0])
         {
@@ -100,8 +118,16 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
             type = ValueType::Pointer;
             break;
         case 's':
-            type = ValueType::String;
-            break;
+            if(formatString[1] == '|')
+            {
+                type = ValueType::StringLength;
+                break;
+            }
+            else
+            {
+                type = ValueType::String;
+                break;
+            }
         case 'x':
             type = ValueType::Hex;
             break;
@@ -118,13 +144,24 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
     }
     auto expression = formatString.c_str();
     if(hasExplicitType)
-        expression += 2;
+        if(type == ValueType::StringLength)
+        {
+            duint colonPos = formatString.find(':');
+            duint delimPos = formatString.find('|');
+            formatString.insert(colonPos + 1, "|");
+            formatString[colonPos] = '\0';
+            formatString.insert(colonPos + 1, printValue(expression + delimPos + 1, ValueType::Hex));
+            formatString[colonPos] = ':';
+            expression += colonPos + 1;
+        }
+        else
+            expression += 2;
     else
         type = ValueType::Hex;
     return expression;
 }
 
-static unsigned int getArgNumType(const String & formatString, ValueType::ValueType & type)
+static unsigned int getArgNumType(String & formatString, ValueType::ValueType & type)
 {
     auto expression = getArgExpressionType(formatString, type);
     unsigned int argnum = 0;
@@ -133,7 +170,7 @@ static unsigned int getArgNumType(const String & formatString, ValueType::ValueT
     return argnum;
 }
 
-static String handleFormatString(const String & formatString, const FormatValueVector & values)
+static String handleFormatString(String & formatString, const FormatValueVector & values)
 {
     auto type = ValueType::Unknown;
     auto argnum = getArgNumType(formatString, type);
@@ -191,7 +228,7 @@ String stringformat(String format, const FormatValueVector & values)
     return output;
 }
 
-static String handleFormatStringInline(const String & formatString)
+static String handleFormatStringInline(String & formatString)
 {
     auto type = ValueType::Unknown;
     auto value = getArgExpressionType(formatString, type);
