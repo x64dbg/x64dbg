@@ -489,6 +489,8 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 void plugincbcall(CBTYPE cbType, void* callbackInfo)
 {
     SHARED_ACQUIRE(LockPluginCallbackList);
+    if(pluginCallbackList[cbType].empty())
+        return;
     auto cbList = pluginCallbackList[cbType]; //copy for thread-safety reasons
     SHARED_RELEASE();
     for(const auto & currentCallback : cbList)
