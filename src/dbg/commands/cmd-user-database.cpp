@@ -240,14 +240,14 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(bookmarks()[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
-        char label[MAX_LABEL_SIZE] = "";
-        if(LabelGet(bookmarks()[i].addr, label))
-            GuiReferenceSetCellContent(i, 2, label);
+        char comment[MAX_COMMENT_SIZE] = "";
+        if(CommentGet(bookmarks()[i].addr, comment))
+            GuiReferenceSetCellContent(i, 2, comment);
         else
         {
-            char comment[MAX_COMMENT_SIZE] = "";
-            if(CommentGet(bookmarks()[i].addr, comment))
-                GuiReferenceSetCellContent(i, 2, comment);
+            char label[MAX_LABEL_SIZE] = "";
+            if(LabelGet(bookmarks()[i].addr, label))
+                GuiReferenceSetCellContent(i, 2, label);
         }
     }
     varset("$result", count, false);
