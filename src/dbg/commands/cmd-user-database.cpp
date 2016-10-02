@@ -217,7 +217,8 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Bookmarks")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
@@ -239,6 +240,15 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(bookmarks()[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
+        char label[MAX_LABEL_SIZE] = "";
+        if(LabelGet(bookmarks()[i].addr, label))
+            GuiReferenceSetCellContent(i, 2, label);
+        else
+        {
+            char comment[MAX_COMMENT_SIZE] = "";
+            if(CommentGet(bookmarks()[i].addr, comment))
+                GuiReferenceSetCellContent(i, 2, comment);
+        }
     }
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d bookmark(s) listed\n"), count);
