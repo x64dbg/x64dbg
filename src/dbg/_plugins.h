@@ -176,6 +176,12 @@ typedef struct
     int loadSaveType;
 } PLUG_CB_LOADSAVEDB;
 
+typedef struct
+{
+    const char* symbol;
+    bool retval;
+} PLUG_CB_FILTERSYMBOL;
+
 //enums
 typedef enum
 {
@@ -202,6 +208,7 @@ typedef enum
     CB_WINEVENTGLOBAL, //PLUG_CB_WINEVENTGLOBAL
     CB_LOADDB, //PLUG_CB_LOADSAVEDB
     CB_SAVEDB, //PLUG_CB_LOADSAVEDB
+    CB_FILTERSYMBOL, //PLUG_CB_FILTERSYMBOL
     CB_LAST
 } CBTYPE;
 

@@ -111,7 +111,10 @@ static bool shouldFilterSymbol(const char* name)
         return true;
     if(strstr(name, "__imp_") == name || strstr(name, "_imp_") == name)
         return true;
-    return false;
+
+    PLUG_CB_FILTERSYMBOL filterInfo = { name, false };
+    plugincbcall(CB_FILTERSYMBOL, &filterInfo);
+    return filterInfo.retval;
 }
 
 static bool getLabel(duint addr, char* label)
