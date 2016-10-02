@@ -26,6 +26,19 @@ CMDRESULT cbInstrChd(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbInstrZzz(int argc, char* argv[])
+{
+    duint value = 100;
+    if(argc > 1)
+        if(!valfromstring(argv[1], &value, false))
+            return STATUS_ERROR;
+    auto ms = DWORD(value);
+    if(ms == INFINITE)
+        ms = 100;
+    Sleep(ms);
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbDebugHide(int argc, char* argv[])
 {
     if(HideDebugger(fdProcessInfo->hProcess, UE_HIDE_PEBONLY))

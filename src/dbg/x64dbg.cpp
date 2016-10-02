@@ -389,6 +389,7 @@ static void registercommands()
 
     //misc
     dbgcmdnew("chd", cbInstrChd, false); //Change directory
+    dbgcmdnew("zzz\1doSleep", cbInstrZzz, false); //sleep
 
     dbgcmdnew("HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL

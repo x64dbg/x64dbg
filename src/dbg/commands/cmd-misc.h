@@ -3,6 +3,7 @@
 #include "command.h"
 
 CMDRESULT cbInstrChd(int argc, char* argv[]);
+CMDRESULT cbInstrZzz(int argc, char* argv[]);
 
 CMDRESULT cbDebugHide(int argc, char* argv[]);
 CMDRESULT cbDebugLoadLib(int argc, char* argv[]);
