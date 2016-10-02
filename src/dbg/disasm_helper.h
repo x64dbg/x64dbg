@@ -11,7 +11,7 @@ void disasmprint(duint addr);
 void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr);
 void disasmget(duint addr, DISASM_INSTR* instr);
 bool disasmispossiblestring(duint addr);
-bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen);
+bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen, bool maxLenAsLength = false);
 int disasmgetsize(duint addr, unsigned char* data);
 int disasmgetsize(duint addr);
 

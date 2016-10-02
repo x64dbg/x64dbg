@@ -257,37 +257,49 @@ void disasmprint(duint addr)
 #endif //_WIN64
 }
 
-static bool isasciistring(const unsigned char* data, int maxlen)
+static bool isasciistring(const unsigned char* data, int maxlen, bool maxLenAsLength = false)
 {
     int len = 0;
-    for(char* p = (char*)data; *p; len++, p++)
+    if(!maxLenAsLength)
     {
-        if(len >= maxlen)
-            break;
-    }
+        for(char* p = (char*)data; *p; len++, p++)
+        {
+            if(len >= maxlen)
+                break;
+        }
 
-    if(len < 2 || len + 1 >= maxlen)
-        return false;
+        if(len < 2 || len + 1 >= maxlen)
+            return false;
+    }
+    else
+        len = maxlen;
+
     for(int i = 0; i < len; i++)
         if(!isprint(data[i]) && !isspace(data[i]))
             return false;
     return true;
 }
 
-static bool isunicodestring(const unsigned char* data, int maxlen)
+static bool isunicodestring(const unsigned char* data, int maxlen, bool maxLenAsLength = false)
 {
     int len = 0;
-    for(wchar_t* p = (wchar_t*)data; *p; len++, p++)
+    if(!maxLenAsLength)
     {
-        if(len >= maxlen)
-            break;
-    }
+        for(wchar_t* p = (wchar_t*)data; *p; len++, p++)
+        {
+            if(len >= maxlen)
+                break;
+        }
 
-    if(len < 2 || len + 1 >= maxlen)
-        return false;
+        if(len < 2 || len + 1 >= maxlen)
+            return false;
+    }
+    else
+        len = maxlen;
+
     for(int i = 0; i < len * 2; i += 2)
     {
-        if(data[i + 1]) //Extended ASCII only
+        if(data[i + 1])  //Extended ASCII only
             return false;
         if(!isprint(data[i]) && !isspace(data[i]))
             return false;
@@ -308,7 +320,7 @@ bool disasmispossiblestring(duint addr)
     return false;
 }
 
-bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen)
+bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen, bool maxLenAsLength)
 {
     if(type)
         *type = str_none;
@@ -322,21 +334,7 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
     auto asciiData = (char*)data();
     auto unicodeData = (wchar_t*)data();
 
-    // First check if this was an ASCII only string
-    if(isasciistring(data(), maxlen))
-    {
-        if(type)
-            *type = str_ascii;
-
-        // Escape the string
-        String escaped = StringUtils::Escape(asciiData);
-
-        // Copy data back to outgoing parameter
-        strncpy_s(ascii, min(int(escaped.length()) + 1, maxlen), escaped.c_str(), _TRUNCATE);
-        return true;
-    }
-
-    if(isunicodestring(data(), maxlen))
+    if(isunicodestring(data(), maxlen, maxLenAsLength))
     {
         if(type)
             *type = str_unicode;
@@ -355,7 +353,21 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
         String escaped = StringUtils::Escape(asciiData);
 
         // Copy data back to outgoing parameter
-        strncpy_s(unicode, min(int(escaped.length()) + 1, maxlen), escaped.c_str(), _TRUNCATE);
+        strncpy_s(unicode, min(int(escaped.length()) + 1, (maxLenAsLength ? maxlen + 1 : maxlen)), escaped.c_str(), _TRUNCATE);
+        return true;
+    }
+
+    // First check if this was an ASCII only string
+    if(isasciistring(data(), maxlen, maxLenAsLength))
+    {
+        if(type)
+            *type = str_ascii;
+
+        // Escape the string
+        String escaped = StringUtils::Escape(asciiData);
+
+        // Copy data back to outgoing parameter
+        strncpy_s(ascii, min(int(escaped.length()) + 1, (maxLenAsLength ? maxlen + 1 : maxlen)), escaped.c_str(), _TRUNCATE);
         return true;
     }
 
