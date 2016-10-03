@@ -47,7 +47,7 @@ CMDRESULT cbDebugStartScylla(int argc, char* argv[])
 
 CMDRESULT cbInstrPluginLoad(int argc, char* argv[])
 {
-    if(IsArgumentsLessThan(argc, 1))
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
     if(pluginload(argv[1]))
         return STATUS_CONTINUE;
@@ -56,7 +56,7 @@ CMDRESULT cbInstrPluginLoad(int argc, char* argv[])
 
 CMDRESULT cbInstrPluginUnload(int argc, char* argv[])
 {
-    if(IsArgumentsLessThan(argc, 1))
+    if(IsArgumentsLessThan(argc, 2))
         return STATUS_ERROR;
     if(pluginunload(argv[1]))
         return STATUS_CONTINUE;
