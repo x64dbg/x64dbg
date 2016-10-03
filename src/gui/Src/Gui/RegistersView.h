@@ -159,6 +159,7 @@ protected slots:
     void onSetToOneAction();
     void onModifyAction();
     void onToggleValueAction();
+    void onUndoAction();
     void onCopyToClipboardAction();
     void onCopySymbolToClipboardAction();
     void onCopyAllAction();
@@ -217,6 +218,7 @@ private:
     QSet<REGISTER_NAME> mBOOLDISPLAY;
     QSet<REGISTER_NAME> mLABELDISPLAY;
     QSet<REGISTER_NAME> mONLYMODULEANDLABELDISPLAY;
+    QSet<REGISTER_NAME> mUNDODISPLAY;
     QSet<REGISTER_NAME> mSETONEZEROTOGGLE;
     QSet<REGISTER_NAME> mMODIFYDISPLAY;
     QSet<REGISTER_NAME> mFIELDVALUE;
@@ -266,6 +268,7 @@ private:
     QAction* wCM_SetToOne;
     QAction* wCM_Modify;
     QAction* wCM_ToggleValue;
+    QAction* wCM_Undo;
     QAction* wCM_CopyToClipboard;
     QAction* wCM_CopySymbolToClipboard;
     QAction* wCM_CopyAll;
