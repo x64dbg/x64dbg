@@ -255,6 +255,7 @@ void CPUDump::setupContextMenu()
         return true;
     }));
 
+    mMenuBuilder->loadFromConfig();
     updateShortcuts();
 }
 

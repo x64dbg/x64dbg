@@ -23,7 +23,7 @@
      <x>0</x>
      <y>0</y>
      <width>868</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -159,6 +159,7 @@
     <addaction name="actionSettings"/>
     <addaction name="actionAppearance"/>
     <addaction name="actionShortcuts"/>
+    <addaction name="actionCustomizeMenus"/>
     <addaction name="actionTopmost"/>
     <addaction name="actionReloadStylesheet"/>
     <addaction name="actionSetInitializationScript"/>
@@ -1036,6 +1037,15 @@
   <action name="actionImportSettings">
    <property name="text">
     <string>Import settings...</string>
+   </property>
+  </action>
+  <action name="actionCustomizeMenus">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/analysis.png</normaloff>:/icons/images/analysis.png</iconset>
+   </property>
+   <property name="text">
+    <string>Customize menus</string>
    </property>
   </action>
  </widget>

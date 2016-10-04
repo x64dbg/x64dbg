@@ -138,6 +138,7 @@ public slots:
     void clickFavouriteTool();
     void chooseLanguage();
     void setInitialzationScript();
+    void customizeMenu();
     void addFavouriteItem(int type, const QString & name, const QString & description);
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
 
