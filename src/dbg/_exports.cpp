@@ -249,7 +249,6 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
                 memset(&instr, 0, sizeof(DISASM_INSTR));
                 disasmget(addr, &instr);
-                int len_left = MAX_COMMENT_SIZE;
                 for(int i = 0; i < instr.argcount; i++)
                 {
                     memset(&newinfo, 0, sizeof(ADDRINFO));
@@ -261,10 +260,19 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     {
                         if(instr.type == instr_branch)
                             continue;
+                        auto constant = instr.arg[i].constant;
+                        if(instr.arg[i].type == arg_normal && constant < 256 && (isprint(int(constant)) || isspace(int(constant))) && (strstr(instr.instruction, "cmp") || strstr(instr.instruction, "mov")))
+                        {
+                            temp_string.assign(instr.arg[i].mnemonic);
+                            temp_string.push_back(':');
+                            temp_string.push_back('\'');
+                            temp_string.append(StringUtils::Escape((unsigned char)constant));
+                            temp_string.push_back('\'');
+                        }
                         if(DbgGetStringAt(instr.arg[i].constant, string_text))
                         {
-                            temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":");
+                            temp_string.assign(instr.arg[i].mnemonic);
+                            temp_string.push_back(':');
                             temp_string.append(string_text);
                         }
                     }
@@ -272,16 +280,18 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     {
                         if(*string_text)
                         {
-                            temp_string = "[";
+                            temp_string.assign("[");
                             temp_string.append(instr.arg[i].mnemonic);
-                            temp_string.append("]:");
+                            temp_string.push_back(']');
+                            temp_string.push_back(':');
                             temp_string.append(string_text);
                         }
                         else if(*newinfo.label)
                         {
-                            temp_string = "[";
+                            temp_string.assign("[");
                             temp_string.append(instr.arg[i].mnemonic);
-                            temp_string.append("]:");
+                            temp_string.push_back(']');
+                            temp_string.push_back(':');
                             temp_string.append(newinfo.label);
                         }
                     }
@@ -292,14 +302,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                             if(*newinfo.label)
                             {
                                 temp_string = instr.arg[i].mnemonic;
-                                temp_string.append(":");
+                                temp_string.push_back(':');
                                 temp_string.append(newinfo.label);
                             }
                         }
                         else if(*string_text)
                         {
                             temp_string = instr.arg[i].mnemonic;
-                            temp_string.append(":");
+                            temp_string.push_back(':');
                             temp_string.append(string_text);
                         }
                     }
@@ -308,8 +318,11 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
                     if(!strstr(comment.c_str(), temp_string.c_str())) //avoid duplicate comments
                     {
-                        if(comment.length())
-                            comment.append(", ");
+                        if(!comment.empty())
+                        {
+                            comment.push_back(',');
+                            comment.push_back(' ');
+                        }
                         comment.append(temp_string);
                         retval = true;
                     }
@@ -318,9 +331,8 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 StringUtils::ReplaceAll(comment, "{", "{{");
                 StringUtils::ReplaceAll(comment, "}", "}}");
 
-                String fullComment = "\1";
-                fullComment += comment;
-                strncpy_s(addrinfo->comment, fullComment.c_str(), _TRUNCATE);
+                strcpy_s(addrinfo->comment, "\1");
+                strncat_s(addrinfo->comment, comment.c_str(), _TRUNCATE);
             }
         }
     }

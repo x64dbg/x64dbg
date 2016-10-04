@@ -138,6 +138,12 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
     switch(op.type)
     {
     case X86_OP_REG:
+    {
+        arg->type = arg_normal;
+        arg->value = value;
+    }
+    break;
+
     case X86_OP_IMM:
     {
         arg->type = arg_normal;
