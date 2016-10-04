@@ -7,7 +7,7 @@
 
 Configuration* Configuration::mPtr = nullptr;
 
-inline void insertMenuBuilderBools(QMap<QString, bool>* config, int id, size_t count)
+inline void insertMenuBuilderBools(QMap<QString, bool>* config, const char* id, size_t count)
 {
     for(size_t i = 0; i < count; i++)
         config->insert(QString("Menu%1Hidden%2").arg(id).arg(i), false);
@@ -214,11 +214,11 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("PidInHex", true);
     guiBool.insert("SidebarWatchLabels", true);
     //Named menu settings
-    insertMenuBuilderBools(&guiBool, 1, 35); //CPUDisassembly
-    insertMenuBuilderBools(&guiBool, 2, 30); //CPUDump
-    insertMenuBuilderBools(&guiBool, 7, 7); //Watch
-    insertMenuBuilderBools(&guiBool, 17, 5); //CallStackView
-    insertMenuBuilderBools(&guiBool, 25, 12); //Thread
+    insertMenuBuilderBools(&guiBool, "CPUDisassembly", 35); //CPUDisassembly
+    insertMenuBuilderBools(&guiBool, "CPUDump", 30); //CPUDump
+    insertMenuBuilderBools(&guiBool, "WatchView", 7); //Watch
+    insertMenuBuilderBools(&guiBool, "CallStackView", 5); //CallStackView
+    insertMenuBuilderBools(&guiBool, "ThreadView", 12); //Thread
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
@@ -992,9 +992,9 @@ bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortc
 void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
     bool exists = false;
-    int id = menu->getId();
+    const char* id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
-        if(i.first->getId() == id)
+        if(strcmp(i.first->getId() , id) == 0)
             exists = true;
     if(!exists)
         NamedMenuBuilders.push_back(std::make_pair(menu, count));

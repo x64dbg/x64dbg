@@ -7,9 +7,9 @@
  * @param id The id of menu builder. It should be the same on every same menu.
  * See CustomizeMenuDialog for a list of defined identifiers.
  */
-void MenuBuilder::loadFromConfig(int id)
+void MenuBuilder::loadFromConfig()
 {
-    this->id = id; // Set the ID first because the following subroutine will use it
+    this->id = parent()->metaObject()->className(); // Set the ID first because the following subroutine will use it
     Config()->registerMenuBuilder(this, _containers.size()); // Register it to the config so the customization dialog can get the text of actions here.
 }
 

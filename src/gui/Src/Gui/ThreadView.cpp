@@ -113,7 +113,7 @@ void ThreadView::setupContextMenu()
     // Column count cannot be zero
     mMenuBuilder->addSeparator();
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), mCopyMenu);
-    mMenuBuilder->loadFromConfig(25);
+    mMenuBuilder->loadFromConfig();
 }
 
 /**

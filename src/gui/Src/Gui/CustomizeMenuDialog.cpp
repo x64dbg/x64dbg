@@ -11,52 +11,18 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
     for(const auto & i : Config()->NamedMenuBuilders)
     {
         QString viewName;
-        switch(i.first->getId())
-        {
-        case 1://CPUDisassembly
+        const char* id = i.first->getId();
+        if(strcmp(id, "CPUDisassembly") == 0)
             viewName = tr("Disassembler");
-            break;
-        case 2:
+        else if(strcmp(id, "CPUDump") == 0)
             viewName = tr("Dump");
-            break;
-        case 7:
+        else if(strcmp(id, "WatchView") == 0)
             viewName = tr("Watch");
-            break;
-        case 17:
-            viewName = tr("Call Staack");
-            break;
-        case 25:
+        else if(strcmp(id, "CallStackView") == 0)
+            viewName = tr("Call Stack");
+        else if(strcmp(id, "ThreadView") == 0)
             viewName = tr("Threads");
-            break;
-        /*
-        3:CPUStack
-        4:Registers
-        5:Info box
-        6:Arguments
-        8:Graph
-        9:Log
-        10:Notes
-        11:Breakpoints-Software
-        12:Breakpoints-Hardware
-        13:Breakpoints-Memory
-        14:Breakpoints-Exception
-        15:Breakpoints-DLL
-        16:MemoryMap
-        18:Callstack
-        19:SEH
-        20:Script
-        21:Symbols-Modules
-        22:Symbols-Symbols
-        23:Source
-        24:References
-        26:Handles-Handles
-        27:Handles-TCP Connections
-        28:Handles-Privileges
-         */
-        default:
-            break;
-        }
-        if(viewName.isEmpty())
+        else
             continue;
         QTreeWidgetItem* parentItem = new QTreeWidgetItem(ui->treeWidget);
         parentItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);

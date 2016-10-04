@@ -21,7 +21,7 @@ public:
     {
     }
 
-    void loadFromConfig(int id);
+    void loadFromConfig();
 
     inline void addSeparator()
     {
@@ -58,7 +58,7 @@ public:
 
     QString getText(size_t id) const;
 
-    int getId() const
+    const char* getId() const
     {
         return id;
     }
@@ -115,7 +115,7 @@ private:
     };
 
     BuildCallback _callback;
-    int id;
+    const char* id;
     std::vector<Container> _containers;
 };
 
