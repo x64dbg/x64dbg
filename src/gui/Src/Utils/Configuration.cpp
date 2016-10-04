@@ -304,7 +304,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewComments", Shortcut(tr("View -> Comments"), "Ctrl+Alt+C", true));
     defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L", true));
     defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B", true));
-    defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Alt+F", true));
+    defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Ctrl+Alt+F", true));
     defaultShortcuts.insert("ViewSnowman", Shortcut(tr("View -> Snowman"), "", true));
     defaultShortcuts.insert("ViewHandles", Shortcut(tr("View -> Handles"), "", true));
     defaultShortcuts.insert("ViewGraph", Shortcut(tr("View -> Graph"), "Alt+G", true));
