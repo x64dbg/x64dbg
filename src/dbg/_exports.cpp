@@ -250,6 +250,8 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 memset(&instr, 0, sizeof(DISASM_INSTR));
                 disasmget(addr, &instr);
                 int len_left = MAX_COMMENT_SIZE;
+                bool is_comparison_instr = strstr(instr.instruction, "cmp") || strstr(instr.instruction, "test");
+
                 for(int i = 0; i < instr.argcount; i++)
                 {
                     memset(&newinfo, 0, sizeof(ADDRINFO));
@@ -261,7 +263,13 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     {
                         if(instr.type == instr_branch)
                             continue;
-                        if(DbgGetStringAt(instr.arg[i].constant, string_text))
+
+                    if (is_comparison_instr && instr.arg[i].constant < 256 && isprint(instr.arg[i].constant)) // checks if character is printable
+                        {
+                            sprintf_s(string_text, "%02X:\"%c\"", instr.arg[i].constant, instr.arg[i].constant);
+                            temp_string = String(string_text);
+                        }
+                        else if(DbgGetStringAt(instr.arg[i].constant, string_text))
                         {
                             temp_string = instr.arg[i].mnemonic;
                             temp_string.append(":");
