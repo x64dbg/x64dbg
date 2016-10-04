@@ -208,10 +208,9 @@ SOURCES += \
     dbg/commands/cmd-undocumented.cpp \
     dbg/commands/cmd-user-database.cpp \
     dbg/commands/cmd-variables.cpp \
-    dbg/commands/cmd-watch-control.cpp
-
-TRANSLATIONS = \
-    gui/Translations/x64dbg.ts
+    dbg/commands/cmd-watch-control.cpp \
+    gui/Src/Gui/CustomizeMenuDialog.cpp \
+    gui/Src/Utils/MenuBuilder.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -432,7 +431,8 @@ HEADERS += \
     dbg/commands/cmd-undocumented.h \
     dbg/commands/cmd-user-database.h \
     dbg/commands/cmd-variables.h \
-    dbg/commands/cmd-watch-control.h
+    dbg/commands/cmd-watch-control.h \
+    gui/Src/Gui/CustomizeMenuDialog.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
@@ -467,7 +467,8 @@ FORMS += \
     gui/Src/Gui/VirtualModDialog.ui \
     gui/Src/Gui/WordEditDialog.ui \
     gui/Src/Gui/XrefBrowseDialog.ui \
-    gui/Src/Gui/YaraRuleSelectionDialog.ui
+    gui/Src/Gui/YaraRuleSelectionDialog.ui \
+    gui/Src/Gui/CustomizeMenuDialog.ui
 
 TRANSLATIONS += \
     gui/Translations/x64dbg.ts

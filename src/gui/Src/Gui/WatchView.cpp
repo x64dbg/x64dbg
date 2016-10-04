@@ -168,6 +168,7 @@ void WatchView::setupContextMenu()
     MenuBuilder* copyMenu = new MenuBuilder(this);
     setupCopyMenu(copyMenu);
     mMenu->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
+    mMenu->loadFromConfig(7);
 }
 
 QString WatchView::getSelectedId()

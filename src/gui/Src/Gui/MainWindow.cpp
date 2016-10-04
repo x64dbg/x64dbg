@@ -46,6 +46,7 @@
 #include "CPUStack.h"
 #include "GotoDialog.h"
 #include "BrowseDialog.h"
+#include "CustomizeMenuDialog.h"
 #include "main.h"
 
 QString MainWindow::windowTitle = "";
@@ -324,6 +325,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionAnimateOver, SIGNAL(triggered()), this, SLOT(animateOverSlot()));
     connect(ui->actionAnimateCommand, SIGNAL(triggered()), this, SLOT(animateCommandSlot()));
     connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitialzationScript()));
+    connect(ui->actionCustomizeMenus, SIGNAL(triggered()), this, SLOT(customizeMenu()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -1711,6 +1713,14 @@ void MainWindow::setInitialzationScript()
     {
         BridgeSettingSet("Engine", "InitializeScript", browseScript.path.toUtf8().constData());
     }
+}
+
+void MainWindow::customizeMenu()
+{
+    CustomizeMenuDialog customMenuDialog(this);
+    customMenuDialog.setWindowTitle(tr("Customize Menus"));
+    customMenuDialog.setWindowIcon(DIcon("analysis.png"));
+    customMenuDialog.exec();
 }
 
 #include "../src/bridge/Utf8Ini.h"

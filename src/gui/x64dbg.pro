@@ -171,7 +171,9 @@ SOURCES += \
     Src/BasicView/LabeledSplitter.cpp \
     Src/BasicView/LabeledSplitterDetachedWindow.cpp \
     Src/Gui/LogStatusLabel.cpp \
-    Src/Gui/DebugStatusLabel.cpp
+    Src/Gui/DebugStatusLabel.cpp \
+    Src/Utils/MenuBuilder.cpp \
+    Src/Gui/CustomizeMenuDialog.cpp
 
 
 HEADERS += \
@@ -279,7 +281,8 @@ HEADERS += \
     Src/BasicView/LabeledSplitter.h \
     Src/BasicView/LabeledSplitterDetachedWindow.h \
     Src/Gui/LogStatusLabel.h \
-    Src/Gui/DebugStatusLabel.h
+    Src/Gui/DebugStatusLabel.h \
+    Src/Gui/CustomizeMenuDialog.h
     
 
 FORMS += \
@@ -315,7 +318,8 @@ FORMS += \
     Src/Gui/ColumnReorderDialog.ui \
     Src/Gui/FavouriteTools.ui \
     Src/Gui/BrowseDialog.ui \
-    Src/Gui/VirtualModDialog.ui
+    Src/Gui/VirtualModDialog.ui \
+    Src/Gui/CustomizeMenuDialog.ui
 
 ##
 ## Libraries
