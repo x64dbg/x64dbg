@@ -13,6 +13,7 @@ doxygen*/
 doc/
 COV/
 minidump/
+CppDependOut/
 
 # Global filetypes to ignore
 *.depend
@@ -40,6 +41,7 @@ ui_*
 .DS_Store
 *.ipgset
 pin.log*
+*.cdproj
 
 # Project to ignore
 help/x64*dbg.chm
