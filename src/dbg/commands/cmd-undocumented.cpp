@@ -21,7 +21,6 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
     if(valfromstring(*argv, &value, false, false, &valsize, &isvar, &hexonly, true))   //dump variable/value/register/etc
     {
         varset("$ans", value, true);
-        //dprintf(QT_TRANSLATE_NOOP("DBG", "[DEBUG] valsize: %d\n"), valsize);
         if(valsize)
             valsize *= 2;
         else
@@ -260,14 +259,14 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !MemIsValidReadPtr(addr))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid address \"%s\"\n"), argv[1]);
+        dprintf("invalid address \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
 
     unsigned char data[16];
     if(!MemRead(addr, data, sizeof(data)))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "could not read memory at %p\n"), addr);
+        dprintf("could not read memory at %p\n", addr);
         return STATUS_ERROR;
     }
 
@@ -278,7 +277,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     Capstone cp;
     if(!cp.Disassemble(addr, data))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to disassemble!\n"));
+        dputs("failed to disassemble!\n");
         return STATUS_ERROR;
     }
 
@@ -286,24 +285,24 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
     dprintf("%s %s\n", instr->mnemonic, instr->op_str);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "size: %d, id: %d, opcount: %d\n"), cp.Size(), cp.GetId(), cp.OpCount());
+    dprintf("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), cp.OpCount());
     for(int i = 0; i < argcount; i++)
     {
         const cs_x86_op & op = x86.operands[i];
-        dprintf(QT_TRANSLATE_NOOP("DBG", "operand \"%s\" %d, "), cp.OperandText(i).c_str(), i + 1);
+        dprintf("operand \"%s\" %d, ", cp.OperandText(i).c_str(), i + 1);
         switch(op.type)
         {
         case X86_OP_REG:
-            dprintf(QT_TRANSLATE_NOOP("DBG", "register: %s\n"), cp.RegName((x86_reg)op.reg));
+            dprintf("register: %s\n", cp.RegName((x86_reg)op.reg));
             break;
         case X86_OP_IMM:
-            dprintf(QT_TRANSLATE_NOOP("DBG", "immediate: 0x%p\n"), op.imm);
+            dprintf("immediate: 0x%p\n", op.imm);
             break;
         case X86_OP_MEM:
         {
             //[base + index * scale +/- disp]
             const x86_op_mem & mem = op.mem;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n"),
+            dprintf("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
                     cp.RegName((x86_reg)mem.segment),
                     cp.RegName((x86_reg)mem.base),
                     cp.RegName((x86_reg)mem.index),
@@ -325,7 +324,7 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
     duint maxaddr;
     if(!valfromstring(argv[1], &start) || !valfromstring(argv[2], &maxaddr))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "invalid arguments!"));
+        dputs("invalid arguments!");
         return STATUS_ERROR;
     }
     //actual algorithm
