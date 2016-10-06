@@ -227,9 +227,12 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
         if(isJump(line)) //handle jumps
         {
+            duint baseAddr = mDisas->getBase();
+            duint destVA = DbgGetBranchDestination(baseAddr + instr.rva);
+
             JumpLine jmp;
             jmp.isJumpGoingToExecute = DbgIsJumpGoingToExecute(instrVA);
-            jmp.isSelected = (selectedVA == instrVA);
+            jmp.isSelected = (selectedVA == instrVA || selectedVA == destVA);
             jmp.isConditional = instr.branchType == Instruction_t::Conditional;
             jmp.line = line;
 
@@ -240,9 +243,6 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
             jumpoffset++;
 
-            duint baseAddr = mDisas->getBase();
-
-            duint destVA = DbgGetBranchDestination(baseAddr + instr.rva);
 
             // Do not try to draw EBFE (Jump to the same line)
             //if(destVA == instrVA)
