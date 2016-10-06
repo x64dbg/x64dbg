@@ -126,9 +126,23 @@ void MemoryMapView::setupContextMenu()
     connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
     this->addAction(mMemoryFree);
 
-    mFindAddress = new QAction(DIcon("memmap_find_address_page.png"), tr("Find address &page"), this);
-    connect(mFindAddress, SIGNAL(triggered()), this, SLOT(findAddressSlot()));
-    this->addAction(mFindAddress);
+    //Goto
+    mGotoMenu = new QMenu(tr("Go to"), this);
+    mGotoMenu->setIcon(DIcon("goto.png"));
+
+    //Goto->Origin
+    mGotoOrigin = new QAction(DIcon("cbp.png"), tr("Origin"), this);
+    mGotoOrigin->setShortcutContext(Qt::WidgetShortcut);
+    connect(mGotoOrigin, SIGNAL(triggered()), this, SLOT(gotoOriginSlot()));
+    this->addAction(mGotoOrigin);
+    mGotoMenu->addAction(mGotoOrigin);
+
+    //Goto->Expression
+    mGotoExpression = new QAction(DIcon("geolocation-goto.png"), tr("Expression"), this);
+    mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
+    connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
+    this->addAction(mGotoExpression);
+    mGotoMenu->addAction(mGotoExpression);
 
     //Entropy
     mEntropy = new QAction(DIcon("entropy.png"), tr("Entropy..."), this);
@@ -160,6 +174,8 @@ void MemoryMapView::refreshShortcutsSlot()
     mMemoryRemove->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mMemoryExecuteSingleshootToggle->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mFindPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
+    mGotoOrigin->setShortcut(ConfigShortcut("ActionGotoOrigin"));
+    mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
     mEntropy->setShortcut(ConfigShortcut("ActionEntropy"));
     mMemoryFree->setShortcut(ConfigShortcut("ActionFreeMemory"));
     mMemoryAllocate->setShortcut(ConfigShortcut("ActionAllocateMemory"));
@@ -180,8 +196,8 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addSeparator();
     wMenu.addAction(mMemoryAllocate);
     wMenu.addAction(mMemoryFree);
-    wMenu.addAction(mFindAddress);
     wMenu.addAction(mAddVirtualMod);
+    wMenu.addMenu(mGotoMenu);
     wMenu.addSeparator();
     wMenu.addAction(mPageMemoryRights);
     wMenu.addSeparator();
@@ -587,7 +603,12 @@ void MemoryMapView::selectAddress(duint va)
     QMessageBox::warning(this, tr("Error"), QString());
 }
 
-void MemoryMapView::findAddressSlot()
+void MemoryMapView::gotoOriginSlot()
+{
+    selectAddress(mCipBase);
+}
+
+void MemoryMapView::gotoExpressionSlot()
 {
     GotoDialog mGoto(this);
     mGoto.setWindowTitle(tr("Enter the address to find..."));
