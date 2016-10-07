@@ -359,7 +359,6 @@ void WatchCacheSave(JSON root)
 
 void WatchCacheLoad(JSON root)
 {
-    WatchClear();
     EXCLUSIVE_ACQUIRE(LockWatch);
     JSON watchroot = json_object_get(root, "watch");
     if(!watchroot)

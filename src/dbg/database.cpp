@@ -35,11 +35,12 @@ char dbbasepath[deflen];
 */
 char dbpath[deflen];
 
-void DbSave(DbLoadSaveType saveType)
+void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression)
 {
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
-    dputs(QT_TRANSLATE_NOOP("DBG", "Saving database..."));
+    auto file = dbfile ? dbfile : dbpath;
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Saving database to %s\n"), file);
     DWORD ticks = GetTickCount();
     JSON root = json_object();
 
@@ -103,7 +104,7 @@ void DbSave(DbLoadSaveType saveType)
         json_decref(pluginRoot);
     }
 
-    auto wdbpath = StringUtils::Utf8ToUtf16(dbpath);
+    auto wdbpath = StringUtils::Utf8ToUtf16(file);
     CopyFileW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), FALSE); //make a backup
     if(json_object_size(root))
     {
@@ -112,7 +113,7 @@ void DbSave(DbLoadSaveType saveType)
         if(jsonText)
         {
             // Dump JSON to disk (overwrite any old files)
-            if(!FileHelper::WriteAllText(dbpath, jsonText))
+            if(!FileHelper::WriteAllText(file, jsonText))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file!"));
                 json_free(jsonText);
@@ -123,7 +124,7 @@ void DbSave(DbLoadSaveType saveType)
             json_free(jsonText);
         }
 
-        if(!settingboolget("Engine", "DisableDatabaseCompression"))
+        if(!disablecompression && !settingboolget("Engine", "DisableDatabaseCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
@@ -133,22 +134,23 @@ void DbSave(DbLoadSaveType saveType)
     json_decref(root); //free root
 }
 
-void DbLoad(DbLoadSaveType loadType)
+void DbLoad(DbLoadSaveType loadType, const char* dbfile)
 {
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
+    auto file = dbfile ? dbfile : dbpath;
     // If the file doesn't exist, there is no DB to load
-    if(!FileExists(dbpath))
+    if(!FileExists(file))
         return;
 
     if(loadType == DbLoadSaveType::CommandLine)
         dputs(QT_TRANSLATE_NOOP("DBG", "Loading commandline..."));
     else
-        dputs(QT_TRANSLATE_NOOP("DBG", "Loading database..."));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Loading database from %s\n"), file);
     DWORD ticks = GetTickCount();
 
     // Multi-byte (UTF8) file path converted to UTF16
-    WString databasePathW = StringUtils::Utf8ToUtf16(dbpath);
+    WString databasePathW = StringUtils::Utf8ToUtf16(file);
 
     // Decompress the file if compression was enabled
     bool useCompression = !settingboolget("Engine", "DisableDatabaseCompression");
@@ -167,7 +169,7 @@ void DbLoad(DbLoadSaveType loadType)
     // Read the database file
     String databaseText;
 
-    if(!FileHelper::ReadAllText(dbpath, databaseText))
+    if(!FileHelper::ReadAllText(file, databaseText))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file!"));
         return;
@@ -257,10 +259,13 @@ void DbClear()
     LabelClear();
     BookmarkClear();
     FunctionClear();
+    ArgumentClear();
     LoopClear();
     XrefClear();
     EncodeMapClear();
+    TraceRecord.clear();
     BpClear();
+    WatchClear();
     PatchClear();
     GuiSetDebuggeeNotes("");
 }

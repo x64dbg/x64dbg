@@ -75,7 +75,7 @@ void CommentCacheSave(JSON Root)
 void CommentCacheLoad(JSON Root)
 {
     comments.CacheLoad(Root);
-    comments.CacheLoad(Root, false, "auto"); //legacy support
+    comments.CacheLoad(Root, "auto"); //legacy support
 }
 
 bool CommentEnum(COMMENTSINFO* List, size_t* Size)

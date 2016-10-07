@@ -294,7 +294,6 @@ void TraceRecordManager::saveToDb(JSON root)
 
 void TraceRecordManager::loadFromDb(JSON root)
 {
-    clear();
     EXCLUSIVE_ACQUIRE(LockTraceRecord);
     // get the root object
     const JSON tracerecord = json_object_get(root, "tracerecord");

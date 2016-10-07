@@ -143,7 +143,7 @@ void FunctionCacheSave(JSON Root)
 void FunctionCacheLoad(JSON Root)
 {
     functions.CacheLoad(Root);
-    functions.CacheLoad(Root, false, "auto"); //legacy support
+    functions.CacheLoad(Root, "auto"); //legacy support
 }
 
 bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size)
