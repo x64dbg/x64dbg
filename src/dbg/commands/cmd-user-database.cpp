@@ -11,14 +11,18 @@
 
 CMDRESULT cbInstrDbsave(int argc, char* argv[])
 {
-    DbSave(DbLoadSaveType::All);
+    DbSave(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr, argc > 1);
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrDbload(int argc, char* argv[])
 {
-    DbClear();
-    DbLoad(DbLoadSaveType::All);
+    if(argc <= 1)
+    {
+        dputs("DbClear called!");
+        DbClear();
+    }
+    DbLoad(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
