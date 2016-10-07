@@ -5,6 +5,7 @@
 #include <QLineEdit>
 #include <QCheckBox>
 #include "SearchListViewTable.h"
+#include "MenuBuilder.h"
 
 namespace Ui
 {
@@ -45,6 +46,8 @@ signals:
 
 protected:
     bool eventFilter(QObject* obj, QEvent* event);
+
+#include "ActionHelpers.h"
 
 private:
     QCheckBox* mRegexCheckbox;

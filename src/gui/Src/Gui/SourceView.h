@@ -16,9 +16,16 @@ public:
     void setupContextMenu();
     void setSelection(int line);
 
+private slots:
+    void sourceContextMenu(QMenu* menu);
+    void openSourceFileSlot();
+    void showInDirectorySlot();
+
 private:
     QString mSourcePath;
     int mIpLine;
+    MenuBuilder* mMenuBuilder;
+
     void loadFile();
 };
 
