@@ -83,6 +83,8 @@ public slots:
     void displayThreadsWidget();
     void displaySnowmanWidget();
     void displayGraphWidget();
+    void displayPreviousTab();
+    void displayNextTab();
     void openSettings();
     void openAppearance();
     void openCalculator();

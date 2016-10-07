@@ -316,6 +316,8 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionSnowman, SIGNAL(triggered()), this, SLOT(displaySnowmanWidget()));
     connect(ui->actionHandles, SIGNAL(triggered()), this, SLOT(displayHandlesWidget()));
     connect(ui->actionGraph, SIGNAL(triggered()), this, SLOT(displayGraphWidget()));
+    connect(ui->actionPreviousTab, SIGNAL(triggered()), this, SLOT(displayPreviousTab()));
+    connect(ui->actionNextTab, SIGNAL(triggered()), this, SLOT(displayNextTab()));
     makeCommandAction(ui->actionStepIntoSource, "TraceIntoConditional src.line(cip) && !src.disp(cip)");
     makeCommandAction(ui->actionStepOverSource, "TraceOverConditional src.line(cip) && !src.disp(cip)");
     makeCommandAction(ui->actionseStepInto, "seStepInto");
@@ -572,6 +574,8 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionSnowman, ConfigShortcut("ViewSnowman"));
     setGlobalShortcut(ui->actionHandles, ConfigShortcut("ViewHandles"));
     setGlobalShortcut(ui->actionGraph, ConfigShortcut("ViewGraph"));
+    setGlobalShortcut(ui->actionPreviousTab, ConfigShortcut("ViewPreviousTab"));
+    setGlobalShortcut(ui->actionNextTab, ConfigShortcut("ViewNextTab"));
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
@@ -916,6 +920,16 @@ void MainWindow::displaySnowmanWidget()
 void MainWindow::displayGraphWidget()
 {
     showQWidgetTab(mGraphView);
+}
+
+void MainWindow::displayPreviousTab()
+{
+    mTabWidget->showPreviousTab();
+}
+
+void MainWindow::displayNextTab()
+{
+    mTabWidget->showNextTab();
 }
 
 void MainWindow::openSettings()

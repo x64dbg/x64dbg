@@ -72,6 +72,9 @@
     <addaction name="actionSnowman"/>
     <addaction name="actionHandles"/>
     <addaction name="actionGraph"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreviousTab"/>
+    <addaction name="actionNextTab"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -1046,6 +1049,24 @@
    </property>
    <property name="text">
     <string>Customize menus</string>
+   </property>
+  </action>
+  <action name="actionPreviousTab">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/previous.png</normaloff>:/icons/images/previous.png</iconset>
+   </property>
+   <property name="text">
+    <string>Previous Tab</string>
+   </property>
+  </action>
+  <action name="actionNextTab">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/next.png</normaloff>:/icons/images/next.png</iconset>
+   </property>
+   <property name="text">
+    <string>Next Tab</string>
    </property>
   </action>
  </widget>
