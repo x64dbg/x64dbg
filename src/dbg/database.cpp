@@ -40,7 +40,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
     auto file = dbfile ? dbfile : dbpath;
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Saving database to %s\n"), file);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Saving database to %s "), file);
     DWORD ticks = GetTickCount();
     JSON root = json_object();
 
@@ -105,7 +105,8 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
     }
 
     auto wdbpath = StringUtils::Utf8ToUtf16(file);
-    CopyFileW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), FALSE); //make a backup
+    if(!dbfile)
+        CopyFileW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), FALSE); //make a backup
     if(json_object_size(root))
     {
         char* jsonText = json_dumps(root, JSON_INDENT(1));
@@ -146,7 +147,7 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
     if(loadType == DbLoadSaveType::CommandLine)
         dputs(QT_TRANSLATE_NOOP("DBG", "Loading commandline..."));
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Loading database from %s\n"), file);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Loading database from %s "), file);
     DWORD ticks = GetTickCount();
 
     // Multi-byte (UTF8) file path converted to UTF16
