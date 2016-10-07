@@ -18,10 +18,7 @@ CMDRESULT cbInstrDbsave(int argc, char* argv[])
 CMDRESULT cbInstrDbload(int argc, char* argv[])
 {
     if(argc <= 1)
-    {
-        dputs("DbClear called!");
         DbClear();
-    }
     DbLoad(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
