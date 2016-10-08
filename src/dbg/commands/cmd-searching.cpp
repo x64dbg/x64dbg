@@ -7,6 +7,7 @@
 #include "debugger.h"
 #include "filehelper.h"
 #include "label.h"
+#include "yara/yara.h"
 
 static int maxFindResults = 5000;
 
@@ -142,7 +143,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         i += foundoffset + 1;
         result = addr + i - 1;
         char msg[deflen] = "";
-        sprintf(msg, "%p", result);
+        sprintf_s(msg, "%p", result);
         GuiReferenceSetRowCount(refCount + 1);
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
@@ -246,7 +247,7 @@ CMDRESULT cbInstrFindAllMem(int argc, char* argv[])
     for(duint result : results)
     {
         char msg[deflen] = "";
-        sprintf(msg, "%p", result);
+        sprintf_s(msg, "%p", result);
         GuiReferenceSetRowCount(refCount + 1);
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
@@ -292,7 +293,7 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->Address());
+        sprintf_s(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
@@ -338,7 +339,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     char title[256] = "";
     sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Command: \"%s\"")), basicinfo.instruction);
     int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title, (REFFINDTYPE)refFindType, true);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u result(s) in %ums\n"), found, GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u result(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -399,7 +400,7 @@ static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->Address());
+        sprintf_s(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
@@ -440,7 +441,7 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
             refFindType = CURRENT_REGION;
 
     int found = RefFind(addr, size, cbRefFind, &range, false, title, (REFFINDTYPE)refFindType, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u reference(s) in %ums\n"), found, GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u reference(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -475,7 +476,7 @@ static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINF
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->Address());
+        sprintf_s(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[4096] = "";
@@ -509,7 +510,7 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
 
     TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Strings"));
     int found = RefFind(addr, size, cbRefStr, 0, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u string(s) in %ums\n"), found, GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u string(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -538,7 +539,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     {
         char addrText[20] = "";
         char moduleTargetText[256] = "";
-        sprintf(addrText, "%p", disasm->Address());
+        sprintf_s(addrText, "%p", disasm->Address());
         sprintf(moduleTargetText, "%s.%s", module, label);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
@@ -575,7 +576,7 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
     duint ticks = GetTickCount();
     String Calls = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Calls"));
     int found = RefFind(addr, size, cbModCallFind, 0, false, Calls.c_str(), (REFFINDTYPE)refFindType, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u call(s) in %ums\n"), found, GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u call(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -656,7 +657,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
             scanInfo->index++;
 
             char addr_text[deflen] = "";
-            sprintf(addr_text, "%p", addr);
+            sprintf_s(addr_text, "%p", addr);
             GuiReferenceSetCellContent(index, 0, addr_text); //Address
             String ruleFullName = "";
             ruleFullName += yrRule->identifier;
@@ -789,7 +790,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         memcpy(data(), rawFileData.data(), size);
     else if(!MemRead(base, data(), size))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to read memory page %p[%X]!\n"), base, size);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to read memory page %p[%X]!\n"), base, DWORD(size));
         return STATUS_ERROR;
     }
 
@@ -837,7 +838,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                 switch(err)
                 {
                 case ERROR_SUCCESS:
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "%u scan results in %ums...\n"), scanInfo.index, GetTickCount() - ticks);
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "%u scan results in %ums...\n"), DWORD(scanInfo.index), GetTickCount() - DWORD(ticks));
                     bSuccess = true;
                     break;
                 case ERROR_TOO_MANY_MATCHES:

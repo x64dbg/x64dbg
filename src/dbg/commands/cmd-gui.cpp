@@ -19,7 +19,7 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     {
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     }
-    DebugUpdateGuiAsync(addr, false);
+    DebugUpdateGui(addr, false);
     GuiShowCpu();
     return STATUS_CONTINUE;
 }
@@ -85,7 +85,6 @@ CMDRESULT cbDebugMemmapdump(int argc, char* argv[])
         return STATUS_ERROR;
     }
     GuiSelectInMemoryMap(addr);
-    GuiShowCpu();
     return STATUS_CONTINUE;
 }
 

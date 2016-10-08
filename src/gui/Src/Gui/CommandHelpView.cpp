@@ -16,7 +16,7 @@ CommandHelpView::CommandHelpView(QWidget* parent) : QWidget(parent), ui(new Ui::
     setLayout(mMainLayout);
 
     // Create reference view
-    mSearchListView = new SearchListView();
+    mSearchListView = new SearchListView(true, this);
     mSearchListView->mSearchStartCol = 1;
 
     // Get font information

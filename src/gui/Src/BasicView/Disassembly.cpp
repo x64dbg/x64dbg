@@ -440,7 +440,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             if(i)
                 richBytes.push_back(space);
             auto byte = (unsigned char)dump.at(i);
-            curByte.text = QString("%1").arg(byte, 2, 16, QChar('0')).toUpper();
+            curByte.text = ToByteString(byte);
             DBGPATCHINFO patchInfo;
             if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
                 curByte.textColor = byte == patchInfo.newbyte ? mModifiedBytesColor : mRestoredBytesColor;
@@ -877,7 +877,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
         if(!dest)
             return;
-        QString cmd = "disasm " + QString("%1").arg(dest, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString cmd = "disasm " + ToPtrString(dest);
         DbgCmdExec(cmd.toUtf8().constData());
     }
     else

@@ -23,7 +23,7 @@
      <x>0</x>
      <y>0</y>
      <width>868</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -44,6 +44,8 @@
     <addaction name="menuRecentFiles"/>
     <addaction name="actionAttach"/>
     <addaction name="actionDetach"/>
+    <addaction name="actionImportdatabase"/>
+    <addaction name="actionExportdatabase"/>
     <addaction name="actionPatches"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -72,6 +74,9 @@
     <addaction name="actionSnowman"/>
     <addaction name="actionHandles"/>
     <addaction name="actionGraph"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreviousTab"/>
+    <addaction name="actionNextTab"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -159,6 +164,7 @@
     <addaction name="actionSettings"/>
     <addaction name="actionAppearance"/>
     <addaction name="actionShortcuts"/>
+    <addaction name="actionCustomizeMenus"/>
     <addaction name="actionTopmost"/>
     <addaction name="actionReloadStylesheet"/>
     <addaction name="actionSetInitializationScript"/>
@@ -1036,6 +1042,51 @@
   <action name="actionImportSettings">
    <property name="text">
     <string>Import settings...</string>
+   </property>
+  </action>
+  <action name="actionCustomizeMenus">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/analysis.png</normaloff>:/icons/images/analysis.png</iconset>
+   </property>
+   <property name="text">
+    <string>Customize menus</string>
+   </property>
+  </action>
+  <action name="actionImportdatabase">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/database-import.png</normaloff>:/icons/images/database-import.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Import database</string>
+   </property>
+  </action>
+  <action name="actionExportdatabase">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/database-export.png</normaloff>:/icons/images/database-export.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Export database</string>
+   </property>
+  </action>
+  <action name="actionPreviousTab">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/previous.png</normaloff>:/icons/images/previous.png</iconset>
+   </property>
+   <property name="text">
+    <string>Previous Tab</string>
+   </property>
+  </action>
+  <action name="actionNextTab">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/next.png</normaloff>:/icons/images/next.png</iconset>
+   </property>
+   <property name="text">
+    <string>Next Tab</string>
    </property>
   </action>
  </widget>

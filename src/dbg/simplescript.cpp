@@ -175,7 +175,6 @@ static bool scriptcreatelinemap(const char* filename)
             cur.type = linelabel;
             sprintf(cur.u.label, "l %.*s", rawlen - 1, cur.raw); //create a fake command for formatting
             strcpy_s(cur.u.label, StringUtils::Trim(cur.u.label).c_str());
-            char temp[256] = "";
             strcpy_s(temp, cur.u.label + 2);
             strcpy_s(cur.u.label, temp); //remove fake command
             if(!*cur.u.label || !strcmp(cur.u.label, "\"\"")) //no label text
@@ -202,11 +201,11 @@ static bool scriptcreatelinemap(const char* filename)
             cur.u.branch.type = scriptgetbranchtype(cur.raw);
             char newraw[MAX_SCRIPT_LINE_SIZE] = "";
             strcpy_s(newraw, StringUtils::Trim(cur.raw).c_str());
-            int len = (int)strlen(newraw);
-            for(int i = 0; i < len; i++)
-                if(newraw[i] == ' ')
+            int rlen = (int)strlen(newraw);
+            for(int j = 0; j < rlen; j++)
+                if(newraw[j] == ' ')
                 {
-                    strcpy_s(cur.u.branch.branchlabel, newraw + i + 1);
+                    strcpy_s(cur.u.branch.branchlabel, newraw + j + 1);
                     break;
                 }
         }

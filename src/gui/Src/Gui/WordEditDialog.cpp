@@ -1,6 +1,7 @@
 #include "WordEditDialog.h"
 #include "ui_WordEditDialog.h"
 #include "ValidateExpressionThread.h"
+#include "StringUtil.h"
 
 WordEditDialog::WordEditDialog(QWidget* parent)
     : QDialog(parent),
@@ -76,7 +77,7 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         ui->expressionLineEdit->setStyleSheet("");
         ui->signedLineEdit->setStyleSheet("");
         ui->unsignedLineEdit->setStyleSheet("");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
+        ui->btnOk->setEnabled(true);
 
         //hex
         mWord = value;
@@ -103,7 +104,7 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         saveCursorPositions();
 
         // Byte edit line
-        ui->hexLineEdit->setText(QString("%1").arg(hexWord, sizeof(duint) * 2, 16, QChar('0')).toUpper());
+        ui->hexLineEdit->setText(ToPtrString(hexWord));
         // Signed edit
         ui->signedLineEdit->setText(QString::number((dsint)mWord));
         // Unsigned edit
@@ -115,7 +116,7 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
     else
     {
         ui->expressionLineEdit->setStyleSheet("border: 1px solid red");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->btnOk->setEnabled(false);
     }
 }
 
@@ -125,13 +126,13 @@ void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)
     if(sscanf_s(arg1.toUtf8().constData(), "%lld", &value) == 1)
     {
         ui->signedLineEdit->setStyleSheet("");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
-        ui->expressionLineEdit->setText(QString("%1").arg((duint)value, sizeof(duint) * 2, 16, QChar('0')).toUpper());
+        ui->btnOk->setEnabled(true);
+        ui->expressionLineEdit->setText(ToPtrString((duint)value));
     }
     else
     {
         ui->signedLineEdit->setStyleSheet("border: 1px solid red");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->btnOk->setEnabled(false);
     }
 }
 
@@ -141,13 +142,13 @@ void WordEditDialog::on_unsignedLineEdit_textEdited(const QString & arg1)
     if(sscanf_s(arg1.toUtf8().constData(), "%llu", &value) == 1)
     {
         ui->unsignedLineEdit->setStyleSheet("");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
-        ui->expressionLineEdit->setText(QString("%1").arg((duint)value, sizeof(duint) * 2, 16, QChar('0')).toUpper());
+        ui->btnOk->setEnabled(true);
+        ui->expressionLineEdit->setText(ToPtrString((duint)value));
     }
     else
     {
         ui->unsignedLineEdit->setStyleSheet("border: 1px solid red");
-        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->btnOk->setEnabled(false);
     }
 }
 

@@ -251,5 +251,7 @@
         <file>images/graph.png</file>
         <file>images/enable.png</file>
         <file>images/disable.png</file>
+        <file>images/database-export.png</file>
+        <file>images/database-import.png</file>
     </qresource>
 </RCC>

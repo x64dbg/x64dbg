@@ -656,6 +656,17 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_SELECT_IN_MEMORY_MAP:
         emit selectInMemoryMap(duint(param1));
         break;
+
+    case GUI_GET_ACTIVE_VIEW:
+    {
+        if(param1)
+        {
+            BridgeResult result;
+            emit getActiveView((ACTIVEVIEW*)param1);
+            result.Wait();
+        }
+    }
+    break;
     }
 
     return nullptr;

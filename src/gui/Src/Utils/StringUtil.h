@@ -8,7 +8,7 @@
 #include <QLocale>
 #include "Imports.h"
 
-static QString ToPtrString(duint Address)
+inline QString ToPtrString(duint Address)
 {
     //
     // This function exists because of how QT handles
@@ -27,14 +27,14 @@ static QString ToPtrString(duint Address)
     return QString(temp);
 }
 
-static QString ToLongLongHexString(unsigned long long Value)
+inline QString ToLongLongHexString(unsigned long long Value)
 {
     char temp[32];
     sprintf_s(temp, "%llX", Value);
     return QString(temp);
 }
 
-static QString ToHexString(duint Value)
+inline QString ToHexString(duint Value)
 {
     char temp[32];
 #ifdef _WIN64
@@ -45,7 +45,7 @@ static QString ToHexString(duint Value)
     return QString(temp);
 }
 
-static QString ToDecString(dsint Value)
+inline QString ToDecString(dsint Value)
 {
     char temp[32];
 #ifdef _WIN64
@@ -56,8 +56,22 @@ static QString ToDecString(dsint Value)
     return QString(temp);
 }
 
+inline QString ToByteString(unsigned char Value)
+{
+    char temp[4];
+    sprintf_s(temp, "%02X", Value);
+    return QString(temp);
+}
+
+inline QString ToWordString(unsigned short Value)
+{
+    char temp[8];
+    sprintf_s(temp, "%04X", Value);
+    return QString(temp);
+}
+
 template<typename T>
-static QString ToFloatingString(void* buffer)
+inline QString ToFloatingString(void* buffer)
 {
     auto value = *(T*)buffer;
     std::stringstream wFloatingStr;
@@ -66,18 +80,18 @@ static QString ToFloatingString(void* buffer)
 }
 
 template<typename T>
-static QString ToIntegralString(void* buffer)
+inline QString ToIntegralString(void* buffer)
 {
     auto value = *(T*)buffer;
     return ToLongLongHexString(value);
 }
 
-static QString ToFloatString(void* buffer)
+inline QString ToFloatString(void* buffer)
 {
     return ToFloatingString<float>(buffer);
 }
 
-static QString ToDoubleString(void* buffer)
+inline QString ToDoubleString(void* buffer)
 {
     return ToFloatingString<double>(buffer);
 }
@@ -88,13 +102,13 @@ QString ToDateString(const QDate & date);
 
 QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type);
 
-static QDate GetCompileDate()
+inline QDate GetCompileDate()
 {
     return QLocale("en_US").toDate(QString(__DATE__).simplified(), "MMM d yyyy");
 }
 
 template<typename T>
-static T & ArchValue(T & x32value, T & x64value)
+inline T & ArchValue(T & x32value, T & x64value)
 {
 #ifdef _WIN64
     Q_UNUSED(x32value);
@@ -106,7 +120,7 @@ static T & ArchValue(T & x32value, T & x64value)
 }
 
 // Format : d:hh:mm:ss.1234567
-static QString FILETIMEToTime(const FILETIME & time)
+inline QString FILETIMEToTime(const FILETIME & time)
 {
     // FILETIME is in 100ns
     quint64 time100ns = (quint64)time.dwHighDateTime << 32 | (quint64)time.dwLowDateTime;

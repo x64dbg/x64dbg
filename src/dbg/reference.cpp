@@ -106,7 +106,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
-    else if(type == ALL_MODULES) // Search in all Modules
+    else if(type == ALL_MODULES)  // Search in all Modules
     {
         bool initCallBack = true;
         std::vector<MODINFO> modList;
@@ -134,7 +134,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         for(duint i = 0; i < modList.size(); i++)
         {
             scanStart = modList[i].base;
-            scanSize  = modList[i].size;
+            scanSize = modList[i].size;
 
             if(i != 0)
                 initCallBack = false;
@@ -154,6 +154,8 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             }, disasmText);
         }
     }
+    else
+        return 0;
 
     GuiReferenceSetProgress(100);
     GuiReferenceReloadData();

@@ -84,7 +84,7 @@ CMDRESULT cbHandleClose(int argc, char* argv[])
     duint handle;
     if(!valfromstring(argv[1], &handle, false))
         return STATUS_ERROR;
-    if(!DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), NULL, NULL, 0, FALSE, DUPLICATE_CLOSE_SOURCE))
+    if(!handle || !DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), NULL, NULL, 0, FALSE, DUPLICATE_CLOSE_SOURCE))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "DuplicateHandle failed: %s\n"), ErrorCodeToName(GetLastError()).c_str());
         return STATUS_ERROR;

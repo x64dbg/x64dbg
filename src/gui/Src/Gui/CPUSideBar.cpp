@@ -227,9 +227,12 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
         if(isJump(line)) //handle jumps
         {
+            duint baseAddr = mDisas->getBase();
+            duint destVA = DbgGetBranchDestination(baseAddr + instr.rva);
+
             JumpLine jmp;
             jmp.isJumpGoingToExecute = DbgIsJumpGoingToExecute(instrVA);
-            jmp.isSelected = (selectedVA == instrVA);
+            jmp.isSelected = (selectedVA == instrVA || selectedVA == destVA);
             jmp.isConditional = instr.branchType == Instruction_t::Conditional;
             jmp.line = line;
 
@@ -240,9 +243,6 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
             jumpoffset++;
 
-            duint baseAddr = mDisas->getBase();
-
-            duint destVA = DbgGetBranchDestination(baseAddr + instr.rva);
 
             // Do not try to draw EBFE (Jump to the same line)
             //if(destVA == instrVA)
@@ -389,17 +389,17 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     {
     case bp_enabled:
         // breakpoint exists and is enabled --> disable breakpoint
-        wCmd = "bd " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bd " + ToPtrString(wVA);
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
     case bp_disabled:
         // is disabled --> delete
-        wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bc " + ToPtrString(wVA);
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
     case bp_non_existent:
         // no breakpoint was found --> create breakpoint
-        wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bp " + ToPtrString(wVA);
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
     }

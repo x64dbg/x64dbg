@@ -93,6 +93,8 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent, bool EnableLoc
 
     // Install input event filter
     mSearchBox->installEventFilter(this);
+    if(parent)
+        mSearchBox->setWindowTitle(parent->metaObject()->className());
 
     // Setup search menu action
     mSearchAction = new QAction(DIcon("find.png"), tr("Search..."), this);

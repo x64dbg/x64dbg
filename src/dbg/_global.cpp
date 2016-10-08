@@ -321,7 +321,8 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
         return SUCCEEDED(E_INVALIDARG);
 
     //Initialize COM stuff
-    CoInitialize(NULL);
+    if(!SUCCEEDED(CoInitialize(NULL)))
+        return false;
 
     //Get a pointer to the IShellLink interface.
     IShellLink* psl = NULL;

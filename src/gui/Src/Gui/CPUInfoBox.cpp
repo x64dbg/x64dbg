@@ -67,6 +67,29 @@ void CPUInfoBox::clear()
     setInfoLine(2, "");
 }
 
+static QString escapeCh(QChar ch)
+{
+    switch(ch.unicode())
+    {
+    case '\t':
+        return "\\t";
+    case '\f':
+        return "\\f";
+    case '\v':
+        return "\\v";
+    case '\n':
+        return "\\n";
+    case '\r':
+        return "\\r";
+    case '\\':
+        return "\\\\";
+    case '\"':
+        return "\\\"";
+    default:
+        return QString(1, ch);
+    }
+}
+
 QString CPUInfoBox::getSymbolicName(dsint addr)
 {
     char labelText[MAX_LABEL_SIZE] = "";
@@ -90,15 +113,15 @@ QString CPUInfoBox::getSymbolicName(dsint addr)
         finalText = addrText;
         if(addr == (addr & 0xFF))
         {
-            QChar c = QChar::fromLatin1((char)addr);
-            if(c.isPrint())
-                finalText += QString(" '%1'").arg((char)addr);
+            QChar c = QChar((char)addr);
+            if(c.isPrint() || c.isSpace())
+                finalText += QString(" '%1'").arg(escapeCh(c));
         }
         else if(addr == (addr & 0xFFF)) //UNICODE?
         {
             QChar c = QChar((ushort)addr);
-            if(c.isPrint())
-                finalText += " L'" + QString(c) + "'";
+            if(c.isPrint() || c.isSpace())
+                finalText += QString(" L'%1'").arg(escapeCh(c));
         }
     }
     return finalText;
@@ -232,11 +255,11 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         // Module RVA
         curRva = parVA - modbase;
         if(modbase)
-            info += QString(":$%1 ").arg(curRva, 0, 16, QChar('0')).toUpper();
+            info += QString(":$%1 ").arg(ToHexString(curRva));
 
         // File offset
         curOffset = DbgFunctions()->VaToFileOffset(parVA);
-        info += QString("#%1 ").arg(curOffset, 0, 16, QChar('0')).toUpper();
+        info += QString("#%1 ").arg(ToHexString(curOffset));
     }
 
     // Function/label name
@@ -321,7 +344,7 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, duint wVA)
                 addFollowMenuItem(menu, tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
             if(arg.value != arg.constant)
             {
-                QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+                QString constant = QString("%1").arg(ToHexString(arg.constant));
                 if(DbgMemIsValidReadPtr(arg.constant))
                     addFollowMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }
@@ -386,7 +409,7 @@ void CPUInfoBox::setupWatchMenu(QMenu* menu, duint wVA)
                 addWatchMenuItem(menu, tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
             if(arg.value != arg.constant)
             {
-                QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+                QString constant = QString("%1").arg(ToHexString(arg.constant));
                 if(DbgMemIsValidReadPtr(arg.constant))
                     addWatchMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }

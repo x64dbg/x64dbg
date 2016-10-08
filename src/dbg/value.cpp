@@ -1320,7 +1320,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
             if(!mod)
             {
                 if(!silent)
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "unable to load library %s\n"), szModName);
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "unable to load library %s\n"), StringUtils::Utf16ToUtf8(szModName).c_str());
             }
             else
             {
@@ -1435,7 +1435,13 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
             return true;
         for(int i = 0; i < found; i++)
             if(i != kernel32)
-                dprintf_untranslated("%p\n", addrfound()[i]);
+            {
+                auto symbolic = SymGetSymbolicName(addrfound()[i]);
+                if(symbolic.length())
+                    dprintf_untranslated("%p %s\n", addrfound()[i], symbolic.c_str());
+                else
+                    dprintf_untranslated("%p\n", addrfound()[i]);
+            }
     }
     else
     {
@@ -1443,7 +1449,13 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         if(!printall || silent)
             return true;
         for(int i = 1; i < found; i++)
-            dprintf_untranslated("%p\n", addrfound()[i]);
+        {
+            auto symbolic = SymGetSymbolicName(addrfound()[i]);
+            if(symbolic.length())
+                dprintf_untranslated("%p %s\n", addrfound()[i], symbolic.c_str());
+            else
+                dprintf_untranslated("%p\n", addrfound()[i]);
+        }
     }
     return true;
 }
@@ -1704,7 +1716,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         return false;
     if(isvar)
         *isvar = false;
-    else if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
+    if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
         return true;
     else if(LabelFromString(string, value))  //then come labels
         return true;
@@ -1808,9 +1820,9 @@ static void setfpuvalue(const char* string, duint value)
 
     if(startsWith(MxCsr_PRE_FIELD_STRING, string))
     {
-        if(StrNCmpI(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING), "RC", (int) strlen("RC")) == 0)
+        if(_strnicmp(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING), "RC", (int)strlen("RC")) == 0)
         {
-            duint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
+            flags = GetContextDataEx(hActiveThread, UE_MXCSR);
             int i = 3;
             i <<= 13;
             flags &= ~i;
@@ -1820,7 +1832,7 @@ static void setfpuvalue(const char* string, duint value)
         }
         else
         {
-            duint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
+            flags = GetContextDataEx(hActiveThread, UE_MXCSR);
             flag = getmxcsrflagfromstring(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING));
             if(flags & flag && !set)
                 xorval = flag;
@@ -1856,9 +1868,9 @@ static void setfpuvalue(const char* string, duint value)
     }
     else if(startsWith(x87SW_PRE_FIELD_STRING, string))
     {
-        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING), "TOP", (int) strlen("TOP")) == 0)
+        if(_strnicmp(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING), "TOP", (int)strlen("TOP")) == 0)
         {
-            duint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
+            flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
             int i = 7;
             i <<= 11;
             flags &= ~i;
@@ -1868,7 +1880,7 @@ static void setfpuvalue(const char* string, duint value)
         }
         else
         {
-            duint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
+            flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
             flag = getx87statuswordflagfromstring(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING));
             if(flags & flag && !set)
                 xorval = flag;
@@ -1879,9 +1891,9 @@ static void setfpuvalue(const char* string, duint value)
     }
     else if(startsWith(x87CW_PRE_FIELD_STRING, string))
     {
-        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "RC", (int) strlen("RC")) == 0)
+        if(_strnicmp(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "RC", (int)strlen("RC")) == 0)
         {
-            duint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
             int i = 3;
             i <<= 10;
             flags &= ~i;
@@ -1889,9 +1901,9 @@ static void setfpuvalue(const char* string, duint value)
             flags |= value;
             SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags);
         }
-        else if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "PC", (int) strlen("PC")) == 0)
+        else if(_strnicmp(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "PC", (int)strlen("PC")) == 0)
         {
-            duint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
             int i = 3;
             i <<= 8;
             flags &= ~i;
@@ -1901,7 +1913,7 @@ static void setfpuvalue(const char* string, duint value)
         }
         else
         {
-            duint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
             flag = getx87controlwordflagfromstring(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING));
             if(flags & flag && !set)
                 xorval = flag;
@@ -1910,19 +1922,19 @@ static void setfpuvalue(const char* string, duint value)
             SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags ^ xorval);
         }
     }
-    else if(StrNCmpI(string, "x87TagWord", (int) strlen(string)) == 0)
+    else if(_strnicmp(string, "x87TagWord", (int)strlen(string)) == 0)
     {
         SetContextDataEx(hActiveThread, UE_X87_TAGWORD, (unsigned short) value);
     }
-    else if(StrNCmpI(string, "x87StatusWord", (int) strlen(string)) == 0)
+    else if(_strnicmp(string, "x87StatusWord", (int)strlen(string)) == 0)
     {
         SetContextDataEx(hActiveThread, UE_X87_STATUSWORD, (unsigned short) value);
     }
-    else if(StrNCmpI(string, "x87ControlWord", (int) strlen(string)) == 0)
+    else if(_strnicmp(string, "x87ControlWord", (int)strlen(string)) == 0)
     {
         SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, (unsigned short) value);
     }
-    else if(StrNCmpI(string, "MxCsr", (int) strlen(string)) == 0)
+    else if(_strnicmp(string, "MxCsr", (int)strlen(string)) == 0)
     {
         SetContextDataEx(hActiveThread, UE_MXCSR, value);
     }

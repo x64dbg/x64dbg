@@ -134,6 +134,7 @@ public slots:
     void slot_updateColors();
     void slot_updateFonts();
     void slot_updateShortcuts();
+    void slot_close();
 
     // Update/Reload/Refresh/Repaint
     virtual void reloadData();

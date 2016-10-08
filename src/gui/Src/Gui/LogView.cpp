@@ -4,6 +4,7 @@
 #include "BrowseDialog.h"
 #include <QRegularExpression>
 #include <QDesktopServices>
+#include <QClipboard>
 
 /**
  * @brief LogView::LogView The constructor constructs a rich text browser
@@ -67,6 +68,7 @@ void LogView::setupContextMenu()
 {
     actionClear = setupAction(DIcon("eraser.png"), tr("Clea&r"), this, SLOT(clearLogSlot()));
     actionCopy = setupAction(DIcon("copy.png"), tr("&Copy"), this, SLOT(copy()));
+    actionPaste = setupAction(DIcon("binary_paste.png"), tr("&Paste"), this, SLOT(pasteSlot()));
     actionSelectAll = setupAction(tr("Select &All"), this, SLOT(selectAll()));
     actionSave = setupAction(DIcon("binary_save.png"), tr("&Save"), this, SLOT(saveSlot()));
     actionToggleLogging = setupAction(tr("Disable &Logging"), this, SLOT(toggleLoggingSlot()));
@@ -99,6 +101,7 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(actionClear);
     wMenu.addAction(actionSelectAll);
     wMenu.addAction(actionCopy);
+    wMenu.addAction(actionPaste);
     wMenu.addAction(actionSave);
     if(getLoggingEnabled())
         actionToggleLogging->setText(tr("Disable &Logging"));
@@ -322,4 +325,14 @@ void LogView::copyToDebuggeeNotes()
     BridgeFree(NotesBuffer);
     Notes.append(this->textCursor().selectedText());
     emit Bridge::getBridge()->setDebuggeeNotes(Notes);
+}
+
+void LogView::pasteSlot()
+{
+    QString clipboardText = QApplication::clipboard()->text();
+    if(clipboardText.isEmpty())
+        return;
+    if(!clipboardText.endsWith('\n'))
+        clipboardText.append('\n');
+    addMsgToLogSlot(clipboardText);
 }

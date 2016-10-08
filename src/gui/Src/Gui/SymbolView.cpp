@@ -20,11 +20,11 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     setLayout(mMainLayout);
 
     // Create reference view
-    mSearchListView = new SearchListView(true, 0, true);
+    mSearchListView = new SearchListView(true, this, true);
     mSearchListView->mSearchStartCol = 1;
 
     // Create module list
-    mModuleList = new SearchListView();
+    mModuleList = new SearchListView(true, this);
     mModuleList->mSearchStartCol = 1;
     int charwidth = mModuleList->mList->getCharWidth();
     mModuleList->mList->enableMultiSelection(true);
@@ -234,7 +234,7 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
     StdTable* symbolList = (StdTable*)user;
     dsint index = symbolList->getRowCount();
     symbolList->setRowCount(index + 1);
-    symbolList->setCellContent(index, 0, QString("%1").arg(symbol->addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    symbolList->setCellContent(index, 0, ToPtrString(symbol->addr));
     if(symbol->decoratedSymbol)
     {
         symbolList->setCellContent(index, 2, symbol->decoratedSymbol);
@@ -473,11 +473,11 @@ void SymbolView::toggleBreakpoint()
 
         if((wBpType & bp_normal) == bp_normal)
         {
-            wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            wCmd = "bc " + ToPtrString(wVA);
         }
         else
         {
-            wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            wCmd = "bp " + ToPtrString(wVA);
         }
 
         DbgCmdExec(wCmd.toUtf8().constData());

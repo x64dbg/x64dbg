@@ -153,7 +153,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     Handle hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
     if(!hProcess)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not open process %X!\n"), pid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not open process %X!\n"), DWORD(pid));
         return STATUS_ERROR;
     }
     BOOL wow64 = false, mewow64 = false;
@@ -174,7 +174,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     wchar_t wszFileName[MAX_PATH] = L"";
     if(!GetModuleFileNameExW(hProcess, 0, wszFileName, MAX_PATH))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), pid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), DWORD(pid));
         return STATUS_ERROR;
     }
     strcpy_s(szFileName, StringUtils::Utf16ToUtf8(wszFileName).c_str());

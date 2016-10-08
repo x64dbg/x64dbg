@@ -24,6 +24,7 @@
 #include "datainst_helper.h"
 #include "exception.h"
 #include "expressionfunctions.h"
+#include "yara/yara.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -40,7 +41,7 @@ static CMDRESULT cbStrLen(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
         return STATUS_ERROR;
     }
-    dprintf_untranslated("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
+    dprintf_untranslated("\"%s\"[%d]\n", argv[1], int(strlen(argv[1])));
     return STATUS_CONTINUE;
 }
 
@@ -341,6 +342,20 @@ static void registercommands()
     dbgcmdnew("DataJunk", cbInstrDataJunk, true); //mark as Junk
     dbgcmdnew("DataMiddle", cbInstrDataMiddle, true); //mark as Middle
 
+    dbgcmdnew("AddType", cbInstrAddType, false); //AddType
+    dbgcmdnew("AddStruct", cbInstrAddStruct, false); //AddStruct
+    dbgcmdnew("AddUnion", cbInstrAddUnion, false); //AddUnion
+    dbgcmdnew("AddMember", cbInstrAddMember, false); //AddMember
+    dbgcmdnew("AppendMember", cbInstrAppendMember, false); //AppendMember
+    dbgcmdnew("AddFunction", cbInstrAddFunction, false); //AddFunction
+    dbgcmdnew("AddArg", cbInstrAddArg, false); //AddArg
+    dbgcmdnew("AppendArg", cbInstrAppendArg, false); //AppendArg
+    dbgcmdnew("SizeofType", cbInstrSizeofType, false); //SizeofType
+    dbgcmdnew("VisitType", cbInstrVisitType, false); //VisitType
+    dbgcmdnew("ClearTypes", cbInstrClearTypes, false); //ClearTypes
+    dbgcmdnew("RemoveType", cbInstrRemoveType, false); //RemoveType
+    dbgcmdnew("EnumTypes", cbInstrEnumTypes, false); //EnumTypes
+
     //plugins
     dbgcmdnew("StartScylla\1scylla\1imprec", cbDebugStartScylla, false); //start scylla
     dbgcmdnew("plugload\1pluginload\1loadplugin", cbInstrPluginLoad, false); //load plugin
@@ -373,10 +388,8 @@ static void registercommands()
     dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
 
     //misc
-    dbgcmdnew("strlen\1charcount\1ccount", cbStrLen, false); //get strlen, arg1:string
     dbgcmdnew("chd", cbInstrChd, false); //Change directory
-    dbgcmdnew("gettickcount\1tickcount\1gtc", cbInstrGetTickCount, false); // GetTickCount
-    dbgcmdnew("sleep", cbInstrSleep, false); //Sleep
+    dbgcmdnew("zzz\1doSleep", cbInstrZzz, false); //sleep
 
     dbgcmdnew("HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
@@ -615,23 +628,23 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy_s(szLocalSymbolPath, szProgramDir);
     strcat_s(szLocalSymbolPath, "\\symbols");
 
-    char cachePath[MAX_SETTING_SIZE];
-    if(!BridgeSettingGet("Symbols", "CachePath", cachePath) || !*cachePath)
+    Memory<char*> cachePath(MAX_SETTING_SIZE + 1);
+    if(!BridgeSettingGet("Symbols", "CachePath", cachePath()) || !*cachePath())
     {
         strcpy_s(szSymbolCachePath, szLocalSymbolPath);
         BridgeSettingSet("Symbols", "CachePath", ".\\symbols");
     }
     else
     {
-        if(_strnicmp(cachePath, ".\\", 2) == 0)
+        if(_strnicmp(cachePath(), ".\\", 2) == 0)
         {
             strncpy_s(szSymbolCachePath, szProgramDir, _TRUNCATE);
-            strncat_s(szSymbolCachePath, cachePath + 1, _TRUNCATE);
+            strncat_s(szSymbolCachePath, cachePath() + 1, _TRUNCATE);
         }
         else
         {
             // Trim the buffer to fit inside MAX_PATH
-            strncpy_s(szSymbolCachePath, cachePath, _TRUNCATE);
+            strncpy_s(szSymbolCachePath, cachePath(), _TRUNCATE);
         }
 
         if(strstr(szSymbolCachePath, "http://") || strstr(szSymbolCachePath, "https://"))

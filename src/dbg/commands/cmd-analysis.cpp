@@ -153,12 +153,12 @@ CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
 CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
 {
     dputs(QT_TRANSLATE_NOOP("DBG", "This may take very long, depending on your network connection and data in the debug directory..."));
-    char szDefaultStore[MAX_SETTING_SIZE] = "";
-    const char* szSymbolStore = szDefaultStore;
-    if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore))  //get default symbol store from settings
+    Memory<char*> szDefaultStore(MAX_SETTING_SIZE + 1);
+    const char* szSymbolStore = szDefaultStore();
+    if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore()))  //get default symbol store from settings
     {
-        strcpy_s(szDefaultStore, "http://msdl.microsoft.com/download/symbols");
-        BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore);
+        strcpy_s(szDefaultStore(), MAX_SETTING_SIZE, "http://msdl.microsoft.com/download/symbols");
+        BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore());
     }
     if(argc < 2)  //no arguments
     {
@@ -226,7 +226,25 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[])
     duint mod;
     SHARED_ACQUIRE(LockModules);
     MODINFO* info;
-    if(argc < 2 || !valfromstring(argv[1], &mod) || !((info = ModInfoFromAddr(mod))))
+    duint address;
+    if(argc < 2)
+        address = GetContextDataEx(hActiveThread, UE_CIP);
+    else
+    {
+        if(!valfromstring(argv[1], &address))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
+            return STATUS_ERROR;
+        }
+    }
+    mod = MemFindBaseAddr(address, nullptr);
+    if(mod == 0)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
+        return STATUS_ERROR;
+    }
+    info = ModInfoFromAddr(mod);
+    if(info == nullptr)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
         return STATUS_ERROR;
@@ -251,7 +269,7 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[])
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "Image information for %s\n"), modname);
 
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Characteristics (0x%X):\n"), c);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Characteristics (0x%X):\n"), DWORD(c));
     if(!c)
         dputs(QT_TRANSLATE_NOOP("DBG", "  None\n"));
     pFlag(c, IMAGE_FILE_RELOCS_STRIPPED, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_RELOCS_STRIPPED: Relocation info stripped from file."));
@@ -270,7 +288,7 @@ CMDRESULT cbInstrImageinfo(int argc, char* argv[])
     pFlag(c, IMAGE_FILE_UP_SYSTEM_ONLY, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_UP_SYSTEM_ONLY: File should only be run on a UP machine"));
     pFlag(c, IMAGE_FILE_BYTES_REVERSED_HI, QT_TRANSLATE_NOOP("DBG", "IMAGE_FILE_BYTES_REVERSED_HI: Bytes of machine word are reversed."));
 
-    dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Characteristics (0x%X):\n"), dllc);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Characteristics (0x%X):\n"), DWORD(dllc));
     if(!dllc)
         dputs(QT_TRANSLATE_NOOP("DBG", "  None\n"));
     pFlag(dllc, IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE, QT_TRANSLATE_NOOP("DBG", "IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE: DLL can move."));
@@ -338,9 +356,9 @@ static void printExhandlers(const char* name, const std::vector<duint> & entries
     {
         auto symbolic = SymGetSymbolicName(entry);
         if(symbolic.length())
-            dprintf("%p %s\n", entry, symbolic.c_str());
+            dprintf_untranslated("%p %s\n", entry, symbolic.c_str());
         else
-            dprintf("%p\n", entry);
+            dprintf_untranslated("%p\n", entry);
     }
 }
 
@@ -399,15 +417,15 @@ CMDRESULT cbInstrExinfo(int argc, char* argv[])
         dprintf("        ExceptionAddress: %p %s\n", record.ExceptionAddress, symbolic.c_str());
     else
         dprintf("        ExceptionAddress: %p\n", record.ExceptionAddress);
-    dprintf("        NumberParameters: %d\n", record.NumberParameters);
+    dprintf("        NumberParameters: %u\n", record.NumberParameters);
     if(record.NumberParameters)
         for(DWORD i = 0; i < record.NumberParameters; i++)
         {
             symbolic = SymGetSymbolicName(duint(record.ExceptionInformation[i]));
             if(symbolic.length())
-                dprintf("ExceptionInformation[%02d]: %p %s\n", i, record.ExceptionInformation[i], symbolic.c_str());
+                dprintf("ExceptionInformation[%02u]: %p %s\n", i, record.ExceptionInformation[i], symbolic.c_str());
             else
-                dprintf("ExceptionInformation[%02d]: %p\n", i, record.ExceptionInformation[i]);
+                dprintf("ExceptionInformation[%02u]: %p\n", i, record.ExceptionInformation[i]);
         }
     return STATUS_CONTINUE;
 }

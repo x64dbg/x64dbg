@@ -29,6 +29,8 @@ public:
 
     int addTabEx(QWidget* widget, const QIcon & icon, const QString & label, const QString & nativeName);
     QString getNativeName(int index);
+    void showPreviousTab();
+    void showNextTab();
 signals:
     void tabMovedTabWidget(int from, int to);
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>510</width>
-    <height>346</height>
+    <width>503</width>
+    <height>339</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,22 +23,6 @@
    <iconset resource="../../resource.qrc">
     <normaloff>:/icons/images/memory-map.png</normaloff>:/icons/images/memory-map.png</iconset>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>350</x>
-     <y>310</y>
-     <width>121</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Close</set>
-   </property>
-  </widget>
   <widget class="QTableWidget" name="pagetableWidget">
    <property name="enabled">
     <bool>true</bool>
@@ -174,19 +158,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QLineEdit" name="LnEdStatus">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>310</y>
-     <width>371</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="readOnly">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
@@ -213,13 +184,39 @@
     <string>PAGE GUARD</string>
    </property>
   </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>300</y>
+     <width>481</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QLineEdit" name="LnEdStatus">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushButton">
+      <property name="text">
+       <string>&amp;Cancel</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <zorder>paddingLayoutWidget</zorder>
   <zorder>layoutWidget</zorder>
-  <zorder>buttonBox</zorder>
   <zorder>LnEdStatus</zorder>
   <zorder>pagetableWidget</zorder>
   <zorder>label</zorder>
   <zorder>chkPageguard</zorder>
+  <zorder>pushButton</zorder>
  </widget>
  <tabstops>
   <tabstop>pagetableWidget</tabstop>
@@ -242,34 +239,18 @@
  </resources>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>PageMemoryRights</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
    <receiver>PageMemoryRights</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>460</x>
+     <y>314</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>496</x>
+     <y>316</y>
     </hint>
    </hints>
   </connection>

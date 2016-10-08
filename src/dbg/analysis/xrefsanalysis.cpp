@@ -35,7 +35,7 @@ void XrefsAnalysis::Analyse()
             mXrefs.push_back(xref);
     }
 
-    dprintf("%u xrefs found in %ums!\n", mXrefs.size(), GetTickCount() - ticks);
+    dprintf("%u xrefs found in %ums!\n", DWORD(mXrefs.size()), GetTickCount() - ticks);
 }
 
 void XrefsAnalysis::SetMarkers()

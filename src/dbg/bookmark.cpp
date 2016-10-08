@@ -48,7 +48,7 @@ void BookmarkCacheSave(JSON Root)
 void BookmarkCacheLoad(JSON Root)
 {
     bookmarks.CacheLoad(Root);
-    bookmarks.CacheLoad(Root, false, "auto"); //legacy support
+    bookmarks.CacheLoad(Root, "auto"); //legacy support
 }
 
 bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size)

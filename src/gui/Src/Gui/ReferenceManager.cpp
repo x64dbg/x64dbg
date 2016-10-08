@@ -28,7 +28,7 @@ void ReferenceManager::newReferenceView(QString name)
 {
     if(mCurrentReferenceView) //disconnect previous reference view
         mCurrentReferenceView->disconnectBridge();
-    mCurrentReferenceView = new ReferenceView();
+    mCurrentReferenceView = new ReferenceView(false, this);
     mCurrentReferenceView->connectBridge();
     connect(mCurrentReferenceView, SIGNAL(showCpu()), this, SIGNAL(showCpu()));
     insertTab(0, mCurrentReferenceView, name);

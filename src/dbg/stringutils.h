@@ -16,6 +16,7 @@ class StringUtils
 public:
     static StringList Split(const String & s, char delim, std::vector<String> & elems);
     static StringList Split(const String & s, char delim);
+    static String Escape(unsigned char ch);
     static String Escape(const String & s);
     static bool Unescape(const String & s, String & result, bool quoted = true);
     static String Trim(const String & s, const String & delim = StringUtils::WHITESPACE);

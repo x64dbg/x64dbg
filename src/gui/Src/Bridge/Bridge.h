@@ -47,6 +47,7 @@ signals:
     void dbgStateChanged(DBGSTATE state);
     void addMsgToLog(QString msg);
     void clearLog();
+    void close();
     void updateRegisters();
     void updateBreakpoints();
     void updateWindowTitle(QString filename);
@@ -135,6 +136,7 @@ signals:
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
     void foldDisassembly(duint startAddr, duint length);
     void selectInMemoryMap(duint addr);
+    void getActiveView(ACTIVEVIEW* activeView);
 
 private:
     QMutex* mBridgeMutex;

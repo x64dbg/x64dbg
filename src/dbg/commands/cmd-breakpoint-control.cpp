@@ -438,7 +438,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         }
         if((addr % size) != 0)
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Address not aligned to %d\n"), size);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Address not aligned to %d\n"), int(size));
             return STATUS_ERROR;
         }
     }
@@ -1155,7 +1155,7 @@ CMDRESULT cbDebugSetExceptionBPX(int argc, char* argv[])
     const String & ExceptionName = ExceptionCodeToName((unsigned int)ExceptionCode);
     if(BpGet(ExceptionCode, BPEXCEPTION, nullptr, nullptr))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception breakpoint %X(%s) already exists!\n"), ExceptionCode, ExceptionName.c_str());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception breakpoint %X (%s) already exists!\n"), DWORD(ExceptionCode), ExceptionName.c_str());
         return STATUS_ERROR;
     }
     duint chance = 1;

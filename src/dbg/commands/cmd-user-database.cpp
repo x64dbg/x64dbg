@@ -11,14 +11,15 @@
 
 CMDRESULT cbInstrDbsave(int argc, char* argv[])
 {
-    DbSave(DbLoadSaveType::All);
+    DbSave(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr, argc > 1);
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrDbload(int argc, char* argv[])
 {
-    DbClear();
-    DbLoad(DbLoadSaveType::All);
+    if(argc <= 1)
+        DbClear();
+    DbLoad(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -84,7 +85,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", comments()[i].addr);
+        sprintf_s(addrText, "%p", comments()[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(comments()[i].addr, disassembly))
@@ -159,7 +160,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", labels()[i].addr);
+        sprintf_s(addrText, "%p", labels()[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(labels()[i].addr, disassembly))
@@ -217,7 +218,8 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Bookmarks")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
@@ -234,11 +236,20 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", bookmarks()[i].addr);
+        sprintf_s(addrText, "%p", bookmarks()[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(bookmarks()[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
+        char comment[MAX_COMMENT_SIZE] = "";
+        if(CommentGet(bookmarks()[i].addr, comment))
+            GuiReferenceSetCellContent(i, 2, comment);
+        else
+        {
+            char label[MAX_LABEL_SIZE] = "";
+            if(LabelGet(bookmarks()[i].addr, label))
+                GuiReferenceSetCellContent(i, 2, label);
+        }
     }
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d bookmark(s) listed\n"), count);
@@ -313,9 +324,9 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", functions()[i].start);
+        sprintf_s(addrText, "%p", functions()[i].start);
         GuiReferenceSetCellContent(i, 0, addrText);
-        sprintf(addrText, "%p", functions()[i].end);
+        sprintf_s(addrText, "%p", functions()[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(functions()[i].start, disassembly))
@@ -403,9 +414,9 @@ CMDRESULT cbInstrArgumentList(int argc, char* argv[])
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", arguments()[i].start);
+        sprintf_s(addrText, "%p", arguments()[i].start);
         GuiReferenceSetCellContent(i, 0, addrText);
-        sprintf(addrText, "%p", arguments()[i].end);
+        sprintf_s(addrText, "%p", arguments()[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(arguments()[i].start, disassembly))

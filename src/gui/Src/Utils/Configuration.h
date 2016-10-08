@@ -17,6 +17,8 @@
 #define ConfigHScrollBarStyle() "QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}"
 #define ConfigVScrollBarStyle() "QScrollBar:vertical{border:1px solid grey;background:#f1f1f1;width:10px}QScrollBar::handle:vertical{background:#aaa;min-height:20px;margin:1px}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{width:0;height:0}"
 
+class MenuBuilder;
+
 class Configuration : public QObject
 {
     Q_OBJECT
@@ -52,6 +54,7 @@ public:
     void readShortcuts();
     void writeShortcuts();
     void emitShortcutsUpdated();
+    void registerMenuBuilder(MenuBuilder* menu, size_t count);
 
     const QColor getColor(const QString id) const;
     const bool getBool(const QString category, const QString id) const;
@@ -75,6 +78,9 @@ public:
     QMap<QString, QMap<QString, duint>> Uints;
     QMap<QString, QFont> Fonts;
     QMap<QString, Shortcut> Shortcuts;
+
+    //custom menu maps
+    QList<std::pair<MenuBuilder*, size_t>> NamedMenuBuilders;
 
     static Configuration* mPtr;
 

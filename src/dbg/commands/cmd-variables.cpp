@@ -84,32 +84,54 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
+    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Variables")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Value (Hex)"))); //The GUI only follows address in column 0
+    GuiReferenceAddColumn(30, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Variable")));
+    GuiReferenceAddColumn(3 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Value (Decimal)")));
+    GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Property")));
     int varcount = (int)cbsize / sizeof(VAR);
+    int realvarcount = 0;
+    GuiReferenceSetRowCount(0);
     for(int i = 0; i < varcount; i++)
     {
+        char value[32];
         if(variables()[i].alias.length())
             continue;
-        char name[deflen] = "";
-        strcpy_s(name, variables()[i].name.c_str());
-        duint value = (duint)variables()[i].value.u.value;
         if(variables()[i].type != VAR_HIDDEN)
         {
-            if(!filter || variables()[i].type == filter)
+            GuiReferenceSetRowCount(realvarcount + 1);
+            GuiReferenceSetCellContent(realvarcount, 1, variables()[i].name.c_str());
+#ifdef _WIN64
+            sprintf_s(value, "%llX", variables()[i].value.u.value);
+            GuiReferenceSetCellContent(realvarcount, 0, value);
+            sprintf_s(value, "%llu", variables()[i].value.u.value);
+            GuiReferenceSetCellContent(realvarcount, 2, value);
+#else //x86
+            sprintf_s(value, "%X", variables()[i].value.u.value);
+            GuiReferenceSetCellContent(realvarcount, 0, value);
+            sprintf_s(value, "%u", variables()[i].value.u.value);
+            GuiReferenceSetCellContent(realvarcount, 2, value);
+#endif //_WIN64
+            const char* szType;
+            switch(variables()[i].type)
             {
-                if(value > 15)
-#ifdef _WIN64
-                    dprintf_untranslated("%s=%llX (%llud)\n", name, value, value);
-#else //x86
-                    dprintf_untranslated("%s=%X (%ud)\n", name, value, value);
-#endif //_WIN64
-                else
-#ifdef _WIN64
-                    dprintf_untranslated("%s=%llX\n", name, value);
-#else //x86
-                    dprintf_untranslated("%s=%X\n", name, value);
-#endif //_WIN64
+            case VAR_USER:
+                szType = QT_TRANSLATE_NOOP("DBG", "User Variable");
+                break;
+            case VAR_SYSTEM:
+                szType = QT_TRANSLATE_NOOP("DBG", "System Variable");
+                break;
+            case VAR_READONLY:
+                szType = QT_TRANSLATE_NOOP("DBG", "Read Only Variable");
+                break;
+            default://other variables
+                szType = QT_TRANSLATE_NOOP("DBG", "System Variable");
+                break;
             }
+            GuiReferenceSetCellContent(realvarcount, 3, GuiTranslateText(szType));
+            realvarcount++;
         }
     }
+    GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }

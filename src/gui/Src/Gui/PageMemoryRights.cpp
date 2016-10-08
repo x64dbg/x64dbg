@@ -1,6 +1,7 @@
 #include "Imports.h"
 #include "PageMemoryRights.h"
 #include "ui_PageMemoryRights.h"
+#include "StringUtil.h"
 
 PageMemoryRights::PageMemoryRights(QWidget* parent) : QDialog(parent), ui(new Ui::PageMemoryRights)
 {
@@ -36,7 +37,7 @@ void PageMemoryRights::RunAddrSize(duint addrin, duint sizein, QString pagetypei
     for(duint i = 0; i < nr_pages; i++)
     {
         actual_addr = addr + (i * PAGE_SIZE);
-        tableWidget->setItem(i, 0, new QTableWidgetItem(QString("%1").arg(actual_addr, sizeof(duint) * 2, 16, QChar('0')).toUpper()));
+        tableWidget->setItem(i, 0, new QTableWidgetItem(ToPtrString(actual_addr)));
         if(DbgFunctions()->GetPageRights(actual_addr, rights))
             tableWidget->setItem(i, 1, new QTableWidgetItem(QString(rights)));
     }

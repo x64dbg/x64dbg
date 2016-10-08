@@ -52,7 +52,7 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
             return STATUS_ERROR;
     if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
         return STATUS_ERROR;
     }
     //switch thread
@@ -74,7 +74,7 @@ CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
             return STATUS_ERROR;
     if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
         return STATUS_ERROR;
     }
     //suspend thread
@@ -96,7 +96,7 @@ CMDRESULT cbDebugResumethread(int argc, char* argv[])
             return STATUS_ERROR;
     if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
         return STATUS_ERROR;
     }
     //resume thread
@@ -122,7 +122,7 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
             return STATUS_ERROR;
     if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
         return STATUS_ERROR;
     }
     //terminate thread
@@ -204,7 +204,7 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
     }
     if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
         return STATUS_ERROR;
     }
     //set thread priority
@@ -231,13 +231,13 @@ CMDRESULT cbDebugSetthreadname(int argc, char* argv[])
     THREADINFO info;
     if(!ThreadGetInfo(DWORD(threadid), info))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
         return STATUS_ERROR;
     }
     auto newname = argc > 2 ? argv[2] : "";
     if(!ThreadSetName(DWORD(threadid), newname))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to change the name for thread %X\n"), threadid);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to change the name for thread %X\n"), DWORD(threadid));
         return STATUS_ERROR;
     }
     if(!*info.threadName)

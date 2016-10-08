@@ -83,6 +83,8 @@ public slots:
     void displayThreadsWidget();
     void displaySnowmanWidget();
     void displayGraphWidget();
+    void displayPreviousTab();
+    void displayNextTab();
     void openSettings();
     void openAppearance();
     void openCalculator();
@@ -138,6 +140,7 @@ public slots:
     void clickFavouriteTool();
     void chooseLanguage();
     void setInitialzationScript();
+    void customizeMenu();
     void addFavouriteItem(int type, const QString & name, const QString & description);
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
 
@@ -236,6 +239,8 @@ private slots:
     void on_actionFaq_triggered();
     void on_actionReloadStylesheet_triggered();
     void on_actionImportSettings_triggered();
+    void on_actionImportdatabase_triggered();
+    void on_actionExportdatabase_triggered();
 };
 
 #endif // MAINWINDOW_H

@@ -34,6 +34,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(selectAddress(duint)));
     connect(Bridge::getBridge(), SIGNAL(selectionMemmapGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     setupContextMenu();
@@ -125,9 +126,23 @@ void MemoryMapView::setupContextMenu()
     connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
     this->addAction(mMemoryFree);
 
-    mFindAddress = new QAction(DIcon("memmap_find_address_page.png"), tr("Find address &page"), this);
-    connect(mFindAddress, SIGNAL(triggered()), this, SLOT(findAddressSlot()));
-    this->addAction(mFindAddress);
+    //Goto
+    mGotoMenu = new QMenu(tr("Go to"), this);
+    mGotoMenu->setIcon(DIcon("goto.png"));
+
+    //Goto->Origin
+    mGotoOrigin = new QAction(DIcon("cbp.png"), tr("Origin"), this);
+    mGotoOrigin->setShortcutContext(Qt::WidgetShortcut);
+    connect(mGotoOrigin, SIGNAL(triggered()), this, SLOT(gotoOriginSlot()));
+    this->addAction(mGotoOrigin);
+    mGotoMenu->addAction(mGotoOrigin);
+
+    //Goto->Expression
+    mGotoExpression = new QAction(DIcon("geolocation-goto.png"), tr("Expression"), this);
+    mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
+    connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
+    this->addAction(mGotoExpression);
+    mGotoMenu->addAction(mGotoExpression);
 
     //Entropy
     mEntropy = new QAction(DIcon("entropy.png"), tr("Entropy..."), this);
@@ -159,6 +174,8 @@ void MemoryMapView::refreshShortcutsSlot()
     mMemoryRemove->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mMemoryExecuteSingleshootToggle->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mFindPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
+    mGotoOrigin->setShortcut(ConfigShortcut("ActionGotoOrigin"));
+    mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
     mEntropy->setShortcut(ConfigShortcut("ActionEntropy"));
     mMemoryFree->setShortcut(ConfigShortcut("ActionFreeMemory"));
     mMemoryAllocate->setShortcut(ConfigShortcut("ActionAllocateMemory"));
@@ -179,8 +196,8 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addSeparator();
     wMenu.addAction(mMemoryAllocate);
     wMenu.addAction(mMemoryFree);
-    wMenu.addAction(mFindAddress);
     wMenu.addAction(mAddVirtualMod);
+    wMenu.addMenu(mGotoMenu);
     wMenu.addSeparator();
     wMenu.addAction(mPageMemoryRights);
     wMenu.addSeparator();
@@ -300,7 +317,6 @@ void MemoryMapView::refreshMap()
     memset(&wMemMapStruct, 0, sizeof(MEMMAP));
 
     DbgMemMap(&wMemMapStruct);
-    mCipBase = DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr);
 
     setRowCount(wMemMapStruct.count);
 
@@ -548,7 +564,7 @@ void MemoryMapView::findPatternSlot()
     duint addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
     if(hexEdit.entireBlock())
         addr = 0;
-    QString addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addrText = ToPtrString(addr);
     DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&").toUtf8().constData());
     emit showReferences();
 }
@@ -576,7 +592,8 @@ void MemoryMapView::selectAddress(duint va)
         for(dsint row = 0; row < rows; row++)
             if(getCellContent(row, 0) == baseText)
             {
-                setSingleSelection(row);
+                scrollSelect(row);
+                reloadData();
                 return;
             }
     }
@@ -586,7 +603,12 @@ void MemoryMapView::selectAddress(duint va)
     QMessageBox::warning(this, tr("Error"), QString());
 }
 
-void MemoryMapView::findAddressSlot()
+void MemoryMapView::gotoOriginSlot()
+{
+    selectAddress(mCipBase);
+}
+
+void MemoryMapView::gotoExpressionSlot()
 {
     GotoDialog mGoto(this);
     mGoto.setWindowTitle(tr("Enter the address to find..."));
@@ -614,4 +636,10 @@ void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = selection->end = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
     Bridge::getBridge()->setResult(1);
+}
+
+void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)
+{
+    Q_UNUSED(va)
+    mCipBase = DbgMemFindBaseAddr(cip, nullptr);;
 }
