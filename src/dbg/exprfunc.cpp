@@ -3,6 +3,9 @@
 #include "module.h"
 #include "debugger.h"
 #include "thread.h"
+#include "memory.h"
+#include "disasm_fast.h"
+#include "TraceRecord.h"
 
 namespace Exprfunc
 {
@@ -70,5 +73,129 @@ namespace Exprfunc
         for(size_t i = 0; i < sizeof(value); i++)
             ((unsigned char*)&result)[sizeof(value) - i - 1] = ((unsigned char*)&value)[i];
         return result;
+    }
+
+    duint ternary(duint condition, duint value1, duint value2)
+    {
+        return condition ? value1 : value2;
+    }
+
+    duint memvalid(duint addr)
+    {
+        return MemIsValidReadPtr(addr, true);
+    }
+
+    duint membase(duint addr)
+    {
+        return MemFindBaseAddr(addr, nullptr);
+    }
+
+    duint memsize(duint addr)
+    {
+        duint size;
+        return MemFindBaseAddr(addr, &size) ? size : 0;
+    }
+
+    duint memiscode(duint addr)
+    {
+        return MemIsCodePage(addr, false);
+    }
+
+    duint memdecodepointer(duint ptr)
+    {
+        auto decoded = ptr;
+        return MemDecodePointer(&decoded, true) ? decoded : ptr;
+    }
+
+    duint dislen(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        return disasmfast(addr, &info, true) ? info.size : 0;
+    }
+
+    duint disiscond(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return info.branch && !info.call && !strstr(info.instruction, "jmp");
+    }
+
+    duint disisbranch(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return info.branch;
+    }
+
+    duint disisret(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return strstr(info.instruction, "ret") != nullptr;
+    }
+
+    duint disismem(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return (info.type & TYPE_MEMORY) == TYPE_MEMORY;
+    }
+
+    duint disbranchdest(duint addr)
+    {
+        return DbgGetBranchDestination(addr);
+    }
+
+    duint disbranchexec(duint addr)
+    {
+        return DbgIsJumpGoingToExecute(addr);
+    }
+
+    duint disimm(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return info.value.value;
+    }
+
+    duint disbrtrue(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return info.branch ? info.addr : 0;
+    }
+
+    duint disbrfalse(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return info.branch && !strstr(info.instruction, "jmp") ? addr + info.size : 0;
+    }
+
+    duint trenabled(duint addr)
+    {
+        return TraceRecord.getTraceRecordType(addr) != TraceRecordManager::TraceRecordNone;
+    }
+
+    duint trhitcount(duint addr)
+    {
+        return trenabled(addr) ? TraceRecord.getHitCount(addr) : 0;
+    }
+
+    duint gettickcount()
+    {
+#ifdef _WIN64
+        static auto GTC64 = (duint(*)())GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetTickCount64");
+        if(GTC64)
+            return GTC64();
+#endif //_WIN64
+        return GetTickCount();
     }
 }

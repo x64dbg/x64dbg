@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>501</width>
+    <width>558</width>
     <height>85</height>
    </rect>
   </property>
@@ -76,6 +76,13 @@
       <widget class="QRadioButton" name="radioKeystone">
        <property name="text">
         <string>&amp;Keystone</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioAsmjit">
+       <property name="text">
+        <string>&amp;asmjit</string>
        </property>
       </widget>
      </item>

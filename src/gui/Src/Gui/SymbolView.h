@@ -30,6 +30,7 @@ private slots:
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void symbolFollow();
     void symbolFollowDump();
+    void enterPressedSlot();
     void symbolContextMenu(QMenu* wMenu);
     void symbolRefreshCurrent();
     void moduleContextMenu(QMenu* wMenu);
@@ -51,7 +52,6 @@ private slots:
     void emptySearchResultSlot();
 
 signals:
-    void showCpu();
     void showReferences();
 
 private:

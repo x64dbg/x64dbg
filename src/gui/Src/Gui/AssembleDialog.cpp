@@ -11,7 +11,6 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
 {
     ui->setupUi(this);
     setModal(true);
-    setFixedSize(size()); //fixed size
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
 
     mSelectedInstrVa = 0;
@@ -27,8 +26,13 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
     mValidateThread->start();
 
     duint setting;
-    if(BridgeSettingGetUint("Engine", "Assembler", &setting) && setting == 1)
-        ui->radioKeystone->setChecked(true);
+    if(BridgeSettingGetUint("Engine", "Assembler", &setting))
+    {
+        if(setting == 1)
+            ui->radioKeystone->setChecked(true);
+        else if(setting == 2)
+            ui->radioAsmjit->setChecked(true);
+    }
 }
 
 AssembleDialog::~AssembleDialog()
@@ -115,7 +119,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
     // If there was an error
     if(error.length())
     {
-        setKeepSizeLabel(tr("<font color='orange'><b>Instruction encoding error : %1</b></font>").arg(error));
+        setKeepSizeLabel(tr("<font color='orange'><b>Instruction encoding error: %1</b></font>").arg(error));
         setOkButtonEnabled(false);
     }
     else if(ui->checkBoxKeepSize->isChecked())
@@ -184,6 +188,13 @@ void AssembleDialog::on_radioXEDParse_clicked()
 void AssembleDialog::on_radioKeystone_clicked()
 {
     BridgeSettingSetUint("Engine", "Assembler", 1);
+    DbgSettingsUpdated();
+    validateInstruction(ui->lineEdit->text());
+}
+
+void AssembleDialog::on_radioAsmjit_clicked()
+{
+    BridgeSettingSetUint("Engine", "Assembler", 2);
     DbgSettingsUpdated();
     validateInstruction(ui->lineEdit->text());
 }

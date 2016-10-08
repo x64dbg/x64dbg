@@ -69,16 +69,21 @@ void CPUStack::updateColors()
 void CPUStack::updateFonts()
 {
     setFont(ConfigFont("Stack"));
+    invalidateCachedFont();
 }
 
 void CPUStack::setupContextMenu()
 {
     //Push
-    mPushAction = new QAction(ArchValue(tr("P&ush DWORD..."), tr("P&ush QWORD...")), this);
+    mPushAction = new QAction(DIcon("arrow-small-down.png"), ArchValue(tr("P&ush DWORD..."), tr("P&ush QWORD...")), this);
+    mPushAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mPushAction);
     connect(mPushAction, SIGNAL(triggered()), this, SLOT(pushSlot()));
 
     //Pop
-    mPopAction = new QAction(ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), this);
+    mPopAction = new QAction(DIcon("arrow-small-up.png"), ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), this);
+    mPopAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mPopAction);
     connect(mPopAction, SIGNAL(triggered()), this, SLOT(popSlot()));
 
     //Realign
@@ -90,14 +95,14 @@ void CPUStack::setupContextMenu()
     mBinaryMenu->setIcon(DIcon("binary.png"));
 
     //Binary->Edit
-    mBinaryEditAction = new QAction(tr("&Edit"), this);
+    mBinaryEditAction = new QAction(DIcon("binary_edit.png"), tr("&Edit"), this);
     mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryEditAction);
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
     mBinaryMenu->addAction(mBinaryEditAction);
 
     //Binary->Fill
-    mBinaryFillAction = new QAction(tr("&Fill..."), this);
+    mBinaryFillAction = new QAction(DIcon("binary_fill.png"), tr("&Fill..."), this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
@@ -107,21 +112,21 @@ void CPUStack::setupContextMenu()
     mBinaryMenu->addSeparator();
 
     //Binary->Copy
-    mBinaryCopyAction = new QAction(tr("&Copy"), this);
+    mBinaryCopyAction = new QAction(DIcon("binary_copy.png"), tr("&Copy"), this);
     mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryCopyAction);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
     mBinaryMenu->addAction(mBinaryCopyAction);
 
     //Binary->Paste
-    mBinaryPasteAction = new QAction(tr("&Paste"), this);
+    mBinaryPasteAction = new QAction(DIcon("binary_paste.png"), tr("&Paste"), this);
     mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteAction);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
     //Binary->Paste (Ignore Size)
-    mBinaryPasteIgnoreSizeAction = new QAction(tr("Paste (&Ignore Size)"), this);
+    mBinaryPasteIgnoreSizeAction = new QAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), this);
     mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
@@ -276,12 +281,21 @@ void CPUStack::setupContextMenu()
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     //Follow in Dump
+    mFollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
+    connect(mFollowInDump, SIGNAL(triggered()), this, SLOT(followInDumpSlot()));
+
+    //Follow in Memory Map
+    mFollowInMemoryMap = new QAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), this);
+    connect(mFollowInMemoryMap, SIGNAL(triggered()), this, SLOT(followInMemoryMapSlot()));
+
+    //Follow PTR in Dump
     auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
-    mFollowDump = new QAction(DIcon("dump.png"), followDumpName, this);
-    connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
+    mFollowPtrDump = new QAction(DIcon("dump.png"), followDumpName, this);
+    connect(mFollowPtrDump, SIGNAL(triggered()), this, SLOT(followDumpPtrSlot()));
 
     auto followDumpMenuName = ArchValue(tr("Follow DWORD in Dump"), tr("Follow QWORD in Dump"));
     mFollowInDumpMenu = new QMenu(followDumpMenuName, this);
+    mFollowInDumpMenu->setIcon(DIcon("dump.png"));
 
     int maxDumps = mMultiDump->getMaxCPUTabs();
     for(int i = 0; i < maxDumps; i++)
@@ -340,6 +354,8 @@ void CPUStack::refreshShortcutsSlot()
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
     mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
     mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
+    mPushAction->setShortcut(ConfigShortcut("ActionPush"));
+    mPopAction->setShortcut(ConfigShortcut("ActionPop"));
 }
 
 void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
@@ -556,6 +572,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     if(historyHasNext())
         wMenu.addAction(mGotoNext);
 
+    wMenu.addAction(mFollowInMemoryMap);
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
     {
@@ -566,10 +583,15 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
             if(selectedData >= stackBegin && selectedData < stackEnd)
                 wMenu.addAction(mFollowStack);
             wMenu.addAction(mFollowDisasm);
-            wMenu.addAction(mFollowDump);
+            wMenu.addAction(mFollowInDump);
+            wMenu.addAction(mFollowPtrDump);
             wMenu.addMenu(mFollowInDumpMenu);
         }
+        else
+            wMenu.addAction(mFollowInDump);
     }
+    else
+        wMenu.addAction(mFollowInDump);
     wMenu.addAction(mWatchData);
 
     wMenu.addSeparator();
@@ -729,7 +751,10 @@ void CPUStack::gotoExpressionSlot()
     mGoto->validRangeEnd = base + size;
     mGoto->setWindowTitle(tr("Enter expression to follow in Stack..."));
     if(mGoto->exec() == QDialog::Accepted)
-        DbgCmdExec(QString("sdump \"%1\"").arg(mGoto->expressionText).toUtf8().constData());
+    {
+        duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
+        DbgCmdExec(QString().sprintf("sdump %p", value).toUtf8().constData());
+    }
 }
 
 void CPUStack::gotoPreviousSlot()
@@ -801,7 +826,7 @@ void CPUStack::followDisasmSlot()
         }
 }
 
-void CPUStack::followDumpSlot()
+void CPUStack::followDumpPtrSlot()
 {
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
@@ -1107,4 +1132,14 @@ void CPUStack::dbgStateChangedSlot(DBGSTATE state)
         bStackFrozen = false;
 
     updateFreezeStackAction();
+}
+
+void CPUStack::followInMemoryMapSlot()
+{
+    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
+}
+
+void CPUStack::followInDumpSlot()
+{
+    DbgCmdExec(QString("dump %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
 }

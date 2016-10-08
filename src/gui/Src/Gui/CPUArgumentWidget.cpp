@@ -67,7 +67,7 @@ static QString stringFormatInline(const QString & format)
     char result[MAX_SETTING_SIZE] = "";
     if(DbgFunctions()->StringFormatInline(format.toUtf8().constData(), MAX_SETTING_SIZE, result))
         return result;
-    return "[Formatting Error]";
+    return CPUArgumentWidget::tr("[Formatting Error]");
 
 }
 
@@ -76,7 +76,7 @@ void CPUArgumentWidget::refreshData()
     if(!mAllowUpdate) //view is locked
         return;
 
-    if(mCurrentCallingConvention == -1) //no calling conventions
+    if(mCurrentCallingConvention == -1 || !DbgIsDebugging()) //no calling conventions
     {
         mTable->setRowCount(0);
         mTable->reloadData();
@@ -115,46 +115,52 @@ void CPUArgumentWidget::refreshData()
     mTable->reloadData();
 }
 
+static void configAction(QMenu & wMenu, const QIcon & icon, QAction* action, const QString & value, const QString & name)
+{
+    action->setText(QApplication::translate("CPUArgumentWidget", "Follow %1 in %2").arg(value).arg(name));
+    action->setIcon(icon);
+    action->setObjectName(value);
+    wMenu.addAction(action);
+}
+
 void CPUArgumentWidget::contextMenuSlot(QPoint pos)
 {
+    if(!DbgIsDebugging())
+        return;
     auto selection = mTable->getInitialSelection();
     if(int(mArgumentValues.size()) <= selection)
         return;
     auto value = mArgumentValues[selection];
-    if(!DbgMemIsValidReadPtr(value))
-        return;
-    duint valueAddr;
-    DbgMemRead(value, (unsigned char*)&valueAddr, sizeof(valueAddr));
-
     QMenu wMenu(this);
-    auto valueText = ToHexString(value);
-    auto valueAddrText = QString("[%1]").arg(valueText);
-    auto configAction = [&](QAction * action, const QString & value, const QString & name)
+    if(DbgMemIsValidReadPtr(value))
     {
-        action->setText(tr("Follow %1 in %2").arg(value).arg(name));
-        action->setObjectName(value);
-        wMenu.addAction(action);
-    };
-    auto inStackRange = [](duint addr)
-    {
-        auto csp = DbgValFromString("csp");
-        duint size;
-        auto base = DbgMemFindBaseAddr(csp, &size);
-        return addr >= base && addr < base + size;
-    };
+        duint valueAddr;
+        DbgMemRead(value, (unsigned char*)&valueAddr, sizeof(valueAddr));
 
-    configAction(mFollowDisasm, valueText, tr("Disassembler"));
-    configAction(mFollowDump, valueText, tr("Dump"));
-    if(inStackRange(value))
-        configAction(mFollowStack, valueText, tr("Stack"));
-    if(DbgMemIsValidReadPtr(valueAddr))
-    {
-        configAction(mFollowAddrDisasm, valueAddrText, tr("Disassembler"));
-        configAction(mFollowDump, valueAddrText, tr("Dump"));
-        if(inStackRange(valueAddr))
-            configAction(mFollowAddrStack, valueAddrText, tr("Stack"));
+        auto valueText = ToHexString(value);
+        auto valueAddrText = QString("[%1]").arg(valueText);
+        auto inStackRange = [](duint addr)
+        {
+            auto csp = DbgValFromString("csp");
+            duint size;
+            auto base = DbgMemFindBaseAddr(csp, &size);
+            return addr >= base && addr < base + size;
+        };
+
+        configAction(wMenu, DIcon(ArchValue("processor32.png", "processor64.png")), mFollowDisasm, valueText, tr("Disassembler"));
+        configAction(wMenu, DIcon("dump.png"), mFollowDump, valueText, tr("Dump"));
+        if(inStackRange(value))
+            configAction(wMenu, DIcon("stack.png"), mFollowStack, valueText, tr("Stack"));
+        if(DbgMemIsValidReadPtr(valueAddr))
+        {
+            configAction(wMenu, DIcon(ArchValue("processor32.png", "processor64.png")), mFollowAddrDisasm, valueAddrText, tr("Disassembler"));
+            configAction(wMenu, DIcon("dump.png"), mFollowDump, valueAddrText, tr("Dump"));
+            if(inStackRange(valueAddr))
+                configAction(wMenu, DIcon("stack.png"), mFollowAddrStack, valueAddrText, tr("Stack"));
+        }
     }
     QMenu wCopyMenu(tr("&Copy"));
+    wCopyMenu.setIcon(DIcon("copy.png"));
     mTable->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {

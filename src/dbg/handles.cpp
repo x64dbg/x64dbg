@@ -1,6 +1,6 @@
 #include "handles.h"
 #include "undocumented.h"
-#include "error.h"
+#include "exception.h"
 
 typedef struct _OBJECT_NAME_INFORMATION
 {
@@ -113,6 +113,12 @@ bool HandlesEnum(duint pid, std::vector<HANDLEINFO> & handles)
     return true;
 }
 
+static DWORD WINAPI getNameThread(LPVOID lpParam)
+{
+    (*(std::function<void()>*)lpParam)();
+    return 0;
+}
+
 bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String & typeName)
 {
     static auto ZwQueryObject = ZWQUERYOBJECT(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "ZwQueryObject"));
@@ -124,21 +130,36 @@ bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String 
         ULONG ReturnSize = 0;
         if(ZwQueryObject(hLocalHandle, ObjectTypeInformation, nullptr, 0, &ReturnSize) == STATUS_INFO_LENGTH_MISMATCH)
         {
+            ReturnSize += 0x2000;
             Memory<OBJECT_TYPE_INFORMATION*> objectTypeInfo(ReturnSize + sizeof(WCHAR) * 16, "_dbg_gethandlename:objectTypeInfo");
             if(ZwQueryObject(hLocalHandle, ObjectTypeInformation, objectTypeInfo(), ReturnSize, nullptr) == STATUS_SUCCESS)
                 typeName = StringUtils::Utf16ToUtf8(objectTypeInfo()->TypeName.Buffer);
         }
 
-        if(ZwQueryObject(hLocalHandle, ObjectNameInformation, nullptr, 0, &ReturnSize) == STATUS_INFO_LENGTH_MISMATCH)
+        std::function<void()> getName = [&]()
         {
-            Memory<OBJECT_NAME_INFORMATION*> objectNameInfo(ReturnSize + sizeof(WCHAR) * 16, "_dbg_gethandlename:objectNameInfo");
-            if(ZwQueryObject(hLocalHandle, ObjectNameInformation, objectNameInfo(), ReturnSize, nullptr) == STATUS_SUCCESS)
-                name = StringUtils::Utf16ToUtf8(objectNameInfo()->Name.Buffer);
+            if(ZwQueryObject(hLocalHandle, ObjectNameInformation, nullptr, 0, &ReturnSize) == STATUS_INFO_LENGTH_MISMATCH)
+            {
+                ReturnSize += 0x2000;
+                Memory<OBJECT_NAME_INFORMATION*> objectNameInfo(ReturnSize + sizeof(WCHAR) * 16, "_dbg_gethandlename:objectNameInfo");
+                if(ZwQueryObject(hLocalHandle, ObjectNameInformation, objectNameInfo(), ReturnSize, nullptr) == STATUS_SUCCESS)
+                    name = StringUtils::Utf16ToUtf8(objectNameInfo()->Name.Buffer);
+            }
+        };
+
+        auto hThread = CreateThread(nullptr, 0, getNameThread, &getName, 0, nullptr);
+        auto result = WaitForSingleObject(hThread, 200);
+        if(result != WAIT_OBJECT_0)
+        {
+            TerminateThread(hThread, 0);
+            name = String(ErrorCodeToName(result));
         }
+        else
+            CloseHandle(hThread);
 
         CloseHandle(hLocalHandle);
     }
     else
-        name = ErrorCodeToName(GetLastError());
+        name = String(ErrorCodeToName(GetLastError()));
     return true;
 }

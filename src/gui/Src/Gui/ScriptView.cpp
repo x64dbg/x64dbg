@@ -11,6 +11,7 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     mEnableSyntaxHighlighting = false;
     enableMultiSelection(false);
     enableColumnSorting(false);
+    setDrawDebugOnly(false);
 
     int charwidth = getCharWidth();
 
@@ -281,21 +282,7 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
 void ScriptView::contextMenuSlot(const QPoint & pos)
 {
     QMenu wMenu(this);
-    wMenu.addMenu(mLoadMenu);
-    if(getRowCount())
-    {
-        wMenu.addAction(mScriptReload);
-        wMenu.addAction(mScriptUnload);
-        wMenu.addSeparator();
-        wMenu.addAction(mScriptBpToggle);
-        wMenu.addAction(mScriptRunCursor);
-        wMenu.addAction(mScriptStep);
-        wMenu.addAction(mScriptRun);
-        wMenu.addAction(mScriptAbort);
-        wMenu.addAction(mScriptNewIp);
-    }
-    wMenu.addSeparator();
-    wMenu.addAction(mScriptCmdExec);
+    mMenu->build(&wMenu);
     wMenu.exec(mapToGlobal(pos));
 }
 
@@ -329,7 +316,7 @@ void ScriptView::keyPressEvent(QKeyEvent* event)
         {
             setTableOffset(getInitialSelection() - getNbrOfLineToPrint() + 2);
         }
-        repaint();
+        reloadData();
     }
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
@@ -347,74 +334,26 @@ void ScriptView::keyPressEvent(QKeyEvent* event)
 
 void ScriptView::setupContextMenu()
 {
-    mLoadMenu = new QMenu(tr("Load Script"), this);
-
-    mScriptLoad = new QAction(tr("Open..."), this);
-    mScriptLoad->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptLoad);
-    connect(mScriptLoad, SIGNAL(triggered()), this, SLOT(openFile()));
-    mLoadMenu->addAction(mScriptLoad);
-
-    mScriptReload = new QAction(tr("Reload Script"), this);
-    mScriptReload->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptReload);
-    connect(mScriptReload, SIGNAL(triggered()), this, SLOT(reload()));
-
-    mScriptUnload = new QAction(tr("Unload Script"), this);
-    mScriptUnload->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptUnload);
-    connect(mScriptUnload, SIGNAL(triggered()), this, SLOT(unload()));
-
-    mScriptRun = new QAction(tr("Run"), this);
-    mScriptRun->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptRun);
-    connect(mScriptRun, SIGNAL(triggered()), this, SLOT(run()));
-
-    mScriptBpToggle = new QAction(tr("Toggle BP"), this);
-    mScriptBpToggle->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptBpToggle);
-    connect(mScriptBpToggle, SIGNAL(triggered()), this, SLOT(bpToggle()));
-
-    mScriptRunCursor = new QAction(tr("Run until selection"), this);
-    mScriptRunCursor->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptRunCursor);
-    connect(mScriptRunCursor, SIGNAL(triggered()), this, SLOT(runCursor()));
-
-    mScriptStep = new QAction(tr("Step"), this);
-    mScriptStep->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptStep);
-    connect(mScriptStep, SIGNAL(triggered()), this, SLOT(step()));
-
-    mScriptAbort = new QAction(tr("Abort"), this);
-    mScriptAbort->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptAbort);
-    connect(mScriptAbort, SIGNAL(triggered()), this, SLOT(abort()));
-
-    mScriptCmdExec = new QAction(tr("Execute Command..."), this);
-    mScriptCmdExec->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptCmdExec);
-    connect(mScriptCmdExec, SIGNAL(triggered()), this, SLOT(cmdExec()));
-
-    mScriptNewIp = new QAction(tr("Continue here..."), this);
-    mScriptNewIp->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mScriptNewIp);
-    connect(mScriptNewIp, SIGNAL(triggered()), this, SLOT(newIp()));
-
-    refreshShortcutsSlot();
-    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
-}
-
-void ScriptView::refreshShortcutsSlot()
-{
-    mScriptLoad->setShortcut(ConfigShortcut("ActionLoadScript"));
-    mScriptReload->setShortcut(ConfigShortcut("ActionReloadScript"));
-    mScriptUnload->setShortcut(ConfigShortcut("ActionUnloadScript"));
-    mScriptRun->setShortcut(ConfigShortcut("ActionRunScript"));
-    mScriptBpToggle->setShortcut(ConfigShortcut("ActionToggleBreakpointScript"));
-    mScriptRunCursor->setShortcut(ConfigShortcut("ActionRunToCursorScript"));
-    mScriptStep->setShortcut(ConfigShortcut("ActionStepScript"));
-    mScriptAbort->setShortcut(ConfigShortcut("ActionAbortScript"));
-    mScriptCmdExec->setShortcut(ConfigShortcut("ActionExecuteCommandScript"));
+    mMenu = new MenuBuilder(this);
+    MenuBuilder* mLoadMenu = new MenuBuilder(this);
+    mLoadMenu->addAction(makeShortcutAction(DIcon("folder-horizontal-open.png"), tr("&Open..."), SLOT(openFile()), "ActionLoadScript"));
+    mLoadMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(paste()), "ActionBinaryPaste"));
+    mMenu->addMenu(makeMenu(tr("Load Script")), mLoadMenu);
+    auto isempty = [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    };
+    mMenu->addAction(makeShortcutAction(DIcon("arrow-restart.png"), tr("Re&load Script"), SLOT(reload()), "ActionReloadScript"), isempty);
+    mMenu->addAction(makeShortcutAction(DIcon("control-exit.png"), tr("&Unload Script"), SLOT(unload()), "ActionUnloadScript"), isempty);
+    mMenu->addSeparator();
+    mMenu->addAction(makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle &BP"), SLOT(bpToggle()), "ActionToggleBreakpointScript"), isempty);
+    mMenu->addAction(makeShortcutAction(DIcon("arrow-run-cursor.png"), tr("Ru&n until selection"), SLOT(runCursor()), "ActionRunToCursorScript"), isempty);
+    mMenu->addAction(makeShortcutAction(DIcon("arrow-step-into.png"), tr("&Step"), SLOT(step()), "ActionStepScript"), isempty);
+    mMenu->addAction(makeShortcutAction(DIcon("arrow-run.png"), tr("&Run"), SLOT(run()), "ActionRunScript"), isempty);
+    mMenu->addAction(makeShortcutAction(DIcon("control-stop.png"), tr("&Abort"), SLOT(abort()), "ActionAbortScript"), isempty);
+    mMenu->addAction(makeAction(DIcon("neworigin.png"), tr("&Continue here..."), SLOT(newIp())), isempty);
+    mMenu->addSeparator();
+    mMenu->addAction(makeShortcutAction(DIcon("terminal-command.png"), tr("&Execute Command..."), SLOT(cmdExec()), "ActionExecuteCommandScript"));
 }
 
 bool ScriptView::isScriptCommand(QString text, QString cmd)
@@ -516,6 +455,12 @@ void ScriptView::openFile()
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
     DbgScriptUnload();
     DbgScriptLoad(filename.toUtf8().constData());
+}
+
+void ScriptView::paste()
+{
+    DbgScriptUnload();
+    DbgScriptLoad("x64dbg://localhost/clipboard");
 }
 
 void ScriptView::reload()

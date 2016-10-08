@@ -42,7 +42,7 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
             painter->setPen(pen);
             break;
         }
-        painter->drawText(QRect(x + xinc, y, w - xinc, h), 0, curRichText.text); //TODO: this bottlenecks
+        painter->drawText(QRect(x + xinc, y, w - xinc, h), Qt::TextBypassShaping, curRichText.text);
         if(curRichText.highlight)
         {
             highlightPen.setColor(curRichText.highlightColor);

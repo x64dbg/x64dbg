@@ -38,10 +38,10 @@ FavouriteTools::FavouriteTools(QWidget* parent) :
     std::vector<QString> allToolShortcut;
     for(i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QString command = QString::fromUtf8(buffer);
+        QString command = QString(buffer);
         QString commandShortcut("");
         if(BridgeSettingGet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), buffer))
-            commandShortcut = QString::fromUtf8(buffer);
+            commandShortcut = QString(buffer);
         allCommand.push_back(command);
         allToolShortcut.push_back(commandShortcut);
     }
@@ -64,6 +64,8 @@ FavouriteTools::FavouriteTools(QWidget* parent) :
     connect(ui->listTools, SIGNAL(itemSelectionChanged()), this, SLOT(onListSelectionChanged()));
     connect(ui->listScript, SIGNAL(itemSelectionChanged()), this, SLOT(onListSelectionChanged()));
     connect(ui->listCommand, SIGNAL(itemSelectionChanged()), this, SLOT(onListSelectionChanged()));
+    connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+    emit ui->listTools->itemSelectionChanged();
 }
 
 void FavouriteTools::setupTools(QString name, QTableWidget* list)
@@ -87,13 +89,13 @@ void FavouriteTools::setupTools(QString name, QTableWidget* list)
     std::vector<QString> allToolDescription;
     for(i = 1; BridgeSettingGet("Favourite", (name + QString::number(i)).toUtf8().constData(), buffer); i++)
     {
-        QString toolPath = QString::fromUtf8(buffer);
+        QString toolPath = QString(buffer);
         QString toolShortcut("");
         QString toolDescription("");
         if(BridgeSettingGet("Favourite", (name + "Shortcut" + QString::number(i)).toUtf8().constData(), buffer))
-            toolShortcut = QString::fromUtf8(buffer);
+            toolShortcut = QString(buffer);
         if(BridgeSettingGet("Favourite", (name + "Description" + QString::number(i)).toUtf8().constData(), buffer))
-            toolDescription = QString::fromUtf8(buffer);
+            toolDescription = QString(buffer);
         allToolPath.push_back(toolPath);
         allToolShortcut.push_back(toolShortcut);
         allToolDescription.push_back(toolDescription);
@@ -118,8 +120,8 @@ void FavouriteTools::on_btnAddFavouriteTool_clicked()
     char buffer[MAX_SETTING_SIZE];
     memset(buffer, 0, sizeof(buffer));
     BridgeSettingGet("Favourite", "LastToolPath", buffer);
-    BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString::fromUtf8(buffer), false);
-    if(browse.exec() != QDialog::Accepted)
+    BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString(buffer), false);
+    if(browse.exec() != QDialog::Accepted && browse.path.length())
         return;
     filename = browse.path;
     BridgeSettingSet("Favourite", "LastToolPath", filename.toUtf8().constData());
@@ -127,9 +129,26 @@ void FavouriteTools::on_btnAddFavouriteTool_clicked()
     ui->listTools->setRowCount(rows + 1);
     ui->listTools->setItem(rows, 0, new QTableWidgetItem(filename));
     ui->listTools->setItem(rows, 1, new QTableWidgetItem(QString()));
-    ui->listTools->setItem(rows, 2, new QTableWidgetItem(filename));
+    ui->listTools->setItem(rows, 2, new QTableWidgetItem(QString()));
     if(rows == 0)
         ui->listTools->selectRow(0);
+}
+
+void FavouriteTools::on_btnEditFavouriteTool_clicked()
+{
+    QTableWidget* table = ui->listTools;
+    if(!table->rowCount())
+        return;
+    QString filename;
+    char buffer[MAX_SETTING_SIZE];
+    memset(buffer, 0, sizeof(buffer));
+    BridgeSettingGet("Favourite", "LastToolPath", buffer);
+    BrowseDialog browse(this, QString("Browse tool"), QString("Enter the path of the tool."), QString("Executable Files (*.exe);;All Files (*.*)"), QString(buffer), false);
+    if(browse.exec() != QDialog::Accepted && browse.path.length())
+        return;
+    filename = browse.path;
+    BridgeSettingSet("Favourite", "LastToolPath", filename.toUtf8().constData());
+    table->item(table->currentRow(), 0)->setText(filename);
 }
 
 void FavouriteTools::upbutton(QTableWidget* table)
@@ -178,7 +197,7 @@ void FavouriteTools::on_btnDescriptionFavouriteTool_clicked()
     if(!table->rowCount())
         return;
     QString description = table->item(table->currentRow(), 2)->text();
-    if(SimpleInputBox(this, tr("Enter the description"), description, description))
+    if(SimpleInputBox(this, tr("Enter the description"), description, description, tr("This string will appear in the menu.")))
         table->item(table->currentRow(), 2)->setText(description);
 }
 
@@ -198,17 +217,35 @@ void FavouriteTools::on_btnAddFavouriteScript_clicked()
     char buffer[MAX_SETTING_SIZE];
     memset(buffer, 0, sizeof(buffer));
     BridgeSettingGet("Favourite", "LastScriptPath", buffer);
-    filename = QFileDialog::getOpenFileName(this, tr("Select script"), QString::fromUtf8(buffer), tr("Script files (*.txt *.scr);;All files (*.*)"));
+    filename = QFileDialog::getOpenFileName(this, tr("Select script"), QString(buffer), tr("Script files (*.txt *.scr);;All files (*.*)"));
     if(filename.size() == 0)
         return;
+    filename = QDir::toNativeSeparators(filename);
     BridgeSettingSet("Favourite", "LastScriptPath", filename.toUtf8().constData());
     int rows = ui->listScript->rowCount();
     ui->listScript->setRowCount(rows + 1);
     ui->listScript->setItem(rows, 0, new QTableWidgetItem(filename));
-    ui->listScript->setItem(rows, 1, new QTableWidgetItem(QString("NOT_SET")));
-    ui->listScript->setItem(rows, 2, new QTableWidgetItem(filename));
+    ui->listScript->setItem(rows, 1, new QTableWidgetItem(QString()));
+    ui->listScript->setItem(rows, 2, new QTableWidgetItem(QString()));
     if(rows == 0)
         ui->listScript->selectRow(0);
+}
+
+void FavouriteTools::on_btnEditFavouriteScript_clicked()
+{
+    QTableWidget* table = ui->listScript;
+    if(!table->rowCount())
+        return;
+    QString filename;
+    char buffer[MAX_SETTING_SIZE];
+    memset(buffer, 0, sizeof(buffer));
+    BridgeSettingGet("Favourite", "LastScriptPath", buffer);
+    filename = QFileDialog::getOpenFileName(this, tr("Select script"), QString(buffer), tr("Script files (*.txt *.scr);;All files (*.*)"));
+    if(filename.size() == 0)
+        return;
+    filename = QDir::toNativeSeparators(filename);
+    BridgeSettingSet("Favourite", "LastScriptPath", filename.toUtf8().constData());
+    table->item(table->currentRow(), 0)->setText(filename);
 }
 
 void FavouriteTools::on_btnRemoveFavouriteScript_clicked()
@@ -225,7 +262,7 @@ void FavouriteTools::on_btnDescriptionFavouriteScript_clicked()
     if(!table->rowCount())
         return;
     QString description = table->item(table->currentRow(), 2)->text();
-    if(SimpleInputBox(this, tr("Enter the description"), description, description))
+    if(SimpleInputBox(this, tr("Enter the description"), description, description, tr("This string will appear in the menu.")))
         table->item(table->currentRow(), 2)->setText(description);
 }
 
@@ -242,15 +279,25 @@ void FavouriteTools::on_btnDownFavouriteScript_clicked()
 void FavouriteTools::on_btnAddFavouriteCommand_clicked()
 {
     QString cmd;
-    if(SimpleInputBox(this, tr("Enter the command that you want to create a shortcut for :"), "", cmd))
+    if(SimpleInputBox(this, tr("Enter the command you want to favourite"), "", cmd, tr("Example: bphws csp")))
     {
         int rows = ui->listCommand->rowCount();
         ui->listCommand->setRowCount(rows + 1);
         ui->listCommand->setItem(rows, 0, new QTableWidgetItem(cmd));
-        ui->listCommand->setItem(rows, 1, new QTableWidgetItem(QString("NOT_SET")));
+        ui->listCommand->setItem(rows, 1, new QTableWidgetItem(QString()));
         if(rows == 0)
             ui->listCommand->selectRow(0);
     }
+}
+
+void FavouriteTools::on_btnEditFavouriteCommand_clicked()
+{
+    QTableWidget* table = ui->listCommand;
+    if(!table->rowCount())
+        return;
+    QString cmd;
+    if(SimpleInputBox(this, tr("Enter a new command"), table->item(table->currentRow(), 0)->text(), cmd, tr("Example: bphws ESP")) && cmd.length())
+        table->item(table->currentRow(), 0)->setText(cmd);
 }
 
 void FavouriteTools::on_btnRemoveFavouriteCommand_clicked()
@@ -280,8 +327,7 @@ void FavouriteTools::onListSelectionChanged()
     if(indexes.count() < 1)
         return;
     ui->shortcutEdit->setErrorState(false);
-    currentShortcut = QKeySequence(table->item(table->currentRow(), 1)->text());
-    ui->shortcutEdit->setText(currentShortcut.toString(QKeySequence::NativeText));
+    ui->shortcutEdit->setText(table->item(table->currentRow(), 1)->text());
 }
 
 void FavouriteTools::on_shortcutEdit_askForSave()
@@ -331,6 +377,30 @@ void FavouriteTools::on_shortcutEdit_askForSave()
             ui->shortcutEdit->setErrorState(true);
         }
     }
+}
+
+void FavouriteTools::on_btnClearShortcut_clicked()
+{
+    QTableWidget* table;
+    switch(ui->tabWidget->currentIndex())
+    {
+    case 0:
+        table = ui->listTools;
+        break;
+    case 1:
+        table = ui->listScript;
+        break;
+    case 2:
+        table = ui->listCommand;
+        break;
+    default:
+        return;
+    }
+    if(!table->rowCount())
+        return;
+    QString emptyString;
+    ui->shortcutEdit->setText(emptyString);
+    table->item(table->currentRow(), 1)->setText(emptyString);
 }
 
 void FavouriteTools::on_btnOK_clicked()
@@ -390,6 +460,22 @@ void FavouriteTools::on_btnOK_clicked()
             BridgeSettingSet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), "");
         }
     this->done(QDialog::Accepted);
+}
+
+void FavouriteTools::tabChanged(int i)
+{
+    switch(i)
+    {
+    case 0:
+        emit ui->listTools->itemSelectionChanged();
+        break;
+    case 1:
+        emit ui->listScript->itemSelectionChanged();
+        break;
+    case 2:
+        emit ui->listCommand->itemSelectionChanged();
+        break;
+    }
 }
 
 FavouriteTools::~FavouriteTools()

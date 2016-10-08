@@ -63,10 +63,14 @@ public slots:
     void displayAboutWidget();
     void execTocnd();
     void execTicnd();
+    void animateIntoSlot();
+    void animateOverSlot();
+    void animateCommandSlot();
     void openFile();
     void restartDebugging();
     void displayBreakpointWidget();
     void updateWindowTitleSlot(QString filename);
+    void runSlot();
     void execTRBit();
     void execTRByte();
     void execTRWord();
@@ -132,6 +136,7 @@ public slots:
     void updateFavouriteTools();
     void clickFavouriteTool();
     void chooseLanguage();
+    void setInitialzationScript();
     void addFavouriteItem(int type, const QString & name, const QString & description);
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
 
@@ -229,6 +234,7 @@ public:
 private slots:
     void on_actionFaq_triggered();
     void on_actionReloadStylesheet_triggered();
+    void on_actionImportSettings_triggered();
 };
 
 #endif // MAINWINDOW_H

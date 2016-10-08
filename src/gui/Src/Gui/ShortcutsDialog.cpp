@@ -6,7 +6,6 @@ ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
     ui->setupUi(this);
     //set window flags
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     setModal(true);
 
     // x64 has no model-view-controler pattern
@@ -40,6 +39,7 @@ ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
         ui->tblShortcuts->setItem(j, 0, shortcutName);
         ui->tblShortcuts->setItem(j, 1, shortcutKey);
     }
+    ui->tblShortcuts->setSortingEnabled(true);
 
     connect(ui->tblShortcuts, SIGNAL(itemSelectionChanged()), this, SLOT(syncTextfield()));
     connect(ui->shortcutEdit, SIGNAL(askForSave()), this, SLOT(updateShortcut()));
@@ -92,6 +92,21 @@ void ShortcutsDialog::updateShortcut()
             ui->shortcutEdit->setErrorState(true);
         }
     }
+}
+void ShortcutsDialog::on_btnClearShortcut_clicked()
+{
+    for(QMap<QString, Configuration::Shortcut>::iterator i = Config()->Shortcuts.begin(); i != Config()->Shortcuts.end(); ++i)
+    {
+        if(i.value().Name == currentShortcut.Name)
+        {
+            Config()->setShortcut(i.key(), QKeySequence());
+            break;
+        }
+    }
+    QString emptyString;
+    ui->tblShortcuts->item(currentRow, 1)->setText(emptyString);
+    ui->shortcutEdit->setText(emptyString);
+    ui->shortcutEdit->setErrorState(false);
 }
 
 void ShortcutsDialog::syncTextfield()

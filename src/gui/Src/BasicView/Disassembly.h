@@ -104,6 +104,8 @@ public:
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     void unfold(dsint rva);
     void ShowDisassemblyPopup(duint addr, int x, int y);
+    bool hightlightToken(const CapstoneTokenizer::SingleToken & token);
+    bool isHighlightMode();
 
 signals:
     void selectionChanged(dsint parVA);
@@ -148,7 +150,6 @@ private:
 
     QList<HistoryData_t> mVaHistory;
     int mCurrentVa;
-    CapstoneTokenizer::SingleToken mHighlightToken;
 
 protected:
     // Configuration
@@ -175,6 +176,7 @@ protected:
     QColor mSelectedAddressColor;
     QColor mAddressBackgroundColor;
     QColor mAddressColor;
+    QColor mTracedSelectedAddressBackgroundColor;
 
     QColor mBytesColor;
     QColor mModifiedBytesColor;
@@ -214,6 +216,7 @@ protected:
     XREF_INFO mXrefInfo;
     CodeFoldingHelper* mCodeFoldingManager;
     DisassemblyPopup mDisassemblyPopup;
+    CapstoneTokenizer::SingleToken mHighlightToken;
 };
 
 #endif // DISASSEMBLY_H

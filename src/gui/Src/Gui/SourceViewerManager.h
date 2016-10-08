@@ -17,9 +17,6 @@ public slots:
     void closeTab(int index);
     void closeAllTabs();
 
-signals:
-    void showCpu();
-
 private:
     QPushButton* mCloseAllTabs;
 };

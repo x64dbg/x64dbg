@@ -42,7 +42,6 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     mSearchListView->mSearchList->setDrawDebugOnly(false);
 
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(on_btnAttach_clicked()));
-    connect(mSearchListView, SIGNAL(doubleClickedSignal()), this, SLOT(on_btnAttach_clicked()));
     connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(processListContextMenu(QMenu*)));
 
     // Highlight the search box

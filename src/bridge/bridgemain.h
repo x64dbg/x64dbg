@@ -121,7 +121,9 @@ typedef enum
     bp_none = 0,
     bp_normal = 1,
     bp_hardware = 2,
-    bp_memory = 4
+    bp_memory = 4,
+    bp_dll = 8,
+    bp_exception = 16
 } BPXTYPE;
 
 typedef enum
@@ -959,7 +961,8 @@ typedef enum
     GUI_ADD_FAVOURITE_TOOL,         // param1=const char* name      param2=const char* description
     GUI_ADD_FAVOURITE_COMMAND,      // param1=const char* command   param2=const char* shortcut
     GUI_SET_FAVOURITE_TOOL_SHORTCUT,// param1=const char* name      param2=const char* shortcut
-    GUI_FOLD_DISASSEMBLY            // param1=duint startAddress    param2=duint length
+    GUI_FOLD_DISASSEMBLY,           // param1=duint startAddress    param2=duint length
+    GUI_SELECT_IN_MEMORY_MAP        // param1=duint addr,           param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1090,6 +1093,7 @@ BRIDGE_IMPEXP void GuiAddFavouriteTool(const char* name, const char* description
 BRIDGE_IMPEXP void GuiAddFavouriteCommand(const char* name, const char* shortcut);
 BRIDGE_IMPEXP void GuiSetFavouriteToolShortcut(const char* name, const char* shortcut);
 BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length);
+BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr);
 
 #ifdef __cplusplus
 }

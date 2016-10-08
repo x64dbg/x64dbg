@@ -2,8 +2,8 @@
 #include "Bridge.h"
 #include "VersionHelpers.h"
 #include "StdTable.h"
+#include "LabeledSplitter.h"
 #include <QVBoxLayout>
-#include <QSplitter>
 
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
 {
@@ -34,11 +34,10 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mPrivilegesTable->loadColumnFromConfig("Privilege");
 
     // Splitter
-    mSplitter = new QSplitter(this);
-    mSplitter->setOrientation(Qt::Vertical);
-    mSplitter->addWidget(mHandlesTable);
-    mSplitter->addWidget(mTcpConnectionsTable);
-    mSplitter->addWidget(mPrivilegesTable);
+    mSplitter = new LabeledSplitter(this);
+    mSplitter->addWidget(mHandlesTable, tr("Handles"));
+    mSplitter->addWidget(mTcpConnectionsTable, tr("TCP Connections"));
+    mSplitter->addWidget(mPrivilegesTable, tr("Privileges"));
 
     // Layout
     mVertLayout = new QVBoxLayout;
@@ -51,15 +50,15 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mActionRefresh = new QAction(DIcon("arrow-restart.png"), tr("&Refresh"), this);
     connect(mActionRefresh, SIGNAL(triggered()), this, SLOT(reloadData()));
     addAction(mActionRefresh);
-    mActionCloseHandle = new QAction(DIcon("close-all-tabs.png"), tr("Close handle"), this);
+    mActionCloseHandle = new QAction(DIcon("disable.png"), tr("Close handle"), this);
     connect(mActionCloseHandle, SIGNAL(triggered()), this, SLOT(closeHandleSlot()));
-    mActionDisablePrivilege = new QAction(DIcon("close-all-tabs.png"), tr("Disable Privilege: "), this);
+    mActionDisablePrivilege = new QAction(DIcon("disable.png"), tr("Disable Privilege: "), this);
     connect(mActionDisablePrivilege, SIGNAL(triggered()), this, SLOT(disablePrivilegeSlot()));
-    mActionEnablePrivilege = new QAction(tr("Enable Privilege: "), this);
+    mActionEnablePrivilege = new QAction(DIcon("enable.png"), tr("Enable Privilege: "), this);
     connect(mActionEnablePrivilege, SIGNAL(triggered()), this, SLOT(enablePrivilegeSlot()));
-    mActionDisableAllPrivileges = new QAction(DIcon("close-all-tabs.png"), tr("Disable all privileges"), this);
+    mActionDisableAllPrivileges = new QAction(DIcon("disable.png"), tr("Disable all privileges"), this);
     connect(mActionDisableAllPrivileges, SIGNAL(triggered()), this, SLOT(disableAllPrivilegesSlot()));
-    mActionEnableAllPrivileges = new QAction(tr("Enable all privileges"), this);
+    mActionEnableAllPrivileges = new QAction(DIcon("enable.png"), tr("Enable all privileges"), this);
     connect(mActionEnableAllPrivileges, SIGNAL(triggered()), this, SLOT(enableAllPrivilegesSlot()));
 
     connect(mHandlesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(handlesTableContextMenuSlot(const QPoint &)));
@@ -113,8 +112,10 @@ void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)
     StdTable & table = *mHandlesTable;
     QMenu wMenu;
     wMenu.addAction(mActionRefresh);
-    wMenu.addAction(mActionCloseHandle);
-    QMenu wCopyMenu(tr("&Copy"));
+    if(mHandlesTable->getRowCount() != 0)
+        wMenu.addAction(mActionCloseHandle);
+    QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
     table.setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
@@ -129,7 +130,8 @@ void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
     StdTable & table = *mTcpConnectionsTable;
     QMenu wMenu;
     wMenu.addAction(mActionRefresh);
-    QMenu wCopyMenu(tr("&Copy"));
+    QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
     table.setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
@@ -144,7 +146,7 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 {
     StdTable & table = *mPrivilegesTable;
     QMenu wMenu;
-    bool isValid = (mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 1) != tr("Unknown"));
+    bool isValid = (mPrivilegesTable->getRowCount() != 0 && mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 1) != tr("Unknown"));
     wMenu.addAction(mActionRefresh);
     if(isValid)
     {
@@ -161,7 +163,8 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
     }
     wMenu.addAction(mActionDisableAllPrivileges);
     wMenu.addAction(mActionEnableAllPrivileges);
-    QMenu wCopyMenu(tr("&Copy"));
+    QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
     table.setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {

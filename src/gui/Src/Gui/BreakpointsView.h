@@ -2,11 +2,12 @@
 #define BREAKPOINTSVIEW_H
 
 #include <QWidget>
-#include <QVBoxLayout>
-#include <QSplitter>
 #include "Imports.h"
 
 class StdTable;
+class QVBoxLayout;
+class LabeledSplitter;
+class MenuBuilder;
 
 class BreakpointsView : public QWidget
 {
@@ -17,9 +18,8 @@ public:
     void setupHardBPRightClickContextMenu();
     void setupSoftBPRightClickContextMenu();
     void setupMemBPRightClickContextMenu();
-
-signals:
-    void showCpu();
+    void setupDLLBPRightClickContextMenu();
+    void setupExceptionBPRightClickContextMenu();
 
 public slots:
     void refreshShortcutsSlot();
@@ -58,15 +58,39 @@ public slots:
     void selectionChangedMemorySlot();
     void resetMemoryHitCountSlot();
 
+    // DLL
+    void DLLBPContextMenuSlot(const QPoint & pos);
+    void addDLLBPActionSlot();
+    void removeDLLBPActionSlot();
+    void removeAllDLLBPActionSlot();
+    void enableDisableDLLBPActionSlot();
+    void enableAllDLLBPActionSlot();
+    void disableAllDLLBPActionSlot();
+    void selectionChangedDLLSlot();
+    void resetDLLHitCountSlot();
+
+    // Exception
+    void ExceptionBPContextMenuSlot(const QPoint & pos);
+    void addExceptionBPActionSlot();
+    void removeExceptionBPActionSlot();
+    void removeAllExceptionBPActionSlot();
+    void enableDisableExceptionBPActionSlot();
+    void enableAllExceptionBPActionSlot();
+    void disableAllExceptionBPActionSlot();
+    void selectionChangedExceptionSlot();
+    void resetExceptionHitCountSlot();
+
     // Conditional
     void editBreakpointSlot();
 
 private:
     QVBoxLayout* mVertLayout;
-    QSplitter* mSplitter ;
+    LabeledSplitter* mSplitter;
     StdTable* mHardBPTable;
     StdTable* mSoftBPTable;
     StdTable* mMemBPTable;
+    StdTable* mDLLBPTable;
+    StdTable* mExceptionBPTable;
     // Conditional BP Context Menu
     BPXTYPE mCurrentType;
     QAction* mEditBreakpointAction;
@@ -94,6 +118,24 @@ private:
     QAction* mMemBPResetHitCountAction;
     QAction* mMemBPEnableAllAction;
     QAction* mMemBPDisableAllAction;
+
+    // DLL BP Context Menu
+    QAction* mDLLBPAddAction;
+    QAction* mDLLBPRemoveAction;
+    QAction* mDLLBPRemoveAllAction;
+    QAction* mDLLBPEnableDisableAction;
+    QAction* mDLLBPResetHitCountAction;
+    QAction* mDLLBPEnableAllAction;
+    QAction* mDLLBPDisableAllAction;
+
+    // Exception BP Context Menu
+    QAction* mExceptionBPAddAction;
+    QAction* mExceptionBPRemoveAction;
+    QAction* mExceptionBPRemoveAllAction;
+    QAction* mExceptionBPEnableDisableAction;
+    QAction* mExceptionBPResetHitCountAction;
+    QAction* mExceptionBPEnableAllAction;
+    QAction* mExceptionBPDisableAllAction;
 };
 
 #endif // BREAKPOINTSVIEW_H

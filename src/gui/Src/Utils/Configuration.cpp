@@ -167,6 +167,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("GraphBrtrueColor", QColor("#387804"));
     defaultColors.insert("GraphBrfalseColor", QColor("#ED4630"));
     defaultColors.insert("GraphRetShadowColor", QColor("#900000"));
+    defaultColors.insert("GraphBackgroundColor", Qt::transparent);
 
     defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
     defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
@@ -205,6 +206,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("SaveColumnOrder", true);
     guiBool.insert("NoCloseDialog", false);
     guiBool.insert("PidInHex", true);
+    guiBool.insert("SidebarWatchLabels", true);
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
@@ -216,6 +218,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SoftwareBreakpoint", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "HardwareBreakpoint", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryBreakpoint", 10);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "DLLBreakpoint", 8);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "ExceptionBreakpoint", 8);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 7);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);
@@ -224,6 +228,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Handle", 5);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "TcpConnection", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Privilege", 2);
+    guiUint.insert("SIMDRegistersDisplayMode", 0);
     defaultUints.insert("Gui", guiUint);
 
     //uint settings
@@ -318,6 +323,9 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut(tr("Debug -> Trace Record -> Bit"), "", true));
     defaultShortcuts.insert("DebugTraceRecordNone", Shortcut(tr("Debug -> Trace Record -> None"), "", true));
     defaultShortcuts.insert("DebugInstrUndo", Shortcut(tr("Debug -> Undo instruction"), "Alt+U", true));
+    defaultShortcuts.insert("DebugAnimateInto", Shortcut(tr("Debug -> Animate into"), "Ctrl+F7", true));
+    defaultShortcuts.insert("DebugAnimateOver", Shortcut(tr("Debug -> Animate over"), "Ctrl+F8", true));
+    defaultShortcuts.insert("DebugAnimateCommand", Shortcut(tr("Debug -> Animate command"), "", true));
 
     defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
 
@@ -375,7 +383,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionAnalyzeModule", Shortcut(tr("Actions -> Analyze Module"), "Ctrl+A"));
     defaultShortcuts.insert("ActionHelpOnMnemonic", Shortcut(tr("Actions -> Help on Mnemonic"), "Ctrl+F1"));
     defaultShortcuts.insert("ActionToggleMnemonicBrief", Shortcut(tr("Actions -> Toggle Mnemonic Brief"), "Ctrl+Shift+F1"));
-    defaultShortcuts.insert("ActionHighlightingMode", Shortcut(tr("Actions -> Highlighting Mode"), "Ctrl+H"));
+    defaultShortcuts.insert("ActionHighlightingMode", Shortcut(tr("Actions -> Highlighting Mode"), "H"));
     defaultShortcuts.insert("ActionToggleDestinationPreview", Shortcut(tr("Actions -> Enable/Disable Branch Destination Preview"), "P"));
     defaultShortcuts.insert("ActionFind", Shortcut(tr("Actions -> Find"), "Ctrl+F"));
     defaultShortcuts.insert("ActionDecompileFunction", Shortcut(tr("Actions -> Decompile Function"), "F5"));
@@ -410,8 +418,26 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionTreatSelectionAsMMWord", Shortcut(tr("Actions -> Treat Selection As MMWord"), ""));
     defaultShortcuts.insert("ActionTreatSelectionAsXMMWord", Shortcut(tr("Actions -> Treat Selection As XMMWord"), ""));
     defaultShortcuts.insert("ActionTreatSelectionAsYMMWord", Shortcut(tr("Actions -> Treat Selection As YMMWord"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsCode", Shortcut(tr("Actions -> Treat Selection Head As Code"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsByte", Shortcut(tr("Actions -> Treat Selection Head As Byte"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsWord", Shortcut(tr("Actions -> Treat Selection Head As Word"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsDword", Shortcut(tr("Actions -> Treat Selection Head As Dword"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsFword", Shortcut(tr("Actions -> Treat Selection Head As Fword"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsQword", Shortcut(tr("Actions -> Treat Selection Head As Qword"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsTbyte", Shortcut(tr("Actions -> Treat Selection Head As Tbyte"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsOword", Shortcut(tr("Actions -> Treat Selection Head As Oword"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsFloat", Shortcut(tr("Actions -> Treat Selection Head As Float"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsDouble", Shortcut(tr("Actions -> Treat Selection Head As Double"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsLongDouble", Shortcut(tr("Actions -> Treat Selection Head As LongDouble"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsASCII", Shortcut(tr("Actions -> Treat Selection Head As ASCII"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsUNICODE", Shortcut(tr("Actions -> Treat Selection Head As UNICODE"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsMMWord", Shortcut(tr("Actions -> Treat Selection Head As MMWord"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsXMMWord", Shortcut(tr("Actions -> Treat Selection Head As XMMWord"), ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsYMMWord", Shortcut(tr("Actions -> Treat Selection Head As YMMWord"), ""));
     defaultShortcuts.insert("ActionIncreaseRegister", Shortcut(tr("Actions -> Increase Register"), "+"));
     defaultShortcuts.insert("ActionDecreaseRegister", Shortcut(tr("Actions -> Decrease Register"), "-"));
+    defaultShortcuts.insert("ActionIncreaseRegisterPtrSize", Shortcut(tr("Actions -> Increase Register by") + ArchValue(QString(" 4"), QString(" 8"))));
+    defaultShortcuts.insert("ActionDecreaseRegisterPtrSize", Shortcut(tr("Actions -> Decrease Register by") + ArchValue(QString(" 4"), QString(" 8"))));
     defaultShortcuts.insert("ActionZeroRegister", Shortcut(tr("Actions -> Zero Register"), "0"));
     defaultShortcuts.insert("ActionSetOneRegister", Shortcut(tr("Actions -> Set Register to One"), "1"));
     defaultShortcuts.insert("ActionToggleRegisterValue", Shortcut(tr("Actions -> Toggle Register Value"), "Space"));
@@ -430,6 +456,15 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionRefresh", Shortcut(tr("Actions -> Refresh"), "F5"));
     defaultShortcuts.insert("ActionGraph", Shortcut(tr("Actions -> Graph"), "G"));
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut(tr("Actions -> Graph -> Toggle overview"), "O"));
+    defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut(tr("Actions -> Increment x87 Stack")));
+    defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut(tr("Actions -> Decrement x87 Stack")));
+    defaultShortcuts.insert("ActionPush", Shortcut(tr("Actions -> Push")));
+    defaultShortcuts.insert("ActionPop", Shortcut(tr("Actions -> Pop")));
+    defaultShortcuts.insert("ActionRedirectLog", Shortcut(tr("Actions -> Redirect Log")));
+    defaultShortcuts.insert("ActionBrowseInExplorer", Shortcut(tr("Actions -> Browse in Explorer")));
+    defaultShortcuts.insert("ActionDownloadSymbol", Shortcut(tr("Actions -> Download Symbols for This Module")));
+    defaultShortcuts.insert("ActionDownloadAllSymbol", Shortcut(tr("Actions -> Download Symbols for All Modules")));
+    defaultShortcuts.insert("ActionCreateNewThreadHere", Shortcut(tr("Actions -> Create New Thread Here")));
 
     Shortcuts = defaultShortcuts;
 
@@ -624,6 +659,11 @@ void Configuration::writeShortcuts()
         shortcutToConfig(it.key(), it.value().Hotkey);
         it++;
     }
+    emit shortcutsUpdated();
+}
+
+void Configuration::emitShortcutsUpdated()
+{
     emit shortcutsUpdated();
 }
 

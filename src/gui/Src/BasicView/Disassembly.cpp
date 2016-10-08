@@ -34,7 +34,11 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
     mDisasm->UpdateConfig();
 
     mCodeFoldingManager = nullptr;
-    mPopupEnabled = true;
+    duint setting;
+    if(BridgeSettingGetUint("GUI", "DisableBranchDestinationPreview", &setting))
+        mPopupEnabled = !setting;
+    else
+        mPopupEnabled = true;
     mIsLastInstDisplayed = false;
 
     mGuiState = Disassembly::NoState;
@@ -110,6 +114,9 @@ void Disassembly::updateColors()
     mLoopColor = ConfigColor("DisassemblyLoopColor");
     mFunctionColor = ConfigColor("DisassemblyFunctionColor");
 
+    auto a = mSelectionColor, b = mTracedAddressBackgroundColor;
+    mTracedSelectedAddressBackgroundColor = QColor((a.red() + b.red()) / 2, (a.green() + b.green()) / 2, (a.blue() + b.blue()) / 2);
+
     mLoopPen = QPen(mLoopColor, 2);
     mFunctionPen = QPen(mFunctionColor, 2);
     mUnconditionalPen = QPen(mUnconditionalJumpLineColor);
@@ -170,7 +177,9 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     isTraced = dbgFuncs->GetTraceRecordHitCount(cur_addr) != 0;
 
     // Highlight if selected
-    if(wIsSelected)
+    if(wIsSelected & isTraced)
+        painter->fillRect(QRect(x, y, w, h), QBrush(mTracedSelectedAddressBackgroundColor));
+    else if(wIsSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
     else if(isTraced)
         painter->fillRect(QRect(x, y, w, h), QBrush(mTracedAddressBackgroundColor));
@@ -607,14 +616,15 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
     //qDebug() << "Disassembly::mouseMoveEvent";
 
     bool wAccept = true;
+    int y = event->y();
 
     if(mGuiState == Disassembly::MultiRowsSelectionState)
     {
         //qDebug() << "State = MultiRowsSelectionState";
 
-        if((transY(event->y()) >= 0) && (transY(event->y()) <= this->getTableHeigth()))
+        if((transY(y) >= 0) && (transY(y) <= this->getTableHeigth()))
         {
-            int wI = getIndexOffsetFromY(transY(event->y()));
+            int wI = getIndexOffsetFromY(transY(y));
 
             if(mMemPage->getSize() > 0)
             {
@@ -642,24 +652,39 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                 }
             }
         }
+        else if(y > this->height())
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        }
+        else if(transY(y) < 0)
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        }
     }
     else if(mGuiState == Disassembly::NoState)
     {
         if(!mHighlightingMode && mPopupEnabled)
         {
             bool popupShown = false;
-            if(event->y() > getHeaderHeight() && getColumnIndexFromX(event->x()) == 2)
+            if(y > getHeaderHeight() && getColumnIndexFromX(event->x()) == 2)
             {
-                int rowOffset = getIndexOffsetFromY(transY(event->y()));
+                int rowOffset = getIndexOffsetFromY(transY(y));
                 if(rowOffset < mInstBuffer.size())
                 {
-                    auto & instruction = mInstBuffer[rowOffset];
-                    if(instruction.branchType != Instruction_t::None)
+                    CapstoneTokenizer::SingleToken token;
+                    auto & instruction = mInstBuffer.at(rowOffset);
+                    if(CapstoneTokenizer::TokenFromX(instruction.tokens, token, event->x(), mFontMetrics))
                     {
-                        duint addr = instruction.branchDestination;
-                        if(addr != 0 && (addr - mMemPage->getBase() < mInstBuffer.front().rva || addr - mMemPage->getBase() > mInstBuffer.back().rva))
+                        duint addr = token.value.value;
+                        bool isCodePage = DbgFunctions()->MemIsCodePage(addr, false);
+                        if(!isCodePage && instruction.branchDestination)
                         {
-                            ShowDisassemblyPopup(addr, event->x(), event->y());
+                            addr = instruction.branchDestination;
+                            isCodePage = DbgFunctions()->MemIsCodePage(addr, false);
+                        }
+                        if(isCodePage && (addr - mMemPage->getBase() < mInstBuffer.front().rva || addr - mMemPage->getBase() > mInstBuffer.back().rva))
+                        {
+                            ShowDisassemblyPopup(addr, event->x(), y);
                             popupShown = true;
                         }
                     }
@@ -686,31 +711,21 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
 {
     bool wAccept = false;
 
-    if(DbgIsDebugging() && ((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
+    if(mHighlightingMode)
     {
-        if(getGuiState() == AbstractTableView::NoState)
+        if(getColumnIndexFromX(event->x()) == 2) //click in instruction column
         {
-            if(mHighlightingMode)
+            int rowOffset = getIndexOffsetFromY(transY(event->y()));
+            if(rowOffset < mInstBuffer.size())
             {
-                if(getColumnIndexFromX(event->x()) == 2) //click in instruction column
+                CapstoneTokenizer::SingleToken token;
+                if(CapstoneTokenizer::TokenFromX(mInstBuffer.at(rowOffset).tokens, token, event->x(), mFontMetrics))
                 {
-                    int rowOffset = getIndexOffsetFromY(transY(event->y()));
-                    if(rowOffset < mInstBuffer.size())
+                    if(CapstoneTokenizer::IsHighlightableToken(token) && (!CapstoneTokenizer::TokenEquals(&token, &mHighlightToken) || event->button() == Qt::RightButton))
+                        mHighlightToken = token;
+                    else
                     {
-                        CapstoneTokenizer::SingleToken token;
-                        if(CapstoneTokenizer::TokenFromX(mInstBuffer.at(rowOffset).tokens, token, event->x(), mFontMetrics))
-                        {
-                            if(CapstoneTokenizer::IsHighlightableToken(token) && !CapstoneTokenizer::TokenEquals(&token, &mHighlightToken))
-                                mHighlightToken = token;
-                            else
-                            {
-                                mHighlightToken = CapstoneTokenizer::SingleToken();
-                            }
-                        }
-                        else
-                        {
-                            mHighlightToken = CapstoneTokenizer::SingleToken();
-                        }
+                        mHighlightToken = CapstoneTokenizer::SingleToken();
                     }
                 }
                 else
@@ -718,7 +733,19 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                     mHighlightToken = CapstoneTokenizer::SingleToken();
                 }
             }
-            else if(event->y() > getHeaderHeight())
+        }
+        else
+        {
+            mHighlightToken = CapstoneTokenizer::SingleToken();
+        }
+        return;
+    }
+
+    if(DbgIsDebugging() && ((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
+    {
+        if(getGuiState() == AbstractTableView::NoState)
+        {
+            if(event->y() > getHeaderHeight())
             {
                 dsint wIndex = getIndexOffsetFromY(transY(event->y()));
 
@@ -777,6 +804,16 @@ void Disassembly::mouseReleaseEvent(QMouseEvent* event)
             wAccept = false;
         }
     }
+    if((event->button() & Qt::BackButton) != 0)
+    {
+        wAccept = true;
+        historyPrevious();
+    }
+    else if((event->button() & Qt::ForwardButton) != 0)
+    {
+        wAccept = true;
+        historyNext();
+    }
 
     if(wAccept == true)
         AbstractTableView::mouseReleaseEvent(event);
@@ -804,6 +841,8 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
 
     if(key == Qt::Key_Up || key == Qt::Key_Down)
     {
+        ShowDisassemblyPopup(0, 0, 0);
+
         dsint botRVA = getTableOffset();
         dsint topRVA = getInstructionRVA(getTableOffset(), getNbrOfLineToPrint() - 1);
 
@@ -834,6 +873,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
     }
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
+        ShowDisassemblyPopup(0, 0, 0);
         duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
         if(!dest)
             return;
@@ -860,6 +900,8 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
  */
 dsint Disassembly::sliderMovedHook(int type, dsint value, dsint delta)
 {
+    ShowDisassemblyPopup(0, 0, 0);
+
     // QAbstractSlider::SliderNoAction is used to disassembe at a specific address
     if(type == QAbstractSlider::SliderNoAction)
         return value + delta;
@@ -1604,7 +1646,8 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     duint wSize;
     auto wBase = DbgMemFindBaseAddr(parVA, &wSize);
 
-    if(!wBase || !wSize)
+    unsigned char test;
+    if(!wBase || !wSize || !DbgMemRead(parVA, &test, sizeof(test)))
         return;
     dsint wRVA = parVA - wBase;
     dsint wCipRva = parCIP - wBase;
@@ -1924,4 +1967,16 @@ void Disassembly::ShowDisassemblyPopup(duint addr, int x, int y)
     }
     else
         mDisassemblyPopup.hide();
+}
+
+bool Disassembly::hightlightToken(const CapstoneTokenizer::SingleToken & token)
+{
+    mHighlightToken = token;
+    mHighlightingMode = false;
+    return true;
+}
+
+bool Disassembly::isHighlightMode()
+{
+    return mHighlightingMode;
 }

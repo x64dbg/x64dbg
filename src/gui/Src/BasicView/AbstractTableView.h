@@ -193,7 +193,7 @@ private:
 
     dsint mRowCount;
 
-    int mMouseWheelScrollDelta;
+    static int mMouseWheelScrollDelta;
 
     dsint mTableOffset;
     Header_t mHeader;

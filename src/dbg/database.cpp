@@ -23,6 +23,7 @@
 #include "encodemap.h"
 #include "plugin_loader.h"
 #include "argument.h"
+#include "debugger.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -69,6 +70,13 @@ void DbSave(DbLoadSaveType saveType)
         {
             json_object_set_new(root, "notes", json_string(text));
             BridgeFree(text);
+        }
+
+        //save initialization script
+        const char* initscript = dbggetdebuggeeinitscript();
+        if(initscript[0] != 0)
+        {
+            json_object_set_new(root, "initscript", json_string(initscript));
         }
 
         //plugin data
@@ -121,7 +129,7 @@ void DbSave(DbLoadSaveType saveType)
     else //remove database when nothing is in there
         DeleteFileW(wdbpath.c_str());
 
-    dprintf("%ums\n", GetTickCount() - ticks);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
     json_decref(root); //free root
 }
 
@@ -204,6 +212,10 @@ void DbLoad(DbLoadSaveType loadType)
         const char* text = json_string_value(json_object_get(root, "notes"));
         GuiSetDebuggeeNotes(text);
 
+        // Initialization script
+        text = json_string_value(json_object_get(root, "initscript"));
+        dbgsetdebuggeeinitscript(text);
+
         // Plugins
         JSON pluginRoot = json_object_get(root, "plugins");
         if(pluginRoot)
@@ -230,7 +242,7 @@ void DbLoad(DbLoadSaveType loadType)
     json_decref(root);
 
     if(loadType != DbLoadSaveType::CommandLine)
-        dprintf("%ums\n", GetTickCount() - ticks);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
 }
 
 void DbClose()

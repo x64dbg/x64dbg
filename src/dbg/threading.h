@@ -13,6 +13,7 @@ enum WAIT_ID
 //functions
 void waitclear();
 void wait(WAIT_ID id);
+bool waitfor(WAIT_ID id, unsigned int Milliseconds);
 void lock(WAIT_ID id);
 void unlock(WAIT_ID id);
 bool waitislocked(WAIT_ID id);
@@ -65,6 +66,9 @@ enum SectionLock
     LockRunToUserCode,
     LockWatch,
     LockExpressionFunctions,
+    LockHistory,
+    LockSymbolCache,
+    LockLineCache,
 
     // Number of elements in this enumeration. Must always be the last
     // index.

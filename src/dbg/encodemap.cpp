@@ -82,7 +82,7 @@ struct EncodeMap : AddrInfoHashMap<LockEncodeMaps, ENCODEMAP, EncodeMapSerialize
 
 static EncodeMap encmaps;
 
-bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map)
+static bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map, bool* created = nullptr)
 {
     duint base, segsize;
 
@@ -93,6 +93,8 @@ bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map)
     duint key = EncodeMap::VaKey(base);
     if(!encmaps.Contains(key))
     {
+        if(created)
+            *created = true;
         map.size = segsize;
         map.data = (byte*)VirtualAlloc(NULL, segsize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         if(map.data == NULL) return false;
@@ -221,14 +223,16 @@ duint EncodeMapGetSize(duint addr, duint codesize)
     return codesize;
 }
 
-bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type)
+bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
 {
     auto base = MemFindBaseAddr(addr, nullptr);
     if(!base)
         return false;
 
     ENCODEMAP map;
-    if(!EncodeMapGetorCreate(base, map))
+    if(created)
+        *created = false;
+    if(!EncodeMapGetorCreate(base, map, created))
         return false;
     auto offset = addr - base;
     size = min(map.size - offset, size);

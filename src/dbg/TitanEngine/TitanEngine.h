@@ -109,6 +109,7 @@
 #define UE_NUMBEROFRVAANDSIZES 22
 #define UE_BASEOFCODE 23
 #define UE_BASEOFDATA 24
+#define UE_DLLCHARACTERISTICS 25
 //leaving some enum space here for future additions
 #define UE_SECTIONNAME 40
 #define UE_SECTIONVIRTUALOFFSET 41
@@ -781,7 +782,7 @@ __declspec(dllexport) bool TITCALL RelocaterWipeRelocationTableW(const wchar_t* 
 __declspec(dllexport) ULONG_PTR TITCALL ResourcerLoadFileForResourceUse(const char* szFileName);
 __declspec(dllexport) ULONG_PTR TITCALL ResourcerLoadFileForResourceUseW(const wchar_t* szFileName);
 __declspec(dllexport) bool TITCALL ResourcerFreeLoadedFile(LPVOID LoadedFileBase);
-__declspec(dllexport) bool TITCALL ResourcerExtractResourceFromFileEx(ULONG_PTR FileMapVA, const char* szResourceType, const char* szResourceName, const char* szExtractedFileName);
+__declspec(dllexport) bool TITCALL ResourcerExtractResourceFromFileEx(HMODULE hFile, const char* szResourceType, const char* szResourceName, const char* szExtractedFileName);
 __declspec(dllexport) bool TITCALL ResourcerExtractResourceFromFile(const char* szFileName, const char* szResourceType, const char* szResourceName, const char* szExtractedFileName);
 __declspec(dllexport) bool TITCALL ResourcerExtractResourceFromFileW(const wchar_t* szFileName, char* szResourceType, const char* szResourceName, const char* szExtractedFileName);
 __declspec(dllexport) bool TITCALL ResourcerFindResource(const char* szFileName, const char* szResourceType, DWORD ResourceType, const char* szResourceName, DWORD ResourceName, DWORD ResourceLanguage, PULONG_PTR pResourceData, LPDWORD pResourceSize);

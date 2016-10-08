@@ -35,15 +35,6 @@ void ShortcutEdit::keyPressEvent(QKeyEvent* event)
         return;
     }
 
-    // these keys will be ignored
-    if(key == Qt::Key_Escape || key == Qt::Key_Backspace)
-    {
-        setText("");
-        keyInt = -1;
-        emit askForSave();
-        return;
-    }
-
     // any combination of "Ctrl, Alt, Shift" ?
     Qt::KeyboardModifiers modifiers = event->modifiers();
     QString text = event->text();

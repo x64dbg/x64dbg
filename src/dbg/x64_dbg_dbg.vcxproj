@@ -32,10 +32,12 @@
     <ClCompile Include="analysis\LinearPass.cpp" />
     <ClCompile Include="analysis\recursiveanalysis.cpp" />
     <ClCompile Include="analysis\xrefsanalysis.cpp" />
+    <ClCompile Include="animate.cpp" />
     <ClCompile Include="argument.cpp" />
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
+    <ClCompile Include="breakpoint_commands.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="commandline.cpp" />
     <ClCompile Include="commandparser.cpp" />
@@ -52,7 +54,6 @@
     <ClCompile Include="expressionfunctions.cpp" />
     <ClCompile Include="exprfunc.cpp" />
     <ClCompile Include="handles.cpp" />
-    <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exhandlerinfo.cpp" />
     <ClCompile Include="expressionparser.cpp" />
@@ -78,6 +79,7 @@
     <ClCompile Include="stringformat.cpp" />
     <ClCompile Include="stringutils.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
+    <ClCompile Include="symcache.cpp" />
     <ClCompile Include="tcpconnections.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
@@ -123,6 +125,7 @@
     <ClInclude Include="analysis\LinearPass.h" />
     <ClInclude Include="analysis\recursiveanalysis.h" />
     <ClInclude Include="analysis\xrefsanalysis.h" />
+    <ClInclude Include="animate.h" />
     <ClInclude Include="argument.h" />
     <ClInclude Include="assemble.h" />
     <ClInclude Include="bookmark.h" />
@@ -146,7 +149,6 @@
     <ClInclude Include="expressionfunctions.h" />
     <ClInclude Include="exprfunc.h" />
     <ClInclude Include="handles.h" />
-    <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="exhandlerinfo.h" />
     <ClInclude Include="expressionparser.h" />
@@ -183,12 +185,15 @@
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />
+    <ClInclude Include="symcache.h" />
     <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
     <ClInclude Include="watch.h" />
     <ClInclude Include="xrefs.h" />
+    <ClInclude Include="yara\yara\integers.h" />
     <ClInclude Include="yara\yara\stream.h" />
+    <ClInclude Include="yara\yara\threading.h" />
     <ClInclude Include="_scriptapi.h" />
     <ClInclude Include="simplescript.h" />
     <ClInclude Include="stackinfo.h" />

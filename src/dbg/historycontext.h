@@ -2,7 +2,6 @@
 #define HISTORYCONTEXT_H
 
 #include "debugger.h"
-#include <capstone_wrapper.h>
 
 /**
  * @brief The class used to hold history context.
@@ -12,7 +11,6 @@ class HistoryContext
 public:
     HistoryContext();
     ~HistoryContext();
-    HistoryContext(const HistoryContext & copy);
 
     void restore();
 
@@ -31,4 +29,5 @@ void HistoryAdd();
 void HistoryRestore();
 void HistoryClear();
 bool HistoryIsEmpty();
+
 #endif //HISTORY_CONTEXT_H

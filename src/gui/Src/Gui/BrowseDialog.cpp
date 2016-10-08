@@ -6,8 +6,9 @@ BrowseDialog::BrowseDialog(QWidget* parent, const QString & title, const QString
     QDialog(parent),
     ui(new Ui::BrowseDialog), mFilter(filter), mSave(save)
 {
-    this->setWindowTitle(title);
     ui->setupUi(this);
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
+    setWindowTitle(title);
     ui->label->setText(text);
     ui->lineEdit->setText(defaultPath);
 }
@@ -24,6 +25,7 @@ void BrowseDialog::on_browse_clicked()
         file = QFileDialog::getSaveFileName(this, ui->label->text(), ui->lineEdit->text(), mFilter);
     else
         file = QFileDialog::getOpenFileName(this, ui->label->text(), ui->lineEdit->text(), mFilter);
+    file = QDir::toNativeSeparators(file);
     if(file.size() != 0)
         ui->lineEdit->setText(file);
 }

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>280</height>
+    <height>304</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,23 +18,10 @@
     <normaloff>:/icons/images/document-binary.png</normaloff>:/icons/images/document-binary.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="labelAscii">
-     <property name="text">
-      <string>&amp;ASCII:</string>
-     </property>
-     <property name="buddy">
-      <cstring>lineEditAscii</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="labelUnicode">
-     <property name="text">
-      <string>&amp;UNICODE:</string>
-     </property>
-     <property name="buddy">
-      <cstring>lineEditUnicode</cstring>
+   <item row="5" column="0" colspan="4">
+    <widget class="HexLineEdit" name="lineEditCodepage">
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
      </property>
     </widget>
    </item>
@@ -54,6 +41,23 @@
      </property>
     </widget>
    </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="labelAscii">
+     <property name="text">
+      <string>&amp;ASCII:</string>
+     </property>
+     <property name="buddy">
+      <cstring>lineEditAscii</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="2">
+    <widget class="QPushButton" name="btnOk">
+     <property name="text">
+      <string>&amp;OK</string>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="0" colspan="4">
     <widget class="HexLineEdit" name="lineEditAscii">
      <property name="styleSheet">
@@ -70,7 +74,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="6" column="0">
     <widget class="QLabel" name="labelHex">
      <property name="text">
       <string>&amp;Hex:</string>
@@ -80,21 +84,21 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
-    <widget class="QCheckBox" name="chkKeepSize">
+   <item row="8" column="3">
+    <widget class="QPushButton" name="btnCancel">
      <property name="text">
-      <string>&amp;Keep Size</string>
+      <string>&amp;Cancel</string>
      </property>
     </widget>
    </item>
-   <item row="6" column="2">
-    <widget class="QPushButton" name="btnOk">
+   <item row="8" column="1">
+    <widget class="QCheckBox" name="chkEntireBlock">
      <property name="text">
-      <string>&amp;OK</string>
+      <string>&amp;Entire Block</string>
      </property>
     </widget>
    </item>
-   <item row="5" column="0" colspan="4">
+   <item row="7" column="0" colspan="4">
     <widget class="QScrollArea" name="scrollArea">
      <property name="focusPolicy">
       <enum>Qt::NoFocus</enum>
@@ -111,23 +115,36 @@
         <x>0</x>
         <y>0</y>
         <width>361</width>
-        <height>116</height>
+        <height>100</height>
        </rect>
       </property>
      </widget>
     </widget>
    </item>
-   <item row="6" column="1">
-    <widget class="QCheckBox" name="chkEntireBlock">
+   <item row="2" column="0">
+    <widget class="QLabel" name="labelUnicode">
      <property name="text">
-      <string>&amp;Entire Block</string>
+      <string>&amp;UNICODE:</string>
+     </property>
+     <property name="buddy">
+      <cstring>lineEditUnicode</cstring>
      </property>
     </widget>
    </item>
-   <item row="6" column="3">
-    <widget class="QPushButton" name="btnCancel">
+   <item row="8" column="0">
+    <widget class="QCheckBox" name="chkKeepSize">
      <property name="text">
-      <string>&amp;Cancel</string>
+      <string>&amp;Keep Size</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="labelLastCodepage">
+     <property name="text">
+      <string>Last &amp;Codepage:</string>
+     </property>
+     <property name="buddy">
+      <cstring>lineEditCodepage</cstring>
      </property>
     </widget>
    </item>
@@ -146,7 +163,7 @@
       </size>
      </property>
      <property name="text">
-      <string>&amp;Codepage...</string>
+      <string>Code&amp;page...</string>
      </property>
     </widget>
    </item>

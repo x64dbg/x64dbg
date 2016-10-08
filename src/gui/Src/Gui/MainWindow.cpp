@@ -44,6 +44,7 @@
 #include "CPUMultiDump.h"
 #include "CPUStack.h"
 #include "GotoDialog.h"
+#include "BrowseDialog.h"
 #include "main.h"
 
 QString MainWindow::windowTitle = "";
@@ -117,18 +118,16 @@ MainWindow::MainWindow(QWidget* parent)
     mSourceViewManager->setWindowTitle(tr("Source"));
     mSourceViewManager->setWindowIcon(DIcon("source.png"));
     mSourceViewManager->hide();
-    connect(mSourceViewManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle(tr("Breakpoints"));
     mBreakpointsView->setWindowIcon(DIcon("breakpoint.png"));
     mBreakpointsView->hide();
-    connect(mBreakpointsView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Memory map view
     mMemMapView = new MemoryMapView();
-    connect(mMemMapView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+
     connect(mMemMapView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     mMemMapView->setWindowTitle(tr("Memory Map"));
     mMemMapView->setWindowIcon(DIcon("memory-map.png"));
@@ -138,13 +137,11 @@ MainWindow::MainWindow(QWidget* parent)
     mCallStackView = new CallStackView();
     mCallStackView->setWindowTitle(tr("Call Stack"));
     mCallStackView->setWindowIcon(DIcon("callstack.png"));
-    connect(mCallStackView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // SEH Chain view
     mSEHChainView = new SEHChainView();
     mSEHChainView->setWindowTitle(tr("SEH"));
     mSEHChainView->setWindowIcon(DIcon("seh-chain.png"));
-    connect(mSEHChainView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Script view
     mScriptView = new ScriptView();
@@ -170,7 +167,6 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Thread view
     mThreadView = new ThreadView();
-    connect(mThreadView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     mThreadView->setWindowTitle(tr("Threads"));
     mThreadView->setWindowIcon(DIcon("arrow-threads.png"));
 
@@ -246,7 +242,6 @@ MainWindow::MainWindow(QWidget* parent)
     // Patch dialog
     mPatchDialog = new PatchDialog(this);
     mCalculatorDialog = new CalculatorDialog(this);
-    connect(mCalculatorDialog, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Setup signals/slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
@@ -255,7 +250,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionCommand, SIGNAL(triggered()), this, SLOT(setFocusToCommandBar()));
     makeCommandAction(ui->actionClose, "stop");
     connect(ui->actionMemoryMap, SIGNAL(triggered()), this, SLOT(displayMemMapWidget()));
-    makeCommandAction(ui->actionRun, "run");
+    connect(ui->actionRun, SIGNAL(triggered()), this, SLOT(runSlot()));
     makeCommandAction(ui->actionRtr, "rtr");
     connect(ui->actionLog, SIGNAL(triggered()), this, SLOT(displayLogWidget()));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(displayAboutWidget()));
@@ -268,7 +263,7 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actioneStepInto, "eStepInto");
     makeCommandAction(ui->actioneRun, "eRun");
     makeCommandAction(ui->actioneRtr, "eRtr");
-    makeCommandAction(ui->actionRtu, "rtu");
+    makeCommandAction(ui->actionRtu, "TraceIntoConditional !mod.party(cip)");
     connect(ui->actionTicnd, SIGNAL(triggered()), this, SLOT(execTicnd()));
     connect(ui->actionTocnd, SIGNAL(triggered()), this, SLOT(execTocnd()));
     connect(ui->actionTRBit, SIGNAL(triggered()), this, SLOT(execTRBit()));
@@ -288,10 +283,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
     connect(ui->actionSource, SIGNAL(triggered()), this, SLOT(displaySourceViewWidget()));
-    connect(mSymbolView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(mSymbolView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
-    connect(mReferenceManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
-    connect(mGraphView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(ui->actionReferences, SIGNAL(triggered()), this, SLOT(displayReferencesWidget()));
     connect(ui->actionThreads, SIGNAL(triggered()), this, SLOT(displayThreadsWidget()));
     connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(openSettings()));
@@ -326,6 +318,10 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actionseStepInto, "seStepInto");
     makeCommandAction(ui->actionseStepOver, "seStepOver");
     makeCommandAction(ui->actionseRun, "seRun");
+    connect(ui->actionAnimateInto, SIGNAL(triggered()), this, SLOT(animateIntoSlot()));
+    connect(ui->actionAnimateOver, SIGNAL(triggered()), this, SLOT(animateOverSlot()));
+    connect(ui->actionAnimateCommand, SIGNAL(triggered()), this, SLOT(animateCommandSlot()));
+    connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitialzationScript()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -333,11 +329,13 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayGraphWidget()), this, SLOT(displayGraphWidget()));
-
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(decompileAt(dsint, dsint)), this, SLOT(decompileAt(dsint, dsint)));
+
     connect(mCpuWidget->getDumpWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+
     connect(mCpuWidget->getStackWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+
     connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
@@ -595,6 +593,9 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionTRBit, ConfigShortcut("DebugEnableTraceRecordBit"));
     setGlobalShortcut(ui->actionTRNone, ConfigShortcut("DebugTraceRecordNone"));
     setGlobalShortcut(ui->actionInstrUndo, ConfigShortcut("DebugInstrUndo"));
+    setGlobalShortcut(ui->actionAnimateInto, ConfigShortcut("DebugAnimateInto"));
+    setGlobalShortcut(ui->actionAnimateOver, ConfigShortcut("DebugAnimateOver"));
+    setGlobalShortcut(ui->actionAnimateCommand, ConfigShortcut("DebugAnimateCommand"));
 
     setGlobalShortcut(ui->actionScylla, ConfigShortcut("PluginsScylla"));
 
@@ -753,20 +754,18 @@ void MainWindow::execTicnd()
 {
     if(!DbgIsDebugging())
         return;
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle(tr("Enter trace into finishing condition."));
-    if(mLineEdit.exec() == QDialog::Accepted)
-        DbgCmdExec(QString("ticnd \"%1\"").arg(mLineEdit.editText).toUtf8().constData());
+    QString text;
+    if(SimpleInputBox(this, tr("Enter trace into finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceinto.png")))
+        DbgCmdExec(QString("ticnd \"%1\"").arg(text).toUtf8().constData());
 }
 
 void MainWindow::execTocnd()
 {
     if(!DbgIsDebugging())
         return;
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle(tr("Enter trace over finishing condition."));
-    if(mLineEdit.exec() == QDialog::Accepted)
-        DbgCmdExec(QString("tocnd \"%1\"").arg(mLineEdit.editText).toUtf8().constData());
+    QString text;
+    if(SimpleInputBox(this, tr("Enter trace over finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceover.png")))
+        DbgCmdExec(QString("tocnd \"%1\"").arg(text).toUtf8().constData());
 }
 
 void MainWindow::displayMemMapWidget()
@@ -821,6 +820,14 @@ void MainWindow::openFile()
     DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
     if(DbgValFromString("$pid") != 0)
         mCpuWidget->setDisasmFocus();
+}
+
+void MainWindow::runSlot()
+{
+    if(DbgIsDebugging())
+        DbgCmdExec("run");
+    else
+        restartDebugging();
 }
 
 void MainWindow::restartDebugging()
@@ -1467,14 +1474,14 @@ void MainWindow::updateFavouriteTools()
     ui->menuFavourites->clear();
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Tool%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QString exePath = QString::fromUtf8(buffer);
+        QString exePath = QString(buffer);
         QAction* newAction = new QAction(this);
         newAction->setData(QVariant(QString("Tool,%1").arg(exePath)));
         if(BridgeSettingGet("Favourite", QString("ToolShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
-                setGlobalShortcut(newAction, QKeySequence(QString::fromUtf8(buffer)));
+                setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
         if(BridgeSettingGet("Favourite", QString("ToolDescription%1").arg(i).toUtf8().constData(), buffer))
-            newAction->setText(QString::fromUtf8(buffer));
+            newAction->setText(QString(buffer));
         else
             newAction->setText(exePath);
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
@@ -1488,14 +1495,14 @@ void MainWindow::updateFavouriteTools()
     }
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Script%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QString scriptPath = QString::fromUtf8(buffer);
+        QString scriptPath = QString(buffer);
         QAction* newAction = new QAction(this);
         newAction->setData(QVariant(QString("Script,%1").arg(scriptPath)));
         if(BridgeSettingGet("Favourite", QString("ScriptShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
-                setGlobalShortcut(newAction, QKeySequence(QString::fromUtf8(buffer)));
+                setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
         if(BridgeSettingGet("Favourite", QString("ScriptDescription%1").arg(i).toUtf8().constData(), buffer))
-            newAction->setText(QString::fromUtf8(buffer));
+            newAction->setText(QString(buffer));
         else
             newAction->setText(scriptPath);
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
@@ -1509,11 +1516,11 @@ void MainWindow::updateFavouriteTools()
     }
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QAction* newAction = new QAction(QString::fromUtf8(buffer), this);
+        QAction* newAction = new QAction(QString(buffer), this);
         newAction->setData(QVariant(QString("Command")));
         if(BridgeSettingGet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
-                setGlobalShortcut(newAction, QKeySequence(QString::fromUtf8(buffer)));
+                setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
         ui->menuFavourites->addAction(newAction);
         isanythingexists = true;
@@ -1551,6 +1558,7 @@ void MainWindow::clickFavouriteTool()
         QString scriptPath = data.mid(7);
         DbgScriptUnload();
         DbgScriptLoad(scriptPath.toUtf8().constData());
+        displayScriptWidget();
     }
     else if(data.compare("Command") == 0)
     {
@@ -1571,7 +1579,7 @@ void MainWindow::chooseLanguage()
         if(file.size() < 512)
         {
             QMessageBox msg(this);
-            msg.setWindowIcon(QIcon("codepage.png"));
+            msg.setWindowIcon(DIcon("codepage.png"));
             msg.setIcon(QMessageBox::Information);
             if(tr("Languages") == QString("Languages"))
             {
@@ -1592,7 +1600,7 @@ void MainWindow::chooseLanguage()
     BridgeSettingSet("Engine", "Language", localeName.toUtf8().constData());
     QMessageBox msg(this);
     msg.setIcon(QMessageBox::Information);
-    msg.setWindowIcon(QIcon("codepage.png"));
+    msg.setWindowIcon(DIcon("codepage.png"));
     if(tr("Languages") == QString("Languages"))
     {
         msg.setWindowTitle(QString("Languages"));
@@ -1655,6 +1663,82 @@ void MainWindow::setFavouriteItemShortcut(int type, const QString & name, const 
                 updateFavouriteTools();
                 break;
             }
+        }
+    }
+}
+
+void MainWindow::animateIntoSlot()
+{
+    if(DbgIsDebugging())
+        DbgFunctions()->AnimateCommand("StepInto");
+}
+
+void MainWindow::animateOverSlot()
+{
+    if(DbgIsDebugging())
+        DbgFunctions()->AnimateCommand("StepOver");
+}
+
+void MainWindow::animateCommandSlot()
+{
+    QString command;
+    if(SimpleInputBox(this, tr("Animate command"), "", command, tr("Example: StepInto")))
+        DbgFunctions()->AnimateCommand(command.toUtf8().constData());
+}
+
+void MainWindow::setInitialzationScript()
+{
+    QString global, debuggee;
+    char globalChar[MAX_SETTING_SIZE];
+    if(DbgIsDebugging())
+    {
+        debuggee = QString(DbgFunctions()->DbgGetDebuggeeInitScript());
+        BrowseDialog browseScript(this, tr("Set Initialzation Script for Debuggee"), tr("Set Initialzation Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
+        if(browseScript.exec() == QDialog::Accepted)
+            DbgFunctions()->DbgSetDebuggeeInitScript(browseScript.path.toUtf8().constData());
+    }
+    if(BridgeSettingGet("Engine", "InitializeScript", globalChar))
+        global = QString(globalChar);
+    else
+        global = QString();
+    BrowseDialog browseScript(this, tr("Set Global Initialzation Script"), tr("Set Global Initialzation Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);
+    if(browseScript.exec() == QDialog::Accepted)
+    {
+        BridgeSettingSet("Engine", "InitializeScript", browseScript.path.toUtf8().constData());
+    }
+}
+
+#include "../src/bridge/Utf8Ini.h"
+
+void MainWindow::on_actionImportSettings_triggered()
+{
+    auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), QCoreApplication::applicationDirPath(), tr("Settings (*.ini);;All files (*.*)"));
+    if(!filename.length())
+        return;
+    QFile f(QDir::toNativeSeparators(filename));
+    if(f.open(QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream in(&f);
+        auto style = in.readAll();
+        f.close();
+        Utf8Ini ini;
+        int errorLine;
+        if(ini.Deserialize(style.toStdString(), errorLine))
+        {
+            auto sections = ini.Sections();
+            for(const auto & section : sections)
+            {
+                auto keys = ini.Keys(section);
+                for(const auto & key : keys)
+                    BridgeSettingSet(section.c_str(), key.c_str(), ini.GetValue(section, key).c_str());
+            }
+            Config()->load();
+            DbgSettingsUpdated();
+            Config()->emitColorsUpdated();
+            Config()->emitFontsUpdated();
+            Config()->emitShortcutsUpdated();
+            Config()->emitTokenizerConfigUpdated();
+            GuiUpdateAllViews();
         }
     }
 }

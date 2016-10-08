@@ -2,6 +2,7 @@
 #include "Configuration.h"
 #include "Breakpoints.h"
 #include "CPUDisassembly.h"
+#include "CachedFontMetrics.h"
 #include <QToolTip>
 
 CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollArea(parent)
@@ -9,6 +10,7 @@ CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollAr
     topVA = -1;
     selectedVA = -1;
     viewableRows = 0;
+    mFontMetrics = nullptr;
 
     mDisas = Ptr;
 
@@ -24,6 +26,7 @@ CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollAr
 
 CPUSideBar::~CPUSideBar()
 {
+    delete mFontMetrics;
 }
 
 void CPUSideBar::updateSlots()
@@ -66,12 +69,13 @@ void CPUSideBar::updateFonts()
     m_DefaultFont = mDisas->font();
     this->setFont(m_DefaultFont);
 
-    QFontMetrics metrics(m_DefaultFont);
-    fontWidth  = metrics.width(' ');
-    fontHeight = metrics.height();
+    delete mFontMetrics;
+    mFontMetrics = new CachedFontMetrics(this, m_DefaultFont);
+    fontWidth  = mFontMetrics->width(' ');
+    fontHeight = mFontMetrics->height();
 
-    mBulletRadius = fontHeight / 2;
-    mBulletYOffset = (fontHeight - mBulletRadius) / 2;
+    mBulletYOffset = 2;
+    mBulletRadius = fontHeight - 2 * mBulletYOffset;
 }
 
 QSize CPUSideBar::sizeHint() const
@@ -83,11 +87,11 @@ void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
 {
     if(state == stopped)
     {
-        repaint(); //clear
+        reload(); //clear
     }
 }
 
-void CPUSideBar::repaint()
+void CPUSideBar::reload()
 {
     fontHeight = mDisas->getRowHeight();
     viewport()->update();
@@ -98,7 +102,7 @@ void CPUSideBar::changeTopmostAddress(dsint i)
     topVA = i;
     memset(&regDump, 0, sizeof(REGDUMP));
     DbgGetRegDump(&regDump);
-    repaint();
+    reload();
 }
 
 void CPUSideBar::setViewableRows(int rows)
@@ -111,7 +115,7 @@ void CPUSideBar::setSelection(dsint selVA)
     if(selVA != selectedVA)
     {
         selectedVA = selVA;
-        repaint();
+        reload();
     }
 }
 
@@ -193,6 +197,18 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     appendReg("ESI", regDump.regcontext.csi);
     appendReg("EDI", regDump.regcontext.cdi);
 #endif //_WIN64
+    if(ConfigBool("Gui", "SidebarWatchLabels"))
+    {
+        BridgeList<WATCHINFO> WatchList;
+        DbgGetWatchList(&WatchList);
+        for(int i = 0; i < WatchList.Count(); i++)
+        {
+            if(WatchList[i].varType == WATCHVARTYPE::TYPE_UINT || WatchList[i].varType == WATCHVARTYPE::TYPE_ASCII || WatchList[i].varType == WATCHVARTYPE::TYPE_UNICODE)
+            {
+                appendReg(QString(WatchList[i].WatchName), WatchList[i].value);
+            }
+        }
+    }
 
     std::vector<JumpLine> jumpLines;
     std::vector<LabelArrow> labelArrows;
@@ -357,7 +373,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
                 mCodeFoldingManager.delFoldSegment(wVA);
             }
             mDisas->reloadData();
-            viewport()->repaint();
+            viewport()->update();
         }
     }
     if(x < bulletX - mBulletRadius)
@@ -612,12 +628,11 @@ CPUSideBar::LabelArrow CPUSideBar::drawLabel(QPainter* painter, int Line, const 
 {
     painter->save();
     const int LineCoordinate = fontHeight * (1 + Line);
-    int length = Text.length();
 
     const QColor & IPLabel = mCipLabelColor;
     const QColor & IPLabelBG = mCipLabelBackgroundColor;
 
-    int width = length * fontWidth + 2;
+    int width = mFontMetrics->width(Text);
     int x = 1;
     int y = LineCoordinate - fontHeight;
 

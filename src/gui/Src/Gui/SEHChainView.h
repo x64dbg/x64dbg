@@ -10,9 +10,6 @@ public:
     explicit SEHChainView(StdTable* parent = 0);
     void setupContextMenu();
 
-signals:
-    void showCpu();
-
 protected slots:
     void updateSEHChain();
     void contextMenuSlot(const QPoint pos);

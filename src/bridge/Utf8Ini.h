@@ -1,5 +1,5 @@
-#ifndef _UTF8INI_H
-#define _UTF8INI_H
+#ifndef UTF8INI_H
+#define UTF8INI_H
 
 #include <string>
 #include <map>
@@ -14,7 +14,7 @@ public:
     inline std::string Serialize() const
     {
         std::string output;
-        for(const auto & section : _sections)
+        for(const auto & section : mSections)
         {
             if(output.length())
                 appendLine(output, "");
@@ -23,7 +23,7 @@ public:
                 if(keyvalue.first.length())
                     appendLine(output, makeKeyValueText(keyvalue.first, keyvalue.second));
         }
-        return output;
+        return std::move(output);
     }
 
     /**
@@ -66,7 +66,6 @@ public:
             switch(getLineType(line))
             {
             case LineType::Invalid:
-                MessageBoxA(0, line.c_str(), "line", 0);
                 return false;
 
             case LineType::Comment:
@@ -85,8 +84,14 @@ public:
             break;
 
             case LineType::Section:
+            {
                 if(!parseSectionLine(line, section))
                     return false;
+            }
+            break;
+
+            default:
+                return false;
             }
         }
         return true;
@@ -105,14 +110,14 @@ public:
         auto trimmedKey = trim(key);
         if(!trimmedSection.length() || !trimmedKey.length())
             return false;
-        auto found = _sections.find(trimmedSection);
-        if(found != _sections.end())
+        auto found = mSections.find(trimmedSection);
+        if(found != mSections.end())
             found->second[trimmedKey] = value;
         else
         {
             KeyValueMap keyValueMap;
             keyValueMap[trimmedKey] = value;
-            _sections[trimmedSection] = keyValueMap;
+            mSections[trimmedSection] = keyValueMap;
         }
         return true;
     }
@@ -127,10 +132,10 @@ public:
         auto trimmedSection = trim(section);
         if(!trimmedSection.length())
             return false;
-        auto found = _sections.find(trimmedSection);
-        if(found == _sections.end())
+        auto found = mSections.find(trimmedSection);
+        if(found == mSections.end())
             return false;
-        _sections.erase(found);
+        mSections.erase(found);
         return true;
     }
 
@@ -139,14 +144,13 @@ public:
     */
     inline void Clear()
     {
-        _sections.clear();
+        mSections.clear();
     }
 
     /**
     \brief Gets a value.
     \param section The section.
     \param key The key.
-    \param [in,out] value The value.
     \return The value. Empty string when the value was not found or empty.
     */
     inline std::string GetValue(const std::string & section, const std::string & key) const
@@ -155,8 +159,8 @@ public:
         auto trimmedKey = trim(key);
         if(!trimmedSection.length() || !trimmedKey.length())
             return "";
-        auto sectionFound = _sections.find(trimmedSection);
-        if(sectionFound == _sections.end())
+        auto sectionFound = mSections.find(trimmedSection);
+        if(sectionFound == mSections.end())
             return "";
         const auto & keyValueMap = sectionFound->second;
         auto keyFound = keyValueMap.find(trimmedKey);
@@ -165,9 +169,44 @@ public:
         return keyFound->second;
     }
 
+    /**
+    \brief Gets the section names.
+    \return List of section names.
+    */
+    inline std::vector<std::string> Sections() const
+    {
+        std::vector<std::string> sections;
+        sections.reserve(mSections.size());
+        for(const auto & section : mSections)
+            sections.push_back(section.first);
+        return std::move(sections);
+    }
+
+    /**
+    \brief Gets keys in a given section.
+    \param section The section.
+    \return List of keys in the section. Empty if the section is not found or empty.
+    */
+    inline std::vector<std::string> Keys(const std::string & section) const
+    {
+        std::vector<std::string> keys;
+        auto trimmedSection = trim(section);
+        if(trimmedSection.length())
+        {
+            auto found = mSections.find(trimmedSection);
+            if(found != mSections.end())
+            {
+                keys.reserve(found->second.size());
+                for(const auto & key : found->second)
+                    keys.push_back(key.first);
+            }
+        }
+        return std::move(keys);
+    }
+
 private:
     typedef std::map<std::string, std::string> KeyValueMap;
-    std::map<std::string, KeyValueMap> _sections;
+    std::map<std::string, KeyValueMap> mSections;
 
     enum class LineType
     {
@@ -277,13 +316,14 @@ private:
                 escaped += ch;
             }
         }
-        return escaped + "\"";
+        escaped += "\"";
+        return std::move(escaped);
     }
 
     static inline std::string unescapeValue(const std::string & str)
     {
         std::string result;
-        bool bEscaped = false;
+        auto bEscaped = false;
         for(auto ch : str)
         {
             if(!bEscaped)
@@ -320,8 +360,8 @@ private:
         }
         if(bEscaped)
             result += '\\';
-        return result;
+        return std::move(result);
     }
 };
 
-#endif //_UTF8INI_H
+#endif //UTF8INI_H

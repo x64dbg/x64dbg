@@ -22,11 +22,12 @@ QByteArray & ByteReverse(QByteArray & array)
     return array;
 }
 
-bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue, QString & output)
+bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue, QString & output, const QString & placeholderText, QIcon* icon)
 {
     LineEditDialog mEdit(parent);
-    mEdit.setWindowIcon(parent->windowIcon());
+    mEdit.setWindowIcon(icon ? *icon : parent->windowIcon());
     mEdit.setText(defaultValue);
+    mEdit.setPlaceholderText(placeholderText);
     mEdit.setWindowTitle(title);
     mEdit.setCheckBox(false);
     if(mEdit.exec() == QDialog::Accepted)

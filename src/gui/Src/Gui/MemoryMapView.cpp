@@ -32,6 +32,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
 
     connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
+    connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(selectAddress(duint)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     setupContextMenu();
@@ -40,16 +41,14 @@ MemoryMapView::MemoryMapView(StdTable* parent)
 void MemoryMapView::setupContextMenu()
 {
     //Follow in Dump
-    mFollowDump = new QAction(tr("&Follow in Dump"), this);
+    mFollowDump = new QAction(DIcon("dump.png"), tr("&Follow in Dump"), this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
     //Follow in Disassembler
-    mFollowDisassembly = new QAction(tr("Follow in &Disassembler"), this);
-    mFollowDisassembly->setShortcutContext(Qt::WidgetShortcut);
-    mFollowDisassembly->setShortcut(QKeySequence("enter"));
+    mFollowDisassembly = new QAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in &Disassembler"), this);
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
-    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
-    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followDisassemblerSlot()));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickedSlot()));
+    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
 
     //Yara
     mYara = new QAction(DIcon("yara.png"), "&Yara...", this);
@@ -60,39 +59,43 @@ void MemoryMapView::setupContextMenu()
     connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
 
     //Switch View
-    mSwitchView = new QAction(tr("&Switch View"), this);
+    mSwitchView = new QAction(DIcon("change-view.png"), tr("&Switch View"), this);
     connect(mSwitchView, SIGNAL(triggered()), this, SLOT(switchView()));
 
     //Breakpoint menu
     mBreakpointMenu = new QMenu(tr("Memory &Breakpoint"), this);
+    mBreakpointMenu->setIcon(DIcon("breakpoint.png"));
 
     //Breakpoint->Memory Access
     mMemoryAccessMenu = new QMenu(tr("Access"), this);
-    mMemoryAccessSingleshoot = new QAction(tr("&Singleshoot"), this);
+    mMemoryAccessMenu->setIcon(DIcon("breakpoint_memory_access.png"));
+    mMemoryAccessSingleshoot = new QAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
     connect(mMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessSingleshoot);
-    mMemoryAccessRestore = new QAction(tr("&Restore"), this);
+    mMemoryAccessRestore = new QAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore"), this);
     connect(mMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessRestore);
     mBreakpointMenu->addMenu(mMemoryAccessMenu);
 
     //Breakpoint->Memory Write
     mMemoryWriteMenu = new QMenu(tr("Write"), this);
-    mMemoryWriteSingleshoot = new QAction(tr("&Singleshoot"), this);
+    mMemoryWriteMenu->setIcon(DIcon("breakpoint_memory_write.png"));
+    mMemoryWriteSingleshoot = new QAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
     connect(mMemoryWriteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteSingleshoot);
-    mMemoryWriteRestore = new QAction(tr("&Restore"), this);
+    mMemoryWriteRestore = new QAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore"), this);
     connect(mMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteRestore);
     mBreakpointMenu->addMenu(mMemoryWriteMenu);
 
     //Breakpoint->Memory Execute
     mMemoryExecuteMenu = new QMenu(tr("Execute"), this);
-    mMemoryExecuteSingleshoot = new QAction(tr("&Singleshoot"), this);
+    mMemoryExecuteMenu->setIcon(DIcon("breakpoint_memory_execute.png"));
+    mMemoryExecuteSingleshoot = new QAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
     mMemoryExecuteSingleshoot->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
-    mMemoryExecuteRestore = new QAction(tr("&Restore"), this);
+    mMemoryExecuteRestore = new QAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore"), this);
     connect(mMemoryExecuteRestore, SIGNAL(triggered()), this, SLOT(memoryExecuteRestoreSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteRestore);
     mBreakpointMenu->addMenu(mMemoryExecuteMenu);
@@ -121,7 +124,7 @@ void MemoryMapView::setupContextMenu()
     connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
     this->addAction(mMemoryFree);
 
-    mFindAddress = new QAction(tr("Find address &page"), this);
+    mFindAddress = new QAction(DIcon("find.png"), tr("Find address &page"), this);
     connect(mFindAddress, SIGNAL(triggered()), this, SLOT(findAddressSlot()));
     this->addAction(mFindAddress);
 
@@ -138,7 +141,7 @@ void MemoryMapView::setupContextMenu()
     connect(mFindPattern, SIGNAL(triggered()), this, SLOT(findPatternSlot()));
 
     //Dump
-    mDumpMemory = new QAction(tr("&Dump Memory to File"), this);
+    mDumpMemory = new QAction(DIcon("binary_save.png"), tr("&Dump Memory to File"), this);
     connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemory()));
 
     //Add virtual module
@@ -182,6 +185,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addSeparator();
     wMenu.addMenu(mBreakpointMenu);
     QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
@@ -195,7 +199,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 #else //x86
     duint selectedAddr = wStr.toULong(0, 16);
 #endif //_WIN64
-    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory) == bp_memory) //memory breakpoint set
+    if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
     {
         mMemoryAccessMenu->menuAction()->setVisible(false);
         mMemoryWriteMenu->menuAction()->setVisible(false);
@@ -305,11 +309,11 @@ void MemoryMapView::refreshMap()
         MEMORY_BASIC_INFORMATION wMbi = (wMemMapStruct.page)[wI].mbi;
 
         // Base address
-        wS = QString("%1").arg((duint)wMbi.BaseAddress, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        wS = ToPtrString((duint)wMbi.BaseAddress);
         setCellContent(wI, 0, wS);
 
         // Size
-        wS = QString("%1").arg((duint)wMbi.RegionSize, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        wS = ToPtrString((duint)wMbi.RegionSize);
         setCellContent(wI, 1, wS);
 
         // Information
@@ -373,22 +377,23 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 
 void MemoryMapView::followDumpSlot()
 {
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExecDirect(QString("dump " + addr_text).toUtf8().constData());
-    emit showCpu();
+    DbgCmdExec(QString("dump %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void MemoryMapView::followDisassemblerSlot()
 {
-    QString commandText = QString("disasm %1").arg(getCellContent(getInitialSelection(), 0));
+    DbgCmdExec(QString("disasm %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
+}
 
-    // If there was no address loaded, the length
-    // will only be the command length
-    if(commandText.length() <= 8)
+void MemoryMapView::doubleClickedSlot()
+{
+    auto addr = DbgValFromString(getCellContent(getInitialSelection(), 0).toUtf8().constData());
+    if(!addr)
         return;
-
-    DbgCmdExecDirect(commandText.toUtf8().constData());
-    emit showCpu();
+    if(DbgFunctions()->MemIsCodePage(addr, false))
+        followDisassemblerSlot();
+    else
+        followDumpSlot();
 }
 
 void MemoryMapView::yaraSlot()
@@ -516,8 +521,7 @@ void MemoryMapView::memoryAllocateSlot()
         duint addr = DbgValFromString("$result");
         if(addr != 0)
         {
-            DbgCmdExec("Dump $result");
-            emit showCpu();
+            DbgCmdExec("dump $result");
         }
         else
         {

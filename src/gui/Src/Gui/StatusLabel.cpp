@@ -5,9 +5,9 @@ StatusLabel::StatusLabel(QStatusBar* parent) : QLabel(parent)
 {
     this->setFrameStyle(QFrame::Sunken | QFrame::Panel); //sunken style
     this->setStyleSheet("QLabel { background-color : #c0c0c0; }");
-    this->setTextFormat(Qt::RichText); //rich text
     if(parent) //the debug-status label only has a parent
     {
+        this->setTextFormat(Qt::RichText); //rich text
         parent->setStyleSheet("QStatusBar { background-color: #c0c0c0; } QStatusBar::item { border: none; }");
         this->setFixedHeight(parent->height());
         this->setAlignment(Qt::AlignCenter);
@@ -16,6 +16,7 @@ StatusLabel::StatusLabel(QStatusBar* parent) : QLabel(parent)
     }
     else //last log message
     {
+        this->setTextFormat(Qt::PlainText);
         setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(logUpdate(QString)));
         connect(Bridge::getBridge(), SIGNAL(addMsgToStatusBar(QString)), this, SLOT(logUpdate(QString)));
@@ -45,28 +46,25 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
         break;
     }
 
-    this->repaint();
+    this->update();
 }
 
 void StatusLabel::logUpdate(QString message)
 {
-    if(labelText.contains('\n'))
-        labelText = "";
-
-    // Split each newline into a separate string
-    QStringList lineList = message.split('\n', QString::SkipEmptyParts);
-
-    if(lineList.size() > 0)
+    if(!message.length())
+        return;
+    labelText += message.replace("\r\n", "\n");
+    QStringList lineList = labelText.split('\n');
+    labelText = lineList.last(); //if the last character is a newline this will be an empty string
+    QString finalLabel;
+    for(int i = 0; i < lineList.length(); i++)
     {
-        // Get a substring for the last line only
-        labelText += lineList[lineList.size() - 1] + "\n";
+        const QString & line = lineList[lineList.size() - i - 1];
+        if(line.length()) //set the last non-empty string from the split
+        {
+            finalLabel = line;
+            break;
+        }
     }
-    else
-    {
-        // Append to the existing message
-        labelText += message;
-    }
-
-    // We want to trim every \n from the visual display
-    setText(Qt::convertFromPlainText(QString(labelText).replace("\n", "")));
+    setText(finalLabel);
 }

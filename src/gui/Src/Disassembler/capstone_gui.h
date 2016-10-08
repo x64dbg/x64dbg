@@ -21,8 +21,6 @@ public:
         //general instruction parts
         Prefix,
         Uncategorized,
-        Address, //jump/call destinations or displacements inside memory
-        Value,
         //mnemonics
         MnemonicNormal,
         MnemonicPushPop,
@@ -34,6 +32,9 @@ public:
         MnemonicFar,
         MnemonicInt3,
         MnemonicUnusual,
+        //values
+        Address, //jump/call destinations or displacements inside memory
+        Value,
         //memory
         MemorySize,
         MemorySegment,
@@ -49,7 +50,9 @@ public:
         MmxRegister,
         XmmRegister,
         YmmRegister,
-        ZmmRegister
+        ZmmRegister,
+        //last
+        Last
     };
 
     struct TokenValue
@@ -133,6 +136,11 @@ public:
             else
                 this->flags = RichTextPainter::FlagNone;
         }
+
+        TokenColor()
+            : TokenColor("", "")
+        {
+        }
     };
 
     CapstoneTokenizer(int maxModuleLength);
@@ -170,7 +178,6 @@ private:
     void addMemoryOperator(char operatorText);
     QString printValue(const TokenValue & value, bool expandModule, int maxModuleLength) const;
 
-    static std::map<TokenType, TokenColor> colorNamesMap;
     static QHash<QString, int> stringPoolMap;
     static int poolId;
 

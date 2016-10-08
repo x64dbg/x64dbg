@@ -10,9 +10,6 @@ public:
     explicit CallStackView(StdTable* parent = 0);
     void setupContextMenu();
 
-signals:
-    void showCpu();
-
 protected slots:
     void updateCallStack();
     void contextMenuSlot(const QPoint pos);

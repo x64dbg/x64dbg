@@ -125,15 +125,15 @@ SafeSymEnumerateModules64(
     return SymEnumerateModules64(hProcess, EnumModulesCallback, UserContext);
 }
 BOOL
-SafeSymGetLineFromAddr64(
+SafeSymGetLineFromAddrW64(
     __in HANDLE hProcess,
     __in DWORD64 qwAddr,
     __out PDWORD pdwDisplacement,
-    __out PIMAGEHLP_LINE64 Line64
+    __out PIMAGEHLP_LINEW64 Line64
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-    return SymGetLineFromAddr64(hProcess, qwAddr, pdwDisplacement, Line64);
+    return SymGetLineFromAddrW64(hProcess, qwAddr, pdwDisplacement, Line64);
 }
 BOOL
 SafeSymFromName(

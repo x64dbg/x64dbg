@@ -234,7 +234,6 @@
         <file>images/breakpoint_editcaret.png</file>
         <file>images/breakpoint_enable.png</file>
         <file>images/breakpoint_enable_all.png</file>
-        <file>images/breakpoint_memory_singleshot.png</file>
         <file>images/breakpoint_remove_all.png</file>
         <file>images/breakpoint_remove_all_commands.png</file>
         <file>images/breakpoint_reset_hitcount.png</file>
@@ -250,5 +249,7 @@
         <file>images/binary_save.png</file>
         <file>images/animal-dog.png</file>
         <file>images/graph.png</file>
+        <file>images/enable.png</file>
+        <file>images/disable.png</file>
     </qresource>
 </RCC>

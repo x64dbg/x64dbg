@@ -49,7 +49,7 @@ PLUG_IMPEXP void _plugin_debugpause()
 {
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     lock(WAITID_RUN);
-    SetForegroundWindow(GuiGetWindowHandle());
+    dbgsetforeground();
     dbgsetskipexceptions(false);
     // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
@@ -112,4 +112,14 @@ bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, 
 bool _plugin_unregisterexprfunction(int pluginHandle, const char* name)
 {
     return pluginexprfuncunregister(pluginHandle, name);
+}
+
+PLUG_IMPEXP bool _plugin_unload(const char* pluginName)
+{
+    return pluginunload(pluginName);
+}
+
+PLUG_IMPEXP bool _plugin_load(const char* pluginName)
+{
+    return pluginload(pluginName);
 }

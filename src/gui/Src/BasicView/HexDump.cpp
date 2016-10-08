@@ -88,7 +88,8 @@ void HexDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTab
 {
     duint wSize;
     auto wBase = DbgMemFindBaseAddr(parVA, &wSize); //get memory base
-    if(!wBase || !wSize)
+    unsigned char test;
+    if(!wBase || !wSize || !DbgMemRead(wBase, &test, sizeof(test)))
         return;
     dsint wRVA = parVA - wBase; //calculate rva
     int wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
@@ -355,6 +356,14 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
 
             wAccept = true;
         }
+        else if(y > this->height() && mGuiState == HexDump::MultiRowsSelectionState)
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        }
+        else if(transY(y) < 0 && mGuiState == HexDump::MultiRowsSelectionState)
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        }
     }
 
     if(wAccept == true)
@@ -445,6 +454,16 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
 
             wAccept = false;
         }
+    }
+    if((event->button() & Qt::BackButton) != 0)
+    {
+        wAccept = true;
+        historyPrev();
+    }
+    else if((event->button() & Qt::ForwardButton) != 0)
+    {
+        wAccept = true;
+        historyNext();
     }
 
     if(wAccept == true)

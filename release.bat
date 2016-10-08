@@ -39,6 +39,7 @@ copy bin\x32\jansson.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x32\lz4.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x32\TitanEngine.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x32\XEDParse.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\asmjit.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x32\yara.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x32\snowman.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x32\keystone.dll %RELEASEDIR%\bin_base\x32\
@@ -53,6 +54,7 @@ copy bin\x64\jansson.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\lz4.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\TitanEngine.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\XEDParse.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\asmjit.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\yara.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\snowman.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\keystone.dll %RELEASEDIR%\bin_base\x64\
@@ -126,23 +128,16 @@ copy bin\x96dbg.exe %RELEASEDIR%\release\
 copy bin\mnemdb.json %RELEASEDIR%\release\
 copy bin\errordb.txt %RELEASEDIR%\release\
 copy bin\exceptiondb.txt %RELEASEDIR%\release\
+copy bin\ntstatusdb.txt %RELEASEDIR%\release\
 xcopy src\gui\Translations\*.qm %RELEASEDIR%\release\translations /S /Y
 copy bin\x32\x32bridge.dll %RELEASEDIR%\release\x32\
-copy bin\x32\x32bridge.pdb %RELEASEDIR%\release\x32\
 copy bin\x32\x32dbg.dll %RELEASEDIR%\release\x32\
-copy bin\x32\x32dbg.pdb %RELEASEDIR%\release\x32\
 copy bin\x32\x32dbg.exe %RELEASEDIR%\release\x32\
-copy bin\x32\x32dbg_exe.pdb %RELEASEDIR%\release\x32\
 copy bin\x32\x32gui.dll %RELEASEDIR%\release\x32\
-copy bin\x32\x32gui.pdb %RELEASEDIR%\release\x32\
 copy bin\x64\x64bridge.dll %RELEASEDIR%\release\x64\
-copy bin\x64\x64bridge.pdb %RELEASEDIR%\release\x64\
 copy bin\x64\x64dbg.dll %RELEASEDIR%\release\x64\
-copy bin\x64\x64dbg.pdb %RELEASEDIR%\release\x64\
 copy bin\x64\x64dbg.exe %RELEASEDIR%\release\x64\
-copy bin\x64\x64dbg_exe.pdb %RELEASEDIR%\release\x64\
 copy bin\x64\x64gui.dll %RELEASEDIR%\release\x64\
-copy bin\x64\x64gui.pdb %RELEASEDIR%\release\x64\
 
 xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\release /S /Y
 xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\release /S /Y

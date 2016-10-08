@@ -74,7 +74,7 @@ QString CPUInfoBox::getSymbolicName(dsint addr)
     bool bHasString = DbgGetStringAt(addr, string);
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
     bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
-    QString addrText = ToHexString(addr);
+    QString addrText = DbgMemIsValidReadPtr(addr) ? ToPtrString(addr) : ToHexString(addr);
     QString finalText;
     if(bHasString)
         finalText = addrText + " " + QString(string);
@@ -95,7 +95,7 @@ QString CPUInfoBox::getSymbolicName(dsint addr)
         }
         else if(addr == (addr & 0xFFF)) //UNICODE?
         {
-            QChar c = QChar::fromLatin1((wchar_t)addr);
+            QChar c = QChar((ushort)addr);
             if(c.isPrint())
                 finalText += " L'" + QString(c) + "'";
         }
@@ -144,6 +144,10 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
             argMnemonic = argMnemonic.toUpper();
         if(arg.type == arg_memory)
         {
+            bool ok;
+            argMnemonic.toULongLong(&ok, 16);
+            QString valText = DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value);
+            argMnemonic = !ok ? QString("%1]=[%2").arg(argMnemonic).arg(valText) : valText;
             QString sizeName = "";
             int memsize = basicinfo.memory.size;
             switch(memsize)
@@ -177,11 +181,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=???");
             else
             {
-                QString addrText;
-                if(memsize == sizeof(dsint))
-                    addrText = getSymbolicName(arg.memvalue);
-                else
-                    addrText = ToPtrString(arg.memvalue);
+                QString addrText = getSymbolicName(arg.memvalue);
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + addrText);
             }
             j++;

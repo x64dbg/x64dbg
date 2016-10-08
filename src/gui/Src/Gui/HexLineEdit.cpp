@@ -12,9 +12,9 @@ HexLineEdit::HexLineEdit(QWidget* parent) :
 
     // setup data
     mData = QByteArray();
-    mEncoding = Encoding::Ascii;
     mKeepSize = false;
     mOverwriteMode = false;
+    mEncoding = QTextCodec::codecForName("System");
 
     //setup text fields
     QFont font("Monospace", 8, QFont::Normal, false);
@@ -42,21 +42,13 @@ void HexLineEdit::keyPressEvent(QKeyEvent* event)
 
     if(mOverwriteMode)
     {
-        if(!event->text().isEmpty() && event->text().at(0).isPrint())
+        QString newText = event->text();
+        if(!newText.isEmpty() && newText.at(0).isPrint())
         {
-            QString keyText;
-            switch(mEncoding)
-            {
-            case Encoding::Ascii:
-                keyText = event->text().toLatin1();
-                break;
-            case Encoding::Unicode:
-                keyText = event->text();
-                break;
-            }
-
-            del();
-            insert(keyText);
+            for(int i = 0; i < newText.size(); i++)
+                del();
+            QTextCodec::ConverterState converter(QTextCodec::IgnoreHeader);
+            insert(mEncoding->fromUnicode(newText.constData(), newText.size(), &converter));
             event->ignore();
             return;
         }
@@ -68,27 +60,9 @@ void HexLineEdit::keyPressEvent(QKeyEvent* event)
 void HexLineEdit::setData(const QByteArray & data)
 {
     QString text;
-    switch(mEncoding)
-    {
-    case Encoding::Ascii:
-        for(int i = 0; i < data.size(); i++)
-        {
-            QChar ch(data.constData()[i]);
-            if(ch >= 0 && ch <= 255)
-                text += ch.toLatin1();
-        }
-        break;
+    text = mEncoding->toUnicode(data);
 
-    case Encoding::Unicode:
-        for(int i = 0, j = 0; i < data.size(); i += sizeof(wchar_t), j++)
-        {
-            QChar wch(((wchar_t*)data.constData())[j]);
-            text += wch;
-        }
-        break;
-    }
-
-    mData = toEncodedData(text);
+    mData = data;
     setText(text);
 }
 
@@ -97,12 +71,21 @@ QByteArray HexLineEdit::data()
     return mData;
 }
 
-void HexLineEdit::setEncoding(const HexLineEdit::Encoding encoding)
+/**
+ * @brief HexLineEdit::setEncoding Set the encoding of the line edit.
+ * @param encoding The codec for the line edit.
+ * @remarks the parameter passed in will be managed by the widget. You must use a new codec.
+ */
+void HexLineEdit::setEncoding(QTextCodec* encoding)
 {
     mEncoding = encoding;
 }
 
-HexLineEdit::Encoding HexLineEdit::encoding()
+/**
+ * @brief HexLineEdit::encoding Get the encoding of the line edit.
+ * @return the codec instance of the line edit.
+ */
+QTextCodec* HexLineEdit::encoding()
 {
     return mEncoding;
 }
@@ -114,16 +97,8 @@ void HexLineEdit::setKeepSize(const bool enabled)
     {
         int dataSize = mData.size();
         int charSize;
-        switch(mEncoding)
-        {
-        case Encoding::Ascii:
-            charSize = sizeof(char);
-            break;
-
-        case Encoding::Unicode:
-            charSize = sizeof(wchar_t);
-            break;
-        }
+        QTextCodec::ConverterState converter(QTextCodec::IgnoreHeader);
+        charSize = mEncoding->fromUnicode(QString("A").constData(), 1, &converter).size(); // "A\0"
 
         setMaxLength((dataSize / charSize) + (dataSize % charSize));
     }
@@ -158,18 +133,6 @@ void HexLineEdit::updateData(const QString & arg1)
 
 QByteArray HexLineEdit::toEncodedData(const QString & text)
 {
-    QByteArray data;
-    switch(mEncoding)
-    {
-    case Encoding::Ascii:
-        for(int i = 0; i < text.length(); i++)
-            data.append(text[i].toLatin1());
-        break;
-
-    case Encoding::Unicode:
-        data =  QTextCodec::codecForName("UTF-16")->makeEncoder(QTextCodec::IgnoreHeader)->fromUnicode(text);
-        break;
-    }
-
-    return data;
+    QTextCodec::ConverterState converter(QTextCodec::IgnoreHeader);
+    return mEncoding->fromUnicode(text.constData(), text.size(), &converter);
 }

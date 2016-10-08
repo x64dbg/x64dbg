@@ -86,12 +86,10 @@ void SEHChainView::followAddress()
 {
     QString addrText = getCellContent(getInitialSelection(), 0);
     DbgCmdExecDirect(QString("sdump " + addrText).toUtf8().constData());
-    emit showCpu();
 }
 
 void SEHChainView::followHandler()
 {
     QString addrText = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    emit showCpu();
 }

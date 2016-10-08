@@ -39,7 +39,9 @@ private:
         DataPascalWord,
         DataPascalDword,
         DataPascalQword,
-        DataGUID
+        DataGUID,
+        DataIPv4,
+        DataIPv6
     };
 
     void printData(DataType type);

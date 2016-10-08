@@ -107,7 +107,6 @@ SOURCES += \
     dbg/disasm_fast.cpp \
     dbg/disasm_helper.cpp \
     dbg/encodemap.cpp \
-    dbg/error.cpp \
     dbg/exception.cpp \
     dbg/exhandlerinfo.cpp \
     dbg/expressionfunctions.cpp \
@@ -188,7 +187,11 @@ SOURCES += \
     dbg/analysis/linearanalysis.cpp \
     dbg/analysis/LinearPass.cpp \
     dbg/analysis/recursiveanalysis.cpp \
-    dbg/analysis/xrefsanalysis.cpp
+    dbg/analysis/xrefsanalysis.cpp \
+    dbg/animate.cpp \
+    gui/Src/BasicView/LabeledSplitter.cpp \
+    dbg/breakpoint_commands.cpp \
+    dbg/symcache.cpp
 
 TRANSLATIONS = \
     gui/Translations/x64dbg.ts
@@ -302,7 +305,6 @@ HEADERS += \
     dbg/disasm_helper.h \
     dbg/dynamicmem.h \
     dbg/encodemap.h \
-    dbg/error.h \
     dbg/exception.h \
     dbg/exhandlerinfo.h \
     dbg/expressionfunctions.h \
@@ -393,7 +395,10 @@ HEADERS += \
     dbg/analysis/linearanalysis.h \
     dbg/analysis/LinearPass.h \
     dbg/analysis/recursiveanalysis.h \
-    dbg/analysis/xrefsanalysis.h
+    dbg/analysis/xrefsanalysis.h \
+    dbg/animate.h \
+    gui/Src/BasicView/LabeledSplitter.h \
+    dbg/symcache.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \

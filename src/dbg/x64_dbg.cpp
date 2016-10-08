@@ -24,7 +24,6 @@
 #include "database.h"
 #include "mnemonichelp.h"
 #include "datainst_helper.h"
-#include "error.h"
 #include "exception.h"
 #include "expressionfunctions.h"
 #include "historycontext.h"
@@ -44,7 +43,7 @@ static CMDRESULT cbStrLen(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
         return STATUS_ERROR;
     }
-    dprintf("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
+    dprintf_untranslated("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
     return STATUS_CONTINUE;
 }
 
@@ -75,6 +74,9 @@ static CMDRESULT cbScriptDll(int argc, char* argv[])
     return DbgScriptDllExec(argv[1]) ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
+/**
+\brief register the all the commands
+*/
 static void registercommands()
 {
     cmdinit();
@@ -87,7 +89,7 @@ static void registercommands()
     dbgcmdnew("run\1go\1r\1g", cbDebugRun2, true); //unlock WAITID_RUN
     dbgcmdnew("erun\1egun\1er\1eg", cbDebugErun, true); //run + skip first chance exceptions
     dbgcmdnew("serun\1sego", cbDebugSerun, true); //run + swallow exception
-    dbgcmdnew("pause", cbDebugPause, true); //pause debugger
+    dbgcmdnew("pause", cbDebugPause, false); //pause debugger
     dbgcmdnew("StepInto\1sti", cbDebugStepInto, true); //StepInto
     dbgcmdnew("eStepInto\1esti", cbDebugeStepInto, true); //StepInto + skip first chance exceptions
     dbgcmdnew("seStepInto\1sesti", cbDebugseStepInto, true); //StepInto + swallow exception
@@ -98,12 +100,12 @@ static void registercommands()
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //StepOut
     dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
-    dbgcmdnew("TraceOverConditional\1tocnd", cbDebugTocnd, true); //Trace over conditional
-    dbgcmdnew("TraceIntoConditional\1ticnd", cbDebugTicnd, true); //Trace into conditional
-    dbgcmdnew("TraceIntoBeyondTraceRecord\1tibt", cbDebugTibt, true); //Trace into beyond trace record
-    dbgcmdnew("TraceOverBeyondTraceRecord\1tobt", cbDebugTobt, true); //Trace over beyond trace record
-    dbgcmdnew("TraceIntoIntoTraceRecord\1tiit", cbDebugTiit, true); //Trace into into trace record
-    dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugToit, true); //Trace over into trace record
+    dbgcmdnew("TraceOverConditional\1tocnd", cbDebugTraceOverConditional, true); //Trace over conditional
+    dbgcmdnew("TraceIntoConditional\1ticnd", cbDebugTraceIntoConditional, true); //Trace into conditional
+    dbgcmdnew("TraceIntoBeyondTraceRecord\1tibt", cbDebugTraceIntoBeyondTraceRecord, true); //Trace into beyond trace record
+    dbgcmdnew("TraceOverBeyondTraceRecord\1tobt", cbDebugTraceOverBeyondTraceRecord, true); //Trace over beyond trace record
+    dbgcmdnew("TraceIntoIntoTraceRecord\1tiit", cbDebugTraceIntoIntoTraceRecord, true); //Trace into into trace record
+    dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
     dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true); //switch thread
     dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread
@@ -138,6 +140,12 @@ static void registercommands()
     dbgcmdnew("DisableMemoryBreakpoint\1membpd\1bpmd", cbDebugDisableMemoryBreakpoint, true); //enable memory breakpoint
     dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
     dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
+    dbgcmdnew("LibrarianDisableBreakPoint\1bpddll", cbDebugBpDllDisable, true);
+    dbgcmdnew("LibrarianEnableBreakPoint\1bpedll", cbDebugBpDllEnable, true);
+    dbgcmdnew("SetExceptionBPX", cbDebugSetExceptionBPX, true); //set exception breakpoint
+    dbgcmdnew("DeleteExceptionBPX", cbDebugDeleteExceptionBPX, true); //delete exception breakpoint
+    dbgcmdnew("EnableExceptionBPX", cbDebugEnableExceptionBPX, true);
+    dbgcmdnew("DisableExceptionBPX", cbDebugDisableExceptionBPX, true);
 
     //breakpoints (conditional)
     dbgcmdnew("SetBreakpointName\1bpname", cbDebugSetBPXName, true); //set breakpoint name
@@ -147,6 +155,7 @@ static void registercommands()
     dbgcmdnew("SetBreakpointCommand", cbDebugSetBPXCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetBreakpointCommandCondition", cbDebugSetBPXCommandCondition, true); //set breakpoint commandCondition
     dbgcmdnew("SetBreakpointFastResume", cbDebugSetBPXFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetBreakpointSingleshoot", cbDebugSetBPXSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetBreakpointSilent", cbDebugSetBPXSilent, true); //set breakpoint fast resume
     dbgcmdnew("GetBreakpointHitCount", cbDebugGetBPXHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetBreakpointHitCount", cbDebugResetBPXHitCount, true); //reset breakpoint hit count
@@ -157,6 +166,7 @@ static void registercommands()
     dbgcmdnew("SetHardwareBreakpointCommand", cbDebugSetBPXHardwareCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetHardwareBreakpointCommandCondition", cbDebugSetBPXHardwareCommandCondition, true); //set breakpoint commandCondition
     dbgcmdnew("SetHardwareBreakpointFastResume", cbDebugSetBPXHardwareFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetHardwareBreakpointSingleshoot", cbDebugSetBPXHardwareSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetHardwareBreakpointSilent", cbDebugSetBPXHardwareSilent, true); //set breakpoint fast resume
     dbgcmdnew("GetHardwareBreakpointHitCount", cbDebugGetBPXHardwareHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetHardwareBreakpointHitCount", cbDebugResetBPXHardwareHitCount, true); //reset breakpoint hit count
@@ -167,9 +177,32 @@ static void registercommands()
     dbgcmdnew("SetMemoryBreakpointCommand", cbDebugSetBPXMemoryCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetMemoryBreakpointCommandCondition", cbDebugSetBPXMemoryCommandCondition, true); //set breakpoint commandCondition
     dbgcmdnew("SetMemoryBreakpointFastResume", cbDebugSetBPXMemoryFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetMemoryBreakpointSingleshoot", cbDebugSetBPXMemorySingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetMemoryBreakpointSilent", cbDebugSetBPXMemorySilent, true); //set breakpoint fast resume
     dbgcmdnew("SetMemoryGetBreakpointHitCount", cbDebugGetBPXMemoryHitCount, true); //get breakpoint hit count
     dbgcmdnew("ResetMemoryBreakpointHitCount", cbDebugResetBPXMemoryHitCount, true); //reset breakpoint hit count
+    dbgcmdnew("SetLibrarianBreakpointName", cbDebugSetBPXDLLName, true); //set breakpoint name
+    dbgcmdnew("SetLibrarianBreakpointCondition", cbDebugSetBPXDLLCondition, true); //set breakpoint breakCondition
+    dbgcmdnew("SetLibrarianBreakpointLog", cbDebugSetBPXDLLLog, true); //set breakpoint log
+    dbgcmdnew("SetLibrarianBreakpointLogCondition", cbDebugSetBPXDLLLogCondition, true); //set breakpoint logCondition
+    dbgcmdnew("SetLibrarianBreakpointCommand", cbDebugSetBPXDLLCommand, true); //set breakpoint command on hit
+    dbgcmdnew("SetLibrarianBreakpointCommandCondition", cbDebugSetBPXDLLCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetLibrarianBreakpointFastResume", cbDebugSetBPXDLLFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetLibrarianBreakpointSingleshoot", cbDebugSetBPXDLLSingleshoot, true); //set breakpoint singleshoot
+    dbgcmdnew("SetLibrarianBreakpointSilent", cbDebugSetBPXDLLSilent, true); //set breakpoint fast resume
+    dbgcmdnew("SetLibrarianGetBreakpointHitCount", cbDebugGetBPXDLLHitCount, true); //get breakpoint hit count
+    dbgcmdnew("ResetLibrarianBreakpointHitCount", cbDebugResetBPXDLLHitCount, true); //reset breakpoint hit count
+    dbgcmdnew("SetExceptionBreakpointName", cbDebugSetBPXExceptionName, true); //set breakpoint name
+    dbgcmdnew("SetExceptionBreakpointCondition", cbDebugSetBPXExceptionCondition, true); //set breakpoint breakCondition
+    dbgcmdnew("SetExceptionBreakpointLog", cbDebugSetBPXExceptionLog, true); //set breakpoint log
+    dbgcmdnew("SetExceptionBreakpointLogCondition", cbDebugSetBPXExceptionLogCondition, true); //set breakpoint logCondition
+    dbgcmdnew("SetExceptionBreakpointCommand", cbDebugSetBPXExceptionCommand, true); //set breakpoint command on hit
+    dbgcmdnew("SetExceptionBreakpointCommandCondition", cbDebugSetBPXExceptionCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetExceptionBreakpointFastResume", cbDebugSetBPXExceptionFastResume, true); //set breakpoint fast resume
+    dbgcmdnew("SetExceptionBreakpointSingleshoot", cbDebugSetBPXExceptionSingleshoot, true); //set breakpoint singleshoot
+    dbgcmdnew("SetExceptionBreakpointSilent", cbDebugSetBPXExceptionSilent, true); //set breakpoint fast resume
+    dbgcmdnew("SetExceptionGetBreakpointHitCount", cbDebugGetBPXExceptionHitCount, true); //get breakpoint hit count
+    dbgcmdnew("ResetExceptionBreakpointHitCount", cbDebugResetBPXExceptionHitCount, true); //reset breakpoint hit count
 
     dbgcmdnew("bpgoto", cbDebugSetBPGoto, true);
 
@@ -195,6 +228,7 @@ static void registercommands()
     dbgcmdnew("HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     dbgcmdnew("dump", cbDebugDump, true); //dump at address
     dbgcmdnew("sdump", cbDebugStackDump, true); //dump at stack address
+    dbgcmdnew("memmapdump", cbDebugMemmapdump, true);
     dbgcmdnew("refinit", cbInstrRefinit, false);
     dbgcmdnew("refadd", cbInstrRefadd, false);
     dbgcmdnew("asm", cbInstrAssemble, true); //assemble instruction
@@ -212,6 +246,14 @@ static void registercommands()
     dbgcmdnew("mnemonichelp", cbInstrMnemonichelp, false); //mnemonic help
     dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
     dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
+    dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
+    dbgcmdnew("graph", cbInstrGraph, true); //graph function
+    dbgcmdnew("DisableLog\1LogDisable", cbInstrDisableLog, false); //disable log
+    dbgcmdnew("EnableLog\1LogEnable", cbInstrEnableLog, false); //enable log
+    dbgcmdnew("AddFavouriteTool", cbInstrAddFavTool, false); //add favourite tool
+    dbgcmdnew("AddFavouriteCommand", cbInstrAddFavCmd, false); //add favourite command
+    dbgcmdnew("AddFavouriteToolShortcut\1SetFavouriteToolShortcut", cbInstrSetFavToolShortcut, false); //set favourite tool shortcut
+    dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
@@ -246,7 +288,7 @@ static void registercommands()
 
     //general purpose
     dbgcmdnew("cmp", cbInstrCmp, false); //compare
-    dbgcmdnew("gpa", cbInstrGpa, true);
+    dbgcmdnew("gpa", cbInstrGpa, true); //get proc address
     dbgcmdnew("add", cbInstrAdd, false);
     dbgcmdnew("and", cbInstrAnd, false);
     dbgcmdnew("dec", cbInstrDec, false);
@@ -258,7 +300,7 @@ static void registercommands()
     dbgcmdnew("or", cbInstrOr, false);
     dbgcmdnew("rol", cbInstrRol, false);
     dbgcmdnew("ror", cbInstrRor, false);
-    dbgcmdnew("shl", cbInstrShl, false);
+    dbgcmdnew("shl\1sal", cbInstrShl, false);
     dbgcmdnew("shr", cbInstrShr, false);
     dbgcmdnew("sar", cbInstrSar, false);
     dbgcmdnew("sub", cbInstrSub, false);
@@ -266,7 +308,7 @@ static void registercommands()
     dbgcmdnew("xor", cbInstrXor, false);
     dbgcmdnew("push", cbInstrPush, true);
     dbgcmdnew("pop", cbInstrPop, true);
-    dbgcmdnew("bswap", cbInstrBswap, true);
+    dbgcmdnew("bswap", cbInstrBswap, false);
 
     //script
     dbgcmdnew("scriptload", cbScriptLoad, false);
@@ -284,7 +326,35 @@ static void registercommands()
     dbgcmdnew("reffindrange\1findrefrange\1refrange", cbInstrRefFindRange, true);
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
+    dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
+    dbgcmdnew("DataUnknown", cbInstrDataUnknown, true); //mark as Unknown
+    dbgcmdnew("DataByte\1db", cbInstrDataByte, true); //mark as Byte
+    dbgcmdnew("DataWord\1dw", cbInstrDataWord, true); //mark as Word
+    dbgcmdnew("DataDword\1dd", cbInstrDataDword, true); //mark as Dword
+    dbgcmdnew("DataFword", cbInstrDataFword, true); //mark as Fword
+    dbgcmdnew("DataQword\1dq", cbInstrDataQword, true); //mark as Qword
+    dbgcmdnew("DataTbyte", cbInstrDataTbyte, true); //mark as Tbyte
+    dbgcmdnew("DataOword", cbInstrDataOword, true); //mark as Oword
+    dbgcmdnew("DataMmword", cbInstrDataMmword, true); //mark as Mmword
+    dbgcmdnew("DataXmmword", cbInstrDataXmmword, true); //mark as Xmmword
+    dbgcmdnew("DataYmmword", cbInstrDataYmmword, true); //mark as Ymmword
+    dbgcmdnew("DataFloat\1DataReal4\1df", cbInstrDataFloat, true); //mark as Float
+    dbgcmdnew("DataDouble\1DataReal8", cbInstrDataDouble, true); //mark as Double
+    dbgcmdnew("DataLongdouble\1DataReal10", cbInstrDataLongdouble, true); //mark as Longdouble
+    dbgcmdnew("DataAscii\1da", cbInstrDataAscii, true); //mark as Ascii
+    dbgcmdnew("DataUnicode\1du", cbInstrDataUnicode, true); //mark as Unicode
+    dbgcmdnew("DataCode\1dc", cbInstrDataCode, true); //mark as Code
+    dbgcmdnew("DataJunk", cbInstrDataJunk, true); //mark as Junk
+    dbgcmdnew("DataMiddle", cbInstrDataMiddle, true); //mark as Middle
+
+    //analysis
     dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
+    dbgcmdnew("cfanal\1cfanalyse\1cfanalyze", cbInstrCfanalyse, true); //control flow analysis
+    dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
+    dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
+    dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
+    dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
+    dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
 
     //Operating System Control
     dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state
@@ -302,25 +372,16 @@ static void registercommands()
     dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
-    dbgcmdnew("cfanal\1cfanalyse\1cfanalyze", cbInstrCfanalyse, true); //control flow analysis
-    dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
-    dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
     dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
-    dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
-    dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
-    dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
-    dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
-    dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
-    dbgcmdnew("graph", cbInstrGraph, true); //graph function
-    dbgcmdnew("DisableLog\1LogDisable", cbInstrDisableLog, false); //disable log
-    dbgcmdnew("EnableLog\1LogEnable", cbInstrEnableLog, false); //enable log
-    dbgcmdnew("AddFavouriteTool", cbInstrAddFavTool, false); //add favourite tool
-    dbgcmdnew("AddFavouriteCommand", cbInstrAddFavCmd, false); //add favourite command
-    dbgcmdnew("AddFavouriteToolShortcut\1SetFavouriteToolShortcut", cbInstrSetFavToolShortcut, false); //set favourite tool shortcut
-    dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
-}
+    dbgcmdnew("imageinfo\1modimageinfo", cbInstrImageinfo, true); //print module image information
+    dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
+    dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
+    dbgcmdnew("GetTickCount", cbInstrGetTickCount, false); // GetTickCount
+    dbgcmdnew("plugunload", cbPluginUnload, false);
+    dbgcmdnew("plugload", cbPluginLoad, false);
+};
 
 static bool cbCommandProvider(char* cmd, int maxlen)
 {
@@ -339,6 +400,9 @@ static bool cbCommandProvider(char* cmd, int maxlen)
     return true;
 }
 
+/**
+\brief Execute command asynchronized.
+*/
 extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 {
     int len = (int)strlen(cmd);
@@ -416,19 +480,63 @@ static bool DbgScriptDllExec(const char* dll)
                 dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] \"Start\" returned!\n"));
             }
             else
-                dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%08X)!\n"), GetLastError());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%s)!\n"), ErrorCodeToName(GetLastError()).c_str());
 
             dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Calling FreeLibrary..."));
             if(FreeLibrary(hScriptDll))
                 dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
             else
-                dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%08X)...\n"), GetLastError());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%s)...\n"), ErrorCodeToName(GetLastError()).c_str());
         }
     }
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] LoadLibary failed (%08X)!\n"), GetLastError());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] LoadLibary failed (%s)!\n"), ErrorCodeToName(GetLastError()).c_str());
 
     return true;
+}
+
+static DWORD WINAPI loadDbThread(LPVOID)
+{
+    // Load mnemonic help database
+    String mnemonicHelpData;
+    if(FileHelper::ReadAllText(StringUtils::sprintf("%s\\..\\mnemdb.json", szProgramDir), mnemonicHelpData))
+    {
+        if(MnemonicHelp::loadFromText(mnemonicHelpData.c_str()))
+            dputs(QT_TRANSLATE_NOOP("DBG", "Mnemonic help database loaded!"));
+        else
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load mnemonic help database..."));
+    }
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read mnemonic help database..."));
+
+    // Load error codes
+    if(ErrorCodeInit(StringUtils::sprintf("%s\\..\\errordb.txt", szProgramDir)))
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error codes database loaded!"));
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load error codes..."));
+
+    // Load exception codes
+    if(ExceptionCodeInit(StringUtils::sprintf("%s\\..\\exceptiondb.txt", szProgramDir)))
+        dputs(QT_TRANSLATE_NOOP("DBG", "Exception codes database loaded!"));
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load exception codes..."));
+
+    // Load NTSTATUS codes
+    if(NtStatusCodeInit(StringUtils::sprintf("%s\\..\\ntstatusdb.txt", szProgramDir)))
+        dputs(QT_TRANSLATE_NOOP("DBG", "NTSTATUS codes database loaded!"));
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load NTSTATUS codes..."));
+
+    // Load global notes
+    dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes file..."));
+    notesFile = String(szProgramDir) + "\\notes.txt";
+    String text;
+    FileHelper::ReadAllText(notesFile, text);
+    GuiSetGlobalNotes(text.c_str());
+
+    dputs(QT_TRANSLATE_NOOP("DBG", "File read thread finished!"));
+
+    return 0;
 }
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
@@ -436,8 +544,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     if(!EngineCheckStructAlignment(UE_STRUCT_TITAN_ENGINE_CONTEXT, sizeof(TITAN_ENGINE_CONTEXT_t)))
         return "Invalid TITAN_ENGINE_CONTEXT_t alignment!";
 
-    if(sizeof(TITAN_ENGINE_CONTEXT_t) != sizeof(REGISTERCONTEXT))
-        return "Invalid REGISTERCONTEXT alignment!";
+    static_assert(sizeof(TITAN_ENGINE_CONTEXT_t) == sizeof(REGISTERCONTEXT), "Invalid REGISTERCONTEXT alignment!");
 
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing wait objects..."));
     waitinitialize();
@@ -456,51 +563,29 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     wchar_t wszDir[deflen] = L"";
     if(!GetModuleFileNameW(hInst, wszDir, deflen))
         return "GetModuleFileNameW failed!";
-    char dir[deflen] = "";
-    strcpy_s(dir, StringUtils::Utf16ToUtf8(wszDir).c_str());
-    int len = (int)strlen(dir);
-    while(dir[len] != '\\')
+    strcpy_s(szProgramDir, StringUtils::Utf16ToUtf8(wszDir).c_str());
+    int len = (int)strlen(szProgramDir);
+    while(szProgramDir[len] != '\\')
         len--;
-    dir[len] = 0;
-    strcpy_s(alloctrace, dir);
-    strcat_s(alloctrace, "\\alloctrace.txt");
-    strcpy_s(scriptDllDir, dir);
-    strcat_s(scriptDllDir, "\\scripts\\");
-    DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
+    szProgramDir[len] = 0;
 #ifdef ENABLE_MEM_TRACE
+    strcpy_s(alloctrace, szProgramDir);
+    strcat_s(alloctrace, "\\alloctrace.txt");
+    DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
 #endif //ENABLE_MEM_TRACE
+    strcpy_s(scriptDllDir, szProgramDir);
+    strcat_s(scriptDllDir, "\\scripts\\");
     initDataInstMap();
 
-    // Load mnemonic help database
-    String mnemonicHelpData;
-    if(FileHelper::ReadAllText(StringUtils::sprintf("%s\\..\\mnemdb.json", dir), mnemonicHelpData))
-    {
-        if(MnemonicHelp::loadFromText(mnemonicHelpData.c_str()))
-            dputs(QT_TRANSLATE_NOOP("DBG", "Mnemonic help database loaded!"));
-        else
-            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load mnemonic help database..."));
-    }
-    else
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read mnemonic help database..."));
-
-    // Load error codes
-    if(ErrorCodeInit(StringUtils::sprintf("%s\\..\\errordb.txt", dir)))
-        dputs(QT_TRANSLATE_NOOP("DBG", "Error codes database loaded!"));
-    else
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load error codes..."));
-
-    // Load exception codes
-    if(ExceptionCodeInit(StringUtils::sprintf("%s\\..\\exceptiondb.txt", dir)))
-        dputs(QT_TRANSLATE_NOOP("DBG", "Exception codes database loaded!"));
-    else
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load exception codes..."));
+    dputs(QT_TRANSLATE_NOOP("DBG", "Start file read thread..."));
+    CloseHandle(CreateThread(nullptr, 0, loadDbThread, nullptr, 0, nullptr));
 
     // Create database directory in the local debugger folder
-    DbSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
+    DbSetPath(StringUtils::sprintf("%s\\db", szProgramDir).c_str(), nullptr);
 
     char szLocalSymbolPath[MAX_PATH] = "";
-    strcpy_s(szLocalSymbolPath, dir);
+    strcpy_s(szLocalSymbolPath, szProgramDir);
     strcat_s(szLocalSymbolPath, "\\symbols");
 
     char cachePath[MAX_SETTING_SIZE];
@@ -513,7 +598,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     {
         if(_strnicmp(cachePath, ".\\", 2) == 0)
         {
-            strncpy_s(szSymbolCachePath, dir, _TRUNCATE);
+            strncpy_s(szSymbolCachePath, szProgramDir, _TRUNCATE);
             strncat_s(szSymbolCachePath, cachePath + 1, _TRUNCATE);
         }
         else
@@ -532,7 +617,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         }
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Symbol Path: %s\n"), szSymbolCachePath);
-    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());
+    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(szProgramDir).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "Allocating message stack..."));
     gMsgStack = MsgAllocStack();
     if(!gMsgStack)
@@ -555,13 +640,14 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     info.execute = DbgScriptDllExec;
     GuiRegisterScriptLanguage(&info);
     dputs(QT_TRANSLATE_NOOP("DBG", "Starting command loop..."));
-    hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
+    hCommandLoopThread = CreateThread(nullptr, 0, DbgCommandLoopThread, nullptr, 0, nullptr);
     char plugindir[deflen] = "";
-    strcpy_s(plugindir, dir);
+    strcpy_s(plugindir, szProgramDir);
     strcat_s(plugindir, "\\plugins");
-    CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), 0);
+    CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), nullptr);
+    CreateDirectoryW(StringUtils::Utf8ToUtf16(StringUtils::sprintf("%s\\memdumps", szProgramDir)).c_str(), nullptr);
     dputs(QT_TRANSLATE_NOOP("DBG", "Loading plugins..."));
-    pluginload(plugindir);
+    pluginloadall(plugindir);
     dputs(QT_TRANSLATE_NOOP("DBG", "Handling command line..."));
     //handle command line
     int argc = 0;
@@ -575,26 +661,28 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     else if(argc == 5 && !_wcsicmp(argv[1], L"-a") && !_wcsicmp(argv[3], L"-e"))  //4 arguments (JIT)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, .%s", argv[2], argv[4])).c_str()); //attach pid, event
     LocalFree(argv);
-    dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes file..."));
-    notesFile = String(dir) + "\\notes.txt";
-    String text;
-    FileHelper::ReadAllText(notesFile, text);
-    GuiSetGlobalNotes(text.c_str());
+
     dputs(QT_TRANSLATE_NOOP("DBG", "Initialization successful!"));
     bIsStopped = false;
     return nullptr;
 }
 
+/**
+@brief This function is called when the user closes the debugger.
+*/
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 {
     dputs(QT_TRANSLATE_NOOP("DBG", "Stopping running debuggee..."));
     cbDebugStop(0, 0);
+    dputs(QT_TRANSLATE_NOOP("DBG", "Waiting for the debuggee to be stopped..."));
+    if(!waitfor(WAITID_STOP, 10000)) //after this, debugging stopped
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "The debuggee does not close after 10 seconds. Probably the debugger state has been corrupted."));
+    }
     dputs(QT_TRANSLATE_NOOP("DBG", "Aborting scripts..."));
     scriptabort();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Waiting for the debuggee to be stopped..."));
-    wait(WAITID_STOP); //after this, debugging stopped
     dputs(QT_TRANSLATE_NOOP("DBG", "Unloading plugins..."));
-    pluginunload();
+    pluginunloadall();
     dputs(QT_TRANSLATE_NOOP("DBG", "Stopping command thread..."));
     bStopCommandLoopThread = true;
     MsgFreeStack(gMsgStack);

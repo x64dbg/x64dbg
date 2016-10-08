@@ -279,12 +279,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
             return 0;
         QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")));
         Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, parVA);
-        RichTextPainter::List richText;
-        CapstoneTokenizer::TokenToRichText(instr.tokens, richText, 0);
-        QString finalInstruction = "";
-        for(const auto & curRichText : richText)
-            finalInstruction += curRichText.text;
-        strcpy_s(text, GUI_MAX_DISASSEMBLY_SIZE, finalInstruction.toUtf8().constData());
+        QString finalInstruction;
+        for(const auto & curToken : instr.tokens.tokens)
+            finalInstruction += curToken.text;
+        strncpy_s(text, GUI_MAX_DISASSEMBLY_SIZE, finalInstruction.toUtf8().constData(), _TRUNCATE);
         return (void*)1;
     }
     break;
@@ -609,9 +607,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         QString description;
         if(param1 == nullptr)
             return nullptr;
-        name = QString::fromUtf8((const char*)param1);
+        name = QString((const char*)param1);
         if(param2 != nullptr)
-            description = QString::fromUtf8((const char*)param2);
+            description = QString((const char*)param2);
         emit addFavouriteItem(0, name, description);
     }
     break;
@@ -622,9 +620,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         QString shortcut;
         if(param1 == nullptr)
             return nullptr;
-        name = QString::fromUtf8((const char*)param1);
+        name = QString((const char*)param1);
         if(param2 != nullptr)
-            shortcut = QString::fromUtf8((const char*)param2);
+            shortcut = QString((const char*)param2);
         emit addFavouriteItem(2, name, shortcut);
     }
     break;
@@ -635,9 +633,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         QString shortcut;
         if(param1 == nullptr)
             return nullptr;
-        name = QString::fromUtf8((const char*)param1);
+        name = QString((const char*)param1);
         if(param2 != nullptr)
-            shortcut = QString::fromUtf8((const char*)param2);
+            shortcut = QString((const char*)param2);
         emit setFavouriteItemShortcut(0, name, shortcut);
     }
     break;
@@ -646,6 +644,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit foldDisassembly(duint(param1), duint(param2));
         break;
 
+    case GUI_SELECT_IN_MEMORY_MAP:
+        emit selectInMemoryMap(duint(param1));
+        break;
     }
 
     return nullptr;

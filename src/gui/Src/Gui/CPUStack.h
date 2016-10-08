@@ -44,7 +44,7 @@ public slots:
     void selectionSet(const SELECTIONDATA* selection);
     void selectionUpdatedSlot();
     void followDisasmSlot();
-    void followDumpSlot();
+    void followDumpPtrSlot();
     void followinDumpNSlot();
     void followStackSlot();
     void watchDataSlot();
@@ -73,6 +73,8 @@ public slots:
     void realignSlot();
     void freezeStackSlot();
     void dbgStateChangedSlot(DBGSTATE state);
+    void followInMemoryMapSlot();
+    void followInDumpSlot();
 
 private:
     duint mCsp;
@@ -120,7 +122,9 @@ private:
     QAction* mGotoNext;
     QAction* mFindPatternAction;
     QAction* mFollowDisasm;
-    QAction* mFollowDump;
+    QAction* mFollowPtrDump;
+    QAction* mFollowInDump;
+    QAction* mFollowInMemoryMap;
     QAction* mFollowStack;
     QAction* mWatchData;
     QMenu* mPluginMenu;

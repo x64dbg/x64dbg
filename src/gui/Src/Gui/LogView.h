@@ -1,10 +1,10 @@
 #ifndef LOGVIEW_H
 #define LOGVIEW_H
 
-#include <QTextEdit>
+#include <QTextBrowser>
 #include <cstdio>
 
-class LogView : public QTextEdit
+class LogView : public QTextBrowser
 {
     Q_OBJECT
 public:
@@ -19,13 +19,16 @@ public slots:
     void addMsgToLogSlot(QString msg);
     void redirectLogSlot();
     void setLoggingEnabled(bool enabled);
+    void autoScrollSlot();
     bool getLoggingEnabled();
+    void onAnchorClicked(const QUrl & link);
 
     void clearLogSlot();
     void saveSlot();
     void toggleLoggingSlot();
 private:
     bool loggingEnabled;
+    bool autoScroll;
 
     QAction* actionCopy;
     QAction* actionSelectAll;
@@ -33,6 +36,7 @@ private:
     QAction* actionSave;
     QAction* actionToggleLogging;
     QAction* actionRedirectLog;
+    QAction* actionAutoScroll;
 
     FILE* logRedirection;
 };

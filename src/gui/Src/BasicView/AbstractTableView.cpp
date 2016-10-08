@@ -3,6 +3,9 @@
 #include "Configuration.h"
 #include "ColumnReorderDialog.h"
 #include "CachedFontMetrics.h"
+#include <windows.h>
+
+int AbstractTableView::mMouseWheelScrollDelta = 0;
 
 AbstractTableScrollBar::AbstractTableScrollBar(QScrollBar* scrollbar)
 {
@@ -50,6 +53,7 @@ AbstractTableView::AbstractTableView(QWidget* parent)
 
     mShouldReload = true;
     mAllowPainting = true;
+    mDrawDebugOnly = false;
 
     // ScrollBar Init
     setVerticalScrollBar(new AbstractTableScrollBar(verticalScrollBar()));
@@ -57,7 +61,29 @@ AbstractTableView::AbstractTableView(QWidget* parent)
     memset(&mScrollBarAttributes, 0, sizeof(mScrollBarAttributes));
     horizontalScrollBar()->setRange(0, 0);
     horizontalScrollBar()->setPageStep(650);
-    mMouseWheelScrollDelta = 4;
+    if(mMouseWheelScrollDelta == 0)
+    {
+        //Initialize scroll delta from registry. Windows-specific
+        HKEY hDesktop;
+        if(RegOpenKeyExW(HKEY_CURRENT_USER, L"Control Panel\\Desktop\\", 0, STANDARD_RIGHTS_READ | KEY_QUERY_VALUE, &hDesktop) != ERROR_SUCCESS)
+            mMouseWheelScrollDelta = 4; // Failed to open the registry. Use a default value;
+        else
+        {
+            wchar_t Data[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            DWORD regType = 0;
+            DWORD cbData = sizeof(Data) - sizeof(wchar_t);
+            if(RegQueryValueExW(hDesktop, L"WheelScrollLines", nullptr, &regType, (LPBYTE)&Data, &cbData) == ERROR_SUCCESS)
+            {
+                if(regType == REG_SZ) // Don't process other types of data
+                    mMouseWheelScrollDelta = _wtoi(Data);
+                if(mMouseWheelScrollDelta == 0)
+                    mMouseWheelScrollDelta = 4; // Malformed registry value. Use a default value.
+            }
+            else
+                mMouseWheelScrollDelta = 4; // Failed to query the registry. Use a default value;
+            RegCloseKey(hDesktop);
+        }
+    }
     setMouseTracking(true);
 
     // Slots
@@ -548,13 +574,19 @@ void AbstractTableView::wheelEvent(QWheelEvent* event)
 
     if(numSteps > 0)
     {
-        for(int i = 0; i < mMouseWheelScrollDelta * numSteps; i++)
-            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        if(mMouseWheelScrollDelta > 0)
+            for(int i = 0; i < mMouseWheelScrollDelta * numSteps; i++)
+                verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        else // -1 : one screen at a time
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
     }
     else
     {
-        for(int i = 0; i < mMouseWheelScrollDelta * numSteps * -1; i++)
-            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        if(mMouseWheelScrollDelta > 0)
+            for(int i = 0; i < mMouseWheelScrollDelta * numSteps * -1; i++)
+                verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        else // -1 : one screen at a time
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
     }
 }
 
@@ -1202,19 +1234,12 @@ void AbstractTableView::prepareData()
 
 bool AbstractTableView::SortBy::AsText(const QString & a, const QString & b)
 {
-    int i = QString::compare(a, b, Qt::CaseInsensitive);
+    auto i = QString::compare(a, b);
     if(i < 0)
-    {
         return true;
-    }
-    else if(i > 0)
-    {
+    if(i > 0)
         return false;
-    }
-    else
-    {
-        return (size_t)&a < (size_t)&b;
-    }
+    return duint(&a) < duint(&b);
 }
 
 bool AbstractTableView::SortBy::AsInt(const QString & a, const QString & b)

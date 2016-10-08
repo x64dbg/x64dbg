@@ -6,7 +6,6 @@ LineEditDialog::LineEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Li
     ui->setupUi(this);
     setModal(true);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     setModal(true); //modal window
     ui->checkBox->hide();
     bChecked = false;
@@ -38,6 +37,11 @@ void LineEditDialog::setText(const QString & text)
 {
     ui->textEdit->setText(text);
     ui->textEdit->selectAll();
+}
+
+void LineEditDialog::setPlaceholderText(const QString & text)
+{
+    ui->textEdit->setPlaceholderText(text);
 }
 
 void LineEditDialog::enableCheckBox(bool bEnable)

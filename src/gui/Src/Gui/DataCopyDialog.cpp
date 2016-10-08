@@ -2,11 +2,13 @@
 #include "ui_DataCopyDialog.h"
 #include "Bridge.h"
 
+#define AF_INET6        23              // Internetwork Version 6
+typedef PCTSTR(__stdcall* INETNTOPW)(INT Family, PVOID pAddr, wchar_t* pStringBuf, size_t StringBufSize);
+
 DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : QDialog(parent), ui(new Ui::DataCopyDialog)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setFixedSize(this->size()); //fixed size
     mData = data;
 
     ui->comboType->addItem(tr("C-Style BYTE (Hex)"));
@@ -21,6 +23,8 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     ui->comboType->addItem(tr("Pascal DWORD (Hex)"));
     ui->comboType->addItem(tr("Pascal QWORD (Hex)"));
     ui->comboType->addItem(tr("GUID"));
+    ui->comboType->addItem(tr("IP Address (IPv4)"));
+    ui->comboType->addItem(tr("IP Address (IPv6)"));
 
     ui->comboType->setCurrentIndex(DataCByte);
 
@@ -256,6 +260,57 @@ void DataCopyDialog::printData(DataType type)
         }
     }
     break;
+
+    case DataIPv4:
+    {
+        int numIPs = mData->size() / 4;
+        for(int i = 0; i < numIPs; i++)
+        {
+            if(i)
+                data += ", ";
+            data += QString("%1.%2.%3.%4").arg(mData->constData()[i * 4]).arg(mData->constData()[i * 4 + 1]).arg(mData->constData()[i * 4 + 2]).arg(mData->constData()[i * 4 + 3]);
+        }
+    }
+    break;
+
+    case DataIPv6:
+    {
+        INETNTOPW InetNtopW;
+        int numIPs = mData->size() / 16;
+        HMODULE hWinsock = LoadLibrary(L"ws2_32.dll");
+        InetNtopW = INETNTOPW(GetProcAddress(hWinsock, "InetNtopW"));
+        if(InetNtopW)
+        {
+            for(int i = 0; i < numIPs; i++)
+            {
+                if(i)
+                    data += ", ";
+                wchar_t buffer[56];
+                memset(buffer, 0, sizeof(buffer));
+                InetNtopW(AF_INET6, const_cast<byte_t*>(mData->constData() + i * 16), buffer, 56);
+                data += QString::fromWCharArray(buffer);
+            }
+            FreeLibrary(hWinsock);
+        }
+        else //fallback for Windows XP
+        {
+            for(int i = 0; i < numIPs; i++)
+            {
+                if(i)
+                    data += ", ";
+                QString temp(QByteArray(reinterpret_cast<const char*>(mData->constData() + i * 16), 16).toHex());
+                temp.insert(28, ':');
+                temp.insert(24, ':');
+                temp.insert(20, ':');
+                temp.insert(16, ':');
+                temp.insert(12, ':');
+                temp.insert(8, ':');
+                temp.insert(4, ':');
+                data += temp;
+            }
+        }
+
+    }
     }
     ui->editCode->setPlainText(data);
 }

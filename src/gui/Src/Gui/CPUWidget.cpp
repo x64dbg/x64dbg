@@ -24,7 +24,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mSideBar, SLOT(setSelection(dsint)));
     connect(mDisas, SIGNAL(disassembledAt(dsint, dsint, bool, dsint)), mArgumentWidget, SLOT(disassembledAtSlot(dsint, dsint, bool, dsint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
-    connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(repaint()));
+    connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(reload()));
     connect(Bridge::getBridge(), SIGNAL(updateArgumentView()), mArgumentWidget, SLOT(refreshData()));
     mDisas->setCodeFoldingManager(mSideBar->getCodeFoldingManager());
 
@@ -47,7 +47,10 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
 
-    mGeneralRegs = new RegistersView(0);
+    mDump = new CPUMultiDump(mDisas, 5, 0); //dump widget
+    ui->mBotLeftFrameLayout->addWidget(mDump);
+
+    mGeneralRegs = new RegistersView(this, mDump);
     mGeneralRegs->setFixedWidth(1000);
     mGeneralRegs->ShowFPU(true);
     mGeneralRegs->setFixedHeight(mGeneralRegs->getEstimateHeight());
@@ -73,9 +76,6 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->mTopRightUpperFrameLayout->addWidget(upperScrollArea);
 
     ui->mTopRightLowerFrameLayout->addWidget(mArgumentWidget);
-
-    mDump = new CPUMultiDump(mDisas, 5, 0); //dump widget
-    ui->mBotLeftFrameLayout->addWidget(mDump);
 
     mStack = new CPUStack(mDump, 0); //stack widget
     ui->mBotRightFrameLayout->addWidget(mStack);

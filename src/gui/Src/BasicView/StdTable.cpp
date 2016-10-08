@@ -34,14 +34,15 @@ QString StdTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
 void StdTable::mouseMoveEvent(QMouseEvent* event)
 {
     bool wAccept = true;
+    int y = transY(event->y());
 
     if(mGuiState == StdTable::MultiRowsSelectionState)
     {
         //qDebug() << "State = MultiRowsSelectionState";
 
-        if((transY(event->y()) >= 0) && (transY(event->y()) <= this->getTableHeigth()))
+        if(y >= 0 && y <= this->getTableHeigth())
         {
-            int wRowIndex = getTableOffset() + getIndexOffsetFromY(transY(event->y()));
+            int wRowIndex = getTableOffset() + getIndexOffsetFromY(y);
 
             if(wRowIndex < getRowCount())
             {
@@ -54,6 +55,14 @@ void StdTable::mouseMoveEvent(QMouseEvent* event)
 
                 wAccept = false;
             }
+        }
+        else if(y < 0)
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        }
+        else if(y > getTableHeigth())
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
         }
     }
 
@@ -416,15 +425,15 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
     if(!getColumnCount())
         return;
     //Copy->Whole Line
-    QAction* mCopyLine = new QAction(tr("&Line"), copyMenu);
+    QAction* mCopyLine = new QAction(DIcon("copy_table_line.png"), tr("&Line"), copyMenu);
     connect(mCopyLine, SIGNAL(triggered()), this, SLOT(copyLineSlot()));
     copyMenu->addAction(mCopyLine);
     //Copy->Cropped Table
-    QAction* mCopyTable = new QAction(tr("Cropped &Table"), copyMenu);
+    QAction* mCopyTable = new QAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), copyMenu);
     connect(mCopyTable, SIGNAL(triggered()), this, SLOT(copyTableSlot()));
     copyMenu->addAction(mCopyTable);
     //Copy->Full Table
-    QAction* mCopyTableResize = new QAction(tr("&Full Table"), copyMenu);
+    QAction* mCopyTableResize = new QAction(DIcon("copy_full_table.png"), tr("&Full Table"), copyMenu);
     connect(mCopyTableResize, SIGNAL(triggered()), this, SLOT(copyTableResizeSlot()));
     copyMenu->addAction(mCopyTableResize);
     //Copy->Separator
@@ -449,11 +458,11 @@ void StdTable::setupCopyMenu(MenuBuilder* copyMenu)
     if(!getColumnCount())
         return;
     //Copy->Whole Line
-    copyMenu->addAction(makeAction(tr("&Line"), SLOT(copyLineSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_table_line.png"), tr("&Line"), SLOT(copyLineSlot())));
     //Copy->Cropped Table
-    copyMenu->addAction(makeAction(tr("Cropped &Table"), SLOT(copyTableSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), SLOT(copyTableSlot())));
     //Copy->Full Table
-    copyMenu->addAction(makeAction(tr("&Full Table"), SLOT(copyTableResizeSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_full_table.png"), tr("&Full Table"), SLOT(copyTableResizeSlot())));
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->ColName

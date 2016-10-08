@@ -182,9 +182,6 @@
     <ClCompile Include="loop.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
-    <ClCompile Include="error.cpp">
-      <Filter>Source Files\Information</Filter>
-    </ClCompile>
     <ClCompile Include="exception.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
@@ -347,6 +344,15 @@
     <ClCompile Include="exprfunc.cpp">
       <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
+    <ClCompile Include="animate.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="breakpoint_commands.cpp">
+      <Filter>Source Files\Debugger Core</Filter>
+    </ClCompile>
+    <ClCompile Include="symcache.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -485,9 +491,6 @@
       <Filter>Header Files\Information</Filter>
     </ClInclude>
     <ClInclude Include="patches.h">
-      <Filter>Header Files\Information</Filter>
-    </ClInclude>
-    <ClInclude Include="error.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
     <ClInclude Include="exception.h">
@@ -783,6 +786,18 @@
     </ClInclude>
     <ClInclude Include="exprfunc.h">
       <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\integers.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\threading.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="animate.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="symcache.h">
+      <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

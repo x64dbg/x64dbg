@@ -107,6 +107,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeStart()
         return L"Failed to save settings!";
     _dbg_sendmessage(DBG_DEINITIALIZE_LOCKS, nullptr, nullptr); //deinitialize locks when only one thread is left (hopefully)
     DeleteCriticalSection(&csIni);
+    DeleteCriticalSection(&csTranslate);
     return 0;
 }
 
@@ -1485,9 +1486,17 @@ BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length)
     _gui_sendmessage(GUI_FOLD_DISASSEMBLY, (void*)startAddress, (void*)length);
 }
 
+BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr)
+{
+    _gui_sendmessage(GUI_SELECT_IN_MEMORY_MAP, (void*)addr, nullptr);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
-    return _gui_translate_text(Source);
+    EnterCriticalSection(&csTranslate);
+    const char* text = _gui_translate_text(Source);
+    LeaveCriticalSection(&csTranslate);
+    return text;
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

@@ -25,6 +25,7 @@
 #include "../bridge/bridgelist.h"
 #include "tcpconnections.h"
 #include "watch.h"
+#include "animate.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -230,6 +231,13 @@ static bool _getbridgebp(BPXTYPE type, duint addr, BRIDGEBP* bp)
     case bp_memory:
         bptype = BPMEMORY;
         break;
+    case bp_dll:
+        bptype = BPDLL;
+        addr = ModHashFromName(reinterpret_cast<const char*>(addr));
+        break;
+    case bp_exception:
+        bptype = BPEXCEPTION;
+        break;
     default:
         return false;
     }
@@ -340,4 +348,8 @@ void dbgfunctionsinit()
     _dbgfunctions.GetHandleName = _gethandlename;
     _dbgfunctions.EnumTcpConnections = _enumtcpconnections;
     _dbgfunctions.GetDbgEvents = dbggetdbgevents;
+    _dbgfunctions.MemIsCodePage = MemIsCodePage;
+    _dbgfunctions.AnimateCommand = _dbg_animatecommand;
+    _dbgfunctions.DbgSetDebuggeeInitScript = dbgsetdebuggeeinitscript;
+    _dbgfunctions.DbgGetDebuggeeInitScript = dbggetdebuggeeinitscript;
 }

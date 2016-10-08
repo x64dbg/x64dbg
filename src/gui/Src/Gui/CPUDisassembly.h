@@ -84,6 +84,7 @@ public slots:
     void copyAddressSlot();
     void copyRvaSlot();
     void copyDisassemblySlot();
+    void copyDataSlot();
     void findCommandSlot();
     void openSourceSlot();
     void decompileSelectionSlot();
@@ -105,12 +106,17 @@ public slots:
     void graphSlot();
     void analyzeModuleSlot();
     void togglePreviewSlot();
+    void createThreadSlot();
+    void copyTokenTextSlot();
+    void copyTokenValueSlot();
+    void followInMemoryMapSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);
 
 private:
     bool getLabelsFromInstruction(duint addr, QSet<QString> & labels);
+    bool getTokenValueText(QString & text);
 
     // Menus
     QMenu* mHwSlotSelectMenu;
@@ -122,11 +128,13 @@ private:
     QAction* mFindConstantRegion;
     QAction* mFindStringsRegion;
     QAction* mFindCallsRegion;
+    QAction* mFindPatternRegion;
 
     QAction* mFindCommandModule;
     QAction* mFindConstantModule;
     QAction* mFindStringsModule;
     QAction* mFindCallsModule;
+    QAction* mFindPatternModule;
 
     QAction* mFindCommandAll;
     QAction* mFindConstantAll;
@@ -140,7 +148,8 @@ private:
     CPUWidget* mParentCPUWindow;
 
     MenuBuilder* mMenuBuilder;
-
+    MenuBuilder* mHighlightMenuBuilder;
+    bool mHighlightContextMenu = false;
 };
 
 #endif // CPUDISASSEMBLY_H

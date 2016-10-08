@@ -14,7 +14,9 @@ enum BP_TYPE
 {
     BPNORMAL = 0,
     BPHARDWARE = 1,
-    BPMEMORY = 2
+    BPMEMORY = 2,
+    BPDLL = 3,
+    BPEXCEPTION = 4
 };
 
 struct BREAKPOINT
@@ -44,6 +46,7 @@ typedef bool (*BPENUMCALLBACK)(const BREAKPOINT* bp);
 BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address);
 int BpGetList(std::vector<BREAKPOINT>* List);
 bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name);
+bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType, const char* Name);
 bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
 bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
 bool BpDelete(duint Address, BP_TYPE Type);
@@ -56,8 +59,10 @@ bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd);
 bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume);
+bool BpSetSingleshoot(duint Address, BP_TYPE Type, bool singleshoot);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base = 0);
 bool BpSetSilent(duint Address, BP_TYPE Type, bool silent);
+duint BpGetDLLBpAddr(const char* fileName);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback);
 int BpGetCount(BP_TYPE Type, bool EnabledOnly = false);
 uint32 BpGetHitCount(duint Address, BP_TYPE Type);
@@ -66,5 +71,6 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp);
 void BpCacheSave(JSON Root);
 void BpCacheLoad(JSON Root);
 void BpClear();
+bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo);
 
 #endif // _BREAKPOINT_H

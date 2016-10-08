@@ -1,6 +1,6 @@
 # x64dbg
 
-[![BountySource](https://www.bountysource.com/badge/team?team_id=18188&style=raised)](https://www.bountysource.com/teams/x64dbg?utm_source=x64dbg&utm_medium=shield&utm_campaign=raised) [![Telegram](http://i.imgur.com/merFyCf.png)](https://telegram.me/joinchat/BzwLaQcORqjkM1k9YbTNmg) [![Join the chat at Gitter](https://badges.gitter.im/x64dbg/x64dbg.svg)](https://gitter.im/x64dbg/x64dbg?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![freenode](http://i.imgur.com/JEG5fJr.png)](http://webchat.freenode.net/?channels=x64dbg) [![coverity](https://scan.coverity.com/projects/7478/badge.svg?flat=1)](https://scan.coverity.com/projects/7478/badge.svg?flat=1) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/x64dbg/localized.svg)](http://translate.x64dbg.com)
+[![BountySource](https://www.bountysource.com/badge/team?team_id=18188&style=raised)](https://www.bountysource.com/teams/x64dbg?utm_source=x64dbg&utm_medium=shield&utm_campaign=raised) [![Telegram](https://i.imgur.com/merFyCf.png)](http://telegram.x64dbg.com) [![Join the chat at Gitter](https://badges.gitter.im/x64dbg/x64dbg.svg)](http://gitter.x64dbg.com) [![freenode](https://i.imgur.com/JEG5fJr.png)](http://webchat.freenode.net/?channels=x64dbg) [![coverity](https://scan.coverity.com/projects/7478/badge.svg?flat=1)](https://scan.coverity.com/projects/7478) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/x64dbg/localized.svg)](http://translate.x64dbg.com)
 
 ## Note
 
@@ -14,7 +14,7 @@ For a complete guide on compiling *x64dbg* read [this](https://github.com/x64dbg
 
 Releases of *x64dbg* can be found [here](http://releases.x64dbg.com).
 
-Jenkins build server can be found [here](http://jenkins.x64dbg.com).
+~~Jenkins build server can be found [here](http://jenkins.x64dbg.com).~~
 
 ## Overview
 
@@ -47,7 +47,7 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - Multi-datatype memory dump
 - Basic debug symbol (PDB) support
 - Dynamic stack view
-- Built-in assembler (XEDParse/Keystone)
+- Built-in assembler (XEDParse/Keystone/asmjit)
 - Executable patching
 - Yara Pattern Matching
 - Decompiler (Snowman)
@@ -61,10 +61,12 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 
 - Debugger core by [TitanEngine Community Edition](https://bitbucket.org/titanengineupdate/titanengine-update)
 - Disassembly powered by [Capstone](http://capstone-engine.org)
-- Assembly powered by [XEDParse](https://bitbucket.org/mrexodia/xedparse)
+- Assembly powered by [XEDParse](https://github.com/x64dbg/XEDParse), [Keystone](http://keystone-engine.org) and [asmjit](https://github.com/asmjit)
 - Import reconstruction powered by [Scylla](https://github.com/NtQuery/Scylla)
 - JSON powered by [Jansson](http://www.digip.org/jansson)
 - Database compression powered by [lz4](https://bitbucket.org/mrexodia/lz4)
+- Advanced pattern matching powered by [yara](http://virustotal.github.io/yara)
+- Decompilation powered by [snowman](https://derevenets.com)
 - Bug icon by [VisualPharm](http://www.visualpharm.com)
 - Interface icons by [Fugue](http://p.yusukekamiyamane.com)
 - Website by [tr4ceflow](http://tr4ceflow.com)
@@ -88,8 +90,9 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - ahmadmansoor
 - \_pusher\_
 - firelegend
-- kao
+- [kao](http://lifeinhex.com)
 - sstrato
+- [kobalicek](https://github.com/kobalicek)
 
 ## Developers
 
@@ -99,10 +102,10 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - [Dreg](http://www.fr33project.org)
 - [Nukem](https://github.com/Nukem9)
 - [Herz3h](https://github.com/Herz3h)
-
-## Contributers
-
 - [torusrxxx](https://github.com/torusrxxx)
+
+## Contributors
+
 - [blaquee](https://github.com/blaquee)
 - [wk-952](https://github.com/wk-952)
 - [RaMMicHaeL](http://rammichael.com)
@@ -121,3 +124,4 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - [Atvaark](https://github.com/Atvaark)
 - [Avin](https://github.com/Avinm)
 - [mrfearless](https://github.com/mrfearless)
+- [Storm Shadow](https://github.com/techbliss)

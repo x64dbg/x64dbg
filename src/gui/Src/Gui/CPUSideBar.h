@@ -38,7 +38,7 @@ public slots:
     void updateFonts();
 
     void debugStateChangedSlot(DBGSTATE state);
-    void repaint();
+    void reload();
     void changeTopmostAddress(dsint i);
     void setViewableRows(int rows);
     void setSelection(dsint selVA);
@@ -56,6 +56,7 @@ protected:
     CodeFoldingHelper mCodeFoldingManager;
 
 private:
+    CachedFontMetrics* mFontMetrics;
     dsint topVA;
     dsint selectedVA;
     QFont m_DefaultFont;

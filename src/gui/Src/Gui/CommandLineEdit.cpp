@@ -27,6 +27,9 @@ CommandLineEdit::CommandLineEdit(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(registerScriptLang(SCRIPTTYPEINFO*)), this, SLOT(registerScriptType(SCRIPTTYPEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(unregisterScriptLang(int)), this, SLOT(unregisterScriptType(int)));
     connect(mCmdScriptType, SIGNAL(currentIndexChanged(int)), this, SLOT(scriptTypeChanged(int)));
+    connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdated()));
+
+    fontsUpdated();
 }
 
 CommandLineEdit::~CommandLineEdit()
@@ -255,4 +258,10 @@ void CommandLineEdit::scriptTypeChanged(int index)
 
     // Force reset autocompletion (blank string)
     emit textEdited("");
+}
+
+void CommandLineEdit::fontsUpdated()
+{
+    setFont(ConfigFont("Log"));
+    mCompleter->popup()->setFont(ConfigFont("Log"));
 }

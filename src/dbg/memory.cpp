@@ -108,9 +108,9 @@ void MemUpdateMap()
         if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages))   //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
-        duint base = ModBaseFromName(currentPage.info);
-        if(!base)
+        if(!ModBaseFromName(currentPage.info))
             continue;
+        auto base = duint(currentPage.mbi.AllocationBase);
         std::vector<MODSECTIONINFO> sections;
         if(!ModSectionsFromAddr(base, &sections))
             continue;
@@ -256,8 +256,8 @@ static DWORD WINAPI memUpdateMap()
 
 void MemUpdateMapAsync()
 {
-    static auto MemUpdateMapTask = MakeTaskThread(memUpdateMap, 1000);
-    MemUpdateMapTask.WakeUp();
+    static TaskThread_<decltype(&memUpdateMap)> memUpdateMapTask(&memUpdateMap, 1000);
+    memUpdateMapTask.WakeUp();
 }
 
 duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh)
@@ -681,7 +681,7 @@ bool MemDecodePointer(duint* Pointer, bool vistaPlus)
         OUT PULONG ReturnLength
     );
 
-    static auto NtQIP = (pfnNtQueryInformationProcess)GetProcAddress(GetModuleHandle("ntdll.dll"), "NtQueryInformationProcess");
+    static auto NtQIP = (pfnNtQueryInformationProcess)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess");
 
     // Verify
     if(!NtQIP || !Pointer)

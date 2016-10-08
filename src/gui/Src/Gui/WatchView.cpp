@@ -33,8 +33,8 @@ void WatchView::updateWatch()
     setRowCount(WatchList.Count());
     for(int i = 0; i < WatchList.Count(); i++)
     {
-        setCellContent(i, 0, QString::fromUtf8(WatchList[i].WatchName));
-        setCellContent(i, 1, QString::fromUtf8(WatchList[i].Expression));
+        setCellContent(i, 0, QString(WatchList[i].WatchName));
+        setCellContent(i, 1, QString(WatchList[i].Expression));
         switch(WatchList[i].varType)
         {
         case WATCHVARTYPE::TYPE_UINT:
@@ -139,17 +139,35 @@ void WatchView::setupContextMenu()
         return DbgIsDebugging();
     });
     mMenu->addAction(makeAction(tr("&Add..."), SLOT(addWatchSlot())));
-    mMenu->addAction(makeAction(tr("&Delete"), SLOT(delWatchSlot())));
-    mMenu->addAction(makeAction(tr("Rename"), SLOT(renameWatchSlot())));
-    mMenu->addAction(makeAction(tr("&Edit..."), SLOT(editWatchSlot())));
+    mMenu->addAction(makeAction(tr("&Delete"), SLOT(delWatchSlot())), [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    });
+    mMenu->addAction(makeAction(DIcon("labels.png"), tr("Rename"), SLOT(renameWatchSlot())), [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    });
+    mMenu->addAction(makeAction(DIcon("modify.png"), tr("&Edit..."), SLOT(editWatchSlot())), [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    });
+    MenuBuilder* watchdogBuilder = new MenuBuilder(this, [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    });
     QMenu* watchdogMenu = new QMenu(tr("Watchdog"), this);
-    watchdogMenu->addAction(makeAction(DIcon("close-all-tabs.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
-    watchdogMenu->addSeparator();
-    watchdogMenu->addAction(makeAction(tr("Changed"), SLOT(watchdogChangedSlot())));
-    watchdogMenu->addAction(makeAction(tr("Not changed"), SLOT(watchdogUnchangedSlot())));
-    watchdogMenu->addAction(makeAction(tr("Is true"), SLOT(watchdogIsTrueSlot())));
-    watchdogMenu->addAction(makeAction(tr("Is false"), SLOT(watchdogIsFalseSlot())));
-    mMenu->addMenu(watchdogMenu);
+    watchdogMenu->setIcon(DIcon("animal-dog.png"));
+    watchdogBuilder->addAction(makeAction(DIcon("disable.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
+    watchdogBuilder->addSeparator();
+    watchdogBuilder->addAction(makeAction(DIcon("arrow-restart.png"), tr("Changed"), SLOT(watchdogChangedSlot())));
+    watchdogBuilder->addAction(makeAction(DIcon("control-pause.png"), tr("Not changed"), SLOT(watchdogUnchangedSlot())));
+    watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_tbyte.png"), tr("Is true"), SLOT(watchdogIsTrueSlot()))); // TODO: better icon
+    watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_fword.png"), tr("Is false"), SLOT(watchdogIsFalseSlot())));
+    mMenu->addMenu(watchdogMenu, watchdogBuilder);
+    mMenu->addSeparator();
+    MenuBuilder* copyMenu = new MenuBuilder(this);
+    setupCopyMenu(copyMenu);
+    mMenu->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
 }
 
 QString WatchView::getSelectedId()
@@ -184,7 +202,7 @@ void WatchView::contextMenuSlot(const QPoint & pos)
 void WatchView::addWatchSlot()
 {
     QString name;
-    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", name))
+    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", name, tr("Example: [EAX]")))
         DbgCmdExecDirect(QString("AddWatch ").append(name).toUtf8().constData());
     updateWatch();
 }
@@ -198,7 +216,8 @@ void WatchView::delWatchSlot()
 void WatchView::renameWatchSlot()
 {
     QString name;
-    if(SimpleInputBox(this, tr("Enter the name of the watch variable"), getCellContent(getInitialSelection(), 0), name))
+    QString originalName = getCellContent(getInitialSelection(), 0);
+    if(SimpleInputBox(this, tr("Enter the name of the watch variable"), originalName, name, originalName))
         DbgCmdExecDirect(QString("SetWatchName ").append(getSelectedId() + "," + name).toUtf8().constData());
     updateWatch();
 }
@@ -206,7 +225,7 @@ void WatchView::renameWatchSlot()
 void WatchView::editWatchSlot()
 {
     QString expr;
-    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", expr))
+    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", expr, tr("Example: [EAX]")))
         DbgCmdExecDirect(QString("SetWatchExpression ").append(getSelectedId()).append(",").append(expr).toUtf8().constData());
     updateWatch();
 }

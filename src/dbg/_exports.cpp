@@ -25,7 +25,7 @@
 #include "bookmark.h"
 #include "function.h"
 #include "loop.h"
-#include "error.h"
+#include "exception.h"
 #include "x64_dbg.h"
 #include "threading.h"
 #include "stringformat.h"
@@ -33,8 +33,10 @@
 #include "encodemap.h"
 #include "argument.h"
 #include "watch.h"
+#include "animate.h"
 
 static bool bOnlyCipAutoComments = false;
+static duint cacheCflags = 0;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -86,10 +88,7 @@ extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
 
 extern "C" DLL_EXPORT bool _dbg_isdebugging()
 {
-    if(IsFileBeingDebugged())
-        return true;
-
-    return false;
+    return IsFileBeingDebugged();
 }
 
 extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
@@ -97,9 +96,9 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
     static duint cacheFlags;
     static duint cacheAddr;
     static bool cacheResult;
-    if(cacheAddr != addr || cacheFlags != GetContextDataEx(hActiveThread, UE_EFLAGS))
+    if(cacheAddr != addr || cacheFlags != cacheCflags)
     {
-        cacheFlags = GetContextDataEx(hActiveThread, UE_EFLAGS);
+        cacheFlags = cacheCflags;
         cacheAddr = addr;
         cacheResult = IsJumpGoingToExecuteEx(fdProcessInfo->hProcess, fdProcessInfo->hThread, (ULONG_PTR)cacheAddr, cacheFlags);
     }
@@ -225,18 +224,18 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         else
         {
             DWORD dwDisplacement;
-            IMAGEHLP_LINE64 line;
+            IMAGEHLP_LINEW64 line;
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-            if(SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) && !dwDisplacement)
+            if(SafeSymGetLineFromAddrW64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) && !dwDisplacement)
             {
-                char filename[deflen] = "";
-                strcpy_s(filename, line.FileName);
-                int len = (int)strlen(filename);
-                while(filename[len] != '\\' && len != 0)
+                wchar_t filename[deflen] = L"";
+                wcsncpy_s(filename, line.FileName, _TRUNCATE);
+                auto len = wcslen(filename);
+                while(filename[len] != L'\\' && len != 0)
                     len--;
                 if(len)
                     len++;
-                sprintf_s(addrinfo->comment, "\1%s:%u", filename + len, line.LineNumber);
+                sprintf_s(addrinfo->comment, "\1%s:%u", StringUtils::Utf16ToUtf8(filename + len).c_str(), line.LineNumber);
                 retval = true;
             }
             else if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
@@ -314,10 +313,13 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         retval = true;
                     }
                 }
-                comment.resize(MAX_COMMENT_SIZE - 2);
+
+                StringUtils::ReplaceAll(comment, "{", "{{");
+                StringUtils::ReplaceAll(comment, "}", "}}");
+
                 String fullComment = "\1";
                 fullComment += comment;
-                strcpy_s(addrinfo->comment, fullComment.c_str());
+                strncpy_s(addrinfo->comment, fullComment.c_str(), _TRUNCATE);
             }
         }
     }
@@ -515,7 +517,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return false;
     TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
 
-    duint cflags = regdump->regcontext.eflags;
+    duint cflags = cacheCflags = regdump->regcontext.eflags;
     regdump->flags.c = valflagfromstring(cflags, "cf");
     regdump->flags.p = valflagfromstring(cflags, "pf");
     regdump->flags.a = valflagfromstring(cflags, "af");
@@ -573,6 +575,12 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         break;
     case bp_memory:
         currentBpType = BPMEMORY;
+        break;
+    case bp_dll:
+        currentBpType = BPDLL;
+        break;
+    case bp_exception:
+        currentBpType = BPEXCEPTION;
         break;
     default:
         return 0;
@@ -673,6 +681,13 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
         });
         if(cp[0].type == X86_OP_MEM)
         {
+#ifdef _WIN64
+            auto const tebseg = X86_REG_GS;
+#else
+            auto const tebseg = X86_REG_FS;
+#endif //_WIN64
+            if(cp[0].mem.segment == tebseg)
+                opValue += duint(GetTEBLocation(hActiveThread));
             if(MemRead(opValue, &opValue, sizeof(opValue)))
                 return opValue;
         }
@@ -838,6 +853,8 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         bEnableSourceDebugging = settingboolget("Engine", "EnableSourceDebugging");
         bTraceRecordEnabledDuringTrace = settingboolget("Engine", "TraceRecordEnabledDuringTrace");
         bSkipInt3Stepping = settingboolget("Engine", "SkipInt3Stepping");
+        bIgnoreInconsistentBreakpoints = settingboolget("Engine", "IgnoreInconsistentBreakpoints");
+        bNoForegroundWindow = settingboolget("Gui", "NoForegroundWindow");
 
         duint setting;
         if(BridgeSettingGetUint("Engine", "BreakpointType", &setting))
@@ -886,6 +903,12 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
             // Trim the buffer to fit inside MAX_PATH
             strncpy_s(szSymbolCachePath, cachePath, _TRUNCATE);
         }
+
+        duint animateInterval;
+        if(BridgeSettingGetUint("Engine", "AnimateInterval", &animateInterval))
+            _dbg_setanimateinterval((unsigned int)animateInterval);
+        else
+            _dbg_setanimateinterval(50); // 20 commands per second
     }
     break;
 

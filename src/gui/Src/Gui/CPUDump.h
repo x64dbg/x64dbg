@@ -52,14 +52,18 @@ public slots:
     void hexAsciiSlot();
     void hexUnicodeSlot();
     void hexCodepageSlot();
+    void hexLastCodepageSlot();
 
     void textAsciiSlot();
     void textUnicodeSlot();
     void textCodepageSlot();
+    void textLastCodepageSlot();
 
+    void integerSignedByteSlot();
     void integerSignedShortSlot();
     void integerSignedLongSlot();
     void integerSignedLongLongSlot();
+    void integerUnsignedByteSlot();
     void integerUnsignedShortSlot();
     void integerUnsignedLongSlot();
     void integerUnsignedLongLongSlot();
@@ -99,9 +103,11 @@ public slots:
     void entropySlot();
     void syncWithExpressionSlot();
     void followInDumpNSlot();
+    void allocMemorySlot();
 
     void gotoNextSlot();
     void gotoPrevSlot();
+    void followInMemoryMapSlot();
 
 private:
     MenuBuilder* mMenuBuilder;
@@ -132,7 +138,9 @@ private:
         ViewFloatFloat,
         ViewFloatDouble,
         ViewFloatLongDouble,
-        ViewAddress
+        ViewAddress,
+        ViewIntegerSignedByte,
+        ViewIntegerUnsignedByte
     };
 
     void setView(ViewEnum_t view);

@@ -20,7 +20,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     setLayout(mMainLayout);
 
     // Create reference view
-    mSearchListView = new SearchListView();
+    mSearchListView = new SearchListView(true, 0, true);
     mSearchListView->mSearchStartCol = 1;
 
     // Create module list
@@ -90,7 +90,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(symbolRefreshCurrent()), this, SLOT(symbolRefreshCurrent()));
     connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(symbolContextMenu(QMenu*)));
-    connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(symbolFollow()));
+    connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(enterPressedSlot()));
 }
 
 SymbolView::~SymbolView()
@@ -100,23 +100,22 @@ SymbolView::~SymbolView()
 
 void SymbolView::setupContextMenu()
 {
+    QIcon disassembler = DIcon(ArchValue("processor32.png", "processor64.png"));
     //Symbols
-    mFollowSymbolAction = new QAction(tr("&Follow in Disassembler"), this);
-    mFollowSymbolAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    mFollowSymbolAction->setShortcut(QKeySequence("enter"));
+    mFollowSymbolAction = new QAction(disassembler, tr("&Follow in Disassembler"), this);
     connect(mFollowSymbolAction, SIGNAL(triggered()), this, SLOT(symbolFollow()));
 
-    mFollowSymbolDumpAction = new QAction(tr("Follow in &Dump"), this);
+    mFollowSymbolDumpAction = new QAction(DIcon("dump.png"), tr("Follow in &Dump"), this);
     connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
 
-    mToggleBreakpoint = new QAction(tr("Toggle Breakpoint"), this);
+    mToggleBreakpoint = new QAction(DIcon("breakpoint.png"), tr("Toggle Breakpoint"), this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBreakpoint);
     mSearchListView->mList->addAction(mToggleBreakpoint);
     mSearchListView->mSearchList->addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
-    mToggleBookmark = new QAction(tr("Toggle Bookmark"), this);
+    mToggleBookmark = new QAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), this);
     mToggleBookmark->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBookmark);
     mSearchListView->mList->addAction(mToggleBookmark);
@@ -124,24 +123,40 @@ void SymbolView::setupContextMenu()
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 
     //Modules
-    mFollowModuleAction = new QAction(tr("&Follow in Disassembler"), this);
+    mFollowModuleAction = new QAction(disassembler, tr("&Follow in Disassembler"), this);
     mFollowModuleAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     mFollowModuleAction->setShortcut(QKeySequence("enter"));
     connect(mFollowModuleAction, SIGNAL(triggered()), this, SLOT(moduleFollow()));
 
-    mFollowModuleEntryAction = new QAction(tr("Follow &Entry Point in Disassembler"), this);
+    mFollowModuleEntryAction = new QAction(disassembler, tr("Follow &Entry Point in Disassembler"), this);
     connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
 
     mDownloadSymbolsAction = new QAction(tr("&Download Symbols for This Module"), this);
+    mDownloadSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mDownloadSymbolsAction);
+    mModuleList->mList->addAction(mDownloadSymbolsAction);
+    mModuleList->mSearchList->addAction(mDownloadSymbolsAction);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 
     mDownloadAllSymbolsAction = new QAction(tr("Download Symbols for &All Modules"), this);
+    mDownloadAllSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mDownloadAllSymbolsAction);
+    mModuleList->mList->addAction(mDownloadAllSymbolsAction);
+    mModuleList->mSearchList->addAction(mDownloadAllSymbolsAction);
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
 
     mCopyPathAction = new QAction(tr("Copy File &Path"), this);
+    mCopyPathAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mCopyPathAction);
+    mModuleList->mList->addAction(mCopyPathAction);
+    mModuleList->mSearchList->addAction(mCopyPathAction);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
 
     mBrowseInExplorer = new QAction(tr("Browse in Explorer"), this);
+    mBrowseInExplorer->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mBrowseInExplorer);
+    mModuleList->mList->addAction(mBrowseInExplorer);
+    mModuleList->mSearchList->addAction(mBrowseInExplorer);
     connect(mBrowseInExplorer, SIGNAL(triggered()), this, SLOT(moduleBrowse()));
 
     mYaraAction = new QAction(DIcon("yara.png"), tr("&Yara Memory..."), this);
@@ -151,6 +166,10 @@ void SymbolView::setupContextMenu()
     connect(mYaraFileAction, SIGNAL(triggered()), this, SLOT(moduleYaraFile()));
 
     mEntropyAction = new QAction(DIcon("entropy.png"), tr("Entropy..."), this);
+    mEntropyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mEntropyAction);
+    mModuleList->mList->addAction(mEntropyAction);
+    mModuleList->mSearchList->addAction(mEntropyAction);
     connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
 
     mModSetUserAction = new QAction(tr("Mark as &user module"), this);
@@ -186,6 +205,11 @@ void SymbolView::refreshShortcutsSlot()
     mModSetUserAction->setShortcut(ConfigShortcut("ActionMarkAsUser"));
     mModSetSystemAction->setShortcut(ConfigShortcut("ActionMarkAsSystem"));
     mModSetPartyAction->setShortcut(ConfigShortcut("ActionMarkAsParty"));
+    mEntropyAction->setShortcut(ConfigShortcut("ActionEntropy"));
+    mBrowseInExplorer->setShortcut(ConfigShortcut("ActionBrowseInExplorer"));
+    mDownloadSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadSymbol"));
+    mDownloadAllSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadAllSymbol"));
+    mCopyPathAction->setShortcut(ConfigShortcut("ActionCopy"));
 }
 
 void SymbolView::updateStyle()
@@ -245,7 +269,10 @@ void SymbolView::moduleSelectionChanged(int index)
     mSearchListView->mList->reloadData();
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->setTableOffset(0);
-    mSearchListView->mSearchBox->setText("");
+    if(!mSearchListView->isSearchBoxLocked())
+        mSearchListView->mSearchBox->setText("");
+    else
+        mSearchListView->refreshSearchList();
 
     setUpdatesEnabled(true);
 }
@@ -305,14 +332,23 @@ void SymbolView::symbolRefreshCurrent()
 
 void SymbolView::symbolFollow()
 {
-    DbgCmdExecDirect(QString("disasm " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
-    emit showCpu();
+    DbgCmdExec(QString("disasm " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void SymbolView::symbolFollowDump()
 {
-    DbgCmdExecDirect(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
-    emit showCpu();
+    DbgCmdExec(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+}
+
+void SymbolView::enterPressedSlot()
+{
+    auto addr = DbgValFromString(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0).toUtf8().constData());
+    if(!addr)
+        return;
+    if(DbgFunctions()->MemIsCodePage(addr, false))
+        symbolFollow();
+    else
+        symbolFollowDump();
 }
 
 void SymbolView::moduleContextMenu(QMenu* wMenu)
@@ -353,13 +389,11 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
 void SymbolView::moduleFollow()
 {
     DbgCmdExecDirect(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0) + "+1000").toUtf8().constData());
-    emit showCpu();
 }
 
 void SymbolView::moduleEntryFollow()
 {
     DbgCmdExecDirect(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1) + ":entry").toUtf8().constData());
-    emit showCpu();
 }
 
 void SymbolView::moduleCopyPath()
@@ -376,7 +410,7 @@ void SymbolView::moduleBrowse()
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {
-        QProcess::startDetached("explorer.exe", QStringList(QString("/select,").append(QString::fromUtf8(szModPath))));
+        QProcess::startDetached("explorer.exe", QStringList(QString("/select,").append(QString(szModPath))));
     }
 }
 

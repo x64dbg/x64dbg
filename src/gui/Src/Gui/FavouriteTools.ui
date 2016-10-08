@@ -41,6 +41,13 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="btnEditFavouriteTool">
+           <property name="text">
+            <string>&amp;Edit</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="btnRemoveFavouriteTool">
            <property name="text">
             <string>&amp;Remove</string>
@@ -86,6 +93,13 @@
           <widget class="QPushButton" name="btnAddFavouriteScript">
            <property name="text">
             <string>&amp;Add...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnEditFavouriteScript">
+           <property name="text">
+            <string>&amp;Edit</string>
            </property>
           </widget>
          </item>
@@ -139,6 +153,13 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="btnEditFavouriteCommand">
+           <property name="text">
+            <string>&amp;Edit</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="btnRemoveFavouriteCommand">
            <property name="text">
             <string>&amp;Remove</string>
@@ -173,6 +194,13 @@
      <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
        <widget class="ShortcutEdit" name="shortcutEdit"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnClearShortcut">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

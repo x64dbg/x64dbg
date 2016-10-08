@@ -21,7 +21,7 @@ typedef COMMAND* (*CBCOMMANDFINDER)(char*);
 
 struct COMMAND
 {
-    char* name;
+    std::vector<String>* names;
     CBCOMMAND cbCommand;
     bool debugonly;
     COMMAND* next;

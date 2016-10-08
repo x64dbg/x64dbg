@@ -51,6 +51,7 @@ public:
     void emitFontsUpdated();
     void readShortcuts();
     void writeShortcuts();
+    void emitShortcutsUpdated();
 
     const QColor getColor(const QString id) const;
     const bool getBool(const QString category, const QString id) const;

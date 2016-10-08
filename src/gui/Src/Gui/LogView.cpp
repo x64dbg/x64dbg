@@ -2,23 +2,36 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "BrowseDialog.h"
+#include <QRegularExpression>
+#include <QDesktopServices>
 
-LogView::LogView(QWidget* parent) : QTextEdit(parent), logRedirection(NULL)
+/**
+ * @brief LogView::LogView The constructor constructs a rich text browser
+ * @param parent The parent
+ */
+LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
 {
     updateStyle();
     this->setUndoRedoEnabled(false);
     this->setReadOnly(true);
+    this->setOpenExternalLinks(false);
+    this->setOpenLinks(false);
     this->setLoggingEnabled(true);
+    autoScroll = true;
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(addMsgToLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
+    connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
 
     setupContextMenu();
 }
 
+/**
+ * @brief LogView::~LogView The destructor
+ */
 LogView::~LogView()
 {
     if(logRedirection != NULL)
@@ -32,31 +45,35 @@ void LogView::updateStyle()
     setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
 }
 
+template<class T> static QAction* setupAction(const QIcon & icon, const QString & text, LogView* this_object, T slot)
+{
+    QAction* action = new QAction(icon, text, this_object);
+    action->setShortcutContext(Qt::WidgetShortcut);
+    this_object->addAction(action);
+    this_object->connect(action, SIGNAL(triggered()), this_object, slot);
+    return action;
+}
+
+template<class T> static QAction* setupAction(const QString & text, LogView* this_object, T slot)
+{
+    QAction* action = new QAction(text, this_object);
+    action->setShortcutContext(Qt::WidgetShortcut);
+    this_object->addAction(action);
+    this_object->connect(action, SIGNAL(triggered()), this_object, slot);
+    return action;
+}
+
 void LogView::setupContextMenu()
 {
-    actionClear = new QAction(tr("Clea&r"), this);
-    connect(actionClear, SIGNAL(triggered()), this, SLOT(clearLogSlot()));
-    actionClear->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(actionClear);
-    actionCopy = new QAction(tr("&Copy"), this);
-    connect(actionCopy, SIGNAL(triggered()), this, SLOT(copy()));
-    actionCopy->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(actionCopy);
-    actionSelectAll = new QAction(tr("Select &All"), this);
-    connect(actionSelectAll, SIGNAL(triggered()), this, SLOT(selectAll()));
-    actionSelectAll->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(actionSelectAll);
-    actionSave = new QAction(tr("&Save"), this);
-    actionSave->setShortcutContext(Qt::WidgetShortcut);
-    connect(actionSave, SIGNAL(triggered()), this, SLOT(saveSlot()));
-    this->addAction(actionSave);
-    actionToggleLogging = new QAction(tr("Disable &Logging"), this);
-    actionToggleLogging->setShortcutContext(Qt::WidgetShortcut);
-    connect(actionToggleLogging, SIGNAL(triggered()), this, SLOT(toggleLoggingSlot()));
-    this->addAction(actionToggleLogging);
-    actionRedirectLog = new QAction(tr("&Redirect Log..."), this);
-    connect(actionRedirectLog, SIGNAL(triggered()), this, SLOT(redirectLogSlot()));
-    this->addAction(actionRedirectLog);
+    actionClear = setupAction(DIcon("eraser.png"), tr("Clea&r"), this, SLOT(clearLogSlot()));
+    actionCopy = setupAction(DIcon("copy.png"), tr("&Copy"), this, SLOT(copy()));
+    actionSelectAll = setupAction(tr("Select &All"), this, SLOT(selectAll()));
+    actionSave = setupAction(DIcon("binary_save.png"), tr("&Save"), this, SLOT(saveSlot()));
+    actionToggleLogging = setupAction(tr("Disable &Logging"), this, SLOT(toggleLoggingSlot()));
+    actionRedirectLog = setupAction(tr("&Redirect Log..."), this, SLOT(redirectLogSlot()));
+    actionAutoScroll = setupAction(tr("Auto Scrolling"), this, SLOT(autoScrollSlot()));
+    actionAutoScroll->setCheckable(true);
+    actionAutoScroll->setChecked(autoScroll);
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -66,6 +83,7 @@ void LogView::refreshShortcutsSlot()
 {
     actionCopy->setShortcut(ConfigShortcut("ActionCopy"));
     actionToggleLogging->setShortcut(ConfigShortcut("ActionToggleLogging"));
+    actionRedirectLog->setShortcut(ConfigShortcut("ActionRedirectLog"));
 }
 
 void LogView::contextMenuEvent(QContextMenuEvent* event)
@@ -80,9 +98,31 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     else
         actionToggleLogging->setText(tr("Enable &Logging"));
     wMenu.addAction(actionToggleLogging);
+    actionAutoScroll->setChecked(autoScroll);
+    wMenu.addAction(actionAutoScroll);
+    if(logRedirection == NULL)
+        actionRedirectLog->setText(tr("&Redirect Log..."));
+    else
+        actionRedirectLog->setText(tr("Stop &Redirection"));
     wMenu.addAction(actionRedirectLog);
 
     wMenu.exec(event->globalPos());
+}
+
+/**
+ * @brief linkify Add hyperlink HTML to the message where applicable.
+ * @param msg The message passed by reference.
+ * Url format:
+ * x64dbg:// localhost                                                                                          /  address64 # address
+ * ^fixed    ^host(probably will be changed to PID + Host when remote debugging and child debugging are supported) ^token      ^parameter
+ */
+static void linkify(QString & msg)
+{
+#ifdef _WIN64
+    msg.replace(QRegularExpression("([0-9A-Fa-f]{16})"), "<a href=\"x64dbg://localhost/address64#\\1\">\\1</a>");
+#else //x86
+    msg.replace(QRegularExpression("([0-9A-Fa-f]{8})"), "<a href=\"x64dbg://localhost/address32#\\1\">\\1</a>");
+#endif //_WIN64
 }
 
 void LogView::addMsgToLogSlot(QString msg)
@@ -105,10 +145,56 @@ void LogView::addMsgToLogSlot(QString msg)
     if(this->document()->characterCount() > 10000 * 100) //limit the log to ~100mb
         this->clear();
     // This sets the cursor to the end for the next insert
-    this->moveCursor(QTextCursor::End);
-    this->insertPlainText(msg);
-    // This sets the cursor to the end to display the new text
-    this->moveCursor(QTextCursor::End);
+    QTextCursor cursor = this->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    if(autoScroll)
+        this->moveCursor(QTextCursor::End);
+    msg.replace(QChar('&'), QString("&amp;"));
+    msg.replace(QChar('<'), QString("&lt;"));
+    msg.replace(QChar('>'), QString("&gt;"));
+    msg.replace(QString("\r\n"), QString("<br/>\r\n"));
+    msg.replace(QChar(' '), QString("&nbsp;"));
+    linkify(msg);
+    cursor.insertHtml(msg);
+}
+
+/**
+ * @brief LogView::onAnchorClicked Called when a hyperlink is clicked
+ * @param link The clicked link
+ */
+void LogView::onAnchorClicked(const QUrl & link)
+{
+    if(link.scheme() == "x64dbg")
+    {
+        if(link.path() == "/address64")
+        {
+            bool ok = false;
+            duint address = link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16);
+            if(ok && DbgMemIsValidReadPtr(address))
+            {
+                if(DbgFunctions()->MemIsCodePage(address, true))
+                    DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
+                else
+                    DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+            }
+        }
+        else if(link.path() == "/address32")
+        {
+            bool ok = false;
+            duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
+            if(ok)
+            {
+                if(DbgFunctions()->MemIsCodePage(address, true))
+                    DbgCmdExec(QString("disasm %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+                else if(DbgMemIsValidReadPtr(address))
+                    DbgCmdExec(QString("dump %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+            }
+        }
+        else
+            SimpleErrorBox(this, tr("Url is not valid!"), tr("The Url %1 is not supported").arg(link.toString()));
+    }
+    else
+        QDesktopServices::openUrl(link); // external Url
 }
 
 void LogView::clearLogSlot()
@@ -119,22 +205,27 @@ void LogView::clearLogSlot()
 void LogView::redirectLogSlot()
 {
     if(logRedirection != NULL)
-        fclose(logRedirection);
-    logRedirection = NULL;
-    BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
-    if(browse.exec() == QDialog::Accepted)
     {
-        logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
-        if(logRedirection == NULL)
-            GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
-        else
+        fclose(logRedirection);
+        logRedirection = NULL;
+    }
+    else
+    {
+        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
+        if(browse.exec() == QDialog::Accepted)
         {
-            if(ftell(logRedirection) == 0)
+            logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
+            if(logRedirection == NULL)
+                GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
+            else
             {
-                unsigned short BOM = 0xfeff;
-                fwrite(&BOM, 2, 1, logRedirection);
+                if(ftell(logRedirection) == 0)
+                {
+                    unsigned short BOM = 0xfeff;
+                    fwrite(&BOM, 2, 1, logRedirection);
+                }
+                GuiAddLogMessage(tr("Log will be redirected to %1.\n").arg(browse.path).toUtf8().constData());
             }
-            GuiAddLogMessage(tr("Log will be redirected to %1.\n").arg(browse.path).toUtf8().constData());
         }
     }
 }
@@ -158,6 +249,14 @@ bool LogView::getLoggingEnabled()
     return loggingEnabled;
 }
 
+void LogView::autoScrollSlot()
+{
+    autoScroll = !autoScroll;
+}
+
+/**
+ * @brief LogView::saveSlot Called by "save" action
+ */
 void LogView::saveSlot()
 {
     QString fileName;
