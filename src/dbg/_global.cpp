@@ -124,7 +124,6 @@ void json_free(void* ptr)
 #else
     return efree(ptr);
 #endif
-    efree(ptr, "json:ptr");
 }
 
 /**
@@ -165,9 +164,7 @@ void setalloctrace(const char* file)
 */
 bool scmp(const char* a, const char* b)
 {
-    if(_stricmp(a, b))
-        return false;
-    return true;
+    return !_stricmp(a, b);
 }
 
 /**
@@ -240,7 +237,7 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName)
 {
     wchar_t wszDosFileName[MAX_PATH] = L"";
-    if(!GetProcessImageFileNameW(hProcess, wszDosFileName, sizeof(wszDosFileName)))
+    if(!GetProcessImageFileNameW(hProcess, wszDosFileName, _countof(wszDosFileName)))
         return false;
 
     wchar_t wszFileName[MAX_PATH] = L"";
@@ -292,7 +289,9 @@ arch GetFileArchitecture(const char* szFileName)
                 IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)(data + pdh->e_lfanew);
                 if(pnth->Signature == IMAGE_NT_SIGNATURE)
                 {
-                    if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386) //x32
+                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0)
+                        retval = dotnet;
+                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386) //x32
                         retval = x32;
                     else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64) //x64
                         retval = x64;
@@ -322,7 +321,8 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
         return SUCCEEDED(E_INVALIDARG);
 
     //Initialize COM stuff
-    CoInitialize(NULL);
+    if(!SUCCEEDED(CoInitialize(NULL)))
+        return false;
 
     //Get a pointer to the IShellLink interface.
     IShellLink* psl = NULL;

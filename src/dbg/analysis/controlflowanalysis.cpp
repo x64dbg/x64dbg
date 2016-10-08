@@ -247,10 +247,10 @@ void ControlFlowAnalysis::BasicBlocks()
         count++;
         return true;
     });
-    dprintf("%u functions from the exception directory...\n", count);
+    dprintf("%d functions from the exception directory...\n", count);
 #endif // _WIN64
 
-    dprintf("%u basic blocks, %u function starts detected...\n", mBlocks.size(), mFunctionStarts.size());
+    dprintf("%d basic blocks, %d function starts detected...\n", int(mBlocks.size()), int(mFunctionStarts.size()));
 }
 
 void ControlFlowAnalysis::Functions()
@@ -284,7 +284,7 @@ void ControlFlowAnalysis::Functions()
             DebugBreak(); //this should not happen
     }
     auto delayedCount = int(delayedBlocks.size());
-    dprintf("%u/%u delayed blocks...\n", delayedCount, mBlocks.size());
+    dprintf("%d/%d delayed blocks...\n", delayedCount, int(mBlocks.size()));
     auto resolved = 0;
     for(auto & delayedBlock : delayedBlocks)
     {
@@ -310,7 +310,7 @@ void ControlFlowAnalysis::Functions()
         block->function = function;
         resolved++;
     }
-    dprintf("%u/%u delayed blocks resolved (%u/%u still left, probably unreferenced functions)\n", resolved, delayedCount, delayedCount - resolved, mBlocks.size());
+    dprintf("%d/%d delayed blocks resolved (%d/%d still left, probably unreferenced functions)\n", resolved, delayedCount, delayedCount - resolved, int(mBlocks.size()));
     auto unreferencedCount = 0;
     for(const auto & block : mBlocks)
     {
@@ -322,8 +322,8 @@ void ControlFlowAnalysis::Functions()
         }
         found->second.insert(block.second.start);
     }
-    dprintf("%u/%u unreferenced blocks\n", unreferencedCount, mBlocks.size());
-    dprintf("%u functions found!\n", mFunctions.size());
+    dprintf("%d/%u unreferenced blocks\n", unreferencedCount, DWORD(mBlocks.size()));
+    dprintf("%u functions found!\n", DWORD(mFunctions.size()));
 }
 
 void ControlFlowAnalysis::FunctionRanges()
@@ -337,7 +337,7 @@ void ControlFlowAnalysis::FunctionRanges()
         {
             auto block = findBlock(blockstart);
             if(!block)
-                DebugBreak(); //this shouldn't happen
+                __debugbreak(); //this shouldn't happen
             if(block->end > end)
                 end = block->end;
         }
@@ -345,7 +345,7 @@ void ControlFlowAnalysis::FunctionRanges()
     }
 }
 
-void ControlFlowAnalysis::insertBlock(BasicBlock block)
+void ControlFlowAnalysis::insertBlock(const BasicBlock & block)
 {
     if(mBlocks.find(block.start) != mBlocks.end())
         DebugBreak();
@@ -435,7 +435,7 @@ duint ControlFlowAnalysis::getReferenceOperand() const
 }
 
 #ifdef _WIN64
-void ControlFlowAnalysis::enumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const
+void ControlFlowAnalysis::enumerateFunctionRuntimeEntries64(const std::function<bool(PRUNTIME_FUNCTION)> & Callback) const
 {
     if(!mFunctionInfoData)
         return;

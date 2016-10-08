@@ -535,7 +535,7 @@ uint32 BpGetHitCount(duint Address, BP_TYPE Type)
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
     if(!bpInfo)
-        return false;
+        return 0;
 
     return bpInfo->hitcount;
 }
@@ -688,9 +688,6 @@ void BpCacheLoad(JSON Root)
 {
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    // Remove all existing elements
-    breakpoints.clear();
-
     // Get a handle to the root object -> breakpoints subtree
     const JSON jsonBreakpoints = json_object_get(Root, "breakpoints");
 
@@ -736,7 +733,7 @@ void BpCacheLoad(JSON Root)
         {
             key = BpGetDLLBpAddr(breakpoint.mod);
         }
-        breakpoints.insert(std::make_pair(BreakpointKey(breakpoint.type, key), breakpoint));
+        breakpoints[BreakpointKey(breakpoint.type, key)] = breakpoint;
     }
 }
 

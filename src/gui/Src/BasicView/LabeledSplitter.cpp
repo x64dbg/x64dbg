@@ -264,3 +264,24 @@ void LabeledSplitter::contextMenuEvent(QContextMenuEvent* event)
         mExpandCollapseAction->setText(tr("&Expand"));
     mMenu->exec(mapToGlobal(event->pos()));
 }
+
+void LabeledSplitter::loadFromConfig(const QString & configName)
+{
+    if(!configName.isEmpty())
+    {
+        mConfigName = configName;
+        char state[MAX_SETTING_SIZE];
+        memset(state, 0, sizeof(state));
+        BridgeSettingGet("Gui", mConfigName.toUtf8().constData(), state);
+        size_t sizeofState = strlen(state);
+        if(sizeofState > 0)
+            this->restoreState(QByteArray::fromBase64(QByteArray(state, int(sizeofState))));
+        connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeSlot()));
+    }
+}
+
+void LabeledSplitter::closeSlot()
+{
+    if(Config()->getBool("Gui", "SaveColumnOrder"))
+        BridgeSettingSet("Gui", mConfigName.toUtf8().constData(), this->saveState().toBase64().data());
+}

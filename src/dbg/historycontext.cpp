@@ -4,6 +4,7 @@
 #include "console.h"
 #include "watch.h"
 #include "threading.h"
+#include "cmd-watch-control.h"
 
 static const duint HistoryMaxCount = 4096;
 static std::deque<HistoryContext> history;
@@ -53,7 +54,7 @@ void HistoryContext::restore()
         for(auto & i : ChangedLocation)
             MemWrite(i.addr, i.oldvalue, sizeof(duint));
         SetFullContextDataEx(hActiveThread, &registers);
-        cbWatchdog(0, nullptr);
+        cbCheckWatchdog(0, nullptr);
         DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     }
     else

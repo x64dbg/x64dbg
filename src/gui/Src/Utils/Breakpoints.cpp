@@ -21,19 +21,19 @@ void Breakpoints::setBP(BPXTYPE type, duint va)
     {
     case bp_normal:
     {
-        wCmd = "bp " + QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bp " + ToPtrString(va);
     }
     break;
 
     case bp_hardware:
     {
-        wCmd = "bph " + QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bph " + ToPtrString(va);
     }
     break;
 
     case bp_memory:
     {
-        wCmd = "bpm " + QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bpm " + ToPtrString(va);
     }
     break;
 

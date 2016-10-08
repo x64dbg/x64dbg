@@ -7,10 +7,8 @@
 #include "simplescript.h"
 #include "console.h"
 #include "variable.h"
-#include "x64_dbg.h"
 #include "debugger.h"
 #include "filehelper.h"
-#include "stringformat.h"
 
 static std::vector<LINEMAPENTRY> linemap;
 
@@ -177,7 +175,6 @@ static bool scriptcreatelinemap(const char* filename)
             cur.type = linelabel;
             sprintf(cur.u.label, "l %.*s", rawlen - 1, cur.raw); //create a fake command for formatting
             strcpy_s(cur.u.label, StringUtils::Trim(cur.u.label).c_str());
-            char temp[256] = "";
             strcpy_s(temp, cur.u.label + 2);
             strcpy_s(cur.u.label, temp); //remove fake command
             if(!*cur.u.label || !strcmp(cur.u.label, "\"\"")) //no label text
@@ -204,11 +201,11 @@ static bool scriptcreatelinemap(const char* filename)
             cur.u.branch.type = scriptgetbranchtype(cur.raw);
             char newraw[MAX_SCRIPT_LINE_SIZE] = "";
             strcpy_s(newraw, StringUtils::Trim(cur.raw).c_str());
-            int len = (int)strlen(newraw);
-            for(int i = 0; i < len; i++)
-                if(newraw[i] == ' ')
+            int rlen = (int)strlen(newraw);
+            for(int j = 0; j < rlen; j++)
+                if(newraw[j] == ' ')
                 {
-                    strcpy_s(cur.u.branch.branchlabel, newraw + i + 1);
+                    strcpy_s(cur.u.branch.branchlabel, newraw + j + 1);
                     break;
                 }
         }
@@ -620,34 +617,4 @@ bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info)
         return false;
     memcpy(info, &linemap.at(line - 1).u.branch, sizeof(SCRIPTBRANCH));
     return true;
-}
-
-CMDRESULT cbScriptLoad(int argc, char* argv[])
-{
-    if(argc < 2)
-        return STATUS_ERROR;
-    scriptload(argv[1]);
-    return STATUS_CONTINUE;
-}
-
-CMDRESULT cbScriptMsg(int argc, char* argv[])
-{
-    if(argc < 2)
-    {
-        dputs(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "not enough arguments!")));
-        return STATUS_ERROR;
-    }
-    GuiScriptMessage(stringformatinline(argv[1]).c_str());
-    return STATUS_CONTINUE;
-}
-
-CMDRESULT cbScriptMsgyn(int argc, char* argv[])
-{
-    if(argc < 2)
-    {
-        dputs(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "not enough arguments!")));
-        return STATUS_ERROR;
-    }
-    varset("$RESULT", GuiScriptMsgyn(stringformatinline(argv[1]).c_str()), false);
-    return STATUS_CONTINUE;
 }

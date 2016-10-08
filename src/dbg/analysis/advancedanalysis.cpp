@@ -196,7 +196,7 @@ void AdvancedAnalysis::linearXrefPass()
         }
     }
 
-    dprintf("%u xrefs found in %ums!\n", mXrefs.size(), GetTickCount() - ticks);
+    dprintf("%d xrefs found in %ums!\n", int(mXrefs.size()), GetTickCount() - ticks);
 }
 
 void AdvancedAnalysis::findInvalidXrefs()
@@ -300,8 +300,8 @@ void AdvancedAnalysis::writeDataXrefs()
                         else
                         {
                             memset(mEncMap + offset, (byte)enc_middle, size);
-                            for(duint i = offset; i < offset + size; i += datasize)
-                                mEncMap[i] = (byte)type;
+                            for(duint j = offset; j < offset + size; j += datasize)
+                                mEncMap[j] = (byte)type;
                         }
                     }
                 }

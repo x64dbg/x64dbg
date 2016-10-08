@@ -24,7 +24,7 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     connect(ui->btnRefresh, SIGNAL(clicked()), this, SLOT(refresh()));
 
     // Create search view (regex disabled)
-    mSearchListView = new SearchListView(false);
+    mSearchListView = new SearchListView(false, this);
     mSearchListView->mSearchStartCol = 1;
     ui->verticalLayout->insertWidget(0, mSearchListView);
 

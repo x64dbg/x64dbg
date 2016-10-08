@@ -66,6 +66,7 @@ FavouriteTools::FavouriteTools(QWidget* parent) :
     connect(ui->listCommand, SIGNAL(itemSelectionChanged()), this, SLOT(onListSelectionChanged()));
     connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     emit ui->listTools->itemSelectionChanged();
+    updateToolsBtnEnabled();
 }
 
 void FavouriteTools::setupTools(QString name, QTableWidget* list)
@@ -132,6 +133,7 @@ void FavouriteTools::on_btnAddFavouriteTool_clicked()
     ui->listTools->setItem(rows, 2, new QTableWidgetItem(QString()));
     if(rows == 0)
         ui->listTools->selectRow(0);
+    updateToolsBtnEnabled();
 }
 
 void FavouriteTools::on_btnEditFavouriteTool_clicked()
@@ -189,6 +191,7 @@ void FavouriteTools::on_btnRemoveFavouriteTool_clicked()
     if(!table->rowCount())
         return;
     table->removeRow(table->currentRow());
+    updateToolsBtnEnabled();
 }
 
 void FavouriteTools::on_btnDescriptionFavouriteTool_clicked()
@@ -229,6 +232,7 @@ void FavouriteTools::on_btnAddFavouriteScript_clicked()
     ui->listScript->setItem(rows, 2, new QTableWidgetItem(QString()));
     if(rows == 0)
         ui->listScript->selectRow(0);
+    updateScriptsBtnEnabled();
 }
 
 void FavouriteTools::on_btnEditFavouriteScript_clicked()
@@ -254,6 +258,7 @@ void FavouriteTools::on_btnRemoveFavouriteScript_clicked()
     if(!table->rowCount())
         return;
     table->removeRow(table->currentRow());
+    updateScriptsBtnEnabled();
 }
 
 void FavouriteTools::on_btnDescriptionFavouriteScript_clicked()
@@ -287,6 +292,7 @@ void FavouriteTools::on_btnAddFavouriteCommand_clicked()
         ui->listCommand->setItem(rows, 1, new QTableWidgetItem(QString()));
         if(rows == 0)
             ui->listCommand->selectRow(0);
+        updateCommandsBtnEnabled();
     }
 }
 
@@ -306,6 +312,7 @@ void FavouriteTools::on_btnRemoveFavouriteCommand_clicked()
     if(!table->rowCount())
         return;
     table->removeRow(table->currentRow());
+    updateCommandsBtnEnabled();
 }
 
 void FavouriteTools::on_btnUpFavouriteCommand_clicked()
@@ -468,12 +475,15 @@ void FavouriteTools::tabChanged(int i)
     {
     case 0:
         emit ui->listTools->itemSelectionChanged();
+        updateToolsBtnEnabled();
         break;
     case 1:
         emit ui->listScript->itemSelectionChanged();
+        updateScriptsBtnEnabled();
         break;
     case 2:
         emit ui->listCommand->itemSelectionChanged();
+        updateCommandsBtnEnabled();
         break;
     }
 }
@@ -481,4 +491,40 @@ void FavouriteTools::tabChanged(int i)
 FavouriteTools::~FavouriteTools()
 {
     delete ui;
+}
+
+void FavouriteTools::updateToolsBtnEnabled()
+{
+    int rows = ui->listTools->rowCount();
+    bool enabled = rows != 0;
+    bool updownEnabled = enabled && rows != 1;
+    ui->btnRemoveFavouriteTool->setEnabled(enabled);
+    ui->btnEditFavouriteTool->setEnabled(enabled);
+    ui->btnUpFavouriteTool->setEnabled(updownEnabled);
+    ui->btnDownFavouriteTool->setEnabled(updownEnabled);
+    ui->btnDescriptionFavouriteTool->setEnabled(enabled);
+}
+
+void FavouriteTools::updateScriptsBtnEnabled()
+{
+    int rows = ui->listScript->rowCount();
+    bool enabled = rows != 0;
+    bool updownEnabled = enabled && rows != 1;
+    ui->btnRemoveFavouriteScript->setEnabled(enabled);
+    ui->btnEditFavouriteScript->setEnabled(enabled);
+    ui->btnUpFavouriteScript->setEnabled(updownEnabled);
+    ui->btnDownFavouriteScript->setEnabled(updownEnabled);
+    ui->btnDescriptionFavouriteScript->setEnabled(enabled);
+
+}
+
+void FavouriteTools::updateCommandsBtnEnabled()
+{
+    int rows = ui->listCommand->rowCount();
+    bool enabled = rows != 0;
+    bool updownEnabled = enabled && rows != 1;
+    ui->btnRemoveFavouriteCommand->setEnabled(enabled);
+    ui->btnEditFavouriteCommand->setEnabled(enabled);
+    ui->btnUpFavouriteCommand->setEnabled(updownEnabled);
+    ui->btnDownFavouriteCommand->setEnabled(updownEnabled);
 }

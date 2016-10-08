@@ -27,7 +27,7 @@ static T callFunc(const T* argv, T(*cbFunction)(Ts...), seq<S...>)
 template<typename... Ts>
 static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
 {
-    auto aliases = StringUtils::Split(name, '\1');
+    auto aliases = StringUtils::Split(name, ',');
     if(!ExpressionFunctions::Register(aliases[0], sizeof...(Ts), [cbFunction](int argc, duint * argv, void* userdata)
 {
     return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
@@ -44,7 +44,7 @@ void ExpressionFunctions::Init()
     using namespace Exprfunc;
 
     //GUI interaction
-    RegisterEasy("disasm.sel\1dis.sel", disasmsel);
+    RegisterEasy("disasm.sel,dis.sel", disasmsel);
     RegisterEasy("dump.sel", dumpsel);
     RegisterEasy("stack.sel", stacksel);
 
@@ -60,14 +60,14 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.entry", ModEntryFromAddr);
 
     //Process information
-    RegisterEasy("peb\1PEB", peb);
-    RegisterEasy("teb\1TEB", teb);
-    RegisterEasy("tid\1TID\1ThreadId", tid);
+    RegisterEasy("peb,PEB", peb);
+    RegisterEasy("teb,TEB", teb);
+    RegisterEasy("tid,TID,ThreadId", tid);
 
     //General purpose
     RegisterEasy("bswap", bswap);
-    RegisterEasy("ternary\1tern", ternary);
-    RegisterEasy("GetTickCount\1gettickcount", gettickcount);
+    RegisterEasy("ternary,tern", ternary);
+    RegisterEasy("GetTickCount,gettickcount", gettickcount);
 
     //Memory
     RegisterEasy("mem.valid", memvalid);
@@ -91,9 +91,18 @@ void ExpressionFunctions::Init()
     //Trace record
     RegisterEasy("tr.enabled", trenabled);
     RegisterEasy("tr.hitcount", trhitcount);
+
+    //Byte/Word/Dword/Qword/Pointer
+    RegisterEasy("ReadByte,Byte,byte", readbyte);
+    RegisterEasy("ReadWord,Word,word", readword);
+    RegisterEasy("ReadDword,Dword,dword", readdword);
+#ifdef _WIN64
+    RegisterEasy("ReadQword,Qword,qword", readqword);
+#endif //_WIN64
+    RegisterEasy("ReadPtr,ReadPointer,ptr,Pointer,pointer", readptr);
 }
 
-bool ExpressionFunctions::Register(const String & name, int argc, CBEXPRESSIONFUNCTION cbFunction, void* userdata)
+bool ExpressionFunctions::Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)
 {
     if(!isValidName(name))
         return false;

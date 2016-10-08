@@ -1,6 +1,7 @@
 #include "GotoDialog.h"
 #include "ValidateExpressionThread.h"
 #include "ui_GotoDialog.h"
+#include "StringUtil.h"
 
 GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowInvalidAddress)
     : QDialog(parent),
@@ -93,7 +94,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
     {
         duint offset = value;
         duint va = DbgFunctions()->FileOffsetToVa(modName.toUtf8().constData(), offset);
-        QString addrText = QString(" %1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString addrText = QString(" %1").arg(ToPtrString(va));
         if(va || allowInvalidAddress)
         {
             ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText);
@@ -110,7 +111,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
     else
     {
         duint addr = value;
-        QString addrText = QString(" %1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString addrText = QString(" %1").arg(ToPtrString(addr));
         if(!validPointer && !allowInvalidAddress)
         {
             ui->labelError->setText(tr("<font color='red'><b>Invalid memory address...</b></font>") + addrText);
@@ -135,9 +136,9 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
                     addrText = QString(label);
             }
             else if(DbgGetModuleAt(addr, module) && !QString(label).startsWith("JMP.&"))
-                addrText = QString(module) + "." + QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+                addrText = QString(module) + "." + ToPtrString(addr);
             else
-                addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+                addrText = ToPtrString(addr);
             ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText);
             setOkEnabled(true);
             expressionText = expression;

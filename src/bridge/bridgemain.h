@@ -868,6 +868,9 @@ BRIDGE_IMPEXP bool DbgGetWatchList(ListOf(WATCHINFO) list);
 #define GUI_DISASSEMBLY 0
 #define GUI_DUMP 1
 #define GUI_STACK 2
+#define GUI_GRAPH 3
+#define GUI_MEMMAP 4
+#define GUI_SYMMOD 5
 
 #define GUI_MAX_LINE_SIZE 65536
 #define GUI_MAX_DISASSEMBLY_SIZE 2048
@@ -962,7 +965,8 @@ typedef enum
     GUI_ADD_FAVOURITE_COMMAND,      // param1=const char* command   param2=const char* shortcut
     GUI_SET_FAVOURITE_TOOL_SHORTCUT,// param1=const char* name      param2=const char* shortcut
     GUI_FOLD_DISASSEMBLY,           // param1=duint startAddress    param2=duint length
-    GUI_SELECT_IN_MEMORY_MAP        // param1=duint addr,           param2=unused
+    GUI_SELECT_IN_MEMORY_MAP,       // param1=duint addr,           param2=unused
+    GUI_GET_ACTIVE_VIEW             // param1=ACTIVEVIEW*,          param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -997,6 +1001,14 @@ typedef struct
     GUISCRIPTEXECUTE execute;
     GUISCRIPTCOMPLETER completeCommand;
 } SCRIPTTYPEINFO;
+
+typedef struct
+{
+    void* titleHwnd;
+    void* classHwnd;
+    char title[MAX_STRING_SIZE];
+    char className[MAX_STRING_SIZE];
+} ACTIVEVIEW;
 
 //GUI functions
 //code page is utf8
@@ -1094,6 +1106,7 @@ BRIDGE_IMPEXP void GuiAddFavouriteCommand(const char* name, const char* shortcut
 BRIDGE_IMPEXP void GuiSetFavouriteToolShortcut(const char* name, const char* shortcut);
 BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length);
 BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr);
+BRIDGE_IMPEXP void GuiGetActiveView(ACTIVEVIEW* activeView);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,9 @@
 #include "LabeledSplitterDetachedWindow.h"
 
 
-LabeledSplitterDetachedWindow::LabeledSplitterDetachedWindow(QWidget* parent, LabeledSplitter* splitterwidget) : QMainWindow(parent)
+LabeledSplitterDetachedWindow::LabeledSplitterDetachedWindow(QWidget* parent, LabeledSplitter* splitterwidget)
+    : QMainWindow(parent),
+      index(0)
 {
     m_SplitterWidget = splitterwidget;
 }

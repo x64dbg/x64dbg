@@ -39,8 +39,11 @@ public slots:
     void findPatternSlot();
     void dumpMemory();
     void selectAddress(duint va);
-    void findAddressSlot();
+    void gotoOriginSlot();
+    void gotoExpressionSlot();
     void addVirtualModSlot();
+    void selectionGetSlot(SELECTIONDATA* selection);
+    void disassembleAtSlot(dsint va, dsint cip);
 
 private:
     QString getProtectionString(DWORD Protect);
@@ -66,9 +69,11 @@ private:
     QAction* mMemoryExecuteSingleshootToggle;
     QAction* mEntropy;
     QAction* mFindPattern;
+    QMenu* mGotoMenu;
+    QAction* mGotoOrigin;
+    QAction* mGotoExpression;
     QAction* mMemoryAllocate;
     QAction* mMemoryFree;
-    QAction* mFindAddress;
     QAction* mAddVirtualMod;
 
     duint mCipBase;

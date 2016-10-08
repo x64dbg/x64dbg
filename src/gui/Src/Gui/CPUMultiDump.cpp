@@ -7,6 +7,7 @@
 CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* parent)
     : MHTabWidget(parent, true)
 {
+    setWindowTitle("CPUMultiDump");
     mMaxCPUDumpTabs = nbCpuDumpTabs;
     mInitAllDumpTabs = false;
 
@@ -15,7 +16,9 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
         CPUDump* cpuDump = new CPUDump(disas, this);
         cpuDump->loadColumnFromConfig(QString("CPUDump%1").arg(i + 1)); //TODO: needs a workaround because the columns change
         connect(cpuDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidgetSlot()));
-        this->addTabEx(cpuDump, DIcon("dump.png"), tr("Dump ") + QString::number(i + 1), QString("Dump ") + QString::number(i + 1));
+        auto nativeTitle = QString("Dump ") + QString::number(i + 1);
+        this->addTabEx(cpuDump, DIcon("dump.png"), tr("Dump ") + QString::number(i + 1), nativeTitle);
+        cpuDump->setWindowTitle(nativeTitle);
     }
 
     mCurrentCPUDump = dynamic_cast<CPUDump*>(currentWidget());
@@ -23,7 +26,9 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     mWatch = new WatchView(this);
 
     //mMaxCPUDumpTabs++;
-    this->addTabEx(mWatch, DIcon("animal-dog.png"), tr("Watch ") + QString::number(1), QString("Watch 1"));
+    auto nativeTitle = QString("Watch 1");
+    this->addTabEx(mWatch, DIcon("animal-dog.png"), tr("Watch ") + QString::number(1), nativeTitle);
+    mWatch->setWindowTitle(nativeTitle);
     mWatch->loadColumnFromConfig("Watch1");
 
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(updateCurrentTabSlot(int)));
@@ -131,9 +136,12 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
             if(!getNativeName(i).startsWith("Dump "))
                 continue;
             cpuDump = qobject_cast<CPUDump*>(widget(i));
-            cpuDump->historyClear();
-            cpuDump->addVaToHistory(parVa);
-            cpuDump->printDumpAt(parVa);
+            if(cpuDump)
+            {
+                cpuDump->historyClear();
+                cpuDump->addVaToHistory(parVa);
+                cpuDump->printDumpAt(parVa);
+            }
         }
 
         mInitAllDumpTabs = false;

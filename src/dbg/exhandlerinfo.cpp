@@ -6,11 +6,8 @@
 
 #include "exhandlerinfo.h"
 #include "memory.h"
-#include "disasm_helper.h"
-#include "disasm_fast.h"
-#include "_exports.h"
-#include "module.h"
 #include "thread.h"
+#include "value.h"
 
 bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, std::vector<duint> & Entries)
 {

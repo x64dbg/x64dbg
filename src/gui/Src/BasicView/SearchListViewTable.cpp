@@ -5,7 +5,8 @@
 
 SearchListViewTable::SearchListViewTable(StdTable* parent)
     : StdTable(parent),
-      bCipBase(false)
+      bCipBase(false),
+      mCip(0)
 {
     highlightText = "";
     updateColors();
@@ -42,7 +43,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         isaddr = false;
     ULONGLONG val = 0;
     duint wVA;
-    if(sscanf_s(text.toUtf8().constData(), "%llX", &val) != 1)
+    if(sscanf_s(text.toUtf8().constData(), "%llX", &val) != 1 || !val)
         isaddr = false;
     else
         wVA = val;

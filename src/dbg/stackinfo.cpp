@@ -82,7 +82,7 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
         if(*module)
             sprintf(returnToAddr, "%s.", module);
         if(!*label)
-            sprintf(label, "%p", data);
+            sprintf_s(label, "%p", data);
         strcat(returnToAddr, label);
 
         data = basicinfo.addr;
@@ -96,9 +96,9 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
             ModNameFromAddr(data, module, false);
             char returnFromAddr[MAX_COMMENT_SIZE] = "";
             if(*module)
-                sprintf(returnFromAddr, "%s.", module);
+                sprintf_s(returnFromAddr, "%s.", module);
             if(!*label)
-                sprintf(label, "%p", data);
+                sprintf_s(label, "%p", data);
             strcat_s(returnFromAddr, label);
             sprintf_s(comment->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
         }
@@ -128,14 +128,14 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
     if(*module) //module
     {
         if(*label) //+label
-            sprintf(comment->comment, "%s.%s", module, label);
+            sprintf_s(comment->comment, "%s.%s", module, label);
         else //module only
-            sprintf(comment->comment, "%s.%p", module, data);
+            sprintf_s(comment->comment, "%s.%p", module, data);
         return true;
     }
     else if(*label) //label only
     {
-        sprintf(comment->comment, "<%s>", label);
+        sprintf_s(comment->comment, "<%s>", label);
         return true;
     }
 

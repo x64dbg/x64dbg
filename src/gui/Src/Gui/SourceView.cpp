@@ -2,10 +2,14 @@
 #include <QFile>
 #include <QTextStream>
 #include <QMessageBox>
+#include <QProcess>
+#include <QDir>
+#include <QDesktopServices>
 #include "Configuration.h"
 
-SourceView::SourceView(QString path, int line, StdTable* parent)
-    : ReferenceView(true, parent)
+SourceView::SourceView(QString path, int line, QWidget* parent)
+    : ReferenceView(true, parent),
+      mIpLine(0)
 {
     mSourcePath = path;
     mList->enableColumnSorting(false);
@@ -15,26 +19,22 @@ SourceView::SourceView(QString path, int line, StdTable* parent)
     addColumnAt(6, tr("Line"));
     addColumnAt(0, tr("Code"));
 
+    connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(sourceContextMenu(QMenu*)));
+
     loadFile();
     setSelection(line);
     auto cip = DbgValFromString("cip");
     mList->disassembleAtSlot(0, cip);
     mSearchList->disassembleAtSlot(0, cip);
+
+    mMenuBuilder = new MenuBuilder(this);
+    mMenuBuilder->addAction(makeAction(tr("Open source file"), SLOT(openSourceFileSlot())));
+    mMenuBuilder->addAction(makeAction(tr("Show source file in directory"), SLOT(showInDirectorySlot())));
 }
 
 void SourceView::setSelection(int line)
 {
-    int offset = line - 1;
-    if(mCurList->isValidIndex(offset, 0))
-    {
-        int rangefrom = mCurList->getTableOffset();
-        int rangeto = rangefrom + mCurList->getViewableRowsCount() - 1;
-        if(offset < rangefrom) //ip lays before the current view
-            mCurList->setTableOffset(offset);
-        else if(offset > (rangeto - 1)) //ip lays after the current view
-            mCurList->setTableOffset(offset - mCurList->getViewableRowsCount() + 2);
-        mCurList->setSingleSelection(offset);
-    }
+    mCurList->scrollSelect(line - 1);
     reloadData(); //repaint
 }
 
@@ -66,4 +66,23 @@ void SourceView::loadFile()
     }
     reloadData();
     file.close();
+}
+
+void SourceView::sourceContextMenu(QMenu* menu)
+{
+    menu->addSeparator();
+    mMenuBuilder->build(menu);
+}
+
+void SourceView::openSourceFileSlot()
+{
+    QDesktopServices::openUrl(QUrl::fromLocalFile(mSourcePath));
+}
+
+void SourceView::showInDirectorySlot()
+{
+    QStringList args;
+    args << "/select," << QDir::toNativeSeparators(mSourcePath);
+    auto process = new QProcess(this);
+    process->start("explorer.exe", args);
 }

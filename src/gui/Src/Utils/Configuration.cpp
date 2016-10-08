@@ -7,6 +7,12 @@
 
 Configuration* Configuration::mPtr = nullptr;
 
+inline void insertMenuBuilderBools(QMap<QString, bool>* config, const char* id, size_t count)
+{
+    for(size_t i = 0; i < count; i++)
+        config->insert(QString("Menu%1Hidden%2").arg(id).arg(i), false);
+}
+
 Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 {
     mPtr = this;
@@ -207,6 +213,12 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("NoCloseDialog", false);
     guiBool.insert("PidInHex", true);
     guiBool.insert("SidebarWatchLabels", true);
+    //Named menu settings
+    insertMenuBuilderBools(&guiBool, "CPUDisassembly", 35); //CPUDisassembly
+    insertMenuBuilderBools(&guiBool, "CPUDump", 30); //CPUDump
+    insertMenuBuilderBools(&guiBool, "WatchView", 7); //Watch
+    insertMenuBuilderBools(&guiBool, "CallStackView", 5); //CallStackView
+    insertMenuBuilderBools(&guiBool, "ThreadView", 12); //Thread
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
@@ -274,6 +286,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("FileOpen", Shortcut(tr("File -> Open"), "F3", true));
     defaultShortcuts.insert("FileAttach", Shortcut(tr("File -> Attach"), "Alt+A", true));
     defaultShortcuts.insert("FileDetach", Shortcut(tr("File -> Detach"), "Ctrl+Alt+F2", true));
+    defaultShortcuts.insert("FileImportDatabase", Shortcut(tr("File -> Import database"), "", true));
+    defaultShortcuts.insert("FileExportDatabase", Shortcut(tr("File -> Export database"), "", true));
     defaultShortcuts.insert("FileExit", Shortcut(tr("File -> Exit"), "Alt+X", true));
 
     defaultShortcuts.insert("ViewCpu", Shortcut(tr("View -> CPU"), "Alt+C", true));
@@ -292,10 +306,12 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewComments", Shortcut(tr("View -> Comments"), "Ctrl+Alt+C", true));
     defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L", true));
     defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B", true));
-    defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Alt+F", true));
+    defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Ctrl+Alt+F", true));
     defaultShortcuts.insert("ViewSnowman", Shortcut(tr("View -> Snowman"), "", true));
     defaultShortcuts.insert("ViewHandles", Shortcut(tr("View -> Handles"), "", true));
     defaultShortcuts.insert("ViewGraph", Shortcut(tr("View -> Graph"), "Alt+G", true));
+    defaultShortcuts.insert("ViewPreviousTab", Shortcut(tr("View -> Previous Tab"), "Ctrl+Shift+Tab"));
+    defaultShortcuts.insert("ViewNextTab", Shortcut(tr("View -> Next Tab"), "Ctrl+Tab"));
 
     defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9", true));
     defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (pass exceptions)"), "Shift+F9", true));
@@ -316,7 +332,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugRtr", Shortcut(tr("Debug -> Execute till return"), "Ctrl+F9", true));
     defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> Execute till return (pass exceptions)"), "Ctrl+Shift+F9", true));
     defaultShortcuts.insert("DebugRtu", Shortcut(tr("Debug -> Run to user code"), "Alt+F9", true));
-    defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut(tr("Debug -> Skip next instruction"), "Ctrl+F8", true));
+    defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut(tr("Debug -> Skip next instruction"), "", true));
     defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return", true));
     defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut(tr("Debug -> Trace Into Conditional"), "", true));
     defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace Over Conditional"), "", true));
@@ -338,6 +354,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("OptionsReloadStylesheet", Shortcut(tr("Options -> Reload style.css") , "", true));
 
     defaultShortcuts.insert("HelpAbout", Shortcut(tr("Help -> About"), "", true));
+    defaultShortcuts.insert("HelpBlog", Shortcut(tr("Help -> Blog"), "", true));
     defaultShortcuts.insert("HelpDonate", Shortcut(tr("Help -> Donate"), "", true));
     defaultShortcuts.insert("HelpCheckForUpdates", Shortcut(tr("Help -> Check for Updates"), "", true));
     defaultShortcuts.insert("HelpCalculator", Shortcut(tr("Help -> Calculator"), "?"));
@@ -400,8 +417,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionMarkAsParty", Shortcut(tr("Actions -> Mark As Party"), ""));
     defaultShortcuts.insert("ActionSetHwBpE", Shortcut(tr("Actions -> Set Hardware Breakpoint (Execute)"), ""));
     defaultShortcuts.insert("ActionRemoveHwBp", Shortcut(tr("Actions -> Remove Hardware Breakpoint"), ""));
-    defaultShortcuts.insert("ActionRemoveAnalysisFromModule", Shortcut(tr("Actions -> Remove Analysis From Module"), "Ctrl+Shift+U"));
-    defaultShortcuts.insert("ActionRemoveAnalysisFromSelection", Shortcut(tr("Actions -> Remove Analysis From Selection"), "U"));
+    defaultShortcuts.insert("ActionRemoveTypeAnalysisFromModule", Shortcut(tr("Actions -> Remove Type Analysis From Module"), "Ctrl+Shift+U"));
+    defaultShortcuts.insert("ActionRemoveTypeAnalysisFromSelection", Shortcut(tr("Actions -> Remove Type Analysis From Selection"), "U"));
     defaultShortcuts.insert("ActionTreatSelectionAsCode", Shortcut(tr("Actions -> Treat Selection As Code"), "C"));
     defaultShortcuts.insert("ActionTreatSelectionAsByte", Shortcut(tr("Actions -> Treat Selection As Byte"), "B"));
     defaultShortcuts.insert("ActionTreatSelectionAsWord", Shortcut(tr("Actions -> Treat Selection As Word"), "W"));
@@ -974,4 +991,15 @@ bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortc
     else
         _key = "NOT_SET";
     return BridgeSettingSet("Shortcuts", _id.toUtf8().constData(), _key.toUtf8().constData());
+}
+
+void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
+{
+    bool exists = false;
+    const char* id = menu->getId();
+    for(const auto & i : NamedMenuBuilders)
+        if(strcmp(i.first->getId() , id) == 0)
+            exists = true;
+    if(!exists)
+        NamedMenuBuilders.push_back(std::make_pair(menu, count));
 }

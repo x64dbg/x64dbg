@@ -98,7 +98,7 @@ bool FunctionPass::Analyse()
     std::sort(funcs.begin(), funcs.end());
     funcs.erase(std::unique(funcs.begin(), funcs.end()), funcs.end());
 
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u functions\n"), funcs.size());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u functions\n"), DWORD(funcs.size()));
 
     FunctionDelRange(m_VirtualStart, m_VirtualEnd - 1, false);
     for(auto & func : funcs)
@@ -411,7 +411,7 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
 }
 
 #ifdef _WIN64
-void FunctionPass::EnumerateFunctionRuntimeEntries64(std::function<bool (PRUNTIME_FUNCTION)> Callback)
+void FunctionPass::EnumerateFunctionRuntimeEntries64(const std::function<bool(PRUNTIME_FUNCTION)> & Callback)
 {
     if(!m_FunctionInfo)
         return;

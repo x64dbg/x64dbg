@@ -10,7 +10,6 @@
 #include "threading.h"
 #include "thread.h"
 #include "module.h"
-#include "console.h"
 #include "taskthread.h"
 
 #define PAGE_SHIFT              (12)
@@ -340,7 +339,7 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
 
 bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead)
 {
-    SIZE_T read;
+    SIZE_T read = 0;
     auto result = !!ReadProcessMemory(fdProcessInfo->hProcess, LPCVOID(BaseAddress), Buffer, Size, &read);
     if(NumberOfBytesRead)
         *NumberOfBytesRead = read;
@@ -479,7 +478,7 @@ duint MemAllocRemote(duint Address, duint Size, DWORD Type, DWORD Protect)
 
 bool MemFreeRemote(duint Address)
 {
-    return VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE) == TRUE;
+    return !!VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE);
 }
 
 bool MemGetPageInfo(duint Address, MEMPAGE* PageInfo, bool Refresh)
@@ -514,7 +513,7 @@ bool MemSetPageRights(duint Address, const char* Rights)
         return false;
 
     DWORD oldProtect;
-    return VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, PAGE_SIZE, protect, &oldProtect) == TRUE;
+    return !!VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, PAGE_SIZE, protect, &oldProtect);
 }
 
 bool MemGetPageRights(duint Address, char* Rights)
@@ -608,7 +607,7 @@ bool MemPageRightsFromString(DWORD* Protect, const char* Rights)
     return (*Protect != 0);
 }
 
-bool MemFindInPage(SimplePage page, duint startoffset, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults)
+bool MemFindInPage(const SimplePage & page, duint startoffset, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults)
 {
     if(startoffset >= page.size || results.size() >= maxresults)
         return false;

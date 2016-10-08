@@ -43,7 +43,7 @@ void SourceViewerManager::loadSourceFile(QString path, int line, int selection)
     int idx = path.lastIndexOf(QDir::separator());
     if(idx != -1)
         title = path.mid(idx + 1);
-    SourceView* newView = new SourceView(path, line);
+    SourceView* newView = new SourceView(path, line, this);
     connect(newView, SIGNAL(showCpu()), this, SIGNAL(showCpu()));
     addTab(newView, title);
     setCurrentIndex(count() - 1);

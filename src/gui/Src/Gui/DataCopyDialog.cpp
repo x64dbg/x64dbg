@@ -290,7 +290,6 @@ void DataCopyDialog::printData(DataType type)
                 InetNtopW(AF_INET6, const_cast<byte_t*>(mData->constData() + i * 16), buffer, 56);
                 data += QString::fromWCharArray(buffer);
             }
-            FreeLibrary(hWinsock);
         }
         else //fallback for Windows XP
         {
@@ -309,7 +308,7 @@ void DataCopyDialog::printData(DataType type)
                 data += temp;
             }
         }
-
+        FreeLibrary(hWinsock);
     }
     }
     ui->editCode->setPlainText(data);

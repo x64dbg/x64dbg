@@ -25,13 +25,12 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <tlhelp32.h>
-#include "..\dbg_types.h"
-#include "..\dbg_assert.h"
-#include "..\bridge\bridgemain.h"
-#include "jansson\jansson.h"
-#include "jansson\jansson_x64dbg.h"
-#include "yara\yara.h"
-#include "DeviceNameResolver\DeviceNameResolver.h"
+#include "../dbg_types.h"
+#include "../dbg_assert.h"
+#include "../bridge\bridgemain.h"
+#include "jansson/jansson.h"
+#include "jansson/jansson_x64dbg.h"
+#include "DeviceNameResolver/DeviceNameResolver.h"
 #include "handle.h"
 #include "stringutils.h"
 #include "dbghelp_safe.h"
@@ -56,7 +55,8 @@ enum arch
     notfound,
     invalid,
     x32,
-    x64
+    x64,
+    dotnet
 };
 
 //superglobal variables

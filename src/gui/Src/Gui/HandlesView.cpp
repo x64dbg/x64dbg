@@ -8,6 +8,7 @@
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
 {
     mHandlesTable = new StdTable(this);
+    mHandlesTable->setWindowTitle("Handles");
     mHandlesTable->setDrawDebugOnly(true);
     int wCharWidth = mHandlesTable->getCharWidth();
     mHandlesTable->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -19,6 +20,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mHandlesTable->loadColumnFromConfig("Handle");
 
     mTcpConnectionsTable = new StdTable(this);
+    mTcpConnectionsTable->setWindowTitle("TcpConnections");
     mTcpConnectionsTable->setDrawDebugOnly(true);
     mTcpConnectionsTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
@@ -27,6 +29,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mTcpConnectionsTable->loadColumnFromConfig("TcpConnection");
 
     mPrivilegesTable = new StdTable(this);
+    mPrivilegesTable->setWindowTitle("Privileges");
     mPrivilegesTable->setDrawDebugOnly(true);
     mPrivilegesTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mPrivilegesTable->addColumnAt(8 + 32 * wCharWidth, tr("Privilege"), false);
@@ -38,6 +41,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mSplitter->addWidget(mHandlesTable, tr("Handles"));
     mSplitter->addWidget(mTcpConnectionsTable, tr("TCP Connections"));
     mSplitter->addWidget(mPrivilegesTable, tr("Privileges"));
+    mSplitter->collapseLowerTabs();
 
     // Layout
     mVertLayout = new QVBoxLayout;
@@ -45,6 +49,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mVertLayout->setContentsMargins(0, 0, 0, 0);
     mVertLayout->addWidget(mSplitter);
     this->setLayout(mVertLayout);
+    mSplitter->loadFromConfig("HandlesViewSplitter");
 
     // Create the action list for the right click context menu
     mActionRefresh = new QAction(DIcon("arrow-restart.png"), tr("&Refresh"), this);

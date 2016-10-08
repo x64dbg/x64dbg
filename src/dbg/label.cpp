@@ -85,7 +85,7 @@ void LabelCacheSave(JSON Root)
 void LabelCacheLoad(JSON Root)
 {
     labels.CacheLoad(Root);
-    labels.CacheLoad(Root, false, "auto"); //legacy support
+    labels.CacheLoad(Root, "auto"); //legacy support
 }
 
 bool LabelEnum(LABELSINFO* List, size_t* Size)

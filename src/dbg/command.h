@@ -2,6 +2,9 @@
 #define _COMMAND_H
 
 #include "_global.h"
+#include "console.h"
+
+bool IsArgumentsLessThan(int argc, int minimumCount);
 
 //typedefs
 

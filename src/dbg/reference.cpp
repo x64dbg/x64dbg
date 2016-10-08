@@ -106,7 +106,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
-    else if(type == ALL_MODULES) // Search in all Modules
+    else if(type == ALL_MODULES)  // Search in all Modules
     {
         bool initCallBack = true;
         std::vector<MODINFO> modList;
@@ -134,7 +134,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         for(duint i = 0; i < modList.size(); i++)
         {
             scanStart = modList[i].base;
-            scanSize  = modList[i].size;
+            scanSize = modList[i].size;
 
             if(i != 0)
                 initCallBack = false;
@@ -154,13 +154,15 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             }, disasmText);
         }
     }
+    else
+        return 0;
 
     GuiReferenceSetProgress(100);
     GuiReferenceReloadData();
     return refInfo.refcount;
 }
 
-int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, CBPROGRESS cbUpdateProgress, bool disasmText)
+int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, const CBPROGRESS & cbUpdateProgress, bool disasmText)
 {
     // Allocate and read a buffer from the remote process
     Memory<unsigned char*> data(scanSize, "reffind:data");

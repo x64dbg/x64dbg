@@ -18,9 +18,10 @@ SEHChainView::SEHChainView(StdTable* parent) : StdTable(parent)
 
 void SEHChainView::setupContextMenu()
 {
-    mFollowAddress = new QAction(tr("Follow &Address"), this);
+    QIcon icon = DIcon(ArchValue("processor32.png", "processor64.png"));
+    mFollowAddress = new QAction(icon, tr("Follow &Address"), this);
     connect(mFollowAddress, SIGNAL(triggered()), this, SLOT(followAddress()));
-    mFollowHandler = new QAction(tr("Follow Handler"), this);
+    mFollowHandler = new QAction(icon, tr("Follow Handler"), this);
     mFollowHandler->setShortcutContext(Qt::WidgetShortcut);
     mFollowHandler->setShortcut(QKeySequence("enter"));
     connect(mFollowHandler, SIGNAL(triggered()), this, SLOT(followHandler()));
@@ -37,9 +38,9 @@ void SEHChainView::updateSEHChain()
     setRowCount(sehchain.total);
     for(duint i = 0; i < sehchain.total; i++)
     {
-        QString cellText = QString("%1").arg(sehchain.records[i].addr, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        QString cellText = ToPtrString(sehchain.records[i].addr);
         setCellContent(i, 0, cellText);
-        cellText = QString("%1").arg(sehchain.records[i].handler, sizeof(duint) * 2, 16, QChar('0')).toUpper();
+        cellText = ToPtrString(sehchain.records[i].handler);
         setCellContent(i, 1, cellText);
 
         char label[MAX_LABEL_SIZE] = "";
@@ -68,6 +69,7 @@ void SEHChainView::contextMenuSlot(const QPoint pos)
     wMenu.addAction(mFollowAddress);
     wMenu.addAction(mFollowHandler);
     QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {

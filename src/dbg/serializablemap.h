@@ -184,10 +184,8 @@ public:
         json_decref(jsonValues);
     }
 
-    void CacheLoad(JSON root, bool clear = true, const char* keyprefix = nullptr)
+    void CacheLoad(JSON root, const char* keyprefix = nullptr)
     {
-        if(clear)
-            Clear();
         EXCLUSIVE_ACQUIRE(TLock);
         auto jsonValues = json_object_get(root, keyprefix ? (keyprefix + String(jsonKey())).c_str() : jsonKey());
         if(!jsonValues)

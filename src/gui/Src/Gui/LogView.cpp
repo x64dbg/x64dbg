@@ -4,6 +4,7 @@
 #include "BrowseDialog.h"
 #include <QRegularExpression>
 #include <QDesktopServices>
+#include <QClipboard>
 
 /**
  * @brief LogView::LogView The constructor constructs a rich text browser
@@ -67,11 +68,19 @@ void LogView::setupContextMenu()
 {
     actionClear = setupAction(DIcon("eraser.png"), tr("Clea&r"), this, SLOT(clearLogSlot()));
     actionCopy = setupAction(DIcon("copy.png"), tr("&Copy"), this, SLOT(copy()));
+    actionPaste = setupAction(DIcon("binary_paste.png"), tr("&Paste"), this, SLOT(pasteSlot()));
     actionSelectAll = setupAction(tr("Select &All"), this, SLOT(selectAll()));
     actionSave = setupAction(DIcon("binary_save.png"), tr("&Save"), this, SLOT(saveSlot()));
     actionToggleLogging = setupAction(tr("Disable &Logging"), this, SLOT(toggleLoggingSlot()));
     actionRedirectLog = setupAction(tr("&Redirect Log..."), this, SLOT(redirectLogSlot()));
     actionAutoScroll = setupAction(tr("Auto Scrolling"), this, SLOT(autoScrollSlot()));
+    menuCopyToNotes = new QMenu(tr("Copy To Notes"), this);
+    actionCopyToGlobalNotes = new QAction(tr("&Global"), menuCopyToNotes);
+    actionCopyToDebuggeeNotes = new QAction(tr("&Debuggee"), menuCopyToNotes);
+    connect(actionCopyToGlobalNotes, SIGNAL(triggered()), this, SLOT(copyToGlobalNotes()));
+    connect(actionCopyToDebuggeeNotes, SIGNAL(triggered()), this, SLOT(copyToDebuggeeNotes()));
+    menuCopyToNotes->addAction(actionCopyToGlobalNotes);
+    menuCopyToNotes->addAction(actionCopyToDebuggeeNotes);
     actionAutoScroll->setCheckable(true);
     actionAutoScroll->setChecked(autoScroll);
 
@@ -92,11 +101,14 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(actionClear);
     wMenu.addAction(actionSelectAll);
     wMenu.addAction(actionCopy);
+    wMenu.addAction(actionPaste);
     wMenu.addAction(actionSave);
     if(getLoggingEnabled())
         actionToggleLogging->setText(tr("Disable &Logging"));
     else
         actionToggleLogging->setText(tr("Enable &Logging"));
+    actionCopyToDebuggeeNotes->setEnabled(DbgIsDebugging());
+    wMenu.addMenu(menuCopyToNotes);
     wMenu.addAction(actionToggleLogging);
     actionAutoScroll->setChecked(autoScroll);
     wMenu.addAction(actionAutoScroll);
@@ -116,15 +128,24 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
  * x64dbg:// localhost                                                                                          /  address64 # address
  * ^fixed    ^host(probably will be changed to PID + Host when remote debugging and child debugging are supported) ^token      ^parameter
  */
+#ifdef _WIN64
+static QRegularExpression addressRegExp("([0-9A-Fa-f]{16})");
+#else //x86
+static QRegularExpression addressRegExp("([0-9A-Fa-f]{8})");
+#endif //_WIN64
 static void linkify(QString & msg)
 {
 #ifdef _WIN64
-    msg.replace(QRegularExpression("([0-9A-Fa-f]{16})"), "<a href=\"x64dbg://localhost/address64#\\1\">\\1</a>");
+    msg.replace(addressRegExp, "<a href=\"x64dbg://localhost/address64#\\1\">\\1</a>");
 #else //x86
-    msg.replace(QRegularExpression("([0-9A-Fa-f]{8})"), "<a href=\"x64dbg://localhost/address32#\\1\">\\1</a>");
+    msg.replace(addressRegExp, "<a href=\"x64dbg://localhost/address32#\\1\">\\1</a>");
 #endif //_WIN64
 }
 
+/**
+ * @brief LogView::addMsgToLogSlot Adds a message to the log view. This function is a slot for Bridge::addMsgToLog.
+ * @param msg The log message
+ */
 void LogView::addMsgToLogSlot(QString msg)
 {
     // fix Unix-style line endings.
@@ -168,26 +189,32 @@ void LogView::onAnchorClicked(const QUrl & link)
     {
         if(link.path() == "/address64")
         {
-            bool ok = false;
-            duint address = link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16);
-            if(ok && DbgMemIsValidReadPtr(address))
+            if(DbgIsDebugging())
             {
-                if(DbgFunctions()->MemIsCodePage(address, true))
-                    DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
-                else
-                    DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+                bool ok = false;
+                duint address = link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16);
+                if(ok && DbgMemIsValidReadPtr(address))
+                {
+                    if(DbgFunctions()->MemIsCodePage(address, true))
+                        DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
+                    else
+                        DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+                }
             }
         }
         else if(link.path() == "/address32")
         {
-            bool ok = false;
-            duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
-            if(ok)
+            if(DbgIsDebugging())
             {
-                if(DbgFunctions()->MemIsCodePage(address, true))
-                    DbgCmdExec(QString("disasm %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
-                else if(DbgMemIsValidReadPtr(address))
-                    DbgCmdExec(QString("dump %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+                bool ok = false;
+                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
+                if(ok)
+                {
+                    if(DbgFunctions()->MemIsCodePage(address, true))
+                        DbgCmdExec(QString("disasm %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+                    else if(DbgMemIsValidReadPtr(address))
+                        DbgCmdExec(QString("dump %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+                }
             }
         }
         else
@@ -278,4 +305,34 @@ void LogView::saveSlot()
 void LogView::toggleLoggingSlot()
 {
     setLoggingEnabled(!getLoggingEnabled());
+}
+
+void LogView::copyToGlobalNotes()
+{
+    char* NotesBuffer;
+    emit Bridge::getBridge()->getGlobalNotes(&NotesBuffer);
+    QString Notes = QString::fromUtf8(NotesBuffer);
+    BridgeFree(NotesBuffer);
+    Notes.append(this->textCursor().selectedText());
+    emit Bridge::getBridge()->setGlobalNotes(Notes);
+}
+
+void LogView::copyToDebuggeeNotes()
+{
+    char* NotesBuffer;
+    emit Bridge::getBridge()->getDebuggeeNotes(&NotesBuffer);
+    QString Notes = QString::fromUtf8(NotesBuffer);
+    BridgeFree(NotesBuffer);
+    Notes.append(this->textCursor().selectedText());
+    emit Bridge::getBridge()->setDebuggeeNotes(Notes);
+}
+
+void LogView::pasteSlot()
+{
+    QString clipboardText = QApplication::clipboard()->text();
+    if(clipboardText.isEmpty())
+        return;
+    if(!clipboardText.endsWith('\n'))
+        clipboardText.append('\n');
+    addMsgToLogSlot(clipboardText);
 }

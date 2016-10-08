@@ -198,4 +198,43 @@ namespace Exprfunc
 #endif //_WIN64
         return GetTickCount();
     }
+
+    duint sleep(duint ms)
+    {
+        if(ms >= 0xFFFFFFFF)
+            ms = 100;
+        Sleep(DWORD(ms));
+        return ms;
+    }
+
+    static duint readMem(duint addr, duint size)
+    {
+        duint value = 0;
+        return MemRead(addr, &value, size) ? value : 0;
+    }
+
+    duint readbyte(duint addr)
+    {
+        return readMem(addr, 1);
+    }
+
+    duint readword(duint addr)
+    {
+        return readMem(addr, 2);
+    }
+
+    duint readdword(duint addr)
+    {
+        return readMem(addr, 4);
+    }
+
+    duint readqword(duint addr)
+    {
+        return readMem(addr, 8);
+    }
+
+    duint readptr(duint addr)
+    {
+        return readMem(addr, sizeof(duint));
+    }
 }

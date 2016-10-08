@@ -20,11 +20,11 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     setLayout(mMainLayout);
 
     // Create reference view
-    mSearchListView = new SearchListView(true, 0, true);
+    mSearchListView = new SearchListView(true, this, true);
     mSearchListView->mSearchStartCol = 1;
 
     // Create module list
-    mModuleList = new SearchListView();
+    mModuleList = new SearchListView(true, this);
     mModuleList->mSearchStartCol = 1;
     int charwidth = mModuleList->mList->getCharWidth();
     mModuleList->mList->enableMultiSelection(true);
@@ -81,6 +81,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(addMsgToSymbolLog(QString)), this, SLOT(addMsgToSymbolLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
+    connect(Bridge::getBridge(), SIGNAL(selectionSymmodGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(mModuleList->mList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(mModuleList->mSearchList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(mModuleList, SIGNAL(emptySearchResult()), this, SLOT(emptySearchResultSlot()));
@@ -131,14 +132,14 @@ void SymbolView::setupContextMenu()
     mFollowModuleEntryAction = new QAction(disassembler, tr("Follow &Entry Point in Disassembler"), this);
     connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
 
-    mDownloadSymbolsAction = new QAction(tr("&Download Symbols for This Module"), this);
+    mDownloadSymbolsAction = new QAction(DIcon("pdb.png"), tr("&Download Symbols for This Module"), this);
     mDownloadSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mDownloadSymbolsAction);
     mModuleList->mList->addAction(mDownloadSymbolsAction);
     mModuleList->mSearchList->addAction(mDownloadSymbolsAction);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 
-    mDownloadAllSymbolsAction = new QAction(tr("Download Symbols for &All Modules"), this);
+    mDownloadAllSymbolsAction = new QAction(DIcon("pdb.png"), tr("Download Symbols for &All Modules"), this);
     mDownloadAllSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mDownloadAllSymbolsAction);
     mModuleList->mList->addAction(mDownloadAllSymbolsAction);
@@ -233,7 +234,7 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
     StdTable* symbolList = (StdTable*)user;
     dsint index = symbolList->getRowCount();
     symbolList->setRowCount(index + 1);
-    symbolList->setCellContent(index, 0, QString("%1").arg(symbol->addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    symbolList->setCellContent(index, 0, ToPtrString(symbol->addr));
     if(symbol->decoratedSymbol)
     {
         symbolList->setCellContent(index, 2, symbol->decoratedSymbol);
@@ -378,6 +379,7 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
         wMenu->addAction(mModSetSystemAction);
     wMenu->addAction(mModSetPartyAction);
     QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
     mModuleList->mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
@@ -471,11 +473,11 @@ void SymbolView::toggleBreakpoint()
 
         if((wBpType & bp_normal) == bp_normal)
         {
-            wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            wCmd = "bc " + ToPtrString(wVA);
         }
         else
         {
-            wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            wCmd = "bp " + ToPtrString(wVA);
         }
 
         DbgCmdExec(wCmd.toUtf8().constData());
@@ -588,4 +590,10 @@ void SymbolView::emptySearchResultSlot()
 {
     // No result after search
     mSearchListView->mCurList->setRowCount(0);
+}
+
+void SymbolView::selectionGetSlot(SELECTIONDATA* selection)
+{
+    selection->start = selection->end = duint(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toULongLong(nullptr, 16));
+    Bridge::getBridge()->setResult(1);
 }

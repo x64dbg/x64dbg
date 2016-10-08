@@ -140,7 +140,6 @@ protected:
     byte* mEncMap;
 private:
 
-    duint mMaxDepth;
     bool mDump;
     void linearXrefPass();
     void findInvalidXrefs();

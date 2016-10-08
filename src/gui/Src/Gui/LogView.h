@@ -20,6 +20,9 @@ public slots:
     void redirectLogSlot();
     void setLoggingEnabled(bool enabled);
     void autoScrollSlot();
+    void copyToGlobalNotes();
+    void copyToDebuggeeNotes();
+    void pasteSlot();
     bool getLoggingEnabled();
     void onAnchorClicked(const QUrl & link);
 
@@ -31,12 +34,16 @@ private:
     bool autoScroll;
 
     QAction* actionCopy;
+    QAction* actionPaste;
     QAction* actionSelectAll;
     QAction* actionClear;
     QAction* actionSave;
     QAction* actionToggleLogging;
     QAction* actionRedirectLog;
     QAction* actionAutoScroll;
+    QMenu* menuCopyToNotes;
+    QAction* actionCopyToGlobalNotes;
+    QAction* actionCopyToDebuggeeNotes;
 
     FILE* logRedirection;
 };

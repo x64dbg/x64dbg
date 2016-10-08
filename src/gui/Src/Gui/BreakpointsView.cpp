@@ -11,6 +11,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 {
     // Software
     mSoftBPTable = new StdTable(this);
+    mSoftBPTable->setWindowTitle("SoftwareBreakpoints");
     int wCharWidth = mSoftBPTable->getCharWidth();
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mSoftBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Software"), false, tr("Address"));
@@ -27,6 +28,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 
     // Hardware
     mHardBPTable = new StdTable(this);
+    mHardBPTable->setWindowTitle("HardwareBreakpoints");
     mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Hardware"), false, tr("Address"));
     mHardBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
@@ -42,6 +44,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 
     // Memory
     mMemBPTable = new StdTable(this);
+    mMemBPTable->setWindowTitle("MemoryBreakpoints");
     mMemBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Memory"), false, tr("Address"));
     mMemBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
@@ -57,6 +60,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 
     // DLL
     mDLLBPTable = new StdTable(this);
+    mDLLBPTable->setWindowTitle("DllBreakpoints");
     mDLLBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mDLLBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
     mDLLBPTable->addColumnAt(8 + wCharWidth * 32, tr("Module"), false);
@@ -70,6 +74,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 
     // Exception
     mExceptionBPTable = new StdTable(this);
+    mExceptionBPTable->setWindowTitle("ExceptionBreakpoints");
     mExceptionBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mExceptionBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Exception Code"), false);
     mExceptionBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
@@ -96,6 +101,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mVertLayout->setContentsMargins(0, 0, 0, 0);
     mVertLayout->addWidget(mSplitter);
     this->setLayout(mVertLayout);
+    mSplitter->loadFromConfig("BreakpointsViewSplitter");
 
     // Create the action list for the right click context menu
     setupRightClickContextMenu();
@@ -135,7 +141,7 @@ void BreakpointsView::reloadData()
     mHardBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = ToPtrString(wBPList.bp[wI].addr);
         mHardBPTable->setCellContent(wI, 0, addr_text);
         mHardBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
@@ -176,7 +182,7 @@ void BreakpointsView::reloadData()
     mSoftBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = ToPtrString(wBPList.bp[wI].addr);
         mSoftBPTable->setCellContent(wI, 0, addr_text);
         mSoftBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
@@ -216,7 +222,7 @@ void BreakpointsView::reloadData()
     mMemBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = ToPtrString(wBPList.bp[wI].addr);
         mMemBPTable->setCellContent(wI, 0, addr_text);
         mMemBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 

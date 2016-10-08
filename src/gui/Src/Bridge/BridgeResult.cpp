@@ -15,6 +15,6 @@ BridgeResult::~BridgeResult()
 dsint BridgeResult::Wait()
 {
     while(!Bridge::getBridge()->hasBridgeResult) //wait for thread completion
-        Sleep(100);
+        Sleep(1);
     return Bridge::getBridge()->bridgeResult;
 }

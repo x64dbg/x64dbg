@@ -58,8 +58,8 @@ public:
 
     typedef struct _DataDescriptor_t
     {
-        DataSize_e itemSize;            // Items size
-        union                       // View mode
+        DataSize_e itemSize; // Items size
+        union // View mode
         {
             ByteViewMode_e byteMode;
             WordViewMode_e wordMode;
@@ -71,9 +71,9 @@ public:
 
     struct ColumnDescriptor_t
     {
-        bool isData;
-        int itemCount;
-        int separator;
+        bool isData = true;
+        int itemCount = 16;
+        int separator = 0;
         QTextCodec* textCodec; //name of the text codec (leave empty if you want to keep your sanity)
         DataDescriptor_t data;
 

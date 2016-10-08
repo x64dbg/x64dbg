@@ -120,7 +120,7 @@ struct DataInstruction
 bool parsedatainstruction(const char* instruction, DataInstruction & di)
 {
     di.type = enc_unknown;
-    di.operand = "";
+    di.operand.clear();
     String instStr = StringUtils::Trim(String(instruction));
     size_t pos = instStr.find_first_of(" \t");
     String opcode = instStr.substr(0, pos);
@@ -148,7 +148,7 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
     DataInstruction di;
     if(!parsedatainstruction(instruction, di))
     {
-        if(di.operand == "")
+        if(di.operand.empty())
             strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "missing operand")));
         return false;
     }

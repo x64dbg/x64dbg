@@ -251,6 +251,21 @@ bool StdTable::isSelected(int base, int offset)
         return false;
 }
 
+bool StdTable::scrollSelect(int offset)
+{
+    if(!isValidIndex(offset, 0))
+        return false;
+
+    int rangefrom = getTableOffset();
+    int rangeto = rangefrom + getViewableRowsCount() - 1;
+    if(offset < rangefrom) //offset lays before the current view
+        setTableOffset(offset);
+    else if(offset > (rangeto - 1)) //offset lays after the current view
+        setTableOffset(offset - getViewableRowsCount() + 2);
+    setSingleSelection(offset);
+    return true;
+}
+
 /************************************************************************************
                                 Data Management
 ************************************************************************************/
@@ -317,28 +332,52 @@ bool StdTable::isValidIndex(int r, int c)
 void StdTable::copyLineSlot()
 {
     int colCount = getColumnCount();
+    int selected = getInitialSelection();
     QString finalText = "";
     if(colCount == 1)
-        finalText = getCellContent(getInitialSelection(), 0);
+        finalText = getCellContent(selected, 0);
     else
     {
         for(int i = 0; i < colCount; i++)
         {
-            QString cellContent = getCellContent(getInitialSelection(), i);
+            QString cellContent = getCellContent(selected, i);
             if(!cellContent.length()) //skip empty cells
                 continue;
             QString title = mCopyTitles.at(i);
             if(title.length())
                 finalText += title + "=";
-            while(cellContent.endsWith(" ")) cellContent.chop(1);
-            finalText += cellContent;
+            finalText += cellContent.trimmed();;
             finalText += "\r\n";
         }
     }
     Bridge::CopyToClipboard(finalText);
 }
 
-void StdTable::copyTable(std::function<int (int)> getMaxColumnLength)
+void StdTable::copyLineToLogSlot()
+{
+    int colCount = getColumnCount();
+    int selected = getInitialSelection();
+    QString finalText = "";
+    if(colCount == 1)
+        finalText = getCellContent(selected, 0);
+    else
+    {
+        for(int i = 0; i < colCount; i++)
+        {
+            QString cellContent = getCellContent(selected, i);
+            if(!cellContent.length()) //skip empty cells
+                continue;
+            QString title = mCopyTitles.at(i);
+            if(title.length())
+                finalText += title + "=";
+            finalText += cellContent.trimmed();;
+            finalText += "\r\n";
+        }
+    }
+    emit Bridge::getBridge()->addMsgToLog(finalText);
+}
+
+QString StdTable::copyTable(const std::vector<int> & colWidths)
 {
     int colCount = getColumnCount();
     int rowCount = getRowCount();
@@ -355,9 +394,9 @@ void StdTable::copyTable(std::function<int (int)> getMaxColumnLength)
     }
     else
     {
-        std::vector<int> colWidths;
-        for(int i = 0; i < colCount; i++)
-            colWidths.push_back(getMaxColumnLength(i));
+        //std::vector<int> colWidths;
+        //for(int i = 0; i < colCount; i++)
+        //    colWidths.push_back(getMaxColumnLength(i));
         for(int i = 0; i < colCount; i++)
         {
             if(i)
@@ -386,27 +425,55 @@ void StdTable::copyTable(std::function<int (int)> getMaxColumnLength)
             finalText += finalRowText + "\r\n";
         }
     }
-    Bridge::CopyToClipboard(finalText);
+    return finalText;
 }
 
 void StdTable::copyTableSlot()
 {
-    copyTable([this](int col)
-    {
-        return getColumnWidth(col) / getCharWidth();
-    });
+    std::vector<int> colWidths;
+    int colCount = getColumnCount();
+    for(int i = 0; i < colCount; i++)
+        colWidths.push_back(getColumnWidth(i) / getCharWidth());
+    Bridge::CopyToClipboard(copyTable(colWidths));
+}
+
+void StdTable::copyTableToLogSlot()
+{
+    std::vector<int> colWidths;
+    int colCount = getColumnCount();
+    for(int i = 0; i < colCount; i++)
+        colWidths.push_back(getColumnWidth(i) / getCharWidth());
+    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths));
 }
 
 void StdTable::copyTableResizeSlot()
 {
-    copyTable([this](int col)
+    std::vector<int> colWidths;
+    int rowCount = getRowCount();
+    int colCount = getColumnCount();
+    for(int i = 0; i < colCount; i++)
     {
-        int max = 0;
-        int rowCount = getRowCount();
-        for(int i = 0; i < rowCount; i++)
-            max = std::max(getCellContent(i, col).length(), max);
-        return max;
-    });
+        int max = getCellContent(0, i).length();
+        for(int j = 1; j < rowCount; j++)
+            max = std::max(getCellContent(j, i).length(), max);
+        colWidths.push_back(max);
+    }
+    Bridge::CopyToClipboard(copyTable(colWidths));
+}
+
+void StdTable::copyTableResizeToLogSlot()
+{
+    std::vector<int> colWidths;
+    int rowCount = getRowCount();
+    int colCount = getColumnCount();
+    for(int i = 0; i < colCount; i++)
+    {
+        int max = getCellContent(0, i).length();
+        for(int j = 1; j < rowCount; j++)
+            max = std::max(getCellContent(j, i).length(), max);
+        colWidths.push_back(max);
+    }
+    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths));
 }
 
 void StdTable::copyEntrySlot()
@@ -424,6 +491,7 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
 {
     if(!getColumnCount())
         return;
+    copyMenu->setIcon(DIcon("copy.png"));
     //Copy->Whole Line
     QAction* mCopyLine = new QAction(DIcon("copy_table_line.png"), tr("&Line"), copyMenu);
     connect(mCopyLine, SIGNAL(triggered()), this, SLOT(copyLineSlot()));
@@ -436,6 +504,20 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
     QAction* mCopyTableResize = new QAction(DIcon("copy_full_table.png"), tr("&Full Table"), copyMenu);
     connect(mCopyTableResize, SIGNAL(triggered()), this, SLOT(copyTableResizeSlot()));
     copyMenu->addAction(mCopyTableResize);
+    //Copy->Separator
+    copyMenu->addSeparator();
+    //Copy->Whole Line To Log
+    QAction* mCopyLineToLog = new QAction(DIcon("copy_table_line.png"), tr("Line, To Log"), copyMenu);
+    connect(mCopyLineToLog, SIGNAL(triggered()), this, SLOT(copyLineToLogSlot()));
+    copyMenu->addAction(mCopyLineToLog);
+    //Copy->Cropped Table To Log
+    QAction* mCopyTableToLog = new QAction(DIcon("copy_cropped_table.png"), tr("Cropped Table, To Log"), copyMenu);
+    connect(mCopyTableToLog, SIGNAL(triggered()), this, SLOT(copyTableToLogSlot()));
+    copyMenu->addAction(mCopyTableToLog);
+    //Copy->Full Table To Log
+    QAction* mCopyTableResizeToLog = new QAction(DIcon("copy_full_table.png"), tr("Full Table, To Log"), copyMenu);
+    connect(mCopyTableResizeToLog, SIGNAL(triggered()), this, SLOT(copyTableResizeToLogSlot()));
+    copyMenu->addAction(mCopyTableResizeToLog);
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->ColName
@@ -463,6 +545,14 @@ void StdTable::setupCopyMenu(MenuBuilder* copyMenu)
     copyMenu->addAction(makeAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), SLOT(copyTableSlot())));
     //Copy->Full Table
     copyMenu->addAction(makeAction(DIcon("copy_full_table.png"), tr("&Full Table"), SLOT(copyTableResizeSlot())));
+    //Copy->Separator
+    copyMenu->addSeparator();
+    //Copy->Whole Line To Log
+    copyMenu->addAction(makeAction(DIcon("copy_table_line.png"), tr("Line, To Log"), SLOT(copyLineToLogSlot())));
+    //Copy->Cropped Table
+    copyMenu->addAction(makeAction(DIcon("copy_cropped_table.png"), tr("Cropped Table, To Log"), SLOT(copyTableToLogSlot())));
+    //Copy->Full Table
+    copyMenu->addAction(makeAction(DIcon("copy_full_table.png"), tr("Full Table, To Log"), SLOT(copyTableResizeToLogSlot())));
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->ColName

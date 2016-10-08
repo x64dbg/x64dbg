@@ -93,9 +93,11 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent, bool EnableLoc
 
     // Install input event filter
     mSearchBox->installEventFilter(this);
+    if(parent)
+        mSearchBox->setWindowTitle(parent->metaObject()->className());
 
     // Setup search menu action
-    mSearchAction = new QAction(tr("Search..."), this);
+    mSearchAction = new QAction(DIcon("find.png"), tr("Search..."), this);
     connect(mSearchAction, SIGNAL(triggered()), this, SLOT(searchSlot()));
 
     // Slots
@@ -216,6 +218,7 @@ void SearchListView::listContextMenu(const QPoint & pos)
     wMenu.addSeparator();
     wMenu.addAction(mSearchAction);
     QMenu wCopyMenu(tr("&Copy"), this);
+    wCopyMenu.setIcon(DIcon("copy.png"));
     mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
         wMenu.addMenu(&wCopyMenu);

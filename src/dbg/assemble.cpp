@@ -9,11 +9,10 @@
 #include "XEDParse\XEDParse.h"
 #include "value.h"
 #include "disasm_fast.h"
-#include "debugger.h"
 #include "disasm_helper.h"
-#include "memory.h"
 #include "keystone\keystone.h"
 #include "datainst_helper.h"
+#include "debugger.h"
 
 AssemblerEngine assemblerEngine = AssemblerEngine::XEDParse;
 
@@ -43,7 +42,7 @@ namespace Keystone
         return nullptr;
     }
 
-    static bool StrDel(char* Source, char* Needle, char StopAt = '\0')
+    static bool StrDel(char* Source, const char* Needle)
     {
         // Find the location in the string first
         char* loc = stristr(Source, Needle);
@@ -54,7 +53,7 @@ namespace Keystone
         // "Delete" the word by shifting it over
         auto needleLen = strlen(Needle);
 
-        memcpy(loc, loc + needleLen, strlen(loc) - needleLen + 1);
+        memmove(loc, loc + needleLen, strlen(loc) - needleLen + 1);
 
         return true;
     }
@@ -69,7 +68,7 @@ namespace Keystone
             sep = strstr(XEDParse->instr, "\n");
         if(sep)
             *sep = '\0';
-        StrDel(XEDParse->instr, "short ");
+        bool short_command = StrDel(XEDParse->instr, "short ");
 
         ks_engine* ks;
         ks_err err = ks_open(KS_ARCH_X86, XEDParse->x64 ? KS_MODE_64 : KS_MODE_32, &ks);
@@ -86,6 +85,11 @@ namespace Keystone
         if(ks_asm(ks, XEDParse->instr, XEDParse->cip, &encode, &size, &count) != KS_ERR_OK)
         {
             sprintf_s(XEDParse->error, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "ks_asm() failed: count = %lu, error = %u")), count, ks_errno(ks));
+            result = XEDPARSE_ERROR;
+        }
+        else if(short_command && size > 2)
+        {
+            sprintf_s(XEDParse->error, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "ks_asm() failed: destination is out of range (size = %lu)")), size);
             result = XEDPARSE_ERROR;
         }
         else

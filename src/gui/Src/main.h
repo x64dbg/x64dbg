@@ -13,9 +13,9 @@ class MyApplication : public QApplication
 {
 public:
     MyApplication(int & argc, char** argv);
-    bool notify(QObject* receiver, QEvent* event);
-    bool winEventFilter(MSG* message, long* result);
+    bool notify(QObject* receiver, QEvent* event) Q_DECL_OVERRIDE;
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+    bool winEventFilter(MSG* message, long* result) Q_DECL_OVERRIDE;
     static bool globalEventFilter(void* message);
 #endif
 };
@@ -30,12 +30,16 @@ struct TranslatedStringStorage
 extern std::map<DWORD, TranslatedStringStorage>* TLS_TranslatedStringMap;
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-class x64GlobalFilter : public QAbstractNativeEventFilter
+class MyEventFilter : public QAbstractNativeEventFilter
 {
 public:
-    virtual bool nativeEventFilter(const QByteArray &, void* message, long*) Q_DECL_OVERRIDE
+    virtual bool nativeEventFilter(const QByteArray & eventType, void* message, long* result) Q_DECL_OVERRIDE
     {
-        return DbgWinEventGlobal((MSG*)message);
+        if(eventType == "windows_dispatcher_MSG")
+            return DbgWinEventGlobal((MSG*)message);
+        else if(eventType == "windows_generic_MSG")
+            return DbgWinEvent((MSG*)message, result);
+        return false;
     }
 };
 #endif // QT_VERSION

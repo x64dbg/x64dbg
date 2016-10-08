@@ -24,56 +24,49 @@ StringList StringUtils::Split(const String & s, char delim)
     return elems;
 }
 
+//https://github.com/lefticus/presentations/blob/master/PracticalPerformancePractices.md#smaller-code-is-faster-code-11
+String StringUtils::Escape(unsigned char ch)
+{
+    char buf[8] = "";
+    switch(ch)
+    {
+    case '\0':
+        return "\\0";
+    case '\t':
+        return "\\t";
+    case '\f':
+        return "\\f";
+    case '\v':
+        return "\\v";
+    case '\n':
+        return "\\n";
+    case '\r':
+        return "\\r";
+    case '\\':
+        return "\\\\";
+    case '\"':
+        return "\\\"";
+    default:
+        if(!isprint(ch))  //unknown unprintable character
+            sprintf_s(buf, "\\x%02X", ch);
+        else
+            *buf = ch;
+        return buf;
+    }
+}
+
 String StringUtils::Escape(const String & s)
 {
-    String escaped = "";
+    String escaped;
+    escaped.reserve(s.length() + s.length() / 2);
     for(size_t i = 0; i < s.length(); i++)
-    {
-        auto ch = uint8_t(s[i]);
-        switch(ch)
-        {
-        case '\0':
-            escaped += "\\0";
-            break;
-        case '\t':
-            escaped += "\\t";
-            break;
-        case '\f':
-            escaped += "\\f";
-            break;
-        case '\v':
-            escaped += "\\v";
-            break;
-        case '\n':
-            escaped += "\\n";
-            break;
-        case '\r':
-            escaped += "\\r";
-            break;
-        case '\\':
-            escaped += "\\\\";
-            break;
-        case '\"':
-            escaped += "\\\"";
-            break;
-        default:
-            if(!isprint(ch))  //unknown unprintable character
-            {
-                char buf[16] = "";
-                sprintf_s(buf, "\\x%02X", ch);
-                escaped += buf;
-            }
-            else
-                escaped += ch;
-            break;
-        }
-    }
+        escaped.append(Escape((unsigned char)s[i]));
     return escaped;
 }
 
 bool StringUtils::Unescape(const String & s, String & result, bool quoted)
 {
-    int mLastChar;
+    int mLastChar = EOF;
     size_t i = 0;
     auto nextChar = [&]()
     {
@@ -84,14 +77,14 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
     if(quoted)
     {
         nextChar();
-        if(mLastChar != '\"')  //start of quoted string literal
+        if(mLastChar != '\"') //start of quoted string literal
             return false; //invalid string literal
     }
     result.reserve(s.length());
     while(true)
     {
         nextChar();
-        if(mLastChar == EOF)  //end of file
+        if(mLastChar == EOF) //end of file
         {
             if(!quoted)
                 break;
@@ -101,7 +94,7 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
             return false; //unexpected newline in string literal (1)
         if(quoted && mLastChar == '\"')  //end of quoted string literal
             break;
-        if(mLastChar == '\\')  //escape sequence
+        if(mLastChar == '\\') //escape sequence
         {
             nextChar();
             if(mLastChar == EOF)
@@ -155,18 +148,18 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
 //Trim functions taken from: http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring/16743707#16743707
 const String StringUtils::WHITESPACE = " \n\r\t";
 
-String StringUtils::Trim(const String & s, String delim)
+String StringUtils::Trim(const String & s, const String & delim)
 {
     return TrimRight(TrimLeft(s));
 }
 
-String StringUtils::TrimLeft(const String & s, String delim)
+String StringUtils::TrimLeft(const String & s, const String & delim)
 {
     size_t startpos = s.find_first_not_of(delim);
     return (startpos == String::npos) ? "" : s.substr(startpos);
 }
 
-String StringUtils::TrimRight(const String & s, String delim)
+String StringUtils::TrimRight(const String & s, const String & delim)
 {
     size_t endpos = s.find_last_not_of(delim);
     return (endpos == String::npos) ? "" : s.substr(0, endpos + 1);

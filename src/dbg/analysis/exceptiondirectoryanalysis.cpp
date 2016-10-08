@@ -75,7 +75,7 @@ void ExceptionDirectoryAnalysis::Analyse()
 
         return true;
     });
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u functions discovered!\n"), mFunctions.size());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u functions discovered!\n"), DWORD(mFunctions.size()));
 #else //x32
     dputs(QT_TRANSLATE_NOOP("DBG", "This kind of analysis doesn't work on x32 executables...\n"));
 #endif // _WIN64
@@ -89,7 +89,7 @@ void ExceptionDirectoryAnalysis::SetMarkers()
 }
 
 #ifdef _WIN64
-void ExceptionDirectoryAnalysis::EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback) const
+void ExceptionDirectoryAnalysis::EnumerateFunctionRuntimeEntries64(const std::function<bool(PRUNTIME_FUNCTION)> & Callback) const
 {
     if(!mFunctionInfoData)
         return;

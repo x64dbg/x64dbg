@@ -8,7 +8,6 @@
 #include "debugger.h"
 #include "console.h"
 #include "module.h"
-#include "label.h"
 #include "addrinfo.h"
 
 struct SYMBOLCBDATA

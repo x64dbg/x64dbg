@@ -10,6 +10,7 @@
 
 CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
+    setWindowTitle("Stack");
     setShowHeader(false);
     int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
@@ -821,7 +822,7 @@ void CPUStack::followDisasmSlot()
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            QString addrText = QString("%1").arg(selectedData, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            QString addrText = ToPtrString(selectedData);
             DbgCmdExec(QString("disasm " + addrText).toUtf8().constData());
         }
 }
@@ -832,7 +833,7 @@ void CPUStack::followDumpPtrSlot()
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            QString addrText = QString("%1").arg(selectedData, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            QString addrText = ToPtrString(selectedData);
             DbgCmdExec(QString("dump " + addrText).toUtf8().constData());
         }
 }
@@ -860,7 +861,7 @@ void CPUStack::followStackSlot()
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            QString addrText = QString("%1").arg(selectedData, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            QString addrText = ToPtrString(selectedData);
             DbgCmdExec(QString("sdump " + addrText).toUtf8().constData());
         }
 }
@@ -897,7 +898,7 @@ void CPUStack::binaryFillSlot()
     hexEdit.showKeepSize(false);
     hexEdit.mHexEdit->setOverwriteMode(false);
     dsint selStart = getSelectionStart();
-    hexEdit.setWindowTitle(tr("Fill data at %1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle(tr("Fill data at %1").arg(ToPtrString(rvaToVa(selStart))));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     QString pattern = hexEdit.mHexEdit->pattern();
@@ -960,85 +961,85 @@ void CPUStack::binaryPasteIgnoreSizeSlot()
 // Copied from "CPUDump.cpp".
 void CPUStack::hardwareAccess1Slot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bphws " + addr_text + ", r, 1").toUtf8().constData());
 }
 
 void CPUStack::hardwareAccess2Slot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bphws " + addr_text + ", r, 2").toUtf8().constData());
 }
 
 void CPUStack::hardwareAccess4Slot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bphws " + addr_text + ", r, 4").toUtf8().constData());
 }
 
 void CPUStack::hardwareAccess8Slot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bphws " + addr_text + ", r, 8").toUtf8().constData());
 }
 
 void CPUStack::hardwareWrite1Slot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bphws " + addr_text + ", w, 1").toUtf8().constData());
 }
 
 void CPUStack::hardwareWrite2Slot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bphws " + addr_text + ", w, 2").toUtf8().constData());
 }
 
 void CPUStack::hardwareWrite4Slot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bphws " + addr_text + ", w, 4").toUtf8().constData());
 }
 
 void CPUStack::hardwareWrite8Slot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bphws " + addr_text + ", w, 8").toUtf8().constData());
 }
 
 void CPUStack::hardwareRemoveSlot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bphwc " + addr_text).toUtf8().constData());
 }
 
 void CPUStack::memoryAccessSingleshootSlot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, r").toUtf8().constData());
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, a").toUtf8().constData());
 }
 
 void CPUStack::memoryAccessRestoreSlot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, r").toUtf8().constData());
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, a").toUtf8().constData());
 }
 
 void CPUStack::memoryWriteSingleshootSlot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bpm " + addr_text + ", 0, w").toUtf8().constData());
 }
 
 void CPUStack::memoryWriteRestoreSlot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bpm " + addr_text + ", 1, w").toUtf8().constData());
 }
 
 void CPUStack::memoryRemoveSlot()
 {
-    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("bpmc " + addr_text).toUtf8().constData());
 }
 
@@ -1053,7 +1054,7 @@ void CPUStack::findPattern()
     dsint addr = rvaToVa(getSelectionStart());
     if(hexEdit.entireBlock())
         addr = DbgMemFindBaseAddr(addr, 0);
-    QString addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    QString addrText = ToPtrString(addr);
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&").toUtf8().constData());
     emit displayReferencesWidget();
 }

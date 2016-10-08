@@ -28,6 +28,7 @@ public:
     void selectNext();
     void selectPrevious();
     bool isSelected(int base, int offset);
+    bool scrollSelect(int offset);
 
     // Data Management
     void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "", SortBy::t sortFn = SortBy::AsText);
@@ -52,12 +53,15 @@ public slots:
     void copyLineSlot();
     void copyTableSlot();
     void copyTableResizeSlot();
+    void copyLineToLogSlot();
+    void copyTableToLogSlot();
+    void copyTableResizeToLogSlot();
     void copyEntrySlot();
     void contextMenuRequestedSlot(const QPoint & pos);
     void headerButtonPressedSlot(int col);
 
 private:
-    void copyTable(std::function<int(int)> getMaxColSize);
+    QString copyTable(const std::vector<int> & colWidths);
 
     class ColumnCompare
     {

@@ -55,7 +55,8 @@ SOURCES += \
     gui/Src/Gui/ShortcutsDialog.cpp \
     gui/Src/Gui/SourceView.cpp \
     gui/Src/Gui/SourceViewerManager.cpp \
-    gui/Src/Gui/StatusLabel.cpp \
+    gui/Src/Gui/DebugStatusLabel.cpp \
+    gui/Src/Gui/LogStatusLabel.cpp \
     gui/Src/Gui/SymbolView.cpp \
     gui/Src/Gui/TabBar.cpp \
     gui/Src/Gui/TabWidget.cpp \
@@ -103,7 +104,6 @@ SOURCES += \
     dbg/datainst_helper.cpp \
     dbg/dbghelp_safe.cpp \
     dbg/debugger.cpp \
-    dbg/debugger_commands.cpp \
     dbg/disasm_fast.cpp \
     dbg/disasm_helper.cpp \
     dbg/encodemap.cpp \
@@ -116,7 +116,6 @@ SOURCES += \
     dbg/function.cpp \
     dbg/handles.cpp \
     dbg/historycontext.cpp \
-    dbg/instruction.cpp \
     dbg/jit.cpp \
     dbg/label.cpp \
     dbg/log.cpp \
@@ -143,7 +142,7 @@ SOURCES += \
     dbg/value.cpp \
     dbg/variable.cpp \
     dbg/watch.cpp \
-    dbg/x64_dbg.cpp \
+    dbg/x64dbg.cpp \
     dbg/xrefs.cpp \
     gui/Src/Bridge/Bridge.cpp \
     gui/Src/Bridge/BridgeResult.cpp \
@@ -191,10 +190,27 @@ SOURCES += \
     dbg/animate.cpp \
     gui/Src/BasicView/LabeledSplitter.cpp \
     dbg/breakpoint_commands.cpp \
-    dbg/symcache.cpp
-
-TRANSLATIONS = \
-    gui/Translations/x64dbg.ts
+    dbg/symcache.cpp \
+    dbg/commands/cmd-breakpoint-control.cpp \
+    dbg/commands/cmd-conditional-breakpoint-control.cpp \
+    dbg/commands/cmd-searching.cpp \
+    dbg/commands/cmd-debug-control.cpp \
+    dbg/commands/cmd-general-purpose.cpp \
+    dbg/commands/cmd-gui.cpp \
+    dbg/commands/cmd-memory-operations.cpp \
+    dbg/commands/cmd-misc.cpp \
+    dbg/commands/cmd-operating-system-control.cpp \
+    dbg/commands/cmd-plugins.cpp \
+    dbg/commands/cmd-script.cpp \
+    dbg/commands/cmd-thread-control.cpp \
+    dbg/commands/cmd-tracing.cpp \
+    dbg/commands/cmd-types.cpp \
+    dbg/commands/cmd-undocumented.cpp \
+    dbg/commands/cmd-user-database.cpp \
+    dbg/commands/cmd-variables.cpp \
+    dbg/commands/cmd-watch-control.cpp \
+    gui/Src/Gui/CustomizeMenuDialog.cpp \
+    gui/Src/Utils/MenuBuilder.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -251,7 +267,8 @@ HEADERS += \
     gui/Src/Gui/ShortcutsDialog.h \
     gui/Src/Gui/SourceView.h \
     gui/Src/Gui/SourceViewerManager.h \
-    gui/Src/Gui/StatusLabel.h \
+    gui/Src/Gui/DebugStatusLabel.h \
+    gui/Src/Gui/LogStatusLabel.h \
     gui/Src/Gui/SymbolView.h \
     gui/Src/Gui/TabBar.h \
     gui/Src/Gui/TabWidget.h \
@@ -300,7 +317,6 @@ HEADERS += \
     dbg/datainst_helper.h \
     dbg/dbghelp_safe.h \
     dbg/debugger.h \
-    dbg/debugger_commands.h \
     dbg/disasm_fast.h \
     dbg/disasm_helper.h \
     dbg/dynamicmem.h \
@@ -315,7 +331,6 @@ HEADERS += \
     dbg/handle.h \
     dbg/handles.h \
     dbg/historycontext.h \
-    dbg/instruction.h \
     dbg/jit.h \
     dbg/label.h \
     dbg/loop.h \
@@ -343,7 +358,7 @@ HEADERS += \
     dbg/value.h \
     dbg/variable.h \
     dbg/watch.h \
-    dbg/x64_dbg.h \
+    dbg/x64dbg.h \
     dbg/xrefs.h \
     gui/Src/Bridge/Bridge.h \
     gui/Src/Bridge/BridgeResult.h \
@@ -398,7 +413,26 @@ HEADERS += \
     dbg/analysis/xrefsanalysis.h \
     dbg/animate.h \
     gui/Src/BasicView/LabeledSplitter.h \
-    dbg/symcache.h
+    dbg/symcache.h \
+    dbg/commands/cmd-breakpoint-control.h \
+    dbg/commands/cmd-conditional-breakpoint-control.h \
+    dbg/commands/cmd-searching.h \
+    dbg/commands/cmd-debug-control.h \
+    dbg/commands/cmd-general-purpose.h \
+    dbg/commands/cmd-gui.h \
+    dbg/commands/cmd-memory-operations.h \
+    dbg/commands/cmd-misc.h \
+    dbg/commands/cmd-operating-system-control.h \
+    dbg/commands/cmd-plugins.h \
+    dbg/commands/cmd-script.h \
+    dbg/commands/cmd-thread-control.h \
+    dbg/commands/cmd-tracing.h \
+    dbg/commands/cmd-types.h \
+    dbg/commands/cmd-undocumented.h \
+    dbg/commands/cmd-user-database.h \
+    dbg/commands/cmd-variables.h \
+    dbg/commands/cmd-watch-control.h \
+    gui/Src/Gui/CustomizeMenuDialog.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
@@ -433,7 +467,8 @@ FORMS += \
     gui/Src/Gui/VirtualModDialog.ui \
     gui/Src/Gui/WordEditDialog.ui \
     gui/Src/Gui/XrefBrowseDialog.ui \
-    gui/Src/Gui/YaraRuleSelectionDialog.ui
+    gui/Src/Gui/YaraRuleSelectionDialog.ui \
+    gui/Src/Gui/CustomizeMenuDialog.ui
 
 TRANSLATIONS += \
     gui/Translations/x64dbg.ts

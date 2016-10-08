@@ -47,6 +47,7 @@ signals:
     void dbgStateChanged(DBGSTATE state);
     void addMsgToLog(QString msg);
     void clearLog();
+    void close();
     void updateRegisters();
     void updateBreakpoints();
     void updateWindowTitle(QString filename);
@@ -91,6 +92,9 @@ signals:
     void selectionDumpSet(const SELECTIONDATA* selection);
     void selectionStackGet(SELECTIONDATA* selection);
     void selectionStackSet(const SELECTIONDATA* selection);
+    void selectionGraphGet(SELECTIONDATA* selection);
+    void selectionMemmapGet(SELECTIONDATA* selection);
+    void selectionSymmodGet(SELECTIONDATA* selection);
     void getStrWindow(const QString title, QString* text);
     void autoCompleteAddCmd(const QString cmd);
     void autoCompleteDelCmd(const QString cmd);
@@ -132,6 +136,7 @@ signals:
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
     void foldDisassembly(duint startAddr, duint length);
     void selectInMemoryMap(duint addr);
+    void getActiveView(ACTIVEVIEW* activeView);
 
 private:
     QMutex* mBridgeMutex;

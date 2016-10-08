@@ -208,12 +208,9 @@ void LoopCacheLoad(JSON Root)
                 continue;
 
             // Insert into global list
-            loops.insert(std::make_pair(DepthModuleRange(loopInfo.depth, ModuleRange(ModHashFromName(loopInfo.mod), Range(loopInfo.start, loopInfo.end))), loopInfo));
+            loops[DepthModuleRange(loopInfo.depth, ModuleRange(ModHashFromName(loopInfo.mod), Range(loopInfo.start, loopInfo.end)))] = loopInfo;
         }
     };
-
-    // Remove existing entries
-    loops.clear();
 
     const JSON jsonLoops = json_object_get(Root, "loops");
     const JSON jsonAutoLoops = json_object_get(Root, "autoloops");

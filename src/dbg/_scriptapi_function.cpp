@@ -53,6 +53,11 @@ SCRIPT_EXPORT void Script::Function::DeleteRange(duint start, duint end, bool de
     FunctionDelRange(start, end, deleteManual);
 }
 
+SCRIPT_EXPORT void Script::Function::DeleteRange(duint start, duint end)
+{
+    DeleteRange(start, end, false);
+}
+
 SCRIPT_EXPORT void Script::Function::Clear()
 {
     FunctionClear();

@@ -16,11 +16,12 @@ class StringUtils
 public:
     static StringList Split(const String & s, char delim, std::vector<String> & elems);
     static StringList Split(const String & s, char delim);
+    static String Escape(unsigned char ch);
     static String Escape(const String & s);
     static bool Unescape(const String & s, String & result, bool quoted = true);
-    static String Trim(const String & s, String delim = StringUtils::WHITESPACE);
-    static String TrimLeft(const String & s, String delim = StringUtils::WHITESPACE);
-    static String TrimRight(const String & s, String delim = StringUtils::WHITESPACE);
+    static String Trim(const String & s, const String & delim = StringUtils::WHITESPACE);
+    static String TrimLeft(const String & s, const String & delim = StringUtils::WHITESPACE);
+    static String TrimRight(const String & s, const String & delim = StringUtils::WHITESPACE);
     static String PadLeft(const String & s, size_t minLength, char ch);
     static String Utf16ToUtf8(const WString & wstr);
     static String Utf16ToUtf8(const wchar_t* wstr);

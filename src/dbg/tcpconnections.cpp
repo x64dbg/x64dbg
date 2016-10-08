@@ -116,11 +116,11 @@ bool TcpEnumConnections(duint pid, std::vector<TCPCONNECTIONINFO> & connections)
                     strcpy_s(info.StateText, TcpStateToString(info.State));
 
                     InetNtopW(AF_INET6, &entry.LocalAddr, AddrBuffer, TCP_ADDR_SIZE);
-                    sprintf_s(info.LocalAddress, "[%s]", StringUtils::Utf16ToUtf8(AddrBuffer));
+                    sprintf_s(info.LocalAddress, "[%s]", StringUtils::Utf16ToUtf8(AddrBuffer).c_str());
                     info.LocalPort = ntohs(u_short(entry.dwLocalPort));
 
                     InetNtopW(AF_INET6, &entry.RemoteAddr, AddrBuffer, TCP_ADDR_SIZE);
-                    sprintf_s(info.RemoteAddress, "[%s]", StringUtils::Utf16ToUtf8(AddrBuffer));
+                    sprintf_s(info.RemoteAddress, "[%s]", StringUtils::Utf16ToUtf8(AddrBuffer).c_str());
                     info.RemotePort = ntohs(u_short(entry.dwRemotePort));
 
                     connections.push_back(info);

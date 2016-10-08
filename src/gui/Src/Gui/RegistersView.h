@@ -159,6 +159,7 @@ protected slots:
     void onSetToOneAction();
     void onModifyAction();
     void onToggleValueAction();
+    void onUndoAction();
     void onCopyToClipboardAction();
     void onCopySymbolToClipboardAction();
     void onCopyAllAction();
@@ -186,6 +187,7 @@ protected slots:
     void onSIMDSQWord();
     void onSIMDUQWord();
     void onSIMDHQWord();
+    void onClose();
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
@@ -216,6 +218,7 @@ private:
     QSet<REGISTER_NAME> mBOOLDISPLAY;
     QSet<REGISTER_NAME> mLABELDISPLAY;
     QSet<REGISTER_NAME> mONLYMODULEANDLABELDISPLAY;
+    QSet<REGISTER_NAME> mUNDODISPLAY;
     QSet<REGISTER_NAME> mSETONEZEROTOGGLE;
     QSet<REGISTER_NAME> mMODIFYDISPLAY;
     QSet<REGISTER_NAME> mFIELDVALUE;
@@ -265,6 +268,7 @@ private:
     QAction* wCM_SetToOne;
     QAction* wCM_Modify;
     QAction* wCM_ToggleValue;
+    QAction* wCM_Undo;
     QAction* wCM_CopyToClipboard;
     QAction* wCM_CopySymbolToClipboard;
     QAction* wCM_CopyAll;

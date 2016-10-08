@@ -1,6 +1,4 @@
 #include "bookmark.h"
-#include "module.h"
-#include "memory.h"
 
 struct BookmarkSerializer : AddrInfoSerializer<BOOKMARKSINFO>
 {
@@ -50,7 +48,7 @@ void BookmarkCacheSave(JSON Root)
 void BookmarkCacheLoad(JSON Root)
 {
     bookmarks.CacheLoad(Root);
-    bookmarks.CacheLoad(Root, false, "auto"); //legacy support
+    bookmarks.CacheLoad(Root, "auto"); //legacy support
 }
 
 bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size)

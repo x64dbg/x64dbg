@@ -447,7 +447,9 @@ static QAction* setupAction(const QString & text, RegistersView* this_object)
 
 RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
+    setWindowTitle("Registers");
     mChangeViewButton = NULL;
+    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(onClose()));
     switch(ConfigUint("Gui", "SIMDRegistersDisplayMode"))
     {
     case 0:
@@ -496,6 +498,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     wCM_Modify = new QAction(DIcon("register_edit.png"), tr("Modify value"), this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
     wCM_ToggleValue = setupAction(DIcon("register_toggle.png"), tr("Toggle"), this);
+    wCM_Undo = setupAction(DIcon("undo.png"), tr("Undo"), this);
     wCM_CopyToClipboard = setupAction(DIcon("copy.png"), tr("Copy value to clipboard"), this);
     wCM_CopySymbolToClipboard = setupAction(DIcon("pdb.png"), tr("Copy Symbol Value to Clipboard"), this);
     wCM_CopyAll = setupAction(DIcon("copy-alt.png"), tr("Copy all registers"), this);
@@ -580,6 +583,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mUINTDISPLAY.insert(CAX);
     mLABELDISPLAY.insert(CAX);
     mMODIFYDISPLAY.insert(CAX);
+    mUNDODISPLAY.insert(CAX);
     mINCREMENTDECREMET.insert(CAX);
     mSETONEZEROTOGGLE.insert(CAX);
 
@@ -589,6 +593,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mUINTDISPLAY.insert(CBX);
     mLABELDISPLAY.insert(CBX);
     mMODIFYDISPLAY.insert(CBX);
+    mUNDODISPLAY.insert(CBX);
     mCANSTOREADDRESS.insert(CBX);
 
     mSETONEZEROTOGGLE.insert(CCX);
@@ -597,6 +602,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mUINTDISPLAY.insert(CCX);
     mLABELDISPLAY.insert(CCX);
     mMODIFYDISPLAY.insert(CCX);
+    mUNDODISPLAY.insert(CCX);
     mCANSTOREADDRESS.insert(CCX);
 
     mSETONEZEROTOGGLE.insert(CDX);
@@ -605,6 +611,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mUINTDISPLAY.insert(CDX);
     mLABELDISPLAY.insert(CDX);
     mMODIFYDISPLAY.insert(CDX);
+    mUNDODISPLAY.insert(CDX);
     mCANSTOREADDRESS.insert(CDX);
 
     mSETONEZEROTOGGLE.insert(CBP);
@@ -614,6 +621,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mUINTDISPLAY.insert(CBP);
     mLABELDISPLAY.insert(CBP);
     mMODIFYDISPLAY.insert(CBP);
+    mUNDODISPLAY.insert(CBP);
 
     mSETONEZEROTOGGLE.insert(CSP);
     mINCREMENTDECREMET.insert(CSP);
@@ -622,6 +630,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mUINTDISPLAY.insert(CSP);
     mLABELDISPLAY.insert(CSP);
     mMODIFYDISPLAY.insert(CSP);
+    mUNDODISPLAY.insert(CSP);
 
     mSETONEZEROTOGGLE.insert(CSI);
     mINCREMENTDECREMET.insert(CSI);
@@ -630,6 +639,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mUINTDISPLAY.insert(CSI);
     mLABELDISPLAY.insert(CSI);
     mMODIFYDISPLAY.insert(CSI);
+    mUNDODISPLAY.insert(CSI);
 
     mSETONEZEROTOGGLE.insert(CDI);
     mINCREMENTDECREMET.insert(CDI);
@@ -638,6 +648,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mUINTDISPLAY.insert(CDI);
     mLABELDISPLAY.insert(CDI);
     mMODIFYDISPLAY.insert(CDI);
+    mUNDODISPLAY.insert(CDI);
 #ifdef _WIN64
     mSETONEZEROTOGGLE.insert(R8);
     mINCREMENTDECREMET.insert(R8);
@@ -646,6 +657,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mLABELDISPLAY.insert(R8);
     mUINTDISPLAY.insert(R8);
     mMODIFYDISPLAY.insert(R8);
+    mUNDODISPLAY.insert(R8);
 
     mSETONEZEROTOGGLE.insert(R9);
     mINCREMENTDECREMET.insert(R9);
@@ -654,12 +666,14 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mLABELDISPLAY.insert(R9);
     mUINTDISPLAY.insert(R9);
     mMODIFYDISPLAY.insert(R9);
+    mUNDODISPLAY.insert(R9);
 
     mSETONEZEROTOGGLE.insert(R10);
     mINCREMENTDECREMET.insert(R10);
     mCANSTOREADDRESS.insert(R10);
     mGPR.insert(R10);
     mMODIFYDISPLAY.insert(R10);
+    mUNDODISPLAY.insert(R10);
     mUINTDISPLAY.insert(R10);
     mLABELDISPLAY.insert(R10);
 
@@ -668,6 +682,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mCANSTOREADDRESS.insert(R11);
     mGPR.insert(R11);
     mMODIFYDISPLAY.insert(R11);
+    mUNDODISPLAY.insert(R11);
     mUINTDISPLAY.insert(R11);
     mLABELDISPLAY.insert(R11);
 
@@ -676,6 +691,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mCANSTOREADDRESS.insert(R12);
     mGPR.insert(R12);
     mMODIFYDISPLAY.insert(R12);
+    mUNDODISPLAY.insert(R12);
     mUINTDISPLAY.insert(R12);
     mLABELDISPLAY.insert(R12);
 
@@ -684,6 +700,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mCANSTOREADDRESS.insert(R13);
     mGPR.insert(R13);
     mMODIFYDISPLAY.insert(R13);
+    mUNDODISPLAY.insert(R13);
     mUINTDISPLAY.insert(R13);
     mLABELDISPLAY.insert(R13);
 
@@ -692,6 +709,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mCANSTOREADDRESS.insert(R14);
     mGPR.insert(R14);
     mMODIFYDISPLAY.insert(R14);
+    mUNDODISPLAY.insert(R14);
     mUINTDISPLAY.insert(R14);
     mLABELDISPLAY.insert(R14);
 
@@ -700,6 +718,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mCANSTOREADDRESS.insert(R15);
     mGPR.insert(R15);
     mMODIFYDISPLAY.insert(R15);
+    mUNDODISPLAY.insert(R15);
     mUINTDISPLAY.insert(R15);
     mLABELDISPLAY.insert(R15);
 #endif //_WIN64
@@ -707,6 +726,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mSETONEZEROTOGGLE.insert(EFLAGS);
     mGPR.insert(EFLAGS);
     mMODIFYDISPLAY.insert(EFLAGS);
+    mUNDODISPLAY.insert(EFLAGS);
     mUINTDISPLAY.insert(EFLAGS);
 
     // flags (we allow the user to toggle them)
@@ -749,44 +769,53 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mSETONEZEROTOGGLE.insert(MxCsr);
     mDWORDDISPLAY.insert(MxCsr);
     mMODIFYDISPLAY.insert(MxCsr);
+    mUNDODISPLAY.insert(MxCsr);
     mFPU.insert(MxCsr);
 
     mMODIFYDISPLAY.insert(x87r0);
+    mUNDODISPLAY.insert(x87r0);
     mFPUx87.insert(x87r0);
     mFPUx87_80BITSDISPLAY.insert(x87r0);
     mFPU.insert(x87r0);
 
     mMODIFYDISPLAY.insert(x87r1);
+    mUNDODISPLAY.insert(x87r1);
     mFPUx87.insert(x87r1);
     mFPUx87_80BITSDISPLAY.insert(x87r1);
     mFPU.insert(x87r1);
 
     mMODIFYDISPLAY.insert(x87r2);
+    mUNDODISPLAY.insert(x87r2);
     mFPUx87.insert(x87r2);
     mFPUx87_80BITSDISPLAY.insert(x87r2);
     mFPU.insert(x87r2);
 
     mMODIFYDISPLAY.insert(x87r3);
+    mUNDODISPLAY.insert(x87r3);
     mFPUx87.insert(x87r3);
     mFPUx87_80BITSDISPLAY.insert(x87r3);
     mFPU.insert(x87r3);
 
     mMODIFYDISPLAY.insert(x87r4);
+    mUNDODISPLAY.insert(x87r4);
     mFPUx87.insert(x87r4);
     mFPUx87_80BITSDISPLAY.insert(x87r4);
     mFPU.insert(x87r4);
 
     mMODIFYDISPLAY.insert(x87r5);
+    mUNDODISPLAY.insert(x87r5);
     mFPUx87.insert(x87r5);
     mFPU.insert(x87r5);
     mFPUx87_80BITSDISPLAY.insert(x87r5);
 
     mMODIFYDISPLAY.insert(x87r6);
+    mUNDODISPLAY.insert(x87r6);
     mFPUx87.insert(x87r6);
     mFPU.insert(x87r6);
     mFPUx87_80BITSDISPLAY.insert(x87r6);
 
     mMODIFYDISPLAY.insert(x87r7);
+    mUNDODISPLAY.insert(x87r7);
     mFPUx87.insert(x87r7);
     mFPU.insert(x87r7);
     mFPUx87_80BITSDISPLAY.insert(x87r7);
@@ -794,18 +823,21 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mSETONEZEROTOGGLE.insert(x87TagWord);
     mFPUx87.insert(x87TagWord);
     mMODIFYDISPLAY.insert(x87TagWord);
+    mUNDODISPLAY.insert(x87TagWord);
     mUSHORTDISPLAY.insert(x87TagWord);
     mFPU.insert(x87TagWord);
 
     mSETONEZEROTOGGLE.insert(x87StatusWord);
     mUSHORTDISPLAY.insert(x87StatusWord);
     mMODIFYDISPLAY.insert(x87StatusWord);
+    mUNDODISPLAY.insert(x87StatusWord);
     mFPUx87.insert(x87StatusWord);
     mFPU.insert(x87StatusWord);
 
     mSETONEZEROTOGGLE.insert(x87ControlWord);
     mFPUx87.insert(x87ControlWord);
     mMODIFYDISPLAY.insert(x87ControlWord);
+    mUNDODISPLAY.insert(x87ControlWord);
     mUSHORTDISPLAY.insert(x87ControlWord);
     mFPU.insert(x87ControlWord);
 
@@ -823,6 +855,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mFIELDVALUE.insert(x87SW_TOP);
     mFPU.insert(x87SW_TOP);
     mMODIFYDISPLAY.insert(x87SW_TOP);
+    mUNDODISPLAY.insert(x87SW_TOP);
 
     mFPUx87.insert(x87SW_C2);
     mBOOLDISPLAY.insert(x87SW_C2);
@@ -888,59 +921,69 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mFIELDVALUE.insert(x87CW_RC);
     mFPU.insert(x87CW_RC);
     mMODIFYDISPLAY.insert(x87CW_RC);
+    mUNDODISPLAY.insert(x87CW_RC);
 
     mFPUx87.insert(x87TW_0);
     mFIELDVALUE.insert(x87TW_0);
     mTAGWORD.insert(x87TW_0);
     mFPU.insert(x87TW_0);
     mMODIFYDISPLAY.insert(x87TW_0);
+    mUNDODISPLAY.insert(x87TW_0);
 
     mFPUx87.insert(x87TW_1);
     mFIELDVALUE.insert(x87TW_1);
     mTAGWORD.insert(x87TW_1);
     mFPU.insert(x87TW_1);
     mMODIFYDISPLAY.insert(x87TW_1);
+    mUNDODISPLAY.insert(x87TW_1);
 
     mFPUx87.insert(x87TW_2);
     mFIELDVALUE.insert(x87TW_2);
     mTAGWORD.insert(x87TW_2);
     mFPU.insert(x87TW_2);
     mMODIFYDISPLAY.insert(x87TW_2);
+    mUNDODISPLAY.insert(x87TW_2);
 
     mFPUx87.insert(x87TW_3);
     mFIELDVALUE.insert(x87TW_3);
     mTAGWORD.insert(x87TW_3);
     mFPU.insert(x87TW_3);
     mMODIFYDISPLAY.insert(x87TW_3);
+    mUNDODISPLAY.insert(x87TW_3);
 
     mFPUx87.insert(x87TW_4);
     mFIELDVALUE.insert(x87TW_4);
     mTAGWORD.insert(x87TW_4);
     mFPU.insert(x87TW_4);
     mMODIFYDISPLAY.insert(x87TW_4);
+    mUNDODISPLAY.insert(x87TW_4);
 
     mFPUx87.insert(x87TW_5);
     mFIELDVALUE.insert(x87TW_5);
     mTAGWORD.insert(x87TW_5);
     mFPU.insert(x87TW_5);
     mMODIFYDISPLAY.insert(x87TW_5);
+    mUNDODISPLAY.insert(x87TW_5);
 
     mFPUx87.insert(x87TW_6);
     mFIELDVALUE.insert(x87TW_6);
     mTAGWORD.insert(x87TW_6);
     mFPU.insert(x87TW_6);
     mMODIFYDISPLAY.insert(x87TW_6);
+    mUNDODISPLAY.insert(x87TW_6);
 
     mFPUx87.insert(x87TW_7);
     mFIELDVALUE.insert(x87TW_7);
     mTAGWORD.insert(x87TW_7);
     mFPU.insert(x87TW_7);
     mMODIFYDISPLAY.insert(x87TW_7);
+    mUNDODISPLAY.insert(x87TW_7);
 
     mFPUx87.insert(x87CW_PC);
     mFIELDVALUE.insert(x87CW_PC);
     mFPU.insert(x87CW_PC);
     mMODIFYDISPLAY.insert(x87CW_PC);
+    mUNDODISPLAY.insert(x87CW_PC);
 
     mSETONEZEROTOGGLE.insert(x87CW_IEM);
     mFPUx87.insert(x87CW_IEM);
@@ -1036,132 +1079,173 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mFIELDVALUE.insert(MxCsr_RC);
     mFPU.insert(MxCsr_RC);
     mMODIFYDISPLAY.insert(MxCsr_RC);
+    mUNDODISPLAY.insert(MxCsr_RC);
 
     mMODIFYDISPLAY.insert(MM0);
+    mUNDODISPLAY.insert(MM0);
     mFPUMMX.insert(MM0);
     mFPU.insert(MM0);
     mMODIFYDISPLAY.insert(MM1);
+    mUNDODISPLAY.insert(MM1);
     mFPUMMX.insert(MM1);
     mFPU.insert(MM1);
     mFPUMMX.insert(MM2);
     mMODIFYDISPLAY.insert(MM2);
+    mUNDODISPLAY.insert(MM2);
     mFPU.insert(MM2);
     mFPUMMX.insert(MM3);
     mMODIFYDISPLAY.insert(MM3);
+    mUNDODISPLAY.insert(MM3);
     mFPU.insert(MM3);
     mFPUMMX.insert(MM4);
     mMODIFYDISPLAY.insert(MM4);
+    mUNDODISPLAY.insert(MM4);
     mFPU.insert(MM4);
     mFPUMMX.insert(MM5);
     mMODIFYDISPLAY.insert(MM5);
+    mUNDODISPLAY.insert(MM5);
     mFPU.insert(MM5);
     mFPUMMX.insert(MM6);
     mMODIFYDISPLAY.insert(MM6);
+    mUNDODISPLAY.insert(MM6);
     mFPU.insert(MM6);
     mFPUMMX.insert(MM7);
     mMODIFYDISPLAY.insert(MM7);
+    mUNDODISPLAY.insert(MM7);
     mFPU.insert(MM7);
 
     mFPUXMM.insert(XMM0);
     mMODIFYDISPLAY.insert(XMM0);
+    mUNDODISPLAY.insert(XMM0);
     mFPU.insert(XMM0);
     mFPUXMM.insert(XMM1);
     mMODIFYDISPLAY.insert(XMM1);
+    mUNDODISPLAY.insert(XMM1);
     mFPU.insert(XMM1);
     mFPUXMM.insert(XMM2);
     mMODIFYDISPLAY.insert(XMM2);
+    mUNDODISPLAY.insert(XMM2);
     mFPU.insert(XMM2);
     mFPUXMM.insert(XMM3);
     mMODIFYDISPLAY.insert(XMM3);
+    mUNDODISPLAY.insert(XMM3);
     mFPU.insert(XMM3);
     mFPUXMM.insert(XMM4);
     mMODIFYDISPLAY.insert(XMM4);
+    mUNDODISPLAY.insert(XMM4);
     mFPU.insert(XMM4);
     mFPUXMM.insert(XMM5);
     mMODIFYDISPLAY.insert(XMM5);
+    mUNDODISPLAY.insert(XMM5);
     mFPU.insert(XMM5);
     mFPUXMM.insert(XMM6);
     mMODIFYDISPLAY.insert(XMM6);
+    mUNDODISPLAY.insert(XMM6);
     mFPU.insert(XMM6);
     mFPUXMM.insert(XMM7);
     mMODIFYDISPLAY.insert(XMM7);
+    mUNDODISPLAY.insert(XMM7);
     mFPU.insert(XMM7);
 #ifdef _WIN64
     mFPUXMM.insert(XMM8);
     mMODIFYDISPLAY.insert(XMM8);
+    mUNDODISPLAY.insert(XMM8);
     mFPU.insert(XMM8);
     mFPUXMM.insert(XMM9);
     mMODIFYDISPLAY.insert(XMM9);
+    mUNDODISPLAY.insert(XMM9);
     mFPU.insert(XMM9);
     mFPUXMM.insert(XMM10);
     mMODIFYDISPLAY.insert(XMM10);
+    mUNDODISPLAY.insert(XMM10);
     mFPU.insert(XMM10);
     mFPUXMM.insert(XMM11);
     mMODIFYDISPLAY.insert(XMM11);
+    mUNDODISPLAY.insert(XMM11);
     mFPU.insert(XMM11);
     mFPUXMM.insert(XMM12);
     mMODIFYDISPLAY.insert(XMM12);
+    mUNDODISPLAY.insert(XMM12);
     mFPU.insert(XMM12);
     mFPUXMM.insert(XMM13);
     mMODIFYDISPLAY.insert(XMM13);
+    mUNDODISPLAY.insert(XMM13);
     mFPU.insert(XMM13);
     mFPUXMM.insert(XMM14);
     mMODIFYDISPLAY.insert(XMM14);
+    mUNDODISPLAY.insert(XMM14);
     mFPU.insert(XMM14);
     mFPUXMM.insert(XMM15);
     mMODIFYDISPLAY.insert(XMM15);
+    mUNDODISPLAY.insert(XMM15);
     mFPU.insert(XMM15);
 #endif
 
     mFPUYMM.insert(YMM0);
     mMODIFYDISPLAY.insert(YMM0);
+    mUNDODISPLAY.insert(YMM0);
     mFPU.insert(YMM0);
     mFPUYMM.insert(YMM1);
     mMODIFYDISPLAY.insert(YMM1);
+    mUNDODISPLAY.insert(YMM1);
     mFPU.insert(YMM1);
     mFPUYMM.insert(YMM2);
     mMODIFYDISPLAY.insert(YMM2);
+    mUNDODISPLAY.insert(YMM2);
     mFPU.insert(YMM2);
     mFPUYMM.insert(YMM3);
     mMODIFYDISPLAY.insert(YMM3);
+    mUNDODISPLAY.insert(YMM3);
     mFPU.insert(YMM3);
     mFPUYMM.insert(YMM4);
     mMODIFYDISPLAY.insert(YMM4);
+    mUNDODISPLAY.insert(YMM4);
     mFPU.insert(YMM4);
     mFPUYMM.insert(YMM5);
     mMODIFYDISPLAY.insert(YMM5);
+    mUNDODISPLAY.insert(YMM5);
     mFPU.insert(YMM5);
     mFPUYMM.insert(YMM6);
     mMODIFYDISPLAY.insert(YMM6);
+    mUNDODISPLAY.insert(YMM6);
     mFPU.insert(YMM6);
     mFPUYMM.insert(YMM7);
     mMODIFYDISPLAY.insert(YMM7);
+    mUNDODISPLAY.insert(YMM7);
     mFPU.insert(YMM7);
 
 #ifdef _WIN64
     mFPUYMM.insert(YMM8);
     mMODIFYDISPLAY.insert(YMM8);
+    mUNDODISPLAY.insert(YMM8);
     mFPU.insert(YMM8);
     mFPUYMM.insert(YMM9);
     mMODIFYDISPLAY.insert(YMM9);
+    mUNDODISPLAY.insert(YMM9);
     mFPU.insert(YMM9);
     mFPUYMM.insert(YMM10);
     mMODIFYDISPLAY.insert(YMM10);
+    mUNDODISPLAY.insert(YMM10);
     mFPU.insert(YMM10);
     mFPUYMM.insert(YMM11);
     mMODIFYDISPLAY.insert(YMM11);
+    mUNDODISPLAY.insert(YMM11);
     mFPU.insert(YMM11);
     mFPUYMM.insert(YMM12);
     mMODIFYDISPLAY.insert(YMM12);
+    mUNDODISPLAY.insert(YMM12);
     mFPU.insert(YMM12);
     mFPUYMM.insert(YMM13);
     mMODIFYDISPLAY.insert(YMM13);
+    mUNDODISPLAY.insert(YMM13);
     mFPU.insert(YMM13);
     mFPUYMM.insert(YMM14);
     mMODIFYDISPLAY.insert(YMM14);
+    mUNDODISPLAY.insert(YMM14);
     mFPU.insert(YMM14);
     mFPUYMM.insert(YMM15);
     mMODIFYDISPLAY.insert(YMM15);
+    mUNDODISPLAY.insert(YMM15);
     mFPU.insert(YMM15);
 #endif
     //registers that should not be changed
@@ -1232,6 +1316,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mONLYMODULEANDLABELDISPLAY.insert(CIP);
     mCANSTOREADDRESS.insert(CIP);
     mMODIFYDISPLAY.insert(CIP);
+    mUNDODISPLAY.insert(CIP);
 
     fontsUpdatedSlot();
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
@@ -1266,6 +1351,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     connect(wCM_SetToOne, SIGNAL(triggered()), this, SLOT(onSetToOneAction()));
     connect(wCM_Modify, SIGNAL(triggered()), this, SLOT(onModifyAction()));
     connect(wCM_ToggleValue, SIGNAL(triggered()), this, SLOT(onToggleValueAction()));
+    connect(wCM_Undo, SIGNAL(triggered()), this, SLOT(onUndoAction()));
     connect(wCM_CopyToClipboard, SIGNAL(triggered()), this, SLOT(onCopyToClipboardAction()));
     connect(wCM_CopySymbolToClipboard, SIGNAL(triggered()), this, SLOT(onCopySymbolToClipboardAction()));
     connect(wCM_CopyAll, SIGNAL(triggered()), this, SLOT(onCopyAllAction()));
@@ -1303,9 +1389,13 @@ void RegistersView::refreshShortcutsSlot()
 }
 
 /**
- * @brief RegistersView::~RegistersView The destructor. It also saves the current SIMD display mode into the config file.
+ * @brief RegistersView::~RegistersView The destructor.
  */
 RegistersView::~RegistersView()
+{
+}
+
+void RegistersView::onClose()
 {
     duint cfg = 0;
     switch(wSIMDRegDispMode)
@@ -2582,6 +2672,17 @@ void RegistersView::onToggleValueAction()
     }
 }
 
+void RegistersView::onUndoAction()
+{
+    if(mUNDODISPLAY.contains(mSelected))
+    {
+        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+            setRegister(mSelected, (duint)registerValue(&wCipRegDumpStruct, mSelected));
+        else
+            setRegister(mSelected, *(duint*)registerValue(&wCipRegDumpStruct, mSelected));
+    }
+}
+
 void RegistersView::onCopyToClipboardAction()
 {
     QClipboard* clipboard = QApplication::clipboard();
@@ -2907,6 +3008,46 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 
     if(mSelected != UNKNOWN)
     {
+        if(mMODIFYDISPLAY.contains(mSelected))
+        {
+            wMenu.addAction(wCM_Modify);
+        }
+
+        if(mCANSTOREADDRESS.contains(mSelected))
+        {
+            duint addr = (* ((duint*) registerValue(&wRegDumpStruct, mSelected)));
+            if(DbgMemIsValidReadPtr(addr))
+            {
+                wMenu.addAction(wCM_FollowInDump);
+                wMenu.addMenu(mFollowInDumpMenu);
+                wMenu.addAction(wCM_FollowInDisassembly);
+                wMenu.addAction(wCM_FollowInMemoryMap);
+                duint size = 0;
+                duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
+                if(addr >= base && addr < base + size)
+                    wMenu.addAction(wCM_FollowInStack);
+            }
+        }
+
+        wMenu.addAction(wCM_CopyToClipboard);
+        wMenu.addAction(wCM_CopyAll);
+        if(mLABELDISPLAY.contains(mSelected))
+        {
+            QString symbol = getRegisterLabel(mSelected);
+            if(symbol != "")
+                wMenu.addAction(wCM_CopySymbolToClipboard);
+        }
+
+        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        {
+            wMenu.addAction(wCM_Highlight);
+        }
+
+        if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &wRegDumpStruct, &wCipRegDumpStruct) != 0)
+        {
+            wMenu.addAction(wCM_Undo);
+        }
+
         if(mSETONEZEROTOGGLE.contains(mSelected))
         {
             if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) >= 1)
@@ -2936,42 +3077,10 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             wMenu.addAction(wCM_Pop);
         }
 
-        if(mMODIFYDISPLAY.contains(mSelected))
+        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
-            wMenu.addAction(wCM_Modify);
+            wMenu.addMenu(mSwitchSIMDDispMode);
         }
-
-        if(mCANSTOREADDRESS.contains(mSelected))
-        {
-            duint addr = (* ((duint*) registerValue(&wRegDumpStruct, mSelected)));
-            if(DbgMemIsValidReadPtr(addr))
-            {
-                wMenu.addAction(wCM_FollowInDump);
-                wMenu.addMenu(mFollowInDumpMenu);
-                wMenu.addAction(wCM_FollowInDisassembly);
-                wMenu.addAction(wCM_FollowInMemoryMap);
-                duint size = 0;
-                duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
-                if(addr >= base && addr < base + size)
-                    wMenu.addAction(wCM_FollowInStack);
-            }
-        }
-
-        if(mLABELDISPLAY.contains(mSelected))
-        {
-            QString symbol = getRegisterLabel(mSelected);
-            if(symbol != "")
-                wMenu.addAction(wCM_CopySymbolToClipboard);
-        }
-
-        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
-        {
-            wMenu.addAction(wCM_Highlight);
-        }
-
-        wMenu.addAction(wCM_CopyToClipboard);
-        wMenu.addAction(wCM_CopyAll);
-        wMenu.addMenu(mSwitchSIMDDispMode);
 
         wMenu.exec(this->mapToGlobal(pos));
     }

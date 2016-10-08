@@ -54,6 +54,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(loadGraph(BridgeCFGraphList*, duint)), this, SLOT(loadGraphSlot(BridgeCFGraphList*, duint)));
     connect(Bridge::getBridge(), SIGNAL(graphAt(duint)), this, SLOT(graphAtSlot(duint)));
     connect(Bridge::getBridge(), SIGNAL(updateGraph()), this, SLOT(updateGraphSlot()));
+    connect(Bridge::getBridge(), SIGNAL(selectionGraphGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
 
     //Connect to config
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
@@ -1382,4 +1383,10 @@ void DisassemblerGraphView::toggleOverviewSlot()
 {
     drawOverview = !drawOverview;
     this->viewport()->update();
+}
+
+void DisassemblerGraphView::selectionGetSlot(SELECTIONDATA* selection)
+{
+    selection->start = selection->end = cur_instr;
+    Bridge::getBridge()->setResult(1);
 }

@@ -4,7 +4,7 @@
 #include "CodeFolding.h"
 
 QBeaEngine::QBeaEngine(int maxModuleSize)
-    : _tokenizer(maxModuleSize), mCodeFoldingManager(nullptr)
+    : _tokenizer(maxModuleSize), mCodeFoldingManager(nullptr), _bLongDataInst(false)
 {
     CapstoneTokenizer::UpdateColors();
     UpdateDataInstructionMap();

@@ -154,8 +154,8 @@ static bool _getjit(char* jit, bool jit64)
     }
     else // if jit input == NULL: it returns false if there are not an OLD JIT STORED.
     {
-        char oldjit[MAX_SETTING_SIZE] = "";
-        if(!BridgeSettingGet("JIT", "Old", (char*) & oldjit))
+        Memory<char*> oldjit(MAX_SETTING_SIZE + 1);
+        if(!BridgeSettingGet("JIT", "Old", oldjit()))
             return false;
     }
 
