@@ -228,6 +228,22 @@ void MHTabWidget::showNextTab()
     QTabWidget::setCurrentIndex((QTabWidget::currentIndex() + 1) % QTabWidget::count());
 }
 
+void MHTabWidget::deleteCurrentTab()
+{
+    if(QTabWidget::count() == 0)
+    {
+        return;
+    }
+
+    int index = QTabWidget::currentIndex();
+    DeleteTab(index);
+    if(index < count())
+    {
+        // open the tab to the right of the deleted tab
+        setCurrentIndex(index);
+    }
+}
+
 //----------------------------------------------------------------------------
 
 MHDetachedWindow::MHDetachedWindow(QWidget* parent, MHTabWidget* tabwidget) : QMainWindow(parent)
