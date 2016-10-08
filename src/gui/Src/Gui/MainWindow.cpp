@@ -551,6 +551,8 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionOpen, ConfigShortcut("FileOpen"));
     setGlobalShortcut(ui->actionAttach, ConfigShortcut("FileAttach"));
     setGlobalShortcut(ui->actionDetach, ConfigShortcut("FileDetach"));
+    setGlobalShortcut(ui->actionImportdatabase, ConfigShortcut("FileImportDatabase"));
+    setGlobalShortcut(ui->actionExportdatabase, ConfigShortcut("FileExportDatabase"));
     setGlobalShortcut(ui->actionExit, ConfigShortcut("FileExit"));
 
     setGlobalShortcut(ui->actionCpu, ConfigShortcut("ViewCpu"));
@@ -1756,4 +1758,24 @@ void MainWindow::on_actionImportSettings_triggered()
             GuiUpdateAllViews();
         }
     }
+}
+
+void MainWindow::on_actionImportdatabase_triggered()
+{
+    if(!DbgIsDebugging())
+        return;
+    auto filename = QFileDialog::getOpenFileName(this, tr("Import database"), QString(), tr("Databases (%1);;All files (*.*)").arg(ArchValue("*.dd32", "*.dd64")));
+    if(!filename.length())
+        return;
+    DbgCmdExec(QString("dbload \"%1\"").arg(QDir::toNativeSeparators(filename)).toUtf8().constData());
+}
+
+void MainWindow::on_actionExportdatabase_triggered()
+{
+    if(!DbgIsDebugging())
+        return;
+    auto filename = QFileDialog::getSaveFileName(this, tr("Export database"), QString(), tr("Databases (%1);;All files (*.*)").arg(ArchValue("*.dd32", "*.dd64")));
+    if(!filename.length())
+        return;
+    DbgCmdExec(QString("dbsave \"%1\"").arg(QDir::toNativeSeparators(filename)).toUtf8().constData());
 }

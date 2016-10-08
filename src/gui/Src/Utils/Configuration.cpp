@@ -286,6 +286,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("FileOpen", Shortcut(tr("File -> Open"), "F3", true));
     defaultShortcuts.insert("FileAttach", Shortcut(tr("File -> Attach"), "Alt+A", true));
     defaultShortcuts.insert("FileDetach", Shortcut(tr("File -> Detach"), "Ctrl+Alt+F2", true));
+    defaultShortcuts.insert("FileImportDatabase", Shortcut(tr("File -> Import database"), "", true));
+    defaultShortcuts.insert("FileExportDatabase", Shortcut(tr("File -> Export database"), "", true));
     defaultShortcuts.insert("FileExit", Shortcut(tr("File -> Exit"), "Alt+X", true));
 
     defaultShortcuts.insert("ViewCpu", Shortcut(tr("View -> CPU"), "Alt+C", true));
