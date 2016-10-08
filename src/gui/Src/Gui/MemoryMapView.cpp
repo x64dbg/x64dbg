@@ -412,13 +412,13 @@ void MemoryMapView::yaraSlot()
 void MemoryMapView::memoryAccessSingleshootSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, r").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, a").toUtf8().constData());
 }
 
 void MemoryMapView::memoryAccessRestoreSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, r").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, a").toUtf8().constData());
 }
 
 void MemoryMapView::memoryWriteSingleshootSlot()
@@ -459,7 +459,7 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
 #else //x86
     duint selectedAddr = addr_text.toULong(0, 16);
 #endif //_WIN64
-    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory) == bp_memory) //memory breakpoint set
+    if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
         memoryRemoveSlot();
     else
         memoryExecuteSingleshootSlot();

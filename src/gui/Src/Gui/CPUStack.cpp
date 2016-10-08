@@ -1016,13 +1016,13 @@ void CPUStack::hardwareRemoveSlot()
 void CPUStack::memoryAccessSingleshootSlot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, r").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, a").toUtf8().constData());
 }
 
 void CPUStack::memoryAccessRestoreSlot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, r").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, a").toUtf8().constData());
 }
 
 void CPUStack::memoryWriteSingleshootSlot()
