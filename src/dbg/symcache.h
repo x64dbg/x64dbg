@@ -21,9 +21,11 @@ struct LineInfo
 bool SymbolFromAddr(duint addr, SymbolInfo & symbol);
 bool SymbolFromName(const char* name, SymbolInfo & symbol);
 bool SymbolAdd(const SymbolInfo & symbol);
-void SymbolDelRange(duint start, duint end);
+bool SymbolAddRange(duint start, duint size);
+bool SymbolDelRange(duint addr);
 
 bool LineFromAddr(duint addr, LineInfo & line);
 bool LineFromName(const char* sourceFile, int lineNumber, LineInfo & line);
 bool LineAdd(const LineInfo & line);
-void LineDelRange(duint start, duint end);
+bool LineAddRange(duint start, duint size);
+bool LineDelRange(duint addr);
