@@ -312,6 +312,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewGraph", Shortcut(tr("View -> Graph"), "Alt+G", true));
     defaultShortcuts.insert("ViewPreviousTab", Shortcut(tr("View -> Previous Tab"), "Ctrl+Shift+Tab"));
     defaultShortcuts.insert("ViewNextTab", Shortcut(tr("View -> Next Tab"), "Ctrl+Tab"));
+    defaultShortcuts.insert("ViewHideTab", Shortcut(tr("View -> Hide Tab"), "Ctrl+W"));
 
     defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9", true));
     defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (pass exceptions)"), "Shift+F9", true));
