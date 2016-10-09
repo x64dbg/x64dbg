@@ -2771,7 +2771,7 @@
       "mnem": "cdq"
     }, 
     {
-      "description": "sign extend eax into rax (added with x86-64)", 
+      "description": "sign extend eax into rax", 
       "mnem": "cdqe"
     }, 
     {
@@ -2935,20 +2935,24 @@
       "mnem": "cmps"
     }, 
     {
-      "description": "cmp DS:[SI], ES:[edi] (esi++, edi++)", 
+      "description": "cmp DS:[esi], (byte)ES:[edi] (esi++, edi++)", 
       "mnem": "cmpsb"
     }, 
     {
-      "description": "compare scalar double-fp values", 
+      "description": "cmp DS:[esi], (dword)ES:[edi] (esi+=4, edi+=4)/compare scalar double-fp values", 
       "mnem": "cmpsd"
     }, 
     {
-      "description": "compare string quadword (added with x86-64)", 
+      "description": "cmp DS:[rsi], (qword)ES:[rdi] (rsi+=8, rdi+=8)", 
       "mnem": "cmpsq"
     }, 
     {
       "description": "compare scalar single-fp values", 
       "mnem": "cmpss"
+    }, 
+    {
+      "description": "cmp DS:[esi], (word)ES:[edi] (esi+=2, edi+=2)", 
+      "mnem": "cmpsw"
     }, 
     {
       "description": "compare and exchange", 
@@ -3899,7 +3903,7 @@
       "mnem": "lodsd"
     }, 
     {
-      "description": "Load string quadword (added with x86-64)", 
+      "description": "Load string quadword", 
       "mnem": "lodsq"
     }, 
     {
@@ -4083,7 +4087,7 @@
       "mnem": "movntq"
     }, 
     {
-      "description": "move doubleword/quadword", 
+      "description": "move quadword", 
       "mnem": "movq"
     }, 
     {
@@ -4095,11 +4099,11 @@
       "mnem": "movs"
     }, 
     {
-      "description": "move byte sting", 
+      "description": "ES:[edi] = (byte)DS:[esi] (esi++, edi++)", 
       "mnem": "movsb"
     }, 
     {
-      "description": "move scalar double-fp value", 
+      "description": "ES:[edi] = (dword)DS:[esi] (esi+=4, edi+=4)/move scalar double-fp value", 
       "mnem": "movsd"
     }, 
     {
@@ -5199,7 +5203,7 @@
       "mnem": "stosd"
     }, 
     {
-      "description": "store string quadword (added with x86_64)", 
+      "description": "store string quadword", 
       "mnem": "stosq"
     }, 
     {
