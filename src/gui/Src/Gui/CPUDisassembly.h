@@ -67,6 +67,7 @@ public slots:
     void findStringsSlot();
     void findCallsSlot();
     void findPatternSlot();
+    void findGUIDSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
     void selectionSetSlot(const SELECTIONDATA* selection);
     void enableHighlightingModeSlot();
@@ -129,17 +130,20 @@ private:
     QAction* mFindStringsRegion;
     QAction* mFindCallsRegion;
     QAction* mFindPatternRegion;
+    QAction* mFindGUIDRegion;
 
     QAction* mFindCommandModule;
     QAction* mFindConstantModule;
     QAction* mFindStringsModule;
     QAction* mFindCallsModule;
     QAction* mFindPatternModule;
+    QAction* mFindGUIDModule;
 
     QAction* mFindCommandAll;
     QAction* mFindConstantAll;
     QAction* mFindStringsAll;
     QAction* mFindCallsAll;
+    QAction* mFindGUIDAll;
 
     // Goto dialog specific
     GotoDialog* mGoto;

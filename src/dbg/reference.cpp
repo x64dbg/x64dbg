@@ -10,6 +10,17 @@
 #include "module.h"
 #include "threading.h"
 
+/**
+@brief RefFind Find reference to the buffer by a given criterion.
+@param Address The base address of the buffer
+@param Size The size of the buffer
+@param Callback The callback that is invoked to identify whether an instruction satisfies the criterion. prototype: bool callback(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+@param UserData The data that will be passed to Callback
+@param Silent If true, no log will be outputed.
+@param Name The name of the reference criterion. Not null.
+@param type The type of the memory buffer. Possible values:CURRENT_REGION,CURRENT_MODULE,ALL_MODULES
+@param disasmText If false, disassembled text will not be available.
+*/
 int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name, REFFINDTYPE type, bool disasmText)
 {
     char fullName[deflen];

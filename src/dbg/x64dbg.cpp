@@ -419,6 +419,7 @@ static void registercommands()
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
     dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
+    dbgcmdnew("guidfind\1findguid", cbInstrGUIDFind, true); //find GUID references
 };
 
 static bool cbCommandProvider(char* cmd, int maxlen)

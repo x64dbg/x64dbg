@@ -538,7 +538,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     if(found)
     {
         char addrText[20] = "";
-        char moduleTargetText[256] = "";
+        char moduleTargetText[MAX_MODULE_SIZE] = "";
         sprintf_s(addrText, "%p", disasm->Address());
         sprintf(moduleTargetText, "%s.%s", module, label);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
@@ -578,6 +578,248 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
     int found = RefFind(addr, size, cbModCallFind, 0, false, Calls.c_str(), (REFFINDTYPE)refFindType, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%u call(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
+    return STATUS_CONTINUE;
+}
+
+struct GUIDHashObject
+{
+    inline size_t operator()(const GUID & ref)
+    {
+        size_t* p = (size_t*)&ref;
+#ifdef _WIN64
+        static_assert(sizeof(size_t) == 8, "The system is not 64-bit!");
+        return p[0] + p[1];
+#else //x86
+        static_assert(sizeof(size_t) == 4, "The system is not 32-bit!");
+        return p[0] + p[1] + p[2] + p[3];
+#endif //_WIN64
+    };
+};
+
+struct GUIDEqualObject
+{
+    inline bool operator()(const GUID & a, const GUID & b)
+    {
+        return memcmp(&a, &b, sizeof(GUID)) == 0;
+    };
+};
+
+class GUIDInfo
+{
+public:
+    String ProgId;
+    String Description;
+    String Path;
+    GUIDInfo(const GUID & ref, HKEY CLSID)
+    {
+        wchar_t subkey[40];
+        HKEY hKey;
+        StringFromGUID2(ref, subkey, 40);
+        if(RegOpenKeyExW(CLSID, subkey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+        {
+            Description = ReadValue(nullptr, hKey);
+            HKEY hProgIdKey;
+            if(RegOpenKeyExW(hKey, L"ProgId", 0, KEY_READ, &hProgIdKey) == ERROR_SUCCESS)
+            {
+                ProgId = ReadValue(nullptr, hProgIdKey);
+                RegCloseKey(hProgIdKey);
+            }
+            else
+            {
+                ProgId = "";
+            }
+            HKEY hPathKey;
+            if(RegOpenKeyExW(hKey, L"InprocServer32", 0, KEY_READ, &hPathKey) == ERROR_SUCCESS)
+            {
+                Path = ReadValue(nullptr, hPathKey);
+                RegCloseKey(hPathKey);
+            }
+            else
+            {
+                Path = "";
+            }
+            RegCloseKey(hKey);
+        }
+    }
+private:
+    String ReadValue(const wchar_t* name, HKEY hKey)
+    {
+        DWORD regType = 0;
+        DWORD cbData = 0;
+        if(RegQueryValueExW(hKey, name, nullptr, &regType, nullptr, &cbData))
+            return "";
+        if(regType != REG_SZ)
+            return "";
+        Memory<wchar_t*> buffer(cbData + 2, "GUIDInfo::ReadValue");
+        buffer()[cbData / 2] = 0; //ensure the buffer is null-terminated
+        if(RegQueryValueExW(hKey, name, nullptr, nullptr, reinterpret_cast<LPBYTE>(buffer()), &cbData))
+            return "";
+        return StringUtils::Utf16ToUtf8(buffer());
+    }
+};
+
+struct GUIDRefInfo
+{
+    std::unordered_map<GUID, size_t, GUIDHashObject, GUIDEqualObject>* allRegisteredGUIDs;
+    std::vector<GUIDInfo>* allQueriedGUIDs;
+    HKEY CLSID;
+};
+
+static bool cbGUIDFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!disasm || !basicinfo)   //initialize
+    {
+        GuiReferenceInitialize(refinfo->name);
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GUID")));
+        GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "ProgId")));
+        GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Path")));
+        GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Description")));
+        GuiReferenceSetRowCount(0);
+        GuiReferenceReloadData();
+        return true;
+    }
+    duint value = 0;
+    if(basicinfo->branch) //cannot branch to a GUID
+        return false;
+    GUIDRefInfo* refInfo = reinterpret_cast<GUIDRefInfo*>(refinfo->userinfo);
+    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
+        value = basicinfo->value.value;
+    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
+        value = basicinfo->memory.value;
+    if((basicinfo->type & TYPE_ADDR) == TYPE_ADDR)
+        value = basicinfo->addr;
+    GUID guid;
+    unsigned char membuffer[38 * 2];
+    bool found = false;
+    memset(&membuffer, 0, sizeof(membuffer));
+    if(MemRead(value, &membuffer, sizeof(membuffer), nullptr, true))
+    {
+        std::unordered_map<GUID, size_t, GUIDHashObject, GUIDEqualObject>::iterator iterator;
+        if(membuffer[0] == '{' && membuffer[37] == '}' && membuffer[24] == '-' && membuffer[9] == '-' && membuffer[14] == '-' && membuffer[19] == '-')
+        {
+            //very likely a ASCII string representation of GUID
+            wchar_t wideguid[39];
+            for(size_t i = 0; i < 38; i++)
+                wideguid[i] = membuffer[i];
+            wideguid[38] = 0;
+            if(CLSIDFromString(wideguid, &guid) == S_OK)
+            {
+                iterator = refInfo->allRegisteredGUIDs->find(guid);
+                if(iterator != refInfo->allRegisteredGUIDs->end())
+                    found = true;
+            }
+        }
+        if(!found)
+        {
+            wchar_t* wideguid = reinterpret_cast<wchar_t*>(membuffer);
+            if(wideguid[0] == L'{' && wideguid[37] == L'}' && wideguid[24] == L'-' && wideguid[9] == L'-' && wideguid[14] == L'-' && wideguid[19] == L'-')
+            {
+                //very likely a Unicode string representation of GUID
+                if(CLSIDFromString(wideguid, &guid) == S_OK)
+                {
+                    iterator = refInfo->allRegisteredGUIDs->find(guid);
+                    if(iterator != refInfo->allRegisteredGUIDs->end())
+                        found = true;
+                }
+            }
+        }
+        if(!found)
+        {
+            memcpy(&guid, membuffer, sizeof(guid));
+            iterator = refInfo->allRegisteredGUIDs->find(guid);
+            if(iterator != refInfo->allRegisteredGUIDs->end())
+                found = true;
+        }
+        if(found)
+        {
+            char addrText[20] = "";
+            sprintf_s(addrText, "%p", disasm->Address());
+            GuiReferenceSetRowCount(refinfo->refcount + 1);
+            GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+            char disassembly[4096] = "";
+            if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
+                GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+            else
+                GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
+            wchar_t guidText[40];
+            StringFromGUID2(guid, guidText, 40);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, StringUtils::Utf16ToUtf8(guidText).c_str());
+            size_t infoIndex = iterator->second;
+            if(infoIndex == 0)
+            {
+                refInfo->allQueriedGUIDs->push_back(GUIDInfo(guid, refInfo->CLSID));
+                infoIndex = refInfo->allQueriedGUIDs->size();
+                refInfo->allRegisteredGUIDs->at(guid) = infoIndex;
+            }
+            infoIndex--;
+            GuiReferenceSetCellContent(refinfo->refcount, 3, refInfo->allQueriedGUIDs->at(infoIndex).ProgId.c_str());
+            GuiReferenceSetCellContent(refinfo->refcount, 4, refInfo->allQueriedGUIDs->at(infoIndex).Path.c_str());
+            GuiReferenceSetCellContent(refinfo->refcount, 5, refInfo->allQueriedGUIDs->at(infoIndex).Description.c_str());
+        }
+    }
+    return found;
+}
+
+CMDRESULT cbInstrGUIDFind(int argc, char* argv[])
+{
+    duint ticks = GetTickCount();
+    duint addr;
+    duint size = 0;
+    String TranslatedString;
+    std::unordered_map<GUID, size_t, GUIDHashObject, GUIDEqualObject> allRegisteredGUIDs;
+    std::vector<GUIDInfo> allQueriedGUIDs;
+    GUIDRefInfo refInfo;
+
+    // If not specified, assume CURRENT_REGION by default
+    if(argc < 2 || !valfromstring(argv[1], &addr, true))
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    if(argc >= 3)
+        if(!valfromstring(argv[2], &size, true))
+            size = 0;
+
+    duint refFindType = CURRENT_REGION;
+    if(argc >= 4 && valfromstring(argv[3], &refFindType, true))
+        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
+    HKEY CLSID;
+    if(RegOpenKeyExW(HKEY_CLASSES_ROOT, L"CLSID", 0, KEY_READ, &CLSID))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "RegOpenKeyExW() failed. Cannot enumerate GUIDs."));
+        return STATUS_ERROR;
+    }
+
+    wchar_t subkeyName[40];
+    subkeyName[39] = 0;
+    DWORD i = 0;
+    DWORD subkeyNameLen = 40;
+    LONG result;
+    while(result = RegEnumKeyExW(CLSID, i++, subkeyName, &subkeyNameLen, nullptr, nullptr, nullptr, nullptr), result == ERROR_SUCCESS || result == ERROR_MORE_DATA)
+    {
+        if(subkeyNameLen == 38 && result != ERROR_MORE_DATA)
+        {
+            if(subkeyName[0] == '{' && subkeyName[37] == '}' && subkeyName[24] == '-' && subkeyName[9] == '-' && subkeyName[14] == '-' && subkeyName[19] == '-')
+            {
+                //very likely a GUID
+                GUID temp;
+                if(CLSIDFromString(subkeyName, &temp) == S_OK)
+                    allRegisteredGUIDs.insert(std::make_pair(temp, 0));
+            }
+        }
+        subkeyNameLen = 40;
+        subkeyName[39] = 0;
+    }
+    refInfo.allQueriedGUIDs = &allQueriedGUIDs;
+    refInfo.allRegisteredGUIDs = &allRegisteredGUIDs;
+    refInfo.CLSID = CLSID;
+
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GUID"));
+    int found = RefFind(addr, size, cbGUIDFind, &refInfo, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u GUID(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    varset("$result", found, false);
+    RegCloseKey(CLSID);
     return STATUS_CONTINUE;
 }
 
