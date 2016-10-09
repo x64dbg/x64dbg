@@ -52,6 +52,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="btnDisselectAll">
+       <property name="text">
+        <string>Disselect All</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btnOk">
        <property name="text">
         <string>&amp;OK</string>

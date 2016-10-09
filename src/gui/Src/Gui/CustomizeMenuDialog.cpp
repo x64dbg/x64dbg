@@ -43,6 +43,7 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
         ui->treeWidget->addTopLevelItem(parentItem);
     }
     connect(ui->btnOk, SIGNAL(clicked()), this, SLOT(onOk()));
+    connect(ui->btnDisselectAll, SIGNAL(clicked()), this, SLOT(onDisselectAll()));
 }
 
 void CustomizeMenuDialog::onOk()
@@ -57,6 +58,18 @@ void CustomizeMenuDialog::onOk()
         }
     }
     emit accept();
+}
+
+void CustomizeMenuDialog::onDisselectAll()
+{
+    for(int i = ui->treeWidget->topLevelItemCount(); i != 0; i--)
+    {
+        const QTreeWidgetItem* parentItem = ui->treeWidget->topLevelItem(i - 1);
+        for(int j = parentItem->childCount(); j != 0; j--)
+        {
+            parentItem->child(j - 1)->setCheckState(0, Qt::Unchecked);
+        }
+    }
 }
 
 CustomizeMenuDialog::~CustomizeMenuDialog()
