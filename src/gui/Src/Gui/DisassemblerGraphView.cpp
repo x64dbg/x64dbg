@@ -1268,6 +1268,7 @@ void DisassemblerGraphView::fontChanged()
 void DisassemblerGraphView::tokenizerConfigUpdatedSlot()
 {
     disasm.UpdateConfig();
+    loadCurrentGraph();
 }
 
 void DisassemblerGraphView::loadCurrentGraph()
