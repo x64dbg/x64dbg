@@ -16,6 +16,7 @@
 #include <QMutex>
 #include "Bridge.h"
 #include "RichTextPainter.h"
+#include "QBeaEngine.h"
 
 class MenuBuilder;
 class CachedFontMetrics;
@@ -94,14 +95,15 @@ public:
 
         Text() {}
 
-        Text(const QString & text, QColor color)
+        Text(const QString & text, QColor color, QColor background)
         {
             RichTextPainter::List richText;
             RichTextPainter::CustomRichText_t rt;
             rt.highlight = false;
-            rt.flags = RichTextPainter::FlagColor;
             rt.text = text;
             rt.textColor = color;
+            rt.textBackground = background;
+            rt.flags = rt.textBackground.alpha() ? RichTextPainter::FlagAll : RichTextPainter::FlagColor;
             richText.push_back(rt);
             lines.push_back(richText);
         }
@@ -247,6 +249,8 @@ public:
     void show_cur_instr();
     bool navigate(duint addr);
     void fontChanged();
+    void loadCurrentGraph();
+    QString getSymbolicName(duint addr);
 
 public slots:
     void updateTimerEvent();
@@ -259,6 +263,7 @@ public slots:
     void shortcutsUpdatedSlot();
     void toggleOverviewSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
+    void tokenizerConfigUpdatedSlot();
 
 private:
     QString status;
@@ -303,6 +308,15 @@ private:
     QColor brfalseColor;
     QColor retShadowColor;
     QColor backgroundColor;
+    QColor mAutoCommentColor;
+    QColor mAutoCommentBackgroundColor;
+    QColor mCommentColor;
+    QColor mCommentBackgroundColor;
+    QColor mLabelColor;
+    QColor mLabelBackgroundColor;
+
+    BridgeCFGraph currentGraph;
+    QBeaEngine disasm;
 protected:
 #include "ActionHelpers.h"
 };

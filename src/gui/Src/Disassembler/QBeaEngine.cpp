@@ -181,7 +181,6 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
  *
  * @return      Return the disassembled instruction
  */
-
 Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA)
 {
     ENCODETYPE type = mEncodeMap->getDataType(origBase + origInstRVA);
@@ -232,7 +231,6 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     return wInst;
 }
-
 
 Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type)
 {
@@ -286,8 +284,6 @@ void QBeaEngine::UpdateDataInstructionMap()
     dataInstMap.insert(enc_unicode, {"unicode", "unicode", "wstring"});
 
 }
-
-
 
 void QBeaEngine::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)
 {

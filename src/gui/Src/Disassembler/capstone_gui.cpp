@@ -163,6 +163,7 @@ void CapstoneTokenizer::UpdateConfig()
               ConfigBool("Disassembler", "TabbedMnemonic"),
               ConfigBool("Disassembler", "ArgumentSpaces"),
               ConfigBool("Disassembler", "MemorySpaces"));
+    _maxModuleLength = (int)ConfigUint("Disassembler", "MaxModuleSize");
     UpdateStringPool();
 }
 
