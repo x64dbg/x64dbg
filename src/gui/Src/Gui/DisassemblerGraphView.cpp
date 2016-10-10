@@ -649,8 +649,9 @@ void DisassemblerGraphView::computeGraphLayout(DisassemblerBlock & block)
     //Compute child node layouts and arrange them horizontally
     int col = 0;
     int row_count = 1;
-    for(duint edge : block.new_exits)
+    for(size_t i = 0; i < block.new_exits.size(); i++)
     {
+        duint edge = block.new_exits[block.new_exits.size() - i - 1];
         this->computeGraphLayout(this->blocks[edge]);
         this->adjustGraphLayout(this->blocks[edge], col, 1);
         col += this->blocks[edge].col_count;
@@ -696,7 +697,7 @@ int DisassemblerGraphView::findHorizEdgeIndex(EdgesVector & edges, int row, int 
     while(true)
     {
         bool valid = true;
-        for(int col = min_col; col < max_col + 1; col++) //TODO: use max_col+1 ?
+        for(int col = min_col; col < max_col + 1; col++)
             if(isEdgeMarked(edges, row, col, i))
             {
                 valid = false;
@@ -708,7 +709,7 @@ int DisassemblerGraphView::findHorizEdgeIndex(EdgesVector & edges, int row, int 
     }
 
     //Mark chosen index as used
-    for(int col = min_col; col < max_col + 1; col++) //TODO: use max_col+1 ?
+    for(int col = min_col; col < max_col + 1; col++)
         this->markEdge(edges, row, col, i);
     return i;
 }
@@ -720,7 +721,7 @@ int DisassemblerGraphView::findVertEdgeIndex(EdgesVector & edges, int col, int m
     while(true)
     {
         bool valid = true;
-        for(int row = min_row; row < max_row + 1; row++) //TODO: use max_row+1 ?
+        for(int row = min_row; row < max_row + 1; row++)
             if(isEdgeMarked(edges, row, col, i))
             {
                 valid = false;
@@ -732,7 +733,7 @@ int DisassemblerGraphView::findVertEdgeIndex(EdgesVector & edges, int col, int m
     }
 
     //Mark chosen index as used
-    for(int row = min_row; row < max_row + 1; row++) //TODO: use max_row+1 ?
+    for(int row = min_row; row < max_row + 1; row++)
         this->markEdge(edges, row, col, i);
     return i;
 }
@@ -903,7 +904,6 @@ void DisassemblerGraphView::renderFunction(Function & func)
     puts("Populate incoming lists");
 
     //Construct acyclic graph where each node is used as an edge exactly once
-    //auto block = func.blocks[func.entry];
     std::unordered_set<duint> visited;
     visited.insert(func.entry);
     std::queue<duint> queue;
@@ -973,6 +973,53 @@ void DisassemblerGraphView::renderFunction(Function & func)
 
     //Compute graph layout from bottom up
     this->computeGraphLayout(this->blocks[func.entry]);
+
+    //Optimize layout to be more compact
+    /*std::vector<DisassemblerBlock> rowBlocks;
+    for(auto blockIt : this->blocks)
+        rowBlocks.push_back(blockIt.second);
+    std::sort(rowBlocks.begin(), rowBlocks.end(), [](DisassemblerBlock & a, DisassemblerBlock & b)
+    {
+        if(a.row < b.row)
+            return true;
+        if(a.row == b.row)
+            return a.col < b.col;
+        return false;
+    });
+    std::vector<std::vector<DisassemblerBlock>> rowMap;
+    for(DisassemblerBlock & block : rowBlocks)
+    {
+        if(block.row == rowMap.size())
+            rowMap.push_back(std::vector<DisassemblerBlock>());
+        rowMap[block.row].push_back(block);
+    }
+    int median = this->blocks[func.entry].col;
+    for(auto & blockVec : rowMap)
+    {
+        int len = int(blockVec.size());
+        if(len == 1)
+            continue;
+        int bestidx = 0;
+        int bestdist = median;
+        for(int i = 0; i < len; i++)
+        {
+            auto & block = blockVec[i];
+            int dist = std::abs(block.col - median);
+            if(dist < bestdist)
+            {
+                bestdist = dist;
+                bestidx = i;
+            }
+        }
+        for(int j = bestidx - 1; j > -1; j--)
+            blockVec[j].col = blockVec[j + 1].col - 2;
+        for(int j = bestidx + 1; j < len; j++)
+            blockVec[j].col = blockVec[j - 1].col + 2;
+    }
+    for(auto & blockVec : rowMap)
+        for(DisassemblerBlock & block : blockVec)
+            blocks[block.block.entry] = block;*/
+
     puts("Compute graph layout from bottom up");
 
     //Prepare edge routing
