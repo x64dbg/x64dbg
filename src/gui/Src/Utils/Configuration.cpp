@@ -474,6 +474,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionRefresh", Shortcut(tr("Actions -> Refresh"), "F5"));
     defaultShortcuts.insert("ActionGraph", Shortcut(tr("Actions -> Graph"), "G"));
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut(tr("Actions -> Graph -> Toggle overview"), "O"));
+    defaultShortcuts.insert("ActionGraphRefresh", Shortcut(tr("Actions -> Graph -> Refresh"), "R"));
     defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut(tr("Actions -> Increment x87 Stack")));
     defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut(tr("Actions -> Decrement x87 Stack")));
     defaultShortcuts.insert("ActionPush", Shortcut(tr("Actions -> Push")));

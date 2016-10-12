@@ -249,7 +249,6 @@ public:
     void show_cur_instr();
     bool navigate(duint addr);
     void fontChanged();
-    void loadCurrentGraph();
     QString getSymbolicName(duint addr);
 
 public slots:
@@ -264,6 +263,7 @@ public slots:
     void toggleOverviewSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
     void tokenizerConfigUpdatedSlot();
+    void loadCurrentGraph();
 
 private:
     QString status;

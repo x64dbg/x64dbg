@@ -1465,6 +1465,7 @@ void DisassemblerGraphView::setupContextMenu()
 
     mToggleOverviewAction = makeShortcutAction(DIcon("graph.png"), tr("Toggle &Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview");
     mMenuBuilder->addAction(mToggleOverviewAction);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("Refresh"), SLOT(loadCurrentGraph()), "ActionGraphRefresh"));
 }
 
 void DisassemblerGraphView::followDisassemblerSlot()
