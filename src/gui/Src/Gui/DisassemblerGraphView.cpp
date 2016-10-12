@@ -239,7 +239,6 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
 
 void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, int xofs, int yofs)
 {
-    auto dbgfunctions = DbgFunctions();
     // Scale and translate painter
     qreal sx = qreal(viewportRect.width()) / qreal(this->renderWidth);
     qreal sy = qreal(viewportRect.height()) / qreal(this->renderHeight);
@@ -283,10 +282,14 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
             p.drawConvexPolygon(edge.arrow);
         }
 
+        auto isTraced = DbgFunctions()->GetTraceRecordHitCount(block.block.entry) != 0;
+
         //Render shadow
         p.setPen(QColor(0, 0, 0, 0));
-        if(block.block.terminal)
+        if(isTraced && block.block.terminal)
             p.setBrush(retShadowColor);
+        else if(block.block.terminal)
+            p.setBrush(QColor(0, 0, 0, 0));
         else
             p.setBrush(QColor(0, 0, 0, 128));
         p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
@@ -295,8 +298,10 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         //Render node background
         pen.setColor(Qt::black);
         p.setPen(pen);
-        if(dbgfunctions->GetTraceRecordHitCount(block.block.entry) != 0)
+        if(isTraced)
             p.setBrush(QBrush(disassemblyTracedColor));
+        else if(block.block.terminal)
+            p.setBrush(QBrush(retShadowColor));
         else
             p.setBrush(QBrush(disassemblyBackgroundColor));
         p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
