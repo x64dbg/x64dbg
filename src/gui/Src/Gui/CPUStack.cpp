@@ -233,6 +233,7 @@ void CPUStack::setupContextMenu()
     connect(mGotoBp, SIGNAL(triggered()), this, SLOT(gotoBpSlot()));
 
     mFreezeStack = new QAction(DIcon("freeze.png"), tr("Freeze the stack"), this);
+    mFreezeStack->setCheckable(true);
     this->addAction(mFreezeStack);
     connect(mFreezeStack, SIGNAL(triggered()), this, SLOT(freezeStackSlot()));
 
@@ -326,20 +327,11 @@ void CPUStack::setupContextMenu()
 
 void CPUStack::updateFreezeStackAction()
 {
-    QFont font = mFreezeStack->font();
-
     if(bStackFrozen)
-    {
-        font.setBold(true);
-        mFreezeStack->setFont(font);
         mFreezeStack->setText(tr("Unfreeze the stack"));
-    }
     else
-    {
-        font.setBold(false);
-        mFreezeStack->setFont(font);
         mFreezeStack->setText(tr("Freeze the stack"));
-    }
+    mFreezeStack->setChecked(bStackFrozen);
 }
 
 void CPUStack::refreshShortcutsSlot()
