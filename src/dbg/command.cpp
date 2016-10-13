@@ -275,7 +275,7 @@ bool cmddirectexec(const char* cmd)
         return false;
 
     StringList commands;
-    StringUtils::Split(cmd, ';');
+    StringUtils::Split(cmd, ';', commands);
     for(auto & command : commands)
     {
         command = StringUtils::Trim(command);
