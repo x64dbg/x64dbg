@@ -423,7 +423,7 @@ static void registercommands()
     dbgcmdnew("focusinfo", cbInstrFocusinfo, false);
 };
 
-static bool cbCommandProvider(char* cmd, int maxlen)
+bool cbCommandProvider(char* cmd, int maxlen)
 {
     MESSAGE msg;
     MsgWait(gMsgStack, &msg);
@@ -453,7 +453,7 @@ extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 
 static DWORD WINAPI DbgCommandLoopThread(void* a)
 {
-    cmdloop(cbBadCmd, cbCommandProvider, nullptr, false);
+    cmdloop();
     return 0;
 }
 
