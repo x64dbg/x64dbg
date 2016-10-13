@@ -254,7 +254,7 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
     frame.AddrStack.Mode = AddrModeFlat;
 #endif
 
-#define MaxWalks 50
+    const int MaxWalks = 50;
     // Container for each callstack entry (50 pre-allocated entries)
     callstackVector.clear();
     callstackVector.reserve(MaxWalks);
