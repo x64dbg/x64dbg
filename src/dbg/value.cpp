@@ -1624,7 +1624,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             ptrstring += string[i];
         }
 
-        if(!valfromstring(ptrstring.c_str(), value, silent, baseonly))
+        if(!valfromstring(ptrstring.c_str(), value, silent))
         {
             if(!silent)
                 dprintf(QT_TRANSLATE_NOOP("DBG", "noexpr failed on %s\n"), ptrstring.c_str());
@@ -2239,10 +2239,8 @@ bool valtostring(const char* string, duint value, bool silent)
                 read_size = new_size;
         }
         duint temp;
-        if(!valfromstring(newstring() + add, &temp, silent, false))
-        {
+        if(!valfromstring(newstring() + add, &temp, silent))
             return false;
-        }
         duint value_ = value;
         if(!MemPatch(temp, &value_, read_size))
         {
