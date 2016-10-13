@@ -474,3 +474,11 @@ CMDRESULT cbInstrBriefcheck(int argc, char* argv[])
     }
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrFocusinfo(int argc, char* argv[])
+{
+    ACTIVEVIEW activeView;
+    GuiGetActiveView(&activeView);
+    dprintf("activeTitle: %s, activeClass: %s\n", activeView.title, activeView.className);
+    return STATUS_CONTINUE;
+}

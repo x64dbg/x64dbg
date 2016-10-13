@@ -223,6 +223,7 @@ static void registercommands()
     dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
     dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
     dbgcmdnew("RunToUserCode\1rtu", cbDebugRunToUserCode, true); //Run to user code
+    dbgcmdnew("guidfind\1findguid", cbInstrGUIDFind, true); //find GUID references TODO: undocumented
 
     //thread control
     dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
@@ -313,6 +314,7 @@ static void registercommands()
     dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
     dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
     dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
+    dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address TODO: undocumented
 
     dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
@@ -418,8 +420,7 @@ static void registercommands()
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
-    dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
-    dbgcmdnew("guidfind\1findguid", cbInstrGUIDFind, true); //find GUID references
+    dbgcmdnew("focusinfo", cbInstrFocusinfo, false);
 };
 
 static bool cbCommandProvider(char* cmd, int maxlen)
