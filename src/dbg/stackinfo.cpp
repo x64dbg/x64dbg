@@ -142,12 +142,28 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
     return false;
 }
 
-DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
+static BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
+{
+    // Fix for 64-bit sizes
+    SIZE_T bytesRead = 0;
+
+    if(MemRead((duint)lpBaseAddress, lpBuffer, nSize, &bytesRead))
+    {
+        if(lpNumberOfBytesRead)
+            *lpNumberOfBytesRead = (DWORD)bytesRead;
+
+        return true;
+    }
+
+    return false;
+}
+
+static DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
 {
     return (DWORD64)ModBaseFromAddr((duint)Address);
 }
 
-DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LPADDRESS64 lpaddr)
+static DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LPADDRESS64 lpaddr)
 {
     ASSERT_ALWAYS("This function should never be called");
     return 0;
@@ -251,7 +267,7 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
                     hActiveThread,
                     &frame,
                     &context,
-                    NULL,
+                    StackReadProcessMemoryProc64,
                     SymFunctionTableAccess64,
                     StackGetModuleBaseProc64,
                     StackTranslateAddressProc64))
