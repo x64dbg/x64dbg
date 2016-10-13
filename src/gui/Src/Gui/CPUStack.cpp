@@ -422,10 +422,6 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
     dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
     duint wVa = rvaToVa(wRva);
 
-    // This sets the first visible row to be selected when stack is frozen, so that we can scroll the stack without it being reset to first selection
-    if(bStackFrozen && rowOffset == 0)
-        setSingleSelection(wRva);
-
     bool wIsSelected = isSelected(wRva);
     if(wIsSelected) //highlight if selected
         painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
