@@ -6,6 +6,7 @@
 #include "memory.h"
 #include "disasm_fast.h"
 #include "TraceRecord.h"
+#include "disasm_helper.h"
 
 namespace Exprfunc
 {
@@ -179,6 +180,26 @@ namespace Exprfunc
         return info.branch && !strstr(info.instruction, "jmp") ? addr + info.size : 0;
     }
 
+    duint disnext(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return addr + info.size;
+    }
+
+    duint disprev(duint addr)
+    {
+        duint size = 0;
+        duint base = MemFindBaseAddr(addr, &size);
+        duint readStart = addr - 16 * 4;
+        if(readStart < base)
+            readStart = base;
+        unsigned char disasmData[256];
+        MemRead(readStart, disasmData, sizeof(disasmData));
+        return readStart + disasmback(disasmData, 0, sizeof(disasmData), addr - readStart, 1);
+    }
+
     duint trenabled(duint addr)
     {
         return TraceRecord.getTraceRecordType(addr) != TraceRecordManager::TraceRecordNone;
@@ -197,14 +218,6 @@ namespace Exprfunc
             return GTC64();
 #endif //_WIN64
         return GetTickCount();
-    }
-
-    duint sleep(duint ms)
-    {
-        if(ms >= 0xFFFFFFFF)
-            ms = 100;
-        Sleep(DWORD(ms));
-        return ms;
     }
 
     static duint readMem(duint addr, duint size)

@@ -87,6 +87,8 @@ void ExpressionFunctions::Init()
     RegisterEasy("dis.imm", disimm);
     RegisterEasy("dis.brtrue", disbrtrue);
     RegisterEasy("dis.brfalse", disbrfalse);
+    RegisterEasy("dis.next", disnext);
+    RegisterEasy("dis.prev", disprev);
 
     //Trace record
     RegisterEasy("tr.enabled", trenabled);

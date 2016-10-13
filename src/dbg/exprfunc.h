@@ -36,11 +36,12 @@ namespace Exprfunc
     duint disimm(duint addr);
     duint disbrtrue(duint addr);
     duint disbrfalse(duint addr);
+    duint disnext(duint addr);
+    duint disprev(duint addr);
 
     duint trenabled(duint addr);
     duint trhitcount(duint addr);
     duint gettickcount();
-    duint sleep(duint ms);
 
     duint readbyte(duint addr);
     duint readword(duint addr);
