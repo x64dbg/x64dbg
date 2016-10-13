@@ -6,6 +6,7 @@
 // Needed forward declaration for parent container class
 class CPUWidget;
 class GotoDialog;
+class XrefBrowseDialog;
 
 class CPUDisassembly : public Disassembly
 {
@@ -24,7 +25,6 @@ public:
     void addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences, bool isFollowInCPU);
     void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences, bool isFollowInCPU);
     void setHwBpAt(duint va, int slot);
-
     void copySelectionSlot(bool copyBytes);
 
 signals:
@@ -147,6 +147,7 @@ private:
 
     // Goto dialog specific
     GotoDialog* mGoto;
+    XrefBrowseDialog* mXrefDlg = nullptr;
 
     // Parent CPU window
     CPUWidget* mParentCPUWindow;

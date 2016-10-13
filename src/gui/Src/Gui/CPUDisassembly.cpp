@@ -1087,8 +1087,11 @@ void CPUDisassembly::gotoXrefSlot()
 {
     if(!DbgIsDebugging() || !mXrefInfo.refcount)
         return;
-    XrefBrowseDialog xrefDlg(this, getSelectedVa());
-    xrefDlg.exec();
+    if(!mXrefDlg)
+        mXrefDlg = new XrefBrowseDialog(this);
+    mXrefDlg->setup(getSelectedVa());
+    mXrefDlg->showNormal();
+    mXrefDlg->setFocus();
 }
 
 void CPUDisassembly::followActionSlot()
