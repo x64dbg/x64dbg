@@ -21,6 +21,7 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     }
     DebugUpdateGui(addr, false);
     GuiShowCpu();
+    GuiFocusView(GUI_DISASSEMBLY);
     return STATUS_CONTINUE;
 }
 
@@ -50,6 +51,7 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
     else
         GuiDumpAt(addr);
     GuiShowCpu();
+    GuiFocusView(GUI_DUMP);
     return STATUS_CONTINUE;
 }
 
@@ -71,6 +73,7 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Invalid stack address!"));
     GuiShowCpu();
+    GuiFocusView(GUI_STACK);
     return STATUS_CONTINUE;
 }
 
@@ -85,6 +88,7 @@ CMDRESULT cbDebugMemmapdump(int argc, char* argv[])
         return STATUS_ERROR;
     }
     GuiSelectInMemoryMap(addr);
+    GuiFocusView(GUI_MEMMAP);
     return STATUS_CONTINUE;
 }
 
@@ -99,7 +103,8 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
     auto base = MemFindBaseAddr(entry, &size);
     if(!base || !MemIsValidReadPtr(entry))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid memory address %p!\n"), entry);
+        if(argc <= 2)  //undocumented silent option
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address %p!\n"), entry);
         return STATUS_ERROR;
     }
     if(!GuiGraphAt(sel))
@@ -119,6 +124,7 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
         GuiLoadGraph(&graphList, sel);
     }
     GuiUpdateAllViews();
+    GuiFocusView(GUI_GRAPH);
     return STATUS_CONTINUE;
 }
 

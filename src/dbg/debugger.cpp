@@ -415,12 +415,13 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName, currentThreadId, threadswitch);
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
-    GuiFocusView(GUI_DISASSEMBLY);
 }
 
 void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paused)
 {
     GuiSetDebugState(state);
+    if(state == initialized)
+        GuiFocusView(GUI_DISASSEMBLY);
     DebugUpdateGui(disasm_addr, stack);
 }
 
