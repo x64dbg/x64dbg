@@ -142,22 +142,6 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
     return false;
 }
 
-BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
-{
-    // Fix for 64-bit sizes
-    SIZE_T bytesRead = 0;
-
-    if(MemRead((duint)lpBaseAddress, lpBuffer, nSize, &bytesRead))
-    {
-        if(lpNumberOfBytesRead)
-            *lpNumberOfBytesRead = (DWORD)bytesRead;
-
-        return true;
-    }
-
-    return false;
-}
-
 DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
 {
     return (DWORD64)ModBaseFromAddr((duint)Address);
@@ -213,6 +197,8 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
             callstackVector = found->second;
             return;
         }
+        callstackVector.clear();
+        return;
     }
 
     // Gather context data
@@ -252,11 +238,12 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
     frame.AddrStack.Mode = AddrModeFlat;
 #endif
 
-    // Container for each callstack entry (20 pre-allocated entries)
+#define MaxWalks 50
+    // Container for each callstack entry (50 pre-allocated entries)
     callstackVector.clear();
-    callstackVector.reserve(20);
+    callstackVector.reserve(MaxWalks);
 
-    while(true)
+    for(auto i = 0; i < MaxWalks; i++)
     {
         if(!StackWalk64(
                     machineType,
@@ -264,7 +251,7 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
                     hActiveThread,
                     &frame,
                     &context,
-                    StackReadProcessMemoryProc64,
+                    NULL,
                     SymFunctionTableAccess64,
                     StackGetModuleBaseProc64,
                     StackTranslateAddressProc64))
