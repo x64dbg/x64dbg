@@ -594,8 +594,10 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dbginit();
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger functions..."));
     dbgfunctionsinit();
+#ifdef ENABLE_MEM_TRACE
     dputs(QT_TRANSLATE_NOOP("DBG", "Setting JSON memory management functions..."));
     json_set_alloc_funcs(json_malloc, json_free);
+#endif //ENABLE_MEM_TRACE
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing capstone..."));
     Capstone::GlobalInitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Yara..."));
