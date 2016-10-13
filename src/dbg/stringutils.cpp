@@ -4,17 +4,24 @@
 #include <windows.h>
 #include <cstdint>
 
-StringList StringUtils::Split(const String & s, char delim, std::vector<String> & elems)
+void StringUtils::Split(const String & s, char delim, std::vector<String> & elems)
 {
-    std::stringstream ss(s);
+    elems.clear();
     String item;
-    while(std::getline(ss, item, delim))
+    item.reserve(s.length());
+    for(size_t i = 0; i < s.length(); i++)
     {
-        if(!item.length())
-            continue;
-        elems.push_back(item);
+        if(s[i] == delim)
+        {
+            if(!item.empty())
+                elems.push_back(item);
+            item.clear();
+        }
+        else
+            item.push_back(s[i]);
     }
-    return elems;
+    if(!item.empty())
+        elems.push_back(std::move(item));
 }
 
 StringList StringUtils::Split(const String & s, char delim)
