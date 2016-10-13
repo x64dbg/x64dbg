@@ -576,6 +576,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         case GUI_STACK:
             emit focusStack();
             break;
+        case GUI_GRAPH:
+            emit focusGraph();
+            break;
+        case GUI_MEMMAP:
+            emit focusMemmap();
+            break;
         default:
             break;
         }

@@ -1780,7 +1780,6 @@ const dsint Disassembly::currentEIP() const
 
 void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
 {
-    setFocus();
     if(mCodeFoldingManager)
     {
         mCodeFoldingManager->expandFoldSegment(parVA);

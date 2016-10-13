@@ -662,7 +662,6 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPUStack::stackDumpAt(duint addr, duint csp)
 {
-    setFocus();
     addVaToHistory(addr);
     mCsp = csp;
 
