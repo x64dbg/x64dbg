@@ -2,6 +2,7 @@
 #include "MenuBuilder.h"
 #include "CachedFontMetrics.h"
 #include "QBeaEngine.h"
+#include "GotoDialog.h"
 #include <vector>
 #include <QPainter>
 #include <QScrollBar>
@@ -13,7 +14,10 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent),
       mFontMetrics(nullptr),
       currentGraph(duint(0)),
-      disasm(ConfigUint("Disassembler", "MaxModuleSize"))
+      disasm(ConfigUint("Disassembler", "MaxModuleSize")),
+      mCip(0),
+      mGoto(nullptr),
+      syncOrigin(false)
 {
     this->status = "Loading...";
 
@@ -57,6 +61,8 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(graphAt(duint)), this, SLOT(graphAtSlot(duint)));
     connect(Bridge::getBridge(), SIGNAL(updateGraph()), this, SLOT(updateGraphSlot()));
     connect(Bridge::getBridge(), SIGNAL(selectionGraphGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(focusGraph()), this, SLOT(setFocus()));
 
     //Connect to config
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
@@ -216,11 +222,18 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
                 RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
                 y += this->charHeight;
             }
+
             for(Instr & instr : block.block.instrs)
             {
                 for(auto & line : instr.text.lines)
                 {
-                    RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
+                    if(instr.addr == mCip)
+                    {
+                        p.setPen(mCipColor);
+                        p.fillRect(x, y, this->charWidth, this->charHeight, mCipBackgroundColor);
+                        p.drawText(x, y, this->charWidth, this->charHeight, 0, QString("\xE2\x80\xA2"));
+                    }
+                    RichTextPainter::paintRichText(&p, x + this->charWidth, y, block.width - this->charWidth, this->charHeight, 0, line, mFontMetrics);
                     y += this->charHeight;
                 }
             }
@@ -505,7 +518,7 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
         else if(event->button() == Qt::RightButton)
         {
             QMenu wMenu(this);
-            wMenu.addAction(mToggleOverviewAction);
+            mMenuBuilder->build(&wMenu);
             wMenu.exec(event->globalPos()); //execute context menu
         }
     }
@@ -528,7 +541,7 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
 
         this->viewport()->update();
 
-        if((instr != 0) && (event->button() == Qt::RightButton))
+        if(event->button() == Qt::RightButton)
         {
             QMenu wMenu(this);
             mMenuBuilder->build(&wMenu);
@@ -547,12 +560,9 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
     else if(event->button() == Qt::RightButton)
     {
         //Right click outside of block
-        if(this->ready && DbgIsDebugging())
-        {
-            QMenu wMenu(this);
-            wMenu.addAction(mToggleOverviewAction);
-            wMenu.exec(event->globalPos()); //execute context menu
-        }
+        QMenu wMenu(this);
+        mMenuBuilder->build(&wMenu);
+        wMenu.exec(event->globalPos()); //execute context menu
     }
 }
 
@@ -590,25 +600,7 @@ void DisassemblerGraphView::mouseReleaseEvent(QMouseEvent* event)
 void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
 {
     duint instr = this->getInstrForMouseEvent(event);
-    navigate(DbgGetBranchDestination(instr));
-    /*Token token;
-    if(this->getTokenForMouseEvent(event, token))
-    {
-        if(!this->analysis.functions.count(token.addr))
-        {
-            //Not a function or not analyzed, go to address in hex editor
-            //TODO: show in hex editor?
-        }
-        else
-        {
-            this->function = token.addr;
-            this->ready = false;
-            this->desired_pos = nullptr;
-            this->cur_instr = 0;
-            this->highlight_token = nullptr;
-            this->viewport()->update();
-        }
-    }*/
+    DbgCmdExec(QString("graph dis.branchdest(%1), 1").arg(ToPtrString(instr)).toUtf8().constData());
 }
 
 void DisassemblerGraphView::prepareGraphNode(DisassemblerBlock & block)
@@ -637,7 +629,7 @@ void DisassemblerGraphView::prepareGraphNode(DisassemblerBlock & block)
         }
     }
     int extra = 4 * this->charWidth + 4;
-    block.width = width + extra;
+    block.width = width + extra + this->charWidth;
     block.height = (height * this->charHeight) + extra;
 }
 
@@ -1457,15 +1449,36 @@ void DisassemblerGraphView::setupContextMenu()
         return DbgIsDebugging();
     });
 
-    mMenuBuilder->addAction(makeAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in &Disassembler"), SLOT(followDisassemblerSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in &Disassembler"), SLOT(followDisassemblerSlot()), "ActionGraphFollowDisassembler"), [this](QMenu*)
     {
         return this->cur_instr != 0;
     });
     mMenuBuilder->addSeparator();
 
-    mToggleOverviewAction = makeShortcutAction(DIcon("graph.png"), tr("Toggle &Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview");
-    mMenuBuilder->addAction(mToggleOverviewAction);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("Refresh"), SLOT(loadCurrentGraph()), "ActionGraphRefresh"));
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("Toggle &Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
+    mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("Toggle &sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(loadCurrentGraph()), "ActionGraphRefresh"));
+    MenuBuilder* gotoMenu = new MenuBuilder(this);
+    gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
+    gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
+    mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
+}
+
+void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
+{
+    if(event->modifiers() != 0)
+        return;
+    int key = event->key();
+    if(key == Qt::Key_Up)
+        DbgCmdExec(QString("graph dis.prev(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
+    else if(key == Qt::Key_Down)
+        DbgCmdExec(QString("graph dis.next(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
+    else if(key == Qt::Key_Left)
+        DbgCmdExec(QString("graph dis.brtrue(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
+    else if(key == Qt::Key_Right)
+        DbgCmdExec(QString("graph dis.brfalse(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
+    if(key == Qt::Key_Return || key == Qt::Key_Enter)
+        DbgCmdExec(QString("graph dis.branchdest(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
 }
 
 void DisassemblerGraphView::followDisassemblerSlot()
@@ -1486,6 +1499,8 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
     mLabelColor = ConfigColor("DisassemblyLabelColor");
     mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
+    mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
+    mCipColor = ConfigColor("DisassemblyCipColor");
 
     jmpColor = ConfigColor("GraphJmpColor");
     brtrueColor = ConfigColor("GraphBrtrueColor");
@@ -1513,6 +1528,8 @@ void DisassemblerGraphView::shortcutsUpdatedSlot()
 void DisassemblerGraphView::toggleOverviewSlot()
 {
     drawOverview = !drawOverview;
+    mToggleOverview->setCheckable(true);
+    mToggleOverview->setChecked(drawOverview);
     this->viewport()->update();
 }
 
@@ -1520,4 +1537,42 @@ void DisassemblerGraphView::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = selection->end = cur_instr;
     Bridge::getBridge()->setResult(1);
+}
+
+void DisassemblerGraphView::disassembleAtSlot(dsint va, dsint cip)
+{
+    Q_UNUSED(va);
+    auto cipChanged = mCip != cip;
+    mCip = cip;
+    if(syncOrigin && cipChanged)
+        gotoOriginSlot();
+    else
+        this->viewport()->update();
+}
+
+void DisassemblerGraphView::gotoExpressionSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    if(!mGoto)
+        mGoto = new GotoDialog(this);
+    if(mGoto->exec() == QDialog::Accepted)
+    {
+        duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
+        DbgCmdExec(QString().sprintf("graph %p, 1", value).toUtf8().constData());
+    }
+}
+
+void DisassemblerGraphView::gotoOriginSlot()
+{
+    DbgCmdExec("graph cip, 1");
+}
+
+void DisassemblerGraphView::toggleSyncOriginSlot()
+{
+    syncOrigin = !syncOrigin;
+    mToggleSyncOrigin->setCheckable(true);
+    mToggleSyncOrigin->setChecked(syncOrigin);
+    if(syncOrigin)
+        gotoOriginSlot();
 }

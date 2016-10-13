@@ -253,5 +253,6 @@
         <file>images/disable.png</file>
         <file>images/database-export.png</file>
         <file>images/database-import.png</file>
+        <file>images/lock.png</file>
     </qresource>
 </RCC>

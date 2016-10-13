@@ -20,6 +20,7 @@
 
 class MenuBuilder;
 class CachedFontMetrics;
+class GotoDialog;
 
 class DisassemblerGraphView : public QAbstractScrollArea
 {
@@ -236,6 +237,7 @@ public:
     void adjustGraphLayout(DisassemblerBlock & block, int col, int row);
     void computeGraphLayout(DisassemblerBlock & block);
     void setupContextMenu();
+    void keyPressEvent(QKeyEvent* event);
 
     template<typename T>
     using Matrix = std::vector<std::vector<T>>;
@@ -264,6 +266,10 @@ public slots:
     void selectionGetSlot(SELECTIONDATA* selection);
     void tokenizerConfigUpdatedSlot();
     void loadCurrentGraph();
+    void disassembleAtSlot(dsint va, dsint cip);
+    void gotoExpressionSlot();
+    void gotoOriginSlot();
+    void toggleSyncOriginSlot();
 
 private:
     QString status;
@@ -294,10 +300,14 @@ private:
     CachedFontMetrics* mFontMetrics;
     MenuBuilder* mMenuBuilder;
     bool drawOverview;
-    QAction* mToggleOverviewAction;
+    bool syncOrigin;
     int overviewXOfs;
     int overviewYOfs;
     qreal overviewScale;
+    duint mCip;
+
+    QAction* mToggleOverview;
+    QAction* mToggleSyncOrigin;
 
     QColor disassemblyBackgroundColor;
     QColor disassemblySelectionColor;
@@ -314,9 +324,12 @@ private:
     QColor mCommentBackgroundColor;
     QColor mLabelColor;
     QColor mLabelBackgroundColor;
+    QColor mCipColor;
+    QColor mCipBackgroundColor;
 
     BridgeCFGraph currentGraph;
     QBeaEngine disasm;
+    GotoDialog* mGoto;
 protected:
 #include "ActionHelpers.h"
 };
