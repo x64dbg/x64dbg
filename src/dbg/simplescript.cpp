@@ -22,6 +22,14 @@ static bool volatile bAbort = false;
 
 static bool volatile bIsRunning = false;
 
+enum CMDRESULT
+{
+    STATUS_ERROR = false,
+    STATUS_CONTINUE = true,
+    STATUS_EXIT = 2,
+    STATUS_PAUSE = 3
+};
+
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
     char newtext[MAX_SCRIPT_LINE_SIZE] = "";
@@ -317,10 +325,10 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_PAUSE;
     else if(scriptisinternalcommand(cmd, "nop")) //do nothing
         return STATUS_CONTINUE;
-    CMDRESULT res = cmddirectexec(cmd);
+    auto res = cmddirectexec(cmd);
     while(DbgIsDebugging() && dbgisrunning() && !bAbort) //while not locked (NOTE: possible deadlock)
         Sleep(1);
-    return res;
+    return res ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
 static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should jump

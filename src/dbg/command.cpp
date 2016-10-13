@@ -207,7 +207,7 @@ bool cbCommandProvider(char* cmd, int maxlen);
 
 /**
 \brief Initiates the command loop. This function will not return until a command returns ::STATUS_EXIT.
-\return A CMDRESULT, will always be ::STATUS_EXIT.
+\return A bool, will always be ::STATUS_EXIT.
 */
 void cmdloop()
 {
@@ -266,13 +266,13 @@ void cmdloop()
 \brief Directly execute a command.
 \param [in,out] cmd_list Command list.
 \param cmd The command to execute.
-\return A CMDRESULT.
+\return A bool.
 */
-CMDRESULT cmddirectexec(const char* cmd)
+bool cmddirectexec(const char* cmd)
 {
     // Don't allow anyone to send in empty strings
     if(!cmd)
-        return STATUS_ERROR;
+        return false;
 
     StringList commands;
     StringUtils::Split(cmd, ';');
@@ -285,12 +285,12 @@ CMDRESULT cmddirectexec(const char* cmd)
             ExpressionParser parser(command);
             duint result;
             if(!parser.Calculate(result, valuesignedcalc(), true, false))
-                return STATUS_ERROR;
+                return false;
             varset("$ans", result, true);
             continue;
         }
         if(found->debugonly && !DbgIsDebugging())
-            return STATUS_ERROR;
+            return false;
         Command cmdParsed(command);
         int argcount = cmdParsed.GetArgCount();
         char** argv = (char**)emalloc((argcount + 1) * sizeof(char*), "cmddirectexec:argv");
@@ -301,12 +301,12 @@ CMDRESULT cmddirectexec(const char* cmd)
             *argv[i + 1] = 0;
             strcpy_s(argv[i + 1], deflen, cmdParsed.GetArg(i).c_str());
         }
-        CMDRESULT res = found->cbCommand(argcount + 1, argv);
+        auto res = found->cbCommand(argcount + 1, argv);
         for(int i = 0; i < argcount; i++)
             efree(argv[i + 1], "cmddirectexec:argv[i+1]");
         efree(argv, "cmddirectexec:argv");
-        if(res != STATUS_CONTINUE)
-            return res;
+        if(!res)
+            return false;
     }
-    return STATUS_CONTINUE;
+    return true;
 }

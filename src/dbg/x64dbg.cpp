@@ -34,42 +34,42 @@ static bool bIsStopped = true;
 static char scriptDllDir[MAX_PATH] = "";
 static String notesFile;
 
-static CMDRESULT cbStrLen(int argc, char* argv[])
+static bool cbStrLen(int argc, char* argv[])
 {
     if(argc < 2)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("\"%s\"[%d]\n", argv[1], int(strlen(argv[1])));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-static CMDRESULT cbClearLog(int argc, char* argv[])
+static bool cbClearLog(int argc, char* argv[])
 {
     GuiLogClear();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-static CMDRESULT cbPrintf(int argc, char* argv[])
+static bool cbPrintf(int argc, char* argv[])
 {
     if(argc < 2)
         dprintf("\n");
     else
         dprintf("%s", argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
 static bool DbgScriptDllExec(const char* dll);
 
-static CMDRESULT cbScriptDll(int argc, char* argv[])
+static bool cbScriptDll(int argc, char* argv[])
 {
     if(argc < 2)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
-        return STATUS_ERROR;
+        return false;
     }
-    return DbgScriptDllExec(argv[1]) ? STATUS_CONTINUE : STATUS_ERROR;
+    return DbgScriptDllExec(argv[1]);
 }
 
 #include "cmd-all.h"
@@ -759,7 +759,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
 {
-    if(cmddirectexec(cmd) == STATUS_ERROR)
+    if(cmddirectexec(cmd) == false)
         return false;
     return true;
 }

@@ -9,60 +9,60 @@
 #include "function.h"
 #include "argument.h"
 
-CMDRESULT cbInstrDbsave(int argc, char* argv[])
+bool cbInstrDbsave(int argc, char* argv[])
 {
     DbSave(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr, argc > 1);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrDbload(int argc, char* argv[])
+bool cbInstrDbload(int argc, char* argv[])
 {
     if(argc <= 1)
         DbClear();
     DbLoad(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr);
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrDbclear(int argc, char* argv[])
+bool cbInstrDbclear(int argc, char* argv[])
 {
     DbClear();
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrCommentSet(int argc, char* argv[])
+bool cbInstrCommentSet(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     if(!CommentSet(addr, argv[2], true))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "error setting comment"));
-        return STATUS_ERROR;
+        return false;
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrCommentDel(int argc, char* argv[])
+bool cbInstrCommentDel(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     if(!CommentDelete(addr))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "error deleting comment"));
-        return STATUS_ERROR;
+        return false;
     }
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrCommentList(int argc, char* argv[])
+bool cbInstrCommentList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comments")));
@@ -76,7 +76,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     if(!cbsize)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "no comments"));
-        return STATUS_CONTINUE;
+        return true;
     }
     Memory<COMMENTSINFO*> comments(cbsize, "cbInstrCommentList:comments");
     CommentEnum(comments(), 0);
@@ -95,49 +95,49 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d comment(s) listed in Reference View\n"), count);
     GuiReferenceReloadData();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrCommentClear(int argc, char* argv[])
+bool cbInstrCommentClear(int argc, char* argv[])
 {
     CommentClear();
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "all comments deleted!"));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrLabelSet(int argc, char* argv[])
+bool cbInstrLabelSet(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     if(!LabelSet(addr, argv[2], true))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "error setting label"));
-        return STATUS_ERROR;
+        return false;
     }
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrLabelDel(int argc, char* argv[])
+bool cbInstrLabelDel(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     if(!LabelDelete(addr))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "error deleting label"));
-        return STATUS_ERROR;
+        return false;
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrLabelList(int argc, char* argv[])
+bool cbInstrLabelList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Labels")));
@@ -151,7 +151,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
     if(!cbsize)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "no labels"));
-        return STATUS_CONTINUE;
+        return true;
     }
     Memory<LABELSINFO*> labels(cbsize, "cbInstrLabelList:labels");
     LabelEnum(labels(), 0);
@@ -170,50 +170,50 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d label(s) listed in Reference View\n"), count);
     GuiReferenceReloadData();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrLabelClear(int argc, char* argv[])
+bool cbInstrLabelClear(int argc, char* argv[])
 {
     LabelClear();
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "all labels deleted!"));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
+bool cbInstrBookmarkSet(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     if(!BookmarkSet(addr, true))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "failed to set bookmark!"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "bookmark set!"));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
+bool cbInstrBookmarkDel(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     if(!BookmarkDelete(addr))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "failed to delete bookmark!"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "bookmark deleted!"));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
+bool cbInstrBookmarkList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Bookmarks")));
@@ -227,7 +227,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     if(!cbsize)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "No bookmarks found"));
-        return STATUS_CONTINUE;
+        return true;
     }
     Memory<BOOKMARKSINFO*> bookmarks(cbsize, "cbInstrBookmarkList:bookmarks");
     BookmarkEnum(bookmarks(), 0);
@@ -254,53 +254,53 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d bookmark(s) listed\n"), count);
     GuiReferenceReloadData();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrBookmarkClear(int argc, char* argv[])
+bool cbInstrBookmarkClear(int argc, char* argv[])
 {
     LabelClear();
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "all bookmarks deleted!"));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrFunctionAdd(int argc, char* argv[])
+bool cbInstrFunctionAdd(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     duint start = 0;
     duint end = 0;
     if(!valfromstring(argv[1], &start, false) || !valfromstring(argv[2], &end, false))
-        return STATUS_ERROR;
+        return false;
     if(!FunctionAdd(start, end, true))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "failed to add function"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "function added!"));
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrFunctionDel(int argc, char* argv[])
+bool cbInstrFunctionDel(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     if(!FunctionDelete(addr))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "failed to delete function"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "function deleted!"));
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrFunctionList(int argc, char* argv[])
+bool cbInstrFunctionList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Functions")));
@@ -315,7 +315,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     if(!cbsize)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "No functions"));
-        return STATUS_CONTINUE;
+        return true;
     }
     Memory<FUNCTIONSINFO*> functions(cbsize, "cbInstrFunctionList:functions");
     FunctionEnum(functions(), 0);
@@ -344,53 +344,53 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d function(s) listed\n"), count);
     GuiReferenceReloadData();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrFunctionClear(int argc, char* argv[])
+bool cbInstrFunctionClear(int argc, char* argv[])
 {
     FunctionClear();
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "all functions deleted!"));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrArgumentAdd(int argc, char* argv[])
+bool cbInstrArgumentAdd(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     duint start = 0;
     duint end = 0;
     if(!valfromstring(argv[1], &start, false) || !valfromstring(argv[2], &end, false))
-        return STATUS_ERROR;
+        return false;
     if(!ArgumentAdd(start, end, true))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "failed to add argument"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "argument added!"));
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrArgumentDel(int argc, char* argv[])
+bool cbInstrArgumentDel(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     if(!ArgumentDelete(addr))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "failed to delete argument"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "argument deleted!"));
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrArgumentList(int argc, char* argv[])
+bool cbInstrArgumentList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Arguments")));
@@ -405,7 +405,7 @@ CMDRESULT cbInstrArgumentList(int argc, char* argv[])
     if(!cbsize)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "No arguments"));
-        return STATUS_CONTINUE;
+        return true;
     }
     Memory<ARGUMENTSINFO*> arguments(cbsize, "cbInstrArgumentList:arguments");
     ArgumentEnum(arguments(), 0);
@@ -434,13 +434,13 @@ CMDRESULT cbInstrArgumentList(int argc, char* argv[])
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d argument(s) listed\n"), count);
     GuiReferenceReloadData();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrArgumentClear(int argc, char* argv[])
+bool cbInstrArgumentClear(int argc, char* argv[])
 {
     ArgumentClear();
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "all arguments deleted!"));
-    return STATUS_CONTINUE;
+    return true;
 }

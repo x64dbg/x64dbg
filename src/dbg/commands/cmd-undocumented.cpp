@@ -12,7 +12,7 @@
 #include "value.h"
 #include "symbolinfo.h"
 
-CMDRESULT cbBadCmd(int argc, char* argv[])
+bool cbBadCmd(int argc, char* argv[])
 {
     duint value = 0;
     int valsize = 0;
@@ -90,12 +90,12 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
     else //unknown command
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "unknown command/expression: \"%s\"\n"), *argv);
-        return STATUS_ERROR;
+        return false;
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugBenchmark(int argc, char* argv[])
+bool cbDebugBenchmark(int argc, char* argv[])
 {
     duint addr = MemFindBaseAddr(GetContextDataEx(hActiveThread, UE_CIP), 0);
     DWORD ticks = GetTickCount();
@@ -107,104 +107,104 @@ CMDRESULT cbDebugBenchmark(int argc, char* argv[])
         FunctionAdd(i, i, false);
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrSetstr(int argc, char* argv[])
+bool cbInstrSetstr(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     varnew(argv[1], 0, VAR_USER);
     if(!vargettype(argv[1], 0))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "no such variable \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     if(!varset(argv[1], argv[2], false))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "failed to set variable \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     cmddirectexec(StringUtils::sprintf("getstr \"%s\"", argv[1]).c_str());
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrGetstr(int argc, char* argv[])
+bool cbInstrGetstr(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     VAR_VALUE_TYPE valtype;
     if(!vargettype(argv[1], 0, &valtype))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "no such variable \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     if(valtype != VAR_STRING)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "variable \"%s\" is not a string!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     int size;
     if(!varget(argv[1], (char*)0, &size, 0) || !size)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable size \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     Memory<char*> string(size + 1, "cbInstrGetstr:string");
     if(!varget(argv[1], string(), &size, 0))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable data \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s=\"%s\"\n", argv[1], string());
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrCopystr(int argc, char* argv[])
+bool cbInstrCopystr(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     VAR_VALUE_TYPE valtype;
     if(!vargettype(argv[2], 0, &valtype))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "no such variable \"%s\"!\n"), argv[2]);
-        return STATUS_ERROR;
+        return false;
     }
     if(valtype != VAR_STRING)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "variable \"%s\" is not a string!\n"), argv[2]);
-        return STATUS_ERROR;
+        return false;
     }
     int size;
     if(!varget(argv[2], (char*)0, &size, 0) || !size)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable size \"%s\"!\n"), argv[2]);
-        return STATUS_ERROR;
+        return false;
     }
     Memory<char*> string(size + 1, "cbInstrGetstr:string");
     if(!varget(argv[2], string(), &size, 0))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable data \"%s\"!\n"), argv[2]);
-        return STATUS_ERROR;
+        return false;
     }
     duint addr;
     if(!valfromstring(argv[1], &addr))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "invalid address \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     if(!MemPatch(addr, string(), strlen(string())))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "memwrite failed!"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "string written!"));
     GuiUpdateAllViews();
     GuiUpdatePatches();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrLoopList(int argc, char* argv[])
+bool cbInstrLoopList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Loops")));
@@ -219,7 +219,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
     if(!cbsize)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "no loops"));
-        return STATUS_CONTINUE;
+        return true;
     }
     Memory<LOOPSINFO*> loops(cbsize, "cbInstrLoopList:loops");
     LoopEnum(loops(), 0);
@@ -248,37 +248,37 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d loop(s) listed\n"), count);
     GuiReferenceReloadData();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrCapstone(int argc, char* argv[])
+bool cbInstrCapstone(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
 
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !MemIsValidReadPtr(addr))
     {
         dprintf("invalid address \"%s\"\n", argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
 
     unsigned char data[16];
     if(!MemRead(addr, data, sizeof(data)))
     {
         dprintf("could not read memory at %p\n", addr);
-        return STATUS_ERROR;
+        return false;
     }
 
     if(argc > 2)
         if(!valfromstring(argv[2], &addr, false))
-            return STATUS_ERROR;
+            return false;
 
     Capstone cp;
     if(!cp.Disassemble(addr, data))
     {
         dputs("failed to disassemble!\n");
-        return STATUS_ERROR;
+        return false;
     }
 
     const cs_insn* instr = cp.GetInstr();
@@ -313,19 +313,19 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
         }
     }
 
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrVisualize(int argc, char* argv[])
+bool cbInstrVisualize(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     duint start;
     duint maxaddr;
     if(!valfromstring(argv[1], &start) || !valfromstring(argv[2], &maxaddr))
     {
         dputs("invalid arguments!");
-        return STATUS_ERROR;
+        return false;
     }
     //actual algorithm
     //make sure to set these options in the INI (rest the default theme of x64dbg):
@@ -409,21 +409,21 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
         SetContextDataEx(fdProcessInfo->hThread, UE_CIP, start);
         DebugUpdateGuiAsync(start, false);
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrMeminfo(int argc, char* argv[])
+bool cbInstrMeminfo(int argc, char* argv[])
 {
     if(argc < 3)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "usage: meminfo a/r, addr"));
-        return STATUS_ERROR;
+        return false;
     }
     duint addr;
     if(!valfromstring(argv[2], &addr))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
-        return STATUS_ERROR;
+        return false;
     }
     if(argv[1][0] == 'a')
     {
@@ -439,20 +439,20 @@ CMDRESULT cbInstrMeminfo(int argc, char* argv[])
         GuiUpdateMemoryView();
         dputs(QT_TRANSLATE_NOOP("DBG", "memory map updated!"));
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrBriefcheck(int argc, char* argv[])
+bool cbInstrBriefcheck(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     duint size;
     auto base = DbgMemFindBaseAddr(addr, &size);
     if(!base)
-        return STATUS_ERROR;
+        return false;
     Memory<unsigned char*> buffer(size + 16);
     DbgMemRead(base, buffer(), size);
     Capstone cp;
@@ -472,13 +472,13 @@ CMDRESULT cbInstrBriefcheck(int argc, char* argv[])
         reported.insert(mnem);
         dprintf("%p: %s\n", cp.Address(), mnem.c_str());
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrFocusinfo(int argc, char* argv[])
+bool cbInstrFocusinfo(int argc, char* argv[])
 {
     ACTIVEVIEW activeView;
     GuiGetActiveView(&activeView);
     dprintf("activeTitle: %s, activeClass: %s\n", activeView.title, activeView.className);
-    return STATUS_CONTINUE;
+    return true;
 }

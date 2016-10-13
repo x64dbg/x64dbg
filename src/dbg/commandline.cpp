@@ -133,20 +133,20 @@ void copyCommandLine(const char* cmdLine)
     strcpy_s(commandLine, cmdLine);
 }
 
-CMDRESULT SetCommandLine()
+bool SetCommandLine()
 {
     cmdline_error_t cmdline_error = { (cmdline_error_type_t)0, 0 };
 
     if(!dbgsetcmdline(commandLine, &cmdline_error))
     {
         showcommandlineerror(&cmdline_error);
-        return STATUS_ERROR;
+        return false;
     }
 
     //update the memory map
     MemUpdateMap();
     GuiUpdateMemoryView();
 
-    return STATUS_CONTINUE;
+    return true;
 }
 

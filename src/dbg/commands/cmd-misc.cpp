@@ -12,40 +12,40 @@
 #include "mnemonichelp.h"
 #include "commandline.h"
 
-CMDRESULT cbInstrChd(int argc, char* argv[])
+bool cbInstrChd(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     if(!DirExists(argv[1]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "directory doesn't exist"));
-        return STATUS_ERROR;
+        return false;
     }
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(argv[1]).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "current directory changed!"));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrZzz(int argc, char* argv[])
+bool cbInstrZzz(int argc, char* argv[])
 {
     duint value = 100;
     if(argc > 1)
         if(!valfromstring(argv[1], &value, false))
-            return STATUS_ERROR;
+            return false;
     auto ms = DWORD(value);
     if(ms == INFINITE)
         ms = 100;
     Sleep(ms);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugHide(int argc, char* argv[])
+bool cbDebugHide(int argc, char* argv[])
 {
     if(HideDebugger(fdProcessInfo->hProcess, UE_HIDE_PEBONLY))
         dputs(QT_TRANSLATE_NOOP("DBG", "Debugger hidden"));
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Something went wrong"));
-    return STATUS_CONTINUE;
+    return true;
 }
 
 static duint LoadLibThreadID;
@@ -77,12 +77,12 @@ static void cbDebugLoadLibBPX()
     wait(WAITID_RUN);
 }
 
-CMDRESULT cbDebugLoadLib(int argc, char* argv[])
+bool cbDebugLoadLib(int argc, char* argv[])
 {
     if(argc < 2)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error: you must specify the name of the DLL to load\n"));
-        return STATUS_ERROR;
+        return false;
     }
 
     LoadLibThreadID = fdProcessInfo->dwThreadId;
@@ -94,13 +94,13 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     if(!DLLNameMem || !ASMAddr)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error: couldn't allocate memory in debuggee"));
-        return STATUS_ERROR;
+        return false;
     }
 
     if(!MemWrite(DLLNameMem, argv[1], strlen(argv[1])))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error: couldn't write process memory"));
-        return STATUS_ERROR;
+        return false;
     }
 
     int size = 0;
@@ -114,7 +114,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     if(!valfromstring("kernel32:LoadLibraryA", &LoadLibraryA, false))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error: couldn't get kernel32:LoadLibraryA"));
-        return STATUS_ERROR;
+        return false;
     }
 
     // Arch specific asm code
@@ -147,23 +147,23 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
     unlock(WAITID_RUN);
 
-    return ok ? STATUS_CONTINUE : STATUS_ERROR;
+    return ok;
 }
 
-CMDRESULT cbInstrAssemble(int argc, char* argv[])
+bool cbInstrAssemble(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "invalid expression: \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     if(!DbgMemIsValidReadPtr(addr))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "invalid address: %p!\n"), addr);
-        return STATUS_ERROR;
+        return false;
     }
     bool fillnop = false;
     if(argc > 3)
@@ -174,17 +174,17 @@ CMDRESULT cbInstrAssemble(int argc, char* argv[])
     {
         varset("$result", size, false);
         dprintf(QT_TRANSLATE_NOOP("DBG", "failed to assemble \"%s\" (%s)\n"), argv[2], error);
-        return STATUS_ERROR;
+        return false;
     }
     varset("$result", size, false);
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrGpa(int argc, char* argv[])
+bool cbInstrGpa(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     char newcmd[deflen] = "";
     if(argc >= 3)
         sprintf_s(newcmd, "\"%s\":%s", argv[2], argv[1]);
@@ -192,12 +192,12 @@ CMDRESULT cbInstrGpa(int argc, char* argv[])
         sprintf_s(newcmd, "%s", argv[1]);
     duint result = 0;
     if(!valfromstring(newcmd, &result, false))
-        return STATUS_ERROR;
+        return false;
     varset("$RESULT", result, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugSetJIT(int argc, char* argv[])
+bool cbDebugSetJIT(int argc, char* argv[])
 {
     arch actual_arch = invalid;
     char* jit_debugger_cmd = "";
@@ -206,7 +206,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     if(!IsProcessElevated())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error run the debugger as Admin to setjit\n"));
-        return STATUS_ERROR;
+        return false;
     }
     if(argc < 2)
     {
@@ -216,7 +216,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
-            return STATUS_ERROR;
+            return false;
         }
     }
     else if(argc == 2)
@@ -227,13 +227,13 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error there is no old JIT entry stored."));
-                return STATUS_ERROR;
+                return false;
             }
 
             if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
+                return false;
             }
         }
         else if(!_strcmpi(argv[1], "oldsave"))
@@ -253,7 +253,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
+                return false;
             }
             if(get_last_jit)
             {
@@ -268,13 +268,13 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error there is no old JIT entry stored."));
-                return STATUS_ERROR;
+                return false;
             }
 
             if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
+                return false;
             }
             BridgeSettingSet("JIT", 0, 0);
         }
@@ -284,7 +284,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
+                return false;
             }
         }
     }
@@ -298,7 +298,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 
             dprintf(QT_TRANSLATE_NOOP("DBG", "New OLD JIT stored: %s\n"), argv[2]);
 
-            return STATUS_CONTINUE;
+            return true;
         }
 
         else if(_strcmpi(argv[1], "x64") == 0)
@@ -308,7 +308,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         else
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT entry type. Use OLD, x64 or x32 as parameter."));
-            return STATUS_ERROR;
+            return false;
         }
 
         jit_debugger_cmd = argv[2];
@@ -318,21 +318,21 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error using x64 arg. The debugger is not a WOW64 process\n"));
             else
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
-            return STATUS_ERROR;
+            return false;
         }
     }
     else
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error unknown parameters. Use old, oldsave, restore, x86 or x64 as parameter."));
-        return STATUS_ERROR;
+        return false;
     }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "New JIT %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", jit_debugger_cmd);
 
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugGetJIT(int argc, char* argv[])
+bool cbDebugGetJIT(int argc, char* argv[])
 {
     char get_entry[JIT_ENTRY_MAX_SIZE] = "";
     arch actual_arch;
@@ -342,7 +342,7 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
         if(!dbggetjit(get_entry, notfound, &actual_arch, NULL))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
-            return STATUS_ERROR;
+            return false;
         }
     }
     else
@@ -354,12 +354,12 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
             if(!BridgeSettingGet("JIT", "Old", oldjit()))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error: there is not an OLD JIT entry stored yet."));
-                return STATUS_ERROR;
+                return false;
             }
             else
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "OLD JIT entry stored: %s\n"), oldjit());
-                return STATUS_CONTINUE;
+                return true;
             }
         }
         else if(_strcmpi(argv[1], "x64") == 0)
@@ -369,7 +369,7 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
         else
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT entry type. Use OLD, x64 or x32 as parameter."));
-            return STATUS_ERROR;
+            return false;
         }
 
         if(!dbggetjit(get_entry, actual_arch, NULL, &rw_error))
@@ -378,16 +378,16 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error using x64 arg. The debugger is not a WOW64 process\n"));
             else
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT %s\n"), argv[1]);
-            return STATUS_ERROR;
+            return false;
         }
     }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "JIT %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", get_entry);
 
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
+bool cbDebugGetJITAuto(int argc, char* argv[])
 {
     bool jit_auto = false;
     arch actual_arch = invalid;
@@ -397,7 +397,7 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
         if(!dbggetjitauto(&jit_auto, notfound, &actual_arch, NULL))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto %s\n"), (actual_arch == x64) ? "x64" : "x32");
-            return STATUS_ERROR;
+            return false;
         }
     }
     else if(argc == 2)
@@ -410,7 +410,7 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
         else
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x32 as parameter."));
-            return STATUS_ERROR;
+            return false;
         }
 
         if(!dbggetjitauto(&jit_auto, actual_arch, NULL, &rw_error))
@@ -419,7 +419,7 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error using x64 arg the debugger is not a WOW64 process\n"));
             else
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto %s\n"), argv[1]);
-            return STATUS_ERROR;
+            return false;
         }
     }
     else
@@ -429,22 +429,22 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "JIT auto %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", jit_auto ? "ON" : "OFF");
 
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
+bool cbDebugSetJITAuto(int argc, char* argv[])
 {
     arch actual_arch;
     bool set_jit_auto;
     if(!IsProcessElevated())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error run the debugger as Admin to setjitauto\n"));
-        return STATUS_ERROR;
+        return false;
     }
     if(argc < 2)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT Auto. Use ON:1 or OFF:0 arg or x64/x32, ON:1 or OFF:0.\n"));
-        return STATUS_ERROR;
+        return false;
     }
     else if(argc == 2)
     {
@@ -455,7 +455,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
         else
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Error unknown parameters. Use ON:1 or OFF:0"));
-            return STATUS_ERROR;
+            return false;
         }
 
         if(!dbgsetjitauto(set_jit_auto, notfound, &actual_arch, NULL))
@@ -464,7 +464,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT auto x64"));
             else
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT auto x32"));
-            return STATUS_ERROR;
+            return false;
         }
     }
     else if(argc == 3)
@@ -479,7 +479,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
         else
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x32 as parameter"));
-            return STATUS_ERROR;
+            return false;
         }
 
         if(_strcmpi(argv[2], "1") == 0 || _strcmpi(argv[2], "ON") == 0)
@@ -489,7 +489,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
         else
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Error unknown parameters. Use x86 or x64 and ON:1 or OFF:0\n"));
-            return STATUS_ERROR;
+            return false;
         }
 
         if(!dbgsetjitauto(set_jit_auto, actual_arch, NULL, &rw_error))
@@ -503,20 +503,20 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
                 else
                     dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x32"));
             }
-            return STATUS_ERROR;
+            return false;
         }
     }
     else
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error unknown parameters use x86 or x64, ON/1 or OFF/0\n"));
-        return STATUS_ERROR;
+        return false;
     }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "New JIT auto %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", set_jit_auto ? "ON" : "OFF");
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
+bool cbDebugGetCmdline(int argc, char* argv[])
 {
     char* cmd_line;
     cmdline_error_t cmdline_error = { (cmdline_error_type_t)0, 0 };
@@ -524,30 +524,30 @@ CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
     if(!dbggetcmdline(&cmd_line, &cmdline_error))
     {
         showcommandlineerror(&cmdline_error);
-        return STATUS_ERROR;
+        return false;
     }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "Command line: %s\n"), cmd_line);
 
     efree(cmd_line);
 
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
+bool cbDebugSetCmdline(int argc, char* argv[])
 {
     cmdline_error_t cmdline_error = { (cmdline_error_type_t)0, 0 };
 
     if(argc != 2)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error: write the arg1 with the new command line of the process debugged"));
-        return STATUS_ERROR;
+        return false;
     }
 
     if(!dbgsetcmdline(argv[1], &cmdline_error))
     {
         showcommandlineerror(&cmdline_error);
-        return STATUS_ERROR;
+        return false;
     }
 
     //update the memory map
@@ -556,13 +556,13 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "New command line: %s\n"), argv[1]);
 
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrMnemonichelp(int argc, char* argv[])
+bool cbInstrMnemonichelp(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     auto description = MnemonicHelp::getDescription(argv[1]);
     if(!description.length())
         dputs(QT_TRANSLATE_NOOP("DBG", "no description or empty description"));
@@ -572,13 +572,13 @@ CMDRESULT cbInstrMnemonichelp(int argc, char* argv[])
         auto logText = StringUtils::sprintf("%s%s%s\n", padding, description.c_str(), padding);
         GuiAddLogMessage(logText.c_str());
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrMnemonicbrief(int argc, char* argv[])
+bool cbInstrMnemonicbrief(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     dputs(MnemonicHelp::getBriefDescription(argv[1]).c_str());
-    return STATUS_CONTINUE;
+    return true;
 }

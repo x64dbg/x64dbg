@@ -2,11 +2,11 @@
 
 #include "command.h"
 
-CMDRESULT cbDebugTraceIntoConditional(int argc, char* argv[]);
-CMDRESULT cbDebugTraceOverConditional(int argc, char* argv[]);
-CMDRESULT cbDebugTraceIntoBeyondTraceRecord(int argc, char* argv[]);
-CMDRESULT cbDebugTraceOverBeyondTraceRecord(int argc, char* argv[]);
-CMDRESULT cbDebugTraceIntoIntoTraceRecord(int argc, char* argv[]);
-CMDRESULT cbDebugTraceOverIntoTraceRecord(int argc, char* argv[]);
-CMDRESULT cbDebugRunToParty(int argc, char* argv[]);
-CMDRESULT cbDebugRunToUserCode(int argc, char* argv[]);
+bool cbDebugTraceIntoConditional(int argc, char* argv[]);
+bool cbDebugTraceOverConditional(int argc, char* argv[]);
+bool cbDebugTraceIntoBeyondTraceRecord(int argc, char* argv[]);
+bool cbDebugTraceOverBeyondTraceRecord(int argc, char* argv[]);
+bool cbDebugTraceIntoIntoTraceRecord(int argc, char* argv[]);
+bool cbDebugTraceOverIntoTraceRecord(int argc, char* argv[]);
+bool cbDebugRunToParty(int argc, char* argv[]);
+bool cbDebugRunToUserCode(int argc, char* argv[]);

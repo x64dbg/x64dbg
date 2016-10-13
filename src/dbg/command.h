@@ -10,15 +10,7 @@ bool IsArgumentsLessThan(int argc, int minimumCount);
 
 struct COMMAND;
 
-enum CMDRESULT
-{
-    STATUS_ERROR = false,
-    STATUS_CONTINUE = true,
-    STATUS_EXIT = 2,
-    STATUS_PAUSE = 3
-};
-
-typedef CMDRESULT(*CBCOMMAND)(int, char**);
+typedef bool(*CBCOMMAND)(int, char**);
 typedef bool (*CBCOMMANDPROVIDER)(char*, int);
 typedef COMMAND* (*CBCOMMANDFINDER)(char*);
 
@@ -39,6 +31,6 @@ COMMAND* cmdget(const char* cmd);
 CBCOMMAND cmdset(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool cmddel(const char* name);
 void cmdloop();
-CMDRESULT cmddirectexec(const char* cmd);
+bool cmddirectexec(const char* cmd);
 
 #endif // _COMMAND_H
