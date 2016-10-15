@@ -214,11 +214,13 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("PidInHex", true);
     guiBool.insert("SidebarWatchLabels", true);
     //Named menu settings
-    insertMenuBuilderBools(&guiBool, "CPUDisassembly", 35); //CPUDisassembly
-    insertMenuBuilderBools(&guiBool, "CPUDump", 30); //CPUDump
-    insertMenuBuilderBools(&guiBool, "WatchView", 7); //Watch
-    insertMenuBuilderBools(&guiBool, "CallStackView", 5); //CallStackView
-    insertMenuBuilderBools(&guiBool, "ThreadView", 12); //Thread
+    insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
+    insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
+    insertMenuBuilderBools(&guiBool, "WatchView", 50); //Watch
+    insertMenuBuilderBools(&guiBool, "CallStackView", 50); //CallStackView
+    insertMenuBuilderBools(&guiBool, "ThreadView", 50); //Thread
+    insertMenuBuilderBools(&guiBool, "CPUStack", 50); //Stack
+    insertMenuBuilderBools(&guiBool, "DisassemblerGraphView", 50); //Graph
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;

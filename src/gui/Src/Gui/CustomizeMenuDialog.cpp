@@ -7,6 +7,7 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::CustomizeMenuDialog)
 {
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     ui->setupUi(this);
     for(const auto & i : Config()->NamedMenuBuilders)
     {
@@ -22,6 +23,10 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             viewName = tr("Call Stack");
         else if(strcmp(id, "ThreadView") == 0)
             viewName = tr("Threads");
+        else if(strcmp(id, "DisassemblerGraphView") == 0)
+            viewName = tr("Graph");
+        else if(strcmp(id, "CPUStack") == 0)
+            viewName = tr("Stack");
         else
             continue;
         QTreeWidgetItem* parentItem = new QTreeWidgetItem(ui->treeWidget);

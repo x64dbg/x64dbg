@@ -1462,6 +1462,8 @@ void DisassemblerGraphView::setupContextMenu()
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
+
+    mMenuBuilder->loadFromConfig();
 }
 
 void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
