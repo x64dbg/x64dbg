@@ -1093,10 +1093,15 @@ void cbRtrStep()
 static void cbTXCNDStep(bool bStepInto, void (*callback)())
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    if(traceCondition && traceCondition->ContinueTrace())
+    auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    PLUG_CB_TRACEEXECUTE info;
+    info.cip = CIP;
+    info.stop = false;
+    plugincbcall(CB_TRACEEXECUTE, &info);
+    if(!info.stop && traceCondition && traceCondition->ContinueTrace())
     {
         if(bTraceRecordEnabledDuringTrace)
-            _dbg_dbgtraceexecute(GetContextDataEx(hActiveThread, UE_CIP));
+            _dbg_dbgtraceexecute(CIP);
         (bStepInto ? StepInto : StepOver)(callback);
     }
     else
@@ -1126,6 +1131,10 @@ static void cbTXXTStep(bool bStepInto, bool bInto, void (*callback)())
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     // Trace record
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+    PLUG_CB_TRACEEXECUTE info;
+    info.cip = CIP;
+    info.stop = false;
+    plugincbcall(CB_TRACEEXECUTE, &info);
     if(!traceCondition)
     {
         _dbg_dbgtraceexecute(CIP);
@@ -1133,7 +1142,7 @@ static void cbTXXTStep(bool bStepInto, bool bInto, void (*callback)())
         cbRtrFinalStep();
         return;
     }
-    if(!traceCondition->ContinueTrace() || (TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(CIP) == 0) ^ bInto))
+    if(info.stop || !traceCondition->ContinueTrace() || (TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(CIP) == 0) ^ bInto))
     {
         _dbg_dbgtraceexecute(CIP);
         auto steps = dbgcleartracecondition();

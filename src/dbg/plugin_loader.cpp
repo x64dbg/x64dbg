@@ -162,6 +162,7 @@ bool pluginload(const char* pluginName, bool loadall)
     regExport("CBLOADDB", CB_LOADDB);
     regExport("CBSAVEDB", CB_SAVEDB);
     regExport("CBFILTERSYMBOL", CB_FILTERSYMBOL);
+    regExport("CBTRACEEXECUTE", CB_TRACEEXECUTE);
 
     //init plugin
     if(!pluginData.pluginit(&pluginData.initStruct))

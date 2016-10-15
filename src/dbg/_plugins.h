@@ -182,6 +182,12 @@ typedef struct
     bool retval;
 } PLUG_CB_FILTERSYMBOL;
 
+typedef struct
+{
+    duint cip;
+    bool stop;
+} PLUG_CB_TRACEEXECUTE;
+
 //enums
 typedef enum
 {
@@ -209,6 +215,7 @@ typedef enum
     CB_LOADDB, //PLUG_CB_LOADSAVEDB
     CB_SAVEDB, //PLUG_CB_LOADSAVEDB
     CB_FILTERSYMBOL, //PLUG_CB_FILTERSYMBOL
+    CB_TRACEEXECUTE, //PLUG_CB_TRACEEXECUTE
     CB_LAST
 } CBTYPE;
 
