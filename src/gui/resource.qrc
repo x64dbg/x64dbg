@@ -254,5 +254,6 @@
         <file>images/database-export.png</file>
         <file>images/database-import.png</file>
         <file>images/lock.png</file>
+        <file>images/createthread.png</file>
     </qresource>
 </RCC>
