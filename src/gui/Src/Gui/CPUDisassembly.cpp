@@ -1091,7 +1091,6 @@ void CPUDisassembly::gotoXrefSlot()
         mXrefDlg = new XrefBrowseDialog(this);
     mXrefDlg->setup(getSelectedVa());
     mXrefDlg->showNormal();
-    mXrefDlg->setFocus();
 }
 
 void CPUDisassembly::followActionSlot()
