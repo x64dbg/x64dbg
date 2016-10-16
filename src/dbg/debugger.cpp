@@ -452,11 +452,7 @@ void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
     if(GuiIsUpdateDisabled())
         return;
     if(!forceDump && bFreezeStack)
-    {
-        SELECTIONDATA selection;
-        if(GuiSelectionGet(GUI_STACK, &selection))
-            dumpAddr = selection.start;
-    }
+        dumpAddr = 0;
     GuiStackDumpAt(dumpAddr, csp);
     GuiUpdateArgumentWidget();
 }

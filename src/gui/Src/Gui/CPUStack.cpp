@@ -242,6 +242,7 @@ void CPUStack::setupContextMenu()
 
     //Freeze the stack
     mMenuBuilder->addAction(mFreezeStack = makeAction(DIcon("freeze.png"), tr("Freeze the stack"), SLOT(freezeStackSlot())));
+    mFreezeStack->setCheckable(true);
 
     //Follow in Memory Map
     mMenuBuilder->addAction(makeAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot())));
@@ -319,7 +320,10 @@ void CPUStack::updateFreezeStackAction()
     if(bStackFrozen)
         mFreezeStack->setText(tr("Unfreeze the stack"));
     else
+    {
         mFreezeStack->setText(tr("Freeze the stack"));
+        gotoSpSlot();
+    }
     mFreezeStack->setChecked(bStackFrozen);
 }
 
@@ -532,7 +536,8 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPUStack::stackDumpAt(duint addr, duint csp)
 {
-    addVaToHistory(addr);
+    if(DbgMemIsValidReadPtr(addr))
+        addVaToHistory(addr);
     mCsp = csp;
 
     // Get the callstack
