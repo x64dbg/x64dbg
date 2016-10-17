@@ -110,6 +110,7 @@ signals:
     void loadSourceFile(const QString path, int line, int selection);
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
+    void setCheckedMenuEntry(int hEntry, bool checked);
     void showCpu();
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);

@@ -767,6 +767,21 @@ void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
     }
 }
 
+void pluginmenuentrysetchecked(int pluginHandle, int hEntry, bool checked)
+{
+    if(hEntry == -1)
+        return;
+    SHARED_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
+    {
+        if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
+        {
+            GuiMenuSetEntryChecked(currentMenu.hEntryMenu, checked);
+            break;
+        }
+    }
+}
+
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata)
 {
     PLUG_EXPRFUNCTION plugExprfunction;

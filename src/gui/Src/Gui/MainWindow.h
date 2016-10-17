@@ -102,6 +102,7 @@ public slots:
     void removeMenuEntry(int hEntry);
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
+    void setCheckedMenuEntry(int hEntry, bool checked);
     void runSelection();
     void runExpression();
     void getStrWindow(const QString title, QString* text);

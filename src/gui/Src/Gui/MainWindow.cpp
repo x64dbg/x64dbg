@@ -75,6 +75,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
+    connect(Bridge::getBridge(), SIGNAL(setCheckedMenuEntry(int, bool)), this, SLOT(setCheckedMenuEntry(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
@@ -1055,6 +1056,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QAction* wAction = new QAction(title, parent);
     wAction->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
+    wAction->setCheckable(true);
     parent->addAction(wAction);
     connect(wAction, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
     newInfo.mAction = wAction;
@@ -1178,6 +1180,20 @@ void MainWindow::setIconMenu(int hMenu, QIcon icon)
         {
             const MenuInfo & menu = mMenuList.at(i);
             menu.mMenu->setIcon(icon);
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
+{
+    for(int i = 0; i < mEntryList.size(); i++)
+    {
+        if(mEntryList.at(i).hEntry == hEntry)
+        {
+            const MenuEntryInfo & entry = mEntryList.at(i);
+            entry.mAction->setChecked(checked);
+            break;
         }
     }
     Bridge::getBridge()->setResult();

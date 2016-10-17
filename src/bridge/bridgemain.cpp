@@ -1367,6 +1367,11 @@ BRIDGE_IMPEXP void GuiMenuSetEntryIcon(int hEntry, const ICONDATA* icon)
     _gui_sendmessage(GUI_MENU_SET_ENTRY_ICON, (void*)hEntry, (void*)icon);
 }
 
+BRIDGE_IMPEXP void GuiMenuSetEntryChecked(int hEntry, bool checked)
+{
+    _gui_sendmessage(GUI_MENU_SET_ENTRY_CHECKED, (void*)hEntry, (void*)checked);
+}
+
 BRIDGE_IMPEXP void GuiShowCpu()
 {
     _gui_sendmessage(GUI_SHOW_CPU, 0, 0);

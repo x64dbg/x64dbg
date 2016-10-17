@@ -92,6 +92,11 @@ PLUG_IMPEXP void _plugin_menuentryseticon(int pluginHandle, int hEntry, const IC
     pluginmenuentryseticon(pluginHandle, hEntry, icon);
 }
 
+PLUG_IMPEXP void _plugin_menuentrysetchecked(int pluginHandle, int hEntry, bool checked)
+{
+    pluginmenuentrysetchecked(pluginHandle, hEntry, checked);
+}
+
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript)
 {
     dbgstartscriptthread(cbScript);
