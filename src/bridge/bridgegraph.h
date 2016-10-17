@@ -3,6 +3,12 @@
 
 typedef struct
 {
+    duint addr; //virtual address of the instruction
+    unsigned char data[15]; //instruction bytes
+} BridgeCFInstruction;
+
+typedef struct
+{
     duint parentGraph; //function of which this node is a part
     duint start; //start of the block
     duint end; //end of the block (inclusive)
@@ -13,7 +19,7 @@ typedef struct
     bool split; //node is a split (brtrue points to the next node)
     void* userdata; //user data
     ListInfo exits; //exits (including brtrue and brfalse, duint)
-    ListInfo data; //block data
+    ListInfo instrs; //block instructions
 } BridgeCFNodeList;
 
 typedef struct
@@ -43,7 +49,7 @@ struct BridgeCFNode
     bool split; //node is a split (brtrue points to the next node)
     void* userdata; //user data
     std::vector<duint> exits; //exits (including brtrue and brfalse)
-    std::vector<unsigned char> data; //block data
+    std::vector<BridgeCFInstruction> instrs; //block instructions
 
     explicit BridgeCFNode(BridgeCFNodeList* nodeList, bool freedata = true)
     {
@@ -60,7 +66,7 @@ struct BridgeCFNode
         userdata = nodeList->userdata;
         if(!BridgeList<duint>::ToVector(&nodeList->exits, exits, freedata))
             __debugbreak();
-        if(!BridgeList<unsigned char>::ToVector(&nodeList->data, data, freedata))
+        if(!BridgeList<BridgeCFInstruction>::ToVector(&nodeList->instrs, instrs, freedata))
             __debugbreak();
     }
 
@@ -95,7 +101,7 @@ struct BridgeCFNode
         out.split = split;
         out.userdata = userdata;
         BridgeList<duint>::CopyData(&out.exits, exits);
-        BridgeList<unsigned char>::CopyData(&out.data, data);
+        BridgeList<BridgeCFInstruction>::CopyData(&out.instrs, instrs);
         return std::move(out);
     }
 };

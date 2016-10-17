@@ -1355,21 +1355,18 @@ void DisassemblerGraphView::loadCurrentGraph()
                 block.header_text = Text(getSymbolicName(block.entry), mLabelColor, mLabelBackgroundColor);
                 {
                     Instr instr;
-                    unsigned char data[MAX_DISASM_BUFFER];
-                    for(size_t i = 0; i < node.data.size();)
+                    for(const BridgeCFInstruction & nodeInstr : node.instrs)
                     {
-                        data[0] = 0xFF;
-                        memcpy(data, node.data.data() + i, qMin(sizeof(data), node.data.size() - i));
-                        auto addr = node.start + i;
+                        auto addr = nodeInstr.addr;
                         currentBlockMap[addr] = block.entry;
-                        Instruction_t instrTok = disasm.DisassembleAt((byte_t*)data, sizeof(data), 0, addr);
+                        Instruction_t instrTok = disasm.DisassembleAt((byte_t*)nodeInstr.data, sizeof(nodeInstr.data), 0, addr, false);
                         RichTextPainter::List richText;
                         CapstoneTokenizer::TokenToRichText(instrTok.tokens, richText, 0);
                         auto size = instrTok.length;
                         instr.addr = addr;
                         instr.opcode.resize(size);
                         for(int j = 0; j < size; j++)
-                            instr.opcode[j] = data[j];
+                            instr.opcode[j] = nodeInstr.data[j];
 
                         QString comment;
                         bool autoComment = false;
@@ -1410,7 +1407,6 @@ void DisassemblerGraphView::loadCurrentGraph()
                         instr.text = Text(richText);
 
                         block.instrs.push_back(instr);
-                        i += size;
                     }
                 }
                 func.blocks.push_back(block);

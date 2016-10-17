@@ -187,10 +187,18 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             node.brtrue = 0;
         if(!node.icount)
             continue;
-        auto size = node.end - node.start + (mCp.Disassemble(node.end, translateAddr(node.end)) ? mCp.Size() : 1);
-        node.data.resize(size);
-        for(duint i = 0; i < size; i++)
-            node.data[i] = inRange(node.start + i) ? *translateAddr(node.start + i) : 0;
+        node.instrs.reserve(node.icount);
+        auto addr = node.start;
+        while(addr <= node.end)
+        {
+            auto size = mCp.Disassemble(addr, translateAddr(addr)) ? mCp.Size() : 1;
+            BridgeCFInstruction instr;
+            instr.addr = addr;
+            for(duint i = 0; i < size; i++)
+                instr.data[i] = inRange(addr + i) ? *translateAddr(addr + i) : 0;
+            node.instrs.push_back(instr);
+            addr += size;
+        }
     }
     mFunctions.push_back(graph);
 }
