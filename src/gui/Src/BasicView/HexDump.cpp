@@ -470,6 +470,30 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
         AbstractTableView::mouseReleaseEvent(event);
 }
 
+void HexDump::keyPressEvent(QKeyEvent* event)
+{
+    if(event->key() == Qt::Key_Up && event->modifiers() == Qt::ControlModifier)
+    {
+        duint offsetVa = rvaToVa(getTableOffsetRva()) - 1;
+        if(DbgMemFindBaseAddr(rvaToVa(getTableOffsetRva()), nullptr) == DbgMemFindBaseAddr(offsetVa, nullptr))
+        {
+            printDumpAt(offsetVa);
+            addVaToHistory(offsetVa);
+        }
+    }
+    else if(event->key() == Qt::Key_Down && event->modifiers() == Qt::ControlModifier)
+    {
+        duint offsetVa = rvaToVa(getTableOffsetRva()) + 1;
+        if(DbgMemFindBaseAddr(rvaToVa(getTableOffsetRva()), nullptr) == DbgMemFindBaseAddr(offsetVa, nullptr))
+        {
+            printDumpAt(offsetVa);
+            addVaToHistory(offsetVa);
+        }
+    }
+    else
+        AbstractTableView::keyPressEvent(event);
+}
+
 QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     // Reset byte offset when base address is reached

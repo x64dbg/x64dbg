@@ -629,6 +629,8 @@ void AbstractTableView::resizeEvent(QResizeEvent* event)
 void AbstractTableView::keyPressEvent(QKeyEvent* event)
 {
     int wKey = event->key();
+    if(event->modifiers())
+        return;
 
     if(wKey == Qt::Key_Up)
     {
