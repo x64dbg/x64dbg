@@ -1037,7 +1037,10 @@ void MainWindow::addMenu(int hMenu, QString title)
     if(hMenu == -1) //top-level
         ui->menuBar->addMenu(wMenu);
     else //deeper level
+    {
         menu->mMenu->addMenu(wMenu);
+        menu->mMenu->menuAction()->setVisible(true);
+    }
     Bridge::getBridge()->setResult(hMenuNew);
 }
 
