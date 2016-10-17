@@ -1255,12 +1255,22 @@ void DisassemblerGraphView::show_cur_instr()
         {
             if(this->cur_instr == instr.addr)
             {
-                auto x = block.x + int(block.width / 2);
-                auto y = block.y + (2 * this->charWidth) + int((row + 0.5) * this->charHeight);
-                this->horizontalScrollBar()->setValue(x + this->renderXOfs -
-                                                      int(this->horizontalScrollBar()->pageStep() / 2));
-                this->verticalScrollBar()->setValue(y + this->renderYOfs -
-                                                    int(this->verticalScrollBar()->pageStep() / 2));
+                //Don't update the view for blocks that are already fully in view
+                int xofs = this->horizontalScrollBar()->value();
+                int yofs = this->verticalScrollBar()->value();
+                QRect viewportRect = this->viewport()->rect();
+                QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
+                viewportRect.translate(-translation.x(), -translation.y());
+                if(!viewportRect.contains(QRect(block.x + this->charWidth , block.y + this->charWidth,
+                                                block.width - (2 * this->charWidth), block.height - (2 * this->charWidth))))
+                {
+                    auto x = block.x + int(block.width / 2);
+                    auto y = block.y + (2 * this->charWidth) + int((row + 0.5) * this->charHeight);
+                    this->horizontalScrollBar()->setValue(x + this->renderXOfs -
+                                                          int(this->horizontalScrollBar()->pageStep() / 2));
+                    this->verticalScrollBar()->setValue(y + this->renderYOfs -
+                                                        int(this->verticalScrollBar()->pageStep() / 2));
+                }
                 return;
             }
             row += int(instr.text.lines.size());
