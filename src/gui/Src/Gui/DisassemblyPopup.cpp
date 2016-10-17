@@ -103,14 +103,24 @@ void DisassemblyPopup::setAddress(duint Address)
         QList<dsint> rvaList;
         dsint nextRva = rva;
         bool hadBranch = false;
+        duint bestBranch = 0;
         do
         {
             rvaList.append(nextRva);
             Instruction_t instruction = parent->DisassembleAt(nextRva);
-            if(!hadBranch && instruction.tokens.tokens[0].text.toLower() == "ret")
-                break;
-            if(instruction.branchDestination)
+            if(!hadBranch || bestBranch <= instruction.rva + base)
+            {
+                if(instruction.instStr.contains("ret"))
+                    break;
+                if(instruction.instStr.contains("jmp") && instruction.instStr.contains("["))
+                    break;
+            }
+            if(instruction.branchDestination && !instruction.instStr.contains("call"))
+            {
                 hadBranch = true;
+                if(instruction.branchDestination > bestBranch)
+                    bestBranch = instruction.branchDestination;
+            }
             auto nextRva2 = nextRva + instruction.length;
             if(nextRva2 == nextRva)
                 break;
