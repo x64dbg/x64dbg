@@ -544,8 +544,6 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
         duint instr = this->getInstrForMouseEvent(event);
         if(instr != 0)
             this->cur_instr = instr;
-        else
-            this->cur_instr = 0;
 
         this->viewport()->update();
 
