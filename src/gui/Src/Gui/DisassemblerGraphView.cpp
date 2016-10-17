@@ -281,6 +281,10 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
     pen.setWidthF(penWidth);
 
     //Render each node
+    duint cipBlock = 0;
+    auto found = currentBlockMap.find(mCip);
+    if(found != currentBlockMap.end())
+        cipBlock = found->second;
     for(auto & blockIt : this->blocks)
     {
         DisassemblerBlock & block = blockIt.second;
@@ -295,13 +299,15 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
             p.drawConvexPolygon(edge.arrow);
         }
 
+        //Get block metadata
         auto isTraced = DbgFunctions()->GetTraceRecordHitCount(block.block.entry) != 0;
+        auto isCip = block.block.entry == cipBlock;
 
         //Render shadow
         p.setPen(QColor(0, 0, 0, 0));
         if(isTraced && block.block.terminal)
             p.setBrush(retShadowColor);
-        else if(block.block.terminal)
+        else if(block.block.terminal || isCip)
             p.setBrush(QColor(0, 0, 0, 0));
         else
             p.setBrush(QColor(0, 0, 0, 128));
@@ -311,7 +317,9 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         //Render node background
         pen.setColor(Qt::black);
         p.setPen(pen);
-        if(isTraced)
+        if(isCip)
+            p.setBrush(QBrush(mCipBackgroundColor));
+        else if(isTraced)
             p.setBrush(QBrush(disassemblyTracedColor));
         else if(block.block.terminal)
             p.setBrush(QBrush(retShadowColor));
@@ -1345,6 +1353,7 @@ void DisassemblerGraphView::loadCurrentGraph()
                         data[0] = 0xFF;
                         memcpy(data, node.data.data() + i, qMin(sizeof(data), node.data.size() - i));
                         auto addr = node.start + i;
+                        currentBlockMap[addr] = block.entry;
                         Instruction_t instrTok = disasm.DisassembleAt((byte_t*)data, sizeof(data), 0, addr);
                         RichTextPainter::List richText;
                         CapstoneTokenizer::TokenToRichText(instrTok.tokens, richText, 0);
@@ -1427,6 +1436,7 @@ QString DisassemblerGraphView::getSymbolicName(duint addr)
 void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint addr)
 {
     currentGraph = BridgeCFGraph(graphList);
+    currentBlockMap.clear();
     loadCurrentGraph();
     this->cur_instr = addr ? addr : this->function;
     Bridge::getBridge()->setResult();

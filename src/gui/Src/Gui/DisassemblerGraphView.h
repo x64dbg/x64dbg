@@ -328,6 +328,7 @@ private:
     QColor mCipBackgroundColor;
 
     BridgeCFGraph currentGraph;
+    std::unordered_map<duint, duint> currentBlockMap;
     QBeaEngine disasm;
     GotoDialog* mGoto;
 protected:
