@@ -1004,9 +1004,10 @@ void CPUStack::freezeStackSlot()
 void CPUStack::dbgStateChangedSlot(DBGSTATE state)
 {
     if(state == initialized)
+    {
         bStackFrozen = false;
-
-    updateFreezeStackAction();
+        updateFreezeStackAction();
+    }
 }
 
 void CPUStack::followInMemoryMapSlot()
