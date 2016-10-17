@@ -234,6 +234,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         }
         else
         {
+            String comment;
             DWORD dwDisplacement;
             IMAGEHLP_LINEW64 line;
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
@@ -246,14 +247,13 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     len--;
                 if(len)
                     len++;
-                sprintf_s(addrinfo->comment, "\1%s:%u", StringUtils::Utf16ToUtf8(filename + len).c_str(), line.LineNumber);
+                comment = StringUtils::sprintf("%s:%u", StringUtils::Utf16ToUtf8(filename + len), line.LineNumber);
                 retval = true;
             }
-            else if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
+            if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
             {
                 DISASM_INSTR instr;
                 String temp_string;
-                String comment;
                 ADDRINFO newinfo;
                 char string_text[MAX_STRING_SIZE] = "";
 
@@ -339,13 +339,12 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         retval = true;
                     }
                 }
-
-                StringUtils::ReplaceAll(comment, "{", "{{");
-                StringUtils::ReplaceAll(comment, "}", "}}");
-
-                strcpy_s(addrinfo->comment, "\1");
-                strncat_s(addrinfo->comment, comment.c_str(), _TRUNCATE);
             }
+
+            StringUtils::ReplaceAll(comment, "{", "{{");
+            StringUtils::ReplaceAll(comment, "}", "}}");
+            strcpy_s(addrinfo->comment, "\1");
+            strncat_s(addrinfo->comment, comment.c_str(), _TRUNCATE);
         }
     }
     return retval;
