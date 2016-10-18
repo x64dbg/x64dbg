@@ -315,7 +315,7 @@ void DataCopyDialog::printData(DataType type)
 
     case DataBase64:
     {
-        data = QByteArray(reinterpret_cast<const char*>(mData->constData())).toBase64().constData();
+        data = QByteArray(reinterpret_cast<const char*>(mData->constData()), mData->size()).toBase64().constData();
     }
     break;
     }
