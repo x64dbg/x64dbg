@@ -45,7 +45,6 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
     int height = mInfo->getHeight();
     ui->mTopLeftLowerFrame->setMinimumHeight(height + 2);
-    ui->mTopLeftLowerFrame->setMaximumHeight(height + 2);
 
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
 

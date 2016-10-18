@@ -188,6 +188,12 @@ typedef struct
     bool stop;
 } PLUG_CB_TRACEEXECUTE;
 
+typedef struct
+{
+    int hWindow;
+    SELECTIONDATA selection;
+} PLUG_CB_SELCHANGED;
+
 //enums
 typedef enum
 {
@@ -216,6 +222,7 @@ typedef enum
     CB_SAVEDB, //PLUG_CB_LOADSAVEDB
     CB_FILTERSYMBOL, //PLUG_CB_FILTERSYMBOL
     CB_TRACEEXECUTE, //PLUG_CB_TRACEEXECUTE
+    CB_SELCHANGED, //PLUG_CB_SELCHANGED
     CB_LAST
 } CBTYPE;
 

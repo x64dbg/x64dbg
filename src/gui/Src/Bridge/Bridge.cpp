@@ -681,6 +681,15 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         }
     }
     break;
+
+    case GUI_ADD_INFO_LINE:
+    {
+        if(param1)
+        {
+            emit addInfoLine(QString((const char*)param1));
+        }
+    }
+    break;
     }
 
     return nullptr;

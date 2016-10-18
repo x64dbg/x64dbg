@@ -228,7 +228,8 @@ typedef enum
     DBG_ARGUMENT_OVERLAPS,          // param1=FUNCTION* info,            param2=unused
     DBG_ARGUMENT_ADD,               // param1=FUNCTION* info,            param2=unused
     DBG_ARGUMENT_DEL,               // param1=FUNCTION* info,            param2=unused
-    DBG_GET_WATCH_LIST              // param1=ListOf(WATCHINFO),         param2=unused
+    DBG_GET_WATCH_LIST,             // param1=ListOf(WATCHINFO),         param2=unused
+    DBG_SELCHANGED                  // param1=hWindow,                   param2=unused
 } DBGMSG;
 
 typedef enum
@@ -858,6 +859,7 @@ BRIDGE_IMPEXP bool DbgSetEncodeType(duint addr, duint size, ENCODETYPE type);
 BRIDGE_IMPEXP void DbgDelEncodeTypeRange(duint start, duint end);
 BRIDGE_IMPEXP void DbgDelEncodeTypeSegment(duint start);
 BRIDGE_IMPEXP bool DbgGetWatchList(ListOf(WATCHINFO) list);
+BRIDGE_IMPEXP void DbgSelChanged(int hWindow);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
@@ -967,7 +969,8 @@ typedef enum
     GUI_FOLD_DISASSEMBLY,           // param1=duint startAddress    param2=duint length
     GUI_SELECT_IN_MEMORY_MAP,       // param1=duint addr,           param2=unused
     GUI_GET_ACTIVE_VIEW,            // param1=ACTIVEVIEW*,          param2=unused
-    GUI_MENU_SET_ENTRY_CHECKED      // param1=int hEntry,           param2=bool checked
+    GUI_MENU_SET_ENTRY_CHECKED,     // param1=int hEntry,           param2=bool checked
+    GUI_ADD_INFO_LINE               // param1=const char* infoline, param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1109,6 +1112,7 @@ BRIDGE_IMPEXP void GuiSetFavouriteToolShortcut(const char* name, const char* sho
 BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length);
 BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr);
 BRIDGE_IMPEXP void GuiGetActiveView(ACTIVEVIEW* activeView);
+BRIDGE_IMPEXP void GuiAddInfoLine(const char* infoLine);
 
 #ifdef __cplusplus
 }
