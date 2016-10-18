@@ -989,9 +989,9 @@ BRIDGE_IMPEXP void DbgDelEncodeTypeSegment(duint start)
     _dbg_sendmessage(DBG_DELETE_ENCODE_TYPE_SEG, (void*)start, 0);
 }
 
-BRIDGE_IMPEXP void DbgSelChanged(int hWindow)
+BRIDGE_IMPEXP void DbgSelChanged(int hWindow, duint VA)
 {
-    _dbg_sendmessage(DBG_SELCHANGED, (void*)hWindow, 0);
+    _dbg_sendmessage(DBG_SELCHANGED, (void*)hWindow, (void*)VA);
 }
 
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)

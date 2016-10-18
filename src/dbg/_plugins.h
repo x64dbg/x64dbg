@@ -191,7 +191,7 @@ typedef struct
 typedef struct
 {
     int hWindow;
-    SELECTIONDATA selection;
+    duint VA;
 } PLUG_CB_SELCHANGED;
 
 //enums

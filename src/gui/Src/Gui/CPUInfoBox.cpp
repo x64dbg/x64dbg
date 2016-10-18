@@ -291,7 +291,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 
     setInfoLine(2, info);
 
-    DbgSelChanged(GUI_DISASSEMBLY);
+    DbgSelChanged(GUI_DISASSEMBLY, parVA);
 }
 
 void CPUInfoBox::dbgStateChanged(DBGSTATE state)

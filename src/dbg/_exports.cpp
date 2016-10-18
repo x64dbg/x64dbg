@@ -1277,7 +1277,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     {
         PLUG_CB_SELCHANGED plugSelChanged;
         plugSelChanged.hWindow = (int)param1;
-        GuiSelectionGet(GUI_DISASSEMBLY, &plugSelChanged.selection);
+        plugSelChanged.VA = (duint)param2;
         plugincbcall(CB_SELCHANGED, &plugSelChanged);
     }
     break;

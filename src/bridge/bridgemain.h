@@ -229,7 +229,7 @@ typedef enum
     DBG_ARGUMENT_ADD,               // param1=FUNCTION* info,            param2=unused
     DBG_ARGUMENT_DEL,               // param1=FUNCTION* info,            param2=unused
     DBG_GET_WATCH_LIST,             // param1=ListOf(WATCHINFO),         param2=unused
-    DBG_SELCHANGED                  // param1=hWindow,                   param2=unused
+    DBG_SELCHANGED                  // param1=hWindow,                   param2=VA
 } DBGMSG;
 
 typedef enum
@@ -859,7 +859,7 @@ BRIDGE_IMPEXP bool DbgSetEncodeType(duint addr, duint size, ENCODETYPE type);
 BRIDGE_IMPEXP void DbgDelEncodeTypeRange(duint start, duint end);
 BRIDGE_IMPEXP void DbgDelEncodeTypeSegment(duint start);
 BRIDGE_IMPEXP bool DbgGetWatchList(ListOf(WATCHINFO) list);
-BRIDGE_IMPEXP void DbgSelChanged(int hWindow);
+BRIDGE_IMPEXP void DbgSelChanged(int hWindow, duint VA);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
