@@ -51,7 +51,15 @@ struct BridgeCFNode
     std::vector<duint> exits; //exits (including brtrue and brfalse)
     std::vector<BridgeCFInstruction> instrs; //block instructions
 
-    explicit BridgeCFNode(BridgeCFNodeList* nodeList, bool freedata = true)
+    static void Free(const BridgeCFNodeList* nodeList)
+    {
+        if(!BridgeList<duint>::Free(&nodeList->exits))
+            __debugbreak();
+        if(!BridgeList<BridgeCFInstruction>::Free(&nodeList->instrs))
+            __debugbreak();
+    }
+
+    explicit BridgeCFNode(const BridgeCFNodeList* nodeList, bool freedata)
     {
         if(!nodeList)
             __debugbreak();
@@ -113,7 +121,17 @@ struct BridgeCFGraph
     std::unordered_map<duint, BridgeCFNode> nodes; //CFNode.start -> CFNode
     std::unordered_map<duint, std::unordered_set<duint>> parents; //CFNode.start -> parents
 
-    explicit BridgeCFGraph(BridgeCFGraphList* graphList, bool freedata = true)
+    static void Free(const BridgeCFGraphList* graphList)
+    {
+        if(!graphList || graphList->nodes.size != graphList->nodes.count * sizeof(BridgeCFNodeList))
+            __debugbreak();
+        auto data = (BridgeCFNodeList*)graphList->nodes.data;
+        for(int i = 0; i < graphList->nodes.count; i++)
+            BridgeCFNode::Free(&data[i]);
+        BridgeFree(data);
+    }
+
+    explicit BridgeCFGraph(const BridgeCFGraphList* graphList, bool freedata)
     {
         if(!graphList || graphList->nodes.size != graphList->nodes.count * sizeof(BridgeCFNodeList))
             __debugbreak();

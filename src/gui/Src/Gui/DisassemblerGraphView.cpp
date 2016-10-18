@@ -17,7 +17,8 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
       disasm(ConfigUint("Disassembler", "MaxModuleSize")),
       mCip(0),
       mGoto(nullptr),
-      syncOrigin(false)
+      syncOrigin(false),
+      forceCenter(false)
 {
     this->status = "Loading...";
 
@@ -606,7 +607,7 @@ void DisassemblerGraphView::mouseReleaseEvent(QMouseEvent* event)
 void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
 {
     duint instr = this->getInstrForMouseEvent(event);
-    DbgCmdExec(QString("graph dis.branchdest(%1), 1").arg(ToPtrString(instr)).toUtf8().constData());
+    DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)).toUtf8().constData());
 }
 
 void DisassemblerGraphView::prepareGraphNode(DisassemblerBlock & block)
@@ -1199,7 +1200,10 @@ void DisassemblerGraphView::renderFunction(Function & func)
         this->verticalScrollBar()->setValue(this->desired_pos[1]);
     }
     else if(this->cur_instr != 0)
-        this->show_cur_instr();
+    {
+        this->show_cur_instr(this->forceCenter);
+        this->forceCenter = false;
+    }
     else
     {
         //Ensure start node is visible
@@ -1245,7 +1249,7 @@ void DisassemblerGraphView::updateTimerEvent()
     }
 }
 
-void DisassemblerGraphView::show_cur_instr()
+void DisassemblerGraphView::show_cur_instr(bool force)
 {
     for(auto & blockIt : this->blocks)
     {
@@ -1261,8 +1265,8 @@ void DisassemblerGraphView::show_cur_instr()
                 QRect viewportRect = this->viewport()->rect();
                 QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
                 viewportRect.translate(-translation.x(), -translation.y());
-                if(!viewportRect.contains(QRect(block.x + this->charWidth , block.y + this->charWidth,
-                                                block.width - (2 * this->charWidth), block.height - (2 * this->charWidth))))
+                if(force || !viewportRect.contains(QRect(block.x + this->charWidth , block.y + this->charWidth,
+                                                   block.width - (2 * this->charWidth), block.height - (2 * this->charWidth))))
                 {
                     auto x = block.x + int(block.width / 2);
                     auto y = block.y + (2 * this->charWidth) + int((row + 0.5) * this->charHeight);
@@ -1347,7 +1351,7 @@ void DisassemblerGraphView::loadCurrentGraph()
             {
                 const BridgeCFNode & node = nodeIt.second;
                 Block block;
-                block.entry = node.start;
+                block.entry = node.instrs.empty() ? node.start : node.instrs[0].addr;
                 block.exits = node.exits;
                 block.false_path = node.brfalse;
                 block.true_path = node.brtrue;
@@ -1439,16 +1443,17 @@ QString DisassemblerGraphView::getSymbolicName(duint addr)
 
 void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint addr)
 {
-    currentGraph = BridgeCFGraph(graphList);
+    currentGraph = BridgeCFGraph(graphList, true);
     currentBlockMap.clear();
-    loadCurrentGraph();
     this->cur_instr = addr ? addr : this->function;
+    this->forceCenter = true;
+    loadCurrentGraph();
     Bridge::getBridge()->setResult();
 }
 
 void DisassemblerGraphView::graphAtSlot(duint addr)
 {
-    Bridge::getBridge()->setResult(this->navigate(addr));
+    Bridge::getBridge()->setResult(this->navigate(addr) ? this->currentGraph.entryPoint : 0);
 }
 
 void DisassemblerGraphView::updateGraphSlot()
@@ -1471,7 +1476,7 @@ void DisassemblerGraphView::setupContextMenu()
 
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(loadCurrentGraph()), "ActionGraphRefresh"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionGraphRefresh"));
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
@@ -1486,15 +1491,15 @@ void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
         return;
     int key = event->key();
     if(key == Qt::Key_Up)
-        DbgCmdExec(QString("graph dis.prev(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.prev(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
     else if(key == Qt::Key_Down)
-        DbgCmdExec(QString("graph dis.next(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.next(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
     else if(key == Qt::Key_Left)
-        DbgCmdExec(QString("graph dis.brtrue(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.brtrue(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
     else if(key == Qt::Key_Right)
-        DbgCmdExec(QString("graph dis.brfalse(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.brfalse(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
     if(key == Qt::Key_Return || key == Qt::Key_Enter)
-        DbgCmdExec(QString("graph dis.branchdest(%1), 1").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
 }
 
 void DisassemblerGraphView::followDisassemblerSlot()
@@ -1575,13 +1580,13 @@ void DisassemblerGraphView::gotoExpressionSlot()
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
-        DbgCmdExec(QString().sprintf("graph %p, 1", value).toUtf8().constData());
+        DbgCmdExec(QString().sprintf("graph %p, silent", value).toUtf8().constData());
     }
 }
 
 void DisassemblerGraphView::gotoOriginSlot()
 {
-    DbgCmdExec("graph cip, 1");
+    DbgCmdExec("graph cip, silent");
 }
 
 void DisassemblerGraphView::toggleSyncOriginSlot()
@@ -1591,4 +1596,9 @@ void DisassemblerGraphView::toggleSyncOriginSlot()
     mToggleSyncOrigin->setChecked(syncOrigin);
     if(syncOrigin)
         gotoOriginSlot();
+}
+
+void DisassemblerGraphView::refreshSlot()
+{
+    DbgCmdExec(QString("graph %1, force").arg(ToPtrString(this->cur_instr)).toUtf8().constData());
 }

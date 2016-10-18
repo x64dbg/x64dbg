@@ -1463,9 +1463,9 @@ BRIDGE_IMPEXP void GuiLoadGraph(BridgeCFGraphList* graph, duint addr)
     _gui_sendmessage(GUI_LOAD_GRAPH, graph, (void*)addr);
 }
 
-BRIDGE_IMPEXP bool GuiGraphAt(duint addr)
+BRIDGE_IMPEXP duint GuiGraphAt(duint addr)
 {
-    return !!_gui_sendmessage(GUI_GRAPH_AT, (void*)addr, nullptr);
+    return (duint)_gui_sendmessage(GUI_GRAPH_AT, (void*)addr, nullptr);
 }
 
 BRIDGE_IMPEXP void GuiUpdateGraphView()

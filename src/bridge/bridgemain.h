@@ -1102,7 +1102,7 @@ BRIDGE_IMPEXP bool GuiIsUpdateDisabled();
 BRIDGE_IMPEXP void GuiUpdateEnable(bool updateNow);
 BRIDGE_IMPEXP void GuiUpdateDisable();
 BRIDGE_IMPEXP void GuiLoadGraph(BridgeCFGraphList* graph, duint addr);
-BRIDGE_IMPEXP bool GuiGraphAt(duint addr);
+BRIDGE_IMPEXP duint GuiGraphAt(duint addr);
 BRIDGE_IMPEXP void GuiUpdateGraphView();
 BRIDGE_IMPEXP void GuiDisableLog();
 BRIDGE_IMPEXP void GuiEnableLog();

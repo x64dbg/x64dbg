@@ -248,7 +248,7 @@ public:
     int findVertEdgeIndex(EdgesVector & edges, int col, int min_row, int max_row);
     DisassemblerEdge routeEdge(EdgesVector & horiz_edges, EdgesVector & vert_edges, Matrix<bool> & edge_valid, DisassemblerBlock & start, DisassemblerBlock & end, QColor color);
     void renderFunction(Function & func);
-    void show_cur_instr();
+    void show_cur_instr(bool force = false);
     bool navigate(duint addr);
     void fontChanged();
     QString getSymbolicName(duint addr);
@@ -270,6 +270,7 @@ public slots:
     void gotoExpressionSlot();
     void gotoOriginSlot();
     void toggleSyncOriginSlot();
+    void refreshSlot();
 
 private:
     QString status;
@@ -305,6 +306,7 @@ private:
     int overviewYOfs;
     qreal overviewScale;
     duint mCip;
+    bool forceCenter;
 
     QAction* mToggleOverview;
     QAction* mToggleSyncOrigin;

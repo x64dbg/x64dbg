@@ -4,11 +4,13 @@
 #include "filehelper.h"
 #include "function.h"
 #include "xrefs.h"
+#include "plugin_loader.h"
 
-RecursiveAnalysis::RecursiveAnalysis(duint base, duint size, duint entryPoint, duint maxDepth, bool dump)
+RecursiveAnalysis::RecursiveAnalysis(duint base, duint size, duint entryPoint, duint maxDepth, bool usePlugins, bool dump)
     : Analysis(base, size),
       mEntryPoint(entryPoint),
       mMaxDepth(maxDepth),
+      mUsePlugins(usePlugins),
       mDump(dump)
 {
 }
@@ -199,6 +201,14 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             node.instrs.push_back(instr);
             addr += size;
         }
+    }
+    //fourth pass: allow plugins to manipulate the graph
+    if(mUsePlugins && !plugincbempty(CB_ANALYZE))
+    {
+        PLUG_CB_ANALYZE info;
+        info.graph = graph.ToGraphList();
+        plugincbcall(CB_ANALYZE, &info);
+        graph = BridgeCFGraph(&info.graph, true);
     }
     mFunctions.push_back(graph);
 }

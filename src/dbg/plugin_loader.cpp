@@ -163,6 +163,7 @@ bool pluginload(const char* pluginName, bool loadall)
     regExport("CBSAVEDB", CB_SAVEDB);
     regExport("CBFILTERSYMBOL", CB_FILTERSYMBOL);
     regExport("CBTRACEEXECUTE", CB_TRACEEXECUTE);
+    regExport("CBANALYZE", CB_ANALYZE);
 
     //init plugin
     if(!pluginData.pluginit(&pluginData.initStruct))
@@ -489,13 +490,23 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 */
 void plugincbcall(CBTYPE cbType, void* callbackInfo)
 {
-    SHARED_ACQUIRE(LockPluginCallbackList);
     if(pluginCallbackList[cbType].empty())
         return;
+    SHARED_ACQUIRE(LockPluginCallbackList);
     auto cbList = pluginCallbackList[cbType]; //copy for thread-safety reasons
     SHARED_RELEASE();
     for(const auto & currentCallback : cbList)
         currentCallback.cbPlugin(cbType, callbackInfo);
+}
+
+/**
+\brief Checks if any callbacks are registered
+\param cbType The type of the callback.
+\return true if no callbacks are registered.
+*/
+bool plugincbempty(CBTYPE cbType)
+{
+    return pluginCallbackList[cbType].empty();
 }
 
 /**

@@ -194,6 +194,11 @@ typedef struct
     duint VA;
 } PLUG_CB_SELCHANGED;
 
+typedef struct
+{
+    BridgeCFGraphList graph;
+} PLUG_CB_ANALYZE;
+
 //enums
 typedef enum
 {
@@ -223,6 +228,7 @@ typedef enum
     CB_FILTERSYMBOL, //PLUG_CB_FILTERSYMBOL
     CB_TRACEEXECUTE, //PLUG_CB_TRACEEXECUTE
     CB_SELCHANGED, //PLUG_CB_SELCHANGED
+    CB_ANALYZE, //PLUG_CB_ANALYZE
     CB_LAST
 } CBTYPE;
 

@@ -62,6 +62,7 @@ void pluginexprfuncunregisterall(int pluginHandle);
 void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin);
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType);
 void plugincbcall(CBTYPE cbType, void* callbackInfo);
+bool plugincbempty(CBTYPE cbType);
 bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly);
 bool plugincmdunregister(int pluginHandle, const char* command);
 int pluginmenuadd(int hMenu, const char* title);

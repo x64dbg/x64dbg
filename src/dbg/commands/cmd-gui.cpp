@@ -94,6 +94,9 @@ bool cbDebugMemmapdump(int argc, char* argv[])
 
 bool cbInstrGraph(int argc, char* argv[])
 {
+    auto options = argc > 2 ? argv[2] : "";
+    auto force = !!strstr(options, "force");
+    auto silent = !!strstr(options, "silent");
     duint entry;
     if(argc < 2 || !valfromstring(argv[1], &entry))
         entry = GetContextDataEx(hActiveThread, UE_CIP);
@@ -103,21 +106,25 @@ bool cbInstrGraph(int argc, char* argv[])
     auto base = MemFindBaseAddr(entry, &size);
     if(!base || !MemIsValidReadPtr(entry))
     {
-        if(argc <= 2)  //undocumented silent option
+        if(!silent)
             dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address %p!\n"), entry);
         return false;
     }
-    if(!GuiGraphAt(sel))
+    auto curEntry = GuiGraphAt(sel);
+    if(curEntry)
+        entry = curEntry;
+    if(!curEntry || force)
     {
         auto modbase = ModBaseFromAddr(base);
         if(modbase)
             base = modbase, size = ModSizeFromAddr(modbase);
-        RecursiveAnalysis analysis(base, size, entry, 0);
+        RecursiveAnalysis analysis(base, size, entry, 0, true);
         analysis.Analyse();
         auto graph = analysis.GetFunctionGraph(entry);
         if(!graph)
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "No graph generated..."));
+            if(!silent)
+                dputs(QT_TRANSLATE_NOOP("DBG", "No graph generated..."));
             return false;
         }
         auto graphList = graph->ToGraphList();
