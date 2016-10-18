@@ -1469,8 +1469,22 @@ void DisassemblerGraphView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("Toggle &Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
-    mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("Toggle &sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("Enter &Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"), [this](QMenu*)
+    {
+        if(drawOverview)
+            mToggleOverview->setText(tr("Leave &Overview"));
+        else
+            mToggleOverview->setText(tr("Enter &Overview"));
+        return true;
+    });
+    mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with Origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"), [this](QMenu*)
+    {
+        if(syncOrigin)
+            mToggleSyncOrigin->setText(tr("Disable &Sync with Origin"));
+        else
+            mToggleSyncOrigin->setText(tr("&Sync with Origin"));
+        return true;
+    });
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(loadCurrentGraph()), "ActionGraphRefresh"));
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
