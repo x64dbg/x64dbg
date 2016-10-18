@@ -515,6 +515,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     wCM_Pop = setupAction(DIcon("arrow-small-up.png"), tr("Pop"), this);
     wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"), this);
     mSwitchSIMDDispMode = new QMenu(tr("Change SIMD Register Display Mode"), this);
+    mSwitchSIMDDispMode->setIcon(DIcon("simdmode.png"));
     SIMDHex = new QAction(tr("Hexadecimal"), mSwitchSIMDDispMode);
     SIMDFloat = new QAction(tr("Float"), mSwitchSIMDDispMode);
     SIMDDouble = new QAction(tr("Double"), mSwitchSIMDDispMode);

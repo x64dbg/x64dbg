@@ -251,7 +251,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     QAction* toggleBreakpointAction = makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle"), SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
-    QAction* editSoftwareBreakpointAction = makeShortcutAction(DIcon("breakpoint_edit.png"), tr("Edit"), SLOT(editSoftBpActionSlot()), "ActionEditBreakpoint");
+    QAction* editSoftwareBreakpointAction = makeShortcutAction(DIcon("breakpoint_edit_alt.png"), tr("Edit"), SLOT(editSoftBpActionSlot()), "ActionEditBreakpoint");
     QAction* setHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()), "ActionSetHwBpE");
     QAction* removeHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_remove.png"), tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()), "ActionRemoveHwBp");
 
@@ -368,7 +368,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
-    QAction* togglePreview = makeShortcutAction(tr("Disable Branch Destination Preview"), SLOT(togglePreviewSlot()), "ActionToggleDestinationPreview");
+    QAction* togglePreview = makeShortcutAction(DIcon("branchpreview.png"), tr("Disable Branch Destination Preview"), SLOT(togglePreviewSlot()), "ActionToggleDestinationPreview");
     mMenuBuilder->addAction(togglePreview, [this, togglePreview](QMenu*)
     {
         togglePreview->setText(mPopupEnabled ? tr("Disable Branch Destination Preview") : tr("Enable Branch Destination Preview"));
@@ -421,7 +421,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     MenuBuilder* analysisMenu = new MenuBuilder(this);
     QAction* toggleFunctionAction = makeShortcutAction(DIcon("functions.png"), tr("Function"), SLOT(toggleFunctionSlot()), "ActionToggleFunction");
-    analysisMenu->addAction(makeShortcutAction(tr("Analyze module"), SLOT(analyzeModuleSlot()), "ActionAnalyzeModule"));
+    analysisMenu->addAction(makeShortcutAction(DIcon("analyzemodule.png"), tr("Analyze module"), SLOT(analyzeModuleSlot()), "ActionAnalyzeModule"));
     analysisMenu->addAction(toggleFunctionAction, [this, toggleFunctionAction](QMenu*)
     {
         if(!DbgFunctionOverlaps(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd())))
@@ -565,7 +565,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindStringsRegion = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsRegion = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternRegion = makeShortcutAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPattern");
-    mFindGUIDRegion = makeAction(tr("&GUID"), SLOT(findGUIDSlot()));
+    mFindGUIDRegion = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchRegionMenu->addAction(mFindCommandRegion);
     mSearchRegionMenu->addAction(mFindConstantRegion);
     mSearchRegionMenu->addAction(mFindStringsRegion);
@@ -579,7 +579,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindStringsModule = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsModule = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternModule = makeAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()));
-    mFindGUIDModule = makeAction(tr("&GUID"), SLOT(findGUIDSlot()));
+    mFindGUIDModule = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchModuleMenu->addAction(mFindCommandModule);
     mSearchModuleMenu->addAction(mFindConstantModule);
     mSearchModuleMenu->addAction(mFindStringsModule);
@@ -592,7 +592,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindConstantAll = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsAll = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsAll = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
-    mFindGUIDAll = makeAction(tr("&GUID"), SLOT(findGUIDSlot()));
+    mFindGUIDAll = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchAllMenu->addAction(mFindCommandAll);
     mSearchAllMenu->addAction(mFindConstantAll);
     mSearchAllMenu->addAction(mFindStringsAll);

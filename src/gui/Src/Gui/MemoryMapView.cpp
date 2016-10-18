@@ -58,7 +58,7 @@ void MemoryMapView::setupContextMenu()
     connect(mYara, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Set PageMemory Rights
-    mPageMemoryRights = new QAction(tr("Set Page Memory Rights"), this);
+    mPageMemoryRights = new QAction(DIcon("memmap_set_page_memory_rights.png"), tr("Set Page Memory Rights"), this);
     connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
 
     //Switch View
@@ -116,13 +116,13 @@ void MemoryMapView::setupContextMenu()
     connect(mMemoryExecuteSingleshootToggle, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootToggleSlot()));
 
     //Allocate memory
-    mMemoryAllocate = new QAction(tr("&Allocate memory"), this);
+    mMemoryAllocate = new QAction(DIcon("memmap_alloc_memory.png"), tr("&Allocate memory"), this);
     mMemoryAllocate->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryAllocate, SIGNAL(triggered()), this, SLOT(memoryAllocateSlot()));
     this->addAction(mMemoryAllocate);
 
     //Free memory
-    mMemoryFree = new QAction(tr("&Free memory"), this);
+    mMemoryFree = new QAction(DIcon("memmap_free_memory.png"), tr("&Free memory"), this);
     mMemoryFree->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
     this->addAction(mMemoryFree);

@@ -116,16 +116,20 @@ void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)
 {
     StdTable & table = *mHandlesTable;
     QMenu wMenu;
-    wMenu.addAction(mActionRefresh);
-    if(mHandlesTable->getRowCount() != 0)
-        wMenu.addAction(mActionCloseHandle);
     QMenu wCopyMenu(tr("&Copy"), this);
     wCopyMenu.setIcon(DIcon("copy.png"));
-    table.setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
+
+    wMenu.addAction(mActionRefresh);
+    if(table.getRowCount())
     {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
+        wMenu.addAction(mActionCloseHandle);
+
+        table.setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
+        }
     }
     wMenu.exec(table.mapToGlobal(pos));
 }
@@ -134,14 +138,18 @@ void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
 {
     StdTable & table = *mTcpConnectionsTable;
     QMenu wMenu;
-    wMenu.addAction(mActionRefresh);
     QMenu wCopyMenu(tr("&Copy"), this);
     wCopyMenu.setIcon(DIcon("copy.png"));
-    table.setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
+
+    wMenu.addAction(mActionRefresh);
+    if(table.getRowCount())
     {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
+        table.setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu.addSeparator();
+            wMenu.addMenu(&wCopyMenu);
+        }
     }
     wMenu.exec(table.mapToGlobal(pos));
 }
@@ -151,23 +159,24 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 {
     StdTable & table = *mPrivilegesTable;
     QMenu wMenu;
-    bool isValid = (mPrivilegesTable->getRowCount() != 0 && mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 1) != tr("Unknown"));
+    bool isValid = (table.getRowCount() != 0 && table.getCellContent(table.getInitialSelection(), 1) != tr("Unknown"));
     wMenu.addAction(mActionRefresh);
     if(isValid)
     {
-        if(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 1) == tr("Enabled"))
+        if(table.getCellContent(table.getInitialSelection(), 1) == tr("Enabled"))
         {
-            mActionDisablePrivilege->setText(tr("Disable Privilege: ") + mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0));
+            mActionDisablePrivilege->setText(tr("Disable Privilege: ") + table.getCellContent(table.getInitialSelection(), 0));
             wMenu.addAction(mActionDisablePrivilege);
         }
         else
         {
-            mActionEnablePrivilege->setText(tr("Enable Privilege: ") + mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0));
+            mActionEnablePrivilege->setText(tr("Enable Privilege: ") + table.getCellContent(table.getInitialSelection(), 0));
             wMenu.addAction(mActionEnablePrivilege);
         }
     }
     wMenu.addAction(mActionDisableAllPrivileges);
     wMenu.addAction(mActionEnableAllPrivileges);
+
     QMenu wCopyMenu(tr("&Copy"), this);
     wCopyMenu.setIcon(DIcon("copy.png"));
     table.setupCopyMenu(&wCopyMenu);

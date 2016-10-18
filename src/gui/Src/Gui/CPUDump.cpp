@@ -169,7 +169,7 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
     mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), ArchValue(tr("Watch DWORD"), tr("Watch QWORD")), SLOT(watchSlot())));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("entropy.png"), tr("Entrop&y..."), SLOT(entropySlot()), "ActionEntropy"));
-    mMenuBuilder->addAction(makeAction(tr("Allocate Memory"), SLOT(allocMemorySlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("memmap_alloc_memory.png"), tr("Allocate Memory"), SLOT(allocMemorySlot())));
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
     wGotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("&Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));

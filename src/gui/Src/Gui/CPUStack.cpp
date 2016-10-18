@@ -129,38 +129,38 @@ void CPUStack::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
 
     //Breakpoint (hardware access) menu
-    auto hardwareAccessMenu = makeMenu(tr("Hardware, Access"));
-    hardwareAccessMenu->addAction(makeAction(tr("&Byte"), SLOT(hardwareAccess1Slot())));
-    hardwareAccessMenu->addAction(makeAction(tr("&Word"), SLOT(hardwareAccess2Slot())));
-    hardwareAccessMenu->addAction(makeAction(tr("&Dword"), SLOT(hardwareAccess4Slot())));
+    auto hardwareAccessMenu = makeMenu(DIcon("breakpoint_access.png"), tr("Hardware, Access"));
+    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_byte.png"), tr("&Byte"), SLOT(hardwareAccess1Slot())));
+    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_word.png"), tr("&Word"), SLOT(hardwareAccess2Slot())));
+    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_dword.png"), tr("&Dword"), SLOT(hardwareAccess4Slot())));
 #ifdef _WIN64
-    hardwareAccessMenu->addAction(makeAction(tr("&Qword"), SLOT(hardwareAccess8Slot())));
+    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_qword.png"), tr("&Qword"), SLOT(hardwareAccess8Slot())));
 #endif //_WIN64
 
     //Breakpoint (hardware write) menu
-    auto hardwareWriteMenu = makeMenu(tr("Hardware, Write"));
-    hardwareWriteMenu->addAction(makeAction(tr("&Byte"), SLOT(hardwareWrite1Slot())));
-    hardwareWriteMenu->addAction(makeAction(tr("&Word"), SLOT(hardwareWrite2Slot())));
-    hardwareWriteMenu->addAction(makeAction(tr("&Dword"), SLOT(hardwareWrite4Slot())));
+    auto hardwareWriteMenu = makeMenu(DIcon("breakpoint_write.png"), tr("Hardware, Write"));
+    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_byte.png"), tr("&Byte"), SLOT(hardwareWrite1Slot())));
+    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_word.png"), tr("&Word"), SLOT(hardwareWrite2Slot())));
+    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_dword.png"), tr("&Dword"), SLOT(hardwareWrite4Slot())));
 #ifdef _WIN64
-    hardwareWriteMenu->addAction(makeAction(tr("&Qword"), SLOT(hardwareAccess8Slot())));
+    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_qword.png"), tr("&Qword"), SLOT(hardwareAccess8Slot())));
 #endif //_WIN64
 
     //Breakpoint (remove hardware)
-    auto hardwareRemove = makeAction(tr("Remove &Hardware"), SLOT(hardwareRemoveSlot()));
+    auto hardwareRemove = makeAction(DIcon("breakpoint_remove.png"), tr("Remove &Hardware"), SLOT(hardwareRemoveSlot()));
 
     //Breakpoint (memory access) menu
-    auto memoryAccessMenu = makeMenu(tr("Memory, Access"));
-    memoryAccessMenu->addAction(makeAction(tr("&Singleshoot"), SLOT(memoryAccessSingleshootSlot())));
-    memoryAccessMenu->addAction(makeAction(tr("&Restore on hit"), SLOT(memoryAccessRestoreSlot())));
+    auto memoryAccessMenu = makeMenu(DIcon("breakpoint_memory_access.png"), tr("Memory, Access"));
+    memoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryAccessSingleshootSlot())));
+    memoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryAccessRestoreSlot())));
 
     //Breakpoint (memory write) menu
-    auto memoryWriteMenu = makeMenu(tr("Memory, Write"));
-    memoryWriteMenu->addAction(makeAction(tr("&Singleshoot"), SLOT(memoryWriteSingleshootSlot())));
-    memoryWriteMenu->addAction(makeAction(tr("&Restore on hit"), SLOT(memoryWriteRestoreSlot())));
+    auto memoryWriteMenu = makeMenu(DIcon("breakpoint_memory_write.png"), tr("Memory, Write"));
+    memoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryWriteSingleshootSlot())));
+    memoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryWriteRestoreSlot())));
 
     //Breakpoint (remove memory) menu
-    auto memoryRemove = makeAction(tr("Remove &Memory"), SLOT(memoryRemoveSlot()));
+    auto memoryRemove = makeAction(DIcon("breakpoint_remove.png"), tr("Remove &Memory"), SLOT(memoryRemoveSlot()));
 
     //Breakpoint menu
     auto breakpointMenu = new MenuBuilder(this);

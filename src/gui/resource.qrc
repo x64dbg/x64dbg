@@ -255,5 +255,18 @@
         <file>images/database-import.png</file>
         <file>images/lock.png</file>
         <file>images/createthread.png</file>
+        <file>images/animatecommand.png</file>
+        <file>images/animateinto.png</file>
+        <file>images/animateover.png</file>
+        <file>images/browseinexplorer.png</file>
+        <file>images/markasparty.png</file>
+        <file>images/markasuser.png</file>
+        <file>images/markassystem.png</file>
+        <file>images/guid.png</file>
+        <file>images/analyzemodule.png</file>
+        <file>images/branchpreview.png</file>
+        <file>images/simdmode.png</file>
+        <file>images/breakpoint_exception_add.png</file>
+        <file>images/breakpoint_module_add.png</file>
     </qresource>
 </RCC>

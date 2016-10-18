@@ -23,7 +23,7 @@
      <x>0</x>
      <y>0</y>
      <width>868</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -121,16 +121,16 @@
     <addaction name="actioneStepOver"/>
     <addaction name="actionseStepOver"/>
     <addaction name="actionStepOverSource"/>
-    <addaction name="actionRtu"/>
     <addaction name="actionTocnd"/>
     <addaction name="actionAnimateOver"/>
     <addaction name="separator"/>
     <addaction name="actionRtr"/>
     <addaction name="actioneRtr"/>
     <addaction name="actionSkipNextInstruction"/>
+    <addaction name="actionInstrUndo"/>
+    <addaction name="actionRtu"/>
     <addaction name="actionAnimateCommand"/>
     <addaction name="menuTrace_record"/>
-    <addaction name="actionInstrUndo"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
     <addaction name="separator"/>
@@ -1021,16 +1021,28 @@
    </property>
   </action>
   <action name="actionAnimateInto">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/animateinto.png</normaloff>:/icons/images/animateinto.png</iconset>
+   </property>
    <property name="text">
     <string>Animate into</string>
    </property>
   </action>
   <action name="actionAnimateOver">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/animateover.png</normaloff>:/icons/images/animateover.png</iconset>
+   </property>
    <property name="text">
     <string>Animate over</string>
    </property>
   </action>
   <action name="actionAnimateCommand">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/animatecommand.png</normaloff>:/icons/images/animatecommand.png</iconset>
+   </property>
    <property name="text">
     <string>Animate command...</string>
    </property>
