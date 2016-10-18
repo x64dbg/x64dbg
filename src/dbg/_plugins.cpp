@@ -130,7 +130,7 @@ PLUG_IMPEXP bool _plugin_load(const char* pluginName)
     return pluginload(pluginName);
 }
 
-duint _plugin_hash(void* data, size_t size)
+duint _plugin_hash(const void* data, duint size)
 {
     return murmurhash(data, int(size));
 }

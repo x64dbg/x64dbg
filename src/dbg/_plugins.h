@@ -252,7 +252,7 @@ PLUG_IMPEXP bool _plugin_registerexprfunction(int pluginHandle, const char* name
 PLUG_IMPEXP bool _plugin_unregisterexprfunction(int pluginHandle, const char* name);
 PLUG_IMPEXP bool _plugin_unload(const char* pluginName);
 PLUG_IMPEXP bool _plugin_load(const char* pluginName);
-PLUG_IMPEXP duint _plugin_hash(void* data, size_t size);
+PLUG_IMPEXP duint _plugin_hash(const void* data, duint size);
 
 #ifdef __cplusplus
 }
