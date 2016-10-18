@@ -140,6 +140,7 @@ signals:
     void foldDisassembly(duint startAddr, duint length);
     void selectInMemoryMap(duint addr);
     void getActiveView(ACTIVEVIEW* activeView);
+    void addInfoLine(const QString & text);
 
 private:
     QMutex* mBridgeMutex;
