@@ -41,7 +41,8 @@ private:
         DataPascalQword,
         DataGUID,
         DataIPv4,
-        DataIPv6
+        DataIPv6,
+        DataBase64
     };
 
     void printData(DataType type);
