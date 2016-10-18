@@ -9,6 +9,7 @@
 #include "console.h"
 #include "debugger.h"
 #include "threading.h"
+#include "murmurhash.h"
 
 ///debugger plugin exports (wrappers)
 PLUG_IMPEXP void _plugin_registercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
@@ -127,4 +128,9 @@ PLUG_IMPEXP bool _plugin_unload(const char* pluginName)
 PLUG_IMPEXP bool _plugin_load(const char* pluginName)
 {
     return pluginload(pluginName);
+}
+
+duint _plugin_hash(void* data, size_t size)
+{
+    return murmurhash(data, int(size));
 }
