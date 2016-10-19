@@ -212,10 +212,9 @@ bool cbCommandProvider(char* cmd, int maxlen);
 void cmdloop()
 {
     char command_[deflen] = "";
-    bool bLoop = true;
     StringList commands;
     commands.reserve(100);
-    while(bLoop)
+    while(true)
     {
         if(!cbCommandProvider(command_, deflen))
             break;

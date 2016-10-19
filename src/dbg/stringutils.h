@@ -29,8 +29,8 @@ public:
     static WString Utf8ToUtf16(const char* str);
     static void ReplaceAll(String & s, const String & from, const String & to);
     static void ReplaceAll(WString & s, const WString & from, const WString & to);
-    static String sprintf(const char* format, ...);
-    static WString sprintf(const wchar_t* format, ...);
+    static String sprintf(_In_z_ _Printf_format_string_ const char* format, ...);
+    static WString sprintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...);
     static String ToLower(const String & s);
     static bool StartsWith(const String & h, const String & n);
     static bool FromHex(const String & text, std::vector<unsigned char> & data, bool reverse = false);

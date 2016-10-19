@@ -196,7 +196,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             auto size = mCp.Disassemble(addr, translateAddr(addr)) ? mCp.Size() : 1;
             BridgeCFInstruction instr;
             instr.addr = addr;
-            for(duint i = 0; i < size; i++)
+            for(int i = 0; i < size; i++)
                 instr.data[i] = inRange(addr + i) ? *translateAddr(addr + i) : 0;
             node.instrs.push_back(instr);
             addr += size;

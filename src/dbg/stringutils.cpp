@@ -241,7 +241,7 @@ void StringUtils::ReplaceAll(WString & s, const WString & from, const WString & 
     }
 }
 
-String StringUtils::sprintf(const char* format, ...)
+String StringUtils::sprintf(_Printf_format_string_ const char* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -261,7 +261,7 @@ String StringUtils::sprintf(const char* format, ...)
     return String(buffer());
 }
 
-WString StringUtils::sprintf(const wchar_t* format, ...)
+WString StringUtils::sprintf(_Printf_format_string_ const wchar_t* format, ...)
 {
     va_list args;
     va_start(args, format);
