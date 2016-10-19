@@ -13,7 +13,7 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     setCellContent(1, 0, "");
     setCellContent(2, 0, "");
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
 
     int height = getHeight();
@@ -39,7 +39,7 @@ void CPUInfoBox::setupContextMenu()
 
 int CPUInfoBox::getHeight()
 {
-    return ((getRowHeight() + 1) * 3) + 10;
+    return ((getRowHeight() + 1) * 3);
 }
 
 void CPUInfoBox::setInfoLine(int line, QString text)

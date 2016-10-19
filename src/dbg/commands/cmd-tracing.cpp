@@ -21,7 +21,9 @@ static bool cbDebugConditionalTrace(void* callBack, bool stepOver, int argc, cha
         dputs(QT_TRANSLATE_NOOP("DBG", "Trace already active"));
         return false;
     }
-    duint maxCount = 50000;
+    duint maxCount;
+    if(!BridgeSettingGetUint("Engine", "MaxTraceCount", &maxCount) || !maxCount)
+        maxCount = 50000;
     if(argc > 2 && !valfromstring(argv[2], &maxCount, false))
         return false;
     if(!dbgsettracecondition(argv[1], maxCount))

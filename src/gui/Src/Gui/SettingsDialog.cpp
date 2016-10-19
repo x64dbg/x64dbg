@@ -59,6 +59,7 @@ void SettingsDialog::LoadSettings()
     settings.engineEnableTraceRecordDuringTrace = true;
     settings.engineNoScriptTimeout = false;
     settings.engineIgnoreInconsistentBreakpoints = false;
+    settings.engineMaxTraceCount = 50000;
     settings.exceptionRanges = &realExceptionRanges;
     settings.disasmArgumentSpaces = false;
     settings.disasmMemorySpaces = false;
@@ -123,6 +124,8 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "SkipInt3Stepping", &settings.engineSkipInt3Stepping);
     GetSettingBool("Engine", "NoScriptTimeout", &settings.engineNoScriptTimeout);
     GetSettingBool("Engine", "IgnoreInconsistentBreakpoints", &settings.engineIgnoreInconsistentBreakpoints);
+    if(BridgeSettingGetUint("Engine", "MaxTraceCount", &cur))
+        settings.engineMaxTraceCount = int(cur);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -153,6 +156,7 @@ void SettingsDialog::LoadSettings()
     ui->chkSkipInt3Stepping->setChecked(settings.engineSkipInt3Stepping);
     ui->chkNoScriptTimeout->setChecked(settings.engineNoScriptTimeout);
     ui->chkIgnoreInconsistentBreakpoints->setChecked(settings.engineIgnoreInconsistentBreakpoints);
+    ui->spinMaxTraceCount->setValue(settings.engineMaxTraceCount);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -290,6 +294,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "SkipInt3Stepping", settings.engineSkipInt3Stepping);
     BridgeSettingSetUint("Engine", "NoScriptTimeout", settings.engineNoScriptTimeout);
     BridgeSettingSetUint("Engine", "IgnoreInconsistentBreakpoints", settings.engineIgnoreInconsistentBreakpoints);
+    BridgeSettingSetUint("Engine", "MaxTraceCount", settings.engineMaxTraceCount);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -707,4 +712,9 @@ void SettingsDialog::on_chkIgnoreInconsistentBreakpoints_toggled(bool checked)
 void SettingsDialog::on_chkNoForegroundWindow_toggled(bool checked)
 {
     settings.guiNoForegroundWindow = checked;
+}
+
+void SettingsDialog::on_spinMaxTraceCount_valueChanged(int arg1)
+{
+    settings.engineMaxTraceCount = arg1;
 }

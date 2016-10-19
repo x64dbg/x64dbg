@@ -37,6 +37,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     splitter->setCollapsible(0, true); //allow collapsing of the SideBar
     splitter->setHandleWidth(1);
 
+    ui->mTopLeftVSplitter->setSizes(QList<int>() << 100 << 1);
     ui->mTopLeftVSplitter->setCollapsible(1, true); //allow collapsing of the InfoBox
 
     ui->mTopLeftUpperFrameLayout->addWidget(splitter);
@@ -67,10 +68,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
     mGeneralRegs->SetChangeButton(button_changeview);
 
-    QList<int> sizes;
-    sizes.append(87);
-    sizes.append(14);
-    ui->mTopRightVSplitter->setSizes(sizes);
+    ui->mTopRightVSplitter->setSizes(QList<int>() << 87 << 14);
     ui->mTopRightVSplitter->setCollapsible(1, true); //allow collapsing of the ArgumentWidget
 
     ui->mTopRightUpperFrameLayout->addWidget(button_changeview);
