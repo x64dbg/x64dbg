@@ -26,6 +26,7 @@ public:
     void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences, bool isFollowInCPU);
     void setHwBpAt(duint va, int slot);
     void copySelectionSlot(bool copyBytes);
+    void copySelectionToFileSlot(bool copyBytes);
 
 signals:
     void displayReferencesWidget();
@@ -81,7 +82,9 @@ public slots:
     void showPatchesSlot();
     void yaraSlot();
     void copySelectionSlot();
+    void copySelectionToFileSlot();
     void copySelectionNoBytesSlot();
+    void copySelectionToFileNoBytesSlot();
     void copyAddressSlot();
     void copyRvaSlot();
     void copyDisassemblySlot();
@@ -118,6 +121,8 @@ protected:
 private:
     bool getLabelsFromInstruction(duint addr, QSet<QString> & labels);
     bool getTokenValueText(QString & text);
+
+    QString getSelectionString(bool copyBytes);
 
     // Menus
     QMenu* mHwSlotSelectMenu;
