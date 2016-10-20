@@ -1399,7 +1399,11 @@ void CPUDisassembly::yaraSlot()
 
 void CPUDisassembly::copySelectionSlot(bool copyBytes)
 {
-    Bridge::CopyToClipboard(getSelectionString(copyBytes));
+    QString selectionString = "";
+
+    QTextStream stream(&selectionString);
+    pushSelectionInto(copyBytes, stream);
+    Bridge::CopyToClipboard(selectionString);
 }
 
 void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
@@ -1415,18 +1419,13 @@ void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
         }
 
         QTextStream stream(&file);
-
-        QString result = getSelectionString(copyBytes);
-        stream << result;
-
+        pushSelectionInto(copyBytes, stream);
         file.close();
     }
 }
 
-QString CPUDisassembly::getSelectionString(bool copyBytes)
+void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
 {
-    QString clipboard = "";
-
     QList<Instruction_t> instBuffer;
     prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
 
@@ -1436,7 +1435,7 @@ QString CPUDisassembly::getSelectionString(bool copyBytes)
     for(int i = 0; i < instBuffer.size(); i++)
     {
         if(i)
-            clipboard += "\r\n";
+            stream << "\r\n";
         dsint cur_addr = rvaToVa(instBuffer.at(i).rva);
         QString address = getAddrText(cur_addr, 0);
         QString bytes;
@@ -1453,13 +1452,13 @@ QString CPUDisassembly::getSelectionString(bool copyBytes)
         QString comment;
         if(GetCommentFormat(cur_addr, comment))
             fullComment = " " + comment;
-        clipboard += address.leftJustified(addressLen, QChar(' '), true);
+        stream << address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
-            clipboard += " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
-        clipboard += " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
-    }
+            stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
+        stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
 
-    return clipboard;
+        stream.flush();
+    }
 }
 
 void CPUDisassembly::copySelectionSlot()
