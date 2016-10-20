@@ -1059,7 +1059,6 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QAction* wAction = new QAction(title, parent);
     wAction->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
-    wAction->setCheckable(true);
     parent->addAction(wAction);
     connect(wAction, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
     newInfo.mAction = wAction;
@@ -1195,6 +1194,7 @@ void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
         if(mEntryList.at(i).hEntry == hEntry)
         {
             const MenuEntryInfo & entry = mEntryList.at(i);
+            entry.mAction->setCheckable(true);
             entry.mAction->setChecked(checked);
             break;
         }
