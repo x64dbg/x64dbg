@@ -31,8 +31,8 @@ public slots:
     void pushSlot();
     void popSlot();
     void stackDumpAt(duint addr, duint csp);
-    void gotoSpSlot();
-    void gotoBpSlot();
+    void gotoCspSlot();
+    void gotoCbpSlot();
     void gotoExpressionSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();

@@ -206,8 +206,8 @@ void CPUStack::setupContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for.png"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
 
     //Follow CSP
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("neworigin.png"), ArchValue(tr("Follow E&SP"), tr("Follow R&SP")), SLOT(gotoSpSlot()), "ActionGotoOrigin"));
-    mMenuBuilder->addAction(makeAction(DIcon("cbp.png"), ArchValue(tr("Follow E&BP"), tr("Follow R&BP")), SLOT(gotoBpSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("neworigin.png"), ArchValue(tr("Follow E&SP"), tr("Follow R&SP")), SLOT(gotoCspSlot()), "ActionGotoOrigin"));
+    mMenuBuilder->addAction(makeAction(DIcon("cbp.png"), ArchValue(tr("Follow E&BP"), tr("Follow R&BP")), SLOT(gotoCbpSlot())), [this](QMenu*)
     {
         return DbgMemIsValidReadPtr(DbgValFromString("cbp"));
     });
@@ -322,7 +322,7 @@ void CPUStack::updateFreezeStackAction()
     else
     {
         mFreezeStack->setText(tr("Freeze the stack"));
-        gotoSpSlot();
+        gotoCspSlot();
     }
     mFreezeStack->setChecked(bStackFrozen);
 }
@@ -568,20 +568,14 @@ void CPUStack::stackDumpAt(duint addr, duint csp)
     printDumpAt(addr);
 }
 
-void CPUStack::gotoSpSlot()
+void CPUStack::gotoCspSlot()
 {
-    if(!DbgIsDebugging())
-        return;
     DbgCmdExec("sdump csp");
 }
 
-void CPUStack::gotoBpSlot()
+void CPUStack::gotoCbpSlot()
 {
-#ifdef _WIN64
-    DbgCmdExec("sdump rbp");
-#else
-    DbgCmdExec("sdump ebp");
-#endif //_WIN64
+    DbgCmdExec("sdump cbp");
 }
 
 int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint wVA)
