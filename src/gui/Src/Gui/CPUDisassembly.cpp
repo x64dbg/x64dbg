@@ -1,4 +1,6 @@
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QFile>
 #include <QDesktopServices>
 #include <QClipboard>
 #include "CPUDisassembly.h"
@@ -236,7 +238,9 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     MenuBuilder* copyMenu = new MenuBuilder(this);
     copyMenu->addAction(makeShortcutAction(DIcon("copy_selection.png"), tr("&Selection"), SLOT(copySelectionSlot()), "ActionCopy"));
+    copyMenu->addAction(makeAction(DIcon("copy_selection.png"), tr("Selection to &File"), SLOT(copySelectionToFileSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection (&No Bytes)"), SLOT(copySelectionNoBytesSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection to File (No Bytes)"), SLOT(copySelectionToFileNoBytesSlot())));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&Address"), SLOT(copyAddressSlot()), "ActionCopyAddress"));
     copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
@@ -1395,16 +1399,43 @@ void CPUDisassembly::yaraSlot()
 
 void CPUDisassembly::copySelectionSlot(bool copyBytes)
 {
+    QString selectionString = "";
+
+    QTextStream stream(&selectionString);
+    pushSelectionInto(copyBytes, stream);
+    Bridge::CopyToClipboard(selectionString);
+}
+
+void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Open File"), "", tr("Text Files (*.txt)"));
+    if(fileName != "")
+    {
+        QFile file(fileName);
+        if(!file.open(QIODevice::WriteOnly))
+        {
+            QMessageBox::critical(this, tr("Error"), tr("Could not open file"));
+            return;
+        }
+
+        QTextStream stream(&file);
+        pushSelectionInto(copyBytes, stream);
+        file.close();
+    }
+}
+
+void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
+{
     QList<Instruction_t> instBuffer;
     prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
-    QString clipboard = "";
+
     const int addressLen = getColumnWidth(0) / getCharWidth() - 1;
     const int bytesLen = getColumnWidth(1) / getCharWidth() - 1;
     const int disassemblyLen = getColumnWidth(2) / getCharWidth() - 1;
     for(int i = 0; i < instBuffer.size(); i++)
     {
         if(i)
-            clipboard += "\r\n";
+            stream << "\r\n";
         dsint cur_addr = rvaToVa(instBuffer.at(i).rva);
         QString address = getAddrText(cur_addr, 0);
         QString bytes;
@@ -1421,12 +1452,13 @@ void CPUDisassembly::copySelectionSlot(bool copyBytes)
         QString comment;
         if(GetCommentFormat(cur_addr, comment))
             fullComment = " " + comment;
-        clipboard += address.leftJustified(addressLen, QChar(' '), true);
+        stream << address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
-            clipboard += " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
-        clipboard += " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
+            stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
+        stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
+
+        stream.flush();
     }
-    Bridge::CopyToClipboard(clipboard);
 }
 
 void CPUDisassembly::copySelectionSlot()
@@ -1434,9 +1466,19 @@ void CPUDisassembly::copySelectionSlot()
     copySelectionSlot(true);
 }
 
+void CPUDisassembly::copySelectionToFileSlot()
+{
+    copySelectionToFileSlot(true);
+}
+
 void CPUDisassembly::copySelectionNoBytesSlot()
 {
     copySelectionSlot(false);
+}
+
+void CPUDisassembly::copySelectionToFileNoBytesSlot()
+{
+    copySelectionToFileSlot(false);
 }
 
 void CPUDisassembly::copyAddressSlot()
