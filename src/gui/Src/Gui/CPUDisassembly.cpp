@@ -245,6 +245,16 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
     copyMenu->addAction(makeAction(DIcon("data-copy.png"), tr("&Data..."), SLOT(copyDataSlot())));
+
+    copyMenu->addMenu(makeMenu(DIcon("copy_selection.png"), tr("Symbolic Name")), [this](QMenu * menu)
+    {
+        QSet<QString> labels;
+        if(!getLabelsFromInstruction(rvaToVa(getInitialSelection()), labels))
+            return false;
+        for(auto label : labels)
+            menu->addAction(makeAction(label, SLOT(labelCopySlot())));
+        return true;
+    });
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
@@ -1517,6 +1527,12 @@ void CPUDisassembly::copyDataSlot()
     mMemPage->read(data.data(), selStart, selSize);
     DataCopyDialog dataDialog(&data, this);
     dataDialog.exec();
+}
+
+void CPUDisassembly::labelCopySlot()
+{
+    QString symbol = ((QAction*)sender())->text();
+    Bridge::CopyToClipboard(symbol);
 }
 
 void CPUDisassembly::findCommandSlot()
