@@ -1426,30 +1426,24 @@ void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
 
 void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
 {
-    QList<Instruction_t> instBuffer;
-    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&instBuffer](Instruction_t inst)
-    {
-        instBuffer.append(std::move(inst));
-    });
-
     const int addressLen = getColumnWidth(0) / getCharWidth() - 1;
     const int bytesLen = getColumnWidth(1) / getCharWidth() - 1;
     const int disassemblyLen = getColumnWidth(2) / getCharWidth() - 1;
-    for(int i = 0; i < instBuffer.size(); i++)
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
             stream << "\r\n";
-        dsint cur_addr = rvaToVa(instBuffer.at(i).rva);
-        QString address = getAddrText(cur_addr, 0);
+        dsint cur_addr = rvaToVa(inst.rva);
+        QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
-        for(int j = 0; j < instBuffer.at(i).dump.size(); j++)
+        for(int j = 0; j < inst.dump.size(); j++)
         {
             if(j)
                 bytes += " ";
-            bytes += ToByteString((unsigned char)(instBuffer.at(i).dump.at(j)));
+            bytes += ToByteString((unsigned char)(inst.dump.at(j)));
         }
         QString disassembly;
-        for(const auto & token : instBuffer.at(i).tokens.tokens)
+        for(const auto & token : inst.tokens.tokens)
             disassembly += token.text;
         QString fullComment;
         QString comment;
@@ -1459,9 +1453,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
-
-        stream.flush();
-    }
+    });
 }
 
 void CPUDisassembly::copySelectionSlot()
@@ -1505,19 +1497,14 @@ void CPUDisassembly::copyRvaSlot()
 
 void CPUDisassembly::copyDisassemblySlot()
 {
-    QList<Instruction_t> instBuffer;
-    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&instBuffer](Instruction_t inst)
-    {
-        instBuffer.append(std::move(inst));
-    });
     QString clipboard = "";
-    for(int i = 0; i < instBuffer.size(); i++)
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
             clipboard += "\r\n";
-        for(const auto & token : instBuffer.at(i).tokens.tokens)
+        for(const auto & token : inst.tokens.tokens)
             clipboard += token.text;
-    }
+    });
     Bridge::CopyToClipboard(clipboard);
 }
 

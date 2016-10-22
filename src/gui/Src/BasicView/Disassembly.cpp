@@ -1583,21 +1583,22 @@ void Disassembly::prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction
     }
 }
 
-void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::function<void(Instruction_t)> & disassembled)
+void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::function<void(int, const Instruction_t &)> & disassembled)
 {
     dsint wAddrPrev = startRva;
     dsint wAddr = wAddrPrev;
 
+    int i = 0;
     while(true)
     {
         if(wAddr >= endRva)
             break;
         wAddrPrev = wAddr;
-        auto wInst = std::move(DisassembleAt(wAddr));
+        auto wInst = DisassembleAt(wAddr);
         wAddr += wInst.length;
         if(wAddr == wAddrPrev)
             break;
-        disassembled(std::move(wInst));
+        disassembled(i++, wInst);
     }
 }
 
@@ -1881,7 +1882,7 @@ bool Disassembly::historyHasNext()
     return true;
 }
 
-QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE])
+QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel)
 {
     QString addrText = "";
     if(mRvaDisplayEnabled) //RVA display
@@ -1914,7 +1915,7 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE])
     }
     addrText += ToPtrString(cur_addr);
     char label_[MAX_LABEL_SIZE] = "";
-    if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
+    if(getLabel && DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
     {
         char module[MAX_MODULE_SIZE] = "";
         if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&"))
