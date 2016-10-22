@@ -1427,7 +1427,10 @@ void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
 void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
 {
     QList<Instruction_t> instBuffer;
-    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&instBuffer](Instruction_t inst)
+    {
+        instBuffer.append(std::move(inst));
+    });
 
     const int addressLen = getColumnWidth(0) / getCharWidth() - 1;
     const int bytesLen = getColumnWidth(1) / getCharWidth() - 1;
@@ -1503,7 +1506,10 @@ void CPUDisassembly::copyRvaSlot()
 void CPUDisassembly::copyDisassemblySlot()
 {
     QList<Instruction_t> instBuffer;
-    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&instBuffer](Instruction_t inst)
+    {
+        instBuffer.append(std::move(inst));
+    });
     QString clipboard = "";
     for(int i = 0; i < instBuffer.size(); i++)
     {
