@@ -183,12 +183,12 @@ static DWORD WINAPI dumpRefreshThread(void* ptr)
         {
             if(bStopDumpRefreshThread)
                 break;
-            Sleep(10);
+            Sleep(100);
         }
         if(bStopDumpRefreshThread)
             break;
         GuiUpdateDumpView();
-        Sleep(200);
+        Sleep(400);
     }
     return 0;
 }
@@ -414,7 +414,6 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
         strcat_s(threadName, " ");
     sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName, currentThreadId, threadswitch);
     GuiUpdateWindowTitle(title);
-    GuiUpdateAllViews();
 }
 
 void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paused)
