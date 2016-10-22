@@ -12,7 +12,21 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
     for(const auto & i : Config()->NamedMenuBuilders)
     {
         QString viewName;
-        const char* id = i.first->getId();
+        MenuBuilder* builder = nullptr;
+        QList<QString>* mainMenuList = nullptr;
+        const char* id;
+        if(std::get<1>(i) == 1)
+        {
+            mainMenuList = reinterpret_cast<QList<QString>*>(std::get<0>(i));
+            id = _strdup(mainMenuList->at(0).toUtf8().constData()); // must use string duplication here because constData may be a temporary data storage.
+        }
+        else if(std::get<1>(i) == 0)
+        {
+            builder = reinterpret_cast<MenuBuilder*>(std::get<0>(i));
+            id = builder->getId();
+        }
+        else
+            continue;
         if(strcmp(id, "CPUDisassembly") == 0)
             viewName = tr("Disassembler");
         else if(strcmp(id, "CPUDump") == 0)
@@ -27,24 +41,50 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             viewName = tr("Graph");
         else if(strcmp(id, "CPUStack") == 0)
             viewName = tr("Stack");
+        else if(strcmp(id, "File") == 0)
+            viewName = tr("File");
+        else if(strcmp(id, "Debug") == 0)
+            viewName = tr("Debug");
+        else if(strcmp(id, "Plugin") == 0)
+            viewName = tr("Plugin");
+        else if(strcmp(id, "Option") == 0)
+            viewName = tr("Option");
+        else if(strcmp(id, "Favourite") == 0)
+            viewName = tr("Favourite");
+        else if(strcmp(id, "Help") == 0)
+            viewName = tr("Help");
+        else if(strcmp(id, "View") == 0)
+            viewName = tr("View");
         else
+        {
+            if(std::get<1>(i) == 1)
+                free((char*)id);
+            id = nullptr;
             continue;
+        }
         QTreeWidgetItem* parentItem = new QTreeWidgetItem(ui->treeWidget);
         parentItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         parentItem->setText(0, viewName);
-        for(size_t j = 0; j < i.second; j++)
+        for(size_t j = 0; j < std::get<2>(i); j++)
         {
-            QString text = i.first->getText(j);
+            QString text;
+            if(std::get<1>(i) == 0)
+                text = builder->getText(j);
+            else if(std::get<1>(i) == 1)
+                text = mainMenuList->at(j + 1);
             if(!text.isEmpty())
             {
                 QTreeWidgetItem* menuItem = new QTreeWidgetItem(parentItem, 0);
                 menuItem->setText(0, text.replace(QChar('&'), ""));
-                QString configString = QString("Menu%1Hidden%2").arg(i.first->getId()).arg(j);
+                QString configString = QString("Menu%1Hidden%2").arg(id).arg(j);
                 menuItem->setCheckState(0, Config()->getBool("Gui", configString) ? Qt::Checked : Qt::Unchecked);
                 menuItem->setData(0, Qt::UserRole, QVariant(configString));
                 menuItem->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
             }
         }
+        if(std::get<1>(i) == 1)
+            free((char*)id);
+        id = nullptr;
         ui->treeWidget->addTopLevelItem(parentItem);
     }
     connect(ui->btnOk, SIGNAL(clicked()), this, SLOT(onOk()));

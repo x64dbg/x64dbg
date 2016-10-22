@@ -55,6 +55,7 @@ public:
     void writeShortcuts();
     void emitShortcutsUpdated();
     void registerMenuBuilder(MenuBuilder* menu, size_t count);
+    void registerMainMenuStringList(QList<QString>* menu);
 
     const QColor getColor(const QString id) const;
     const bool getBool(const QString category, const QString id) const;
@@ -80,7 +81,7 @@ public:
     QMap<QString, Shortcut> Shortcuts;
 
     //custom menu maps
-    QList<std::pair<MenuBuilder*, size_t>> NamedMenuBuilders;
+    QList<std::tuple<void*, int, size_t>> NamedMenuBuilders;
 
     static Configuration* mPtr;
 
