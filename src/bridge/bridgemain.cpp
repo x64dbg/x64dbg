@@ -251,7 +251,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion()
     return DBG_VERSION;
 }
 
-BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
+BRIDGE_IMPEXP bool DbgMemRead(duint va, void* dest, duint size)
 {
 #ifdef _DEBUG
     if(IsBadWritePtr(dest, size))
@@ -272,7 +272,7 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
     return true;
 }
 
-BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
+BRIDGE_IMPEXP bool DbgMemWrite(duint va, const void* src, duint size)
 {
 #ifdef _DEBUG
     if(IsBadReadPtr(src, size))
