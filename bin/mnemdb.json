@@ -1849,6 +1849,10 @@
       "mnem": "RET"
     }, 
     {
+      "description": "-R:RET", 
+      "mnem": "RETF"
+    }, 
+    {
       "description": "-R:RCL", 
       "mnem": "ROL"
     }, 
