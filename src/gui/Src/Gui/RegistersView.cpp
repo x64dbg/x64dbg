@@ -2519,6 +2519,9 @@ void RegistersView::displayEditDialog()
                     else if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
                         QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
+                        if(!ConfigBool("Gui", "FpuRegistersLittleEndian"))
+                            pArray = ByteReverse(pArray);
+
                         if(pArray.size() == GetSizeRegister(mSelected) * 2)
                         {
                             char* pData = (char*) calloc(1, sizeof(char) * GetSizeRegister(mSelected));
