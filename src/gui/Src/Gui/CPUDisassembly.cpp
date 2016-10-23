@@ -245,6 +245,16 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
     copyMenu->addAction(makeAction(DIcon("data-copy.png"), tr("&Data..."), SLOT(copyDataSlot())));
+
+    copyMenu->addMenu(makeMenu(DIcon("copy_selection.png"), tr("Symbolic Name")), [this](QMenu * menu)
+    {
+        QSet<QString> labels;
+        if(!getLabelsFromInstruction(rvaToVa(getInitialSelection()), labels))
+            return false;
+        for(auto label : labels)
+            menu->addAction(makeAction(label, SLOT(labelCopySlot())));
+        return true;
+    });
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
@@ -336,7 +346,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mMenuBuilder->addAction(makeAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot())));
 
-    mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open Source File"), SLOT(openSourceSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("source.png"), tr("Open Source File"), SLOT(openSourceSlot()), "ActionOpenSourceFile"), [this](QMenu*)
     {
         return DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), 0, 0);
     });
@@ -1426,27 +1436,24 @@ void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
 
 void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
 {
-    QList<Instruction_t> instBuffer;
-    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
-
     const int addressLen = getColumnWidth(0) / getCharWidth() - 1;
     const int bytesLen = getColumnWidth(1) / getCharWidth() - 1;
     const int disassemblyLen = getColumnWidth(2) / getCharWidth() - 1;
-    for(int i = 0; i < instBuffer.size(); i++)
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
             stream << "\r\n";
-        dsint cur_addr = rvaToVa(instBuffer.at(i).rva);
-        QString address = getAddrText(cur_addr, 0);
+        dsint cur_addr = rvaToVa(inst.rva);
+        QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
-        for(int j = 0; j < instBuffer.at(i).dump.size(); j++)
+        for(int j = 0; j < inst.dump.size(); j++)
         {
             if(j)
                 bytes += " ";
-            bytes += ToByteString((unsigned char)(instBuffer.at(i).dump.at(j)));
+            bytes += ToByteString((unsigned char)(inst.dump.at(j)));
         }
         QString disassembly;
-        for(const auto & token : instBuffer.at(i).tokens.tokens)
+        for(const auto & token : inst.tokens.tokens)
             disassembly += token.text;
         QString fullComment;
         QString comment;
@@ -1456,9 +1463,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
-
-        stream.flush();
-    }
+    });
 }
 
 void CPUDisassembly::copySelectionSlot()
@@ -1502,16 +1507,14 @@ void CPUDisassembly::copyRvaSlot()
 
 void CPUDisassembly::copyDisassemblySlot()
 {
-    QList<Instruction_t> instBuffer;
-    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
     QString clipboard = "";
-    for(int i = 0; i < instBuffer.size(); i++)
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
             clipboard += "\r\n";
-        for(const auto & token : instBuffer.at(i).tokens.tokens)
+        for(const auto & token : inst.tokens.tokens)
             clipboard += token.text;
-    }
+    });
     Bridge::CopyToClipboard(clipboard);
 }
 
@@ -1524,6 +1527,12 @@ void CPUDisassembly::copyDataSlot()
     mMemPage->read(data.data(), selStart, selSize);
     DataCopyDialog dataDialog(&data, this);
     dataDialog.exec();
+}
+
+void CPUDisassembly::labelCopySlot()
+{
+    QString symbol = ((QAction*)sender())->text();
+    Bridge::CopyToClipboard(symbol);
 }
 
 void CPUDisassembly::findCommandSlot()
