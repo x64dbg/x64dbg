@@ -1742,6 +1742,7 @@ void MainWindow::setInitialzationScript()
     {
         debuggee = QString(DbgFunctions()->DbgGetDebuggeeInitScript());
         BrowseDialog browseScript(this, tr("Set Initialzation Script for Debuggee"), tr("Set Initialzation Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
+        browseScript.setWindowIcon(DIcon("initscript.png"));
         if(browseScript.exec() == QDialog::Accepted)
             DbgFunctions()->DbgSetDebuggeeInitScript(browseScript.path.toUtf8().constData());
     }
@@ -1750,6 +1751,7 @@ void MainWindow::setInitialzationScript()
     else
         global = QString();
     BrowseDialog browseScript(this, tr("Set Global Initialzation Script"), tr("Set Global Initialzation Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);
+    browseScript.setWindowIcon(DIcon("initscript.png"));
     if(browseScript.exec() == QDialog::Accepted)
     {
         BridgeSettingSet("Engine", "InitializeScript", browseScript.path.toUtf8().constData());

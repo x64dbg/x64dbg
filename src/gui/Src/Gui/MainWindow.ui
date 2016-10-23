@@ -1048,11 +1048,19 @@
    </property>
   </action>
   <action name="actionSetInitializationScript">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/initscript.png</normaloff>:/icons/images/initscript.png</iconset>
+   </property>
    <property name="text">
     <string>Set Initialization Script</string>
    </property>
   </action>
   <action name="actionImportSettings">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/importsettings.png</normaloff>:/icons/images/importsettings.png</iconset>
+   </property>
    <property name="text">
     <string>Import settings...</string>
    </property>
