@@ -402,30 +402,30 @@ bool cbInstrExinfo(int argc, char* argv[])
 {
     auto info = getLastExceptionInfo();
     const auto & record = info.ExceptionRecord;
-    dputs("EXCEPTION_DEBUG_INFO:");
-    dprintf("           dwFirstChance: %X\n", info.dwFirstChance);
+    dputs_untranslated("EXCEPTION_DEBUG_INFO:");
+    dprintf_untranslated("           dwFirstChance: %X\n", info.dwFirstChance);
     auto exceptionName = ExceptionCodeToName(record.ExceptionCode);
     if(!exceptionName.size())    //if no exception was found, try the error codes (RPC_S_*)
         exceptionName = ErrorCodeToName(record.ExceptionCode);
     if(exceptionName.size())
-        dprintf("           ExceptionCode: %08X (%s)\n", record.ExceptionCode, exceptionName.c_str());
+        dprintf_untranslated("           ExceptionCode: %08X (%s)\n", record.ExceptionCode, exceptionName.c_str());
     else
-        dprintf("           ExceptionCode: %08X\n", record.ExceptionCode);
-    dprintf("          ExceptionFlags: %08X\n", record.ExceptionFlags);
+        dprintf_untranslated("           ExceptionCode: %08X\n", record.ExceptionCode);
+    dprintf_untranslated("          ExceptionFlags: %08X\n", record.ExceptionFlags);
     auto symbolic = SymGetSymbolicName(duint(record.ExceptionAddress));
     if(symbolic.length())
-        dprintf("        ExceptionAddress: %p %s\n", record.ExceptionAddress, symbolic.c_str());
+        dprintf_untranslated("        ExceptionAddress: %p %s\n", record.ExceptionAddress, symbolic.c_str());
     else
-        dprintf("        ExceptionAddress: %p\n", record.ExceptionAddress);
-    dprintf("        NumberParameters: %u\n", record.NumberParameters);
+        dprintf_untranslated("        ExceptionAddress: %p\n", record.ExceptionAddress);
+    dprintf_untranslated("        NumberParameters: %u\n", record.NumberParameters);
     if(record.NumberParameters)
         for(DWORD i = 0; i < record.NumberParameters; i++)
         {
             symbolic = SymGetSymbolicName(duint(record.ExceptionInformation[i]));
             if(symbolic.length())
-                dprintf("ExceptionInformation[%02u]: %p %s\n", i, record.ExceptionInformation[i], symbolic.c_str());
+                dprintf_untranslated("ExceptionInformation[%02u]: %p %s\n", i, record.ExceptionInformation[i], symbolic.c_str());
             else
-                dprintf("ExceptionInformation[%02u]: %p\n", i, record.ExceptionInformation[i]);
+                dprintf_untranslated("ExceptionInformation[%02u]: %p\n", i, record.ExceptionInformation[i]);
         }
     return true;
 }
