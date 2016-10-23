@@ -18,6 +18,7 @@
 #define ConfigVScrollBarStyle() "QScrollBar:vertical{border:1px solid grey;background:#f1f1f1;width:10px}QScrollBar::handle:vertical{background:#aaa;min-height:20px;margin:1px}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{width:0;height:0}"
 
 class MenuBuilder;
+class QAction;
 
 class Configuration : public QObject
 {
@@ -55,7 +56,7 @@ public:
     void writeShortcuts();
     void emitShortcutsUpdated();
     void registerMenuBuilder(MenuBuilder* menu, size_t count);
-    void registerMainMenuStringList(QList<QString>* menu);
+    void registerMainMenuStringList(QList<QAction*>* menu);
 
     const QColor getColor(const QString id) const;
     const bool getBool(const QString category, const QString id) const;

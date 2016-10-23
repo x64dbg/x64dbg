@@ -195,13 +195,13 @@ private:
     QAction* makeCommandAction(QAction* action, const QString & command);
 
     //lists for menu customization
-    QList<QString> mFileMenuStrings;
-    QList<QString> mViewMenuStrings;
-    QList<QString> mDebugMenuStrings;
-    QList<QString> mPluginsMenuStrings;
+    QList<QAction*> mFileMenuStrings;
+    QList<QAction*> mViewMenuStrings;
+    QList<QAction*> mDebugMenuStrings;
+    //"Plugins" menu cannot be customized for item hiding.
     //"Favourites" menu cannot be customized for item hiding.
-    QList<QString> mOptionsMenuStrings;
-    QList<QString> mHelpMenuStrings;
+    QList<QAction*> mOptionsMenuStrings;
+    QList<QAction*> mHelpMenuStrings;
 
     //menu api
     struct MenuEntryInfo

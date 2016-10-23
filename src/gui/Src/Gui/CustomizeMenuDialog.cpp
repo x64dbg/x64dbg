@@ -13,12 +13,12 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
     {
         QString viewName;
         MenuBuilder* builder = nullptr;
-        QList<QString>* mainMenuList = nullptr;
+        QList<QAction*>* mainMenuList = nullptr;
         const char* id;
         if(std::get<1>(i) == 1)
         {
-            mainMenuList = reinterpret_cast<QList<QString>*>(std::get<0>(i));
-            id = _strdup(mainMenuList->at(0).toUtf8().constData()); // must use string duplication here because constData may be a temporary data storage.
+            mainMenuList = reinterpret_cast<QList<QAction*>*>(std::get<0>(i));
+            id = reinterpret_cast<const char*>(mainMenuList->first());
         }
         else if(std::get<1>(i) == 0)
         {
@@ -45,8 +45,6 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             viewName = tr("File");
         else if(strcmp(id, "Debug") == 0)
             viewName = tr("Debug");
-        else if(strcmp(id, "Plugin") == 0)
-            viewName = tr("Plugin");
         else if(strcmp(id, "Option") == 0)
             viewName = tr("Option");
         else if(strcmp(id, "Favourite") == 0)
@@ -56,12 +54,7 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
         else if(strcmp(id, "View") == 0)
             viewName = tr("View");
         else
-        {
-            if(std::get<1>(i) == 1)
-                free((char*)id);
-            id = nullptr;
             continue;
-        }
         QTreeWidgetItem* parentItem = new QTreeWidgetItem(ui->treeWidget);
         parentItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         parentItem->setText(0, viewName);
@@ -71,7 +64,7 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             if(std::get<1>(i) == 0)
                 text = builder->getText(j);
             else if(std::get<1>(i) == 1)
-                text = mainMenuList->at(j + 1);
+                text = mainMenuList->at(j + 1)->text();
             if(!text.isEmpty())
             {
                 QTreeWidgetItem* menuItem = new QTreeWidgetItem(parentItem, 0);
@@ -82,9 +75,6 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
                 menuItem->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
             }
         }
-        if(std::get<1>(i) == 1)
-            free((char*)id);
-        id = nullptr;
         ui->treeWidget->addTopLevelItem(parentItem);
     }
     connect(ui->btnOk, SIGNAL(clicked()), this, SLOT(onOk()));

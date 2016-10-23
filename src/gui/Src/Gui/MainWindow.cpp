@@ -1820,38 +1820,30 @@ void MainWindow::on_actionExportdatabase_triggered()
     DbgCmdExec(QString("dbsave \"%1\"").arg(QDir::toNativeSeparators(filename)).toUtf8().constData());
 }
 
-static void setupMenuCustomizationHelper(QMenu* parentMenu, QList<QString> & stringList)
+static void setupMenuCustomizationHelper(QMenu* parentMenu, QList<QAction*> & stringList)
 {
     for(int i = 0; i < parentMenu->actions().size(); i++)
     {
         QAction* action = parentMenu->actions().at(i);
-        if(action)
-        {
-            stringList.append(action->text());
-            continue;
-        }
-        stringList.append("");
+        stringList.append(action);
     }
 }
 
 void MainWindow::setupMenuCustomization()
 {
-    mFileMenuStrings.append("File");
+    mFileMenuStrings.append(reinterpret_cast<QAction*>("File"));
     setupMenuCustomizationHelper(ui->menuFile, mFileMenuStrings);
-    mDebugMenuStrings.append("Debug");
+    mDebugMenuStrings.append(reinterpret_cast<QAction*>("Debug"));
     setupMenuCustomizationHelper(ui->menuDebug, mDebugMenuStrings);
-    mPluginsMenuStrings.append("Plugin");
-    setupMenuCustomizationHelper(ui->menuPlugins, mPluginsMenuStrings);
-    mOptionsMenuStrings.append("Option");
+    mOptionsMenuStrings.append(reinterpret_cast<QAction*>("Option"));
     setupMenuCustomizationHelper(ui->menuOptions, mOptionsMenuStrings);
-    mHelpMenuStrings.append("Help");
+    mHelpMenuStrings.append(reinterpret_cast<QAction*>("Help"));
     setupMenuCustomizationHelper(ui->menuHelp, mHelpMenuStrings);
-    mViewMenuStrings.append("View");
+    mViewMenuStrings.append(reinterpret_cast<QAction*>("View"));
     setupMenuCustomizationHelper(ui->menuView, mViewMenuStrings);
     onMenuCustomized();
     Config()->registerMainMenuStringList(&mFileMenuStrings);
     Config()->registerMainMenuStringList(&mDebugMenuStrings);
-    Config()->registerMainMenuStringList(&mPluginsMenuStrings);
     Config()->registerMainMenuStringList(&mOptionsMenuStrings);
     Config()->registerMainMenuStringList(&mHelpMenuStrings);
     Config()->registerMainMenuStringList(&mViewMenuStrings);
@@ -1861,57 +1853,38 @@ void MainWindow::onMenuCustomized()
 {
     QList<QMenu*> menus;
     QList<QString> menuNativeNames;
-    QList<QList<QString>*> menuTextStrings;
-    menus << ui->menuFile << ui->menuDebug << ui->menuPlugins << ui->menuOptions << ui->menuHelp << ui->menuView;
-    menuNativeNames << "File" << "Debug" << "Plugin" << "Option" << "Help" << "View";
-    menuTextStrings << &mFileMenuStrings << &mDebugMenuStrings << &mPluginsMenuStrings << &mOptionsMenuStrings << &mHelpMenuStrings << &mViewMenuStrings;
+    QList<QList<QAction*>*> menuTextStrings;
+    menus << ui->menuFile << ui->menuDebug << ui->menuOptions << ui->menuHelp << ui->menuView;
+    menuNativeNames << "File" << "Debug" << "Option" << "Help" << "View";
+    menuTextStrings << &mFileMenuStrings << &mDebugMenuStrings << &mOptionsMenuStrings << &mHelpMenuStrings << &mViewMenuStrings;
     for(int i = 0; i < menus.size(); i++)
     {
         QMenu* currentMenu = menus[i];
-        QList<QAction*> actions = currentMenu->actions();
-        for(int j = 0; j < actions.size(); j++)
-        {
-            currentMenu->removeAction(actions[j]);
-        }
-        QMenu* moreCommands;
-        int moreCommandsAlreadyExist;
+        QMenu* moreCommands = nullptr;
         bool moreCommandsUsed = false;
-        moreCommands = actions.last()->menu();
+        moreCommands = currentMenu->actions().last()->menu();
         if(moreCommands && moreCommands->title().compare(tr("More Commands")) == 0)
         {
-            actions.removeLast();
-            moreCommandsAlreadyExist = 1;
-            QList<QAction*> moreActions = moreCommands->actions();
-            for(const auto & a : moreActions)
-            {
-                moreCommands->removeAction(a);
-                actions.append(a);
-            }
+            for(auto & j : moreCommands->actions())
+                moreCommands->removeAction(j);
         }
         else
         {
             moreCommands = new QMenu(tr("More Commands"), currentMenu);
-            moreCommandsAlreadyExist = 0;
         }
-        for(int j = 0; j < actions.size() - moreCommandsAlreadyExist; j++)
+        for(auto & j : currentMenu->actions())
+            currentMenu->removeAction(j);
+        for(int j = 0; j < menuTextStrings.at(i)->size() - 1; j++)
         {
-            int currentActionIndex = j;
-            for(int k = j; k < j + menuTextStrings.at(i)->size(); k++)
-            {
-                if(menuTextStrings.at(i)->at(k % menuTextStrings.at(i)->size()) == actions[j]->text())
-                {
-                    currentActionIndex = k % menuTextStrings.at(i)->size();
-                    break;
-                }
-            }
+            QAction* a = menuTextStrings.at(i)->at(j + 1);
             if(Config()->getBool("Gui", QString("Menu%1Hidden%2").arg(menuNativeNames[i]).arg(j)))
             {
-                moreCommands->addAction(actions[j]);
+                moreCommands->addAction(a);
                 moreCommandsUsed = true;
             }
             else
             {
-                currentMenu->addAction(actions[j]);
+                currentMenu->addAction(a);
             }
         }
         if(moreCommandsUsed)

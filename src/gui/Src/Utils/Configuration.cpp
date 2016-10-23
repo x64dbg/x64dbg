@@ -223,7 +223,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     insertMenuBuilderBools(&guiBool, "DisassemblerGraphView", 50); //Graph
     insertMenuBuilderBools(&guiBool, "File", 50); //Main Menu : File
     insertMenuBuilderBools(&guiBool, "Debug", 50); //Main Menu : Debug
-    insertMenuBuilderBools(&guiBool, "Plugin", 50); //Main Menu : Plugin
     insertMenuBuilderBools(&guiBool, "Option", 50); //Main Menu : Option
     //"Favourites" menu cannot be customized for item hiding.
     insertMenuBuilderBools(&guiBool, "Help", 50); //Main Menu : Help
@@ -1021,7 +1020,7 @@ void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
         NamedMenuBuilders.append(std::make_tuple<void*, int, size_t>((void*)menu, 0, size_t(fuck)));
 }
 
-void Configuration::registerMainMenuStringList(QList<QString>* menu)
+void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
 {
     NamedMenuBuilders.append(std::make_tuple<void*, int, size_t>((void*)menu, 1, menu->size() - 1));
 }
