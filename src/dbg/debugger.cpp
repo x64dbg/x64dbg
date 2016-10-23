@@ -419,8 +419,6 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
 void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paused)
 {
     GuiSetDebugState(state);
-    if(state == initialized)
-        GuiFocusView(GUI_DISASSEMBLY);
     DebugUpdateGui(disasm_addr, stack);
 }
 
@@ -2395,6 +2393,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 
     //inform GUI we started without problems
     GuiSetDebugState(initialized);
+    GuiFocusView(GUI_DISASSEMBLY);
     GuiAddRecentFile(szFileName);
 
     //set GUI title
