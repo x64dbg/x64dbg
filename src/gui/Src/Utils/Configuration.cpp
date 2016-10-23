@@ -221,6 +221,12 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     insertMenuBuilderBools(&guiBool, "ThreadView", 50); //Thread
     insertMenuBuilderBools(&guiBool, "CPUStack", 50); //Stack
     insertMenuBuilderBools(&guiBool, "DisassemblerGraphView", 50); //Graph
+    insertMenuBuilderBools(&guiBool, "File", 50); //Main Menu : File
+    insertMenuBuilderBools(&guiBool, "Debug", 50); //Main Menu : Debug
+    insertMenuBuilderBools(&guiBool, "Option", 50); //Main Menu : Option
+    //"Favourites" menu cannot be customized for item hiding.
+    insertMenuBuilderBools(&guiBool, "Help", 50); //Main Menu : Help
+    insertMenuBuilderBools(&guiBool, "View", 50); //Main Menu : View
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
@@ -1005,8 +1011,17 @@ void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
     bool exists = false;
     const char* id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
-        if(strcmp(i.first->getId() , id) == 0)
+    {
+        MenuBuilder* builder = reinterpret_cast<MenuBuilder*>(std::get<0>(i));
+        if(std::get<1>(i) == 0 && strcmp(builder->getId() , id) == 0)
             exists = true;
+    }
+    int fuck = count; // workaround for compiling
     if(!exists)
-        NamedMenuBuilders.push_back(std::make_pair(menu, count));
+        NamedMenuBuilders.append(std::make_tuple<void*, int, size_t>((void*)menu, 0, size_t(fuck)));
+}
+
+void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
+{
+    NamedMenuBuilders.append(std::make_tuple<void*, int, size_t>((void*)menu, 1, menu->size() - 1));
 }

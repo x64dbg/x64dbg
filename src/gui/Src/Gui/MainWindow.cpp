@@ -338,6 +338,8 @@ MainWindow::MainWindow(QWidget* parent)
     // Setup language menu
     setupLanguagesMenu();
 
+    setupMenuCustomization();
+
     // Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException = 0;
@@ -1760,6 +1762,7 @@ void MainWindow::customizeMenu()
     customMenuDialog.setWindowTitle(tr("Customize Menus"));
     customMenuDialog.setWindowIcon(DIcon("analysis.png"));
     customMenuDialog.exec();
+    onMenuCustomized();
 }
 
 #include "../src/bridge/Utf8Ini.h"
@@ -1815,4 +1818,81 @@ void MainWindow::on_actionExportdatabase_triggered()
     if(!filename.length())
         return;
     DbgCmdExec(QString("dbsave \"%1\"").arg(QDir::toNativeSeparators(filename)).toUtf8().constData());
+}
+
+static void setupMenuCustomizationHelper(QMenu* parentMenu, QList<QAction*> & stringList)
+{
+    for(int i = 0; i < parentMenu->actions().size(); i++)
+    {
+        QAction* action = parentMenu->actions().at(i);
+        stringList.append(action);
+    }
+}
+
+void MainWindow::setupMenuCustomization()
+{
+    mFileMenuStrings.append(reinterpret_cast<QAction*>("File"));
+    setupMenuCustomizationHelper(ui->menuFile, mFileMenuStrings);
+    mDebugMenuStrings.append(reinterpret_cast<QAction*>("Debug"));
+    setupMenuCustomizationHelper(ui->menuDebug, mDebugMenuStrings);
+    mOptionsMenuStrings.append(reinterpret_cast<QAction*>("Option"));
+    setupMenuCustomizationHelper(ui->menuOptions, mOptionsMenuStrings);
+    mHelpMenuStrings.append(reinterpret_cast<QAction*>("Help"));
+    setupMenuCustomizationHelper(ui->menuHelp, mHelpMenuStrings);
+    mViewMenuStrings.append(reinterpret_cast<QAction*>("View"));
+    setupMenuCustomizationHelper(ui->menuView, mViewMenuStrings);
+    onMenuCustomized();
+    Config()->registerMainMenuStringList(&mFileMenuStrings);
+    Config()->registerMainMenuStringList(&mDebugMenuStrings);
+    Config()->registerMainMenuStringList(&mOptionsMenuStrings);
+    Config()->registerMainMenuStringList(&mHelpMenuStrings);
+    Config()->registerMainMenuStringList(&mViewMenuStrings);
+}
+
+void MainWindow::onMenuCustomized()
+{
+    QList<QMenu*> menus;
+    QList<QString> menuNativeNames;
+    QList<QList<QAction*>*> menuTextStrings;
+    menus << ui->menuFile << ui->menuDebug << ui->menuOptions << ui->menuHelp << ui->menuView;
+    menuNativeNames << "File" << "Debug" << "Option" << "Help" << "View";
+    menuTextStrings << &mFileMenuStrings << &mDebugMenuStrings << &mOptionsMenuStrings << &mHelpMenuStrings << &mViewMenuStrings;
+    for(int i = 0; i < menus.size(); i++)
+    {
+        QMenu* currentMenu = menus[i];
+        QMenu* moreCommands = nullptr;
+        bool moreCommandsUsed = false;
+        moreCommands = currentMenu->actions().last()->menu();
+        if(moreCommands && moreCommands->title().compare(tr("More Commands")) == 0)
+        {
+            for(auto & j : moreCommands->actions())
+                moreCommands->removeAction(j);
+        }
+        else
+        {
+            moreCommands = new QMenu(tr("More Commands"), currentMenu);
+        }
+        for(auto & j : currentMenu->actions())
+            currentMenu->removeAction(j);
+        for(int j = 0; j < menuTextStrings.at(i)->size() - 1; j++)
+        {
+            QAction* a = menuTextStrings.at(i)->at(j + 1);
+            if(Config()->getBool("Gui", QString("Menu%1Hidden%2").arg(menuNativeNames[i]).arg(j)))
+            {
+                moreCommands->addAction(a);
+                moreCommandsUsed = true;
+            }
+            else
+            {
+                currentMenu->addAction(a);
+            }
+        }
+        if(moreCommandsUsed)
+        {
+            currentMenu->addSeparator();
+            currentMenu->addMenu(moreCommands);
+        }
+        else
+            delete moreCommands;
+    }
 }

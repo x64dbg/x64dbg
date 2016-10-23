@@ -190,7 +190,18 @@ private:
     void updateMRUMenu();
     QString getMRUEntry(int index);
     void setupLanguagesMenu();
+    void onMenuCustomized();
+    void setupMenuCustomization();
     QAction* makeCommandAction(QAction* action, const QString & command);
+
+    //lists for menu customization
+    QList<QAction*> mFileMenuStrings;
+    QList<QAction*> mViewMenuStrings;
+    QList<QAction*> mDebugMenuStrings;
+    //"Plugins" menu cannot be customized for item hiding.
+    //"Favourites" menu cannot be customized for item hiding.
+    QList<QAction*> mOptionsMenuStrings;
+    QList<QAction*> mHelpMenuStrings;
 
     //menu api
     struct MenuEntryInfo
