@@ -1037,6 +1037,8 @@ void AbstractTableView::addColumnAt(int width, const QString & title, bool isCli
 void AbstractTableView::setRowCount(dsint count)
 {
     updateScrollBarRange(count);
+    if(mRowCount != count)
+        mShouldReload = true;
     mRowCount = count;
 }
 

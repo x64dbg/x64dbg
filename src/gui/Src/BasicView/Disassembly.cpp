@@ -1797,6 +1797,7 @@ void Disassembly::disassembleClear()
     mMemPage->setAttributes(0, 0);
     mDisasm->getEncodeMap()->setMemoryRegion(0);
     setRowCount(0);
+    setTableOffset(0);
     reloadData();
 }
 

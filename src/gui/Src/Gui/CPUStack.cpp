@@ -320,10 +320,7 @@ void CPUStack::updateFreezeStackAction()
     if(bStackFrozen)
         mFreezeStack->setText(tr("Unfreeze the stack"));
     else
-    {
         mFreezeStack->setText(tr("Freeze the stack"));
-        gotoCspSlot();
-    }
     mFreezeStack->setChecked(bStackFrozen);
 }
 
@@ -993,6 +990,8 @@ void CPUStack::freezeStackSlot()
     bStackFrozen = !bStackFrozen;
 
     updateFreezeStackAction();
+    if(!bStackFrozen)
+        gotoCspSlot();
 }
 
 void CPUStack::dbgStateChangedSlot(DBGSTATE state)
