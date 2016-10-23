@@ -417,6 +417,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     GuiUpdateRegisterView();
     GuiUpdateThreadView();
     GuiUpdatePatches();
+    GuiUpdateSideBar();
 }
 
 void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paused)
