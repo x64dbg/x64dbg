@@ -414,6 +414,9 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
         strcat_s(threadName, " ");
     sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName, currentThreadId, threadswitch);
     GuiUpdateWindowTitle(title);
+    GuiUpdateRegisterView();
+    GuiUpdateThreadView();
+    GuiUpdatePatches();
 }
 
 void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paused)
