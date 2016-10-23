@@ -1016,9 +1016,8 @@ void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
         if(std::get<1>(i) == 0 && strcmp(builder->getId() , id) == 0)
             exists = true;
     }
-    int fuck = count; // workaround for compiling
     if(!exists)
-        NamedMenuBuilders.append(std::make_tuple<void*, int, size_t>((void*)menu, 0, size_t(fuck)));
+        NamedMenuBuilders.append(std::make_tuple<void*, int, size_t>((void*)menu, 0, std::move(count)));
 }
 
 void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
