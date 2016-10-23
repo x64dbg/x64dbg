@@ -141,7 +141,7 @@ void DisassemblyPopup::setAddress(duint Address)
                 if(instruction.instStr.contains("jmp") && instruction.instStr.contains("["))
                     break;
             }
-            if(instruction.branchDestination && !instruction.instStr.contains("call"))
+            if(instruction.branchDestination && !instruction.instStr.contains("call") && !instruction.instStr.contains("ret"))
             {
                 hadBranch = true;
                 if(instruction.branchDestination > bestBranch)
