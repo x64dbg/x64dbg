@@ -1758,16 +1758,20 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         exceptionName = ErrorCodeToName(ExceptionCode);
     if(ExceptionData->dwFirstChance) //first chance exception
     {
+        auto skip = bSkipExceptions || dbgisignoredexception(ExceptionCode);
+        if(!skip)
+            DbgCmdExecDirect("exinfo");
         if(exceptionName.size())
             dprintf(QT_TRANSLATE_NOOP("DBG", "First chance exception on %p (%.8X, %s)!\n"), addr, ExceptionCode, exceptionName.c_str());
         else
             dprintf(QT_TRANSLATE_NOOP("DBG", "First chance exception on %p (%.8X)!\n"), addr, ExceptionCode);
         SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
-        if(bSkipExceptions || dbgisignoredexception(ExceptionCode))
+        if(skip)
             return;
     }
     else //lock the exception
     {
+        DbgCmdExecDirect("exinfo");
         if(exceptionName.size())
             dprintf(QT_TRANSLATE_NOOP("DBG", "Last chance exception on %p (%.8X, %s)!\n"), addr, ExceptionCode, exceptionName.c_str());
         else
