@@ -583,7 +583,7 @@ bool cbInstrModCallFind(int argc, char* argv[])
 
 struct GUIDHashObject
 {
-    inline size_t operator()(const GUID & ref)
+    inline size_t operator()(const GUID & ref) const
     {
         size_t* p = (size_t*)&ref;
 #ifdef _WIN64
@@ -598,7 +598,7 @@ struct GUIDHashObject
 
 struct GUIDEqualObject
 {
-    inline bool operator()(const GUID & a, const GUID & b)
+    inline bool operator()(const GUID & a, const GUID & b) const
     {
         return memcmp(&a, &b, sizeof(GUID)) == 0;
     };
