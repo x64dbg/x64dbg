@@ -1833,15 +1833,15 @@ static void setupMenuCustomizationHelper(QMenu* parentMenu, QList<QAction*> & st
 
 void MainWindow::setupMenuCustomization()
 {
-    mFileMenuStrings.append(reinterpret_cast<QAction*>("File"));
+    mFileMenuStrings.append(reinterpret_cast<QAction* const&>("File"));
     setupMenuCustomizationHelper(ui->menuFile, mFileMenuStrings);
-    mDebugMenuStrings.append(reinterpret_cast<QAction*>("Debug"));
+    mDebugMenuStrings.append(reinterpret_cast<QAction* const&>("Debug"));
     setupMenuCustomizationHelper(ui->menuDebug, mDebugMenuStrings);
-    mOptionsMenuStrings.append(reinterpret_cast<QAction*>("Option"));
+    mOptionsMenuStrings.append(reinterpret_cast<QAction* const&>("Option"));
     setupMenuCustomizationHelper(ui->menuOptions, mOptionsMenuStrings);
-    mHelpMenuStrings.append(reinterpret_cast<QAction*>("Help"));
+    mHelpMenuStrings.append(reinterpret_cast<QAction* const&>("Help"));
     setupMenuCustomizationHelper(ui->menuHelp, mHelpMenuStrings);
-    mViewMenuStrings.append(reinterpret_cast<QAction*>("View"));
+    mViewMenuStrings.append(reinterpret_cast<QAction* const&>("View"));
     setupMenuCustomizationHelper(ui->menuView, mViewMenuStrings);
     onMenuCustomized();
     Config()->registerMainMenuStringList(&mFileMenuStrings);
