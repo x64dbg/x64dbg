@@ -182,6 +182,8 @@ private:
 
     QList<dsint> mVaHistory;
     int mCurrentVa;
+    QChar mNonprintReplace;
+    QChar mNullReplace;
 
 protected:
     MemoryPage* mMemPage;
