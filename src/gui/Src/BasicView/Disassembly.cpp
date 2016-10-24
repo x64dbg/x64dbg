@@ -1591,7 +1591,7 @@ void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::func
     int i = 0;
     while(true)
     {
-        if(wAddr >= endRva)
+        if(wAddr > endRva)
             break;
         wAddrPrev = wAddr;
         auto wInst = DisassembleAt(wAddr);
