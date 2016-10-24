@@ -571,7 +571,7 @@ static DWORD WINAPI loadDbThread(LPVOID)
     dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes file..."));
     notesFile = String(szProgramDir) + "\\notes.txt";
     String text;
-    if(!FileHelper::ReadAllText(notesFile, text))
+    if(FileHelper::ReadAllText(notesFile, text))
         GuiSetGlobalNotes(text.c_str());
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes failed..."));
