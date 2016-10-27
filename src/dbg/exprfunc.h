@@ -30,6 +30,7 @@ namespace Exprfunc
     duint disiscond(duint addr);
     duint disisbranch(duint addr);
     duint disisret(duint addr);
+    duint disiscall(duint addr);
     duint disismem(duint addr);
     duint disbranchdest(duint addr);
     duint disbranchexec(duint addr);
@@ -48,4 +49,7 @@ namespace Exprfunc
     duint readdword(duint addr);
     duint readqword(duint addr);
     duint readptr(duint addr);
+
+    duint funcstart(duint addr);
+    duint funcend(duint addr);
 }

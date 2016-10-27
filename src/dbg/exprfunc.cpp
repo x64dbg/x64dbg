@@ -7,6 +7,7 @@
 #include "disasm_fast.h"
 #include "TraceRecord.h"
 #include "disasm_helper.h"
+#include "function.h"
 
 namespace Exprfunc
 {
@@ -138,6 +139,14 @@ namespace Exprfunc
         return strstr(info.instruction, "ret") != nullptr;
     }
 
+    duint disiscall(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return info.call;
+    }
+
     duint disismem(duint addr)
     {
         BASIC_INSTRUCTION_INFO info;
@@ -249,5 +258,17 @@ namespace Exprfunc
     duint readptr(duint addr)
     {
         return readMem(addr, sizeof(duint));
+    }
+
+    duint funcstart(duint addr)
+    {
+        duint start;
+        return FunctionGet(addr, &start) ? start : 0;
+    }
+
+    duint funcend(duint addr)
+    {
+        duint end;
+        return FunctionGet(addr, nullptr, &end) ? end : 0;
     }
 }

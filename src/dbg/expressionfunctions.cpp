@@ -77,10 +77,11 @@ void ExpressionFunctions::Init()
     RegisterEasy("mem.decodepointer", memdecodepointer);
 
     //Disassembly
-    RegisterEasy("dis.len", dislen);
+    RegisterEasy("dis.len,dis.size", dislen);
     RegisterEasy("dis.iscond", disiscond);
     RegisterEasy("dis.isbranch", disisbranch);
     RegisterEasy("dis.isret", disisret);
+    RegisterEasy("dis.iscall", disiscall);
     RegisterEasy("dis.ismem", disismem);
     RegisterEasy("dis.branchdest", disbranchdest);
     RegisterEasy("dis.branchexec", disbranchexec);
@@ -102,6 +103,10 @@ void ExpressionFunctions::Init()
     RegisterEasy("ReadQword,Qword,qword", readqword);
 #endif //_WIN64
     RegisterEasy("ReadPtr,ReadPointer,ptr,Pointer,pointer", readptr);
+
+    //Functions
+    RegisterEasy("func.start,sub.start", funcstart);
+    RegisterEasy("func.end,sub.end", funcend);
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)

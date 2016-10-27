@@ -272,6 +272,8 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         auto constant = instr.arg[i].constant;
                         if(instr.arg[i].value == addr + instr.instr_size && strstr(instr.instruction, "call"))
                             temp_string.assign("call $0");
+                        else if(instr.arg[i].value == addr + instr.instr_size && strstr(instr.instruction, "jmp"))
+                            temp_string.assign("jmp $0");
                         else if(instr.type == instr_branch)
                             continue;
                         else if(instr.arg[i].type == arg_normal && constant < 256 && (isprint(int(constant)) || isspace(int(constant))) && (strstr(instr.instruction, "cmp") || strstr(instr.instruction, "mov")))
