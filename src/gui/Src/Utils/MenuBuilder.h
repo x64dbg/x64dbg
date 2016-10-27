@@ -16,7 +16,6 @@ public:
 
     inline MenuBuilder(QObject* parent, BuildCallback callback = nullptr)
         : QObject(parent),
-          id(0),
           _callback(callback)
     {
     }
@@ -58,7 +57,7 @@ public:
 
     QString getText(size_t id) const;
 
-    const char* getId() const
+    QString getId() const
     {
         return id;
     }
@@ -115,7 +114,7 @@ private:
     };
 
     BuildCallback _callback;
-    const char* id;
+    QString id;
     std::vector<Container> _containers;
 };
 

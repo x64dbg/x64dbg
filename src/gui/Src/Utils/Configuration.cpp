@@ -1008,19 +1008,14 @@ bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortc
 
 void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
-    bool exists = false;
-    const char* id = menu->getId();
+    QString id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
-    {
-        MenuBuilder* builder = reinterpret_cast<MenuBuilder*>(std::get<0>(i));
-        if(std::get<1>(i) == 0 && strcmp(builder->getId() , id) == 0)
-            exists = true;
-    }
-    if(!exists)
-        NamedMenuBuilders.append(std::make_tuple<void*, int, size_t>((void*)menu, 0, std::move(count)));
+        if(i.type == 0 && i.builder->getId() == id)
+            return; //already exists
+    NamedMenuBuilders.append(MenuMap(menu, count));
 }
 
 void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
 {
-    NamedMenuBuilders.append(std::make_tuple<void*, int, size_t>((void*)menu, 1, menu->size() - 1));
+    NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
 }

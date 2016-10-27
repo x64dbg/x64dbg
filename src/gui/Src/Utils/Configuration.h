@@ -82,7 +82,24 @@ public:
     QMap<QString, Shortcut> Shortcuts;
 
     //custom menu maps
-    QList<std::tuple<void*, int, size_t>> NamedMenuBuilders;
+    struct MenuMap
+    {
+        union
+        {
+            QList<QAction*>* mainMenuList;
+            MenuBuilder* builder;
+        };
+        int type;
+        size_t count;
+
+        MenuMap() { }
+        MenuMap(QList<QAction*>* mainMenuList, size_t count)
+            : mainMenuList(mainMenuList), type(1), count(count) { }
+        MenuMap(MenuBuilder* builder, size_t count)
+            : builder(builder), type(0), count(count) { }
+    };
+
+    QList<MenuMap> NamedMenuBuilders;
 
     static Configuration* mPtr;
 
