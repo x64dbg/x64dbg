@@ -2,6 +2,7 @@
 #include "value.h"
 #include "symbolinfo.h"
 #include "module.h"
+#include "disasm_fast.h"
 
 namespace ValueType
 {
@@ -14,7 +15,8 @@ namespace ValueType
         Pointer,
         String,
         AddrInfo,
-        Module
+        Module,
+        Instruction
     };
 }
 
@@ -75,6 +77,15 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
             result = mod;
         }
         break;
+        case ValueType::Instruction:
+        {
+            BASIC_INSTRUCTION_INFO info;
+            if(!disasmfast(valuint, &info, true))
+                result = "???";
+            else
+                result = info.instruction;
+        }
+        break;
         default:
             break;
         }
@@ -110,6 +121,9 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
             break;
         case 'm':
             type = ValueType::Module;
+            break;
+        case 'i':
+            type = ValueType::Instruction;
             break;
         default: //invalid format
             return nullptr;
