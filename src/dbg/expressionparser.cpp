@@ -495,7 +495,7 @@ static int mulhi(int x, int y)
 #endif //_WIN64
 
 template<typename T>
-static bool operation(const ExpressionParser::Token::Type type, const T op1, const T op2, T & result, const bool signedcalc)
+static bool operation(ExpressionParser::Token::Type type, T op1, T op2, T & result, bool signedcalc)
 {
     result = 0;
     switch(type)

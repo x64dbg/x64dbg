@@ -85,7 +85,7 @@ public:
             Unspecified
         };
 
-        Token(const String & data, const Type type)
+        Token(const String & data, Type type)
             : mData(data),
               mType(type)
         {
