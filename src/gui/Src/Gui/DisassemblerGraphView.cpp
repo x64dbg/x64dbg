@@ -9,6 +9,7 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QMimeData>
+#include <QFileDialog>
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent),
@@ -34,6 +35,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->scroll_mode = false;
     this->drawOverview = false;
     this->blocks.clear();
+    this->saveGraph = false;
 
     //Create timer to automatically refresh view when it needs to be updated
     this->updateTimer = new QTimer();
@@ -351,7 +353,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     int yofs = this->verticalScrollBar()->value();
 
     //Render background
-    QRect viewportRect = this->viewport()->rect();
+    QRect viewportRect(this->viewport()->rect().topLeft(), this->viewport()->rect().bottomRight() - QPoint(1,1));
     p.setBrush(QBrush(backgroundColor));
     p.drawRect(viewportRect);
     p.setBrush(Qt::black);
@@ -367,6 +369,18 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
         paintOverview(p, viewportRect, xofs, yofs);
     else
         paintNormal(p, viewportRect, xofs, yofs);
+
+    if (saveGraph)
+    {
+        saveGraph = false;
+        QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;JPG file (*.jpg)"));
+        if (path.isEmpty())
+            return;
+        QImage img(this->size(), QImage::Format_ARGB32);
+        QPainter painter(&img);
+        this->viewport()->render(&painter);
+        img.save(path);
+    }
 }
 
 bool DisassemblerGraphView::isMouseEventInBlock(QMouseEvent* event)
@@ -1474,6 +1488,7 @@ void DisassemblerGraphView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(tr("&Save to file"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionGraphRefresh"));
@@ -1601,4 +1616,10 @@ void DisassemblerGraphView::toggleSyncOriginSlot()
 void DisassemblerGraphView::refreshSlot()
 {
     DbgCmdExec(QString("graph %1, force").arg(ToPtrString(this->cur_instr)).toUtf8().constData());
+}
+
+void DisassemblerGraphView::saveImageSlot()
+{
+    saveGraph = true;
+    this->viewport()->update();
 }
