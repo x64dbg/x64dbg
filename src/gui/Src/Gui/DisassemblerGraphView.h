@@ -271,6 +271,7 @@ public slots:
     void gotoOriginSlot();
     void toggleSyncOriginSlot();
     void refreshSlot();
+    void saveImageSlot();
 
 private:
     QString status;
@@ -307,6 +308,7 @@ private:
     qreal overviewScale;
     duint mCip;
     bool forceCenter;
+    bool saveGraph;
 
     QAction* mToggleOverview;
     QAction* mToggleSyncOrigin;
