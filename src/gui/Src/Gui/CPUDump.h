@@ -117,6 +117,8 @@ private:
     QList<QAction*> mFollowInDumpActions;
 
     GotoDialog* mGoto;
+    QString lastFileOffset;
+
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
 
