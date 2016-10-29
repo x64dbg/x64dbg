@@ -1206,10 +1206,16 @@ void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
 
 void MainWindow::runSelection()
 {
+    QString command;
+
     if(!DbgIsDebugging())
         return;
 
-    QString command = "bp " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa()) + ", ss";
+    if (mGraphView->hasFocus())
+        command = "bp " + ToPtrString(mGraphView->get_cursor_pos()) + ", ss";
+    else
+        command = "bp " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa()) + ", ss";
+
     if(DbgCmdExecDirect(command.toUtf8().constData()))
         DbgCmdExecDirect("run");
 }
