@@ -327,7 +327,10 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_CONTINUE;
     auto res = cmddirectexec(cmd);
     while(DbgIsDebugging() && dbgisrunning() && !bAbort) //while not locked (NOTE: possible deadlock)
+    {
         Sleep(1);
+        GuiProcessEvents(); //workaround for scripts being executed on the GUI thread
+    }
     return res ? STATUS_CONTINUE : STATUS_ERROR;
 }
 

@@ -108,7 +108,7 @@ PLUG_IMPEXP bool _plugin_waituntilpaused()
     while(DbgIsDebugging() && dbgisrunning())  //wait until the debugger paused
     {
         Sleep(1);
-        GuiProcessEvents();
+        GuiProcessEvents(); //workaround for scripts being executed on the GUI thread
     }
     return DbgIsDebugging();
 }
