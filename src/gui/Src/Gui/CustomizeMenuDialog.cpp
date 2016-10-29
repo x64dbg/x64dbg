@@ -64,7 +64,7 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             if(i.type == 0)
                 text = builder->getText(j);
             else if(i.type == 1)
-                text = mainMenuList->at(j + 1)->text();
+                text = mainMenuList->at(int(j + 1))->text();
             if(!text.isEmpty())
             {
                 QTreeWidgetItem* menuItem = new QTreeWidgetItem(parentItem, 0);
