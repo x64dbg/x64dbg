@@ -1519,6 +1519,11 @@ BRIDGE_IMPEXP void GuiAddInfoLine(const char* infoLine)
     _gui_sendmessage(GUI_ADD_INFO_LINE, (void*)infoLine, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiProcessEvents()
+{
+    _gui_sendmessage(GUI_PROCESS_EVENTS, nullptr, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

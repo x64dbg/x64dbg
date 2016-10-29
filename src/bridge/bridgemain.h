@@ -970,7 +970,8 @@ typedef enum
     GUI_SELECT_IN_MEMORY_MAP,       // param1=duint addr,           param2=unused
     GUI_GET_ACTIVE_VIEW,            // param1=ACTIVEVIEW*,          param2=unused
     GUI_MENU_SET_ENTRY_CHECKED,     // param1=int hEntry,           param2=bool checked
-    GUI_ADD_INFO_LINE               // param1=const char* infoline, param2=unused
+    GUI_ADD_INFO_LINE,              // param1=const char* infoline, param2=unused
+    GUI_PROCESS_EVENTS,             // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1113,6 +1114,7 @@ BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length);
 BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr);
 BRIDGE_IMPEXP void GuiGetActiveView(ACTIVEVIEW* activeView);
 BRIDGE_IMPEXP void GuiAddInfoLine(const char* infoLine);
+BRIDGE_IMPEXP void GuiProcessEvents();
 
 #ifdef __cplusplus
 }

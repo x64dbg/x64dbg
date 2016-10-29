@@ -690,6 +690,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         }
     }
     break;
+
+    case GUI_PROCESS_EVENTS:
+    {
+        QCoreApplication::processEvents();
+    }
+    break;
     }
 
     return nullptr;
