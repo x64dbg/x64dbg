@@ -1,6 +1,7 @@
 #include "Bridge.h"
 #include "WatchView.h"
 #include "CPUMultiDump.h"
+#include "WordEditDialog.h"
 #include "MiscUtil.h"
 
 WatchView::WatchView(CPUMultiDump* parent) : StdTable(parent)
@@ -138,23 +139,16 @@ void WatchView::setupContextMenu()
     {
         return DbgIsDebugging();
     });
+    const auto & nonEmptyFunc = [this](QMenu*)
+    {
+        return getRowCount() != 0;
+    };
     mMenu->addAction(makeAction(tr("&Add..."), SLOT(addWatchSlot())));
-    mMenu->addAction(makeAction(tr("&Delete"), SLOT(delWatchSlot())), [this](QMenu*)
-    {
-        return getRowCount() != 0;
-    });
-    mMenu->addAction(makeAction(DIcon("labels.png"), tr("Rename"), SLOT(renameWatchSlot())), [this](QMenu*)
-    {
-        return getRowCount() != 0;
-    });
-    mMenu->addAction(makeAction(DIcon("modify.png"), tr("&Edit..."), SLOT(editWatchSlot())), [this](QMenu*)
-    {
-        return getRowCount() != 0;
-    });
-    MenuBuilder* watchdogBuilder = new MenuBuilder(this, [this](QMenu*)
-    {
-        return getRowCount() != 0;
-    });
+    mMenu->addAction(makeAction(tr("&Delete"), SLOT(delWatchSlot())), nonEmptyFunc);
+    mMenu->addAction(makeAction(DIcon("labels.png"), tr("Rename"), SLOT(renameWatchSlot())), nonEmptyFunc);
+    mMenu->addAction(makeAction(DIcon("modify.png"), tr("&Edit..."), SLOT(editWatchSlot())), nonEmptyFunc);
+    mMenu->addAction(makeAction(DIcon("modify.png"), tr("&Modify..."), SLOT(modifyWatchSlot())), nonEmptyFunc);
+    MenuBuilder* watchdogBuilder = new MenuBuilder(this, nonEmptyFunc);
     QMenu* watchdogMenu = new QMenu(tr("Watchdog"), this);
     watchdogMenu->setIcon(DIcon("animal-dog.png"));
     watchdogBuilder->addAction(makeAction(DIcon("disable.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
@@ -220,6 +214,23 @@ void WatchView::renameWatchSlot()
     QString originalName = getCellContent(getInitialSelection(), 0);
     if(SimpleInputBox(this, tr("Enter the name of the watch variable"), originalName, name, originalName))
         DbgCmdExecDirect(QString("SetWatchName ").append(getSelectedId() + "," + name).toUtf8().constData());
+    updateWatch();
+}
+
+void WatchView::modifyWatchSlot()
+{
+    BridgeList<WATCHINFO> WatchList;
+    DbgGetWatchList(&WatchList);
+    auto sel = getInitialSelection();
+    if(sel > WatchList.Count())
+        return;
+    WordEditDialog modifyDialog(this);
+    modifyDialog.setup(tr("Modify \"%1\"").arg(QString(WatchList[sel].WatchName)), WatchList[sel].value, sizeof(duint));
+    if(modifyDialog.exec() == QDialog::Accepted)
+    {
+        if(!DbgValToString(WatchList[sel].Expression, modifyDialog.getVal()))
+            SimpleErrorBox(this, tr("Cannot modify \"%1\"").arg(QString(WatchList[sel].WatchName)), tr("It might not possible to assign a value to \"%1\".").arg(QString(WatchList[sel].Expression)));
+    }
     updateWatch();
 }
 
