@@ -188,6 +188,8 @@ static DWORD WINAPI dumpRefreshThread(void* ptr)
         if(bStopDumpRefreshThread)
             break;
         GuiUpdateDumpView();
+        GuiUpdatePatches();
+        GuiUpdateWatchView();
         Sleep(400);
     }
     return 0;
@@ -417,7 +419,6 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     GuiUpdateRegisterView();
     GuiUpdateDisassemblyView();
     GuiUpdateThreadView();
-    GuiUpdatePatches();
     GuiUpdateSideBar();
 }
 
