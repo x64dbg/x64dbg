@@ -1211,7 +1211,7 @@ void MainWindow::runSelection()
     if(!DbgIsDebugging())
         return;
 
-    if (mGraphView->hasFocus())
+    if(mGraphView->hasFocus())
         command = "bp " + ToPtrString(mGraphView->get_cursor_pos()) + ", ss";
     else
         command = "bp " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa()) + ", ss";

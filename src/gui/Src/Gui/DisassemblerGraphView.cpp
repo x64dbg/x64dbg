@@ -353,7 +353,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     int yofs = this->verticalScrollBar()->value();
 
     //Render background
-    QRect viewportRect(this->viewport()->rect().topLeft(), this->viewport()->rect().bottomRight() - QPoint(1,1));
+    QRect viewportRect(this->viewport()->rect().topLeft(), this->viewport()->rect().bottomRight() - QPoint(1, 1));
     p.setBrush(QBrush(backgroundColor));
     p.drawRect(viewportRect);
     p.setBrush(Qt::black);
@@ -370,11 +370,11 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     else
         paintNormal(p, viewportRect, xofs, yofs);
 
-    if (saveGraph)
+    if(saveGraph)
     {
         saveGraph = false;
         QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;JPG file (*.jpg)"));
-        if (path.isEmpty())
+        if(path.isEmpty())
             return;
         QImage img(this->size(), QImage::Format_ARGB32);
         QPainter painter(&img);
