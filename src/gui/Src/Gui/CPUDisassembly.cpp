@@ -1041,6 +1041,7 @@ void CPUDisassembly::gotoExpressionSlot()
         return;
     if(!mGoto)
         mGoto = new GotoDialog(this);
+
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
@@ -1050,20 +1051,27 @@ void CPUDisassembly::gotoExpressionSlot()
 
 void CPUDisassembly::gotoFileOffsetSlot()
 {
+    char modname[MAX_MODULE_SIZE] = "";
+
     if(!DbgIsDebugging())
         return;
-    char modname[MAX_MODULE_SIZE] = "";
+
     if(!DbgFunctions()->ModNameFromAddr(rvaToVa(getInitialSelection()), modname, true))
     {
         QMessageBox::critical(this, tr("Error!"), tr("Not inside a module..."));
         return;
     }
+
     GotoDialog mGotoDialog(this);
     mGotoDialog.fileOffset = true;
     mGotoDialog.modName = QString(modname);
     mGotoDialog.setWindowTitle(tr("Goto File Offset in ") + QString(modname));
+    mGotoDialog.setInitialExpression(lastFileOffset);
+
     if(mGotoDialog.exec() != QDialog::Accepted)
         return;
+
+    lastFileOffset = mGotoDialog.expressionText;
     duint value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
     DbgCmdExec(QString().sprintf("disasm \"%p\"", value).toUtf8().constData());

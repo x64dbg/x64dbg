@@ -153,7 +153,9 @@ private:
 
     // Goto dialog specific
     GotoDialog* mGoto;
+    QString lastFileOffset;
     XrefBrowseDialog* mXrefDlg = nullptr;
+
 
     // Parent CPU window
     CPUWidget* mParentCPUWindow;

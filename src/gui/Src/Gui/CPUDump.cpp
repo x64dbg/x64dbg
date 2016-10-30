@@ -467,20 +467,27 @@ void CPUDump::gotoExpressionSlot()
 
 void CPUDump::gotoFileOffsetSlot()
 {
+    char modname[MAX_MODULE_SIZE] = "";
+
     if(!DbgIsDebugging())
         return;
-    char modname[MAX_MODULE_SIZE] = "";
+
     if(!DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), modname, true))
     {
         SimpleErrorBox(this, tr("Error!"), tr("Not inside a module..."));
         return;
     }
+
     GotoDialog mGotoDialog(this);
     mGotoDialog.fileOffset = true;
     mGotoDialog.modName = QString(modname);
     mGotoDialog.setWindowTitle(tr("Goto File Offset in %1").arg(QString(modname)));
+    mGotoDialog.setInitialExpression(lastFileOffset);
+
     if(mGotoDialog.exec() != QDialog::Accepted)
         return;
+
+    lastFileOffset = mGotoDialog.expressionText;
     duint value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
     DbgCmdExec(QString().sprintf("dump \"%p\"", value).toUtf8().constData());
