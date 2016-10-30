@@ -29,7 +29,6 @@ CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
     setWindowTitle("Disassembly");
 
     // Set specific widget handles
-    mGoto = nullptr;
     mParentCPUWindow = parent;
 
     // Create the action list for the right click context menu
@@ -1058,13 +1057,14 @@ void CPUDisassembly::gotoFileOffsetSlot()
         QMessageBox::critical(this, tr("Error!"), tr("Not inside a module..."));
         return;
     }
-    GotoDialog mGotoDialog(this);
-    mGotoDialog.fileOffset = true;
-    mGotoDialog.modName = QString(modname);
-    mGotoDialog.setWindowTitle(tr("Goto File Offset in ") + QString(modname));
-    if(mGotoDialog.exec() != QDialog::Accepted)
+    if(!mGotoOffset)
+        mGotoOffset = new GotoDialog(this);
+    mGotoOffset->fileOffset = true;
+    mGotoOffset->modName = QString(modname);
+    mGotoOffset->setWindowTitle(tr("Goto File Offset in ") + QString(modname));
+    if(mGotoOffset->exec() != QDialog::Accepted)
         return;
-    duint value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
+    duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
     DbgCmdExec(QString().sprintf("disasm \"%p\"", value).toUtf8().constData());
 }

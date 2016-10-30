@@ -611,11 +611,12 @@ void MemoryMapView::gotoOriginSlot()
 
 void MemoryMapView::gotoExpressionSlot()
 {
-    GotoDialog mGoto(this);
-    mGoto.setWindowTitle(tr("Enter the address to find..."));
-    if(mGoto.exec() == QDialog::Accepted)
+    if(!mGoto)
+        mGoto = new GotoDialog(this);
+    mGoto->setWindowTitle(tr("Enter the address to find..."));
+    if(mGoto->exec() == QDialog::Accepted)
     {
-        selectAddress(DbgValFromString(mGoto.expressionText.toUtf8().constData()));
+        selectAddress(DbgValFromString(mGoto->expressionText.toUtf8().constData()));
     }
 }
 

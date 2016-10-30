@@ -3,6 +3,8 @@
 
 #include "StdTable.h"
 
+class GotoDialog;
+
 class MemoryMapView : public StdTable
 {
     Q_OBJECT
@@ -47,6 +49,8 @@ public slots:
 
 private:
     QString getProtectionString(DWORD Protect);
+
+    GotoDialog* mGoto = nullptr;
 
     QAction* mFollowDump;
     QAction* mFollowDisassembly;

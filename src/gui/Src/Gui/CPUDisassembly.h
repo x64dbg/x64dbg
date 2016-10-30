@@ -152,7 +152,8 @@ private:
     QAction* mFindGUIDAll;
 
     // Goto dialog specific
-    GotoDialog* mGoto;
+    GotoDialog* mGoto = nullptr;
+    GotoDialog* mGotoOffset = nullptr;
     XrefBrowseDialog* mXrefDlg = nullptr;
 
     // Parent CPU window
