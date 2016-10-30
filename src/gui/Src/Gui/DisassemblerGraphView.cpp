@@ -376,7 +376,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
         QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;JPG file (*.jpg)"));
         if(path.isEmpty())
             return;
-        QImage img(this->size(), QImage::Format_ARGB32);
+        QImage img(this->viewport()->rect().size(), QImage::Format_ARGB32);
         QPainter painter(&img);
         this->viewport()->render(&painter);
         img.save(path);
