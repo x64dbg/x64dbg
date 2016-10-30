@@ -93,25 +93,14 @@ extern "C" DLL_EXPORT bool _dbg_isdebugging()
 
 extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 {
-    static duint cacheFlags;
-    static duint cacheAddr;
-    static duint cacheCx;
-    static bool cacheResult;
-    if(cacheAddr != addr || cacheFlags != cacheCflags || cacheCx != cacheCcx)
+    unsigned char data[16];
+    if(MemRead(addr, data, sizeof(data), nullptr, true))
     {
-        cacheFlags = cacheCflags;
-        cacheCx = cacheCcx;
-        cacheAddr = addr;
-        cacheResult = false;
-        unsigned char data[16];
-        if(MemRead(addr, data, sizeof(data), nullptr, true))
-        {
-            Capstone cp;
-            if(cp.Disassemble(addr, data))
-                cacheResult = cp.IsBranchGoingToExecute(cacheFlags, cacheCx);
-        }
+        Capstone cp;
+        if(cp.Disassemble(addr, data))
+            return cp.IsBranchGoingToExecute(cacheCflags, cacheCcx);
     }
-    return cacheResult;
+    return false;
 }
 
 static bool shouldFilterSymbol(const char* name)
