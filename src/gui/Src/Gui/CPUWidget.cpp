@@ -55,9 +55,9 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mGeneralRegs = new RegistersView(this, mDump);
     mGeneralRegs->setFixedWidth(1000);
     mGeneralRegs->ShowFPU(true);
-    mGeneralRegs->setFixedHeight(mGeneralRegs->getEstimateHeight());
 
     QScrollArea* upperScrollArea = new QScrollArea(this);
+    upperScrollArea->setFrameShape(QFrame::NoFrame);
     upperScrollArea->setWidget(mGeneralRegs);
 
     upperScrollArea->horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
