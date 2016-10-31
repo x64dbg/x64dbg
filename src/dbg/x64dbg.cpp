@@ -223,7 +223,8 @@ static void registercommands()
     dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
     dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
     dbgcmdnew("RunToUserCode\1rtu", cbDebugRunToUserCode, true); //Run to user code
-    dbgcmdnew("guidfind\1findguid", cbInstrGUIDFind, true); //find GUID references TODO: undocumented
+    dbgcmdnew("TraceSetLog\1SetTraceLog", cbDebugTraceSetLog, true); //Set trace log text + condition
+    dbgcmdnew("TraceSetCommand\1SetTraceCommand", cbDebugTraceSetCommand, true); //Set trace command text + condition
 
     //thread control
     dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
@@ -263,7 +264,7 @@ static void registercommands()
     dbgcmdnew("vardel", cbInstrVarDel, false); //delete a variable, arg1:variable name
     dbgcmdnew("varlist", cbInstrVarList, false); //list variables[arg1:type filter]
 
-    //data
+    //searching
     dbgcmdnew("find", cbInstrFind, true); //find a pattern
     dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
     dbgcmdnew("findallmem\1findmemall", cbInstrFindAllMem, true); //memory map pattern find
@@ -275,6 +276,7 @@ static void registercommands()
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
+    dbgcmdnew("guidfind\1findguid", cbInstrGUIDFind, true); //find GUID references TODO: undocumented
 
     //user database
     dbgcmdnew("dbsave\1savedb", cbInstrDbsave, true); //save program database

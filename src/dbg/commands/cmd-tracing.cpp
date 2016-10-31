@@ -128,3 +128,27 @@ bool cbDebugRunToUserCode(int argc, char* argv[])
     char* newargv[] = { "RunToParty", "0" };
     return cbDebugRunToParty(argc, newargv);
 }
+
+bool cbDebugTraceSetLog(int argc, char* argv[])
+{
+    auto text = argc > 1 ? argv[1] : "";
+    auto condition = argc > 2 ? argv[2] : "";
+    if(!dbgsettracelog(condition, text))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression \"%s\"\n"), condition);
+        return false;
+    }
+    return true;
+}
+
+bool cbDebugTraceSetCommand(int argc, char* argv[])
+{
+    auto text = argc > 1 ? argv[1] : "";
+    auto condition = argc > 2 ? argv[2] : "";
+    if(!dbgsettracecmd(condition, text))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression \"%s\"\n"), condition);
+        return false;
+    }
+    return true;
+}

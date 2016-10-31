@@ -81,6 +81,11 @@ struct TraceState
         return traceCondition != nullptr;
     }
 
+    bool IsExtended() const
+    {
+        return logCondition || cmdCondition;
+    }
+
     bool BreakTrace() const
     {
         return !traceCondition || traceCondition->BreakTrace();
@@ -1204,12 +1209,12 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     PLUG_CB_TRACEEXECUTE info;
     info.cip = cip;
     auto breakCondition = (info.stop = traceState.BreakTrace() || forceBreakTrace);
+    if(traceState.IsExtended()) //only set when needed
+        varset("$tracecounter", traceState.StepCount(), true);
     plugincbcall(CB_TRACEEXECUTE, &info);
     breakCondition = info.stop;
     auto logCondition = traceState.EvaluateLog(true);
     auto cmdCondition = traceState.EvaluateCmd(breakCondition);
-    if(logCondition || cmdCondition)
-        varset("$tracecounter", traceState.StepCount(), true);
     if(logCondition) //log
     {
         dprintf_untranslated("%s\n", stringformatinline(traceState.LogText()).c_str());
@@ -1227,6 +1232,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     if(breakCondition) //break the debugger
     {
         auto steps = dbgcleartracestate();
+        varset("$tracecounter", steps, true);
 #ifdef _WIN64
         dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %llu steps!\n"), steps);
 #else //x86
