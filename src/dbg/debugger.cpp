@@ -39,13 +39,13 @@ struct TraceCondition
     explicit TraceCondition(const String & expression, duint maxCount)
         : condition(expression), steps(0), maxSteps(maxCount) {}
 
-    bool ContinueTrace()
+    bool BreakTrace()
     {
         steps++;
         if(steps >= maxSteps)
-            return false;
-        duint value = 1;
-        return condition.Calculate(value, valuesignedcalc(), true) && !value;
+            return true;
+        duint value;
+        return !condition.Calculate(value, valuesignedcalc(), true) || value;
     }
 };
 
@@ -81,9 +81,9 @@ struct TraceState
         return traceCondition != nullptr;
     }
 
-    bool ContinueTrace() const
+    bool BreakTrace() const
     {
-        return traceCondition && traceCondition->ContinueTrace();
+        return !traceCondition || traceCondition->BreakTrace();
     }
 
     bool InitLogCondition(const String & expression, const String & text)
@@ -1179,21 +1179,14 @@ void cbRtrStep()
     }
 }
 
-static void cbTraceXConditionalStep(bool bStepInto, void (*callback)())
+static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*callback)(), bool forceBreakTrace)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     PLUG_CB_TRACEEXECUTE info;
-    info.cip = CIP;
+    info.cip = cip;
     info.stop = false;
     plugincbcall(CB_TRACEEXECUTE, &info);
-    if(!info.stop && traceState.ContinueTrace())
-    {
-        if(bTraceRecordEnabledDuringTrace)
-            _dbg_dbgtraceexecute(CIP);
-        (bStepInto ? StepInto : StepOver)(callback);
-    }
-    else
+    auto breakTrace = traceState.BreakTrace() || info.stop || forceBreakTrace;
+    if(breakTrace)
     {
         auto steps = dbgcleartracestate();
 #ifdef _WIN64
@@ -1203,6 +1196,26 @@ static void cbTraceXConditionalStep(bool bStepInto, void (*callback)())
 #endif //_WIN64
         cbRtrFinalStep();
     }
+    else
+    {
+        if(bTraceRecordEnabledDuringTrace)
+            _dbg_dbgtraceexecute(cip);
+        (bStepInto ? StepInto : StepOver)(callback);
+    }
+}
+
+static void cbTraceXConditionalStep(bool bStepInto, void (*callback)())
+{
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    cbTraceUniversalConditionalStep(GetContextDataEx(hActiveThread, UE_CIP), bStepInto, callback, false);
+}
+
+static void cbTraceXXTraceRecordStep(bool bStepInto, bool bInto, void(*callback)())
+{
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    auto cip = GetContextDataEx(hActiveThread, UE_CIP);
+    auto forceBreakTrace = TraceRecord.getTraceRecordType(cip) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(cip) == 0) ^ bInto;
+    cbTraceUniversalConditionalStep(cip, bStepInto, callback, forceBreakTrace);
 }
 
 void cbTraceOverConditionalStep()
@@ -1213,32 +1226,6 @@ void cbTraceOverConditionalStep()
 void cbTraceIntoConditionalStep()
 {
     cbTraceXConditionalStep(true, cbTraceIntoConditionalStep);
-}
-
-static void cbTraceXXTraceRecordStep(bool bStepInto, bool bInto, void (*callback)())
-{
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    // Trace record
-    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    PLUG_CB_TRACEEXECUTE info;
-    info.cip = CIP;
-    info.stop = false;
-    plugincbcall(CB_TRACEEXECUTE, &info);
-    if(info.stop || !traceState.ContinueTrace() || (TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(CIP) == 0) ^ bInto))
-    {
-        _dbg_dbgtraceexecute(CIP);
-        auto steps = dbgcleartracestate();
-#ifdef _WIN64
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %llu steps!\n"), steps);
-#else //x86
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
-#endif //_WIN64
-        cbRtrFinalStep();
-        return;
-    }
-    if(bTraceRecordEnabledDuringTrace)
-        _dbg_dbgtraceexecute(CIP);
-    (bStepInto ? StepInto : StepOver)(callback);
 }
 
 void cbTraceIntoBeyondTraceRecordStep()
