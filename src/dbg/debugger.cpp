@@ -1089,7 +1089,7 @@ void cbRtrStep()
     }
 }
 
-static void cbTXCNDStep(bool bStepInto, void (*callback)())
+static void cbTraceXConditionalStep(bool bStepInto, void (*callback)())
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
@@ -1115,17 +1115,17 @@ static void cbTXCNDStep(bool bStepInto, void (*callback)())
     }
 }
 
-void cbTOCNDStep()
+void cbTraceOverConditionalStep()
 {
-    cbTXCNDStep(false, cbTOCNDStep);
+    cbTraceXConditionalStep(false, cbTraceOverConditionalStep);
 }
 
-void cbTICNDStep()
+void cbTraceIntoConditionalStep()
 {
-    cbTXCNDStep(true, cbTICNDStep);
+    cbTraceXConditionalStep(true, cbTraceIntoConditionalStep);
 }
 
-static void cbTXXTStep(bool bStepInto, bool bInto, void (*callback)())
+static void cbTraceXXTraceRecordStep(bool bStepInto, bool bInto, void (*callback)())
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     // Trace record
@@ -1158,24 +1158,24 @@ static void cbTXXTStep(bool bStepInto, bool bInto, void (*callback)())
     (bStepInto ? StepInto : StepOver)(callback);
 }
 
-void cbTIBTStep()
+void cbTraceIntoBeyondTraceRecordStep()
 {
-    cbTXXTStep(true, false, cbTIBTStep);
+    cbTraceXXTraceRecordStep(true, false, cbTraceIntoBeyondTraceRecordStep);
 }
 
-void cbTOBTStep()
+void cbTraceOverBeyondTraceRecordStep()
 {
-    cbTXXTStep(false, false, cbTOBTStep);
+    cbTraceXXTraceRecordStep(false, false, cbTraceOverBeyondTraceRecordStep);
 }
 
-void cbTIITStep()
+void cbTraceIntoIntoTraceRecordStep()
 {
-    cbTXXTStep(true, true, cbTIITStep);
+    cbTraceXXTraceRecordStep(true, true, cbTraceIntoIntoTraceRecordStep);
 }
 
-void cbTOITStep()
+void cbTraceOverIntoTraceRecordStep()
 {
-    cbTXXTStep(false, true, cbTOITStep);
+    cbTraceXXTraceRecordStep(false, true, cbTraceOverIntoTraceRecordStep);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
