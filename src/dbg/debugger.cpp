@@ -70,8 +70,7 @@ struct TraceState
 {
     bool InitTraceCondition(const String & expression, duint maxSteps)
     {
-        if(traceCondition)
-            delete traceCondition;
+        delete traceCondition;
         traceCondition = new TraceCondition(expression, maxSteps);
         return traceCondition->condition.IsValidExpression();
     }
@@ -98,8 +97,7 @@ struct TraceState
 
     bool InitLogCondition(const String & expression, const String & text)
     {
-        if(logCondition)
-            delete logCondition;
+        delete logCondition;
         logCondition = nullptr;
         if(text.empty())
             return true;
@@ -119,8 +117,7 @@ struct TraceState
 
     bool InitCmdCondition(const String & expression, const String & text)
     {
-        if(cmdCondition)
-            delete cmdCondition;
+        delete cmdCondition;
         cmdCondition = nullptr;
         if(text.empty())
             return true;
@@ -140,14 +137,11 @@ struct TraceState
 
     void Clear()
     {
-        if(traceCondition)
-            delete traceCondition;
+        delete traceCondition;
         traceCondition = nullptr;
-        if(logCondition)
-            delete logCondition;
+        delete logCondition;
         logCondition = nullptr;
-        if(cmdCondition)
-            delete cmdCondition;
+        delete cmdCondition;
         cmdCondition = nullptr;
     }
 
