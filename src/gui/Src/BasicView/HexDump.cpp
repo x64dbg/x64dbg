@@ -782,10 +782,12 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
     case UnicodeWord:
     {
         QChar wChar = QChar::fromLatin1((char)word & 0xFF);
-        if(wChar.isPrint() == true && (word >> 8) == 0)
+        if(wChar.isPrint() && (word >> 8) == 0)
             wStr = QString(wChar);
+        else if(!wChar.unicode())
+            wStr = mNullReplace;
         else
-            wStr = ".";
+            wStr = mNonprintReplace;
     }
     break;
 
