@@ -871,12 +871,10 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     {
         //TODO: commands like run/step etc will fuck up your shit
         varset("$breakpointcondition", breakCondition ? 1 : 0, false);
-        varset("$breakpointlogcondition", logCondition, true);
+        varset("$breakpointlogcondition", logCondition ? 1 : 0, true);
         _dbg_dbgcmddirectexec(bp.commandText);
         duint script_breakcondition;
-        int size;
-        VAR_TYPE type;
-        if(varget("$breakpointcondition", &script_breakcondition, &size, &type))
+        if(varget("$breakpointcondition", &script_breakcondition, nullptr, nullptr))
         {
             if(script_breakcondition != 0)
             {
