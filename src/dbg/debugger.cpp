@@ -826,7 +826,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         bp.addr += ModBaseFromAddr(CIP);
     bp.active = true; //a breakpoint that has been hit is active
 
-    varset("$breakpointcounter", bp.hitcount, false); //save the breakpoint counter as a variable
+    varset("$breakpointcounter", bp.hitcount, true); //save the breakpoint counter as a variable
 
     //get condition values
     bool breakCondition;
@@ -871,7 +871,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     {
         //TODO: commands like run/step etc will fuck up your shit
         varset("$breakpointcondition", breakCondition ? 1 : 0, false);
-        varset("$breakpointlogcondition", logCondition, false);
+        varset("$breakpointlogcondition", logCondition, true);
         _dbg_dbgcmddirectexec(bp.commandText);
         duint script_breakcondition;
         int size;
