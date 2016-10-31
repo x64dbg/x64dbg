@@ -80,6 +80,11 @@ void varinit()
     varnew("$breakpointcondition", 0, VAR_SYSTEM);
     varnew("$breakpointlogcondition", 0, VAR_READONLY);
 
+    // Tracing variables
+    varnew("$tracecounter", 0, VAR_READONLY);
+    varnew("$tracecondition", 0, VAR_SYSTEM);
+    varnew("$tracelogcondition", 0, VAR_READONLY);
+
     // Read-only variables
     varnew("$lastalloc", 0, VAR_READONLY);  // Last memory allocation
     varnew("$_EZ_FLAG", 0, VAR_READONLY);   // Equal/zero flag for internal use (1 = equal, 0 = unequal)

@@ -86,10 +86,18 @@ struct TraceState
         return !traceCondition || traceCondition->BreakTrace();
     }
 
+    duint StepCount() const
+    {
+        return traceCondition ? traceCondition->steps : 0;
+    }
+
     bool InitLogCondition(const String & expression, const String & text)
     {
         if(logCondition)
             delete logCondition;
+        logCondition = nullptr;
+        if(text.empty())
+            return true;
         logCondition = new TextCondition(expression, text);
         return logCondition->condition.IsValidExpression();
     }
@@ -108,6 +116,9 @@ struct TraceState
     {
         if(cmdCondition)
             delete cmdCondition;
+        cmdCondition = nullptr;
+        if(text.empty())
+            return true;
         cmdCondition = new TextCondition(expression, text);
         return cmdCondition->condition.IsValidExpression();
     }
@@ -122,14 +133,10 @@ struct TraceState
         return cmdCondition ? cmdCondition->text : emptyString;
     }
 
-    duint Clear()
+    void Clear()
     {
-        duint steps = 0;
         if(traceCondition)
-        {
-            steps = traceCondition->steps;
             delete traceCondition;
-        }
         traceCondition = nullptr;
         if(logCondition)
             delete logCondition;
@@ -137,7 +144,6 @@ struct TraceState
         if(cmdCondition)
             delete cmdCondition;
         cmdCondition = nullptr;
-        return steps;
     }
 
 private:
@@ -193,7 +199,9 @@ duint DbgEvents = 0;
 
 static duint dbgcleartracestate()
 {
-    return traceState.Clear();
+    auto steps = traceState.StepCount();
+    traceState.Clear();
+    return steps;
 }
 
 static void dbgClearRtuBreakpoints()
@@ -216,6 +224,20 @@ bool dbgsettracecondition(const String & expression, duint maxSteps)
         return true;
     dbgcleartracestate();
     return false;
+}
+
+bool dbgsettracelog(const String & expression, const String & text)
+{
+    if(dbgtraceactive())
+        return false;
+    return traceState.InitLogCondition(expression, text);
+}
+
+bool dbgsettracecmd(const String & expression, const String & text)
+{
+    if(dbgtraceactive())
+        return false;
+    return traceState.InitCmdCondition(expression, text);
 }
 
 bool dbgtraceactive()
@@ -1181,10 +1203,28 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
 {
     PLUG_CB_TRACEEXECUTE info;
     info.cip = cip;
-    info.stop = false;
+    auto breakCondition = (info.stop = traceState.BreakTrace() || forceBreakTrace);
     plugincbcall(CB_TRACEEXECUTE, &info);
-    auto breakTrace = traceState.BreakTrace() || info.stop || forceBreakTrace;
-    if(breakTrace)
+    breakCondition = info.stop;
+    auto logCondition = traceState.EvaluateLog(true);
+    auto cmdCondition = traceState.EvaluateCmd(breakCondition);
+    if(logCondition || cmdCondition)
+        varset("$tracecounter", traceState.StepCount(), true);
+    if(logCondition) //log
+    {
+        dprintf_untranslated("%s\n", stringformatinline(traceState.LogText()).c_str());
+    }
+    if(cmdCondition) //command
+    {
+        //TODO: commands like run/step etc will fuck up your shit
+        varset("$tracecondition", breakCondition ? 1 : 0, false);
+        varset("$tracelogcondition", logCondition ? 1 : 0, true);
+        _dbg_dbgcmddirectexec(traceState.CmdText().c_str());
+        duint script_breakcondition;
+        if(varget("$breakpointcondition", &script_breakcondition, nullptr, nullptr))
+            breakCondition = script_breakcondition != 0;
+    }
+    if(breakCondition) //break the debugger
     {
         auto steps = dbgcleartracestate();
 #ifdef _WIN64
@@ -1194,7 +1234,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
 #endif //_WIN64
         cbRtrFinalStep();
     }
-    else
+    else //continue tracing
     {
         if(bTraceRecordEnabledDuringTrace)
             _dbg_dbgtraceexecute(cip);

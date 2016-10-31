@@ -104,6 +104,8 @@ void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
 duint dbggetdebuggedbase();
 duint dbggetdbgevents();
 bool dbgsettracecondition(const String & expression, duint maxCount);
+bool dbgsettracelog(const String & expression, const String & text);
+bool dbgsettracecmd(const String & expression, const String & text);
 bool dbgtraceactive();
 void dbgsetdebuggeeinitscript(const char* fileName);
 const char* dbggetdebuggeeinitscript();
