@@ -31,12 +31,17 @@ void SearchListViewTable::updateColors()
     mSelectedAddressColor = ConfigColor("DisassemblySelectedAddressColor");
     mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
     mAddressColor = ConfigColor("DisassemblyAddressColor");
+    mTracedBackgroundColor = ConfigColor("DisassemblyTracedBackgroundColor");
+
+    auto a = selectionColor, b = mTracedBackgroundColor;
+    mTracedSelectedAddressBackgroundColor = QColor((a.red() + b.red()) / 2, (a.green() + b.green()) / 2, (a.blue() + b.blue()) / 2);
 }
 
 QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     bool isaddr = true;
-    QString text = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    bool wIsSelected = isSelected(rowBase, rowOffset);
+    QString text = getCellContent(rowBase + rowOffset, col);
     if(!DbgIsDebugging())
         isaddr = false;
     if(!getRowCount())
@@ -47,6 +52,31 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         isaddr = false;
     else
         wVA = val;
+    auto wIsTraced = isaddr && DbgFunctions()->GetTraceRecordHitCount(wVA) != 0;
+    QColor lineBackgroundColor;
+    bool isBackgroundColorSet;
+    if(wIsSelected && wIsTraced)
+    {
+        lineBackgroundColor = mTracedSelectedAddressBackgroundColor;
+        isBackgroundColorSet = true;
+    }
+    else if(wIsSelected)
+    {
+        lineBackgroundColor = selectionColor;
+        isBackgroundColorSet = true;
+    }
+    else if(wIsTraced)
+    {
+        lineBackgroundColor = mTracedBackgroundColor;
+        isBackgroundColorSet = true;
+    }
+    else
+    {
+        isBackgroundColorSet = false;
+    }
+    if(isBackgroundColorSet)
+        painter->fillRect(QRect(x, y, w, h), QBrush(lineBackgroundColor));
+
     if(col == 0 && isaddr)
     {
         char label[MAX_LABEL_SIZE] = "";
@@ -61,8 +91,6 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         BPXTYPE bpxtype = DbgGetBpxTypeAt(wVA);
         bool isbookmark = DbgGetBookmarkAt(wVA);
 
-
-        auto wIsSelected = rowBase + rowOffset == getInitialSelection();
         if(wVA == mCip) //cip + not running
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));

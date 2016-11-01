@@ -41,6 +41,8 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             viewName = tr("Graph");
         else if(id == "CPUStack")
             viewName = tr("Stack");
+        else if(id == "SourceView")
+            viewName = tr("Source");
         else if(id == "File")
             viewName = tr("File");
         else if(id == "Debug")

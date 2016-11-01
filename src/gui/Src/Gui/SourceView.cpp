@@ -30,6 +30,7 @@ SourceView::SourceView(QString path, int line, QWidget* parent)
     mMenuBuilder = new MenuBuilder(this);
     mMenuBuilder->addAction(makeAction(tr("Open source file"), SLOT(openSourceFileSlot())));
     mMenuBuilder->addAction(makeAction(tr("Show source file in directory"), SLOT(showInDirectorySlot())));
+    mMenuBuilder->loadFromConfig();
 }
 
 void SourceView::setSelection(int line)
