@@ -1220,7 +1220,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
         varset("$tracelogcondition", logCondition ? 1 : 0, true);
         _dbg_dbgcmddirectexec(traceState.CmdText().c_str());
         duint script_breakcondition;
-        if(varget("$breakpointcondition", &script_breakcondition, nullptr, nullptr))
+        if(varget("$tracecondition", &script_breakcondition, nullptr, nullptr))
             breakCondition = script_breakcondition != 0;
     }
     if(breakCondition) //break the debugger
