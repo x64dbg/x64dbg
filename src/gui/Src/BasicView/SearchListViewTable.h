@@ -37,6 +37,8 @@ private:
     QColor mSelectedAddressColor;
     QColor mAddressBackgroundColor;
     QColor mAddressColor;
+    QColor mTracedBackgroundColor;
+    QColor mTracedSelectedAddressBackgroundColor;
     duint mCip;
     bool bCipBase;
 };

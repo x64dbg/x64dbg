@@ -555,6 +555,7 @@ void SymbolView::moduleSetParty()
     mLineEdit.setWindowIcon(DIcon("bookmark.png"));
     mLineEdit.setWindowTitle(tr("Mark the party of the module as"));
     mLineEdit.setText(QString::number(party));
+    mLineEdit.setPlaceholderText(tr("0 is user module, 1 is system module."));
     if(mLineEdit.exec() == QDialog::Accepted)
     {
         bool ok;

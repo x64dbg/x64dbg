@@ -220,6 +220,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     insertMenuBuilderBools(&guiBool, "CallStackView", 50); //CallStackView
     insertMenuBuilderBools(&guiBool, "ThreadView", 50); //Thread
     insertMenuBuilderBools(&guiBool, "CPUStack", 50); //Stack
+    insertMenuBuilderBools(&guiBool, "SourceView", 10); //Source
     insertMenuBuilderBools(&guiBool, "DisassemblerGraphView", 50); //Graph
     insertMenuBuilderBools(&guiBool, "File", 50); //Main Menu : File
     insertMenuBuilderBools(&guiBool, "Debug", 50); //Main Menu : Debug

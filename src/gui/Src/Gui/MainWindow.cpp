@@ -1870,17 +1870,21 @@ void MainWindow::onMenuCustomized()
         QMenu* currentMenu = menus[i];
         QMenu* moreCommands = nullptr;
         bool moreCommandsUsed = false;
-        moreCommands = currentMenu->actions().last()->menu();
+        QList<QAction*> & list = currentMenu->actions();
+        moreCommands = list.last()->menu();
         if(moreCommands && moreCommands->title().compare(tr("More Commands")) == 0)
         {
             for(auto & j : moreCommands->actions())
                 moreCommands->removeAction(j);
+            QAction* separatorMoreCommands = list.at(list.length() - 2);
+            currentMenu->removeAction(separatorMoreCommands); // Separator
+            delete separatorMoreCommands;
         }
         else
         {
             moreCommands = new QMenu(tr("More Commands"), currentMenu);
         }
-        for(auto & j : currentMenu->actions())
+        for(auto & j : list)
             currentMenu->removeAction(j);
         for(int j = 0; j < menuTextStrings.at(i)->size() - 1; j++)
         {
