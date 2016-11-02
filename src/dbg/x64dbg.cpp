@@ -423,6 +423,7 @@ static void registercommands()
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
     dbgcmdnew("focusinfo", cbInstrFocusinfo, false);
+    dbgcmdnew("printstack\1logstack", cbInstrPrintStack, true); //print the call stack
 };
 
 bool cbCommandProvider(char* cmd, int maxlen)
