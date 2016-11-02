@@ -10,6 +10,22 @@
 #include "value.h"
 #include "TraceRecord.h"
 
+static bool skipInt3Stepping(int argc, char* argv[])
+{
+    if(!bSkipInt3Stepping || dbgisrunning())
+        return false;
+    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    unsigned char ch;
+    MemRead(cip, &ch, sizeof(ch));
+    if(ch == 0xCC && getLastExceptionInfo().ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Skipped INT3!"));
+        cbDebugSkip(argc, argv);
+        return true;
+    }
+    return false;
+}
+
 bool cbDebugRunInternal(int argc, char* argv[])
 {
     // Don't "run" twice if the program is already running
@@ -195,6 +211,7 @@ bool cbDebugDetach(int argc, char* argv[])
 bool cbDebugRun(int argc, char* argv[])
 {
     HistoryClear();
+    skipInt3Stepping(argc, argv);
     return cbDebugRunInternal(argc, argv);
 }
 
@@ -272,22 +289,6 @@ bool cbDebugContinue(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Exception will be thrown in the program"));
     }
     return true;
-}
-
-static bool skipInt3Stepping(int argc, char* argv[])
-{
-    if(!bSkipInt3Stepping || dbgisrunning())
-        return false;
-    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    unsigned char ch;
-    MemRead(cip, &ch, sizeof(ch));
-    if(ch == 0xCC && getLastExceptionInfo().ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Skipped INT3!"));
-        cbDebugSkip(argc, argv);
-        return true;
-    }
-    return false;
 }
 
 bool cbDebugStepInto(int argc, char* argv[])
