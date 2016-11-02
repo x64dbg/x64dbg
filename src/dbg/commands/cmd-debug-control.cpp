@@ -8,6 +8,7 @@
 #include "disasm_fast.h"
 #include "plugin_loader.h"
 #include "value.h"
+#include "TraceRecord.h"
 
 bool cbDebugRunInternal(int argc, char* argv[])
 {
@@ -374,6 +375,7 @@ bool cbDebugSkip(int argc, char* argv[])
     memset(&basicinfo, 0, sizeof(basicinfo));
     disasmfast(cip, &basicinfo);
     cip += basicinfo.size;
+    _dbg_dbgtraceexecute(cip);
     SetContextDataEx(hActiveThread, UE_CIP, cip);
     DebugUpdateGuiAsync(cip, false); //update GUI
     return true;
