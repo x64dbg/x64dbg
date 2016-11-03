@@ -21,7 +21,8 @@ static int emalloc_count = 0;
 \brief Path for debugging, used to create an allocation trace file on emalloc() or efree(). Not used.
 */
 static char alloctrace[MAX_PATH] = "";
-static std::map<void*, int> alloctracemap;
+static std::unordered_map<void*, int> alloctracemap;
+static CRITICAL_SECTION criticalSection;
 #endif
 
 /**
@@ -45,12 +46,14 @@ void* emalloc(size_t size, const char* reason)
     }
     emalloc_count++;
 #ifdef ENABLE_MEM_TRACE
+    EnterCriticalSection(&criticalSection);
     memset(a, 0, size + sizeof(void*));
     FILE* file = fopen(alloctrace, "a+");
     fprintf(file, "DBG%.5d:  alloc:%p:%p:%s:%p\n", emalloc_count, a, _ReturnAddress(), reason, size);
     fclose(file);
     alloctracemap[_ReturnAddress()]++;
     *(void**)a = _ReturnAddress();
+    LeaveCriticalSection(&criticalSection);
     return a + sizeof(void*);
 #else
     memset(a, 0, size);
@@ -85,6 +88,7 @@ void efree(void* ptr, const char* reason)
 {
     emalloc_count--;
 #ifdef ENABLE_MEM_TRACE
+    EnterCriticalSection(&criticalSection);
     char* ptr2 = (char*)ptr - sizeof(void*);
     FILE* file = fopen(alloctrace, "a+");
     fprintf(file, "DBG%.5d:   free:%p:%p:%s\n", emalloc_count, ptr, *(void**)ptr2, reason);
@@ -94,14 +98,17 @@ void efree(void* ptr, const char* reason)
         if(--alloctracemap.at(*(void**)ptr2) < 0)
         {
             String str = StringUtils::sprintf("address %p, reason %s", *(void**)ptr2, reason);
-            MessageBoxA(0, str.c_str, "Free memory more than once", MB_OK);
+            MessageBoxA(0, str.c_str(), "Freed memory more than once", MB_OK);
+            __debugbreak();
         }
     }
     else
     {
         String str = StringUtils::sprintf("address %p, reason %s", *(void**)ptr2, reason);
-        MessageBoxA(0, str.c_str(), "Trying to free a const memory", MB_OK);
+        MessageBoxA(0, str.c_str(), "Trying to free const memory", MB_OK);
+        __debugbreak();
     }
+    LeaveCriticalSection(&criticalSection);
     GlobalFree(ptr2);
 #else
     GlobalFree(ptr);
@@ -133,14 +140,20 @@ void json_free(void* ptr)
 int memleaks()
 {
 #ifdef ENABLE_MEM_TRACE
+    EnterCriticalSection(&criticalSection);
+    auto leaked = false;
     for(auto & i : alloctracemap)
     {
         if(i.second != 0)
         {
             String str = StringUtils::sprintf("memory leak at %p : count %d", i.first, i.second);
-            MessageBoxA(0, str.c_str(), "memory leaks", MB_OK);
+            MessageBoxA(0, str.c_str(), "memory leak", MB_OK);
+            leaked = true;
         }
     }
+    if(leaked)
+        __debugbreak();
+    LeaveCriticalSection(&criticalSection);
 #endif
     return emalloc_count;
 }
@@ -152,6 +165,7 @@ int memleaks()
 */
 void setalloctrace(const char* file)
 {
+    InitializeCriticalSection(&criticalSection);
     strcpy_s(alloctrace, file);
 }
 #endif //ENABLE_MEM_TRACE

@@ -1,6 +1,5 @@
 #include "stringutils.h"
 #include "value.h"
-#include "dynamicmem.h"
 #include <windows.h>
 #include <cstdint>
 
@@ -245,40 +244,40 @@ String StringUtils::sprintf(_Printf_format_string_ const char* format, ...)
 {
     va_list args;
     va_start(args, format);
-    Memory<char*> buffer(256 * sizeof(char), "StringUtils::sprintf");
+    std::vector<char> buffer(256, '\0');
     while(true)
     {
-        int res = _vsnprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
+        int res = _vsnprintf_s(buffer.data(), buffer.size(), _TRUNCATE, format, args);
         if(res == -1)
         {
-            buffer.realloc(buffer.size() * 2, "StringUtils::sprintf");
+            buffer.resize(buffer.size() * 2);
             continue;
         }
         else
             break;
     }
     va_end(args);
-    return String(buffer());
+    return String(buffer.data());
 }
 
 WString StringUtils::sprintf(_Printf_format_string_ const wchar_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    Memory<wchar_t*> buffer(256 * sizeof(wchar_t), "StringUtils::sprintf");
+    std::vector<wchar_t> buffer(256, L'\0');
     while(true)
     {
-        int res = _vsnwprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
+        int res = _vsnwprintf_s(buffer.data(), buffer.size(), _TRUNCATE, format, args);
         if(res == -1)
         {
-            buffer.realloc(buffer.size() * 2, "StringUtils::sprintf");
+            buffer.resize(buffer.size() * 2);
             continue;
         }
         else
             break;
     }
     va_end(args);
-    return WString(buffer());
+    return WString(buffer.data());
 }
 
 String StringUtils::ToLower(const String & s)
