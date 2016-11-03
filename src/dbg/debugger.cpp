@@ -1527,6 +1527,9 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
 
+    //Get on top of things
+    SetForegroundWindow(GuiGetWindowHandle());
+
     // Update GUI (this should be the first triggered event)
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
