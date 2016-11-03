@@ -101,10 +101,7 @@ void CmdLineCacheSave(JSON Root)
     // Create a JSON array to store each sub-object with a breakpoint
     const JSON jsonCmdLine = json_object();
     json_object_set_new(jsonCmdLine, "cmdLine", json_string(commandLine));
-    json_object_set(Root, "commandLine", jsonCmdLine);
-
-    // Notify garbage collector
-    json_decref(jsonCmdLine);
+    json_object_set_new(Root, "commandLine", jsonCmdLine);
 }
 
 void CmdLineCacheLoad(JSON Root)

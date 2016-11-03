@@ -590,22 +590,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 
     static_assert(sizeof(TITAN_ENGINE_CONTEXT_t) == sizeof(REGISTERCONTEXT), "Invalid REGISTERCONTEXT alignment!");
 
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing wait objects..."));
-    waitinitialize();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger..."));
-    dbginit();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger functions..."));
-    dbgfunctionsinit();
-#ifdef ENABLE_MEM_TRACE
-    dputs(QT_TRANSLATE_NOOP("DBG", "Setting JSON memory management functions..."));
-    json_set_alloc_funcs(json_malloc, json_free);
-#endif //ENABLE_MEM_TRACE
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing capstone..."));
-    Capstone::GlobalInitialize();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Yara..."));
-    if(yr_initialize() != ERROR_SUCCESS)
-        return "Failed to initialize Yara!";
-    dputs(QT_TRANSLATE_NOOP("DBG", "Getting directory information..."));
     wchar_t wszDir[deflen] = L"";
     if(!GetModuleFileNameW(hInst, wszDir, deflen))
         return "GetModuleFileNameW failed!";
@@ -620,6 +604,24 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
 #endif //ENABLE_MEM_TRACE
+
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing wait objects..."));
+    waitinitialize();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger..."));
+    dbginit();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger functions..."));
+    dbgfunctionsinit();
+    //#ifdef ENABLE_MEM_TRACE
+    dputs(QT_TRANSLATE_NOOP("DBG", "Setting JSON memory management functions..."));
+    json_set_alloc_funcs(json_malloc, json_free);
+    //#endif //ENABLE_MEM_TRACE
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing capstone..."));
+    Capstone::GlobalInitialize();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Yara..."));
+    if(yr_initialize() != ERROR_SUCCESS)
+        return "Failed to initialize Yara!";
+    dputs(QT_TRANSLATE_NOOP("DBG", "Getting directory information..."));
+
     strcpy_s(scriptDllDir, szProgramDir);
     strcat_s(scriptDllDir, "\\scripts\\");
     initDataInstMap();
@@ -738,11 +740,6 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     varfree();
     yr_finalize();
     Capstone::GlobalFinalize();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Checking for mem leaks..."));
-    if(auto memleakcount = memleaks())
-        dprintf(QT_TRANSLATE_NOOP("DBG", "%d memory leak(s) found!\n"), memleakcount);
-    else
-        DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));
     waitdeinitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up debugger threads..."));
@@ -758,6 +755,10 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     else
         DeleteFileW(StringUtils::Utf8ToUtf16(notesFile).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "Exit signal processed successfully!"));
+#ifdef ENABLE_MEM_TRACE
+    if(!memleaks())
+        DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
+#endif //ENABLE_MEM_TRACE
     bIsStopped = true;
 }
 

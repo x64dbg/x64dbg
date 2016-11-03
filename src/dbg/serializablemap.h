@@ -175,9 +175,8 @@ public:
             auto jsonValue = json_object();
             serializer.SetJson(jsonValue);
             if(serializer.Save(itr.second))
-                json_array_append_new(jsonValues, jsonValue);
-            else
-                json_decref(jsonValue);
+                json_array_append(jsonValues, jsonValue);
+            json_decref(jsonValue);
         }
         if(json_array_size(jsonValues))
             json_object_set(root, jsonKey(), jsonValues);
