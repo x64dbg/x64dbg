@@ -410,6 +410,9 @@
     <ClCompile Include="types.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
+    <ClCompile Include="json_allocator.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dbghelp\dbghelp.h">
@@ -911,6 +914,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="types.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="json_allocator.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
   </ItemGroup>

@@ -24,6 +24,7 @@
 #include "plugin_loader.h"
 #include "argument.h"
 #include "debugger.h"
+#include "json_allocator.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -180,13 +181,14 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
     if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
         LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());
 
-
+    json_reserve_cheap(databaseText.length() * 10);
     // Deserialize JSON and validate
     JSON root = json_loads(databaseText.c_str(), 0, 0);
 
     if(!root)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "\nInvalid database file (JSON)!"));
+        json_free_cheap();
         return;
     }
 
@@ -243,6 +245,7 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
 
     // Free root
     json_decref(root);
+    json_free_cheap();
 
     if(loadType != DbLoadSaveType::CommandLine)
         dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);

@@ -115,24 +115,6 @@ void efree(void* ptr, const char* reason)
 #endif //ENABLE_MEM_TRACE
 }
 
-void* json_malloc(size_t size)
-{
-#ifdef ENABLE_MEM_TRACE
-    return emalloc(size, "json:ptr");
-#else
-    return emalloc(size);
-#endif
-}
-
-void json_free(void* ptr)
-{
-#ifdef ENABLE_MEM_TRACE
-    return efree(ptr, "json:ptr");
-#else
-    return efree(ptr);
-#endif
-}
-
 /**
 \brief Gets the number of memory leaks. This number is only valid in _dbg_dbgexitsignal().
 \return The number of memory leaks.

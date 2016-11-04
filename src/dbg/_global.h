@@ -72,8 +72,6 @@ void* emalloc(size_t size, const char* reason = nullptr);
 void* erealloc(void* ptr, size_t size, const char* reason = nullptr);
 void efree(void* ptr, const char* reason = nullptr);
 #endif //ENABLE_MEM_TRACE
-void* json_malloc(size_t size);
-void json_free(void* ptr);
 int memleaks();
 void setalloctrace(const char* file);
 bool scmp(const char* a, const char* b);

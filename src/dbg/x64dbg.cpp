@@ -25,6 +25,7 @@
 #include "exception.h"
 #include "expressionfunctions.h"
 #include "yara/yara.h"
+#include "json_allocator.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;

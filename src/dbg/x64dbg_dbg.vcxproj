@@ -78,6 +78,7 @@
     <ClCompile Include="function.cpp" />
     <ClCompile Include="historycontext.cpp" />
     <ClCompile Include="jit.cpp" />
+    <ClCompile Include="json_allocator.cpp" />
     <ClCompile Include="label.cpp" />
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="function.h" />
     <ClInclude Include="historycontext.h" />
     <ClInclude Include="jit.h" />
+    <ClInclude Include="json_allocator.h" />
     <ClInclude Include="keystone\arm.h" />
     <ClInclude Include="keystone\arm64.h" />
     <ClInclude Include="keystone\hexagon.h" />
