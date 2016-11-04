@@ -89,7 +89,7 @@ bool cbBadCmd(int argc, char* argv[])
     }
     else //unknown command
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "unknown command/expression: \"%s\"\n"), *argv);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Unknown command/expression: \"%s\"\n"), *argv);
         return false;
     }
     return true;
@@ -117,12 +117,12 @@ bool cbInstrSetstr(int argc, char* argv[])
     varnew(argv[1], 0, VAR_USER);
     if(!vargettype(argv[1], 0))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "no such variable \"%s\"!\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such variable \"%s\"!\n"), argv[1]);
         return false;
     }
     if(!varset(argv[1], argv[2], false))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to set variable \"%s\"!\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to set variable \"%s\"!\n"), argv[1]);
         return false;
     }
     cmddirectexec(StringUtils::sprintf("getstr \"%s\"", argv[1]).c_str());
@@ -136,24 +136,24 @@ bool cbInstrGetstr(int argc, char* argv[])
     VAR_VALUE_TYPE valtype;
     if(!vargettype(argv[1], 0, &valtype))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "no such variable \"%s\"!\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such variable \"%s\"!\n"), argv[1]);
         return false;
     }
     if(valtype != VAR_STRING)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "variable \"%s\" is not a string!\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Variable \"%s\" is not a string!\n"), argv[1]);
         return false;
     }
     int size;
     if(!varget(argv[1], (char*)0, &size, 0) || !size)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable size \"%s\"!\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to get variable size \"%s\"!\n"), argv[1]);
         return false;
     }
     Memory<char*> string(size + 1, "cbInstrGetstr:string");
     if(!varget(argv[1], string(), &size, 0))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable data \"%s\"!\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to get variable data \"%s\"!\n"), argv[1]);
         return false;
     }
     dprintf_untranslated("%s=\"%s\"\n", argv[1], string());
@@ -167,38 +167,38 @@ bool cbInstrCopystr(int argc, char* argv[])
     VAR_VALUE_TYPE valtype;
     if(!vargettype(argv[2], 0, &valtype))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "no such variable \"%s\"!\n"), argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "No such variable \"%s\"!\n"), argv[2]);
         return false;
     }
     if(valtype != VAR_STRING)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "variable \"%s\" is not a string!\n"), argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Variable \"%s\" is not a string!\n"), argv[2]);
         return false;
     }
     int size;
     if(!varget(argv[2], (char*)0, &size, 0) || !size)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable size \"%s\"!\n"), argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to get variable size \"%s\"!\n"), argv[2]);
         return false;
     }
     Memory<char*> string(size + 1, "cbInstrGetstr:string");
     if(!varget(argv[2], string(), &size, 0))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get variable data \"%s\"!\n"), argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to get variable data \"%s\"!\n"), argv[2]);
         return false;
     }
     duint addr;
     if(!valfromstring(argv[1], &addr))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid address \"%s\"!\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[1]);
         return false;
     }
     if(!MemPatch(addr, string(), strlen(string())))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "memwrite failed!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "MemPatch failed!"));
         return false;
     }
-    dputs(QT_TRANSLATE_NOOP("DBG", "string written!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "String written!"));
     GuiUpdateAllViews();
     GuiUpdatePatches();
     return true;
@@ -218,7 +218,7 @@ bool cbInstrLoopList(int argc, char* argv[])
     LoopEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "no loops"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "No loops"));
         return true;
     }
     Memory<LOOPSINFO*> loops(cbsize, "cbInstrLoopList:loops");
@@ -259,14 +259,14 @@ bool cbInstrCapstone(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !MemIsValidReadPtr(addr))
     {
-        dprintf("invalid address \"%s\"\n", argv[1]);
+        dprintf("Invalid address \"%s\"\n", argv[1]);
         return false;
     }
 
     unsigned char data[16];
     if(!MemRead(addr, data, sizeof(data)))
     {
-        dprintf("could not read memory at %p\n", addr);
+        dprintf("Could not read memory at %p\n", addr);
         return false;
     }
 
@@ -277,7 +277,7 @@ bool cbInstrCapstone(int argc, char* argv[])
     Capstone cp;
     if(!cp.Disassemble(addr, data))
     {
-        dputs("failed to disassemble!\n");
+        dputs("Failed to disassemble!\n");
         return false;
     }
 
@@ -324,7 +324,7 @@ bool cbInstrVisualize(int argc, char* argv[])
     duint maxaddr;
     if(!valfromstring(argv[1], &start) || !valfromstring(argv[2], &maxaddr))
     {
-        dputs("invalid arguments!");
+        dputs("Invalid arguments!");
         return false;
     }
     //actual algorithm
@@ -416,13 +416,13 @@ bool cbInstrMeminfo(int argc, char* argv[])
 {
     if(argc < 3)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "usage: meminfo a/r, addr"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Usage: meminfo a/r, addr"));
         return false;
     }
     duint addr;
     if(!valfromstring(argv[2], &addr))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid argument"));
         return false;
     }
     if(argv[1][0] == 'a')
@@ -431,13 +431,13 @@ bool cbInstrMeminfo(int argc, char* argv[])
         if(!ReadProcessMemory(fdProcessInfo->hProcess, (void*)addr, &buf, sizeof(buf), nullptr))
             dputs(QT_TRANSLATE_NOOP("DBG", "ReadProcessMemory failed!"));
         else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "data: %02X\n"), buf);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Data: %02X\n"), buf);
     }
     else if(argv[1][0] == 'r')
     {
         MemUpdateMap();
         GuiUpdateMemoryView();
-        dputs(QT_TRANSLATE_NOOP("DBG", "memory map updated!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Memory map updated!"));
     }
     return true;
 }

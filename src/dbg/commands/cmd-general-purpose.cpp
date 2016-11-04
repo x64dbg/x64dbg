@@ -12,7 +12,7 @@ static bool ReadWriteVariable(const char* varname, const std::function<bool(duin
     int varsize;
     if(!valfromstring(varname, &set_value, true, true, &varsize, &isvar))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid variable \"%s\"\n"), varname);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid variable \"%s\"\n"), varname);
         return false;
     }
     bool retVal = callback(&set_value, varsize);
@@ -27,7 +27,7 @@ static bool ReadWriteVariable(const char* varname, const std::function<bool(duin
         duint value;
         if(valfromstring(varname, &value))  //if the var is a value already it's an invalid destination
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid variable \"%s\"\n"), varname);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid variable \"%s\"\n"), varname);
             return false;
         }
         varnew(varname, set_value, VAR_USER);
@@ -221,7 +221,7 @@ bool cbInstrPush(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
         return false;
     }
     duint value;
@@ -322,14 +322,14 @@ bool cbInstrMov(int argc, char* argv[])
         int len = (int)dataText.length();
         if(len % 2)
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid hex string \"%s\" (length not divisible by 2)\n"), dataText.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid hex string \"%s\" (length not divisible by 2)\n"), dataText.c_str());
             return false;
         }
         for(int i = 0; i < len; i++)
         {
             if(!isxdigit(dataText[i]))
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid hex string \"%s\" (contains invalid characters)\n"), dataText.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid hex string \"%s\" (contains invalid characters)\n"), dataText.c_str());
                 return false;
             }
         }
@@ -337,7 +337,7 @@ bool cbInstrMov(int argc, char* argv[])
         duint dest;
         if(!valfromstring(argv[1], &dest) || !MemIsValidReadPtr(dest))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid destination \"%s\"\n"), argv[1]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid destination \"%s\"\n"), argv[1]);
             return false;
         }
         //Convert text to byte array (very ugly)
@@ -350,7 +350,7 @@ bool cbInstrMov(int argc, char* argv[])
             int res = 0;
             if(sscanf_s(b, "%X", &res) != 1)
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid hex byte \"%s\"\n"), b);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid hex byte \"%s\"\n"), b);
                 return false;
             }
             data()[j] = res;
@@ -358,7 +358,7 @@ bool cbInstrMov(int argc, char* argv[])
         //Move data to destination
         if(!MemWrite(dest, data(), data.size()))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "failed to write to %p\n"), dest);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to write to %p\n"), dest);
             return false;
         }
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
@@ -369,7 +369,7 @@ bool cbInstrMov(int argc, char* argv[])
         duint set_value = 0;
         if(!valfromstring(srcText.c_str(), &set_value))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid src \"%s\"\n"), argv[2]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid src \"%s\"\n"), argv[2]);
             return false;
         }
         bool isvar = false;
@@ -382,7 +382,7 @@ bool cbInstrMov(int argc, char* argv[])
             duint value;
             if(valfromstring(argv[1], &value))  //if the var is a value already it's an invalid destination
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "invalid dest \"%s\"\n"), argv[1]);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid dest \"%s\"\n"), argv[1]);
                 return false;
             }
             varnew(argv[1], set_value, VAR_USER);

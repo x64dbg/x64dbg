@@ -293,7 +293,7 @@ void cmdloop()
 
             if(found->debugonly && !DbgIsDebugging()) //stop processing on debug-only commands
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "the command \"%s\" is debug-only\n"), command.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "The command \"%s\" is debug-only\n"), command.c_str());
                 break;
             }
 
@@ -337,7 +337,7 @@ bool cmddirectexec(const char* cmd)
 
         if(found->debugonly && !DbgIsDebugging()) //stop processing on debug-only commands
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "the command \"%s\" is debug-only\n"), command.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "The command \"%s\" is debug-only\n"), command.c_str());
             return false;
         }
 

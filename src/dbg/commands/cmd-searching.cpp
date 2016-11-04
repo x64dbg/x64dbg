@@ -31,13 +31,13 @@ bool cbInstrFind(int argc, char* argv[])
     duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid memory address %p!\n"), addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid memory address %p!\n"), addr);
         return false;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
     if(!MemRead(base, data(), size))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to read memory!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read memory!"));
         return false;
     }
     duint start = addr - base;
@@ -80,7 +80,7 @@ bool cbInstrFindAll(int argc, char* argv[])
     duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid memory address %p!\n"), addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid memory address %p!\n"), addr);
         return false;
     }
     if(argc >= 4)
@@ -92,7 +92,7 @@ bool cbInstrFindAll(int argc, char* argv[])
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
     if(!MemRead(base, data(), size))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to read memory!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read memory!"));
         return false;
     }
     duint start = addr - base;
@@ -132,7 +132,7 @@ bool cbInstrFindAll(int argc, char* argv[])
     std::vector<PatternByte> searchpattern;
     if(!patterntransform(pattern, searchpattern))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to transform pattern!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
         return false;
     }
     while(refCount < maxFindResults)
@@ -192,7 +192,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
     std::vector<PatternByte> searchpattern;
     if(!patterntransform(pattern, searchpattern))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to transform pattern!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
         return false;
     }
 
@@ -328,7 +328,7 @@ bool cbInstrFindAsm(int argc, char* argv[])
     char error[MAX_ERROR_SIZE] = "";
     if(!assemble(addr + size / 2, dest, &asmsize, argv[1], error))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to assemble \"%s\" (%s)!\n"), argv[1], error);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to assemble \"%s\" (%s)!\n"), argv[1], error);
         return false;
     }
     BASIC_INSTRUCTION_INFO basicinfo;
@@ -999,7 +999,7 @@ bool cbInstrYara(int argc, char* argv[])
     {
         if(!valfromstring(argv[2], &addr))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid value \"%s\"!\n"), argv[2]);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid value \"%s\"!\n"), argv[2]);
             return false;
         }
 
@@ -1017,12 +1017,12 @@ bool cbInstrYara(int argc, char* argv[])
         char modPath[MAX_PATH] = "";
         if(!ModPathFromAddr(base, modPath, MAX_PATH))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get module path for %p!\n"), base);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to get module path for %p!\n"), base);
             return false;
         }
         if(!FileHelper::ReadAllData(modPath, rawFileData))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "failed to read file \"%s\"!\n"), modPath);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to read file \"%s\"!\n"), modPath);
             return false;
         }
         size = rawFileData.size();
@@ -1032,7 +1032,7 @@ bool cbInstrYara(int argc, char* argv[])
         memcpy(data(), rawFileData.data(), size);
     else if(!MemRead(base, data(), size))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to read memory page %p[%X]!\n"), base, DWORD(size));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to read memory page %p[%X]!\n"), base, DWORD(size));
         return false;
     }
 
@@ -1084,19 +1084,19 @@ bool cbInstrYara(int argc, char* argv[])
                     bSuccess = true;
                     break;
                 case ERROR_TOO_MANY_MATCHES:
-                    dputs(QT_TRANSLATE_NOOP("DBG", "too many matches!"));
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Too many matches!"));
                     break;
                 default:
-                    dputs(QT_TRANSLATE_NOOP("DBG", "error while scanning memory!"));
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Error while scanning memory!"));
                     break;
                 }
                 yr_rules_destroy(yrRules);
             }
             else
-                dputs(QT_TRANSLATE_NOOP("DBG", "error while getting the rules!"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Error while getting the rules!"));
         }
         else
-            dputs(QT_TRANSLATE_NOOP("DBG", "errors in the rules file!"));
+            dputs(QT_TRANSLATE_NOOP("DBG", "Errors in the rules file!"));
         yr_compiler_destroy(yrCompiler);
     }
     else
@@ -1110,7 +1110,7 @@ bool cbInstrYaramod(int argc, char* argv[])
         return false;
     if(!ModBaseFromName(argv[2]))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid module \"%s\"!\n"), argv[2]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid module \"%s\"!\n"), argv[2]);
         return false;
     }
     return cmddirectexec(StringUtils::sprintf("yara \"%s\",\"%s\",%s", argv[1], argv[2], argc > 3 && *argv[3] == '1' ? "1" : "0").c_str());

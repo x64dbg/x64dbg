@@ -1329,7 +1329,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
         {
             if(!silent)
-                dprintf(QT_TRANSLATE_NOOP("DBG", "could not get filename of module %p\n"), modbase);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get filename of module %p\n"), modbase);
         }
         else
         {
@@ -1337,7 +1337,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
             if(!mod)
             {
                 if(!silent)
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "unable to load library %s\n"), StringUtils::Utf16ToUtf8(szModName).c_str());
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to load library %s\n"), StringUtils::Utf16ToUtf8(szModName).c_str());
             }
             else
             {
@@ -1585,7 +1585,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging"));
             *value = 0;
             if(value_size)
                 *value_size = 0;
@@ -1644,7 +1644,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         if(!valfromstring(ptrstring.c_str(), value, silent))
         {
             if(!silent)
-                dprintf(QT_TRANSLATE_NOOP("DBG", "noexpr failed on %s\n"), ptrstring.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "valfromstring_noexpr failed on %s\n"), ptrstring.c_str());
             return false;
         }
         duint addr = *value;
@@ -1652,7 +1652,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         if(!MemRead(addr + seg_offset, value, read_size))
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "failed to read memory"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read memory"));
             return false;
         }
         if(value_size)
@@ -1672,7 +1672,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging!"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
             *value = 0;
             if(value_size)
                 *value_size = 0;
@@ -1690,7 +1690,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging"));
             *value = 0;
             if(value_size)
                 *value_size = 0;
@@ -1750,7 +1750,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         return result && FunctionGet(*value, &start, nullptr) && *value == start;
     }
     if(!silent)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid value: \"%s\"!\n"), string);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid value: \"%s\"!\n"), string);
     return false; //nothing was OK
 }
 
@@ -2222,7 +2222,7 @@ bool valtostring(const char* string, duint value, bool silent)
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging"));
             return false;
         }
         int len = (int)strlen(string);
@@ -2262,7 +2262,7 @@ bool valtostring(const char* string, duint value, bool silent)
         if(!MemPatch(temp, &value_, read_size))
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "failed to write memory"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Failed to write memory"));
             return false;
         }
         GuiUpdateAllViews(); //repaint gui
@@ -2274,7 +2274,7 @@ bool valtostring(const char* string, duint value, bool silent)
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging!"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
             return false;
         }
         bool ok = setregister(string, value);
@@ -2303,7 +2303,7 @@ bool valtostring(const char* string, duint value, bool silent)
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging"));
             return false;
         }
         bool set = false;
@@ -2318,7 +2318,7 @@ bool valtostring(const char* string, duint value, bool silent)
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging!"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
             return false;
         }
         setfpuvalue(string + 1, value);
