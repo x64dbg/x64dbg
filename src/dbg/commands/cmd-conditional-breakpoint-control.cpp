@@ -63,7 +63,7 @@ static bool cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* argv[])
     BREAKPOINT bp;
     if(argc < 2)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!\n"));
         return false;
     }
     auto fastResume = true;
@@ -93,7 +93,7 @@ static bool cbDebugSetBPXSingleshootCommon(BP_TYPE Type, int argc, char* argv[])
     BREAKPOINT bp;
     if(argc < 2)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!\n"));
         return false;
     }
     auto singleshoot = true;
@@ -123,7 +123,7 @@ static bool cbDebugSetBPXSilentCommon(BP_TYPE Type, int argc, char* argv[])
     BREAKPOINT bp;
     if(argc < 2)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!\n"));
         return false;
     }
     auto silent = true;
@@ -152,7 +152,7 @@ static bool cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!\n"));
         return false;
     }
     BREAKPOINT bp;
@@ -170,7 +170,7 @@ static bool cbDebugResetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!\n"));
         return false;
     }
     duint value = 0;

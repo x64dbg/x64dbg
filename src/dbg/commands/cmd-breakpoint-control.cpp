@@ -385,7 +385,7 @@ bool cbDebugSetHardwareBreakpoint(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
         return false;
     }
     duint addr;
@@ -754,7 +754,7 @@ bool cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
     {
         if(!BpGetCount(BPMEMORY))
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "no memory breakpoints to delete!"));
+            dputs(QT_TRANSLATE_NOOP("DBG", "No memory breakpoints to delete!"));
             return true;
         }
         if(!BpEnumAll(cbDeleteAllMemoryBreakpoints))   //at least one deletion failed

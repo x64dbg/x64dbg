@@ -47,7 +47,7 @@ bool cbDebugInit(int argc, char* argv[])
     static char arg1[deflen] = "";
     if(argc < 2)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
         return false;
     }
     strcpy_s(arg1, argv[1]);

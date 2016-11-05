@@ -18,11 +18,11 @@ bool cbInstrChd(int argc, char* argv[])
         return false;
     if(!DirExists(argv[1]))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "directory doesn't exist"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Directory doesn't exist"));
         return false;
     }
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(argv[1]).c_str());
-    dputs(QT_TRANSLATE_NOOP("DBG", "current directory changed!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "Current directory changed!"));
     return true;
 }
 
@@ -157,12 +157,12 @@ bool cbInstrAssemble(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid expression: \"%s\"!\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression: \"%s\"!\n"), argv[1]);
         return false;
     }
     if(!DbgMemIsValidReadPtr(addr))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid address: %p!\n"), addr);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address: %p!\n"), addr);
         return false;
     }
     bool fillnop = false;
@@ -173,7 +173,7 @@ bool cbInstrAssemble(int argc, char* argv[])
     if(!assembleat(addr, argv[2], &size, error, fillnop))
     {
         varset("$result", size, false);
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to assemble \"%s\" (%s)\n"), argv[2], error);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to assemble \"%s\" (%s)\n"), argv[2], error);
         return false;
     }
     varset("$result", size, false);
@@ -565,7 +565,7 @@ bool cbInstrMnemonichelp(int argc, char* argv[])
         return false;
     auto description = MnemonicHelp::getDescription(argv[1]);
     if(!description.length())
-        dputs(QT_TRANSLATE_NOOP("DBG", "no description or empty description"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "No description or empty description"));
     else
     {
         auto padding = "================================================================";

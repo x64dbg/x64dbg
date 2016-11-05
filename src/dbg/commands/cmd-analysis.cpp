@@ -233,20 +233,20 @@ bool cbInstrImageinfo(int argc, char* argv[])
     {
         if(!valfromstring(argv[1], &address))
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
+            dputs(QT_TRANSLATE_NOOP("DBG", "Invalid argument"));
             return false;
         }
     }
     mod = MemFindBaseAddr(address, nullptr);
     if(mod == 0)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid argument"));
         return false;
     }
     info = ModInfoFromAddr(mod);
     if(info == nullptr)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "invalid argument"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid argument"));
         return false;
     }
     auto c = GetPE32DataFromMappedFile(info->fileMapVA, 0, UE_CHARACTERISTICS);

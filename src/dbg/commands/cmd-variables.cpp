@@ -16,17 +16,17 @@ bool cbInstrVar(int argc, char* argv[])
         add++;
     if(valfromstring(argv[1] + add, &value))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid variable name \"%s\"\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid variable name \"%s\"\n"), argv[1]);
         return false;
     }
     if(!valfromstring(arg2, &value))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid value \"%s\"\n"), arg2);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid value \"%s\"\n"), arg2);
         return false;
     }
     if(!varnew(argv[1], value, VAR_USER))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "error creating variable \"%s\"\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error creating variable \"%s\"\n"), argv[1]);
         return false;
     }
     else
@@ -52,9 +52,9 @@ bool cbInstrVarDel(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 2))
         return false;
     if(!vardel(argv[1], false))
-        dprintf(QT_TRANSLATE_NOOP("DBG", "could not delete variable \"%s\"\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete variable \"%s\"\n"), argv[1]);
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "deleted variable \"%s\"\n"), argv[1]);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Deleted variable \"%s\"\n"), argv[1]);
     return true;
 }
 
@@ -74,13 +74,13 @@ bool cbInstrVarList(int argc, char* argv[])
     size_t cbsize = 0;
     if(!varenum(0, &cbsize))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "no variables!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "No variables!"));
         return true;
     }
     Memory<VAR*> variables(cbsize, "cbInstrVarList:variables");
     if(!varenum(variables(), 0))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "error listing variables!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error listing variables!"));
         return false;
     }
 

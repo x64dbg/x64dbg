@@ -40,7 +40,7 @@ bool cbInstrCommentSet(int argc, char* argv[])
         return false;
     if(!CommentSet(addr, argv[2], true))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "error setting comment"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error setting comment"));
         return false;
     }
     return true;
@@ -55,7 +55,7 @@ bool cbInstrCommentDel(int argc, char* argv[])
         return false;
     if(!CommentDelete(addr))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "error deleting comment"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error deleting comment"));
         return false;
     }
     GuiUpdateAllViews();
@@ -75,7 +75,7 @@ bool cbInstrCommentList(int argc, char* argv[])
     CommentEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "no comments"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "No comments"));
         return true;
     }
     Memory<COMMENTSINFO*> comments(cbsize, "cbInstrCommentList:comments");
@@ -102,7 +102,7 @@ bool cbInstrCommentClear(int argc, char* argv[])
 {
     CommentClear();
     GuiUpdateAllViews();
-    dputs(QT_TRANSLATE_NOOP("DBG", "all comments deleted!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "All comments deleted!"));
     return true;
 }
 
@@ -115,7 +115,7 @@ bool cbInstrLabelSet(int argc, char* argv[])
         return false;
     if(!LabelSet(addr, argv[2], true))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "error setting label"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error setting label"));
         return false;
     }
     GuiUpdateAllViews();
@@ -131,7 +131,7 @@ bool cbInstrLabelDel(int argc, char* argv[])
         return false;
     if(!LabelDelete(addr))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "error deleting label"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error deleting label"));
         return false;
     }
     return true;
@@ -150,7 +150,7 @@ bool cbInstrLabelList(int argc, char* argv[])
     LabelEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "no labels"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "No labels"));
         return true;
     }
     Memory<LABELSINFO*> labels(cbsize, "cbInstrLabelList:labels");
@@ -177,7 +177,7 @@ bool cbInstrLabelClear(int argc, char* argv[])
 {
     LabelClear();
     GuiUpdateAllViews();
-    dputs(QT_TRANSLATE_NOOP("DBG", "all labels deleted!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "All labels deleted!"));
     return true;
 }
 
@@ -190,10 +190,10 @@ bool cbInstrBookmarkSet(int argc, char* argv[])
         return false;
     if(!BookmarkSet(addr, true))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to set bookmark!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to set bookmark!"));
         return false;
     }
-    dputs(QT_TRANSLATE_NOOP("DBG", "bookmark set!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "Bookmark set!"));
     return true;
 }
 
@@ -206,10 +206,10 @@ bool cbInstrBookmarkDel(int argc, char* argv[])
         return false;
     if(!BookmarkDelete(addr))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to delete bookmark!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to delete bookmark!"));
         return false;
     }
-    dputs(QT_TRANSLATE_NOOP("DBG", "bookmark deleted!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "Bookmark deleted!"));
     return true;
 }
 
@@ -261,7 +261,7 @@ bool cbInstrBookmarkClear(int argc, char* argv[])
 {
     LabelClear();
     GuiUpdateAllViews();
-    dputs(QT_TRANSLATE_NOOP("DBG", "all bookmarks deleted!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "All bookmarks deleted!"));
     return true;
 }
 
@@ -275,10 +275,10 @@ bool cbInstrFunctionAdd(int argc, char* argv[])
         return false;
     if(!FunctionAdd(start, end, true))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to add function"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to add function"));
         return false;
     }
-    dputs(QT_TRANSLATE_NOOP("DBG", "function added!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "Function added!"));
     GuiUpdateAllViews();
     return true;
 }
@@ -292,10 +292,10 @@ bool cbInstrFunctionDel(int argc, char* argv[])
         return false;
     if(!FunctionDelete(addr))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to delete function"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to delete function"));
         return false;
     }
-    dputs(QT_TRANSLATE_NOOP("DBG", "function deleted!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "Function deleted!"));
     GuiUpdateAllViews();
     return true;
 }
@@ -351,7 +351,7 @@ bool cbInstrFunctionClear(int argc, char* argv[])
 {
     FunctionClear();
     GuiUpdateAllViews();
-    dputs(QT_TRANSLATE_NOOP("DBG", "all functions deleted!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "All functions deleted!"));
     return true;
 }
 
@@ -365,10 +365,10 @@ bool cbInstrArgumentAdd(int argc, char* argv[])
         return false;
     if(!ArgumentAdd(start, end, true))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to add argument"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to add argument"));
         return false;
     }
-    dputs(QT_TRANSLATE_NOOP("DBG", "argument added!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "Argument added!"));
     GuiUpdateAllViews();
     return true;
 }
@@ -382,10 +382,10 @@ bool cbInstrArgumentDel(int argc, char* argv[])
         return false;
     if(!ArgumentDelete(addr))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to delete argument"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to delete argument"));
         return false;
     }
-    dputs(QT_TRANSLATE_NOOP("DBG", "argument deleted!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "Argument deleted!"));
     GuiUpdateAllViews();
     return true;
 }
@@ -441,6 +441,6 @@ bool cbInstrArgumentClear(int argc, char* argv[])
 {
     ArgumentClear();
     GuiUpdateAllViews();
-    dputs(QT_TRANSLATE_NOOP("DBG", "all arguments deleted!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "All arguments deleted!"));
     return true;
 }

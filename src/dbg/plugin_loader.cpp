@@ -529,7 +529,7 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
     EXCLUSIVE_ACQUIRE(LockPluginCommandList);
     pluginCommandList.push_back(plugCmd);
     EXCLUSIVE_RELEASE();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] command \"%s\" registered!\n"), command);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Command \"%s\" registered!\n"), command);
     return true;
 }
 
@@ -553,7 +553,7 @@ bool plugincmdunregister(int pluginHandle, const char* command)
             EXCLUSIVE_RELEASE();
             if(!dbgcmddel(command))
                 return false;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] command \"%s\" unregistered!\n"), command);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Command \"%s\" unregistered!\n"), command);
             return true;
         }
     }
@@ -803,7 +803,7 @@ bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUG
     EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
     pluginExprfunctionList.push_back(plugExprfunction);
     EXCLUSIVE_RELEASE();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] expression function \"%s\" registered!\n"), name);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Expression function \"%s\" registered!\n"), name);
     return true;
 }
 
@@ -819,7 +819,7 @@ bool pluginexprfuncunregister(int pluginHandle, const char* name)
             EXCLUSIVE_RELEASE();
             if(!ExpressionFunctions::Unregister(name))
                 return false;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] expression function \"%s\" unregistered!\n"), name);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Expression function \"%s\" unregistered!\n"), name);
             return true;
         }
     }
