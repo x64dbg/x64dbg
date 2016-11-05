@@ -29,18 +29,17 @@
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
 static bool bStopCommandLoopThread = false;
+#ifdef ENABLE_MEM_TRACE
 static char alloctrace[MAX_PATH] = "";
+#endif //ENABLE_MEM_TRACE
 static bool bIsStopped = true;
 static char scriptDllDir[MAX_PATH] = "";
 static String notesFile;
 
 static bool cbStrLen(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     dprintf_untranslated("\"%s\"[%d]\n", argv[1], int(strlen(argv[1])));
     return true;
 }
@@ -64,11 +63,8 @@ static bool DbgScriptDllExec(const char* dll);
 
 static bool cbScriptDll(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     return DbgScriptDllExec(argv[1]);
 }
 
@@ -742,8 +738,10 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     dputs(QT_TRANSLATE_NOOP("DBG", "Checking for mem leaks..."));
     if(auto memleakcount = memleaks())
         dprintf(QT_TRANSLATE_NOOP("DBG", "%d memory leak(s) found!\n"), memleakcount);
+#ifdef ENABLE_MEM_TRACE
     else
         DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
+#endif //ENABLE_MEM_TRACE
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));
     waitdeinitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up debugger threads..."));

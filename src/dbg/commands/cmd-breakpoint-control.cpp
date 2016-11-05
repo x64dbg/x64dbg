@@ -383,11 +383,8 @@ static bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 
 bool cbDebugSetHardwareBreakpoint(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     duint addr;
     if(!valfromstring(argv[1], &addr))
         return false;

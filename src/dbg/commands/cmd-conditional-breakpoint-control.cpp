@@ -61,11 +61,8 @@ static bool cbDebugSetBPXCommandConditionCommon(BP_TYPE Type, int argc, char* ar
 static bool cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* argv[])
 {
     BREAKPOINT bp;
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     auto fastResume = true;
     if(argc > 2)
     {
@@ -91,11 +88,8 @@ static bool cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* argv[])
 static bool cbDebugSetBPXSingleshootCommon(BP_TYPE Type, int argc, char* argv[])
 {
     BREAKPOINT bp;
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     auto singleshoot = true;
     if(argc > 2)
     {
@@ -121,11 +115,8 @@ static bool cbDebugSetBPXSingleshootCommon(BP_TYPE Type, int argc, char* argv[])
 static bool cbDebugSetBPXSilentCommon(BP_TYPE Type, int argc, char* argv[])
 {
     BREAKPOINT bp;
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     auto silent = true;
     if(argc > 2)
     {
@@ -150,11 +141,8 @@ static bool cbDebugSetBPXSilentCommon(BP_TYPE Type, int argc, char* argv[])
 
 static bool cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     BREAKPOINT bp;
     if(!BpGetAny(Type, argv[1], &bp))
     {
@@ -168,11 +156,8 @@ static bool cbDebugGetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
 
 static bool cbDebugResetBPXHitCountCommon(BP_TYPE Type, int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!\n"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     duint value = 0;
     if(argc > 2)
         if(!valfromstring(argv[2], &value, false))
