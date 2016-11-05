@@ -884,6 +884,9 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     // Watchdog
     cbCheckWatchdog(0, nullptr);
 
+    // Update breakpoint view
+    DebugUpdateBreakpointsViewAsync();
+
     if(*bp.logText && logCondition)  //log
     {
         dprintf_untranslated("%s\n", stringformatinline(bp.logText).c_str());
