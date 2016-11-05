@@ -183,11 +183,13 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "Uppercase", &settings.disasmUppercase);
     GetSettingBool("Disassembler", "OnlyCipAutoComments", &settings.disasmOnlyCipAutoComments);
     GetSettingBool("Disassembler", "TabbedMnemonic", &settings.disasmTabBetweenMnemonicAndArguments);
+    GetSettingBool("Disassembler", "NoHighlightOperands", &settings.disasmNoHighlightOperands);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
     ui->chkTabBetweenMnemonicAndArguments->setChecked(settings.disasmTabBetweenMnemonicAndArguments);
+    ui->chkNoHighlightOperands->setChecked(settings.disasmNoHighlightOperands);
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
@@ -312,6 +314,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
     BridgeSettingSetUint("Disassembler", "TabbedMnemonic", settings.disasmTabBetweenMnemonicAndArguments);
+    BridgeSettingSetUint("Disassembler", "NoHighlightOperands", settings.disasmNoHighlightOperands);
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
@@ -717,4 +720,10 @@ void SettingsDialog::on_chkNoForegroundWindow_toggled(bool checked)
 void SettingsDialog::on_spinMaxTraceCount_valueChanged(int arg1)
 {
     settings.engineMaxTraceCount = arg1;
+}
+
+void SettingsDialog::on_chkNoHighlightOperands_toggled(bool checked)
+{
+    bTokenizerConfigUpdated = true;
+    settings.disasmNoHighlightOperands = checked;
 }

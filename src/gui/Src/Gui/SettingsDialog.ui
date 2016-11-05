@@ -490,6 +490,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkNoHighlightOperands">
+         <property name="text">
+          <string>Don't highlight operands</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

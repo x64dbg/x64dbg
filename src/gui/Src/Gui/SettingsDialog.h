@@ -64,6 +64,7 @@ private slots:
     void on_chkUppercase_stateChanged(int arg1);
     void on_chkOnlyCipAutoComments_stateChanged(int arg1);
     void on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1);
+    void on_chkNoHighlightOperands_toggled(bool checked);
     //Gui Tab
     void on_chkFpuRegistersLittleEndian_stateChanged(int arg1);
     void on_chkSaveColumnOrder_stateChanged(int arg1);
@@ -143,6 +144,7 @@ private:
         bool disasmUppercase;
         bool disasmOnlyCipAutoComments;
         bool disasmTabBetweenMnemonicAndArguments;
+        bool disasmNoHighlightOperands;
         //Gui Tab
         bool guiFpuRegistersLittleEndian;
         bool guiSaveColumnOrder;
