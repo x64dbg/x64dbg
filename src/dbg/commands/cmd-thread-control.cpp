@@ -154,11 +154,8 @@ bool cbDebugResumeAllThreads(int argc, char* argv[])
 
 bool cbDebugSetPriority(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 3))
         return false;
-    }
     duint threadid;
     if(!valfromstring(argv[1], &threadid, false))
         return false;
@@ -220,11 +217,8 @@ bool cbDebugSetPriority(int argc, char* argv[])
 
 bool cbDebugSetthreadname(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     duint threadid;
     if(!valfromstring(argv[1], &threadid, false))
         return false;

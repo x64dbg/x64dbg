@@ -219,11 +219,8 @@ bool cbInstrSar(int argc, char* argv[])
 
 bool cbInstrPush(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     duint value;
     if(!valfromstring(argv[1], &value))
     {

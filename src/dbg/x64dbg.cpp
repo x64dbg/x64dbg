@@ -36,11 +36,8 @@ static String notesFile;
 
 static bool cbStrLen(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     dprintf_untranslated("\"%s\"[%d]\n", argv[1], int(strlen(argv[1])));
     return true;
 }
@@ -64,11 +61,8 @@ static bool DbgScriptDllExec(const char* dll);
 
 static bool cbScriptDll(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     return DbgScriptDllExec(argv[1]);
 }
 

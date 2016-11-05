@@ -27,11 +27,8 @@ bool cbDebugDisasm(int argc, char* argv[])
 
 bool cbDebugDump(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     duint addr = 0;
     if(!valfromstring(argv[1], &addr))
     {
@@ -157,11 +154,8 @@ bool cbInstrDisableGuiUpdate(int argc, char* argv[])
 
 bool cbDebugSetfreezestack(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     bool freeze = *argv[1] != '0';
     dbgsetfreezestack(freeze);
     if(freeze)

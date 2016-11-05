@@ -63,11 +63,8 @@ bool cbDebugMemset(int argc, char* argv[])
     duint addr;
     duint value;
     duint size;
-    if(argc < 3)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments"));
+    if(IsArgumentsLessThan(argc, 3))
         return false;
-    }
     if(!valfromstring(argv[1], &addr, false) || !valfromstring(argv[2], &value, false))
         return false;
     if(argc > 3)

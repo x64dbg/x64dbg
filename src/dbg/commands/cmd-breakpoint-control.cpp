@@ -383,11 +383,8 @@ static bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 
 bool cbDebugSetHardwareBreakpoint(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     duint addr;
     if(!valfromstring(argv[1], &addr))
         return false;
@@ -677,11 +674,8 @@ static bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
 
 bool cbDebugSetMemoryBpx(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     duint addr;
     if(!valfromstring(argv[1], &addr))
         return false;
@@ -947,11 +941,8 @@ static bool cbDisableAllDllBreakpoints(const BREAKPOINT* bp)
 
 bool cbDebugBpDll(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     DWORD type = UE_ON_LIB_ALL;
     if(argc > 2)
     {

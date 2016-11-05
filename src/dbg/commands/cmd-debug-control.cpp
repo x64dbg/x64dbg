@@ -45,11 +45,8 @@ bool cbDebugInit(int argc, char* argv[])
     cbDebugStop(argc, argv);
 
     static char arg1[deflen] = "";
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     strcpy_s(arg1, argv[1]);
     char szResolvedPath[MAX_PATH] = "";
     if(ResolveShortcut(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(arg1).c_str(), szResolvedPath, _countof(szResolvedPath)))
@@ -150,11 +147,8 @@ bool cbDebugStop(int argc, char* argv[])
 
 bool cbDebugAttach(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     duint pid = 0;
     if(!valfromstring(argv[1], &pid, false))
         return false;

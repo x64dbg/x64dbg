@@ -11,11 +11,8 @@ extern std::vector<std::pair<duint, duint>> RunToUserCodeBreakpoints;
 
 static bool cbDebugConditionalTrace(void* callBack, bool stepOver, int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments"));
+    if(IsArgumentsLessThan(argc, 2))
         return false;
-    }
     if(dbgtraceactive())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Trace already active"));
