@@ -289,7 +289,7 @@ arch GetFileArchitecture(const char* szFileName)
                 IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)(data + pdh->e_lfanew);
                 if(pnth->Signature == IMAGE_NT_SIGNATURE)
                 {
-                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0)
+                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0 && (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0)
                         retval = dotnet;
                     else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386) //x32
                         retval = x32;
