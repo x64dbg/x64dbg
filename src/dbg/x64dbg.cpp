@@ -738,10 +738,8 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     dputs(QT_TRANSLATE_NOOP("DBG", "Checking for mem leaks..."));
     if(auto memleakcount = memleaks())
         dprintf(QT_TRANSLATE_NOOP("DBG", "%d memory leak(s) found!\n"), memleakcount);
-#ifdef ENABLE_MEM_TRACE
     else
         DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
-#endif //ENABLE_MEM_TRACE
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));
     waitdeinitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up debugger threads..."));
