@@ -484,7 +484,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionRefresh", Shortcut(tr("Actions -> Refresh"), "F5"));
     defaultShortcuts.insert("ActionGraph", Shortcut(tr("Actions -> Graph"), "G"));
     defaultShortcuts.insert("ActionGraphFollowDisassembler", Shortcut(tr("Actions -> Graph -> Follow in disassembler"), "Shift+Return"));
-    defaultShortcuts.insert("ActionGraphSaveImage", Shortcut(tr("Actions -> Graph -> Save as Image"), "S"));
+    defaultShortcuts.insert("ActionGraphSaveImage", Shortcut(tr("Actions -> Graph -> Save as image"), "I"));
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut(tr("Actions -> Graph -> Toggle overview"), "O"));
     defaultShortcuts.insert("ActionGraphRefresh", Shortcut(tr("Actions -> Graph -> Refresh"), "R"));
     defaultShortcuts.insert("ActionGraphSyncOrigin", Shortcut(tr("Actions -> Graph -> Toggle sync with origin"), "S"));
