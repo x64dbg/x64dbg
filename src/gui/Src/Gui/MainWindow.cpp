@@ -48,6 +48,7 @@
 #include "BrowseDialog.h"
 #include "CustomizeMenuDialog.h"
 #include "main.h"
+#include "SimpleTraceDialog.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -348,6 +349,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Create updatechecker
     mUpdateChecker = new UpdateChecker(this);
+    mSimpleTraceDialog = new SimpleTraceDialog(this);
 
     // Setup close thread and dialog
     bCanClose = false;
@@ -769,18 +771,20 @@ void MainWindow::execTicnd()
 {
     if(!DbgIsDebugging())
         return;
-    QString text;
-    if(SimpleInputBox(this, tr("Enter trace into finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceinto.png")))
-        DbgCmdExec(QString("ticnd \"%1\"").arg(text).toUtf8().constData());
+    mSimpleTraceDialog->setTraceCommand("TraceIntoConditional");
+    mSimpleTraceDialog->setWindowTitle(tr("Trace into..."));
+    mSimpleTraceDialog->setWindowIcon(DIcon("traceinto.png"));
+    mSimpleTraceDialog->exec();
 }
 
 void MainWindow::execTocnd()
 {
     if(!DbgIsDebugging())
         return;
-    QString text;
-    if(SimpleInputBox(this, tr("Enter trace over finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceover.png")))
-        DbgCmdExec(QString("tocnd \"%1\"").arg(text).toUtf8().constData());
+    mSimpleTraceDialog->setTraceCommand("TraceOverConditional");
+    mSimpleTraceDialog->setWindowTitle(tr("Trace over..."));
+    mSimpleTraceDialog->setWindowIcon(DIcon("traceover.png"));
+    mSimpleTraceDialog->exec();
 }
 
 void MainWindow::displayMemMapWidget()

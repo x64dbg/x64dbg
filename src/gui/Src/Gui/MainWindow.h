@@ -32,6 +32,7 @@ class TimeWastedCounter;
 class NotesManager;
 class SettingsDialog;
 class DisassemblerGraphView;
+class SimpleTraceDialog;
 
 namespace Ui
 {
@@ -168,6 +169,7 @@ private:
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
+    SimpleTraceDialog* mSimpleTraceDialog;
 
     DebugStatusLabel* mStatusLabel;
     LogStatusLabel* mLastLogLabel;

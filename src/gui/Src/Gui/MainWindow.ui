@@ -828,7 +828,10 @@
      <normaloff>:/icons/images/traceover.png</normaloff>:/icons/images/traceover.png</iconset>
    </property>
    <property name="text">
-    <string>Trace over until condition</string>
+    <string>Trace over...</string>
+   </property>
+   <property name="toolTip">
+    <string>Trace over...</string>
    </property>
   </action>
   <action name="actionTicnd">
@@ -837,7 +840,10 @@
      <normaloff>:/icons/images/traceinto.png</normaloff>:/icons/images/traceinto.png</iconset>
    </property>
    <property name="text">
-    <string>Trace into until condition</string>
+    <string>Trace into...</string>
+   </property>
+   <property name="toolTip">
+    <string>Trace into...</string>
    </property>
   </action>
   <action name="actionTRBit">

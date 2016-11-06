@@ -345,8 +345,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugRtu", Shortcut(tr("Debug -> Run to user code"), "Alt+F9", true));
     defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut(tr("Debug -> Skip next instruction"), "", true));
     defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return", true));
-    defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut(tr("Debug -> Trace Into Conditional"), "", true));
-    defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace Over Conditional"), "", true));
+    defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut(tr("Debug -> Trace into..."), "Ctrl+Alt+F7", true));
+    defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace over..."), "Ctrl+Alt+F8", true));
     defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut(tr("Debug -> Trace Record -> Bit"), "", true));
     defaultShortcuts.insert("DebugTraceRecordNone", Shortcut(tr("Debug -> Trace Record -> None"), "", true));
     defaultShortcuts.insert("DebugInstrUndo", Shortcut(tr("Debug -> Undo instruction"), "Alt+U", true));
