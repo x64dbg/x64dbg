@@ -26,8 +26,8 @@ HexDump::HexDump(QWidget* parent)
 
     mRvaDisplayEnabled = false;
     mSyncAddrExpression = "";
-    mNonprintReplace = QChar(0x25CA);
-    mNullReplace = QChar(0x2022);
+    mNonprintReplace = QChar('.'); //QChar(0x25CA);
+    mNullReplace = QChar('.'); //QChar(0x2022);
 
     historyClear();
 
