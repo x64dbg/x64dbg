@@ -24,6 +24,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, tr("Address")); //addr
     addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, tr("Size")); //size
     addColumnAt(8 + charwidth * 32, tr("Info"), false, tr("Page Information")); //page information
+    addColumnAt(8 + charwidth * 28, tr("Content"), false, tr("Content of section")); //content of section
     addColumnAt(8 + charwidth * 5, tr("Type"), false, tr("Allocation Type")); //allocation type
     addColumnAt(8 + charwidth * 11, tr("Protection"), false, tr("Current Protection")); //current protection
     addColumnAt(8 + charwidth * 8, tr("Initial"), false, tr("Allocation Protection")); //allocation protection
@@ -338,21 +339,31 @@ void MemoryMapView::refreshMap()
         wS = QString((wMemMapStruct.page)[wI].info);
         setCellContent(wI, 2, wS);
 
-        // State
-        switch(wMbi.State)
-        {
-        case MEM_FREE:
-            wS = QString("FREE");
-            break;
-        case MEM_COMMIT:
-            wS = QString("COMM");
-            break;
-        case MEM_RESERVE:
-            wS = QString("RESV");
-            break;
-        default:
-            wS = QString("????");
-        }
+        // Content
+        if(wS.contains(".bss"))
+            wS = QString("Uninitialized data");
+        else if(wS.contains(".data"))
+            wS = QString("Initialized data");
+        else if(wS.contains(".edata"))
+            wS = QString("Export tables");
+        else if(wS.contains(".idata"))
+            wS = QString("Import tables");
+        else if(wS.contains(".pdata"))
+            wS = QString("Exception information");
+        else if(wS.contains(".rdata"))
+            wS = QString("Read-only initialized data");
+        else if(wS.contains(".reloc"))
+            wS = QString("Base relocations");
+        else if(wS.contains(".rsrc"))
+            wS = QString("Resources");
+        else if(wS.contains(".text"))
+            wS = QString("Executable code");
+        else if(wS.contains(".tls"))
+            wS = QString("Thread-local storage");
+        else if(wS.contains(".xdata"))
+            wS = QString("Exception information");
+        else
+            wS = QString("");
         setCellContent(wI, 3, wS);
 
         // Type
@@ -371,15 +382,15 @@ void MemoryMapView::refreshMap()
             wS = QString("N/A");
             break;
         }
-        setCellContent(wI, 3, wS);
+        setCellContent(wI, 4, wS);
 
         // current access protection
         wS = getProtectionString(wMbi.Protect);
-        setCellContent(wI, 4, wS);
+        setCellContent(wI, 5, wS);
 
         // allocation protection
         wS = getProtectionString(wMbi.AllocationProtect);
-        setCellContent(wI, 5, wS);
+        setCellContent(wI, 6, wS);
 
     }
     if(wMemMapStruct.page != 0)
