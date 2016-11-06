@@ -2655,24 +2655,10 @@ void RegistersView::onModifyAction()
 
 void RegistersView::onToggleValueAction()
 {
-    if(mSETONEZEROTOGGLE.contains(mSelected))
+    if(mBOOLDISPLAY.contains(mSelected))
     {
-        if(mBOOLDISPLAY.contains(mSelected))
-        {
-            int value = (int)(* (bool*) registerValue(&wRegDumpStruct, mSelected));
-            setRegister(mSelected, value ^ 1);
-        }
-        else
-        {
-            bool ok = false;
-            dsint val = GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)).toInt(&ok, 16);
-            if(ok)
-            {
-                val++;
-                val *= -1;
-                setRegister(mSelected, val);
-            }
-        }
+        int value = (int)(* (bool*) registerValue(&wRegDumpStruct, mSelected));
+        setRegister(mSelected, value ^ 1);
     }
 }
 
@@ -3058,6 +3044,10 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
                 wMenu.addAction(wCM_Zero);
             if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) == 0)
                 wMenu.addAction(wCM_SetToOne);
+        }
+
+        if(mBOOLDISPLAY.contains(mSelected))
+        {
             wMenu.addAction(wCM_ToggleValue);
         }
 
