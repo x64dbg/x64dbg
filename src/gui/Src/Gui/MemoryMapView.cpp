@@ -341,27 +341,27 @@ void MemoryMapView::refreshMap()
 
         // Content
         if(wS.contains(".bss"))
-            wS = QString("Uninitialized data");
+            wS = tr("Uninitialized data");
         else if(wS.contains(".data"))
-            wS = QString("Initialized data");
+            wS = tr("Initialized data");
         else if(wS.contains(".edata"))
-            wS = QString("Export tables");
+            wS = tr("Export tables");
         else if(wS.contains(".idata"))
-            wS = QString("Import tables");
+            wS = tr("Import tables");
         else if(wS.contains(".pdata"))
-            wS = QString("Exception information");
+            wS = tr("Exception information");
         else if(wS.contains(".rdata"))
-            wS = QString("Read-only initialized data");
+            wS = tr("Read-only initialized data");
         else if(wS.contains(".reloc"))
-            wS = QString("Base relocations");
+            wS = tr("Base relocations");
         else if(wS.contains(".rsrc"))
-            wS = QString("Resources");
+            wS = tr("Resources");
         else if(wS.contains(".text"))
-            wS = QString("Executable code");
+            wS = tr("Executable code");
         else if(wS.contains(".tls"))
-            wS = QString("Thread-local storage");
+            wS = tr("Thread-local storage");
         else if(wS.contains(".xdata"))
-            wS = QString("Exception information");
+            wS = tr("Exception information");
         else
             wS = QString("");
         setCellContent(wI, 3, wS);
