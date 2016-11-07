@@ -1488,6 +1488,8 @@ void DisassemblerGraphView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionGraphComment"));
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionGraphLabel"));
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
@@ -1622,4 +1624,51 @@ void DisassemblerGraphView::saveImageSlot()
 {
     saveGraph = true;
     this->viewport()->update();
+}
+
+void DisassemblerGraphView::setCommentSlot()
+{
+    duint wVA = this->get_cursor_pos();
+    LineEditDialog mLineEdit(this);
+    QString addr_text = ToPtrString(wVA);
+    char comment_text[MAX_COMMENT_SIZE] = "";
+
+    if(DbgGetCommentAt((duint)wVA, comment_text))
+    {
+        if(comment_text[0] == '\1') //automatic comment
+            mLineEdit.setText(QString(comment_text + 1));
+        else
+            mLineEdit.setText(QString(comment_text));
+    }
+
+    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
+
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+
+    if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
+
+    this->refreshSlot();
+}
+
+void DisassemblerGraphView::setLabelSlot()
+{
+    duint wVA = this->get_cursor_pos();
+    LineEditDialog mLineEdit(this);
+    QString addr_text = ToPtrString(wVA);
+    char label_text[MAX_COMMENT_SIZE] = "";
+
+    if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
+        mLineEdit.setText(QString(label_text));
+
+    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+
+    if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
+
+    this->refreshSlot();
 }

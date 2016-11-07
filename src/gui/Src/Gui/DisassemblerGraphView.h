@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <QMutex>
 #include "Bridge.h"
+#include "LineEditDialog.h"
 #include "RichTextPainter.h"
 #include "QBeaEngine.h"
 
@@ -272,6 +273,8 @@ public slots:
     void toggleSyncOriginSlot();
     void refreshSlot();
     void saveImageSlot();
+    void setCommentSlot();
+    void setLabelSlot();
 
 private:
     QString status;
