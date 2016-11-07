@@ -97,7 +97,7 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
 {
     auto hasExplicitType = false;
     type = ValueType::Hex;
-    if(formatString.size() > 2 && formatString[1] == ':')
+    if(formatString.size() > 2 && !isdigit(formatString[0]) && formatString[1] == ':')
     {
         switch(formatString[0])
         {
