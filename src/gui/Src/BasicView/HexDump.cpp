@@ -69,6 +69,7 @@ void HexDump::updateShortcuts()
 {
     AbstractTableView::updateShortcuts();
     mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
+    mCopyRva->setShortcut(ConfigShortcut("ActionCopyRva"));
     mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
 }
 
@@ -293,6 +294,8 @@ void HexDump::setupCopyMenu()
     // Copy -> RVA
     mCopyRva = new QAction(DIcon("copy_address.png"), "&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
+    mCopyRva->setShortcutContext(Qt::WidgetShortcut);
+    addAction(mCopyRva);
 }
 
 void HexDump::copyAddressSlot()
