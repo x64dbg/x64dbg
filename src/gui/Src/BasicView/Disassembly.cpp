@@ -1595,7 +1595,7 @@ void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::func
             break;
         wAddrPrev = wAddr;
         auto wInst = DisassembleAt(wAddr);
-        wAddr += wInst.length;
+        wAddr = getNextInstructionRVA(wAddr, 1);
         if(wAddr == wAddrPrev)
             break;
         disassembled(i++, wInst);
@@ -1618,7 +1618,7 @@ void Disassembly::prepareData()
     {
         wAddrPrev = wAddr;
         wInst = DisassembleAt(wAddr);
-        wAddr += wInst.length;
+        wAddr = getNextInstructionRVA(wAddr, 1);
         if(wAddr == wAddrPrev)
             break;
         mInstBuffer.append(wInst);
