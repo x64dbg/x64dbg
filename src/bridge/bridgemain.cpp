@@ -1026,15 +1026,12 @@ BRIDGE_IMPEXP void GuiUpdateEnable(bool updateNow)
 {
     bDisableGUIUpdate = false;
     if(updateNow)
-        DbgCmdExecDirect("guiupdateenable");
-    else
-        DbgCmdExecDirect("guiupdateenable 0");
+        GuiUpdateAllViews();
 }
 
 BRIDGE_IMPEXP void GuiUpdateDisable()
 {
     bDisableGUIUpdate = true;
-    DbgCmdExecDirect("guimsgdisable");
 }
 
 BRIDGE_IMPEXP bool GuiIsUpdateDisabled()

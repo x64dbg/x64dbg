@@ -137,11 +137,9 @@ bool cbInstrEnableGuiUpdate(int argc, char* argv[])
     if(GuiIsUpdateDisabled())
         GuiUpdateEnable(false);
     duint value;
-    //default: update gui
-    if(argc > 1 && valfromstring(argv[1], &value) && value == 0)
-        return true;
-    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    DebugUpdateGuiAsync(cip, false);
+    //argv[1]=="1" = update GUI
+    if(argc > 1 && valfromstring(argv[1], &value) && value == 1)
+        GuiUpdateAllViews();
     return true;
 }
 
