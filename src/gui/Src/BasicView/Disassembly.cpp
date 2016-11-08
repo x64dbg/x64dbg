@@ -1852,6 +1852,7 @@ void Disassembly::historyPrevious()
 
     // Update window title
     emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
+    GuiUpdateAllViews();
 }
 
 void Disassembly::historyNext()
@@ -1866,6 +1867,7 @@ void Disassembly::historyNext()
 
     // Update window title
     emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
+    GuiUpdateAllViews();
 }
 
 bool Disassembly::historyHasPrevious()
