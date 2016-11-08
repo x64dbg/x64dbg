@@ -69,6 +69,7 @@ void HexDump::updateShortcuts()
 {
     AbstractTableView::updateShortcuts();
     mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
+    mCopyRva->setShortcut(ConfigShortcut("ActionCopyRva"));
     mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
 }
 
