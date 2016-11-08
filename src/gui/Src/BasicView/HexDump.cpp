@@ -294,6 +294,8 @@ void HexDump::setupCopyMenu()
     // Copy -> RVA
     mCopyRva = new QAction(DIcon("copy_address.png"), "&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
+    mCopyRva->setShortcutContext(Qt::WidgetShortcut);
+    addAction(mCopyRva);
 }
 
 void HexDump::copyAddressSlot()
