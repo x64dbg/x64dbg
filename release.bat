@@ -16,12 +16,14 @@ copy bin\x32\Qt5Gui.dll %RELEASEDIR%\qt_base\x32\
 copy bin\x32\Qt5Widgets.dll %RELEASEDIR%\qt_base\x32\
 copy bin\x32\Qt5Network.dll %RELEASEDIR%\qt_base\x32\
 copy bin\x32\libeay32.dll %RELEASEDIR%\qt_base\x32\
+copy bin\x32\ssleay32.dll %RELEASEDIR%\qt_base\x32\
 copy bin\x32\platforms\qwindows.dll %RELEASEDIR%\qt_base\x32\platforms\
 copy bin\x64\Qt5Core.dll %RELEASEDIR%\qt_base\x64\
 copy bin\x64\Qt5Gui.dll %RELEASEDIR%\qt_base\x64\
 copy bin\x64\Qt5Widgets.dll %RELEASEDIR%\qt_base\x64\
 copy bin\x64\Qt5Network.dll %RELEASEDIR%\qt_base\x64\
 copy bin\x64\libeay32.dll %RELEASEDIR%\qt_base\x64\
+copy bin\x64\ssleay32.dll %RELEASEDIR%\qt_base\x64\
 copy bin\x64\platforms\qwindows.dll %RELEASEDIR%\qt_base\x64\platforms\
 
 echo bin_base
