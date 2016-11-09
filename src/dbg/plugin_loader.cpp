@@ -164,6 +164,7 @@ bool pluginload(const char* pluginName, bool loadall)
     regExport("CBFILTERSYMBOL", CB_FILTERSYMBOL);
     regExport("CBTRACEEXECUTE", CB_TRACEEXECUTE);
     regExport("CBANALYZE", CB_ANALYZE);
+    regExport("CBADDRINFO", CB_ADDRINFO);
 
     //init plugin
     if(!pluginData.pluginit(&pluginData.initStruct))

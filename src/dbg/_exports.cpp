@@ -339,7 +339,12 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             strncat_s(addrinfo->comment, comment.c_str(), _TRUNCATE);
         }
     }
-    return retval;
+    PLUG_CB_ADDRINFO info;
+    info.addr = addr;
+    info.addrinfo = addrinfo;
+    info.retval = retval;
+    plugincbcall(CB_ADDRINFO, &info);
+    return info.retval;
 }
 
 extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)

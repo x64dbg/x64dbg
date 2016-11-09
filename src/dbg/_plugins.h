@@ -199,6 +199,13 @@ typedef struct
     BridgeCFGraphList graph;
 } PLUG_CB_ANALYZE;
 
+typedef struct
+{
+    duint addr;
+    ADDRINFO* addrinfo;
+    bool retval;
+} PLUG_CB_ADDRINFO;
+
 //enums
 typedef enum
 {
@@ -229,6 +236,7 @@ typedef enum
     CB_TRACEEXECUTE, //PLUG_CB_TRACEEXECUTE
     CB_SELCHANGED, //PLUG_CB_SELCHANGED
     CB_ANALYZE, //PLUG_CB_ANALYZE
+    CB_ADDRINFO, //PLUG_CB_ADDRINFO
     CB_LAST
 } CBTYPE;
 
