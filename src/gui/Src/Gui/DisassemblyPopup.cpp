@@ -167,7 +167,7 @@ void DisassemblyPopup::setAddress(duint Address)
             for(auto & token : richText)
                 currentInstructionWidth += mFontMetrics->width(token.text);
             mWidth = std::max(mWidth, currentInstructionWidth);
-            mDisassemblyToken.push_back(std::make_pair(std::move(richText), DbgFunctions()->GetTraceRecordHitCount(instruction.rva + base) != 0));
+            mDisassemblyToken.push_back(std::make_pair(std::move(richText), DbgFunctions()->GetTraceRecordHitCount(instruction.rva) != 0));
         }
         // Address
         addrText = getSymbolicName(addr);
