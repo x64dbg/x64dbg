@@ -64,6 +64,7 @@ bool cbInstrCommentDel(int argc, char* argv[])
 
 bool cbInstrCommentList(int argc, char* argv[])
 {
+    auto listAuto = argc >= 2 && *argv[1] == '1';
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comments")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
@@ -80,20 +81,23 @@ bool cbInstrCommentList(int argc, char* argv[])
     }
     Memory<COMMENTSINFO*> comments(cbsize, "cbInstrCommentList:comments");
     CommentEnum(comments(), 0);
-    int count = (int)(cbsize / sizeof(COMMENTSINFO));
-    for(int i = 0; i < count; i++)
+    int total = 0;
+    for(int i = 0; i < (int)(cbsize / sizeof(COMMENTSINFO)); i++)
     {
-        GuiReferenceSetRowCount(i + 1);
+        if(!listAuto && !comments()[i].manual)
+            continue;
+        GuiReferenceSetRowCount(total + 1);
         char addrText[20] = "";
         sprintf_s(addrText, "%p", comments()[i].addr);
-        GuiReferenceSetCellContent(i, 0, addrText);
+        GuiReferenceSetCellContent(total, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(comments()[i].addr, disassembly))
-            GuiReferenceSetCellContent(i, 1, disassembly);
-        GuiReferenceSetCellContent(i, 2, comments()[i].text);
+            GuiReferenceSetCellContent(total, 1, disassembly);
+        GuiReferenceSetCellContent(total, 2, comments()[i].text);
+        total++;
     }
-    varset("$result", count, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%d comment(s) listed in Reference View\n"), count);
+    varset("$result", total, false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d comment(s) listed in Reference View\n"), total);
     GuiReferenceReloadData();
     return true;
 }
