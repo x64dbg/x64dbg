@@ -259,9 +259,9 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
                         auto constant = instr.arg[i].constant;
-                        if(instr.arg[i].value == addr + instr.instr_size && strstr(instr.instruction, "call"))
+                        if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && strstr(instr.instruction, "call"))
                             temp_string.assign("call $0");
-                        else if(instr.arg[i].value == addr + instr.instr_size && strstr(instr.instruction, "jmp"))
+                        else if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && strstr(instr.instruction, "jmp"))
                             temp_string.assign("jmp $0");
                         else if(instr.type == instr_branch)
                             continue;
