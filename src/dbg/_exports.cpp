@@ -35,6 +35,7 @@
 
 static bool bOnlyCipAutoComments = false;
 static duint cacheCflags = 0;
+static duint cacheCcx = 0;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -93,12 +94,21 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 {
     static duint cacheFlags;
     static duint cacheAddr;
+    static duint cacheCx;
     static bool cacheResult;
-    if(cacheAddr != addr || cacheFlags != cacheCflags)
+    if(cacheAddr != addr || cacheFlags != cacheCflags || cacheCx != cacheCcx)
     {
         cacheFlags = cacheCflags;
+        cacheCx = cacheCcx;
         cacheAddr = addr;
-        cacheResult = IsJumpGoingToExecuteEx(fdProcessInfo->hProcess, fdProcessInfo->hThread, (ULONG_PTR)cacheAddr, cacheFlags);
+        cacheResult = false;
+        unsigned char data[16];
+        if(MemRead(addr, data, sizeof(data), nullptr, true))
+        {
+            Capstone cp;
+            if(cp.Disassemble(addr, data))
+                cacheResult = cp.IsBranchGoingToExecute(cacheFlags, cacheCx);
+        }
     }
     return cacheResult;
 }
@@ -531,15 +541,16 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
 
     duint cflags = cacheCflags = regdump->regcontext.eflags;
-    regdump->flags.c = valflagfromstring(cflags, "cf");
-    regdump->flags.p = valflagfromstring(cflags, "pf");
-    regdump->flags.a = valflagfromstring(cflags, "af");
-    regdump->flags.z = valflagfromstring(cflags, "zf");
-    regdump->flags.s = valflagfromstring(cflags, "sf");
-    regdump->flags.t = valflagfromstring(cflags, "tf");
-    regdump->flags.i = valflagfromstring(cflags, "if");
-    regdump->flags.d = valflagfromstring(cflags, "df");
-    regdump->flags.o = valflagfromstring(cflags, "of");
+    cacheCcx = regdump->regcontext.ccx;
+    regdump->flags.c = (cflags & (1 << 0)) != 0;
+    regdump->flags.p = (cflags & (1 << 2)) != 0;
+    regdump->flags.a = (cflags & (1 << 4)) != 0;
+    regdump->flags.z = (cflags & (1 << 6)) != 0;
+    regdump->flags.s = (cflags & (1 << 7)) != 0;
+    regdump->flags.t = (cflags & (1 << 8)) != 0;
+    regdump->flags.i = (cflags & (1 << 9)) != 0;
+    regdump->flags.d = (cflags & (1 << 10)) != 0;
+    regdump->flags.o = (cflags & (1 << 11)) != 0;
 
     x87FPURegister_t x87FPURegisters[8];
     Getx87FPURegisters(x87FPURegisters,  &titcontext);

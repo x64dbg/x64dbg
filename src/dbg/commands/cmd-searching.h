@@ -10,6 +10,7 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[]);
 CMDRESULT cbInstrRefFindRange(int argc, char* argv[]);
 CMDRESULT cbInstrRefStr(int argc, char* argv[]);
 CMDRESULT cbInstrModCallFind(int argc, char* argv[]);
+CMDRESULT cbInstrGUIDFind(int argc, char* argv[]);
 CMDRESULT cbInstrYara(int argc, char* argv[]);
 CMDRESULT cbInstrYaramod(int argc, char* argv[]);
 CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[]);

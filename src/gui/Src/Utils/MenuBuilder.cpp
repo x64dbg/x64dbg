@@ -5,7 +5,6 @@
 /**
  * @brief MenuBuilder::loadFromConfig Set the menu builder to be customizable
  * @param id The id of menu builder. It should be the same on every same menu.
- * See CustomizeMenuDialog for a list of defined identifiers.
  */
 void MenuBuilder::loadFromConfig()
 {

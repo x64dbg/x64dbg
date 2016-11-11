@@ -85,6 +85,7 @@ public slots:
     void displayGraphWidget();
     void displayPreviousTab();
     void displayNextTab();
+    void hideTab();
     void openSettings();
     void openAppearance();
     void openCalculator();
@@ -225,8 +226,23 @@ private:
 
     bool bCanClose;
     MainWindowCloseThread* mCloseThread;
-    QVector<QWidget*> mWidgetList;
-    QVector<QString> mWidgetNativeNameList;
+
+    struct WidgetInfo
+    {
+    public:
+        WidgetInfo() { }
+
+        WidgetInfo(QWidget* widget, QString nativeName)
+        {
+            this->widget = widget;
+            this->nativeName = nativeName;
+        }
+
+        QWidget* widget;
+        QString nativeName;
+    };
+
+    QVector<WidgetInfo> mWidgetList;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

@@ -11,7 +11,9 @@
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent),
-      mFontMetrics(nullptr)
+      mFontMetrics(nullptr),
+      currentGraph(duint(0)),
+      disasm(ConfigUint("Disassembler", "MaxModuleSize"))
 {
     this->status = "Loading...";
 
@@ -60,6 +62,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(shortcutsUpdatedSlot()));
+    connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
 
     colorsUpdatedSlot();
 }
@@ -581,8 +584,9 @@ void DisassemblerGraphView::mouseReleaseEvent(QMouseEvent* event)
 
 void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    Q_UNUSED(event);
-    Token token;
+    duint instr = this->getInstrForMouseEvent(event);
+    navigate(DbgGetBranchDestination(instr));
+    /*Token token;
     if(this->getTokenForMouseEvent(event, token))
     {
         if(!this->analysis.functions.count(token.addr))
@@ -599,7 +603,7 @@ void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
             this->highlight_token = nullptr;
             this->viewport()->update();
         }
-    }
+    }*/
 }
 
 void DisassemblerGraphView::prepareGraphNode(DisassemblerBlock & block)
@@ -1261,21 +1265,25 @@ void DisassemblerGraphView::fontChanged()
     }
 }
 
-void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint addr)
+void DisassemblerGraphView::tokenizerConfigUpdatedSlot()
 {
-    BridgeCFGraph graph(graphList);
+    disasm.UpdateConfig();
+    loadCurrentGraph();
+}
+
+void DisassemblerGraphView::loadCurrentGraph()
+{
     Analysis anal;
-    QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")));
     anal.update_id = this->update_id + 1;
-    anal.entry = graph.entryPoint;
+    anal.entry = currentGraph.entryPoint;
     anal.ready = true;
     {
         Function func;
-        func.entry = graph.entryPoint;
+        func.entry = currentGraph.entryPoint;
         func.ready = true;
         func.update_id = anal.update_id;
         {
-            for(const auto & nodeIt : graph.nodes)
+            for(const auto & nodeIt : currentGraph.nodes)
             {
                 const BridgeCFNode & node = nodeIt.second;
                 Block block;
@@ -1284,7 +1292,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint ad
                 block.false_path = node.brfalse;
                 block.true_path = node.brtrue;
                 block.terminal = node.terminal;
-                block.header_text = Text(ToPtrString(block.entry), Qt::red);
+                block.header_text = Text(getSymbolicName(block.entry), mLabelColor, mLabelBackgroundColor);
                 {
                     Instr instr;
                     unsigned char data[MAX_DISASM_BUFFER];
@@ -1301,7 +1309,45 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint ad
                         instr.opcode.resize(size);
                         for(int j = 0; j < size; j++)
                             instr.opcode[j] = data[j];
+
+                        QString comment;
+                        bool autoComment = false;
+                        RichTextPainter::CustomRichText_t commentText;
+                        commentText.highlight = false;
+                        char label[MAX_LABEL_SIZE] = "";
+                        if(GetCommentFormat(addr, comment, &autoComment))
+                        {
+                            if(autoComment)
+                            {
+                                commentText.textColor = mAutoCommentColor;
+                                commentText.textBackground = mAutoCommentBackgroundColor;
+                            }
+                            else //user comment
+                            {
+                                commentText.textColor = mCommentColor;
+                                commentText.textBackground = mCommentBackgroundColor;
+                            }
+                            commentText.text = QString("; ") + comment;
+                            //add to text
+                        }
+                        else if(DbgGetLabelAt(addr, SEG_DEFAULT, label) && addr != block.entry) // label but no comment
+                        {
+                            commentText.textColor = mLabelColor;
+                            commentText.textBackground = mLabelBackgroundColor;
+                            commentText.text = QString("; ") + label;
+                        }
+                        commentText.flags = commentText.textBackground.alpha() ? RichTextPainter::FlagAll : RichTextPainter::FlagColor;
+                        if(commentText.text.length())
+                        {
+                            RichTextPainter::CustomRichText_t spaceText;
+                            spaceText.highlight = false;
+                            spaceText.flags = RichTextPainter::FlagNone;
+                            spaceText.text = " ";
+                            richText.push_back(spaceText);
+                            richText.push_back(commentText);
+                        }
                         instr.text = Text(richText);
+
                         block.instrs.push_back(instr);
                         i += size;
                     }
@@ -1313,6 +1359,31 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint ad
     }
     this->analysis = anal;
     this->function = this->analysis.entry;
+}
+
+QString DisassemblerGraphView::getSymbolicName(duint addr)
+{
+    char labelText[MAX_LABEL_SIZE] = "";
+    char moduleText[MAX_MODULE_SIZE] = "";
+    bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
+    bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
+    QString addrText = ToPtrString(addr);
+    QString finalText;
+    if(bHasLabel && bHasModule) //<module.label>
+        finalText = QString("%1 <%2.%3>").arg(addrText).arg(moduleText).arg(labelText);
+    else if(bHasModule) //module.addr
+        finalText = QString("%1.%2").arg(moduleText).arg(addrText);
+    else if(bHasLabel) //<label>
+        finalText = QString("<%1>").arg(labelText);
+    else
+        finalText = addrText;
+    return finalText;
+}
+
+void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint addr)
+{
+    currentGraph = BridgeCFGraph(graphList);
+    loadCurrentGraph();
     this->cur_instr = addr ? addr : this->function;
     Bridge::getBridge()->setResult();
 }
@@ -1356,6 +1427,12 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     disassemblyTracedColor = ConfigColor("DisassemblyTracedBackgroundColor");
     auto a = disassemblySelectionColor, b = disassemblyTracedColor;
     disassemblyTracedSelectionColor = QColor((a.red() + b.red()) / 2, (a.green() + b.green()) / 2, (a.blue() + b.blue()) / 2);
+    mAutoCommentColor = ConfigColor("DisassemblyAutoCommentColor");
+    mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
+    mCommentColor = ConfigColor("DisassemblyCommentColor");
+    mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
+    mLabelColor = ConfigColor("DisassemblyLabelColor");
+    mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
 
     jmpColor = ConfigColor("GraphJmpColor");
     brtrueColor = ConfigColor("GraphBrtrueColor");
@@ -1366,6 +1443,7 @@ void DisassemblerGraphView::colorsUpdatedSlot()
         backgroundColor = disassemblySelectionColor;
 
     fontChanged();
+    loadCurrentGraph();
 }
 
 void DisassemblerGraphView::fontsUpdatedSlot()

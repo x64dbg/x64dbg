@@ -195,40 +195,25 @@ MainWindow::MainWindow(QWidget* parent)
     mGraphView->setWindowTitle(tr("Graph"));
     mGraphView->setWindowIcon(DIcon("graph.png"));
 
-    // Create the tab widget
-    mTabWidget = new MHTabWidget();
+    // Create the tab widget and enable detaching and hiding
+    mTabWidget = new MHTabWidget(this, true, true);
 
     // Add all widgets to the list
-    mWidgetList.push_back(mCpuWidget);
-    mWidgetNativeNameList.push_back("CPUTab");
-    mWidgetList.push_back(mGraphView);
-    mWidgetNativeNameList.push_back("GraphTab");
-    mWidgetList.push_back(mLogView);
-    mWidgetNativeNameList.push_back("LogTab");
-    mWidgetList.push_back(mNotesManager);
-    mWidgetNativeNameList.push_back("NotesTab");
-    mWidgetList.push_back(mBreakpointsView);
-    mWidgetNativeNameList.push_back("BreakpointsTab");
-    mWidgetList.push_back(mMemMapView);
-    mWidgetNativeNameList.push_back("MemoryMapTab");
-    mWidgetList.push_back(mCallStackView);
-    mWidgetNativeNameList.push_back("CallStackTab");
-    mWidgetList.push_back(mSEHChainView);
-    mWidgetNativeNameList.push_back("SEHTab");
-    mWidgetList.push_back(mScriptView);
-    mWidgetNativeNameList.push_back("ScriptTab");
-    mWidgetList.push_back(mSymbolView);
-    mWidgetNativeNameList.push_back("SymbolsTab");
-    mWidgetList.push_back(mSourceViewManager);
-    mWidgetNativeNameList.push_back("SourceTab");
-    mWidgetList.push_back(mReferenceManager);
-    mWidgetNativeNameList.push_back("ReferencesTab");
-    mWidgetList.push_back(mThreadView);
-    mWidgetNativeNameList.push_back("ThreadsTab");
-    mWidgetList.push_back(mSnowmanView);
-    mWidgetNativeNameList.push_back("SnowmanTab");
-    mWidgetList.push_back(mHandlesView);
-    mWidgetNativeNameList.push_back("HandlesTab");
+    mWidgetList.push_back(WidgetInfo(mCpuWidget, "CPUTab"));
+    mWidgetList.push_back(WidgetInfo(mGraphView, "GraphTab"));
+    mWidgetList.push_back(WidgetInfo(mLogView, "LogTab"));
+    mWidgetList.push_back(WidgetInfo(mNotesManager, "NotesTab"));
+    mWidgetList.push_back(WidgetInfo(mBreakpointsView, "BreakpointsTab"));
+    mWidgetList.push_back(WidgetInfo(mMemMapView, "MemoryMapTab"));
+    mWidgetList.push_back(WidgetInfo(mCallStackView, "CallStackTab"));
+    mWidgetList.push_back(WidgetInfo(mSEHChainView, "SEHTab"));
+    mWidgetList.push_back(WidgetInfo(mScriptView, "ScriptTab"));
+    mWidgetList.push_back(WidgetInfo(mSymbolView, "SymbolsTab"));
+    mWidgetList.push_back(WidgetInfo(mSourceViewManager, "SourceTab"));
+    mWidgetList.push_back(WidgetInfo(mReferenceManager, "ReferencesTab"));
+    mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
+    mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
+    mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
 
     // If LoadSaveTabOrder disabled, load tabs in default order
     if(!ConfigBool("Miscellaneous", "LoadSaveTabOrder"))
@@ -318,6 +303,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionGraph, SIGNAL(triggered()), this, SLOT(displayGraphWidget()));
     connect(ui->actionPreviousTab, SIGNAL(triggered()), this, SLOT(displayPreviousTab()));
     connect(ui->actionNextTab, SIGNAL(triggered()), this, SLOT(displayNextTab()));
+    connect(ui->actionHideTab, SIGNAL(triggered()), this, SLOT(hideTab()));
     makeCommandAction(ui->actionStepIntoSource, "TraceIntoConditional src.line(cip) && !src.disp(cip)");
     makeCommandAction(ui->actionStepOverSource, "TraceOverConditional src.line(cip) && !src.disp(cip)");
     makeCommandAction(ui->actionseStepInto, "seStepInto");
@@ -479,12 +465,24 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::setTab(QWidget* widget)
 {
+    // shown tabs
     for(int i = 0; i < mTabWidget->count(); i++)
     {
         if(mTabWidget->widget(i) == widget)
         {
             mTabWidget->setCurrentIndex(i);
-            break;
+            return;
+        }
+    }
+
+    // hidden tabs
+    for(int i = 0; i < mWidgetList.count(); i++)
+    {
+        if(mWidgetList[i].widget == widget)
+        {
+            addQWidgetTab(mWidgetList[i].widget, mWidgetList[i].nativeName);
+            mTabWidget->setCurrentIndex(mTabWidget->count() - 1);
+            return;
         }
     }
 }
@@ -496,7 +494,7 @@ void MainWindow::loadTabDefaultOrder()
     // Setup tabs
     //TODO
     for(int i = 0; i < mWidgetList.size(); i++)
-        addQWidgetTab(mWidgetList[i], mWidgetNativeNameList[i]);
+        addQWidgetTab(mWidgetList[i].widget, mWidgetList[i].nativeName);
 }
 
 void MainWindow::loadTabSavedOrder()
@@ -508,10 +506,10 @@ void MainWindow::loadTabSavedOrder()
     // Get tabIndex for each widget and add them to tabIndexToWidget
     for(int i = 0; i < mWidgetList.size(); i++)
     {
-        QString tabName = mWidgetNativeNameList[i];
+        QString tabName = mWidgetList[i].nativeName;
         duint tabIndex = Config()->getUint("TabOrder", tabName);
         if(!tabIndexToWidget.contains(tabIndex))
-            tabIndexToWidget.insert(tabIndex, std::make_pair(mWidgetList[i], tabName));
+            tabIndexToWidget.insert(tabIndex, std::make_pair(mWidgetList[i].widget, tabName));
         else
         {
             // Conflicts. Try to find an unused tab index.
@@ -520,7 +518,7 @@ void MainWindow::loadTabSavedOrder()
                 auto item = tabIndexToWidget.find(j);
                 if(item == tabIndexToWidget.end())
                 {
-                    tabIndexToWidget.insert(j, std::make_pair(mWidgetList[i], tabName));
+                    tabIndexToWidget.insert(j, std::make_pair(mWidgetList[i].widget, tabName));
                     break;
                 }
             }
@@ -578,6 +576,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionGraph, ConfigShortcut("ViewGraph"));
     setGlobalShortcut(ui->actionPreviousTab, ConfigShortcut("ViewPreviousTab"));
     setGlobalShortcut(ui->actionNextTab, ConfigShortcut("ViewNextTab"));
+    setGlobalShortcut(ui->actionHideTab, ConfigShortcut("ViewHideTab"));
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
@@ -932,6 +931,11 @@ void MainWindow::displayPreviousTab()
 void MainWindow::displayNextTab()
 {
     mTabWidget->showNextTab();
+}
+
+void MainWindow::hideTab()
+{
+    mTabWidget->deleteCurrentTab();
 }
 
 void MainWindow::openSettings()

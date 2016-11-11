@@ -565,11 +565,13 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindStringsRegion = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsRegion = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternRegion = makeShortcutAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPattern");
+    mFindGUIDRegion = makeAction(tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchRegionMenu->addAction(mFindCommandRegion);
     mSearchRegionMenu->addAction(mFindConstantRegion);
     mSearchRegionMenu->addAction(mFindStringsRegion);
     mSearchRegionMenu->addAction(mFindCallsRegion);
     mSearchRegionMenu->addAction(mFindPatternRegion);
+    mSearchRegionMenu->addAction(mFindGUIDRegion);
 
     // Search in Current Module menu
     mFindCommandModule = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
@@ -577,21 +579,25 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindStringsModule = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsModule = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternModule = makeAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()));
+    mFindGUIDModule = makeAction(tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchModuleMenu->addAction(mFindCommandModule);
     mSearchModuleMenu->addAction(mFindConstantModule);
     mSearchModuleMenu->addAction(mFindStringsModule);
     mSearchModuleMenu->addAction(mFindCallsModule);
     mSearchModuleMenu->addAction(mFindPatternModule);
+    mSearchModuleMenu->addAction(mFindGUIDModule);
 
     // Search in All Modules menu
     mFindCommandAll = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
     mFindConstantAll = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsAll = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsAll = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindGUIDAll = makeAction(tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchAllMenu->addAction(mFindCommandAll);
     mSearchAllMenu->addAction(mFindConstantAll);
     mSearchAllMenu->addAction(mFindStringsAll);
     mSearchAllMenu->addAction(mFindCallsAll);
+    mSearchAllMenu->addAction(mFindGUIDAll);
 
     searchMenu->addMenu(makeMenu(DIcon("search_current_region.png"), tr("Current Region")), mSearchRegionMenu);
     searchMenu->addMenu(makeMenu(DIcon("search_current_module.png"), tr("Current Module")), mSearchModuleMenu);
@@ -1204,6 +1210,21 @@ void CPUDisassembly::findPatternSlot()
     emit displayReferencesWidget();
 }
 
+void CPUDisassembly::findGUIDSlot()
+{
+    int refFindType = 0;
+    if(sender() == mFindGUIDRegion)
+        refFindType = 0;
+    else if(sender() == mFindGUIDModule)
+        refFindType = 1;
+    else if(sender() == mFindGUIDAll)
+        refFindType = 2;
+
+    auto addrText = ToHexString(rvaToVa(getInitialSelection()));
+    DbgCmdExec(QString("findguid %1, 0, %2").arg(addrText).arg(refFindType).toUtf8().constData());
+    emit displayReferencesWidget();
+}
+
 void CPUDisassembly::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = rvaToVa(getSelectionStart());
@@ -1753,6 +1774,7 @@ void CPUDisassembly::togglePreviewSlot()
 void CPUDisassembly::analyzeModuleSlot()
 {
     DbgCmdExec("cfanal");
+    DbgCmdExec("analx");
 }
 
 void CPUDisassembly::createThreadSlot()
