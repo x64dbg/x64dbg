@@ -2499,7 +2499,8 @@ void RegistersView::displayEditDialog()
             mLineEdit.setWindowTitle(tr("Edit FPU register"));
             mLineEdit.setWindowIcon(DIcon("log.png"));
             mLineEdit.setCursorPosition(0);
-            mLineEdit.ForceSize(GetSizeRegister(mSelected) * 2);
+            size_t sizeRegister = GetSizeRegister(mSelected);
+            mLineEdit.ForceSize(sizeRegister * 2);
             do
             {
                 errorinput = false;
@@ -2516,22 +2517,20 @@ void RegistersView::displayEditDialog()
                         fpuvalue = (duint) mLineEdit.editText.toUShort(&ok, 16);
                     else if(mDWORDDISPLAY.contains(mSelected))
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
-                    else if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+                    else if(mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
                         QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
-                        if(!ConfigBool("Gui", "FpuRegistersLittleEndian"))
-                            pArray = ByteReverse(pArray);
 
-                        if(pArray.size() == GetSizeRegister(mSelected) * 2)
+                        if(pArray.size() == sizeRegister * 2)
                         {
-                            char* pData = (char*) calloc(1, sizeof(char) * GetSizeRegister(mSelected));
+                            char* pData = (char*) calloc(1, sizeof(char) * sizeRegister);
 
                             if(pData != NULL)
                             {
                                 ok = true;
                                 char actual_char[3];
                                 unsigned int i;
-                                for(i = 0; i < GetSizeRegister(mSelected); i++)
+                                for(i = 0; i < sizeRegister; i++)
                                 {
                                     memset(actual_char, 0, sizeof(actual_char));
                                     memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
@@ -2544,7 +2543,15 @@ void RegistersView::displayEditDialog()
                                 }
 
                                 if(ok)
-                                    setRegister(mSelected, (duint) pData);
+                                {
+                                    if(!ConfigBool("Gui", "FpuRegistersLittleEndian")) // reverse byte order if it is big-endian
+                                    {
+                                        pArray = ByteReverse(QByteArray(pData, sizeRegister));
+                                        setRegister(mSelected, reinterpret_cast<duint>(pArray.constData()));
+                                    }
+                                    else
+                                        setRegister(mSelected, reinterpret_cast<duint>(pData));
+                                }
 
                                 free(pData);
 
