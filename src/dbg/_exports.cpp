@@ -117,11 +117,12 @@ static bool shouldFilterSymbol(const char* name)
     return filterInfo.retval;
 }
 
-static bool getLabel(duint addr, char* label)
+static bool getLabel(duint addr, char* label, bool noFuncOffset)
 {
     bool retval = false;
+    label[0] = 0;
     if(LabelGet(addr, label))
-        retval = true;
+        return true;
     else //no user labels
     {
         DWORD64 displacement = 0;
@@ -157,24 +158,35 @@ static bool getLabel(duint addr, char* label)
         }
         if(!retval)  //search for module entry
         {
-            duint entry = ModEntryFromAddr(addr);
-            if(entry && entry == addr)
+            if(addr != 0 && ModEntryFromAddr(addr) == addr)
             {
-                strcpy_s(label, MAX_LABEL_SIZE, "EntryPoint");
-                retval = true;
+                strcpy_s(label, MAX_LABEL_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "EntryPoint")));
+                return true;
             }
-        }
-        if(!retval)  //search for function+offset
-        {
             duint start;
-            if(FunctionGet(addr, &start, nullptr) && addr == start)
+            if(FunctionGet(addr, &start, nullptr))
             {
+                duint rva = addr - start;
+                if(rva == 0)
+                {
 #ifdef _WIN64
-                sprintf_s(label, MAX_LABEL_SIZE, "sub_%llX", start);
+                    sprintf_s(label, MAX_LABEL_SIZE, "sub_%llX", start);
 #else //x86
-                sprintf_s(label, MAX_LABEL_SIZE, "sub_%X", start);
+                    sprintf_s(label, MAX_LABEL_SIZE, "sub_%X", start);
 #endif //_WIN64
-                retval = true;
+                    return true;
+                }
+                if(noFuncOffset)
+                    return false;
+                getLabel(start, label, false);
+                char temp[32];
+#ifdef _WIN64
+                sprintf_s(temp, "+%llX", rva);
+#else //x86
+                sprintf_s(temp, "+%X", rva);
+#endif //_WIN64
+                strcat_s(label, MAX_LABEL_SIZE, temp);
+                return true;
             }
         }
     }
@@ -193,7 +205,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flaglabel)
     {
-        retval = getLabel(addr, addrinfo->label);
+        retval = getLabel(addr, addrinfo->label, (addrinfo->flags & flagNoFuncOffset) != 0);
     }
     if(addrinfo->flags & flagbookmark)
     {

@@ -332,7 +332,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags = flaglabel;
+    info.flags = flaglabel | flagNoFuncOffset;
     if(!_dbg_addrinfoget(addr, segment, &info))
     {
         duint addr_ = 0;

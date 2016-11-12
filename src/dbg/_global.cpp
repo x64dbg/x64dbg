@@ -382,8 +382,15 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
     return SUCCEEDED(hres);
 }
 
-void WaitForThreadTermination(HANDLE hThread)
+void WaitForThreadTermination(HANDLE hThread, DWORD timeout)
 {
-    WaitForSingleObject(hThread, INFINITE);
+    WaitForSingleObject(hThread, timeout);
     CloseHandle(hThread);
+}
+
+void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout)
+{
+    WaitForMultipleObjects(count, hThread, TRUE, timeout);
+    for(int i = 0; i < count; i++)
+        CloseHandle(hThread[i]);
 }
