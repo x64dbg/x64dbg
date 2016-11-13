@@ -160,7 +160,7 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
         {
             if(addr != 0 && ModEntryFromAddr(addr) == addr)
             {
-                strcpy_s(label, MAX_LABEL_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "EntryPoint")));
+                strcpy_s(label, MAX_LABEL_SIZE, "EntryPoint");
                 return true;
             }
             duint start;
