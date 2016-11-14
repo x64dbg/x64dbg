@@ -87,7 +87,8 @@ bool settingboolget(const char* section, const char* name);
 arch GetFileArchitecture(const char* szFileName);
 bool IsWow64();
 bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize);
-void WaitForThreadTermination(HANDLE hThread);
+void WaitForThreadTermination(HANDLE hThread, DWORD timeout = INFINITE);
+void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout = INFINITE);
 
 #include "dynamicmem.h"
 

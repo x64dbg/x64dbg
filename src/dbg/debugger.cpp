@@ -344,9 +344,8 @@ void dbgstop()
     bStopTimeWastedCounterThread = true;
     bStopMemMapThread = true;
     bStopDumpRefreshThread = true;
-    WaitForThreadTermination(hTimeWastedCounterThread);
-    WaitForThreadTermination(hMemMapThread);
-    WaitForThreadTermination(hDumpRefreshThread);
+    HANDLE hThreads[] = { hTimeWastedCounterThread, hMemMapThread, hDumpRefreshThread };
+    WaitForMultipleThreadsTermination(hThreads, _countof(hThreads), 10000); // Total time out is 10 seconds.
 }
 
 duint dbgdebuggedbase()

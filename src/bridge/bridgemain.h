@@ -107,13 +107,14 @@ typedef enum
 
 typedef enum
 {
-    flagmodule = 1,
-    flaglabel = 2,
-    flagcomment = 4,
-    flagbookmark = 8,
-    flagfunction = 16,
-    flagloop = 32,
-    flagargs = 64
+    flagmodule = 0x1,
+    flaglabel = 0x2,
+    flagcomment = 0x4,
+    flagbookmark = 0x8,
+    flagfunction = 0x10,
+    flagloop = 0x20,
+    flagargs = 0x40,
+    flagNoFuncOffset = 0x80
 } ADDRINFOFLAGS;
 
 typedef enum

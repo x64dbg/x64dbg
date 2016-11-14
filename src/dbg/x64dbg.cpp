@@ -729,7 +729,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     dputs(QT_TRANSLATE_NOOP("DBG", "Stopping command thread..."));
     bStopCommandLoopThread = true;
     MsgFreeStack(gMsgStack);
-    WaitForThreadTermination(hCommandLoopThread);
+    WaitForThreadTermination(hCommandLoopThread, 10000);
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up allocated data..."));
     cmdfree();
     varfree();
