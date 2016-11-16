@@ -34,42 +34,36 @@ static bool bIsStopped = true;
 static char scriptDllDir[MAX_PATH] = "";
 static String notesFile;
 
-static CMDRESULT cbStrLen(int argc, char* argv[])
+static bool cbStrLen(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
-        return STATUS_ERROR;
-    }
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
     dprintf_untranslated("\"%s\"[%d]\n", argv[1], int(strlen(argv[1])));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-static CMDRESULT cbClearLog(int argc, char* argv[])
+static bool cbClearLog(int argc, char* argv[])
 {
     GuiLogClear();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-static CMDRESULT cbPrintf(int argc, char* argv[])
+static bool cbPrintf(int argc, char* argv[])
 {
     if(argc < 2)
         dprintf("\n");
     else
         dprintf("%s", argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
 static bool DbgScriptDllExec(const char* dll);
 
-static CMDRESULT cbScriptDll(int argc, char* argv[])
+static bool cbScriptDll(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
-        return STATUS_ERROR;
-    }
-    return DbgScriptDllExec(argv[1]) ? STATUS_CONTINUE : STATUS_ERROR;
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    return DbgScriptDllExec(argv[1]);
 }
 
 #include "cmd-all.h"
@@ -223,6 +217,8 @@ static void registercommands()
     dbgcmdnew("TraceOverIntoTraceRecord\1toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
     dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
     dbgcmdnew("RunToUserCode\1rtu", cbDebugRunToUserCode, true); //Run to user code
+    dbgcmdnew("TraceSetLog\1SetTraceLog", cbDebugTraceSetLog, true); //Set trace log text + condition
+    dbgcmdnew("TraceSetCommand\1SetTraceCommand", cbDebugTraceSetCommand, true); //Set trace command text + condition
 
     //thread control
     dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
@@ -262,7 +258,7 @@ static void registercommands()
     dbgcmdnew("vardel", cbInstrVarDel, false); //delete a variable, arg1:variable name
     dbgcmdnew("varlist", cbInstrVarList, false); //list variables[arg1:type filter]
 
-    //data
+    //searching
     dbgcmdnew("find", cbInstrFind, true); //find a pattern
     dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
     dbgcmdnew("findallmem\1findmemall", cbInstrFindAllMem, true); //memory map pattern find
@@ -274,6 +270,7 @@ static void registercommands()
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
+    dbgcmdnew("guidfind\1findguid", cbInstrGUIDFind, true); //find GUID references TODO: undocumented
 
     //user database
     dbgcmdnew("dbsave\1savedb", cbInstrDbsave, true); //save program database
@@ -313,6 +310,7 @@ static void registercommands()
     dbgcmdnew("analxrefs\1analx", cbInstrAnalxrefs, true); //analyze xrefs
     dbgcmdnew("analrecur\1analr", cbInstrAnalrecur, true); //analyze a single function
     dbgcmdnew("analadv", cbInstrAnalyseadv, true); //analyze xref,function and data
+    dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address TODO: undocumented
 
     dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
@@ -418,11 +416,11 @@ static void registercommands()
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
-    dbgcmdnew("traceexecute", cbInstrTraceexecute, true); //execute trace record on address
-    dbgcmdnew("guidfind\1findguid", cbInstrGUIDFind, true); //find GUID references
+    dbgcmdnew("focusinfo", cbInstrFocusinfo, false);
+    dbgcmdnew("printstack\1logstack", cbInstrPrintStack, true); //print the call stack
 };
 
-static bool cbCommandProvider(char* cmd, int maxlen)
+bool cbCommandProvider(char* cmd, int maxlen)
 {
     MESSAGE msg;
     MsgWait(gMsgStack, &msg);
@@ -452,7 +450,7 @@ extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 
 static DWORD WINAPI DbgCommandLoopThread(void* a)
 {
-    cmdloop(cbBadCmd, cbCommandProvider, nullptr, false);
+    cmdloop();
     return 0;
 }
 
@@ -570,7 +568,7 @@ static DWORD WINAPI loadDbThread(LPVOID)
     dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes file..."));
     notesFile = String(szProgramDir) + "\\notes.txt";
     String text;
-    if(!FileHelper::ReadAllText(notesFile, text))
+    if(FileHelper::ReadAllText(notesFile, text))
         GuiSetGlobalNotes(text.c_str());
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes failed..."));
@@ -587,20 +585,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 
     static_assert(sizeof(TITAN_ENGINE_CONTEXT_t) == sizeof(REGISTERCONTEXT), "Invalid REGISTERCONTEXT alignment!");
 
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing wait objects..."));
-    waitinitialize();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger..."));
-    dbginit();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger functions..."));
-    dbgfunctionsinit();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Setting JSON memory management functions..."));
-    json_set_alloc_funcs(json_malloc, json_free);
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing capstone..."));
-    Capstone::GlobalInitialize();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Yara..."));
-    if(yr_initialize() != ERROR_SUCCESS)
-        return "Failed to initialize Yara!";
-    dputs(QT_TRANSLATE_NOOP("DBG", "Getting directory information..."));
     wchar_t wszDir[deflen] = L"";
     if(!GetModuleFileNameW(hInst, wszDir, deflen))
         return "GetModuleFileNameW failed!";
@@ -615,6 +599,24 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
 #endif //ENABLE_MEM_TRACE
+
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing wait objects..."));
+    waitinitialize();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger..."));
+    dbginit();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger functions..."));
+    dbgfunctionsinit();
+    //#ifdef ENABLE_MEM_TRACE
+    dputs(QT_TRANSLATE_NOOP("DBG", "Setting JSON memory management functions..."));
+    json_set_alloc_funcs(json_malloc, json_free);
+    //#endif //ENABLE_MEM_TRACE
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing capstone..."));
+    Capstone::GlobalInitialize();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Yara..."));
+    if(yr_initialize() != ERROR_SUCCESS)
+        return "Failed to initialize Yara!";
+    dputs(QT_TRANSLATE_NOOP("DBG", "Getting directory information..."));
+
     strcpy_s(scriptDllDir, szProgramDir);
     strcat_s(scriptDllDir, "\\scripts\\");
     initDataInstMap();
@@ -727,17 +729,12 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     dputs(QT_TRANSLATE_NOOP("DBG", "Stopping command thread..."));
     bStopCommandLoopThread = true;
     MsgFreeStack(gMsgStack);
-    WaitForThreadTermination(hCommandLoopThread);
+    WaitForThreadTermination(hCommandLoopThread, 10000);
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up allocated data..."));
     cmdfree();
     varfree();
     yr_finalize();
     Capstone::GlobalFinalize();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Checking for mem leaks..."));
-    if(auto memleakcount = memleaks())
-        dprintf(QT_TRANSLATE_NOOP("DBG", "%d memory leak(s) found!\n"), memleakcount);
-    else
-        DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));
     waitdeinitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up debugger threads..."));
@@ -753,12 +750,16 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     else
         DeleteFileW(StringUtils::Utf8ToUtf16(notesFile).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "Exit signal processed successfully!"));
+#ifdef ENABLE_MEM_TRACE
+    if(!memleaks())
+        DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
+#endif //ENABLE_MEM_TRACE
     bIsStopped = true;
 }
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
 {
-    if(cmddirectexec(cmd) == STATUS_ERROR)
+    if(cmddirectexec(cmd) == false)
         return false;
     return true;
 }

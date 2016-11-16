@@ -59,6 +59,7 @@ void SettingsDialog::LoadSettings()
     settings.engineEnableTraceRecordDuringTrace = true;
     settings.engineNoScriptTimeout = false;
     settings.engineIgnoreInconsistentBreakpoints = false;
+    settings.engineMaxTraceCount = 50000;
     settings.exceptionRanges = &realExceptionRanges;
     settings.disasmArgumentSpaces = false;
     settings.disasmMemorySpaces = false;
@@ -123,6 +124,8 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "SkipInt3Stepping", &settings.engineSkipInt3Stepping);
     GetSettingBool("Engine", "NoScriptTimeout", &settings.engineNoScriptTimeout);
     GetSettingBool("Engine", "IgnoreInconsistentBreakpoints", &settings.engineIgnoreInconsistentBreakpoints);
+    if(BridgeSettingGetUint("Engine", "MaxTraceCount", &cur))
+        settings.engineMaxTraceCount = int(cur);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -153,6 +156,7 @@ void SettingsDialog::LoadSettings()
     ui->chkSkipInt3Stepping->setChecked(settings.engineSkipInt3Stepping);
     ui->chkNoScriptTimeout->setChecked(settings.engineNoScriptTimeout);
     ui->chkIgnoreInconsistentBreakpoints->setChecked(settings.engineIgnoreInconsistentBreakpoints);
+    ui->spinMaxTraceCount->setValue(settings.engineMaxTraceCount);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -179,11 +183,13 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "Uppercase", &settings.disasmUppercase);
     GetSettingBool("Disassembler", "OnlyCipAutoComments", &settings.disasmOnlyCipAutoComments);
     GetSettingBool("Disassembler", "TabbedMnemonic", &settings.disasmTabBetweenMnemonicAndArguments);
+    GetSettingBool("Disassembler", "NoHighlightOperands", &settings.disasmNoHighlightOperands);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
     ui->chkTabBetweenMnemonicAndArguments->setChecked(settings.disasmTabBetweenMnemonicAndArguments);
+    ui->chkNoHighlightOperands->setChecked(settings.disasmNoHighlightOperands);
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
@@ -290,6 +296,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "SkipInt3Stepping", settings.engineSkipInt3Stepping);
     BridgeSettingSetUint("Engine", "NoScriptTimeout", settings.engineNoScriptTimeout);
     BridgeSettingSetUint("Engine", "IgnoreInconsistentBreakpoints", settings.engineIgnoreInconsistentBreakpoints);
+    BridgeSettingSetUint("Engine", "MaxTraceCount", settings.engineMaxTraceCount);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -307,6 +314,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
     BridgeSettingSetUint("Disassembler", "TabbedMnemonic", settings.disasmTabBetweenMnemonicAndArguments);
+    BridgeSettingSetUint("Disassembler", "NoHighlightOperands", settings.disasmNoHighlightOperands);
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
@@ -707,4 +715,15 @@ void SettingsDialog::on_chkIgnoreInconsistentBreakpoints_toggled(bool checked)
 void SettingsDialog::on_chkNoForegroundWindow_toggled(bool checked)
 {
     settings.guiNoForegroundWindow = checked;
+}
+
+void SettingsDialog::on_spinMaxTraceCount_valueChanged(int arg1)
+{
+    settings.engineMaxTraceCount = arg1;
+}
+
+void SettingsDialog::on_chkNoHighlightOperands_toggled(bool checked)
+{
+    bTokenizerConfigUpdated = true;
+    settings.disasmNoHighlightOperands = checked;
 }

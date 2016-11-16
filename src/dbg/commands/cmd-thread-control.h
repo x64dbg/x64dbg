@@ -2,12 +2,12 @@
 
 #include "command.h"
 
-CMDRESULT cbDebugCreatethread(int argc, char* argv[]);
-CMDRESULT cbDebugSwitchthread(int argc, char* argv[]);
-CMDRESULT cbDebugSuspendthread(int argc, char* argv[]);
-CMDRESULT cbDebugResumethread(int argc, char* argv[]);
-CMDRESULT cbDebugKillthread(int argc, char* argv[]);
-CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[]);
-CMDRESULT cbDebugResumeAllThreads(int argc, char* argv[]);
-CMDRESULT cbDebugSetPriority(int argc, char* argv[]);
-CMDRESULT cbDebugSetthreadname(int argc, char* argv[]);
+bool cbDebugCreatethread(int argc, char* argv[]);
+bool cbDebugSwitchthread(int argc, char* argv[]);
+bool cbDebugSuspendthread(int argc, char* argv[]);
+bool cbDebugResumethread(int argc, char* argv[]);
+bool cbDebugKillthread(int argc, char* argv[]);
+bool cbDebugSuspendAllThreads(int argc, char* argv[]);
+bool cbDebugResumeAllThreads(int argc, char* argv[]);
+bool cbDebugSetPriority(int argc, char* argv[]);
+bool cbDebugSetthreadname(int argc, char* argv[]);

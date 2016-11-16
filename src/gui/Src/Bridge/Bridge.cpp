@@ -479,6 +479,14 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     }
     break;
 
+    case GUI_MENU_SET_ENTRY_CHECKED:
+    {
+        BridgeResult result;
+        emit setCheckedMenuEntry(int(param1), bool(param2));
+        result.Wait();
+    }
+    break;
+
     case GUI_SHOW_CPU:
         emit showCpu();
         break;
@@ -576,6 +584,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         case GUI_STACK:
             emit focusStack();
             break;
+        case GUI_GRAPH:
+            emit focusGraph();
+            break;
+        case GUI_MEMMAP:
+            emit focusMemmap();
+            break;
         default:
             break;
         }
@@ -665,6 +679,21 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
             emit getActiveView((ACTIVEVIEW*)param1);
             result.Wait();
         }
+    }
+    break;
+
+    case GUI_ADD_INFO_LINE:
+    {
+        if(param1)
+        {
+            emit addInfoLine(QString((const char*)param1));
+        }
+    }
+    break;
+
+    case GUI_PROCESS_EVENTS:
+    {
+        QCoreApplication::processEvents();
     }
     break;
     }

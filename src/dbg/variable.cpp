@@ -76,9 +76,14 @@ void varinit()
     varnew("$ans\1$an", 0, VAR_HIDDEN);
 
     // Breakpoint variables
+    varnew("$breakpointcounter", 0, VAR_READONLY);
     varnew("$breakpointcondition", 0, VAR_SYSTEM);
-    varnew("$breakpointcounter", 0, VAR_SYSTEM);
-    varnew("$breakpointlogcondition", 0, VAR_SYSTEM);
+    varnew("$breakpointlogcondition", 0, VAR_READONLY);
+
+    // Tracing variables
+    varnew("$tracecounter", 0, VAR_READONLY);
+    varnew("$tracecondition", 0, VAR_SYSTEM);
+    varnew("$tracelogcondition", 0, VAR_READONLY);
 
     // Read-only variables
     varnew("$lastalloc", 0, VAR_READONLY);  // Last memory allocation

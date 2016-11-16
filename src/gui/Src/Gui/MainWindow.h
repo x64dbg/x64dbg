@@ -32,6 +32,7 @@ class TimeWastedCounter;
 class NotesManager;
 class SettingsDialog;
 class DisassemblerGraphView;
+class SimpleTraceDialog;
 
 namespace Ui
 {
@@ -102,6 +103,7 @@ public slots:
     void removeMenuEntry(int hEntry);
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
+    void setCheckedMenuEntry(int hEntry, bool checked);
     void runSelection();
     void runExpression();
     void getStrWindow(const QString title, QString* text);
@@ -167,6 +169,7 @@ private:
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
+    SimpleTraceDialog* mSimpleTraceDialog;
 
     DebugStatusLabel* mStatusLabel;
     LogStatusLabel* mLastLogLabel;
@@ -189,7 +192,18 @@ private:
     void updateMRUMenu();
     QString getMRUEntry(int index);
     void setupLanguagesMenu();
+    void onMenuCustomized();
+    void setupMenuCustomization();
     QAction* makeCommandAction(QAction* action, const QString & command);
+
+    //lists for menu customization
+    QList<QAction*> mFileMenuStrings;
+    QList<QAction*> mViewMenuStrings;
+    QList<QAction*> mDebugMenuStrings;
+    //"Plugins" menu cannot be customized for item hiding.
+    //"Favourites" menu cannot be customized for item hiding.
+    QList<QAction*> mOptionsMenuStrings;
+    QList<QAction*> mHelpMenuStrings;
 
     //menu api
     struct MenuEntryInfo

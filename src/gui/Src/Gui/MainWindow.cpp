@@ -48,6 +48,7 @@
 #include "BrowseDialog.h"
 #include "CustomizeMenuDialog.h"
 #include "main.h"
+#include "SimpleTraceDialog.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -75,6 +76,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
+    connect(Bridge::getBridge(), SIGNAL(setCheckedMenuEntry(int, bool)), this, SLOT(setCheckedMenuEntry(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
@@ -337,6 +339,8 @@ MainWindow::MainWindow(QWidget* parent)
     // Setup language menu
     setupLanguagesMenu();
 
+    setupMenuCustomization();
+
     // Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException = 0;
@@ -345,6 +349,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Create updatechecker
     mUpdateChecker = new UpdateChecker(this);
+    mSimpleTraceDialog = new SimpleTraceDialog(this);
 
     // Setup close thread and dialog
     bCanClose = false;
@@ -766,18 +771,20 @@ void MainWindow::execTicnd()
 {
     if(!DbgIsDebugging())
         return;
-    QString text;
-    if(SimpleInputBox(this, tr("Enter trace into finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceinto.png")))
-        DbgCmdExec(QString("ticnd \"%1\"").arg(text).toUtf8().constData());
+    mSimpleTraceDialog->setTraceCommand("TraceIntoConditional");
+    mSimpleTraceDialog->setWindowTitle(tr("Trace into..."));
+    mSimpleTraceDialog->setWindowIcon(DIcon("traceinto.png"));
+    mSimpleTraceDialog->exec();
 }
 
 void MainWindow::execTocnd()
 {
     if(!DbgIsDebugging())
         return;
-    QString text;
-    if(SimpleInputBox(this, tr("Enter trace over finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceover.png")))
-        DbgCmdExec(QString("tocnd \"%1\"").arg(text).toUtf8().constData());
+    mSimpleTraceDialog->setTraceCommand("TraceOverConditional");
+    mSimpleTraceDialog->setWindowTitle(tr("Trace over..."));
+    mSimpleTraceDialog->setWindowIcon(DIcon("traceover.png"));
+    mSimpleTraceDialog->exec();
 }
 
 void MainWindow::displayMemMapWidget()
@@ -1036,7 +1043,10 @@ void MainWindow::addMenu(int hMenu, QString title)
     if(hMenu == -1) //top-level
         ui->menuBar->addMenu(wMenu);
     else //deeper level
+    {
         menu->mMenu->addMenu(wMenu);
+        menu->mMenu->menuAction()->setVisible(true);
+    }
     Bridge::getBridge()->setResult(hMenuNew);
 }
 
@@ -1183,12 +1193,33 @@ void MainWindow::setIconMenu(int hMenu, QIcon icon)
     Bridge::getBridge()->setResult();
 }
 
+void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
+{
+    for(int i = 0; i < mEntryList.size(); i++)
+    {
+        if(mEntryList.at(i).hEntry == hEntry)
+        {
+            const MenuEntryInfo & entry = mEntryList.at(i);
+            entry.mAction->setCheckable(true);
+            entry.mAction->setChecked(checked);
+            break;
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
 void MainWindow::runSelection()
 {
+    QString command;
+
     if(!DbgIsDebugging())
         return;
 
-    QString command = "bp " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa()) + ", ss";
+    if(mGraphView->hasFocus())
+        command = "bp " + ToPtrString(mGraphView->get_cursor_pos()) + ", ss";
+    else
+        command = "bp " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa()) + ", ss";
+
     if(DbgCmdExecDirect(command.toUtf8().constData()))
         DbgCmdExecDirect("run");
 }
@@ -1721,6 +1752,7 @@ void MainWindow::setInitialzationScript()
     {
         debuggee = QString(DbgFunctions()->DbgGetDebuggeeInitScript());
         BrowseDialog browseScript(this, tr("Set Initialzation Script for Debuggee"), tr("Set Initialzation Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
+        browseScript.setWindowIcon(DIcon("initscript.png"));
         if(browseScript.exec() == QDialog::Accepted)
             DbgFunctions()->DbgSetDebuggeeInitScript(browseScript.path.toUtf8().constData());
     }
@@ -1729,6 +1761,7 @@ void MainWindow::setInitialzationScript()
     else
         global = QString();
     BrowseDialog browseScript(this, tr("Set Global Initialzation Script"), tr("Set Global Initialzation Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);
+    browseScript.setWindowIcon(DIcon("initscript.png"));
     if(browseScript.exec() == QDialog::Accepted)
     {
         BridgeSettingSet("Engine", "InitializeScript", browseScript.path.toUtf8().constData());
@@ -1741,6 +1774,7 @@ void MainWindow::customizeMenu()
     customMenuDialog.setWindowTitle(tr("Customize Menus"));
     customMenuDialog.setWindowIcon(DIcon("analysis.png"));
     customMenuDialog.exec();
+    onMenuCustomized();
 }
 
 #include "../src/bridge/Utf8Ini.h"
@@ -1796,4 +1830,85 @@ void MainWindow::on_actionExportdatabase_triggered()
     if(!filename.length())
         return;
     DbgCmdExec(QString("dbsave \"%1\"").arg(QDir::toNativeSeparators(filename)).toUtf8().constData());
+}
+
+static void setupMenuCustomizationHelper(QMenu* parentMenu, QList<QAction*> & stringList)
+{
+    for(int i = 0; i < parentMenu->actions().size(); i++)
+    {
+        QAction* action = parentMenu->actions().at(i);
+        stringList.append(action);
+    }
+}
+
+void MainWindow::setupMenuCustomization()
+{
+    mFileMenuStrings.append(new QAction("File", this));
+    setupMenuCustomizationHelper(ui->menuFile, mFileMenuStrings);
+    mDebugMenuStrings.append(new QAction("Debug", this));
+    setupMenuCustomizationHelper(ui->menuDebug, mDebugMenuStrings);
+    mOptionsMenuStrings.append(new QAction("Option", this));
+    setupMenuCustomizationHelper(ui->menuOptions, mOptionsMenuStrings);
+    mHelpMenuStrings.append(new QAction("Help", this));
+    setupMenuCustomizationHelper(ui->menuHelp, mHelpMenuStrings);
+    mViewMenuStrings.append(new QAction("View", this));
+    setupMenuCustomizationHelper(ui->menuView, mViewMenuStrings);
+    onMenuCustomized();
+    Config()->registerMainMenuStringList(&mFileMenuStrings);
+    Config()->registerMainMenuStringList(&mDebugMenuStrings);
+    Config()->registerMainMenuStringList(&mOptionsMenuStrings);
+    Config()->registerMainMenuStringList(&mHelpMenuStrings);
+    Config()->registerMainMenuStringList(&mViewMenuStrings);
+}
+
+void MainWindow::onMenuCustomized()
+{
+    QList<QMenu*> menus;
+    QList<QString> menuNativeNames;
+    QList<QList<QAction*>*> menuTextStrings;
+    menus << ui->menuFile << ui->menuDebug << ui->menuOptions << ui->menuHelp << ui->menuView;
+    menuNativeNames << "File" << "Debug" << "Option" << "Help" << "View";
+    menuTextStrings << &mFileMenuStrings << &mDebugMenuStrings << &mOptionsMenuStrings << &mHelpMenuStrings << &mViewMenuStrings;
+    for(int i = 0; i < menus.size(); i++)
+    {
+        QMenu* currentMenu = menus[i];
+        QMenu* moreCommands = nullptr;
+        bool moreCommandsUsed = false;
+        QList<QAction*> & list = currentMenu->actions();
+        moreCommands = list.last()->menu();
+        if(moreCommands && moreCommands->title().compare(tr("More Commands")) == 0)
+        {
+            for(auto & j : moreCommands->actions())
+                moreCommands->removeAction(j);
+            QAction* separatorMoreCommands = list.at(list.length() - 2);
+            currentMenu->removeAction(separatorMoreCommands); // Separator
+            delete separatorMoreCommands;
+        }
+        else
+        {
+            moreCommands = new QMenu(tr("More Commands"), currentMenu);
+        }
+        for(auto & j : list)
+            currentMenu->removeAction(j);
+        for(int j = 0; j < menuTextStrings.at(i)->size() - 1; j++)
+        {
+            QAction* a = menuTextStrings.at(i)->at(j + 1);
+            if(Config()->getBool("Gui", QString("Menu%1Hidden%2").arg(menuNativeNames[i]).arg(j)))
+            {
+                moreCommands->addAction(a);
+                moreCommandsUsed = true;
+            }
+            else
+            {
+                currentMenu->addAction(a);
+            }
+        }
+        if(moreCommandsUsed)
+        {
+            currentMenu->addSeparator();
+            currentMenu->addMenu(moreCommands);
+        }
+        else
+            delete moreCommands;
+    }
 }

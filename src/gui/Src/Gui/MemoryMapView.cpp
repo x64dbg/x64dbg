@@ -24,6 +24,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, tr("Address")); //addr
     addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, tr("Size")); //size
     addColumnAt(8 + charwidth * 32, tr("Info"), false, tr("Page Information")); //page information
+    addColumnAt(8 + charwidth * 28, tr("Content"), false, tr("Content of section")); //content of section
     addColumnAt(8 + charwidth * 5, tr("Type"), false, tr("Allocation Type")); //allocation type
     addColumnAt(8 + charwidth * 11, tr("Protection"), false, tr("Current Protection")); //current protection
     addColumnAt(8 + charwidth * 8, tr("Initial"), false, tr("Allocation Protection")); //allocation protection
@@ -35,6 +36,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(selectAddress(duint)));
     connect(Bridge::getBridge(), SIGNAL(selectionMemmapGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(focusMemmap()), this, SLOT(setFocus()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     setupContextMenu();
@@ -57,7 +59,7 @@ void MemoryMapView::setupContextMenu()
     connect(mYara, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Set PageMemory Rights
-    mPageMemoryRights = new QAction(tr("Set Page Memory Rights"), this);
+    mPageMemoryRights = new QAction(DIcon("memmap_set_page_memory_rights.png"), tr("Set Page Memory Rights"), this);
     connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
 
     //Switch View
@@ -115,13 +117,13 @@ void MemoryMapView::setupContextMenu()
     connect(mMemoryExecuteSingleshootToggle, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootToggleSlot()));
 
     //Allocate memory
-    mMemoryAllocate = new QAction(tr("&Allocate memory"), this);
+    mMemoryAllocate = new QAction(DIcon("memmap_alloc_memory.png"), tr("&Allocate memory"), this);
     mMemoryAllocate->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryAllocate, SIGNAL(triggered()), this, SLOT(memoryAllocateSlot()));
     this->addAction(mMemoryAllocate);
 
     //Free memory
-    mMemoryFree = new QAction(tr("&Free memory"), this);
+    mMemoryFree = new QAction(DIcon("memmap_free_memory.png"), tr("&Free memory"), this);
     mMemoryFree->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
     this->addAction(mMemoryFree);
@@ -337,21 +339,31 @@ void MemoryMapView::refreshMap()
         wS = QString((wMemMapStruct.page)[wI].info);
         setCellContent(wI, 2, wS);
 
-        // State
-        switch(wMbi.State)
-        {
-        case MEM_FREE:
-            wS = QString("FREE");
-            break;
-        case MEM_COMMIT:
-            wS = QString("COMM");
-            break;
-        case MEM_RESERVE:
-            wS = QString("RESV");
-            break;
-        default:
-            wS = QString("????");
-        }
+        // Content
+        if(wS.contains(".bss"))
+            wS = tr("Uninitialized data");
+        else if(wS.contains(".data"))
+            wS = tr("Initialized data");
+        else if(wS.contains(".edata"))
+            wS = tr("Export tables");
+        else if(wS.contains(".idata"))
+            wS = tr("Import tables");
+        else if(wS.contains(".pdata"))
+            wS = tr("Exception information");
+        else if(wS.contains(".rdata"))
+            wS = tr("Read-only initialized data");
+        else if(wS.contains(".reloc"))
+            wS = tr("Base relocations");
+        else if(wS.contains(".rsrc"))
+            wS = tr("Resources");
+        else if(wS.contains(".text"))
+            wS = tr("Executable code");
+        else if(wS.contains(".tls"))
+            wS = tr("Thread-local storage");
+        else if(wS.contains(".xdata"))
+            wS = tr("Exception information");
+        else
+            wS = QString("");
         setCellContent(wI, 3, wS);
 
         // Type
@@ -370,15 +382,15 @@ void MemoryMapView::refreshMap()
             wS = QString("N/A");
             break;
         }
-        setCellContent(wI, 3, wS);
+        setCellContent(wI, 4, wS);
 
         // current access protection
         wS = getProtectionString(wMbi.Protect);
-        setCellContent(wI, 4, wS);
+        setCellContent(wI, 5, wS);
 
         // allocation protection
         wS = getProtectionString(wMbi.AllocationProtect);
-        setCellContent(wI, 5, wS);
+        setCellContent(wI, 6, wS);
 
     }
     if(wMemMapStruct.page != 0)
@@ -610,11 +622,12 @@ void MemoryMapView::gotoOriginSlot()
 
 void MemoryMapView::gotoExpressionSlot()
 {
-    GotoDialog mGoto(this);
-    mGoto.setWindowTitle(tr("Enter the address to find..."));
-    if(mGoto.exec() == QDialog::Accepted)
+    if(!mGoto)
+        mGoto = new GotoDialog(this);
+    mGoto->setWindowTitle(tr("Enter the address to find..."));
+    if(mGoto->exec() == QDialog::Accepted)
     {
-        selectAddress(DbgValFromString(mGoto.expressionText.toUtf8().constData()));
+        selectAddress(DbgValFromString(mGoto->expressionText.toUtf8().constData()));
     }
 }
 

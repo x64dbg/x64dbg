@@ -2,15 +2,28 @@
 #include "ui_XrefBrowseDialog.h"
 #include "StringUtil.h"
 
-XrefBrowseDialog::XrefBrowseDialog(QWidget* parent, duint address) :
+XrefBrowseDialog::XrefBrowseDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::XrefBrowseDialog)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setWindowIcon(DIcon("xrefs.png"));
+    setModal(false);
+    mXrefInfo.refcount = 0;
+}
+
+void XrefBrowseDialog::setup(duint address, QString command)
+{
+    if(mXrefInfo.refcount)
+    {
+        BridgeFree(mXrefInfo.references);
+        mXrefInfo.refcount = 0;
+    }
+    mCommand = command;
     mAddress = address;
     mPrevSelectionSize = 0;
+    ui->listWidget->clear();
     if(DbgXrefGet(address, &mXrefInfo))
     {
         char disasm[GUI_MAX_DISASSEMBLY_SIZE] = "";
@@ -24,11 +37,12 @@ XrefBrowseDialog::XrefBrowseDialog(QWidget* parent, duint address) :
         }
         ui->listWidget->setCurrentRow(0);
     }
+    ui->listWidget->setFocus();
 }
 
 void XrefBrowseDialog::changeAddress(duint address)
 {
-    DbgCmdExec(QString().sprintf("disasm \"%p\"", address).toUtf8().constData());
+    DbgCmdExec(QString("%1 %2").arg(mCommand, ToPtrString(address)).toUtf8().constData());
 }
 
 XrefBrowseDialog::~XrefBrowseDialog()
@@ -69,5 +83,10 @@ void XrefBrowseDialog::on_listWidget_currentRowChanged(int row)
 
 void XrefBrowseDialog::on_XrefBrowseDialog_rejected()
 {
-    DbgCmdExec(QString().sprintf("disasm \"%p\"", mAddress).toUtf8().constData());
+    DbgCmdExec(QString("%1 %2").arg(mCommand, ToPtrString(mAddress)).toUtf8().constData());
+}
+
+void XrefBrowseDialog::on_listWidget_itemClicked(QListWidgetItem*)
+{
+    on_listWidget_currentRowChanged(ui->listWidget->currentRow());
 }

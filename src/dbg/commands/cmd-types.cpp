@@ -8,170 +8,170 @@
 
 using namespace Types;
 
-static CMDRESULT cbInstrDataGeneric(ENCODETYPE type, int argc, char* argv[])
+static bool cbInstrDataGeneric(ENCODETYPE type, int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     duint size = 1;
     if(argc >= 3)
         if(!valfromstring(argv[2], &size, false))
-            return STATUS_ERROR;
+            return false;
     bool created;
     if(!EncodeMapSetType(addr, size, type, &created))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "EncodeMapSetType failed..."));
-        return STATUS_ERROR;
+        return false;
     }
     if(created)
         DbgCmdExec("disasm dis.sel()");
     else
         GuiUpdateDisassemblyView();
-    return STATUS_ERROR;
+    return false;
 }
 
-CMDRESULT cbInstrDataUnknown(int argc, char* argv[])
+bool cbInstrDataUnknown(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_unknown, argc, argv);
 }
 
-CMDRESULT cbInstrDataByte(int argc, char* argv[])
+bool cbInstrDataByte(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_byte, argc, argv);
 }
 
-CMDRESULT cbInstrDataWord(int argc, char* argv[])
+bool cbInstrDataWord(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_word, argc, argv);
 }
 
-CMDRESULT cbInstrDataDword(int argc, char* argv[])
+bool cbInstrDataDword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_dword, argc, argv);
 }
 
-CMDRESULT cbInstrDataFword(int argc, char* argv[])
+bool cbInstrDataFword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_fword, argc, argv);
 }
 
-CMDRESULT cbInstrDataQword(int argc, char* argv[])
+bool cbInstrDataQword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_qword, argc, argv);
 }
 
-CMDRESULT cbInstrDataTbyte(int argc, char* argv[])
+bool cbInstrDataTbyte(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_tbyte, argc, argv);
 }
 
-CMDRESULT cbInstrDataOword(int argc, char* argv[])
+bool cbInstrDataOword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_oword, argc, argv);
 }
 
-CMDRESULT cbInstrDataMmword(int argc, char* argv[])
+bool cbInstrDataMmword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_mmword, argc, argv);
 }
 
-CMDRESULT cbInstrDataXmmword(int argc, char* argv[])
+bool cbInstrDataXmmword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_xmmword, argc, argv);
 }
 
-CMDRESULT cbInstrDataYmmword(int argc, char* argv[])
+bool cbInstrDataYmmword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_ymmword, argc, argv);
 }
 
-CMDRESULT cbInstrDataFloat(int argc, char* argv[])
+bool cbInstrDataFloat(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_real4, argc, argv);
 }
 
-CMDRESULT cbInstrDataDouble(int argc, char* argv[])
+bool cbInstrDataDouble(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_real8, argc, argv);
 }
 
-CMDRESULT cbInstrDataLongdouble(int argc, char* argv[])
+bool cbInstrDataLongdouble(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_real10, argc, argv);
 }
 
-CMDRESULT cbInstrDataAscii(int argc, char* argv[])
+bool cbInstrDataAscii(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_ascii, argc, argv);
 }
 
-CMDRESULT cbInstrDataUnicode(int argc, char* argv[])
+bool cbInstrDataUnicode(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_unicode, argc, argv);
 }
 
-CMDRESULT cbInstrDataCode(int argc, char* argv[])
+bool cbInstrDataCode(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_code, argc, argv);
 }
 
-CMDRESULT cbInstrDataJunk(int argc, char* argv[])
+bool cbInstrDataJunk(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_junk, argc, argv);
 }
 
-CMDRESULT cbInstrDataMiddle(int argc, char* argv[])
+bool cbInstrDataMiddle(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_middle, argc, argv);
 }
 
 #define towner "cmd"
 
-CMDRESULT cbInstrAddType(int argc, char* argv[])
+bool cbInstrAddType(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     if(!AddType(towner, argv[1], argv[2]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddType failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("typedef %s %s;\n", argv[2], argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddStruct(int argc, char* argv[])
+bool cbInstrAddStruct(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     if(!AddStruct(towner, argv[1]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddStruct failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("struct %s;\n", argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddUnion(int argc, char* argv[])
+bool cbInstrAddUnion(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     if(!AddUnion(towner, argv[1]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddUnion failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("union %s;\n", argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddMember(int argc, char* argv[])
+bool cbInstrAddMember(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 4))
-        return STATUS_ERROR;
+        return false;
     auto parent = argv[1];
     auto type = argv[2];
     auto name = argv[3];
@@ -180,19 +180,19 @@ CMDRESULT cbInstrAddMember(int argc, char* argv[])
     {
         duint value;
         if(!valfromstring(argv[4], &value, false))
-            return STATUS_ERROR;
+            return false;
         arrsize = int(value);
         if(argc > 4)
         {
             if(!valfromstring(argv[5], &value, false))
-                return STATUS_ERROR;
+                return false;
             offset = int(value);
         }
     }
     if(!AddMember(parent, type, name, arrsize, offset))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddMember failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s: %s %s", parent, type, name);
     if(arrsize > 0)
@@ -200,13 +200,13 @@ CMDRESULT cbInstrAddMember(int argc, char* argv[])
     if(offset >= 0)
         dprintf_untranslated(" (offset: %d)", offset);
     dputs_untranslated(";");
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAppendMember(int argc, char* argv[])
+bool cbInstrAppendMember(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     auto type = argv[1];
     auto name = argv[2];
     int arrsize = 0, offset = -1;
@@ -214,19 +214,19 @@ CMDRESULT cbInstrAppendMember(int argc, char* argv[])
     {
         duint value;
         if(!valfromstring(argv[3], &value, false))
-            return STATUS_ERROR;
+            return false;
         arrsize = int(value);
         if(argc > 4)
         {
             if(!valfromstring(argv[4], &value, false))
-                return STATUS_ERROR;
+                return false;
             offset = int(value);
         }
     }
     if(!AppendMember(type, name, arrsize, offset))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AppendMember failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s %s", type, name);
     if(arrsize > 0)
@@ -234,13 +234,13 @@ CMDRESULT cbInstrAppendMember(int argc, char* argv[])
     if(offset >= 0)
         dprintf_untranslated(" (offset: %d)", offset);
     dputs_untranslated(";");
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddFunction(int argc, char* argv[])
+bool cbInstrAddFunction(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     auto name = argv[1];
     auto rettype = argv[2];
     auto callconv = Cdecl;
@@ -258,65 +258,65 @@ CMDRESULT cbInstrAddFunction(int argc, char* argv[])
         else
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Unknown calling convention \"%s\"\n"), argv[3]);
-            return STATUS_ERROR;
+            return false;
         }
         if(argc > 4)
         {
             duint value;
             if(!valfromstring(argv[4], &value, false))
-                return STATUS_ERROR;
+                return false;
             noreturn = value != 0;
         }
     }
     if(!AddFunction(towner, name, rettype, callconv, noreturn))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddFunction failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s %s();\n", rettype, name);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddArg(int argc, char* argv[])
+bool cbInstrAddArg(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 4))
-        return STATUS_ERROR;
+        return false;
     if(!AddArg(argv[1], argv[2], argv[3]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddArg failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s: %s %s;\n", argv[1], argv[2], argv[3]);
-    return STATUS_CONTINUE;
+    return true;
 
 }
 
-CMDRESULT cbInstrAppendArg(int argc, char* argv[])
+bool cbInstrAppendArg(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     if(!AppendArg(argv[1], argv[2]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AppendArg failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s %s;\n", argv[1], argv[2]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrSizeofType(int argc, char* argv[])
+bool cbInstrSizeofType(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     auto size = SizeofType(argv[1]);
     if(!size)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "SizeofType failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("sizeof(%s) = %d\n", argv[1], size);
     varset("$result", size, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
 struct PrintVisitor : TypeManager::Visitor
@@ -528,10 +528,10 @@ private:
     int mMaxPtrDepth = 0;
 };
 
-CMDRESULT cbInstrVisitType(int argc, char* argv[])
+bool cbInstrVisitType(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     auto type = argv[1];
     auto name = "visit";
     duint addr = 0;
@@ -539,12 +539,12 @@ CMDRESULT cbInstrVisitType(int argc, char* argv[])
     if(argc > 2)
     {
         if(!valfromstring(argv[2], &addr, false))
-            return STATUS_ERROR;
+            return false;
         if(argc > 3)
         {
             duint value;
             if(!valfromstring(argv[3], &value, false))
-                return STATUS_ERROR;
+                return false;
             maxPtrDepth = int(value);
             if(argc > 4)
                 name = argv[4];
@@ -554,34 +554,34 @@ CMDRESULT cbInstrVisitType(int argc, char* argv[])
     if(!VisitType(type, name, visitor))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "VisitType failed"));
-        return STATUS_ERROR;
+        return false;
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrClearTypes(int argc, char* argv[])
+bool cbInstrClearTypes(int argc, char* argv[])
 {
     auto owner = towner;
     if(argc > 1)
         owner = argv[1];
     ClearTypes(owner);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrRemoveType(int argc, char* argv[])
+bool cbInstrRemoveType(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     if(!RemoveType(argv[1]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "RemoveType failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Type %s removed\n"), argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrEnumTypes(int argc, char* argv[])
+bool cbInstrEnumTypes(int argc, char* argv[])
 {
     std::vector<TypeManager::Summary> typeList;
     EnumTypes(typeList);
@@ -591,5 +591,5 @@ CMDRESULT cbInstrEnumTypes(int argc, char* argv[])
             type.owner.assign("x64dbg");
         dprintf_untranslated("%s: %s %s, sizeof(%s) = %d\n", type.owner.c_str(), type.kind.c_str(), type.name.c_str(), type.name.c_str(), type.size);
     }
-    return STATUS_CONTINUE;
+    return true;
 }

@@ -1,20 +1,26 @@
 #include "stringutils.h"
 #include "value.h"
-#include "dynamicmem.h"
 #include <windows.h>
 #include <cstdint>
 
-StringList StringUtils::Split(const String & s, char delim, std::vector<String> & elems)
+void StringUtils::Split(const String & s, char delim, std::vector<String> & elems)
 {
-    std::stringstream ss(s);
+    elems.clear();
     String item;
-    while(std::getline(ss, item, delim))
+    item.reserve(s.length());
+    for(size_t i = 0; i < s.length(); i++)
     {
-        if(!item.length())
-            continue;
-        elems.push_back(item);
+        if(s[i] == delim)
+        {
+            if(!item.empty())
+                elems.push_back(item);
+            item.clear();
+        }
+        else
+            item.push_back(s[i]);
     }
-    return elems;
+    if(!item.empty())
+        elems.push_back(std::move(item));
 }
 
 StringList StringUtils::Split(const String & s, char delim)
@@ -234,44 +240,44 @@ void StringUtils::ReplaceAll(WString & s, const WString & from, const WString & 
     }
 }
 
-String StringUtils::sprintf(const char* format, ...)
+String StringUtils::sprintf(_Printf_format_string_ const char* format, ...)
 {
     va_list args;
     va_start(args, format);
-    Memory<char*> buffer(256 * sizeof(char), "StringUtils::sprintf");
+    std::vector<char> buffer(256, '\0');
     while(true)
     {
-        int res = _vsnprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
+        int res = _vsnprintf_s(buffer.data(), buffer.size(), _TRUNCATE, format, args);
         if(res == -1)
         {
-            buffer.realloc(buffer.size() * 2, "StringUtils::sprintf");
+            buffer.resize(buffer.size() * 2);
             continue;
         }
         else
             break;
     }
     va_end(args);
-    return String(buffer());
+    return String(buffer.data());
 }
 
-WString StringUtils::sprintf(const wchar_t* format, ...)
+WString StringUtils::sprintf(_Printf_format_string_ const wchar_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    Memory<wchar_t*> buffer(256 * sizeof(wchar_t), "StringUtils::sprintf");
+    std::vector<wchar_t> buffer(256, L'\0');
     while(true)
     {
-        int res = _vsnwprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
+        int res = _vsnwprintf_s(buffer.data(), buffer.size(), _TRUNCATE, format, args);
         if(res == -1)
         {
-            buffer.realloc(buffer.size() * 2, "StringUtils::sprintf");
+            buffer.resize(buffer.size() * 2);
             continue;
         }
         else
             break;
     }
     va_end(args);
-    return WString(buffer());
+    return WString(buffer.data());
 }
 
 String StringUtils::ToLower(const String & s)

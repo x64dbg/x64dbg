@@ -9,6 +9,7 @@
 #include "console.h"
 #include "debugger.h"
 #include "threading.h"
+#include "murmurhash.h"
 
 ///debugger plugin exports (wrappers)
 PLUG_IMPEXP void _plugin_registercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
@@ -92,6 +93,11 @@ PLUG_IMPEXP void _plugin_menuentryseticon(int pluginHandle, int hEntry, const IC
     pluginmenuentryseticon(pluginHandle, hEntry, icon);
 }
 
+PLUG_IMPEXP void _plugin_menuentrysetchecked(int pluginHandle, int hEntry, bool checked)
+{
+    pluginmenuentrysetchecked(pluginHandle, hEntry, checked);
+}
+
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript)
 {
     dbgstartscriptthread(cbScript);
@@ -100,7 +106,10 @@ PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript)
 PLUG_IMPEXP bool _plugin_waituntilpaused()
 {
     while(DbgIsDebugging() && dbgisrunning())  //wait until the debugger paused
+    {
         Sleep(1);
+        GuiProcessEvents(); //workaround for scripts being executed on the GUI thread
+    }
     return DbgIsDebugging();
 }
 
@@ -122,4 +131,9 @@ PLUG_IMPEXP bool _plugin_unload(const char* pluginName)
 PLUG_IMPEXP bool _plugin_load(const char* pluginName)
 {
     return pluginload(pluginName);
+}
+
+duint _plugin_hash(const void* data, duint size)
+{
+    return murmurhash(data, int(size));
 }

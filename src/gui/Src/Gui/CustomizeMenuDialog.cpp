@@ -7,34 +7,71 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::CustomizeMenuDialog)
 {
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     ui->setupUi(this);
-    for(const auto & i : Config()->NamedMenuBuilders)
+    for(const Configuration::MenuMap & i : Config()->NamedMenuBuilders)
     {
         QString viewName;
-        const char* id = i.first->getId();
-        if(strcmp(id, "CPUDisassembly") == 0)
+        MenuBuilder* builder = nullptr;
+        QList<QAction*>* mainMenuList = nullptr;
+        QString id;
+        if(i.type == 1)
+        {
+            mainMenuList = i.mainMenuList;
+            id = mainMenuList->first()->text();
+        }
+        else if(i.type == 0)
+        {
+            builder = i.builder;
+            id = builder->getId();
+        }
+        else
+            continue;
+        if(id == "CPUDisassembly")
             viewName = tr("Disassembler");
-        else if(strcmp(id, "CPUDump") == 0)
+        else if(id == "CPUDump")
             viewName = tr("Dump");
-        else if(strcmp(id, "WatchView") == 0)
+        else if(id == "WatchView")
             viewName = tr("Watch");
-        else if(strcmp(id, "CallStackView") == 0)
+        else if(id == "CallStackView")
             viewName = tr("Call Stack");
-        else if(strcmp(id, "ThreadView") == 0)
+        else if(id == "ThreadView")
             viewName = tr("Threads");
+        else if(id == "DisassemblerGraphView")
+            viewName = tr("Graph");
+        else if(id == "CPUStack")
+            viewName = tr("Stack");
+        else if(id == "SourceView")
+            viewName = tr("Source");
+        else if(id == "File")
+            viewName = tr("File");
+        else if(id == "Debug")
+            viewName = tr("Debug");
+        else if(id == "Option")
+            viewName = tr("Option");
+        else if(id == "Favourite")
+            viewName = tr("Favourite");
+        else if(id == "Help")
+            viewName = tr("Help");
+        else if(id == "View")
+            viewName = tr("View");
         else
             continue;
         QTreeWidgetItem* parentItem = new QTreeWidgetItem(ui->treeWidget);
         parentItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         parentItem->setText(0, viewName);
-        for(size_t j = 0; j < i.second; j++)
+        for(size_t j = 0; j < i.count; j++)
         {
-            QString text = i.first->getText(j);
+            QString text;
+            if(i.type == 0)
+                text = builder->getText(j);
+            else if(i.type == 1)
+                text = mainMenuList->at(int(j + 1))->text();
             if(!text.isEmpty())
             {
                 QTreeWidgetItem* menuItem = new QTreeWidgetItem(parentItem, 0);
                 menuItem->setText(0, text.replace(QChar('&'), ""));
-                QString configString = QString("Menu%1Hidden%2").arg(i.first->getId()).arg(j);
+                QString configString = QString("Menu%1Hidden%2").arg(id).arg(j);
                 menuItem->setCheckState(0, Config()->getBool("Gui", configString) ? Qt::Checked : Qt::Unchecked);
                 menuItem->setData(0, Qt::UserRole, QVariant(configString));
                 menuItem->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);

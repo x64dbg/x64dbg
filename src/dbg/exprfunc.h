@@ -30,21 +30,26 @@ namespace Exprfunc
     duint disiscond(duint addr);
     duint disisbranch(duint addr);
     duint disisret(duint addr);
+    duint disiscall(duint addr);
     duint disismem(duint addr);
     duint disbranchdest(duint addr);
     duint disbranchexec(duint addr);
     duint disimm(duint addr);
     duint disbrtrue(duint addr);
     duint disbrfalse(duint addr);
+    duint disnext(duint addr);
+    duint disprev(duint addr);
 
     duint trenabled(duint addr);
     duint trhitcount(duint addr);
     duint gettickcount();
-    duint sleep(duint ms);
 
     duint readbyte(duint addr);
     duint readword(duint addr);
     duint readdword(duint addr);
     duint readqword(duint addr);
     duint readptr(duint addr);
+
+    duint funcstart(duint addr);
+    duint funcend(duint addr);
 }

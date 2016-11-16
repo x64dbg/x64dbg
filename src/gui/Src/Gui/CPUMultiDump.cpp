@@ -151,7 +151,6 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
         SwitchToDumpWindow();
         mCurrentCPUDump->printDumpAt(parVa);
         mCurrentCPUDump->addVaToHistory(parVa);
-        mCurrentCPUDump->setFocus();
     }
 }
 

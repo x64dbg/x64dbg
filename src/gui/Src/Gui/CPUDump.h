@@ -116,7 +116,8 @@ private:
     QMenu* mFollowInDumpMenu;
     QList<QAction*> mFollowInDumpActions;
 
-    GotoDialog* mGoto;
+    GotoDialog* mGoto = nullptr;
+    GotoDialog* mGotoOffset = nullptr;
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
 

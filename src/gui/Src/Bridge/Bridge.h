@@ -110,6 +110,7 @@ signals:
     void loadSourceFile(const QString path, int line, int selection);
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
+    void setCheckedMenuEntry(int hEntry, bool checked);
     void showCpu();
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
@@ -127,6 +128,8 @@ signals:
     void focusDisasm();
     void focusDump();
     void focusStack();
+    void focusGraph();
+    void focusMemmap();
     void updateWatch();
     void loadGraph(BridgeCFGraphList* graph, duint addr);
     void graphAt(duint addr);
@@ -137,6 +140,7 @@ signals:
     void foldDisassembly(duint startAddr, duint length);
     void selectInMemoryMap(duint addr);
     void getActiveView(ACTIVEVIEW* activeView);
+    void addInfoLine(const QString & text);
 
 private:
     QMutex* mBridgeMutex;

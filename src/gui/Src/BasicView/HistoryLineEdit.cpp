@@ -18,6 +18,7 @@ void HistoryLineEdit::loadSettings(QString sectionPrefix)
         mCmdHistory.append(entry);
     }
 }
+
 void HistoryLineEdit::saveSettings(QString sectionPrefix)
 {
     int i = 1;
@@ -33,6 +34,7 @@ void HistoryLineEdit::saveSettings(QString sectionPrefix)
                      QString("Line%1").arg(i).toUtf8().constData(),
                      "");
 }
+
 void HistoryLineEdit::addLineToHistory(QString parLine)
 {
     mCmdHistory.prepend(parLine);
@@ -41,6 +43,17 @@ void HistoryLineEdit::addLineToHistory(QString parLine)
         mCmdHistory.removeLast();
 
     mCmdIndex = -1;
+}
+
+QString HistoryLineEdit::addHistoryClear()
+{
+    auto str = text();
+    if(str.length())
+    {
+        addLineToHistory(str);
+        clear();
+    }
+    return str;
 }
 
 void HistoryLineEdit::keyPressEvent(QKeyEvent* event)

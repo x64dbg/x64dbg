@@ -53,6 +53,7 @@ private slots:
     void on_chkSkipInt3Stepping_toggled(bool checked);
     void on_chkNoScriptTimeout_stateChanged(int arg1);
     void on_chkIgnoreInconsistentBreakpoints_toggled(bool checked);
+    void on_spinMaxTraceCount_valueChanged(int arg1);
     //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
@@ -63,6 +64,7 @@ private slots:
     void on_chkUppercase_stateChanged(int arg1);
     void on_chkOnlyCipAutoComments_stateChanged(int arg1);
     void on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1);
+    void on_chkNoHighlightOperands_toggled(bool checked);
     //Gui Tab
     void on_chkFpuRegistersLittleEndian_stateChanged(int arg1);
     void on_chkSaveColumnOrder_stateChanged(int arg1);
@@ -133,6 +135,7 @@ private:
         bool engineSkipInt3Stepping;
         bool engineNoScriptTimeout;
         bool engineIgnoreInconsistentBreakpoints;
+        int engineMaxTraceCount;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
         //Disasm Tab
@@ -141,6 +144,7 @@ private:
         bool disasmUppercase;
         bool disasmOnlyCipAutoComments;
         bool disasmTabBetweenMnemonicAndArguments;
+        bool disasmNoHighlightOperands;
         //Gui Tab
         bool guiFpuRegistersLittleEndian;
         bool guiSaveColumnOrder;

@@ -27,6 +27,7 @@ CppDependOut/
 *.opensdf
 *.sdf
 *.suo
+*.VC.opendb
 *.autosave
 *.~vsd
 *.dll

@@ -251,7 +251,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion()
     return DBG_VERSION;
 }
 
-BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
+BRIDGE_IMPEXP bool DbgMemRead(duint va, void* dest, duint size)
 {
 #ifdef _DEBUG
     if(IsBadWritePtr(dest, size))
@@ -272,7 +272,7 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
     return true;
 }
 
-BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
+BRIDGE_IMPEXP bool DbgMemWrite(duint va, const void* src, duint size)
 {
 #ifdef _DEBUG
     if(IsBadReadPtr(src, size))
@@ -332,7 +332,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags = flaglabel;
+    info.flags = flaglabel | flagNoFuncOffset;
     if(!_dbg_addrinfoget(addr, segment, &info))
     {
         duint addr_ = 0;
@@ -989,6 +989,11 @@ BRIDGE_IMPEXP void DbgDelEncodeTypeSegment(duint start)
     _dbg_sendmessage(DBG_DELETE_ENCODE_TYPE_SEG, (void*)start, 0);
 }
 
+BRIDGE_IMPEXP void DbgSelChanged(int hWindow, duint VA)
+{
+    _dbg_sendmessage(DBG_SELCHANGED, (void*)hWindow, (void*)VA);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);
@@ -1021,15 +1026,12 @@ BRIDGE_IMPEXP void GuiUpdateEnable(bool updateNow)
 {
     bDisableGUIUpdate = false;
     if(updateNow)
-        DbgCmdExecDirect("guiupdateenable");
-    else
-        DbgCmdExecDirect("guiupdateenable 0");
+        GuiUpdateAllViews();
 }
 
 BRIDGE_IMPEXP void GuiUpdateDisable()
 {
     bDisableGUIUpdate = true;
-    DbgCmdExecDirect("guimsgdisable");
 }
 
 BRIDGE_IMPEXP bool GuiIsUpdateDisabled()
@@ -1367,6 +1369,11 @@ BRIDGE_IMPEXP void GuiMenuSetEntryIcon(int hEntry, const ICONDATA* icon)
     _gui_sendmessage(GUI_MENU_SET_ENTRY_ICON, (void*)hEntry, (void*)icon);
 }
 
+BRIDGE_IMPEXP void GuiMenuSetEntryChecked(int hEntry, bool checked)
+{
+    _gui_sendmessage(GUI_MENU_SET_ENTRY_CHECKED, (void*)hEntry, (void*)checked);
+}
+
 BRIDGE_IMPEXP void GuiShowCpu()
 {
     _gui_sendmessage(GUI_SHOW_CPU, 0, 0);
@@ -1453,9 +1460,9 @@ BRIDGE_IMPEXP void GuiLoadGraph(BridgeCFGraphList* graph, duint addr)
     _gui_sendmessage(GUI_LOAD_GRAPH, graph, (void*)addr);
 }
 
-BRIDGE_IMPEXP bool GuiGraphAt(duint addr)
+BRIDGE_IMPEXP duint GuiGraphAt(duint addr)
 {
-    return !!_gui_sendmessage(GUI_GRAPH_AT, (void*)addr, nullptr);
+    return (duint)_gui_sendmessage(GUI_GRAPH_AT, (void*)addr, nullptr);
 }
 
 BRIDGE_IMPEXP void GuiUpdateGraphView()
@@ -1502,6 +1509,16 @@ BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr)
 BRIDGE_IMPEXP void GuiGetActiveView(ACTIVEVIEW* activeView)
 {
     _gui_sendmessage(GUI_GET_ACTIVE_VIEW, activeView, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiAddInfoLine(const char* infoLine)
+{
+    _gui_sendmessage(GUI_ADD_INFO_LINE, (void*)infoLine, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiProcessEvents()
+{
+    _gui_sendmessage(GUI_PROCESS_EVENTS, nullptr, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

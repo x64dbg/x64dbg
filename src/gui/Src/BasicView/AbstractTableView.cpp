@@ -319,9 +319,12 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
                 }
             }
 
-            // Paints cell right borders
-            wPainter.setPen(separatorColor);
-            wPainter.drawLine(x + getColumnWidth(j) - 1, y, x + getColumnWidth(j) - 1, y + getRowHeight() - 1);
+            if(getColumnCount() > 1)
+            {
+                // Paints cell right borders
+                wPainter.setPen(separatorColor);
+                wPainter.drawLine(x + getColumnWidth(j) - 1, y, x + getColumnWidth(j) - 1, y + getRowHeight() - 1);
+            }
 
             // Update y for the next iteration
             y += getRowHeight();
@@ -348,6 +351,8 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
  */
 void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
 {
+    if(getColumnCount() <= 1)
+        return;
     int wColIndex = getColumnIndexFromX(event->x());
     int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
     int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
@@ -629,6 +634,8 @@ void AbstractTableView::resizeEvent(QResizeEvent* event)
 void AbstractTableView::keyPressEvent(QKeyEvent* event)
 {
     int wKey = event->key();
+    if(event->modifiers())
+        return;
 
     if(wKey == Qt::Key_Up)
     {
@@ -1035,6 +1042,8 @@ void AbstractTableView::addColumnAt(int width, const QString & title, bool isCli
 void AbstractTableView::setRowCount(dsint count)
 {
     updateScrollBarRange(count);
+    if(mRowCount != count)
+        mShouldReload = true;
     mRowCount = count;
 }
 

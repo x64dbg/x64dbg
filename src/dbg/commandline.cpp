@@ -101,10 +101,7 @@ void CmdLineCacheSave(JSON Root)
     // Create a JSON array to store each sub-object with a breakpoint
     const JSON jsonCmdLine = json_object();
     json_object_set_new(jsonCmdLine, "cmdLine", json_string(commandLine));
-    json_object_set(Root, "commandLine", jsonCmdLine);
-
-    // Notify garbage collector
-    json_decref(jsonCmdLine);
+    json_object_set_new(Root, "commandLine", jsonCmdLine);
 }
 
 void CmdLineCacheLoad(JSON Root)
@@ -133,20 +130,20 @@ void copyCommandLine(const char* cmdLine)
     strcpy_s(commandLine, cmdLine);
 }
 
-CMDRESULT SetCommandLine()
+bool SetCommandLine()
 {
     cmdline_error_t cmdline_error = { (cmdline_error_type_t)0, 0 };
 
     if(!dbgsetcmdline(commandLine, &cmdline_error))
     {
         showcommandlineerror(&cmdline_error);
-        return STATUS_ERROR;
+        return false;
     }
 
     //update the memory map
     MemUpdateMap();
     GuiUpdateMemoryView();
 
-    return STATUS_CONTINUE;
+    return true;
 }
 

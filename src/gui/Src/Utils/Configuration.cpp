@@ -49,7 +49,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyRestoredBytesColor", QColor("#008000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
-    defaultColors.insert("DisassemblyAutoCommentColor", QColor("#008000"));
+    defaultColors.insert("DisassemblyAutoCommentColor", QColor("#AA5500"));
     defaultColors.insert("DisassemblyAutoCommentBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyMnemonicBriefColor", QColor("#717171"));
     defaultColors.insert("DisassemblyMnemonicBriefBackgroundColor", Qt::transparent);
@@ -197,6 +197,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disassemblyBool.insert("OnlyCipAutoComments", false);
     disassemblyBool.insert("TabbedMnemonic", false);
     disassemblyBool.insert("LongDataInstruction", false);
+    disassemblyBool.insert("NoHighlightOperands", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     QMap<QString, bool> engineBool;
@@ -214,11 +215,20 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("PidInHex", true);
     guiBool.insert("SidebarWatchLabels", true);
     //Named menu settings
-    insertMenuBuilderBools(&guiBool, "CPUDisassembly", 35); //CPUDisassembly
-    insertMenuBuilderBools(&guiBool, "CPUDump", 30); //CPUDump
-    insertMenuBuilderBools(&guiBool, "WatchView", 7); //Watch
-    insertMenuBuilderBools(&guiBool, "CallStackView", 5); //CallStackView
-    insertMenuBuilderBools(&guiBool, "ThreadView", 12); //Thread
+    insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
+    insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
+    insertMenuBuilderBools(&guiBool, "WatchView", 50); //Watch
+    insertMenuBuilderBools(&guiBool, "CallStackView", 50); //CallStackView
+    insertMenuBuilderBools(&guiBool, "ThreadView", 50); //Thread
+    insertMenuBuilderBools(&guiBool, "CPUStack", 50); //Stack
+    insertMenuBuilderBools(&guiBool, "SourceView", 10); //Source
+    insertMenuBuilderBools(&guiBool, "DisassemblerGraphView", 50); //Graph
+    insertMenuBuilderBools(&guiBool, "File", 50); //Main Menu : File
+    insertMenuBuilderBools(&guiBool, "Debug", 50); //Main Menu : Debug
+    insertMenuBuilderBools(&guiBool, "Option", 50); //Main Menu : Option
+    //"Favourites" menu cannot be customized for item hiding.
+    insertMenuBuilderBools(&guiBool, "Help", 50); //Main Menu : Help
+    insertMenuBuilderBools(&guiBool, "View", 50); //Main Menu : View
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
@@ -232,7 +242,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryBreakpoint", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "DLLBreakpoint", 8);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "ExceptionBreakpoint", 8);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 7);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 8);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Script", 3);
@@ -335,8 +345,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugRtu", Shortcut(tr("Debug -> Run to user code"), "Alt+F9", true));
     defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut(tr("Debug -> Skip next instruction"), "", true));
     defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return", true));
-    defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut(tr("Debug -> Trace Into Conditional"), "", true));
-    defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace Over Conditional"), "", true));
+    defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut(tr("Debug -> Trace into..."), "Ctrl+Alt+F7", true));
+    defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace over..."), "Ctrl+Alt+F8", true));
     defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut(tr("Debug -> Trace Record -> Bit"), "", true));
     defaultShortcuts.insert("DebugTraceRecordNone", Shortcut(tr("Debug -> Trace Record -> None"), "", true));
     defaultShortcuts.insert("DebugInstrUndo", Shortcut(tr("Debug -> Undo instruction"), "Alt+U", true));
@@ -461,6 +471,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionToggleRegisterValue", Shortcut(tr("Actions -> Toggle Register Value"), "Space"));
     defaultShortcuts.insert("ActionCopy", Shortcut(tr("Actions -> Copy"), "Ctrl+C"));
     defaultShortcuts.insert("ActionCopyAddress", Shortcut(tr("Actions -> Copy Address"), "Alt+INS"));
+    defaultShortcuts.insert("ActionCopyRva", Shortcut(tr("Actions -> Copy RVA"), ""));
     defaultShortcuts.insert("ActionCopySymbol", Shortcut(tr("Actions -> Copy Symbol"), "Ctrl+S"));
     defaultShortcuts.insert("ActionLoadScript", Shortcut(tr("Actions -> Load Script"), "Ctrl+O"));
     defaultShortcuts.insert("ActionReloadScript", Shortcut(tr("Actions -> Reload Script"), "Ctrl+R"));
@@ -473,7 +484,13 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionExecuteCommandScript", Shortcut(tr("Actions -> Execute Script Command"), "X"));
     defaultShortcuts.insert("ActionRefresh", Shortcut(tr("Actions -> Refresh"), "F5"));
     defaultShortcuts.insert("ActionGraph", Shortcut(tr("Actions -> Graph"), "G"));
+    defaultShortcuts.insert("ActionGraphFollowDisassembler", Shortcut(tr("Actions -> Graph -> Follow in disassembler"), "Shift+Return"));
+    defaultShortcuts.insert("ActionGraphComment", Shortcut(tr("Actions -> Graph -> Comment"), ";"));
+    defaultShortcuts.insert("ActionGraphLabel", Shortcut(tr("Actions -> Graph -> Label"), ":"));
+    defaultShortcuts.insert("ActionGraphSaveImage", Shortcut(tr("Actions -> Graph -> Save as image"), "I"));
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut(tr("Actions -> Graph -> Toggle overview"), "O"));
+    defaultShortcuts.insert("ActionGraphRefresh", Shortcut(tr("Actions -> Graph -> Refresh"), "R"));
+    defaultShortcuts.insert("ActionGraphSyncOrigin", Shortcut(tr("Actions -> Graph -> Toggle sync with origin"), "S"));
     defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut(tr("Actions -> Increment x87 Stack")));
     defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut(tr("Actions -> Decrement x87 Stack")));
     defaultShortcuts.insert("ActionPush", Shortcut(tr("Actions -> Push")));
@@ -483,6 +500,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionDownloadSymbol", Shortcut(tr("Actions -> Download Symbols for This Module")));
     defaultShortcuts.insert("ActionDownloadAllSymbol", Shortcut(tr("Actions -> Download Symbols for All Modules")));
     defaultShortcuts.insert("ActionCreateNewThreadHere", Shortcut(tr("Actions -> Create New Thread Here")));
+    defaultShortcuts.insert("ActionOpenSourceFile", Shortcut(tr("Actions -> Open Source File")));
 
     Shortcuts = defaultShortcuts;
 
@@ -996,11 +1014,14 @@ bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortc
 
 void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
-    bool exists = false;
-    const char* id = menu->getId();
+    QString id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
-        if(strcmp(i.first->getId() , id) == 0)
-            exists = true;
-    if(!exists)
-        NamedMenuBuilders.push_back(std::make_pair(menu, count));
+        if(i.type == 0 && i.builder->getId() == id)
+            return; //already exists
+    NamedMenuBuilders.append(MenuMap(menu, count));
+}
+
+void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
+{
+    NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
 }

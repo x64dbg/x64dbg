@@ -17,8 +17,8 @@ extern GUITRANSLATETEXT _gui_translate_text;
 //DBG typedefs
 typedef const char* (*DBGDBGINIT)();
 typedef duint(*DBGMEMFINDBASEADDR)(duint addr, duint* size);
-typedef bool (*DBGMEMREAD)(duint addr, unsigned char* dest, duint size, duint* read);
-typedef bool (*DBGMEMWRITE)(duint addr, const unsigned char* src, duint size, duint* written);
+typedef bool (*DBGMEMREAD)(duint addr, void* dest, duint size, duint* read);
+typedef bool (*DBGMEMWRITE)(duint addr, const void* src, duint size, duint* written);
 typedef bool (*DBGDBGCMDEXEC)(const char* cmd);
 typedef bool (*DBGMEMMAP)(MEMMAP* memmap);
 typedef void (*DBGDBGEXITSIGNAL)();

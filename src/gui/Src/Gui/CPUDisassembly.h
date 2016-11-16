@@ -6,6 +6,7 @@
 // Needed forward declaration for parent container class
 class CPUWidget;
 class GotoDialog;
+class XrefBrowseDialog;
 
 class CPUDisassembly : public Disassembly
 {
@@ -24,8 +25,8 @@ public:
     void addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences, bool isFollowInCPU);
     void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences, bool isFollowInCPU);
     void setHwBpAt(duint va, int slot);
-
     void copySelectionSlot(bool copyBytes);
+    void copySelectionToFileSlot(bool copyBytes);
 
 signals:
     void displayReferencesWidget();
@@ -81,11 +82,14 @@ public slots:
     void showPatchesSlot();
     void yaraSlot();
     void copySelectionSlot();
+    void copySelectionToFileSlot();
     void copySelectionNoBytesSlot();
+    void copySelectionToFileNoBytesSlot();
     void copyAddressSlot();
     void copyRvaSlot();
     void copyDisassemblySlot();
     void copyDataSlot();
+    void labelCopySlot();
     void findCommandSlot();
     void openSourceSlot();
     void decompileSelectionSlot();
@@ -119,6 +123,8 @@ private:
     bool getLabelsFromInstruction(duint addr, QSet<QString> & labels);
     bool getTokenValueText(QString & text);
 
+    void pushSelectionInto(bool copyBytes, QTextStream & stream);
+
     // Menus
     QMenu* mHwSlotSelectMenu;
     QMenu* mPluginMenu;
@@ -146,7 +152,9 @@ private:
     QAction* mFindGUIDAll;
 
     // Goto dialog specific
-    GotoDialog* mGoto;
+    GotoDialog* mGoto = nullptr;
+    GotoDialog* mGotoOffset = nullptr;
+    XrefBrowseDialog* mXrefDlg = nullptr;
 
     // Parent CPU window
     CPUWidget* mParentCPUWindow;

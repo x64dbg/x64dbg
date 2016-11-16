@@ -181,12 +181,15 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
  *
  * @return      Return the disassembled instruction
  */
-Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA)
+Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA, bool datainstr)
 {
-    ENCODETYPE type = mEncodeMap->getDataType(origBase + origInstRVA);
+    if(datainstr)
+    {
+        ENCODETYPE type = mEncodeMap->getDataType(origBase + origInstRVA);
 
-    if(type != enc_unknown && type != enc_code && type != enc_middle)
-        return DecodeDataAt(data, size, origBase, origInstRVA, type);
+        if(type != enc_unknown && type != enc_code && type != enc_middle)
+            return DecodeDataAt(data, size, origBase, origInstRVA, type);
+    }
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
     _tokenizer.Tokenize(origBase + origInstRVA, data, size, cap);

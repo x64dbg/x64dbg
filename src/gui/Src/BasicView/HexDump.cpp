@@ -26,6 +26,8 @@ HexDump::HexDump(QWidget* parent)
 
     mRvaDisplayEnabled = false;
     mSyncAddrExpression = "";
+    mNonprintReplace = QChar('.'); //QChar(0x25CA);
+    mNullReplace = QChar('.'); //QChar(0x2022);
 
     historyClear();
 
@@ -54,6 +56,11 @@ void HexDump::updateColors()
 
 void HexDump::updateFonts()
 {
+    duint setting;
+    if(BridgeSettingGetUint("GUI", "NonprintReplaceCharacter", &setting))
+        mNonprintReplace = QChar(uint(setting));
+    if(BridgeSettingGetUint("GUI", "NullReplaceCharacter", &setting))
+        mNullReplace = QChar(uint(setting));
     setFont(ConfigFont("HexDump"));
     invalidateCachedFont();
 }
@@ -62,6 +69,7 @@ void HexDump::updateShortcuts()
 {
     AbstractTableView::updateShortcuts();
     mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
+    mCopyRva->setShortcut(ConfigShortcut("ActionCopyRva"));
     mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
 }
 
@@ -286,6 +294,8 @@ void HexDump::setupCopyMenu()
     // Copy -> RVA
     mCopyRva = new QAction(DIcon("copy_address.png"), "&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
+    mCopyRva->setShortcutContext(Qt::WidgetShortcut);
+    addAction(mCopyRva);
 }
 
 void HexDump::copyAddressSlot()
@@ -468,6 +478,30 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
 
     if(wAccept == true)
         AbstractTableView::mouseReleaseEvent(event);
+}
+
+void HexDump::keyPressEvent(QKeyEvent* event)
+{
+    if(event->key() == Qt::Key_Up && event->modifiers() == Qt::ControlModifier)
+    {
+        duint offsetVa = rvaToVa(getTableOffsetRva()) - 1;
+        if(DbgMemFindBaseAddr(rvaToVa(getTableOffsetRva()), nullptr) == DbgMemFindBaseAddr(offsetVa, nullptr))
+        {
+            printDumpAt(offsetVa);
+            addVaToHistory(offsetVa);
+        }
+    }
+    else if(event->key() == Qt::Key_Down && event->modifiers() == Qt::ControlModifier)
+    {
+        duint offsetVa = rvaToVa(getTableOffsetRva()) + 1;
+        if(DbgMemFindBaseAddr(rvaToVa(getTableOffsetRva()), nullptr) == DbgMemFindBaseAddr(offsetVa, nullptr))
+        {
+            printDumpAt(offsetVa);
+            addVaToHistory(offsetVa);
+        }
+    }
+    else
+        AbstractTableView::keyPressEvent(event);
 }
 
 QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -705,10 +739,12 @@ QString HexDump::byteToString(byte_t byte, ByteViewMode_e mode)
     {
         QChar wChar = QChar::fromLatin1((char)byte);
 
-        if(wChar.isPrint() == true)
+        if(wChar.isPrint())
             wStr = QString(wChar);
+        else if(!wChar.unicode())
+            wStr = mNullReplace;
         else
-            wStr = ".";
+            wStr = mNonprintReplace;
     }
     break;
 
@@ -749,10 +785,12 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
     case UnicodeWord:
     {
         QChar wChar = QChar::fromLatin1((char)word & 0xFF);
-        if(wChar.isPrint() == true && (word >> 8) == 0)
+        if(wChar.isPrint() && (word >> 8) == 0)
             wStr = QString(wChar);
+        else if(!wChar.unicode())
+            wStr = mNullReplace;
         else
-            wStr = ".";
+            wStr = mNonprintReplace;
     }
     break;
 

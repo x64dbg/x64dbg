@@ -24,6 +24,7 @@ public slots:
     void copyRva();
     void copyOffset();
     void doubleClickedSlot();
+    void addInfoLine(const QString & infoLine);
 
 private:
     dsint curAddr;

@@ -146,14 +146,14 @@ void SymbolView::setupContextMenu()
     mModuleList->mSearchList->addAction(mDownloadAllSymbolsAction);
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
 
-    mCopyPathAction = new QAction(tr("Copy File &Path"), this);
+    mCopyPathAction = new QAction(DIcon("copyfilepath.png"), tr("Copy File &Path"), this);
     mCopyPathAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mCopyPathAction);
     mModuleList->mList->addAction(mCopyPathAction);
     mModuleList->mSearchList->addAction(mCopyPathAction);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
 
-    mBrowseInExplorer = new QAction(tr("Browse in Explorer"), this);
+    mBrowseInExplorer = new QAction(DIcon("browseinexplorer.png"), tr("Browse in Explorer"), this);
     mBrowseInExplorer->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mBrowseInExplorer);
     mModuleList->mList->addAction(mBrowseInExplorer);
@@ -173,21 +173,21 @@ void SymbolView::setupContextMenu()
     mModuleList->mSearchList->addAction(mEntropyAction);
     connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
 
-    mModSetUserAction = new QAction(tr("Mark as &user module"), this);
+    mModSetUserAction = new QAction(DIcon("markasuser.png"), tr("Mark as &user module"), this);
     mModSetUserAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetUserAction);
     mModuleList->mList->addAction(mModSetUserAction);
     mModuleList->mSearchList->addAction(mModSetUserAction);
     connect(mModSetUserAction, SIGNAL(triggered()), this, SLOT(moduleSetUser()));
 
-    mModSetSystemAction = new QAction(tr("Mark as &system module"), this);
+    mModSetSystemAction = new QAction(DIcon("markassystem.png"), tr("Mark as &system module"), this);
     mModSetSystemAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetSystemAction);
     mModuleList->mList->addAction(mModSetSystemAction);
     mModuleList->mSearchList->addAction(mModSetSystemAction);
     connect(mModSetSystemAction, SIGNAL(triggered()), this, SLOT(moduleSetSystem()));
 
-    mModSetPartyAction = new QAction(tr("Mark as &party..."), this);
+    mModSetPartyAction = new QAction(DIcon("markasparty.png"), tr("Mark as &party..."), this);
     mModSetPartyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetPartyAction);
     mModuleList->mList->addAction(mModSetPartyAction);
@@ -555,6 +555,7 @@ void SymbolView::moduleSetParty()
     mLineEdit.setWindowIcon(DIcon("bookmark.png"));
     mLineEdit.setWindowTitle(tr("Mark the party of the module as"));
     mLineEdit.setText(QString::number(party));
+    mLineEdit.setPlaceholderText(tr("0 is user module, 1 is system module."));
     if(mLineEdit.exec() == QDialog::Accepted)
     {
         bool ok;

@@ -4,12 +4,12 @@
 #include "console.h"
 #include "threading.h"
 
-CMDRESULT cbAddWatch(int argc, char* argv[])
+bool cbAddWatch(int argc, char* argv[])
 {
     if(argc < 2)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for addwatch\n"));
-        return STATUS_ERROR;
+        return false;
     }
     WATCHVARTYPE newtype = WATCHVARTYPE::TYPE_UINT;
     if(argc > 2)
@@ -27,40 +27,40 @@ CMDRESULT cbAddWatch(int argc, char* argv[])
     }
     unsigned int newid = WatchAddExpr(argv[1], newtype);
     varset("$result", newid, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDelWatch(int argc, char* argv[])
+bool cbDelWatch(int argc, char* argv[])
 {
     if(argc < 2)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for delwatch\n"));
-        return STATUS_ERROR;
+        return false;
     }
     duint id;
     bool ok = valfromstring(argv[1], &id);
     if(!ok)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error expression in argument 1.\n"));
-        return STATUS_ERROR;
+        return false;
     }
     WatchDelete((unsigned int)id);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbSetWatchdog(int argc, char* argv[])
+bool cbSetWatchdog(int argc, char* argv[])
 {
     if(argc < 2)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for delwatch\n"));
-        return STATUS_ERROR;
+        return false;
     }
     duint id;
     bool ok = valfromstring(argv[1], &id);
     if(!ok)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error expression in argument 1.\n"));
-        return STATUS_ERROR;
+        return false;
     }
     WATCHDOGMODE mode;
     if(argc > 2)
@@ -78,21 +78,21 @@ CMDRESULT cbSetWatchdog(int argc, char* argv[])
         else
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Unknown watchdog mode.\n"));
-            return STATUS_ERROR;
+            return false;
         }
     }
     else
         mode = (WatchGetWatchdogEnabled((unsigned int)id) == WATCHDOGMODE::MODE_DISABLED) ? WATCHDOGMODE::MODE_CHANGED : WATCHDOGMODE::MODE_DISABLED;
     WatchSetWatchdogMode((unsigned int)id, mode);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbSetWatchExpression(int argc, char* argv[])
+bool cbSetWatchExpression(int argc, char* argv[])
 {
     if(argc < 3)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for SetWatchExpression"));
-        return STATUS_ERROR;
+        return false;
     }
     duint id;
     bool ok = valfromstring(argv[1], &id);
@@ -117,37 +117,37 @@ CMDRESULT cbSetWatchExpression(int argc, char* argv[])
         else
             varType = WATCHVARTYPE::TYPE_UINT;
         WatchModifyExpr((unsigned int)id, argv[2], varType);
-        return STATUS_CONTINUE;
+        return true;
     }
     else
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error expression in argument 1.\n"));
-        return STATUS_ERROR;
+        return false;
     }
 }
 
-CMDRESULT cbSetWatchName(int argc, char* argv[])
+bool cbSetWatchName(int argc, char* argv[])
 {
     if(argc < 3)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for SetWatchName"));
-        return STATUS_ERROR;
+        return false;
     }
     duint id;
     bool ok = valfromstring(argv[1], &id);
     if(ok)
     {
         WatchModifyName((unsigned int)id, argv[2]);
-        return STATUS_CONTINUE;
+        return true;
     }
     else
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error expression in argument 1.\n"));
-        return STATUS_ERROR;
+        return false;
     }
 }
 
-CMDRESULT cbCheckWatchdog(int argc, char* argv[])
+bool cbCheckWatchdog(int argc, char* argv[])
 {
     EXCLUSIVE_ACQUIRE(LockWatch);
     bool watchdogTriggered = false;
@@ -162,5 +162,5 @@ CMDRESULT cbCheckWatchdog(int argc, char* argv[])
     if(watchdogTriggered)
         GuiUpdateWatchViewAsync();
     varset("$result", watchdogTriggered ? 1 : 0, false);
-    return STATUS_CONTINUE;
+    return true;
 }
