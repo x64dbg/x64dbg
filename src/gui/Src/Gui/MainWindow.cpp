@@ -613,6 +613,10 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionAnimateInto, ConfigShortcut("DebugAnimateInto"));
     setGlobalShortcut(ui->actionAnimateOver, ConfigShortcut("DebugAnimateOver"));
     setGlobalShortcut(ui->actionAnimateCommand, ConfigShortcut("DebugAnimateCommand"));
+    setGlobalShortcut(ui->actionTRTIIT, ConfigShortcut("DebugTraceIntoIntoTracerecord"));
+    setGlobalShortcut(ui->actionTRTOIT, ConfigShortcut("DebugTraceOverIntoTracerecord"));
+    setGlobalShortcut(ui->actionTRTIBT, ConfigShortcut("DebugTraceIntoBeyondTracerecord"));
+    setGlobalShortcut(ui->actionTRTOBT, ConfigShortcut("DebugTraceOverBeyondTracerecord"));
 
     setGlobalShortcut(ui->actionScylla, ConfigShortcut("PluginsScylla"));
 

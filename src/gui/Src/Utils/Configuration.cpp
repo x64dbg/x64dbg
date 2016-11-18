@@ -244,7 +244,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "DLLBreakpoint", 8);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "ExceptionBreakpoint", 8);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 8);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 5);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Script", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Thread", 14);
@@ -354,6 +354,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugAnimateInto", Shortcut(tr("Debug -> Animate into"), "Ctrl+F7", true));
     defaultShortcuts.insert("DebugAnimateOver", Shortcut(tr("Debug -> Animate over"), "Ctrl+F8", true));
     defaultShortcuts.insert("DebugAnimateCommand", Shortcut(tr("Debug -> Animate command"), "", true));
+    defaultShortcuts.insert("DebugTraceIntoIntoTracerecord", Shortcut(tr("Debug -> Trace into into trace record"), "", true));
+    defaultShortcuts.insert("DebugTraceOverIntoTracerecord", Shortcut(tr("Debug -> Trace over into trace record"), "", true));
+    defaultShortcuts.insert("DebugTraceIntoBeyondTracerecord", Shortcut(tr("Debug -> Trace into beyond trace record"), "", true));
+    defaultShortcuts.insert("DebugTraceOverBeyondTracerecord", Shortcut(tr("Debug -> Trace over beyond trace record"), "", true));
 
     defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
 
@@ -500,6 +504,11 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionDownloadAllSymbol", Shortcut(tr("Actions -> Download Symbols for All Modules")));
     defaultShortcuts.insert("ActionCreateNewThreadHere", Shortcut(tr("Actions -> Create New Thread Here")));
     defaultShortcuts.insert("ActionOpenSourceFile", Shortcut(tr("Actions -> Open Source File")));
+    defaultShortcuts.insert("ActionFollowMemMap", Shortcut(tr("Actions -> Follow in Memory Map")));
+    defaultShortcuts.insert("ActionFreezeStack", Shortcut(tr("Actions -> Freeze the stack")));
+    defaultShortcuts.insert("ActionGotoBaseOfStackFrame", Shortcut(tr("Actions -> Go to Base of Stack Frame")));
+    defaultShortcuts.insert("ActionGotoPrevStackFrame", Shortcut(tr("Actions -> Go to Previous Stack Frame")));
+    defaultShortcuts.insert("ActionGotoNextStackFrame", Shortcut(tr("Actions -> Go to Next Stack Frame")));
 
     Shortcuts = defaultShortcuts;
 

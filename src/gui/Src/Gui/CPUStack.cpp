@@ -218,13 +218,13 @@ void CPUStack::setupContextMenu()
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Go to &Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
 
     //Go to Base of Stack Frame
-    gotoMenu->addAction(makeAction(DIcon("neworigin.png"), tr("Go to Base of Stack Frame"), SLOT(gotoFrameBaseSlot())));
+    gotoMenu->addAction(makeShortcutAction(DIcon("neworigin.png"), tr("Go to Base of Stack Frame"), SLOT(gotoFrameBaseSlot()), "ActionGotoBaseOfStackFrame"));
 
     //Go to Previous Frame
-    gotoMenu->addAction(makeAction(DIcon("previous.png"), tr("Go to Previous Stack Frame"), SLOT(gotoPreviousFrameSlot())));
+    gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Go to Previous Stack Frame"), SLOT(gotoPreviousFrameSlot()), "ActionGotoPrevStackFrame"));
 
     //Go to Next Frame
-    gotoMenu->addAction(makeAction(DIcon("next.png"), tr("Go to Next Stack Frame"), SLOT(gotoNextFrameSlot())));
+    gotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Go to Next Stack Frame"), SLOT(gotoNextFrameSlot()), "ActionGotoNextStackFrame"));
 
     //Go to Previous
     gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Go to Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
@@ -241,11 +241,11 @@ void CPUStack::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("&Go to")), gotoMenu);
 
     //Freeze the stack
-    mMenuBuilder->addAction(mFreezeStack = makeAction(DIcon("freeze.png"), tr("Freeze the stack"), SLOT(freezeStackSlot())));
+    mMenuBuilder->addAction(mFreezeStack = makeShortcutAction(DIcon("freeze.png"), tr("Freeze the stack"), SLOT(freezeStackSlot()), "ActionFreezeStack"));
     mFreezeStack->setCheckable(true);
 
     //Follow in Memory Map
-    mMenuBuilder->addAction(makeAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
 
     auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
     mFollowStack = makeAction(DIcon("stack.png"), followStackName, SLOT(followStackSlot()));
@@ -1005,7 +1005,7 @@ void CPUStack::dbgStateChangedSlot(DBGSTATE state)
 
 void CPUStack::followInMemoryMapSlot()
 {
-    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
+    DbgCmdExec(QString("memmapdump [%1]").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
 }
 
 void CPUStack::followInDumpSlot()

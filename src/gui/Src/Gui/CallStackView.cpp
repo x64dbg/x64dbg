@@ -8,7 +8,8 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Address"), true); //address in the stack
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), true); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), true); //return from
-    addColumnAt(0, tr("Comment"), true);
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Size"), true); //size
+    addColumnAt(10, tr("Comment"), true);
     loadColumnFromConfig("CallStack");
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));
@@ -61,7 +62,11 @@ void CallStackView::updateCallStack()
             addrText = ToPtrString(callstack.entries[i].from);
             setCellContent(i, 2, addrText);
         }
-        setCellContent(i, 3, callstack.entries[i].comment);
+        if(i != callstack.total - 1)
+            setCellContent(i, 3, ToHexString(callstack.entries[i + 1].addr - callstack.entries[i].addr));
+        else
+            setCellContent(i, 3, "");
+        setCellContent(i, 4, callstack.entries[i].comment);
     }
     if(callstack.total)
         BridgeFree(callstack.entries);

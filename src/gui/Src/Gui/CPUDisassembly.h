@@ -145,6 +145,13 @@ private:
     QAction* mFindPatternModule;
     QAction* mFindGUIDModule;
 
+    QAction* mFindCommandFunction;
+    QAction* mFindConstantFunction;
+    QAction* mFindStringsFunction;
+    QAction* mFindCallsFunction;
+    QAction* mFindPatternFunction;
+    QAction* mFindGUIDFunction;
+
     QAction* mFindCommandAll;
     QAction* mFindConstantAll;
     QAction* mFindStringsAll;
