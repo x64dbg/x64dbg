@@ -403,7 +403,7 @@ void MainWindow::setupLanguagesMenu()
     languageMenu->setIcon(DIcon("codepage.png"));
     QLocale enUS(QLocale::English, QLocale::UnitedStates);
     QString wCurrentLocale(currentLocale);
-    QAction* action_enUS = new QAction(QString("[%1]%2 - %3").arg(enUS.name()).arg(enUS.nativeLanguageName()).arg(enUS.nativeCountryName()), languageMenu);
+    QAction* action_enUS = new QAction(QString("[%1] %2 - %3").arg(enUS.name()).arg(enUS.nativeLanguageName()).arg(enUS.nativeCountryName()), languageMenu);
     connect(action_enUS, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
     action_enUS->setCheckable(true);
     action_enUS->setChecked(false);
@@ -428,7 +428,7 @@ void MainWindow::setupLanguagesMenu()
         {
             if(j.name().startsWith(localeName))
             {
-                QAction* actionLanguage = new QAction(QString("[%1]%2 - %3").arg(localeName).arg(j.nativeLanguageName()).arg(j.nativeCountryName()), languageMenu);
+                QAction* actionLanguage = new QAction(QString("[%1] %2 - %3").arg(localeName).arg(j.nativeLanguageName()).arg(j.nativeCountryName()), languageMenu);
                 connect(actionLanguage, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
                 actionLanguage->setCheckable(true);
                 actionLanguage->setChecked(localeName == wCurrentLocale);
