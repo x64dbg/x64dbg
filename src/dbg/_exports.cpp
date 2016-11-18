@@ -102,7 +102,7 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
             ctx.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
             GetThreadContext(hActiveThread, &ctx);
 #ifdef _WIN64
-            auto cflags = ctx.RFlags;
+            auto cflags = ctx.EFlags;
             auto ccx = ctx.Rcx;
 #else
             auto cflags = ctx.EFlags;
