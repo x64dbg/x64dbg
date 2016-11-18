@@ -83,6 +83,7 @@ public slots:
     void displayReferencesWidget();
     void displayThreadsWidget();
     void displaySnowmanWidget();
+    void displayVariables();
     void displayGraphWidget();
     void displayPreviousTab();
     void displayNextTab();

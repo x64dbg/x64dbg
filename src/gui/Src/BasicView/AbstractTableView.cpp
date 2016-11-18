@@ -1025,6 +1025,10 @@ void AbstractTableView::addColumnAt(int width, const QString & title, bool isCli
     Column_t wColumn;
     int wCurrentCount;
 
+    // Fix invisible columns near the edge of the screen
+    if(width < 20)
+        width = 20;
+
     wHeaderButton.isPressed = false;
     wHeaderButton.isClickable = isClickable;
     wHeaderButton.isMouseOver = false;

@@ -244,7 +244,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "DLLBreakpoint", 8);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "ExceptionBreakpoint", 8);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 8);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 5);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Script", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Thread", 14);
@@ -318,6 +318,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L", true));
     defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B", true));
     defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Ctrl+Alt+F", true));
+    defaultShortcuts.insert("ViewVariables", Shortcut(tr("View -> Variables"), "", true));
     defaultShortcuts.insert("ViewSnowman", Shortcut(tr("View -> Snowman"), "", true));
     defaultShortcuts.insert("ViewHandles", Shortcut(tr("View -> Handles"), "", true));
     defaultShortcuts.insert("ViewGraph", Shortcut(tr("View -> Graph"), "Alt+G", true));
@@ -354,6 +355,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugAnimateInto", Shortcut(tr("Debug -> Animate into"), "Ctrl+F7", true));
     defaultShortcuts.insert("DebugAnimateOver", Shortcut(tr("Debug -> Animate over"), "Ctrl+F8", true));
     defaultShortcuts.insert("DebugAnimateCommand", Shortcut(tr("Debug -> Animate command"), "", true));
+    defaultShortcuts.insert("DebugTraceIntoIntoTracerecord", Shortcut(tr("Debug -> Trace into into trace record"), "", true));
+    defaultShortcuts.insert("DebugTraceOverIntoTracerecord", Shortcut(tr("Debug -> Trace over into trace record"), "", true));
+    defaultShortcuts.insert("DebugTraceIntoBeyondTracerecord", Shortcut(tr("Debug -> Trace into beyond trace record"), "", true));
+    defaultShortcuts.insert("DebugTraceOverBeyondTracerecord", Shortcut(tr("Debug -> Trace over beyond trace record"), "", true));
 
     defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
 
@@ -488,7 +493,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGraphFollowDisassembler", Shortcut(tr("Actions -> Graph -> Follow in disassembler"), "Shift+Return"));
     defaultShortcuts.insert("ActionGraphSaveImage", Shortcut(tr("Actions -> Graph -> Save as image"), "I"));
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut(tr("Actions -> Graph -> Toggle overview"), "O"));
-    defaultShortcuts.insert("ActionGraphRefresh", Shortcut(tr("Actions -> Graph -> Refresh"), "R"));
     defaultShortcuts.insert("ActionGraphSyncOrigin", Shortcut(tr("Actions -> Graph -> Toggle sync with origin"), "S"));
     defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut(tr("Actions -> Increment x87 Stack")));
     defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut(tr("Actions -> Decrement x87 Stack")));
@@ -500,6 +504,11 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionDownloadAllSymbol", Shortcut(tr("Actions -> Download Symbols for All Modules")));
     defaultShortcuts.insert("ActionCreateNewThreadHere", Shortcut(tr("Actions -> Create New Thread Here")));
     defaultShortcuts.insert("ActionOpenSourceFile", Shortcut(tr("Actions -> Open Source File")));
+    defaultShortcuts.insert("ActionFollowMemMap", Shortcut(tr("Actions -> Follow in Memory Map")));
+    defaultShortcuts.insert("ActionFreezeStack", Shortcut(tr("Actions -> Freeze the stack")));
+    defaultShortcuts.insert("ActionGotoBaseOfStackFrame", Shortcut(tr("Actions -> Go to Base of Stack Frame")));
+    defaultShortcuts.insert("ActionGotoPrevStackFrame", Shortcut(tr("Actions -> Go to Previous Stack Frame")));
+    defaultShortcuts.insert("ActionGotoNextStackFrame", Shortcut(tr("Actions -> Go to Next Stack Frame")));
 
     Shortcuts = defaultShortcuts;
 

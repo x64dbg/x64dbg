@@ -45,6 +45,7 @@ private slots:
     void moduleSetUser();
     void moduleSetSystem();
     void moduleSetParty();
+    void moduleFollowMemMap();
     void toggleBreakpoint();
     void toggleBookmark();
     void refreshShortcutsSlot();
@@ -79,6 +80,7 @@ private:
     QAction* mModSetSystemAction;
     QAction* mModSetPartyAction;
     QAction* mBrowseInExplorer;
+    QAction* mFollowInMemMap;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };
