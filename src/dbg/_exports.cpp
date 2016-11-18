@@ -35,8 +35,6 @@
 #include "TraceRecord.h"
 
 static bool bOnlyCipAutoComments = false;
-static duint cacheCflags = 0;
-static duint cacheCcx = 0;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -98,7 +96,20 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
     {
         Capstone cp;
         if(cp.Disassemble(addr, data))
-            return cp.IsBranchGoingToExecute(cacheCflags, cacheCcx);
+        {
+            CONTEXT ctx;
+            memset(&ctx, 0, sizeof(ctx));
+            ctx.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+            GetThreadContext(hActiveThread, &ctx);
+#ifdef _WIN64
+            auto cflags = ctx.RFlags;
+            auto ccx = ctx.Rcx;
+#else
+            auto cflags = ctx.EFlags;
+            auto ccx = ctx.Ecx;
+#endif //_WIN64
+            return cp.IsBranchGoingToExecute(cflags, ccx);
+        }
     }
     return false;
 }
@@ -550,8 +561,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return false;
     TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
 
-    duint cflags = cacheCflags = regdump->regcontext.eflags;
-    cacheCcx = regdump->regcontext.ccx;
+    duint cflags = regdump->regcontext.eflags;
     regdump->flags.c = (cflags & (1 << 0)) != 0;
     regdump->flags.p = (cflags & (1 << 2)) != 0;
     regdump->flags.a = (cflags & (1 << 4)) != 0;
