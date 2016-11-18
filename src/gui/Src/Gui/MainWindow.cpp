@@ -49,6 +49,7 @@
 #include "CustomizeMenuDialog.h"
 #include "main.h"
 #include "SimpleTraceDialog.h"
+#include "CPUArgumentWidget.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -1591,6 +1592,16 @@ void MainWindow::updateFavouriteTools()
     connect(ui->menuFavourites->actions().last(), SIGNAL(triggered()), this, SLOT(manageFavourites()));
 }
 
+static QString stringFormatInline(const QString & format)
+{
+    if(!DbgFunctions()->StringFormatInline)
+        return "";
+    char result[MAX_SETTING_SIZE] = "";
+    if(DbgFunctions()->StringFormatInline(format.toUtf8().constData(), MAX_SETTING_SIZE, result))
+        return result;
+    return CPUArgumentWidget::tr("[Formatting Error]");
+}
+
 void MainWindow::clickFavouriteTool()
 {
     QAction* action = qobject_cast<QAction*>(sender());
@@ -1602,6 +1613,20 @@ void MainWindow::clickFavouriteTool()
         QString toolPath = data.mid(5);
         duint PID = DbgValFromString("$pid");
         toolPath.replace(QString("%PID%"), QString::number(PID), Qt::CaseInsensitive);
+        toolPath.replace(QString("%DEBUGGEE%"), mMRUList.at(0), Qt::CaseInsensitive);
+        char modpath[MAX_MODULE_SIZE] = "";
+        DbgFunctions()->ModPathFromAddr(DbgValFromString("dis.sel()"), modpath, MAX_MODULE_SIZE);
+        toolPath.replace(QString("%MODULE%"), modpath, Qt::CaseInsensitive);
+        while(true)
+        {
+            auto sfStart = toolPath.indexOf("%-");
+            auto sfEnd = toolPath.indexOf("-%");
+            if(sfStart < 0 || sfEnd < 0 || sfEnd < sfStart)
+                break;
+            auto format = toolPath.mid(sfStart + 2, sfEnd - sfStart - 2);
+            toolPath.replace(sfStart, sfEnd - sfStart + 2, stringFormatInline(format));
+        }
+        mLastLogLabel->setText(toolPath);
         PROCESS_INFORMATION procinfo;
         STARTUPINFO startupinfo;
         memset(&procinfo, 0, sizeof(PROCESS_INFORMATION));
