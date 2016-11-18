@@ -317,6 +317,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionAnimateCommand, SIGNAL(triggered()), this, SLOT(animateCommandSlot()));
     connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitialzationScript()));
     connect(ui->actionCustomizeMenus, SIGNAL(triggered()), this, SLOT(customizeMenu()));
+    connect(ui->actionVariables, SIGNAL(triggered()), this, SLOT(displayVariables()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -402,7 +403,7 @@ void MainWindow::setupLanguagesMenu()
     languageMenu->setIcon(DIcon("codepage.png"));
     QLocale enUS(QLocale::English, QLocale::UnitedStates);
     QString wCurrentLocale(currentLocale);
-    QAction* action_enUS = new QAction(QString("[%1] %2 - %3").arg(enUS.name()).arg(enUS.nativeLanguageName()).arg(enUS.nativeCountryName()), languageMenu);
+    QAction* action_enUS = new QAction(QString("[%1]%2 - %3").arg(enUS.name()).arg(enUS.nativeLanguageName()).arg(enUS.nativeCountryName()), languageMenu);
     connect(action_enUS, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
     action_enUS->setCheckable(true);
     action_enUS->setChecked(false);
@@ -577,6 +578,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionLabels, ConfigShortcut("ViewLabels"));
     setGlobalShortcut(ui->actionBookmarks, ConfigShortcut("ViewBookmarks"));
     setGlobalShortcut(ui->actionFunctions, ConfigShortcut("ViewFunctions"));
+    setGlobalShortcut(ui->actionVariables, ConfigShortcut("ViewVariables"));
     setGlobalShortcut(ui->actionSnowman, ConfigShortcut("ViewSnowman"));
     setGlobalShortcut(ui->actionHandles, ConfigShortcut("ViewHandles"));
     setGlobalShortcut(ui->actionGraph, ConfigShortcut("ViewGraph"));
@@ -795,6 +797,12 @@ void MainWindow::execTocnd()
 void MainWindow::displayMemMapWidget()
 {
     showQWidgetTab(mMemMapView);
+}
+
+void MainWindow::displayVariables()
+{
+    DbgCmdExec("varlist");
+    showQWidgetTab(mReferenceManager);
 }
 
 void MainWindow::displayLogWidget()

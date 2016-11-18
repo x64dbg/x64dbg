@@ -318,6 +318,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L", true));
     defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B", true));
     defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Ctrl+Alt+F", true));
+    defaultShortcuts.insert("ViewVariables", Shortcut(tr("View -> Variables"), "", true));
     defaultShortcuts.insert("ViewSnowman", Shortcut(tr("View -> Snowman"), "", true));
     defaultShortcuts.insert("ViewHandles", Shortcut(tr("View -> Handles"), "", true));
     defaultShortcuts.insert("ViewGraph", Shortcut(tr("View -> Graph"), "Alt+G", true));
@@ -492,7 +493,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGraphFollowDisassembler", Shortcut(tr("Actions -> Graph -> Follow in disassembler"), "Shift+Return"));
     defaultShortcuts.insert("ActionGraphSaveImage", Shortcut(tr("Actions -> Graph -> Save as image"), "I"));
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut(tr("Actions -> Graph -> Toggle overview"), "O"));
-    defaultShortcuts.insert("ActionGraphRefresh", Shortcut(tr("Actions -> Graph -> Refresh"), "R"));
     defaultShortcuts.insert("ActionGraphSyncOrigin", Shortcut(tr("Actions -> Graph -> Toggle sync with origin"), "S"));
     defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut(tr("Actions -> Increment x87 Stack")));
     defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut(tr("Actions -> Decrement x87 Stack")));

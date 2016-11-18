@@ -1493,7 +1493,7 @@ void DisassemblerGraphView::setupContextMenu()
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionGraphRefresh"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));

@@ -245,7 +245,11 @@ void CPUStack::setupContextMenu()
     mFreezeStack->setCheckable(true);
 
     //Follow in Memory Map
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), ArchValue(tr("Follow DWORD in Memory Map"), tr("Follow QWORD in Memory Map")), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"), [this](QMenu*)
+    {
+        duint ptr;
+        return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
+    });
 
     auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
     mFollowStack = makeAction(DIcon("stack.png"), followStackName, SLOT(followStackSlot()));
