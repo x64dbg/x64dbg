@@ -199,16 +199,9 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
     }
 }
 
-void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr)
+void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* instr)
 {
-    if(!DbgIsDebugging())
-    {
-        if(instr)
-            instr->argcount = 0;
-        return;
-    }
     memset(instr, 0, sizeof(DISASM_INSTR));
-    Capstone cp;
     cp.Disassemble(addr, buffer, MAX_DISASM_BUFFER);
     if(trydisasm(buffer, addr, instr, cp.Success() ? cp.Size() : 1))
         return;
@@ -232,6 +225,27 @@ void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr)
     instr->argcount = cp.x86().op_count <= 3 ? cp.x86().op_count : 3;
     for(int i = 0; i < instr->argcount; i++)
         HandleCapstoneOperand(cp, i, &instr->arg[i]);
+}
+
+void disasmget(Capstone & cp, duint addr, DISASM_INSTR* instr)
+{
+    if(!DbgIsDebugging())
+    {
+        if(instr)
+            instr->argcount = 0;
+        return;
+    }
+    unsigned char buffer[MAX_DISASM_BUFFER] = "";
+    if(MemRead(addr, buffer, sizeof(buffer)))
+        disasmget(cp, buffer, addr, instr);
+    else
+        memset(instr, 0, sizeof(DISASM_INSTR)); // Buffer overflow
+}
+
+void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr)
+{
+    Capstone cp;
+    disasmget(cp, buffer, addr, instr);
 }
 
 void disasmget(duint addr, DISASM_INSTR* instr)
