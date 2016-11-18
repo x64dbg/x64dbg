@@ -269,72 +269,72 @@ struct RedirectWow
     }
 };
 
-static void AddDBFileTypeIcon(TCHAR *sz32Path, TCHAR *sz64Path)
+static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
 {
-	HKEY hKeyCreatedx32;
-	HKEY hKeyCreatedx64;
-	HKEY hKeyCreatedIconx32;
-	HKEY hKeyCreatedIconx64;
-	LPCWSTR dbx32key = L".dd32";
-	LPCWSTR dbx64key = L".dd64";
-	LPCWSTR db_desc = L"x64dbg_db";
+    HKEY hKeyCreatedx32;
+    HKEY hKeyCreatedx64;
+    HKEY hKeyCreatedIconx32;
+    HKEY hKeyCreatedIconx64;
+    LPCWSTR dbx32key = L".dd32";
+    LPCWSTR dbx64key = L".dd64";
+    LPCWSTR db_desc = L"x64dbg_db";
 
-	// file type key created
-	if (RegCreateKey(HKEY_CLASSES_ROOT, dbx32key, &hKeyCreatedx32) != ERROR_SUCCESS)
-	{
-		MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
-		return;
-	}
-	if (RegCreateKey(HKEY_CLASSES_ROOT, dbx64key, &hKeyCreatedx64) != ERROR_SUCCESS)
-	{
-		MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
-		return;
-	}
+    // file type key created
+    if(RegCreateKey(HKEY_CLASSES_ROOT, dbx32key, &hKeyCreatedx32) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+        return;
+    }
+    if(RegCreateKey(HKEY_CLASSES_ROOT, dbx64key, &hKeyCreatedx64) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+        return;
+    }
 
-	// file type desc
-	if (RegSetValueEx(hKeyCreatedx32, nullptr, 0, REG_SZ, LPBYTE(db_desc), (_tcslen(db_desc) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
-	{
-		MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
-		return;
-	}
-	if (RegSetValueEx(hKeyCreatedx64, nullptr, 0, REG_SZ, LPBYTE(db_desc), (_tcslen(db_desc) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
-	{
-		MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
-		return;
-	}
+    // file type desc
+    if(RegSetValueEx(hKeyCreatedx32, nullptr, 0, REG_SZ, LPBYTE(db_desc), (_tcslen(db_desc) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+        return;
+    }
+    if(RegSetValueEx(hKeyCreatedx64, nullptr, 0, REG_SZ, LPBYTE(db_desc), (_tcslen(db_desc) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+        return;
+    }
 
-	// file type key icon created
-	if (RegCreateKey(hKeyCreatedx32, L"DefaultIcon", &hKeyCreatedIconx32) != ERROR_SUCCESS)
-	{
-		MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
-		return;
-	}
-	if (RegCreateKey(hKeyCreatedx64, L"DefaultIcon", &hKeyCreatedIconx64) != ERROR_SUCCESS)
-	{
-		MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
-		return;
-	}
+    // file type key icon created
+    if(RegCreateKey(hKeyCreatedx32, L"DefaultIcon", &hKeyCreatedIconx32) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+        return;
+    }
+    if(RegCreateKey(hKeyCreatedx64, L"DefaultIcon", &hKeyCreatedIconx64) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+        return;
+    }
 
-	// file type key icon path
-	if (RegSetValueEx(hKeyCreatedIconx32, nullptr, 0, REG_SZ, LPBYTE(sz32Path), (_tcslen(sz32Path) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
-	{
-		MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
-		return;
-	}
-	if (RegSetValueEx(hKeyCreatedIconx64, nullptr, 0, REG_SZ, LPBYTE(sz64Path), (_tcslen(sz64Path) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
-	{
-		MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
-		return;
-	}
+    // file type key icon path
+    if(RegSetValueEx(hKeyCreatedIconx32, nullptr, 0, REG_SZ, LPBYTE(sz32Path), (_tcslen(sz32Path) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+        return;
+    }
+    if(RegSetValueEx(hKeyCreatedIconx64, nullptr, 0, REG_SZ, LPBYTE(sz64Path), (_tcslen(sz64Path) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+        return;
+    }
 
-	RegCloseKey(hKeyCreatedx32);
-	RegCloseKey(hKeyCreatedx64);
-	RegCloseKey(hKeyCreatedIconx32);
-	RegCloseKey(hKeyCreatedIconx64);
+    RegCloseKey(hKeyCreatedx32);
+    RegCloseKey(hKeyCreatedx64);
+    RegCloseKey(hKeyCreatedIconx32);
+    RegCloseKey(hKeyCreatedIconx64);
 
-	// refresh icons cache
-	SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
-	return;
+    // refresh icons cache
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+    return;
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -435,7 +435,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
         }
 
-		AddDBFileTypeIcon(sz32Path, sz64Path);
+        AddDBFileTypeIcon(sz32Path, sz64Path);
 
         if(bDoneSomething)
             MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);
