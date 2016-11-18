@@ -120,6 +120,7 @@ private:
     GotoDialog* mGotoOffset = nullptr;
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
+    int mAsciiSeparator = 0;
 
     enum ViewEnum_t
     {

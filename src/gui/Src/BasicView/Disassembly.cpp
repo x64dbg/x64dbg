@@ -35,7 +35,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     mCodeFoldingManager = nullptr;
     duint setting;
-    if(BridgeSettingGetUint("GUI", "DisableBranchDestinationPreview", &setting))
+    if(BridgeSettingGetUint("Gui", "DisableBranchDestinationPreview", &setting))
         mPopupEnabled = !setting;
     else
         mPopupEnabled = true;
