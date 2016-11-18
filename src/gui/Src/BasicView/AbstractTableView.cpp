@@ -857,6 +857,8 @@ void AbstractTableView::updateScrollBarRange(dsint range)
     }
     else
         verticalScrollBar()->setRange(0, 0);
+    verticalScrollBar()->setSingleStep(getRowHeight());
+    verticalScrollBar()->setPageStep(getViewableRowsCount() * getRowHeight());
 }
 
 /************************************************************************************
