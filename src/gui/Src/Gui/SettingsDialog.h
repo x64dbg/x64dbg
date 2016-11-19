@@ -53,6 +53,7 @@ private slots:
     void on_chkSkipInt3Stepping_toggled(bool checked);
     void on_chkNoScriptTimeout_stateChanged(int arg1);
     void on_chkIgnoreInconsistentBreakpoints_toggled(bool checked);
+    void on_chkHardcoreThreadSwitchWarning_toggled(bool checked);
     void on_spinMaxTraceCount_valueChanged(int arg1);
     //Exception tab
     void on_btnAddRange_clicked();
@@ -135,6 +136,7 @@ private:
         bool engineSkipInt3Stepping;
         bool engineNoScriptTimeout;
         bool engineIgnoreInconsistentBreakpoints;
+        bool engineHardcoreThreadSwitchWarning;
         int engineMaxTraceCount;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
