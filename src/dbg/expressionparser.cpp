@@ -367,8 +367,7 @@ bool ExpressionParser::isUnaryOperator() const
         return false;
     if(!mTokens.size()) //no tokens before the operator means it is an unary operator
         return true;
-    auto lastToken = mTokens[mTokens.size() - 1];
-    return lastToken.isOperator(); //if the previous operator is a token, the operator is an unary operator
+    return mTokens[mTokens.size() - 1].type() != Token::Type::Data; //if the previous token is not data, this operator is a unary operator
 }
 
 void ExpressionParser::shuntingYard()
