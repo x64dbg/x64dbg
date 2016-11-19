@@ -40,6 +40,7 @@ public slots:
     void entropy();
     void findPatternSlot();
     void dumpMemory();
+    void commentSlot();
     void selectAddress(duint va);
     void gotoOriginSlot();
     void gotoExpressionSlot();
@@ -79,6 +80,7 @@ private:
     QAction* mMemoryAllocate;
     QAction* mMemoryFree;
     QAction* mAddVirtualMod;
+    QAction* mComment;
 
     duint mCipBase;
 };
