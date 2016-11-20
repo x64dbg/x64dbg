@@ -258,7 +258,7 @@ bool TypeManager::validPtr(const std::string & id)
     if(id[id.length() - 1] == '*')
     {
         auto type = id.substr(0, id.length() - 1);
-        if(!isDefined(type))
+        if(!isDefined(type) && !validPtr(type))
             return false;
         std::string owner("ptr");
         auto foundT = types.find(type);
