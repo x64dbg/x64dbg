@@ -637,7 +637,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     searchMenu->addMenu(makeMenu(DIcon("search_current_region.png"), tr("Current Region")), mSearchRegionMenu);
     searchMenu->addMenu(makeMenu(DIcon("search_current_module.png"), tr("Current Module")), mSearchModuleMenu);
     QMenu* searchFunctionMenu = makeMenu(tr("Current Function"));
-    searchFunctionMenu->setEnabled(false);
     searchMenu->addMenu(searchFunctionMenu, mSearchFunctionMenu);
     searchMenu->addMenu(makeMenu(DIcon("search_all_modules.png"), tr("All Modules")), mSearchAllMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("search-for.png"), tr("&Search for")), searchMenu);
