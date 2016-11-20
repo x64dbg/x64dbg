@@ -12,6 +12,7 @@
 #include "GotoDialog.h"
 #include "WordEditDialog.h"
 #include "VirtualModDialog.h"
+#include "LineEditDialog.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent)
     : StdTable(parent),
@@ -55,6 +56,8 @@ void MemoryMapView::setupContextMenu()
 
     //Yara
     mYara = new QAction(DIcon("yara.png"), "&Yara...", this);
+    mYara->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mYara);
     connect(mYara, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Set PageMemory Rights
@@ -108,6 +111,7 @@ void MemoryMapView::setupContextMenu()
     mMemoryRemove->setShortcutContext(Qt::WidgetShortcut);
     connect(mMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
     mBreakpointMenu->addAction(mMemoryRemove);
+    this->addAction(mMemoryRemove);
 
     //Action shortcut action that does something
     mMemoryExecuteSingleshootToggle = new QAction(this);
@@ -165,6 +169,12 @@ void MemoryMapView::setupContextMenu()
     mAddVirtualMod = new QAction(tr("Add virtual module"), this);
     connect(mAddVirtualMod, SIGNAL(triggered()), this, SLOT(addVirtualModSlot()));
 
+    //Comment
+    mComment = new QAction(DIcon("comment.png"), tr("&Comment"), this);
+    this->addAction(mComment);
+    connect(mComment, SIGNAL(triggered()), this, SLOT(commentSlot()));
+    mComment->setShortcutContext(Qt::WidgetShortcut);
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -180,6 +190,8 @@ void MemoryMapView::refreshShortcutsSlot()
     mEntropy->setShortcut(ConfigShortcut("ActionEntropy"));
     mMemoryFree->setShortcut(ConfigShortcut("ActionFreeMemory"));
     mMemoryAllocate->setShortcut(ConfigShortcut("ActionAllocateMemory"));
+    mYara->setShortcut(ConfigShortcut("ActionYara"));
+    mComment->setShortcut(ConfigShortcut("ActionSetComment"));
 }
 
 void MemoryMapView::contextMenuSlot(const QPoint & pos)
@@ -190,6 +202,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addAction(mFollowDisassembly);
     wMenu.addAction(mFollowDump);
     wMenu.addAction(mDumpMemory);
+    wMenu.addAction(mComment);
     wMenu.addAction(mYara);
     wMenu.addAction(mEntropy);
     wMenu.addAction(mFindPattern);
@@ -339,7 +352,13 @@ void MemoryMapView::refreshMap()
         setCellContent(wI, 2, wS);
 
         // Content
-        if(wS.contains(".bss"))
+        char comment_text[MAX_COMMENT_SIZE];
+        comment_text[0] = '\0';
+        if(DbgGetCommentAt((duint)wMbi.BaseAddress, comment_text) && comment_text[0] != '\1') // user comment present
+        {
+            wS = QString::fromUtf8(comment_text);
+        }
+        else if(wS.contains(".bss"))
             wS = tr("Uninitialized data");
         else if(wS.contains(".data"))
             wS = tr("Initialized data");
@@ -654,4 +673,26 @@ void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)
 {
     Q_UNUSED(va)
     mCipBase = DbgMemFindBaseAddr(cip, nullptr);;
+}
+
+void MemoryMapView::commentSlot()
+{
+    duint wVA = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
+    LineEditDialog mLineEdit(this);
+    QString addr_text = ToPtrString(wVA);
+    char comment_text[MAX_COMMENT_SIZE] = "";
+    if(DbgGetCommentAt((duint)wVA, comment_text))
+    {
+        if(comment_text[0] == '\1') //automatic comment
+            mLineEdit.setText(QString(comment_text + 1));
+        else
+            mLineEdit.setText(QString(comment_text));
+    }
+    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
+
+    GuiUpdateMemoryView();
 }
