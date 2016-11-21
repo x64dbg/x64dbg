@@ -11,6 +11,7 @@ public:
     static bool ReadAllText(const String & fileName, String & content);
     static bool WriteAllText(const String & fileName, const String & content);
     static bool ReadAllLines(const String & fileName, std::vector<String> & lines, bool keepEmpty = false);
+    static String GetFileName(const String & fileName);
 };
 
 #endif //_FILEREADER_H
