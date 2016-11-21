@@ -36,3 +36,4 @@ bool cbInstrClearTypes(int argc, char* argv[]);
 bool cbInstrRemoveType(int argc, char* argv[]);
 bool cbInstrEnumTypes(int argc, char* argv[]);
 bool cbInstrLoadTypes(int argc, char* argv[]);
+bool cbInstrParseTypes(int argc, char* argv[]);

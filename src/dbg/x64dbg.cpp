@@ -354,6 +354,7 @@ static void registercommands()
     dbgcmdnew("RemoveType", cbInstrRemoveType, false); //RemoveType
     dbgcmdnew("EnumTypes", cbInstrEnumTypes, false); //EnumTypes
     dbgcmdnew("LoadTypes", cbInstrLoadTypes, false); //LoadTypes
+    dbgcmdnew("ParseTypes", cbInstrParseTypes, false); //ParseTypes
 
     //plugins
     dbgcmdnew("StartScylla\1scylla\1imprec", cbDebugStartScylla, false); //start scylla

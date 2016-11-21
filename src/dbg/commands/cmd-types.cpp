@@ -609,3 +609,23 @@ bool cbInstrLoadTypes(int argc, char* argv[])
     dputs(QT_TRANSLATE_NOOP("DBG", "Types loaded"));
     return true;
 }
+
+bool cbInstrParseTypes(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    auto owner = FileHelper::GetFileName(argv[1]);
+    std::string data;
+    if(!FileHelper::ReadAllText(argv[1], data))
+    {
+        dputs("failed to read file!");
+        return false;
+    }
+    if(!ParseTypes(data, owner))
+    {
+        dputs("ParseTypes failed");
+        return false;
+    }
+    dputs("Types parsed");
+    return true;
+}

@@ -119,6 +119,13 @@ namespace Types
         bool addType(const Type & t);
         bool visitMember(const Member & root, Visitor & visitor) const;
     };
+
+    struct Model
+    {
+        std::vector<Member> types;
+        std::vector<StructUnion> structUnions;
+        std::vector<Function> functions;
+    };
 };
 
 bool AddType(const std::string & owner, const std::string & type, const std::string & name);
@@ -136,3 +143,4 @@ bool RemoveType(const std::string & type);
 void EnumTypes(std::vector<Types::TypeManager::Summary> & typeList);
 bool LoadTypesJson(const std::string & json, const std::string & owner);
 bool LoadTypesFile(const std::string & path, const std::string & owner);
+bool ParseTypes(const std::string & parse, const std::string & owner);

@@ -585,86 +585,89 @@ static void loadFunctions(const JSON froot, std::vector<Function> & functions)
     }
 }
 
+void LoadModel(const std::string & owner, Model & model)
+{
+    //Add all base struct/union types first to avoid errors later
+    for(auto & su : model.structUnions)
+    {
+        auto success = su.isunion ? typeManager.AddUnion(owner, su.name) : typeManager.AddStruct(owner, su.name);
+        if(!success)
+        {
+            su.name.clear(); //signal error
+            //TODO properly handle errors
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add %s %s;\n"), su.isunion ? "union" : "struct", su.name.c_str());
+        }
+    }
+
+    //Add simple typedefs
+    for(auto & type : model.types)
+    {
+        auto success = typeManager.AddType(owner, type.type, type.name);
+        if(!success)
+        {
+            //TODO properly handle errors
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add typedef %s %s;\n"), type.type.c_str(), type.name.c_str());
+        }
+    }
+
+    //Add base function types to avoid errors later
+    for(auto & function : model.functions)
+    {
+        auto success = typeManager.AddFunction(owner, function.name, function.rettype, function.callconv, function.noreturn);
+        if(!success)
+        {
+            function.name.clear(); //signal error
+            //TODO properly handle errors
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add function %s %s()\n"), function.rettype.c_str(), function.name.c_str());
+        }
+    }
+
+    //Add struct/union members
+    for(auto & su : model.structUnions)
+    {
+        if(su.name.empty()) //skip error-signalled structs/unions
+            continue;
+        for(auto & member : su.members)
+        {
+            auto success = typeManager.AddMember(su.name, member.type, member.name, member.arrsize, member.offset);
+            if(!success)
+            {
+                //TODO properly handle errors
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add member %s %s.%s;\n"), member.type.c_str(), su.name.c_str(), member.name.c_str());
+            }
+        }
+    }
+
+    //Add function arguments
+    for(auto & function : model.functions)
+    {
+        if(function.name.empty()) //skip error-signalled functions
+            continue;
+        for(auto & arg : function.args)
+        {
+            auto success = typeManager.AddArg(function.name, arg.type, arg.name);
+            if(!success)
+            {
+                //TODO properly handle errors
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add argument %s %s.%s;\n"), arg.type.c_str(), function.name.c_str(), arg.name.c_str());
+            }
+        }
+    }
+}
+
 bool LoadTypesJson(const std::string & json, const std::string & owner)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
     auto root = json_loads(json.c_str(), 0, 0);
     if(root)
     {
-        std::vector<Member> types;
-        loadTypes(json_object_get(root, "types"), types);
-        std::vector<StructUnion> structUnions;
-        loadStructUnions(json_object_get(root, "structs"), false, structUnions);
-        loadStructUnions(json_object_get(root, "unions"), true, structUnions);
-        std::vector<Function> functions;
-        loadFunctions(json_object_get(root, "functions"), functions);
+        Model model;
+        loadTypes(json_object_get(root, "types"), model.types);
+        loadStructUnions(json_object_get(root, "structs"), false, model.structUnions);
+        loadStructUnions(json_object_get(root, "unions"), true, model.structUnions);
+        loadFunctions(json_object_get(root, "functions"), model.functions);
 
-        //Add all base struct/union types first to avoid errors later
-        for(auto & su : structUnions)
-        {
-            auto success = su.isunion ? typeManager.AddUnion(owner, su.name) : typeManager.AddStruct(owner, su.name);
-            if(!success)
-            {
-                su.name.clear(); //signal error
-                //TODO properly handle errors
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add %s %s;\n"), su.isunion ? "union" : "struct", su.name);
-            }
-        }
-
-        //Add simple typedefs
-        for(auto & type : types)
-        {
-            auto success = typeManager.AddType(owner, type.type, type.name);
-            if(!success)
-            {
-                //TODO properly handle errors
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add typedef %s %s;\n"), type.type, type.name);
-            }
-        }
-
-        //Add base function types to avoid errors later
-        for(auto & function : functions)
-        {
-            auto success = typeManager.AddFunction(owner, function.name, function.rettype, function.callconv, function.noreturn);
-            if(!success)
-            {
-                function.name.clear(); //signal error
-                //TODO properly handle errors
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add function %s %s()\n"), function.rettype, function.name);
-            }
-        }
-
-        //Add struct/union members
-        for(auto & su : structUnions)
-        {
-            if(su.name.empty()) //skip error-signalled structs/unions
-                continue;
-            for(auto & member : su.members)
-            {
-                auto success = typeManager.AddMember(su.name, member.type, member.name, member.arrsize, member.offset);
-                if(!success)
-                {
-                    //TODO properly handle errors
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add member %s %s.%s;\n"), member.type, su.name, member.name);
-                }
-            }
-        }
-
-        //Add function arguments
-        for(auto & function : functions)
-        {
-            if(function.name.empty()) //skip error-signalled functions
-                continue;
-            for(auto & arg : function.args)
-            {
-                auto success = typeManager.AddArg(function.name, arg.type, arg.name);
-                if(!success)
-                {
-                    //TODO properly handle errors
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add argument %s %s.%s;\n"), arg.type, function.name, arg.name);
-                }
-            }
-        }
+        LoadModel(owner, model);
 
         // Free root
         json_decref(root);
