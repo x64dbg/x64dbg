@@ -1,6 +1,8 @@
 #include "types.h"
 #include "stringutils.h"
 #include "threading.h"
+#include "filehelper.h"
+#include "console.h"
 
 using namespace Types;
 
@@ -81,6 +83,7 @@ bool TypeManager::AddMember(const std::string & parent, const std::string & type
     m.name = name;
     m.arrsize = arrsize;
     m.type = type;
+    m.offset = offset;
 
     if(offset >= 0)  //user-defined offset
     {
@@ -127,6 +130,8 @@ bool TypeManager::AddFunction(const std::string & owner, const std::string & nam
     Function f;
     f.owner = owner;
     f.name = name;
+    if(rettype != "void" && !isDefined(rettype) && !validPtr(rettype))
+        return false;
     f.rettype = rettype;
     f.callconv = callconv;
     f.noreturn = noreturn;
@@ -220,13 +225,28 @@ bool TypeManager::RemoveType(const std::string & type)
     return removeType(types, type) || removeType(structs, type) || removeType(functions, type);
 }
 
+static std::string getKind(const StructUnion & su)
+{
+    return su.isunion ? "union" : "struct";
+}
+
+static std::string getKind(const Type & t)
+{
+    return "typedef";
+}
+
+static std::string getKind(const Function & f)
+{
+    return "function";
+}
+
 template<typename K, typename V>
-static void enumType(const std::unordered_map<K, V> & map, const std::string & kind, std::vector<TypeManager::Summary> & types)
+static void enumType(const std::unordered_map<K, V> & map, std::vector<TypeManager::Summary> & types)
 {
     for(auto i = map.begin(); i != map.end(); ++i)
     {
         TypeManager::Summary s;
-        s.kind = kind;
+        s.kind = getKind(i->second);
         s.name = i->second.name;
         s.owner = i->second.owner;
         s.size = SizeofType(s.name);
@@ -237,9 +257,40 @@ static void enumType(const std::unordered_map<K, V> & map, const std::string & k
 void TypeManager::Enum(std::vector<Summary> & typeList) const
 {
     typeList.clear();
-    enumType(types, "typedef", typeList);
-    enumType(structs, "structunion", typeList);
-    enumType(functions, "function", typeList);
+    enumType(types, typeList);
+    enumType(structs, typeList);
+    enumType(functions, typeList);
+    //nasty hacks to sort in a nice way
+    std::sort(typeList.begin(), typeList.end(), [](const Summary & a, const Summary & b)
+    {
+        auto kindInt = [](const std::string & kind)
+        {
+            if(kind == "typedef")
+                return 0;
+            if(kind == "struct")
+                return 1;
+            if(kind == "union")
+                return 2;
+            if(kind == "function")
+                return 3;
+            __debugbreak();
+            return 4;
+        };
+        if(a.owner < b.owner)
+            return true;
+        else if(a.owner > b.owner)
+            return false;
+        auto ka = kindInt(a.kind), kb = kindInt(b.kind);
+        if(ka < kb)
+            return true;
+        else if(ka > kb)
+            return false;
+        if(a.name < b.name)
+            return true;
+        else if(a.name > b.name)
+            return false;
+        return a.size < b.size;
+    });
 }
 
 template<typename K, typename V>
@@ -424,4 +475,209 @@ void EnumTypes(std::vector<Types::TypeManager::Summary> & typeList)
 {
     SHARED_ACQUIRE(LockTypeManager);
     return typeManager.Enum(typeList);
+}
+
+int json_default_int(const JSON object, const char* key, int defaultVal)
+{
+    auto jint = json_object_get(object, key);
+    if(jint && json_is_integer(jint))
+        return int(json_integer_value(jint));
+    return defaultVal;
+}
+
+static void loadTypes(const JSON troot, std::vector<Member> & types)
+{
+    if(!troot)
+        return;
+    size_t i;
+    JSON vali;
+    Member curType;
+    json_array_foreach(troot, i, vali)
+    {
+        auto type = json_string_value(json_object_get(vali, "type"));
+        auto name = json_string_value(json_object_get(vali, "name"));
+        if(!type || !*type || !name || !*name)
+            continue;
+        curType.type = type;
+        curType.name = name;
+        types.push_back(curType);
+    }
+}
+
+static void loadStructUnions(const JSON suroot, bool isunion, std::vector<StructUnion> & structUnions)
+{
+    if(!suroot)
+        return;
+    size_t i;
+    JSON vali;
+    StructUnion curSu;
+    curSu.isunion = isunion;
+    json_array_foreach(suroot, i, vali)
+    {
+        auto suname = json_string_value(json_object_get(vali, "name"));
+        if(!suname || !*suname)
+            continue;
+        curSu.name = suname;
+        curSu.members.clear();
+        auto members = json_object_get(vali, "members");
+        size_t j;
+        JSON valj;
+        Member curMember;
+        json_array_foreach(members, j, valj)
+        {
+            auto type = json_string_value(json_object_get(valj, "type"));
+            auto name = json_string_value(json_object_get(valj, "name"));
+            if(!type || !*type || !name || !*name)
+                continue;
+            curMember.type = type;
+            curMember.name = name;
+            curMember.arrsize = json_default_int(valj, "arrsize", 0);
+            curMember.offset = json_default_int(valj, "offset", -1);
+            curSu.members.push_back(curMember);
+        }
+        structUnions.push_back(curSu);
+    }
+}
+
+static void loadFunctions(const JSON froot, std::vector<Function> & functions)
+{
+    if(!froot)
+        return;
+    size_t i;
+    JSON vali;
+    Function curFunction;
+    json_array_foreach(froot, i, vali)
+    {
+        auto rettype = json_string_value(json_object_get(vali, "rettype"));
+        auto fname = json_string_value(json_object_get(vali, "name"));
+        if(!rettype || !*rettype || !fname || !*fname)
+            continue;
+        curFunction.rettype = rettype;
+        curFunction.name = fname;
+        curFunction.args.clear();
+        auto callconv = json_string_value(json_object_get(vali, "callconv"));
+        curFunction.noreturn = json_boolean_value(json_object_get(vali, "noreturn"));
+        if(scmp(callconv, "cdecl"))
+            curFunction.callconv = Cdecl;
+        else if(scmp(callconv, "stdcall"))
+            curFunction.callconv = Stdcall;
+        else if(scmp(callconv, "thiscall"))
+            curFunction.callconv = Thiscall;
+        else if(scmp(callconv, "delphi"))
+            curFunction.callconv = Delphi;
+        else
+            curFunction.callconv = Cdecl;
+        auto args = json_object_get(vali, "args");
+        size_t j;
+        JSON valj;
+        Member curArg;
+        json_array_foreach(args, j, valj)
+        {
+            auto type = json_string_value(json_object_get(valj, "type"));
+            auto name = json_string_value(json_object_get(valj, "name"));
+            if(!type || !*type || !name || !*name)
+                continue;
+            curArg.type = type;
+            curArg.name = name;
+            curFunction.args.push_back(curArg);
+        }
+        functions.push_back(curFunction);
+    }
+}
+
+bool LoadTypesJson(const std::string & json, const std::string & owner)
+{
+    EXCLUSIVE_ACQUIRE(LockTypeManager);
+    auto root = json_loads(json.c_str(), 0, 0);
+    if(root)
+    {
+        std::vector<Member> types;
+        loadTypes(json_object_get(root, "types"), types);
+        std::vector<StructUnion> structUnions;
+        loadStructUnions(json_object_get(root, "structs"), false, structUnions);
+        loadStructUnions(json_object_get(root, "unions"), true, structUnions);
+        std::vector<Function> functions;
+        loadFunctions(json_object_get(root, "functions"), functions);
+
+        //Add all base struct/union types first to avoid errors later
+        for(auto & su : structUnions)
+        {
+            auto success = su.isunion ? typeManager.AddUnion(owner, su.name) : typeManager.AddStruct(owner, su.name);
+            if(!success)
+            {
+                su.name.clear(); //signal error
+                //TODO properly handle errors
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add %s %s;\n"), su.isunion ? "union" : "struct", su.name);
+            }
+        }
+
+        //Add simple typedefs
+        for(auto & type : types)
+        {
+            auto success = typeManager.AddType(owner, type.type, type.name);
+            if(!success)
+            {
+                //TODO properly handle errors
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add typedef %s %s;\n"), type.type, type.name);
+            }
+        }
+
+        //Add base function types to avoid errors later
+        for(auto & function : functions)
+        {
+            auto success = typeManager.AddFunction(owner, function.name, function.rettype, function.callconv, function.noreturn);
+            if(!success)
+            {
+                function.name.clear(); //signal error
+                //TODO properly handle errors
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add function %s %s()\n"), function.rettype, function.name);
+            }
+        }
+
+        //Add struct/union members
+        for(auto & su : structUnions)
+        {
+            if(su.name.empty()) //skip error-signalled structs/unions
+                continue;
+            for(auto & member : su.members)
+            {
+                auto success = typeManager.AddMember(su.name, member.type, member.name, member.arrsize, member.offset);
+                if(!success)
+                {
+                    //TODO properly handle errors
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add member %s %s.%s;\n"), member.type, su.name, member.name);
+                }
+            }
+        }
+
+        //Add function arguments
+        for(auto & function : functions)
+        {
+            if(function.name.empty()) //skip error-signalled functions
+                continue;
+            for(auto & arg : function.args)
+            {
+                auto success = typeManager.AddArg(function.name, arg.type, arg.name);
+                if(!success)
+                {
+                    //TODO properly handle errors
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add argument %s %s.%s;\n"), arg.type, function.name, arg.name);
+                }
+            }
+        }
+
+        // Free root
+        json_decref(root);
+    }
+    else
+        return false;
+    return true;
+}
+
+bool LoadTypesFile(const std::string & path, const std::string & owner)
+{
+    std::string json;
+    if(!FileHelper::ReadAllText(path, json))
+        return false;
+    return LoadTypesJson(json, owner);
 }

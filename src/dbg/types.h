@@ -39,6 +39,7 @@ namespace Types
         std::string name; //Member identifier
         std::string type; //Type.name
         int arrsize = 0; //Number of elements if Member is an array
+        int offset = -1; //Member offset (only stored for reference)
     };
 
     struct StructUnion
@@ -133,3 +134,5 @@ bool VisitType(const std::string & type, const std::string & name, Types::TypeMa
 void ClearTypes(const std::string & owner = "");
 bool RemoveType(const std::string & type);
 void EnumTypes(std::vector<Types::TypeManager::Summary> & typeList);
+bool LoadTypesJson(const std::string & json, const std::string & owner);
+bool LoadTypesFile(const std::string & path, const std::string & owner);
