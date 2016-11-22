@@ -42,6 +42,8 @@ bool LoopAdd(duint Start, duint End, bool Manual)
         LoopGet(finalDepth - 1, Start, &loopInfo.parent, 0);
     else
         loopInfo.parent = 0;
+    if(loopInfo.parent)
+        loopInfo.parent -= moduleBase;
 
     EXCLUSIVE_ACQUIRE(LockLoops);
 
@@ -104,8 +106,8 @@ bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
         if(itr.second.depth != Depth)
             continue;
 
-        if(itr.second.start < curStart && itr.second.end > curEnd)
-            return LoopOverlaps(Depth + 1, curStart, curEnd, FinalDepth);
+        if(itr.second.start <= curStart && itr.second.end >= curEnd)
+            return LoopOverlaps(Depth + 1, curStart + moduleBase, curEnd + moduleBase, FinalDepth);
     }
 
     // Did the user request t the loop depth?
@@ -133,8 +135,33 @@ bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
 // This should delete a loop and all sub-loops that matches a certain addr
 bool LoopDelete(int Depth, duint Address)
 {
-    ASSERT_ALWAYS("Function unimplemented");
-    return false;
+    // Get the virtual address module
+    const duint moduleBase = ModBaseFromAddr(Address);
+
+    // Virtual address to relative address
+    Address -= moduleBase;
+
+    SHARED_ACQUIRE(LockLoops);
+
+    // Search with this address range
+    auto modHash = ModHashFromAddr(moduleBase);
+    auto found = loops.find(DepthModuleRange(Depth, ModuleRange(modHash, Range(Address, Address))));
+    if(found == loops.end())
+        return false;
+
+    for(auto addr = found->second.start; addr <= found->second.end; addr++)
+    {
+        auto foundChild = loops.find(DepthModuleRange(Depth + 1, ModuleRange(modHash, Range(addr, addr))));
+        if(foundChild == loops.end())
+            continue;
+        addr = foundChild->second.end;
+        if(!LoopDelete(Depth + 1, foundChild->second.start + moduleBase))
+            return false;
+    }
+
+    loops.erase(found);
+
+    return true;
 }
 
 void LoopCacheSave(JSON Root)
