@@ -9,7 +9,8 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), true); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), true); //return from
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Size"), true); //size
-    addColumnAt(10, tr("Comment"), true);
+    addColumnAt(50 * charwidth, tr("Comment"), true);
+    addColumnAt(8 * charwidth, tr("Party"), true); //party
     loadColumnFromConfig("CallStack");
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));
@@ -80,6 +81,19 @@ void CallStackView::updateCallStack()
         else
             setCellContent(i, 3, "");
         setCellContent(i, 4, callstack.entries[i].comment);
+        int party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
+        switch(party)
+        {
+        case 0:
+            setCellContent(i, 5, tr("User"));
+            break;
+        case 1:
+            setCellContent(i, 5, tr("System"));
+            break;
+        default:
+            setCellContent(i, 5, QString("%1").arg(party));
+            break;
+        }
     }
     if(callstack.total)
         BridgeFree(callstack.entries);
@@ -120,5 +134,5 @@ void CallStackView::showSuspectedCallStack()
     BridgeSettingSetUint("Engine", "ShowSuspectedCallStack", i);
     DbgSettingsUpdated();
     updateCallStack();
-    //TODO: Need to update the stack view in the CPU view to reflect the changes of call stack
+    emit Bridge::getBridge()->updateDump();
 }

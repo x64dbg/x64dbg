@@ -50,6 +50,7 @@ CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(focusStack()), this, SLOT(setFocus()));
+    connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateSlot()));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
@@ -567,6 +568,36 @@ void CPUStack::stackDumpAt(duint addr, duint csp)
     }
 
     printDumpAt(addr);
+}
+
+void CPUStack::updateSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    // Get the callstack
+    DBGCALLSTACK callstack;
+    memset(&callstack, 0, sizeof(DBGCALLSTACK));
+    DbgFunctions()->GetCallStack(&callstack);
+    mCallstack.resize(callstack.total);
+    if(mCallstack.size())
+    {
+        // callstack data highest >> lowest
+        std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
+        {
+            auto p = (const DBGCALLSTACKENTRY*)a;
+            auto q = (const DBGCALLSTACKENTRY*)b;
+            if(p->addr < q->addr)
+                return -1;
+            else
+                return 1;
+        });
+        for(size_t i = 0; i < mCallstack.size(); i++)
+        {
+            mCallstack[i].addr = callstack.entries[i].addr;
+            mCallstack[i].party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
+        }
+        BridgeFree(callstack.entries);
+    }
 }
 
 void CPUStack::gotoCspSlot()
