@@ -31,4 +31,7 @@ bool cbInstrArgumentDel(int argc, char* argv[]);
 bool cbInstrArgumentList(int argc, char* argv[]);
 bool cbInstrArgumentClear(int argc, char* argv[]);
 
-
+bool cbInstrLoopAdd(int argc, char* argv[]);
+bool cbInstrLoopDel(int argc, char* argv[]);
+bool cbInstrLoopList(int argc, char* argv[]);
+bool cbInstrLoopClear(int argc, char* argv[]);

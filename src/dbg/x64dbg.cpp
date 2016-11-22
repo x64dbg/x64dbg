@@ -302,6 +302,11 @@ static void registercommands()
     dbgcmdnew("argumentlist", cbInstrArgumentList, true); //list arguments
     dbgcmdnew("argumentclear", cbInstrArgumentClear, false); //delete all arguments
 
+    dbgcmdnew("loopadd", cbInstrLoopAdd, true); //add loop TODO: undocumented
+    dbgcmdnew("loopdel", cbInstrLoopDel, true); //delete loop TODO: undocumented
+    dbgcmdnew("looplist", cbInstrLoopList, true); //list loops TODO: undocumented
+    dbgcmdnew("loopclear", cbInstrLoopClear, true); //clear loops TODO: undocumented
+
     //analysis
     dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
     dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
@@ -413,7 +418,6 @@ static void registercommands()
     dbgcmdnew("setstr\1strset", cbInstrSetstr, false); //set a string variable
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
-    dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
     dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs

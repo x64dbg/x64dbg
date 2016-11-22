@@ -8,6 +8,7 @@
 #include "bookmark.h"
 #include "function.h"
 #include "argument.h"
+#include "loop.h"
 
 bool cbInstrDbsave(int argc, char* argv[])
 {
@@ -446,5 +447,104 @@ bool cbInstrArgumentClear(int argc, char* argv[])
     ArgumentClear();
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "All arguments deleted!"));
+    return true;
+}
+
+bool cbInstrLoopAdd(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
+    duint start = 0;
+    duint end = 0;
+    if(!valfromstring(argv[1], &start, false) || !valfromstring(argv[2], &end, false))
+        return false;
+    if(!LoopAdd(start, end, true))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to add loop"));
+        return false;
+    }
+    dputs(QT_TRANSLATE_NOOP("DBG", "Loop added!"));
+    GuiUpdateAllViews();
+    return true;
+}
+
+bool cbInstrLoopDel(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    duint addr = 0;
+    if(!valfromstring(argv[1], &addr, false))
+        return false;
+    duint depth = 0;
+    if(argc >= 3 && !valfromstring(argv[2], &depth, false))
+        return false;
+    if(!LoopDelete(int(depth), addr))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to delete loop"));
+        return false;
+    }
+    dputs(QT_TRANSLATE_NOOP("DBG", "Loop deleted!"));
+    GuiUpdateAllViews();
+    return true;
+}
+
+bool cbInstrLoopList(int argc, char* argv[])
+{
+    //setup reference view
+    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Loops")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Start")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Depth")));
+    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Parent")));
+    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
+    GuiReferenceSetRowCount(0);
+    GuiReferenceReloadData();
+    size_t cbsize;
+    LoopEnum(0, &cbsize);
+    if(!cbsize)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "No loops"));
+        return true;
+    }
+    Memory<LOOPSINFO*> loops(cbsize, "cbInstrLoopList:loops");
+    LoopEnum(loops(), 0);
+    int count = (int)(cbsize / sizeof(LOOPSINFO));
+    for(int i = 0; i < count; i++)
+    {
+        GuiReferenceSetRowCount(i + 1);
+        char addrText[20] = "";
+        sprintf_s(addrText, "%p", loops()[i].start);
+        GuiReferenceSetCellContent(i, 0, addrText);
+        sprintf_s(addrText, "%p", loops()[i].end);
+        GuiReferenceSetCellContent(i, 1, addrText);
+        sprintf_s(addrText, "%d", loops()[i].depth);
+        GuiReferenceSetCellContent(i, 2, addrText);
+        sprintf_s(addrText, "%p", loops()[i].parent);
+        GuiReferenceSetCellContent(i, 3, addrText);
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
+        if(GuiGetDisassembly(loops()[i].start, disassembly))
+            GuiReferenceSetCellContent(i, 4, disassembly);
+        char label[MAX_LABEL_SIZE] = "";
+        if(LabelGet(loops()[i].start, label))
+            GuiReferenceSetCellContent(i, 5, label);
+        else
+        {
+            char comment[MAX_COMMENT_SIZE] = "";
+            if(CommentGet(loops()[i].start, comment))
+                GuiReferenceSetCellContent(i, 5, comment);
+        }
+    }
+    varset("$result", count, false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d loop(s) listed\n"), count);
+    GuiReferenceReloadData();
+    return true;
+}
+
+bool cbInstrLoopClear(int argc, char* argv[])
+{
+    LoopClear();
+    GuiUpdateAllViews();
+    dputs(QT_TRANSLATE_NOOP("DBG", "All loops deleted!"));
     return true;
 }

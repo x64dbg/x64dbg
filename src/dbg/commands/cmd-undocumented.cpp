@@ -204,53 +204,6 @@ bool cbInstrCopystr(int argc, char* argv[])
     return true;
 }
 
-bool cbInstrLoopList(int argc, char* argv[])
-{
-    //setup reference view
-    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Loops")));
-    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Start")));
-    GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
-    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
-    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
-    GuiReferenceSetRowCount(0);
-    GuiReferenceReloadData();
-    size_t cbsize;
-    LoopEnum(0, &cbsize);
-    if(!cbsize)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "No loops"));
-        return true;
-    }
-    Memory<LOOPSINFO*> loops(cbsize, "cbInstrLoopList:loops");
-    LoopEnum(loops(), 0);
-    int count = (int)(cbsize / sizeof(LOOPSINFO));
-    for(int i = 0; i < count; i++)
-    {
-        GuiReferenceSetRowCount(i + 1);
-        char addrText[20] = "";
-        sprintf_s(addrText, "%p", loops()[i].start);
-        GuiReferenceSetCellContent(i, 0, addrText);
-        sprintf_s(addrText, "%p", loops()[i].end);
-        GuiReferenceSetCellContent(i, 1, addrText);
-        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly(loops()[i].start, disassembly))
-            GuiReferenceSetCellContent(i, 2, disassembly);
-        char label[MAX_LABEL_SIZE] = "";
-        if(LabelGet(loops()[i].start, label))
-            GuiReferenceSetCellContent(i, 3, label);
-        else
-        {
-            char comment[MAX_COMMENT_SIZE] = "";
-            if(CommentGet(loops()[i].start, comment))
-                GuiReferenceSetCellContent(i, 3, comment);
-        }
-    }
-    varset("$result", count, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%d loop(s) listed\n"), count);
-    GuiReferenceReloadData();
-    return true;
-}
-
 bool cbInstrCapstone(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
