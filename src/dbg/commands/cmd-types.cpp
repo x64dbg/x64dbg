@@ -622,10 +622,7 @@ bool cbInstrParseTypes(int argc, char* argv[])
         return false;
     }
     if(!ParseTypes(data, owner))
-    {
-        dputs("ParseTypes failed");
         return false;
-    }
     dputs("Types parsed");
     return true;
 }
