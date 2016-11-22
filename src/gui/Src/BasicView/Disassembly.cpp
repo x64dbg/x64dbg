@@ -470,6 +470,9 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             Function_t funcType;
             switch(loopType)
             {
+            case LOOP_SINGLE:
+                funcType = Function_single;
+                break;
             case LOOP_BEGIN:
                 funcType = Function_start;
                 break;
@@ -485,7 +488,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             default:
                 break;
             }
-            loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, true);
+            loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, loopType != LOOP_SINGLE);
             depth++;
         }
 

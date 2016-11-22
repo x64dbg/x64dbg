@@ -5,7 +5,7 @@
 
 std::map<DepthModuleRange, LOOPSINFO, DepthModuleRangeCompare> loops;
 
-bool LoopAdd(duint Start, duint End, bool Manual)
+bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -35,6 +35,7 @@ bool LoopAdd(duint Start, duint End, bool Manual)
     loopInfo.end = End - moduleBase;
     loopInfo.depth = finalDepth;
     loopInfo.manual = Manual;
+    loopInfo.instructioncount = instructionCount;
     ModNameFromAddr(Start, loopInfo.mod, true);
 
     // Link this to a parent loop if one does exist
@@ -53,7 +54,7 @@ bool LoopAdd(duint Start, duint End, bool Manual)
 }
 
 // Get the start/end of a loop at a certain depth and address
-bool LoopGet(int Depth, duint Address, duint* Start, duint* End)
+bool LoopGet(int Depth, duint Address, duint* Start, duint* End, duint* InstructionCount)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -77,6 +78,9 @@ bool LoopGet(int Depth, duint Address, duint* Start, duint* End)
 
     if(End)
         *End = found->second.end + moduleBase;
+
+    if(InstructionCount)
+        *InstructionCount = found->second.instructioncount;
 
     return true;
 }
@@ -183,6 +187,7 @@ void LoopCacheSave(JSON Root)
         json_object_set_new(currentJson, "end", json_hex(currentLoop.end));
         json_object_set_new(currentJson, "depth", json_integer(currentLoop.depth));
         json_object_set_new(currentJson, "parent", json_hex(currentLoop.parent));
+        json_object_set_new(currentJson, "icount", json_hex(currentLoop.instructioncount));
 
         if(currentLoop.manual)
             json_array_append_new(jsonLoops, currentJson);
@@ -228,6 +233,7 @@ void LoopCacheLoad(JSON Root)
             loopInfo.end = (duint)json_hex_value(json_object_get(value, "end"));
             loopInfo.depth = (int)json_integer_value(json_object_get(value, "depth"));
             loopInfo.parent = (duint)json_hex_value(json_object_get(value, "parent"));
+            loopInfo.instructioncount = (duint)json_hex_value(json_object_get(value, "icount"));
             loopInfo.manual = Manual;
 
             // Sanity check: Make sure the loop starts before it ends

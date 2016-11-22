@@ -230,7 +230,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flagloop)
     {
-        if(LoopGet(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
+        if(LoopGet(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end, &addrinfo->loop.instrcount))
             retval = true;
     }
     if(addrinfo->flags & flagargs)
