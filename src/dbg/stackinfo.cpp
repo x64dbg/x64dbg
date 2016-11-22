@@ -239,7 +239,7 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
             return;
         }
         callstackVector.clear();
-        //return;
+        return;
     }
 
     // Gather context data
@@ -350,5 +350,6 @@ void stackgetcallstack(duint csp, CALLSTACK* callstack)
 void stackupdatesettings()
 {
     ShowSuspectedCallStack = settingboolget("Engine", "ShowSuspectedCallStack");
-    CallstackCache.clear();
+    std::vector<CALLSTACKENTRY> dummy;
+    stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), dummy, false);
 }
