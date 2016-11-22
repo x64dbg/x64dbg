@@ -14,6 +14,7 @@ doc/
 COV/
 minidump/
 CppDependOut/
+.vs/
 
 # Global filetypes to ignore
 *.depend
@@ -43,6 +44,8 @@ ui_*
 *.ipgset
 pin.log*
 *.cdproj
+src/gui/Translations/*.qm
+x64dbg.VC.db
 
 # Project to ignore
 help/x64*dbg.chm
@@ -69,6 +72,3 @@ src/build-*/
 !/hooks/AStyle.dll
 !/bin/x64dbg_shell_remove.reg
 !*.lib
-pin.log
-src/gui/Translations/*.qm
-x64dbg.VC.db
