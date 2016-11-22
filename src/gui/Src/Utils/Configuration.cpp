@@ -202,6 +202,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     QMap<QString, bool> engineBool;
     engineBool.insert("ListAllPages", false);
+    engineBool.insert("ShowSuspectedCallStack", false);
     defaultBools.insert("Engine", engineBool);
 
     QMap<QString, bool> miscellaneousBool;

@@ -35,6 +35,19 @@ void CallStackView::setupContextMenu()
     {
         return !getCellContent(getInitialSelection(), 2).isEmpty();
     });
+    mMenuBuilder->addSeparator();
+    QAction* wShowSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
+    mMenuBuilder->addAction(wShowSuspectedCallStack, [wShowSuspectedCallStack](QMenu*)
+    {
+        duint i;
+        if(!BridgeSettingGetUint("Engine", "ShowSuspectedCallStack", &i))
+            i = 0;
+        if(i != 0)
+            wShowSuspectedCallStack->setText(tr("Show Active Call Stack Frame"));
+        else
+            wShowSuspectedCallStack->setText(tr("Show Suspected Call Stack Frame"));
+        return true;
+    });
     MenuBuilder* mCopyMenu = new MenuBuilder(this);
     setupCopyMenu(mCopyMenu);
     // Column count cannot be zero
@@ -96,4 +109,16 @@ void CallStackView::followFrom()
 {
     QString addrText = getCellContent(getInitialSelection(), 2);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
+}
+
+void CallStackView::showSuspectedCallStack()
+{
+    duint i;
+    if(!BridgeSettingGetUint("Engine", "ShowSuspectedCallStack", &i))
+        i = 0;
+    i = (i == 0) ? 1 : 0;
+    BridgeSettingSetUint("Engine", "ShowSuspectedCallStack", i);
+    DbgSettingsUpdated();
+    updateCallStack();
+    //TODO: Need to update the stack view in the CPU view to reflect the changes of call stack
 }
