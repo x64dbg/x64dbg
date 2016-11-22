@@ -9,7 +9,8 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), true); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), true); //return from
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Size"), true); //size
-    addColumnAt(10, tr("Comment"), true);
+    addColumnAt(50 * charwidth, tr("Comment"), true);
+    addColumnAt(8 * charwidth, tr("Party"), true); //party
     loadColumnFromConfig("CallStack");
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));
@@ -34,6 +35,19 @@ void CallStackView::setupContextMenu()
     mMenuBuilder->addAction(makeAction(icon, tr("Follow &From"), SLOT(followFrom())), [this](QMenu*)
     {
         return !getCellContent(getInitialSelection(), 2).isEmpty();
+    });
+    mMenuBuilder->addSeparator();
+    QAction* wShowSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
+    mMenuBuilder->addAction(wShowSuspectedCallStack, [wShowSuspectedCallStack](QMenu*)
+    {
+        duint i;
+        if(!BridgeSettingGetUint("Engine", "ShowSuspectedCallStack", &i))
+            i = 0;
+        if(i != 0)
+            wShowSuspectedCallStack->setText(tr("Show Active Call Stack Frame"));
+        else
+            wShowSuspectedCallStack->setText(tr("Show Suspected Call Stack Frame"));
+        return true;
     });
     MenuBuilder* mCopyMenu = new MenuBuilder(this);
     setupCopyMenu(mCopyMenu);
@@ -67,6 +81,19 @@ void CallStackView::updateCallStack()
         else
             setCellContent(i, 3, "");
         setCellContent(i, 4, callstack.entries[i].comment);
+        int party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
+        switch(party)
+        {
+        case 0:
+            setCellContent(i, 5, tr("User"));
+            break;
+        case 1:
+            setCellContent(i, 5, tr("System"));
+            break;
+        default:
+            setCellContent(i, 5, QString("%1").arg(party));
+            break;
+        }
     }
     if(callstack.total)
         BridgeFree(callstack.entries);
@@ -96,4 +123,16 @@ void CallStackView::followFrom()
 {
     QString addrText = getCellContent(getInitialSelection(), 2);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
+}
+
+void CallStackView::showSuspectedCallStack()
+{
+    duint i;
+    if(!BridgeSettingGetUint("Engine", "ShowSuspectedCallStack", &i))
+        i = 0;
+    i = (i == 0) ? 1 : 0;
+    BridgeSettingSetUint("Engine", "ShowSuspectedCallStack", i);
+    DbgSettingsUpdated();
+    updateCallStack();
+    emit Bridge::getBridge()->updateDump();
 }

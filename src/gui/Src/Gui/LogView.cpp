@@ -207,7 +207,7 @@ void LogView::onAnchorClicked(const QUrl & link)
             if(DbgIsDebugging())
             {
                 bool ok = false;
-                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
+                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok, 16);
                 if(ok)
                 {
                     if(DbgFunctions()->MemIsCodePage(address, true))

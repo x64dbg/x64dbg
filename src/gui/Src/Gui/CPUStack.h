@@ -74,6 +74,7 @@ public slots:
     void dbgStateChangedSlot(DBGSTATE state);
     void followInMemoryMapSlot();
     void followInDumpSlot();
+    void updateSlot();
 
 private:
     duint mCsp;

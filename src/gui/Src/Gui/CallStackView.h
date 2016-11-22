@@ -16,6 +16,7 @@ protected slots:
     void followAddress();
     void followTo();
     void followFrom();
+    void showSuspectedCallStack();
 
 private:
     MenuBuilder* mMenuBuilder;
