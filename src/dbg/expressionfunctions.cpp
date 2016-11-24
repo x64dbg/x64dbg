@@ -95,7 +95,7 @@ void ExpressionFunctions::Init()
 
     //Trace record
     RegisterEasy("tr.enabled", trenabled);
-    RegisterEasy("tr.hitcount", trhitcount);
+    RegisterEasy("tr.hitcount,tr.count", trhitcount);
 
     //Byte/Word/Dword/Qword/Pointer
     RegisterEasy("ReadByte,Byte,byte", readbyte);
