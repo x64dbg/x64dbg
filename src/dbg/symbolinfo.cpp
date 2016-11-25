@@ -187,19 +187,19 @@ void SymDownloadAllSymbols(const char* SymbolStore)
         wchar_t modulePath[MAX_PATH];
         if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)module.base, modulePath, MAX_PATH))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExW(%p) failed!\n"), module.base);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExW (%p) failed!\n"), module.base);
             continue;
         }
 
         if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)module.base))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "SymUnloadModule64(%p) failed!\n"), module.base);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "SymUnloadModule64 (%p) failed!\n"), module.base);
             continue;
         }
 
         if(!SymLoadModuleExW(fdProcessInfo->hProcess, 0, modulePath, 0, (DWORD64)module.base, 0, 0, 0))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx(%p) failed!\n"), module.base);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx (%p) failed!\n"), module.base);
             continue;
         }
     }

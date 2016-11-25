@@ -243,6 +243,8 @@ bool DirExists(const char* dir)
 */
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 {
+    if(!hFile)
+        return false;
     wchar_t wszFileName[MAX_PATH] = L"";
     if(!PathFromFileHandleW(hFile, wszFileName, _countof(wszFileName)))
         return false;
@@ -253,14 +255,39 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName)
 {
     wchar_t wszDosFileName[MAX_PATH] = L"";
-    if(!GetProcessImageFileNameW(hProcess, wszDosFileName, _countof(wszDosFileName)))
-        return false;
-
     wchar_t wszFileName[MAX_PATH] = L"";
-    if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
-        return false;
-    strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
-    return true;
+    auto result = false;
+    if(GetProcessImageFileNameW(hProcess, wszDosFileName, _countof(wszDosFileName)))
+    {
+        if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
+            result = !!GetModuleFileNameExW(hProcess, 0, wszFileName, _countof(wszFileName));
+        else
+            result = true;
+    }
+    else
+        result = !!GetModuleFileNameExW(hProcess, 0, wszFileName, _countof(wszFileName));
+    if(result)
+        strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+    return result;
+}
+
+bool GetFileNameFromModuleHandle(HANDLE hProcess, HMODULE hModule, char* szFileName)
+{
+    wchar_t wszDosFileName[MAX_PATH] = L"";
+    wchar_t wszFileName[MAX_PATH] = L"";
+    auto result = false;
+    if(GetMappedFileNameW(hProcess, hModule, wszDosFileName, _countof(wszDosFileName)))
+    {
+        if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
+            result = !!GetModuleFileNameExW(hProcess, hModule, wszFileName, _countof(wszFileName));
+        else
+            result = true;
+    }
+    else
+        result = !!GetModuleFileNameExW(hProcess, hModule, wszFileName, _countof(wszFileName));
+    if(result)
+        strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+    return result;
 }
 
 /**
