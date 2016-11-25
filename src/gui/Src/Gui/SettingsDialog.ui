@@ -311,6 +311,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkHardcoreThreadSwitchWarning">
+         <property name="text">
+          <string>Log If the Thread Has Switched</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
           <widget class="QLabel" name="lblMaxTraceCount">

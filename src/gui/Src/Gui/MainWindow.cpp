@@ -49,6 +49,7 @@
 #include "CustomizeMenuDialog.h"
 #include "main.h"
 #include "SimpleTraceDialog.h"
+#include "CPUArgumentWidget.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -316,6 +317,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionAnimateCommand, SIGNAL(triggered()), this, SLOT(animateCommandSlot()));
     connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitialzationScript()));
     connect(ui->actionCustomizeMenus, SIGNAL(triggered()), this, SLOT(customizeMenu()));
+    connect(ui->actionVariables, SIGNAL(triggered()), this, SLOT(displayVariables()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -426,7 +428,7 @@ void MainWindow::setupLanguagesMenu()
         {
             if(j.name().startsWith(localeName))
             {
-                QAction* actionLanguage = new QAction(QString("[%1]%2 - %3").arg(localeName).arg(j.nativeLanguageName()).arg(j.nativeCountryName()), languageMenu);
+                QAction* actionLanguage = new QAction(QString("[%1] %2 - %3").arg(localeName).arg(j.nativeLanguageName()).arg(j.nativeCountryName()), languageMenu);
                 connect(actionLanguage, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
                 actionLanguage->setCheckable(true);
                 actionLanguage->setChecked(localeName == wCurrentLocale);
@@ -576,6 +578,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionLabels, ConfigShortcut("ViewLabels"));
     setGlobalShortcut(ui->actionBookmarks, ConfigShortcut("ViewBookmarks"));
     setGlobalShortcut(ui->actionFunctions, ConfigShortcut("ViewFunctions"));
+    setGlobalShortcut(ui->actionVariables, ConfigShortcut("ViewVariables"));
     setGlobalShortcut(ui->actionSnowman, ConfigShortcut("ViewSnowman"));
     setGlobalShortcut(ui->actionHandles, ConfigShortcut("ViewHandles"));
     setGlobalShortcut(ui->actionGraph, ConfigShortcut("ViewGraph"));
@@ -612,6 +615,10 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionAnimateInto, ConfigShortcut("DebugAnimateInto"));
     setGlobalShortcut(ui->actionAnimateOver, ConfigShortcut("DebugAnimateOver"));
     setGlobalShortcut(ui->actionAnimateCommand, ConfigShortcut("DebugAnimateCommand"));
+    setGlobalShortcut(ui->actionTRTIIT, ConfigShortcut("DebugTraceIntoIntoTracerecord"));
+    setGlobalShortcut(ui->actionTRTOIT, ConfigShortcut("DebugTraceOverIntoTracerecord"));
+    setGlobalShortcut(ui->actionTRTIBT, ConfigShortcut("DebugTraceIntoBeyondTracerecord"));
+    setGlobalShortcut(ui->actionTRTOBT, ConfigShortcut("DebugTraceOverBeyondTracerecord"));
 
     setGlobalShortcut(ui->actionScylla, ConfigShortcut("PluginsScylla"));
 
@@ -790,6 +797,12 @@ void MainWindow::execTocnd()
 void MainWindow::displayMemMapWidget()
 {
     showQWidgetTab(mMemMapView);
+}
+
+void MainWindow::displayVariables()
+{
+    DbgCmdExec("varlist");
+    showQWidgetTab(mReferenceManager);
 }
 
 void MainWindow::displayLogWidget()
@@ -1591,6 +1604,16 @@ void MainWindow::updateFavouriteTools()
     connect(ui->menuFavourites->actions().last(), SIGNAL(triggered()), this, SLOT(manageFavourites()));
 }
 
+static QString stringFormatInline(const QString & format)
+{
+    if(!DbgFunctions()->StringFormatInline)
+        return "";
+    char result[MAX_SETTING_SIZE] = "";
+    if(DbgFunctions()->StringFormatInline(format.toUtf8().constData(), MAX_SETTING_SIZE, result))
+        return result;
+    return CPUArgumentWidget::tr("[Formatting Error]");
+}
+
 void MainWindow::clickFavouriteTool()
 {
     QAction* action = qobject_cast<QAction*>(sender());
@@ -1602,6 +1625,20 @@ void MainWindow::clickFavouriteTool()
         QString toolPath = data.mid(5);
         duint PID = DbgValFromString("$pid");
         toolPath.replace(QString("%PID%"), QString::number(PID), Qt::CaseInsensitive);
+        toolPath.replace(QString("%DEBUGGEE%"), mMRUList.at(0), Qt::CaseInsensitive);
+        char modpath[MAX_MODULE_SIZE] = "";
+        DbgFunctions()->ModPathFromAddr(DbgValFromString("dis.sel()"), modpath, MAX_MODULE_SIZE);
+        toolPath.replace(QString("%MODULE%"), modpath, Qt::CaseInsensitive);
+        while(true)
+        {
+            auto sfStart = toolPath.indexOf("%-");
+            auto sfEnd = toolPath.indexOf("-%");
+            if(sfStart < 0 || sfEnd < 0 || sfEnd < sfStart)
+                break;
+            auto format = toolPath.mid(sfStart + 2, sfEnd - sfStart - 2);
+            toolPath.replace(sfStart, sfEnd - sfStart + 2, stringFormatInline(format));
+        }
+        mLastLogLabel->setText(toolPath);
         PROCESS_INFORMATION procinfo;
         STARTUPINFO startupinfo;
         memset(&procinfo, 0, sizeof(PROCESS_INFORMATION));

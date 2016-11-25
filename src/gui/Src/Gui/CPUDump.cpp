@@ -22,6 +22,10 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
     mDisas = disas;
     mMultiDump = multiDump;
 
+    duint setting;
+    if(BridgeSettingGetUint("Gui", "AsciiSeparator", &setting))
+        mAsciiSeparator = setting & 0xF;
+
     setView((ViewEnum_t)ConfigUint("HexDump", "DefaultView"));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
@@ -506,7 +510,7 @@ void CPUDump::hexAsciiSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -540,7 +544,7 @@ void CPUDump::hexUnicodeSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -578,7 +582,7 @@ void CPUDump::hexCodepageSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -608,7 +612,7 @@ void CPUDump::hexLastCodepageSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;

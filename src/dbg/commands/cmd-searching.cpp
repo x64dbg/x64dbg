@@ -15,9 +15,11 @@ bool cbInstrFind(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return false;
+
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return false;
+
     char pattern[deflen] = "";
     //remove # from the start and end of the pattern (ODBGScript support)
     if(argv[2][0] == '#')
@@ -27,6 +29,7 @@ bool cbInstrFind(int argc, char* argv[])
     int len = (int)strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
+
     duint size = 0;
     duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
@@ -51,6 +54,7 @@ bool cbInstrFind(int argc, char* argv[])
     }
     else
         find_size = size - start;
+
     duint foundoffset = patternfind(data() + start, find_size, pattern);
     duint result = 0;
     if(foundoffset != -1)
@@ -63,6 +67,7 @@ bool cbInstrFindAll(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return false;
+
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return false;
@@ -76,18 +81,13 @@ bool cbInstrFindAll(int argc, char* argv[])
     int len = (int)strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
+
     duint size = 0;
     duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid memory address %p!\n"), addr);
         return false;
-    }
-    if(argc >= 4)
-    {
-        duint usersize;
-        if(valfromstring(argv[3], &usersize))
-            size = usersize;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
     if(!MemRead(base, data(), size))
@@ -105,11 +105,15 @@ bool cbInstrFindAll(int argc, char* argv[])
             find_size = size - start;
             findData = true;
         }
-        else
+        else if(!valfromstring(argv[3], &find_size))
+            find_size = size - start;
+
+        if(find_size > (size - start))
             find_size = size - start;
     }
     else
         find_size = size - start;
+
     //setup reference view
     char patternshort[256] = "";
     strncpy_s(patternshort, pattern, min(16, len));
@@ -196,13 +200,13 @@ bool cbInstrFindAllMem(int argc, char* argv[])
         return false;
     }
 
-    duint endAddr = -1;
+    duint find_size = -1;
     bool findData = false;
     if(argc >= 4)
     {
         if(!_stricmp(argv[3], "&data&"))
             findData = true;
-        else if(!valfromstring(argv[3], &endAddr))
+        else if(!valfromstring(argv[3], &find_size))
             findData = false;
     }
 
@@ -213,7 +217,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
         if(itr.second.mbi.State != MEM_COMMIT)
             continue;
         SimplePage page(duint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
-        if(page.address >= addr && page.address + page.size <= endAddr)
+        if(page.address >= addr && page.address + page.size <= addr + find_size)
             searchPages.push_back(page);
     }
     SHARED_RELEASE();

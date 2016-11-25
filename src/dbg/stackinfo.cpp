@@ -17,6 +17,7 @@
 
 using SehMap = std::unordered_map<duint, STACK_COMMENT>;
 static SehMap SehCache;
+bool ShowSuspectedCallStack;
 
 void stackupdateseh()
 {
@@ -183,6 +184,49 @@ void stackupdatecallstack(duint csp)
     stackgetcallstack(csp, callstack, false);
 }
 
+static void stackgetsuspectedcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector)
+{
+    duint size;
+    duint base = MemFindBaseAddr(csp, &size);
+    duint end = base + size;
+    size = end - csp;
+    Memory<duint*> stackdata(size);
+    MemRead(csp, stackdata(), size);
+    for(duint i = csp; i < end; i += sizeof(duint))
+    {
+        duint data = stackdata()[(i - csp) / sizeof(duint)];
+        duint size = 0;
+        duint base = MemFindBaseAddr(data, &size);
+        duint readStart = data - 16 * 4;
+        if(readStart < base)
+            readStart = base;
+        unsigned char disasmData[256];
+        if(base != 0 && size != 0 && MemRead(readStart, disasmData, sizeof(disasmData)))
+        {
+            duint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
+            duint previousInstr = readStart + prev;
+
+            BASIC_INSTRUCTION_INFO basicinfo;
+            bool valid = disasmfast(disasmData + prev, previousInstr, &basicinfo);
+            if(valid && basicinfo.call)
+            {
+                CALLSTACKENTRY stackframe;
+                stackframe.addr = i;
+                stackframe.to = data;
+                char returnToAddr[MAX_COMMENT_SIZE] = "";
+                getSymAddrName(data, returnToAddr);
+
+                data = basicinfo.addr;
+                char returnFromAddr[MAX_COMMENT_SIZE] = "";
+                getSymAddrName(data, returnFromAddr);
+                sprintf_s(stackframe.comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+                stackframe.from = data;
+                callstackVector.push_back(stackframe);
+            }
+        }
+    }
+}
+
 void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector, bool cache)
 {
     if(cache)
@@ -213,63 +257,70 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
     if(ResumeThread(hActiveThread) == -1)
         return;
 
-    // Set up all frame data
-    STACKFRAME64 frame;
-    ZeroMemory(&frame, sizeof(STACKFRAME64));
+    if(ShowSuspectedCallStack)
+    {
+        stackgetsuspectedcallstack(csp, callstackVector);
+    }
+    else
+    {
+        // Set up all frame data
+        STACKFRAME64 frame;
+        ZeroMemory(&frame, sizeof(STACKFRAME64));
 
 #ifdef _M_IX86
-    DWORD machineType = IMAGE_FILE_MACHINE_I386;
-    frame.AddrPC.Offset = context.Eip;
-    frame.AddrPC.Mode = AddrModeFlat;
-    frame.AddrFrame.Offset = context.Ebp;
-    frame.AddrFrame.Mode = AddrModeFlat;
-    frame.AddrStack.Offset = csp;
-    frame.AddrStack.Mode = AddrModeFlat;
+        DWORD machineType = IMAGE_FILE_MACHINE_I386;
+        frame.AddrPC.Offset = context.Eip;
+        frame.AddrPC.Mode = AddrModeFlat;
+        frame.AddrFrame.Offset = context.Ebp;
+        frame.AddrFrame.Mode = AddrModeFlat;
+        frame.AddrStack.Offset = csp;
+        frame.AddrStack.Mode = AddrModeFlat;
 #elif _M_X64
-    DWORD machineType = IMAGE_FILE_MACHINE_AMD64;
-    frame.AddrPC.Offset = context.Rip;
-    frame.AddrPC.Mode = AddrModeFlat;
-    frame.AddrFrame.Offset = context.Rsp;
-    frame.AddrFrame.Mode = AddrModeFlat;
-    frame.AddrStack.Offset = csp;
-    frame.AddrStack.Mode = AddrModeFlat;
+        DWORD machineType = IMAGE_FILE_MACHINE_AMD64;
+        frame.AddrPC.Offset = context.Rip;
+        frame.AddrPC.Mode = AddrModeFlat;
+        frame.AddrFrame.Offset = context.Rsp;
+        frame.AddrFrame.Mode = AddrModeFlat;
+        frame.AddrStack.Offset = csp;
+        frame.AddrStack.Mode = AddrModeFlat;
 #endif
 
-    const int MaxWalks = 50;
-    // Container for each callstack entry (50 pre-allocated entries)
-    callstackVector.clear();
-    callstackVector.reserve(MaxWalks);
+        const int MaxWalks = 50;
+        // Container for each callstack entry (50 pre-allocated entries)
+        callstackVector.clear();
+        callstackVector.reserve(MaxWalks);
 
-    for(auto i = 0; i < MaxWalks; i++)
-    {
-        if(!StackWalk64(
-                    machineType,
-                    fdProcessInfo->hProcess,
-                    hActiveThread,
-                    &frame,
-                    &context,
-                    StackReadProcessMemoryProc64,
-                    SymFunctionTableAccess64,
-                    StackGetModuleBaseProc64,
-                    StackTranslateAddressProc64))
+        for(auto i = 0; i < MaxWalks; i++)
         {
-            // Maybe it failed, maybe we have finished walking the stack
-            break;
-        }
+            if(!StackWalk64(
+                        machineType,
+                        fdProcessInfo->hProcess,
+                        hActiveThread,
+                        &frame,
+                        &context,
+                        StackReadProcessMemoryProc64,
+                        SymFunctionTableAccess64,
+                        StackGetModuleBaseProc64,
+                        StackTranslateAddressProc64))
+            {
+                // Maybe it failed, maybe we have finished walking the stack
+                break;
+            }
 
-        if(frame.AddrPC.Offset != 0)
-        {
-            // Valid frame
-            CALLSTACKENTRY entry;
-            memset(&entry, 0, sizeof(CALLSTACKENTRY));
+            if(frame.AddrPC.Offset != 0)
+            {
+                // Valid frame
+                CALLSTACKENTRY entry;
+                memset(&entry, 0, sizeof(CALLSTACKENTRY));
 
-            StackEntryFromFrame(&entry, (duint)frame.AddrFrame.Offset + sizeof(duint), (duint)frame.AddrPC.Offset, (duint)frame.AddrReturn.Offset);
-            callstackVector.push_back(entry);
-        }
-        else
-        {
-            // Base reached
-            break;
+                StackEntryFromFrame(&entry, (duint)frame.AddrFrame.Offset + sizeof(duint), (duint)frame.AddrPC.Offset, (duint)frame.AddrReturn.Offset);
+                callstackVector.push_back(entry);
+            }
+            else
+            {
+                // Base reached
+                break;
+            }
         }
     }
 
@@ -294,4 +345,11 @@ void stackgetcallstack(duint csp, CALLSTACK* callstack)
         // Copy data directly from the vector
         memcpy(callstack->entries, callstackVector.data(), callstack->total * sizeof(CALLSTACKENTRY));
     }
+}
+
+void stackupdatesettings()
+{
+    ShowSuspectedCallStack = settingboolget("Engine", "ShowSuspectedCallStack");
+    std::vector<CALLSTACKENTRY> dummy;
+    stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), dummy, false);
 }

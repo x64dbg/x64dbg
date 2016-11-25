@@ -87,6 +87,12 @@
     <Filter Include="Source Files\Commands">
       <UniqueIdentifier>{c42aba29-6104-475b-9838-ffa2034485aa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\btparser">
+      <UniqueIdentifier>{3e5a02e2-62ad-4251-a53a-ab3f34fd7dd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\btparser">
+      <UniqueIdentifier>{d20554d2-b3de-4e73-ac55-217da06783ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -408,6 +414,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="types.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="btparser\btparser\lexer.cpp">
+      <Filter>Source Files\btparser</Filter>
+    </ClCompile>
+    <ClCompile Include="btparser\btparser\parser.cpp">
+      <Filter>Source Files\btparser</Filter>
+    </ClCompile>
+    <ClCompile Include="typesparser.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
   </ItemGroup>
@@ -912,6 +927,21 @@
     </ClInclude>
     <ClInclude Include="types.h">
       <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\ast.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\keywords.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\lexer.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\operators.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\parser.h">
+      <Filter>Header Files\btparser</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

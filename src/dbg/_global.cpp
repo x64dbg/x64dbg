@@ -178,6 +178,8 @@ void setalloctrace(const char* file)
 */
 bool scmp(const char* a, const char* b)
 {
+    if(!a || !b)
+        return false;
     return !_stricmp(a, b);
 }
 

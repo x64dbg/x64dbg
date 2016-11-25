@@ -857,6 +857,8 @@ void AbstractTableView::updateScrollBarRange(dsint range)
     }
     else
         verticalScrollBar()->setRange(0, 0);
+    verticalScrollBar()->setSingleStep(getRowHeight());
+    verticalScrollBar()->setPageStep(getViewableRowsCount() * getRowHeight());
 }
 
 /************************************************************************************
@@ -1024,6 +1026,10 @@ void AbstractTableView::addColumnAt(int width, const QString & title, bool isCli
     HeaderButton_t wHeaderButton;
     Column_t wColumn;
     int wCurrentCount;
+
+    // Fix invisible columns near the edge of the screen
+    if(width < 20)
+        width = 20;
 
     wHeaderButton.isPressed = false;
     wHeaderButton.isClickable = isClickable;

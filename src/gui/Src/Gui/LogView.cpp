@@ -207,7 +207,7 @@ void LogView::onAnchorClicked(const QUrl & link)
             if(DbgIsDebugging())
             {
                 bool ok = false;
-                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
+                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok, 16);
                 if(ok)
                 {
                     if(DbgFunctions()->MemIsCodePage(address, true))
@@ -238,7 +238,7 @@ void LogView::redirectLogSlot()
     }
     else
     {
-        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
+        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files (*.txt);;All files (*.*)"), QCoreApplication::applicationDirPath(), true);
         if(browse.exec() == QDialog::Accepted)
         {
             logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");

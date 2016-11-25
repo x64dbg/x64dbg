@@ -50,6 +50,7 @@ CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(focusStack()), this, SLOT(setFocus()));
+    connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateSlot()));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
@@ -218,13 +219,13 @@ void CPUStack::setupContextMenu()
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Go to &Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
 
     //Go to Base of Stack Frame
-    gotoMenu->addAction(makeAction(DIcon("neworigin.png"), tr("Go to Base of Stack Frame"), SLOT(gotoFrameBaseSlot())));
+    gotoMenu->addAction(makeShortcutAction(DIcon("neworigin.png"), tr("Go to Base of Stack Frame"), SLOT(gotoFrameBaseSlot()), "ActionGotoBaseOfStackFrame"));
 
     //Go to Previous Frame
-    gotoMenu->addAction(makeAction(DIcon("previous.png"), tr("Go to Previous Stack Frame"), SLOT(gotoPreviousFrameSlot())));
+    gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Go to Previous Stack Frame"), SLOT(gotoPreviousFrameSlot()), "ActionGotoPrevStackFrame"));
 
     //Go to Next Frame
-    gotoMenu->addAction(makeAction(DIcon("next.png"), tr("Go to Next Stack Frame"), SLOT(gotoNextFrameSlot())));
+    gotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Go to Next Stack Frame"), SLOT(gotoNextFrameSlot()), "ActionGotoNextStackFrame"));
 
     //Go to Previous
     gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Go to Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
@@ -241,11 +242,15 @@ void CPUStack::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("&Go to")), gotoMenu);
 
     //Freeze the stack
-    mMenuBuilder->addAction(mFreezeStack = makeAction(DIcon("freeze.png"), tr("Freeze the stack"), SLOT(freezeStackSlot())));
+    mMenuBuilder->addAction(mFreezeStack = makeShortcutAction(DIcon("freeze.png"), tr("Freeze the stack"), SLOT(freezeStackSlot()), "ActionFreezeStack"));
     mFreezeStack->setCheckable(true);
 
     //Follow in Memory Map
-    mMenuBuilder->addAction(makeAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), ArchValue(tr("Follow DWORD in Memory Map"), tr("Follow QWORD in Memory Map")), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"), [this](QMenu*)
+    {
+        duint ptr;
+        return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
+    });
 
     auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
     mFollowStack = makeAction(DIcon("stack.png"), followStackName, SLOT(followStackSlot()));
@@ -563,6 +568,36 @@ void CPUStack::stackDumpAt(duint addr, duint csp)
     }
 
     printDumpAt(addr);
+}
+
+void CPUStack::updateSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    // Get the callstack
+    DBGCALLSTACK callstack;
+    memset(&callstack, 0, sizeof(DBGCALLSTACK));
+    DbgFunctions()->GetCallStack(&callstack);
+    mCallstack.resize(callstack.total);
+    if(mCallstack.size())
+    {
+        // callstack data highest >> lowest
+        std::qsort(callstack.entries, callstack.total, sizeof(DBGCALLSTACKENTRY), [](const void* a, const void* b)
+        {
+            auto p = (const DBGCALLSTACKENTRY*)a;
+            auto q = (const DBGCALLSTACKENTRY*)b;
+            if(p->addr < q->addr)
+                return -1;
+            else
+                return 1;
+        });
+        for(size_t i = 0; i < mCallstack.size(); i++)
+        {
+            mCallstack[i].addr = callstack.entries[i].addr;
+            mCallstack[i].party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
+        }
+        BridgeFree(callstack.entries);
+    }
 }
 
 void CPUStack::gotoCspSlot()
@@ -1005,7 +1040,7 @@ void CPUStack::dbgStateChangedSlot(DBGSTATE state)
 
 void CPUStack::followInMemoryMapSlot()
 {
-    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
+    DbgCmdExec(QString("memmapdump [%1]").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
 }
 
 void CPUStack::followInDumpSlot()

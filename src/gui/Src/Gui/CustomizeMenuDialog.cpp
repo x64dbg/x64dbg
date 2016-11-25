@@ -39,6 +39,8 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             viewName = tr("Threads");
         else if(id == "DisassemblerGraphView")
             viewName = tr("Graph");
+        else if(id == "XrefBrowseDialog")
+            viewName = tr("Xref Browser");
         else if(id == "CPUStack")
             viewName = tr("Stack");
         else if(id == "SourceView")

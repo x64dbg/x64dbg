@@ -5,7 +5,7 @@
 
 std::map<DepthModuleRange, LOOPSINFO, DepthModuleRangeCompare> loops;
 
-bool LoopAdd(duint Start, duint End, bool Manual)
+bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -35,6 +35,7 @@ bool LoopAdd(duint Start, duint End, bool Manual)
     loopInfo.end = End - moduleBase;
     loopInfo.depth = finalDepth;
     loopInfo.manual = Manual;
+    loopInfo.instructioncount = instructionCount;
     ModNameFromAddr(Start, loopInfo.mod, true);
 
     // Link this to a parent loop if one does exist
@@ -42,6 +43,8 @@ bool LoopAdd(duint Start, duint End, bool Manual)
         LoopGet(finalDepth - 1, Start, &loopInfo.parent, 0);
     else
         loopInfo.parent = 0;
+    if(loopInfo.parent)
+        loopInfo.parent -= moduleBase;
 
     EXCLUSIVE_ACQUIRE(LockLoops);
 
@@ -51,7 +54,7 @@ bool LoopAdd(duint Start, duint End, bool Manual)
 }
 
 // Get the start/end of a loop at a certain depth and address
-bool LoopGet(int Depth, duint Address, duint* Start, duint* End)
+bool LoopGet(int Depth, duint Address, duint* Start, duint* End, duint* InstructionCount)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -75,6 +78,9 @@ bool LoopGet(int Depth, duint Address, duint* Start, duint* End)
 
     if(End)
         *End = found->second.end + moduleBase;
+
+    if(InstructionCount)
+        *InstructionCount = found->second.instructioncount;
 
     return true;
 }
@@ -104,8 +110,8 @@ bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
         if(itr.second.depth != Depth)
             continue;
 
-        if(itr.second.start < curStart && itr.second.end > curEnd)
-            return LoopOverlaps(Depth + 1, curStart, curEnd, FinalDepth);
+        if(itr.second.start <= curStart && itr.second.end >= curEnd)
+            return LoopOverlaps(Depth + 1, curStart + moduleBase, curEnd + moduleBase, FinalDepth);
     }
 
     // Did the user request t the loop depth?
@@ -133,8 +139,33 @@ bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
 // This should delete a loop and all sub-loops that matches a certain addr
 bool LoopDelete(int Depth, duint Address)
 {
-    ASSERT_ALWAYS("Function unimplemented");
-    return false;
+    // Get the virtual address module
+    const duint moduleBase = ModBaseFromAddr(Address);
+
+    // Virtual address to relative address
+    Address -= moduleBase;
+
+    SHARED_ACQUIRE(LockLoops);
+
+    // Search with this address range
+    auto modHash = ModHashFromAddr(moduleBase);
+    auto found = loops.find(DepthModuleRange(Depth, ModuleRange(modHash, Range(Address, Address))));
+    if(found == loops.end())
+        return false;
+
+    for(auto addr = found->second.start; addr <= found->second.end; addr++)
+    {
+        auto foundChild = loops.find(DepthModuleRange(Depth + 1, ModuleRange(modHash, Range(addr, addr))));
+        if(foundChild == loops.end())
+            continue;
+        addr = foundChild->second.end;
+        if(!LoopDelete(Depth + 1, foundChild->second.start + moduleBase))
+            return false;
+    }
+
+    loops.erase(found);
+
+    return true;
 }
 
 void LoopCacheSave(JSON Root)
@@ -156,6 +187,7 @@ void LoopCacheSave(JSON Root)
         json_object_set_new(currentJson, "end", json_hex(currentLoop.end));
         json_object_set_new(currentJson, "depth", json_integer(currentLoop.depth));
         json_object_set_new(currentJson, "parent", json_hex(currentLoop.parent));
+        json_object_set_new(currentJson, "icount", json_hex(currentLoop.instructioncount));
 
         if(currentLoop.manual)
             json_array_append_new(jsonLoops, currentJson);
@@ -201,6 +233,7 @@ void LoopCacheLoad(JSON Root)
             loopInfo.end = (duint)json_hex_value(json_object_get(value, "end"));
             loopInfo.depth = (int)json_integer_value(json_object_get(value, "depth"));
             loopInfo.parent = (duint)json_hex_value(json_object_get(value, "parent"));
+            loopInfo.instructioncount = (duint)json_hex_value(json_object_get(value, "icount"));
             loopInfo.manual = Manual;
 
             // Sanity check: Make sure the loop starts before it ends

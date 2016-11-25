@@ -132,6 +132,13 @@ void SymbolView::setupContextMenu()
     mFollowModuleEntryAction = new QAction(disassembler, tr("Follow &Entry Point in Disassembler"), this);
     connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
 
+    mFollowInMemMap = new QAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), this);
+    mFollowInMemMap->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mFollowInMemMap);
+    mModuleList->mList->addAction(mFollowInMemMap);
+    mModuleList->mSearchList->addAction(mFollowInMemMap);
+    connect(mFollowInMemMap, SIGNAL(triggered()), this, SLOT(moduleFollowMemMap()));
+
     mDownloadSymbolsAction = new QAction(DIcon("pdb.png"), tr("&Download Symbols for This Module"), this);
     mDownloadSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mDownloadSymbolsAction);
@@ -211,6 +218,7 @@ void SymbolView::refreshShortcutsSlot()
     mDownloadSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadSymbol"));
     mDownloadAllSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadAllSymbol"));
     mCopyPathAction->setShortcut(ConfigShortcut("ActionCopy"));
+    mFollowInMemMap->setShortcut(ConfigShortcut("ActionFollowMemMap"));
 }
 
 void SymbolView::updateStyle()
@@ -359,6 +367,7 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
 
     wMenu->addAction(mFollowModuleAction);
     wMenu->addAction(mFollowModuleEntryAction);
+    wMenu->addAction(mFollowInMemMap);
     wMenu->addAction(mDownloadSymbolsAction);
     wMenu->addAction(mDownloadAllSymbolsAction);
     duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
@@ -585,6 +594,12 @@ void SymbolView::moduleSetParty()
             msg.exec();
         }
     }
+}
+
+void SymbolView::moduleFollowMemMap()
+{
+    QString base = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0);
+    DbgCmdExec(("memmapdump " + base).toUtf8().constData());
 }
 
 void SymbolView::emptySearchResultSlot()

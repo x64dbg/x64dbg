@@ -155,6 +155,30 @@ namespace Exprfunc
         return (info.type & TYPE_MEMORY) == TYPE_MEMORY;
     }
 
+    duint disisnop(duint addr)
+    {
+        unsigned char data[16];
+        if(MemRead(addr, data, sizeof(data), nullptr, true))
+        {
+            Capstone cp;
+            if(cp.Disassemble(addr, data))
+                return cp.IsNop();
+        }
+        return false;
+    }
+
+    duint disisunusual(duint addr)
+    {
+        unsigned char data[16];
+        if(MemRead(addr, data, sizeof(data), nullptr, true))
+        {
+            Capstone cp;
+            if(cp.Disassemble(addr, data))
+                return cp.IsUnusual();
+        }
+        return false;
+    }
+
     duint disbranchdest(duint addr)
     {
         return DbgGetBranchDestination(addr);

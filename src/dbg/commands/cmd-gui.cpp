@@ -157,9 +157,9 @@ bool cbDebugSetfreezestack(int argc, char* argv[])
     bool freeze = *argv[1] != '0';
     dbgsetfreezestack(freeze);
     if(freeze)
-        dputs(QT_TRANSLATE_NOOP("DBG", "Stack is now freezed\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Stack is now frozen\n"));
     else
-        dputs(QT_TRANSLATE_NOOP("DBG", "Stack is now unfreezed\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Stack is now unfrozen\n"));
     return true;
 }
 

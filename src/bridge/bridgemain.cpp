@@ -520,7 +520,9 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
         return LOOP_NONE;
     duint start = info.loop.start;
     duint end = info.loop.end;
-    if(addr == start)
+    if(start == end || info.loop.instrcount == 1)
+        return LOOP_SINGLE;
+    else if(addr == start)
         return LOOP_BEGIN;
     else if(addr == end)
         return LOOP_END;

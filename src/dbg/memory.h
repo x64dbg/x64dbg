@@ -23,7 +23,7 @@ struct SimplePage
 
 void MemUpdateMap();
 void MemUpdateMapAsync();
-duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh = false);
+duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh = false, bool FindReserved = false);
 bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead = nullptr, bool cache = false);
 bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead = nullptr);
 bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten = nullptr);

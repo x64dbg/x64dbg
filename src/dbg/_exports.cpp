@@ -35,8 +35,6 @@
 #include "TraceRecord.h"
 
 static bool bOnlyCipAutoComments = false;
-static duint cacheCflags = 0;
-static duint cacheCcx = 0;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -98,7 +96,20 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
     {
         Capstone cp;
         if(cp.Disassemble(addr, data))
-            return cp.IsBranchGoingToExecute(cacheCflags, cacheCcx);
+        {
+            CONTEXT ctx;
+            memset(&ctx, 0, sizeof(ctx));
+            ctx.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+            GetThreadContext(hActiveThread, &ctx);
+#ifdef _WIN64
+            auto cflags = ctx.EFlags;
+            auto ccx = ctx.Rcx;
+#else
+            auto cflags = ctx.EFlags;
+            auto ccx = ctx.Ecx;
+#endif //_WIN64
+            return cp.IsBranchGoingToExecute(cflags, ccx);
+        }
     }
     return false;
 }
@@ -219,7 +230,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flagloop)
     {
-        if(LoopGet(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
+        if(LoopGet(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end, &addrinfo->loop.instrcount))
             retval = true;
     }
     if(addrinfo->flags & flagargs)
@@ -259,8 +270,8 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 ADDRINFO newinfo;
                 char string_text[MAX_STRING_SIZE] = "";
 
-                memset(&instr, 0, sizeof(DISASM_INSTR));
-                disasmget(addr, &instr);
+                Capstone cp;
+                disasmget(cp, addr, &instr);
                 for(int i = 0; i < instr.argcount; i++)
                 {
                     memset(&newinfo, 0, sizeof(ADDRINFO));
@@ -271,9 +282,9 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
                         auto constant = instr.arg[i].constant;
-                        if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && strstr(instr.instruction, "call"))
+                        if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_CALL))
                             temp_string.assign("call $0");
-                        else if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && strstr(instr.instruction, "jmp"))
+                        else if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_JUMP))
                             temp_string.assign("jmp $0");
                         else if(instr.type == instr_branch)
                             continue;
@@ -550,8 +561,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return false;
     TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
 
-    duint cflags = cacheCflags = regdump->regcontext.eflags;
-    cacheCcx = regdump->regcontext.ccx;
+    duint cflags = regdump->regcontext.eflags;
     regdump->flags.c = (cflags & (1 << 0)) != 0;
     regdump->flags.p = (cflags & (1 << 2)) != 0;
     regdump->flags.a = (cflags & (1 << 4)) != 0;
@@ -889,6 +899,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         bSkipInt3Stepping = settingboolget("Engine", "SkipInt3Stepping");
         bIgnoreInconsistentBreakpoints = settingboolget("Engine", "IgnoreInconsistentBreakpoints");
         bNoForegroundWindow = settingboolget("Gui", "NoForegroundWindow");
+        stackupdatesettings();
 
         duint setting;
         if(BridgeSettingGetUint("Engine", "BreakpointType", &setting))

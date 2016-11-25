@@ -142,7 +142,8 @@ typedef enum
     LOOP_BEGIN,
     LOOP_MIDDLE,
     LOOP_ENTRY,
-    LOOP_END
+    LOOP_END,
+    LOOP_SINGLE
 } LOOPTYPE;
 
 //order by most important type last
@@ -450,6 +451,7 @@ typedef struct
     int depth; //IN
     duint start; //OUT
     duint end; //OUT
+    duint instrcount; //OUT
 } LOOP;
 
 #ifndef _NO_ADDRINFO

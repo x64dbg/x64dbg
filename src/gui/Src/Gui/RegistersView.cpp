@@ -2499,7 +2499,7 @@ void RegistersView::displayEditDialog()
             mLineEdit.setWindowTitle(tr("Edit FPU register"));
             mLineEdit.setWindowIcon(DIcon("log.png"));
             mLineEdit.setCursorPosition(0);
-            size_t sizeRegister = GetSizeRegister(mSelected);
+            auto sizeRegister = int(GetSizeRegister(mSelected));
             mLineEdit.ForceSize(sizeRegister * 2);
             do
             {
@@ -2529,8 +2529,7 @@ void RegistersView::displayEditDialog()
                             {
                                 ok = true;
                                 char actual_char[3];
-                                unsigned int i;
-                                for(i = 0; i < sizeRegister; i++)
+                                for(int i = 0; i < sizeRegister; i++)
                                 {
                                     memset(actual_char, 0, sizeof(actual_char));
                                     memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);

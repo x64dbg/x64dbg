@@ -5,6 +5,7 @@
 #include "types.h"
 #include "memory.h"
 #include "variable.h"
+#include "filehelper.h"
 
 using namespace Types;
 
@@ -591,5 +592,37 @@ bool cbInstrEnumTypes(int argc, char* argv[])
             type.owner.assign("x64dbg");
         dprintf_untranslated("%s: %s %s, sizeof(%s) = %d\n", type.owner.c_str(), type.kind.c_str(), type.name.c_str(), type.name.c_str(), type.size);
     }
+    return true;
+}
+
+bool cbInstrLoadTypes(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    auto owner = FileHelper::GetFileName(argv[1]);
+    ClearTypes(owner);
+    if(!LoadTypesFile(argv[1], owner))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "LoadTypes failed"));
+        return false;
+    }
+    dputs(QT_TRANSLATE_NOOP("DBG", "Types loaded"));
+    return true;
+}
+
+bool cbInstrParseTypes(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    auto owner = FileHelper::GetFileName(argv[1]);
+    std::string data;
+    if(!FileHelper::ReadAllText(argv[1], data))
+    {
+        dputs("failed to read file!");
+        return false;
+    }
+    if(!ParseTypes(data, owner))
+        return false;
+    dputs("Types parsed");
     return true;
 }

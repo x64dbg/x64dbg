@@ -57,9 +57,9 @@ void HexDump::updateColors()
 void HexDump::updateFonts()
 {
     duint setting;
-    if(BridgeSettingGetUint("GUI", "NonprintReplaceCharacter", &setting))
+    if(BridgeSettingGetUint("Gui", "NonprintReplaceCharacter", &setting))
         mNonprintReplace = QChar(uint(setting));
-    if(BridgeSettingGetUint("GUI", "NullReplaceCharacter", &setting))
+    if(BridgeSettingGetUint("Gui", "NullReplaceCharacter", &setting))
         mNullReplace = QChar(uint(setting));
     setFont(ConfigFont("HexDump"));
     invalidateCachedFont();

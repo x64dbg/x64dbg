@@ -242,7 +242,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 
     // Set last line
     //
-    // Format: SECTION:VA MODULE:$RVA :#FILE_OFFSET FUNCTION,Accessed %u times
+    // Format: SECTION:VA MODULE:$RVA :#FILE_OFFSET FUNCTION, Accessed %u times
     QString info;
 
     // Section
@@ -251,7 +251,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         info += QString(section) + ":";
 
     // VA
-    info += ToPtrString(parVA) + " ";
+    info += ToPtrString(parVA);
 
     // Module name, RVA, and file offset
     char mod[MAX_MODULE_SIZE];
@@ -260,33 +260,33 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         dsint modbase = DbgFunctions()->ModBaseFromAddr(parVA);
 
         // Append modname
-        info += mod;
+        info += " " + QString(mod);
 
         // Module RVA
         curRva = parVA - modbase;
         if(modbase)
-            info += QString(":$%1 ").arg(ToHexString(curRva));
+            info += QString(":$%1").arg(ToHexString(curRva));
 
         // File offset
         curOffset = DbgFunctions()->VaToFileOffset(parVA);
-        info += QString("#%1 ").arg(ToHexString(curOffset));
+        info += QString(" #%1").arg(ToHexString(curOffset));
     }
 
     // Function/label name
     char label[MAX_LABEL_SIZE];
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
-        info += QString("<%1>").arg(label);
+        info += QString(" <%1>").arg(label);
     else
     {
         duint start;
         if(DbgFunctionGet(parVA, &start, nullptr) && DbgGetLabelAt(start, SEG_DEFAULT, label) && start != parVA)
-            info += QString("<%1+%2>").arg(label).arg(ToHexString(parVA - start));
+            info += QString(" <%1+%2>").arg(label).arg(ToHexString(parVA - start));
     }
 
     auto tracedCount = DbgFunctions()->GetTraceRecordHitCount(parVA);
     if(tracedCount != 0)
     {
-        info += " , " + tr("Accessed %n time(s)", nullptr, tracedCount);
+        info += ", " + tr("Accessed %n time(s)", nullptr, tracedCount);
     }
 
     setInfoLine(2, info);

@@ -83,6 +83,8 @@ void ExpressionFunctions::Init()
     RegisterEasy("dis.isret", disisret);
     RegisterEasy("dis.iscall", disiscall);
     RegisterEasy("dis.ismem", disismem);
+    RegisterEasy("dis.isnop", disisnop);
+    RegisterEasy("dis.isunusual", disisunusual);
     RegisterEasy("dis.branchdest", disbranchdest);
     RegisterEasy("dis.branchexec", disbranchexec);
     RegisterEasy("dis.imm", disimm);
@@ -93,7 +95,7 @@ void ExpressionFunctions::Init()
 
     //Trace record
     RegisterEasy("tr.enabled", trenabled);
-    RegisterEasy("tr.hitcount", trhitcount);
+    RegisterEasy("tr.hitcount,tr.count", trhitcount);
 
     //Byte/Word/Dword/Qword/Pointer
     RegisterEasy("ReadByte,Byte,byte", readbyte);
