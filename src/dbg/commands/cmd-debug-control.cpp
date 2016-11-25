@@ -66,6 +66,7 @@ bool cbDebugInit(int argc, char* argv[])
         return false;
     }
     GetFileNameFromHandle(hFile, arg1); //get full path of the file
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Debugging: %s\n"), arg1);
     hFile.Close();
 
     //do some basic checks
