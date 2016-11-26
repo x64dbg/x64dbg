@@ -187,6 +187,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("MemoryMapCipBackgroundColor", QColor("#000000"));
     defaultColors.insert("MemoryMapSectionTextColor", QColor("#8B671F"));
     defaultColors.insert("SearchListViewHighlightColor", QColor("#FF0000"));
+    defaultColors.insert("StructBackgroundColor", QColor("#FFF8F0"));
+    defaultColors.insert("StructAlternateBackgroundColor", QColor("#DCD9CF"));
 
     //bool settings
     QMap<QString, bool> disassemblyBool;

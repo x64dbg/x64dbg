@@ -543,6 +543,8 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Memory Map %1").arg(ArchValue(tr("EIP"), tr("RIP"))), "MemoryMapCipColor", "MemoryMapCipBackgroundColor");
     colorInfoListAppend(tr("Memory Map Section Text"), "MemoryMapSectionTextColor", "");
     colorInfoListAppend(tr("Search Highlight Color"), "SearchListViewHighlightColor", "");
+    colorInfoListAppend(tr("Struct primary background"), "StructBackgroundColor", "");
+    colorInfoListAppend(tr("Struct secondary background"), "StructAlternateBackgroundColor", "");
 
     //dev helper
     const QMap<QString, QColor>* Colors = &Config()->defaultColors;

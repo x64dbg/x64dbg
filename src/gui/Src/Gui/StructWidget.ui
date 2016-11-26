@@ -10,8 +10,15 @@
     <height>300</height>
    </rect>
   </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::DefaultContextMenu</enum>
+  </property>
   <property name="windowTitle">
    <string>Struct</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../resource.qrc">
+    <normaloff>:/icons/images/struct.png</normaloff>:/icons/images/struct.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
@@ -31,10 +38,8 @@
    </property>
    <item>
     <widget class="QTreeWidget" name="treeWidget">
-     <property name="font">
-      <font>
-       <family>Lucida Console</family>
-      </font>
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
      </property>
      <property name="alternatingRowColors">
       <bool>true</bool>
@@ -69,6 +74,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../resource.qrc"/>
+ </resources>
  <connections/>
 </ui>
