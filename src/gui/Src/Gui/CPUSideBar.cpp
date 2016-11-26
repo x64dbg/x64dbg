@@ -472,7 +472,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         // Use a different color to highlight jumps that will execute
         if(isexecute)
         {
-            if(!conditional)
+            if(conditional)
                 activePen.setColor(mConditionalJumpLineTrueColor);
             else
                 activePen.setColor(mUnconditionalJumpLineTrueColor);
