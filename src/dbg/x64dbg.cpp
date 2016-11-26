@@ -360,6 +360,82 @@ static void registercommands()
     dbgcmdnew("EnumTypes", cbInstrEnumTypes, false); //EnumTypes
     dbgcmdnew("LoadTypes", cbInstrLoadTypes, false); //LoadTypes
     dbgcmdnew("ParseTypes", cbInstrParseTypes, false); //ParseTypes
+    dbgcmdnew("TestTypeGui", [](int argc, char* argv[])
+    {
+        TYPEDESCRIPTOR type;
+        type.expanded = true;
+        type.name = "struct TEST";
+        type.addr = 0;
+        type.id = 0;
+        type.size = 19;
+        type.callback = [](const TYPEDESCRIPTOR * type, char* dest, size_t* destCount)
+        {
+            if(type->id == -1)
+            {
+                *dest = '\0';
+                return true;
+            }
+            auto value = StringUtils::sprintf("0x%X, %d (size: %d)", type->userdata, type->userdata, type->size);
+            if(*destCount <= value.size())
+            {
+                *destCount = value.size() + 1;
+                return false;
+            }
+            strcpy_s(dest, *destCount, value.c_str());
+            return true;
+        };
+        type.userdata = 0;
+
+        auto t = GuiTypeAddNode(nullptr, &type);
+        type.id = 1;
+        type.addr = 0;
+        type.size = 4;
+        type.name = "int a";
+        type.userdata = (void*)0xA;
+        GuiTypeAddNode(t, &type);
+        type.addr = 4;
+        type.size = 1;
+        type.name = "char b";
+        type.userdata = (void*)0xB;
+        GuiTypeAddNode(t, &type);
+        type.id = 0;
+        type.addr = 5;
+        type.size = 10;
+        type.name = "struct BLUB";
+        type.userdata = 0;
+        auto e = GuiTypeAddNode(t, &type);
+        type.id = 1;
+        type.size = 2;
+        type.name = "short c";
+        type.userdata = (void*)0xC;
+        GuiTypeAddNode(e, &type);
+        type.id = 0;
+        type.addr = 7;
+        type.size = 8;
+        type.name = "int[2]";
+        type.userdata = 0;
+        type.expanded = false;
+        auto d = GuiTypeAddNode(e, &type);
+        type.id = 1;
+        type.size = 4;
+        type.name = "int d[0]";
+        type.userdata = (void*)0xD0;
+        GuiTypeAddNode(d, &type);
+        type.addr = 11;
+        type.size = 4;
+        type.name = "int d[1]";
+        type.userdata = (void*)0xD1;
+        GuiTypeAddNode(d, &type);
+        type.addr = 15;
+        type.size = 4;
+        type.name = "int f";
+        type.userdata = (void*)0xF;
+        type.expanded = true;
+        GuiTypeAddNode(t, &type);
+
+        GuiUpdateAllViews();
+        return true;
+    }, false);
 
     //plugins
     dbgcmdnew("StartScylla\1scylla\1imprec", cbDebugStartScylla, false); //start scylla
