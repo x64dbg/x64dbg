@@ -154,7 +154,8 @@ void LogView::addMsgToLogSlot(QString msg)
     // redirect the log
     if(logRedirection != NULL)
     {
-        if(!fwrite(msg.data_ptr()->data(), msg.size() * 2, 1, logRedirection))
+        auto utf8 = msg.toUtf8();
+        if(!fwrite(utf8.constData(), utf8.size(), 1, logRedirection))
         {
             fclose(logRedirection);
             logRedirection = NULL;
