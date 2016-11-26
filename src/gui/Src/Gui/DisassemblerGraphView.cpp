@@ -185,7 +185,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
                        block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
             //Render node background
-            p.setPen(Qt::black);
+            p.setPen(graphNodeColor);
             p.setBrush(QBrush(disassemblyBackgroundColor));
             p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
                        block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
@@ -318,7 +318,7 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
                    block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
         //Render node background
-        pen.setColor(Qt::black);
+        pen.setColor(graphNodeColor);
         p.setPen(pen);
         if(isCip)
             p.setBrush(QBrush(mCipBackgroundColor));
@@ -337,7 +337,7 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
     {
         QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
         viewportRect.translate(-translation.x(), -translation.y());
-        p.setPen(QPen(Qt::black, penWidth, Qt::DotLine));
+        p.setPen(QPen(graphNodeColor, penWidth, Qt::DotLine));
         p.setBrush(Qt::transparent);
         p.drawRect(viewportRect);
     }
@@ -360,7 +360,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
 
     if(!this->ready || !DbgIsDebugging())
     {
-        p.setPen(Qt::black);
+        p.setPen(graphNodeColor);
         p.drawText(viewportRect, Qt::AlignCenter | Qt::AlignVCenter, tr("Use Graph command or menu action to draw control flow graph here..."));
         return;
     }
@@ -1526,7 +1526,10 @@ void DisassemblerGraphView::followDisassemblerSlot()
 
 void DisassemblerGraphView::colorsUpdatedSlot()
 {
-    disassemblyBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    disassemblyBackgroundColor = ConfigColor("GraphNodeBackgroundColor");
+    if(!disassemblyBackgroundColor.alpha())
+        disassemblyBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    graphNodeColor = ConfigColor("GraphNodeColor");
     disassemblySelectionColor = ConfigColor("DisassemblySelectionColor");
     disassemblyTracedColor = ConfigColor("DisassemblyTracedBackgroundColor");
     auto a = disassemblySelectionColor, b = disassemblyTracedColor;
