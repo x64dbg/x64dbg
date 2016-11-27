@@ -246,14 +246,7 @@ void LogView::redirectLogSlot()
             if(logRedirection == NULL)
                 GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
             else
-            {
-                if(ftell(logRedirection) == 0)
-                {
-                    unsigned short BOM = 0xfeff;
-                    fwrite(&BOM, 2, 1, logRedirection);
-                }
                 GuiAddLogMessage(tr("Log will be redirected to %1.\n").arg(browse.path).toUtf8().constData());
-            }
         }
     }
 }
