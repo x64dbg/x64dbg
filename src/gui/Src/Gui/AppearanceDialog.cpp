@@ -529,11 +529,12 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Selection"), "HexEditSelectionColor", "");
 
     colorInfoListAppend(tr("Graph"), "", "");
+    colorInfoListAppend(tr("Background"), "GraphBackgroundColor", "");
+    colorInfoListAppend(tr("Node"), "GraphNodeColor", "GraphNodeBackgroundColor");
+    colorInfoListAppend(tr("Terminal node shadow"), "GraphRetShadowColor", "");
     colorInfoListAppend(tr("Unconditional branch line"), "GraphJmpColor", "");
     colorInfoListAppend(tr("True branch line"), "GraphBrtrueColor", "");
     colorInfoListAppend(tr("False branch line"), "GraphBrfalseColor", "");
-    colorInfoListAppend(tr("Terminal node shadow"), "GraphRetShadowColor", "");
-    colorInfoListAppend(tr("Background"), "", "GraphBackgroundColor");
 
     colorInfoListAppend(tr("Other:"), "", "");
     colorInfoListAppend(tr("Current Thread"), "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
@@ -542,6 +543,8 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Memory Map %1").arg(ArchValue(tr("EIP"), tr("RIP"))), "MemoryMapCipColor", "MemoryMapCipBackgroundColor");
     colorInfoListAppend(tr("Memory Map Section Text"), "MemoryMapSectionTextColor", "");
     colorInfoListAppend(tr("Search Highlight Color"), "SearchListViewHighlightColor", "");
+    colorInfoListAppend(tr("Struct primary background"), "StructBackgroundColor", "");
+    colorInfoListAppend(tr("Struct secondary background"), "StructAlternateBackgroundColor", "");
 
     //dev helper
     const QMap<QString, QColor>* Colors = &Config()->defaultColors;

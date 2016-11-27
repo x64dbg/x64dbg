@@ -663,9 +663,13 @@ bool LoadTypesJson(const std::string & json, const std::string & owner)
     {
         Model model;
         loadTypes(json_object_get(root, "types"), model.types);
+        loadTypes(json_object_get(root, ArchValue("types32", "types64")), model.types);
         loadStructUnions(json_object_get(root, "structs"), false, model.structUnions);
+        loadStructUnions(json_object_get(root, ArchValue("structs32", "structs64")), false, model.structUnions);
         loadStructUnions(json_object_get(root, "unions"), true, model.structUnions);
+        loadStructUnions(json_object_get(root, ArchValue("unions32", "unions64")), true, model.structUnions);
         loadFunctions(json_object_get(root, "functions"), model.functions);
+        loadFunctions(json_object_get(root, ArchValue("functions32", "functions64")), model.functions);
 
         LoadModel(owner, model);
 

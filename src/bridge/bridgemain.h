@@ -975,12 +975,18 @@ typedef enum
     GUI_MENU_SET_ENTRY_CHECKED,     // param1=int hEntry,           param2=bool checked
     GUI_ADD_INFO_LINE,              // param1=const char* infoline, param2=unused
     GUI_PROCESS_EVENTS,             // param1=unused,               param2=unused
+    GUI_TYPE_ADDNODE,               // param1=void* parent,         param2=TYPEDESCRIPTOR* type
+    GUI_TYPE_CLEAR,                 // param1=unused,               param2=unused
+    GUI_UPDATE_TYPE_WIDGET,         // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
+struct _TYPEDESCRIPTOR;
+
 typedef void (*GUICALLBACK)();
 typedef bool (*GUISCRIPTEXECUTE)(const char* text);
 typedef void (*GUISCRIPTCOMPLETER)(const char* text, char** entries, int* entryCount);
+typedef bool (*TYPETOSTRING)(const struct _TYPEDESCRIPTOR* type, char* dest, size_t* destCount); //don't change destCount for final failure
 
 //GUI structures
 typedef struct
@@ -1017,6 +1023,19 @@ typedef struct
     char title[MAX_STRING_SIZE];
     char className[MAX_STRING_SIZE];
 } ACTIVEVIEW;
+
+typedef struct _TYPEDESCRIPTOR
+{
+    bool expanded; //is the type node expanded?
+    bool reverse; //big endian?
+    const char* name; //type name (int b)
+    duint addr; //virtual address
+    duint offset; //offset to addr for the actual location
+    int id; //type id
+    int size; //sizeof(type)
+    TYPETOSTRING callback; //convert to string
+    void* userdata; //user data
+} TYPEDESCRIPTOR;
 
 //GUI functions
 //code page is utf8
@@ -1118,6 +1137,9 @@ BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr);
 BRIDGE_IMPEXP void GuiGetActiveView(ACTIVEVIEW* activeView);
 BRIDGE_IMPEXP void GuiAddInfoLine(const char* infoLine);
 BRIDGE_IMPEXP void GuiProcessEvents();
+BRIDGE_IMPEXP void* GuiTypeAddNode(void* parent, const TYPEDESCRIPTOR* type);
+BRIDGE_IMPEXP bool GuiTypeClear();
+BRIDGE_IMPEXP void GuiUpdateTypeWidget();
 
 #ifdef __cplusplus
 }

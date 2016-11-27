@@ -696,6 +696,28 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         QCoreApplication::processEvents();
     }
     break;
+
+    case GUI_TYPE_ADDNODE:
+    {
+        BridgeResult result;
+        emit typeAddNode(param1, (const TYPEDESCRIPTOR*)param2);
+        return (void*)result.Wait();
+    }
+    break;
+
+    case GUI_TYPE_CLEAR:
+    {
+        BridgeResult result;
+        emit typeClear();
+        result.Wait();
+    }
+    break;
+
+    case GUI_UPDATE_TYPE_WIDGET:
+    {
+        emit typeUpdateWidget();
+    }
+    break;
     }
 
     return nullptr;

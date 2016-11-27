@@ -8,6 +8,7 @@ namespace Types
 {
     enum Primitive
     {
+        Void,
         Int8,
         Uint8,
         Int16,

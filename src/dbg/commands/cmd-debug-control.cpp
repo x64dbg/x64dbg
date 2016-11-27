@@ -66,6 +66,7 @@ bool cbDebugInit(int argc, char* argv[])
         return false;
     }
     GetFileNameFromHandle(hFile, arg1); //get full path of the file
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Debugging: %s\n"), arg1);
     hFile.Close();
 
     //do some basic checks
@@ -182,13 +183,11 @@ bool cbDebugAttach(int argc, char* argv[])
 #endif // _WIN64
         return false;
     }
-    wchar_t wszFileName[MAX_PATH] = L"";
-    if(!GetModuleFileNameExW(hProcess, 0, wszFileName, MAX_PATH))
+    if(!GetFileNameFromProcessHandle(hProcess, szFileName))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), DWORD(pid));
         return false;
     }
-    strcpy_s(szFileName, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
     return true;
 }

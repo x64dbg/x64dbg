@@ -211,7 +211,8 @@ SOURCES += \
     dbg/commands/cmd-watch-control.cpp \
     gui/Src/Gui/CustomizeMenuDialog.cpp \
     gui/Src/Utils/MenuBuilder.cpp \
-    gui/Src/Gui/SimpleTraceDialog.cpp
+    gui/Src/Gui/SimpleTraceDialog.cpp \
+    gui/Src/Gui/StructWidget.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -282,6 +283,7 @@ HEADERS += \
     gui/Src/Gui/YaraRuleSelectionDialog.h \
     gui/Src/Disassembler/capstone_gui.h \
     gui/Src/Disassembler/QBeaEngine.h \
+    gui/Src/Gui/StructWidget.h \
     dbg/_dbgfunctions.h \
     dbg/_exports.h \
     dbg/_global.h \
@@ -471,7 +473,8 @@ FORMS += \
     gui/Src/Gui/XrefBrowseDialog.ui \
     gui/Src/Gui/YaraRuleSelectionDialog.ui \
     gui/Src/Gui/CustomizeMenuDialog.ui \
-    gui/Src/Gui/SimpleTraceDialog.ui
+    gui/Src/Gui/SimpleTraceDialog.ui \
+    gui/Src/Gui/StructWidget.ui
 
 TRANSLATIONS += \
     gui/Translations/x64dbg.ts

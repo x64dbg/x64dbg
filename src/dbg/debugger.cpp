@@ -1574,7 +1574,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     void* base = LoadDll->lpBaseOfDll;
 
     char DLLDebugFileName[deflen] = "";
-    if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
+    if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName) && !GetFileNameFromModuleHandle(fdProcessInfo->hProcess, HMODULE(base), DLLDebugFileName))
         strcpy_s(DLLDebugFileName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
 
     SafeSymLoadModuleExW(fdProcessInfo->hProcess, LoadDll->hFile, StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, (DWORD64)base, 0, 0, 0);
@@ -2000,9 +2000,9 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
             continue;
         if((mewow64 && !wow64) || (!mewow64 && wow64))
             continue;
-        wchar_t szExePath[MAX_PATH] = L"";
-        if(GetModuleFileNameExW(hProcess, 0, szExePath, MAX_PATH))
-            strcpy_s(pe32.szExeFile, StringUtils::Utf16ToUtf8(szExePath).c_str());
+        char szExePath[MAX_PATH] = "";
+        if(GetFileNameFromProcessHandle(hProcess, szExePath))
+            strcpy_s(pe32.szExeFile, szExePath);
         infoList->push_back(pe32);
         //
         char* cmdline;

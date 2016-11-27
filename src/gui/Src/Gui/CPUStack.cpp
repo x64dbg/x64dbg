@@ -364,9 +364,9 @@ void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & ric
                 if(comment.color[0] == '!')
                 {
                     if(strcmp(comment.color, "!sehclr") == 0)
-                        curData.textColor = QColor("#AE81FF");
+                        curData.textColor = mStackSEHChainColor;
                     else if(strcmp(comment.color, "!rtnclr") == 0)
-                        curData.textColor = QColor("#FF0000");
+                        curData.textColor = mStackReturnToColor;
                     else
                         curData.textColor = textColor;
                 }

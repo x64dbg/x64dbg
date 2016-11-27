@@ -133,6 +133,7 @@ bool ParseTypes(const std::string & parse, const std::string & owner)
                         dputs("expected number token");
                         return false;
                     }
+                    m.arrsize = int(memToks[i + 1].NumberVal);
                     if(i + 2 >= memToks.size())
                     {
                         errLine();

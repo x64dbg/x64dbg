@@ -141,6 +141,9 @@ signals:
     void selectInMemoryMap(duint addr);
     void getActiveView(ACTIVEVIEW* activeView);
     void addInfoLine(const QString & text);
+    void typeAddNode(void* parent, const TYPEDESCRIPTOR* type);
+    void typeClear();
+    void typeUpdateWidget();
 
 private:
     QMutex* mBridgeMutex;

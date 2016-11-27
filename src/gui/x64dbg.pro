@@ -173,6 +173,7 @@ SOURCES += \
     Src/Gui/LogStatusLabel.cpp \
     Src/Gui/DebugStatusLabel.cpp \
     Src/Utils/MenuBuilder.cpp \
+    Src/Gui/StructWidget.cpp \
     Src/Gui/CustomizeMenuDialog.cpp \
     Src/Gui/SimpleTraceDialog.cpp
 
@@ -284,6 +285,7 @@ HEADERS += \
     Src/Gui/LogStatusLabel.h \
     Src/Gui/DebugStatusLabel.h \
     Src/Gui/CustomizeMenuDialog.h \
+    Src/Gui/StructWidget.h \
     Src/Gui/SimpleTraceDialog.h
     
 
@@ -322,6 +324,7 @@ FORMS += \
     Src/Gui/BrowseDialog.ui \
     Src/Gui/VirtualModDialog.ui \
     Src/Gui/CustomizeMenuDialog.ui \
+    Src/Gui/StructWidget.ui \
     Src/Gui/SimpleTraceDialog.ui
 
 ##

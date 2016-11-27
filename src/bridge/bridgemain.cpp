@@ -1057,6 +1057,7 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateSEHChain();
     GuiUpdateArgumentWidget();
     GuiUpdateGraphView();
+    GuiUpdateTypeWidget();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -1521,6 +1522,21 @@ BRIDGE_IMPEXP void GuiAddInfoLine(const char* infoLine)
 BRIDGE_IMPEXP void GuiProcessEvents()
 {
     _gui_sendmessage(GUI_PROCESS_EVENTS, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP void* GuiTypeAddNode(void* parent, const TYPEDESCRIPTOR* type)
+{
+    return _gui_sendmessage(GUI_TYPE_ADDNODE, parent, (void*)type);
+}
+
+BRIDGE_IMPEXP bool GuiTypeClear()
+{
+    return !!_gui_sendmessage(GUI_TYPE_CLEAR, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiUpdateTypeWidget()
+{
+    _gui_sendmessage(GUI_UPDATE_TYPE_WIDGET, nullptr, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

@@ -331,108 +331,137 @@ struct PrintVisitor : TypeManager::Visitor
         return StringUtils::sprintf(format, *(T*)data);
     }
 
+    static bool cbPrintPrimitive(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
+    {
+        if(!type->addr)
+        {
+            *dest = '\0';
+            return true;
+        }
+        String valueStr;
+        Memory<unsigned char*> data(type->size);
+        if(MemRead(type->addr + type->offset, data(), data.size()))
+        {
+            if(type->reverse)
+                std::reverse(data(), data() + data.size());
+            switch(Primitive(type->id))
+            {
+            case Void:
+                valueStr.clear();
+                break;
+            case Int8:
+                valueStr += basicPrint<char>(data(), "%c");
+                break;
+            case Uint8:
+                valueStr += basicPrint<unsigned char>(data(), "0x%02X");
+                break;
+            case Int16:
+                valueStr += basicPrint<short>(data(), "%d");
+                break;
+            case Uint16:
+                valueStr += basicPrint<short>(data(), "%u");
+                break;
+            case Int32:
+                valueStr += basicPrint<int>(data(), "%d");
+                break;
+            case Uint32:
+                valueStr += basicPrint<unsigned int>(data(), "%u");
+                break;
+            case Int64:
+                valueStr += basicPrint<long long>(data(), "%lld");
+                break;
+            case Uint64:
+                valueStr += basicPrint<unsigned long long>(data(), "%llu");
+                break;
+            case Dsint:
+#ifdef _WIN64
+                valueStr += basicPrint<dsint>(data(), "%lld");
+#else
+                valueStr += basicPrint<dsint>(data(), "%d");
+#endif //_WIN64
+                break;
+            case Duint:
+#ifdef _WIN64
+                valueStr += basicPrint<duint>(data(), "%llu");
+#else
+                valueStr += basicPrint<duint>(data(), "%u");
+#endif //_WIN64
+                break;
+            case Float:
+                valueStr += basicPrint<float>(data(), "%f");
+                break;
+            case Double:
+                valueStr += basicPrint<double>(data(), "%f");
+                break;
+            case Pointer:
+                valueStr += basicPrint<void*>(data(), "0x%p");
+                break;
+            case PtrString:
+            {
+                valueStr += basicPrint<char*>(data(), "0x%p");
+                Memory<char*> strdata(MAX_STRING_SIZE + 1);
+                if(MemRead(*(duint*)data(), strdata(), strdata.size() - 1))
+                {
+                    valueStr += "\"";
+                    valueStr += strdata();
+                    valueStr.push_back('\"');
+                }
+                else
+                    valueStr += "???";
+            }
+            break;
+
+            case PtrWString:
+            {
+                valueStr += basicPrint<wchar_t*>(data(), "0x%p");
+                Memory<wchar_t*> strdata(MAX_STRING_SIZE * 2 + 2);
+                if(MemRead(*(duint*)data(), strdata(), strdata.size() - 2))
+                {
+                    valueStr += "L\"";
+                    valueStr += StringUtils::Utf16ToUtf8(strdata());
+                    valueStr.push_back('\"');
+                }
+                else
+                    valueStr += "???";
+            }
+            break;
+
+            default:
+                return false;
+            }
+        }
+        else
+            valueStr = "???";
+        if(*destCount <= valueStr.size())
+        {
+            *destCount = valueStr.size() + 1;
+            return false;
+        }
+        strcpy_s(dest, *destCount, valueStr.c_str());
+        return true;
+    }
+
     bool visitType(const Member & member, const Type & type) override
     {
-        String valueStr;
-        Memory<unsigned char*> data(type.size);
-        if(mAddr)
-        {
-            if(MemRead(mAddr + mOffset, data(), data.size()))
-            {
-                valueStr.assign(" = ");
-                switch(type.primitive)
-                {
-                case Int8:
-                    valueStr += basicPrint<char>(data(), "%c");
-                    break;
-                case Uint8:
-                    valueStr += basicPrint<unsigned char>(data(), "0x%02X");
-                    break;
-                case Int16:
-                    valueStr += basicPrint<short>(data(), "%d");
-                    break;
-                case Uint16:
-                    valueStr += basicPrint<short>(data(), "%u");
-                    break;
-                case Int32:
-                    valueStr += basicPrint<int>(data(), "%d");
-                    break;
-                case Uint32:
-                    valueStr += basicPrint<unsigned int>(data(), "%u");
-                    break;
-                case Int64:
-                    valueStr += basicPrint<long long>(data(), "%lld");
-                    break;
-                case Uint64:
-                    valueStr += basicPrint<unsigned long long>(data(), "%llu");
-                    break;
-                case Dsint:
-#ifdef _WIN64
-                    valueStr += basicPrint<dsint>(data(), "%lld");
-#else
-                    valueStr += basicPrint<dsint>(data(), "%d");
-#endif //_WIN64
-                    break;
-                case Duint:
-#ifdef _WIN64
-                    valueStr += basicPrint<duint>(data(), "%llu");
-#else
-                    valueStr += basicPrint<duint>(data(), "%u");
-#endif //_WIN64
-                    break;
-                case Float:
-                    valueStr += basicPrint<float>(data(), "%f");
-                    break;
-                case Double:
-                    valueStr += basicPrint<double>(data(), "%f");
-                    break;
-                case Pointer:
-                    valueStr += basicPrint<void*>(data(), "0x%p");
-                    break;
-                case PtrString:
-                {
-                    valueStr += basicPrint<char*>(data(), "0x%p");
-                    Memory<char*> strdata(MAX_STRING_SIZE + 1);
-                    if(MemRead(*(duint*)data(), strdata(), strdata.size() - 1))
-                    {
-                        valueStr += " \"";
-                        valueStr += strdata();
-                        valueStr.push_back('\"');
-                    }
-                    else
-                        valueStr += " ???";
-                }
-                break;
-
-                case PtrWString:
-                {
-                    valueStr += basicPrint<wchar_t*>(data(), "0x%p");
-                    Memory<wchar_t*> strdata(MAX_STRING_SIZE * 2 + 2);
-                    if(MemRead(*(duint*)data(), strdata(), strdata.size() - 2))
-                    {
-                        valueStr += " L\"";
-                        valueStr += StringUtils::Utf16ToUtf8(strdata());
-                        valueStr.push_back('\"');
-                    }
-                    else
-                        valueStr += " ???";
-                }
-                break;
-
-                default:
-                    return false;
-                }
-            }
-            else
-                valueStr = " ???";
-        }
-        indent();
+        String tname;
         auto ptype = mParents.empty() ? Parent::Struct : parent().type;
         if(ptype == Parent::Array)
-            dprintf_untranslated("%s[%u]%s;", member.name.c_str(), parent().index++, valueStr.c_str());
+            tname = StringUtils::sprintf("%s[%u]", member.name.c_str(), parent().index++);
         else
-            dprintf_untranslated("%s %s%s;", type.name.c_str(), member.name.c_str(), valueStr.c_str());
-        dputs_untranslated(type.pointto.empty() || mPtrDepth >= mMaxPtrDepth ? "" : " {");
+            tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
+
+        TYPEDESCRIPTOR td;
+        td.expanded = false;
+        td.reverse = false;
+        td.name = tname.c_str();
+        td.addr = mAddr;
+        td.offset = mOffset;
+        td.id = type.primitive;
+        td.size = type.size;
+        td.callback = cbPrintPrimitive;
+        td.userdata = nullptr;
+        mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
+
         if(ptype != Parent::Union)
             mOffset += type.size;
         return true;
@@ -440,17 +469,43 @@ struct PrintVisitor : TypeManager::Visitor
 
     bool visitStructUnion(const Member & member, const StructUnion & type) override
     {
-        indent();
-        dprintf_untranslated("%s %s {\n", type.isunion ? "union" : "struct", type.name.c_str());
+        String tname = StringUtils::sprintf("%s %s", type.isunion ? "union" : "struct", type.name.c_str());
+
+        TYPEDESCRIPTOR td;
+        td.expanded = true;
+        td.reverse = false;
+        td.name = tname.c_str();
+        td.addr = mAddr;
+        td.offset = mOffset;
+        td.id = Void;
+        td.size = type.size;
+        td.callback = nullptr;
+        td.userdata = nullptr;
+        auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
+
         mParents.push_back(Parent(type.isunion ? Parent::Union : Parent::Struct));
+        parent().node = node;
         return true;
     }
 
     bool visitArray(const Member & member) override
     {
-        indent();
-        dprintf_untranslated("%s %s[%d] {\n", member.type.c_str(), member.name.c_str(), member.arrsize);
+        String tname = StringUtils::sprintf("%s %s[%d]", member.type.c_str(), member.name.c_str(), member.arrsize);
+
+        TYPEDESCRIPTOR td;
+        td.expanded = member.arrsize <= 5;
+        td.reverse = false;
+        td.name = tname.c_str();
+        td.addr = mAddr;
+        td.offset = mOffset;
+        td.id = Void;
+        td.size = member.arrsize * SizeofType(member.type);
+        td.callback = nullptr;
+        td.userdata = nullptr;
+        auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
+
         mParents.push_back(Parent(Parent::Array));
+        parent().node = node;
         return true;
     }
 
@@ -460,12 +515,15 @@ struct PrintVisitor : TypeManager::Visitor
         auto res = visitType(member, type); //print the pointer value
         if(mPtrDepth >= mMaxPtrDepth)
             return false;
+
         duint value = 0;
         if(!mAddr || !MemRead(mAddr + offset, &value, sizeof(value)))
             return false;
+
         mParents.push_back(Parent(Parent::Pointer));
         parent().offset = mOffset;
         parent().addr = mAddr;
+        parent().node = mNode;
         mOffset = 0;
         mAddr = value;
         mPtrDepth++;
@@ -481,11 +539,6 @@ struct PrintVisitor : TypeManager::Visitor
             mPtrDepth--;
         }
         mParents.pop_back();
-        indent();
-        if(parent().type == Parent::Array)
-            dprintf_untranslated("};\n");
-        else
-            dprintf_untranslated("} %s;\n", member.name.c_str());
         return true;
     }
 
@@ -504,6 +557,7 @@ private:
         unsigned int index = 0;
         duint addr = 0;
         duint offset = 0;
+        void* node = nullptr;
 
         explicit Parent(Type type)
             : type(type) { }
@@ -514,19 +568,12 @@ private:
         return mParents[mParents.size() - 1];
     }
 
-    void indent() const
-    {
-        if(mAddr)
-            dprintf_untranslated("%p ", mAddr + mOffset);
-        for(auto i = 0; i < int(mParents.size()) * 2; i++)
-            dprintf_untranslated(" ");
-    }
-
     std::vector<Parent> mParents;
     duint mOffset = 0;
     duint mAddr = 0;
     int mPtrDepth = 0;
     int mMaxPtrDepth = 0;
+    void* mNode = nullptr;
 };
 
 bool cbInstrVisitType(int argc, char* argv[])
@@ -557,6 +604,8 @@ bool cbInstrVisitType(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "VisitType failed"));
         return false;
     }
+    GuiUpdateTypeWidget();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Done!"));
     return true;
 }
 
