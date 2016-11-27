@@ -91,17 +91,11 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
 void WaitForThreadTermination(HANDLE hThread, DWORD timeout = INFINITE);
 void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout = INFINITE);
 
-template<typename T>
-inline T & ArchValue(T & x32value, T & x64value)
-{
 #ifdef _WIN64
-    (void)x32value;
-    return x64value;
+#define ArchValue(x32value, x64value) x64value
 #else
-    (void)x64value;
-    return x32value;
+#define ArchValue(x32value, x64value) x32value
 #endif //_WIN64
-}
 
 #include "dynamicmem.h"
 
