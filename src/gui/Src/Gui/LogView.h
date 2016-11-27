@@ -32,6 +32,7 @@ public slots:
 private:
     bool loggingEnabled;
     bool autoScroll;
+    bool utf16Redirect = false;
 
     QAction* actionCopy;
     QAction* actionPaste;

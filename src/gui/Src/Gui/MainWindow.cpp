@@ -219,7 +219,7 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
 
     // If LoadSaveTabOrder disabled, load tabs in default order
-    if(!ConfigBool("Miscellaneous", "LoadSaveTabOrder"))
+    if(!ConfigBool("Gui", "LoadSaveTabOrder"))
         loadTabDefaultOrder();
     else
         loadTabSavedOrder();

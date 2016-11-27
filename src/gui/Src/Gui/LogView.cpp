@@ -27,6 +27,10 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
 
+    duint setting;
+    if(BridgeSettingGetUint("Misc", "Utf16LogRedirect", &setting))
+        utf16Redirect = !!setting;
+
     setupContextMenu();
 }
 
@@ -160,8 +164,11 @@ void LogView::addMsgToLogSlot(QString msg)
     // redirect the log
     if(logRedirection != NULL)
     {
-        auto utf8 = msg.toUtf8();
-        if(!fwrite(utf8.constData(), utf8.size(), 1, logRedirection))
+        if(utf16Redirect)
+            msg.replace("\n", "\r\n");
+        msg.utf16();
+        auto data = utf16Redirect ? QByteArray((const char*)msg.utf16(), msg.size() * 2) : msg.toUtf8();
+        if(!fwrite(data.constData(), data.size(), 1, logRedirection))
         {
             fclose(logRedirection);
             logRedirection = NULL;
@@ -177,6 +184,8 @@ void LogView::addMsgToLogSlot(QString msg)
     cursor.movePosition(QTextCursor::End);
     if(autoScroll)
         this->moveCursor(QTextCursor::End);
+    if(utf16Redirect)
+        msg.replace("\r\n", "\n");
     msg.replace(QChar('&'), QString("&amp;"));
     msg.replace(QChar('<'), QString("&lt;"));
     msg.replace(QChar('>'), QString("&gt;"));
@@ -252,7 +261,14 @@ void LogView::redirectLogSlot()
             if(logRedirection == NULL)
                 GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
             else
+            {
+                if(utf16Redirect && ftell(logRedirection) == 0)
+                {
+                    unsigned short BOM = 0xfeff;
+                    fwrite(&BOM, 2, 1, logRedirection);
+                }
                 GuiAddLogMessage(tr("Log will be redirected to %1.\n").arg(browse.path).toUtf8().constData());
+            }
         }
     }
 }

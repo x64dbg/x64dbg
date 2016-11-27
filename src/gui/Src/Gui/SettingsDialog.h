@@ -79,6 +79,7 @@ private slots:
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
+    void on_chkUtf16LogRedirect_toggled(bool checked);
 
 private:
     //enums
@@ -154,12 +155,13 @@ private:
         bool guiPidInHex;
         bool guiSidebarWatchLabels;
         bool guiNoForegroundWindow;
+        bool guiLoadSaveTabOrder;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;
         bool miscSymbolStore;
         bool miscSymbolCache;
-        bool miscLoadSaveTabOrder;
+        bool miscUtf16LogRedirect;
     };
 
     //variables
