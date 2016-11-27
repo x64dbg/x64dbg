@@ -1027,6 +1027,7 @@ typedef struct
 typedef struct _TYPEDESCRIPTOR
 {
     bool expanded; //is the type node expanded?
+    bool reverse; //big endian?
     const char* name; //type name (int b)
     duint addr; //virtual address
     duint offset; //offset to addr for the actual location

@@ -342,6 +342,8 @@ struct PrintVisitor : TypeManager::Visitor
         Memory<unsigned char*> data(type->size);
         if(MemRead(type->addr + type->offset, data(), data.size()))
         {
+            if(type->reverse)
+                std::reverse(data(), data() + data.size());
             switch(Primitive(type->id))
             {
             case Void:
@@ -450,6 +452,7 @@ struct PrintVisitor : TypeManager::Visitor
 
         TYPEDESCRIPTOR td;
         td.expanded = false;
+        td.reverse = false;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
@@ -470,6 +473,7 @@ struct PrintVisitor : TypeManager::Visitor
 
         TYPEDESCRIPTOR td;
         td.expanded = true;
+        td.reverse = false;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
@@ -490,6 +494,7 @@ struct PrintVisitor : TypeManager::Visitor
 
         TYPEDESCRIPTOR td;
         td.expanded = member.arrsize <= 5;
+        td.reverse = false;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;

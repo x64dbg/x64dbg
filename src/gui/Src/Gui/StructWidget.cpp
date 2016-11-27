@@ -86,6 +86,8 @@ void StructWidget::typeUpdateWidget()
     {
         QTreeWidgetItem* item = *it;
         auto type = item->data(0, Qt::UserRole).value<TypeDescriptor>();
+        auto name = type.name.toUtf8();
+        type.type.name = name.constData();
         auto addr = type.type.addr + type.type.offset;
         item->setText(1, ToPtrString(addr));
         QString valueStr;
@@ -109,7 +111,11 @@ void StructWidget::typeUpdateWidget()
         {
             uint64_t data;
             if(DbgMemRead(addr, &data, type.type.size))
+            {
+                if(type.type.reverse)
+                    std::reverse((char*)data, (char*)data + type.type.size);
                 valueStr = QString().sprintf("0x%llX, %llu", data, data, data);
+            }
             else if(type.type.addr)
                 valueStr = "???";
         }
