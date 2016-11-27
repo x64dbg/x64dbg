@@ -148,9 +148,15 @@ static void linkify(QString & msg)
  */
 void LogView::addMsgToLogSlot(QString msg)
 {
+    /*
+     * This supports the 'UTF-8 Everywhere' manifesto.
+     * - UTF-8 (http://utf8everywhere.org);
+     * - No BOM (http://utf8everywhere.org/#faq.boms);
+     * - No carriage return (http://utf8everywhere.org/#faq.crlf).
+     */
+
     // fix Unix-style line endings.
-    msg.replace(QString("\r\n"), QString("\n"));
-    msg.replace(QChar('\n'), QString("\r\n"));
+    msg.replace("\r\n", "\n");
     // redirect the log
     if(logRedirection != NULL)
     {
@@ -159,7 +165,7 @@ void LogView::addMsgToLogSlot(QString msg)
         {
             fclose(logRedirection);
             logRedirection = NULL;
-            msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\r\n").arg(GetLastError());
+            msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
         }
     }
     if(!loggingEnabled)
@@ -174,7 +180,7 @@ void LogView::addMsgToLogSlot(QString msg)
     msg.replace(QChar('&'), QString("&amp;"));
     msg.replace(QChar('<'), QString("&lt;"));
     msg.replace(QChar('>'), QString("&gt;"));
-    msg.replace(QString("\r\n"), QString("<br/>\r\n"));
+    msg.replace(QString("\n"), QString("<br/>\n"));
     msg.replace(QChar(' '), QString("&nbsp;"));
     linkify(msg);
     cursor.insertHtml(msg);
