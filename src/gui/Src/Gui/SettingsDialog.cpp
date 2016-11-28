@@ -258,7 +258,7 @@ void SettingsDialog::LoadSettings()
         ui->editSymbolStore->setText(QString(setting));
     else
     {
-        QString defaultStore("http://msdl.microsoft.com/download/symbols");
+        QString defaultStore("https://msdl.microsoft.com/download/symbols");
         ui->editSymbolStore->setText(defaultStore);
         BridgeSettingSet("Symbols", "DefaultStore", defaultStore.toUtf8().constData());
     }
