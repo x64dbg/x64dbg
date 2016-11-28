@@ -333,6 +333,8 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     const int x = e->pos().x();
     const int y = e->pos().y();
     const int line = y / fontHeight;
+    if(line >= mInstrBuffer->size())
+        return;
     const int width = viewport()->width();
 
     const int bulletRadius = fontHeight / 2 + 1; //14/2=7
