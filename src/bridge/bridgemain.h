@@ -231,7 +231,11 @@ typedef enum
     DBG_ARGUMENT_ADD,               // param1=FUNCTION* info,            param2=unused
     DBG_ARGUMENT_DEL,               // param1=FUNCTION* info,            param2=unused
     DBG_GET_WATCH_LIST,             // param1=ListOf(WATCHINFO),         param2=unused
-    DBG_SELCHANGED                  // param1=hWindow,                   param2=VA
+    DBG_SELCHANGED,                 // param1=hWindow,                   param2=VA
+    DBG_GET_PROCESS_HANDLE,         // param1=unused,                    param2=unused
+    DBG_GET_THREAD_HANDLE,          // param1=unused,                    param2=unused
+    DBG_GET_PROCESS_ID,             // param1=unused,                    param2=unused
+    DBG_GET_THREAD_ID,              // param1=unused,                    param2=unused
 } DBGMSG;
 
 typedef enum
@@ -863,6 +867,10 @@ BRIDGE_IMPEXP void DbgDelEncodeTypeRange(duint start, duint end);
 BRIDGE_IMPEXP void DbgDelEncodeTypeSegment(duint start);
 BRIDGE_IMPEXP bool DbgGetWatchList(ListOf(WATCHINFO) list);
 BRIDGE_IMPEXP void DbgSelChanged(int hWindow, duint VA);
+BRIDGE_IMPEXP HANDLE DbgGetProcessHandle();
+BRIDGE_IMPEXP HANDLE DbgGetThreadHandle();
+BRIDGE_IMPEXP DWORD DbgGetProcessId();
+BRIDGE_IMPEXP DWORD DbgGetThreadId();
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

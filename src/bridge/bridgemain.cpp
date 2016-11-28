@@ -996,6 +996,26 @@ BRIDGE_IMPEXP void DbgSelChanged(int hWindow, duint VA)
     _dbg_sendmessage(DBG_SELCHANGED, (void*)hWindow, (void*)VA);
 }
 
+BRIDGE_IMPEXP HANDLE DbgGetProcessHandle()
+{
+    return (HANDLE)_dbg_sendmessage(DBG_GET_PROCESS_HANDLE, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP HANDLE DbgGetThreadHandle()
+{
+    return (HANDLE)_dbg_sendmessage(DBG_GET_THREAD_HANDLE, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP DWORD DbgGetProcessId()
+{
+    return (DWORD)_dbg_sendmessage(DBG_GET_PROCESS_ID, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP DWORD DbgGetThreadId()
+{
+    return (DWORD)_dbg_sendmessage(DBG_GET_THREAD_ID, nullptr, nullptr);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);
