@@ -823,6 +823,7 @@ void CPUDisassembly::setLabelSlot()
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
@@ -876,6 +877,7 @@ void CPUDisassembly::setCommentSlot()
             mLineEdit.setText(QString(comment_text));
     }
     mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
+    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))

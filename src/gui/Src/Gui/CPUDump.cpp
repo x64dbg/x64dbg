@@ -427,10 +427,11 @@ void CPUDump::setLabelSlot()
     duint wVA = rvaToVa(getSelectionStart());
     LineEditDialog mLineEdit(this);
     QString addr_text = ToPtrString(wVA);
-    char label_text[MAX_COMMENT_SIZE] = "";
+    char label_text[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))

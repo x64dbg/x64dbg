@@ -19,6 +19,7 @@ public:
     bool bChecked;
     void setText(const QString & text);
     void setPlaceholderText(const QString & text);
+    void setTextMaxLength(int length);
     void enableCheckBox(bool bEnable);
     void setCheckBox(bool bSet);
     void setCheckBoxText(const QString & text);

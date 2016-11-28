@@ -89,3 +89,8 @@ void LineEditDialog::on_checkBox_toggled(bool checked)
 {
     bChecked = checked;
 }
+
+void LineEditDialog::setTextMaxLength(int length)
+{
+    ui->textEdit->setMaxLength(length);
+}
