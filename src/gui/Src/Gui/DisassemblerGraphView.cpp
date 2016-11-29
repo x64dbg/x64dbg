@@ -10,6 +10,7 @@
 #include <QApplication>
 #include <QMimeData>
 #include <QFileDialog>
+#include <QMessageBox>
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent),
@@ -1668,11 +1669,23 @@ void DisassemblerGraphView::setLabelSlot()
 
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
     mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
-
+restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
 
-    if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    QByteArray utf8data = mLineEdit.editText.toUtf8();
+    if(!utf8data.isEmpty() && DbgIsValidExpression(utf8data.constData()) && DbgValFromString(utf8data.constData()) != wVA)
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("The label may be in use"),
+                        tr("The label \"%1\" may be an existing label or a valid expression. Using such label might have undesired effects. Do you still want to continue?").arg(mLineEdit.editText),
+                        QMessageBox::Yes | QMessageBox::No, this);
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            goto restart;
+    }
+    if(!DbgSetLabelAt(wVA, utf8data.constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
 
     this->refreshSlot();
