@@ -2269,6 +2269,10 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         case CDX: //arg2
         case R8: //arg3
         case R9: //arg4
+        case XMM0:
+        case XMM1:
+        case XMM2:
+        case XMM3:
             p->setPen(ConfigColor("RegistersArgumentLabelColor"));
             break;
         default:
@@ -2293,14 +2297,14 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         QString valueText = GetRegStringValueFromValue(reg, value);
 
         //selection
+        width = fontMetrics.width(valueText);
         if(mSelected == reg)
         {
-            p->fillRect(x, y, mRegisterPlaces[reg].valuesize * mCharWidth, mRowHeight, QBrush(ConfigColor("RegistersSelectionColor")));
+            p->fillRect(x, y, width, mRowHeight, QBrush(ConfigColor("RegistersSelectionColor")));
             //p->fillRect(QRect(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
 
         // draw value
-        width = fontMetrics.width(valueText);
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
 
