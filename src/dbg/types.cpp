@@ -593,9 +593,9 @@ void LoadModel(const std::string & owner, Model & model)
         auto success = su.isunion ? typeManager.AddUnion(owner, su.name) : typeManager.AddStruct(owner, su.name);
         if(!success)
         {
-            su.name.clear(); //signal error
             //TODO properly handle errors
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add %s %s;\n"), su.isunion ? "union" : "struct", su.name.c_str());
+            su.name.clear(); //signal error
         }
     }
 
@@ -616,9 +616,9 @@ void LoadModel(const std::string & owner, Model & model)
         auto success = typeManager.AddFunction(owner, function.name, function.rettype, function.callconv, function.noreturn);
         if(!success)
         {
-            function.name.clear(); //signal error
             //TODO properly handle errors
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add function %s %s()\n"), function.rettype.c_str(), function.name.c_str());
+            function.name.clear(); //signal error
         }
     }
 
