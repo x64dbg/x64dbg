@@ -177,13 +177,13 @@ bool cbInstrAddMember(int argc, char* argv[])
     auto type = argv[2];
     auto name = argv[3];
     int arrsize = 0, offset = -1;
-    if(argc > 3)
+    if(argc > 4)
     {
         duint value;
         if(!valfromstring(argv[4], &value, false))
             return false;
         arrsize = int(value);
-        if(argc > 4)
+        if(argc > 5)
         {
             if(!valfromstring(argv[5], &value, false))
                 return false;

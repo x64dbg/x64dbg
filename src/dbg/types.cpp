@@ -97,7 +97,7 @@ bool TypeManager::AddMember(const std::string & parent, const std::string & type
             char padname[32] = "";
             sprintf_s(padname, "padding%d", pad.arrsize);
             pad.name = padname;
-            s.members.push_back(m);
+            s.members.push_back(pad);
             s.size += pad.arrsize;
         }
     }
