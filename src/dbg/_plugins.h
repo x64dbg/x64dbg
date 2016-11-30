@@ -182,6 +182,30 @@ typedef struct
     bool retval;
 } PLUG_CB_FILTERSYMBOL;
 
+typedef struct
+{
+    duint cip;
+    bool stop;
+} PLUG_CB_TRACEEXECUTE;
+
+typedef struct
+{
+    int hWindow;
+    duint VA;
+} PLUG_CB_SELCHANGED;
+
+typedef struct
+{
+    BridgeCFGraphList graph;
+} PLUG_CB_ANALYZE;
+
+typedef struct
+{
+    duint addr;
+    ADDRINFO* addrinfo;
+    bool retval;
+} PLUG_CB_ADDRINFO;
+
 //enums
 typedef enum
 {
@@ -209,6 +233,10 @@ typedef enum
     CB_LOADDB, //PLUG_CB_LOADSAVEDB
     CB_SAVEDB, //PLUG_CB_LOADSAVEDB
     CB_FILTERSYMBOL, //PLUG_CB_FILTERSYMBOL
+    CB_TRACEEXECUTE, //PLUG_CB_TRACEEXECUTE
+    CB_SELCHANGED, //PLUG_CB_SELCHANGED
+    CB_ANALYZE, //PLUG_CB_ANALYZE
+    CB_ADDRINFO, //PLUG_CB_ADDRINFO
     CB_LAST
 } CBTYPE;
 
@@ -238,12 +266,14 @@ PLUG_IMPEXP bool _plugin_menuaddseparator(int hMenu);
 PLUG_IMPEXP bool _plugin_menuclear(int hMenu);
 PLUG_IMPEXP void _plugin_menuseticon(int hMenu, const ICONDATA* icon);
 PLUG_IMPEXP void _plugin_menuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon);
+PLUG_IMPEXP void _plugin_menuentrysetchecked(int pluginHandle, int hEntry, bool checked);
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript);
 PLUG_IMPEXP bool _plugin_waituntilpaused();
 PLUG_IMPEXP bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata);
 PLUG_IMPEXP bool _plugin_unregisterexprfunction(int pluginHandle, const char* name);
 PLUG_IMPEXP bool _plugin_unload(const char* pluginName);
 PLUG_IMPEXP bool _plugin_load(const char* pluginName);
+PLUG_IMPEXP duint _plugin_hash(const void* data, duint size);
 
 #ifdef __cplusplus
 }

@@ -11,6 +11,6 @@ char* getCommandLineArgs();
 void CmdLineCacheSave(JSON Root);
 void CmdLineCacheLoad(JSON Root);
 void copyCommandLine(const char* cmdLine);
-CMDRESULT setCommandLine();
+bool setCommandLine();
 
 #endif // _COMMANDLINE_H

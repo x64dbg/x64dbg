@@ -180,7 +180,7 @@ void LabeledSplitterHandle::mouseMoveEvent(QMouseEvent* event)
 
 void LabeledSplitterHandle::mousePressEvent(QMouseEvent* event)
 {
-    if(event->x() <= charHeight)
+    if(event->x() <= charHeight && event->button() & Qt::LeftButton)
     {
         LabeledSplitter* parent = getParent();
         auto sizes = parent->sizes();

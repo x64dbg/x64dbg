@@ -20,7 +20,7 @@ public:
         FlagAll
     };
 
-    typedef struct _CustomRichText_t
+    struct CustomRichText_t
     {
         QString text;
         QColor textColor;
@@ -28,7 +28,7 @@ public:
         CustomRichTextFlags flags;
         bool highlight;
         QColor highlightColor;
-    } CustomRichText_t;
+    };
 
     typedef std::vector<CustomRichText_t> List;
 

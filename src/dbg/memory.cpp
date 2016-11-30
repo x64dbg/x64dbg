@@ -259,7 +259,7 @@ void MemUpdateMapAsync()
     memUpdateMapTask.WakeUp();
 }
 
-duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh)
+duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh, bool FindReserved)
 {
     // Update the memory map if needed
     if(Refresh)
@@ -271,6 +271,9 @@ duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh)
     auto found = memoryPages.find(std::make_pair(Address, Address));
 
     if(found == memoryPages.end())
+        return 0;
+
+    if(!FindReserved && found->second.mbi.State == MEM_RESERVE) //check if the current page is reserved.
         return 0;
 
     // Return the allocation region size when requested

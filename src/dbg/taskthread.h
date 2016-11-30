@@ -147,7 +147,7 @@ TaskThread_<F, Args...>::~TaskThread_()
     LeaveCriticalSection(&access);
     ReleaseSemaphore(wakeupSemaphore, 1, nullptr);
 
-    thread.join();
+    thread.join(); //TODO: Microsoft C++ exception: std::system_error on exit
 
     DeleteCriticalSection(&access);
     CloseHandle(wakeupSemaphore);

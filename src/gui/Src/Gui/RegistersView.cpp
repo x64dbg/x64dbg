@@ -515,6 +515,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     wCM_Pop = setupAction(DIcon("arrow-small-up.png"), tr("Pop"), this);
     wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"), this);
     mSwitchSIMDDispMode = new QMenu(tr("Change SIMD Register Display Mode"), this);
+    mSwitchSIMDDispMode->setIcon(DIcon("simdmode.png"));
     SIMDHex = new QAction(tr("Hexadecimal"), mSwitchSIMDDispMode);
     SIMDFloat = new QAction(tr("Float"), mSwitchSIMDDispMode);
     SIMDDouble = new QAction(tr("Double"), mSwitchSIMDDispMode);
@@ -1689,6 +1690,8 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
         wCM_Modify->trigger();
     else if(mBOOLDISPLAY.contains(mSelected))  // is flag ?
         wCM_ToggleValue->trigger();
+    else if(mCANSTOREADDRESS.contains(mSelected))
+        wCM_FollowInDisassembly->trigger();
 }
 
 void RegistersView::paintEvent(QPaintEvent* event)
@@ -2266,6 +2269,10 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         case CDX: //arg2
         case R8: //arg3
         case R9: //arg4
+        case XMM0:
+        case XMM1:
+        case XMM2:
+        case XMM3:
             p->setPen(ConfigColor("RegistersArgumentLabelColor"));
             break;
         default:
@@ -2290,14 +2297,14 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         QString valueText = GetRegStringValueFromValue(reg, value);
 
         //selection
+        width = fontMetrics.width(valueText);
         if(mSelected == reg)
         {
-            p->fillRect(x, y, mRegisterPlaces[reg].valuesize * mCharWidth, mRowHeight, QBrush(ConfigColor("RegistersSelectionColor")));
+            p->fillRect(x, y, width, mRowHeight, QBrush(ConfigColor("RegistersSelectionColor")));
             //p->fillRect(QRect(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
 
         // draw value
-        width = fontMetrics.width(valueText);
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
 
@@ -2498,7 +2505,8 @@ void RegistersView::displayEditDialog()
             mLineEdit.setWindowTitle(tr("Edit FPU register"));
             mLineEdit.setWindowIcon(DIcon("log.png"));
             mLineEdit.setCursorPosition(0);
-            mLineEdit.ForceSize(GetSizeRegister(mSelected) * 2);
+            auto sizeRegister = int(GetSizeRegister(mSelected));
+            mLineEdit.ForceSize(sizeRegister * 2);
             do
             {
                 errorinput = false;
@@ -2515,19 +2523,19 @@ void RegistersView::displayEditDialog()
                         fpuvalue = (duint) mLineEdit.editText.toUShort(&ok, 16);
                     else if(mDWORDDISPLAY.contains(mSelected))
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
-                    else if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+                    else if(mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
                         QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
-                        if(pArray.size() == GetSizeRegister(mSelected) * 2)
+
+                        if(pArray.size() == sizeRegister * 2)
                         {
-                            char* pData = (char*) calloc(1, sizeof(char) * GetSizeRegister(mSelected));
+                            char* pData = (char*) calloc(1, sizeof(char) * sizeRegister);
 
                             if(pData != NULL)
                             {
                                 ok = true;
                                 char actual_char[3];
-                                unsigned int i;
-                                for(i = 0; i < GetSizeRegister(mSelected); i++)
+                                for(int i = 0; i < sizeRegister; i++)
                                 {
                                     memset(actual_char, 0, sizeof(actual_char));
                                     memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
@@ -2540,7 +2548,15 @@ void RegistersView::displayEditDialog()
                                 }
 
                                 if(ok)
-                                    setRegister(mSelected, (duint) pData);
+                                {
+                                    if(!ConfigBool("Gui", "FpuRegistersLittleEndian")) // reverse byte order if it is big-endian
+                                    {
+                                        pArray = ByteReverse(QByteArray(pData, sizeRegister));
+                                        setRegister(mSelected, reinterpret_cast<duint>(pArray.constData()));
+                                    }
+                                    else
+                                        setRegister(mSelected, reinterpret_cast<duint>(pData));
+                                }
 
                                 free(pData);
 
@@ -2651,24 +2667,10 @@ void RegistersView::onModifyAction()
 
 void RegistersView::onToggleValueAction()
 {
-    if(mSETONEZEROTOGGLE.contains(mSelected))
+    if(mBOOLDISPLAY.contains(mSelected))
     {
-        if(mBOOLDISPLAY.contains(mSelected))
-        {
-            int value = (int)(* (bool*) registerValue(&wRegDumpStruct, mSelected));
-            setRegister(mSelected, value ^ 1);
-        }
-        else
-        {
-            bool ok = false;
-            dsint val = GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)).toInt(&ok, 16);
-            if(ok)
-            {
-                val++;
-                val *= -1;
-                setRegister(mSelected, val);
-            }
-        }
+        int value = (int)(* (bool*) registerValue(&wRegDumpStruct, mSelected));
+        setRegister(mSelected, value ^ 1);
     }
 }
 
@@ -2711,6 +2713,7 @@ void RegistersView::onHighlightSlot()
         CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUYMM.contains(mSelected))
         CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(mSelected).value()));
+    CPUDisassemblyView->reloadData();
 }
 
 void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32)
@@ -3054,6 +3057,10 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
                 wMenu.addAction(wCM_Zero);
             if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) == 0)
                 wMenu.addAction(wCM_SetToOne);
+        }
+
+        if(mBOOLDISPLAY.contains(mSelected))
+        {
             wMenu.addAction(wCM_ToggleValue);
         }
 

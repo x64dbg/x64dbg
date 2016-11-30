@@ -3,6 +3,8 @@
 
 #include "StdTable.h"
 
+class GotoDialog;
+
 class MemoryMapView : public StdTable
 {
     Q_OBJECT
@@ -38,6 +40,7 @@ public slots:
     void entropy();
     void findPatternSlot();
     void dumpMemory();
+    void commentSlot();
     void selectAddress(duint va);
     void gotoOriginSlot();
     void gotoExpressionSlot();
@@ -47,6 +50,8 @@ public slots:
 
 private:
     QString getProtectionString(DWORD Protect);
+
+    GotoDialog* mGoto = nullptr;
 
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
@@ -75,6 +80,7 @@ private:
     QAction* mMemoryAllocate;
     QAction* mMemoryFree;
     QAction* mAddVirtualMod;
+    QAction* mComment;
 
     duint mCipBase;
 };

@@ -162,6 +162,9 @@ bool pluginload(const char* pluginName, bool loadall)
     regExport("CBLOADDB", CB_LOADDB);
     regExport("CBSAVEDB", CB_SAVEDB);
     regExport("CBFILTERSYMBOL", CB_FILTERSYMBOL);
+    regExport("CBTRACEEXECUTE", CB_TRACEEXECUTE);
+    regExport("CBANALYZE", CB_ANALYZE);
+    regExport("CBADDRINFO", CB_ADDRINFO);
 
     //init plugin
     if(!pluginData.pluginit(&pluginData.initStruct))
@@ -488,13 +491,23 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 */
 void plugincbcall(CBTYPE cbType, void* callbackInfo)
 {
-    SHARED_ACQUIRE(LockPluginCallbackList);
     if(pluginCallbackList[cbType].empty())
         return;
+    SHARED_ACQUIRE(LockPluginCallbackList);
     auto cbList = pluginCallbackList[cbType]; //copy for thread-safety reasons
     SHARED_RELEASE();
     for(const auto & currentCallback : cbList)
         currentCallback.cbPlugin(cbType, callbackInfo);
+}
+
+/**
+\brief Checks if any callbacks are registered
+\param cbType The type of the callback.
+\return true if no callbacks are registered.
+*/
+bool plugincbempty(CBTYPE cbType)
+{
+    return pluginCallbackList[cbType].empty();
 }
 
 /**
@@ -517,7 +530,7 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
     EXCLUSIVE_ACQUIRE(LockPluginCommandList);
     pluginCommandList.push_back(plugCmd);
     EXCLUSIVE_RELEASE();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] command \"%s\" registered!\n"), command);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Command \"%s\" registered!\n"), command);
     return true;
 }
 
@@ -541,7 +554,7 @@ bool plugincmdunregister(int pluginHandle, const char* command)
             EXCLUSIVE_RELEASE();
             if(!dbgcmddel(command))
                 return false;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] command \"%s\" unregistered!\n"), command);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Command \"%s\" unregistered!\n"), command);
             return true;
         }
     }
@@ -766,6 +779,21 @@ void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
     }
 }
 
+void pluginmenuentrysetchecked(int pluginHandle, int hEntry, bool checked)
+{
+    if(hEntry == -1)
+        return;
+    SHARED_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
+    {
+        if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
+        {
+            GuiMenuSetEntryChecked(currentMenu.hEntryMenu, checked);
+            break;
+        }
+    }
+}
+
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata)
 {
     PLUG_EXPRFUNCTION plugExprfunction;
@@ -776,7 +804,7 @@ bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUG
     EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
     pluginExprfunctionList.push_back(plugExprfunction);
     EXCLUSIVE_RELEASE();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] expression function \"%s\" registered!\n"), name);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Expression function \"%s\" registered!\n"), name);
     return true;
 }
 
@@ -792,7 +820,7 @@ bool pluginexprfuncunregister(int pluginHandle, const char* name)
             EXCLUSIVE_RELEASE();
             if(!ExpressionFunctions::Unregister(name))
                 return false;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] expression function \"%s\" unregistered!\n"), name);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Expression function \"%s\" unregistered!\n"), name);
             return true;
         }
     }

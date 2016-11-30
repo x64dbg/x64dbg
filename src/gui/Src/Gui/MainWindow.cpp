@@ -48,6 +48,8 @@
 #include "BrowseDialog.h"
 #include "CustomizeMenuDialog.h"
 #include "main.h"
+#include "SimpleTraceDialog.h"
+#include "CPUArgumentWidget.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -75,6 +77,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
+    connect(Bridge::getBridge(), SIGNAL(setCheckedMenuEntry(int, bool)), this, SLOT(setCheckedMenuEntry(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
@@ -195,43 +198,28 @@ MainWindow::MainWindow(QWidget* parent)
     mGraphView->setWindowTitle(tr("Graph"));
     mGraphView->setWindowIcon(DIcon("graph.png"));
 
-    // Create the tab widget
-    mTabWidget = new MHTabWidget();
+    // Create the tab widget and enable detaching and hiding
+    mTabWidget = new MHTabWidget(this, true, true);
 
     // Add all widgets to the list
-    mWidgetList.push_back(mCpuWidget);
-    mWidgetNativeNameList.push_back("CPUTab");
-    mWidgetList.push_back(mGraphView);
-    mWidgetNativeNameList.push_back("GraphTab");
-    mWidgetList.push_back(mLogView);
-    mWidgetNativeNameList.push_back("LogTab");
-    mWidgetList.push_back(mNotesManager);
-    mWidgetNativeNameList.push_back("NotesTab");
-    mWidgetList.push_back(mBreakpointsView);
-    mWidgetNativeNameList.push_back("BreakpointsTab");
-    mWidgetList.push_back(mMemMapView);
-    mWidgetNativeNameList.push_back("MemoryMapTab");
-    mWidgetList.push_back(mCallStackView);
-    mWidgetNativeNameList.push_back("CallStackTab");
-    mWidgetList.push_back(mSEHChainView);
-    mWidgetNativeNameList.push_back("SEHTab");
-    mWidgetList.push_back(mScriptView);
-    mWidgetNativeNameList.push_back("ScriptTab");
-    mWidgetList.push_back(mSymbolView);
-    mWidgetNativeNameList.push_back("SymbolsTab");
-    mWidgetList.push_back(mSourceViewManager);
-    mWidgetNativeNameList.push_back("SourceTab");
-    mWidgetList.push_back(mReferenceManager);
-    mWidgetNativeNameList.push_back("ReferencesTab");
-    mWidgetList.push_back(mThreadView);
-    mWidgetNativeNameList.push_back("ThreadsTab");
-    mWidgetList.push_back(mSnowmanView);
-    mWidgetNativeNameList.push_back("SnowmanTab");
-    mWidgetList.push_back(mHandlesView);
-    mWidgetNativeNameList.push_back("HandlesTab");
+    mWidgetList.push_back(WidgetInfo(mCpuWidget, "CPUTab"));
+    mWidgetList.push_back(WidgetInfo(mGraphView, "GraphTab"));
+    mWidgetList.push_back(WidgetInfo(mLogView, "LogTab"));
+    mWidgetList.push_back(WidgetInfo(mNotesManager, "NotesTab"));
+    mWidgetList.push_back(WidgetInfo(mBreakpointsView, "BreakpointsTab"));
+    mWidgetList.push_back(WidgetInfo(mMemMapView, "MemoryMapTab"));
+    mWidgetList.push_back(WidgetInfo(mCallStackView, "CallStackTab"));
+    mWidgetList.push_back(WidgetInfo(mSEHChainView, "SEHTab"));
+    mWidgetList.push_back(WidgetInfo(mScriptView, "ScriptTab"));
+    mWidgetList.push_back(WidgetInfo(mSymbolView, "SymbolsTab"));
+    mWidgetList.push_back(WidgetInfo(mSourceViewManager, "SourceTab"));
+    mWidgetList.push_back(WidgetInfo(mReferenceManager, "ReferencesTab"));
+    mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
+    mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
+    mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
 
     // If LoadSaveTabOrder disabled, load tabs in default order
-    if(!ConfigBool("Miscellaneous", "LoadSaveTabOrder"))
+    if(!ConfigBool("Gui", "LoadSaveTabOrder"))
         loadTabDefaultOrder();
     else
         loadTabSavedOrder();
@@ -318,6 +306,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionGraph, SIGNAL(triggered()), this, SLOT(displayGraphWidget()));
     connect(ui->actionPreviousTab, SIGNAL(triggered()), this, SLOT(displayPreviousTab()));
     connect(ui->actionNextTab, SIGNAL(triggered()), this, SLOT(displayNextTab()));
+    connect(ui->actionHideTab, SIGNAL(triggered()), this, SLOT(hideTab()));
     makeCommandAction(ui->actionStepIntoSource, "TraceIntoConditional src.line(cip) && !src.disp(cip)");
     makeCommandAction(ui->actionStepOverSource, "TraceOverConditional src.line(cip) && !src.disp(cip)");
     makeCommandAction(ui->actionseStepInto, "seStepInto");
@@ -328,6 +317,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionAnimateCommand, SIGNAL(triggered()), this, SLOT(animateCommandSlot()));
     connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitialzationScript()));
     connect(ui->actionCustomizeMenus, SIGNAL(triggered()), this, SLOT(customizeMenu()));
+    connect(ui->actionVariables, SIGNAL(triggered()), this, SLOT(displayVariables()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -351,6 +341,8 @@ MainWindow::MainWindow(QWidget* parent)
     // Setup language menu
     setupLanguagesMenu();
 
+    setupMenuCustomization();
+
     // Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException = 0;
@@ -359,6 +351,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Create updatechecker
     mUpdateChecker = new UpdateChecker(this);
+    mSimpleTraceDialog = new SimpleTraceDialog(this);
 
     // Setup close thread and dialog
     bCanClose = false;
@@ -435,7 +428,7 @@ void MainWindow::setupLanguagesMenu()
         {
             if(j.name().startsWith(localeName))
             {
-                QAction* actionLanguage = new QAction(QString("[%1]%2 - %3").arg(localeName).arg(j.nativeLanguageName()).arg(j.nativeCountryName()), languageMenu);
+                QAction* actionLanguage = new QAction(QString("[%1] %2 - %3").arg(localeName).arg(j.nativeLanguageName()).arg(j.nativeCountryName()), languageMenu);
                 connect(actionLanguage, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
                 actionLanguage->setCheckable(true);
                 actionLanguage->setChecked(localeName == wCurrentLocale);
@@ -479,12 +472,24 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::setTab(QWidget* widget)
 {
+    // shown tabs
     for(int i = 0; i < mTabWidget->count(); i++)
     {
         if(mTabWidget->widget(i) == widget)
         {
             mTabWidget->setCurrentIndex(i);
-            break;
+            return;
+        }
+    }
+
+    // hidden tabs
+    for(int i = 0; i < mWidgetList.count(); i++)
+    {
+        if(mWidgetList[i].widget == widget)
+        {
+            addQWidgetTab(mWidgetList[i].widget, mWidgetList[i].nativeName);
+            mTabWidget->setCurrentIndex(mTabWidget->count() - 1);
+            return;
         }
     }
 }
@@ -496,7 +501,7 @@ void MainWindow::loadTabDefaultOrder()
     // Setup tabs
     //TODO
     for(int i = 0; i < mWidgetList.size(); i++)
-        addQWidgetTab(mWidgetList[i], mWidgetNativeNameList[i]);
+        addQWidgetTab(mWidgetList[i].widget, mWidgetList[i].nativeName);
 }
 
 void MainWindow::loadTabSavedOrder()
@@ -508,10 +513,10 @@ void MainWindow::loadTabSavedOrder()
     // Get tabIndex for each widget and add them to tabIndexToWidget
     for(int i = 0; i < mWidgetList.size(); i++)
     {
-        QString tabName = mWidgetNativeNameList[i];
+        QString tabName = mWidgetList[i].nativeName;
         duint tabIndex = Config()->getUint("TabOrder", tabName);
         if(!tabIndexToWidget.contains(tabIndex))
-            tabIndexToWidget.insert(tabIndex, std::make_pair(mWidgetList[i], tabName));
+            tabIndexToWidget.insert(tabIndex, std::make_pair(mWidgetList[i].widget, tabName));
         else
         {
             // Conflicts. Try to find an unused tab index.
@@ -520,7 +525,7 @@ void MainWindow::loadTabSavedOrder()
                 auto item = tabIndexToWidget.find(j);
                 if(item == tabIndexToWidget.end())
                 {
-                    tabIndexToWidget.insert(j, std::make_pair(mWidgetList[i], tabName));
+                    tabIndexToWidget.insert(j, std::make_pair(mWidgetList[i].widget, tabName));
                     break;
                 }
             }
@@ -573,11 +578,13 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionLabels, ConfigShortcut("ViewLabels"));
     setGlobalShortcut(ui->actionBookmarks, ConfigShortcut("ViewBookmarks"));
     setGlobalShortcut(ui->actionFunctions, ConfigShortcut("ViewFunctions"));
+    setGlobalShortcut(ui->actionVariables, ConfigShortcut("ViewVariables"));
     setGlobalShortcut(ui->actionSnowman, ConfigShortcut("ViewSnowman"));
     setGlobalShortcut(ui->actionHandles, ConfigShortcut("ViewHandles"));
     setGlobalShortcut(ui->actionGraph, ConfigShortcut("ViewGraph"));
     setGlobalShortcut(ui->actionPreviousTab, ConfigShortcut("ViewPreviousTab"));
     setGlobalShortcut(ui->actionNextTab, ConfigShortcut("ViewNextTab"));
+    setGlobalShortcut(ui->actionHideTab, ConfigShortcut("ViewHideTab"));
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
@@ -608,6 +615,10 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionAnimateInto, ConfigShortcut("DebugAnimateInto"));
     setGlobalShortcut(ui->actionAnimateOver, ConfigShortcut("DebugAnimateOver"));
     setGlobalShortcut(ui->actionAnimateCommand, ConfigShortcut("DebugAnimateCommand"));
+    setGlobalShortcut(ui->actionTRTIIT, ConfigShortcut("DebugTraceIntoIntoTracerecord"));
+    setGlobalShortcut(ui->actionTRTOIT, ConfigShortcut("DebugTraceOverIntoTracerecord"));
+    setGlobalShortcut(ui->actionTRTIBT, ConfigShortcut("DebugTraceIntoBeyondTracerecord"));
+    setGlobalShortcut(ui->actionTRTOBT, ConfigShortcut("DebugTraceOverBeyondTracerecord"));
 
     setGlobalShortcut(ui->actionScylla, ConfigShortcut("PluginsScylla"));
 
@@ -767,23 +778,31 @@ void MainWindow::execTicnd()
 {
     if(!DbgIsDebugging())
         return;
-    QString text;
-    if(SimpleInputBox(this, tr("Enter trace into finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceinto.png")))
-        DbgCmdExec(QString("ticnd \"%1\"").arg(text).toUtf8().constData());
+    mSimpleTraceDialog->setTraceCommand("TraceIntoConditional");
+    mSimpleTraceDialog->setWindowTitle(tr("Trace into..."));
+    mSimpleTraceDialog->setWindowIcon(DIcon("traceinto.png"));
+    mSimpleTraceDialog->exec();
 }
 
 void MainWindow::execTocnd()
 {
     if(!DbgIsDebugging())
         return;
-    QString text;
-    if(SimpleInputBox(this, tr("Enter trace over finishing condition."), "", text, tr("Example: eax == 0 && ebx == 0"), &DIcon("traceover.png")))
-        DbgCmdExec(QString("tocnd \"%1\"").arg(text).toUtf8().constData());
+    mSimpleTraceDialog->setTraceCommand("TraceOverConditional");
+    mSimpleTraceDialog->setWindowTitle(tr("Trace over..."));
+    mSimpleTraceDialog->setWindowIcon(DIcon("traceover.png"));
+    mSimpleTraceDialog->exec();
 }
 
 void MainWindow::displayMemMapWidget()
 {
     showQWidgetTab(mMemMapView);
+}
+
+void MainWindow::displayVariables()
+{
+    DbgCmdExec("varlist");
+    showQWidgetTab(mReferenceManager);
 }
 
 void MainWindow::displayLogWidget()
@@ -934,6 +953,11 @@ void MainWindow::displayNextTab()
     mTabWidget->showNextTab();
 }
 
+void MainWindow::hideTab()
+{
+    mTabWidget->deleteCurrentTab();
+}
+
 void MainWindow::openSettings()
 {
     SettingsDialog* settings = new SettingsDialog(this);
@@ -1032,7 +1056,10 @@ void MainWindow::addMenu(int hMenu, QString title)
     if(hMenu == -1) //top-level
         ui->menuBar->addMenu(wMenu);
     else //deeper level
+    {
         menu->mMenu->addMenu(wMenu);
+        menu->mMenu->menuAction()->setVisible(true);
+    }
     Bridge::getBridge()->setResult(hMenuNew);
 }
 
@@ -1179,12 +1206,33 @@ void MainWindow::setIconMenu(int hMenu, QIcon icon)
     Bridge::getBridge()->setResult();
 }
 
+void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
+{
+    for(int i = 0; i < mEntryList.size(); i++)
+    {
+        if(mEntryList.at(i).hEntry == hEntry)
+        {
+            const MenuEntryInfo & entry = mEntryList.at(i);
+            entry.mAction->setCheckable(true);
+            entry.mAction->setChecked(checked);
+            break;
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
 void MainWindow::runSelection()
 {
+    QString command;
+
     if(!DbgIsDebugging())
         return;
 
-    QString command = "bp " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa()) + ", ss";
+    if(mGraphView->hasFocus())
+        command = "bp " + ToPtrString(mGraphView->get_cursor_pos()) + ", ss";
+    else
+        command = "bp " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa()) + ", ss";
+
     if(DbgCmdExecDirect(command.toUtf8().constData()))
         DbgCmdExecDirect("run");
 }
@@ -1556,6 +1604,16 @@ void MainWindow::updateFavouriteTools()
     connect(ui->menuFavourites->actions().last(), SIGNAL(triggered()), this, SLOT(manageFavourites()));
 }
 
+static QString stringFormatInline(const QString & format)
+{
+    if(!DbgFunctions()->StringFormatInline)
+        return "";
+    char result[MAX_SETTING_SIZE] = "";
+    if(DbgFunctions()->StringFormatInline(format.toUtf8().constData(), MAX_SETTING_SIZE, result))
+        return result;
+    return CPUArgumentWidget::tr("[Formatting Error]");
+}
+
 void MainWindow::clickFavouriteTool()
 {
     QAction* action = qobject_cast<QAction*>(sender());
@@ -1567,6 +1625,20 @@ void MainWindow::clickFavouriteTool()
         QString toolPath = data.mid(5);
         duint PID = DbgValFromString("$pid");
         toolPath.replace(QString("%PID%"), QString::number(PID), Qt::CaseInsensitive);
+        toolPath.replace(QString("%DEBUGGEE%"), mMRUList.at(0), Qt::CaseInsensitive);
+        char modpath[MAX_MODULE_SIZE] = "";
+        DbgFunctions()->ModPathFromAddr(DbgValFromString("dis.sel()"), modpath, MAX_MODULE_SIZE);
+        toolPath.replace(QString("%MODULE%"), modpath, Qt::CaseInsensitive);
+        while(true)
+        {
+            auto sfStart = toolPath.indexOf("%-");
+            auto sfEnd = toolPath.indexOf("-%");
+            if(sfStart < 0 || sfEnd < 0 || sfEnd < sfStart)
+                break;
+            auto format = toolPath.mid(sfStart + 2, sfEnd - sfStart - 2);
+            toolPath.replace(sfStart, sfEnd - sfStart + 2, stringFormatInline(format));
+        }
+        mLastLogLabel->setText(toolPath);
         PROCESS_INFORMATION procinfo;
         STARTUPINFO startupinfo;
         memset(&procinfo, 0, sizeof(PROCESS_INFORMATION));
@@ -1717,6 +1789,7 @@ void MainWindow::setInitialzationScript()
     {
         debuggee = QString(DbgFunctions()->DbgGetDebuggeeInitScript());
         BrowseDialog browseScript(this, tr("Set Initialzation Script for Debuggee"), tr("Set Initialzation Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
+        browseScript.setWindowIcon(DIcon("initscript.png"));
         if(browseScript.exec() == QDialog::Accepted)
             DbgFunctions()->DbgSetDebuggeeInitScript(browseScript.path.toUtf8().constData());
     }
@@ -1725,6 +1798,7 @@ void MainWindow::setInitialzationScript()
     else
         global = QString();
     BrowseDialog browseScript(this, tr("Set Global Initialzation Script"), tr("Set Global Initialzation Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);
+    browseScript.setWindowIcon(DIcon("initscript.png"));
     if(browseScript.exec() == QDialog::Accepted)
     {
         BridgeSettingSet("Engine", "InitializeScript", browseScript.path.toUtf8().constData());
@@ -1737,6 +1811,7 @@ void MainWindow::customizeMenu()
     customMenuDialog.setWindowTitle(tr("Customize Menus"));
     customMenuDialog.setWindowIcon(DIcon("analysis.png"));
     customMenuDialog.exec();
+    onMenuCustomized();
 }
 
 #include "../src/bridge/Utf8Ini.h"
@@ -1792,4 +1867,85 @@ void MainWindow::on_actionExportdatabase_triggered()
     if(!filename.length())
         return;
     DbgCmdExec(QString("dbsave \"%1\"").arg(QDir::toNativeSeparators(filename)).toUtf8().constData());
+}
+
+static void setupMenuCustomizationHelper(QMenu* parentMenu, QList<QAction*> & stringList)
+{
+    for(int i = 0; i < parentMenu->actions().size(); i++)
+    {
+        QAction* action = parentMenu->actions().at(i);
+        stringList.append(action);
+    }
+}
+
+void MainWindow::setupMenuCustomization()
+{
+    mFileMenuStrings.append(new QAction("File", this));
+    setupMenuCustomizationHelper(ui->menuFile, mFileMenuStrings);
+    mDebugMenuStrings.append(new QAction("Debug", this));
+    setupMenuCustomizationHelper(ui->menuDebug, mDebugMenuStrings);
+    mOptionsMenuStrings.append(new QAction("Option", this));
+    setupMenuCustomizationHelper(ui->menuOptions, mOptionsMenuStrings);
+    mHelpMenuStrings.append(new QAction("Help", this));
+    setupMenuCustomizationHelper(ui->menuHelp, mHelpMenuStrings);
+    mViewMenuStrings.append(new QAction("View", this));
+    setupMenuCustomizationHelper(ui->menuView, mViewMenuStrings);
+    onMenuCustomized();
+    Config()->registerMainMenuStringList(&mFileMenuStrings);
+    Config()->registerMainMenuStringList(&mDebugMenuStrings);
+    Config()->registerMainMenuStringList(&mOptionsMenuStrings);
+    Config()->registerMainMenuStringList(&mHelpMenuStrings);
+    Config()->registerMainMenuStringList(&mViewMenuStrings);
+}
+
+void MainWindow::onMenuCustomized()
+{
+    QList<QMenu*> menus;
+    QList<QString> menuNativeNames;
+    QList<QList<QAction*>*> menuTextStrings;
+    menus << ui->menuFile << ui->menuDebug << ui->menuOptions << ui->menuHelp << ui->menuView;
+    menuNativeNames << "File" << "Debug" << "Option" << "Help" << "View";
+    menuTextStrings << &mFileMenuStrings << &mDebugMenuStrings << &mOptionsMenuStrings << &mHelpMenuStrings << &mViewMenuStrings;
+    for(int i = 0; i < menus.size(); i++)
+    {
+        QMenu* currentMenu = menus[i];
+        QMenu* moreCommands = nullptr;
+        bool moreCommandsUsed = false;
+        QList<QAction*> & list = currentMenu->actions();
+        moreCommands = list.last()->menu();
+        if(moreCommands && moreCommands->title().compare(tr("More Commands")) == 0)
+        {
+            for(auto & j : moreCommands->actions())
+                moreCommands->removeAction(j);
+            QAction* separatorMoreCommands = list.at(list.length() - 2);
+            currentMenu->removeAction(separatorMoreCommands); // Separator
+            delete separatorMoreCommands;
+        }
+        else
+        {
+            moreCommands = new QMenu(tr("More Commands"), currentMenu);
+        }
+        for(auto & j : list)
+            currentMenu->removeAction(j);
+        for(int j = 0; j < menuTextStrings.at(i)->size() - 1; j++)
+        {
+            QAction* a = menuTextStrings.at(i)->at(j + 1);
+            if(Config()->getBool("Gui", QString("Menu%1Hidden%2").arg(menuNativeNames[i]).arg(j)))
+            {
+                moreCommands->addAction(a);
+                moreCommandsUsed = true;
+            }
+            else
+            {
+                currentMenu->addAction(a);
+            }
+        }
+        if(moreCommandsUsed)
+        {
+            currentMenu->addSeparator();
+            currentMenu->addMenu(moreCommands);
+        }
+        else
+            delete moreCommands;
+    }
 }

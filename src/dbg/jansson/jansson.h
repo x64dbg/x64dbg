@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2014 Petri Lehtinen <petri@digip.org>
+ * Copyright (c) 2009-2016 Petri Lehtinen <petri@digip.org>
  *
  * Jansson is free software; you can redistribute it and/or modify
  * it under the terms of the MIT license. See LICENSE for details.
@@ -21,11 +21,11 @@ extern "C" {
 /* version */
 
 #define JANSSON_MAJOR_VERSION  2
-#define JANSSON_MINOR_VERSION  7
+#define JANSSON_MINOR_VERSION  9
 #define JANSSON_MICRO_VERSION  0
 
 /* Micro version is omitted if it's 0 */
-#define JANSSON_VERSION  "2.7"
+#define JANSSON_VERSION  "2.9"
 
 /* Version as a 3-byte hex number, e.g. 0x010201 == 1.2.1. Use this
    for numeric comparisons, e.g. #if JANSSON_VERSION_HEX >= ... */
@@ -114,6 +114,20 @@ void json_decref(json_t* json)
         json_delete(json);
 }
 
+#if defined(__GNUC__) || defined(__clang__)
+static JSON_INLINE
+void json_decrefp(json_t** json)
+{
+    if(json)
+    {
+        json_decref(*json);
+        *json = NULL;
+    }
+}
+
+#define json_auto_t json_t __attribute__((cleanup(json_decrefp)))
+#endif
+
 
 /* error reporting */
 
@@ -154,6 +168,13 @@ __declspec(dllimport) int json_object_iter_set_new(json_t* object, void* iter, j
     for(key = json_object_iter_key(json_object_iter(object)); \
         key && (value = json_object_iter_value(json_object_key_to_iter(key))); \
         key = json_object_iter_key(json_object_iter_next(object, json_object_key_to_iter(key))))
+
+#define json_object_foreach_safe(object, n, key, value)     \
+    for(key = json_object_iter_key(json_object_iter(object)), \
+            n = json_object_iter_next(object, json_object_key_to_iter(key)); \
+        key && (value = json_object_iter_value(json_object_key_to_iter(key))); \
+        key = json_object_iter_key(n), \
+            n = json_object_iter_next(object, json_object_key_to_iter(key)))
 
 #define json_array_foreach(array, index, value) \
     for(index = 0; \
@@ -285,6 +306,7 @@ typedef void* (*json_malloc_t)(size_t);
 typedef void (*json_free_t)(void*);
 
 __declspec(dllimport) void json_set_alloc_funcs(json_malloc_t malloc_fn, json_free_t free_fn);
+__declspec(dllimport) void json_get_alloc_funcs(json_malloc_t* malloc_fn, json_free_t* free_fn);
 
 #ifdef __cplusplus
 }

@@ -27,6 +27,10 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
 
+    duint setting;
+    if(BridgeSettingGetUint("Misc", "Utf16LogRedirect", &setting))
+        utf16Redirect = !!setting;
+
     setupContextMenu();
 }
 
@@ -148,17 +152,27 @@ static void linkify(QString & msg)
  */
 void LogView::addMsgToLogSlot(QString msg)
 {
+    /*
+     * This supports the 'UTF-8 Everywhere' manifesto.
+     * - UTF-8 (http://utf8everywhere.org);
+     * - No BOM (http://utf8everywhere.org/#faq.boms);
+     * - No carriage return (http://utf8everywhere.org/#faq.crlf).
+     */
+
     // fix Unix-style line endings.
-    msg.replace(QString("\r\n"), QString("\n"));
-    msg.replace(QChar('\n'), QString("\r\n"));
+    msg.replace("\r\n", "\n");
     // redirect the log
     if(logRedirection != NULL)
     {
-        if(!fwrite(msg.data_ptr()->data(), msg.size() * 2, 1, logRedirection))
+        if(utf16Redirect)
+            msg.replace("\n", "\r\n");
+        msg.utf16();
+        auto data = utf16Redirect ? QByteArray((const char*)msg.utf16(), msg.size() * 2) : msg.toUtf8();
+        if(!fwrite(data.constData(), data.size(), 1, logRedirection))
         {
             fclose(logRedirection);
             logRedirection = NULL;
-            msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\r\n").arg(GetLastError());
+            msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
         }
     }
     if(!loggingEnabled)
@@ -170,10 +184,12 @@ void LogView::addMsgToLogSlot(QString msg)
     cursor.movePosition(QTextCursor::End);
     if(autoScroll)
         this->moveCursor(QTextCursor::End);
+    if(utf16Redirect)
+        msg.replace("\r\n", "\n");
     msg.replace(QChar('&'), QString("&amp;"));
     msg.replace(QChar('<'), QString("&lt;"));
     msg.replace(QChar('>'), QString("&gt;"));
-    msg.replace(QString("\r\n"), QString("<br/>\r\n"));
+    msg.replace(QString("\n"), QString("<br/>\n"));
     msg.replace(QChar(' '), QString("&nbsp;"));
     linkify(msg);
     cursor.insertHtml(msg);
@@ -207,7 +223,7 @@ void LogView::onAnchorClicked(const QUrl & link)
             if(DbgIsDebugging())
             {
                 bool ok = false;
-                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
+                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok, 16);
                 if(ok)
                 {
                     if(DbgFunctions()->MemIsCodePage(address, true))
@@ -238,7 +254,7 @@ void LogView::redirectLogSlot()
     }
     else
     {
-        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
+        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files (*.txt);;All files (*.*)"), QCoreApplication::applicationDirPath(), true);
         if(browse.exec() == QDialog::Accepted)
         {
             logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
@@ -246,7 +262,7 @@ void LogView::redirectLogSlot()
                 GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
             else
             {
-                if(ftell(logRedirection) == 0)
+                if(utf16Redirect && ftell(logRedirection) == 0)
                 {
                     unsigned short BOM = 0xfeff;
                     fwrite(&BOM, 2, 1, logRedirection);

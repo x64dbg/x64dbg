@@ -83,11 +83,19 @@ bool FileExists(const char* file);
 bool DirExists(const char* dir);
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName);
 bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName);
+bool GetFileNameFromModuleHandle(HANDLE hProcess, HMODULE hModule, char* szFileName);
 bool settingboolget(const char* section, const char* name);
 arch GetFileArchitecture(const char* szFileName);
 bool IsWow64();
 bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize);
-void WaitForThreadTermination(HANDLE hThread);
+void WaitForThreadTermination(HANDLE hThread, DWORD timeout = INFINITE);
+void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout = INFINITE);
+
+#ifdef _WIN64
+#define ArchValue(x32value, x64value) x64value
+#else
+#define ArchValue(x32value, x64value) x32value
+#endif //_WIN64
 
 #include "dynamicmem.h"
 

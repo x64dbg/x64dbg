@@ -25,6 +25,7 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     ui->comboType->addItem(tr("GUID"));
     ui->comboType->addItem(tr("IP Address (IPv4)"));
     ui->comboType->addItem(tr("IP Address (IPv6)"));
+    ui->comboType->addItem(tr("Base64"));
 
     ui->comboType->setCurrentIndex(DataCByte);
 
@@ -310,6 +311,13 @@ void DataCopyDialog::printData(DataType type)
         }
         FreeLibrary(hWinsock);
     }
+    break;
+
+    case DataBase64:
+    {
+        data = QByteArray(reinterpret_cast<const char*>(mData->constData()), mData->size()).toBase64().constData();
+    }
+    break;
     }
     ui->editCode->setPlainText(data);
 }

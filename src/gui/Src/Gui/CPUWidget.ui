@@ -65,7 +65,7 @@
        </property>
        <widget class="QFrame" name="mTopLeftUpperFrame">
         <property name="frameShape">
-         <enum>QFrame::Box</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
@@ -90,7 +90,7 @@
        </widget>
        <widget class="QFrame" name="mTopLeftLowerFrame">
         <property name="frameShape">
-         <enum>QFrame::Box</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
@@ -126,7 +126,7 @@
        </property>
        <widget class="QFrame" name="mTopRightUpperFrame">
         <property name="frameShape">
-         <enum>QFrame::Box</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
@@ -151,7 +151,7 @@
        </widget>
        <widget class="QFrame" name="mTopRightLowerFrame">
         <property name="frameShape">
-         <enum>QFrame::Box</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
@@ -188,7 +188,7 @@
       </property>
       <widget class="QFrame" name="mBotLeftFrame">
        <property name="frameShape">
-        <enum>QFrame::Box</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
@@ -213,7 +213,7 @@
       </widget>
       <widget class="QFrame" name="mBotRightFrame">
        <property name="frameShape">
-        <enum>QFrame::Box</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>

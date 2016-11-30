@@ -3,6 +3,7 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
+#include "plugin_loader.h"
 
 TraceRecordManager TraceRecord;
 

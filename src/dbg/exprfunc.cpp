@@ -6,6 +6,8 @@
 #include "memory.h"
 #include "disasm_fast.h"
 #include "TraceRecord.h"
+#include "disasm_helper.h"
+#include "function.h"
 
 namespace Exprfunc
 {
@@ -137,12 +139,44 @@ namespace Exprfunc
         return strstr(info.instruction, "ret") != nullptr;
     }
 
+    duint disiscall(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return info.call;
+    }
+
     duint disismem(duint addr)
     {
         BASIC_INSTRUCTION_INFO info;
         if(!disasmfast(addr, &info, true))
             return 0;
         return (info.type & TYPE_MEMORY) == TYPE_MEMORY;
+    }
+
+    duint disisnop(duint addr)
+    {
+        unsigned char data[16];
+        if(MemRead(addr, data, sizeof(data), nullptr, true))
+        {
+            Capstone cp;
+            if(cp.Disassemble(addr, data))
+                return cp.IsNop();
+        }
+        return false;
+    }
+
+    duint disisunusual(duint addr)
+    {
+        unsigned char data[16];
+        if(MemRead(addr, data, sizeof(data), nullptr, true))
+        {
+            Capstone cp;
+            if(cp.Disassemble(addr, data))
+                return cp.IsUnusual();
+        }
+        return false;
     }
 
     duint disbranchdest(duint addr)
@@ -179,6 +213,26 @@ namespace Exprfunc
         return info.branch && !strstr(info.instruction, "jmp") ? addr + info.size : 0;
     }
 
+    duint disnext(duint addr)
+    {
+        BASIC_INSTRUCTION_INFO info;
+        if(!disasmfast(addr, &info, true))
+            return 0;
+        return addr + info.size;
+    }
+
+    duint disprev(duint addr)
+    {
+        duint size = 0;
+        duint base = MemFindBaseAddr(addr, &size);
+        duint readStart = addr - 16 * 4;
+        if(readStart < base)
+            readStart = base;
+        unsigned char disasmData[256];
+        MemRead(readStart, disasmData, sizeof(disasmData));
+        return readStart + disasmback(disasmData, 0, sizeof(disasmData), addr - readStart, 1);
+    }
+
     duint trenabled(duint addr)
     {
         return TraceRecord.getTraceRecordType(addr) != TraceRecordManager::TraceRecordNone;
@@ -197,14 +251,6 @@ namespace Exprfunc
             return GTC64();
 #endif //_WIN64
         return GetTickCount();
-    }
-
-    duint sleep(duint ms)
-    {
-        if(ms >= 0xFFFFFFFF)
-            ms = 100;
-        Sleep(DWORD(ms));
-        return ms;
     }
 
     static duint readMem(duint addr, duint size)
@@ -236,5 +282,17 @@ namespace Exprfunc
     duint readptr(duint addr)
     {
         return readMem(addr, sizeof(duint));
+    }
+
+    duint funcstart(duint addr)
+    {
+        duint start;
+        return FunctionGet(addr, &start) ? start : 0;
+    }
+
+    duint funcend(duint addr)
+    {
+        duint end;
+        return FunctionGet(addr, nullptr, &end) ? end : 0;
     }
 }

@@ -95,6 +95,7 @@ public:
     void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
+    void keyPressEvent(QKeyEvent* event);
 
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void paintGraphicDump(QPainter* painter, int x, int y, int addr);
@@ -181,6 +182,8 @@ private:
 
     QList<dsint> mVaHistory;
     int mCurrentVa;
+    QChar mNonprintReplace;
+    QChar mNullReplace;
 
 protected:
     MemoryPage* mMemPage;

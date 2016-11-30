@@ -239,7 +239,10 @@ bool ModNameFromAddr(duint Address, char* Name, bool Extension)
     auto module = ModInfoFromAddr(Address);
 
     if(!module)
+    {
+        Name[0] = '\0';
         return false;
+    }
 
     // Copy initial module name
     strcpy_s(Name, MAX_MODULE_SIZE, module->name);

@@ -333,6 +333,8 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     const int x = e->pos().x();
     const int y = e->pos().y();
     const int line = y / fontHeight;
+    if(line >= mInstrBuffer->size())
+        return;
     const int width = viewport()->width();
 
     const int bulletRadius = fontHeight / 2 + 1; //14/2=7
@@ -472,7 +474,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         // Use a different color to highlight jumps that will execute
         if(isexecute)
         {
-            if(!conditional)
+            if(conditional)
                 activePen.setColor(mConditionalJumpLineTrueColor);
             else
                 activePen.setColor(mUnconditionalJumpLineTrueColor);

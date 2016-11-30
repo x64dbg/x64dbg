@@ -120,6 +120,14 @@ public:
         return true;
     }
 
+    static bool Free(const ListInfo* listInfo)
+    {
+        if(!listInfo || listInfo->size != listInfo->count * sizeof(Type) || (listInfo->count && !listInfo->data))
+            return false;
+        BridgeFree(listInfo->data);
+        return true;
+    }
+
     static bool ToVector(const ListInfo* listInfo, std::vector<Type> & listData, bool freedata = true)
     {
         if(!listInfo || listInfo->size != listInfo->count * sizeof(Type) || (listInfo->count && !listInfo->data))

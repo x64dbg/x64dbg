@@ -62,6 +62,7 @@ void pluginexprfuncunregisterall(int pluginHandle);
 void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin);
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType);
 void plugincbcall(CBTYPE cbType, void* callbackInfo);
+bool plugincbempty(CBTYPE cbType);
 bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly);
 bool plugincmdunregister(int pluginHandle, const char* command);
 int pluginmenuadd(int hMenu, const char* title);
@@ -73,6 +74,7 @@ bool pluginwinevent(MSG* message, long* result);
 bool pluginwineventglobal(MSG* message);
 void pluginmenuseticon(int hMenu, const ICONDATA* icon);
 void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon);
+void pluginmenuentrysetchecked(int pluginHandle, int hEntry, bool checked);
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata);
 bool pluginexprfuncunregister(int pluginHandle, const char* name);
 

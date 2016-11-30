@@ -15,10 +15,13 @@
 #include <algorithm>
 #include <QMutex>
 #include "Bridge.h"
+#include "LineEditDialog.h"
 #include "RichTextPainter.h"
+#include "QBeaEngine.h"
 
 class MenuBuilder;
 class CachedFontMetrics;
+class GotoDialog;
 
 class DisassemblerGraphView : public QAbstractScrollArea
 {
@@ -94,14 +97,15 @@ public:
 
         Text() {}
 
-        Text(const QString & text, QColor color)
+        Text(const QString & text, QColor color, QColor background)
         {
             RichTextPainter::List richText;
             RichTextPainter::CustomRichText_t rt;
             rt.highlight = false;
-            rt.flags = RichTextPainter::FlagColor;
             rt.text = text;
             rt.textColor = color;
+            rt.textBackground = background;
+            rt.flags = rt.textBackground.alpha() ? RichTextPainter::FlagAll : RichTextPainter::FlagColor;
             richText.push_back(rt);
             lines.push_back(richText);
         }
@@ -234,6 +238,7 @@ public:
     void adjustGraphLayout(DisassemblerBlock & block, int col, int row);
     void computeGraphLayout(DisassemblerBlock & block);
     void setupContextMenu();
+    void keyPressEvent(QKeyEvent* event);
 
     template<typename T>
     using Matrix = std::vector<std::vector<T>>;
@@ -244,9 +249,10 @@ public:
     int findVertEdgeIndex(EdgesVector & edges, int col, int min_row, int max_row);
     DisassemblerEdge routeEdge(EdgesVector & horiz_edges, EdgesVector & vert_edges, Matrix<bool> & edge_valid, DisassemblerBlock & start, DisassemblerBlock & end, QColor color);
     void renderFunction(Function & func);
-    void show_cur_instr();
+    void show_cur_instr(bool force = false);
     bool navigate(duint addr);
     void fontChanged();
+    QString getSymbolicName(duint addr);
 
 public slots:
     void updateTimerEvent();
@@ -259,6 +265,16 @@ public slots:
     void shortcutsUpdatedSlot();
     void toggleOverviewSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
+    void tokenizerConfigUpdatedSlot();
+    void loadCurrentGraph();
+    void disassembleAtSlot(dsint va, dsint cip);
+    void gotoExpressionSlot();
+    void gotoOriginSlot();
+    void toggleSyncOriginSlot();
+    void refreshSlot();
+    void saveImageSlot();
+    void setCommentSlot();
+    void setLabelSlot();
 
 private:
     QString status;
@@ -289,10 +305,16 @@ private:
     CachedFontMetrics* mFontMetrics;
     MenuBuilder* mMenuBuilder;
     bool drawOverview;
-    QAction* mToggleOverviewAction;
+    bool syncOrigin;
     int overviewXOfs;
     int overviewYOfs;
     qreal overviewScale;
+    duint mCip;
+    bool forceCenter;
+    bool saveGraph;
+
+    QAction* mToggleOverview;
+    QAction* mToggleSyncOrigin;
 
     QColor disassemblyBackgroundColor;
     QColor disassemblySelectionColor;
@@ -303,6 +325,20 @@ private:
     QColor brfalseColor;
     QColor retShadowColor;
     QColor backgroundColor;
+    QColor mAutoCommentColor;
+    QColor mAutoCommentBackgroundColor;
+    QColor mCommentColor;
+    QColor mCommentBackgroundColor;
+    QColor mLabelColor;
+    QColor mLabelBackgroundColor;
+    QColor mCipColor;
+    QColor mCipBackgroundColor;
+    QColor graphNodeColor;
+
+    BridgeCFGraph currentGraph;
+    std::unordered_map<duint, duint> currentBlockMap;
+    QBeaEngine disasm;
+    GotoDialog* mGoto;
 protected:
 #include "ActionHelpers.h"
 };

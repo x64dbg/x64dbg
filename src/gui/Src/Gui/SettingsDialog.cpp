@@ -59,6 +59,8 @@ void SettingsDialog::LoadSettings()
     settings.engineEnableTraceRecordDuringTrace = true;
     settings.engineNoScriptTimeout = false;
     settings.engineIgnoreInconsistentBreakpoints = false;
+    settings.engineMaxTraceCount = 50000;
+    settings.engineHardcoreThreadSwitchWarning = false;
     settings.exceptionRanges = &realExceptionRanges;
     settings.disasmArgumentSpaces = false;
     settings.disasmMemorySpaces = false;
@@ -123,6 +125,9 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "SkipInt3Stepping", &settings.engineSkipInt3Stepping);
     GetSettingBool("Engine", "NoScriptTimeout", &settings.engineNoScriptTimeout);
     GetSettingBool("Engine", "IgnoreInconsistentBreakpoints", &settings.engineIgnoreInconsistentBreakpoints);
+    GetSettingBool("Engine", "HardcoreThreadSwitchWarning", &settings.engineHardcoreThreadSwitchWarning);
+    if(BridgeSettingGetUint("Engine", "MaxTraceCount", &cur))
+        settings.engineMaxTraceCount = int(cur);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -153,6 +158,8 @@ void SettingsDialog::LoadSettings()
     ui->chkSkipInt3Stepping->setChecked(settings.engineSkipInt3Stepping);
     ui->chkNoScriptTimeout->setChecked(settings.engineNoScriptTimeout);
     ui->chkIgnoreInconsistentBreakpoints->setChecked(settings.engineIgnoreInconsistentBreakpoints);
+    ui->chkHardcoreThreadSwitchWarning->setChecked(settings.engineHardcoreThreadSwitchWarning);
+    ui->spinMaxTraceCount->setValue(settings.engineMaxTraceCount);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -179,11 +186,13 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "Uppercase", &settings.disasmUppercase);
     GetSettingBool("Disassembler", "OnlyCipAutoComments", &settings.disasmOnlyCipAutoComments);
     GetSettingBool("Disassembler", "TabbedMnemonic", &settings.disasmTabBetweenMnemonicAndArguments);
+    GetSettingBool("Disassembler", "NoHighlightOperands", &settings.disasmNoHighlightOperands);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
     ui->chkTabBetweenMnemonicAndArguments->setChecked(settings.disasmTabBetweenMnemonicAndArguments);
+    ui->chkNoHighlightOperands->setChecked(settings.disasmNoHighlightOperands);
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
@@ -192,12 +201,14 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "PidInHex", &settings.guiPidInHex);
     GetSettingBool("Gui", "SidebarWatchLabels", &settings.guiSidebarWatchLabels);
     GetSettingBool("Gui", "NoForegroundWindow", &settings.guiNoForegroundWindow);
+    GetSettingBool("Gui", "LoadSaveTabOrder", &settings.guiLoadSaveTabOrder);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
     ui->chkPidInHex->setChecked(settings.guiPidInHex);
     ui->chkSidebarWatchLabels->setChecked(settings.guiSidebarWatchLabels);
     ui->chkNoForegroundWindow->setChecked(settings.guiNoForegroundWindow);
+    ui->chkSaveLoadTabOrder->setChecked(settings.guiLoadSaveTabOrder);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -259,8 +270,8 @@ void SettingsDialog::LoadSettings()
     bJitOld = settings.miscSetJIT;
     bJitAutoOld = settings.miscSetJITAuto;
 
-    GetSettingBool("Miscellaneous", "LoadSaveTabOrder", &settings.miscLoadSaveTabOrder);
-    ui->chkSaveLoadTabOrder->setChecked(settings.miscLoadSaveTabOrder);
+    GetSettingBool("Misc", "Utf16LogRedirect", &settings.miscUtf16LogRedirect);
+    ui->chkUtf16LogRedirect->setChecked(settings.miscUtf16LogRedirect);
 }
 
 void SettingsDialog::SaveSettings()
@@ -290,6 +301,8 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "SkipInt3Stepping", settings.engineSkipInt3Stepping);
     BridgeSettingSetUint("Engine", "NoScriptTimeout", settings.engineNoScriptTimeout);
     BridgeSettingSetUint("Engine", "IgnoreInconsistentBreakpoints", settings.engineIgnoreInconsistentBreakpoints);
+    BridgeSettingSetUint("Engine", "MaxTraceCount", settings.engineMaxTraceCount);
+    BridgeSettingSetUint("Engine", "HardcoreThreadSwitchWarning", settings.engineHardcoreThreadSwitchWarning);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -307,6 +320,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
     BridgeSettingSetUint("Disassembler", "TabbedMnemonic", settings.disasmTabBetweenMnemonicAndArguments);
+    BridgeSettingSetUint("Disassembler", "NoHighlightOperands", settings.disasmNoHighlightOperands);
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
@@ -315,6 +329,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "PidInHex", settings.guiPidInHex);
     BridgeSettingSetUint("Gui", "SidebarWatchLabels", settings.guiSidebarWatchLabels);
     BridgeSettingSetUint("Gui", "NoForegroundWindow", settings.guiNoForegroundWindow);
+    BridgeSettingSetUint("Gui", "LoadSaveTabOrder", settings.guiLoadSaveTabOrder);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -340,8 +355,7 @@ void SettingsDialog::SaveSettings()
     if(settings.miscSymbolCache)
         BridgeSettingSet("Symbols", "CachePath", ui->editSymbolCache->text().toUtf8().constData());
     BridgeSettingSet("Misc", "HelpOnSymbolicNameUrl", ui->editHelpOnSymbolicNameUrl->text().toUtf8().constData());
-
-    BridgeSettingSetUint("Miscellaneous", "LoadSaveTabOrder", settings.miscLoadSaveTabOrder);
+    BridgeSettingSetUint("Misc", "Utf16LogRedirect", settings.miscUtf16LogRedirect);
 
     BridgeSettingFlush();
     Config()->load();
@@ -559,6 +573,11 @@ void SettingsDialog::on_chkEnableDebugPrivilege_stateChanged(int arg1)
         settings.engineEnableDebugPrivilege = true;
 }
 
+void SettingsDialog::on_chkHardcoreThreadSwitchWarning_toggled(bool checked)
+{
+    settings.engineHardcoreThreadSwitchWarning = checked;
+}
+
 void SettingsDialog::on_chkEnableSourceDebugging_stateChanged(int arg1)
 {
     settings.engineEnableSourceDebugging = arg1 == Qt::Checked;
@@ -660,7 +679,7 @@ void SettingsDialog::on_editSymbolCache_textEdited(const QString & arg1)
 
 void SettingsDialog::on_chkSaveLoadTabOrder_stateChanged(int arg1)
 {
-    settings.miscLoadSaveTabOrder = arg1 != Qt::Unchecked;
+    settings.guiLoadSaveTabOrder = arg1 != Qt::Unchecked;
     emit chkSaveLoadTabOrderStateChanged((bool)arg1);
 }
 
@@ -707,4 +726,20 @@ void SettingsDialog::on_chkIgnoreInconsistentBreakpoints_toggled(bool checked)
 void SettingsDialog::on_chkNoForegroundWindow_toggled(bool checked)
 {
     settings.guiNoForegroundWindow = checked;
+}
+
+void SettingsDialog::on_spinMaxTraceCount_valueChanged(int arg1)
+{
+    settings.engineMaxTraceCount = arg1;
+}
+
+void SettingsDialog::on_chkNoHighlightOperands_toggled(bool checked)
+{
+    bTokenizerConfigUpdated = true;
+    settings.disasmNoHighlightOperands = checked;
+}
+
+void SettingsDialog::on_chkUtf16LogRedirect_toggled(bool checked)
+{
+    settings.miscUtf16LogRedirect = checked;
 }

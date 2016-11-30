@@ -125,3 +125,8 @@ Releases of *x64dbg* can be found [here](http://releases.x64dbg.com).
 - [Avin](https://github.com/Avinm)
 - [mrfearless](https://github.com/mrfearless)
 - [Storm Shadow](https://github.com/techbliss)
+- [shamanas](https://github.com/shamanas)
+- [joesavage](https://github.com/joesavage)
+- [justanotheranonymoususer](https://github.com/justanotheranonymoususer)
+- [gushromp](https://github.com/gushromp)
+- [Forsari0](https://github.com/Forsari0)

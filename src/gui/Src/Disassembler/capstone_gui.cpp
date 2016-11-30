@@ -8,7 +8,7 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
       _success(false),
       isNop(false)
 {
-    SetConfig(false, false, false, false);
+    SetConfig(false, false, false, false, false);
 }
 
 CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
@@ -137,6 +137,14 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
         addToken(TokenType::Uncategorized, "???");
     }
 
+    if(_bNoHighlightOperands)
+    {
+        while(_inst.tokens.size() && _inst.tokens[_inst.tokens.size() - 1].type == TokenType::Space)
+            _inst.tokens.pop_back();
+        for(SingleToken & token : _inst.tokens)
+            token.type = _mnemonicType;
+    }
+
     instruction = _inst;
 
     return true;
@@ -162,16 +170,19 @@ void CapstoneTokenizer::UpdateConfig()
     SetConfig(ConfigBool("Disassembler", "Uppercase"),
               ConfigBool("Disassembler", "TabbedMnemonic"),
               ConfigBool("Disassembler", "ArgumentSpaces"),
-              ConfigBool("Disassembler", "MemorySpaces"));
+              ConfigBool("Disassembler", "MemorySpaces"),
+              ConfigBool("Disassembler", "NoHighlightOperands"));
+    _maxModuleLength = (int)ConfigUint("Disassembler", "MaxModuleSize");
     UpdateStringPool();
 }
 
-void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces)
+void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands)
 {
     _bUppercase = bUppercase;
     _bTabbedMnemonic = bTabbedMnemonic;
     _bArgumentSpaces = bArgumentSpaces;
     _bMemorySpaces = bMemorySpaces;
+    _bNoHighlightOperands = bNoHighlightOperands;
 }
 
 int CapstoneTokenizer::Size() const
@@ -360,34 +371,31 @@ bool CapstoneTokenizer::tokenizePrefix()
 bool CapstoneTokenizer::tokenizeMnemonic()
 {
     QString mnemonic = QString(_cp.Mnemonic().c_str());
-    if(isNop)
-    {
-        tokenizeMnemonic(TokenType::MnemonicNop, mnemonic);
-        return true;
-    }
-    auto type = TokenType::MnemonicNormal;
+    _mnemonicType = TokenType::MnemonicNormal;
     auto id = _cp.GetId();
-    if(_cp.InGroup(CS_GRP_CALL))
-        type = TokenType::MnemonicCall;
-    else if(_cp.InGroup(CS_GRP_RET))
-        type = TokenType::MnemonicRet;
+    if(isNop)
+        _mnemonicType = TokenType::MnemonicNop;
+    else if(_cp.InGroup(CS_GRP_CALL))
+        _mnemonicType = TokenType::MnemonicCall;
     else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())
     {
         switch(id)
         {
         case X86_INS_JMP:
         case X86_INS_LJMP:
-            type = TokenType::MnemonicUncondJump;
+            _mnemonicType = TokenType::MnemonicUncondJump;
             break;
         default:
-            type = TokenType::MnemonicCondJump;
+            _mnemonicType = TokenType::MnemonicCondJump;
             break;
         }
     }
     else if(_cp.IsInt3())
-        type = TokenType::MnemonicInt3;
+        _mnemonicType = TokenType::MnemonicInt3;
     else if(_cp.IsUnusual())
-        type = TokenType::MnemonicUnusual;
+        _mnemonicType = TokenType::MnemonicUnusual;
+    else if(_cp.InGroup(CS_GRP_RET))
+        _mnemonicType = TokenType::MnemonicRet;
     else
     {
         switch(id)
@@ -404,14 +412,14 @@ bool CapstoneTokenizer::tokenizeMnemonic()
         case X86_INS_POPFQ:
         case X86_INS_POPAL:
         case X86_INS_POPAW:
-            type = TokenType::MnemonicPushPop;
+            _mnemonicType = TokenType::MnemonicPushPop;
             break;
         default:
             break;
         }
     }
 
-    tokenizeMnemonic(type, mnemonic);
+    tokenizeMnemonic(_mnemonicType, mnemonic);
 
     return true;
 }

@@ -21,7 +21,8 @@ static int emalloc_count = 0;
 \brief Path for debugging, used to create an allocation trace file on emalloc() or efree(). Not used.
 */
 static char alloctrace[MAX_PATH] = "";
-static std::map<void*, int> alloctracemap;
+static std::unordered_map<void*, int> alloctracemap;
+static CRITICAL_SECTION criticalSection;
 #endif
 
 /**
@@ -45,12 +46,14 @@ void* emalloc(size_t size, const char* reason)
     }
     emalloc_count++;
 #ifdef ENABLE_MEM_TRACE
+    EnterCriticalSection(&criticalSection);
     memset(a, 0, size + sizeof(void*));
     FILE* file = fopen(alloctrace, "a+");
     fprintf(file, "DBG%.5d:  alloc:%p:%p:%s:%p\n", emalloc_count, a, _ReturnAddress(), reason, size);
     fclose(file);
     alloctracemap[_ReturnAddress()]++;
     *(void**)a = _ReturnAddress();
+    LeaveCriticalSection(&criticalSection);
     return a + sizeof(void*);
 #else
     memset(a, 0, size);
@@ -85,6 +88,7 @@ void efree(void* ptr, const char* reason)
 {
     emalloc_count--;
 #ifdef ENABLE_MEM_TRACE
+    EnterCriticalSection(&criticalSection);
     char* ptr2 = (char*)ptr - sizeof(void*);
     FILE* file = fopen(alloctrace, "a+");
     fprintf(file, "DBG%.5d:   free:%p:%p:%s\n", emalloc_count, ptr, *(void**)ptr2, reason);
@@ -94,14 +98,17 @@ void efree(void* ptr, const char* reason)
         if(--alloctracemap.at(*(void**)ptr2) < 0)
         {
             String str = StringUtils::sprintf("address %p, reason %s", *(void**)ptr2, reason);
-            MessageBoxA(0, str.c_str, "Free memory more than once", MB_OK);
+            MessageBoxA(0, str.c_str(), "Freed memory more than once", MB_OK);
+            __debugbreak();
         }
     }
     else
     {
         String str = StringUtils::sprintf("address %p, reason %s", *(void**)ptr2, reason);
-        MessageBoxA(0, str.c_str(), "Trying to free a const memory", MB_OK);
+        MessageBoxA(0, str.c_str(), "Trying to free const memory", MB_OK);
+        __debugbreak();
     }
+    LeaveCriticalSection(&criticalSection);
     GlobalFree(ptr2);
 #else
     GlobalFree(ptr);
@@ -133,14 +140,20 @@ void json_free(void* ptr)
 int memleaks()
 {
 #ifdef ENABLE_MEM_TRACE
+    EnterCriticalSection(&criticalSection);
+    auto leaked = false;
     for(auto & i : alloctracemap)
     {
         if(i.second != 0)
         {
             String str = StringUtils::sprintf("memory leak at %p : count %d", i.first, i.second);
-            MessageBoxA(0, str.c_str(), "memory leaks", MB_OK);
+            MessageBoxA(0, str.c_str(), "memory leak", MB_OK);
+            leaked = true;
         }
     }
+    if(leaked)
+        __debugbreak();
+    LeaveCriticalSection(&criticalSection);
 #endif
     return emalloc_count;
 }
@@ -152,6 +165,7 @@ int memleaks()
 */
 void setalloctrace(const char* file)
 {
+    InitializeCriticalSection(&criticalSection);
     strcpy_s(alloctrace, file);
 }
 #endif //ENABLE_MEM_TRACE
@@ -164,6 +178,8 @@ void setalloctrace(const char* file)
 */
 bool scmp(const char* a, const char* b)
 {
+    if(!a || !b)
+        return false;
     return !_stricmp(a, b);
 }
 
@@ -227,6 +243,8 @@ bool DirExists(const char* dir)
 */
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 {
+    if(!hFile)
+        return false;
     wchar_t wszFileName[MAX_PATH] = L"";
     if(!PathFromFileHandleW(hFile, wszFileName, _countof(wszFileName)))
         return false;
@@ -237,14 +255,39 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName)
 {
     wchar_t wszDosFileName[MAX_PATH] = L"";
-    if(!GetProcessImageFileNameW(hProcess, wszDosFileName, _countof(wszDosFileName)))
-        return false;
-
     wchar_t wszFileName[MAX_PATH] = L"";
-    if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
-        return false;
-    strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
-    return true;
+    auto result = false;
+    if(GetProcessImageFileNameW(hProcess, wszDosFileName, _countof(wszDosFileName)))
+    {
+        if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
+            result = !!GetModuleFileNameExW(hProcess, 0, wszFileName, _countof(wszFileName));
+        else
+            result = true;
+    }
+    else
+        result = !!GetModuleFileNameExW(hProcess, 0, wszFileName, _countof(wszFileName));
+    if(result)
+        strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+    return result;
+}
+
+bool GetFileNameFromModuleHandle(HANDLE hProcess, HMODULE hModule, char* szFileName)
+{
+    wchar_t wszDosFileName[MAX_PATH] = L"";
+    wchar_t wszFileName[MAX_PATH] = L"";
+    auto result = false;
+    if(GetMappedFileNameW(hProcess, hModule, wszDosFileName, _countof(wszDosFileName)))
+    {
+        if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
+            result = !!GetModuleFileNameExW(hProcess, hModule, wszFileName, _countof(wszFileName));
+        else
+            result = true;
+    }
+    else
+        result = !!GetModuleFileNameExW(hProcess, hModule, wszFileName, _countof(wszFileName));
+    if(result)
+        strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+    return result;
 }
 
 /**
@@ -289,7 +332,7 @@ arch GetFileArchitecture(const char* szFileName)
                 IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)(data + pdh->e_lfanew);
                 if(pnth->Signature == IMAGE_NT_SIGNATURE)
                 {
-                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0)
+                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0 && (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0)
                         retval = dotnet;
                     else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386) //x32
                         retval = x32;
@@ -368,8 +411,15 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
     return SUCCEEDED(hres);
 }
 
-void WaitForThreadTermination(HANDLE hThread)
+void WaitForThreadTermination(HANDLE hThread, DWORD timeout)
 {
-    WaitForSingleObject(hThread, INFINITE);
+    WaitForSingleObject(hThread, timeout);
     CloseHandle(hThread);
+}
+
+void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout)
+{
+    WaitForMultipleObjects(count, hThread, TRUE, timeout);
+    for(int i = 0; i < count; i++)
+        CloseHandle(hThread[i]);
 }

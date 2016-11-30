@@ -31,6 +31,9 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     mWatch->setWindowTitle(nativeTitle);
     mWatch->loadColumnFromConfig("Watch1");
 
+    mStructWidget = new StructWidget(this);
+    this->addTabEx(mStructWidget, mStructWidget->windowIcon(), mStructWidget->windowTitle(), "Struct");
+
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(updateCurrentTabSlot(int)));
     connect(tabBar(), SIGNAL(OnDoubleClickTabIndex(int)), this, SLOT(openChangeTabTitleDialogSlot(int)));
 
@@ -151,7 +154,6 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
         SwitchToDumpWindow();
         mCurrentCPUDump->printDumpAt(parVa);
         mCurrentCPUDump->addVaToHistory(parVa);
-        mCurrentCPUDump->setFocus();
     }
 }
 

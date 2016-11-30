@@ -31,6 +31,7 @@ public:
     QString getNativeName(int index);
     void showPreviousTab();
     void showNextTab();
+    void deleteCurrentTab();
 signals:
     void tabMovedTabWidget(int from, int to);
 

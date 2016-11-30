@@ -23,7 +23,7 @@
      <x>0</x>
      <y>0</y>
      <width>868</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -71,12 +71,14 @@
     <addaction name="actionLabels"/>
     <addaction name="actionBookmarks"/>
     <addaction name="actionFunctions"/>
+    <addaction name="actionVariables"/>
     <addaction name="actionSnowman"/>
     <addaction name="actionHandles"/>
     <addaction name="actionGraph"/>
     <addaction name="separator"/>
     <addaction name="actionPreviousTab"/>
     <addaction name="actionNextTab"/>
+    <addaction name="actionHideTab"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -120,16 +122,16 @@
     <addaction name="actioneStepOver"/>
     <addaction name="actionseStepOver"/>
     <addaction name="actionStepOverSource"/>
-    <addaction name="actionRtu"/>
     <addaction name="actionTocnd"/>
     <addaction name="actionAnimateOver"/>
     <addaction name="separator"/>
     <addaction name="actionRtr"/>
     <addaction name="actioneRtr"/>
     <addaction name="actionSkipNextInstruction"/>
+    <addaction name="actionInstrUndo"/>
+    <addaction name="actionRtu"/>
     <addaction name="actionAnimateCommand"/>
     <addaction name="menuTrace_record"/>
-    <addaction name="actionInstrUndo"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
     <addaction name="separator"/>
@@ -827,7 +829,10 @@
      <normaloff>:/icons/images/traceover.png</normaloff>:/icons/images/traceover.png</iconset>
    </property>
    <property name="text">
-    <string>Trace over until condition</string>
+    <string>Trace over...</string>
+   </property>
+   <property name="toolTip">
+    <string>Trace over...</string>
    </property>
   </action>
   <action name="actionTicnd">
@@ -836,7 +841,10 @@
      <normaloff>:/icons/images/traceinto.png</normaloff>:/icons/images/traceinto.png</iconset>
    </property>
    <property name="text">
-    <string>Trace into until condition</string>
+    <string>Trace into...</string>
+   </property>
+   <property name="toolTip">
+    <string>Trace into...</string>
    </property>
   </action>
   <action name="actionTRBit">
@@ -1020,26 +1028,46 @@
    </property>
   </action>
   <action name="actionAnimateInto">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/animateinto.png</normaloff>:/icons/images/animateinto.png</iconset>
+   </property>
    <property name="text">
     <string>Animate into</string>
    </property>
   </action>
   <action name="actionAnimateOver">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/animateover.png</normaloff>:/icons/images/animateover.png</iconset>
+   </property>
    <property name="text">
     <string>Animate over</string>
    </property>
   </action>
   <action name="actionAnimateCommand">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/animatecommand.png</normaloff>:/icons/images/animatecommand.png</iconset>
+   </property>
    <property name="text">
     <string>Animate command...</string>
    </property>
   </action>
   <action name="actionSetInitializationScript">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/initscript.png</normaloff>:/icons/images/initscript.png</iconset>
+   </property>
    <property name="text">
     <string>Set Initialization Script</string>
    </property>
   </action>
   <action name="actionImportSettings">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/importsettings.png</normaloff>:/icons/images/importsettings.png</iconset>
+   </property>
    <property name="text">
     <string>Import settings...</string>
    </property>
@@ -1087,6 +1115,16 @@
    </property>
    <property name="text">
     <string>Next Tab</string>
+   </property>
+  </action>
+  <action name="actionHideTab">
+   <property name="text">
+    <string>Hide Tab</string>
+   </property>
+  </action>
+  <action name="actionVariables">
+   <property name="text">
+    <string>&amp;Variables</string>
    </property>
   </action>
  </widget>

@@ -37,6 +37,8 @@
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
+    <ClCompile Include="btparser\btparser\lexer.cpp" />
+    <ClCompile Include="btparser\btparser\parser.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="commandline.cpp" />
     <ClCompile Include="commandparser.cpp" />
@@ -101,6 +103,7 @@
     <ClCompile Include="threading.cpp" />
     <ClCompile Include="TraceRecord.cpp" />
     <ClCompile Include="types.cpp" />
+    <ClCompile Include="typesparser.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="watch.cpp" />
@@ -147,6 +150,11 @@
     <ClInclude Include="assemble.h" />
     <ClInclude Include="bookmark.h" />
     <ClInclude Include="breakpoint.h" />
+    <ClInclude Include="btparser\btparser\ast.h" />
+    <ClInclude Include="btparser\btparser\keywords.h" />
+    <ClInclude Include="btparser\btparser\lexer.h" />
+    <ClInclude Include="btparser\btparser\operators.h" />
+    <ClInclude Include="btparser\btparser\parser.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="commandline.h" />
     <ClInclude Include="commandparser.h" />

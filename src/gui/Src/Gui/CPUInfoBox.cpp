@@ -13,13 +13,13 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     setCellContent(1, 0, "");
     setCellContent(2, 0, "");
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
 
     int height = getHeight();
-    setMaximumHeight(height);
     setMinimumHeight(height);
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
+    connect(Bridge::getBridge(), SIGNAL(addInfoLine(QString)), this, SLOT(addInfoLine(QString)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     curAddr = 0;
@@ -39,7 +39,7 @@ void CPUInfoBox::setupContextMenu()
 
 int CPUInfoBox::getHeight()
 {
-    return ((getRowHeight() + 1) * 3) + 10;
+    return ((getRowHeight() + 1) * 3);
 }
 
 void CPUInfoBox::setInfoLine(int line, QString text)
@@ -59,9 +59,18 @@ QString CPUInfoBox::getInfoLine(int line)
     return getCellContent(line, 0);
 }
 
+void CPUInfoBox::addInfoLine(const QString & infoLine)
+{
+    auto rowCount = getRowCount();
+    setRowCount(rowCount + 1);
+    setCellContent(rowCount, 0, infoLine);
+    reloadData();
+}
+
 void CPUInfoBox::clear()
 {
     // Set all 3 lines to empty strings
+    setRowCount(3);
     setInfoLine(0, "");
     setInfoLine(1, "");
     setInfoLine(2, "");
@@ -137,6 +146,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         return;
 
     // Rather than using clear() or setInfoLine(), only reset the first two cells to reduce flicker
+    setRowCount(3);
     setCellContent(0, 0, "");
     setCellContent(1, 0, "");
 
@@ -232,7 +242,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 
     // Set last line
     //
-    // Format: SECTION:VA MODULE:$RVA :#FILE_OFFSET FUNCTION
+    // Format: SECTION:VA MODULE:$RVA :#FILE_OFFSET FUNCTION, Accessed %u times
     QString info;
 
     // Section
@@ -241,7 +251,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         info += QString(section) + ":";
 
     // VA
-    info += ToPtrString(parVA) + " ";
+    info += ToPtrString(parVA);
 
     // Module name, RVA, and file offset
     char mod[MAX_MODULE_SIZE];
@@ -250,30 +260,38 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         dsint modbase = DbgFunctions()->ModBaseFromAddr(parVA);
 
         // Append modname
-        info += mod;
+        info += " " + QString(mod);
 
         // Module RVA
         curRva = parVA - modbase;
         if(modbase)
-            info += QString(":$%1 ").arg(ToHexString(curRva));
+            info += QString(":$%1").arg(ToHexString(curRva));
 
         // File offset
         curOffset = DbgFunctions()->VaToFileOffset(parVA);
-        info += QString("#%1 ").arg(ToHexString(curOffset));
+        info += QString(" #%1").arg(ToHexString(curOffset));
     }
 
     // Function/label name
     char label[MAX_LABEL_SIZE];
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
-        info += QString("<%1>").arg(label);
+        info += QString(" <%1>").arg(label);
     else
     {
         duint start;
         if(DbgFunctionGet(parVA, &start, nullptr) && DbgGetLabelAt(start, SEG_DEFAULT, label) && start != parVA)
-            info += QString("<%1+%2>").arg(label).arg(ToHexString(parVA - start));
+            info += QString(" <%1+%2>").arg(label).arg(ToHexString(parVA - start));
+    }
+
+    auto tracedCount = DbgFunctions()->GetTraceRecordHitCount(parVA);
+    if(tracedCount != 0)
+    {
+        info += ", " + tr("Accessed %n time(s)", nullptr, tracedCount);
     }
 
     setInfoLine(2, info);
+
+    DbgSelChanged(GUI_DISASSEMBLY, parVA);
 }
 
 void CPUInfoBox::dbgStateChanged(DBGSTATE state)

@@ -32,9 +32,9 @@
 #include "argument.h"
 #include "watch.h"
 #include "animate.h"
+#include "TraceRecord.h"
 
 static bool bOnlyCipAutoComments = false;
-static duint cacheCflags = 0;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -91,16 +91,27 @@ extern "C" DLL_EXPORT bool _dbg_isdebugging()
 
 extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 {
-    static duint cacheFlags;
-    static duint cacheAddr;
-    static bool cacheResult;
-    if(cacheAddr != addr || cacheFlags != cacheCflags)
+    unsigned char data[16];
+    if(MemRead(addr, data, sizeof(data), nullptr, true))
     {
-        cacheFlags = cacheCflags;
-        cacheAddr = addr;
-        cacheResult = IsJumpGoingToExecuteEx(fdProcessInfo->hProcess, fdProcessInfo->hThread, (ULONG_PTR)cacheAddr, cacheFlags);
+        Capstone cp;
+        if(cp.Disassemble(addr, data))
+        {
+            CONTEXT ctx;
+            memset(&ctx, 0, sizeof(ctx));
+            ctx.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+            GetThreadContext(hActiveThread, &ctx);
+#ifdef _WIN64
+            auto cflags = ctx.EFlags;
+            auto ccx = ctx.Rcx;
+#else
+            auto cflags = ctx.EFlags;
+            auto ccx = ctx.Ecx;
+#endif //_WIN64
+            return cp.IsBranchGoingToExecute(cflags, ccx);
+        }
     }
-    return cacheResult;
+    return false;
 }
 
 static bool shouldFilterSymbol(const char* name)
@@ -117,11 +128,12 @@ static bool shouldFilterSymbol(const char* name)
     return filterInfo.retval;
 }
 
-static bool getLabel(duint addr, char* label)
+static bool getLabel(duint addr, char* label, bool noFuncOffset)
 {
     bool retval = false;
+    label[0] = 0;
     if(LabelGet(addr, label))
-        retval = true;
+        return true;
     else //no user labels
     {
         DWORD64 displacement = 0;
@@ -157,24 +169,35 @@ static bool getLabel(duint addr, char* label)
         }
         if(!retval)  //search for module entry
         {
-            duint entry = ModEntryFromAddr(addr);
-            if(entry && entry == addr)
+            if(addr != 0 && ModEntryFromAddr(addr) == addr)
             {
                 strcpy_s(label, MAX_LABEL_SIZE, "EntryPoint");
-                retval = true;
+                return true;
             }
-        }
-        if(!retval)  //search for function+offset
-        {
             duint start;
-            if(FunctionGet(addr, &start, nullptr) && addr == start)
+            if(FunctionGet(addr, &start, nullptr))
             {
+                duint rva = addr - start;
+                if(rva == 0)
+                {
 #ifdef _WIN64
-                sprintf_s(label, MAX_LABEL_SIZE, "sub_%llX", start);
+                    sprintf_s(label, MAX_LABEL_SIZE, "sub_%llX", start);
 #else //x86
-                sprintf_s(label, MAX_LABEL_SIZE, "sub_%X", start);
+                    sprintf_s(label, MAX_LABEL_SIZE, "sub_%X", start);
 #endif //_WIN64
-                retval = true;
+                    return true;
+                }
+                if(noFuncOffset)
+                    return false;
+                getLabel(start, label, false);
+                char temp[32];
+#ifdef _WIN64
+                sprintf_s(temp, "+%llX", rva);
+#else //x86
+                sprintf_s(temp, "+%X", rva);
+#endif //_WIN64
+                strcat_s(label, MAX_LABEL_SIZE, temp);
+                return true;
             }
         }
     }
@@ -193,7 +216,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flaglabel)
     {
-        retval = getLabel(addr, addrinfo->label);
+        retval = getLabel(addr, addrinfo->label, (addrinfo->flags & flagNoFuncOffset) != 0);
     }
     if(addrinfo->flags & flagbookmark)
     {
@@ -207,7 +230,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flagloop)
     {
-        if(LoopGet(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
+        if(LoopGet(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end, &addrinfo->loop.instrcount))
             retval = true;
     }
     if(addrinfo->flags & flagargs)
@@ -224,6 +247,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         }
         else
         {
+            String comment;
             DWORD dwDisplacement;
             IMAGEHLP_LINEW64 line;
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
@@ -236,19 +260,18 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     len--;
                 if(len)
                     len++;
-                sprintf_s(addrinfo->comment, "\1%s:%u", StringUtils::Utf16ToUtf8(filename + len).c_str(), line.LineNumber);
+                comment = StringUtils::sprintf("%s:%u", StringUtils::Utf16ToUtf8(filename + len).c_str(), line.LineNumber);
                 retval = true;
             }
-            else if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
+            if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
             {
                 DISASM_INSTR instr;
                 String temp_string;
-                String comment;
                 ADDRINFO newinfo;
                 char string_text[MAX_STRING_SIZE] = "";
 
-                memset(&instr, 0, sizeof(DISASM_INSTR));
-                disasmget(addr, &instr);
+                Capstone cp;
+                disasmget(cp, addr, &instr);
                 for(int i = 0; i < instr.argcount; i++)
                 {
                     memset(&newinfo, 0, sizeof(ADDRINFO));
@@ -258,10 +281,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
                     if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
-                        if(instr.type == instr_branch)
-                            continue;
                         auto constant = instr.arg[i].constant;
-                        if(instr.arg[i].type == arg_normal && constant < 256 && (isprint(int(constant)) || isspace(int(constant))) && (strstr(instr.instruction, "cmp") || strstr(instr.instruction, "mov")))
+                        if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_CALL))
+                            temp_string.assign("call $0");
+                        else if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_JUMP))
+                            temp_string.assign("jmp $0");
+                        else if(instr.type == instr_branch)
+                            continue;
+                        else if(instr.arg[i].type == arg_normal && constant < 256 && (isprint(int(constant)) || isspace(int(constant))) && (strstr(instr.instruction, "cmp") || strstr(instr.instruction, "mov")))
                         {
                             temp_string.assign(instr.arg[i].mnemonic);
                             temp_string.push_back(':');
@@ -269,7 +296,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                             temp_string.append(StringUtils::Escape((unsigned char)constant));
                             temp_string.push_back('\'');
                         }
-                        if(DbgGetStringAt(instr.arg[i].constant, string_text))
+                        else if(DbgGetStringAt(instr.arg[i].constant, string_text))
                         {
                             temp_string.assign(instr.arg[i].mnemonic);
                             temp_string.push_back(':');
@@ -327,16 +354,20 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         retval = true;
                     }
                 }
-
-                StringUtils::ReplaceAll(comment, "{", "{{");
-                StringUtils::ReplaceAll(comment, "}", "}}");
-
-                strcpy_s(addrinfo->comment, "\1");
-                strncat_s(addrinfo->comment, comment.c_str(), _TRUNCATE);
             }
+
+            StringUtils::ReplaceAll(comment, "{", "{{");
+            StringUtils::ReplaceAll(comment, "}", "}}");
+            strcpy_s(addrinfo->comment, "\1");
+            strncat_s(addrinfo->comment, comment.c_str(), _TRUNCATE);
         }
     }
-    return retval;
+    PLUG_CB_ADDRINFO info;
+    info.addr = addr;
+    info.addrinfo = addrinfo;
+    info.retval = retval;
+    plugincbcall(CB_ADDRINFO, &info);
+    return info.retval;
 }
 
 extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
@@ -530,16 +561,16 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return false;
     TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
 
-    duint cflags = cacheCflags = regdump->regcontext.eflags;
-    regdump->flags.c = valflagfromstring(cflags, "cf");
-    regdump->flags.p = valflagfromstring(cflags, "pf");
-    regdump->flags.a = valflagfromstring(cflags, "af");
-    regdump->flags.z = valflagfromstring(cflags, "zf");
-    regdump->flags.s = valflagfromstring(cflags, "sf");
-    regdump->flags.t = valflagfromstring(cflags, "tf");
-    regdump->flags.i = valflagfromstring(cflags, "if");
-    regdump->flags.d = valflagfromstring(cflags, "df");
-    regdump->flags.o = valflagfromstring(cflags, "of");
+    duint cflags = regdump->regcontext.eflags;
+    regdump->flags.c = (cflags & (1 << 0)) != 0;
+    regdump->flags.p = (cflags & (1 << 2)) != 0;
+    regdump->flags.a = (cflags & (1 << 4)) != 0;
+    regdump->flags.z = (cflags & (1 << 6)) != 0;
+    regdump->flags.s = (cflags & (1 << 7)) != 0;
+    regdump->flags.t = (cflags & (1 << 8)) != 0;
+    regdump->flags.i = (cflags & (1 << 9)) != 0;
+    regdump->flags.d = (cflags & (1 << 10)) != 0;
+    regdump->flags.o = (cflags & (1 << 11)) != 0;
 
     x87FPURegister_t x87FPURegisters[8];
     Getx87FPURegisters(x87FPURegisters,  &titcontext);
@@ -868,6 +899,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         bSkipInt3Stepping = settingboolget("Engine", "SkipInt3Stepping");
         bIgnoreInconsistentBreakpoints = settingboolget("Engine", "IgnoreInconsistentBreakpoints");
         bNoForegroundWindow = settingboolget("Gui", "NoForegroundWindow");
+        stackupdatesettings();
 
         duint setting;
         if(BridgeSettingGetUint("Engine", "BreakpointType", &setting))
@@ -890,11 +922,11 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         else
             assemblerEngine = AssemblerEngine::XEDParse;
 
-        Memory<char*> settingText(MAX_SETTING_SIZE + 1);
+        std::vector<char> settingText(MAX_SETTING_SIZE + 1, '\0');
         dbgclearignoredexceptions();
-        if(BridgeSettingGet("Exceptions", "IgnoreRange", settingText()))
+        if(BridgeSettingGet("Exceptions", "IgnoreRange", settingText.data()))
         {
-            auto entry = strtok(settingText(), ",");
+            auto entry = strtok(settingText.data(), ",");
             while(entry)
             {
                 unsigned long start;
@@ -910,10 +942,10 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
             }
         }
 
-        if(BridgeSettingGet("Symbols", "CachePath", settingText()))
+        if(BridgeSettingGet("Symbols", "CachePath", settingText.data()))
         {
             // Trim the buffer to fit inside MAX_PATH
-            strncpy_s(szSymbolCachePath, settingText(), _TRUNCATE);
+            strncpy_s(szSymbolCachePath, settingText.data(), _TRUNCATE);
         }
 
         duint animateInterval;
@@ -1257,6 +1289,39 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_GET_WATCH_LIST:
     {
         BridgeList<WATCHINFO>::CopyData((ListInfo*)param1, WatchGetList());
+    }
+    break;
+
+    case DBG_SELCHANGED:
+    {
+        PLUG_CB_SELCHANGED plugSelChanged;
+        plugSelChanged.hWindow = (int)param1;
+        plugSelChanged.VA = (duint)param2;
+        plugincbcall(CB_SELCHANGED, &plugSelChanged);
+    }
+    break;
+
+    case DBG_GET_PROCESS_HANDLE:
+    {
+        return duint(fdProcessInfo->hProcess);
+    }
+    break;
+
+    case DBG_GET_THREAD_HANDLE:
+    {
+        return duint(hActiveThread);
+    }
+    break;
+
+    case DBG_GET_PROCESS_ID:
+    {
+        return duint(fdProcessInfo->dwProcessId);
+    }
+    break;
+
+    case DBG_GET_THREAD_ID:
+    {
+        return duint(ThreadGetId(hActiveThread));
     }
     break;
 

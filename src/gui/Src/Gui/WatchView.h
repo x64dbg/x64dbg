@@ -20,6 +20,7 @@ public slots:
     void delWatchSlot();
     void renameWatchSlot();
     void editWatchSlot();
+    void modifyWatchSlot();
     void watchdogDisableSlot();
     void watchdogChangedSlot();
     void watchdogUnchangedSlot();

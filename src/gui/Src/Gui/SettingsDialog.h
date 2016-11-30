@@ -53,6 +53,8 @@ private slots:
     void on_chkSkipInt3Stepping_toggled(bool checked);
     void on_chkNoScriptTimeout_stateChanged(int arg1);
     void on_chkIgnoreInconsistentBreakpoints_toggled(bool checked);
+    void on_chkHardcoreThreadSwitchWarning_toggled(bool checked);
+    void on_spinMaxTraceCount_valueChanged(int arg1);
     //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
@@ -63,6 +65,7 @@ private slots:
     void on_chkUppercase_stateChanged(int arg1);
     void on_chkOnlyCipAutoComments_stateChanged(int arg1);
     void on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1);
+    void on_chkNoHighlightOperands_toggled(bool checked);
     //Gui Tab
     void on_chkFpuRegistersLittleEndian_stateChanged(int arg1);
     void on_chkSaveColumnOrder_stateChanged(int arg1);
@@ -76,6 +79,7 @@ private slots:
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
+    void on_chkUtf16LogRedirect_toggled(bool checked);
 
 private:
     //enums
@@ -133,6 +137,8 @@ private:
         bool engineSkipInt3Stepping;
         bool engineNoScriptTimeout;
         bool engineIgnoreInconsistentBreakpoints;
+        bool engineHardcoreThreadSwitchWarning;
+        int engineMaxTraceCount;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
         //Disasm Tab
@@ -141,6 +147,7 @@ private:
         bool disasmUppercase;
         bool disasmOnlyCipAutoComments;
         bool disasmTabBetweenMnemonicAndArguments;
+        bool disasmNoHighlightOperands;
         //Gui Tab
         bool guiFpuRegistersLittleEndian;
         bool guiSaveColumnOrder;
@@ -148,12 +155,13 @@ private:
         bool guiPidInHex;
         bool guiSidebarWatchLabels;
         bool guiNoForegroundWindow;
+        bool guiLoadSaveTabOrder;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;
         bool miscSymbolStore;
         bool miscSymbolCache;
-        bool miscLoadSaveTabOrder;
+        bool miscUtf16LogRedirect;
     };
 
     //variables

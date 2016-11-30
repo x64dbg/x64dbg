@@ -35,7 +35,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     mCodeFoldingManager = nullptr;
     duint setting;
-    if(BridgeSettingGetUint("GUI", "DisableBranchDestinationPreview", &setting))
+    if(BridgeSettingGetUint("Gui", "DisableBranchDestinationPreview", &setting))
         mPopupEnabled = !setting;
     else
         mPopupEnabled = true;
@@ -61,7 +61,6 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     // Slots
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
-    connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(this, SIGNAL(selectionChanged(dsint)), this, SLOT(selectionChangedSlot(dsint)));
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
@@ -471,6 +470,9 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             Function_t funcType;
             switch(loopType)
             {
+            case LOOP_SINGLE:
+                funcType = Function_single;
+                break;
             case LOOP_BEGIN:
                 funcType = Function_start;
                 break;
@@ -486,7 +488,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             default:
                 break;
             }
-            loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, true);
+            loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, loopType != LOOP_SINGLE);
             depth++;
         }
 
@@ -1375,6 +1377,9 @@ dsint Disassembly::getInstructionRVA(dsint index, dsint count)
  */
 Instruction_t Disassembly::DisassembleAt(dsint rva)
 {
+    if(mMemPage->getSize() < (duint)rva)
+        return Instruction_t();
+
     QByteArray wBuffer;
     duint base = mMemPage->getBase();
     duint wMaxByteCountToRead = 16 * 2;
@@ -1388,9 +1393,13 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
         wMaxByteCountToRead += mCodeFoldingManager->getFoldedSize(rvaToVa(rva), rvaToVa(rva + wMaxByteCountToRead));
 
     wMaxByteCountToRead = wMaxByteCountToRead > (size - rva) ? (size - rva) : wMaxByteCountToRead;
+    if(!wMaxByteCountToRead)
+        return Instruction_t();
+
     wBuffer.resize(wMaxByteCountToRead);
 
-    mMemPage->read(wBuffer.data(), rva, wBuffer.size());
+    if(!mMemPage->read(wBuffer.data(), rva, wBuffer.size()))
+        return Instruction_t();
 
     return mDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva);
 }
@@ -1577,53 +1586,49 @@ void Disassembly::prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction
     }
 }
 
-void Disassembly::prepareDataRange(dsint startRva, dsint endRva, QList<Instruction_t>* instBuffer)
+void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::function<void(int, const Instruction_t &)> & disassembled)
 {
-    QList<dsint> wRVAs;
-    if(startRva == endRva)
+    dsint wAddrPrev = startRva;
+    dsint wAddr = wAddrPrev;
+
+    int i = 0;
+    while(true)
     {
-        wRVAs.append(startRva);
-        prepareDataCount(wRVAs, instBuffer);
-    }
-    else
-    {
-        int wCount = 0;
-        dsint addr = startRva;
-        while(addr <= endRva)
-        {
-            wRVAs.append(addr);
-            addr = getNextInstructionRVA(addr, 1);
-            wCount++;
-        }
-        prepareDataCount(wRVAs, instBuffer);
+        if(wAddr > endRva)
+            break;
+        wAddrPrev = wAddr;
+        auto wInst = DisassembleAt(wAddr);
+        wAddr = getNextInstructionRVA(wAddr, 1);
+        if(wAddr == wAddrPrev)
+            break;
+        disassembled(i++, wInst);
     }
 }
 
 void Disassembly::prepareData()
 {
     dsint wViewableRowsCount = getViewableRowsCount();
-    QList<dsint> wRVAs;
+    mInstBuffer.clear();
+    mInstBuffer.reserve(wViewableRowsCount);
 
     dsint wAddrPrev = getTableOffset();
     dsint wAddr = wAddrPrev;
+    Instruction_t wInst;
 
     int wCount = 0;
 
     for(int wI = 0; wI < wViewableRowsCount && getRowCount() > 0; wI++)
     {
-        wRVAs.append(wAddr);
         wAddrPrev = wAddr;
+        wInst = DisassembleAt(wAddr);
         wAddr = getNextInstructionRVA(wAddr, 1);
-
         if(wAddr == wAddrPrev)
             break;
-
+        mInstBuffer.append(wInst);
         wCount++;
     }
 
     setNbrOfLineToPrint(wCount);
-
-    prepareDataCount(wRVAs, &mInstBuffer);
 }
 
 void Disassembly::reloadData()
@@ -1765,7 +1770,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     }
     */
     emit disassembledAt(parVA,  parCIP,  history,  newTableOffset);
-    reloadData();
 }
 
 QList<Instruction_t>* Disassembly::instructionsBuffer()
@@ -1780,7 +1784,6 @@ const dsint Disassembly::currentEIP() const
 
 void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
 {
-    setFocus();
     if(mCodeFoldingManager)
     {
         mCodeFoldingManager->expandFoldSegment(parVA);
@@ -1797,6 +1800,7 @@ void Disassembly::disassembleClear()
     mMemPage->setAttributes(0, 0);
     mDisasm->getEncodeMap()->setMemoryRegion(0);
     setRowCount(0);
+    setTableOffset(0);
     reloadData();
 }
 
@@ -1831,7 +1835,6 @@ duint Disassembly::getSize()
 duint Disassembly::getTableOffsetRva()
 {
     return mInstBuffer.size() ? mInstBuffer.at(0).rva : 0;
-
 }
 
 void Disassembly::historyClear()
@@ -1852,6 +1855,7 @@ void Disassembly::historyPrevious()
 
     // Update window title
     emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
+    GuiUpdateAllViews();
 }
 
 void Disassembly::historyNext()
@@ -1866,6 +1870,7 @@ void Disassembly::historyNext()
 
     // Update window title
     emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
+    GuiUpdateAllViews();
 }
 
 bool Disassembly::historyHasPrevious()
@@ -1883,7 +1888,7 @@ bool Disassembly::historyHasNext()
     return true;
 }
 
-QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE])
+QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel)
 {
     QString addrText = "";
     if(mRvaDisplayEnabled) //RVA display
@@ -1916,7 +1921,7 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE])
     }
     addrText += ToPtrString(cur_addr);
     char label_[MAX_LABEL_SIZE] = "";
-    if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
+    if(getLabel && DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
     {
         char module[MAX_MODULE_SIZE] = "";
         if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&"))

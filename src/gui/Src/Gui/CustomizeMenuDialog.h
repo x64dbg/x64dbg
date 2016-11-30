@@ -18,6 +18,7 @@ public:
 
 public slots:
     void onOk();
+    void onDisselectAll();
 
 private:
     Ui::CustomizeMenuDialog* ui;

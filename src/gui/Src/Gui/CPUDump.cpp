@@ -22,13 +22,15 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
     mDisas = disas;
     mMultiDump = multiDump;
 
+    duint setting;
+    if(BridgeSettingGetUint("Gui", "AsciiSeparator", &setting))
+        mAsciiSeparator = setting & 0xF;
+
     setView((ViewEnum_t)ConfigUint("HexDump", "DefaultView"));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     setupContextMenu();
-
-    mGoto = 0;
 }
 
 void CPUDump::setupContextMenu()
@@ -169,7 +171,7 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
     mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), ArchValue(tr("Watch DWORD"), tr("Watch QWORD")), SLOT(watchSlot())));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("entropy.png"), tr("Entrop&y..."), SLOT(entropySlot()), "ActionEntropy"));
-    mMenuBuilder->addAction(makeAction(tr("Allocate Memory"), SLOT(allocMemorySlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("memmap_alloc_memory.png"), tr("Allocate Memory"), SLOT(allocMemorySlot())));
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
     wGotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("&Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
@@ -425,13 +427,27 @@ void CPUDump::setLabelSlot()
     duint wVA = rvaToVa(getSelectionStart());
     LineEditDialog mLineEdit(this);
     QString addr_text = ToPtrString(wVA);
-    char label_text[MAX_COMMENT_SIZE] = "";
+    char label_text[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
+restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    QByteArray utf8data = mLineEdit.editText.toUtf8();
+    if(!utf8data.isEmpty() && DbgIsValidExpression(utf8data.constData()) && DbgValFromString(utf8data.constData()) != wVA)
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("The label may be in use"),
+                        tr("The label \"%1\" may be an existing label or a valid expression. Using such label might have undesired effects. Do you still want to continue?").arg(mLineEdit.editText),
+                        QMessageBox::Yes | QMessageBox::No, this);
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            goto restart;
+    }
+    if(!DbgSetLabelAt(wVA, utf8data.constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
     GuiUpdateAllViews();
 }
@@ -475,13 +491,14 @@ void CPUDump::gotoFileOffsetSlot()
         SimpleErrorBox(this, tr("Error!"), tr("Not inside a module..."));
         return;
     }
-    GotoDialog mGotoDialog(this);
-    mGotoDialog.fileOffset = true;
-    mGotoDialog.modName = QString(modname);
-    mGotoDialog.setWindowTitle(tr("Goto File Offset in %1").arg(QString(modname)));
-    if(mGotoDialog.exec() != QDialog::Accepted)
+    if(!mGotoOffset)
+        mGotoOffset = new GotoDialog(this);
+    mGotoOffset->fileOffset = true;
+    mGotoOffset->modName = QString(modname);
+    mGotoOffset->setWindowTitle(tr("Goto File Offset in %1").arg(QString(modname)));
+    if(mGotoOffset->exec() != QDialog::Accepted)
         return;
-    duint value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
+    duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
     DbgCmdExec(QString().sprintf("dump \"%p\"", value).toUtf8().constData());
 }
@@ -507,7 +524,7 @@ void CPUDump::hexAsciiSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -541,7 +558,7 @@ void CPUDump::hexUnicodeSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -579,7 +596,7 @@ void CPUDump::hexCodepageSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -609,7 +626,7 @@ void CPUDump::hexLastCodepageSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
