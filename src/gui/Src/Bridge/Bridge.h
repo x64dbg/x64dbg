@@ -148,7 +148,7 @@ signals:
 private:
     QMutex* mBridgeMutex;
     dsint bridgeResult;
-    volatile bool hasBridgeResult;
+    HANDLE hResultEvent;
     volatile bool dbgStopped;
 };
 
