@@ -166,7 +166,7 @@ void MemoryMapView::setupContextMenu()
     connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemory()));
 
     //Add virtual module
-    mAddVirtualMod = new QAction(tr("Add virtual module"), this);
+    mAddVirtualMod = new QAction(DIcon("virtual.png"), tr("Add virtual module"), this);
     connect(mAddVirtualMod, SIGNAL(triggered()), this, SLOT(addVirtualModSlot()));
 
     //Comment
