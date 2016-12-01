@@ -25,6 +25,7 @@ Bridge::Bridge(QObject* parent) : QObject(parent)
 
 Bridge::~Bridge()
 {
+    CloseHandle(hResultEvent);
     delete mBridgeMutex;
 }
 
