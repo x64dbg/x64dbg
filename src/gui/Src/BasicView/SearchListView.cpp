@@ -150,6 +150,20 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
 
 void SearchListView::searchTextChanged(const QString & arg1)
 {
+    QString lastFirstColValue = "";
+    if(mSearchList->isHidden())
+    {
+        auto selList = mList->getSelection();
+        if(!selList.empty())
+            lastFirstColValue = mList->getCellContent(selList[0], 0);
+    }
+    else
+    {
+        auto selList = mSearchList->getSelection();
+        if(!selList.empty())
+            lastFirstColValue = mSearchList->getCellContent(selList[0], 0);
+    }
+
     if(arg1.length())
     {
         mList->hide();
@@ -176,21 +190,25 @@ void SearchListView::searchTextChanged(const QString & arg1)
             j++;
         }
     }
-    rows = mSearchList->getRowCount();
-    mSearchList->setTableOffset(0);
-    for(int i = 0; i < rows; i++)
+
+    if(!lastFirstColValue.isEmpty())
     {
-        if(findTextInList(mSearchList, arg1, i, mSearchStartCol, true))
+        rows = mCurList->getRowCount();
+        mCurList->setTableOffset(0);
+        for(int i = 0; i < rows; i++)
         {
-            if(rows > mSearchList->getViewableRowsCount())
+            if(mCurList->getCellContent(i, 0) == lastFirstColValue)
             {
-                int cur = i - mSearchList->getViewableRowsCount() / 2;
-                if(!mSearchList->isValidIndex(cur, 0))
-                    cur = i;
-                mSearchList->setTableOffset(cur);
+                if(rows > mCurList->getViewableRowsCount())
+                {
+                    int cur = i - mCurList->getViewableRowsCount() / 2;
+                    if(!mCurList->isValidIndex(cur, 0))
+                        cur = i;
+                    mCurList->setTableOffset(cur);
+                }
+                mCurList->setSingleSelection(i);
+                break;
             }
-            mSearchList->setSingleSelection(i);
-            break;
         }
     }
 
