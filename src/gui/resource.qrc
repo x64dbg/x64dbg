@@ -274,5 +274,6 @@
         <file>images/removestruct.png</file>
         <file>images/visitstruct.png</file>
         <file>images/structaddr.png</file>
+        <file>images/virtual.png</file>
     </qresource>
 </RCC>

@@ -28,6 +28,7 @@ public slots:
     void typeAddNode(void* parent, const TYPEDESCRIPTOR* type);
     void typeClear();
     void typeUpdateWidget();
+    void dbgStateChangedSlot(DBGSTATE state);
 
 private:
     Ui::StructWidget* ui;

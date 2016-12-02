@@ -19,12 +19,13 @@ Bridge::Bridge(QObject* parent) : QObject(parent)
     scriptView = 0;
     referenceManager = 0;
     bridgeResult = 0;
-    hasBridgeResult = false;
+    hResultEvent = CreateEventW(nullptr, true, true, nullptr);
     dbgStopped = false;
 }
 
 Bridge::~Bridge()
 {
+    CloseHandle(hResultEvent);
     delete mBridgeMutex;
 }
 
@@ -37,7 +38,7 @@ void Bridge::CopyToClipboard(const QString & text)
 void Bridge::setResult(dsint result)
 {
     bridgeResult = result;
-    hasBridgeResult = true;
+    SetEvent(hResultEvent);
 }
 
 /************************************************************************************

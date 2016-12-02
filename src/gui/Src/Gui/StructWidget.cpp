@@ -22,6 +22,7 @@ StructWidget::StructWidget(QWidget* parent) :
     connect(Bridge::getBridge(), SIGNAL(typeAddNode(void*, const TYPEDESCRIPTOR*)), this, SLOT(typeAddNode(void*, const TYPEDESCRIPTOR*)));
     connect(Bridge::getBridge(), SIGNAL(typeClear()), this, SLOT(typeClear()));
     connect(Bridge::getBridge(), SIGNAL(typeUpdateWidget()), this, SLOT(typeUpdateWidget()));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(shortcutsUpdatedSlot()));
@@ -121,6 +122,12 @@ void StructWidget::typeUpdateWidget()
         }
         item->setText(3, valueStr);
     }
+}
+
+void StructWidget::dbgStateChangedSlot(DBGSTATE state)
+{
+    if(state == stopped)
+        typeClear();
 }
 
 void StructWidget::setupColumns()
