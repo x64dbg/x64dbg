@@ -226,6 +226,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     insertMenuBuilderBools(&guiBool, "SourceView", 10); //Source
     insertMenuBuilderBools(&guiBool, "DisassemblerGraphView", 50); //Graph
     insertMenuBuilderBools(&guiBool, "XrefBrowseDialog", 10); //XrefBrowseDialog
+    insertMenuBuilderBools(&guiBool, "StructWidget", 8); //StructWidget
     insertMenuBuilderBools(&guiBool, "File", 50); //Main Menu : File
     insertMenuBuilderBools(&guiBool, "Debug", 50); //Main Menu : Debug
     insertMenuBuilderBools(&guiBool, "Option", 50); //Main Menu : Option
@@ -396,6 +397,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionBinaryPasteIgnoreSize", Shortcut(tr("Actions -> Binary Paste (Ignore Size)"), "Ctrl+Shift+V"));
     defaultShortcuts.insert("ActionUndoSelection", Shortcut(tr("Actions -> Undo Selection"), "Ctrl+Backspace"));
     defaultShortcuts.insert("ActionSetLabel", Shortcut(tr("Actions -> Set Label"), ":"));
+    defaultShortcuts.insert("ActionSetLabelOperand", Shortcut(tr("Actions -> Set Label for the Operand"), "Alt+;"));
     defaultShortcuts.insert("ActionSetComment", Shortcut(tr("Actions -> Set Comment"), ";"));
     defaultShortcuts.insert("ActionToggleFunction", Shortcut(tr("Actions -> Toggle Function"), "Shift+F"));
     defaultShortcuts.insert("ActionToggleArgument", Shortcut(tr("Actions -> Toggle Argument"), "Shift+A"));

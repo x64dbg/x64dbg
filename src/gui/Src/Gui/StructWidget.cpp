@@ -162,6 +162,7 @@ void StructWidget::setupContextMenu()
     });
     mMenuBuilder->addAction(makeAction(DIcon("eraser.png"), tr("Clear"), SLOT(clearSlot())));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
+    mMenuBuilder->loadFromConfig();
 }
 
 void StructWidget::on_treeWidget_customContextMenuRequested(const QPoint & pos)
