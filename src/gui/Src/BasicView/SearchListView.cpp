@@ -154,13 +154,13 @@ void SearchListView::searchTextChanged(const QString & arg1)
     {
         auto selList = mList->getSelection();
         if(!selList.empty() && mList->isValidIndex(selList[0], 0))
-            lastFirstColValue = mList->getCellContent(selList[0], 0);
+            mLastFirstColValue = mList->getCellContent(selList[0], 0);
     }
     else
     {
-        auto selList = mSearchList->getSelection(); // bug?: still return QList<0> if empty
+        auto selList = mSearchList->getSelection();
         if(!selList.empty() && mSearchList->isValidIndex(selList[0], 0))
-            lastFirstColValue = mSearchList->getCellContent(selList[0], 0);
+            mLastFirstColValue = mSearchList->getCellContent(selList[0], 0);
     }
 
     if(arg1.length())
@@ -190,13 +190,13 @@ void SearchListView::searchTextChanged(const QString & arg1)
         }
     }
 
-    if(!lastFirstColValue.isEmpty())
+    if(!mLastFirstColValue.isEmpty())
     {
         rows = mCurList->getRowCount();
         mCurList->setTableOffset(0);
         for(int i = 0; i < rows; i++)
         {
-            if(mCurList->getCellContent(i, 0) == lastFirstColValue)
+            if(mCurList->getCellContent(i, 0) == mLastFirstColValue)
             {
                 if(rows > mCurList->getViewableRowsCount())
                 {
