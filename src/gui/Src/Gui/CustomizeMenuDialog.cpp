@@ -25,8 +25,9 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             builder = i.builder;
             id = builder->getId();
         }
-        else
+        else //invalid or unsupported type.Continue
             continue;
+        //Get localized string for the name of individual views
         if(id == "CPUDisassembly")
             viewName = tr("Disassembler");
         else if(id == "CPUDump")
@@ -41,6 +42,8 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             viewName = tr("Graph");
         else if(id == "XrefBrowseDialog")
             viewName = tr("Xref Browser");
+        else if(id == "StructWidget")
+            viewName = tr("Struct");
         else if(id == "CPUStack")
             viewName = tr("Stack");
         else if(id == "SourceView")
@@ -59,16 +62,20 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             viewName = tr("View");
         else
             continue;
+        // Add Parent Node
         QTreeWidgetItem* parentItem = new QTreeWidgetItem(ui->treeWidget);
         parentItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         parentItem->setText(0, viewName);
+        // Add Children nodes
         for(size_t j = 0; j < i.count; j++)
         {
+            // Get localized name of menu item by communicating with the menu
             QString text;
             if(i.type == 0)
                 text = builder->getText(j);
             else if(i.type == 1)
                 text = mainMenuList->at(int(j + 1))->text();
+            // Add a child node only if it has a non-empty name
             if(!text.isEmpty())
             {
                 QTreeWidgetItem* menuItem = new QTreeWidgetItem(parentItem, 0);

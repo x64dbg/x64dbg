@@ -128,6 +128,99 @@ static bool shouldFilterSymbol(const char* name)
     return filterInfo.retval;
 }
 
+static bool getLabelPEB(duint addr, char* label)
+{
+    duint peb = (duint)GetPEBLocation(fdProcessInfo->hProcess);
+    duint size = DbgMemGetPageSize(peb);
+    if(addr >= peb && addr < peb + size)
+    {
+        addr -= peb;
+#ifdef _WIN64
+#define CASE(member) if(addr == offsetof(PEB32, member)){strcpy(label, "PEB." #member);} else
+#else //x86
+#define CASE(member) if(addr == offsetof(PEB64, member)){strcpy(label, "PEB." #member);} else
+#endif
+        CASE(InheritedAddressSpace)
+        CASE(ReadImageFileExecOptions)
+        CASE(BeingDebugged)
+        CASE(BitField)
+        CASE(Mutant)
+        CASE(ImageBaseAddress)
+        CASE(Ldr)
+        CASE(ProcessParameters)
+        CASE(SubSystemData)
+        CASE(ProcessHeap)
+        CASE(FastPebLock)
+        CASE(AtlThunkSListPtr)
+        CASE(IFEOKey)
+        CASE(CrossProcessFlags)
+        CASE(UserSharedInfoPtr)
+        CASE(SystemReserved)
+        CASE(AtlThunkSListPtr32)
+        CASE(ApiSetMap)
+        CASE(TlsExpansionCounter)
+        CASE(TlsBitmap)
+        CASE(TlsBitmapBits)
+        CASE(ReadOnlySharedMemoryBase)
+        CASE(HotpatchInformation)
+        CASE(ReadOnlyStaticServerData)
+        CASE(AnsiCodePageData)
+        CASE(OemCodePageData)
+        CASE(UnicodeCaseTableData)
+        CASE(NumberOfProcessors)
+        CASE(NtGlobalFlag)
+        CASE(CriticalSectionTimeout)
+        CASE(HeapSegmentReserve)
+        CASE(HeapSegmentCommit)
+        CASE(HeapDeCommitTotalFreeThreshold)
+        CASE(HeapDeCommitFreeBlockThreshold)
+        CASE(NumberOfHeaps)
+        CASE(MaximumNumberOfHeaps)
+        CASE(ProcessHeaps)
+        CASE(GdiSharedHandleTable)
+        CASE(ProcessStarterHelper)
+        CASE(GdiDCAttributeList)
+        CASE(LoaderLock)
+        CASE(OSMajorVersion)
+        CASE(OSMinorVersion)
+        CASE(OSBuildNumber)
+        CASE(OSCSDVersion)
+        CASE(OSPlatformId)
+        CASE(ImageSubsystem)
+        CASE(ImageSubsystemMajorVersion)
+        CASE(ImageSubsystemMinorVersion)
+        CASE(ActiveProcessAffinityMask)
+        CASE(GdiHandleBuffer)
+        CASE(PostProcessInitRoutine)
+        CASE(TlsExpansionBitmap)
+        CASE(TlsExpansionBitmapBits)
+        CASE(SessionId)
+        CASE(AppCompatFlags)
+        CASE(AppCompatFlagsUser)
+        CASE(pShimData)
+        CASE(AppCompatInfo)
+        CASE(ActivationContextData)
+        CASE(ProcessAssemblyStorageMap)
+        CASE(SystemDefaultActivationContextData)
+        CASE(SystemAssemblyStorageMap)
+        CASE(MinimumStackCommit)
+        CASE(FlsCallback)
+        CASE(FlsBitmap)
+        CASE(FlsBitmapBits)
+        CASE(FlsHighIndex)
+        CASE(WerRegistrationData)
+        CASE(WerShipAssertPtr)
+        CASE(pContextData)
+        CASE(pImageHeaderHash)
+        CASE(TracingFlags)
+        return false;
+        return true;
+    }
+    else
+        return false;
+#undef CASE
+}
+
 static bool getLabel(duint addr, char* label, bool noFuncOffset)
 {
     bool retval = false;
@@ -148,6 +241,8 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
                 strcpy_s(label, MAX_LABEL_SIZE, pSymbol->Name);
             retval = !shouldFilterSymbol(label);
         }
+        if(getLabelPEB(addr, label)) //search for members of PEB
+            return true;
         if(!retval)  //search for CALL <jmp.&user32.MessageBoxA>
         {
             BASIC_INSTRUCTION_INFO basicinfo;

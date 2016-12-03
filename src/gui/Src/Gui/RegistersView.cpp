@@ -1591,6 +1591,13 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case LastError:
         //TODO: display help message of the specific error instead of this very generic message.
         return tr("The value of GetLastError(). This value is stored in the TEB.");
+#ifdef _WIN64
+    case GS:
+        return tr("The TEB of the current thread can be accessed as an offset of segment register GS (x64).\r\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
+#else //x86
+    case FS:
+        return tr("The TEB of the current thread can be accessed as an offset of segment register FS (x86).\r\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
+#endif //_WIN64
     default:
         return "";
     }

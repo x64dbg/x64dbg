@@ -16,6 +16,7 @@
 #include "function.h"
 #include "threading.h"
 #include "TraceRecord.h"
+#include "undocumented.h"
 
 static bool dosignedcalc = false;
 
@@ -1279,6 +1280,94 @@ bool setregister(const char* string, duint value)
     return false;
 }
 
+static bool valpebfromstring(const char* name, duint* value, int* value_size)
+{
+#ifdef _WIN64
+#define CASE(member) if(_stricmp(name, "PEB." #member) == 0){*value = offsetof(PEB64, member);} else
+#else //x86
+#define CASE(member) if(_stricmp(name, "PEB." #member) == 0){*value = offsetof(PEB32, member);} else
+#endif //_WIN64
+    CASE(InheritedAddressSpace)
+    CASE(ReadImageFileExecOptions)
+    CASE(BeingDebugged)
+    CASE(BitField)
+    CASE(Mutant)
+    CASE(ImageBaseAddress)
+    CASE(Ldr)
+    CASE(ProcessParameters)
+    CASE(SubSystemData)
+    CASE(ProcessHeap)
+    CASE(FastPebLock)
+    CASE(AtlThunkSListPtr)
+    CASE(IFEOKey)
+    CASE(CrossProcessFlags)
+    CASE(UserSharedInfoPtr)
+    CASE(SystemReserved)
+    CASE(AtlThunkSListPtr32)
+    CASE(ApiSetMap)
+    CASE(TlsExpansionCounter)
+    CASE(TlsBitmap)
+    CASE(TlsBitmapBits)
+    CASE(ReadOnlySharedMemoryBase)
+    CASE(HotpatchInformation)
+    CASE(ReadOnlyStaticServerData)
+    CASE(AnsiCodePageData)
+    CASE(OemCodePageData)
+    CASE(UnicodeCaseTableData)
+    CASE(NumberOfProcessors)
+    CASE(NtGlobalFlag)
+    CASE(CriticalSectionTimeout)
+    CASE(HeapSegmentReserve)
+    CASE(HeapSegmentCommit)
+    CASE(HeapDeCommitTotalFreeThreshold)
+    CASE(HeapDeCommitFreeBlockThreshold)
+    CASE(NumberOfHeaps)
+    CASE(MaximumNumberOfHeaps)
+    CASE(ProcessHeaps)
+    CASE(GdiSharedHandleTable)
+    CASE(ProcessStarterHelper)
+    CASE(GdiDCAttributeList)
+    CASE(LoaderLock)
+    CASE(OSMajorVersion)
+    CASE(OSMinorVersion)
+    CASE(OSBuildNumber)
+    CASE(OSCSDVersion)
+    CASE(OSPlatformId)
+    CASE(ImageSubsystem)
+    CASE(ImageSubsystemMajorVersion)
+    CASE(ImageSubsystemMinorVersion)
+    CASE(ActiveProcessAffinityMask)
+    CASE(GdiHandleBuffer)
+    CASE(PostProcessInitRoutine)
+    CASE(TlsExpansionBitmap)
+    CASE(TlsExpansionBitmapBits)
+    CASE(SessionId)
+    CASE(AppCompatFlags)
+    CASE(AppCompatFlagsUser)
+    CASE(pShimData)
+    CASE(AppCompatInfo)
+    CASE(ActivationContextData)
+    CASE(ProcessAssemblyStorageMap)
+    CASE(SystemDefaultActivationContextData)
+    CASE(SystemAssemblyStorageMap)
+    CASE(MinimumStackCommit)
+    CASE(FlsCallback)
+    CASE(FlsBitmap)
+    CASE(FlsBitmapBits)
+    CASE(FlsHighIndex)
+    CASE(WerRegistrationData)
+    CASE(WerShipAssertPtr)
+    CASE(pContextData)
+    CASE(pImageHeaderHash)
+    CASE(TracingFlags)
+    return false;
+    *value += (duint)GetPEBLocation(fdProcessInfo->hProcess);
+    if(value_size)
+        *value_size = sizeof(void*);
+    return true;
+#undef CASE
+}
+
 /**
 \brief Gets the address of an API from a name.
 \param name The name of the API, see the command help for more information about valid constructions.
@@ -1728,6 +1817,11 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         if(*string == 'x')
             inc = 1;
         return convertNumber(string + inc, *value, 16);
+    }
+    else if(_memicmp(string, "PEB.", 4) == 0)
+    {
+        if(valpebfromstring(string, value, value_size))
+            return true;
     }
     if(baseonly)
         return false;
