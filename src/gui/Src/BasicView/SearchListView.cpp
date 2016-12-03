@@ -150,17 +150,16 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
 
 void SearchListView::searchTextChanged(const QString & arg1)
 {
-    QString lastFirstColValue = "";
     if(mSearchList->isHidden())
     {
         auto selList = mList->getSelection();
-        if(!selList.empty())
+        if(!selList.empty() && mList->isValidIndex(selList[0], 0))
             lastFirstColValue = mList->getCellContent(selList[0], 0);
     }
     else
     {
-        auto selList = mSearchList->getSelection();
-        if(!selList.empty())
+        auto selList = mSearchList->getSelection(); // bug?: still return QList<0> if empty
+        if(!selList.empty() && mSearchList->isValidIndex(selList[0], 0))
             lastFirstColValue = mSearchList->getCellContent(selList[0], 0);
     }
 
