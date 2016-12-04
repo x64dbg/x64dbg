@@ -11,6 +11,9 @@
 	path = deps
 	url = https://github.com/x64dbg/deps
 	shallow = true
+[submodule "src/dbg/concurrentqueue"]
+	path = src/dbg/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git
 [submodule "src/zydis_wrapper/zydis"]
 	path = src/zydis_wrapper/zydis
 	url = https://github.com/zyantific/zydis.git

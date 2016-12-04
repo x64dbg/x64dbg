@@ -2,7 +2,7 @@
 #define _MSGQUEUE_H
 
 #include "_global.h"
-#include <agents.h>
+#include "concurrentqueue/blockingconcurrentqueue.h"
 
 #define MAX_MESSAGES 256
 
@@ -18,7 +18,7 @@ struct MESSAGE
 class MESSAGE_STACK
 {
 public:
-    Concurrency::unbounded_buffer<MESSAGE> msgs;
+    moodycamel::BlockingConcurrentQueue<MESSAGE> msgs;
 
     int WaitingCalls;   // Number of threads waiting
     bool Destroy;       // Destroy stack as soon as possible
