@@ -2,7 +2,7 @@
 #define MISCUTIL_H
 
 #include <QIcon>
-#include "bridge/bridgemain.h"
+#include "Imports.h"
 
 class QWidget;
 class QByteArray;

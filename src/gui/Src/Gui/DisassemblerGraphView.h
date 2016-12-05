@@ -234,7 +234,6 @@ public:
     void show_cur_instr(bool force = false);
     bool navigate(duint addr);
     void fontChanged();
-    QString getSymbolicName(duint addr);
 
 public slots:
     void updateTimerEvent();
