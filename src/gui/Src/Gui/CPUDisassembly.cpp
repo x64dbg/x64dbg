@@ -393,7 +393,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     MenuBuilder* labelMenu = new MenuBuilder(this);
     labelMenu->addAction(makeShortcutAction(tr("Label Current Address"), SLOT(setLabelSlot()), "ActionSetLabel"));
-    QAction* labelAddress = makeAction(tr("Label"), SLOT(setLabelAddressSlot()));
+    QAction* labelAddress = makeShortcutAction(tr("Label"), SLOT(setLabelAddressSlot()), "ActionSetLabelOperand");
 
     labelMenu->addAction(labelAddress, [this, labelAddress](QMenu*)
     {
