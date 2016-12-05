@@ -3,6 +3,8 @@
 #include "CachedFontMetrics.h"
 #include "QBeaEngine.h"
 #include "GotoDialog.h"
+#include "XrefBrowseDialog.h"
+#include "LineEditDialog.h"
 #include <vector>
 #include <QPainter>
 #include <QScrollBar>
@@ -902,7 +904,7 @@ static void initVec(std::vector<T> & vec, size_t size, T value)
 
 void DisassemblerGraphView::renderFunction(Function & func)
 {
-    puts("Starting renderFunction");
+    //puts("Starting renderFunction");
 
     //Create render nodes
     this->blocks.clear();
@@ -911,7 +913,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
         this->blocks[block.entry] = DisassemblerBlock(block);
         this->prepareGraphNode(this->blocks[block.entry]);
     }
-    puts("Create render nodes");
+    //puts("Create render nodes");
 
     //Populate incoming lists
     for(auto & blockIt : this->blocks)
@@ -920,14 +922,14 @@ void DisassemblerGraphView::renderFunction(Function & func)
         for(auto & edge : block.block.exits)
             this->blocks[edge].incoming.push_back(block.block.entry);
     }
-    puts("Populate incoming lists");
+    //puts("Populate incoming lists");
 
     //Construct acyclic graph where each node is used as an edge exactly once
     std::unordered_set<duint> visited;
     visited.insert(func.entry);
     std::queue<duint> queue;
     queue.push(this->blocks[func.entry].block.entry);
-    auto changed = true;
+    bool changed = true;
 
     int best_edges;
     duint best_parent;
@@ -988,7 +990,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
             changed = true;
         }
     }
-    puts("Construct acyclic graph where each node is used as an edge exactly once");
+    //puts("Construct acyclic graph where each node is used as an edge exactly once");
 
     //Compute graph layout from bottom up
     this->computeGraphLayout(this->blocks[func.entry]);
@@ -1039,7 +1041,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
         for(DisassemblerBlock & block : blockVec)
             blocks[block.block.entry] = block;*/
 
-    puts("Compute graph layout from bottom up");
+    //puts("Compute graph layout from bottom up");
 
     //Prepare edge routing
     EdgesVector horiz_edges, vert_edges;
@@ -1063,7 +1065,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
         DisassemblerBlock & block = blockIt.second;
         edge_valid[block.row][block.col + 1] = false;
     }
-    puts("Prepare edge routing");
+    //puts("Prepare edge routing");
 
     //Perform edge routing
     for(auto & blockIt : this->blocks)
@@ -1081,7 +1083,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
             start.edges.push_back(this->routeEdge(horiz_edges, vert_edges, edge_valid, start, end, color));
         }
     }
-    puts("Perform edge routing");
+    //puts("Perform edge routing");
 
     //Compute edge counts for each row and column
     std::vector<int> col_edge_count, row_edge_count;
@@ -1097,7 +1099,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
                 col_edge_count[col] = int(vert_edges[row][col].size());
         }
     }
-    puts("Compute edge counts for each row and column");
+    //puts("Compute edge counts for each row and column");
 
     //Compute row and column sizes
     std::vector<int> col_width, row_height;
@@ -1113,7 +1115,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
         if(int(block.height) > row_height[block.row])
             row_height[block.row] = int(block.height);
     }
-    puts("Compute row and column sizes");
+    //puts("Compute row and column sizes");
 
     //Compute row and column positions
     std::vector<int> col_x, row_y;
@@ -1141,7 +1143,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
     this->row_edge_y[this->blocks[func.entry].row_count] = y;
     this->width = x + 16 + (8 * col_edge_count[this->blocks[func.entry].col_count]);
     this->height = y + 16 + (8 * row_edge_count[this->blocks[func.entry].row_count]);
-    puts("Compute row and column positions");
+    //puts("Compute row and column positions");
 
     //Compute node positions
     for(auto & blockIt : this->blocks)
@@ -1158,7 +1160,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
         }
         block.y = row_y[block.row];
     }
-    puts("Compute node positions");
+    //puts("Compute node positions");
 
     //Precompute coordinates for edges
     for(auto & blockIt : this->blocks)
@@ -1201,7 +1203,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
             edge.arrow = pts;
         }
     }
-    puts("Precompute coordinates for edges");
+    //puts("Precompute coordinates for edges");
 
     //Adjust scroll bars for new size
     auto areaSize = this->viewport()->size();
@@ -1230,7 +1232,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
     this->analysis.update_id = this->update_id = func.update_id;
     this->ready = true;
     this->viewport()->update(0, 0, areaSize.width(), areaSize.height());
-    puts("Finished");
+    //puts("Finished");
 }
 
 void DisassemblerGraphView::updateTimerEvent()
@@ -1491,14 +1493,17 @@ void DisassemblerGraphView::setupContextMenu()
 
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
-    mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"));
+    mMenuBuilder->addSeparator();
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
+    mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
+    mMenuBuilder->addSeparator();
 
     mMenuBuilder->loadFromConfig();
 }
@@ -1689,4 +1694,18 @@ restart:
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
 
     this->refreshSlot();
+}
+
+void DisassemblerGraphView::xrefSlot()
+{
+    XREF_INFO mXrefInfo;
+    if(!DbgIsDebugging())
+        return;
+    DbgXrefGet(this->get_cursor_pos(), &mXrefInfo);
+    if(!mXrefInfo.refcount)
+        return;
+    if(!mXrefDlg)
+        mXrefDlg = new XrefBrowseDialog(this);
+    mXrefDlg->setup(this->get_cursor_pos(), "graph");
+    mXrefDlg->showNormal();
 }
