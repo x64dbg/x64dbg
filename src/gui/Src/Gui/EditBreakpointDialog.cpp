@@ -1,6 +1,7 @@
 #include "EditBreakpointDialog.h"
 #include "ui_EditBreakpointDialog.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 
 EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     : QDialog(parent),
@@ -15,7 +16,7 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     }
     else
     {
-        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(ToHexString(bp.addr)));
+        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(getSymbolicName(bp.addr)));
     }
     setWindowIcon(DIcon("breakpoint.png"));
     loadFromBp();

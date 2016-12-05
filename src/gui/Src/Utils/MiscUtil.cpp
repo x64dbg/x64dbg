@@ -2,6 +2,7 @@
 #include <windows.h>
 #include "LineEditDialog.h"
 #include <QMessageBox>
+#include "StringUtil.h"
 
 void SetApplicationIcon(WId winId)
 {
@@ -55,4 +56,22 @@ void SimpleWarningBox(QWidget* parent, const QString & title, const QString & te
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
+}
+
+QString getSymbolicName(duint addr)
+{
+    char labelText[MAX_LABEL_SIZE]   = "";
+    char moduleText[MAX_MODULE_SIZE] = "";
+    bool bHasLabel   = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
+    bool bHasModule  = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
+    QString addrText = ToPtrString(addr);
+
+    if(bHasLabel && bHasModule)     // <module.label>
+        return QString("%1 <%2.%3>").arg(addrText).arg(moduleText).arg(labelText);
+    else if(bHasModule)             // module.addr
+        return QString("%1.%2").arg(moduleText).arg(addrText);
+    else if(bHasLabel)              // <label>
+        return QString("<%1>").arg(labelText);
+    else
+        return addrText;
 }
