@@ -2,6 +2,7 @@
 #include "CachedFontMetrics.h"
 #include "Configuration.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 #include <QPainter>
 
 DisassemblyPopup::DisassemblyPopup(QWidget* parent) :
@@ -84,25 +85,6 @@ void DisassemblyPopup::paintEvent(QPaintEvent* event)
         y += charHeight;
     }
     QFrame::paintEvent(event);
-}
-
-QString DisassemblyPopup::getSymbolicName(duint addr)
-{
-    char labelText[MAX_LABEL_SIZE] = "";
-    char moduleText[MAX_MODULE_SIZE] = "";
-    bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
-    bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
-    QString addrText = ToPtrString(addr);
-    QString finalText;
-    if(bHasLabel && bHasModule) //<module.label>
-        finalText = QString("%1 <%2.%3>").arg(addrText).arg(moduleText).arg(labelText);
-    else if(bHasModule) //module.addr
-        finalText = QString("%1.%2").arg(moduleText).arg(addrText);
-    else if(bHasLabel) //<label>
-        finalText = QString("<%1>").arg(labelText);
-    else
-        finalText = addrText;
-    return finalText;
 }
 
 void DisassemblyPopup::setAddress(duint Address)

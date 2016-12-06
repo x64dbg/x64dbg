@@ -15,12 +15,13 @@ public:
     void paintEvent(QPaintEvent* event);
     void setAddress(duint Address);
     duint getAddress();
-    QString getSymbolicName(duint addr);
+
 public slots:
     void hide();
     void updateFont();
     void updateColors();
     void tokenizerConfigUpdated();
+
 protected:
     CachedFontMetrics* mFontMetrics;
     duint addr;
