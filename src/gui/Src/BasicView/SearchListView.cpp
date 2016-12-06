@@ -190,6 +190,8 @@ void SearchListView::searchTextChanged(const QString & arg1)
         }
     }
 
+    mSearchList->reloadData();
+
     if(!mLastFirstColValue.isEmpty())
     {
         rows = mCurList->getRowCount();
@@ -219,8 +221,6 @@ void SearchListView::searchTextChanged(const QString & arg1)
         mSearchList->highlightText = arg1;
     else
         mSearchList->highlightText = "";
-
-    mSearchList->reloadData();
 }
 
 void SearchListView::refreshSearchList()
