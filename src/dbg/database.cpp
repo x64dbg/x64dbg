@@ -265,6 +265,7 @@ void DbClear()
     XrefClear();
     EncodeMapClear();
     TraceRecord.clear();
+    DebugDisableBreakpoints();
     BpClear();
     WatchClear();
     PatchClear();

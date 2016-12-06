@@ -1129,6 +1129,11 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+void DebugDisableBreakpoints()
+{
+    BpEnumAll(cbRemoveModuleBreakpoints);
+}
+
 void cbStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
