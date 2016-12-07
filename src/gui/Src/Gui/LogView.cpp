@@ -218,7 +218,7 @@ void LogView::addMsgToLogSlot(const char* msg)
     if(!loggingEnabled)
         return;
     static unsigned char counter = 100;
-    counter++;
+    counter--;
     if(counter == 0)
     {
         if(this->document()->characterCount() > 10000 * 100) //limit the log to ~100mb
@@ -242,14 +242,11 @@ void LogView::addMsgToLogSlot(const char* msg)
         msgUtf16.replace(QString("\r\n"), QString("<br/>\n"));
     }
     linkify(msgUtf16);
+    QTextCursor cursor = this->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertHtml(msgUtf16);
     if(autoScroll)
-        this->insertHtml(msgUtf16); // This sets the cursor to the end for the next insert
-    else
-    {
-        QTextCursor cursor = this->textCursor();
-        cursor.movePosition(QTextCursor::End);
-        cursor.insertHtml(msgUtf16);
-    }
+        this->moveCursor(QTextCursor::End);
 }
 
 /**
