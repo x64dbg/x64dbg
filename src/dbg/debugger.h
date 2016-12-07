@@ -85,6 +85,7 @@ void DebugUpdateGuiAsync(duint disasm_addr, bool stack);
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state = paused);
 void DebugUpdateBreakpointsViewAsync();
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump = false);
+void DebugRemoveBreakpoints();
 void GuiSetDebugStateAsync(DBGSTATE state);
 void dbgsetskipexceptions(bool skip);
 void dbgsetstepping(bool stepping);
