@@ -20,7 +20,10 @@ bool cbInstrDbsave(int argc, char* argv[])
 bool cbInstrDbload(int argc, char* argv[])
 {
     if(argc <= 1)
+    {
+        DebugRemoveBreakpoints();
         DbClear();
+    }
     DbLoad(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr);
     GuiUpdateAllViews();
     return true;
