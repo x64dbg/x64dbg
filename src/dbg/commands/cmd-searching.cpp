@@ -217,7 +217,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
         if(itr.second.mbi.State != MEM_COMMIT)
             continue;
         SimplePage page(duint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
-        if(page.address >= addr && page.address + page.size <= addr + find_size)
+        if(page.address >= addr && (find_size == -1 || page.address + page.size <= addr + find_size))
             searchPages.push_back(page);
     }
     SHARED_RELEASE();
