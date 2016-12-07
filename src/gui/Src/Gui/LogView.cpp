@@ -244,6 +244,8 @@ void LogView::addMsgToLogSlot(const char* msg)
     linkify(msgUtf16);
     QTextCursor cursor = this->textCursor();
     cursor.movePosition(QTextCursor::End);
+    if(redirectError)
+        msgUtf16 += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
     cursor.insertHtml(msgUtf16);
     if(autoScroll)
         this->moveCursor(QTextCursor::End);
