@@ -1129,7 +1129,7 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
-void DebugDisableBreakpoints()
+void DebugRemoveBreakpoints()
 {
     BpEnumAll(cbRemoveModuleBreakpoints);
 }
