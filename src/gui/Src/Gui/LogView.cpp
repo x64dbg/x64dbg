@@ -22,7 +22,7 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
-    connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(addMsgToLogSlot(QString)));
+    connect(Bridge::getBridge(), SIGNAL(addMsgToLog(const char*)), this, SLOT(addMsgToLogSlot(const char*)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
@@ -150,7 +150,7 @@ static void linkify(QString & msg)
  * @brief LogView::addMsgToLogSlot Adds a message to the log view. This function is a slot for Bridge::addMsgToLog.
  * @param msg The log message
  */
-void LogView::addMsgToLogSlot(QString msg)
+void LogView::addMsgToLogSlot(const char* msg)
 {
     /*
      * This supports the 'UTF-8 Everywhere' manifesto.
@@ -160,39 +160,95 @@ void LogView::addMsgToLogSlot(QString msg)
      */
 
     // fix Unix-style line endings.
-    msg.replace("\r\n", "\n");
     // redirect the log
+    QString msgUtf16;
+    bool redirectError = false;
     if(logRedirection != NULL)
     {
         if(utf16Redirect)
-            msg.replace("\n", "\r\n");
-        msg.utf16();
-        auto data = utf16Redirect ? QByteArray((const char*)msg.utf16(), msg.size() * 2) : msg.toUtf8();
-        if(!fwrite(data.constData(), data.size(), 1, logRedirection))
         {
-            fclose(logRedirection);
-            logRedirection = NULL;
-            msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
+            msgUtf16 = QString::fromUtf8(msg);
+            msgUtf16.replace("\n", "\r\n");
+            if(!fwrite(msgUtf16.utf16(), msgUtf16.length(), 2, logRedirection))
+            {
+                fclose(logRedirection);
+                logRedirection = NULL;
+                //msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
+                redirectError = true;
+            }
+        }
+        else
+        {
+            const char* data;
+            std::string temp;
+            size_t offset = 0;
+            size_t buffersize = 0;
+            if(strstr(msg, "\r\n") != nullptr) // Don't replace "\r\n" to "\n" if there is none
+            {
+                temp = msg;
+                while(true)
+                {
+                    size_t index = temp.find("\r\n", offset);
+                    if(index == std::string::npos)
+                        break;
+                    temp.erase(index);
+                    offset = index;
+                }
+                data = temp.c_str();
+                buffersize = temp.size();
+            }
+            else
+            {
+                data = msg;
+                buffersize = strlen(msg);
+            }
+            if(!fwrite(data, buffersize, 1, logRedirection))
+            {
+                fclose(logRedirection);
+                logRedirection = NULL;
+                //msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
+                redirectError = true;
+            }
+            if(loggingEnabled)
+                msgUtf16 = QString::fromUtf8(data, buffersize);
         }
     }
+    else
+        msgUtf16 = QString::fromUtf8(msg);
     if(!loggingEnabled)
         return;
-    if(this->document()->characterCount() > 10000 * 100) //limit the log to ~100mb
-        this->clear();
-    // This sets the cursor to the end for the next insert
+    static unsigned char counter = 100;
+    counter--;
+    if(counter == 0)
+    {
+        if(this->document()->characterCount() > 10000 * 100) //limit the log to ~100mb
+            this->clear();
+        counter = 100;
+    }
+    msgUtf16.replace(QChar('&'), QString("&amp;"));
+    msgUtf16.replace(QChar(' '), QString("&nbsp;"));
+    msgUtf16.replace(QChar('<'), QString("&lt;"));
+    msgUtf16.replace(QChar('>'), QString("&gt;"));
+    if(logRedirection)
+    {
+        if(utf16Redirect)
+            msgUtf16.replace(QString("\r\n"), QString("<br/>\n"));
+        else
+            msgUtf16.replace(QChar('\n'), QString("<br/>\n"));
+    }
+    else
+    {
+        msgUtf16.replace(QChar('\n'), QString("<br/>\n"));
+        msgUtf16.replace(QString("\r\n"), QString("<br/>\n"));
+    }
+    linkify(msgUtf16);
     QTextCursor cursor = this->textCursor();
     cursor.movePosition(QTextCursor::End);
+    if(redirectError)
+        msgUtf16 += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
+    cursor.insertHtml(msgUtf16);
     if(autoScroll)
         this->moveCursor(QTextCursor::End);
-    if(utf16Redirect)
-        msg.replace("\r\n", "\n");
-    msg.replace(QChar('&'), QString("&amp;"));
-    msg.replace(QChar('<'), QString("&lt;"));
-    msg.replace(QChar('>'), QString("&gt;"));
-    msg.replace(QString("\n"), QString("<br/>\n"));
-    msg.replace(QChar(' '), QString("&nbsp;"));
-    linkify(msg);
-    cursor.insertHtml(msg);
 }
 
 /**
@@ -350,5 +406,5 @@ void LogView::pasteSlot()
         return;
     if(!clipboardText.endsWith('\n'))
         clipboardText.append('\n');
-    addMsgToLogSlot(clipboardText);
+    addMsgToLogSlot(clipboardText.toUtf8().constData());
 }

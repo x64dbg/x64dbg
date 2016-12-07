@@ -16,7 +16,7 @@ public:
 public slots:
     void refreshShortcutsSlot();
     void updateStyle();
-    void addMsgToLogSlot(QString msg);
+    void addMsgToLogSlot(const char* msg);
     void redirectLogSlot();
     void setLoggingEnabled(bool enabled);
     void autoScrollSlot();

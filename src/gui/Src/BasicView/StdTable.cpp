@@ -374,7 +374,7 @@ void StdTable::copyLineToLogSlot()
             finalText += "\r\n";
         }
     }
-    emit Bridge::getBridge()->addMsgToLog(finalText);
+    emit Bridge::getBridge()->addMsgToLog(finalText.toUtf8().constData());
 }
 
 QString StdTable::copyTable(const std::vector<int> & colWidths)
@@ -443,7 +443,7 @@ void StdTable::copyTableToLogSlot()
     int colCount = getColumnCount();
     for(int i = 0; i < colCount; i++)
         colWidths.push_back(getColumnWidth(i) / getCharWidth());
-    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths));
+    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths).toUtf8().constData());
 }
 
 void StdTable::copyTableResizeSlot()
@@ -473,7 +473,7 @@ void StdTable::copyTableResizeToLogSlot()
             max = std::max(getCellContent(j, i).length(), max);
         colWidths.push_back(max);
     }
-    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths));
+    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths).toUtf8().constData());
 }
 
 void StdTable::copyEntrySlot()
