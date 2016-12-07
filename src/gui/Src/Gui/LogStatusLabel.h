@@ -13,6 +13,7 @@ public:
 
 public slots:
     void logUpdate(QString message);
+    void logUpdateUtf8(const char* message);
     void focusChanged(QWidget* old, QWidget* now);
     void getActiveView(ACTIVEVIEW* active);
 
