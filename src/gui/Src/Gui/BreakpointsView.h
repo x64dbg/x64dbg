@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "Imports.h"
+#include "BreakpointsViewTable.h"
 
 class StdTable;
 class QVBoxLayout;
@@ -86,11 +87,11 @@ public slots:
 private:
     QVBoxLayout* mVertLayout;
     LabeledSplitter* mSplitter;
-    StdTable* mHardBPTable;
-    StdTable* mSoftBPTable;
-    StdTable* mMemBPTable;
-    StdTable* mDLLBPTable;
-    StdTable* mExceptionBPTable;
+    BreakpointsViewTable* mHardBPTable;
+    BreakpointsViewTable* mSoftBPTable;
+    BreakpointsViewTable* mMemBPTable;
+    BreakpointsViewTable* mDLLBPTable;
+    BreakpointsViewTable* mExceptionBPTable;
     // Conditional BP Context Menu
     BPXTYPE mCurrentType;
     QAction* mEditBreakpointAction;

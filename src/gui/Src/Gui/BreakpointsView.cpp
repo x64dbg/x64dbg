@@ -10,7 +10,7 @@
 BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 {
     // Software
-    mSoftBPTable = new StdTable(this);
+    mSoftBPTable = new BreakpointsViewTable();
     mSoftBPTable->setWindowTitle("SoftwareBreakpoints");
     int wCharWidth = mSoftBPTable->getCharWidth();
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -27,7 +27,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mSoftBPTable->loadColumnFromConfig("SoftwareBreakpoint");
 
     // Hardware
-    mHardBPTable = new StdTable(this);
+    mHardBPTable = new BreakpointsViewTable();
     mHardBPTable->setWindowTitle("HardwareBreakpoints");
     mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Hardware"), false, tr("Address"));
@@ -43,7 +43,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mHardBPTable->loadColumnFromConfig("HardwareBreakpoint");
 
     // Memory
-    mMemBPTable = new StdTable(this);
+    mMemBPTable = new BreakpointsViewTable();
     mMemBPTable->setWindowTitle("MemoryBreakpoints");
     mMemBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Memory"), false, tr("Address"));
@@ -59,7 +59,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mMemBPTable->loadColumnFromConfig("MemoryBreakpoint");
 
     // DLL
-    mDLLBPTable = new StdTable(this);
+    mDLLBPTable = new BreakpointsViewTable();
     mDLLBPTable->setWindowTitle("DllBreakpoints");
     mDLLBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mDLLBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
@@ -73,7 +73,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mDLLBPTable->loadColumnFromConfig("DLLBreakpoint");
 
     // Exception
-    mExceptionBPTable = new StdTable(this);
+    mExceptionBPTable = new BreakpointsViewTable();
     mExceptionBPTable->setWindowTitle("ExceptionBreakpoints");
     mExceptionBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mExceptionBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Exception Code"), false);
