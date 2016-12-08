@@ -582,3 +582,44 @@ bool cbInstrMnemonicbrief(int argc, char* argv[])
     dputs(MnemonicHelp::getBriefDescription(argv[1]).c_str());
     return true;
 }
+
+bool cbInstrConfig(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
+    duint val = 0;
+    if(argc == 3)
+    {
+        if(BridgeSettingGetUint(argv[1], argv[2], &val))
+        {
+            varset("$result", val, false);
+            return true;
+        }
+        else
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Error: Configuration not found."));
+            return false;
+        }
+    }
+    else
+    {
+        if(valfromstring(argv[3], &val, true))
+        {
+            if(BridgeSettingSetUint(argv[1], argv[2], val))
+            {
+                DbgSettingsUpdated();
+                return true;
+            }
+            else
+            {
+                dputs(QT_TRANSLATE_NOOP("DBG", "Error updating configuration."));
+                return false;
+            }
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression: \"%s\"!\n"), argv[3]);
+            return false;
+        }
+    }
+}
