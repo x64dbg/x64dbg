@@ -4,11 +4,22 @@
 BreakpointsViewTable::BreakpointsViewTable(QWidget* parent)
     : StdTable(parent)
 {
-    bpAddr = 0;
+    BgColor = QColor(Qt::black); // predefined
+    TxtColor = QColor(Qt::white); // predefined
+    GetConfigColors();
 }
+
+void BreakpointsViewTable::GetConfigColors()
+{
+    BgColor = ConfigColor("ThreadCurrentBackgroundColor");
+    TxtColor = ConfigColor("ThreadCurrentColor");
+}
+
+duint BreakpointsViewTable::GetCIP() { return DbgValFromString("cip"); }
 
 QString BreakpointsViewTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    duint bpAddr = 0;
     QString ret = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
     QString bpAddrStr = getCellContent(rowBase + rowOffset, col);
 
@@ -20,8 +31,8 @@ QString BreakpointsViewTable::paintContent(QPainter* painter, dsint rowBase, int
 
     if(GetCIP() == bpAddr && !col)
     {
-        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
-        painter->setPen(QPen(ConfigColor("ThreadCurrentColor"))); //white text
+        painter->fillRect(QRect(x, y, w, h), QBrush(BgColor));
+        painter->setPen(QPen(TxtColor));
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, bpAddrStr);
         ret = "";
     }

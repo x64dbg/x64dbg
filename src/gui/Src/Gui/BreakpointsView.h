@@ -3,12 +3,12 @@
 
 #include <QWidget>
 #include "Imports.h"
-#include "BreakpointsViewTable.h"
 
 class StdTable;
 class QVBoxLayout;
 class LabeledSplitter;
 class MenuBuilder;
+class BreakpointsViewTable;
 
 class BreakpointsView : public QWidget
 {
