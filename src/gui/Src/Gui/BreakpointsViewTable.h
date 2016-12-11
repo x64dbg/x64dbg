@@ -9,14 +9,18 @@ class BreakpointsViewTable : public StdTable
 public:
     explicit BreakpointsViewTable(QWidget* parent = 0);
     void GetConfigColors();
-    duint GetCIP();
+    void updateColors() override;
+
+public slots:
+    void disassembleAtSlot(dsint cip, dsint addr);
 
 protected:
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
 
 private:
-    QColor BgColor;
-    QColor TxtColor;
+    QColor mCipBackgroundColor;
+    QColor mCipColor;
+    duint mCip;
 };
 
 #endif // BREAKPOINTSVIEWTABLE_H
