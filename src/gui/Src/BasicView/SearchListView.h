@@ -25,6 +25,7 @@ public:
     SearchListViewTable* mCurList;
     QLineEdit* mSearchBox;
     int mSearchStartCol;
+    QString mLastFirstColValue;
 
     bool findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith);
     void refreshSearchList();
