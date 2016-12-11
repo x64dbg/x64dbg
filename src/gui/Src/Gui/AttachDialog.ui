@@ -98,6 +98,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="btnFindWindow">
+         <property name="text">
+          <string>Find Window...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="btnAttach">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
