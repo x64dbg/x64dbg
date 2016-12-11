@@ -46,6 +46,7 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent, bool EnableLoc
 
             // Regex parsing checkbox
             mRegexCheckbox = new QCheckBox(tr("Regex"));
+            mRegexCheckbox->setTristate(true);
 
             // Lock checkbox
             mLockCheckbox = new QCheckBox(tr("Lock"));
@@ -106,7 +107,7 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent, bool EnableLoc
     connect(mSearchList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(mSearchList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(mSearchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
-    connect(mRegexCheckbox, SIGNAL(toggled(bool)), this, SLOT(on_checkBoxRegex_toggled(bool)));
+    connect(mRegexCheckbox, SIGNAL(stateChanged(int)), this, SLOT(on_checkBoxRegex_stateChanged(int)));
     connect(mLockCheckbox, SIGNAL(toggled(bool)), this, SLOT(on_checkBoxLock_toggled(bool)));
 
     // List input should always be forwarded to the filter edit
@@ -133,9 +134,10 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
     {
         for(int i = startcol; i < count; i++)
         {
-            if(mRegexCheckbox->checkState() == Qt::Checked)
+            auto state = mRegexCheckbox->checkState();
+            if(state != Qt::Unchecked)
             {
-                if(list->getCellContent(row, i).contains(QRegExp(text)))
+                if(list->getCellContent(row, i).contains(QRegExp(text, state == Qt::PartiallyChecked ? Qt::CaseInsensitive : Qt::CaseSensitive)))
                     return true;
             }
             else
@@ -217,7 +219,7 @@ void SearchListView::searchTextChanged(const QString & arg1)
         emit emptySearchResult();
 
     // Do not highlight with regex
-    if(mRegexCheckbox->checkState() != Qt::Checked)
+    if(mRegexCheckbox->checkState() == Qt::Unchecked)
         mSearchList->highlightText = arg1;
     else
         mSearchList->highlightText = "";
@@ -247,9 +249,9 @@ void SearchListView::doubleClickedSlot()
     emit enterPressedSignal();
 }
 
-void SearchListView::on_checkBoxRegex_toggled(bool checked)
+void SearchListView::on_checkBoxRegex_stateChanged(int state)
 {
-    Q_UNUSED(checked);
+    Q_UNUSED(state);
     refreshSearchList();
 }
 
