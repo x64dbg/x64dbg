@@ -108,12 +108,26 @@ retryFindWindow:
         if(tid = GetWindowThreadProcessId(hWndFound, &pid))
         {
             refresh();
-            windowText = QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", pid);
+            QString pidText = QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", pid);
+            bool found = false;
             for(int i = 0; i < mSearchListView->mList->getRowCount(); i++)
             {
-                if(mSearchListView->mList->getCellContent(i, 0) == windowText)
+                if(mSearchListView->mList->getCellContent(i, 0) == pidText)
                 {
                     mSearchListView->mList->setSingleSelection(i);
+                    found = true;
+                    break;
+                }
+            }
+            if(!found)
+            {
+                QMessageBox hiddenProcessDialog(QMessageBox::Question, tr("Find Window"),
+                                                tr("The PID of the window \"%1\" is %2, but it's hidden in the process list. Do you want to attach to it immediately?").arg(windowText).arg(pidText),
+                                                QMessageBox::Yes | QMessageBox::No, this);
+                if(hiddenProcessDialog.exec() == QMessageBox::Yes)
+                {
+                    DbgCmdExec(QString("attach " + pid).toUtf8().constData());
+                    accept();
                 }
             }
         }
