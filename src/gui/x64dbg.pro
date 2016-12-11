@@ -175,7 +175,8 @@ SOURCES += \
     Src/Utils/MenuBuilder.cpp \
     Src/Gui/StructWidget.cpp \
     Src/Gui/CustomizeMenuDialog.cpp \
-    Src/Gui/SimpleTraceDialog.cpp
+    Src/Gui/SimpleTraceDialog.cpp \
+    Src/Gui/BreakpointsViewTable.cpp
 
 
 HEADERS += \
@@ -286,7 +287,8 @@ HEADERS += \
     Src/Gui/DebugStatusLabel.h \
     Src/Gui/CustomizeMenuDialog.h \
     Src/Gui/StructWidget.h \
-    Src/Gui/SimpleTraceDialog.h
+    Src/Gui/SimpleTraceDialog.h \
+    Src/Gui/BreakpointsViewTable.h
     
 
 FORMS += \
