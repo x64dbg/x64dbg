@@ -45,7 +45,7 @@ signals:
     void disassembleAt(dsint va, dsint eip);
     void repaintGui();
     void dbgStateChanged(DBGSTATE state);
-    void addMsgToLog(const char* msg);
+    void addMsgToLog(QByteArray msg);
     void clearLog();
     void close();
     void updateRegisters();
