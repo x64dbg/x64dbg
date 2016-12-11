@@ -8,6 +8,7 @@ class StdTable;
 class QVBoxLayout;
 class LabeledSplitter;
 class MenuBuilder;
+class BreakpointsViewTable;
 
 class BreakpointsView : public QWidget
 {
@@ -86,11 +87,11 @@ public slots:
 private:
     QVBoxLayout* mVertLayout;
     LabeledSplitter* mSplitter;
-    StdTable* mHardBPTable;
-    StdTable* mSoftBPTable;
-    StdTable* mMemBPTable;
-    StdTable* mDLLBPTable;
-    StdTable* mExceptionBPTable;
+    BreakpointsViewTable* mHardBPTable;
+    BreakpointsViewTable* mSoftBPTable;
+    BreakpointsViewTable* mMemBPTable;
+    BreakpointsViewTable* mDLLBPTable;
+    BreakpointsViewTable* mExceptionBPTable;
     // Conditional BP Context Menu
     BPXTYPE mCurrentType;
     QAction* mEditBreakpointAction;
