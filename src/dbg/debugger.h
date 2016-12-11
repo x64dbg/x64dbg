@@ -147,5 +147,6 @@ extern bool bTraceRecordEnabledDuringTrace;
 extern bool bSkipInt3Stepping;
 extern bool bIgnoreInconsistentBreakpoints;
 extern bool bNoForegroundWindow;
+extern bool bVerboseExceptionLogging;
 
 #endif // _DEBUGGER_H
