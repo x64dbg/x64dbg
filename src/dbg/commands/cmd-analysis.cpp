@@ -423,9 +423,24 @@ bool cbInstrExinfo(int argc, char* argv[])
         {
             symbolic = SymGetSymbolicName(duint(record.ExceptionInformation[i]));
             if(symbolic.length())
-                dprintf_untranslated("ExceptionInformation[%02u]: %p %s\n", i, record.ExceptionInformation[i], symbolic.c_str());
+                dprintf_untranslated("ExceptionInformation[%02u]: %p %s", i, record.ExceptionInformation[i], symbolic.c_str());
             else
-                dprintf_untranslated("ExceptionInformation[%02u]: %p\n", i, record.ExceptionInformation[i]);
+                dprintf_untranslated("ExceptionInformation[%02u]: %p", i, record.ExceptionInformation[i]);
+            if(record.ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
+            {
+                if(i == 0)
+                {
+                    if(record.ExceptionInformation[i] == 0)
+                        dprintf_untranslated(" MEM READ");
+                    else if(record.ExceptionInformation[i] == 1)
+                        dprintf_untranslated(" MEM WRITE");
+                    else if(record.ExceptionInformation[i] == 8)
+                        dprintf_untranslated(" DEP VIOLATION");
+                }
+                else if(i == 1)
+                    dprintf_untranslated(" Inaccessible Address");
+            }
+            dprintf_untranslated("\n");
         }
     return true;
 }
