@@ -617,6 +617,6 @@ void StdTable::headerButtonPressedSlot(int col)
 void StdTable::reloadData()
 {
     if(mSort.first != -1) //re-sort if the user wants to sort
-        qSort(mData.begin(), mData.end(), ColumnCompare(mSort.first, mSort.second, getColumnSortBy(mSort.first)));
+        std::stable_sort(mData.begin(), mData.end(), ColumnCompare(mSort.first, mSort.second, getColumnSortBy(mSort.first)));
     AbstractTableView::reloadData();
 }
