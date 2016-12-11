@@ -150,6 +150,19 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
 
 void SearchListView::searchTextChanged(const QString & arg1)
 {
+    if(mSearchList->isHidden())
+    {
+        auto selList = mList->getSelection();
+        if(!selList.empty() && mList->isValidIndex(selList[0], 0))
+            mLastFirstColValue = mList->getCellContent(selList[0], 0);
+    }
+    else
+    {
+        auto selList = mSearchList->getSelection();
+        if(!selList.empty() && mSearchList->isValidIndex(selList[0], 0))
+            mLastFirstColValue = mSearchList->getCellContent(selList[0], 0);
+    }
+
     if(arg1.length())
     {
         mList->hide();
@@ -176,21 +189,27 @@ void SearchListView::searchTextChanged(const QString & arg1)
             j++;
         }
     }
-    rows = mSearchList->getRowCount();
-    mSearchList->setTableOffset(0);
-    for(int i = 0; i < rows; i++)
+
+    mSearchList->reloadData();
+
+    if(!mLastFirstColValue.isEmpty())
     {
-        if(findTextInList(mSearchList, arg1, i, mSearchStartCol, true))
+        rows = mCurList->getRowCount();
+        mCurList->setTableOffset(0);
+        for(int i = 0; i < rows; i++)
         {
-            if(rows > mSearchList->getViewableRowsCount())
+            if(mCurList->getCellContent(i, 0) == mLastFirstColValue)
             {
-                int cur = i - mSearchList->getViewableRowsCount() / 2;
-                if(!mSearchList->isValidIndex(cur, 0))
-                    cur = i;
-                mSearchList->setTableOffset(cur);
+                if(rows > mCurList->getViewableRowsCount())
+                {
+                    int cur = i - mCurList->getViewableRowsCount() / 2;
+                    if(!mCurList->isValidIndex(cur, 0))
+                        cur = i;
+                    mCurList->setTableOffset(cur);
+                }
+                mCurList->setSingleSelection(i);
+                break;
             }
-            mSearchList->setSingleSelection(i);
-            break;
         }
     }
 
@@ -202,8 +221,6 @@ void SearchListView::searchTextChanged(const QString & arg1)
         mSearchList->highlightText = arg1;
     else
         mSearchList->highlightText = "";
-
-    mSearchList->reloadData();
 }
 
 void SearchListView::refreshSearchList()
