@@ -418,20 +418,30 @@ bool cbInstrExinfo(int argc, char* argv[])
     else
         dprintf_untranslated("        ExceptionAddress: %p\n", record.ExceptionAddress);
     dprintf_untranslated("        NumberParameters: %u\n", record.NumberParameters);
-    if(record.ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
-    {
-        if(record.ExceptionInformation[0] == 0)
-            dputs_untranslated("           OperationType: MEM READ\n");
-        else if(record.ExceptionInformation[0] == 1)
-            dputs_untranslated("           OperationType: MEM WRITE\n");
-        else if(record.ExceptionInformation[0] == 8)
-            dputs_untranslated("           OperationType: DEP VIOLATION\n");
-        symbolic = SymGetSymbolicName(duint(record.ExceptionInformation[1]));
-        if(symbolic.length())
-            dprintf_untranslated("     InaccessibleAddress: %p %s\n", record.ExceptionInformation[1], symbolic.c_str());
-        else
-            dprintf_untranslated("     InaccessibleAddress: %p\n", record.ExceptionInformation[1]);
-    }
+    if(record.NumberParameters)
+        for(DWORD i = 0; i < record.NumberParameters; i++)
+        {
+            symbolic = SymGetSymbolicName(duint(record.ExceptionInformation[i]));
+            if(symbolic.length())
+                dprintf_untranslated("ExceptionInformation[%02u]: %p %s", i, record.ExceptionInformation[i], symbolic.c_str());
+            else
+                dprintf_untranslated("ExceptionInformation[%02u]: %p", i, record.ExceptionInformation[i]);
+            if(record.ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
+            {
+                if(i == 0)
+                {
+                    if(record.ExceptionInformation[i] == 0)
+                        dprintf_untranslated(" MEM READ");
+                    else if(record.ExceptionInformation[i] == 1)
+                        dprintf_untranslated(" MEM WRITE");
+                    else if(record.ExceptionInformation[i] == 8)
+                        dprintf_untranslated(" DEP VIOLATION");
+                }
+                else if(i == 1)
+                    dprintf_untranslated(" Inaccessible Address");
+            }
+            dprintf_untranslated("\n");
+        }
     return true;
 }
 
