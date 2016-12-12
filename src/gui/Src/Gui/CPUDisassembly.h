@@ -170,7 +170,6 @@ private:
     MenuBuilder* mMenuBuilder;
     MenuBuilder* mHighlightMenuBuilder;
     bool mHighlightContextMenu = false;
-    const char *clipMsg = "The data has been copied to clipboard!\r\n";
 };
 
 #endif // CPUDISASSEMBLY_H

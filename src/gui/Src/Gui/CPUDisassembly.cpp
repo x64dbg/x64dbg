@@ -1454,7 +1454,6 @@ void CPUDisassembly::binaryCopySlot()
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
     Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true));
-    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::binaryPasteSlot()
@@ -1523,7 +1522,6 @@ void CPUDisassembly::copySelectionSlot(bool copyBytes)
     QTextStream stream(&selectionString);
     pushSelectionInto(copyBytes, stream);
     Bridge::CopyToClipboard(selectionString);
-    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
@@ -1604,7 +1602,6 @@ void CPUDisassembly::copyAddressSlot()
         clipboard += ToPtrString(rvaToVa(inst.rva)) + "\r\n";
     });
     Bridge::CopyToClipboard(clipboard);
-    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copyRvaSlot()
@@ -1620,7 +1617,6 @@ void CPUDisassembly::copyRvaSlot()
             SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
     });
     Bridge::CopyToClipboard(clipboard);
-    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copyDisassemblySlot()
@@ -1634,7 +1630,6 @@ void CPUDisassembly::copyDisassemblySlot()
             clipboard += token.text;
     });
     Bridge::CopyToClipboard(clipboard);
-    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copyDataSlot()
@@ -1652,7 +1647,6 @@ void CPUDisassembly::labelCopySlot()
 {
     QString symbol = ((QAction*)sender())->text();
     Bridge::CopyToClipboard(symbol);
-    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::findCommandSlot()
@@ -1982,17 +1976,13 @@ void CPUDisassembly::createThreadSlot()
 void CPUDisassembly::copyTokenTextSlot()
 {
     Bridge::CopyToClipboard(mHighlightToken.text);
-    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copyTokenValueSlot()
 {
     QString text;
     if(getTokenValueText(text))
-    {
         Bridge::CopyToClipboard(text);
-        GuiAddStatusBarMessage(clipMsg);
-    }
 }
 
 bool CPUDisassembly::getTokenValueText(QString & text)

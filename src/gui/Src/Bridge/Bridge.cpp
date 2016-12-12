@@ -33,6 +33,7 @@ void Bridge::CopyToClipboard(const QString & text)
 {
     QClipboard* clipboard = QApplication::clipboard();
     clipboard->setText(text);
+    GuiAddStatusBarMessage(QT_TRANSLATE_NOOP("DBG", "The data has been copied to clipboard.\n"));
 }
 
 void Bridge::setResult(dsint result)
