@@ -686,6 +686,13 @@
         </layout>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkUtf16LogRedirect">
+         <property name="text">
+          <string>UTF-16 Log Redirect*</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_3">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

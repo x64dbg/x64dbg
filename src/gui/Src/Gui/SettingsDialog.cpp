@@ -201,12 +201,14 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "PidInHex", &settings.guiPidInHex);
     GetSettingBool("Gui", "SidebarWatchLabels", &settings.guiSidebarWatchLabels);
     GetSettingBool("Gui", "NoForegroundWindow", &settings.guiNoForegroundWindow);
+    GetSettingBool("Gui", "LoadSaveTabOrder", &settings.guiLoadSaveTabOrder);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
     ui->chkPidInHex->setChecked(settings.guiPidInHex);
     ui->chkSidebarWatchLabels->setChecked(settings.guiSidebarWatchLabels);
     ui->chkNoForegroundWindow->setChecked(settings.guiNoForegroundWindow);
+    ui->chkSaveLoadTabOrder->setChecked(settings.guiLoadSaveTabOrder);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -268,8 +270,8 @@ void SettingsDialog::LoadSettings()
     bJitOld = settings.miscSetJIT;
     bJitAutoOld = settings.miscSetJITAuto;
 
-    GetSettingBool("Miscellaneous", "LoadSaveTabOrder", &settings.miscLoadSaveTabOrder);
-    ui->chkSaveLoadTabOrder->setChecked(settings.miscLoadSaveTabOrder);
+    GetSettingBool("Misc", "Utf16LogRedirect", &settings.miscUtf16LogRedirect);
+    ui->chkUtf16LogRedirect->setChecked(settings.miscUtf16LogRedirect);
 }
 
 void SettingsDialog::SaveSettings()
@@ -327,6 +329,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "PidInHex", settings.guiPidInHex);
     BridgeSettingSetUint("Gui", "SidebarWatchLabels", settings.guiSidebarWatchLabels);
     BridgeSettingSetUint("Gui", "NoForegroundWindow", settings.guiNoForegroundWindow);
+    BridgeSettingSetUint("Gui", "LoadSaveTabOrder", settings.guiLoadSaveTabOrder);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -352,8 +355,7 @@ void SettingsDialog::SaveSettings()
     if(settings.miscSymbolCache)
         BridgeSettingSet("Symbols", "CachePath", ui->editSymbolCache->text().toUtf8().constData());
     BridgeSettingSet("Misc", "HelpOnSymbolicNameUrl", ui->editHelpOnSymbolicNameUrl->text().toUtf8().constData());
-
-    BridgeSettingSetUint("Miscellaneous", "LoadSaveTabOrder", settings.miscLoadSaveTabOrder);
+    BridgeSettingSetUint("Misc", "Utf16LogRedirect", settings.miscUtf16LogRedirect);
 
     BridgeSettingFlush();
     Config()->load();
@@ -677,7 +679,7 @@ void SettingsDialog::on_editSymbolCache_textEdited(const QString & arg1)
 
 void SettingsDialog::on_chkSaveLoadTabOrder_stateChanged(int arg1)
 {
-    settings.miscLoadSaveTabOrder = arg1 != Qt::Unchecked;
+    settings.guiLoadSaveTabOrder = arg1 != Qt::Unchecked;
     emit chkSaveLoadTabOrderStateChanged((bool)arg1);
 }
 
@@ -735,4 +737,9 @@ void SettingsDialog::on_chkNoHighlightOperands_toggled(bool checked)
 {
     bTokenizerConfigUpdated = true;
     settings.disasmNoHighlightOperands = checked;
+}
+
+void SettingsDialog::on_chkUtf16LogRedirect_toggled(bool checked)
+{
+    settings.miscUtf16LogRedirect = checked;
 }

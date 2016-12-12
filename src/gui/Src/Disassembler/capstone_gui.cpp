@@ -377,8 +377,6 @@ bool CapstoneTokenizer::tokenizeMnemonic()
         _mnemonicType = TokenType::MnemonicNop;
     else if(_cp.InGroup(CS_GRP_CALL))
         _mnemonicType = TokenType::MnemonicCall;
-    else if(_cp.InGroup(CS_GRP_RET))
-        _mnemonicType = TokenType::MnemonicRet;
     else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())
     {
         switch(id)
@@ -396,6 +394,8 @@ bool CapstoneTokenizer::tokenizeMnemonic()
         _mnemonicType = TokenType::MnemonicInt3;
     else if(_cp.IsUnusual())
         _mnemonicType = TokenType::MnemonicUnusual;
+    else if(_cp.InGroup(CS_GRP_RET))
+        _mnemonicType = TokenType::MnemonicRet;
     else
     {
         switch(id)

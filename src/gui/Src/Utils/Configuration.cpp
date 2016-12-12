@@ -209,16 +209,13 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     engineBool.insert("ShowSuspectedCallStack", false);
     defaultBools.insert("Engine", engineBool);
 
-    QMap<QString, bool> miscellaneousBool;
-    miscellaneousBool.insert("LoadSaveTabOrder", false);
-    defaultBools.insert("Miscellaneous", miscellaneousBool);
-
     QMap<QString, bool> guiBool;
     guiBool.insert("FpuRegistersLittleEndian", false);
     guiBool.insert("SaveColumnOrder", true);
     guiBool.insert("NoCloseDialog", false);
     guiBool.insert("PidInHex", true);
     guiBool.insert("SidebarWatchLabels", true);
+    guiBool.insert("LoadSaveTabOrder", false);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
@@ -625,7 +622,7 @@ void Configuration::readUints()
 void Configuration::writeUints()
 {
     duint setting;
-    bool bSaveLoadTabOrder = ConfigBool("Miscellaneous", "LoadSaveTabOrder");
+    bool bSaveLoadTabOrder = ConfigBool("Gui", "LoadSaveTabOrder");
 
     //write config
     for(int i = 0; i < Uints.size(); i++)

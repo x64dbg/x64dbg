@@ -1690,6 +1690,8 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
         wCM_Modify->trigger();
     else if(mBOOLDISPLAY.contains(mSelected))  // is flag ?
         wCM_ToggleValue->trigger();
+    else if(mCANSTOREADDRESS.contains(mSelected))
+        wCM_FollowInDisassembly->trigger();
 }
 
 void RegistersView::paintEvent(QPaintEvent* event)
