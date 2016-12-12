@@ -39,6 +39,7 @@ CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
+    connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
     connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setFocus()));
 
@@ -1361,6 +1362,17 @@ void CPUDisassembly::selectionSetSlot(const SELECTIONDATA* selection)
     Bridge::getBridge()->setResult(1);
 }
 
+void CPUDisassembly::selectionUpdatedSlot()
+{
+    QString selStart = ToPtrString(rvaToVa(getSelectionStart()));
+    QString selEnd = ToPtrString(rvaToVa(getSelectionEnd()));
+    QString info = tr("Disassembly");
+    char mod[MAX_MODULE_SIZE] = "";
+    if(DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), mod, true))
+        info = QString(mod) + "";
+    GuiAddStatusBarMessage(QString(info + ": " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
+}
+
 void CPUDisassembly::enableHighlightingModeSlot()
 {
     if(mHighlightingMode)
@@ -1442,6 +1454,7 @@ void CPUDisassembly::binaryCopySlot()
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
     Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true));
+    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::binaryPasteSlot()
@@ -1510,6 +1523,7 @@ void CPUDisassembly::copySelectionSlot(bool copyBytes)
     QTextStream stream(&selectionString);
     pushSelectionInto(copyBytes, stream);
     Bridge::CopyToClipboard(selectionString);
+    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
@@ -1584,21 +1598,29 @@ void CPUDisassembly::copySelectionToFileNoBytesSlot()
 
 void CPUDisassembly::copyAddressSlot()
 {
-    QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
-    Bridge::CopyToClipboard(addrText);
+    QString clipboard = "";
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
+    {
+        clipboard += ToPtrString(rvaToVa(inst.rva)) + "\r\n";
+    });
+    Bridge::CopyToClipboard(clipboard);
+    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copyRvaSlot()
 {
-    duint addr = rvaToVa(getInitialSelection());
-    duint base = DbgFunctions()->ModBaseFromAddr(addr);
-    if(base)
+    QString clipboard = "";
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
-        QString addrText = ToHexString(addr - base);
-        Bridge::CopyToClipboard(addrText);
-    }
-    else
-        SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
+        duint addr = rvaToVa(inst.rva);
+        duint base = DbgFunctions()->ModBaseFromAddr(addr);
+        if(base)
+            clipboard += ToHexString(addr - base) + "\r\n";
+        else
+            SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
+    });
+    Bridge::CopyToClipboard(clipboard);
+    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copyDisassemblySlot()
@@ -1612,6 +1634,7 @@ void CPUDisassembly::copyDisassemblySlot()
             clipboard += token.text;
     });
     Bridge::CopyToClipboard(clipboard);
+    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copyDataSlot()
@@ -1629,6 +1652,7 @@ void CPUDisassembly::labelCopySlot()
 {
     QString symbol = ((QAction*)sender())->text();
     Bridge::CopyToClipboard(symbol);
+    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::findCommandSlot()
@@ -1958,13 +1982,17 @@ void CPUDisassembly::createThreadSlot()
 void CPUDisassembly::copyTokenTextSlot()
 {
     Bridge::CopyToClipboard(mHighlightToken.text);
+    GuiAddStatusBarMessage(clipMsg);
 }
 
 void CPUDisassembly::copyTokenValueSlot()
 {
     QString text;
     if(getTokenValueText(text))
+    {
         Bridge::CopyToClipboard(text);
+        GuiAddStatusBarMessage(clipMsg);
+    }
 }
 
 bool CPUDisassembly::getTokenValueText(QString & text)

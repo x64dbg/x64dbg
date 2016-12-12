@@ -71,6 +71,7 @@ public slots:
     void findGUIDSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
     void selectionSetSlot(const SELECTIONDATA* selection);
+    void selectionUpdatedSlot();
     void enableHighlightingModeSlot();
     void binaryEditSlot();
     void binaryFillSlot();
@@ -169,6 +170,7 @@ private:
     MenuBuilder* mMenuBuilder;
     MenuBuilder* mHighlightMenuBuilder;
     bool mHighlightContextMenu = false;
+    const char *clipMsg = "The data has been copied to clipboard!\r\n";
 };
 
 #endif // CPUDISASSEMBLY_H
