@@ -22,7 +22,7 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
-    connect(Bridge::getBridge(), SIGNAL(addMsgToLog(const char*)), this, SLOT(addMsgToLogSlot(const char*)));
+    connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QByteArray)), this, SLOT(addMsgToLogSlot(QByteArray)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
@@ -150,7 +150,7 @@ static void linkify(QString & msg)
  * @brief LogView::addMsgToLogSlot Adds a message to the log view. This function is a slot for Bridge::addMsgToLog.
  * @param msg The log message
  */
-void LogView::addMsgToLogSlot(const char* msg)
+void LogView::addMsgToLogSlot(QByteArray msg)
 {
     /*
      * This supports the 'UTF-8 Everywhere' manifesto.
@@ -183,9 +183,9 @@ void LogView::addMsgToLogSlot(const char* msg)
             std::string temp;
             size_t offset = 0;
             size_t buffersize = 0;
-            if(strstr(msg, "\r\n") != nullptr) // Don't replace "\r\n" to "\n" if there is none
+            if(strstr(msg.constData(), "\r\n") != nullptr) // Don't replace "\r\n" to "\n" if there is none
             {
-                temp = msg;
+                temp = msg.constData();
                 while(true)
                 {
                     size_t index = temp.find("\r\n", offset);
@@ -199,7 +199,7 @@ void LogView::addMsgToLogSlot(const char* msg)
             }
             else
             {
-                data = msg;
+                data = msg.constData();
                 buffersize = strlen(msg);
             }
             if(!fwrite(data, buffersize, 1, logRedirection))
@@ -406,5 +406,5 @@ void LogView::pasteSlot()
         return;
     if(!clipboardText.endsWith('\n'))
         clipboardText.append('\n');
-    addMsgToLogSlot(clipboardText.toUtf8().constData());
+    addMsgToLogSlot(clipboardText.toUtf8());
 }

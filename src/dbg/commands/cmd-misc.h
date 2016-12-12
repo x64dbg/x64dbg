@@ -20,3 +20,5 @@ bool cbDebugSetCmdline(int argc, char* argv[]);
 
 bool cbInstrMnemonichelp(int argc, char* argv[]);
 bool cbInstrMnemonicbrief(int argc, char* argv[]);
+
+bool cbInstrConfig(int argc, char* argv[]);

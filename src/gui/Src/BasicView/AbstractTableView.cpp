@@ -1265,10 +1265,18 @@ bool AbstractTableView::SortBy::AsText(const QString & a, const QString & b)
 
 bool AbstractTableView::SortBy::AsInt(const QString & a, const QString & b)
 {
-    return a.toLongLong() < b.toLongLong();
+    if(a.toLongLong() < b.toLongLong())
+        return true;
+    if(a.toLongLong() > b.toLongLong())
+        return false;
+    return duint(&a) < duint(&b);
 }
 
 bool AbstractTableView::SortBy::AsHex(const QString & a, const QString & b)
 {
-    return a.toLongLong(0, 16) < b.toLongLong(0, 16);
+    if(a.toLongLong(0, 16) < b.toLongLong(0, 16))
+        return true;
+    if(a.toLongLong(0, 16) > b.toLongLong(0, 16))
+        return false;
+    return duint(&a) < duint(&b);
 }

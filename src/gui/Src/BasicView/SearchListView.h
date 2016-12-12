@@ -25,6 +25,7 @@ public:
     SearchListViewTable* mCurList;
     QLineEdit* mSearchBox;
     int mSearchStartCol;
+    QString mLastFirstColValue;
 
     bool findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith);
     void refreshSearchList();
@@ -36,7 +37,7 @@ private slots:
     void listContextMenu(const QPoint & pos);
     void doubleClickedSlot();
     void searchSlot();
-    void on_checkBoxRegex_toggled(bool checked);
+    void on_checkBoxRegex_stateChanged(int state);
     void on_checkBoxLock_toggled(bool checked);
 
 signals:

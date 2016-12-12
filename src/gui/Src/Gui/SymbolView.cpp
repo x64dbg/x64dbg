@@ -65,7 +65,8 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
 #endif //_WIN64
 
     // Setup log edit
-    ui->symbolLogEdit->setFont(mModuleList->mList->font());
+    ui->symbolLogEdit->setFont(ConfigFont("Log"));
+
     ui->symbolLogEdit->setStyleSheet("QTextEdit { background-color: rgb(255, 251, 240) }");
     ui->symbolLogEdit->setUndoRedoEnabled(false);
     ui->symbolLogEdit->setReadOnly(true);
@@ -92,6 +93,8 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(symbolRefreshCurrent()), this, SLOT(symbolRefreshCurrent()));
     connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(symbolContextMenu(QMenu*)));
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(enterPressedSlot()));
+    connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
+    connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
 }
 
 SymbolView::~SymbolView()
@@ -223,6 +226,7 @@ void SymbolView::refreshShortcutsSlot()
 
 void SymbolView::updateStyle()
 {
+    ui->symbolLogEdit->setFont(ConfigFont("Log"));
     ui->symbolLogEdit->setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
 }
 

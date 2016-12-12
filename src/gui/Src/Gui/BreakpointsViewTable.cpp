@@ -1,40 +1,48 @@
 #include "BreakpointsViewTable.h"
 #include "Configuration.h"
+#include "Bridge.h"
 
 BreakpointsViewTable::BreakpointsViewTable(QWidget* parent)
     : StdTable(parent)
 {
-    BgColor = QColor(Qt::black); // predefined
-    TxtColor = QColor(Qt::white); // predefined
-    GetConfigColors();
+    updateColors();
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
 }
 
-void BreakpointsViewTable::GetConfigColors()
+void BreakpointsViewTable::updateColors()
 {
-    BgColor = ConfigColor("ThreadCurrentBackgroundColor");
-    TxtColor = ConfigColor("ThreadCurrentColor");
+    StdTable::updateColors();
+    mCipBackgroundColor = ConfigColor("ThreadCurrentBackgroundColor");
+    mCipColor = ConfigColor("ThreadCurrentColor");
 }
 
-duint BreakpointsViewTable::GetCIP() { return DbgValFromString("cip"); }
+void BreakpointsViewTable::disassembleAtSlot(dsint cip, dsint addr)
+{
+    Q_UNUSED(addr)
+    mCip = cip;
+}
 
 QString BreakpointsViewTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    duint bpAddr = 0;
     QString ret = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-    QString bpAddrStr = getCellContent(rowBase + rowOffset, col);
 
+    if(!col) //address
+    {
+        QString bpAddrStr = getCellContent(rowBase + rowOffset, col);
+        bool valid = false;
 #ifdef _WIN64
-    bpAddr = bpAddrStr.toULongLong(0, 16);
+        duint bpAddr = bpAddrStr.toULongLong(&valid, 16);
 #else //x86
-    bpAddr = bpAddrStr.toULong(0, 16);
+        duint bpAddr = bpAddrStr.toULong(&valid, 16);
 #endif //_WIN64
 
-    if(GetCIP() == bpAddr && !col)
-    {
-        painter->fillRect(QRect(x, y, w, h), QBrush(BgColor));
-        painter->setPen(QPen(TxtColor));
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, bpAddrStr);
-        ret = "";
+        if(valid && bpAddr == mCip)
+        {
+            painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
+            painter->setPen(QPen(mCipColor));
+            painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, bpAddrStr);
+            ret = "";
+        }
     }
 
     return ret;

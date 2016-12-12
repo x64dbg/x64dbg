@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>445</height>
+    <height>508</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -314,6 +314,13 @@
         <widget class="QCheckBox" name="chkHardcoreThreadSwitchWarning">
          <property name="text">
           <string>Log If the Thread Has Switched</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkVerboseExceptionLogging">
+         <property name="text">
+          <string>Enable Verbose Exception Logging</string>
          </property>
         </widget>
        </item>

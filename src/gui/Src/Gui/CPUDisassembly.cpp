@@ -860,7 +860,8 @@ void CPUDisassembly::setLabelAddressSlot()
         addr = instr_info.addr;
     else
         return;
-
+    if(!DbgMemIsValidReadPtr(addr))
+        return;
     LineEditDialog mLineEdit(this);
     QString addr_text = ToPtrString(addr);
     char label_text[MAX_LABEL_SIZE] = "";
