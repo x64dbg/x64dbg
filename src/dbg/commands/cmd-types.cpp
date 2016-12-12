@@ -177,13 +177,13 @@ bool cbInstrAddMember(int argc, char* argv[])
     auto type = argv[2];
     auto name = argv[3];
     int arrsize = 0, offset = -1;
-    if(argc > 3)
+    if(argc > 4)
     {
         duint value;
         if(!valfromstring(argv[4], &value, false))
             return false;
         arrsize = int(value);
-        if(argc > 4)
+        if(argc > 5)
         {
             if(!valfromstring(argv[5], &value, false))
                 return false;
@@ -331,6 +331,12 @@ struct PrintVisitor : TypeManager::Visitor
         return StringUtils::sprintf(format, *(T*)data);
     }
 
+    template<typename T, typename U>
+    static String basicPrint(void* data, const char* format)
+    {
+        return StringUtils::sprintf(format, *(T*)data, *(U*)data);
+    }
+
     static bool cbPrintPrimitive(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
     {
         if(!type->addr)
@@ -350,41 +356,41 @@ struct PrintVisitor : TypeManager::Visitor
                 valueStr.clear();
                 break;
             case Int8:
-                valueStr += basicPrint<char>(data(), "%c");
+                valueStr += StringUtils::sprintf("0x%02X, '%s'", *(unsigned char*)data(), StringUtils::Escape(*(char*)data()).c_str());
                 break;
             case Uint8:
-                valueStr += basicPrint<unsigned char>(data(), "0x%02X");
+                valueStr += basicPrint<unsigned char, unsigned char>(data(), "0x%02X, %d");
                 break;
             case Int16:
-                valueStr += basicPrint<short>(data(), "%d");
+                valueStr += basicPrint<unsigned short, short>(data(), "0x%04X, %d");
                 break;
             case Uint16:
-                valueStr += basicPrint<short>(data(), "%u");
+                valueStr += basicPrint<unsigned short, unsigned short>(data(), "0x%04X, %u");
                 break;
             case Int32:
-                valueStr += basicPrint<int>(data(), "%d");
+                valueStr += basicPrint<unsigned int, int>(data(), "0x%08X, %d");
                 break;
             case Uint32:
-                valueStr += basicPrint<unsigned int>(data(), "%u");
+                valueStr += basicPrint<unsigned int, unsigned int>(data(), "0x%08X, %u");
                 break;
             case Int64:
-                valueStr += basicPrint<long long>(data(), "%lld");
+                valueStr += basicPrint<unsigned long long, long long>(data(), "0x%016llX, %lld");
                 break;
             case Uint64:
-                valueStr += basicPrint<unsigned long long>(data(), "%llu");
+                valueStr += basicPrint<unsigned long long, unsigned long long>(data(), "0x%016llX, %llu");
                 break;
             case Dsint:
 #ifdef _WIN64
-                valueStr += basicPrint<dsint>(data(), "%lld");
+                valueStr += basicPrint<duint, dsint>(data(), "0x%016llX, %lld");
 #else
-                valueStr += basicPrint<dsint>(data(), "%d");
+                valueStr += basicPrint<duint, dsint>(data(), "0x%08X, %d");
 #endif //_WIN64
                 break;
             case Duint:
 #ifdef _WIN64
-                valueStr += basicPrint<duint>(data(), "%llu");
+                valueStr += basicPrint<duint, duint>(data(), "0x%016llX, %llu");
 #else
-                valueStr += basicPrint<duint>(data(), "%u");
+                valueStr += basicPrint<duint, duint>(data(), "0x%08X, %u");
 #endif //_WIN64
                 break;
             case Float:
@@ -398,12 +404,12 @@ struct PrintVisitor : TypeManager::Visitor
                 break;
             case PtrString:
             {
-                valueStr += basicPrint<char*>(data(), "0x%p");
+                valueStr += basicPrint<char*>(data(), "0x%p ");
                 Memory<char*> strdata(MAX_STRING_SIZE + 1);
                 if(MemRead(*(duint*)data(), strdata(), strdata.size() - 1))
                 {
                     valueStr += "\"";
-                    valueStr += strdata();
+                    valueStr += StringUtils::Escape(strdata());
                     valueStr.push_back('\"');
                 }
                 else
@@ -413,7 +419,7 @@ struct PrintVisitor : TypeManager::Visitor
 
             case PtrWString:
             {
-                valueStr += basicPrint<wchar_t*>(data(), "0x%p");
+                valueStr += basicPrint<wchar_t*>(data(), "0x%p ");
                 Memory<wchar_t*> strdata(MAX_STRING_SIZE * 2 + 2);
                 if(MemRead(*(duint*)data(), strdata(), strdata.size() - 2))
                 {
@@ -664,6 +670,7 @@ bool cbInstrParseTypes(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 2))
         return false;
     auto owner = FileHelper::GetFileName(argv[1]);
+    ClearTypes(owner);
     std::string data;
     if(!FileHelper::ReadAllText(argv[1], data))
     {

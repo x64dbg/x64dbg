@@ -22,6 +22,7 @@ public:
 
 private slots:
     void on_btnAttach_clicked();
+    void on_btnFindWindow_clicked();
     void refresh();
     void processListContextMenu(QMenu* wMenu);
 

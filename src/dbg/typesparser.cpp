@@ -76,7 +76,10 @@ bool ParseTypes(const std::string & parse, const std::string & owner)
                 tm.name = lexer.TokString(tdefToks[tdefToks.size() - 1]);
                 tdefToks.pop_back();
                 for(auto & t : tdefToks)
-                    if(!t.IsType() && t.Token != Lexer::tok_op_mul && t.Token != Lexer::tok_identifier)
+                    if(!t.IsType() &&
+                            t.Token != Lexer::tok_op_mul &&
+                            t.Token != Lexer::tok_identifier &&
+                            t.Token != Lexer::tok_void)
                     {
                         errLine();
                         dprintf("token %s is not a type...\n", lexer.TokString(t).c_str());
@@ -160,7 +163,8 @@ bool ParseTypes(const std::string & parse, const std::string & owner)
                 }
                 else if(!t.IsType() &&
                         t.Token != Lexer::tok_op_mul &&
-                        t.Token != Lexer::tok_identifier)
+                        t.Token != Lexer::tok_identifier &&
+                        t.Token != Lexer::tok_void)
                 {
                     errLine();
                     dprintf("token %s is not a type...\n", lexer.TokString(t).c_str());

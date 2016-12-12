@@ -61,6 +61,7 @@ void SettingsDialog::LoadSettings()
     settings.engineIgnoreInconsistentBreakpoints = false;
     settings.engineMaxTraceCount = 50000;
     settings.engineHardcoreThreadSwitchWarning = false;
+    settings.engineVerboseExceptionLogging = true;
     settings.exceptionRanges = &realExceptionRanges;
     settings.disasmArgumentSpaces = false;
     settings.disasmMemorySpaces = false;
@@ -126,6 +127,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "NoScriptTimeout", &settings.engineNoScriptTimeout);
     GetSettingBool("Engine", "IgnoreInconsistentBreakpoints", &settings.engineIgnoreInconsistentBreakpoints);
     GetSettingBool("Engine", "HardcoreThreadSwitchWarning", &settings.engineHardcoreThreadSwitchWarning);
+    GetSettingBool("Engine", "VerboseExceptionLogging", &settings.engineVerboseExceptionLogging);
     if(BridgeSettingGetUint("Engine", "MaxTraceCount", &cur))
         settings.engineMaxTraceCount = int(cur);
     switch(settings.engineCalcType)
@@ -159,6 +161,7 @@ void SettingsDialog::LoadSettings()
     ui->chkNoScriptTimeout->setChecked(settings.engineNoScriptTimeout);
     ui->chkIgnoreInconsistentBreakpoints->setChecked(settings.engineIgnoreInconsistentBreakpoints);
     ui->chkHardcoreThreadSwitchWarning->setChecked(settings.engineHardcoreThreadSwitchWarning);
+    ui->chkVerboseExceptionLogging->setChecked(settings.engineVerboseExceptionLogging);
     ui->spinMaxTraceCount->setValue(settings.engineMaxTraceCount);
 
     //Exceptions tab
@@ -302,6 +305,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "NoScriptTimeout", settings.engineNoScriptTimeout);
     BridgeSettingSetUint("Engine", "IgnoreInconsistentBreakpoints", settings.engineIgnoreInconsistentBreakpoints);
     BridgeSettingSetUint("Engine", "MaxTraceCount", settings.engineMaxTraceCount);
+    BridgeSettingSetUint("Engine", "VerboseExceptionLogging", settings.engineVerboseExceptionLogging);
     BridgeSettingSetUint("Engine", "HardcoreThreadSwitchWarning", settings.engineHardcoreThreadSwitchWarning);
 
     //Exceptions tab
@@ -576,6 +580,11 @@ void SettingsDialog::on_chkEnableDebugPrivilege_stateChanged(int arg1)
 void SettingsDialog::on_chkHardcoreThreadSwitchWarning_toggled(bool checked)
 {
     settings.engineHardcoreThreadSwitchWarning = checked;
+}
+
+void SettingsDialog::on_chkVerboseExceptionLogging_toggled(bool checked)
+{
+    settings.engineVerboseExceptionLogging = checked;
 }
 
 void SettingsDialog::on_chkEnableSourceDebugging_stateChanged(int arg1)

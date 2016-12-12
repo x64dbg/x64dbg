@@ -9,6 +9,7 @@
 #include "function.h"
 #include "argument.h"
 #include "loop.h"
+#include "debugger.h"
 
 bool cbInstrDbsave(int argc, char* argv[])
 {
@@ -19,7 +20,10 @@ bool cbInstrDbsave(int argc, char* argv[])
 bool cbInstrDbload(int argc, char* argv[])
 {
     if(argc <= 1)
+    {
+        DebugRemoveBreakpoints();
         DbClear();
+    }
     DbLoad(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr);
     GuiUpdateAllViews();
     return true;
@@ -27,6 +31,7 @@ bool cbInstrDbload(int argc, char* argv[])
 
 bool cbInstrDbclear(int argc, char* argv[])
 {
+    DebugRemoveBreakpoints();
     DbClear();
     GuiUpdateAllViews();
     return true;

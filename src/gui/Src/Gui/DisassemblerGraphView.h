@@ -15,13 +15,13 @@
 #include <algorithm>
 #include <QMutex>
 #include "Bridge.h"
-#include "LineEditDialog.h"
 #include "RichTextPainter.h"
 #include "QBeaEngine.h"
 
 class MenuBuilder;
 class CachedFontMetrics;
 class GotoDialog;
+class XrefBrowseDialog;
 
 class DisassemblerGraphView : public QAbstractScrollArea
 {
@@ -48,10 +48,7 @@ public:
 
         void addPoint(int row, int col, int index = 0)
         {
-            Point point;
-            point.row = row;
-            point.col = col;
-            point.index = 0;
+            Point point = {row, col, 0};
             this->points.push_back(point);
             if(int(this->points.size()) > 1)
                 this->points[this->points.size() - 2].index = index;
@@ -145,16 +142,6 @@ public:
         duint true_path = 0;
         duint false_path = 0;
         bool terminal = false;
-
-        void print() const
-        {
-            puts("----BLOCK---");
-            printf("header_text: %s\n", header_text.ToQString().toUtf8().constData());
-            puts("exits:");
-            for(auto exit : exits)
-                printf("%X ", exit);
-            puts("\n--ENDBLOCK--");
-        }
     };
 
     struct DisassemblerBlock
@@ -162,11 +149,6 @@ public:
         DisassemblerBlock() {}
         explicit DisassemblerBlock(Block & block)
             : block(block) {}
-
-        void print() const
-        {
-            block.print();
-        }
 
         Block block;
         std::vector<DisassemblerEdge> edges;
@@ -252,7 +234,6 @@ public:
     void show_cur_instr(bool force = false);
     bool navigate(duint addr);
     void fontChanged();
-    QString getSymbolicName(duint addr);
 
 public slots:
     void updateTimerEvent();
@@ -275,6 +256,7 @@ public slots:
     void saveImageSlot();
     void setCommentSlot();
     void setLabelSlot();
+    void xrefSlot();
 
 private:
     QString status;
@@ -339,6 +321,7 @@ private:
     std::unordered_map<duint, duint> currentBlockMap;
     QBeaEngine disasm;
     GotoDialog* mGoto;
+    XrefBrowseDialog* mXrefDlg;
 protected:
 #include "ActionHelpers.h"
 };

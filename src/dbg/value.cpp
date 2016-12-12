@@ -16,6 +16,7 @@
 #include "function.h"
 #include "threading.h"
 #include "TraceRecord.h"
+#include "plugin_loader.h"
 
 static bool dosignedcalc = false;
 
@@ -1571,14 +1572,10 @@ static bool isdigitduint(char digit)
 */
 bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
-    if(!value || !string)
+    if(!value || !string || !*string)
         return false;
-    if(!*string)
-    {
-        *value = 0;
-        return true;
-    }
-    else if(string[0] == '['
+
+    if(string[0] == '['
             || (isdigitduint(string[0]) && string[1] == ':' && string[2] == '[')
             || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[')) //memory location
     {
@@ -1729,10 +1726,31 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             inc = 1;
         return convertNumber(string + inc, *value, 16);
     }
-    if(baseonly)
-        return false;
+
     if(isvar)
         *isvar = false;
+    if(hexonly)
+        *hexonly = true;
+    if(value_size)
+        *value_size = sizeof(duint);
+
+    PLUG_CB_VALFROMSTRING info;
+    info.string = string;
+    info.value = 0;
+    info.value_size = value_size;
+    info.isvar = isvar;
+    info.hexonly = hexonly;
+    info.retval = false;
+    plugincbcall(CB_VALFROMSTRING, &info);
+    if(info.retval)
+    {
+        *value = info.value;
+        return true;
+    }
+
+    if(baseonly)
+        return false;
+
     if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
         return true;
     else if(LabelFromString(string, value))  //then come labels
@@ -1749,6 +1767,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         duint start;
         return result && FunctionGet(*value, &start, nullptr) && *value == start;
     }
+
     if(!silent)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid value: \"%s\"!\n"), string);
     return false; //nothing was OK
@@ -2325,6 +2344,15 @@ bool valtostring(const char* string, duint value, bool silent)
         GuiUpdateAllViews(); //repaint gui
         return true;
     }
+
+    PLUG_CB_VALTOSTRING info;
+    info.string = string;
+    info.value = value;
+    info.retval = false;
+    plugincbcall(CB_VALTOSTRING, &info);
+    if(info.retval)
+        return true;
+
     return varset(string, value, false); //variable
 }
 

@@ -244,6 +244,11 @@ String StringUtils::sprintf(_Printf_format_string_ const char* format, ...)
 {
     va_list args;
     va_start(args, format);
+
+    char sbuffer[64] = "";
+    if(_vsnprintf_s(sbuffer, _TRUNCATE, format, args) != -1)
+        return sbuffer;
+
     std::vector<char> buffer(256, '\0');
     while(true)
     {
@@ -264,6 +269,11 @@ WString StringUtils::sprintf(_Printf_format_string_ const wchar_t* format, ...)
 {
     va_list args;
     va_start(args, format);
+
+    wchar_t sbuffer[64] = L"";
+    if(_vsnwprintf_s(sbuffer, _TRUNCATE, format, args) != -1)
+        return sbuffer;
+
     std::vector<wchar_t> buffer(256, L'\0');
     while(true)
     {

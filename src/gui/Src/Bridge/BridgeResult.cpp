@@ -4,7 +4,7 @@
 BridgeResult::BridgeResult()
 {
     Bridge::getBridge()->mBridgeMutex->lock();
-    Bridge::getBridge()->hasBridgeResult = false;
+    ResetEvent(Bridge::getBridge()->hResultEvent);
 }
 
 BridgeResult::~BridgeResult()
@@ -14,7 +14,6 @@ BridgeResult::~BridgeResult()
 
 dsint BridgeResult::Wait()
 {
-    while(!Bridge::getBridge()->hasBridgeResult) //wait for thread completion
-        Sleep(1);
+    WaitForSingleObject(Bridge::getBridge()->hResultEvent, INFINITE);
     return Bridge::getBridge()->bridgeResult;
 }

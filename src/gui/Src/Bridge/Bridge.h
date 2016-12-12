@@ -45,7 +45,7 @@ signals:
     void disassembleAt(dsint va, dsint eip);
     void repaintGui();
     void dbgStateChanged(DBGSTATE state);
-    void addMsgToLog(QString msg);
+    void addMsgToLog(QByteArray msg);
     void clearLog();
     void close();
     void updateRegisters();
@@ -148,7 +148,7 @@ signals:
 private:
     QMutex* mBridgeMutex;
     dsint bridgeResult;
-    volatile bool hasBridgeResult;
+    HANDLE hResultEvent;
     volatile bool dbgStopped;
 };
 

@@ -19,12 +19,13 @@ Bridge::Bridge(QObject* parent) : QObject(parent)
     scriptView = 0;
     referenceManager = 0;
     bridgeResult = 0;
-    hasBridgeResult = false;
+    hResultEvent = CreateEventW(nullptr, true, true, nullptr);
     dbgStopped = false;
 }
 
 Bridge::~Bridge()
 {
+    CloseHandle(hResultEvent);
     delete mBridgeMutex;
 }
 
@@ -37,7 +38,7 @@ void Bridge::CopyToClipboard(const QString & text)
 void Bridge::setResult(dsint result)
 {
     bridgeResult = result;
-    hasBridgeResult = true;
+    SetEvent(hResultEvent);
 }
 
 /************************************************************************************
@@ -93,8 +94,11 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_ADD_MSG_TO_LOG:
-        emit addMsgToLog(QString((const char*)param1));
-        break;
+    {
+        auto msg = (const char*)param1;
+        emit addMsgToLog(QByteArray(msg, strlen(msg) + 1)); //Speed up performance: don't convert to UCS-2 QString
+    }
+    break;
 
     case GUI_CLEAR_LOG:
         emit clearLog();

@@ -374,7 +374,7 @@ void StdTable::copyLineToLogSlot()
             finalText += "\r\n";
         }
     }
-    emit Bridge::getBridge()->addMsgToLog(finalText);
+    emit Bridge::getBridge()->addMsgToLog(finalText.toUtf8());
 }
 
 QString StdTable::copyTable(const std::vector<int> & colWidths)
@@ -443,7 +443,7 @@ void StdTable::copyTableToLogSlot()
     int colCount = getColumnCount();
     for(int i = 0; i < colCount; i++)
         colWidths.push_back(getColumnWidth(i) / getCharWidth());
-    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths));
+    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths).toUtf8());
 }
 
 void StdTable::copyTableResizeSlot()
@@ -473,7 +473,7 @@ void StdTable::copyTableResizeToLogSlot()
             max = std::max(getCellContent(j, i).length(), max);
         colWidths.push_back(max);
     }
-    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths));
+    emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths).toUtf8());
 }
 
 void StdTable::copyEntrySlot()
@@ -617,6 +617,6 @@ void StdTable::headerButtonPressedSlot(int col)
 void StdTable::reloadData()
 {
     if(mSort.first != -1) //re-sort if the user wants to sort
-        qSort(mData.begin(), mData.end(), ColumnCompare(mSort.first, mSort.second, getColumnSortBy(mSort.first)));
+        std::stable_sort(mData.begin(), mData.end(), ColumnCompare(mSort.first, mSort.second, getColumnSortBy(mSort.first)));
     AbstractTableView::reloadData();
 }

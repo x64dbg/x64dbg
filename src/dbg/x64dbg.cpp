@@ -412,6 +412,8 @@ static void registercommands()
     dbgcmdnew("mnemonichelp", cbInstrMnemonichelp, false); //mnemonic help
     dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
 
+    dbgcmdnew("config", cbInstrConfig, false); //get or set config uint
+
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)
     dbgcmdnew("dprintf", cbPrintf, false); //printf

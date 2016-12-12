@@ -212,7 +212,8 @@ SOURCES += \
     gui/Src/Gui/CustomizeMenuDialog.cpp \
     gui/Src/Utils/MenuBuilder.cpp \
     gui/Src/Gui/SimpleTraceDialog.cpp \
-    gui/Src/Gui/StructWidget.cpp
+    gui/Src/Gui/StructWidget.cpp \
+    gui/Src/Gui/BreakpointsViewTable.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -436,7 +437,8 @@ HEADERS += \
     dbg/commands/cmd-variables.h \
     dbg/commands/cmd-watch-control.h \
     gui/Src/Gui/CustomizeMenuDialog.h \
-    gui/Src/Gui/SimpleTraceDialog.h
+    gui/Src/Gui/SimpleTraceDialog.h \
+    gui/Src/Gui/BreakpointsViewTable.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \

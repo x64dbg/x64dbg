@@ -194,6 +194,7 @@ bool bTraceRecordEnabledDuringTrace = true;
 bool bSkipInt3Stepping = false;
 bool bIgnoreInconsistentBreakpoints = false;
 bool bNoForegroundWindow = false;
+bool bVerboseExceptionLogging = true;
 duint DbgEvents = 0;
 
 static duint dbgcleartracestate()
@@ -1129,6 +1130,11 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+void DebugRemoveBreakpoints()
+{
+    BpEnumAll(cbRemoveModuleBreakpoints);
+}
+
 void cbStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -1872,7 +1878,8 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             }
         }
     }
-    DbgCmdExecDirect("exinfo"); //show extended exception information
+    if(bVerboseExceptionLogging)
+        DbgCmdExecDirect("exinfo"); //show extended exception information
     auto exceptionName = ExceptionCodeToName(ExceptionCode);
     if(!exceptionName.size())  //if no exception was found, try the error codes (RPC_S_*)
         exceptionName = ErrorCodeToName(ExceptionCode);
