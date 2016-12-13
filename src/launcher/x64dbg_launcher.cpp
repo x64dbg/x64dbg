@@ -13,7 +13,6 @@ typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
 typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
 typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
 
-
 LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
 LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
 
@@ -479,6 +478,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             }
             cmdLine += L"\"";
         }
+        else //empty command line
+        {
+            cmdLine += L" \"\"";
+        }
+
+        //append current working directory
+        TCHAR szCurDir[MAX_PATH] = TEXT("");
+        GetCurrentDirectory(_countof(szCurDir), szCurDir);
+        cmdLine += L" \"";
+        cmdLine += szCurDir;
+        cmdLine += L"\"";
 
         if(canDisableRedirect)
             rWow.DisableRedirect();

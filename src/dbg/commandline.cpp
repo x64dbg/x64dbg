@@ -4,7 +4,7 @@
 #include "debugger.h"
 #include "console.h"
 
-char commandLine[MAX_COMMAND_LINE_SIZE];
+char commandLine[MAX_SETTING_SIZE];
 
 void showcommandlineerror(cmdline_error_t* cmdline_error)
 {
