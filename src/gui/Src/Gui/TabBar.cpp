@@ -20,7 +20,7 @@ MHTabBar::MHTabBar(QWidget* parent, bool allowDetach, bool allowDelete) : QTabBa
     mAllowDetach = allowDetach;
     mAllowDelete = allowDelete;
     setAcceptDrops(true);
-    setElideMode(Qt::ElideRight);
+    setElideMode(Qt::ElideNone);
     setSelectionBehaviorOnRemove(QTabBar::SelectLeftTab);
     setMovable(true);
 }
