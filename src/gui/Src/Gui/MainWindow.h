@@ -272,6 +272,7 @@ private slots:
     void on_actionImportSettings_triggered();
     void on_actionImportdatabase_triggered();
     void on_actionExportdatabase_triggered();
+    void on_actionRestartAdmin_triggered();
 };
 
 #endif // MAINWINDOW_H

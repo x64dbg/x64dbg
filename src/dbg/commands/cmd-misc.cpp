@@ -623,3 +623,10 @@ bool cbInstrConfig(int argc, char* argv[])
         }
     }
 }
+
+bool cbInstrRestartadmin(int argc, char* argv[])
+{
+    if(dbgrestartadmin())
+        GuiCloseApplication();
+    return true;
+}

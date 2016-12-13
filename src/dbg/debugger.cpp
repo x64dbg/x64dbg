@@ -180,6 +180,7 @@ static String lastDebugText;
 static duint timeWastedDebugging = 0;
 static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
 static char szDebuggeeInitializationScript[MAX_PATH] = "";
+static WString gInitExe, gInitCmd, gInitDir;
 char szProgramDir[MAX_PATH] = "";
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
@@ -2437,6 +2438,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     INIT_STRUCT* init;
     if(attach)
     {
+        gInitExe = StringUtils::Utf8ToUtf16(szFileName);
         pid = DWORD(lpParameter);
         static PROCESS_INFORMATION pi_attached;
         memset(&pi_attached, 0, sizeof(pi_attached));
@@ -2445,7 +2447,8 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     else
     {
         init = (INIT_STRUCT*)lpParameter;
-        pDebuggedEntry = GetPE32DataW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0, UE_OEP);
+        gInitExe = StringUtils::Utf8ToUtf16(init->exe);
+        pDebuggedEntry = GetPE32DataW(gInitExe.c_str(), 0, UE_OEP);
         strcpy_s(szFileName, init->exe);
     }
 
@@ -2465,16 +2468,34 @@ static void debugLoopFunction(void* lpParameter, bool attach)
                 init->commandline = commandLineArguments;
         }
 
+        gInitCmd = StringUtils::Utf8ToUtf16(init->commandline);
+        gInitDir = StringUtils::Utf8ToUtf16(init->currentfolder);
+
         //start the process
         if(bFileIsDll)
-            fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(StringUtils::Utf8ToUtf16(init->exe).c_str(), false, StringUtils::Utf8ToUtf16(init->commandline).c_str(), StringUtils::Utf8ToUtf16(init->currentfolder).c_str(), 0);
+            fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(gInitExe.c_str(), false, gInitCmd.c_str(), gInitDir.c_str(), 0);
         else
-            fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(StringUtils::Utf8ToUtf16(init->exe).c_str(), StringUtils::Utf8ToUtf16(init->commandline).c_str(), StringUtils::Utf8ToUtf16(init->currentfolder).c_str());
+            fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(gInitExe.c_str(), gInitCmd.c_str(), gInitDir.c_str());
         if(!fdProcessInfo)
         {
+            auto lastError = GetLastError();
+            if(lastError == ERROR_ELEVATION_REQUIRED)
+            {
+                auto msg = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "The executable you are trying to debug requires elevation. Restart as admin?")));
+                auto title = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Elevation")));
+                auto answer = MessageBoxW(GuiGetWindowHandle(), msg.c_str(), title.c_str(), MB_ICONQUESTION | MB_YESNO);
+                wchar_t wszProgramPath[MAX_PATH] = L"";
+                if(answer == IDYES && dbgrestartadmin())
+                {
+                    fdProcessInfo = &g_pi;
+                    unlock(WAITID_STOP);
+                    GuiCloseApplication();
+                    return;
+                }
+            }
             fdProcessInfo = &g_pi;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), ErrorCodeToName(GetLastError()).c_str());
             unlock(WAITID_STOP);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), ErrorCodeToName(lastError).c_str());
             return;
         }
 
@@ -2504,6 +2525,11 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 
         if(!OpenProcessToken(fdProcessInfo->hProcess, TOKEN_ALL_ACCESS, &hProcessToken))
             hProcessToken = 0;
+    }
+    else //attach
+    {
+        gInitCmd.clear();
+        gInitDir.clear();
     }
 
     //set custom handlers
@@ -2622,4 +2648,20 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
 {
     debugLoopFunction(lpParameter, true);
     return 0;
+}
+
+bool dbgrestartadmin()
+{
+    wchar_t wszProgramPath[MAX_PATH] = L"";
+    if(GetModuleFileNameW(GetModuleHandleW(nullptr), wszProgramPath, _countof(wszProgramPath)))
+    {
+        std::wstring file = wszProgramPath;
+        auto last = wcsrchr(wszProgramPath, L'\\');
+        if(last)
+            *last = L'\0';
+        std::wstring params = gInitExe + L" " + gInitCmd + L" " + gInitDir;
+        auto result = ShellExecuteW(NULL, L"runas", file.c_str(), params.c_str(), wszProgramPath, SW_SHOWDEFAULT);
+        return int(result) > 32 && GetLastError() == ERROR_SUCCESS;
+    }
+    return false;
 }
