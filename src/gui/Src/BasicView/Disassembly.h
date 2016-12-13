@@ -109,6 +109,7 @@ public:
 
 signals:
     void selectionChanged(dsint parVA);
+    void selectionUpdated();
     void disassembledAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
     void updateWindowTitle(QString title);
 
