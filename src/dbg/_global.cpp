@@ -327,16 +327,27 @@ arch GetFileArchitecture(const char* szFileName)
         {
             retval = invalid;
             IMAGE_DOS_HEADER* pdh = (IMAGE_DOS_HEADER*)data;
-            if(pdh->e_magic == IMAGE_DOS_SIGNATURE && (size_t)pdh->e_lfanew < readSize)
+            if(pdh->e_magic == IMAGE_DOS_SIGNATURE)
             {
-                IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)(data + pdh->e_lfanew);
-                if(pnth->Signature == IMAGE_NT_SIGNATURE)
+                IMAGE_NT_HEADERS* pnth = NULL;
+                if((size_t)pdh->e_lfanew >= readSize)
+                {
+                    if(SetFilePointer(hFile, pdh->e_lfanew, NULL, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
+                    {
+                        if(ReadFile(hFile, data, readSize, &read, 0))
+                            pnth = (IMAGE_NT_HEADERS*)data;
+                    }
+                }
+                else
+                    pnth = (IMAGE_NT_HEADERS*)(data + pdh->e_lfanew);
+
+                if(pnth && pnth->Signature == IMAGE_NT_SIGNATURE)
                 {
                     if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0 && (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0)
                         retval = dotnet;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386) //x32
+                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)  //x32
                         retval = x32;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64) //x64
+                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)  //x64
                         retval = x64;
                 }
             }
@@ -344,6 +355,7 @@ arch GetFileArchitecture(const char* szFileName)
     }
     return retval;
 }
+
 
 /**
 \brief Query if x64dbg is running in Wow64 mode.
