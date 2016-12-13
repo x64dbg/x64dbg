@@ -413,6 +413,7 @@ static void registercommands()
     dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
 
     dbgcmdnew("config", cbInstrConfig, false); //get or set config uint
+    dbgcmdnew("restartadmin\1runas\1adminrestart", cbInstrRestartadmin, false); //restart x64dbg as administrator
 
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)

@@ -157,7 +157,7 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
     const char* szSymbolStore = szDefaultStore();
     if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore()))  //get default symbol store from settings
     {
-        strcpy_s(szDefaultStore(), MAX_SETTING_SIZE, "http://msdl.microsoft.com/download/symbols");
+        strcpy_s(szDefaultStore(), MAX_SETTING_SIZE, "https://msdl.microsoft.com/download/symbols");
         BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore());
     }
     if(argc < 2)  //no arguments

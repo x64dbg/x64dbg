@@ -1559,6 +1559,11 @@ BRIDGE_IMPEXP void GuiUpdateTypeWidget()
     _gui_sendmessage(GUI_UPDATE_TYPE_WIDGET, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiCloseApplication()
+{
+    _gui_sendmessage(GUI_CLOSE_APPLICATION, nullptr, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

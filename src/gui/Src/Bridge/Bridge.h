@@ -144,6 +144,7 @@ signals:
     void typeAddNode(void* parent, const TYPEDESCRIPTOR* type);
     void typeClear();
     void typeUpdateWidget();
+    void closeApplication();
 
 private:
     QMutex* mBridgeMutex;
