@@ -314,48 +314,40 @@ bool settingboolget(const char* section, const char* name)
 arch GetFileArchitecture(const char* szFileName)
 {
     arch retval = notfound;
-    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(szFileName).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFileW(StringUtils::Utf8ToUtf16(szFileName).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile != INVALID_HANDLE_VALUE)
     {
-        unsigned char data[0x1000];
+        IMAGE_DOS_HEADER idh;
         DWORD read = 0;
-        DWORD fileSize = GetFileSize(hFile, 0);
-        DWORD readSize = sizeof(data);
-        if(readSize > fileSize)
-            readSize = fileSize;
-        if(ReadFile(hFile, data, readSize, &read, 0))
+        if(ReadFile(hFile, &idh, sizeof(idh), &read, nullptr))
         {
-            retval = invalid;
-            IMAGE_DOS_HEADER* pdh = (IMAGE_DOS_HEADER*)data;
-            if(pdh->e_magic == IMAGE_DOS_SIGNATURE)
+            if(idh.e_magic == IMAGE_DOS_SIGNATURE)
             {
-                IMAGE_NT_HEADERS* pnth = NULL;
-                if((size_t)pdh->e_lfanew >= readSize)
+                IMAGE_NT_HEADERS inth;
+                memset(&inth, 0, sizeof(inth));
+                PIMAGE_NT_HEADERS pnth = nullptr;
+                if(SetFilePointer(hFile, idh.e_lfanew, nullptr, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
                 {
-                    if(SetFilePointer(hFile, pdh->e_lfanew, NULL, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
-                    {
-                        if(ReadFile(hFile, data, readSize, &read, 0))
-                            pnth = (IMAGE_NT_HEADERS*)data;
-                    }
+                    if(ReadFile(hFile, &inth, sizeof(inth), &read, nullptr))
+                        pnth = &inth;
+                    else if(ReadFile(hFile, &inth, sizeof(DWORD) + sizeof(WORD), &read, nullptr))
+                        pnth = &inth;
                 }
-                else
-                    pnth = (IMAGE_NT_HEADERS*)(data + pdh->e_lfanew);
-
                 if(pnth && pnth->Signature == IMAGE_NT_SIGNATURE)
                 {
                     if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0 && (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0)
                         retval = dotnet;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)  //x32
+                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
                         retval = x32;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)  //x64
+                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
                         retval = x64;
                 }
             }
         }
+        CloseHandle(hFile);
     }
     return retval;
 }
-
 
 /**
 \brief Query if x64dbg is running in Wow64 mode.
