@@ -71,6 +71,7 @@ public slots:
     void findGUIDSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
     void selectionSetSlot(const SELECTIONDATA* selection);
+    void selectionUpdatedSlot();
     void enableHighlightingModeSlot();
     void binaryEditSlot();
     void binaryFillSlot();
