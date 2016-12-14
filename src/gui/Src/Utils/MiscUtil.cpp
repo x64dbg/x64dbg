@@ -75,3 +75,19 @@ QString getSymbolicName(duint addr)
     else
         return addrText;
 }
+
+static bool isChristmas()
+{
+    srand(GetTickCount());
+    duint setting = 0;
+    if(BridgeSettingGetUint("Misc", "NoChristmas", &setting) && setting)
+        return false;
+    auto date = QDateTime::currentDateTime().date();
+    return date.month() == 12 && date.day() >= 23 && date.day() <= 26;
+}
+
+QString couldItBeChristmas(QString icon)
+{
+    static bool christmas = isChristmas();
+    return christmas ? QString("christmas%0.png").arg(rand() % 8 + 1) : icon;
+}
