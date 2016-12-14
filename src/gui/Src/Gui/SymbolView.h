@@ -52,6 +52,8 @@ private slots:
     void moduleEntropy();
     void emptySearchResultSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
+    void moduleLoad();
+    void moduleFree();
 
 signals:
     void showReferences();
@@ -81,6 +83,8 @@ private:
     QAction* mModSetPartyAction;
     QAction* mBrowseInExplorer;
     QAction* mFollowInMemMap;
+    QAction* mLoadLib;
+    QAction* mFreeLib;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

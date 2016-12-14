@@ -278,5 +278,7 @@
         <file>images/uac.png</file>
         <file>images/hidetab.png</file>
         <file>images/variables.png</file>
+	<file>images/lib_load.png</file>
+	<file>images/lib_free.png</file>
     </qresource>
 </RCC>
