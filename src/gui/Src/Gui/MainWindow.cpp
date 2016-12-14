@@ -1421,7 +1421,7 @@ void MainWindow::changeCommandLine()
     {
         DbgFunctions()->MemUpdateMap();
         GuiUpdateMemoryView();
-        GuiAddStatusBarMessage((tr("New command line: ") + mLineEdit.editText + "\n").toUtf8().constData());
+        GuiAddLogMessage((tr("New command line: ") + mLineEdit.editText + "\n").toUtf8().constData());
     }
 }
 

@@ -13,7 +13,6 @@ typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
 typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
 typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
 
-
 LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
 LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
 
@@ -22,7 +21,8 @@ enum arch
     notfound,
     invalid,
     x32,
-    x64
+    x64,
+    dotnet
 };
 
 static bool FileExists(const TCHAR* file)
@@ -33,28 +33,33 @@ static bool FileExists(const TCHAR* file)
 
 static arch GetFileArchitecture(const TCHAR* szFileName)
 {
-    auto retval = notfound;
-    auto hFile = CreateFile(szFileName, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+    arch retval = notfound;
+    HANDLE hFile = CreateFile(szFileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile != INVALID_HANDLE_VALUE)
     {
-        unsigned char data[0x1000];
+        IMAGE_DOS_HEADER idh;
         DWORD read = 0;
-        auto fileSize = GetFileSize(hFile, nullptr);
-        auto readSize = DWORD(sizeof(data));
-        if(readSize > fileSize)
-            readSize = fileSize;
-        if(ReadFile(hFile, data, readSize, &read, nullptr))
+        if(ReadFile(hFile, &idh, sizeof(idh), &read, nullptr))
         {
-            retval = invalid;
-            auto pdh = PIMAGE_DOS_HEADER(data);
-            if(pdh->e_magic == IMAGE_DOS_SIGNATURE && size_t(pdh->e_lfanew) < readSize)
+            if(idh.e_magic == IMAGE_DOS_SIGNATURE)
             {
-                auto pnth = PIMAGE_NT_HEADERS(data + pdh->e_lfanew);
-                if(pnth->Signature == IMAGE_NT_SIGNATURE)
+                IMAGE_NT_HEADERS inth;
+                memset(&inth, 0, sizeof(inth));
+                PIMAGE_NT_HEADERS pnth = nullptr;
+                if(SetFilePointer(hFile, idh.e_lfanew, nullptr, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
                 {
-                    if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)  //x32
+                    if(ReadFile(hFile, &inth, sizeof(inth), &read, nullptr))
+                        pnth = &inth;
+                    else if(ReadFile(hFile, &inth, sizeof(DWORD) + sizeof(WORD), &read, nullptr))
+                        pnth = &inth;
+                }
+                if(pnth && pnth->Signature == IMAGE_NT_SIGNATURE)
+                {
+                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0 && (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0)
+                        retval = dotnet;
+                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
                         retval = x32;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)  //x64
+                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
                         retval = x64;
                 }
             }
@@ -82,7 +87,6 @@ static bool BrowseFileOpen(HWND owner, const TCHAR* filter, const TCHAR* defext,
 
 static BOOL isWoW64()
 {
-
     LPFN_ISWOW64PROCESS fnIsWow64Process;
     BOOL isWoW64 = FALSE;
 
@@ -100,7 +104,6 @@ static BOOL isWoW64()
 
 static BOOL isWowRedirectionSupported()
 {
-
     BOOL bRedirectSupported = FALSE;
 
     _Wow64DisableRedirection = (LPFN_Wow64DisableWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64DisableWow64FsRedirection");
@@ -249,15 +252,12 @@ static bool ResolveShortcut(HWND hwnd, const TCHAR* szShortcutPath, TCHAR* szRes
 struct RedirectWow
 {
     PVOID oldValue = NULL;
-    RedirectWow() {}
+
     bool DisableRedirect()
     {
-        if(!_Wow64DisableRedirection(&oldValue))
-        {
-            return false;
-        }
-        return true;
+        return _Wow64DisableRedirection(&oldValue);
     }
+
     ~RedirectWow()
     {
         if(oldValue != NULL)
@@ -341,7 +341,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
     //Initialize COM
     CoInitialize(nullptr);
-
 
     //Get INI file path
     TCHAR szModulePath[MAX_PATH] = TEXT("");
@@ -479,9 +478,24 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             }
             cmdLine += L"\"";
         }
+        else //empty command line
+        {
+            cmdLine += L" \"\"";
+        }
+
+        //append current working directory
+        TCHAR szCurDir[MAX_PATH] = TEXT("");
+        GetCurrentDirectory(_countof(szCurDir), szCurDir);
+        cmdLine += L" \"";
+        cmdLine += szCurDir;
+        cmdLine += L"\"";
 
         if(canDisableRedirect)
             rWow.DisableRedirect();
+
+        auto architecture = GetFileArchitecture(szPath);
+        if(architecture == dotnet)
+            architecture = isWoW64() ? x64 : x32;
 
         switch(GetFileArchitecture(szPath))
         {
