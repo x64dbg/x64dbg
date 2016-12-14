@@ -398,6 +398,7 @@ static void registercommands()
 
     dbgcmdnew("HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
+	dbgcmdnew("freelib", cbDebugFreeLib, true); //Unload DLL
     dbgcmdnew("asm", cbInstrAssemble, true); //assemble instruction
     dbgcmdnew("gpa", cbInstrGpa, true); //get proc address
 
@@ -413,7 +414,6 @@ static void registercommands()
     dbgcmdnew("mnemonicbrief", cbInstrMnemonicbrief, false); //mnemonic brief
 
     dbgcmdnew("config", cbInstrConfig, false); //get or set config uint
-    dbgcmdnew("restartadmin\1runas\1adminrestart", cbInstrRestartadmin, false); //restart x64dbg as administrator
 
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)

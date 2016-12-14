@@ -275,8 +275,7 @@
         <file>images/visitstruct.png</file>
         <file>images/structaddr.png</file>
         <file>images/virtual.png</file>
-        <file>images/uac.png</file>
-        <file>images/hidetab.png</file>
-        <file>images/variables.png</file>
+        <file>images/lib_load.png</file>
+        <file>images/lib_unload.png</file>
     </qresource>
 </RCC>
