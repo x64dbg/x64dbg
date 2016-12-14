@@ -697,10 +697,8 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     break;
 
     case GUI_PROCESS_EVENTS:
-    {
         QCoreApplication::processEvents();
-    }
-    break;
+        break;
 
     case GUI_TYPE_ADDNODE:
     {
@@ -719,10 +717,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     break;
 
     case GUI_UPDATE_TYPE_WIDGET:
-    {
         emit typeUpdateWidget();
-    }
-    break;
+        break;
+
+    case GUI_CLOSE_APPLICATION:
+        emit closeApplication();
+        break;
     }
 
     return nullptr;

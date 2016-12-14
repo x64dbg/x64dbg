@@ -302,6 +302,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("FileDetach", Shortcut(tr("File -> Detach"), "Ctrl+Alt+F2", true));
     defaultShortcuts.insert("FileImportDatabase", Shortcut(tr("File -> Import database"), "", true));
     defaultShortcuts.insert("FileExportDatabase", Shortcut(tr("File -> Export database"), "", true));
+    defaultShortcuts.insert("FileRestartAdmin", Shortcut(tr("File -> Restart as Admin"), "", true));
     defaultShortcuts.insert("FileExit", Shortcut(tr("File -> Exit"), "Alt+X", true));
 
     defaultShortcuts.insert("ViewCpu", Shortcut(tr("View -> CPU"), "Alt+C", true));

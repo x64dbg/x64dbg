@@ -87,6 +87,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(addFavouriteItem(int, QString, QString)), this, SLOT(addFavouriteItem(int, QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(setFavouriteItemShortcut(int, QString, QString)), this, SLOT(setFavouriteItemShortcut(int, QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(displayMemMapWidget()));
+    connect(Bridge::getBridge(), SIGNAL(closeApplication()), this, SLOT(close()));
 
     // Setup menu API
     initMenuApi();
@@ -560,6 +561,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionDetach, ConfigShortcut("FileDetach"));
     setGlobalShortcut(ui->actionImportdatabase, ConfigShortcut("FileImportDatabase"));
     setGlobalShortcut(ui->actionExportdatabase, ConfigShortcut("FileExportDatabase"));
+    setGlobalShortcut(ui->actionRestartAdmin, ConfigShortcut("FileRestartAdmin"));
     setGlobalShortcut(ui->actionExit, ConfigShortcut("FileExit"));
 
     setGlobalShortcut(ui->actionCpu, ConfigShortcut("ViewCpu"));
@@ -1419,7 +1421,7 @@ void MainWindow::changeCommandLine()
     {
         DbgFunctions()->MemUpdateMap();
         GuiUpdateMemoryView();
-        GuiAddStatusBarMessage((tr("New command line: ") + mLineEdit.editText + "\n").toUtf8().constData());
+        GuiAddLogMessage((tr("New command line: ") + mLineEdit.editText + "\n").toUtf8().constData());
     }
 }
 
@@ -1948,4 +1950,9 @@ void MainWindow::onMenuCustomized()
         else
             delete moreCommands;
     }
+}
+
+void MainWindow::on_actionRestartAdmin_triggered()
+{
+    DbgCmdExec("restartadmin");
 }

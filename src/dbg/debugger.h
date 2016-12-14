@@ -133,6 +133,7 @@ DWORD WINAPI threadAttachLoop(void* lpParameter);
 void cbDetach();
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
 EXCEPTION_DEBUG_INFO getLastExceptionInfo();
+bool dbgrestartadmin();
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;

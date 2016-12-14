@@ -47,6 +47,7 @@
     <addaction name="actionImportdatabase"/>
     <addaction name="actionExportdatabase"/>
     <addaction name="actionPatches"/>
+    <addaction name="actionRestartAdmin"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -1118,13 +1119,30 @@
    </property>
   </action>
   <action name="actionHideTab">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/hidetab.png</normaloff>:/icons/images/hidetab.png</iconset>
+   </property>
    <property name="text">
     <string>Hide Tab</string>
    </property>
   </action>
   <action name="actionVariables">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/variables.png</normaloff>:/icons/images/variables.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Variables</string>
+   </property>
+  </action>
+  <action name="actionRestartAdmin">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/uac.png</normaloff>:/icons/images/uac.png</iconset>
+   </property>
+   <property name="text">
+    <string>Restart as Admin</string>
    </property>
   </action>
  </widget>

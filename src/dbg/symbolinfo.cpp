@@ -145,7 +145,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
 {
     // Default to Microsoft's symbol server
     if(!SymbolStore)
-        SymbolStore = "http://msdl.microsoft.com/download/symbols";
+        SymbolStore = "https://msdl.microsoft.com/download/symbols";
 
     // Build the vector of modules
     std::vector<SYMBOLMODULEINFO> modList;

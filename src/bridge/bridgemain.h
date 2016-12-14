@@ -986,6 +986,7 @@ typedef enum
     GUI_TYPE_ADDNODE,               // param1=void* parent,         param2=TYPEDESCRIPTOR* type
     GUI_TYPE_CLEAR,                 // param1=unused,               param2=unused
     GUI_UPDATE_TYPE_WIDGET,         // param1=unused,               param2=unused
+    GUI_CLOSE_APPLICATION,          // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1148,6 +1149,7 @@ BRIDGE_IMPEXP void GuiProcessEvents();
 BRIDGE_IMPEXP void* GuiTypeAddNode(void* parent, const TYPEDESCRIPTOR* type);
 BRIDGE_IMPEXP bool GuiTypeClear();
 BRIDGE_IMPEXP void GuiUpdateTypeWidget();
+BRIDGE_IMPEXP void GuiCloseApplication();
 
 #ifdef __cplusplus
 }
