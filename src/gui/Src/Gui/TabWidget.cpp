@@ -81,10 +81,6 @@ void MHTabWidget::AttachTab(QWidget* parent)
         }
     }
 
-    // Make Active
-    if(newIndex != -1)
-        setCurrentIndex(newIndex);
-
     // Cleanup Window
     disconnect(detachedWidget, SIGNAL(OnClose(QWidget*)), this, SLOT(AttachTab(QWidget*)));
     detachedWidget->hide();
