@@ -21,7 +21,7 @@ namespace Keystone
     static char* stristr(const char* haystack, const char* needle)
     {
         // Case insensitive strstr
-        // http://stackoverflow.com/questions/27303062/strstr-function-like-that-ignores-upper-or-lower-case
+        // https://stackoverflow.com/questions/27303062/strstr-function-like-that-ignores-upper-or-lower-case
         do
         {
             const char* h = haystack;
