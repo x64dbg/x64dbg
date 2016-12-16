@@ -216,7 +216,7 @@ typedef struct _TEB
     PVOID                   StackReserved;
 } TEB, *PTEB;
 
-// http://stackoverflow.com/questions/36961152/detect-windows-kit-8-0-and-windows-kit-8-1-sdks
+// https://stackoverflow.com/questions/36961152/detect-windows-kit-8-0-and-windows-kit-8-1-sdks
 #if defined(WINAPI_PARTITION_APP)
 #if (WINAPI_PARTITION_APP == 0x00000002)
 #define USING_WINDOWS_8_0_SDK

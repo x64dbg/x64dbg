@@ -60,7 +60,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mMemBPTable->loadColumnFromConfig("MemoryBreakpoint");
 
     // DLL
-    mDLLBPTable = new BreakpointsViewTable(this);
+    mDLLBPTable = new StdTable(this);
     mDLLBPTable->setWindowTitle("DllBreakpoints");
     mDLLBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mDLLBPTable->addColumnAt(8 + wCharWidth * 32, tr("Name"), false);
@@ -74,7 +74,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mDLLBPTable->loadColumnFromConfig("DLLBreakpoint");
 
     // Exception
-    mExceptionBPTable = new BreakpointsViewTable(this);
+    mExceptionBPTable = new StdTable(this);
     mExceptionBPTable->setWindowTitle("ExceptionBreakpoints");
     mExceptionBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mExceptionBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), tr("Exception Code"), false);

@@ -227,7 +227,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>0-1</string>
+          <string>10-11</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -243,7 +243,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>2-3</string>
+          <string>12-13</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -259,7 +259,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>4-5</string>
+          <string>14-15</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -275,7 +275,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>6-7</string>
+          <string>16-17</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -291,7 +291,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>8-9</string>
+          <string>18-19</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -307,7 +307,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>A-B</string>
+          <string>1A-1B</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -323,7 +323,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>C-D</string>
+          <string>1C-1D</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -339,7 +339,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>E-F</string>
+          <string>1E-1F</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
