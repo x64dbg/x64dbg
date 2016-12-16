@@ -255,7 +255,7 @@ struct RedirectWow
 
     bool DisableRedirect()
     {
-        return _Wow64DisableRedirection(&oldValue);
+        return !!_Wow64DisableRedirection(&oldValue);
     }
 
     ~RedirectWow()

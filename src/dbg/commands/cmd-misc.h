@@ -7,6 +7,7 @@ bool cbInstrZzz(int argc, char* argv[]);
 
 bool cbDebugHide(int argc, char* argv[]);
 bool cbDebugLoadLib(int argc, char* argv[]);
+bool cbDebugFreeLib(int argc, char* argv[]);
 bool cbInstrAssemble(int argc, char* argv[]);
 bool cbInstrGpa(int argc, char* argv[]);
 

@@ -138,7 +138,7 @@ String StringUtils::Escape(const String & s)
             break;
         default:
             int UTF8CharSize;
-            if(ch >= 0x80 && (UTF8CharSize = IsValidUTF8Char(s.c_str() + i, s.length() - i)) != 0) //UTF-8 Character is emitted directly
+            if(ch >= 0x80 && (UTF8CharSize = IsValidUTF8Char(s.c_str() + i, int(s.length() - i))) != 0) //UTF-8 Character is emitted directly
             {
                 memcpy(buf, s.c_str() + i, UTF8CharSize);
                 i += UTF8CharSize - 1;

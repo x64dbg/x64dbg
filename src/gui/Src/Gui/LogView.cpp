@@ -210,7 +210,7 @@ void LogView::addMsgToLogSlot(QByteArray msg)
                 redirectError = true;
             }
             if(loggingEnabled)
-                msgUtf16 = QString::fromUtf8(data, buffersize);
+                msgUtf16 = QString::fromUtf8(data, int(buffersize));
         }
     }
     else

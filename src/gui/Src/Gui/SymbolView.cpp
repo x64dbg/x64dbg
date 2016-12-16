@@ -6,8 +6,10 @@
 #include "YaraRuleSelectionDialog.h"
 #include "EntropyDialog.h"
 #include "LineEditDialog.h"
+#include "BrowseDialog.h"
 #include <QVBoxLayout>
 #include <QProcess>
+#include <QFileDialog>
 
 SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {
@@ -169,6 +171,20 @@ void SymbolView::setupContextMenu()
     mModuleList->mList->addAction(mBrowseInExplorer);
     mModuleList->mSearchList->addAction(mBrowseInExplorer);
     connect(mBrowseInExplorer, SIGNAL(triggered()), this, SLOT(moduleBrowse()));
+
+    mLoadLib = new QAction(DIcon("lib_load.png"), tr("Load library..."), this);
+    mLoadLib->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mLoadLib);
+    mModuleList->mList->addAction(mLoadLib);
+    mModuleList->mSearchList->addAction(mLoadLib);
+    connect(mLoadLib, SIGNAL(triggered()), this, SLOT(moduleLoad()));
+
+    mFreeLib = new QAction(DIcon("lib_free.png"), tr("Free library"), this);
+    mFreeLib->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    this->addAction(mFreeLib);
+    mModuleList->mList->addAction(mFreeLib);
+    mModuleList->mSearchList->addAction(mFreeLib);
+    connect(mFreeLib, SIGNAL(triggered()), this, SLOT(moduleFree()));
 
     mYaraAction = new QAction(DIcon("yara.png"), tr("&Yara Memory..."), this);
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(moduleYara()));
@@ -381,6 +397,8 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
         wMenu->addAction(mCopyPathAction);
         wMenu->addAction(mBrowseInExplorer);
     }
+    wMenu->addAction(mLoadLib);
+    wMenu->addAction(mFreeLib);
     wMenu->addAction(mYaraAction);
     wMenu->addAction(mYaraFileAction);
     wMenu->addAction(mEntropyAction);
@@ -459,6 +477,39 @@ void SymbolView::moduleDownloadSymbols()
 void SymbolView::moduleDownloadAllSymbols()
 {
     DbgCmdExec("symdownload");
+}
+
+void SymbolView::moduleLoad()
+{
+    QString cmd;
+    if(!DbgIsDebugging())
+        return;
+
+    BrowseDialog browse(this, tr("Select DLL"), tr("Enter the path of a DLL to load in the debuggee."), tr("DLL Files (*.dll);;All Files (*.*)"), QString(), false);
+    if(browse.exec() != QDialog::Accepted && browse.path.length())
+        return;
+    auto fileName = browse.path;
+    DbgCmdExec(QString("loadlib \"%1\"").arg(fileName.replace("\\", "\\\\")).toUtf8().constData());
+}
+
+void SymbolView::moduleFree()
+{
+    QString cmd;
+    if(!DbgIsDebugging())
+        return;
+
+    QString moduleName = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1);
+    if(moduleName.length() != 0)
+    {
+        QMessageBox::StandardButton reply;
+        QString question = tr("Are you sure you want to free the module: %1?\n\nThis could introduce unexpected behaviour to your debugging session...").arg(moduleName);
+        reply = QMessageBox::question(this,
+                                      tr("Free Library").toUtf8().constData(),
+                                      question.toUtf8().constData(),
+                                      QMessageBox::Yes | QMessageBox::No);
+        if(reply == QMessageBox::Yes)
+            DbgCmdExec(QString("freelib %1").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    }
 }
 
 void SymbolView::toggleBreakpoint()

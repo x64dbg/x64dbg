@@ -70,7 +70,7 @@ void MHTabWidget::AttachTab(QWidget* parent)
     QWidget* tearOffWidget = detachedWidget->centralWidget();
 
     // Reattach the tab
-    int newIndex = addTabEx(tearOffWidget, detachedWidget->windowIcon(), detachedWidget->windowTitle(), detachedWidget->mNativeName);
+    addTabEx(tearOffWidget, detachedWidget->windowIcon(), detachedWidget->windowTitle(), detachedWidget->mNativeName);
 
     // Remove it from the windows list
     for(int i = 0; i < m_Windows.size(); i++)
