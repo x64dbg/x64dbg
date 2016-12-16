@@ -398,6 +398,7 @@ static void registercommands()
 
     dbgcmdnew("HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
+    dbgcmdnew("freelib", cbDebugFreeLib, true); //Unload DLL TODO: undocumented
     dbgcmdnew("asm", cbInstrAssemble, true); //assemble instruction
     dbgcmdnew("gpa", cbInstrGpa, true); //get proc address
 

@@ -49,6 +49,7 @@ bool cbDebugHide(int argc, char* argv[])
 }
 
 static duint LoadLibThreadID;
+static duint FreeLibThreadID;
 static duint DLLNameMem;
 static duint ASMAddr;
 static TITAN_ENGINE_CONTEXT_t backupctx = { 0 };
@@ -144,6 +145,98 @@ bool cbDebugLoadLib(int argc, char* argv[])
 
     ThreadSuspendAll();
     ResumeThread(LoadLibThread);
+
+    unlock(WAITID_RUN);
+
+    return ok;
+}
+
+static void cbDebugFreeLibBPX()
+{
+    HANDLE FreeLibThread = ThreadGetHandle((DWORD)FreeLibThreadID);
+#ifdef _WIN64
+    duint LibAddr = GetContextDataEx(FreeLibThread, UE_RAX);
+#else
+    duint LibAddr = GetContextDataEx(FreeLibThread, UE_EAX);
+#endif //_WIN64
+    varset("$result", LibAddr, false);
+    backupctx.eflags &= ~0x100;
+    SetFullContextDataEx(FreeLibThread, &backupctx);
+    MemFreeRemote(ASMAddr);
+    ThreadResumeAll();
+    //update GUI
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    //lock
+    lock(WAITID_RUN);
+    dbgsetforeground();
+    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    wait(WAITID_RUN);
+}
+
+bool cbDebugFreeLib(int argc, char* argv[])
+{
+    duint base = 0;
+    if(IsArgumentsLessThan(argc, 2) || !valfromstring(argv[1], &base, false))
+        return false;
+    base = ModBaseFromAddr(base);
+    if(!base)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error: the specified address does not point inside a module"));
+        return false;
+    }
+
+    FreeLibThreadID = fdProcessInfo->dwThreadId;
+    HANDLE UnLoadLibThread = ThreadGetHandle((DWORD)FreeLibThreadID);
+
+    ASMAddr = MemAllocRemote(0, 0x1000);
+    if(!ASMAddr)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error: couldn't allocate memory in debuggee"));
+        return false;
+    }
+
+    int size = 0;
+    int counter = 0;
+    duint FreeLibrary = 0;
+    char command[50] = "";
+    char error[MAX_ERROR_SIZE] = "";
+
+    GetFullContextDataEx(UnLoadLibThread, &backupctx);
+
+    if(!valfromstring("kernel32:FreeLibrary", &FreeLibrary, false))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error: couldn't get kernel32:FreeLibrary"));
+        return false;
+    }
+
+    // Arch specific asm code
+#ifdef _WIN64
+    sprintf_s(command, "mov rcx, %p", base);
+#else
+    sprintf_s(command, "push %p", base);
+#endif // _WIN64
+
+    assembleat(ASMAddr, command, &size, error, true);
+    counter += size;
+
+#ifdef _WIN64
+    sprintf_s(command, "mov rax, %p", FreeLibrary);
+    assembleat(ASMAddr + counter, command, &size, error, true);
+    counter += size;
+    sprintf_s(command, "call rax");
+#else
+    sprintf_s(command, "call %p", FreeLibrary);
+#endif // _WIN64
+
+    assembleat(ASMAddr + counter, command, &size, error, true);
+    counter += size;
+
+    SetContextDataEx(UnLoadLibThread, UE_CIP, ASMAddr);
+    auto ok = SetBPX(ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugFreeLibBPX);
+
+    ThreadSuspendAll();
+    ResumeThread(UnLoadLibThread);
 
     unlock(WAITID_RUN);
 
