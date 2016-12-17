@@ -125,11 +125,11 @@ const char* disasmtext(duint addr)
     return instruction;
 }
 
-static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
+static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, bool getregs)
 {
-    auto value = cp.ResolveOpValue(opindex, [&](x86_reg reg)
+    auto value = cp.ResolveOpValue(opindex, [&cp, getregs](x86_reg reg)
     {
-        auto regName = cp.RegName(reg);
+        auto regName = getregs ? cp.RegName(reg) : nullptr;
         return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
     });
     const auto & op = cp[opindex];
@@ -199,7 +199,7 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
     }
 }
 
-void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* instr)
+void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
 {
     memset(instr, 0, sizeof(DISASM_INSTR));
     cp.Disassemble(addr, buffer, MAX_DISASM_BUFFER);
@@ -224,10 +224,10 @@ void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* i
         instr->type = instr_normal;
     instr->argcount = cp.x86().op_count <= 3 ? cp.x86().op_count : 3;
     for(int i = 0; i < instr->argcount; i++)
-        HandleCapstoneOperand(cp, i, &instr->arg[i]);
+        HandleCapstoneOperand(cp, i, &instr->arg[i], getregs);
 }
 
-void disasmget(Capstone & cp, duint addr, DISASM_INSTR* instr)
+void disasmget(Capstone & cp, duint addr, DISASM_INSTR* instr, bool getregs)
 {
     if(!DbgIsDebugging())
     {
@@ -237,18 +237,18 @@ void disasmget(Capstone & cp, duint addr, DISASM_INSTR* instr)
     }
     unsigned char buffer[MAX_DISASM_BUFFER] = "";
     if(MemRead(addr, buffer, sizeof(buffer)))
-        disasmget(cp, buffer, addr, instr);
+        disasmget(cp, buffer, addr, instr, getregs);
     else
         memset(instr, 0, sizeof(DISASM_INSTR)); // Buffer overflow
 }
 
-void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr)
+void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
 {
     Capstone cp;
-    disasmget(cp, buffer, addr, instr);
+    disasmget(cp, buffer, addr, instr, getregs);
 }
 
-void disasmget(duint addr, DISASM_INSTR* instr)
+void disasmget(duint addr, DISASM_INSTR* instr, bool getregs)
 {
     if(!DbgIsDebugging())
     {
@@ -258,23 +258,9 @@ void disasmget(duint addr, DISASM_INSTR* instr)
     }
     unsigned char buffer[MAX_DISASM_BUFFER] = "";
     if(MemRead(addr, buffer, sizeof(buffer)))
-        disasmget(buffer, addr, instr);
+        disasmget(buffer, addr, instr, getregs);
     else
         memset(instr, 0, sizeof(DISASM_INSTR)); // Buffer overflow
-}
-
-void disasmprint(duint addr)
-{
-    DISASM_INSTR instr;
-    memset(&instr, 0, sizeof(instr));
-    disasmget(addr, &instr);
-    dprintf(">%d:\"%s\":\n", instr.type, instr.instruction);
-    for(int i = 0; i < instr.argcount; i++)
-#ifdef _WIN64
-        dprintf(" %d:%d:%llX:%llX:%llX\n", i, instr.arg[i].type, instr.arg[i].constant, instr.arg[i].value, instr.arg[i].memvalue);
-#else //x86
-        dprintf(" %d:%d:%X:%X:%X\n", i, instr.arg[i].type, instr.arg[i].constant, instr.arg[i].value, instr.arg[i].memvalue);
-#endif //_WIN64
 }
 
 static bool isasciistring(const unsigned char* data, int maxlen)
