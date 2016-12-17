@@ -316,7 +316,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionAnimateInto, SIGNAL(triggered()), this, SLOT(animateIntoSlot()));
     connect(ui->actionAnimateOver, SIGNAL(triggered()), this, SLOT(animateOverSlot()));
     connect(ui->actionAnimateCommand, SIGNAL(triggered()), this, SLOT(animateCommandSlot()));
-    connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitialzationScript()));
+    connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitializationScript()));
     connect(ui->actionCustomizeMenus, SIGNAL(triggered()), this, SLOT(customizeMenu()));
     connect(ui->actionVariables, SIGNAL(triggered()), this, SLOT(displayVariables()));
 
@@ -1783,14 +1783,14 @@ void MainWindow::animateCommandSlot()
         DbgFunctions()->AnimateCommand(command.toUtf8().constData());
 }
 
-void MainWindow::setInitialzationScript()
+void MainWindow::setInitializationScript()
 {
     QString global, debuggee;
     char globalChar[MAX_SETTING_SIZE];
     if(DbgIsDebugging())
     {
         debuggee = QString(DbgFunctions()->DbgGetDebuggeeInitScript());
-        BrowseDialog browseScript(this, tr("Set Initialzation Script for Debuggee"), tr("Set Initialzation Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
+        BrowseDialog browseScript(this, tr("Set Initialization Script for Debuggee"), tr("Set Initialization Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
         browseScript.setWindowIcon(DIcon("initscript.png"));
         if(browseScript.exec() == QDialog::Accepted)
             DbgFunctions()->DbgSetDebuggeeInitScript(browseScript.path.toUtf8().constData());
@@ -1799,7 +1799,7 @@ void MainWindow::setInitialzationScript()
         global = QString(globalChar);
     else
         global = QString();
-    BrowseDialog browseScript(this, tr("Set Global Initialzation Script"), tr("Set Global Initialzation Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);
+    BrowseDialog browseScript(this, tr("Set Global Initialization Script"), tr("Set Global Initialization Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);
     browseScript.setWindowIcon(DIcon("initscript.png"));
     if(browseScript.exec() == QDialog::Accepted)
     {
