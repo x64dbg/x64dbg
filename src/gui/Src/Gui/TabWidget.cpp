@@ -55,11 +55,6 @@ QList<QWidget*> MHTabWidget::windows()
     return m_Windows;
 }
 
-QList<QString> MHTabWidget::windowNames()
-{
-    return mNativeNames;
-}
-
 // Add a tab
 int MHTabWidget::addTabEx(QWidget* widget, const QIcon & icon, const QString & label, const QString & nativeName)
 {

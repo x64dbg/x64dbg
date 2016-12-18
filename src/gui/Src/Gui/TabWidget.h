@@ -26,7 +26,6 @@ public:
     QWidget* widget(int index) const;
     int count() const;
     QList<QWidget*> windows();
-    QList<QString> windowNames();
 
     int addTabEx(QWidget* widget, const QIcon & icon, const QString & label, const QString & nativeName);
     QString getNativeName(int index);

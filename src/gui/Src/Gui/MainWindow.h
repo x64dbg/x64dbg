@@ -54,8 +54,8 @@ public:
     void loadTabDefaultOrder();
     void loadTabSavedOrder();
     void clearTabWidget();
-    void saveWidgetSettings();
-    void loadWidgetSettings();
+    void saveWindowSettings();
+    void loadWindowSettings();
 
 public slots:
     void executeCommand();
@@ -168,8 +168,7 @@ private:
     ThreadView* mThreadView;
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
-    //    SnowmanView* mSnowmanView;
-    ThreadView* mSnowmanView;
+    SnowmanView* mSnowmanView;
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
