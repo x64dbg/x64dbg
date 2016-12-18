@@ -178,9 +178,10 @@ MainWindow::MainWindow(QWidget* parent)
     mThreadView->setWindowIcon(DIcon("arrow-threads.png"));
 
     // Snowman view (decompiler)
-    mSnowmanView = CreateSnowman(this);
-    if(!mSnowmanView)
-        mSnowmanView = (SnowmanView*)new QLabel("<center>Snowman is disabled...</center>", this);
+    mSnowmanView = new ThreadView();
+    //    mSnowmanView = CreateSnowman(this);
+    //    if(!mSnowmanView)
+    //        mSnowmanView = (SnowmanView*)new QLabel("<center>Snowman is disabled...</center>", this);
     mSnowmanView->setWindowTitle(tr("Snowman"));
     mSnowmanView->setWindowIcon(DIcon("snowman.png"));
 
@@ -219,11 +220,12 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
 
-    // If LoadSaveTabOrder disabled, load tabs in default order
-    if(!ConfigBool("Gui", "LoadSaveTabOrder"))
-        loadTabDefaultOrder();
-    else
-        loadTabSavedOrder();
+    //    // If LoadSaveTabOrder disabled, load tabs in default order
+    //    if(!ConfigBool("Gui", "LoadSaveTabOrder"))
+    //        loadTabDefaultOrder();
+    //    else
+    //        loadTabSavedOrder();
+    loadWidgetSettings();
 
     setCentralWidget(mTabWidget);
 
@@ -443,6 +445,8 @@ void MainWindow::setupLanguagesMenu()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    saveWidgetSettings();
+
     duint noClose = 0;
     if(bCanClose)
         emit Bridge::getBridge()->close();
@@ -457,7 +461,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
     if(bExecuteThread)
     {
         bExecuteThread = false;
-        CloseSnowman(mSnowmanView);
+        //        CloseSnowman(mSnowmanView);
         Sleep(100);
         mCloseThread->start();
     }
@@ -546,6 +550,82 @@ void MainWindow::clearTabWidget()
     // Remove all tabs starting from the end
     for(int i = mTabWidget->count() - 1; i >= 0; i--)
         mTabWidget->removeTab(i);
+}
+
+void MainWindow::saveWidgetSettings()
+{
+    qDebug("saving settings...");
+
+    QSettings settings("x64dbgInc", "x64dbg");
+
+    settings.beginGroup("MainWindow");
+
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("state", saveState());
+
+    //    settings.setValue("maximized", isMaximized());
+
+    //    if (!isMaximized())
+    //    {
+    //        settings.setValue("pos", pos());
+    //        settings.setValue("size", size());
+    //    }
+
+    //    QPoint mwPos = settings.value("pos", pos()).toPoint();
+    //    QSize mwSize = settings.value("size", size()).toSize();
+    //    bool mwIsMaximized = settings.value("maximized", isMaximized()).toBool();
+    //    qDebug("  mw pos:      x = %d, y = %d", mwPos.x(), mwPos.y());
+    //    qDebug("  mw size:     w = %d, h = %d", mwSize.width(), mwSize.height());
+    //    qDebug("  maximized:   %s", mwIsMaximized ? "true" : "false");
+    //    qDebug("  fullscreen:  %s", isFullScreen() ? "true" : "false");
+
+
+
+    settings.endGroup();
+}
+
+void MainWindow::loadWidgetSettings()
+{
+    qDebug("loading settings...");
+
+    QSettings settings("x64dbgInc", "x64dbg");
+
+    settings.beginGroup("MainWindow");
+
+    restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
+    restoreState(settings.value("savestate", saveState()).toByteArray());
+
+    //    move(settings.value("pos", pos()).toPoint());
+    //    resize(settings.value("size", size()).toSize());
+
+    //    if (settings.value("maximized", isMaximized()).toBool())
+    //    {
+    //        showMaximized();
+    //        setWindowState(Qt::WindowMaximized);
+    //    }
+
+    //    QPoint mwPos = settings.value("pos", pos()).toPoint();
+    //    QSize mwSize = settings.value("size", size()).toSize();
+    //    bool mwIsMaximized = settings.value("maximized", isMaximized()).toBool();
+
+    //    qDebug("  mw pos:      x = %d, y = %d", mwPos.x(), mwPos.y());
+    //    qDebug("  mw size:     w = %d, h = %d", mwSize.width(), mwSize.height());
+    //    qDebug("  maximized:   %s", mwIsMaximized ? "true" : "false");
+    //    qDebug("  fullscreen:  %s", isFullScreen() ? "true" : "false");
+
+
+
+
+    settings.endGroup();
+
+
+
+    // Setup tabs
+    // If LoadSaveTabOrder disabled, load tabs in default order
+    if(!ConfigBool("Gui", "LoadSaveTabOrder"))
+        loadTabDefaultOrder();
+    else
+        loadTabSavedOrder();
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)
@@ -1434,7 +1514,7 @@ void MainWindow::displayManual()
 
 void MainWindow::decompileAt(dsint start, dsint end)
 {
-    DecompileAt(mSnowmanView, start, end);
+    //    DecompileAt(mSnowmanView, start, end);
 }
 
 void MainWindow::canClose()
