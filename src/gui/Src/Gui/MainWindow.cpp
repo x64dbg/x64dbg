@@ -554,13 +554,9 @@ void MainWindow::clearTabWidget()
 
 void MainWindow::saveWindowSettings()
 {
-    QSettings settings("x64dbgInc", "x64dbg");
-
-    // Save MainWindow size and position
-    settings.beginGroup("MainWindow");
-    settings.setValue("geometry", saveGeometry());
-    settings.setValue("state", saveState());
-    settings.endGroup();
+    // Main Window settings
+    BridgeSettingSet("Main Window Settings", "Geometry", saveGeometry().toBase64().data());
+    BridgeSettingSet("Main Window Settings", "State", saveState().toBase64().data());
 
     // Set of currently detached tabs
     QSet<QWidget*> detachedTabWindows = mTabWidget->windows().toSet();
@@ -568,38 +564,36 @@ void MainWindow::saveWindowSettings()
     // For all tabs, save detached status.  If detached, save geometry.
     for(int i = 0; i < mWidgetList.size(); i++)
     {
-        settings.beginGroup(mWidgetList[i].nativeName);
-
         bool isDetached = detachedTabWindows.contains(mWidgetList[i].widget);
-        settings.setValue("detached", isDetached);
+        BridgeSettingSetUint("Detached Windows", mWidgetList[i].nativeName.toUtf8().constData(), isDetached);
         if(isDetached)
-            settings.setValue("geometry", mWidgetList[i].widget->parentWidget()->saveGeometry());
-
-        settings.endGroup();
+            BridgeSettingSet("Tab Window Settings", mWidgetList[i].nativeName.toUtf8().constData(),
+                             mWidgetList[i].widget->parentWidget()->saveGeometry().toBase64().data());
     }
 }
 
 void MainWindow::loadWindowSettings()
 {
-    QSettings settings("x64dbgInc", "x64dbg");
+    // Main Window settings
+    char mainWindowSetting[MAX_SETTING_SIZE];
+    memset(mainWindowSetting, 0, sizeof(mainWindowSetting));
+    BridgeSettingGet("Main Window Settings", "Geometry", mainWindowSetting);
+    size_t sizeofSetting = strlen(mainWindowSetting);
+    restoreGeometry(QByteArray::fromBase64(QByteArray(mainWindowSetting, int(sizeofSetting))));
 
-    // Restore MainWindow size and position
-    settings.beginGroup("MainWindow");
-    restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
-    restoreState(settings.value("savestate", saveState()).toByteArray());
-    settings.endGroup();
+    memset(mainWindowSetting, 0, sizeof(mainWindowSetting));
+    BridgeSettingGet("Main Window Settings", "State", mainWindowSetting);
+    sizeofSetting = strlen(mainWindowSetting);
+    restoreState(QByteArray::fromBase64(QByteArray(mainWindowSetting, int(sizeofSetting))));
 
     // Restore detached windows size and position
     // If a tab was detached last session, manually detach it now to populate MHTabWidget::windows
     for(int i = 0; i < mWidgetList.size(); i++)
     {
-        settings.beginGroup(mWidgetList[i].nativeName);
-        if(settings.value("detached").toBool())
-        {
-            const int index = mTabWidget->indexOf(mWidgetList[i].widget);
-            mTabWidget->DetachTab(index, QPoint());
-        }
-        settings.endGroup();
+        duint isDetached = 0;
+        BridgeSettingGetUint("Detached Windows", mWidgetList[i].nativeName.toUtf8().constData(), &isDetached);
+        if(isDetached)
+            mTabWidget->DetachTab(mTabWidget->indexOf(mWidgetList[i].widget), QPoint());
     }
 
     // Restore geometry for every tab we just detached
@@ -608,9 +602,11 @@ void MainWindow::loadWindowSettings()
     {
         if(detachedTabWindows.contains(mWidgetList[i].widget))
         {
-            settings.beginGroup(mWidgetList[i].nativeName);
-            mWidgetList[i].widget->parentWidget()->restoreGeometry(settings.value("geometry").toByteArray());
-            settings.endGroup();
+            char geometrySetting[MAX_SETTING_SIZE];
+            memset(geometrySetting, 0, sizeof(geometrySetting));
+            BridgeSettingGet("Tab Window Settings", mWidgetList[i].nativeName.toUtf8().constData(), geometrySetting);
+            size_t sizeofgeometrySetting = strlen(geometrySetting);
+            mWidgetList[i].widget->parentWidget()->restoreGeometry(QByteArray::fromBase64(QByteArray(geometrySetting, int(sizeofgeometrySetting))));
         }
     }
 }
