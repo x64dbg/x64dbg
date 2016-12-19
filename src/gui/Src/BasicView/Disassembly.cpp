@@ -1589,7 +1589,7 @@ void Disassembly::prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction
     }
 }
 
-void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::function<void(int, const Instruction_t &)> & disassembled)
+void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::function<bool(int, const Instruction_t &)> & disassembled)
 {
     dsint wAddrPrev = startRva;
     dsint wAddr = wAddrPrev;
@@ -1604,7 +1604,8 @@ void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::func
         wAddr = getNextInstructionRVA(wAddr, 1);
         if(wAddr == wAddrPrev)
             break;
-        disassembled(i++, wInst);
+        if(!disassembled(i++, wInst))
+            break;
     }
 }
 

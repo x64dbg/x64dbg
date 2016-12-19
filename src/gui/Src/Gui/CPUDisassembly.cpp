@@ -1572,6 +1572,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
+        return true;
     });
 }
 
@@ -1600,7 +1601,10 @@ void CPUDisassembly::copyAddressSlot()
     QString clipboard = "";
     prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
-        clipboard += ToPtrString(rvaToVa(inst.rva)) + "\r\n";
+        if(i)
+            clipboard += "\r\n";
+        clipboard += ToPtrString(rvaToVa(inst.rva));
+        return true;
     });
     Bridge::CopyToClipboard(clipboard);
 }
@@ -1610,12 +1614,18 @@ void CPUDisassembly::copyRvaSlot()
     QString clipboard = "";
     prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
+        if(i)
+            clipboard += "\r\n";
         duint addr = rvaToVa(inst.rva);
         duint base = DbgFunctions()->ModBaseFromAddr(addr);
         if(base)
-            clipboard += ToHexString(addr - base) + "\r\n";
+            clipboard += ToHexString(addr - base);
         else
+        {
             SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
+            return false;
+        }
+        return true;
     });
     Bridge::CopyToClipboard(clipboard);
 }
@@ -1629,6 +1639,7 @@ void CPUDisassembly::copyDisassemblySlot()
             clipboard += "\r\n";
         for(const auto & token : inst.tokens.tokens)
             clipboard += token.text;
+        return true;
     });
     Bridge::CopyToClipboard(clipboard);
 }

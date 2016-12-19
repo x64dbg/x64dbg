@@ -98,7 +98,7 @@ public:
 
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel = true);
     void prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction_t>* instBuffer);
-    void prepareDataRange(dsint startRva, dsint endRva, const std::function<void(int, const Instruction_t &)> & disassembled);
+    void prepareDataRange(dsint startRva, dsint endRva, const std::function<bool(int, const Instruction_t &)> & disassembled);
 
     //misc
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
