@@ -9,7 +9,7 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
     QPen highlightPen;
     highlightPen.setWidth(2);
     QBrush brush(Qt::cyan);
-    for(const auto & curRichText : richText)
+    for(const CustomRichText_t & curRichText : richText)
     {
         int textWidth = fontMetrics->width(curRichText.text);
         int backgroundWidth = textWidth;
@@ -51,4 +51,47 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
         }
         xinc += textWidth;
     }
+}
+
+QString RichTextPainter::htmlRichText(const List & richText)
+{
+    QString textHtml;
+    bool fontTag = false;
+    for(const CustomRichText_t & curRichText : richText)
+    {
+        switch(curRichText.flags)
+        {
+        case FlagNone: //defaults
+            break;
+        case FlagColor: //color only
+            if(fontTag)
+                textHtml += "</span>";
+            textHtml += QString("<span style=\"color:%1\">").arg(curRichText.textColor.name());
+            break;
+        case FlagBackground: //background only
+            if(fontTag)
+                textHtml += "</span>";
+            if(curRichText.textBackground != Qt::transparent)
+                textHtml += QString("<span style=\"background-color:%1\">").arg(curRichText.textBackground.name());
+            else
+                textHtml += QString("<span>");
+            break;
+        case FlagAll: //color+background
+            if(fontTag)
+                textHtml += "</span>";
+            if(curRichText.textBackground != Qt::transparent)
+                textHtml += QString("<span style=\"color:%1; background-color:%2\">").arg(curRichText.textColor.name(), curRichText.textBackground.name());
+            else
+                textHtml += QString("<span style=\"color:%1\">").arg(curRichText.textColor.name());
+            break;
+        }
+        if(curRichText.highlight)
+            textHtml += "<u>";
+        textHtml += curRichText.text.toHtmlEscaped();
+        if(curRichText.highlight)
+            textHtml += "</u>";
+    }
+    if(fontTag)
+        textHtml += "</span>";
+    return textHtml;
 }

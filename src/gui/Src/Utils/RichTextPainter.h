@@ -34,6 +34,7 @@ public:
 
     //functions
     static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, CachedFontMetrics* fontMetrics);
+    static QString htmlRichText(const List & richText);
 };
 
 #endif // RICHTEXTPAINTER_H

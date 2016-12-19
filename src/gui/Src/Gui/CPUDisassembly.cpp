@@ -1626,11 +1626,19 @@ void CPUDisassembly::copyDisassemblySlot()
     prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
-            clipboard += "\r\n";
-        for(const auto & token : inst.tokens.tokens)
-            clipboard += token.text;
+            clipboard += "<br/>";
+        RichTextPainter::List richText;
+        if(mHighlightToken.text.length())
+            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+        else
+            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+        clipboard += RichTextPainter::htmlRichText(richText);
     });
-    Bridge::CopyToClipboard(clipboard);
+    QClipboard* clipboardObj = QApplication::clipboard();
+    QMimeData* data = new QMimeData();
+    SimpleWarningBox(this, "test", clipboard);
+    data->setHtml(clipboard);
+    clipboardObj->setMimeData(data);
 }
 
 void CPUDisassembly::copyDataSlot()
