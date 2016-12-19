@@ -189,6 +189,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("SearchListViewHighlightColor", QColor("#FF0000"));
     defaultColors.insert("StructBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("StructAlternateBackgroundColor", QColor("#DCD9CF"));
+    defaultColors.insert("LogLinkColor", QColor("#00CC00"));
+    defaultColors.insert("LogLinkBackgroundColor", Qt::transparent);
 
     //bool settings
     QMap<QString, bool> disassemblyBool;
