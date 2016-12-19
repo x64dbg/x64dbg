@@ -225,6 +225,8 @@ MainWindow::MainWindow(QWidget* parent)
     else
         loadTabSavedOrder();
 
+    loadWindowSettings();
+
     setCentralWidget(mTabWidget);
 
     // Setup the command and status bars
@@ -443,6 +445,8 @@ void MainWindow::setupLanguagesMenu()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    saveWindowSettings();
+
     duint noClose = 0;
     if(bCanClose)
         emit Bridge::getBridge()->close();
@@ -546,6 +550,65 @@ void MainWindow::clearTabWidget()
     // Remove all tabs starting from the end
     for(int i = mTabWidget->count() - 1; i >= 0; i--)
         mTabWidget->removeTab(i);
+}
+
+void MainWindow::saveWindowSettings()
+{
+    // Main Window settings
+    BridgeSettingSet("Main Window Settings", "Geometry", saveGeometry().toBase64().data());
+    BridgeSettingSet("Main Window Settings", "State", saveState().toBase64().data());
+
+    // Set of currently detached tabs
+    QSet<QWidget*> detachedTabWindows = mTabWidget->windows().toSet();
+
+    // For all tabs, save detached status.  If detached, save geometry.
+    for(int i = 0; i < mWidgetList.size(); i++)
+    {
+        bool isDetached = detachedTabWindows.contains(mWidgetList[i].widget);
+        BridgeSettingSetUint("Detached Windows", mWidgetList[i].nativeName.toUtf8().constData(), isDetached);
+        if(isDetached)
+            BridgeSettingSet("Tab Window Settings", mWidgetList[i].nativeName.toUtf8().constData(),
+                             mWidgetList[i].widget->parentWidget()->saveGeometry().toBase64().data());
+    }
+}
+
+void MainWindow::loadWindowSettings()
+{
+    // Main Window settings
+    char mainWindowSetting[MAX_SETTING_SIZE];
+    memset(mainWindowSetting, 0, sizeof(mainWindowSetting));
+    BridgeSettingGet("Main Window Settings", "Geometry", mainWindowSetting);
+    size_t sizeofSetting = strlen(mainWindowSetting);
+    restoreGeometry(QByteArray::fromBase64(QByteArray(mainWindowSetting, int(sizeofSetting))));
+
+    memset(mainWindowSetting, 0, sizeof(mainWindowSetting));
+    BridgeSettingGet("Main Window Settings", "State", mainWindowSetting);
+    sizeofSetting = strlen(mainWindowSetting);
+    restoreState(QByteArray::fromBase64(QByteArray(mainWindowSetting, int(sizeofSetting))));
+
+    // Restore detached windows size and position
+    // If a tab was detached last session, manually detach it now to populate MHTabWidget::windows
+    for(int i = 0; i < mWidgetList.size(); i++)
+    {
+        duint isDetached = 0;
+        BridgeSettingGetUint("Detached Windows", mWidgetList[i].nativeName.toUtf8().constData(), &isDetached);
+        if(isDetached)
+            mTabWidget->DetachTab(mTabWidget->indexOf(mWidgetList[i].widget), QPoint());
+    }
+
+    // Restore geometry for every tab we just detached
+    QSet<QWidget*> detachedTabWindows = mTabWidget->windows().toSet();
+    for(int i = 0; i < mWidgetList.size(); i++)
+    {
+        if(detachedTabWindows.contains(mWidgetList[i].widget))
+        {
+            char geometrySetting[MAX_SETTING_SIZE];
+            memset(geometrySetting, 0, sizeof(geometrySetting));
+            BridgeSettingGet("Tab Window Settings", mWidgetList[i].nativeName.toUtf8().constData(), geometrySetting);
+            size_t sizeofgeometrySetting = strlen(geometrySetting);
+            mWidgetList[i].widget->parentWidget()->restoreGeometry(QByteArray::fromBase64(QByteArray(geometrySetting, int(sizeofgeometrySetting))));
+        }
+    }
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)

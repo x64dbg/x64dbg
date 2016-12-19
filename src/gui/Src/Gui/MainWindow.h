@@ -54,6 +54,8 @@ public:
     void loadTabDefaultOrder();
     void loadTabSavedOrder();
     void clearTabWidget();
+    void saveWindowSettings();
+    void loadWindowSettings();
 
 public slots:
     void executeCommand();
