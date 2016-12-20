@@ -25,6 +25,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     mHighlightToken.text = "";
     mHighlightingMode = false;
+    mPermanentHighlightingMode = false;
     mShowMnemonicBrief = false;
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
@@ -135,6 +136,7 @@ void Disassembly::updateFonts()
 void Disassembly::tokenizerConfigUpdatedSlot()
 {
     mDisasm->UpdateConfig();
+    mPermanentHighlightingMode = ConfigBool("Disassembler", "PermanentHighlightingMode");
 }
 
 /************************************************************************************
@@ -713,7 +715,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
 {
     bool wAccept = false;
 
-    if(mHighlightingMode)
+    if(mHighlightingMode || mPermanentHighlightingMode)
     {
         if(getColumnIndexFromX(event->x()) == 2) //click in instruction column
         {
@@ -723,24 +725,30 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                 CapstoneTokenizer::SingleToken token;
                 if(CapstoneTokenizer::TokenFromX(mInstBuffer.at(rowOffset).tokens, token, event->x(), mFontMetrics))
                 {
-                    if(CapstoneTokenizer::IsHighlightableToken(token) && (!CapstoneTokenizer::TokenEquals(&token, &mHighlightToken) || event->button() == Qt::RightButton))
-                        mHighlightToken = token;
-                    else
+                    if(CapstoneTokenizer::IsHighlightableToken(token))
+                    {
+                        if(!CapstoneTokenizer::TokenEquals(&token, &mHighlightToken) || event->button() == Qt::RightButton)
+                            mHighlightToken = token;
+                        else
+                            mHighlightToken = CapstoneTokenizer::SingleToken();
+                    }
+                    else if(!mPermanentHighlightingMode)
                     {
                         mHighlightToken = CapstoneTokenizer::SingleToken();
                     }
                 }
-                else
+                else if(!mPermanentHighlightingMode)
                 {
                     mHighlightToken = CapstoneTokenizer::SingleToken();
                 }
             }
         }
-        else
+        else if(!mPermanentHighlightingMode)
         {
             mHighlightToken = CapstoneTokenizer::SingleToken();
         }
-        return;
+        if(!mPermanentHighlightingMode)
+            return;
     }
 
     if(DbgIsDebugging() && ((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))

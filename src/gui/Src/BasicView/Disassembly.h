@@ -218,6 +218,7 @@ protected:
     CodeFoldingHelper* mCodeFoldingManager;
     DisassemblyPopup mDisassemblyPopup;
     CapstoneTokenizer::SingleToken mHighlightToken;
+    bool mPermanentHighlightingMode;
 };
 
 #endif // DISASSEMBLY_H
