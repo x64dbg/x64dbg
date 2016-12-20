@@ -178,11 +178,11 @@ MainWindow::MainWindow(QWidget* parent)
     mThreadView->setWindowIcon(DIcon("arrow-threads.png"));
 
     // Snowman view (decompiler)
-    mSnowmanView = CreateSnowman(this);
-    if(!mSnowmanView)
-        mSnowmanView = (SnowmanView*)new QLabel("<center>Snowman is disabled...</center>", this);
-    mSnowmanView->setWindowTitle(tr("Snowman"));
-    mSnowmanView->setWindowIcon(DIcon("snowman.png"));
+//     mSnowmanView = CreateSnowman(this);
+//     if(!mSnowmanView)
+//         mSnowmanView = (SnowmanView*)new QLabel("<center>Snowman is disabled...</center>", this);
+//     mSnowmanView->setWindowTitle(tr("Snowman"));
+//     mSnowmanView->setWindowIcon(DIcon("snowman.png"));
 
     // Notes manager
     mNotesManager = new NotesManager(this);
@@ -216,7 +216,7 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mSourceViewManager, "SourceTab"));
     mWidgetList.push_back(WidgetInfo(mReferenceManager, "ReferencesTab"));
     mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
-    mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
+    //mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
 
     // If LoadSaveTabOrder disabled, load tabs in default order

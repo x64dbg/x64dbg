@@ -190,7 +190,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("StructBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("StructAlternateBackgroundColor", QColor("#DCD9CF"));
 
-    //bool settings
+	//defaultColors.insert("LastMouseClickedStringColor" , QColor(255 , 255 , 255));
+	defaultColors.insert("LastMouseClickedStringBackgroundColor" , QColor(36 , 187 , 82));
+
+    //bool settings"
     QMap<QString, bool> disassemblyBool;
     disassemblyBool.insert("ArgumentSpaces", false);
     disassemblyBool.insert("MemorySpaces", false);
