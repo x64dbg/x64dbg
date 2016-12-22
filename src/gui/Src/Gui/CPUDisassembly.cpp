@@ -1519,10 +1519,11 @@ void CPUDisassembly::yaraSlot()
 void CPUDisassembly::copySelectionSlot(bool copyBytes)
 {
     QString selectionString = "";
-
+    QString selectionHtmlString = "";
     QTextStream stream(&selectionString);
-    pushSelectionInto(copyBytes, stream);
-    Bridge::CopyToClipboard(selectionString);
+    QTextStream htmlStream(&selectionHtmlString);
+    pushSelectionInto(copyBytes, stream, &htmlStream);
+    Bridge::CopyToClipboard(selectionString, selectionHtmlString);
 }
 
 void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
@@ -1543,16 +1544,18 @@ void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
     }
 }
 
-void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
+void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream)
 {
     const int addressLen = getColumnWidth(0) / getCharWidth() - 1;
     const int bytesLen = getColumnWidth(1) / getCharWidth() - 1;
     const int disassemblyLen = getColumnWidth(2) / getCharWidth() - 1;
+    if(htmlStream)
+        *htmlStream << QString("<table style=\"border-width:0px;border-color:#000000;font-family:%1;font-size:%2px;\">").arg(font().family()).arg(getRowHeight());
     prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
             stream << "\r\n";
-        dsint cur_addr = rvaToVa(inst.rva);
+        duint cur_addr = rvaToVa(inst.rva);
         QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
         for(int j = 0; j < inst.dump.size(); j++)
@@ -1562,17 +1565,67 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream)
             bytes += ToByteString((unsigned char)(inst.dump.at(j)));
         }
         QString disassembly;
-        for(const auto & token : inst.tokens.tokens)
-            disassembly += token.text;
+        QString htmlDisassembly;
+        if(htmlStream)
+        {
+            RichTextPainter::List richText;
+            if(mHighlightToken.text.length())
+                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+            else
+                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, htmlDisassembly, disassembly);
+        }
+        else
+        {
+            for(const auto & token : inst.tokens.tokens)
+                disassembly += token.text;
+        }
         QString fullComment;
         QString comment;
-        if(GetCommentFormat(cur_addr, comment))
+        bool autocomment;
+        if(GetCommentFormat(cur_addr, comment, &autocomment))
             fullComment = " " + comment;
         stream << address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
+        if(htmlStream)
+        {
+            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(address, htmlDisassembly);
+            if(!comment.isEmpty())
+            {
+                if(autocomment)
+                {
+                    *htmlStream << QString("<span style=\"color:%1").arg(mAutoCommentColor.name());
+                    if(mAutoCommentBackgroundColor != Qt::transparent)
+                        *htmlStream << QString(";background-color:%2").arg(mAutoCommentBackgroundColor.name());
+                }
+                else
+                {
+                    *htmlStream << QString("<span style=\"color:%1").arg(mCommentColor.name());
+                    if(mCommentBackgroundColor != Qt::transparent)
+                        *htmlStream << QString(";background-color:%2").arg(mCommentBackgroundColor.name());
+                }
+                *htmlStream << "\">" << comment << "</span></td></tr>";
+            }
+            else
+            {
+                char label[MAX_LABEL_SIZE];
+                if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label))
+                {
+                    comment = QString::fromUtf8(label);
+                    *htmlStream << QString("<span style=\"color:%1").arg(mLabelColor.name());
+                    if(mLabelBackgroundColor != Qt::transparent)
+                        *htmlStream << QString(";background-color:%2").arg(mLabelBackgroundColor.name());
+                    *htmlStream << "\">" << comment << "</span></td></tr>";
+                }
+                else
+                    *htmlStream << "</td></tr>";
+            }
+        }
     });
+    if(htmlStream)
+        *htmlStream << "</table>";
 }
 
 void CPUDisassembly::copySelectionSlot()
@@ -1622,23 +1675,24 @@ void CPUDisassembly::copyRvaSlot()
 
 void CPUDisassembly::copyDisassemblySlot()
 {
+    QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
     QString clipboard = "";
     prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
-            clipboard += "<br/>";
+        {
+            clipboard += "\r\n";
+            clipboardHtml += "<br/>";
+        }
         RichTextPainter::List richText;
         if(mHighlightToken.text.length())
             CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
         else
             CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
-        clipboard += RichTextPainter::htmlRichText(richText);
+        RichTextPainter::htmlRichText(richText, clipboardHtml, clipboard);
     });
-    QClipboard* clipboardObj = QApplication::clipboard();
-    QMimeData* data = new QMimeData();
-    SimpleWarningBox(this, "test", clipboard);
-    data->setHtml(clipboard);
-    clipboardObj->setMimeData(data);
+    clipboardHtml += QString("</div>");
+    Bridge::CopyToClipboard(clipboard, clipboardHtml);
 }
 
 void CPUDisassembly::copyDataSlot()

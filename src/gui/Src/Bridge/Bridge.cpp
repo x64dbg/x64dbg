@@ -36,6 +36,16 @@ void Bridge::CopyToClipboard(const QString & text)
     GuiAddStatusBarMessage(tr("The data has been copied to clipboard.\n").toUtf8().constData());
 }
 
+void Bridge::CopyToClipboard(const QString & text, const QString & htmlText)
+{
+    QMimeData* mimeData = new QMimeData();
+    mimeData->setData("text/html", htmlText.toUtf8()); // Set text/html data
+    mimeData->setData("text/plain", text.toUtf8());  //Set text/plain data
+    //Reason not using setText() or setHtml():Don't support storing multiple data in one QMimeData
+    QApplication::clipboard()->setMimeData(mimeData); //Copy the QMimeData with text and html data
+    GuiAddStatusBarMessage(tr("The data has been copied to clipboard.\n").toUtf8().constData());
+}
+
 void Bridge::setResult(dsint result)
 {
     bridgeResult = result;
