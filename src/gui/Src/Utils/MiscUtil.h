@@ -13,6 +13,7 @@ bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue
 void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text);
 void SimpleWarningBox(QWidget* parent, const QString & title, const QString & text);
 QString getSymbolicName(duint addr);
+QString couldItBeChristmas(QString icon);
 
-#define DIcon(file) QIcon(QString(":/icons/images/").append(file))
+#define DIcon(file) QIcon(QString(":/icons/images/").append(couldItBeChristmas(file)))
 #endif // MISCUTIL_H
