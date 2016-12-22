@@ -889,7 +889,7 @@ void MainWindow::displayAboutWidget()
     QString title = tr("About x32dbg");
 #endif //_WIN64
     title += QString().sprintf(" v%d", BridgeGetDbgVersion());
-    QMessageBox msg(QMessageBox::Information, title, "Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>" + ToDateString(GetCompileDate()) + ", " __TIME__);
+    QMessageBox msg(QMessageBox::Information, title, tr("Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>") + ToDateString(GetCompileDate()) + ", " __TIME__);
     msg.setWindowIcon(DIcon("information.png"));
     msg.setTextFormat(Qt::RichText);
     msg.setParent(this, Qt::Dialog);
