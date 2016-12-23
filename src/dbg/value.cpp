@@ -1295,7 +1295,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
     if(!value || !DbgIsDebugging())
         return false;
     //explicit API handling
-    const char* apiname = strchr(name, ':'); //the ':' character cannot be in a path: http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#naming_conventions
+    const char* apiname = strchr(name, ':'); //the ':' character cannot be in a path: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#naming_conventions
     bool noexports = false;
     if(!apiname) //not found
     {

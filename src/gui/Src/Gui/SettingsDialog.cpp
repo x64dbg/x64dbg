@@ -190,12 +190,14 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "OnlyCipAutoComments", &settings.disasmOnlyCipAutoComments);
     GetSettingBool("Disassembler", "TabbedMnemonic", &settings.disasmTabBetweenMnemonicAndArguments);
     GetSettingBool("Disassembler", "NoHighlightOperands", &settings.disasmNoHighlightOperands);
+    GetSettingBool("Disassembler", "PermanentHighlightingMode", &settings.disasmPermanentHighlightingMode);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
     ui->chkTabBetweenMnemonicAndArguments->setChecked(settings.disasmTabBetweenMnemonicAndArguments);
     ui->chkNoHighlightOperands->setChecked(settings.disasmNoHighlightOperands);
+    ui->chkPermanentHighlightingMode->setChecked(settings.disasmPermanentHighlightingMode);
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
@@ -325,6 +327,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
     BridgeSettingSetUint("Disassembler", "TabbedMnemonic", settings.disasmTabBetweenMnemonicAndArguments);
     BridgeSettingSetUint("Disassembler", "NoHighlightOperands", settings.disasmNoHighlightOperands);
+    BridgeSettingSetUint("Disassembler", "PermanentHighlightingMode", settings.disasmPermanentHighlightingMode);
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
@@ -751,4 +754,10 @@ void SettingsDialog::on_chkNoHighlightOperands_toggled(bool checked)
 void SettingsDialog::on_chkUtf16LogRedirect_toggled(bool checked)
 {
     settings.miscUtf16LogRedirect = checked;
+}
+
+void SettingsDialog::on_chkPermanentHighlightingMode_toggled(bool checked)
+{
+    bTokenizerConfigUpdated = true;
+    settings.disasmPermanentHighlightingMode = checked;
 }

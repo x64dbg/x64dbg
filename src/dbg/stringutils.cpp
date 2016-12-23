@@ -61,12 +61,95 @@ String StringUtils::Escape(unsigned char ch)
     }
 }
 
+static int IsValidUTF8Char(const char* data, int size)
+{
+    if(*(unsigned char*)data >= 0xF8) //5 or 6 bytes
+        return 0;
+    else if(*(unsigned char*)data >= 0xF0) //4 bytes
+    {
+        if(size < 4)
+            return 0;
+        for(int i = 1; i <= 3; i++)
+        {
+            if((*(unsigned char*)(data + i) & 0xC0) != 0x80)
+                return 0;
+        }
+        return 4;
+    }
+    else if(*(unsigned char*)data >= 0xE0) //3 bytes
+    {
+        if(size < 3)
+            return 0;
+        for(int i = 1; i <= 2; i++)
+        {
+            if((*(unsigned char*)(data + i) & 0xC0) != 0x80)
+                return 0;
+        }
+        return 3;
+    }
+    else if(*(unsigned char*)data >= 0xC0) //2 bytes
+    {
+        if(size < 2)
+            return 0;
+        if((*(unsigned char*)(data + 1) & 0xC0) != 0x80)
+            return 0;
+        return 2;
+    }
+    else if(*(unsigned char*)data >= 0x80) // BAD
+        return 0;
+    else
+        return 1;
+}
+
 String StringUtils::Escape(const String & s)
 {
-    String escaped;
+    std::string escaped;
     escaped.reserve(s.length() + s.length() / 2);
     for(size_t i = 0; i < s.length(); i++)
-        escaped.append(Escape((unsigned char)s[i]));
+    {
+        char buf[8];
+        memset(buf, 0, sizeof(buf));
+        unsigned char ch = (unsigned char)s[i];
+        switch(ch)
+        {
+        case '\0':
+            memcpy(buf, "\\0", 2);
+            break;
+        case '\t':
+            memcpy(buf, "\\t", 2);
+            break;
+        case '\f':
+            memcpy(buf, "\\f", 2);
+            break;
+        case '\v':
+            memcpy(buf, "\\v", 2);
+            break;
+        case '\n':
+            memcpy(buf, "\\n", 2);
+            break;
+        case '\r':
+            memcpy(buf, "\\r", 2);
+            break;
+        case '\\':
+            memcpy(buf, "\\\\", 2);
+            break;
+        case '\"':
+            memcpy(buf, "\\\"", 2);
+            break;
+        default:
+            int UTF8CharSize;
+            if(ch >= 0x80 && (UTF8CharSize = IsValidUTF8Char(s.c_str() + i, int(s.length() - i))) != 0) //UTF-8 Character is emitted directly
+            {
+                memcpy(buf, s.c_str() + i, UTF8CharSize);
+                i += UTF8CharSize - 1;
+            }
+            else if(!isprint(ch))  //unknown unprintable character
+                sprintf_s(buf, "\\x%02X", ch);
+            else
+                *buf = ch;
+        }
+        escaped.append(buf);
+    }
     return escaped;
 }
 
@@ -151,7 +234,7 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
     return true;
 }
 
-//Trim functions taken from: http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring/16743707#16743707
+//Trim functions taken from: https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring/16743707#16743707
 const String StringUtils::WHITESPACE = " \n\r\t";
 
 String StringUtils::Trim(const String & s, const String & delim)
@@ -219,7 +302,7 @@ WString StringUtils::Utf8ToUtf16(const char* str)
     return Utf8ToUtf16(str ? String(str) : String());
 }
 
-//Taken from: http://stackoverflow.com/a/24315631
+//Taken from: https://stackoverflow.com/a/24315631
 void StringUtils::ReplaceAll(String & s, const String & from, const String & to)
 {
     size_t start_pos = 0;

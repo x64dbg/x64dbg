@@ -151,6 +151,7 @@
     <ClInclude Include="bookmark.h" />
     <ClInclude Include="breakpoint.h" />
     <ClInclude Include="btparser\btparser\ast.h" />
+    <ClInclude Include="btparser\btparser\helpers.h" />
     <ClInclude Include="btparser\btparser\keywords.h" />
     <ClInclude Include="btparser\btparser\lexer.h" />
     <ClInclude Include="btparser\btparser\operators.h" />

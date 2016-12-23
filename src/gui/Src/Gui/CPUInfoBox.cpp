@@ -187,16 +187,16 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
             switch(memsize)
             {
             case size_byte:
-                sizeName = "byte ";
+                sizeName = "byte ptr";
                 break;
             case size_word:
-                sizeName = "word ";
+                sizeName = "word ptr";
                 break;
             case size_dword:
-                sizeName = "dword ";
+                sizeName = "dword ptr";
                 break;
             case size_qword:
-                sizeName = "qword ";
+                sizeName = "qword ptr";
                 break;
             }
 

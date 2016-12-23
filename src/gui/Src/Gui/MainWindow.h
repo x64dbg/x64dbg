@@ -54,6 +54,8 @@ public:
     void loadTabDefaultOrder();
     void loadTabSavedOrder();
     void clearTabWidget();
+    void saveWindowSettings();
+    void loadWindowSettings();
 
 public slots:
     void executeCommand();
@@ -143,7 +145,7 @@ public slots:
     void updateFavouriteTools();
     void clickFavouriteTool();
     void chooseLanguage();
-    void setInitialzationScript();
+    void setInitializationScript();
     void customizeMenu();
     void addFavouriteItem(int type, const QString & name, const QString & description);
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);

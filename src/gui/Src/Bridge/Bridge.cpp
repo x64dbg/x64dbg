@@ -31,6 +31,8 @@ Bridge::~Bridge()
 
 void Bridge::CopyToClipboard(const QString & text)
 {
+    if(!text.length())
+        return;
     QClipboard* clipboard = QApplication::clipboard();
     clipboard->setText(text);
     GuiAddStatusBarMessage(tr("The data has been copied to clipboard.\n").toUtf8().constData());
@@ -97,7 +99,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_ADD_MSG_TO_LOG:
     {
         auto msg = (const char*)param1;
-        emit addMsgToLog(QByteArray(msg, strlen(msg) + 1)); //Speed up performance: don't convert to UCS-2 QString
+        emit addMsgToLog(QByteArray(msg, int(strlen(msg)) + 1)); //Speed up performance: don't convert to UCS-2 QString
     }
     break;
 

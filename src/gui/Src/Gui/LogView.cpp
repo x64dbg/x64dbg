@@ -48,6 +48,9 @@ void LogView::updateStyle()
 {
     setFont(ConfigFont("Log"));
     setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
+    QColor LogLinkBackgroundColor = ConfigColor("LogLinkBackgroundColor");
+
+    this->document()->setDefaultStyleSheet(QString("a {color: %1; background-color: %2 }").arg(ConfigColor("LogLinkColor").name(), LogLinkBackgroundColor == Qt::transparent ? "transparent" : LogLinkBackgroundColor.name()));
 }
 
 template<class T> static QAction* setupAction(const QIcon & icon, const QString & text, LogView* this_object, T slot)
@@ -210,7 +213,7 @@ void LogView::addMsgToLogSlot(QByteArray msg)
                 redirectError = true;
             }
             if(loggingEnabled)
-                msgUtf16 = QString::fromUtf8(data, buffersize);
+                msgUtf16 = QString::fromUtf8(data, int(buffersize));
         }
     }
     else

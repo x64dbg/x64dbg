@@ -2635,10 +2635,7 @@ void RegistersView::onPushAction()
 {
     duint csp = (* ((duint*) registerValue(&wRegDumpStruct, CSP))) - sizeof(void*);
     duint regVal = 0;
-    if(mSEGMENTREGISTER.contains(mSelected))
-        regVal = * ((unsigned short*) registerValue(&wRegDumpStruct, mSelected));
-    else
-        regVal = * ((duint*) registerValue(&wRegDumpStruct, mSelected));
+    regVal = * ((duint*) registerValue(&wRegDumpStruct, mSelected));
     setRegister(CSP, csp);
     DbgMemWrite(csp, (const unsigned char*)&regVal , sizeof(void*));
 }
@@ -2649,8 +2646,6 @@ void RegistersView::onPopAction()
     duint newVal;
     DbgMemRead(csp, (unsigned char*)&newVal, sizeof(void*));
     setRegister(CSP, csp + sizeof(void*));
-    if(mSEGMENTREGISTER.contains(mSelected))
-        newVal &= 0xFFFF;
     setRegister(mSelected, newVal);
 }
 
@@ -2714,6 +2709,8 @@ void RegistersView::onHighlightSlot()
     Disassembly* CPUDisassemblyView = mParent->getDisasmWidget();
     if(mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS)
         CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mSEGMENTREGISTER.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUMMX.contains(mSelected))
         CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUXMM.contains(mSelected))
@@ -3048,7 +3045,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
                 wMenu.addAction(wCM_CopySymbolToClipboard);
         }
 
-        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
             wMenu.addAction(wCM_Highlight);
         }
@@ -3085,7 +3082,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             wMenu.addAction(wCM_DecrementPtrSize);
         }
 
-        if(mGPR.contains(mSelected) || mSEGMENTREGISTER.contains(mSelected) || mSelected == CIP)
+        if(mGPR.contains(mSelected) || mSelected == CIP)
         {
             wMenu.addAction(wCM_Push);
             wMenu.addAction(wCM_Pop);

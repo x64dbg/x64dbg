@@ -5,7 +5,7 @@
 
 std::unordered_map<String, ExpressionFunctions::Function> ExpressionFunctions::mFunctions;
 
-//Copied from http://stackoverflow.com/a/7858971/1806760
+//Copied from https://stackoverflow.com/a/7858971/1806760
 template<int...>
 struct seq {};
 

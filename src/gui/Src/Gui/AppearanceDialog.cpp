@@ -545,6 +545,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Search Highlight Color"), "SearchListViewHighlightColor", "");
     colorInfoListAppend(tr("Struct primary background"), "StructBackgroundColor", "");
     colorInfoListAppend(tr("Struct secondary background"), "StructAlternateBackgroundColor", "");
+    colorInfoListAppend(tr("Log Link Color"), "LogLinkColor", "LogLinkBackgroundColor");
 
     //dev helper
     const QMap<QString, QColor>* Colors = &Config()->defaultColors;
@@ -703,6 +704,7 @@ void AppearanceDialog::on_fontAbstractTablesStyle_currentIndexChanged(int index)
     QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
+    font.setKerning(false);
     if(index == 1 || index == 3)
         font.setBold(true);
     if(index == 2 || index == 3)
@@ -719,6 +721,7 @@ void AppearanceDialog::on_fontAbstractTablesSize_currentIndexChanged(const QStri
     QString id = "AbstractTableView";
     QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -731,6 +734,7 @@ void AppearanceDialog::on_fontDisassembly_currentFontChanged(const QFont & f)
     QString id = "Disassembly";
     QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -744,6 +748,7 @@ void AppearanceDialog::on_fontDisassemblyStyle_currentIndexChanged(int index)
     QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
+    font.setKerning(false);
     if(index == 1 || index == 3)
         font.setBold(true);
     if(index == 2 || index == 3)
@@ -760,6 +765,7 @@ void AppearanceDialog::on_fontDisassemblySize_currentIndexChanged(const QString 
     QString id = "Disassembly";
     QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -772,6 +778,7 @@ void AppearanceDialog::on_fontHexDump_currentFontChanged(const QFont & f)
     QString id = "HexDump";
     QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -785,6 +792,7 @@ void AppearanceDialog::on_fontHexDumpStyle_currentIndexChanged(int index)
     QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
+    font.setKerning(false);
     if(index == 1 || index == 3)
         font.setBold(true);
     if(index == 2 || index == 3)
@@ -801,6 +809,7 @@ void AppearanceDialog::on_fontHexDumpSize_currentIndexChanged(const QString & ar
     QString id = "HexDump";
     QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -813,6 +822,7 @@ void AppearanceDialog::on_fontStack_currentFontChanged(const QFont & f)
     QString id = "Stack";
     QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -826,6 +836,7 @@ void AppearanceDialog::on_fontStackStyle_currentIndexChanged(int index)
     QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
+    font.setKerning(false);
     if(index == 1 || index == 3)
         font.setBold(true);
     if(index == 2 || index == 3)
@@ -842,6 +853,7 @@ void AppearanceDialog::on_fontStackSize_currentIndexChanged(const QString & arg1
     QString id = "Stack";
     QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -854,6 +866,7 @@ void AppearanceDialog::on_fontRegisters_currentFontChanged(const QFont & f)
     QString id = "Registers";
     QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -867,6 +880,7 @@ void AppearanceDialog::on_fontRegistersStyle_currentIndexChanged(int index)
     QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
+    font.setKerning(false);
     if(index == 1 || index == 3)
         font.setBold(true);
     if(index == 2 || index == 3)
@@ -883,6 +897,7 @@ void AppearanceDialog::on_fontRegistersSize_currentIndexChanged(const QString & 
     QString id = "Registers";
     QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -895,6 +910,7 @@ void AppearanceDialog::on_fontHexEdit_currentFontChanged(const QFont & f)
     QString id = "HexEdit";
     QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -908,6 +924,7 @@ void AppearanceDialog::on_fontHexEditStyle_currentIndexChanged(int index)
     QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
+    font.setKerning(false);
     if(index == 1 || index == 3)
         font.setBold(true);
     if(index == 2 || index == 3)
@@ -924,6 +941,7 @@ void AppearanceDialog::on_fontHexEditSize_currentIndexChanged(const QString & ar
     QString id = "HexEdit";
     QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -936,6 +954,7 @@ void AppearanceDialog::on_fontLog_currentFontChanged(const QFont & f)
     QString id = "Log";
     QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;
@@ -949,6 +968,7 @@ void AppearanceDialog::on_fontLogStyle_currentIndexChanged(int index)
     QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
+    font.setKerning(false);
     if(index == 1 || index == 3)
         font.setBold(true);
     if(index == 2 || index == 3)
@@ -965,6 +985,7 @@ void AppearanceDialog::on_fontLogSize_currentIndexChanged(const QString & arg1)
     QString id = "Log";
     QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
+    font.setKerning(false);
     (*fontMap)[id] = font;
     if(isInit)
         return;

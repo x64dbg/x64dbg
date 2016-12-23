@@ -263,96 +263,103 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 comment = StringUtils::sprintf("%s:%u", StringUtils::Utf16ToUtf8(filename + len).c_str(), line.LineNumber);
                 retval = true;
             }
-            if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
+
+            DISASM_INSTR instr;
+            String temp_string;
+            ADDRINFO newinfo;
+            char string_text[MAX_STRING_SIZE] = "";
+
+            Capstone cp;
+            auto getregs = !bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP);
+            disasmget(cp, addr, &instr, getregs);
+
+            //Ignore register values when not on CIP and OnlyCipAutoComments is enabled: https://github.com/x64dbg/x64dbg/issues/1383
+            if(!getregs)
             {
-                DISASM_INSTR instr;
-                String temp_string;
-                ADDRINFO newinfo;
-                char string_text[MAX_STRING_SIZE] = "";
-
-                Capstone cp;
-                disasmget(cp, addr, &instr);
                 for(int i = 0; i < instr.argcount; i++)
+                    instr.arg[i].value = instr.arg[i].constant;
+            }
+
+            for(int i = 0; i < instr.argcount; i++)
+            {
+                memset(&newinfo, 0, sizeof(ADDRINFO));
+                newinfo.flags = flaglabel;
+
+                STRING_TYPE strtype = str_none;
+
+                if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
                 {
-                    memset(&newinfo, 0, sizeof(ADDRINFO));
-                    newinfo.flags = flaglabel;
-
-                    STRING_TYPE strtype = str_none;
-
-                    if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
+                    auto constant = instr.arg[i].constant;
+                    if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_CALL))
+                        temp_string.assign("call $0");
+                    else if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_JUMP))
+                        temp_string.assign("jmp $0");
+                    else if(instr.type == instr_branch)
+                        continue;
+                    else if(instr.arg[i].type == arg_normal && constant < 256 && (isprint(int(constant)) || isspace(int(constant))) && (strstr(instr.instruction, "cmp") || strstr(instr.instruction, "mov")))
                     {
-                        auto constant = instr.arg[i].constant;
-                        if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_CALL))
-                            temp_string.assign("call $0");
-                        else if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_JUMP))
-                            temp_string.assign("jmp $0");
-                        else if(instr.type == instr_branch)
-                            continue;
-                        else if(instr.arg[i].type == arg_normal && constant < 256 && (isprint(int(constant)) || isspace(int(constant))) && (strstr(instr.instruction, "cmp") || strstr(instr.instruction, "mov")))
-                        {
-                            temp_string.assign(instr.arg[i].mnemonic);
-                            temp_string.push_back(':');
-                            temp_string.push_back('\'');
-                            temp_string.append(StringUtils::Escape((unsigned char)constant));
-                            temp_string.push_back('\'');
-                        }
-                        else if(DbgGetStringAt(instr.arg[i].constant, string_text))
-                        {
-                            temp_string.assign(instr.arg[i].mnemonic);
-                            temp_string.push_back(':');
-                            temp_string.append(string_text);
-                        }
+                        temp_string.assign(instr.arg[i].mnemonic);
+                        temp_string.push_back(':');
+                        temp_string.push_back('\'');
+                        temp_string.append(StringUtils::Escape((unsigned char)constant));
+                        temp_string.push_back('\'');
                     }
-                    else if(instr.arg[i].memvalue && (DbgGetStringAt(instr.arg[i].memvalue, string_text) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
+                    else if(DbgGetStringAt(instr.arg[i].constant, string_text))
                     {
-                        if(*string_text)
+                        temp_string.assign(instr.arg[i].mnemonic);
+                        temp_string.push_back(':');
+                        temp_string.append(string_text);
+                    }
+                }
+                else if(instr.arg[i].memvalue && (DbgGetStringAt(instr.arg[i].memvalue, string_text) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
+                {
+                    if(*string_text)
+                    {
+                        temp_string.assign("[");
+                        temp_string.append(instr.arg[i].mnemonic);
+                        temp_string.push_back(']');
+                        temp_string.push_back(':');
+                        temp_string.append(string_text);
+                    }
+                    else if(*newinfo.label)
+                    {
+                        temp_string.assign("[");
+                        temp_string.append(instr.arg[i].mnemonic);
+                        temp_string.push_back(']');
+                        temp_string.push_back(':');
+                        temp_string.append(newinfo.label);
+                    }
+                }
+                else if(instr.arg[i].value && (DbgGetStringAt(instr.arg[i].value, string_text) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
+                {
+                    if(instr.type != instr_normal) //stack/jumps (eg add esp, 4 or jmp 401110) cannot directly point to strings
+                    {
+                        if(*newinfo.label)
                         {
-                            temp_string.assign("[");
-                            temp_string.append(instr.arg[i].mnemonic);
-                            temp_string.push_back(']');
-                            temp_string.push_back(':');
-                            temp_string.append(string_text);
-                        }
-                        else if(*newinfo.label)
-                        {
-                            temp_string.assign("[");
-                            temp_string.append(instr.arg[i].mnemonic);
-                            temp_string.push_back(']');
+                            temp_string = instr.arg[i].mnemonic;
                             temp_string.push_back(':');
                             temp_string.append(newinfo.label);
                         }
                     }
-                    else if(instr.arg[i].value && (DbgGetStringAt(instr.arg[i].value, string_text) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
+                    else if(*string_text)
                     {
-                        if(instr.type != instr_normal) //stack/jumps (eg add esp,4 or jmp 401110) cannot directly point to strings
-                        {
-                            if(*newinfo.label)
-                            {
-                                temp_string = instr.arg[i].mnemonic;
-                                temp_string.push_back(':');
-                                temp_string.append(newinfo.label);
-                            }
-                        }
-                        else if(*string_text)
-                        {
-                            temp_string = instr.arg[i].mnemonic;
-                            temp_string.push_back(':');
-                            temp_string.append(string_text);
-                        }
+                        temp_string = instr.arg[i].mnemonic;
+                        temp_string.push_back(':');
+                        temp_string.append(string_text);
                     }
-                    else
-                        continue;
+                }
+                else
+                    continue;
 
-                    if(!strstr(comment.c_str(), temp_string.c_str())) //avoid duplicate comments
+                if(!strstr(comment.c_str(), temp_string.c_str())) //avoid duplicate comments
+                {
+                    if(!comment.empty())
                     {
-                        if(!comment.empty())
-                        {
-                            comment.push_back(',');
-                            comment.push_back(' ');
-                        }
-                        comment.append(temp_string);
-                        retval = true;
+                        comment.push_back(',');
+                        comment.push_back(' ');
                     }
+                    comment.append(temp_string);
+                    retval = true;
                 }
             }
 

@@ -189,6 +189,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("SearchListViewHighlightColor", QColor("#FF0000"));
     defaultColors.insert("StructBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("StructAlternateBackgroundColor", QColor("#DCD9CF"));
+    defaultColors.insert("LogLinkColor", QColor("#00CC00"));
+    defaultColors.insert("LogLinkBackgroundColor", Qt::transparent);
 
     //bool settings
     QMap<QString, bool> disassemblyBool;
@@ -202,6 +204,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disassemblyBool.insert("TabbedMnemonic", false);
     disassemblyBool.insert("LongDataInstruction", false);
     disassemblyBool.insert("NoHighlightOperands", false);
+    disassemblyBool.insert("PermanentHighlightingMode", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     QMap<QString, bool> engineBool;

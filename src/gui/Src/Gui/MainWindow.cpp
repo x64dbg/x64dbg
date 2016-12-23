@@ -225,6 +225,8 @@ MainWindow::MainWindow(QWidget* parent)
     else
         loadTabSavedOrder();
 
+    loadWindowSettings();
+
     setCentralWidget(mTabWidget);
 
     // Setup the command and status bars
@@ -316,7 +318,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionAnimateInto, SIGNAL(triggered()), this, SLOT(animateIntoSlot()));
     connect(ui->actionAnimateOver, SIGNAL(triggered()), this, SLOT(animateOverSlot()));
     connect(ui->actionAnimateCommand, SIGNAL(triggered()), this, SLOT(animateCommandSlot()));
-    connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitialzationScript()));
+    connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitializationScript()));
     connect(ui->actionCustomizeMenus, SIGNAL(triggered()), this, SLOT(customizeMenu()));
     connect(ui->actionVariables, SIGNAL(triggered()), this, SLOT(displayVariables()));
 
@@ -445,7 +447,10 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
     duint noClose = 0;
     if(bCanClose)
+    {
+        saveWindowSettings();
         emit Bridge::getBridge()->close();
+    }
     if(BridgeSettingGetUint("Gui", "NoCloseDialog", &noClose) && noClose)
         mCloseDialog->hide();
     else
@@ -546,6 +551,65 @@ void MainWindow::clearTabWidget()
     // Remove all tabs starting from the end
     for(int i = mTabWidget->count() - 1; i >= 0; i--)
         mTabWidget->removeTab(i);
+}
+
+void MainWindow::saveWindowSettings()
+{
+    // Main Window settings
+    BridgeSettingSet("Main Window Settings", "Geometry", saveGeometry().toBase64().data());
+    BridgeSettingSet("Main Window Settings", "State", saveState().toBase64().data());
+
+    // Set of currently detached tabs
+    QSet<QWidget*> detachedTabWindows = mTabWidget->windows().toSet();
+
+    // For all tabs, save detached status.  If detached, save geometry.
+    for(int i = 0; i < mWidgetList.size(); i++)
+    {
+        bool isDetached = detachedTabWindows.contains(mWidgetList[i].widget);
+        BridgeSettingSetUint("Detached Windows", mWidgetList[i].nativeName.toUtf8().constData(), isDetached);
+        if(isDetached)
+            BridgeSettingSet("Tab Window Settings", mWidgetList[i].nativeName.toUtf8().constData(),
+                             mWidgetList[i].widget->parentWidget()->saveGeometry().toBase64().data());
+    }
+}
+
+void MainWindow::loadWindowSettings()
+{
+    // Main Window settings
+    char mainWindowSetting[MAX_SETTING_SIZE];
+    memset(mainWindowSetting, 0, sizeof(mainWindowSetting));
+    BridgeSettingGet("Main Window Settings", "Geometry", mainWindowSetting);
+    size_t sizeofSetting = strlen(mainWindowSetting);
+    restoreGeometry(QByteArray::fromBase64(QByteArray(mainWindowSetting, int(sizeofSetting))));
+
+    memset(mainWindowSetting, 0, sizeof(mainWindowSetting));
+    BridgeSettingGet("Main Window Settings", "State", mainWindowSetting);
+    sizeofSetting = strlen(mainWindowSetting);
+    restoreState(QByteArray::fromBase64(QByteArray(mainWindowSetting, int(sizeofSetting))));
+
+    // Restore detached windows size and position
+    // If a tab was detached last session, manually detach it now to populate MHTabWidget::windows
+    for(int i = 0; i < mWidgetList.size(); i++)
+    {
+        duint isDetached = 0;
+        BridgeSettingGetUint("Detached Windows", mWidgetList[i].nativeName.toUtf8().constData(), &isDetached);
+        if(isDetached)
+            mTabWidget->DetachTab(mTabWidget->indexOf(mWidgetList[i].widget), QPoint());
+    }
+
+    // Restore geometry for every tab we just detached
+    QSet<QWidget*> detachedTabWindows = mTabWidget->windows().toSet();
+    for(int i = 0; i < mWidgetList.size(); i++)
+    {
+        if(detachedTabWindows.contains(mWidgetList[i].widget))
+        {
+            char geometrySetting[MAX_SETTING_SIZE];
+            memset(geometrySetting, 0, sizeof(geometrySetting));
+            BridgeSettingGet("Tab Window Settings", mWidgetList[i].nativeName.toUtf8().constData(), geometrySetting);
+            size_t sizeofgeometrySetting = strlen(geometrySetting);
+            mWidgetList[i].widget->parentWidget()->restoreGeometry(QByteArray::fromBase64(QByteArray(geometrySetting, int(sizeofgeometrySetting))));
+        }
+    }
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)
@@ -825,7 +889,7 @@ void MainWindow::displayAboutWidget()
     QString title = tr("About x32dbg");
 #endif //_WIN64
     title += QString().sprintf(" v%d", BridgeGetDbgVersion());
-    QMessageBox msg(QMessageBox::Information, title, "Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>" + ToDateString(GetCompileDate()) + ", " __TIME__);
+    QMessageBox msg(QMessageBox::Information, title, tr("Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>") + ToDateString(GetCompileDate()) + ", " __TIME__);
     msg.setWindowIcon(DIcon("information.png"));
     msg.setTextFormat(Qt::RichText);
     msg.setParent(this, Qt::Dialog);
@@ -1783,14 +1847,14 @@ void MainWindow::animateCommandSlot()
         DbgFunctions()->AnimateCommand(command.toUtf8().constData());
 }
 
-void MainWindow::setInitialzationScript()
+void MainWindow::setInitializationScript()
 {
     QString global, debuggee;
     char globalChar[MAX_SETTING_SIZE];
     if(DbgIsDebugging())
     {
         debuggee = QString(DbgFunctions()->DbgGetDebuggeeInitScript());
-        BrowseDialog browseScript(this, tr("Set Initialzation Script for Debuggee"), tr("Set Initialzation Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
+        BrowseDialog browseScript(this, tr("Set Initialization Script for Debuggee"), tr("Set Initialization Script for Debuggee"), tr("Script files (*.txt *.scr);;All files (*.*)"), debuggee, false);
         browseScript.setWindowIcon(DIcon("initscript.png"));
         if(browseScript.exec() == QDialog::Accepted)
             DbgFunctions()->DbgSetDebuggeeInitScript(browseScript.path.toUtf8().constData());
@@ -1799,7 +1863,7 @@ void MainWindow::setInitialzationScript()
         global = QString(globalChar);
     else
         global = QString();
-    BrowseDialog browseScript(this, tr("Set Global Initialzation Script"), tr("Set Global Initialzation Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);
+    BrowseDialog browseScript(this, tr("Set Global Initialization Script"), tr("Set Global Initialization Script"), tr("Script files (*.txt *.scr);;All files (*.*)"), global, false);
     browseScript.setWindowIcon(DIcon("initscript.png"));
     if(browseScript.exec() == QDialog::Accepted)
     {

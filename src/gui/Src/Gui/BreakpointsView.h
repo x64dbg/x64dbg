@@ -87,11 +87,11 @@ public slots:
 private:
     QVBoxLayout* mVertLayout;
     LabeledSplitter* mSplitter;
-    BreakpointsViewTable* mHardBPTable;
-    BreakpointsViewTable* mSoftBPTable;
-    BreakpointsViewTable* mMemBPTable;
-    BreakpointsViewTable* mDLLBPTable;
-    BreakpointsViewTable* mExceptionBPTable;
+    StdTable* mHardBPTable;
+    StdTable* mSoftBPTable;
+    StdTable* mMemBPTable;
+    StdTable* mDLLBPTable;
+    StdTable* mExceptionBPTable;
     // Conditional BP Context Menu
     BPXTYPE mCurrentType;
     QAction* mEditBreakpointAction;

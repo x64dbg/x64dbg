@@ -511,6 +511,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkPermanentHighlightingMode">
+         <property name="text">
+          <string>Permanent highlighting mode</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
