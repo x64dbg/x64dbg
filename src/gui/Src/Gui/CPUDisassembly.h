@@ -124,7 +124,7 @@ private:
     bool getLabelsFromInstruction(duint addr, QSet<QString> & labels);
     bool getTokenValueText(QString & text);
 
-    void pushSelectionInto(bool copyBytes, QTextStream & stream);
+    void pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream = nullptr);
 
     // Menus
     QMenu* mHwSlotSelectMenu;

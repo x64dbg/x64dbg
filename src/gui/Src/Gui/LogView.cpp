@@ -228,10 +228,7 @@ void LogView::addMsgToLogSlot(QByteArray msg)
             this->clear();
         counter = 100;
     }
-    msgUtf16.replace(QChar('&'), QString("&amp;"));
-    msgUtf16.replace(QChar(' '), QString("&nbsp;"));
-    msgUtf16.replace(QChar('<'), QString("&lt;"));
-    msgUtf16.replace(QChar('>'), QString("&gt;"));
+    msgUtf16 = msgUtf16.toHtmlEscaped();
     if(logRedirection)
     {
         if(utf16Redirect)

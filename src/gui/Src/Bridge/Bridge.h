@@ -27,6 +27,7 @@ public:
 
     // Misc functions
     static void CopyToClipboard(const QString & text);
+    static void CopyToClipboard(const QString & text, const QString & htmlText);
 
     //result function
     void setResult(dsint result = 0);
