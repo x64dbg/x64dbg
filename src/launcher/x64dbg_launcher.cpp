@@ -497,7 +497,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if(architecture == dotnet)
             architecture = isWoW64() ? x64 : x32;
 
-        switch(GetFileArchitecture(szPath))
+        switch(architecture)
         {
         case x32:
             if(sz32Path[0])
