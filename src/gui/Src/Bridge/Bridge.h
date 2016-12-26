@@ -112,6 +112,10 @@ signals:
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
     void setCheckedMenuEntry(int hEntry, bool checked);
+    void setVisibleMenuEntry(int hEntry, bool visible);
+    void setVisibleMenu(int hMenu, bool visible);
+    void setNameMenuEntry(int hEntry, QString name);
+    void setNameMenu(int hMenu, QString name);
     void showCpu();
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);

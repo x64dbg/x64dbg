@@ -98,6 +98,26 @@ PLUG_IMPEXP void _plugin_menuentrysetchecked(int pluginHandle, int hEntry, bool 
     pluginmenuentrysetchecked(pluginHandle, hEntry, checked);
 }
 
+PLUG_IMPEXP void _plugin_menusetvisible(int pluginHandle, int hMenu, bool visible)
+{
+    pluginmenusetvisible(pluginHandle, hMenu, visible);
+}
+
+PLUG_IMPEXP void _plugin_menuentrysetvisible(int pluginHandle, int hEntry, bool visible)
+{
+    pluginmenuentrysetvisible(pluginHandle, hEntry, visible);
+}
+
+PLUG_IMPEXP void _plugin_menusetname(int pluginHandle, int hMenu, const char* name)
+{
+    pluginmenusetname(pluginHandle, hMenu, name);
+}
+
+PLUG_IMPEXP void _plugin_menuentrysetname(int pluginHandle, int hEntry, const char* name)
+{
+    pluginmenuentrysetname(pluginHandle, hEntry, name);
+}
+
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript)
 {
     dbgstartscriptthread(cbScript);
