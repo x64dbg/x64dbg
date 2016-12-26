@@ -116,6 +116,8 @@ bool pluginload(const char* pluginName, bool loadall)
     if(!pluginData.pluginit)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Export \"pluginit\" not found in plugin: %s\n"), name);
+        for(int i = CB_INITDEBUG; i < CB_LAST; i++)
+            pluginunregistercallback(curPluginHandle, CBTYPE(i));
         FreeLibrary(pluginData.hPlugin);
         SetCurrentDirectoryW(currentDir);
         return false;
@@ -125,6 +127,29 @@ bool pluginload(const char* pluginName, bool loadall)
 
     strncpy_s(pluginData.plugpath, searchName, MAX_PATH);
     strncpy_s(pluginData.plugname, name, MAX_PATH);
+
+    //init plugin
+    if(!pluginData.pluginit(&pluginData.initStruct))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] pluginit failed for plugin: %s\n"), name);
+        for(int i = CB_INITDEBUG; i < CB_LAST; i++)
+            pluginunregistercallback(curPluginHandle, CBTYPE(i));
+        FreeLibrary(pluginData.hPlugin);
+        SetCurrentDirectoryW(currentDir);
+        return false;
+    }
+    if(pluginData.initStruct.sdkVersion < PLUG_SDKVERSION)  //the plugin SDK is not compatible
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s is incompatible with this SDK version\n"), pluginData.initStruct.pluginName);
+        for(int i = CB_INITDEBUG; i < CB_LAST; i++)
+            pluginunregistercallback(curPluginHandle, CBTYPE(i));
+        FreeLibrary(pluginData.hPlugin);
+        SetCurrentDirectoryW(currentDir);
+        return false;
+    }
+
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s v%d Loaded!\n"), pluginData.initStruct.pluginName, pluginData.initStruct.pluginVersion);
+
     //auto-register callbacks for certain export names
     auto cbPlugin = CBPLUGIN(GetProcAddress(pluginData.hPlugin, "CBALLEVENTS"));
     if(cbPlugin)
@@ -167,24 +192,6 @@ bool pluginload(const char* pluginName, bool loadall)
     regExport("CBADDRINFO", CB_ADDRINFO);
     regExport("CBVALFROMSTRING", CB_VALFROMSTRING);
     regExport("CBVALTOSTRING", CB_VALTOSTRING);
-
-    //init plugin
-    if(!pluginData.pluginit(&pluginData.initStruct))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] pluginit failed for plugin: %s\n"), name);
-        FreeLibrary(pluginData.hPlugin);
-        SetCurrentDirectoryW(currentDir);
-        return false;
-    }
-    else if(pluginData.initStruct.sdkVersion < PLUG_SDKVERSION)  //the plugin SDK is not compatible
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s is incompatible with this SDK version\n"), pluginData.initStruct.pluginName);
-        FreeLibrary(pluginData.hPlugin);
-        SetCurrentDirectoryW(currentDir);
-        return false;
-    }
-    else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s v%d Loaded!\n"), pluginData.initStruct.pluginName, pluginData.initStruct.pluginVersion);
 
     SectionLocker<LockPluginMenuList, false> menuLock; //exclusive lock
 
