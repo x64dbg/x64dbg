@@ -1287,6 +1287,60 @@ void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
     Bridge::getBridge()->setResult();
 }
 
+void MainWindow::setVisibleMenuEntry(int hEntry, bool visible)
+{
+    for(int i = 0; i < mEntryList.size(); i++)
+    {
+        if(mEntryList.at(i).hEntry == hEntry)
+        {
+            const MenuEntryInfo & entry = mEntryList.at(i);
+            entry.mAction->setVisible(visible);
+            break;
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::setVisibleMenu(int hMenu, bool visible)
+{
+    for(int i = 0; i < mMenuList.size(); i++)
+    {
+        if(mMenuList.at(i).hMenu == hMenu)
+        {
+            const MenuInfo & menu = mMenuList.at(i);
+            menu.mMenu->setVisible(visible);
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::setNameMenuEntry(int hEntry, QString name)
+{
+    for(int i = 0; i < mEntryList.size(); i++)
+    {
+        if(mEntryList.at(i).hEntry == hEntry)
+        {
+            const MenuEntryInfo & entry = mEntryList.at(i);
+            entry.mAction->setText(name);
+            break;
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::setNameMenu(int hMenu, QString name)
+{
+    for(int i = 0; i < mMenuList.size(); i++)
+    {
+        if(mMenuList.at(i).hMenu == hMenu)
+        {
+            const MenuInfo & menu = mMenuList.at(i);
+            menu.mMenu->setTitle(name);
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
 void MainWindow::runSelection()
 {
     QString command;

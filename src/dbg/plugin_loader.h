@@ -75,6 +75,10 @@ bool pluginwineventglobal(MSG* message);
 void pluginmenuseticon(int hMenu, const ICONDATA* icon);
 void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon);
 void pluginmenuentrysetchecked(int pluginHandle, int hEntry, bool checked);
+void pluginmenusetvisible(int pluginHandle, int hMenu, bool visible);
+void pluginmenuentrysetvisible(int pluginHandle, int hEntry, bool visible);
+void pluginmenusetname(int pluginHandle, int hMenu, const char* name);
+void pluginmenuentrysetname(int pluginHandle, int hEntry, const char* name);
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata);
 bool pluginexprfuncunregister(int pluginHandle, const char* name);
 

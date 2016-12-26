@@ -803,6 +803,64 @@ void pluginmenuentrysetchecked(int pluginHandle, int hEntry, bool checked)
     }
 }
 
+void pluginmenusetvisible(int pluginHandle, int hMenu, bool visible)
+{
+    SHARED_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
+    {
+        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
+        {
+            GuiMenuSetVisible(hMenu, visible);
+            break;
+        }
+    }
+}
+
+void pluginmenuentrysetvisible(int pluginHandle, int hEntry, bool visible)
+{
+    if(hEntry == -1)
+        return;
+    SHARED_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
+    {
+        if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
+        {
+            GuiMenuSetEntryChecked(currentMenu.hEntryMenu, visible);
+            break;
+        }
+    }
+}
+
+void pluginmenusetname(int pluginHandle, int hMenu, const char* name)
+{
+    if(!name)
+        return;
+    SHARED_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
+    {
+        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
+        {
+            GuiMenuSetName(hMenu, name);
+            break;
+        }
+    }
+}
+
+void pluginmenuentrysetname(int pluginHandle, int hEntry, const char* name)
+{
+    if(hEntry == -1 || !name)
+        return;
+    SHARED_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
+    {
+        if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
+        {
+            GuiMenuSetEntryName(currentMenu.hEntryMenu, name);
+            break;
+        }
+    }
+}
+
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata)
 {
     PLUG_EXPRFUNCTION plugExprfunction;

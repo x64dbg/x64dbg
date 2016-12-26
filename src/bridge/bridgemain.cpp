@@ -1397,6 +1397,26 @@ BRIDGE_IMPEXP void GuiMenuSetEntryChecked(int hEntry, bool checked)
     _gui_sendmessage(GUI_MENU_SET_ENTRY_CHECKED, (void*)hEntry, (void*)checked);
 }
 
+BRIDGE_IMPEXP void GuiMenuSetVisible(int hMenu, bool visible)
+{
+    _gui_sendmessage(GUI_MENU_SET_VISIBLE, (void*)hMenu, (void*)visible);
+}
+
+BRIDGE_IMPEXP void GuiMenuSetEntryVisible(int hEntry, bool visible)
+{
+    _gui_sendmessage(GUI_MENU_SET_VISIBLE, (void*)hEntry, (void*)visible);
+}
+
+BRIDGE_IMPEXP void GuiMenuSetName(int hMenu, const char* name)
+{
+    _gui_sendmessage(GUI_MENU_SET_VISIBLE, (void*)hMenu, (void*)name);
+}
+
+BRIDGE_IMPEXP void GuiMenuSetEntryName(int hEntry, const char* name)
+{
+    _gui_sendmessage(GUI_MENU_SET_VISIBLE, (void*)hEntry, (void*)name);
+}
+
 BRIDGE_IMPEXP void GuiShowCpu()
 {
     _gui_sendmessage(GUI_SHOW_CPU, 0, 0);

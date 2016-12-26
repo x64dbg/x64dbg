@@ -504,6 +504,38 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     }
     break;
 
+    case GUI_MENU_SET_VISIBLE:
+    {
+        BridgeResult result;
+        emit setVisibleMenu(int(param1), bool(param2));
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_ENTRY_VISIBLE:
+    {
+        BridgeResult result;
+        emit setVisibleMenuEntry(int(param1), bool(param2));
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_NAME:
+    {
+        BridgeResult result;
+        emit setNameMenu(int(param1), QString((const char*)param2));
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_ENTRY_NAME:
+    {
+        BridgeResult result;
+        emit setNameMenuEntry(int(param1), QString((const char*)param2));
+        result.Wait();
+    }
+    break;
+
     case GUI_SHOW_CPU:
         emit showCpu();
         break;
