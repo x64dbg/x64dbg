@@ -18,6 +18,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     : StdTable(parent),
       mCipBase(0)
 {
+    setDrawDebugOnly(true);
     enableMultiSelection(false);
 
     int charwidth = getCharWidth();
