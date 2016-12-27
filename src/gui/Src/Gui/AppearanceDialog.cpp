@@ -545,7 +545,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Search Highlight Color"), "SearchListViewHighlightColor", "");
     colorInfoListAppend(tr("Struct primary background"), "StructBackgroundColor", "");
     colorInfoListAppend(tr("Struct secondary background"), "StructAlternateBackgroundColor", "");
-    colorInfoListAppend(tr("Log Link Color"), "LogLinkColor", "LogLinkBackgroundColor");
+    colorInfoListAppend(tr("Log Link Color") + "*", "LogLinkColor", "LogLinkBackgroundColor");
 
     //dev helper
     const QMap<QString, QColor>* Colors = &Config()->defaultColors;
