@@ -164,9 +164,9 @@ static bool isPausedByUser = false;
 static bool isDetachedByUser = false;
 static bool bIsAttached = false;
 static bool bSkipExceptions = false;
+static duint skipExceptionCount = 0;
 static bool bBreakOnNextDll = false;
 static bool bFreezeStack = false;
-static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static HANDLE hEvent = 0;
 static HANDLE hProcess = 0;
@@ -197,6 +197,7 @@ bool bIgnoreInconsistentBreakpoints = false;
 bool bNoForegroundWindow = false;
 bool bVerboseExceptionLogging = true;
 duint DbgEvents = 0;
+duint maxSkipExceptionCount = 10000;
 
 static duint dbgcleartracestate()
 {
@@ -378,6 +379,7 @@ void dbgsetattachevent(HANDLE handle)
 void dbgsetskipexceptions(bool skip)
 {
     bSkipExceptions = skip;
+    skipExceptionCount = 0;
 }
 
 void dbgsetstepping(bool stepping)
@@ -833,7 +835,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
             PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
             plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
             dbgsetforeground();
-            bSkipExceptions = false;
+            dbgsetskipexceptions(false);
             wait(WAITID_RUN);
             return;
         }
@@ -913,7 +915,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     if(breakCondition)  //break the debugger
     {
         dbgsetforeground();
-        bSkipExceptions = false;
+        dbgsetskipexceptions(false);
     }
     else //resume immediately
         unlock(WAITID_RUN);
@@ -953,7 +955,7 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     dbgsetforeground();
-    bSkipExceptions = false;
+    dbgsetskipexceptions(false);
     wait(WAITID_RUN);
 }
 
@@ -1153,7 +1155,7 @@ void cbStep()
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     dbgsetforeground();
-    bSkipExceptions = false;
+    dbgsetskipexceptions(false);
     plugincbcall(CB_STEPPED, &stepInfo);
     wait(WAITID_RUN);
 }
@@ -1172,7 +1174,7 @@ static void cbRtrFinalStep()
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     dbgsetforeground();
-    bSkipExceptions = false;
+    dbgsetskipexceptions(false);
     wait(WAITID_RUN);
 }
 
@@ -1553,7 +1555,7 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
         dputs(QT_TRANSLATE_NOOP("DBG", "Attach breakpoint reached!"));
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "System breakpoint reached!"));
-    bSkipExceptions = false; //we are not skipping first-chance exceptions
+    dbgsetskipexceptions(false); //we are not skipping first-chance exceptions
 
     //plugin callbacks
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
@@ -1859,7 +1861,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
             plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
             dbgsetforeground();
-            bSkipExceptions = false;
+            dbgsetskipexceptions(false);
             plugincbcall(CB_EXCEPTION, &callbackInfo);
             wait(WAITID_RUN);
             return;
@@ -1895,7 +1897,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         else
             dprintf(QT_TRANSLATE_NOOP("DBG", "First chance exception on %p (%.8X)!\n"), addr, ExceptionCode);
         SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
-        if(bSkipExceptions || dbgisignoredexception(ExceptionCode))
+        if((bSkipExceptions || dbgisignoredexception(ExceptionCode)) && (!maxSkipExceptionCount || ++skipExceptionCount < maxSkipExceptionCount))
             return;
     }
     else //lock the exception
@@ -1914,7 +1916,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     dbgsetforeground();
-    bSkipExceptions = false;
+    dbgsetskipexceptions(false);
     plugincbcall(CB_EXCEPTION, &callbackInfo);
     wait(WAITID_RUN);
 }
@@ -2432,10 +2434,9 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 
     //initialize variables
     bIsAttached = attach;
-    bSkipExceptions = false;
+    dbgsetskipexceptions(false);
     bBreakOnNextDll = false;
     bFreezeStack = false;
-    ecount = 0;
 
     //prepare attach/createprocess
     DWORD pid;

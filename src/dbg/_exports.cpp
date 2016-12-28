@@ -961,6 +961,11 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
             _dbg_setanimateinterval((unsigned int)animateInterval);
         else
             _dbg_setanimateinterval(50); // 20 commands per second
+
+        if(BridgeSettingGetUint("Engine", "MaxSkipExceptionCount", &setting))
+            maxSkipExceptionCount = setting;
+        else
+            BridgeSettingSetUint("Engine", "MaxSkipExceptionCount", maxSkipExceptionCount);
     }
     break;
 

@@ -149,5 +149,6 @@ extern bool bSkipInt3Stepping;
 extern bool bIgnoreInconsistentBreakpoints;
 extern bool bNoForegroundWindow;
 extern bool bVerboseExceptionLogging;
+extern duint maxSkipExceptionCount;
 
 #endif // _DEBUGGER_H
