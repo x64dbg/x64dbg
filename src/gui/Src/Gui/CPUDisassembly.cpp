@@ -1591,7 +1591,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
         if(htmlStream)
         {
-            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(address, htmlDisassembly);
+            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(address.toHtmlEscaped(), htmlDisassembly);
             if(!comment.isEmpty())
             {
                 if(autocomment)
@@ -1606,7 +1606,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
                     if(mCommentBackgroundColor != Qt::transparent)
                         *htmlStream << QString(";background-color:%2").arg(mCommentBackgroundColor.name());
                 }
-                *htmlStream << "\">" << comment << "</span></td></tr>";
+                *htmlStream << "\">" << comment.toHtmlEscaped() << "</span></td></tr>";
             }
             else
             {
@@ -1617,7 +1617,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
                     *htmlStream << QString("<span style=\"color:%1").arg(mLabelColor.name());
                     if(mLabelBackgroundColor != Qt::transparent)
                         *htmlStream << QString(";background-color:%2").arg(mLabelBackgroundColor.name());
-                    *htmlStream << "\">" << comment << "</span></td></tr>";
+                    *htmlStream << "\">" << comment.toHtmlEscaped() << "</span></td></tr>";
                 }
                 else
                     *htmlStream << "</td></tr>";
