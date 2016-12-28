@@ -20,7 +20,7 @@ DebugStatusLabel::DebugStatusLabel(QStatusBar* parent) : QLabel(parent)
     }
     this->setTextFormat(Qt::RichText); //rich text
     parent->setStyleSheet("QStatusBar { background-color: #C0C0C0; } QStatusBar::item { border: none; }");
-    this->setFixedHeight(parent->height());
+    this->setFixedHeight(fm.height() + 5);
     this->setAlignment(Qt::AlignCenter);
     this->setFixedWidth(maxWidth + 10);
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));

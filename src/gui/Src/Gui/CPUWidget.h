@@ -29,12 +29,8 @@ public:
     void setDefaultDisposition();
     void setDisasmFocus();
 
-    // Layout getters
-    QVBoxLayout* getTopLeftUpperWidget();
-    QVBoxLayout* getTopLeftLowerWidget();
-    QVBoxLayout* getTopRightWidget();
-    QVBoxLayout* getBotLeftWidget();
-    QVBoxLayout* getBotRightWidget();
+    void saveWindowSettings();
+    void loadWindowSettings();
 
     // Widget getters
     CPUSideBar* getSidebarWidget();

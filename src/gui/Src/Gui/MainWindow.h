@@ -54,10 +54,10 @@ public:
     void loadTabDefaultOrder();
     void loadTabSavedOrder();
     void clearTabWidget();
-    void saveWindowSettings();
-    void loadWindowSettings();
 
 public slots:
+    void saveWindowSettings();
+    void loadWindowSettings();
     void executeCommand();
     void execCommandSlot();
     void setFocusToCommandBar();

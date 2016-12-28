@@ -30,17 +30,10 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(Bridge::getBridge(), SIGNAL(updateArgumentView()), mArgumentWidget, SLOT(refreshData()));
     mDisas->setCodeFoldingManager(mSideBar->getCodeFoldingManager());
 
-    QSplitter* splitter = new QSplitter(this);
-    splitter->addWidget(mSideBar);
-    splitter->addWidget(mDisas);
-    splitter->setChildrenCollapsible(false);
-    splitter->setCollapsible(0, true); //allow collapsing of the SideBar
-    splitter->setHandleWidth(1);
+    ui->mTopLeftUpperLeftFrameLayout->addWidget(mSideBar);
+    ui->mTopLeftUpperRightFrameLayout->addWidget(mDisas);
 
-    ui->mTopLeftVSplitter->setSizes(QList<int>() << 100 << 1);
     ui->mTopLeftVSplitter->setCollapsible(1, true); //allow collapsing of the InfoBox
-
-    ui->mTopLeftUpperFrameLayout->addWidget(splitter);
 
     mInfo = new CPUInfoBox();
     ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
@@ -68,7 +61,6 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
     mGeneralRegs->SetChangeButton(button_changeview);
 
-    ui->mTopRightVSplitter->setSizes(QList<int>() << 87 << 14);
     ui->mTopRightVSplitter->setCollapsible(1, true); //allow collapsing of the ArgumentWidget
 
     ui->mTopRightUpperFrameLayout->addWidget(button_changeview);
@@ -84,69 +76,78 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mStack->loadColumnFromConfig("CPUStack");
 }
 
+inline void saveSplitter(QSplitter* splitter, QString name)
+{
+    BridgeSettingSet("Main Window Settings", (name + "Geometry").toUtf8().constData(), splitter->saveGeometry().toBase64().data());
+    BridgeSettingSet("Main Window Settings", (name + "State").toUtf8().constData(), splitter->saveState().toBase64().data());
+}
+
+inline void loadSplitter(QSplitter* splitter, QString name)
+{
+    char setting[MAX_SETTING_SIZE] = "";
+    if(BridgeSettingGet("Main Window Settings", (name + "Geometry").toUtf8().constData(), setting))
+        splitter->restoreGeometry(QByteArray::fromBase64(QByteArray(setting)));
+    if(BridgeSettingGet("Main Window Settings", (name + "State").toUtf8().constData(), setting))
+        splitter->restoreState(QByteArray::fromBase64(QByteArray(setting)));
+}
+
+void CPUWidget::saveWindowSettings()
+{
+    saveSplitter(ui->mVSplitter, "mVSplitter");
+    saveSplitter(ui->mTopHSplitter, "mTopHSplitter");
+    saveSplitter(ui->mTopLeftVSplitter, "mTopLeftVSplitter");
+    saveSplitter(ui->mTopLeftUpperHSplitter, "mTopLeftUpperHSplitter");
+    saveSplitter(ui->mTopRightVSplitter, "mTopRightVSplitter");
+    saveSplitter(ui->mBotHSplitter, "mBotHSplitter");
+}
+
+void CPUWidget::loadWindowSettings()
+{
+    loadSplitter(ui->mVSplitter, "mVSplitter");
+    loadSplitter(ui->mTopHSplitter, "mTopHSplitter");
+    loadSplitter(ui->mTopLeftVSplitter, "mTopLeftVSplitter");
+    loadSplitter(ui->mTopLeftUpperHSplitter, "mTopLeftUpperHSplitter");
+    loadSplitter(ui->mTopRightVSplitter, "mTopRightVSplitter");
+    loadSplitter(ui->mBotHSplitter, "mBotHSplitter");
+}
+
 CPUWidget::~CPUWidget()
 {
     delete ui;
 }
 
-void CPUWidget::setDefaultDisposition(void)
+void CPUWidget::setDefaultDisposition()
 {
-    QList<int> sizesList;
-    int wTotalSize;
+    // This is magic, don't touch it...
 
     // Vertical Splitter
-    wTotalSize = ui->mVSplitter->widget(0)->size().height() + ui->mVSplitter->widget(1)->size().height();
-
-    sizesList.append(wTotalSize * 70 / 100);
-    sizesList.append(wTotalSize - wTotalSize * 70 / 100);
-
-    ui->mVSplitter->setSizes(sizesList);
+    ui->mVSplitter->setStretchFactor(0, 48);
+    ui->mVSplitter->setStretchFactor(1, 62);
 
     // Top Horizontal Splitter
-    wTotalSize = ui->mTopHSplitter->widget(0)->size().height() + ui->mTopHSplitter->widget(1)->size().height();
-
-    sizesList.append(wTotalSize * 70 / 100);
-    sizesList.append(wTotalSize - wTotalSize * 70 / 100);
-
-    ui->mTopHSplitter->setSizes(sizesList);
+    ui->mTopHSplitter->setStretchFactor(0, 77);
+    ui->mTopHSplitter->setStretchFactor(1, 23);
 
     // Bottom Horizontal Splitter
-    wTotalSize = ui->mBotHSplitter->widget(0)->size().height() + ui->mBotHSplitter->widget(1)->size().height();
+    ui->mBotHSplitter->setStretchFactor(0, 60);
+    ui->mBotHSplitter->setStretchFactor(1, 40);
 
-    sizesList.append(wTotalSize * 70 / 100);
-    sizesList.append(wTotalSize - wTotalSize * 70 / 100);
+    // Top Right Vertical Splitter
+    ui->mTopRightVSplitter->setStretchFactor(0, 87);
+    ui->mTopRightVSplitter->setStretchFactor(1, 13);
 
-    ui->mBotHSplitter->setSizes(sizesList);
+    // Top Left Vertical Splitter
+    ui->mTopLeftVSplitter->setStretchFactor(0, 99);
+    ui->mTopLeftVSplitter->setStretchFactor(1, 1);
+
+    // Top Left Upper Horizontal Splitter
+    ui->mTopLeftUpperHSplitter->setStretchFactor(0, 36);
+    ui->mTopLeftUpperHSplitter->setStretchFactor(1, 64);
 }
 
 void CPUWidget::setDisasmFocus()
 {
     mDisas->setFocus();
-}
-
-QVBoxLayout* CPUWidget::getTopLeftUpperWidget()
-{
-    return ui->mTopLeftUpperFrameLayout;
-}
-
-QVBoxLayout* CPUWidget::getTopLeftLowerWidget()
-{
-    return ui->mTopLeftLowerFrameLayout;
-}
-
-QVBoxLayout* CPUWidget::getTopRightWidget()
-{
-    return ui->mTopRightUpperFrameLayout;
-}
-
-QVBoxLayout* CPUWidget::getBotLeftWidget()
-{
-    return ui->mBotLeftFrameLayout;
-}
-
-QVBoxLayout* CPUWidget::getBotRightWidget()
-{
-    return ui->mBotRightFrameLayout;
 }
 
 CPUSideBar* CPUWidget::getSidebarWidget()

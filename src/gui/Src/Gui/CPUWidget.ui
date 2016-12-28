@@ -63,30 +63,66 @@
        <property name="childrenCollapsible">
         <bool>false</bool>
        </property>
-       <widget class="QFrame" name="mTopLeftUpperFrame">
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
+       <widget class="QSplitter" name="mTopLeftUpperHSplitter">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
+        <property name="handleWidth">
+         <number>1</number>
         </property>
-        <layout class="QVBoxLayout" name="mTopLeftUpperFrameLayout">
-         <property name="spacing">
-          <number>0</number>
+        <property name="childrenCollapsible">
+         <bool>false</bool>
+        </property>
+        <widget class="QFrame" name="mTopLeftUpperLeftFrame">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
          </property>
-         <property name="leftMargin">
-          <number>0</number>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
          </property>
-         <property name="topMargin">
-          <number>0</number>
+         <layout class="QVBoxLayout" name="mTopLeftUpperLeftFrameLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+         </layout>
+        </widget>
+        <widget class="QFrame" name="mTopLeftUpperRightFrame">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
          </property>
-         <property name="rightMargin">
-          <number>0</number>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
          </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-        </layout>
+         <layout class="QVBoxLayout" name="mTopLeftUpperRightFrameLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+         </layout>
+        </widget>
        </widget>
        <widget class="QFrame" name="mTopLeftLowerFrame">
         <property name="frameShape">

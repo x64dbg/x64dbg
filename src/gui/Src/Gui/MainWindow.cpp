@@ -93,8 +93,6 @@ MainWindow::MainWindow(QWidget* parent)
     initMenuApi();
     addMenuToList(this, ui->menuPlugins, GUI_PLUGIN_MENU);
 
-    this->showMaximized();
-
     // Set window title
     mWindowMainTitle = QCoreApplication::applicationName();
     setWindowTitle(QString(mWindowMainTitle));
@@ -224,8 +222,6 @@ MainWindow::MainWindow(QWidget* parent)
         loadTabDefaultOrder();
     else
         loadTabSavedOrder();
-
-    loadWindowSettings();
 
     setCentralWidget(mTabWidget);
 
@@ -363,6 +359,8 @@ MainWindow::MainWindow(QWidget* parent)
     mCloseDialog = new CloseDialog(this);
 
     mCpuWidget->setDisasmFocus();
+
+    QTimer::singleShot(0, this, SLOT(loadWindowSettings()));
 }
 
 MainWindow::~MainWindow()
@@ -571,6 +569,8 @@ void MainWindow::saveWindowSettings()
             BridgeSettingSet("Tab Window Settings", mWidgetList[i].nativeName.toUtf8().constData(),
                              mWidgetList[i].widget->parentWidget()->saveGeometry().toBase64().data());
     }
+
+    mCpuWidget->saveWindowSettings();
 }
 
 void MainWindow::loadWindowSettings()
@@ -610,6 +610,8 @@ void MainWindow::loadWindowSettings()
             mWidgetList[i].widget->parentWidget()->restoreGeometry(QByteArray::fromBase64(QByteArray(geometrySetting, int(sizeofgeometrySetting))));
         }
     }
+
+    mCpuWidget->loadWindowSettings();
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)
