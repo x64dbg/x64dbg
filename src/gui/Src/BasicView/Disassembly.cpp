@@ -650,6 +650,7 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                     else
                         expandSelectionUpTo(wRowIndex);
 
+                    emit selectionExpanded();
                     updateViewport();
 
                     wAccept = false;
@@ -1435,12 +1436,10 @@ void Disassembly::expandSelectionUpTo(dsint to)
     if(to < mSelection.firstSelectedIndex)
     {
         mSelection.fromIndex = to;
-        emit selectionUpdated();
     }
     else if(to > mSelection.firstSelectedIndex)
     {
         mSelection.toIndex = to;
-        emit selectionUpdated();
     }
     else if(to == mSelection.firstSelectedIndex)
     {
@@ -1454,7 +1453,6 @@ void Disassembly::setSingleSelection(dsint index)
     mSelection.fromIndex = index;
     mSelection.toIndex = getInstructionRVA(mSelection.fromIndex, 1) - 1;
     emit selectionChanged(rvaToVa(index));
-    emit selectionUpdated();
 }
 
 dsint Disassembly::getInitialSelection()
