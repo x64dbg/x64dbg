@@ -107,7 +107,7 @@ private:
             arguments.push_back(argument);
         }
 
-        explicit CallingConvention(const QString & name, int stackArgCount = 0, const QString & stackLocation32 = "esp", duint callOffset32 = sizeof(duint), const QString & stackLocation64 = "rsp", duint callOffset64 = sizeof(duint))
+        explicit CallingConvention(const QString & name, int stackArgCount = 0, const QString & stackLocation32 = "esp", duint callOffset32 = sizeof(duint), const QString & stackLocation64 = "rsp", duint callOffset64 = sizeof(duint) * 5)
             : name(name),
               stackArgCount(stackArgCount),
               stackLocation32(stackLocation32),
