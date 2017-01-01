@@ -263,7 +263,7 @@ void disasmget(duint addr, DISASM_INSTR* instr, bool getregs)
         memset(instr, 0, sizeof(DISASM_INSTR)); // Buffer overflow
 }
 
-static bool isasciistring(const unsigned char* data, int maxlen)
+extern "C" __declspec(dllexport) bool isasciistring(const unsigned char* data, int maxlen)
 {
     int len = 0;
     for(char* p = (char*)data; *p; len++, p++)
@@ -280,9 +280,8 @@ static bool isasciistring(const unsigned char* data, int maxlen)
     return true;
 }
 
-static bool isunicodestring(const unsigned char* data, int maxlen)
+extern "C" __declspec(dllexport) bool isunicodestring(const unsigned char* data, int maxlen)
 {
-
     int len = 0;
     for(wchar_t* p = (wchar_t*)data; *p; len++, p++)
     {
@@ -292,7 +291,7 @@ static bool isunicodestring(const unsigned char* data, int maxlen)
 
     if(len < 2 || len + 1 >= maxlen)
         return false;
-    /*
+
     for(int i = 0; i < len * 2; i += 2)
     {
         if(data[i + 1]) //Extended ASCII only
@@ -300,10 +299,7 @@ static bool isunicodestring(const unsigned char* data, int maxlen)
         if(!isprint(data[i]) && !isspace(data[i]))
             return false;
     }
-    */
-    INT options = IS_TEXT_UNICODE_ASCII16;
-    BOOL ok = IsTextUnicode(data, maxlen, &options);
-    return ok != FALSE;
+    return true;
 }
 
 bool disasmispossiblestring(duint addr)
