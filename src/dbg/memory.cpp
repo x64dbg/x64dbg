@@ -301,6 +301,17 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     if(!NumberOfBytesRead)
         NumberOfBytesRead = &bytesReadTemp;
 
+    // Check that we aren't reading memory that spans multiple memory regions
+    MEMORY_BASIC_INFORMATION mbi;
+    if(!VirtualQueryEx(fdProcessInfo->hProcess, (LPVOID)BaseAddress, &mbi, sizeof(mbi)))
+        return false;
+
+    const duint regionEnd = (duint)mbi.BaseAddress + mbi.RegionSize - 1;
+
+    // Adjust read size so that it's contained in one memory region
+    if(BaseAddress + Size > regionEnd)
+        Size = regionEnd - BaseAddress;
+
     // Normal single-call read
     bool ret = MemoryReadSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesRead);
 
