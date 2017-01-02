@@ -15,7 +15,7 @@ public:
     void connectBridge();
     void disconnectBridge();
 
-protected slots:
+public slots:
     void addColumnAt(int width, QString title);
     void setRowCount(dsint count);
     void setCellContent(int r, int c, QString s);

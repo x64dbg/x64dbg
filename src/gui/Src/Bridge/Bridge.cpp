@@ -209,7 +209,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REF_ADDCOLUMN:
-        emit referenceAddColumnAt((int)param1, QString((const char*)param2));
+        referenceManager->currentReferenceView()->addColumnAt((int)param1, QString((const char*)param2));
         break;
 
     case GUI_REF_SETROWCOUNT:
