@@ -302,7 +302,6 @@ static DWORD WINAPI dumpRefreshThread(void* ptr)
         if(bStopDumpRefreshThread)
             break;
         GuiUpdateDumpView();
-        GuiUpdatePatches();
         GuiUpdateWatchView();
         Sleep(400);
     }
