@@ -12,7 +12,7 @@ void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* i
 void disasmget(Capstone & cp, duint addr, DISASM_INSTR* instr, bool getregs = true);
 void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs = true);
 void disasmget(duint addr, DISASM_INSTR* instr, bool getregs = true);
-bool disasmispossiblestring(duint addr);
+bool disasmispossiblestring(duint addr, STRING_TYPE* type = nullptr);
 bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen);
 int disasmgetsize(duint addr, unsigned char* data);
 int disasmgetsize(duint addr);

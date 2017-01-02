@@ -302,7 +302,7 @@ extern "C" __declspec(dllexport) bool isunicodestring(const unsigned char* data,
     return true;
 }
 
-bool disasmispossiblestring(duint addr)
+bool disasmispossiblestring(duint addr, STRING_TYPE* type)
 {
     unsigned char data[11];
     memset(data, 0, sizeof(data));
@@ -310,8 +310,20 @@ bool disasmispossiblestring(duint addr)
         return false;
     duint test = 0;
     memcpy(&test, data, sizeof(duint));
-    if(isasciistring(data, sizeof(data)) || isunicodestring(data, _countof(data)))
+    if(isasciistring(data, sizeof(data)))
+    {
+        if(type)
+            *type = str_ascii;
         return true;
+    }
+    if(isunicodestring(data, _countof(data)))
+    {
+        if(type)
+            *type = str_unicode;
+        return true;
+    }
+    if(type)
+        *type = str_none;
     return false;
 }
 
