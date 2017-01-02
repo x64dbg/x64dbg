@@ -301,42 +301,33 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     if(!NumberOfBytesRead)
         NumberOfBytesRead = &bytesReadTemp;
 
+    // Determine the number of pages the requested read spans
+    const SIZE_T pageCount = BYTES_TO_PAGES(BaseAddress % PAGE_SIZE + Size);
+
     // Normal single-call read
-    bool ret = MemoryReadSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesRead);
+    if(pageCount == 1)
+        return MemoryReadSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesRead);
 
-    if(ret && *NumberOfBytesRead == Size)
-        return true;
+    // Read page-by-page
+    // Determine the number of bytes between ADDRESS and the next page
+    duint offset = 0;
+    duint readBase = BaseAddress;
+    duint readSize = ROUND_TO_PAGES(readBase) - readBase;
 
-    // Read page-by-page (Skip if only 1 page exists)
-    // If (SIZE > PAGE_SIZE) or (ADDRESS exceeds boundary), multiple reads will be needed
-    SIZE_T pageCount = BYTES_TO_PAGES(Size);
-
-    if(pageCount > 1)
+    for(SIZE_T i = 0; i < pageCount; i++)
     {
-        // Determine the number of bytes between ADDRESS and the next page
-        duint offset = 0;
-        duint readBase = BaseAddress;
-        duint readSize = ROUND_TO_PAGES(readBase) - readBase;
+        SIZE_T bytesRead = 0;
 
-        // Reset the bytes read count
-        *NumberOfBytesRead = 0;
+        if(MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
+            *NumberOfBytesRead += bytesRead;
 
-        for(SIZE_T i = 0; i < pageCount; i++)
-        {
-            SIZE_T bytesRead = 0;
+        offset += readSize;
+        readBase += readSize;
 
-            if(MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
-                *NumberOfBytesRead += bytesRead;
-
-            offset += readSize;
-            readBase += readSize;
-
-            Size -= readSize;
-            readSize = min(PAGE_SIZE, Size);
-        }
+        Size -= readSize;
+        readSize = min(PAGE_SIZE, Size);
     }
 
-    SetLastError(ERROR_PARTIAL_COPY);
     return (*NumberOfBytesRead > 0);
 }
 
