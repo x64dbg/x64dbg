@@ -1220,15 +1220,26 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         if(!MemIsValidReadPtrUnsafe(addr, true))
             return false;
 
+        auto readValidPtr = [](duint addr) -> duint
+        {
+            duint addrPtr;
+            if(MemReadUnsafe(addr, &addrPtr, sizeof(addrPtr)) && MemIsValidReadPtrUnsafe(addrPtr, true))
+                return addrPtr;
+            return 0;
+        };
+
         auto dest = (char*)param2;
         *dest = '\0';
         char string[MAX_STRING_SIZE];
-        duint addrPtr;
+        duint addrPtr = readValidPtr(addr);
         STRING_TYPE strtype;
-        if(MemReadUnsafe(addr, &addrPtr, sizeof(addr)) && MemIsValidReadPtrUnsafe(addrPtr, true))
+        auto possibleUnicode = disasmispossiblestring(addr, &strtype) && strtype == str_unicode;
+        if(addrPtr && !possibleUnicode)
         {
             if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 5))
             {
+                if(strlen(string) <= 4 && readValidPtr(addrPtr))
+                    return false;
                 if(strtype == str_ascii)
                     sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
                 else //unicode
@@ -1238,6 +1249,8 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         }
         if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 4))
         {
+            if(addrPtr && strlen(string) <= 4)
+                return false;
             if(strtype == str_ascii)
                 sprintf_s(dest, MAX_STRING_SIZE, "\"%s\"", string);
             else //unicode
