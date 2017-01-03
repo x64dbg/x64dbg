@@ -134,7 +134,7 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
     else
     {
         isNop = false;
-        addToken(TokenType::Uncategorized, "???");
+        addToken(TokenType::MnemonicUnusual, "???");
     }
 
     if(_bNoHighlightOperands)
@@ -243,6 +243,7 @@ bool CapstoneTokenizer::IsHighlightableToken(const SingleToken & token)
     case TokenType::Comma:
     case TokenType::Space:
     case TokenType::ArgumentSpace:
+    case TokenType::Uncategorized:
     case TokenType::MemoryOperatorSpace:
     case TokenType::MemoryBrackets:
     case TokenType::MemoryStackBrackets:
@@ -591,6 +592,6 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
 
 bool CapstoneTokenizer::tokenizeInvalidOperand(const cs_x86_op & op)
 {
-    addToken(TokenType::Uncategorized, "???");
+    addToken(TokenType::MnemonicUnusual, "???");
     return true;
 }
