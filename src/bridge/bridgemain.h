@@ -236,6 +236,8 @@ typedef enum
     DBG_GET_THREAD_HANDLE,          // param1=unused,                    param2=unused
     DBG_GET_PROCESS_ID,             // param1=unused,                    param2=unused
     DBG_GET_THREAD_ID,              // param1=unused,                    param2=unused
+    DBG_GET_PEB_ADDRESS,            // param1=DWORD ProcessId,           param2=unused
+    DBG_GET_TEB_ADDRESS,            // param1=DWORD ThreadId,            param2=unused
 } DBGMSG;
 
 typedef enum
@@ -871,6 +873,8 @@ BRIDGE_IMPEXP HANDLE DbgGetProcessHandle();
 BRIDGE_IMPEXP HANDLE DbgGetThreadHandle();
 BRIDGE_IMPEXP DWORD DbgGetProcessId();
 BRIDGE_IMPEXP DWORD DbgGetThreadId();
+BRIDGE_IMPEXP duint DbgGetPebAddress(DWORD ProcessId);
+BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

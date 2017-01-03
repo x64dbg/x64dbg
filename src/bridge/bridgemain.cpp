@@ -1016,6 +1016,16 @@ BRIDGE_IMPEXP DWORD DbgGetThreadId()
     return (DWORD)_dbg_sendmessage(DBG_GET_THREAD_ID, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP duint DbgGetPebAddress(DWORD ProcessId)
+{
+    return (duint)_dbg_sendmessage(DBG_GET_PEB_ADDRESS, (void*)ProcessId, nullptr);
+}
+
+BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId)
+{
+    return (duint)_dbg_sendmessage(DBG_GET_TEB_ADDRESS, (void*)ThreadId, nullptr);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);

@@ -1349,6 +1349,38 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     }
     break;
 
+    case DBG_GET_PEB_ADDRESS:
+    {
+        auto ProcessId = DWORD(param1);
+        if(ProcessId == fdProcessInfo->dwProcessId)
+            return (duint)GetPEBLocation(fdProcessInfo->hProcess);
+        auto hProcess = TitanOpenProcess(PROCESS_QUERY_INFORMATION, false, ProcessId);
+        duint pebAddress = 0;
+        if(hProcess)
+        {
+            pebAddress = (duint)GetPEBLocation(hProcess);
+            CloseHandle(hProcess);
+        }
+        return pebAddress;
+    }
+    break;
+
+    case DBG_GET_TEB_ADDRESS:
+    {
+        auto ThreadId = DWORD(param1);
+        auto tebAddress = ThreadGetLocalBase(ThreadId);
+        if(tebAddress)
+            return tebAddress;
+        HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, ThreadId);
+        if(hThread)
+        {
+            tebAddress = (duint)GetTEBLocation(hThread);
+            CloseHandle(hThread);
+        }
+        return tebAddress;
+    }
+    break;
+
     }
     return 0;
 }
