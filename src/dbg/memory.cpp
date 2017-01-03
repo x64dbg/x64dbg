@@ -296,13 +296,13 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
         return false;
 
     // If the 'bytes read' parameter is null, use a temp
-    SIZE_T bytesReadTemp = 0;
+    duint bytesReadTemp = 0;
 
     if(!NumberOfBytesRead)
         NumberOfBytesRead = &bytesReadTemp;
 
     // Determine the number of pages the requested read spans
-    const SIZE_T pageCount = BYTES_TO_PAGES(BaseAddress % PAGE_SIZE + Size);
+    const duint pageCount = BYTES_TO_PAGES(BaseAddress % PAGE_SIZE + Size);
 
     // Normal single-call read
     if(pageCount == 1)
@@ -314,9 +314,9 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     duint readBase = BaseAddress;
     duint readSize = ROUND_TO_PAGES(readBase) - readBase;
 
-    for(SIZE_T i = 0; i < pageCount; i++)
+    for(duint i = 0; i < pageCount; i++)
     {
-        SIZE_T bytesRead = 0;
+        duint bytesRead = 0;
 
         if(MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
             *NumberOfBytesRead += bytesRead;
