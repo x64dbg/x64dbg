@@ -382,6 +382,7 @@ void ThreadView::SetNameSlot()
 {
     QString threadId = getCellContent(getInitialSelection(), 1);
     LineEditDialog mLineEdit(this);
+    mLineEdit.setWindowTitle(tr("Name"));
     mLineEdit.setText(getCellContent(getInitialSelection(), 13));
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
