@@ -525,7 +525,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     }
     char title[deflen] = "";
     char threadName[MAX_THREAD_NAME_SIZE + 1] = "";
-    if(ThreadGetName(currentThreadId, threadName))
+    if(ThreadGetName(currentThreadId, threadName) && *threadName)
         strcat_s(threadName, " ");
     sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName, currentThreadId, threadswitch);
     GuiUpdateWindowTitle(title);
