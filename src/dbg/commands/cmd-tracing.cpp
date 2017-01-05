@@ -23,7 +23,7 @@ static bool cbDebugConditionalTrace(void* callBack, bool stepOver, int argc, cha
         maxCount = 50000;
     if(argc > 2 && !valfromstring(argv[2], &maxCount, false))
         return false;
-    if(!dbgsettracecondition(argv[1], maxCount))
+    if(!dbgsettracecondition(*argv[1] ? argv[1] : "0", maxCount))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression \"%s\"\n"), argv[1]);
         return false;
