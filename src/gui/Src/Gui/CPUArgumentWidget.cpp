@@ -51,7 +51,7 @@ void CPUArgumentWidget::disassembledAtSlot(dsint, dsint cip, bool, dsint)
     DbgDisasmFastAt(cip, &disasm);
 
     const auto & cur = mCallingConventions[mCurrentCallingConvention];
-    mStackOffset = disasm.call ? 0 : cur.getCallOffset();
+    mStackOffset = cur.getStackOffset() + (disasm.call ? 0 : cur.getCallOffset());
     if(ui->checkBoxLock->checkState() == Qt::PartiallyChecked) //Calls
     {
         mAllowUpdate = disasm.call;
