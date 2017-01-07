@@ -1371,7 +1371,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         auto tebAddress = ThreadGetLocalBase(ThreadId);
         if(tebAddress)
             return tebAddress;
-        HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, ThreadId);
+        HANDLE hThread = TitanOpenThread(THREAD_QUERY_INFORMATION, FALSE, ThreadId);
         if(hThread)
         {
             tebAddress = (duint)GetTEBLocation(hThread);
