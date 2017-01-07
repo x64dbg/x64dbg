@@ -11,6 +11,7 @@
 #include "thread.h"
 #include "module.h"
 #include "taskthread.h"
+#include "value.h"
 
 #define PAGE_SHIFT              (12)
 //#define PAGE_SIZE               (4096)
@@ -18,6 +19,7 @@
 #define BYTES_TO_PAGES(Size)    (((Size) >> PAGE_SHIFT) + (((Size) & (PAGE_SIZE - 1)) != 0))
 #define ROUND_TO_PAGES(Size)    (((ULONG_PTR)(Size) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
 
+static ULONG fallbackCookie = 0;
 std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
 
@@ -684,7 +686,11 @@ bool MemDecodePointer(duint* Pointer, bool vistaPlus)
     ULONG cookie;
 
     if(NtQIP(fdProcessInfo->hProcess, /* ProcessCookie */36, &cookie, sizeof(ULONG), nullptr) < 0)
-        return false;
+    {
+        if(!fallbackCookie)
+            return false;
+        cookie = fallbackCookie;
+    }
 
     // Pointer adjustment (Windows Vista+)
     if(vistaPlus)
@@ -698,4 +704,64 @@ bool MemDecodePointer(duint* Pointer, bool vistaPlus)
     *Pointer ^= cookie;
 
     return true;
+}
+
+void MemInitRemoteProcessCookie()
+{
+    // Windows XP/Vista/7 are unable to obtain remote process cookies using NtQueryInformationProcess
+    // Guess the cookie by brute-forcing all possible hashes and validate it using known encodings
+    duint RtlpUnhandledExceptionFilter = 0;
+    duint UnhandledExceptionFilter = 0;
+    duint SingleHandler = 0;
+    duint DefaultHandler = 0;
+
+#ifdef _WIN64
+    auto RtlpUnhandledExceptionFilterSymbol = "RtlpUnhandledExceptionFilter";
+    auto UnhandledExceptionFilterSymbol = "UnhandledExceptionFilter";
+    auto SingleHandlerSymbol = "SingleHandler";
+    auto DefaultHandlerSymbol = "DefaultHandler";
+#else
+    auto RtlpUnhandledExceptionFilterSymbol = "_RtlpUnhandledExceptionFilter";
+    auto UnhandledExceptionFilterSymbol = "_UnhandledExceptionFilter@4";
+    auto SingleHandlerSymbol = "_SingleHandler";
+    auto DefaultHandlerSymbol = "_DefaultHandler@4";
+#endif
+
+    if(!valfromstring(RtlpUnhandledExceptionFilterSymbol, &RtlpUnhandledExceptionFilter) ||
+            !valfromstring(UnhandledExceptionFilterSymbol, &UnhandledExceptionFilter) ||
+            !valfromstring(SingleHandlerSymbol, &SingleHandler) ||
+            !valfromstring(DefaultHandlerSymbol, &DefaultHandler))
+        return;
+
+    // Pointer encodings known at System Breakpoint. These may be invalid if attaching to a process.
+    // *ntdll.RtlpUnhandledExceptionFilter = EncodePointer(kernel32.UnhandledExceptionFilter)
+    duint encodedUnhandledExceptionFilter = 0;
+    if(!MemRead(RtlpUnhandledExceptionFilter, &encodedUnhandledExceptionFilter, sizeof(duint)))
+        return;
+
+    // *kernel32.SingleHandler = EncodePointer(kernel32.DefaultHandler)
+    duint encodedDefaultHandler = 0;
+    if(!MemRead(SingleHandler, &encodedDefaultHandler, sizeof(duint)))
+        return;
+
+    auto isValidEncoding = [](ULONG CookieGuess, duint EncodedValue, duint DecodedValue)
+    {
+        return DecodedValue == (ror(EncodedValue, 0x40 - (CookieGuess & 0x3F)) ^ CookieGuess);
+    };
+
+    ULONG cookie = 0;
+    for(int i = 64; i > 0; i--)
+    {
+        const ULONG guess = ULONG(ror(encodedDefaultHandler, i) ^ DefaultHandler);
+        if(isValidEncoding(guess, encodedUnhandledExceptionFilter, UnhandledExceptionFilter) &&
+                isValidEncoding(guess, encodedDefaultHandler, DefaultHandler))
+        {
+            // cookie collision, we're unable to determine which cookie is correct
+            if(cookie && guess != cookie)
+                return;
+            cookie = guess;
+        }
+    }
+
+    fallbackCookie = cookie;
 }

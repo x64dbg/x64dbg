@@ -1549,6 +1549,8 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
     GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
     DebugUpdateGuiSetStateAsync(cip, true, running);
 
+    MemInitRemoteProcessCookie();
+
     //log message
     if(bIsAttached)
         dputs(QT_TRANSLATE_NOOP("DBG", "Attach breakpoint reached!"));
