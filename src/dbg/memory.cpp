@@ -736,12 +736,12 @@ void MemInitRemoteProcessCookie()
     // Pointer encodings known at System Breakpoint. These may be invalid if attaching to a process.
     // *ntdll.RtlpUnhandledExceptionFilter = EncodePointer(kernel32.UnhandledExceptionFilter)
     duint encodedUnhandledExceptionFilter = 0;
-    if(!MemRead(RtlpUnhandledExceptionFilter, &encodedUnhandledExceptionFilter, sizeof(duint)))
+    if(!MemRead(RtlpUnhandledExceptionFilter, &encodedUnhandledExceptionFilter, sizeof(encodedUnhandledExceptionFilter)))
         return;
 
     // *kernel32.SingleHandler = EncodePointer(kernel32.DefaultHandler)
     duint encodedDefaultHandler = 0;
-    if(!MemRead(SingleHandler, &encodedDefaultHandler, sizeof(duint)))
+    if(!MemRead(SingleHandler, &encodedDefaultHandler, sizeof(encodedDefaultHandler)))
         return;
 
     auto isValidEncoding = [](ULONG CookieGuess, duint EncodedValue, duint DecodedValue)
