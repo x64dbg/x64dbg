@@ -2663,7 +2663,7 @@ bool dbgrestartadmin()
         auto last = wcsrchr(wszProgramPath, L'\\');
         if(last)
             *last = L'\0';
-        std::wstring params = gInitExe + L" " + gInitCmd + L" " + gInitDir;
+        std::wstring params = L"\"" + gInitExe + L"\" \"" + gInitCmd + L"\" \"" + gInitDir + L"\"";
         auto result = ShellExecuteW(NULL, L"runas", file.c_str(), params.c_str(), wszProgramPath, SW_SHOWDEFAULT);
         return int(result) > 32 && GetLastError() == ERROR_SUCCESS;
     }
