@@ -3,7 +3,8 @@
 #include "Bridge.h"
 
 BreakpointsViewTable::BreakpointsViewTable(QWidget* parent)
-    : StdTable(parent)
+    : StdTable(parent),
+      mCip(0)
 {
     updateColors();
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));

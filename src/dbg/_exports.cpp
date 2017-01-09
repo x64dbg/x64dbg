@@ -1238,7 +1238,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         {
             if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 5))
             {
-                if(int(strlen(string)) <= strtype == str_ascii ? 3 : 2 && readValidPtr(addrPtr))
+                if(int(strlen(string)) <= (strtype == str_ascii ? 3 : 2) && readValidPtr(addrPtr))
                     return false;
                 if(strtype == str_ascii)
                     sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);

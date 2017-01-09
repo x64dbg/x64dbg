@@ -54,7 +54,7 @@ static void getSymAddrName(duint addr, char* str)
     if(addrinfo.module[0] != '\0')
         sprintf_s(str, MAX_COMMENT_SIZE, "%s.", addrinfo.module);
     if(addrinfo.label[0] == '\0')
-        sprintf_s(addrinfo.label, MAX_COMMENT_SIZE, "%p", addr);
+        sprintf_s(addrinfo.label, "%p", addr);
     strcat_s(str, MAX_COMMENT_SIZE, addrinfo.label);
 }
 

@@ -251,8 +251,6 @@ private:
     struct WidgetInfo
     {
     public:
-        WidgetInfo() { }
-
         WidgetInfo(QWidget* widget, QString nativeName)
         {
             this->widget = widget;
@@ -263,7 +261,7 @@ private:
         QString nativeName;
     };
 
-    QVector<WidgetInfo> mWidgetList;
+    QList<WidgetInfo> mWidgetList;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

@@ -37,7 +37,7 @@ bool SymbolAdd(const SymbolInfo & symbol)
 {
     EXCLUSIVE_ACQUIRE(LockSymbolCache);
     auto foundR = symbolRange.find(Range(symbol.addr, symbol.addr));
-    if(foundR != symbolRange.end())
+    if(foundR == symbolRange.end())
         return false;
     auto foundS = foundR->second.find(Range(symbol.addr, symbol.addr));
     if(foundS != foundR->second.end())
@@ -101,7 +101,7 @@ bool LineAdd(const LineInfo & line)
 {
     EXCLUSIVE_ACQUIRE(LockLineCache);
     auto foundR = lineRange.find(Range(line.addr, line.addr));
-    if(foundR != lineRange.end())
+    if(foundR == lineRange.end())
         return false;
     auto foundL = foundR->second.find(Range(line.addr, line.addr));
     if(foundL != foundR->second.end())

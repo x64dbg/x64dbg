@@ -6,7 +6,8 @@
 CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
     : _maxModuleLength(maxModuleLength),
       _success(false),
-      isNop(false)
+      isNop(false),
+      _mnemonicType(TokenType::Uncategorized)
 {
     SetConfig(false, false, false, false, false);
 }

@@ -231,9 +231,6 @@ bool ParseTypes(const std::string & parse, const std::string & owner)
                 dputs("invalid struct token sequence!");
                 return false;
             }
-            errLine();
-            dprintf("not enough tokens for %s\n", su.isunion ? "union" : "struct");
-            return false;
         }
         return true;
     };
