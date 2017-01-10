@@ -36,8 +36,9 @@ void AdvancedAnalysis::SetMarkers()
         for(const auto & function : mFunctions)
             FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_%p.dot", function.entryPoint), function.ToDot());
 
-    byte* buffer = (byte*)EncodeMapGetBuffer(mBase, true);
-    memcpy(buffer, mEncMap, mSize);
+    duint encMapSize;
+    byte* buffer = (byte*)EncodeMapGetBuffer(mBase, &encMapSize, true);
+    memcpy(buffer, mEncMap, encMapSize);
     EncodeMapReleaseBuffer(buffer);
 
     XrefDelRange(mBase, mBase + mSize - 1);

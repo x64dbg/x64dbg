@@ -71,15 +71,16 @@ public:
         }
     }
 
-    inline bool inRange(duint addr)
+    inline bool inBufferRange(duint addr)
     {
-        return addr >= mBase && addr < mBase + mSize;
+        return addr >= mBase && addr < mBase + mBufferSize;
     }
 
 protected:
     duint mBase;
     duint mSize;
     byte* mBuffer;
+    duint mBufferSize;
 };
 
 #endif // ENCODEMAP_H

@@ -860,7 +860,7 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 BRIDGE_IMPEXP bool DbgIsRunning();
 BRIDGE_IMPEXP duint DbgGetTimeWastedCounter();
 BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr);
-BRIDGE_IMPEXP void* DbgGetEncodeTypeBuffer(duint addr);
+BRIDGE_IMPEXP void* DbgGetEncodeTypeBuffer(duint addr, duint* size);
 BRIDGE_IMPEXP void DbgReleaseEncodeTypeBuffer(void* buffer);
 BRIDGE_IMPEXP ENCODETYPE DbgGetEncodeTypeAt(duint addr, duint size);
 BRIDGE_IMPEXP duint DbgGetEncodeSizeAt(duint addr, duint codesize);

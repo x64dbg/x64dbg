@@ -956,9 +956,9 @@ BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr)
     return ARG_MIDDLE;
 }
 
-BRIDGE_IMPEXP void* DbgGetEncodeTypeBuffer(duint addr)
+BRIDGE_IMPEXP void* DbgGetEncodeTypeBuffer(duint addr, duint* size)
 {
-    return (void*)_dbg_sendmessage(DBG_GET_ENCODE_TYPE_BUFFER, (void*)addr, nullptr);
+    return (void*)_dbg_sendmessage(DBG_GET_ENCODE_TYPE_BUFFER, (void*)addr, size);
 }
 
 BRIDGE_IMPEXP void DbgReleaseEncodeTypeBuffer(void* buffer)

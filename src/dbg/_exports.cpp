@@ -1180,7 +1180,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_ENCODE_TYPE_BUFFER:
     {
-        return (duint)EncodeMapGetBuffer((duint)param1);
+        return (duint)EncodeMapGetBuffer((duint)param1, (duint*)param2);
     }
     break;
 

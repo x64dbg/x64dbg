@@ -110,22 +110,24 @@ static bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map, bool* created = nu
     return true;
 }
 
-void* EncodeMapGetBuffer(duint addr, bool create)
+void* EncodeMapGetBuffer(duint addr, duint* size, bool create)
 {
-    duint size;
-    auto base = MemFindBaseAddr(addr, &size);
+    auto base = MemFindBaseAddr(addr);
 
     ENCODEMAP map;
-    auto result = create ? EncodeMapGetorCreate(addr, map) : encmaps.Get(EncodeMap::VaKey(base), map);
-    if(result)
+    if(create ? EncodeMapGetorCreate(addr, map) : encmaps.Get(EncodeMap::VaKey(base), map))
     {
         auto offset = addr - base;
         if(offset < map.size)
         {
             IncreaseReferenceCount(map.data);
+            if(size)
+                *size = map.size;
             return map.data;
         }
     }
+    if(size)
+        *size = 0;
     return nullptr;
 }
 
