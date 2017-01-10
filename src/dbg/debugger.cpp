@@ -181,6 +181,7 @@ static duint timeWastedDebugging = 0;
 static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
 static char szDebuggeeInitializationScript[MAX_PATH] = "";
 static WString gInitExe, gInitCmd, gInitDir;
+static duint ntdllBase = 0;
 char szProgramDir[MAX_PATH] = "";
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
@@ -196,6 +197,7 @@ bool bSkipInt3Stepping = false;
 bool bIgnoreInconsistentBreakpoints = false;
 bool bNoForegroundWindow = false;
 bool bVerboseExceptionLogging = true;
+bool bNoWow64SingleStepWorkaround = false;
 duint DbgEvents = 0;
 duint maxSkipExceptionCount = 10000;
 
@@ -1248,7 +1250,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     {
         if(bTraceRecordEnabledDuringTrace)
             _dbg_dbgtraceexecute(cip);
-        (bStepInto ? StepInto : StepOver)(callback);
+        (bStepInto ? StepIntoWow64 : StepOver)(callback);
     }
 }
 
@@ -1600,8 +1602,12 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     MemUpdateMapAsync();
 
     char modname[256] = "";
-    if(ModNameFromAddr((duint)base, modname, true))
+    if(ModNameFromAddr(duint(base), modname, true))
+    {
+        if(!_stricmp(modname, "ntdll.dll"))
+            ntdllBase = duint(base);
         BpEnumAll(cbSetModuleBreakpoints, modname, duint(base));
+    }
     GuiUpdateBreakpointsView();
     bool bAlreadySetEntry = false;
 
@@ -2668,4 +2674,27 @@ bool dbgrestartadmin()
         return int(result) > 32 && GetLastError() == ERROR_SUCCESS;
     }
     return false;
+}
+
+void StepIntoWow64(LPVOID traceCallBack)
+{
+#ifndef _WIN64
+    //NOTE: this workaround has the potential of detecting x64dbg while tracing, disable it if that happens
+    if(!bNoWow64SingleStepWorkaround)
+    {
+        unsigned char data[7];
+        auto cip = GetContextDataEx(hActiveThread, UE_CIP);
+        if(!ModBaseFromAddr(cip) && MemRead(cip, data, sizeof(data)) && data[0] == 0xEA && data[5] == 0x33 && data[6] == 0x00) //ljmp 33,XXXXXXXX
+        {
+            auto csp = GetContextDataEx(hActiveThread, UE_CSP);
+            duint ret;
+            if(MemRead(csp, &ret, sizeof(ret)) && ModBaseFromAddr(ret) == ntdllBase) //return address in ntdll
+            {
+                SetBPX(ret, UE_BREAKPOINT, traceCallBack);
+                return;
+            }
+        }
+    }
+#endif //_WIN64
+    StepInto(traceCallBack);
 }

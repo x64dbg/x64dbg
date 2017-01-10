@@ -288,7 +288,7 @@ bool cbDebugStepInto(int argc, char* argv[])
 {
     if(skipInt3Stepping(argc, argv))
         return true;
-    StepInto((void*)cbStep);
+    StepIntoWow64((void*)cbStep);
     // History
     HistoryAdd();
     dbgsetstepping(true);

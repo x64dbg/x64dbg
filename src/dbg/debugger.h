@@ -134,6 +134,7 @@ void cbDetach();
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
 EXCEPTION_DEBUG_INFO getLastExceptionInfo();
 bool dbgrestartadmin();
+void StepIntoWow64(void* traceCallBack);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;
@@ -149,6 +150,7 @@ extern bool bSkipInt3Stepping;
 extern bool bIgnoreInconsistentBreakpoints;
 extern bool bNoForegroundWindow;
 extern bool bVerboseExceptionLogging;
+extern bool bNoWow64SingleStepWorkaround;
 extern duint maxSkipExceptionCount;
 
 #endif // _DEBUGGER_H
