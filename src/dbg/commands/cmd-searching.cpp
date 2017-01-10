@@ -467,17 +467,7 @@ static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINF
     char string[MAX_STRING_SIZE] = "";
     if(basicinfo->branch)   //branches have no strings (jmp dword [401000])
         return false;
-    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
-    {
-        if(DbgGetStringAt(basicinfo->value.value, string))
-            found = true;
-    }
-    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
-    {
-        if(DbgGetStringAt(basicinfo->memory.value, string))
-            found = true;
-    }
-    if(found)
+    auto addRef = [&]()
     {
         char addrText[20] = "";
         sprintf_s(addrText, "%p", disasm->Address());
@@ -489,8 +479,19 @@ static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINF
         else
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
         GuiReferenceSetCellContent(refinfo->refcount, 2, string);
+        refinfo->refcount++;
+    };
+    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
+    {
+        if(DbgGetStringAt(basicinfo->value.value, string))
+            addRef();
     }
-    return found;
+    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
+    {
+        if(DbgGetStringAt(basicinfo->memory.value, string))
+            addRef();
+    }
+    return false;
 }
 
 bool cbInstrRefStr(int argc, char* argv[])
