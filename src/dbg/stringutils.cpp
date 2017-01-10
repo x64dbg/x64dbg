@@ -475,16 +475,21 @@ bool StringUtils::FromCompressedHex(const String & text, std::vector<unsigned ch
     String repeatStr;
     for(size_t i = 0; i < size;)
     {
+        if(isspace(text[i])) //skip whitespace
+        {
+            i++;
+            continue;
+        }
         auto high = hex2int(text[i++]); //eat high nibble
-        if(i >= size)
+        if(i >= size) //not enough data
             return false;
         auto low = hex2int(text[i++]); //eat low nibble
-        if(high == -1 || low == -1)
+        if(high == -1 || low == -1) //invalid character
             return false;
         auto lastCh = (high << 4) | low;
         data.push_back(lastCh);
 
-        if(i >= size)
+        if(i >= size) //end of buffer
             break;
 
         if(text[i] == '{')
@@ -494,13 +499,13 @@ bool StringUtils::FromCompressedHex(const String & text, std::vector<unsigned ch
             while(text[i] != '}')
             {
                 repeatStr.push_back(text[i++]); //eat character
-                if(i >= size)
+                if(i >= size) //unexpected end of buffer (missing '}')
                     return false;
             }
             i++; //eat '}'
 
             duint repeat = 0;
-            if(!convertNumber(repeatStr.c_str(), repeat, 16) || !repeat)
+            if(!convertNumber(repeatStr.c_str(), repeat, 16) || !repeat) //conversion failed or repeat zero times
                 return false;
             for(size_t j = 1; j < repeat; j++)
                 data.push_back(lastCh);
