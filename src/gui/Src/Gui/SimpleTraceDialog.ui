@@ -7,77 +7,32 @@
     <x>0</x>
     <y>0</y>
     <width>502</width>
-    <height>218</height>
+    <height>244</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string/>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="lblBreakCondition">
+   <item row="8" column="0" colspan="2">
+    <widget class="QLabel" name="lblHint">
      <property name="text">
-      <string>&amp;Break Condition:</string>
+      <string>Hint: History is available in every text field with the Up/Down arrows!</string>
      </property>
-     <property name="buddy">
-      <cstring>editBreakCondition</cstring>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="HistoryLineEdit" name="editBreakCondition"/>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="lblLogText">
-     <property name="text">
-      <string>&amp;Log Text:</string>
+   <item row="5" column="1">
+    <widget class="QSpinBox" name="spinMaxTraceCount">
+     <property name="minimum">
+      <number>1</number>
      </property>
-     <property name="buddy">
-      <cstring>editLogText</cstring>
+     <property name="maximum">
+      <number>2147483647</number>
      </property>
     </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="HistoryLineEdit" name="editLogText"/>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="lblLogCondition">
-     <property name="text">
-      <string>Lo&amp;g Condition:</string>
-     </property>
-     <property name="buddy">
-      <cstring>editLogCondition</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="HistoryLineEdit" name="editLogCondition"/>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="lblCommandText">
-     <property name="text">
-      <string>&amp;Command Text:</string>
-     </property>
-     <property name="buddy">
-      <cstring>editCommandText</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="HistoryLineEdit" name="editCommandText"/>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="lblCommandCondition">
-     <property name="text">
-      <string>C&amp;ommand Condition:</string>
-     </property>
-     <property name="buddy">
-      <cstring>editCommandCondition</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="HistoryLineEdit" name="editCommandCondition"/>
    </item>
    <item row="5" column="0">
     <widget class="QLabel" name="lblMaxTraceCount">
@@ -95,17 +50,7 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
-    <widget class="QSpinBox" name="spinMaxTraceCount">
-     <property name="minimum">
-      <number>1</number>
-     </property>
-     <property name="maximum">
-      <number>2147483647</number>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
+   <item row="7" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer">
@@ -151,13 +96,78 @@
      </item>
     </layout>
    </item>
-   <item row="7" column="0" colspan="2">
-    <widget class="QLabel" name="lblHint">
+   <item row="0" column="1">
+    <widget class="HistoryLineEdit" name="editBreakCondition"/>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="lblBreakCondition">
      <property name="text">
-      <string>Hint: History is available in every text field with the Up/Down arrows!</string>
+      <string>&amp;Break Condition:</string>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     <property name="buddy">
+      <cstring>editBreakCondition</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="HistoryLineEdit" name="editLogCondition"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="HistoryLineEdit" name="editLogText"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="lblLogCondition">
+     <property name="text">
+      <string>Lo&amp;g Condition:</string>
+     </property>
+     <property name="buddy">
+      <cstring>editLogCondition</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="lblLogText">
+     <property name="text">
+      <string>&amp;Log Text:</string>
+     </property>
+     <property name="buddy">
+      <cstring>editLogText</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="lblCommandText">
+     <property name="text">
+      <string>&amp;Command Text:</string>
+     </property>
+     <property name="buddy">
+      <cstring>editCommandText</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="lblCommandCondition">
+     <property name="text">
+      <string>C&amp;ommand Condition:</string>
+     </property>
+     <property name="buddy">
+      <cstring>editCommandCondition</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="HistoryLineEdit" name="editCommandCondition"/>
+   </item>
+   <item row="3" column="1">
+    <widget class="HistoryLineEdit" name="editCommandText"/>
+   </item>
+   <item row="6" column="1">
+    <widget class="HistoryLineEdit" name="editSwitchCondition"/>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="lblSwitchCondition">
+     <property name="text">
+      <string>Switch Condition:</string>
      </property>
     </widget>
    </item>
@@ -189,11 +199,11 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>497</x>
-     <y>154</y>
+     <x>491</x>
+     <y>214</y>
     </hint>
     <hint type="destinationlabel">
-     <x>524</x>
+     <x>501</x>
      <y>153</y>
     </hint>
    </hints>

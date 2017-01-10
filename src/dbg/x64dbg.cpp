@@ -219,6 +219,7 @@ static void registercommands()
     dbgcmdnew("RunToUserCode\1rtu", cbDebugRunToUserCode, true); //Run to user code
     dbgcmdnew("TraceSetLog\1SetTraceLog", cbDebugTraceSetLog, true); //Set trace log text + condition
     dbgcmdnew("TraceSetCommand\1SetTraceCommand", cbDebugTraceSetCommand, true); //Set trace command text + condition
+    dbgcmdnew("TraceSetSwitchCondition\1SetTraceSwitchCondition", cbDebugTraceSetSwitchCondition, true); //Set trace switch condition
 
     //thread control
     dbgcmdnew("createthread\1threadcreate\1newthread\1threadnew", cbDebugCreatethread, true); //create thread
@@ -769,9 +770,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
 {
-    if(cmddirectexec(cmd) == false)
-        return false;
-    return true;
+    return cmddirectexec(cmd);
 }
 
 bool dbgisstopped()

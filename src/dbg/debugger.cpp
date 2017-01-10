@@ -135,6 +135,21 @@ struct TraceState
         return cmdCondition ? cmdCondition->text : emptyString;
     }
 
+    bool InitSwitchCondition(const String & expression)
+    {
+        delete switchCondition;
+        switchCondition = nullptr;
+        if(expression.empty())
+            return true;
+        switchCondition = new TextCondition(expression, "");
+        return switchCondition->condition.IsValidExpression();
+    }
+
+    bool EvaluateSwitch(bool defaultValue) const
+    {
+        return switchCondition && switchCondition->Evaluate(defaultValue);
+    }
+
     void Clear()
     {
         delete traceCondition;
@@ -143,12 +158,15 @@ struct TraceState
         logCondition = nullptr;
         delete cmdCondition;
         cmdCondition = nullptr;
+        delete switchCondition;
+        switchCondition = nullptr;
     }
 
 private:
     TraceCondition* traceCondition = nullptr;
     TextCondition* logCondition = nullptr;
     TextCondition* cmdCondition = nullptr;
+    TextCondition* switchCondition = nullptr;
     String emptyString;
 };
 
@@ -242,6 +260,13 @@ bool dbgsettracecmd(const String & expression, const String & text)
     if(dbgtraceactive())
         return false;
     return traceState.InitCmdCondition(expression, text);
+}
+
+bool dbgsettraceswitchcondition(const String & expression)
+{
+    if(dbgtraceactive())
+        return false;
+    return traceState.InitSwitchCondition(expression);
 }
 
 bool dbgtraceactive()
@@ -900,7 +925,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         //TODO: commands like run/step etc will fuck up your shit
         varset("$breakpointcondition", breakCondition ? 1 : 0, false);
         varset("$breakpointlogcondition", logCondition ? 1 : 0, true);
-        _dbg_dbgcmddirectexec(bp.commandText);
+        cmddirectexec(bp.commandText);
         duint script_breakcondition;
         if(varget("$breakpointcondition", &script_breakcondition, nullptr, nullptr))
         {
@@ -1221,6 +1246,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     breakCondition = info.stop;
     auto logCondition = traceState.EvaluateLog(true);
     auto cmdCondition = traceState.EvaluateCmd(breakCondition);
+    auto switchCondition = traceState.EvaluateSwitch(false);
     if(logCondition) //log
     {
         dprintf_untranslated("%s\n", stringformatinline(traceState.LogText()).c_str());
@@ -1230,10 +1256,13 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
         //TODO: commands like run/step etc will fuck up your shit
         varset("$tracecondition", breakCondition ? 1 : 0, false);
         varset("$tracelogcondition", logCondition ? 1 : 0, true);
-        _dbg_dbgcmddirectexec(traceState.CmdText().c_str());
+        varset("$traceswitchcondition", switchCondition ? 1 : 0, false);
+        cmddirectexec(traceState.CmdText().c_str());
         duint script_breakcondition;
         if(varget("$tracecondition", &script_breakcondition, nullptr, nullptr))
             breakCondition = script_breakcondition != 0;
+        if(varget("$traceswitchcondition", &script_breakcondition, nullptr, nullptr))
+            switchCondition = script_breakcondition != 0;
     }
     if(breakCondition) //break the debugger
     {
@@ -1250,6 +1279,8 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     {
         if(bTraceRecordEnabledDuringTrace)
             _dbg_dbgtraceexecute(cip);
+        if(switchCondition) //switch (invert) the step type once
+            bStepInto = !bStepInto;
         (bStepInto ? StepIntoWow64 : StepOver)(callback);
     }
 }

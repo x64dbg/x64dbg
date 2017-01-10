@@ -18,6 +18,7 @@ SimpleTraceDialog::SimpleTraceDialog(QWidget* parent) :
     ui->editLogCondition->setPlaceholderText(tr("Example: eax == 0 && ebx == 0"));
     ui->editCommandText->setPlaceholderText(tr("Example: eax=4;StepOut"));
     ui->editCommandCondition->setPlaceholderText(tr("Example: eax == 0 && ebx == 0"));
+    ui->editSwitchCondition->setPlaceholderText(tr("Example: eax == 0 && ebx == 0"));
 }
 
 SimpleTraceDialog::~SimpleTraceDialog()
@@ -51,6 +52,12 @@ void SimpleTraceDialog::on_btnOk_clicked()
     if(!DbgCmdExecDirect(QString("TraceSetCommand \"%1\", \"%2\"").arg(escapeText(commandText), escapeText(commandCondition)).toUtf8().constData()))
     {
         QMessageBox::warning(this, tr("Error"), tr("Failed to set command text/condition!"));
+        return;
+    }
+    auto switchCondition = ui->editSwitchCondition->addHistoryClear();
+    if(!DbgCmdExecDirect(QString("TraceSetSwitchCondition \"%1\"").arg(escapeText(switchCondition)).toUtf8().constData()))
+    {
+        QMessageBox::warning(this, tr("Error"), tr("Failed to set switch condition!"));
         return;
     }
     auto breakCondition = ui->editBreakCondition->addHistoryClear();

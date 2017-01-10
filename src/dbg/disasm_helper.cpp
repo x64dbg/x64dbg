@@ -14,7 +14,6 @@
 #include <capstone_wrapper.h>
 #include "datainst_helper.h"
 
-
 duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
 {
     int i;
