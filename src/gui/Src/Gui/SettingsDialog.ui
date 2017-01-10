@@ -325,6 +325,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkNoWow64SingleStepWorkaround">
+         <property name="text">
+          <string>Disable WOW64 Single Step Workaround</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
           <widget class="QLabel" name="lblMaxTraceCount">

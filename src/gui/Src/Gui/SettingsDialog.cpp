@@ -59,6 +59,7 @@ void SettingsDialog::LoadSettings()
     settings.engineEnableTraceRecordDuringTrace = true;
     settings.engineNoScriptTimeout = false;
     settings.engineIgnoreInconsistentBreakpoints = false;
+    settings.engineNoWow64SingleStepWorkaround = false;
     settings.engineMaxTraceCount = 50000;
     settings.engineHardcoreThreadSwitchWarning = false;
     settings.engineVerboseExceptionLogging = true;
@@ -128,6 +129,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "IgnoreInconsistentBreakpoints", &settings.engineIgnoreInconsistentBreakpoints);
     GetSettingBool("Engine", "HardcoreThreadSwitchWarning", &settings.engineHardcoreThreadSwitchWarning);
     GetSettingBool("Engine", "VerboseExceptionLogging", &settings.engineVerboseExceptionLogging);
+    GetSettingBool("Engine", "NoWow64SingleStepWorkaround", &settings.engineNoWow64SingleStepWorkaround);
     if(BridgeSettingGetUint("Engine", "MaxTraceCount", &cur))
         settings.engineMaxTraceCount = int(cur);
     switch(settings.engineCalcType)
@@ -162,6 +164,7 @@ void SettingsDialog::LoadSettings()
     ui->chkIgnoreInconsistentBreakpoints->setChecked(settings.engineIgnoreInconsistentBreakpoints);
     ui->chkHardcoreThreadSwitchWarning->setChecked(settings.engineHardcoreThreadSwitchWarning);
     ui->chkVerboseExceptionLogging->setChecked(settings.engineVerboseExceptionLogging);
+    ui->chkNoWow64SingleStepWorkaround->setChecked(settings.engineNoWow64SingleStepWorkaround);
     ui->spinMaxTraceCount->setValue(settings.engineMaxTraceCount);
 
     //Exceptions tab
@@ -309,6 +312,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "MaxTraceCount", settings.engineMaxTraceCount);
     BridgeSettingSetUint("Engine", "VerboseExceptionLogging", settings.engineVerboseExceptionLogging);
     BridgeSettingSetUint("Engine", "HardcoreThreadSwitchWarning", settings.engineHardcoreThreadSwitchWarning);
+    BridgeSettingSetUint("Engine", "NoWow64SingleStepWorkaround", settings.engineNoWow64SingleStepWorkaround);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -760,4 +764,9 @@ void SettingsDialog::on_chkPermanentHighlightingMode_toggled(bool checked)
 {
     bTokenizerConfigUpdated = true;
     settings.disasmPermanentHighlightingMode = checked;
+}
+
+void SettingsDialog::on_chkNoWow64SingleStepWorkaround_toggled(bool checked)
+{
+    settings.engineNoWow64SingleStepWorkaround = checked;
 }

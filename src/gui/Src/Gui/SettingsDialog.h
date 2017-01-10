@@ -55,6 +55,7 @@ private slots:
     void on_chkIgnoreInconsistentBreakpoints_toggled(bool checked);
     void on_chkHardcoreThreadSwitchWarning_toggled(bool checked);
     void on_chkVerboseExceptionLogging_toggled(bool checked);
+    void on_chkNoWow64SingleStepWorkaround_toggled(bool checked);
     void on_spinMaxTraceCount_valueChanged(int arg1);
     //Exception tab
     void on_btnAddRange_clicked();
@@ -141,6 +142,7 @@ private:
         bool engineIgnoreInconsistentBreakpoints;
         bool engineHardcoreThreadSwitchWarning;
         bool engineVerboseExceptionLogging;
+        bool engineNoWow64SingleStepWorkaround;
         int engineMaxTraceCount;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
