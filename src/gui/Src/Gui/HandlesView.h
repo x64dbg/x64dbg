@@ -21,6 +21,8 @@ public slots:
 
     void handlesTableContextMenuSlot(const QPoint & pos);
     void tcpConnectionsTableContextMenuSlot(const QPoint & pos);
+    void windowsTableContextMenuSlot(const QPoint & pos);
+    void heapsTableContextMenuSlot(const QPoint & pos);
     void privilegesTableContextMenuSlot(const QPoint & pos);
 
     void closeHandleSlot();
@@ -28,12 +30,16 @@ public slots:
     void enablePrivilegeSlot();
     void disableAllPrivilegesSlot();
     void enableAllPrivilegesSlot();
+    void searchForHWNDSlot();
+    void dumpHeapSlot();
 
 private:
     QVBoxLayout* mVertLayout;
     LabeledSplitter* mSplitter;
     StdTable* mHandlesTable;
     StdTable* mTcpConnectionsTable;
+    StdTable* mWindowsTable;
+    StdTable* mHeapsTable;
     StdTable* mPrivilegesTable;
 
     QAction* mActionRefresh;
@@ -42,9 +48,13 @@ private:
     QAction* mActionEnablePrivilege;
     QAction* mActionDisableAllPrivileges;
     QAction* mActionEnableAllPrivileges;
+    QAction* mFollowInDumpHeaps;
+    QAction* mSearchForHWND;
 
     void enumHandles();
+    void enumWindows();
     void enumTcpConnections();
+    void enumHeaps();
     void enumPrivileges();
 
     void AppendPrivilege(int row, const char* PrivilegeString);

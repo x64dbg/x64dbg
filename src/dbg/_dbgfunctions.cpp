@@ -295,6 +295,22 @@ static bool _enumtcpconnections(ListOf(TCPCONNECTIONINFO) connections)
     return BridgeList<TCPCONNECTIONINFO>::CopyData(connections, connectionsV);
 }
 
+static bool _enumwindows(ListOf(WINDOW_INFO) windows)
+{
+    std::vector<WINDOW_INFO> windowInfoV;
+    if(!HandlesEnumWindows(windowInfoV))
+        return false;
+    return BridgeList<WINDOW_INFO>::CopyData(windows, windowInfoV);
+}
+
+static bool _enumheaps(ListOf(HEAPINFO) heaps)
+{
+    std::vector<HEAPINFO> heapInfoV;
+    if(!HandlesEnumHeaps(heapInfoV))
+        return false;
+    return BridgeList<HEAPINFO>::CopyData(heaps, heapInfoV);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -352,4 +368,6 @@ void dbgfunctionsinit()
     _dbgfunctions.AnimateCommand = _dbg_animatecommand;
     _dbgfunctions.DbgSetDebuggeeInitScript = dbgsetdebuggeeinitscript;
     _dbgfunctions.DbgGetDebuggeeInitScript = dbggetdebuggeeinitscript;
+    _dbgfunctions.EnumWindows = _enumwindows;
+    _dbgfunctions.EnumHeaps = _enumheaps;
 }
