@@ -708,6 +708,9 @@ bool MemDecodePointer(duint* Pointer, bool vistaPlus)
 
 void MemInitRemoteProcessCookie()
 {
+    // Clear previous session's cookie
+    fallbackCookie = 0;
+
     // Windows XP/Vista/7 are unable to obtain remote process cookies using NtQueryInformationProcess
     // Guess the cookie by brute-forcing all possible hashes and validate it using known encodings
     duint RtlpUnhandledExceptionFilter = 0;
