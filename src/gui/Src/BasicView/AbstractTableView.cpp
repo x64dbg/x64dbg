@@ -893,7 +893,10 @@ int AbstractTableView::getColumnIndexFromX(int x)
     {
         int col = mColumnOrder[wColIndex];
         if(getColumnHidden(col))
+        {
+            wColIndex++;
             continue;
+        }
         wX += getColumnWidth(col);
 
         if(x <= wX)
@@ -924,7 +927,10 @@ int AbstractTableView::getColumnDisplayIndexFromX(int x)
     {
         int col = mColumnOrder[wColIndex];
         if(getColumnHidden(col))
+        {
+            wColIndex++;
             continue;
+        }
         wX += getColumnWidth(col);
 
         if(x <= wX)
