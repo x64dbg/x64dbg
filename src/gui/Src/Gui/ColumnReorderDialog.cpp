@@ -53,13 +53,13 @@ void ColumnReorderDialog::on_okButton_clicked()
     for(i = 0; i < ui->listDisplayed->count(); i++)
     {
         int col = ui->listDisplayed->item(i)->data(Qt::UserRole).toInt();
-        //        mParent->mColumnOrder[i] = col;
+        mParent->mColumnOrder[i] = col;
         mParent->setColumnHidden(col, false);
     }
     for(int j = 0; j < ui->listAvailable->count(); j++, i++)
     {
         int col = ui->listAvailable->item(j)->data(Qt::UserRole).toInt();
-        //        mParent->mColumnOrder[i] = col;
+        mParent->mColumnOrder[i] = col;
         mParent->setColumnHidden(col, true);
     }
     this->done(QDialog::Accepted);

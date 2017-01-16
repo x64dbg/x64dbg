@@ -354,8 +354,9 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
     if(getColumnCount() <= 1)
         return;
     int wColIndex = getColumnIndexFromX(event->x());
-    int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
-    int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
+    int wDisplayIndex = getColumnDisplayIndexFromX(event->x());
+    int wStartPos = getColumnPosition(wDisplayIndex); // Position X of the start of column
+    int wEndPos = wStartPos + getColumnWidth(wColIndex); // Position X of the end of column
     bool wHandle = ((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((event->x() <= wEndPos) && (event->x() >= (wEndPos - 2)));
     if(wColIndex == getColumnCount() - 1 && event->x() > viewport()->width()) //last column
         wHandle = false;
@@ -460,7 +461,8 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
         if(mColResizeData.splitHandle == true)
         {
             int wColIndex = getColumnDisplayIndexFromX(event->x());
-            int wStartPos = getColumnPosition(mColumnOrder[wColIndex]); // Position X of the start of column
+            int wDisplayIndex = getColumnDisplayIndexFromX(event->x());
+            int wStartPos = getColumnPosition(wDisplayIndex); // Position X of the start of column
 
             mGuiState = AbstractTableView::ResizeColumnState;
 
@@ -959,7 +961,6 @@ int AbstractTableView::getColumnPosition(int index)
 
     if((index >= 0) && (index < getColumnCount()))
     {
-        index = mColumnOrder[index];
         for(int i = 0; i < index; i++)
             if(!getColumnHidden(mColumnOrder[i]))
                 posX += getColumnWidth(mColumnOrder[i]);
