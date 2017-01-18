@@ -315,10 +315,10 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
 
     // Read page-by-page
     // Determine the number of bytes between ADDRESS and the next page
+    duint requestedSize = Size;
     duint offset = 0;
     duint readBase = BaseAddress;
-    duint readSize = ROUND_TO_PAGES(readBase) - readBase;
-    duint requestedSize = Size;
+    duint readSize = min(PAGE_SIZE, requestedSize);
 
     for(duint i = 0; i < pageCount; i++)
     {
