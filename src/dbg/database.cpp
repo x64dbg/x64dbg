@@ -251,10 +251,10 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
 void DbClose()
 {
     DbSave(DbLoadSaveType::All);
-    DbClear();
+    DbClear(true);
 }
 
-void DbClear()
+void DbClear(bool terminating)
 {
     CommentClear();
     LabelClear();
@@ -267,8 +267,10 @@ void DbClear()
     TraceRecord.clear();
     BpClear();
     WatchClear();
-    PatchClear();
     GuiSetDebuggeeNotes("");
+
+    if(terminating)
+        PatchClear();
 }
 
 void DbSetPath(const char* Directory, const char* ModulePath)
