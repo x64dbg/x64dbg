@@ -4,6 +4,7 @@
 #include "StdTable.h"
 #include "LabeledSplitter.h"
 #include "StringUtil.h"
+#include "ReferenceView.h"
 #include "MainWindow.h"
 #include <QVBoxLayout>
 
@@ -44,14 +45,13 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mTcpConnectionsTable->addColumnAt(8 + 8 * wCharWidth, tr("State"), false);
     mTcpConnectionsTable->loadColumnFromConfig("TcpConnection");
 
-    mHeapsTable = new StdTable(this);
+    mHeapsTable = new ReferenceView(this);
     mHeapsTable->setWindowTitle("Heaps");
-    mHeapsTable->setDrawDebugOnly(true);
-    mHeapsTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHeapsTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Address"), false);
-    mHeapsTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Size"), false);
-    mHeapsTable->addColumnAt(8 + 20 * wCharWidth, tr("Flags"), false);
-    mHeapsTable->addColumnAt(8 + 50 * wCharWidth, tr("Comments"), false);
+    //mHeapsTable->setContextMenuPolicy(Qt::CustomContextMenu);
+    mHeapsTable->addColumnAt(sizeof(duint) * 2, tr("Address"));
+    mHeapsTable->addColumnAt(sizeof(duint) * 2, tr("Size"));
+    mHeapsTable->addColumnAt(20, tr("Flags"));
+    mHeapsTable->addColumnAt(50, tr("Comments"));
 
     mPrivilegesTable = new StdTable(this);
     mPrivilegesTable->setWindowTitle("Privileges");
@@ -65,8 +65,8 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mSplitter = new LabeledSplitter(this);
     mSplitter->addWidget(mHandlesTable, tr("Handles"));
     mSplitter->addWidget(mWindowsTable, tr("Windows"));
-    mSplitter->addWidget(mTcpConnectionsTable, tr("TCP Connections"));
     mSplitter->addWidget(mHeapsTable, tr("Heaps"));
+    mSplitter->addWidget(mTcpConnectionsTable, tr("TCP Connections"));
     mSplitter->addWidget(mPrivilegesTable, tr("Privileges"));
     mSplitter->collapseLowerTabs();
 
@@ -92,15 +92,10 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     connect(mActionDisableAllPrivileges, SIGNAL(triggered()), this, SLOT(disableAllPrivilegesSlot()));
     mActionEnableAllPrivileges = new QAction(DIcon("enable.png"), tr("Enable all privileges"), this);
     connect(mActionEnableAllPrivileges, SIGNAL(triggered()), this, SLOT(enableAllPrivilegesSlot()));
-    mFollowInDumpHeaps = new QAction(DIcon("dump.png"), tr("&Follow in Dump"), this);
-    connect(mFollowInDumpHeaps, SIGNAL(triggered()), this, SLOT(dumpHeapSlot()));
-    mSearchForHWND = new QAction(DIcon("search.png"), tr("&Search for References in Current Module"), this);
-    connect(mSearchForHWND, SIGNAL(triggered()), this, SLOT(searchForHWNDSlot()));
 
     connect(mHandlesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(handlesTableContextMenuSlot(const QPoint &)));
     connect(mWindowsTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(windowsTableContextMenuSlot(const QPoint &)));
     connect(mTcpConnectionsTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(tcpConnectionsTableContextMenuSlot(const QPoint &)));
-    connect(mHeapsTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(heapsTableContextMenuSlot(const QPoint &)));
     connect(mPrivilegesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(privilegesTableContextMenuSlot(const QPoint &)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
@@ -183,8 +178,6 @@ void HandlesView::windowsTableContextMenuSlot(const QPoint & pos)
     if(table.getRowCount())
     {
         wMenu.addSeparator();
-        wMenu.addAction(mSearchForHWND);
-        wMenu.addSeparator();
         table.setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -205,28 +198,6 @@ void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
     wMenu.addAction(mActionRefresh);
     if(table.getRowCount())
     {
-        table.setupCopyMenu(&wCopyMenu);
-        if(wCopyMenu.actions().length())
-        {
-            wMenu.addSeparator();
-            wMenu.addMenu(&wCopyMenu);
-        }
-    }
-    wMenu.exec(table.mapToGlobal(pos));
-}
-
-void HandlesView::heapsTableContextMenuSlot(const QPoint & pos)
-{
-    StdTable & table = *mHeapsTable;
-    QMenu wMenu;
-    QMenu wCopyMenu(tr("Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy.png"));
-    wMenu.addAction(mActionRefresh);
-    if(table.getRowCount())
-    {
-        wMenu.addSeparator();
-        wMenu.addAction(mFollowInDumpHeaps);
-        wMenu.addSeparator();
         table.setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
@@ -301,17 +272,6 @@ void HandlesView::disableAllPrivilegesSlot()
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
             DbgCmdExec(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)).toUtf8().constData());
     enumPrivileges();
-}
-
-void HandlesView::dumpHeapSlot()
-{
-    DbgCmdExec(QString("dump %1").arg(mHeapsTable->getCellContent(mHeapsTable->getInitialSelection(), 0)).toUtf8().constData());
-}
-
-void HandlesView::searchForHWNDSlot()
-{
-    DbgCmdExec(QString("findref %1, dis.sel(), 0, 1").arg(mWindowsTable->getCellContent(mWindowsTable->getInitialSelection(), 0)).toUtf8().constData());
-    //TODO: display references view
 }
 
 //Enum functions
@@ -480,7 +440,14 @@ void HandlesView::enumHeaps()
             flagsText.chop(2); //Remove last 2 characters: " |"
             mHeapsTable->setCellContent(i, 2, flagsText);
             QString comment;
-            GetCommentFormat(heap.addr, comment);
+            char commentUtf8[MAX_COMMENT_SIZE];
+            if(DbgGetCommentAt(heap.addr, commentUtf8))
+                comment = QString::fromUtf8(commentUtf8);
+            else
+            {
+                if(DbgGetStringAt(heap.addr, commentUtf8))
+                    comment = QString::fromUtf8(commentUtf8);
+            }
             mHeapsTable->setCellContent(i, 3, comment);
         }
     }

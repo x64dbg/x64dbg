@@ -2,7 +2,6 @@
 #include "undocumented.h"
 #include "exception.h"
 #include "debugger.h"
-#include "thread.h"
 
 typedef struct _OBJECT_NAME_INFORMATION
 {
@@ -228,9 +227,7 @@ static BOOL CALLBACK getWindowInfoCallback(HWND hWnd, LPARAM lParam)
 */
 bool HandlesEnumWindows(std::vector<WINDOW_INFO> & windowsList)
 {
-    std::vector<THREADINFO> threads;
     std::vector<WINDOW_INFO> childWindowsList;
-    ThreadGetList(threads);
     EnumWindows(getWindowInfoCallback, (LPARAM)&windowsList);
     auto i = windowsList.begin();
     for(auto & i = windowsList.cbegin(); i != windowsList.cend(); i++)
