@@ -318,6 +318,7 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     duint offset = 0;
     duint readBase = BaseAddress;
     duint readSize = ROUND_TO_PAGES(readBase) - readBase;
+    duint requestedSize = Size;
 
     for(duint i = 0; i < pageCount; i++)
     {
@@ -329,8 +330,8 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
         offset += readSize;
         readBase += readSize;
 
-        Size -= readSize;
-        readSize = min(PAGE_SIZE, Size);
+        requestedSize -= readSize;
+        readSize = min(PAGE_SIZE, requestedSize);
     }
 
     return *NumberOfBytesRead == Size;
