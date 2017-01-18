@@ -26,6 +26,7 @@
 #include "tcpconnections.h"
 #include "watch.h"
 #include "animate.h"
+#include "thread.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -370,4 +371,5 @@ void dbgfunctionsinit()
     _dbgfunctions.DbgGetDebuggeeInitScript = dbggetdebuggeeinitscript;
     _dbgfunctions.EnumWindows = _enumwindows;
     _dbgfunctions.EnumHeaps = _enumheaps;
+    _dbgfunctions.ThreadGetName = ThreadGetName;
 }

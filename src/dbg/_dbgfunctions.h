@@ -172,6 +172,7 @@ typedef void(*DBGSETDEBUGGEEINITSCRIPT)(const char* fileName);
 typedef const char* (*DBGGETDEBUGGEEINITSCRIPT)();
 typedef bool(*HANDLESENUMWINDOWS)(ListOf(WINDOW_INFO) windows);
 typedef bool(*HANDLESENUMHEAPS)(ListOf(HEAPINFO) heaps);
+typedef bool(*THREADGETNAME)(DWORD tid, char* name);
 
 //The list of all the DbgFunctions() return value.
 //WARNING: This list is append only. Do not insert things in the middle or plugins would break.
@@ -234,6 +235,7 @@ typedef struct DBGFUNCTIONS_
     DBGGETDEBUGGEEINITSCRIPT DbgGetDebuggeeInitScript;
     HANDLESENUMWINDOWS EnumWindows;
     HANDLESENUMHEAPS EnumHeaps;
+    THREADGETNAME ThreadGetName;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

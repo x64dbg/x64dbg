@@ -313,7 +313,13 @@ void HandlesView::enumWindows()
             mWindowsTable->setCellContent(i, 0, ToHexString(windows[i].handle));
             mWindowsTable->setCellContent(i, 1, QString(windows[i].windowTitle));
             mWindowsTable->setCellContent(i, 2, QString(windows[i].windowClass));
-            mWindowsTable->setCellContent(i, 3, ToHexString(windows[i].threadId));
+            char threadname[MAX_THREAD_NAME_SIZE];
+            if(DbgFunctions()->ThreadGetName(windows[i].threadId, threadname))
+                mWindowsTable->setCellContent(i, 3, QString::fromUtf8(threadname));
+            else if(Config()->getBool("Gui", "PidInHex"))
+                mWindowsTable->setCellContent(i, 3, ToHexString(windows[i].threadId));
+            else
+                mWindowsTable->setCellContent(i, 3, QString::number(windows[i].threadId));
             //Style
             mWindowsTable->setCellContent(i, 4, ToHexString(windows[i].style));
             //StyleEx
