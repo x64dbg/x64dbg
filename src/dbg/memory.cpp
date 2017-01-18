@@ -308,7 +308,10 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
 
     // Normal single-call read
     if(pageCount == 1)
-        return MemoryReadSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesRead);
+    {
+        bool ret = MemoryReadSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesRead);
+        return ret && *NumberOfBytesRead == Size;
+    }
 
     // Read page-by-page
     // Determine the number of bytes between ADDRESS and the next page
@@ -330,7 +333,7 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
         readSize = min(PAGE_SIZE, Size);
     }
 
-    return (*NumberOfBytesRead > 0);
+    return *NumberOfBytesRead == Size;
 }
 
 bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead)
