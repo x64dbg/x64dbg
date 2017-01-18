@@ -1298,7 +1298,7 @@ void CPUDisassembly::findPatternSlot()
     {
         auto base = DbgFunctions()->ModBaseFromAddr(addr);
         if(base)
-            command = QString("findall %1, %2, %3").arg(ToHexString(base), hexEdit.mHexEdit->pattern(), ToHexString(DbgFunctions()->ModSizeFromAddr(base)));
+            command = QString("findmemall %1, %2, %3").arg(ToHexString(base), hexEdit.mHexEdit->pattern(), ToHexString(DbgFunctions()->ModSizeFromAddr(base)));
     }
     if(sender() == mFindPatternFunction)
     {
