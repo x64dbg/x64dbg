@@ -16,12 +16,12 @@ ColumnReorderDialog::ColumnReorderDialog(AbstractTableView* parent) :
         if(parent->getColumnHidden(i))
         {
             ui->listAvailable->addItem(parent->getColTitle(i));
-            ui->listAvailable->item(ui->listAvailable->count() - 1)->setData(Qt::UserRole, QVariant(j));
+            ui->listAvailable->item(ui->listAvailable->count() - 1)->setData(Qt::UserRole, QVariant(i));
         }
         else
         {
             ui->listDisplayed->addItem(parent->getColTitle(i));
-            ui->listDisplayed->item(ui->listDisplayed->count() - 1)->setData(Qt::UserRole, QVariant(j));
+            ui->listDisplayed->item(ui->listDisplayed->count() - 1)->setData(Qt::UserRole, QVariant(i));
         }
     }
     if(ui->listAvailable->count() == 0)
