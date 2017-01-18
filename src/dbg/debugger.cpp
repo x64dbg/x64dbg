@@ -527,7 +527,19 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     char threadName[MAX_THREAD_NAME_SIZE + 1] = "";
     if(ThreadGetName(currentThreadId, threadName) && *threadName)
         strcat_s(threadName, " ");
-    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName, currentThreadId, threadswitch);
+    //sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName, currentThreadId, threadswitch);
+    char PIDnumber[64], TIDnumber[64];
+    if(settingboolget("Gui", "PidInHex"))
+    {
+        sprintf_s(PIDnumber, "%X", fdProcessInfo->dwProcessId);
+        sprintf_s(TIDnumber, "%X", currentThreadId);
+    }
+    else
+    {
+        sprintf_s(PIDnumber, "%u", fdProcessInfo->dwProcessId);
+        sprintf_s(TIDnumber, "%u", currentThreadId);
+    }
+    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %s - %sThread: %s%s%s")), szBaseFileName, PIDnumber, modtext, threadName, TIDnumber, threadswitch);
     GuiUpdateWindowTitle(title);
     GuiUpdateRegisterView();
     GuiUpdateDisassemblyView();
