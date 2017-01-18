@@ -148,6 +148,8 @@ void HandlesView::dbgStateChanged(DBGSTATE state)
 
 void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)
 {
+    if(!DbgIsDebugging())
+        return;
     StdTable & table = *mHandlesTable;
     QMenu wMenu;
     QMenu wCopyMenu(tr("&Copy"), this);
@@ -170,6 +172,8 @@ void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)
 
 void HandlesView::windowsTableContextMenuSlot(const QPoint & pos)
 {
+    if(!DbgIsDebugging())
+        return;
     StdTable & table = *mWindowsTable;
     QMenu wMenu;
     QMenu wCopyMenu(tr("Copy"), this);
@@ -190,6 +194,8 @@ void HandlesView::windowsTableContextMenuSlot(const QPoint & pos)
 
 void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
 {
+    if(!DbgIsDebugging())
+        return;
     StdTable & table = *mTcpConnectionsTable;
     QMenu wMenu;
     QMenu wCopyMenu(tr("&Copy"), this);
@@ -210,6 +216,8 @@ void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
 
 void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 {
+    if(!DbgIsDebugging())
+        return;
     StdTable & table = *mPrivilegesTable;
     QMenu wMenu;
     bool isValid = (table.getRowCount() != 0 && table.getCellContent(table.getInitialSelection(), 1) != tr("Unknown"));
@@ -254,12 +262,16 @@ void HandlesView::enablePrivilegeSlot()
 
 void HandlesView::disablePrivilegeSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     DbgCmdExec(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0)).toUtf8().constData());
     enumPrivileges();
 }
 
 void HandlesView::enableAllPrivilegesSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     for(int i = 0; i < mPrivilegesTable->getRowCount(); i++)
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
             DbgCmdExec(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)).toUtf8().constData());
@@ -268,6 +280,8 @@ void HandlesView::enableAllPrivilegesSlot()
 
 void HandlesView::disableAllPrivilegesSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     for(int i = 0; i < mPrivilegesTable->getRowCount(); i++)
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
             DbgCmdExec(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)).toUtf8().constData());
