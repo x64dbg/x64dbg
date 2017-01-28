@@ -475,7 +475,10 @@ bool CapstoneTokenizer::tokenizeRegOperand(const cs_x86_op & op)
         registerType = TokenType::YmmRegister;
     else if(reg >= X86_REG_ZMM0 && reg <= X86_REG_ZMM31)
         registerType = TokenType::ZmmRegister;
-    addToken(registerType, _cp.RegName(x86_reg(reg)));
+    if(reg == X86_REG_FS || reg == X86_REG_GS)
+        addToken(TokenType::MnemonicUnusual, _cp.RegName(x86_reg(reg)));
+    else
+        addToken(registerType, _cp.RegName(x86_reg(reg)));
     return true;
 }
 
@@ -520,7 +523,10 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
             break;
         }
     }
-    addToken(TokenType::MemorySegment, segmentText);
+    if(op.reg == X86_REG_FS || op.reg == X86_REG_GS)
+        addToken(TokenType::MnemonicUnusual, segmentText);
+    else
+        addToken(TokenType::MemorySegment, segmentText);
     addToken(TokenType::Uncategorized, ":");
 
     //memory opening bracket
