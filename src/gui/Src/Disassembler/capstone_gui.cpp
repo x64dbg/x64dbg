@@ -475,10 +475,9 @@ bool CapstoneTokenizer::tokenizeRegOperand(const cs_x86_op & op)
         registerType = TokenType::YmmRegister;
     else if(reg >= X86_REG_ZMM0 && reg <= X86_REG_ZMM31)
         registerType = TokenType::ZmmRegister;
-    if(reg == X86_REG_FS || reg == X86_REG_GS)
-        addToken(TokenType::MnemonicUnusual, _cp.RegName(x86_reg(reg)));
-    else
-        addToken(registerType, _cp.RegName(x86_reg(reg)));
+    else if(reg == X86_REG_FS || reg == X86_REG_GS)
+        registerType = TokenType::MnemonicUnusual;
+    addToken(registerType, _cp.RegName(x86_reg(reg)));
     return true;
 }
 
