@@ -628,11 +628,13 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindConstantAll = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsAll = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsAll = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindPatternAll = makeAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()));
     mFindGUIDAll = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchAllMenu->addAction(mFindCommandAll);
     mSearchAllMenu->addAction(mFindConstantAll);
     mSearchAllMenu->addAction(mFindStringsAll);
     mSearchAllMenu->addAction(mFindCallsAll);
+    mSearchAllMenu->addAction(mFindPatternAll);
     mSearchAllMenu->addAction(mFindGUIDAll);
 
     searchMenu->addMenu(makeMenu(DIcon("search_current_region.png"), tr("Current Region")), mSearchRegionMenu);
@@ -1308,6 +1310,8 @@ void CPUDisassembly::findPatternSlot()
         else
             return;
     }
+    if(sender() == mFindPatternAll)
+        command = QString("findallmem  %1, %2, %3").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()).arg("&data&");
     if(!command.length())
         command = QString("findall %1, %2").arg(ToHexString(addr), hexEdit.mHexEdit->pattern());
 

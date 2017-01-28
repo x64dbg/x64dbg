@@ -157,6 +157,7 @@ private:
     QAction* mFindConstantAll;
     QAction* mFindStringsAll;
     QAction* mFindCallsAll;
+    QAction* mFindPatternAll;
     QAction* mFindGUIDAll;
 
     // Goto dialog specific
