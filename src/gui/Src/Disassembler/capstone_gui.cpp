@@ -522,10 +522,8 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
             break;
         }
     }
-    if(op.reg == X86_REG_FS || op.reg == X86_REG_GS)
-        addToken(TokenType::MnemonicUnusual, segmentText);
-    else
-        addToken(TokenType::MemorySegment, segmentText);
+    auto segmentType = op.reg == X86_REG_FS || op.reg == X86_REG_GS ? TokenType::MnemonicUnusual : TokenType::MemorySegment;
+    addToken(segmentType, segmentText);
     addToken(TokenType::Uncategorized, ":");
 
     //memory opening bracket
