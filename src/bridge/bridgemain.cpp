@@ -1081,7 +1081,7 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateWatchView();
     GuiUpdateThreadView();
     GuiUpdateSideBar();
-    GuiUpdatePatches();
+    //Patches are not refreshed here, see #1407
     GuiUpdateCallStack();
     GuiRepaintTableView();
     GuiUpdateSEHChain();
