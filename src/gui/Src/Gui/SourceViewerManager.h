@@ -16,6 +16,7 @@ public slots:
     void loadSourceFile(QString path, int line, int selection = 0);
     void closeTab(int index);
     void closeAllTabs();
+    void dbgStateChanged(DBGSTATE state);
 
 private:
     QPushButton* mCloseAllTabs;
