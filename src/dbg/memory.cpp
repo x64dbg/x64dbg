@@ -361,43 +361,38 @@ bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOf
     if(!NumberOfBytesWritten)
         NumberOfBytesWritten = &bytesWrittenTemp;
 
-    // Try a regular WriteProcessMemory call
-    bool ret = MemoryWriteSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesWritten);
+    // Determine the number of pages the requested write spans
+    const duint pageCount = BYTES_TO_PAGES(BaseAddress % PAGE_SIZE + Size);
 
-    if(ret && *NumberOfBytesWritten == Size)
-        return true;
-
-    // Write page-by-page (Skip if only 1 page exists)
-    // See: MemRead
-    SIZE_T pageCount = BYTES_TO_PAGES(Size);
-
-    if(pageCount > 1)
+    // Normal single-call write
+    if(pageCount == 1)
     {
-        // Determine the number of bytes between ADDRESS and the next page
-        duint offset = 0;
-        duint writeBase = BaseAddress;
-        duint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
-
-        // Reset the bytes read count
-        *NumberOfBytesWritten = 0;
-
-        for(SIZE_T i = 0; i < pageCount; i++)
-        {
-            SIZE_T bytesWritten = 0;
-
-            if(MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
-                *NumberOfBytesWritten += bytesWritten;
-
-            offset += writeSize;
-            writeBase += writeSize;
-
-            Size -= writeSize;
-            writeSize = min(PAGE_SIZE, Size);
-        }
+        bool ret = MemoryWriteSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesWritten);
+        return ret && *NumberOfBytesWritten == Size;
     }
 
-    SetLastError(ERROR_PARTIAL_COPY);
-    return (*NumberOfBytesWritten > 0);
+    // Write page-by-page
+    // Determine the number of bytes between ADDRESS and the next page
+    duint requestedSize = Size;
+    duint offset = 0;
+    duint writeBase = BaseAddress;
+    duint writeSize = min(PAGE_SIZE, requestedSize);
+
+    for(duint i = 0; i < pageCount; i++)
+    {
+        duint bytesWritten = 0;
+
+        if(MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
+            *NumberOfBytesWritten += bytesWritten;
+
+        offset += writeSize;
+        writeBase += writeSize;
+
+        requestedSize -= writeSize;
+        writeSize = min(PAGE_SIZE, requestedSize);
+    }
+
+    return *NumberOfBytesWritten == Size;
 }
 
 bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten)
