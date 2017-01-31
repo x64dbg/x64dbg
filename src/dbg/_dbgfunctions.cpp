@@ -257,7 +257,7 @@ static bool _stringformatinline(const char* format, size_t resultSize, char* res
 {
     if(!format || !result)
         return false;
-    strcpy_s(result, resultSize, stringformatinline(format).c_str());
+    strncpy_s(result, resultSize, stringformatinline(format).c_str(), _TRUNCATE);
     return true;
 }
 
@@ -265,7 +265,7 @@ static void _getmnemonicbrief(const char* mnem, size_t resultSize, char* result)
 {
     if(!result)
         return;
-    strcpy_s(result, resultSize, MnemonicHelp::getBriefDescription(mnem).c_str());
+    strncpy_s(result, resultSize, MnemonicHelp::getBriefDescription(mnem).c_str(), _TRUNCATE);
 }
 
 static bool _enumhandles(ListOf(HANDLEINFO) handles)
