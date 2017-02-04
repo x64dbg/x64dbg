@@ -242,7 +242,7 @@ bool cbInstrCapstone(int argc, char* argv[])
     for(int i = 0; i < argcount; i++)
     {
         const cs_x86_op & op = x86.operands[i];
-        dprintf("operand \"%s\" %d, ", cp.OperandText(i).c_str(), i + 1);
+        dprintf("operand %d (size: %d) \"%s\", ", i + 1, op.size, cp.OperandText(i).c_str());
         switch(op.type)
         {
         case X86_OP_REG:

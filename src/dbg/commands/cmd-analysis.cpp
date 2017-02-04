@@ -426,19 +426,24 @@ bool cbInstrExinfo(int argc, char* argv[])
                 dprintf_untranslated("ExceptionInformation[%02u]: %p %s", i, record.ExceptionInformation[i], symbolic.c_str());
             else
                 dprintf_untranslated("ExceptionInformation[%02u]: %p", i, record.ExceptionInformation[i]);
-            if(record.ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
+            //https://msdn.microsoft.com/en-us/library/windows/desktop/aa363082(v=vs.85).aspx
+            if(record.ExceptionCode == EXCEPTION_ACCESS_VIOLATION ||
+                    record.ExceptionCode == EXCEPTION_IN_PAGE_ERROR ||
+                    record.ExceptionCode == EXCEPTION_GUARD_PAGE)
             {
                 if(i == 0)
                 {
                     if(record.ExceptionInformation[i] == 0)
-                        dprintf_untranslated(" MEM READ");
+                        dprintf_untranslated(" Read");
                     else if(record.ExceptionInformation[i] == 1)
-                        dprintf_untranslated(" MEM WRITE");
+                        dprintf_untranslated(" Write");
                     else if(record.ExceptionInformation[i] == 8)
-                        dprintf_untranslated(" DEP VIOLATION");
+                        dprintf_untranslated(" DEP Violation");
                 }
                 else if(i == 1)
                     dprintf_untranslated(" Inaccessible Address");
+                else if(record.ExceptionCode == EXCEPTION_IN_PAGE_ERROR && i == 2)
+                    dprintf_untranslated(" %s", ExceptionCodeToName(record.ExceptionInformation[i]).c_str());
             }
             dprintf_untranslated("\n");
         }
