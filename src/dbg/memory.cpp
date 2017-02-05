@@ -285,6 +285,15 @@ duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh, bool FindReserve
     return found->first.first;
 }
 
+static bool MemoryReadSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
+{
+    //TODO: remove when proven stable, this function checks if reads are always within page boundaries
+    auto base = duint(lpBaseAddress);
+    if(nSize > PAGE_SIZE - (base & (PAGE_SIZE - 1)))
+        __debugbreak();
+    return MemoryReadSafe(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
+}
+
 bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead, bool cache)
 {
     if(!MemIsCanonicalAddress(BaseAddress))
@@ -293,48 +302,37 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     if(cache && !MemIsValidReadPtr(BaseAddress, cache))
         return false;
 
-    // Buffer must be supplied and size must be greater than 0
-    if(!Buffer || Size <= 0)
+    if(!Buffer || !Size)
         return false;
 
-    // If the 'bytes read' parameter is null, use a temp
     duint bytesReadTemp = 0;
-
     if(!NumberOfBytesRead)
         NumberOfBytesRead = &bytesReadTemp;
 
-    // Determine the number of pages the requested read spans
-    const duint pageCount = BYTES_TO_PAGES(BaseAddress % PAGE_SIZE + Size);
-
-    // Normal single-call read
-    if(pageCount == 1)
-    {
-        bool ret = MemoryReadSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesRead);
-        return ret && *NumberOfBytesRead == Size;
-    }
-
-    // Read page-by-page
-    // Determine the number of bytes between ADDRESS and the next page
-    duint requestedSize = Size;
     duint offset = 0;
-    duint readBase = BaseAddress;
-    duint readSize = min(PAGE_SIZE, requestedSize);
+    duint requestedSize = Size;
+    duint sizeLeftInFirstPage = PAGE_SIZE - (BaseAddress & (PAGE_SIZE - 1));
+    duint readSize = min(sizeLeftInFirstPage, requestedSize);
 
-    for(duint i = 0; i < pageCount; i++)
+    while(readSize)
     {
-        duint bytesRead = 0;
-
-        if(MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
-            *NumberOfBytesRead += bytesRead;
+        SIZE_T bytesRead = 0;
+        auto readSuccess = MemoryReadSafePage(fdProcessInfo->hProcess, (PVOID)(BaseAddress + offset), (PBYTE)Buffer + offset, readSize, &bytesRead);
+        *NumberOfBytesRead += bytesRead;
+        if(!readSuccess)
+            break;
 
         offset += readSize;
-        readBase += readSize;
-
         requestedSize -= readSize;
         readSize = min(PAGE_SIZE, requestedSize);
+
+        if(readSize && (BaseAddress + offset) % PAGE_SIZE)
+            __debugbreak(); //TODO: remove when proven stable, this checks if (BaseAddress + offset) is aligned to PAGE_SIZE after the first call
     }
 
-    return *NumberOfBytesRead == Size;
+    auto success = *NumberOfBytesRead == Size;
+    SetLastError(success ? ERROR_SUCCESS : ERROR_PARTIAL_COPY);
+    return success;
 }
 
 bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead)
@@ -346,58 +344,51 @@ bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfB
     return result;
 }
 
+static bool MemoryWriteSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPCVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
+{
+    //TODO: remove when proven stable, this function checks if writes are always within page boundaries
+    auto base = duint(lpBaseAddress);
+    if(nSize > PAGE_SIZE - (base & (PAGE_SIZE - 1)))
+        __debugbreak();
+    return MemoryWriteSafe(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+}
+
 bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten)
 {
     if(!MemIsCanonicalAddress(BaseAddress))
         return false;
 
-    // Buffer must be supplied and size must be greater than 0
-    if(!Buffer || Size <= 0)
+    if(!Buffer || !Size)
         return false;
 
-    // If the 'bytes written' parameter is null, use a temp
     SIZE_T bytesWrittenTemp = 0;
-
     if(!NumberOfBytesWritten)
         NumberOfBytesWritten = &bytesWrittenTemp;
 
-    // Try a regular WriteProcessMemory call
-    bool ret = MemoryWriteSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesWritten);
+    duint offset = 0;
+    duint requestedSize = Size;
+    duint sizeLeftInFirstPage = PAGE_SIZE - (BaseAddress & (PAGE_SIZE - 1));
+    duint writeSize = min(sizeLeftInFirstPage, requestedSize);
 
-    if(ret && *NumberOfBytesWritten == Size)
-        return true;
-
-    // Write page-by-page (Skip if only 1 page exists)
-    // See: MemRead
-    SIZE_T pageCount = BYTES_TO_PAGES(Size);
-
-    if(pageCount > 1)
+    while(writeSize)
     {
-        // Determine the number of bytes between ADDRESS and the next page
-        duint offset = 0;
-        duint writeBase = BaseAddress;
-        duint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
+        SIZE_T bytesWritten = 0;
+        auto writeSuccess = MemoryWriteSafePage(fdProcessInfo->hProcess, (PVOID)(BaseAddress + offset), (PBYTE)Buffer + offset, writeSize, &bytesWritten);
+        *NumberOfBytesWritten += bytesWritten;
+        if(!writeSuccess)
+            break;
 
-        // Reset the bytes read count
-        *NumberOfBytesWritten = 0;
+        offset += writeSize;
+        requestedSize -= writeSize;
+        writeSize = min(PAGE_SIZE, requestedSize);
 
-        for(SIZE_T i = 0; i < pageCount; i++)
-        {
-            SIZE_T bytesWritten = 0;
-
-            if(MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
-                *NumberOfBytesWritten += bytesWritten;
-
-            offset += writeSize;
-            writeBase += writeSize;
-
-            Size -= writeSize;
-            writeSize = min(PAGE_SIZE, Size);
-        }
+        if(writeSize && (BaseAddress + offset) % PAGE_SIZE)
+            __debugbreak(); //TODO: remove when proven stable, this checks if (BaseAddress + offset) is aligned to PAGE_SIZE after the first call
     }
 
-    SetLastError(ERROR_PARTIAL_COPY);
-    return (*NumberOfBytesWritten > 0);
+    auto success = *NumberOfBytesWritten == Size;
+    SetLastError(success ? ERROR_SUCCESS : ERROR_PARTIAL_COPY);
+    return success;
 }
 
 bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten)
