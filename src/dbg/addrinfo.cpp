@@ -86,7 +86,7 @@ bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
     // Variables
     bool readSuccess;
     Memory<char*> importName(MAX_IMPORT_SIZE + 1, "apienumimports:buffer");
-    char importModuleName[MAX_MODULE_SIZE] = "";
+    char importModuleName[MAX_MODULE_SIZE + 1] = "";
     duint regionSize;
     ULONG_PTR importTableRva, importTableSize;
     MEMORY_BASIC_INFORMATION mbi;
@@ -138,7 +138,8 @@ bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
             pImageImportByNameVa = (PIMAGE_IMPORT_BY_NAME)(base + imageOftThunkData.u1.AddressOfData);
 
             // Read every IMPORT_BY_NAME.name
-            if(!MemRead((duint)pImageImportByNameVa + sizeof(WORD), importName(), MAX_IMPORT_SIZE))
+            duint bytesRead = 0;
+            if(!MemRead((duint)pImageImportByNameVa + sizeof(WORD), importName(), MAX_IMPORT_SIZE, &bytesRead) && !bytesRead)
                 return false;
 
             // Callback
@@ -148,7 +149,6 @@ bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
             imageINTVa++;
             if(!MemRead((duint)imageINTVa, &imageOftThunkData, sizeof(imageOftThunkData)))
                 return false;
-
 
             // Move to next address in the IAT and read it into imageFtThunkData
             imageIATVa++;
