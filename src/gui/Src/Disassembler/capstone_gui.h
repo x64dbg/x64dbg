@@ -51,6 +51,9 @@ public:
         XmmRegister,
         YmmRegister,
         ZmmRegister,
+
+		// Mouse clicked string
+		LastMouseClickedString ,
         //last
         Last
     };
@@ -150,7 +153,7 @@ public:
     void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands);
     int Size() const;
     const Capstone & GetCapstone() const;
-
+	static void setLastMouseClickedString(const QString& string);
     static void UpdateColors();
     static void UpdateStringPool();
     static void TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken);
@@ -184,6 +187,7 @@ private:
     static int poolId;
 
     bool tokenizePrefix();
+	void tokenSameString(InstructionToken & instToken);
     bool tokenizeMnemonic();
     bool tokenizeMnemonic(TokenType type, const QString & mnemonic);
     bool tokenizeOperand(const cs_x86_op & op);

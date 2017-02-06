@@ -1,0 +1,2450 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\BasicView\AbstractTableView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\AppearanceDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\QHexEdit\ArrayCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\AssembleDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\AttachDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\Breakpoints.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\BreakpointsView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\BreakpointsViewTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Bridge\Bridge.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Bridge\BridgeResult.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\BrowseDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CPUArgumentWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CPUDisassembly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CPUDump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CPUInfoBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CPUMultiDump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CPUSideBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CPUStack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CPUWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CalculatorDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CallStackView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CloseDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\CodeFolding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CodepageSelectionDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\ColumnReorderDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CommandHelpView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CommandLineEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\Configuration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\CustomizeMenuDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\DataCopyDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\DebugStatusLabel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\DisassemblerGraphView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\Disassembly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\DisassemblyPopup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\EditBreakpointDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\EditFloatRegister.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\EncodeMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\EntropyDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\ExceptionRangeDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\FavouriteTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\FlickerThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\GotoDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\HandlesView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\HexDump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\HexEditDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\HexLineEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\HexValidator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\HistoryLineEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\LabeledSplitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\LabeledSplitterDetachedWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\LineEditDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\LogStatusLabel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\LogView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\LongLongValidator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\MainWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\MainWindowCloseThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\MemoryMapView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Memory\MemoryPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\MenuBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\MiscUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\NotepadView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\NotesManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\PageMemoryRights.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\PatchDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\PatchDialogGroupSelector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Disassembler\QBeaEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\QEntropyView\QEntropyView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\QHexEdit\QHexEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\QHexEdit\QHexEditPrivate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\ReferenceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\ReferenceView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\RegistersView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\RichTextPainter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\SEHChainView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\ScriptView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\SearchListView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\SearchListViewTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\SelectFields.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\SettingsDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\ShortcutEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\ShortcutsDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\SimpleTraceDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\SourceView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\SourceViewerManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicView\StdTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\StringUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\StructWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\SymbolView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\TabBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\TabWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\ThreadView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\TimeWastedCounter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\UpdateChecker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils\ValidateExpressionThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\VirtualModDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\WatchView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\WordEditDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\QHexEdit\XByteArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\XrefBrowseDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gui\YaraRuleSelectionDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Disassembler\capstone_gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ThirdPartyLibs\float128\float128.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Src\BasicView\AbstractTableView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Utils\ActionHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\AppearanceDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\QHexEdit\ArrayCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\AssembleDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\AttachDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\Breakpoints.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\BreakpointsView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\BreakpointsViewTable.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Bridge\Bridge.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Bridge\BridgeResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\BrowseDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUArgumentWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUDisassembly.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUDump.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUInfoBox.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUMultiDump.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUSideBar.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUStack.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\CachedFontMetrics.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CalculatorDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CallStackView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CloseDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Utils\CodeFolding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\CodepageSelectionDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\ColumnReorderDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CommandHelpView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CommandLineEdit.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\Configuration.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CustomizeMenuDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\DataCopyDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\DebugStatusLabel.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\DisassemblerGraphView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\BasicView\Disassembly.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\DisassemblyPopup.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\EditBreakpointDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\EditFloatRegister.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\EncodeMap.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\QEntropyView\Entropy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\EntropyDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\ExceptionRangeDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Exports.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\FavouriteTools.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\FlickerThread.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\GotoDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\HandlesView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\BasicView\HexDump.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\HexEditDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\HexLineEdit.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\HexValidator.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\BasicView\HistoryLineEdit.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Imports.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\BasicView\LabeledSplitter.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\BasicView\LabeledSplitterDetachedWindow.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\LineEditDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\LogStatusLabel.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\LogView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\LongLongValidator.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\MainWindow.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\MainWindowCloseThread.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\MemoryMapView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Memory\MemoryPage.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\MenuBuilder.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Utils\MiscUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\NotepadView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\NotesManager.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\PageMemoryRights.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\PatchDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\PatchDialogGroupSelector.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\QActionLambda.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Disassembler\QBeaEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\QEntropyView\QEntropyView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\QHexEdit\QHexEdit.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\QHexEdit\QHexEditPrivate.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\ReferenceManager.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\BasicView\ReferenceView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\RegistersView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Utils\RichTextPainter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\SEHChainView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\ScriptView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\BasicView\SearchListView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\BasicView\SearchListViewTable.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SelectFields.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SettingsDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\BasicView\ShortcutEdit.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\ShortcutsDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SimpleTraceDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SourceView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SourceViewerManager.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\BasicView\StdTable.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Utils\StringUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\StructWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SymbolView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\TabBar.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\TabWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\ThreadView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\TimeWastedCounter.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\UpdateChecker.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Utils\ValidateExpressionThread.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\VirtualModDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\WatchView.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\WordEditDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\QHexEdit\XByteArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <CustomBuild Include="Src\Gui\XrefBrowseDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\YaraRuleSelectionDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <ClInclude Include="Src\Disassembler\capstone_gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ThirdPartyLibs\float128\float128.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\gui_build\out32\moc_AbstractTableView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_AbstractTableView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_AppearanceDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_AppearanceDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_AssembleDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_AssembleDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_AttachDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_AttachDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_Breakpoints.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_Breakpoints.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_BreakpointsView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_BreakpointsView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_BreakpointsViewTable.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_BreakpointsViewTable.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_Bridge.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_Bridge.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_BrowseDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_BrowseDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CPUArgumentWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CPUArgumentWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CPUDisassembly.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CPUDisassembly.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CPUDump.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CPUDump.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CPUInfoBox.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CPUInfoBox.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CPUMultiDump.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CPUMultiDump.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CPUSideBar.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CPUSideBar.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CPUStack.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CPUStack.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CPUWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CPUWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CachedFontMetrics.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CachedFontMetrics.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CalculatorDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CalculatorDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CallStackView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CallStackView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CloseDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CloseDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CodepageSelectionDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CodepageSelectionDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_ColumnReorderDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_ColumnReorderDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CommandHelpView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CommandHelpView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CommandLineEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CommandLineEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_Configuration.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_Configuration.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_CustomizeMenuDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_CustomizeMenuDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_DataCopyDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_DataCopyDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_DebugStatusLabel.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_DebugStatusLabel.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_DisassemblerGraphView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_DisassemblerGraphView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_Disassembly.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_Disassembly.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_DisassemblyPopup.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_DisassemblyPopup.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_EditBreakpointDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_EditBreakpointDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_EditFloatRegister.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_EditFloatRegister.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_EncodeMap.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_EncodeMap.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_EntropyDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_EntropyDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_ExceptionRangeDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_ExceptionRangeDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_FavouriteTools.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_FavouriteTools.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_FlickerThread.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_FlickerThread.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_GotoDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_GotoDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_HandlesView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_HandlesView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_HexDump.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_HexDump.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_HexEditDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_HexEditDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_HexLineEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_HexLineEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_HexValidator.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_HexValidator.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_HistoryLineEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_HistoryLineEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_LabeledSplitter.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_LabeledSplitter.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_LabeledSplitterDetachedWindow.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_LabeledSplitterDetachedWindow.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_LineEditDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_LineEditDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_LogStatusLabel.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_LogStatusLabel.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_LogView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_LogView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_LongLongValidator.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_LongLongValidator.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_MainWindow.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_MainWindow.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_MainWindowCloseThread.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_MainWindowCloseThread.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_MemoryMapView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_MemoryMapView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_MemoryPage.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_MemoryPage.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_MenuBuilder.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_MenuBuilder.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_NotepadView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_NotepadView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_NotesManager.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_NotesManager.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_PageMemoryRights.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_PageMemoryRights.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_PatchDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_PatchDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_PatchDialogGroupSelector.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_PatchDialogGroupSelector.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_QActionLambda.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_QActionLambda.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_QEntropyView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_QEntropyView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_QHexEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_QHexEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_QHexEditPrivate.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_QHexEditPrivate.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_ReferenceManager.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_ReferenceManager.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_ReferenceView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_ReferenceView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_RegistersView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_RegistersView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_SEHChainView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_SEHChainView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_ScriptView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_ScriptView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_SearchListView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_SearchListView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_SearchListViewTable.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_SearchListViewTable.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_SelectFields.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_SelectFields.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_SettingsDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_SettingsDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_ShortcutEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_ShortcutEdit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_ShortcutsDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_ShortcutsDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_SimpleTraceDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_SimpleTraceDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_SourceView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_SourceView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_SourceViewerManager.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_SourceViewerManager.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_StdTable.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_StdTable.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_StructWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_StructWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_SymbolView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_SymbolView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_TabBar.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_TabBar.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_TabWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_TabWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_ThreadView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_ThreadView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_TimeWastedCounter.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_TimeWastedCounter.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_UpdateChecker.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_UpdateChecker.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_ValidateExpressionThread.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_ValidateExpressionThread.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_VirtualModDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_VirtualModDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_WatchView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_WatchView.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_WordEditDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_WordEditDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_XrefBrowseDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_XrefBrowseDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\moc_YaraRuleSelectionDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\moc_YaraRuleSelectionDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32\qrc_resource.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gui_build\out32d\qrc_resource.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\gui_build\out32\ui_AppearanceDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_AppearanceDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_AssembleDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_AssembleDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_AttachDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_AttachDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_BrowseDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_BrowseDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_CPUArgumentWidget.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_CPUArgumentWidget.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_CPUWidget.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_CPUWidget.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_CalculatorDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_CalculatorDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_CloseDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_CloseDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_CodepageSelectionDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_CodepageSelectionDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_ColumnReorderDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_ColumnReorderDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_CommandHelpView.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_CommandHelpView.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_CustomizeMenuDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_CustomizeMenuDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_DataCopyDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_DataCopyDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_EditBreakpointDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_EditBreakpointDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_EditFloatRegister.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_EditFloatRegister.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_EntropyDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_EntropyDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_ExceptionRangeDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_ExceptionRangeDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_FavouriteTools.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_FavouriteTools.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_GotoDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_GotoDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_HexEditDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_HexEditDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_HexLineEdit.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_HexLineEdit.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_LineEditDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_LineEditDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_MainWindow.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_MainWindow.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_PageMemoryRights.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_PageMemoryRights.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_PatchDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_PatchDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_PatchDialogGroupSelector.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_PatchDialogGroupSelector.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_SelectFields.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_SelectFields.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_SettingsDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_SettingsDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_ShortcutsDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_ShortcutsDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_SimpleTraceDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_SimpleTraceDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_StructWidget.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_StructWidget.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_SymbolView.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_SymbolView.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_VirtualModDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_VirtualModDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_WordEditDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_WordEditDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_XrefBrowseDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_XrefBrowseDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32\ui_YaraRuleSelectionDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gui_build\out32d\ui_YaraRuleSelectionDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Src\Gui\AppearanceDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\AssembleDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\AttachDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\BrowseDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUArgumentWidget.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CPUWidget.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CalculatorDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CloseDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CodepageSelectionDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\ColumnReorderDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CommandHelpView.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\CustomizeMenuDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\DataCopyDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\EditBreakpointDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\EditFloatRegister.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\EntropyDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\ExceptionRangeDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\FavouriteTools.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\GotoDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\HexEditDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\HexLineEdit.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\LineEditDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\MainWindow.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\PageMemoryRights.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\PatchDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\PatchDialogGroupSelector.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SelectFields.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SettingsDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\ShortcutsDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SimpleTraceDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\StructWidget.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\SymbolView.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\VirtualModDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\WordEditDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\XrefBrowseDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Src\Gui\YaraRuleSelectionDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\16bit-short.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\16bit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\32bit-float.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\32bit-long.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\32bit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\64bit-float.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\64bit-long.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\64bit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\80bit-float.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\80bit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\address.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\analysis.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\analysis_single_function.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\analyzemodule.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\animal-dog.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\animatecommand.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\animateinto.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\animateover.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arguments.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-restart.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-run-cursor.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-run.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-skip.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-small-down.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-small-up.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-step-into.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-step-over.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-step-rtr.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\arrow-threads.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\ascii-extended.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\ascii.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\attach.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\binary.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\binary_copy.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\binary_edit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\binary_fill.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\binary_fill_nop.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\binary_paste.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\binary_paste_ignoresize.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\binary_save.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\bit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\bookmark.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\bookmark_toggle.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\bookmarks.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\bottom.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\branchpreview.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_access.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_add.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_byte.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_disable.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_disable_all.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_dword.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_edit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_edit_alt.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_editcaret.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_enable.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_enable_all.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_exception_add.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_execute.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_execute_slot1.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_execute_slot2.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_execute_slot3.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_execute_slot4.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_memory_access.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_memory_execute.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_memory_restore_on_hit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_memory_singleshoot.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_memory_write.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_module_add.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_qword.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_remove.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_remove_all.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_remove_all_commands.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_reset_hitcount.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_seton_all_commands.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_settings.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_toggle.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_word.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\breakpoint_write.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\browseinexplorer.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\bug-report.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\byte.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\calculator.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\call.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\callstack.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\cbp.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\change-view.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\changeargs.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\christmas1.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\christmas2.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\christmas3.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\christmas4.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\christmas5.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\christmas6.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\christmas7.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\christmas8.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\close-all-tabs.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\codepage.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\color-swatches.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\comment.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\comments.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\compile-error.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\compile-warning.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\compile.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\control-exit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\control-pause.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\control-stop.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copy-alt.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copy.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copy_address.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copy_cropped_table.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copy_disassembly.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copy_full_table.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copy_selection.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copy_selection_no_bytes.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copy_table_line.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\copyfilepath.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\createthread.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\css.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\data-copy.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\database-export.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\database-import.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\decompile_function.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\decompile_selection.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\detach.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\disable.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\document-binary.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\donate.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\download_symbols.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\dump.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\dword.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\enable.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\entropy.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\entrypoint.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\eraser.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\faq.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\fatal-error.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\fileoffset.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\find.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\float.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\folder-horizontal-open.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\follow_entrypoint.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\follow_in_cpu.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\follow_in_dump.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\follow_in_dump1.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\follow_in_dump2.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\follow_in_dump3.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\follow_in_dump4.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\follow_in_dump5.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\freeze.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\functionend.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\functions.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\functionstart.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\geolocation-goto.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\goto.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\graph.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\guid.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\handles.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\help.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\helpbrief.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\helpmnemonic.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\hex.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\hide-debugger.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\hidetab.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\highlight.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\importsettings.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\information.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\initscript.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\integer.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\label.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\labels.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\lock.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\log.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\markasparty.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\markassystem.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\markasuser.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\memmap_alloc_memory.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\memmap_dump_memory_to_file.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\memmap_find_address_page.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\memmap_free_memory.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\memmap_memory_breakpoint.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\memmap_set_page_memory_rights.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\memory-map.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\modify.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\neworigin.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\next.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\notes.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\patch.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\pdb.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\pdb_alt.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\plugin.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\previous.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\processor-cpu.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\processor32.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\processor64.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\question.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\qword.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\recentfiles.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\register_dec.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\register_edit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\register_inc.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\register_one.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\register_toggle.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\register_zero.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\remove_analysis_from_module.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\remove_analysis_from_selection.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\removestruct.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <CustomBuild Include="resource.qrc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <None Include="images\runtouser.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\script-code.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\script-error.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\scylla.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\search-for.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\search.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\search_all_modules.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\search_current_module.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\search_current_region.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\search_for_command.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\search_for_constant.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\search_for_pattern.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\search_for_string.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\seh-chain.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\settings.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\shortcut.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\simdmode.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\snowman.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\source.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\stack.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\star.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\strings.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\struct.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\structaddr.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\sync.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\terminal-command.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-entry.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-kill.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-pause.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-priority-above-normal.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-priority-below-normal.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-priority-highest.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-priority-idle.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-priority-lowest.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-priority-normal.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-priority-timecritical.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-resume.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-setpriority.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-setpriority_alt.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\thread-switch.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\top.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\topmost.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\trace.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\traceinto.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\traceover.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_from_selection_as.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_ascii.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_byte.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_cmd.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_double.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_dword.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_float.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_fword.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_longdouble.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_mmword.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_oword.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_qword.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_tbyte.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_unicode.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_word.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_xmm.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_as_ymm.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\treat_selection_head_as.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\uac.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\ui-combo-box-edit.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\undo.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\unicode.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\update.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\variables.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\virtual.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\visitstruct.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\win-help.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\word.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\xmm.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\xrefs.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\yara.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\ymm.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="images\zmm.png">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

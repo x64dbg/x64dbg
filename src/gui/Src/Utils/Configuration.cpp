@@ -192,7 +192,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("LogLinkColor", QColor("#00CC00"));
     defaultColors.insert("LogLinkBackgroundColor", Qt::transparent);
 
-    //bool settings
+	//defaultColors.insert("LastMouseClickedStringColor" , QColor(255 , 255 , 255));
+	defaultColors.insert("LastMouseClickedStringBackgroundColor" , QColor(36 , 187 , 82));
+
+    //bool settings"
     QMap<QString, bool> disassemblyBool;
     disassemblyBool.insert("ArgumentSpaces", false);
     disassemblyBool.insert("MemorySpaces", false);

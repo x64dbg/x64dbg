@@ -463,7 +463,6 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     {
         int loopsize = 0;
         int depth = 0;
-
         while(1) //paint all loop depths
         {
             LOOPTYPE loopType = DbgGetLoopTypeAt(cur_addr, depth);
@@ -493,7 +492,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, loopType != LOOP_SINGLE);
             depth++;
         }
-
+		
         RichTextPainter::List richText;
         auto & token = mInstBuffer[rowOffset].tokens;
         if(mHighlightToken.text.length())
@@ -501,7 +500,15 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         else
             CapstoneTokenizer::TokenToRichText(token, richText, 0);
         int xinc = 4;
-        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, richText, mFontMetrics);
+	
+        RichTextPainter::paintRichText(painter,
+									   x + loopsize, 
+									   y, 
+									   getColumnWidth(col) - loopsize, 
+									   getRowHeight(), 
+									   xinc, 
+									   richText, 
+									   mFontMetrics);
         token.x = x + loopsize + xinc;
     }
     break;
@@ -704,6 +711,53 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
         AbstractTableView::mouseMoveEvent(event);
 }
 
+int getWordBegPos(const QString string , int endPos)
+{
+	while(string[ endPos ] >= 'a' && string[ endPos ] <= 'z' || string[ endPos ] >= 'A' && string[ endPos ] <= 'Z' && endPos >= 0)
+		--endPos;
+	return endPos;
+}
+
+int getWordEndPos(const QString string , int beginPos)
+{
+	return string.indexOf(QRegExp("[\\w]+") , beginPos);
+}
+
+
+bool getWord(const CapstoneTokenizer::InstructionToken& instToken, QString& word , int mid)
+{
+	int nOffset = 0;
+	int nSize = instToken.tokens.size();
+	
+	for(int i = 0; i < nSize;++i)
+	{
+		nOffset += instToken.tokens[i].text.size();
+		if(nOffset >= mid){
+			word = instToken.tokens[ i ].text.trimmed();
+			break;
+		}
+	}
+	
+	return !word.isEmpty();;
+
+// 	int nLen = string.length();
+// 	if(mid >= nLen)
+// 		return false;
+// 
+// 	for(; !string[ mid ].isLetter(); ++mid);
+// 
+// 	int beg = mid;
+// 	int end = mid;
+// 	for(; beg >= 0 && string[ beg ].isLetter() ; --beg);
+// 	for(; end < nLen && string[ end ].isLetter(); ++end);
+// 	if(beg == end)
+// 		return false;
+// 
+// 	word = string.mid(beg , end - beg);
+// 
+// 	return !word.isEmpty();
+}
+
 /**
  * @brief       This method has been reimplemented. It manages the following actions:
  *               - Multi-rows selection
@@ -742,7 +796,8 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                 {
                     mHighlightToken = CapstoneTokenizer::SingleToken();
                 }
-            }
+			}
+			//CapstoneTokenizer::setLastMouseClickedString("sdfsdf");
         }
         else if(!mPermanentHighlightingMode)
         {
@@ -777,6 +832,23 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                         setSingleSelection(getInitialSelection());
                         expandSelectionUpTo(wRowIndex + wInstrSize);
                     }
+					dsint x = event->x();
+					int nClickColumnIndex = getColumnIndexFromX(x);
+					if(nClickColumnIndex == 2) 
+					{
+						
+						// get x pos
+						dsint fontWidth = getCharWidth();
+
+						x = x - getColumnPosition(nClickColumnIndex);
+						x /= fontWidth;
+
+						// get mouse click string
+						QString clickString;
+						// get va address 
+						getWord(mInstBuffer.at(wIndex).tokens , clickString , x);
+						CapstoneTokenizer::setLastMouseClickedString(clickString);
+					}
 
                     mGuiState = Disassembly::MultiRowsSelectionState;
 
@@ -1281,7 +1353,7 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
     dsint wVirtualRVA;
     dsint wMaxByteCountToRead;
 
-    wBottomByteRealRVA = (dsint)rva - 16 * (count + 3);
+    wBottomByteRealRVA = (dsint)rva - 16 * (count + 3);// 逆序反汇编块的开始RVA
     if(mCodeFoldingManager)
     {
         if(mCodeFoldingManager->isFolded(rvaToVa(wBottomByteRealRVA)))
@@ -1291,14 +1363,19 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
     }
     wBottomByteRealRVA = wBottomByteRealRVA < 0 ? 0 : wBottomByteRealRVA;
 
-    wVirtualRVA = (dsint)rva - wBottomByteRealRVA;
+    wVirtualRVA = (dsint)rva - wBottomByteRealRVA;//逆序反汇编块的大小
 
-    wMaxByteCountToRead = wVirtualRVA + 1 + 16;
+    wMaxByteCountToRead = wVirtualRVA + 1 + 16;//逆序反汇编块的最大大小
     wBuffer.resize(wMaxByteCountToRead);
 
     mMemPage->read(wBuffer.data(), wBottomByteRealRVA, wBuffer.size());
 
-    dsint addr = mDisasm->DisassembleBack((byte_t*)wBuffer.data(), rvaToVa(wBottomByteRealRVA), wBuffer.size(), wVirtualRVA , count);
+	dsint addr = mDisasm->DisassembleBack((byte_t*)wBuffer.data() ,/*opcode*/
+										  rvaToVa(wBottomByteRealRVA) , /*opcode的开始rva*/
+										  wBuffer.size() ,/*opcode缓冲区的字节数*/
+										  wVirtualRVA , /*opcode的字节数*/
+										  count/*逆序的条数*/
+										  );
 
     addr += rva - wVirtualRVA;
 

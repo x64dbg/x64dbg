@@ -25,6 +25,7 @@
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+	
     CrashDumpInitialize();
 
     const wchar_t* errormsg = BridgeInit();

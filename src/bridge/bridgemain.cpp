@@ -63,8 +63,8 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     const wchar_t* szLib;
     static wchar_t szError[256] = L"";
 
-    //GUI Load
-    LOADLIBRARY(gui_lib);
+
+	LOADLIBRARY(gui_lib);
     LOADEXPORT(_gui_guiinit);
     LOADEXPORT(_gui_sendmessage);
     LOADEXPORT(_gui_translate_text);

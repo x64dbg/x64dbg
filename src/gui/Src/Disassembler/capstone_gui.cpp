@@ -15,6 +15,7 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
 CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
 QHash<QString, int> CapstoneTokenizer::stringPoolMap;
 int CapstoneTokenizer::poolId = 0;
+QString lastMouseClickedString;
 
 void CapstoneTokenizer::addColorName(TokenType type, QString color, QString backgroundColor)
 {
@@ -68,6 +69,9 @@ void CapstoneTokenizer::UpdateColors()
     addColorName(TokenType::XmmRegister, "InstructionXmmRegisterColor", "InstructionXmmRegisterBackgroundColor");
     addColorName(TokenType::YmmRegister, "InstructionYmmRegisterColor", "InstructionYmmRegisterBackgroundColor");
     addColorName(TokenType::ZmmRegister, "InstructionZmmRegisterColor", "InstructionZmmRegisterBackgroundColor");
+
+	// mouse clicked string hightlight
+	addColorName(TokenType::LastMouseClickedString , "" , "LastMouseClickedStringBackgroundColor");
 }
 
 void CapstoneTokenizer::UpdateStringPool()
@@ -148,6 +152,7 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
 
     instruction = _inst;
 
+	tokenSameString(instruction);
     return true;
 }
 
@@ -573,14 +578,14 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
             char operatorText = '+';
             TokenValue value(op.size, duint(mem.disp));
             auto displacementType = DbgMemIsValidReadPtr(duint(mem.disp)) ? TokenType::Address : TokenType::Value;
-            QString valueText;
+            QString valueText="0x";
             if(mem.disp < 0)
             {
                 operatorText = '-';
-                valueText = printValue(TokenValue(op.size, duint(mem.disp * -1)), false, _maxModuleLength);
+                valueText += printValue(TokenValue(op.size, duint(mem.disp * -1)), false, _maxModuleLength);
             }
             else
-                valueText = printValue(value, false, _maxModuleLength);
+                valueText += printValue(value, false, _maxModuleLength);
             if(prependPlus)
                 addMemoryOperator(operatorText);
             addToken(displacementType, valueText, value);
@@ -598,4 +603,56 @@ bool CapstoneTokenizer::tokenizeInvalidOperand(const cs_x86_op & op)
 {
     addToken(TokenType::MnemonicUnusual, "???");
     return true;
+}
+
+void CapstoneTokenizer::setLastMouseClickedString(const QString& string)
+{
+	if(string.size() <= 0)
+		lastMouseClickedString.clear();
+	else
+		lastMouseClickedString = string.trimmed();
+}
+
+
+bool isHexString(const QString& str)
+{
+	int i = 0;
+	int nSize = str.size();
+	
+	if(str.size() >= 2 && str[ 0 ] == '0' && str[ 1 ] == 'x')
+	{
+		i = 2;
+	}
+
+	for(; i < nSize;++i)
+	{
+		if(i<'0'&& i>'9' || i<'A'&&i>'Z' || i<'a'&&i>'z')
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void CapstoneTokenizer::tokenSameString(InstructionToken & instToken)
+{
+	if(lastMouseClickedString.isEmpty())
+		return;
+
+	for (auto &i : instToken.tokens)
+	{
+		bool ishexstring = isHexString(lastMouseClickedString);
+		if(ishexstring && i.text == lastMouseClickedString)
+		{
+			i.type = TokenType::LastMouseClickedString;
+			GuiUpdateDisassemblyView();
+			return;
+		}	
+		else if(!ishexstring && i.text.contains(lastMouseClickedString , Qt::CaseInsensitive))
+		{
+			i.type = TokenType::LastMouseClickedString;
+			GuiUpdateDisassemblyView();
+			return;
+		}
+	}
 }
