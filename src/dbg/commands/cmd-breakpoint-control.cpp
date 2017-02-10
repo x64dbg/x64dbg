@@ -134,10 +134,6 @@ bool cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         if(!BpDelete(addr, BPNORMAL))
             dprintf(QT_TRANSLATE_NOOP("DBG", "Error handling invalid breakpoint at %p! (bpdel)\n"), addr);
         return false;
-        //if(!MemIsValidReadPtr(addr))
-        //    return true;
-        //dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), addr);
-        //return false;
     }
     GuiUpdateAllViews();
     dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint at %p set!\n"), addr);
