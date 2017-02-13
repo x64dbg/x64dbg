@@ -404,8 +404,10 @@ void CPUDisassembly::setupRightClickContextMenu()
         duint addr;
         if(instr_info.type & TYPE_MEMORY)
             addr = instr_info.memory.value;
-        else if(instr_info.type & TYPE_VALUE || instr_info.type & TYPE_ADDR)
+        else if(instr_info.type & TYPE_ADDR)
             addr = instr_info.addr;
+        else if(instr_info.type & TYPE_VALUE)
+            addr = instr_info.value.value;
         else
             return false;
 
@@ -858,8 +860,10 @@ void CPUDisassembly::setLabelAddressSlot()
     duint addr;
     if(instr_info.type & TYPE_MEMORY)
         addr = instr_info.memory.value;
-    else if(instr_info.type & TYPE_VALUE || instr_info.type & TYPE_ADDR)
+    else if(instr_info.type & TYPE_ADDR)
         addr = instr_info.addr;
+    else if(instr_info.type & TYPE_VALUE)
+        addr = instr_info.value.value;
     else
         return;
     if(!DbgMemIsValidReadPtr(addr))
