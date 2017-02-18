@@ -23,6 +23,7 @@
 #include "SourceViewerManager.h"
 #include "MiscUtil.h"
 #include "DataCopyDialog.h"
+#include "SnowmanView.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -1796,7 +1797,7 @@ void CPUDisassembly::decompileSelectionSlot()
     dsint addr = rvaToVa(getSelectionStart());
     dsint size = getSelectionSize();
     emit displaySnowmanWidget();
-    emit decompileAt(addr, addr + size);
+    DecompileAt(Bridge::getBridge()->snowmanView, addr, addr + size);
 }
 
 void CPUDisassembly::decompileFunctionSlot()
@@ -1810,7 +1811,7 @@ void CPUDisassembly::decompileFunctionSlot()
         DbgDisasmFastAt(end, &info);
         end += info.size - 1;
         emit displaySnowmanWidget();
-        emit decompileAt(start, end);
+        DecompileAt(Bridge::getBridge()->snowmanView, start, end);
     }
 }
 

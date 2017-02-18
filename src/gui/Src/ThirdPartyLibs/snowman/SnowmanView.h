@@ -3,13 +3,15 @@
 
 #include <QWidget>
 
-class SnowmanView : public QWidget
+struct SnowmanRange
 {
-    Q_OBJECT
+    duint start;
+    duint end;
 };
 
-extern "C" __declspec(dllexport) SnowmanView* CreateSnowman(QWidget* parent);
-extern "C" __declspec(dllexport) void DecompileAt(SnowmanView* snowman, dsint start, dsint end);
-extern "C" __declspec(dllexport) void CloseSnowman(SnowmanView* snowman);
+extern "C" __declspec(dllimport) QWidget* CreateSnowman(QWidget* parent);
+extern "C" __declspec(dllimport) void DecompileAt(QWidget* snowman, dsint start, dsint end);
+extern "C" __declspec(dllimport) void DecompileRanges(QWidget* snowman, const SnowmanRange* ranges, duint count);
+extern "C" __declspec(dllimport) void CloseSnowman(QWidget* snowman);
 
 #endif // SNOWMANVIEW_H

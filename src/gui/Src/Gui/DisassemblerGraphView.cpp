@@ -5,6 +5,7 @@
 #include "GotoDialog.h"
 #include "XrefBrowseDialog.h"
 #include "LineEditDialog.h"
+#include "SnowmanView.h"
 #include <vector>
 #include <QPainter>
 #include <QScrollBar>
@@ -1479,6 +1480,7 @@ void DisassemblerGraphView::setupContextMenu()
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("snowman.png"), tr("Decompile"), SLOT(decompileSlot()), "ActionGraphDecompile"));
     mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
@@ -1689,4 +1691,27 @@ void DisassemblerGraphView::xrefSlot()
         mXrefDlg = new XrefBrowseDialog(this);
     mXrefDlg->setup(this->get_cursor_pos(), "graph");
     mXrefDlg->showNormal();
+}
+
+void DisassemblerGraphView::decompileSlot()
+{
+    std::vector<SnowmanRange> ranges;
+    ranges.reserve(currentGraph.nodes.size());
+    SnowmanRange r;
+    for(const auto & nodeIt : currentGraph.nodes)
+    {
+        const BridgeCFNode & node = nodeIt.second;
+        r.start = node.instrs.empty() ? node.start : node.instrs[0].addr;
+        r.end = node.instrs.empty() ? node.end : node.instrs[node.instrs.size() - 1].addr;
+        BASIC_INSTRUCTION_INFO info;
+        DbgDisasmFastAt(r.end, &info);
+        r.end += info.size - 1;
+        ranges.push_back(r);
+    }
+    std::sort(ranges.begin(), ranges.end(), [](const SnowmanRange & a, const SnowmanRange & b)
+    {
+        return a.start > b.start;
+    });
+    emit displaySnowmanWidget();
+    DecompileRanges(Bridge::getBridge()->snowmanView, ranges.data(), ranges.size());
 }

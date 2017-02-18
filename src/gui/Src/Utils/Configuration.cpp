@@ -502,6 +502,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGraphSaveImage", Shortcut(tr("Actions -> Graph -> Save as image"), "I"));
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut(tr("Actions -> Graph -> Toggle overview"), "O"));
     defaultShortcuts.insert("ActionGraphSyncOrigin", Shortcut(tr("Actions -> Graph -> Toggle sync with origin"), "S"));
+    defaultShortcuts.insert("ActionGraphDecompile", Shortcut(tr("Actions -> Graph -> Decompile"), "Tab"));
     defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut(tr("Actions -> Increment x87 Stack")));
     defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut(tr("Actions -> Decrement x87 Stack")));
     defaultShortcuts.insert("ActionPush", Shortcut(tr("Actions -> Push")));

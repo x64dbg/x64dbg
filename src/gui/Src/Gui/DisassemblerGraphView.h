@@ -235,6 +235,9 @@ public:
     bool navigate(duint addr);
     void fontChanged();
 
+signals:
+    void displaySnowmanWidget();
+
 public slots:
     void updateTimerEvent();
     void loadGraphSlot(BridgeCFGraphList* graph, duint addr);
@@ -257,6 +260,7 @@ public slots:
     void setCommentSlot();
     void setLabelSlot();
     void xrefSlot();
+    void decompileSlot();
 
 private:
     QString status;

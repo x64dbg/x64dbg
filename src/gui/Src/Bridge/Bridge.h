@@ -41,6 +41,7 @@ public:
     void* winId;
     QWidget* scriptView;
     ReferenceManager* referenceManager;
+    QWidget* snowmanView;
 
 signals:
     void disassembleAt(dsint va, dsint eip);

@@ -25,7 +25,6 @@ class DebugStatusLabel;
 class LogStatusLabel;
 class UpdateChecker;
 class SourceViewerManager;
-class SnowmanView;
 class HandlesView;
 class MainWindowCloseThread;
 class TimeWastedCounter;
@@ -133,7 +132,6 @@ public slots:
     void displayAttach();
     void changeCommandLine();
     void displayManual();
-    void decompileAt(dsint start, dsint end);
     void canClose();
     void addQWidgetTab(QWidget* qWidget, QString nativeName);
     void addQWidgetTab(QWidget* qWidget);
@@ -172,7 +170,7 @@ private:
     ThreadView* mThreadView;
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
-    SnowmanView* mSnowmanView;
+    QWidget* mSnowmanView;
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;

@@ -32,7 +32,6 @@ signals:
     void displayReferencesWidget();
     void displaySourceManagerWidget();
     void showPatches();
-    void decompileAt(dsint start, dsint end);
     void displaySnowmanWidget();
     void displayLogWidget();
     void displayGraphWidget();

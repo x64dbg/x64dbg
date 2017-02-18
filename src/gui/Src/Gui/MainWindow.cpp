@@ -178,9 +178,10 @@ MainWindow::MainWindow(QWidget* parent)
     // Snowman view (decompiler)
     mSnowmanView = CreateSnowman(this);
     if(!mSnowmanView)
-        mSnowmanView = (SnowmanView*)new QLabel("<center>Snowman is disabled...</center>", this);
+        mSnowmanView = new QLabel("<center>Snowman is disabled...</center>", this);
     mSnowmanView->setWindowTitle(tr("Snowman"));
     mSnowmanView->setWindowIcon(DIcon("snowman.png"));
+    Bridge::getBridge()->snowmanView = mSnowmanView;
 
     // Notes manager
     mNotesManager = new NotesManager(this);
@@ -325,7 +326,8 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayGraphWidget()), this, SLOT(displayGraphWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
-    connect(mCpuWidget->getDisasmWidget(), SIGNAL(decompileAt(dsint, dsint)), this, SLOT(decompileAt(dsint, dsint)));
+
+    connect(mGraphView, SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
 
     connect(mCpuWidget->getDumpWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
@@ -1543,11 +1545,6 @@ void MainWindow::displayManual()
     // Open the Windows CHM in the upper directory
     if(!QDesktopServices::openUrl(QUrl(QUrl::fromLocalFile(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath())))))
         SimpleErrorBox(this, tr("Error"), tr("Manual cannot be opened. Please check if x64dbg.chm exists and ensure there is no other problems with your system."));
-}
-
-void MainWindow::decompileAt(dsint start, dsint end)
-{
-    DecompileAt(mSnowmanView, start, end);
 }
 
 void MainWindow::canClose()
