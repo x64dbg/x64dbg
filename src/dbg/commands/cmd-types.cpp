@@ -475,7 +475,7 @@ struct PrintVisitor : TypeManager::Visitor
 
     bool visitStructUnion(const Member & member, const StructUnion & type) override
     {
-        String tname = StringUtils::sprintf("%s %s", type.isunion ? "union" : "struct", type.name.c_str());
+        String tname = StringUtils::sprintf("%s %s %s", type.isunion ? "union" : "struct", type.name.c_str(), member.name.c_str());
 
         TYPEDESCRIPTOR td;
         td.expanded = true;
