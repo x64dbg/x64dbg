@@ -9,9 +9,9 @@ namespace Script
     {
         enum SymbolType
         {
-            Function,
-            Import,
-            Export
+            Function, //user-defined function
+            Import, //IAT entry
+            Export //export
         };
 
         struct SymbolInfo

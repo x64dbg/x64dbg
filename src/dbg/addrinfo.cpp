@@ -143,7 +143,7 @@ bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
                 return false;
 
             // Callback
-            cbEnum(base, imageFtThunkData.u1.Function, importName(), importModuleName);
+            cbEnum(base, (duint)imageIATVa, importName(), importModuleName);
 
             // Move to next address in the INT
             imageINTVa++;

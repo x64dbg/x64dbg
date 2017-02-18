@@ -46,6 +46,9 @@ BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserCont
     else if(!strcmp(curSymbol.decoratedSymbol, curSymbol.undecoratedSymbol))
         curSymbol.undecoratedSymbol = nullptr;
 
+    // Mark IAT entries as Imports
+    curSymbol.isImported = strncmp(curSymbol.decoratedSymbol, "__imp_", 6) == 0;
+
     cbData->cbSymbolEnum(&curSymbol, cbData->user);
     return TRUE;
 }
