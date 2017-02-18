@@ -246,6 +246,8 @@ bool HandlesEnumWindows(std::vector<WINDOW_INFO> & windowsList)
 */
 bool HandlesEnumHeaps(std::vector<HEAPINFO> & heapList)
 {
+    // Slow and official method to enum all heap blocks.
+    /*
     HEAPLIST32 hl;
     Handle hHeapSnap = CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, fdProcessInfo->dwProcessId);
 
@@ -289,4 +291,6 @@ bool HandlesEnumHeaps(std::vector<HEAPINFO> & heapList)
     }
 
     return true;
+    */
+    return false;
 }

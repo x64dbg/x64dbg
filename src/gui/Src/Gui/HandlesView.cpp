@@ -44,15 +44,15 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
     mTcpConnectionsTable->addColumnAt(8 + 8 * wCharWidth, tr("State"), false);
     mTcpConnectionsTable->loadColumnFromConfig("TcpConnection");
-
-    mHeapsTable = new ReferenceView(this);
-    mHeapsTable->setWindowTitle("Heaps");
-    //mHeapsTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHeapsTable->addColumnAt(sizeof(duint) * 2, tr("Address"));
-    mHeapsTable->addColumnAt(sizeof(duint) * 2, tr("Size"));
-    mHeapsTable->addColumnAt(20, tr("Flags"));
-    mHeapsTable->addColumnAt(50, tr("Comments"));
-
+    /*
+        mHeapsTable = new ReferenceView(this);
+        mHeapsTable->setWindowTitle("Heaps");
+        //mHeapsTable->setContextMenuPolicy(Qt::CustomContextMenu);
+        mHeapsTable->addColumnAt(sizeof(duint) * 2, tr("Address"));
+        mHeapsTable->addColumnAt(sizeof(duint) * 2, tr("Size"));
+        mHeapsTable->addColumnAt(20, tr("Flags"));
+        mHeapsTable->addColumnAt(50, tr("Comments"));
+    */
     mPrivilegesTable = new StdTable(this);
     mPrivilegesTable->setWindowTitle("Privileges");
     mPrivilegesTable->setDrawDebugOnly(true);
@@ -65,7 +65,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mSplitter = new LabeledSplitter(this);
     mSplitter->addWidget(mHandlesTable, tr("Handles"));
     mSplitter->addWidget(mWindowsTable, tr("Windows"));
-    mSplitter->addWidget(mHeapsTable, tr("Heaps"));
+    //mSplitter->addWidget(mHeapsTable, tr("Heaps"));
     mSplitter->addWidget(mTcpConnectionsTable, tr("TCP Connections"));
     mSplitter->addWidget(mPrivilegesTable, tr("Privileges"));
     mSplitter->collapseLowerTabs();
@@ -117,7 +117,7 @@ void HandlesView::reloadData()
         enumHandles();
         enumWindows();
         enumTcpConnections();
-        enumHeaps();
+        //enumHeaps();
         enumPrivileges();
     }
     else
@@ -128,8 +128,8 @@ void HandlesView::reloadData()
         mWindowsTable->reloadData();
         mTcpConnectionsTable->setRowCount(0);
         mTcpConnectionsTable->reloadData();
-        mHeapsTable->setRowCount(0);
-        mHeapsTable->reloadData();
+        //mHeapsTable->setRowCount(0);
+        //mHeapsTable->reloadData();
         mPrivilegesTable->setRowCount(0);
         mPrivilegesTable->reloadData();
     }
@@ -433,6 +433,7 @@ void HandlesView::enumTcpConnections()
         mTcpConnectionsTable->setRowCount(0);
     mTcpConnectionsTable->reloadData();
 }
+/*
 //Enumerate Heaps and update Heaps table
 void HandlesView::enumHeaps()
 {
@@ -475,3 +476,4 @@ void HandlesView::enumHeaps()
         mHeapsTable->setRowCount(0);
     mHeapsTable->reloadData();
 }
+*/

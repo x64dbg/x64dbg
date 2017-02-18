@@ -37,7 +37,7 @@ private:
     StdTable* mHandlesTable;
     StdTable* mTcpConnectionsTable;
     StdTable* mWindowsTable;
-    ReferenceView* mHeapsTable;
+    //ReferenceView* mHeapsTable;
     StdTable* mPrivilegesTable;
 
     QAction* mActionRefresh;
@@ -50,7 +50,7 @@ private:
     void enumHandles();
     void enumWindows();
     void enumTcpConnections();
-    void enumHeaps();
+    //void enumHeaps();
     void enumPrivileges();
 
     void AppendPrivilege(int row, const char* PrivilegeString);
