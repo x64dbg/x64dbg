@@ -1,6 +1,7 @@
 #include "handles.h"
 #include "undocumented.h"
 #include "exception.h"
+#include "debugger.h"
 
 typedef struct _OBJECT_NAME_INFORMATION
 {
@@ -162,4 +163,134 @@ bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String 
     else
         name = String(ErrorCodeToName(GetLastError()));
     return true;
+}
+
+/**
+\brief Get information about a window
+*/
+static WINDOW_INFO getWindowInfo(HWND hWnd)
+{
+    WINDOW_INFO info;
+    memset(&info, 0, sizeof(info));
+    if(IsWindow(hWnd) != TRUE) //Not a window
+    {
+        return info;
+    }
+    info.handle = (duint)hWnd; //Get Window Handle
+    GetWindowRect(hWnd, &info.position); //Get Window Rect
+    info.style = GetWindowLong(hWnd, GWL_STYLE); //Get Window Style
+    info.styleEx = GetWindowLong(hWnd, GWL_EXSTYLE); //Get Window Stye ex
+    info.enabled = IsWindowEnabled(hWnd) == TRUE;
+    info.parent = (duint)GetParent(hWnd); //Get Parent Window
+    info.threadId = GetWindowThreadProcessId(hWnd, nullptr); //Get Window Thread Id
+    wchar_t limitedbuffer[256];
+    limitedbuffer[255] = 0;
+    GetWindowTextW(hWnd, limitedbuffer, 256);
+    if(limitedbuffer[255] != 0) //Window title too long. Add "..." to the end of buffer.
+    {
+        if(limitedbuffer[252] < 0xDC00 || limitedbuffer[252] > 0xDFFF) //protect the last surrogate of UTF-16 surrogate pair
+            limitedbuffer[252] = L'.';
+        limitedbuffer[253] = L'.';
+        limitedbuffer[254] = L'.';
+        limitedbuffer[255] = 0;
+    }
+    auto UTF8WindowTitle = StringUtils::Utf16ToUtf8(limitedbuffer);
+    memcpy(info.windowTitle, UTF8WindowTitle.c_str(), min(UTF8WindowTitle.size(), sizeof(info.windowTitle))); //Copy window title with repect to buffer size constraints
+    GetClassNameW(hWnd, limitedbuffer, 256);
+    if(limitedbuffer[255] != 0) //Window class too long. Add "..." to the end of buffer.
+    {
+        if(limitedbuffer[252] < 0xDC00 || limitedbuffer[252] > 0xDFFF) //protect the last surrogate of UTF-16 surrogate pair
+            limitedbuffer[252] = L'.';
+        limitedbuffer[253] = L'.';
+        limitedbuffer[254] = L'.';
+        limitedbuffer[255] = 0;
+    }
+    UTF8WindowTitle = StringUtils::Utf16ToUtf8(limitedbuffer);
+    memcpy(info.windowClass, UTF8WindowTitle.c_str(), min(UTF8WindowTitle.size(), sizeof(info.windowClass))); //Copy window class with repect to buffer size constraints
+    return info;
+}
+
+static BOOL CALLBACK getWindowInfoCallback(HWND hWnd, LPARAM lParam)
+{
+    std::vector<WINDOW_INFO>* windowInfo = reinterpret_cast<std::vector<WINDOW_INFO>*>(lParam);
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hWnd, &pid);
+    if(pid == fdProcessInfo->dwProcessId)
+    {
+        windowInfo->push_back(getWindowInfo(hWnd));
+    }
+    return TRUE;
+}
+
+/**
+\brief Enumerates the window and return a list of all the windows owned by the debuggee (currently only top level windows)
+*/
+bool HandlesEnumWindows(std::vector<WINDOW_INFO> & windowsList)
+{
+    std::vector<WINDOW_INFO> childWindowsList;
+    EnumWindows(getWindowInfoCallback, (LPARAM)&windowsList);
+    auto i = windowsList.begin();
+    for(auto & i = windowsList.cbegin(); i != windowsList.cend(); i++)
+    {
+        EnumChildWindows((HWND)i->handle, getWindowInfoCallback, (LPARAM)&childWindowsList);
+    }
+    for(auto & i = childWindowsList.cbegin(); i != childWindowsList.cend(); i++)
+    {
+        windowsList.push_back(*i);
+    }
+    return true;
+}
+
+/**
+\brief Enumerates the heap and return a list of all the heaps in the debuggee
+*/
+bool HandlesEnumHeaps(std::vector<HEAPINFO> & heapList)
+{
+    // Slow and official method to enum all heap blocks.
+    /*
+    HEAPLIST32 hl;
+    Handle hHeapSnap = CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, fdProcessInfo->dwProcessId);
+
+    hl.dwSize = sizeof(HEAPLIST32);
+
+    if(hHeapSnap == INVALID_HANDLE_VALUE)
+    {
+        return false;
+    }
+
+    if(Heap32ListFirst(hHeapSnap, &hl))
+    {
+        do
+        {
+            HEAPENTRY32 he;
+            ZeroMemory(&he, sizeof(HEAPENTRY32));
+            he.dwSize = sizeof(HEAPENTRY32);
+
+            if(Heap32First(&he, fdProcessInfo->dwProcessId, hl.th32HeapID))
+            {
+                do
+                {
+                    HEAPINFO heapInfo;
+                    memset(&heapInfo, 0, sizeof(heapInfo));
+                    heapInfo.addr = he.dwAddress;
+                    heapInfo.size = he.dwBlockSize;
+                    heapInfo.flags = he.dwFlags;
+                    heapList.push_back(heapInfo);
+
+                    he.dwSize = sizeof(HEAPENTRY32);
+                }
+                while(Heap32Next(&he));
+            }
+            hl.dwSize = sizeof(HEAPLIST32);
+        }
+        while(Heap32ListNext(hHeapSnap, &hl));
+    }
+    else
+    {
+        return false;
+    }
+
+    return true;
+    */
+    return false;
 }

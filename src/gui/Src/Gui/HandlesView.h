@@ -5,6 +5,7 @@
 #include "Imports.h"
 
 class StdTable;
+class ReferenceView;
 class QVBoxLayout;
 class LabeledSplitter;
 
@@ -21,6 +22,7 @@ public slots:
 
     void handlesTableContextMenuSlot(const QPoint & pos);
     void tcpConnectionsTableContextMenuSlot(const QPoint & pos);
+    void windowsTableContextMenuSlot(const QPoint & pos);
     void privilegesTableContextMenuSlot(const QPoint & pos);
 
     void closeHandleSlot();
@@ -34,6 +36,8 @@ private:
     LabeledSplitter* mSplitter;
     StdTable* mHandlesTable;
     StdTable* mTcpConnectionsTable;
+    StdTable* mWindowsTable;
+    //ReferenceView* mHeapsTable;
     StdTable* mPrivilegesTable;
 
     QAction* mActionRefresh;
@@ -44,7 +48,9 @@ private:
     QAction* mActionEnableAllPrivileges;
 
     void enumHandles();
+    void enumWindows();
     void enumTcpConnections();
+    //void enumHeaps();
     void enumPrivileges();
 
     void AppendPrivilege(int row, const char* PrivilegeString);

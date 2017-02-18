@@ -104,7 +104,8 @@ void CallStackView::contextMenuSlot(const QPoint pos)
 {
     QMenu wMenu(this); //create context menu
     mMenuBuilder->build(&wMenu);
-    wMenu.exec(mapToGlobal(pos)); //execute context menu
+    if(!wMenu.isEmpty())
+        wMenu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void CallStackView::followAddress()
