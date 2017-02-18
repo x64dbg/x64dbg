@@ -1806,6 +1806,9 @@ void CPUDisassembly::decompileFunctionSlot()
     duint end;
     if(DbgFunctionGet(addr, &start, &end))
     {
+        BASIC_INSTRUCTION_INFO info;
+        DbgDisasmFastAt(end, &info);
+        end += info.size - 1;
         emit displaySnowmanWidget();
         emit decompileAt(start, end);
     }
