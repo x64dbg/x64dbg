@@ -529,6 +529,10 @@ void SymbolView::toggleBreakpoint()
         if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
             return;
 
+        //Import means that the address is an IAT entry so we read the actual function address
+        if(mSearchListView->mCurList->getCellContent(selectedIdx, 1) == tr("Import"))
+            DbgMemRead(wVA, &wVA, sizeof(wVA));
+
         if(!DbgMemIsValidReadPtr(wVA))
             return;
 
