@@ -7,6 +7,7 @@
 #include "thread.h"
 #include "memory.h"
 #include "threading.h"
+#include "undocumented.h"
 
 static std::unordered_map<DWORD, THREADINFO> threadList;
 // Function pointer for dynamic linking. Do not link statically for Windows XP compatibility.
@@ -198,10 +199,48 @@ THREADPRIORITY ThreadGetPriority(HANDLE Thread)
 
 THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
 {
-    UNREFERENCED_PARAMETER(Thread);
+    THREADWAITREASON waitReason = _WrUserRequest; // Default best guess fallback
 
-    // TODO: Implement this
-    return _Executive;
+    DWORD tid = ThreadGetId(Thread);
+    if(tid == 0)
+        return waitReason;
+
+    typedef NTSTATUS(NTAPI * NTQUERYSYSTEMINFORMATION)(
+        /*SYSTEM_INFORMATION_CLASS*/ ULONG SystemInformationClass,
+        PVOID SystemInformation,
+        ULONG SystemInformationLength,
+        PULONG ReturnLength);
+    static auto NtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation");
+    if(NtQuerySystemInformation == NULL)
+        return waitReason;
+
+    ULONG size;
+    if(NtQuerySystemInformation(SystemProcessInformation, NULL, 0, &size) != STATUS_INFO_LENGTH_MISMATCH)
+        return waitReason;
+    Memory<PSYSTEM_PROCESS_INFORMATION> systemProcessInfo(2 * size, "_dbg_threadwaitreason");
+    NTSTATUS status = NtQuerySystemInformation(SystemProcessInformation, systemProcessInfo(), (ULONG)systemProcessInfo.size(), NULL);
+    if(!NT_SUCCESS(status))
+        return waitReason;
+
+    PSYSTEM_PROCESS_INFORMATION process = systemProcessInfo();
+    bool found = false;
+
+    while(!found)
+    {
+        for(ULONG thread = 0; thread < process->NumberOfThreads; ++thread)
+        {
+            if(process->Threads[thread].ClientId.UniqueThread == (HANDLE)tid)
+            {
+                waitReason = (THREADWAITREASON)process->Threads[thread].WaitReason;
+                found = true;
+                break;
+            }
+        }
+        if(process->NextEntryOffset == 0)
+            break;
+        process = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)process + process->NextEntryOffset);
+    }
+    return waitReason;
 }
 
 DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)
