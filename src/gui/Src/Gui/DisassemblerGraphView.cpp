@@ -527,6 +527,8 @@ bool DisassemblerGraphView::find_instr(duint addr, Instr & instrOut)
 
 void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
 {
+    if(!DbgIsDebugging())
+        return;
     if(drawOverview)
     {
         if(event->button() == Qt::LeftButton)
@@ -1624,6 +1626,10 @@ void DisassemblerGraphView::setCommentSlot()
     LineEditDialog mLineEdit(this);
     QString addr_text = ToPtrString(wVA);
     char comment_text[MAX_COMMENT_SIZE] = "";
+    if(!DbgIsDebugging())
+        return;
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
 
     if(DbgGetCommentAt((duint)wVA, comment_text))
     {
@@ -1651,6 +1657,10 @@ void DisassemblerGraphView::setLabelSlot()
     LineEditDialog mLineEdit(this);
     QString addr_text = ToPtrString(wVA);
     char label_text[MAX_LABEL_SIZE] = "";
+    if(!DbgIsDebugging())
+        return;
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
 
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
@@ -1684,6 +1694,9 @@ void DisassemblerGraphView::xrefSlot()
     XREF_INFO mXrefInfo;
     if(!DbgIsDebugging())
         return;
+    duint wVA = this->get_cursor_pos();
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
     DbgXrefGet(this->get_cursor_pos(), &mXrefInfo);
     if(!mXrefInfo.refcount)
         return;
@@ -1697,6 +1710,11 @@ void DisassemblerGraphView::decompileSlot()
 {
     std::vector<SnowmanRange> ranges;
     ranges.reserve(currentGraph.nodes.size());
+
+    if(!DbgIsDebugging())
+        return;
+    if(currentGraph.nodes.empty())
+        return;
     SnowmanRange r;
     for(const auto & nodeIt : currentGraph.nodes)
     {
