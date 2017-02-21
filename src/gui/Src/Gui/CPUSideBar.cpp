@@ -407,6 +407,34 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     }
 }
 
+void CPUSideBar::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    const int line = event->y() / fontHeight;
+    if(line >= mInstrBuffer->size())
+        return;
+    const bool CheckBoxPresent = isFoldingGraphicsPresent(line);
+
+    if(CheckBoxPresent)
+    {
+        if(event->x() > width() - fontHeight - mBulletXOffset - mBulletRadius && event->x() < width() - mBulletXOffset - mBulletRadius)
+        {
+            if(event->button() == Qt::LeftButton)
+            {
+                duint wVA = mInstrBuffer->at(line).rva + mDisas->getBase();
+                dsint start, end;
+                start = mCodeFoldingManager.getFoldBegin(wVA) - mDisas->getBase();
+                end = mCodeFoldingManager.getFoldEnd(wVA) - mDisas->getBase();
+                if(mCodeFoldingManager.isFolded(wVA) || (start <= regDump.regcontext.cip - mDisas->getBase() && end >= regDump.regcontext.cip - mDisas->getBase()))
+                {
+                    mDisas->setSingleSelection(start);
+                    mDisas->expandSelectionUpTo(end);
+                    mDisas->setFocus();
+                }
+            }
+        }
+    }
+}
+
 void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
 {
     if(!DbgIsDebugging() || !mInstrBuffer->size())
