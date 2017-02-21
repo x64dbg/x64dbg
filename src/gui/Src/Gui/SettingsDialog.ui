@@ -518,6 +518,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkNoCurrentModuleText">
+         <property name="text">
+          <string>Hide module name for local memory addresses</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="chkPermanentHighlightingMode">
          <property name="text">
           <string>Permanent highlighting mode</string>

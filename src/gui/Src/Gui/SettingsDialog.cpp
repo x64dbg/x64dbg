@@ -69,6 +69,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmUppercase = false;
     settings.disasmOnlyCipAutoComments = false;
     settings.disasmTabBetweenMnemonicAndArguments = false;
+    settings.disasmNoCurrentModuleText = false;
     settings.guiNoForegroundWindow = true;
 
     //Events tab
@@ -194,6 +195,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "TabbedMnemonic", &settings.disasmTabBetweenMnemonicAndArguments);
     GetSettingBool("Disassembler", "NoHighlightOperands", &settings.disasmNoHighlightOperands);
     GetSettingBool("Disassembler", "PermanentHighlightingMode", &settings.disasmPermanentHighlightingMode);
+    GetSettingBool("Disassembler", "NoCurrentModuleText", &settings.disasmNoCurrentModuleText);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
@@ -201,6 +203,7 @@ void SettingsDialog::LoadSettings()
     ui->chkTabBetweenMnemonicAndArguments->setChecked(settings.disasmTabBetweenMnemonicAndArguments);
     ui->chkNoHighlightOperands->setChecked(settings.disasmNoHighlightOperands);
     ui->chkPermanentHighlightingMode->setChecked(settings.disasmPermanentHighlightingMode);
+    ui->chkNoCurrentModuleText->setChecked(settings.disasmNoCurrentModuleText);
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
@@ -332,6 +335,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "TabbedMnemonic", settings.disasmTabBetweenMnemonicAndArguments);
     BridgeSettingSetUint("Disassembler", "NoHighlightOperands", settings.disasmNoHighlightOperands);
     BridgeSettingSetUint("Disassembler", "PermanentHighlightingMode", settings.disasmPermanentHighlightingMode);
+    BridgeSettingSetUint("Disassembler", "NoCurrentModuleText", settings.disasmNoCurrentModuleText);
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
@@ -769,4 +773,10 @@ void SettingsDialog::on_chkPermanentHighlightingMode_toggled(bool checked)
 void SettingsDialog::on_chkNoWow64SingleStepWorkaround_toggled(bool checked)
 {
     settings.engineNoWow64SingleStepWorkaround = checked;
+}
+
+void SettingsDialog::on_chkNoCurrentModuleText_toggled(bool checked)
+{
+    bTokenizerConfigUpdated = true;
+    settings.disasmNoCurrentModuleText = checked;
 }
