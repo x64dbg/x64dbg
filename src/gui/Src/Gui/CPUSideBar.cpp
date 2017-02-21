@@ -421,11 +421,11 @@ void CPUSideBar::mouseDoubleClickEvent(QMouseEvent* event)
             if(event->button() == Qt::LeftButton)
             {
                 duint wVA = mInstrBuffer->at(line).rva + mDisas->getBase();
-                if(mCodeFoldingManager.isFolded(wVA))
+                dsint start, end;
+                start = mCodeFoldingManager.getFoldBegin(wVA) - mDisas->getBase();
+                end = mCodeFoldingManager.getFoldEnd(wVA) - mDisas->getBase();
+                if(mCodeFoldingManager.isFolded(wVA) || (start <= regDump.regcontext.cip - mDisas->getBase() && end >= regDump.regcontext.cip - mDisas->getBase()))
                 {
-                    dsint start, end;
-                    start = mCodeFoldingManager.getFoldBegin(wVA) - mDisas->getBase();
-                    end = mCodeFoldingManager.getFoldEnd(wVA) - mDisas->getBase();
                     mDisas->setSingleSelection(start);
                     mDisas->expandSelectionUpTo(end);
                     mDisas->setFocus();
