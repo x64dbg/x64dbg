@@ -18,7 +18,7 @@ bool ThreadGetTib(duint TEBAddress, NT_TIB* Tib);
 bool ThreadGetTeb(duint TEBAddress, TEB* Teb);
 int ThreadGetSuspendCount(HANDLE Thread);
 THREADPRIORITY ThreadGetPriority(HANDLE Thread);
-THREADWAITREASON ThreadGetWaitReason(HANDLE Thread);
+bool ThreadGetWaitReasons(THREADLIST* List);
 DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase);
 DWORD ThreadGetLastError(DWORD ThreadId);
 bool ThreadSetName(DWORD dwThreadId, const char* name);
