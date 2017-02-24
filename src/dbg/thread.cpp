@@ -224,7 +224,7 @@ bool ThreadGetWaitReasons(THREADLIST* List)
     {
         for(ULONG thread = 0; thread < process->NumberOfThreads; ++thread)
         {
-            for(ULONG i = 0; i < List->count; ++i)
+            for(int i = 0; i < List->count; ++i)
             {
                 if(process->Threads[thread].ClientId.UniqueThread == (HANDLE)List->list[i].BasicInfo.ThreadId)
                     List->list[i].WaitReason = (THREADWAITREASON)process->Threads[thread].WaitReason;
