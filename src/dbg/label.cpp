@@ -41,7 +41,7 @@ bool LabelSet(duint Address, const char* Text, bool Manual)
     LABELSINFO label;
     if(!labels.PrepareValue(label, Address, Manual))
         return false;
-    strcpy_s(label.text, Text);
+    label.text = Text;
     return labels.Add(label);
 }
 
@@ -49,10 +49,10 @@ bool LabelFromString(const char* Text, duint* Address)
 {
     return labels.GetWhere([&](const LABELSINFO & value)
     {
-        if(strcmp(value.text, Text))
+        if(strcmp(value.text.c_str(), Text))
             return false;
         if(Address)
-            *Address = value.addr + ModBaseFromName(value.mod);
+            *Address = value.addr + ModBaseFromName(value.mod().c_str());
         return true;
     });
 }
@@ -63,7 +63,7 @@ bool LabelGet(duint Address, char* Text)
     if(!labels.Get(Labels::VaKey(Address), label))
         return false;
     if(Text)
-        strcpy_s(Text, MAX_LABEL_SIZE, label.text);
+        strcpy_s(Text, MAX_LABEL_SIZE, label.text.c_str());
     return true;
 }
 

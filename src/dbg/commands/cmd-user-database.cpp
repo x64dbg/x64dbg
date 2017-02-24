@@ -99,7 +99,7 @@ bool cbInstrCommentList(int argc, char* argv[])
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(comments()[i].addr, disassembly))
             GuiReferenceSetCellContent(total, 1, disassembly);
-        GuiReferenceSetCellContent(total, 2, comments()[i].text);
+        GuiReferenceSetCellContent(total, 2, comments()[i].text.c_str());
         total++;
     }
     varset("$result", total, false);
@@ -175,7 +175,7 @@ bool cbInstrLabelList(int argc, char* argv[])
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(labels()[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
-        GuiReferenceSetCellContent(i, 2, labels()[i].text);
+        GuiReferenceSetCellContent(i, 2, labels()[i].text.c_str());
     }
     varset("$result", count, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d label(s) listed in Reference View\n"), count);

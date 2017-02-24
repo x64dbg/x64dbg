@@ -6,7 +6,7 @@
 
 struct COMMENTSINFO : AddrInfo
 {
-    char text[MAX_COMMENT_SIZE];
+    std::string text;
 };
 
 bool CommentSet(duint Address, const char* Text, bool Manual);

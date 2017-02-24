@@ -20,24 +20,21 @@ public:
     virtual bool Load(TValue & value) = 0;
 
 protected:
-    void setString(const char* key, const char* value)
+    void setString(const char* key, const std::string & value)
     {
-        set(key, json_string(value));
+        set(key, json_string(value.c_str()));
     }
 
-    template<size_t TSize>
-    bool getString(const char* key, char(&_Dest)[TSize]) const
+    bool getString(const char* key, std::string & dest) const
     {
         auto jsonValue = get(key);
         if(!jsonValue)
             return false;
         auto str = json_string_value(jsonValue);
-        if(str && strlen(str) < TSize)
-        {
-            strcpy_s(_Dest, str);
-            return true;
-        }
-        return false;
+        if(!str)
+            return false;
+        dest = str;
+        return true;
     }
 
     void setHex(const char* key, duint value)
@@ -162,7 +159,8 @@ public:
     void Clear()
     {
         EXCLUSIVE_ACQUIRE(TLock);
-        mMap.clear();
+        TMap empty;
+        std::swap(mMap, empty);
     }
 
     void CacheSave(JSON root) const
@@ -329,9 +327,14 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
 
 struct AddrInfo
 {
-    char mod[MAX_MODULE_SIZE];
+    duint modhash;
     duint addr;
     bool manual;
+
+    std::string mod() const
+    {
+        return ModNameFromHash(modhash);
+    }
 };
 
 template<class TValue>
@@ -341,7 +344,7 @@ struct AddrInfoSerializer : JSONWrapper<TValue>
 
     bool Save(const TValue & value) override
     {
-        setString("module", value.mod);
+        setString("module", value.mod());
         setHex("address", value.addr);
         setBool("manual", value.manual);
         return true;
@@ -351,8 +354,11 @@ struct AddrInfoSerializer : JSONWrapper<TValue>
     {
         value.manual = true; //legacy support
         getBool("manual", value.manual);
-        return getString("module", value.mod) &&
-               getHex("address", value.addr);
+        std::string mod;
+        if(!getString("module", mod))
+            return false;
+        value.modhash = ModHashFromName(mod.c_str());
+        return getHex("address", value.addr);
     }
 };
 
@@ -364,17 +370,17 @@ struct AddrInfoHashMap : SerializableModuleHashMap<TLock, TValue, TSerializer>
 
     void AdjustValue(TValue & value) const override
     {
-        value.addr += ModBaseFromName(value.mod);
+        value.addr += ModBaseFromName(value.mod().c_str());
     }
 
     bool PrepareValue(TValue & value, duint addr, bool manual)
     {
         if(!MemIsValidReadPtr(addr))
             return false;
-        if(!ModNameFromAddr(addr, value.mod, true))
-            *value.mod = '\0';
+        auto base = ModBaseFromAddr(addr);
+        value.modhash = ModHashFromAddr(base);
         value.manual = manual;
-        value.addr = addr - ModBaseFromAddr(addr);
+        value.addr = addr - base;
         return true;
     }
 
@@ -391,6 +397,6 @@ struct AddrInfoHashMap : SerializableModuleHashMap<TLock, TValue, TSerializer>
 protected:
     duint makeKey(const TValue & value) const override
     {
-        return ModHashFromName(value.mod) + value.addr;
+        return value.modhash + value.addr;
     }
 };

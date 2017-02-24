@@ -48,7 +48,7 @@ struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
     bool Save(const ENCODEMAP & value) override
     {
         AddrInfoSerializer::Save(value);
-        setString("data", StringUtils::ToCompressedHex(value.data, value.size).c_str());
+        setString("data", StringUtils::ToCompressedHex(value.data, value.size));
         return true;
     }
 

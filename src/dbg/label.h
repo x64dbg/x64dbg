@@ -6,7 +6,7 @@
 
 struct LABELSINFO : AddrInfo
 {
-    char text[MAX_LABEL_SIZE];
+    std::string text;
 };
 
 bool LabelSet(duint Address, const char* Text, bool Manual);

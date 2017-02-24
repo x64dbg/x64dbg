@@ -1481,7 +1481,6 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     dbgcleartracestate();
     dbgClearRtuBreakpoints();
     HistoryClear();
-    ModClear(); //clear all modules
 }
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)

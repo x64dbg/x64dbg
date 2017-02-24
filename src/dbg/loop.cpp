@@ -36,7 +36,7 @@ bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
     loopInfo.depth = finalDepth;
     loopInfo.manual = Manual;
     loopInfo.instructioncount = instructionCount;
-    ModNameFromAddr(Start, loopInfo.mod, true);
+    loopInfo.modhash = ModHashFromAddr(moduleBase);
 
     // Link this to a parent loop if one does exist
     if(finalDepth)
@@ -49,7 +49,7 @@ bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
     EXCLUSIVE_ACQUIRE(LockLoops);
 
     // Insert into list
-    loops.insert(std::make_pair(DepthModuleRange(finalDepth, ModuleRange(ModHashFromAddr(moduleBase), Range(loopInfo.start, loopInfo.end))), loopInfo));
+    loops.insert(std::make_pair(DepthModuleRange(finalDepth, ModuleRange(loopInfo.modhash, Range(loopInfo.start, loopInfo.end))), loopInfo));
     return true;
 }
 
@@ -182,7 +182,7 @@ void LoopCacheSave(JSON Root)
         const LOOPSINFO & currentLoop = itr.second;
         JSON currentJson = json_object();
 
-        json_object_set_new(currentJson, "module", json_string(currentLoop.mod));
+        json_object_set_new(currentJson, "module", json_string(currentLoop.mod().c_str()));
         json_object_set_new(currentJson, "start", json_hex(currentLoop.start));
         json_object_set_new(currentJson, "end", json_hex(currentLoop.end));
         json_object_set_new(currentJson, "depth", json_integer(currentLoop.depth));
@@ -220,13 +220,12 @@ void LoopCacheLoad(JSON Root)
         json_array_foreach(Object, i, value)
         {
             LOOPSINFO loopInfo;
-            memset(&loopInfo, 0, sizeof(LOOPSINFO));
 
             // Module name
             const char* mod = json_string_value(json_object_get(value, "module"));
 
             if(mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(loopInfo.mod, mod);
+                loopInfo.modhash = ModHashFromName(mod);
 
             // All other variables
             loopInfo.start = (duint)json_hex_value(json_object_get(value, "start"));
@@ -241,7 +240,7 @@ void LoopCacheLoad(JSON Root)
                 continue;
 
             // Insert into global list
-            loops[DepthModuleRange(loopInfo.depth, ModuleRange(ModHashFromName(loopInfo.mod), Range(loopInfo.start, loopInfo.end)))] = loopInfo;
+            loops[DepthModuleRange(loopInfo.depth, ModuleRange(loopInfo.modhash, Range(loopInfo.start, loopInfo.end)))] = loopInfo;
         }
     };
 
@@ -277,7 +276,7 @@ bool LoopEnum(LOOPSINFO* List, size_t* Size)
         *List = itr.second;
 
         // Adjust the offset to a real virtual address
-        duint modbase = ModBaseFromName(List->mod);
+        duint modbase = ModBaseFromName(List->mod().c_str());
         List->start += modbase;
         List->end += modbase;
 
@@ -290,5 +289,6 @@ bool LoopEnum(LOOPSINFO* List, size_t* Size)
 void LoopClear()
 {
     EXCLUSIVE_ACQUIRE(LockLoops);
-    loops.clear();
+    std::map<DepthModuleRange, LOOPSINFO, DepthModuleRangeCompare> empty;
+    std::swap(loops, empty);
 }
