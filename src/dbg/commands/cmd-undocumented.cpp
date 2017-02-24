@@ -11,6 +11,7 @@
 #include "mnemonichelp.h"
 #include "value.h"
 #include "symbolinfo.h"
+#include "argument.h"
 
 bool cbBadCmd(int argc, char* argv[])
 {
@@ -105,6 +106,8 @@ bool cbDebugBenchmark(int argc, char* argv[])
         LabelSet(i, "test", false);
         BookmarkSet(i, false);
         FunctionAdd(i, i, false);
+        ArgumentAdd(i, i, false);
+        LoopAdd(i, i, false);
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
     return true;

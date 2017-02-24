@@ -92,48 +92,33 @@ bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
 
     // Determine module addresses and lookup keys
     const duint moduleBase = ModBaseFromAddr(Start);
-    const duint key = ModHashFromAddr(moduleBase);
 
-    duint curStart = Start - moduleBase;
-    duint curEnd = End - moduleBase;
+    // Virtual addresses to relative addresses
+    Start -= moduleBase;
+    End -= moduleBase;
 
-    SHARED_ACQUIRE(LockLoops);
-
-    // Check if the new loop fits in the old loop
-    for(auto & itr : loops)
-    {
-        // Only look in the current module
-        if(itr.first.second.first != key)
-            continue;
-
-        // Loop must be at this recursive depth
-        if(itr.second.depth != Depth)
-            continue;
-
-        if(itr.second.start <= curStart && itr.second.end >= curEnd)
-            return LoopOverlaps(Depth + 1, curStart + moduleBase, curEnd + moduleBase, FinalDepth);
-    }
-
-    // Did the user request t the loop depth?
+    // The last recursive call will set FinalDepth last
     if(FinalDepth)
         *FinalDepth = Depth;
 
-    // Check for loop overlaps
-    for(auto & itr : loops)
-    {
-        // Only look in the current module
-        if(itr.first.second.first != key)
-            continue;
+    SHARED_ACQUIRE(LockLoops);
 
-        // Loop must be at this recursive depth
-        if(itr.second.depth != Depth)
-            continue;
+    auto found = loops.find(DepthModuleRange(Depth, ModuleRange(ModHashFromAddr(moduleBase), Range(Start, End))));
+    if(found == loops.end())
+        return false;
 
-        if(itr.second.start <= curEnd && itr.second.end >= curStart)
-            return true;
-    }
+    if(found->second.start <= Start && found->second.end >= End)
+        return LoopOverlaps(Depth + 1, Start + moduleBase, End + moduleBase, FinalDepth);
 
-    return false;
+    return true;
+}
+
+static bool LoopDeleteAllRange(DepthModuleRange range)
+{
+    auto erased = 0;
+    for(auto found = loops.find(range); found != loops.end(); found = loops.find(range), erased++)
+        loops.erase(found);
+    return erased > 0;
 }
 
 // This should delete a loop and all sub-loops that matches a certain addr
@@ -148,22 +133,14 @@ bool LoopDelete(int Depth, duint Address)
     SHARED_ACQUIRE(LockLoops);
 
     // Search with this address range
-    auto modHash = ModHashFromAddr(moduleBase);
-    auto found = loops.find(DepthModuleRange(Depth, ModuleRange(modHash, Range(Address, Address))));
+    auto found = loops.find(DepthModuleRange(Depth, ModuleRange(ModHashFromAddr(moduleBase), Range(Address, Address))));
     if(found == loops.end())
         return false;
 
-    for(auto addr = found->second.start; addr <= found->second.end; addr++)
-    {
-        auto foundChild = loops.find(DepthModuleRange(Depth + 1, ModuleRange(modHash, Range(addr, addr))));
-        if(foundChild == loops.end())
-            continue;
-        addr = foundChild->second.end;
-        if(!LoopDelete(Depth + 1, foundChild->second.start + moduleBase))
-            return false;
-    }
-
-    loops.erase(found);
+    // Delete all loops in the given range increasing the depth until nothing is left to delete
+    auto range = found->first;
+    while(LoopDeleteAllRange(range))
+        range.first++;
 
     return true;
 }
