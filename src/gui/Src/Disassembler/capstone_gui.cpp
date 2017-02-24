@@ -496,7 +496,7 @@ bool CapstoneTokenizer::tokenizeRegOperand(const cs_x86_op & op)
 
 bool CapstoneTokenizer::tokenizeImmOperand(const cs_x86_op & op)
 {
-    duint value = duint(op.imm);
+    auto value = duint(op.imm) & (duint(-1) >> (op.size ? 8 * (sizeof(duint) - op.size) : 0));
     auto valueType = TokenType::Value;
     if(_cp.InGroup(CS_GRP_JUMP) || _cp.InGroup(CS_GRP_CALL) || _cp.IsLoop())
         valueType = TokenType::Address;
