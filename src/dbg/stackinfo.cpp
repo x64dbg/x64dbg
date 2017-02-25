@@ -167,11 +167,48 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint
     Entry->from = From;
     Entry->to = To;
 
-    char returnToAddr[MAX_COMMENT_SIZE] = "";
-    getSymAddrName(To, returnToAddr);
-    char returnFromAddr[MAX_COMMENT_SIZE] = "";
-    getSymAddrName(From, returnFromAddr);
-    sprintf_s(Entry->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+    if(From == 0)
+    {
+        memcpy(Entry->comment, "???", 4);
+        return;
+    }
+
+    auto module = ModInfoFromAddr(From);
+    if(!module || !module->name || module->name[0] == '\0')
+    {
+        // No module name available. Just print the address
+        sprintf_s(Entry->comment, MAX_COMMENT_SIZE, "%p", (void*)From);
+        return;
+    }
+
+    // Try to get a symbol name
+    DWORD64 displacement = 0;
+    Memory<PSYMBOL_INFO> pSymbol = Memory<PSYMBOL_INFO>(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char));
+    pSymbol()->SizeOfStruct = sizeof(SYMBOL_INFO);
+    pSymbol()->MaxNameLen = MAX_COMMENT_SIZE - (ULONG)strlen(module->name) - 24;
+    if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)From, &displacement, pSymbol()))
+    {
+        SafeUnDecorateSymbolName(pSymbol()->Name, pSymbol()->Name, pSymbol()->MaxNameLen, UNDNAME_NAME_ONLY);
+    }
+
+    if(pSymbol()->NameLen == 0)
+    {
+        // No symbol name available. Use module.ext+offset
+        sprintf_s(Entry->comment, MAX_COMMENT_SIZE, "%s%s+0x%llu", module->name, module->extension, From - module->base);
+    }
+    else
+    {
+        if(displacement == 0)
+        {
+            // module.ext!symbol
+            sprintf_s(Entry->comment, MAX_COMMENT_SIZE, "%s%s!%s", module->name, module->extension, pSymbol()->Name);
+        }
+        else
+        {
+            // module.ext!symbol+offset
+            sprintf_s(Entry->comment, MAX_COMMENT_SIZE, "%s%s!%s+0x%llu", module->name, module->extension, pSymbol()->Name, displacement);
+        }
+    }
 }
 
 #define MAX_CALLSTACK_CACHE 20
