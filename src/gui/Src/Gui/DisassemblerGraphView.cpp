@@ -201,8 +201,9 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
                 for(Instr & instr : block.block.instrs)
                 {
                     auto selected = instr.addr == this->cur_instr;
-                    auto traced = dbgfunctions->GetTraceRecordHitCount(instr.addr) != 0;
-                    if(selected && traced)
+                    auto traceCount = dbgfunctions->GetTraceRecordHitCount(instr.addr);
+
+                    if(selected && traceCount)
                     {
                         p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
                                          int(instr.text.lines.size()) * this->charHeight), disassemblyTracedSelectionColor);
@@ -212,10 +213,22 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
                         p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
                                          int(instr.text.lines.size()) * this->charHeight), disassemblySelectionColor);
                     }
-                    else if(traced)
+                    else if(traceCount)
                     {
-                        p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
-                                         int(instr.text.lines.size()) * this->charHeight), disassemblyTracedColor);
+                        // Color depending on how often a sequence of code is executed
+                        int exponent = 1;
+                        while(traceCount >>= 1) //log2(traceCount)
+                            exponent++;
+                        int colorDiff = (exponent * exponent) / 2;
+
+                        // If the user has a light trace background color, substract
+                        if(disassemblyTracedColor.blue() > 160)
+                            colorDiff *= -1;
+
+                        p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth), int(instr.text.lines.size()) * this->charHeight),
+                                   QColor(disassemblyTracedColor.red(),
+                                          disassemblyTracedColor.green(),
+                                          std::max(0, std::min(256, disassemblyTracedColor.blue() + colorDiff))));
                     }
                     y += int(instr.text.lines.size()) * this->charHeight;
                 }
@@ -260,6 +273,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
 void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, int xofs, int yofs)
 {
     // Scale and translate painter
+    auto dbgfunctions = DbgFunctions();
     qreal sx = qreal(viewportRect.width()) / qreal(this->renderWidth);
     qreal sy = qreal(viewportRect.height()) / qreal(this->renderHeight);
     qreal s = qMin(sx, sy);
@@ -307,12 +321,12 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         }
 
         //Get block metadata
-        auto isTraced = DbgFunctions()->GetTraceRecordHitCount(block.block.entry) != 0;
+        auto traceCount = dbgfunctions->GetTraceRecordHitCount(block.block.entry);
         auto isCip = block.block.entry == cipBlock;
 
         //Render shadow
         p.setPen(QColor(0, 0, 0, 0));
-        if(isTraced && block.block.terminal)
+        if(traceCount && block.block.terminal)
             p.setBrush(retShadowColor);
         else if(block.block.terminal || isCip)
             p.setBrush(QColor(0, 0, 0, 0));
@@ -326,8 +340,22 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         p.setPen(pen);
         if(isCip)
             p.setBrush(QBrush(mCipBackgroundColor));
-        else if(isTraced)
-            p.setBrush(QBrush(disassemblyTracedColor));
+        else if(traceCount)
+        {
+            // Color depending on how often a sequence of code is executed
+            int exponent = 1;
+            while(traceCount >>= 1) //log2(traceCount)
+                exponent++;
+            int colorDiff = (exponent * exponent) / 2;
+
+            // If the user has a light trace background color, substract
+            if(disassemblyTracedColor.blue() > 160)
+                colorDiff *= -1;
+
+            p.setBrush(QBrush(QColor(disassemblyTracedColor.red(),
+                                     disassemblyTracedColor.green(),
+                                     std::max(0, std::min(256, disassemblyTracedColor.blue() + colorDiff)))));
+        }
         else if(block.block.terminal)
             p.setBrush(QBrush(retShadowColor));
         else
@@ -380,10 +408,19 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
         QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;JPG file (*.jpg)"));
         if(path.isEmpty())
             return;
-        QImage img(this->viewport()->rect().size(), QImage::Format_ARGB32);
+
+        // expand to full render Rectangle
+        this->viewport()->resize(this->renderWidth, this->renderHeight);//OK
+
+        //save viewport to image
+        QRect completeRenderRect = QRect(0, 0, this->renderWidth, this->renderHeight);
+        QImage img(completeRenderRect.size(), QImage::Format_ARGB32);
         QPainter painter(&img);
         this->viewport()->render(&painter);
         img.save(path);
+
+        //restore changes made to viewport for full render saving
+        this->viewport()->resize(this->viewport()->width(), this->viewport()->height());
     }
 }
 

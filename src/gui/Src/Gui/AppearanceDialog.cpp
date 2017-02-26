@@ -417,9 +417,13 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Disassembly:"), "", "");
     colorInfoListAppend(tr("Background"), "DisassemblyBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "DisassemblySelectionColor", "");
-    colorInfoListAppend(tr("Bytes"), "DisassemblyBytesColor", "");
-    colorInfoListAppend(tr("Modified Bytes"), "DisassemblyModifiedBytesColor", "");
-    colorInfoListAppend(tr("Restored Bytes"), "DisassemblyRestoredBytesColor", "");
+    colorInfoListAppend(tr("Bytes"), "DisassemblyBytesColor", "DisassemblyBytesBackgroundColor");
+    colorInfoListAppend(tr("Modified Bytes"), "DisassemblyModifiedBytesColor", "DisassemblyModifiedBytesBackgroundColor");
+    colorInfoListAppend(tr("Restored Bytes"), "DisassemblyRestoredBytesColor", "DisassemblyRestoredBytesBackgroundColor");
+    colorInfoListAppend(tr("0x00 Bytes"), "DisassemblyByte00Color", "DisassemblyByte00BackgroundColor");
+    colorInfoListAppend(tr("0x7F Bytes"), "DisassemblyByte7FColor", "DisassemblyByte7FBackgroundColor");
+    colorInfoListAppend(tr("0xFF Bytes"), "DisassemblyByteFFColor", "DisassemblyByteFFBackgroundColor");
+    colorInfoListAppend(tr("IsPrint Bytes"), "DisassemblyByteIsPrintColor", "DisassemblyByteIsPrintBackgroundColor");
 #ifdef _WIN64
     colorInfoListAppend(tr("RIP"), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
 #else //x86
