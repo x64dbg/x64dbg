@@ -704,7 +704,7 @@ void CPUDisassembly::toggleInt3BPActionSlot()
     }
     else
     {
-        if(!DbgFunctions()->MemIsCodePage(wVA, false))
+        if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
         {
             QMessageBox msgyn(QMessageBox::Warning, tr("Current address is not executable"),
                               tr("Setting software breakpoint here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
@@ -804,7 +804,7 @@ void CPUDisassembly::setNewOriginHereActionSlot()
     if(!DbgIsDebugging())
         return;
     duint wVA = rvaToVa(getInitialSelection());
-    if(!DbgFunctions()->MemIsCodePage(wVA, false))
+    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
     {
         QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
                         tr("Setting new origin here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
@@ -2042,7 +2042,7 @@ void CPUDisassembly::analyzeModuleSlot()
 void CPUDisassembly::createThreadSlot()
 {
     duint addr = rvaToVa(getSelectionStart());
-    if(!DbgFunctions()->MemIsCodePage(addr, false))
+    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(addr, false))
     {
         QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
                         tr("Creating new thread here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);

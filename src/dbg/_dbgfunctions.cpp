@@ -372,4 +372,5 @@ void dbgfunctionsinit()
     _dbgfunctions.EnumWindows = _enumwindows;
     _dbgfunctions.EnumHeaps = _enumheaps;
     _dbgfunctions.ThreadGetName = ThreadGetName;
+    _dbgfunctions.IsDepEnabled = dbgisdepenabled;
 }

@@ -2763,3 +2763,29 @@ void StepIntoWow64(LPVOID traceCallBack)
 #endif //_WIN64
     StepInto(traceCallBack);
 }
+
+bool dbgisdepenabled()
+{
+    auto depEnabled = false;
+#ifndef _WIN64
+    typedef BOOL(WINAPI * GETPROCESSDEPPOLICY)(
+        _In_  HANDLE  /*hProcess*/,
+        _Out_ LPDWORD /*lpFlags*/,
+        _Out_ PBOOL   /*lpPermanent*/
+    );
+    static auto GPDP = GETPROCESSDEPPOLICY(GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessDEPPolicy"));
+    if(GPDP)
+    {
+        //If you use fdProcessInfo->hProcess GetProcessDEPPolicy will put garbage in bPermanent.
+        auto hProcess = TitanOpenProcess(PROCESS_QUERY_INFORMATION, false, fdProcessInfo->dwProcessId);
+        DWORD lpFlags;
+        BOOL bPermanent;
+        if(GPDP(hProcess, &lpFlags, &bPermanent))
+            depEnabled = lpFlags != 0;
+        CloseHandle(hProcess);
+    }
+#else
+    depEnabled = true;
+#endif //_WIN64
+    return depEnabled;
+}
