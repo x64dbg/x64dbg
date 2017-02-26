@@ -49,6 +49,7 @@ duint ModHashFromAddr(duint Address);
 duint ModHashFromName(const char* Module);
 duint ModBaseFromName(const char* Module);
 duint ModSizeFromAddr(duint Address);
+std::string ModNameFromHash(duint Hash);
 bool ModSectionsFromAddr(duint Address, std::vector<MODSECTIONINFO>* Sections);
 bool ModImportsFromAddr(duint Address, std::vector<MODIMPORTINFO>* Imports);
 duint ModEntryFromAddr(duint Address);

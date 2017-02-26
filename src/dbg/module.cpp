@@ -7,6 +7,7 @@
 #include "label.h"
 
 std::map<Range, MODINFO, RangeCompare> modinfo;
+std::unordered_map<duint, std::string> hashNameMap;
 
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 {
@@ -197,20 +198,26 @@ bool ModUnload(duint Base)
 
 void ModClear()
 {
-    // Clean up all the modules
-    EXCLUSIVE_ACQUIRE(LockModules);
-
-    for(const auto & mod : modinfo)
     {
-        // Unload the mapped file from memory
-        const auto & info = mod.second;
-        if(info.fileMapVA)
-            StaticFileUnloadW(StringUtils::Utf8ToUtf16(info.path).c_str(), false, info.fileHandle, info.loadedSize, info.fileMap, info.fileMapVA);
+        // Clean up all the modules
+        EXCLUSIVE_ACQUIRE(LockModules);
+
+        for(const auto & mod : modinfo)
+        {
+            // Unload the mapped file from memory
+            const auto & info = mod.second;
+            if(info.fileMapVA)
+                StaticFileUnloadW(StringUtils::Utf8ToUtf16(info.path).c_str(), false, info.fileHandle, info.loadedSize, info.fileMap, info.fileMapVA);
+        }
+
+        modinfo.clear();
     }
 
-    modinfo.clear();
-
-    EXCLUSIVE_RELEASE();
+    {
+        // Clean up the reverse hash map
+        EXCLUSIVE_ACQUIRE(LockModuleHashes);
+        hashNameMap.clear();
+    }
 
     // Tell the symbol updater
     GuiSymbolUpdateModuleList(0, nullptr);
@@ -285,8 +292,19 @@ duint ModHashFromName(const char* Module)
     auto len = int(strlen(Module));
     if(!len)
         return 0;
+    auto hash = murmurhash(Module, len);
 
-    return murmurhash(Module, len);
+    //update the hash cache
+    SHARED_ACQUIRE(LockModuleHashes);
+    auto hashInCache = hashNameMap.find(hash) != hashNameMap.end();
+    SHARED_RELEASE();
+    if(!hashInCache)
+    {
+        EXCLUSIVE_ACQUIRE(LockModuleHashes);
+        hashNameMap[hash] = Module;
+    }
+
+    return hash;
 }
 
 duint ModBaseFromName(const char* Module)
@@ -323,6 +341,15 @@ duint ModSizeFromAddr(duint Address)
         return 0;
 
     return module->size;
+}
+
+std::string ModNameFromHash(duint Hash)
+{
+    SHARED_ACQUIRE(LockModuleHashes);
+    auto found = hashNameMap.find(Hash);
+    if(found == hashNameMap.end())
+        return std::string();
+    return found->second;
 }
 
 bool ModSectionsFromAddr(duint Address, std::vector<MODSECTIONINFO>* Sections)

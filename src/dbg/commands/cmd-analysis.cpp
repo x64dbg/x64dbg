@@ -443,7 +443,7 @@ bool cbInstrExinfo(int argc, char* argv[])
                 else if(i == 1)
                     dprintf_untranslated(" Inaccessible Address");
                 else if(record.ExceptionCode == EXCEPTION_IN_PAGE_ERROR && i == 2)
-                    dprintf_untranslated(" %s", ExceptionCodeToName(record.ExceptionInformation[i]).c_str());
+                    dprintf_untranslated(" %s", ExceptionCodeToName((unsigned int)record.ExceptionInformation[i]).c_str());
             }
             dprintf_untranslated("\n");
         }

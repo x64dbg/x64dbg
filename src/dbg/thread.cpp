@@ -7,6 +7,7 @@
 #include "thread.h"
 #include "memory.h"
 #include "threading.h"
+#include "undocumented.h"
 
 static std::unordered_map<DWORD, THREADINFO> threadList;
 // Function pointer for dynamic linking. Do not link statically for Windows XP compatibility.
@@ -124,12 +125,14 @@ void ThreadGetList(THREADLIST* List)
         List->list[index].ThreadCip = GetContextDataEx(threadHandle, UE_CIP);
         List->list[index].SuspendCount = ThreadGetSuspendCount(threadHandle);
         List->list[index].Priority = ThreadGetPriority(threadHandle);
-        List->list[index].WaitReason = ThreadGetWaitReason(threadHandle);
         List->list[index].LastError = ThreadGetLastErrorTEB(itr.second.ThreadLocalBase);
         GetThreadTimes(threadHandle, &List->list[index].CreationTime, &threadExitTime, &List->list[index].KernelTime, &List->list[index].UserTime);
         List->list[index].Cycles = ThreadQueryCycleTime(threadHandle);
         index++;
     }
+
+    // Get the wait reason for every thread in the list
+    ThreadGetWaitReasons(List);
 }
 
 void ThreadGetList(std::vector<THREADINFO> & list)
@@ -196,12 +199,42 @@ THREADPRIORITY ThreadGetPriority(HANDLE Thread)
     return (THREADPRIORITY)GetThreadPriority(Thread);
 }
 
-THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
+bool ThreadGetWaitReasons(THREADLIST* List)
 {
-    UNREFERENCED_PARAMETER(Thread);
+    typedef NTSTATUS(NTAPI * NTQUERYSYSTEMINFORMATION)(
+        /*SYSTEM_INFORMATION_CLASS*/ ULONG SystemInformationClass,
+        PVOID SystemInformation,
+        ULONG SystemInformationLength,
+        PULONG ReturnLength);
+    static auto NtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation");
+    if(NtQuerySystemInformation == NULL)
+        return false;
 
-    // TODO: Implement this
-    return _Executive;
+    ULONG size;
+    if(NtQuerySystemInformation(SystemProcessInformation, NULL, 0, &size) != STATUS_INFO_LENGTH_MISMATCH)
+        return false;
+    Memory<PSYSTEM_PROCESS_INFORMATION> systemProcessInfo(2 * size, "_dbg_threadwaitreason");
+    NTSTATUS status = NtQuerySystemInformation(SystemProcessInformation, systemProcessInfo(), (ULONG)systemProcessInfo.size(), NULL);
+    if(!NT_SUCCESS(status))
+        return false;
+
+    PSYSTEM_PROCESS_INFORMATION process = systemProcessInfo();
+
+    while(true)
+    {
+        for(ULONG thread = 0; thread < process->NumberOfThreads; ++thread)
+        {
+            for(int i = 0; i < List->count; ++i)
+            {
+                if(process->Threads[thread].ClientId.UniqueThread == (HANDLE)List->list[i].BasicInfo.ThreadId)
+                    List->list[i].WaitReason = (THREADWAITREASON)process->Threads[thread].WaitReason;
+            }
+        }
+        if(process->NextEntryOffset == 0) // Last entry
+            break;
+        process = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)process + process->NextEntryOffset);
+    }
+    return true;
 }
 
 DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)

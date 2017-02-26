@@ -11,6 +11,7 @@
 #include "jit.h"
 #include "mnemonichelp.h"
 #include "commandline.h"
+#include "stringformat.h"
 
 bool cbInstrChd(int argc, char* argv[])
 {
@@ -263,7 +264,7 @@ bool cbInstrAssemble(int argc, char* argv[])
         fillnop = true;
     char error[MAX_ERROR_SIZE] = "";
     int size = 0;
-    if(!assembleat(addr, argv[2], &size, error, fillnop))
+    if(!assembleat(addr, stringformatinline(argv[2]).c_str(), &size, error, fillnop))
     {
         varset("$result", size, false);
         dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to assemble \"%s\" (%s)\n"), argv[2], error);

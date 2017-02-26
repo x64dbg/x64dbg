@@ -9,7 +9,7 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
       isNop(false),
       _mnemonicType(TokenType::Uncategorized)
 {
-    SetConfig(false, false, false, false, false);
+    SetConfig(false, false, false, false, false, false);
 }
 
 CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
@@ -172,18 +172,20 @@ void CapstoneTokenizer::UpdateConfig()
               ConfigBool("Disassembler", "TabbedMnemonic"),
               ConfigBool("Disassembler", "ArgumentSpaces"),
               ConfigBool("Disassembler", "MemorySpaces"),
-              ConfigBool("Disassembler", "NoHighlightOperands"));
+              ConfigBool("Disassembler", "NoHighlightOperands"),
+              ConfigBool("Disassembler", "NoCurrentModuleText"));
     _maxModuleLength = (int)ConfigUint("Disassembler", "MaxModuleSize");
     UpdateStringPool();
 }
 
-void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands)
+void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText)
 {
     _bUppercase = bUppercase;
     _bTabbedMnemonic = bTabbedMnemonic;
     _bArgumentSpaces = bArgumentSpaces;
     _bMemorySpaces = bMemorySpaces;
     _bNoHighlightOperands = bNoHighlightOperands;
+    _bNoCurrentModuleText = bNoCurrentModuleText;
 }
 
 int CapstoneTokenizer::Size() const
@@ -322,7 +324,18 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
     duint addr = value.value;
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, label_);
     labelText = QString(label_);
-    bool bHasModule = (expandModule && DbgGetModuleAt(addr, module_) && !QString(labelText).startsWith("JMP.&"));
+    bool bHasModule;
+    if(_bNoCurrentModuleText)
+    {
+        duint size, base;
+        base = DbgMemFindBaseAddr(this->GetCapstone().Address(), &size);
+        if(addr >= base && addr < base + size)
+            bHasModule = false;
+        else
+            bHasModule = (expandModule && DbgGetModuleAt(addr, module_) && !QString(labelText).startsWith("JMP.&"));
+    }
+    else
+        bHasModule = (expandModule && DbgGetModuleAt(addr, module_) && !QString(labelText).startsWith("JMP.&"));
     moduleText = QString(module_);
     if(maxModuleLength != -1)
         moduleText.truncate(maxModuleLength);
@@ -483,7 +496,7 @@ bool CapstoneTokenizer::tokenizeRegOperand(const cs_x86_op & op)
 
 bool CapstoneTokenizer::tokenizeImmOperand(const cs_x86_op & op)
 {
-    duint value = duint(op.imm);
+    auto value = duint(op.imm) & (duint(-1) >> (op.size ? 8 * (sizeof(duint) - op.size) : 0));
     auto valueType = TokenType::Value;
     if(_cp.InGroup(CS_GRP_JUMP) || _cp.InGroup(CS_GRP_CALL) || _cp.IsLoop())
         valueType = TokenType::Address;

@@ -5,13 +5,18 @@
 
 struct LOOPSINFO
 {
-    char mod[MAX_MODULE_SIZE];
+    duint modhash;
     duint start;
     duint end;
     duint parent;
     int depth;
     bool manual;
     duint instructioncount;
+
+    std::string mod() const
+    {
+        return ModNameFromHash(modhash);
+    }
 };
 
 bool LoopAdd(duint Start, duint End, bool Manual, duint InstructionCount = 0);

@@ -92,7 +92,15 @@ struct BridgeCFNode
     }
 
     explicit BridgeCFNode()
-        : BridgeCFNode(0, 0, 0)
+        : parentGraph(0),
+          start(0),
+          end(0),
+          brtrue(0),
+          brfalse(0),
+          icount(0),
+          terminal(false),
+          split(false),
+          userdata(nullptr)
     {
     }
 
@@ -163,7 +171,10 @@ struct BridgeCFGraph
             return;
         auto found = parents.find(child);
         if(found == parents.end())
-            parents[child] = std::unordered_set<duint>(std::initializer_list<duint> { parent });
+        {
+            parents[child] = std::unordered_set<duint>();
+            parents[child].insert(parent);
+        }
         else
             found->second.insert(parent);
     }

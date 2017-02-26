@@ -45,8 +45,19 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyConditionalJumpLineFalseColor", QColor("#808080"));
     defaultColors.insert("DisassemblyUnconditionalJumpLineColor", QColor("#FF0000"));
     defaultColors.insert("DisassemblyBytesColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyBytesBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyModifiedBytesColor", QColor("#FF0000"));
-    defaultColors.insert("DisassemblyRestoredBytesColor", QColor("#008000"));
+    defaultColors.insert("DisassemblyModifiedBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyRestoredBytesColor", QColor("#808080"));
+    defaultColors.insert("DisassemblyRestoredBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyByte00Color", QColor("#008000"));
+    defaultColors.insert("DisassemblyByte00BackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyByte7FColor", QColor("#808000"));
+    defaultColors.insert("DisassemblyByte7FBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyByteFFColor", QColor("#800000"));
+    defaultColors.insert("DisassemblyByteFFBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyByteIsPrintColor", QColor("#800080"));
+    defaultColors.insert("DisassemblyByteIsPrintBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyAutoCommentColor", QColor("#AA5500"));
@@ -140,12 +151,29 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     defaultColors.insert("HexDumpTextColor", QColor("#000000"));
     defaultColors.insert("HexDumpModifiedBytesColor", QColor("#FF0000"));
+    defaultColors.insert("HexDumpModifiedBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpRestoredBytesColor", QColor("#808080"));
+    defaultColors.insert("HexDumpRestoredBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByte00Color", QColor("#008000"));
+    defaultColors.insert("HexDumpByte00BackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByte7FColor", QColor("#808000"));
+    defaultColors.insert("HexDumpByte7FBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByteFFColor", QColor("#800000"));
+    defaultColors.insert("HexDumpByteFFBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByteIsPrintColor", QColor("#800080"));
+    defaultColors.insert("HexDumpByteIsPrintBackgroundColor", Qt::transparent);
     defaultColors.insert("HexDumpBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("HexDumpSelectionColor", QColor("#C0C0C0"));
     defaultColors.insert("HexDumpAddressColor", QColor("#000000"));
     defaultColors.insert("HexDumpAddressBackgroundColor", Qt::transparent);
     defaultColors.insert("HexDumpLabelColor", QColor("#FF0000"));
     defaultColors.insert("HexDumpLabelBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpUserModuleCodePointerHighlightColor", QColor("#00FF00"));
+    defaultColors.insert("HexDumpUserModuleDataPointerHighlightColor", QColor("#008000"));
+    defaultColors.insert("HexDumpSystemModuleCodePointerHighlightColor", QColor("#FF0000"));
+    defaultColors.insert("HexDumpSystemModuleDataPointerHighlightColor", QColor("#800000"));
+    defaultColors.insert("HexDumpUnknownCodePointerHighlightColor", QColor("#0000FF"));
+    defaultColors.insert("HexDumpUnknownDataPointerHighlightColor", QColor("#000080"));
 
     defaultColors.insert("StackTextColor", QColor("#000000"));
     defaultColors.insert("StackInactiveTextColor", QColor("#808080"));
@@ -205,6 +233,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disassemblyBool.insert("LongDataInstruction", false);
     disassemblyBool.insert("NoHighlightOperands", false);
     disassemblyBool.insert("PermanentHighlightingMode", false);
+    disassemblyBool.insert("NoCurrentModuleText", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     QMap<QString, bool> engineBool;

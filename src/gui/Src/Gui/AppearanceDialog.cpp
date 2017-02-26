@@ -417,9 +417,13 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Disassembly:"), "", "");
     colorInfoListAppend(tr("Background"), "DisassemblyBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "DisassemblySelectionColor", "");
-    colorInfoListAppend(tr("Bytes"), "DisassemblyBytesColor", "");
-    colorInfoListAppend(tr("Modified Bytes"), "DisassemblyModifiedBytesColor", "");
-    colorInfoListAppend(tr("Restored Bytes"), "DisassemblyRestoredBytesColor", "");
+    colorInfoListAppend(tr("Bytes"), "DisassemblyBytesColor", "DisassemblyBytesBackgroundColor");
+    colorInfoListAppend(tr("Modified Bytes"), "DisassemblyModifiedBytesColor", "DisassemblyModifiedBytesBackgroundColor");
+    colorInfoListAppend(tr("Restored Bytes"), "DisassemblyRestoredBytesColor", "DisassemblyRestoredBytesBackgroundColor");
+    colorInfoListAppend(tr("0x00 Bytes"), "DisassemblyByte00Color", "DisassemblyByte00BackgroundColor");
+    colorInfoListAppend(tr("0x7F Bytes"), "DisassemblyByte7FColor", "DisassemblyByte7FBackgroundColor");
+    colorInfoListAppend(tr("0xFF Bytes"), "DisassemblyByteFFColor", "DisassemblyByteFFBackgroundColor");
+    colorInfoListAppend(tr("IsPrint Bytes"), "DisassemblyByteIsPrintColor", "DisassemblyByteIsPrintBackgroundColor");
 #ifdef _WIN64
     colorInfoListAppend(tr("RIP"), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
 #else //x86
@@ -498,11 +502,22 @@ void AppearanceDialog::colorInfoListInit()
 
     colorInfoListAppend(tr("HexDump:"), "", "");
     colorInfoListAppend(tr("Text"), "HexDumpTextColor", "");
-    colorInfoListAppend(tr("Modified Bytes"), "HexDumpModifiedBytesColor", "");
+    colorInfoListAppend(tr("Modified Bytes"), "HexDumpModifiedBytesColor", "HexDumpModifiedBytesBackgroundColor");
+    colorInfoListAppend(tr("Restored Bytes"), "HexDumpRestoredBytesColor", "HexDumpRestoredBytesBackgroundColor");
+    colorInfoListAppend(tr("0x00 Bytes"), "HexDumpByte00Color", "HexDumpByte00BackgroundColor");
+    colorInfoListAppend(tr("0x7F Bytes"), "HexDumpByte7FColor", "HexDumpByte7FBackgroundColor");
+    colorInfoListAppend(tr("0xFF Bytes"), "HexDumpByteFFColor", "HexDumpByteFFBackgroundColor");
+    colorInfoListAppend(tr("IsPrint Bytes"), "HexDumpByteIsPrintColor", "HexDumpByteIsPrintBackgroundColor");
     colorInfoListAppend(tr("Background"), "HexDumpBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "HexDumpSelectionColor", "");
     colorInfoListAppend(tr("Addresses"), "HexDumpAddressColor", "HexDumpAddressBackgroundColor");
     colorInfoListAppend(tr("Labels"), "HexDumpLabelColor", "HexDumpLabelBackgroundColor");
+    colorInfoListAppend(tr("User Code Pointer Highlight Color"), "HexDumpUserModuleCodePointerHighlightColor", "");
+    colorInfoListAppend(tr("User Data Pointer Highlight Color"), "HexDumpUserModuleDataPointerHighlightColor", "");
+    colorInfoListAppend(tr("System Code Pointer Highlight Color"), "HexDumpSystemModuleCodePointerHighlightColor", "");
+    colorInfoListAppend(tr("System Data Pointer Highlight Color"), "HexDumpSystemModuleDataPointerHighlightColor", "");
+    colorInfoListAppend(tr("Unknown Code Pointer Highlight Color"), "HexDumpUnknownCodePointerHighlightColor", "");
+    colorInfoListAppend(tr("Unknown Data Pointer Highlight Color"), "HexDumpUnknownDataPointerHighlightColor", "");
 
     colorInfoListAppend(tr("Stack:"), "", "");
     colorInfoListAppend(tr("Text"), "StackTextColor", "");

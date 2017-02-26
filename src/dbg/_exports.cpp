@@ -141,12 +141,18 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
         PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
         pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
         pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) && !displacement)
+        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) && (!noFuncOffset || !displacement))
         {
             pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
             if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                 strcpy_s(label, MAX_LABEL_SIZE, pSymbol->Name);
             retval = !shouldFilterSymbol(label);
+            if(retval && displacement)
+            {
+                char temp[32];
+                sprintf_s(temp, "+%llX", displacement);
+                strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
+            }
         }
         if(!retval)  //search for CALL <jmp.&user32.MessageBoxA>
         {
@@ -157,12 +163,18 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
                 duint val = 0;
                 if(MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
                 {
-                    if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && !displacement)
+                    if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && (!noFuncOffset || !displacement))
                     {
                         pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
                         if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                             sprintf_s(label, MAX_LABEL_SIZE, "JMP.&%s", pSymbol->Name);
                         retval = !shouldFilterSymbol(label);
+                        if(retval && displacement)
+                        {
+                            char temp[32];
+                            sprintf_s(temp, "+%llX", displacement);
+                            strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
+                        }
                     }
                 }
             }
@@ -196,7 +208,7 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
 #else //x86
                 sprintf_s(temp, "+%X", rva);
 #endif //_WIN64
-                strcat_s(label, MAX_LABEL_SIZE, temp);
+                strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
                 return true;
             }
         }

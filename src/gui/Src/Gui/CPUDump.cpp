@@ -380,8 +380,6 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPUDump::mouseMoveEvent(QMouseEvent* event)
 {
-    dsint ptr = 0, ptrValue = 0;
-
     // Get mouse pointer relative position
     int x = event->x();
     int y = event->y();
@@ -391,24 +389,51 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
     int va = rvaToVa(rva);
 
     // Read VA
-    DbgMemRead(va, (unsigned char*)&ptr, sizeof(dsint));
+    duint ptr;
+    DbgMemRead(va, &ptr, sizeof(duint));
+
+    /* TODO: if this is enabled, make sure the context menu items also work
+    // If the VA is not a valid pointer, try to align it
+    if(!DbgMemIsValidReadPtr(ptr))
+    {
+        va -= va % sizeof(duint);
+        DbgMemRead(va, &ptr, sizeof(duint));
+    }*/
 
     // Check if its a pointer
     if(DbgMemIsValidReadPtr(ptr))
     {
-        // Get the value at the address pointed by the ptr
-        DbgMemRead(ptr, (unsigned char*)&ptrValue, sizeof(dsint));
+        // Get information about the pointer type
+        auto codePage = DbgFunctions()->MemIsCodePage(ptr, false);
+        auto modbase = DbgFunctions()->ModBaseFromAddr(ptr);
+        QString type;
+        if(modbase)
+        {
+            if(DbgFunctions()->ModGetParty(modbase) == 1) //system
+                type = codePage ? tr("System Code") : tr("System Data");
+            else //user
+                type = codePage ? tr("User Code") : tr("User Data");
+        }
+        else
+            type = codePage ? tr("Unknown Code") : tr("Unknown Data");
 
-        // Format text like this : [ptr] = ptrValue
-        QString strPtrValue;
-#ifdef _WIN64
-        strPtrValue.sprintf("[0x%016X] = 0x%016X", ptr, ptrValue);
-#else
-        strPtrValue.sprintf("[0x%08X] = 0x%08X", ptr, ptrValue);
-#endif
+        // Get the value at the address pointed by the ptr
+        QString ptrValueText;
+        if(codePage)
+        {
+            char text[GUI_MAX_DISASSEMBLY_SIZE] = "";
+            GuiGetDisassembly(ptr, text);
+            ptrValueText = text;
+        }
+        else
+        {
+            duint ptrValue;
+            DbgMemRead(ptr, (unsigned char*)&ptrValue, sizeof(dsint));
+            ptrValueText = ToPtrString(ptrValue);
+        }
 
         // Show tooltip
-        QToolTip::showText(event->globalPos(), strPtrValue);
+        QToolTip::showText(event->globalPos(), QString("[%1] = %2 (%3)").arg(ToPtrString(ptr), ptrValueText, type));
     }
     // If not a pointer, hide tooltips
     else

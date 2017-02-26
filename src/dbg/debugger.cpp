@@ -1481,7 +1481,6 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     dbgcleartracestate();
     dbgClearRtuBreakpoints();
     HistoryClear();
-    ModClear(); //clear all modules
 }
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
@@ -1522,6 +1521,26 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         dbgsetforeground();
         wait(WAITID_RUN);
+    }
+    else
+    {
+        //insert the thread stack as a dummy page to prevent cache misses (issue #1475)
+        NT_TIB tib;
+        if(ThreadGetTib(ThreadGetLocalBase(dwThreadId), &tib))
+        {
+            MEMPAGE page;
+            auto limit = duint(tib.StackLimit);
+            auto base = duint(tib.StackBase);
+            sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X Stack")), dwThreadId);
+            page.mbi.BaseAddress = page.mbi.AllocationBase = tib.StackLimit;
+            page.mbi.Protect = page.mbi.AllocationProtect = PAGE_READWRITE;
+            page.mbi.RegionSize = base - limit;
+            page.mbi.State = MEM_COMMIT;
+            page.mbi.Type = MEM_PRIVATE;
+
+            EXCLUSIVE_ACQUIRE(LockMemoryPages);
+            memoryPages.insert({ Range(limit, base - 1), page });
+        }
     }
 }
 

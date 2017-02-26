@@ -36,7 +36,7 @@ bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
     loopInfo.depth = finalDepth;
     loopInfo.manual = Manual;
     loopInfo.instructioncount = instructionCount;
-    ModNameFromAddr(Start, loopInfo.mod, true);
+    loopInfo.modhash = ModHashFromAddr(moduleBase);
 
     // Link this to a parent loop if one does exist
     if(finalDepth)
@@ -49,7 +49,7 @@ bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
     EXCLUSIVE_ACQUIRE(LockLoops);
 
     // Insert into list
-    loops.insert(std::make_pair(DepthModuleRange(finalDepth, ModuleRange(ModHashFromAddr(moduleBase), Range(loopInfo.start, loopInfo.end))), loopInfo));
+    loops.insert(std::make_pair(DepthModuleRange(finalDepth, ModuleRange(loopInfo.modhash, Range(loopInfo.start, loopInfo.end))), loopInfo));
     return true;
 }
 
@@ -92,48 +92,33 @@ bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
 
     // Determine module addresses and lookup keys
     const duint moduleBase = ModBaseFromAddr(Start);
-    const duint key = ModHashFromAddr(moduleBase);
 
-    duint curStart = Start - moduleBase;
-    duint curEnd = End - moduleBase;
+    // Virtual addresses to relative addresses
+    Start -= moduleBase;
+    End -= moduleBase;
 
-    SHARED_ACQUIRE(LockLoops);
-
-    // Check if the new loop fits in the old loop
-    for(auto & itr : loops)
-    {
-        // Only look in the current module
-        if(itr.first.second.first != key)
-            continue;
-
-        // Loop must be at this recursive depth
-        if(itr.second.depth != Depth)
-            continue;
-
-        if(itr.second.start <= curStart && itr.second.end >= curEnd)
-            return LoopOverlaps(Depth + 1, curStart + moduleBase, curEnd + moduleBase, FinalDepth);
-    }
-
-    // Did the user request t the loop depth?
+    // The last recursive call will set FinalDepth last
     if(FinalDepth)
         *FinalDepth = Depth;
 
-    // Check for loop overlaps
-    for(auto & itr : loops)
-    {
-        // Only look in the current module
-        if(itr.first.second.first != key)
-            continue;
+    SHARED_ACQUIRE(LockLoops);
 
-        // Loop must be at this recursive depth
-        if(itr.second.depth != Depth)
-            continue;
+    auto found = loops.find(DepthModuleRange(Depth, ModuleRange(ModHashFromAddr(moduleBase), Range(Start, End))));
+    if(found == loops.end())
+        return false;
 
-        if(itr.second.start <= curEnd && itr.second.end >= curStart)
-            return true;
-    }
+    if(found->second.start <= Start && found->second.end >= End)
+        return LoopOverlaps(Depth + 1, Start + moduleBase, End + moduleBase, FinalDepth);
 
-    return false;
+    return true;
+}
+
+static bool LoopDeleteAllRange(DepthModuleRange range)
+{
+    auto erased = 0;
+    for(auto found = loops.find(range); found != loops.end(); found = loops.find(range), erased++)
+        loops.erase(found);
+    return erased > 0;
 }
 
 // This should delete a loop and all sub-loops that matches a certain addr
@@ -148,22 +133,14 @@ bool LoopDelete(int Depth, duint Address)
     SHARED_ACQUIRE(LockLoops);
 
     // Search with this address range
-    auto modHash = ModHashFromAddr(moduleBase);
-    auto found = loops.find(DepthModuleRange(Depth, ModuleRange(modHash, Range(Address, Address))));
+    auto found = loops.find(DepthModuleRange(Depth, ModuleRange(ModHashFromAddr(moduleBase), Range(Address, Address))));
     if(found == loops.end())
         return false;
 
-    for(auto addr = found->second.start; addr <= found->second.end; addr++)
-    {
-        auto foundChild = loops.find(DepthModuleRange(Depth + 1, ModuleRange(modHash, Range(addr, addr))));
-        if(foundChild == loops.end())
-            continue;
-        addr = foundChild->second.end;
-        if(!LoopDelete(Depth + 1, foundChild->second.start + moduleBase))
-            return false;
-    }
-
-    loops.erase(found);
+    // Delete all loops in the given range increasing the depth until nothing is left to delete
+    auto range = found->first;
+    while(LoopDeleteAllRange(range))
+        range.first++;
 
     return true;
 }
@@ -182,7 +159,7 @@ void LoopCacheSave(JSON Root)
         const LOOPSINFO & currentLoop = itr.second;
         JSON currentJson = json_object();
 
-        json_object_set_new(currentJson, "module", json_string(currentLoop.mod));
+        json_object_set_new(currentJson, "module", json_string(currentLoop.mod().c_str()));
         json_object_set_new(currentJson, "start", json_hex(currentLoop.start));
         json_object_set_new(currentJson, "end", json_hex(currentLoop.end));
         json_object_set_new(currentJson, "depth", json_integer(currentLoop.depth));
@@ -220,13 +197,12 @@ void LoopCacheLoad(JSON Root)
         json_array_foreach(Object, i, value)
         {
             LOOPSINFO loopInfo;
-            memset(&loopInfo, 0, sizeof(LOOPSINFO));
 
             // Module name
             const char* mod = json_string_value(json_object_get(value, "module"));
 
             if(mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(loopInfo.mod, mod);
+                loopInfo.modhash = ModHashFromName(mod);
 
             // All other variables
             loopInfo.start = (duint)json_hex_value(json_object_get(value, "start"));
@@ -241,7 +217,7 @@ void LoopCacheLoad(JSON Root)
                 continue;
 
             // Insert into global list
-            loops[DepthModuleRange(loopInfo.depth, ModuleRange(ModHashFromName(loopInfo.mod), Range(loopInfo.start, loopInfo.end)))] = loopInfo;
+            loops[DepthModuleRange(loopInfo.depth, ModuleRange(loopInfo.modhash, Range(loopInfo.start, loopInfo.end)))] = loopInfo;
         }
     };
 
@@ -277,7 +253,7 @@ bool LoopEnum(LOOPSINFO* List, size_t* Size)
         *List = itr.second;
 
         // Adjust the offset to a real virtual address
-        duint modbase = ModBaseFromName(List->mod);
+        duint modbase = ModBaseFromName(List->mod().c_str());
         List->start += modbase;
         List->end += modbase;
 
@@ -290,5 +266,6 @@ bool LoopEnum(LOOPSINFO* List, size_t* Size)
 void LoopClear()
 {
     EXCLUSIVE_ACQUIRE(LockLoops);
-    loops.clear();
+    std::map<DepthModuleRange, LOOPSINFO, DepthModuleRangeCompare> empty;
+    std::swap(loops, empty);
 }

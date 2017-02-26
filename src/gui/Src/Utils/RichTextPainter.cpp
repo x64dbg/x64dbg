@@ -26,14 +26,14 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
             painter->setPen(pen);
             break;
         case FlagBackground: //background only
-            if(backgroundWidth > 0)
+            if(backgroundWidth > 0 && curRichText.textBackground.alpha())
             {
                 brush.setColor(curRichText.textBackground);
                 painter->fillRect(QRect(x + xinc, y, backgroundWidth, h), brush);
             }
             break;
         case FlagAll: //color+background
-            if(backgroundWidth > 0)
+            if(backgroundWidth > 0 && curRichText.textBackground.alpha())
             {
                 brush.setColor(curRichText.textBackground);
                 painter->fillRect(QRect(x + xinc, y, backgroundWidth, h), brush);
@@ -43,7 +43,7 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
             break;
         }
         painter->drawText(QRect(x + xinc, y, w - xinc, h), Qt::TextBypassShaping, curRichText.text);
-        if(curRichText.highlight)
+        if(curRichText.highlight && curRichText.highlightColor.alpha())
         {
             highlightPen.setColor(curRichText.highlightColor);
             painter->setPen(highlightPen);
