@@ -65,6 +65,13 @@ void HexDump::updateColors()
     mByteIsPrintColor = ConfigColor("HexDumpByteIsPrintColor");
     mByteIsPrintBackgroundColor = ConfigColor("HexDumpByteIsPrintBackgroundColor");
 
+    mUserModuleCodePointerHighlightColor = ConfigColor("HexDumpUserModuleCodePointerHighlightColor");
+    mUserModuleDataPointerHighlightColor = ConfigColor("HexDumpUserModuleDataPointerHighlightColor");
+    mSystemModuleCodePointerHighlightColor = ConfigColor("HexDumpSystemModuleCodePointerHighlightColor");
+    mSystemModuleDataPointerHighlightColor = ConfigColor("HexDumpSystemModuleDataPointerHighlightColor");
+    mUnknownCodePointerHighlightColor = ConfigColor("HexDumpUnknownCodePointerHighlightColor");
+    mUnknownDataPointerHighlightColor = ConfigColor("HexDumpUnknownDataPointerHighlightColor");
+
     reloadData();
 }
 
@@ -344,37 +351,56 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
 
         if((transY(y) >= 0) && y <= this->height())
         {
-            for(int wI = 1; wI < getColumnCount(); wI++)    // Skip first column (Addresses)
+            int wColIndex = getColumnIndexFromX(x);
+
+            if(mForceColumn != -1)
             {
-                int wColIndex = getColumnIndexFromX(x);
+                wColIndex = mForceColumn;
+                x = getColumnPosition(mForceColumn) + 1;
+            }
 
-                if(mForceColumn != -1)
+            if(wColIndex > 0) // No selection for first column (addresses)
+            {
+                dsint wStartingAddress = getItemStartingAddress(x, y);
+                dsint dataSize = getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
+                dsint wEndingAddress = wStartingAddress + dataSize;
+
+                if(wEndingAddress < (dsint)mMemPage->getSize())
                 {
-                    wColIndex = mForceColumn;
-                    x = getColumnPosition(mForceColumn) + 1;
-                }
-
-                if(wColIndex > 0) // No selection for first column (addresses)
-                {
-                    dsint wStartingAddress = getItemStartingAddress(x, y);
-                    dsint dataSize = getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
-                    dsint wEndingAddress = wStartingAddress + dataSize;
-
-                    if(wEndingAddress < (dsint)mMemPage->getSize())
+                    if(wStartingAddress < getInitialSelection())
                     {
-                        if(wStartingAddress < getInitialSelection())
-                        {
-                            expandSelectionUpTo(wStartingAddress);
-                            mSelection.toIndex += dataSize;
-                            emit selectionUpdated();
-                        }
-                        else
-                            expandSelectionUpTo(wEndingAddress);
-
-                        mGuiState = HexDump::MultiRowsSelectionState;
-
-                        updateViewport();
+                        expandSelectionUpTo(wStartingAddress);
+                        mSelection.toIndex += dataSize;
+                        emit selectionUpdated();
                     }
+                    else
+                        expandSelectionUpTo(wEndingAddress);
+
+                    mGuiState = HexDump::MultiRowsSelectionState;
+
+                    updateViewport();
+                }
+            }
+            else
+            {
+                dsint wStartingAddress = getItemStartingAddress(getColumnPosition(1) + 1, y);
+                dsint dataSize = getSizeOf(mDescriptor.at(0).data.itemSize) * mDescriptor.at(0).itemCount - 1;
+                dsint wEndingAddress = wStartingAddress + dataSize;
+
+                if(wEndingAddress < (dsint)mMemPage->getSize())
+                {
+                    if(wStartingAddress < getInitialSelection())
+                    {
+                        expandSelectionUpTo(wStartingAddress);
+                        mSelection.toIndex += dataSize;
+                        emit selectionUpdated();
+                    }
+                    else
+                        expandSelectionUpTo(wEndingAddress);
+
+                    mGuiState = HexDump::MultiRowsSelectionState;
+
+                    updateViewport();
                 }
             }
 
@@ -430,6 +456,34 @@ void HexDump::mousePressEvent(QMouseEvent* event)
                 {
                     dsint wStartingAddress = getItemStartingAddress(x, y);
                     dsint dataSize = getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
+                    dsint wEndingAddress = wStartingAddress + dataSize;
+
+                    if(wEndingAddress < (dsint)mMemPage->getSize())
+                    {
+                        bool bUpdateTo = false;
+                        if(!(event->modifiers() & Qt::ShiftModifier))
+                            setSingleSelection(wStartingAddress);
+                        else if(getInitialSelection() > wEndingAddress)
+                        {
+                            wEndingAddress -= dataSize;
+                            bUpdateTo = true;
+                        }
+                        expandSelectionUpTo(wEndingAddress);
+                        if(bUpdateTo)
+                        {
+                            mSelection.toIndex += dataSize;
+                            emit selectionUpdated();
+                        }
+
+                        mGuiState = HexDump::MultiRowsSelectionState;
+
+                        updateViewport();
+                    }
+                }
+                else if(wColIndex == 0)
+                {
+                    dsint wStartingAddress = getItemStartingAddress(getColumnPosition(1) + 1, y);
+                    dsint dataSize = getSizeOf(mDescriptor.at(0).data.itemSize) * mDescriptor.at(0).itemCount - 1;
                     dsint wEndingAddress = wStartingAddress + dataSize;
 
                     if(wEndingAddress < (dsint)mMemPage->getSize())
@@ -631,10 +685,12 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     curData.flags = RichTextPainter::FlagAll;
     curData.textColor = textColor;
     curData.textBackground = Qt::transparent;
+    curData.highlightColor = Qt::transparent;
 
     RichTextPainter::CustomRichText_t spaceData;
     spaceData.highlight = false;
     spaceData.flags = RichTextPainter::FlagNone;
+    spaceData.highlightColor = Qt::transparent;
 
     if(!col) //address
     {
@@ -672,22 +728,41 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
                 curData.text.clear();
                 curData.textColor = textColor;
                 curData.textBackground = Qt::transparent;
-                curData.highlight = false;
                 curData.flags = RichTextPainter::FlagAll;
 
                 int maxLen = getStringMaxLength(desc.data);
                 if((rva + wI + wByteCount - 1) < (dsint)mMemPage->getSize())
                 {
-                    toString(desc.data, rva + wI * wByteCount, wData + wI * wByteCount, curData);//).rightJustified(maxLen, ' ') + append;
+                    toString(desc.data, rva + wI * wByteCount, wData + wI * wByteCount, curData);
                     if(curData.text.length() < maxLen)
                     {
                         spaceData.text = QString(' ').repeated(maxLen - curData.text.length());
                         richText.push_back(spaceData);
                     }
+                    if(wI % sizeof(duint) == 0 && wByteCount == 1 && desc.data.byteMode == HexByte) //pointer underlining
+                    {
+                        auto ptr = *(duint*)(wData + wI * wByteCount);
+                        if(spaceData.highlight = curData.highlight = DbgMemIsValidReadPtr(ptr))
+                        {
+                            auto codePage = DbgFunctions()->MemIsCodePage(ptr, false);
+                            auto modbase = DbgFunctions()->ModBaseFromAddr(ptr);
+                            if(modbase)
+                            {
+                                if(DbgFunctions()->ModGetParty(modbase) == 1) //system
+                                    spaceData.highlightColor = curData.highlightColor = codePage ? mSystemModuleCodePointerHighlightColor : mSystemModuleDataPointerHighlightColor;
+                                else //user
+                                    spaceData.highlightColor = curData.highlightColor = codePage ? mUserModuleCodePointerHighlightColor : mUserModuleDataPointerHighlightColor;
+                            }
+                            else
+                                spaceData.highlightColor = curData.highlightColor = codePage ? mUnknownCodePointerHighlightColor : mUnknownDataPointerHighlightColor;
+                        }
+                    }
                     richText.push_back(curData);
                     if(maxLen)
                     {
                         spaceData.text = QString(' ');
+                        if(wI % sizeof(duint) == sizeof(duint) - 1)
+                            spaceData.highlight = false;
                         richText.push_back(spaceData);
                     }
                 }

@@ -168,6 +168,12 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("HexDumpAddressBackgroundColor", Qt::transparent);
     defaultColors.insert("HexDumpLabelColor", QColor("#FF0000"));
     defaultColors.insert("HexDumpLabelBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpUserModuleCodePointerHighlightColor", QColor("#00FF00"));
+    defaultColors.insert("HexDumpUserModuleDataPointerHighlightColor", QColor("#008000"));
+    defaultColors.insert("HexDumpSystemModuleCodePointerHighlightColor", QColor("#FF0000"));
+    defaultColors.insert("HexDumpSystemModuleDataPointerHighlightColor", QColor("#800000"));
+    defaultColors.insert("HexDumpUnknownCodePointerHighlightColor", QColor("#0000FF"));
+    defaultColors.insert("HexDumpUnknownDataPointerHighlightColor", QColor("#000080"));
 
     defaultColors.insert("StackTextColor", QColor("#000000"));
     defaultColors.insert("StackInactiveTextColor", QColor("#808080"));

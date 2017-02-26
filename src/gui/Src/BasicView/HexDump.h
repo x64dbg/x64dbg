@@ -198,6 +198,13 @@ private:
     QColor mByteIsPrintColor;
     QColor mByteIsPrintBackgroundColor;
 
+    QColor mUserModuleCodePointerHighlightColor;
+    QColor mUserModuleDataPointerHighlightColor;
+    QColor mSystemModuleCodePointerHighlightColor;
+    QColor mSystemModuleDataPointerHighlightColor;
+    QColor mUnknownCodePointerHighlightColor;
+    QColor mUnknownDataPointerHighlightColor;
+
 protected:
     MemoryPage* mMemPage;
     int mByteOffset;
