@@ -151,6 +151,17 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     defaultColors.insert("HexDumpTextColor", QColor("#000000"));
     defaultColors.insert("HexDumpModifiedBytesColor", QColor("#FF0000"));
+    defaultColors.insert("HexDumpModifiedBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpRestoredBytesColor", QColor("#808080"));
+    defaultColors.insert("HexDumpRestoredBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByte00Color", QColor("#008000"));
+    defaultColors.insert("HexDumpByte00BackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByte7FColor", QColor("#808000"));
+    defaultColors.insert("HexDumpByte7FBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByteFFColor", QColor("#800000"));
+    defaultColors.insert("HexDumpByteFFBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByteIsPrintColor", QColor("#800080"));
+    defaultColors.insert("HexDumpByteIsPrintBackgroundColor", Qt::transparent);
     defaultColors.insert("HexDumpBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("HexDumpSelectionColor", QColor("#C0C0C0"));
     defaultColors.insert("HexDumpAddressColor", QColor("#000000"));

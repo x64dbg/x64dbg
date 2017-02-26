@@ -51,6 +51,20 @@ void HexDump::updateColors()
     backgroundColor = ConfigColor("HexDumpBackgroundColor");
     textColor = ConfigColor("HexDumpTextColor");
     selectionColor = ConfigColor("HexDumpSelectionColor");
+
+    mModifiedBytesColor = ConfigColor("HexDumpModifiedBytesColor");
+    mModifiedBytesBackgroundColor = ConfigColor("HexDumpModifiedBytesBackgroundColor");
+    mRestoredBytesColor = ConfigColor("HexDumpRestoredBytesColor");
+    mRestoredBytesBackgroundColor = ConfigColor("HexDumpRestoredBytesBackgroundColor");
+    mByte00Color = ConfigColor("HexDumpByte00Color");
+    mByte00BackgroundColor = ConfigColor("HexDumpByte00BackgroundColor");
+    mByte7FColor = ConfigColor("HexDumpByte7FColor");
+    mByte7FBackgroundColor = ConfigColor("HexDumpByte7FBackgroundColor");
+    mByteFFColor = ConfigColor("HexDumpByteFFColor");
+    mByteFFBackgroundColor = ConfigColor("HexDumpByteFFBackgroundColor");
+    mByteIsPrintColor = ConfigColor("HexDumpByteIsPrintColor");
+    mByteIsPrintBackgroundColor = ConfigColor("HexDumpByteIsPrintBackgroundColor");
+
     reloadData();
 }
 
@@ -614,8 +628,14 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
 {
     RichTextPainter::CustomRichText_t curData;
     curData.highlight = false;
-    curData.flags = RichTextPainter::FlagColor;
+    curData.flags = RichTextPainter::FlagAll;
     curData.textColor = textColor;
+    curData.textBackground = Qt::transparent;
+
+    RichTextPainter::CustomRichText_t spaceData;
+    spaceData.highlight = false;
+    spaceData.flags = RichTextPainter::FlagNone;
+
     if(!col) //address
     {
         curData.text = makeAddrText(rvaToVa(rva));
@@ -625,7 +645,6 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     {
         const ColumnDescriptor_t & desc = mDescriptor.at(col - 1);
         int wI;
-        QString wStr = "";
 
         int wByteCount = getSizeOf(desc.data.itemSize);
         int wBufferByteCount = desc.itemCount * wByteCount;
@@ -633,8 +652,6 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
         wBufferByteCount = wBufferByteCount > (dsint)(mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : wBufferByteCount;
 
         byte_t* wData = new byte_t[wBufferByteCount];
-        //byte_t wData[mDescriptor.at(col).itemCount * wByteCount];
-
         mMemPage->read(wData, rva, wBufferByteCount);
 
         if(desc.textCodec) //convert the row bytes to unicode
@@ -650,26 +667,37 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
         }
         else
         {
-            QColor highlightColor = ConfigColor("HexDumpModifiedBytesColor");
-
             for(wI = 0; wI < desc.itemCount && (rva + wI) < (dsint)mMemPage->getSize(); wI++)
             {
-                int maxLen = getStringMaxLength(mDescriptor.at(col - 1).data);
-                QString append = " ";
-                if(!maxLen)
-                    append = "";
+                curData.text.clear();
+                curData.textColor = textColor;
+                curData.textBackground = Qt::transparent;
+                curData.highlight = false;
+                curData.flags = RichTextPainter::FlagAll;
+
+                int maxLen = getStringMaxLength(desc.data);
                 if((rva + wI + wByteCount - 1) < (dsint)mMemPage->getSize())
-                    wStr = toString(desc.data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
+                {
+                    toString(desc.data, rva + wI * wByteCount, wData + wI * wByteCount, curData);//).rightJustified(maxLen, ' ') + append;
+                    if(curData.text.length() < maxLen)
+                    {
+                        spaceData.text = QString(' ').repeated(maxLen - curData.text.length());
+                        richText.push_back(spaceData);
+                    }
+                    richText.push_back(curData);
+                    if(maxLen)
+                    {
+                        spaceData.text = QString(' ');
+                        richText.push_back(spaceData);
+                    }
+                }
                 else
-                    wStr = QString("?").rightJustified(maxLen, ' ') + append;
-                curData.text = wStr;
-                dsint start = rvaToVa(rva + wI * wByteCount);
-                dsint end = start + wByteCount - 1;
-                if(DbgFunctions()->PatchInRange(start, end))
-                    curData.textColor = highlightColor;
-                else
-                    curData.textColor = textColor;
-                richText.push_back(curData);
+                {
+                    curData.text = QString("?").rightJustified(maxLen, ' ');
+                    if(maxLen)
+                        curData.text.append(' ');
+                    richText.push_back(curData);
+                }
             }
         }
 
@@ -677,39 +705,37 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     }
 }
 
-QString HexDump::toString(DataDescriptor_t desc, void* data) //convert data to string
+void HexDump::toString(DataDescriptor_t desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText) //convert data to string
 {
-    QString wStr = "";
-
     switch(desc.itemSize)
     {
     case Byte:
     {
-        wStr = byteToString(*((byte_t*)data), desc.byteMode);
+        byteToString(rva, *((byte_t*)data), desc.byteMode, richText);
     }
     break;
 
     case Word:
     {
-        wStr = wordToString(*((uint16*)data), desc.wordMode);
+        wordToString(rva, *((uint16*)data), desc.wordMode, richText);
     }
     break;
 
     case Dword:
     {
-        wStr = dwordToString(*((uint32*)data), desc.dwordMode);
+        dwordToString(rva, *((uint32*)data), desc.dwordMode, richText);
     }
     break;
 
     case Qword:
     {
-        wStr = qwordToString(*((uint64*)data), desc.qwordMode);
+        qwordToString(rva, *((uint64*)data), desc.qwordMode, richText);
     }
     break;
 
     case Tword:
     {
-        wStr = twordToString(data, desc.twordMode);
+        twordToString(rva, data, desc.twordMode, richText);
     }
     break;
 
@@ -720,10 +746,16 @@ QString HexDump::toString(DataDescriptor_t desc, void* data) //convert data to s
     break;
     }
 
-    return wStr;
+    if(desc.itemSize == Byte) //byte patches are handled in byteToString
+        return;
+
+    dsint start = rvaToVa(rva);
+    dsint end = start + getSizeOf(desc.itemSize) - 1;
+    if(DbgFunctions()->PatchInRange(start, end))
+        richText.textColor = ConfigColor("HexDumpModifiedBytesColor");
 }
 
-QString HexDump::byteToString(byte_t byte, ByteViewMode_e mode)
+void HexDump::byteToString(duint rva, byte_t byte, ByteViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
 {
     QString wStr = "";
 
@@ -767,12 +799,53 @@ QString HexDump::byteToString(byte_t byte, ByteViewMode_e mode)
     break;
     }
 
-    return wStr;
+    richText.text = wStr;
+
+    DBGPATCHINFO patchInfo;
+    if(DbgFunctions()->PatchGetEx(rvaToVa(rva), &patchInfo))
+    {
+        if(byte == patchInfo.newbyte)
+        {
+            richText.textColor = mModifiedBytesColor;
+            richText.textBackground = mModifiedBytesBackgroundColor;
+        }
+        else
+        {
+            richText.textColor = mRestoredBytesColor;
+            richText.textBackground = mRestoredBytesBackgroundColor;
+        }
+    }
+    else
+    {
+        switch(byte)
+        {
+        case 0x00:
+            richText.textColor = mByte00Color;
+            richText.textBackground = mByte00BackgroundColor;
+            break;
+        case 0x7F:
+            richText.textColor = mByte7FColor;
+            richText.textBackground = mByte7FBackgroundColor;
+            break;
+        case 0xFF:
+            richText.textColor = mByteFFColor;
+            richText.textBackground = mByteFFBackgroundColor;
+            break;
+        default:
+            if(isprint(byte) || isspace(byte))
+            {
+                richText.textColor = mByteIsPrintColor;
+                richText.textBackground = mByteIsPrintBackgroundColor;
+            }
+            break;
+        }
+    }
 }
 
-QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
+void HexDump::wordToString(duint rva, uint16 word, WordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
 {
-    QString wStr = "";
+    Q_UNUSED(rva);
+    QString wStr;
 
     switch(mode)
     {
@@ -813,12 +886,13 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
     break;
     }
 
-    return wStr;
+    richText.text = wStr;
 }
 
-QString HexDump::dwordToString(uint32 dword, DwordViewMode_e mode)
+void HexDump::dwordToString(duint rva, uint32 dword, DwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
 {
-    QString wStr = "";
+    Q_UNUSED(rva);
+    QString wStr;
 
     switch(mode)
     {
@@ -853,12 +927,13 @@ QString HexDump::dwordToString(uint32 dword, DwordViewMode_e mode)
     break;
     }
 
-    return wStr;
+    richText.text = wStr;
 }
 
-QString HexDump::qwordToString(uint64 qword, QwordViewMode_e mode)
+void HexDump::qwordToString(duint rva, uint64 qword, QwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
 {
-    QString wStr = "";
+    Q_UNUSED(rva);
+    QString wStr;
 
     switch(mode)
     {
@@ -893,12 +968,13 @@ QString HexDump::qwordToString(uint64 qword, QwordViewMode_e mode)
     break;
     }
 
-    return wStr;
+    richText.text = wStr;
 }
 
-QString HexDump::twordToString(void* tword, TwordViewMode_e mode)
+void HexDump::twordToString(duint rva, void* tword, TwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
 {
-    QString wStr = "";
+    Q_UNUSED(rva);
+    QString wStr;
 
     switch(mode)
     {
@@ -915,52 +991,12 @@ QString HexDump::twordToString(void* tword, TwordViewMode_e mode)
     break;
     }
 
-    return wStr;
+    richText.text = wStr;
 }
 
 int HexDump::getSizeOf(DataSize_e size)
 {
-    int wSize = 0;
-
-    switch(size)
-    {
-    case Byte:          // 1 Byte
-    {
-        wSize = 1;
-    }
-    break;
-
-    case Word:          // 2 Bytes
-    {
-        wSize = 2;
-    }
-    break;
-
-    case Dword:         // 4 Bytes
-    {
-        wSize = 4;
-    }
-    break;
-
-    case Qword:         // 8 Bytes
-    {
-        wSize = 8;
-    }
-    break;
-
-    case Tword:         // 10 Bytes
-    {
-        wSize = 10;
-    }
-    break;
-
-    default:
-    {
-        wSize = 0;
-    }
-    }
-
-    return wSize;
+    return int(size);
 }
 
 int HexDump::getStringMaxLength(DataDescriptor_t desc)

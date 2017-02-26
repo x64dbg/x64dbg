@@ -12,11 +12,11 @@ class HexDump : public AbstractTableView
 public:
     enum DataSize_e
     {
-        Byte,
-        Word,
-        Dword,
-        Qword,
-        Tword
+        Byte = 1,
+        Word = 2,
+        Dword = 4,
+        Qword = 8,
+        Tword = 10
     };
 
     enum ByteViewMode_e
@@ -113,13 +113,13 @@ public:
     virtual void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText);
     int getSizeOf(DataSize_e size);
 
-    QString toString(DataDescriptor_t desc, void* data);
+    void toString(DataDescriptor_t desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText);
 
-    QString byteToString(byte_t byte, ByteViewMode_e mode);
-    QString wordToString(uint16 word, WordViewMode_e mode);
-    QString dwordToString(uint32 dword, DwordViewMode_e mode);
-    QString qwordToString(uint64 qword, QwordViewMode_e mode);
-    QString twordToString(void* tword, TwordViewMode_e mode);
+    void byteToString(duint rva, byte_t byte, ByteViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
+    void wordToString(duint rva, uint16 word, WordViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
+    void dwordToString(duint rva, uint32 dword, DwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
+    void qwordToString(duint rva, uint64 qword, QwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
+    void twordToString(duint rva, void* tword, TwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
 
     int getStringMaxLength(DataDescriptor_t desc);
 
@@ -184,6 +184,19 @@ private:
     int mCurrentVa;
     QChar mNonprintReplace;
     QChar mNullReplace;
+
+    QColor mModifiedBytesColor;
+    QColor mModifiedBytesBackgroundColor;
+    QColor mRestoredBytesColor;
+    QColor mRestoredBytesBackgroundColor;
+    QColor mByte00Color;
+    QColor mByte00BackgroundColor;
+    QColor mByte7FColor;
+    QColor mByte7FBackgroundColor;
+    QColor mByteFFColor;
+    QColor mByteFFBackgroundColor;
+    QColor mByteIsPrintColor;
+    QColor mByteIsPrintBackgroundColor;
 
 protected:
     MemoryPage* mMemPage;

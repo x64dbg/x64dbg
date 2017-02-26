@@ -502,7 +502,12 @@ void AppearanceDialog::colorInfoListInit()
 
     colorInfoListAppend(tr("HexDump:"), "", "");
     colorInfoListAppend(tr("Text"), "HexDumpTextColor", "");
-    colorInfoListAppend(tr("Modified Bytes"), "HexDumpModifiedBytesColor", "");
+    colorInfoListAppend(tr("Modified Bytes"), "HexDumpModifiedBytesColor", "HexDumpModifiedBytesBackgroundColor");
+    colorInfoListAppend(tr("Restored Bytes"), "HexDumpRestoredBytesColor", "HexDumpRestoredBytesBackgroundColor");
+    colorInfoListAppend(tr("0x00 Bytes"), "HexDumpByte00Color", "HexDumpByte00BackgroundColor");
+    colorInfoListAppend(tr("0x7F Bytes"), "HexDumpByte7FColor", "HexDumpByte7FBackgroundColor");
+    colorInfoListAppend(tr("0xFF Bytes"), "HexDumpByteFFColor", "HexDumpByteFFBackgroundColor");
+    colorInfoListAppend(tr("IsPrint Bytes"), "HexDumpByteIsPrintColor", "HexDumpByteIsPrintBackgroundColor");
     colorInfoListAppend(tr("Background"), "HexDumpBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "HexDumpSelectionColor", "");
     colorInfoListAppend(tr("Addresses"), "HexDumpAddressColor", "HexDumpAddressBackgroundColor");
