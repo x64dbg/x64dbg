@@ -3,6 +3,7 @@
 #include "memory.h"
 #include "debugger.h"
 #include "console.h"
+#include "filehelper.h"
 
 char commandLine[MAX_SETTING_SIZE];
 
@@ -90,9 +91,12 @@ char* getCommandLineArgs()
 
 }
 
-void CmdLineCacheSave(JSON Root)
+void CmdLineCacheSave(JSON Root, const String & cacheFile)
 {
     EXCLUSIVE_ACQUIRE(LockCmdLine);
+
+    // Write the (possibly empty) command line to a cache file
+    FileHelper::WriteAllText(cacheFile, commandLine);
 
     // return if command line is empty
     if(!strlen(commandLine))
@@ -120,14 +124,14 @@ void CmdLineCacheLoad(JSON Root)
 
     const char* cmdLine = json_string_value(json_object_get(jsonCmdLine, "cmdLine"));
 
-    strcpy_s(commandLine, cmdLine);
+    strncpy_s(commandLine, cmdLine, _TRUNCATE);
 
     json_decref(jsonCmdLine);
 }
 
 void copyCommandLine(const char* cmdLine)
 {
-    strcpy_s(commandLine, cmdLine);
+    strncpy_s(commandLine, cmdLine, _TRUNCATE);
 }
 
 bool SetCommandLine()

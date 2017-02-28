@@ -40,6 +40,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
     auto file = dbfile ? dbfile : dbpath;
+    auto cmdlinepath = file + String(".cmdline");
     dprintf(QT_TRANSLATE_NOOP("DBG", "Saving database to %s "), file);
     DWORD ticks = GetTickCount();
     JSON root = json_object();
@@ -47,7 +48,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
     // Save only command line
     if(saveType == DbLoadSaveType::CommandLine || saveType == DbLoadSaveType::All)
     {
-        CmdLineCacheSave(root);
+        CmdLineCacheSave(root, cmdlinepath);
     }
 
     if(saveType == DbLoadSaveType::DebugData || saveType == DbLoadSaveType::All)
@@ -129,7 +130,10 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
+    {
         DeleteFileW(wdbpath.c_str());
+        DeleteFileW(StringUtils::Utf8ToUtf16(cmdlinepath).c_str());
+    }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
     json_decref(root); //free root
@@ -145,7 +149,15 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
         return;
 
     if(loadType == DbLoadSaveType::CommandLine)
+    {
         dputs(QT_TRANSLATE_NOOP("DBG", "Loading commandline..."));
+        String content;
+        if(FileHelper::ReadAllText(file + String(".cmdline"), content))
+        {
+            copyCommandLine(content.c_str());
+            return;
+        }
+    }
     else
         dprintf(QT_TRANSLATE_NOOP("DBG", "Loading database from %s "), file);
     DWORD ticks = GetTickCount();
