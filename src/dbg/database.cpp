@@ -24,6 +24,7 @@
 #include "plugin_loader.h"
 #include "argument.h"
 #include "debugger.h"
+#include "filemap.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -110,20 +111,22 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
         CopyFileW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), FALSE); //make a backup
     if(json_object_size(root))
     {
-        char* jsonText = json_dumps(root, JSON_INDENT(1));
-
-        if(jsonText)
+        auto dumpSuccess = false;
+        auto hFile = CreateFileW(wdbpath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
+        if(hFile != INVALID_HANDLE_VALUE)
         {
-            // Dump JSON to disk (overwrite any old files)
-            if(!FileHelper::WriteAllText(file, jsonText))
+            BufferedWriter bufWriter(hFile);
+            dumpSuccess = !json_dump_callback(root, [](const char* buffer, size_t size, void* data) -> int
             {
-                dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file!"));
-                json_free(jsonText);
-                json_decref(root);
-                return;
-            }
+                return ((BufferedWriter*)data)->Write(buffer, size) ? 0 : -1;
+            }, &bufWriter, JSON_INDENT(1));
+        }
 
-            json_free(jsonText);
+        if(!dumpSuccess)
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file!"));
+            json_decref(root);
+            return;
         }
 
         if(!disablecompression && !settingboolget("Engine", "DisableDatabaseCompression"))
@@ -179,22 +182,23 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
         }
     }
 
-    // Read the database file
-    String databaseText;
-
-    if(!FileHelper::ReadAllText(file, databaseText))
+    // Map the database file
+    FileMap<char> dbMap;
+    if(!dbMap.Map(databasePathW.c_str()))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file!"));
         return;
     }
 
+    // Deserialize JSON and validate
+    JSON root = json_loadb(dbMap.Data(), dbMap.Size(), 0, 0);
+
+    // Unmap the database file
+    dbMap.Unmap();
+
     // Restore the old, compressed file
     if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
         LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());
-
-
-    // Deserialize JSON and validate
-    JSON root = json_loads(databaseText.c_str(), 0, 0);
 
     if(!root)
     {
