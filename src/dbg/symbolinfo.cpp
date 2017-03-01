@@ -96,29 +96,16 @@ void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 
 bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
 {
-    //
-    // Inline lambda enum
-    //
-    auto EnumModules = [](LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext) -> BOOL
+    std::vector<MODINFO> modList;
+    ModGetList(modList);
+    for(auto & mod : modList)
     {
-        SYMBOLMODULEINFO curModule;
-        curModule.base = (duint)BaseOfDll;
-
-        // Terminate module name if one isn't found
-        if(!ModNameFromAddr(curModule.base, curModule.name, true))
-            curModule.name[0] = '\0';
-
-        ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
-        return TRUE;
-    };
-
-    // Execute the symbol enumerator (Force cast to STDCALL)
-    if(!SafeSymEnumerateModules64(fdProcessInfo->hProcess, EnumModules, List))
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymEnumerateModules64 failed!"));
-        return false;
+        SYMBOLMODULEINFO curMod;
+        curMod.base = mod.base;
+        strcpy_s(curMod.name, mod.name);
+        strcat_s(curMod.name, mod.extension);
+        List->push_back(curMod);
     }
-
     return true;
 }
 

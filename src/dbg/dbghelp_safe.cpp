@@ -115,16 +115,6 @@ SafeSymEnumSymbols(
     return SymEnumSymbols(hProcess, BaseOfDll, Mask, EnumSymbolsCallback, UserContext);
 }
 BOOL
-SafeSymEnumerateModules64(
-    __in HANDLE hProcess,
-    __in PSYM_ENUMMODULES_CALLBACK64 EnumModulesCallback,
-    __in_opt PVOID UserContext
-)
-{
-    EXCLUSIVE_ACQUIRE(LockSym);
-    return SymEnumerateModules64(hProcess, EnumModulesCallback, UserContext);
-}
-BOOL
 SafeSymGetLineFromAddrW64(
     __in HANDLE hProcess,
     __in DWORD64 qwAddr,
