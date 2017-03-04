@@ -15,7 +15,7 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
-    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followTo()));
+    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followFrom()));
 
     setupContextMenu();
 }
@@ -28,14 +28,14 @@ void CallStackView::setupContextMenu()
     });
     QIcon icon = DIcon(ArchValue("processor32.png", "processor64.png"));
     mMenuBuilder->addAction(makeAction(icon, tr("Follow &Address"), SLOT(followAddress())));
-    QAction* mFollowTo = mMenuBuilder->addAction(makeAction(icon, tr("Follow &To"), SLOT(followTo())));
-    mFollowTo->setShortcutContext(Qt::WidgetShortcut);
-    mFollowTo->setShortcut(QKeySequence("enter"));
-    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followTo()));
-    mMenuBuilder->addAction(makeAction(icon, tr("Follow &From"), SLOT(followFrom())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(icon, tr("Follow &To"), SLOT(followTo())), [this](QMenu*)
     {
         return !getCellContent(getInitialSelection(), 2).isEmpty();
     });
+    QAction* mFollowFrom = mMenuBuilder->addAction(makeAction(icon, tr("Follow &From"), SLOT(followFrom())));
+    mFollowFrom->setShortcutContext(Qt::WidgetShortcut);
+    mFollowFrom->setShortcut(QKeySequence("enter"));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followFrom()));
     mMenuBuilder->addSeparator();
     QAction* wShowSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
     mMenuBuilder->addAction(wShowSuspectedCallStack, [wShowSuspectedCallStack](QMenu*)

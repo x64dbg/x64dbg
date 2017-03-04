@@ -168,11 +168,15 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint
     Entry->from = From;
     Entry->to = To;
 
+    /* https://github.com/x64dbg/x64dbg/pull/1478
     char returnToAddr[MAX_LABEL_SIZE] = "";
     getSymAddrName(To, returnToAddr);
     char returnFromAddr[MAX_LABEL_SIZE] = "";
     getSymAddrName(From, returnFromAddr);
     _snprintf_s(Entry->comment, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+    */
+
+    getSymAddrName(From, Entry->comment);
 }
 
 #define MAX_CALLSTACK_CACHE 20
