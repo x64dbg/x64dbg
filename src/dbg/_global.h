@@ -1,6 +1,7 @@
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
 
+//things 
 #define _WIN32_WINNT 0x0501
 
 #ifdef WINVER // Overwrite WINVER if given on command line
