@@ -264,10 +264,11 @@ bool cbInstrAssemble(int argc, char* argv[])
         fillnop = true;
     char error[MAX_ERROR_SIZE] = "";
     int size = 0;
-    if(!assembleat(addr, stringformatinline(argv[2]).c_str(), &size, error, fillnop))
+    auto asmFormat = stringformatinline(argv[2]);
+    if(!assembleat(addr, asmFormat.c_str(), &size, error, fillnop))
     {
         varset("$result", size, false);
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to assemble \"%s\" (%s)\n"), argv[2], error);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to assemble \"%s\" (%s)\n"), asmFormat.c_str(), error);
         return false;
     }
     varset("$result", size, false);
