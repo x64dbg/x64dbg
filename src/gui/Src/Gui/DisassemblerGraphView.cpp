@@ -997,6 +997,10 @@ void DisassemblerGraphView::renderFunction(Function & func)
                     visited.insert(edge);
                     changed = true;
                 }
+                else
+                {
+                     removeFromVec(this->blocks[edge].incoming, block.block.entry);
+                }
             }
         }
 
@@ -1027,6 +1031,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
             removeFromVec(this->blocks[best].incoming, best_parentb.block.entry);
             best_parentb.new_exits.push_back(best);
             visited.insert(best);
+            queue.push(best);
             changed = true;
         }
     }
