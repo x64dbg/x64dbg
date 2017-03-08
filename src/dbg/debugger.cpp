@@ -2341,42 +2341,52 @@ static bool fixgetcommandlinesbase(duint new_command_line_unicode, duint new_com
     return true;
 }
 
+static std::vector<char> Utf16ToAnsi(const wchar_t* wstr)
+{
+    std::vector<char> buffer;
+    auto requiredSize = WideCharToMultiByte(CP_ACP, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
+    if(requiredSize > 0)
+    {
+        buffer.resize(requiredSize);
+        WideCharToMultiByte(CP_ACP, 0, wstr, -1, &buffer[0], requiredSize, nullptr, nullptr);
+    }
+    return buffer;
+}
+
 bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 {
+    // Make sure cmd_line_error is a valid pointer
     cmdline_error_t cmd_line_error_aux;
-    UNICODE_STRING new_command_line;
-    duint command_line_addr;
-
     if(cmd_line_error == NULL)
         cmd_line_error = &cmd_line_error_aux;
 
+    // Get the command line address
     if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error))
         return false;
+    auto command_line_addr = cmd_line_error->addr;
 
-    command_line_addr = cmd_line_error->addr;
+    // Convert the string to UTF-16
+    auto command_linewstr = StringUtils::Utf8ToUtf16(cmd_line);
+    if(command_linewstr.length() >= 32766) //32766 is maximum character count for a null-terminated UNICODE_STRING
+        command_linewstr.resize(32766);
+    // Convert the UTF-16 string to ANSI
+    auto command_linestr = Utf16ToAnsi(command_linewstr.c_str());
 
-    SIZE_T cmd_line_size = strlen(cmd_line);
-    new_command_line.Length = (USHORT)(strlen(cmd_line) + 1) * sizeof(WCHAR);
-    new_command_line.MaximumLength = new_command_line.Length;
+    // Fill the UNICODE_STRING to be set in the debuggee
+    UNICODE_STRING new_command_line;
+    new_command_line.Length = command_linewstr.length() * sizeof(WCHAR); //max value: 32766 * 2 = 65532
+    new_command_line.MaximumLength = new_command_line.Length + sizeof(WCHAR); //max value: 65532 + 2 = 65534
+    new_command_line.Buffer = PWSTR(command_linewstr.c_str()); //allow cast from const because the UNICODE_STRING will not be used locally
 
-    Memory<wchar_t*> command_linewstr(new_command_line.Length);
-
-    // Covert to Unicode.
-    if(!MultiByteToWideChar(CP_UTF8, 0, cmd_line, (int)cmd_line_size + 1, command_linewstr(), (int)cmd_line_size + 1))
-    {
-        cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
-        return false;
-    }
-
-    new_command_line.Buffer = command_linewstr();
-
-    duint mem = (duint)MemAllocRemote(0, new_command_line.Length * 2);
+    // Allocate remote memory for both the UNICODE_STRING.Buffer and the (null terminated) ANSI buffer
+    duint mem = MemAllocRemote(0, new_command_line.MaximumLength + command_linestr.size());
     if(!mem)
     {
         cmd_line_error->type = CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE;
         return false;
     }
 
+    // Write the UNICODE_STRING.Buffer to the debuggee (UNICODE_STRING.Length is used because the remote memory is zeroed)
     if(!MemWrite(mem, new_command_line.Buffer, new_command_line.Length))
     {
         cmd_line_error->addr = mem;
@@ -2384,17 +2394,20 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
         return false;
     }
 
-    if(!MemWrite((mem + new_command_line.Length), (void*)cmd_line, strlen(cmd_line) + 1))
+    // Write the (null-terminated) ANSI buffer to the debuggee
+    if(!MemWrite(mem + new_command_line.MaximumLength, command_linestr.data(), command_linestr.size()))
     {
-        cmd_line_error->addr = mem + new_command_line.Length;
+        cmd_line_error->addr = mem + new_command_line.MaximumLength;
         cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;
         return false;
     }
 
-    if(!fixgetcommandlinesbase(mem, mem + new_command_line.Length, cmd_line_error))
+    // Change the pointers to the command line
+    if(!fixgetcommandlinesbase(mem, mem + new_command_line.MaximumLength, cmd_line_error))
         return false;
 
-    new_command_line.Buffer = (PWSTR) mem;
+    // Put the remote buffer address in the UNICODE_STRING and write it to the PEB
+    new_command_line.Buffer = PWSTR(mem);
     if(!MemWrite(command_line_addr, &new_command_line, sizeof(new_command_line)))
     {
         cmd_line_error->addr = command_line_addr;
@@ -2762,4 +2775,30 @@ void StepIntoWow64(LPVOID traceCallBack)
     }
 #endif //_WIN64
     StepInto(traceCallBack);
+}
+
+bool dbgisdepenabled()
+{
+    auto depEnabled = false;
+#ifndef _WIN64
+    typedef BOOL(WINAPI * GETPROCESSDEPPOLICY)(
+        _In_  HANDLE  /*hProcess*/,
+        _Out_ LPDWORD /*lpFlags*/,
+        _Out_ PBOOL   /*lpPermanent*/
+    );
+    static auto GPDP = GETPROCESSDEPPOLICY(GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessDEPPolicy"));
+    if(GPDP)
+    {
+        //If you use fdProcessInfo->hProcess GetProcessDEPPolicy will put garbage in bPermanent.
+        auto hProcess = TitanOpenProcess(PROCESS_QUERY_INFORMATION, false, fdProcessInfo->dwProcessId);
+        DWORD lpFlags;
+        BOOL bPermanent;
+        if(GPDP(hProcess, &lpFlags, &bPermanent))
+            depEnabled = lpFlags != 0;
+        CloseHandle(hProcess);
+    }
+#else
+    depEnabled = true;
+#endif //_WIN64
+    return depEnabled;
 }

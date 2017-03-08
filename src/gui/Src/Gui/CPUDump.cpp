@@ -385,8 +385,7 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
     int y = event->y();
 
     // Get HexDump own RVA address, then VA in memory
-    int rva = getItemStartingAddress(x, y);
-    int va = rvaToVa(rva);
+    auto va = rvaToVa(getItemStartingAddress(x, y));
 
     // Read VA
     duint ptr;

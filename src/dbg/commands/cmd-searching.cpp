@@ -8,6 +8,7 @@
 #include "filehelper.h"
 #include "label.h"
 #include "yara/yara.h"
+#include "stringformat.h"
 
 static int maxFindResults = 5000;
 
@@ -330,9 +331,10 @@ bool cbInstrFindAsm(int argc, char* argv[])
     unsigned char dest[16];
     int asmsize = 0;
     char error[MAX_ERROR_SIZE] = "";
-    if(!assemble(addr + size / 2, dest, &asmsize, argv[1], error))
+    auto asmFormat = stringformatinline(argv[1]);
+    if(!assemble(addr + size / 2, dest, &asmsize, asmFormat.c_str(), error))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to assemble \"%s\" (%s)!\n"), argv[1], error);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to assemble \"%s\" (%s)!\n"), asmFormat.c_str(), error);
         return false;
     }
     BASIC_INSTRUCTION_INFO basicinfo;

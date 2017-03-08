@@ -946,5 +946,8 @@
     <ClInclude Include="btparser\btparser\helpers.h">
       <Filter>Header Files\btparser</Filter>
     </ClInclude>
+    <ClInclude Include="filemap.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

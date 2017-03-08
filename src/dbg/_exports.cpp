@@ -128,6 +128,49 @@ static bool shouldFilterSymbol(const char* name)
     return filterInfo.retval;
 }
 
+// https://github.com/llvm-mirror/llvm/blob/2ae7de27f7d9276e7bada445ea7576bbc4c83ae6/lib/DebugInfo/Symbolize/Symbolize.cpp#L427
+// Undo these various manglings for Win32 extern "C" functions:
+// cdecl       - _foo
+// stdcall     - _foo@12
+// fastcall    - @foo@12
+// vectorcall  - foo@@12
+// These are all different linkage names for 'foo'.
+static char* demanglePE32ExternCFunc(char* SymbolName)
+{
+    // Only do this for Win32
+#ifdef _WIN64
+    return SymbolName;
+#endif //_WIN64
+
+    // Remove any '_' or '@' prefix.
+    char Front = SymbolName[0];
+    if(Front == '_' || Front == '@')
+        SymbolName++;
+
+    // Remove any '@[0-9]+' suffix.
+    if(Front != '?')
+    {
+        auto AtPos = strrchr(SymbolName, '@');
+        if(AtPos)
+        {
+            auto p = AtPos + 1;
+            while(*p && isdigit(*p))
+                p++;
+
+            // All characters after '@' were digits
+            if(!*p)
+                *AtPos = '\0';
+        }
+    }
+
+    // Remove any ending '@' for vectorcall.
+    auto len = strlen(SymbolName);
+    if(len && SymbolName[len - 1] == '@')
+        SymbolName[len - 1] = '\0';
+
+    return SymbolName;
+}
+
 static bool getLabel(duint addr, char* label, bool noFuncOffset)
 {
     bool retval = false;
@@ -141,11 +184,13 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
         PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
         pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
         pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) && (!noFuncOffset || !displacement))
+        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) &&
+                (!displacement || (!noFuncOffset && pSymbol->Flags != SYMFLAG_EXPORT))) //without PDB, SYMFLAG_EXPORT is reported with garbage displacements
         {
             pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-            if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
-                strcpy_s(label, MAX_LABEL_SIZE, pSymbol->Name);
+            auto name = demanglePE32ExternCFunc(pSymbol->Name);
+            if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(name, label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
+                strcpy_s(label, MAX_LABEL_SIZE, name);
             retval = !shouldFilterSymbol(label);
             if(retval && displacement)
             {
@@ -163,11 +208,13 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
                 duint val = 0;
                 if(MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
                 {
-                    if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && (!noFuncOffset || !displacement))
+                    if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) &&
+                            (!displacement || (!noFuncOffset && pSymbol->Flags != SYMFLAG_EXPORT))) //without PDB, SYMFLAG_EXPORT is reported with garbage displacements
                     {
                         pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                        if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
-                            sprintf_s(label, MAX_LABEL_SIZE, "JMP.&%s", pSymbol->Name);
+                        auto name = demanglePE32ExternCFunc(pSymbol->Name);
+                        if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(name, label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
+                            sprintf_s(label, MAX_LABEL_SIZE, "JMP.&%s", name);
                         retval = !shouldFilterSymbol(label);
                         if(retval && displacement)
                         {

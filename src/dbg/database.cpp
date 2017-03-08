@@ -24,6 +24,7 @@
 #include "plugin_loader.h"
 #include "argument.h"
 #include "debugger.h"
+#include "filemap.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -40,6 +41,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
     auto file = dbfile ? dbfile : dbpath;
+    auto cmdlinepath = file + String(".cmdline");
     dprintf(QT_TRANSLATE_NOOP("DBG", "Saving database to %s "), file);
     DWORD ticks = GetTickCount();
     JSON root = json_object();
@@ -47,7 +49,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
     // Save only command line
     if(saveType == DbLoadSaveType::CommandLine || saveType == DbLoadSaveType::All)
     {
-        CmdLineCacheSave(root);
+        CmdLineCacheSave(root, cmdlinepath);
     }
 
     if(saveType == DbLoadSaveType::DebugData || saveType == DbLoadSaveType::All)
@@ -109,27 +111,32 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
         CopyFileW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), FALSE); //make a backup
     if(json_object_size(root))
     {
-        char* jsonText = json_dumps(root, JSON_INDENT(1));
-
-        if(jsonText)
+        auto dumpSuccess = false;
+        auto hFile = CreateFileW(wdbpath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
+        if(hFile != INVALID_HANDLE_VALUE)
         {
-            // Dump JSON to disk (overwrite any old files)
-            if(!FileHelper::WriteAllText(file, jsonText))
+            BufferedWriter bufWriter(hFile);
+            dumpSuccess = !json_dump_callback(root, [](const char* buffer, size_t size, void* data) -> int
             {
-                dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file!"));
-                json_free(jsonText);
-                json_decref(root);
-                return;
-            }
+                return ((BufferedWriter*)data)->Write(buffer, size) ? 0 : -1;
+            }, &bufWriter, JSON_INDENT(1));
+        }
 
-            json_free(jsonText);
+        if(!dumpSuccess)
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file!"));
+            json_decref(root);
+            return;
         }
 
         if(!disablecompression && !settingboolget("Engine", "DisableDatabaseCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
+    {
         DeleteFileW(wdbpath.c_str());
+        DeleteFileW(StringUtils::Utf8ToUtf16(cmdlinepath).c_str());
+    }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
     json_decref(root); //free root
@@ -145,7 +152,15 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
         return;
 
     if(loadType == DbLoadSaveType::CommandLine)
+    {
         dputs(QT_TRANSLATE_NOOP("DBG", "Loading commandline..."));
+        String content;
+        if(FileHelper::ReadAllText(file + String(".cmdline"), content))
+        {
+            copyCommandLine(content.c_str());
+            return;
+        }
+    }
     else
         dprintf(QT_TRANSLATE_NOOP("DBG", "Loading database from %s "), file);
     DWORD ticks = GetTickCount();
@@ -167,22 +182,23 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
         }
     }
 
-    // Read the database file
-    String databaseText;
-
-    if(!FileHelper::ReadAllText(file, databaseText))
+    // Map the database file
+    FileMap<char> dbMap;
+    if(!dbMap.Map(databasePathW.c_str()))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file!"));
         return;
     }
 
+    // Deserialize JSON and validate
+    JSON root = json_loadb(dbMap.Data(), dbMap.Size(), 0, 0);
+
+    // Unmap the database file
+    dbMap.Unmap();
+
     // Restore the old, compressed file
     if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
         LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());
-
-
-    // Deserialize JSON and validate
-    JSON root = json_loads(databaseText.c_str(), 0, 0);
 
     if(!root)
     {

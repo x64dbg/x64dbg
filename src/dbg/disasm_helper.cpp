@@ -111,19 +111,6 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
     return ip;
 }
 
-const char* disasmtext(duint addr)
-{
-    unsigned char buffer[MAX_DISASM_BUFFER] = "";
-    MemRead(addr, buffer, sizeof(buffer));
-    Capstone cp;
-    static char instruction[64] = "";
-    if(!cp.Disassemble(addr, buffer))
-        strcpy_s(instruction, "???");
-    else
-        sprintf_s(instruction, "%s %s", cp.GetInstr()->mnemonic, cp.GetInstr()->op_str);
-    return instruction;
-}
-
 static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, bool getregs)
 {
     auto value = cp.ResolveOpValue(opindex, [&cp, getregs](x86_reg reg)

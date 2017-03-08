@@ -193,6 +193,7 @@
     <ClInclude Include="dynamicmem.h" />
     <ClInclude Include="expressionfunctions.h" />
     <ClInclude Include="exprfunc.h" />
+    <ClInclude Include="filemap.h" />
     <ClInclude Include="handles.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="exhandlerinfo.h" />

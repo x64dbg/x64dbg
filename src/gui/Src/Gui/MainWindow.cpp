@@ -1503,6 +1503,23 @@ void MainWindow::displayAttach()
     mCpuWidget->setDisasmFocus();
 }
 
+static bool getCmdLine(QString & cmdLine)
+{
+    auto result = false;
+    size_t cbsize = 0;
+    if(DbgFunctions()->GetCmdline(0, &cbsize))
+    {
+        auto buffer = new char[cbsize];
+        if(DbgFunctions()->GetCmdline(buffer, 0))
+        {
+            cmdLine = buffer;
+            result = true;
+        }
+        delete[] buffer;
+    }
+    return result;
+}
+
 void MainWindow::changeCommandLine()
 {
     if(!DbgIsDebugging())
@@ -1513,17 +1530,11 @@ void MainWindow::changeCommandLine()
     mLineEdit.setWindowTitle(tr("Change Command Line"));
     mLineEdit.setWindowIcon(DIcon("changeargs.png"));
 
-    size_t cbsize = 0;
-    char* cmdline = 0;
-    if(!DbgFunctions()->GetCmdline(0, &cbsize))
+    QString cmdLine;
+    if(!getCmdLine(cmdLine))
         mLineEdit.setText(tr("Cannot get remote command line, use the 'getcmdline' command for more information."));
     else
-    {
-        cmdline = new char[cbsize];
-        DbgFunctions()->GetCmdline(cmdline, 0);
-        mLineEdit.setText(QString(cmdline));
-        delete[] cmdline;
-    }
+        mLineEdit.setText(cmdLine);
 
     mLineEdit.setCursorPosition(0);
 
@@ -1536,7 +1547,8 @@ void MainWindow::changeCommandLine()
     {
         DbgFunctions()->MemUpdateMap();
         GuiUpdateMemoryView();
-        GuiAddLogMessage((tr("New command line: ") + mLineEdit.editText + "\n").toUtf8().constData());
+        getCmdLine(cmdLine);
+        GuiAddLogMessage((tr("New command line: ") + cmdLine + "\n").toUtf8().constData());
     }
 }
 

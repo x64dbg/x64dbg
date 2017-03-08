@@ -41,7 +41,8 @@ void stackupdateseh()
     SehCache = std::move(newcache);
 }
 
-static void getSymAddrName(duint addr, char* str)
+template<size_t _Count>
+static void getSymAddrName(duint addr, char(& str)[_Count])
 {
     ADDRINFO addrinfo;
     if(addr == 0)
@@ -52,10 +53,10 @@ static void getSymAddrName(duint addr, char* str)
     addrinfo.flags = flaglabel | flagmodule;
     _dbg_addrinfoget(addr, SEG_DEFAULT, &addrinfo);
     if(addrinfo.module[0] != '\0')
-        sprintf_s(str, MAX_COMMENT_SIZE, "%s.", addrinfo.module);
+        _snprintf_s(str, _TRUNCATE, "%s.", addrinfo.module);
     if(addrinfo.label[0] == '\0')
-        sprintf_s(addrinfo.label, "%p", addr);
-    strcat_s(str, MAX_COMMENT_SIZE, addrinfo.label);
+        _snprintf_s(addrinfo.label, _TRUNCATE, "%p", addr);
+    strncat_s(str, addrinfo.label, _TRUNCATE);
 }
 
 bool stackcommentget(duint addr, STACK_COMMENT* comment)
@@ -89,13 +90,13 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
     bool valid = disasmfast(disasmData + prev, previousInstr, &basicinfo);
     if(valid && basicinfo.call) //call
     {
-        char returnToAddr[MAX_COMMENT_SIZE] = "";
+        char returnToAddr[MAX_LABEL_SIZE] = "";
         getSymAddrName(data, returnToAddr);
 
         data = basicinfo.addr;
-        char returnFromAddr[MAX_COMMENT_SIZE] = "";
+        char returnFromAddr[MAX_LABEL_SIZE] = "";
         getSymAddrName(data, returnFromAddr);
-        sprintf_s(comment->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+        _snprintf_s(comment->comment, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
         strcpy_s(comment->color, "!rtnclr"); // Special token for return address color;
         return true;
     }
@@ -167,11 +168,15 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint
     Entry->from = From;
     Entry->to = To;
 
-    char returnToAddr[MAX_COMMENT_SIZE] = "";
+    /* https://github.com/x64dbg/x64dbg/pull/1478
+    char returnToAddr[MAX_LABEL_SIZE] = "";
     getSymAddrName(To, returnToAddr);
-    char returnFromAddr[MAX_COMMENT_SIZE] = "";
+    char returnFromAddr[MAX_LABEL_SIZE] = "";
     getSymAddrName(From, returnFromAddr);
-    sprintf_s(Entry->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+    _snprintf_s(Entry->comment, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+    */
+
+    getSymAddrName(From, Entry->comment);
 }
 
 #define MAX_CALLSTACK_CACHE 20
@@ -213,13 +218,13 @@ static void stackgetsuspectedcallstack(duint csp, std::vector<CALLSTACKENTRY> & 
                 CALLSTACKENTRY stackframe;
                 stackframe.addr = i;
                 stackframe.to = data;
-                char returnToAddr[MAX_COMMENT_SIZE] = "";
+                char returnToAddr[MAX_LABEL_SIZE] = "";
                 getSymAddrName(data, returnToAddr);
 
                 data = basicinfo.addr;
-                char returnFromAddr[MAX_COMMENT_SIZE] = "";
+                char returnFromAddr[MAX_LABEL_SIZE] = "";
                 getSymAddrName(data, returnFromAddr);
-                sprintf_s(stackframe.comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+                _snprintf_s(stackframe.comment, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
                 stackframe.from = data;
                 callstackVector.push_back(stackframe);
             }

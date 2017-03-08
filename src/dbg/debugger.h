@@ -136,6 +136,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
 EXCEPTION_DEBUG_INFO getLastExceptionInfo();
 bool dbgrestartadmin();
 void StepIntoWow64(void* traceCallBack);
+bool dbgisdepenabled();
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;
