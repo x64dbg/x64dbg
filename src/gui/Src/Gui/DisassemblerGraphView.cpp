@@ -23,7 +23,8 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
       mCip(0),
       mGoto(nullptr),
       syncOrigin(false),
-      forceCenter(false)
+      forceCenter(false),
+      layoutType(LayoutType::Medium)
 {
     this->status = "Loading...";
 
@@ -730,30 +731,70 @@ void DisassemblerGraphView::computeGraphLayout(DisassemblerBlock & block)
     //Compute child node layouts and arrange them horizontally
     int col = 0;
     int row_count = 1;
+    int childColumn = 0;
+    bool singleChild = block.new_exits.size() == 1;
     for(size_t i = 0; i < block.new_exits.size(); i++)
     {
-        duint edge = block.new_exits[block.new_exits.size() - i - 1];
+        duint edge = block.new_exits[i];
         this->computeGraphLayout(this->blocks[edge]);
-        this->adjustGraphLayout(this->blocks[edge], col, 1);
-        col += this->blocks[edge].col_count;
         if((this->blocks[edge].row_count + 1) > row_count)
             row_count = this->blocks[edge].row_count + 1;
+        childColumn = this->blocks[edge].col;
     }
 
-    block.row = 0;
-    if(col >= 2)
+    if(this->layoutType != LayoutType::Wide && block.new_exits.size() == 2)
     {
-        //Place this node centered over the child nodes
-        block.col = (col - 2) / 2;
-        block.col_count = col;
+        DisassemblerBlock & left = this->blocks[block.new_exits[0]];
+        DisassemblerBlock & right = this->blocks[block.new_exits[1]];
+        if(left.new_exits.size() == 0)
+        {
+           left.col = right.col - 2;
+           int add = left.col < 0 ? - left.col : 0;
+           this->adjustGraphLayout(right, add, 1);
+           this->adjustGraphLayout(left, add, 1);
+           col = right.col_count + add;
+        }
+        else if(right.new_exits.size() == 0)
+        {
+            this->adjustGraphLayout(left, 0, 1);
+            this->adjustGraphLayout(right, left.col + 2, 1);
+            col = std::max(left.col_count, right.col + 2);
+        }
+        else
+        {
+            this->adjustGraphLayout(left, 0, 1);
+            this->adjustGraphLayout(right, left.col_count, 1);
+            col = left.col_count + right.col_count;
+        }
+
+        block.col_count = std::max(2, col);
+        if(layoutType == LayoutType::Medium)
+            block.col = (left.col + right.col) / 2;
+        else
+            block.col = singleChild ? childColumn : (col - 2) / 2;
     }
     else
     {
-        //No child nodes, set single node's width (nodes are 2 columns wide to allow
-        //centering over a branch)
-        block.col = 0;
-        block.col_count = 2;
+        for(duint edge : block.new_exits)
+        {
+            this->adjustGraphLayout(this->blocks[edge], col, 1);
+            col += this->blocks[edge].col_count;
+        }
+        if(col >= 2)
+        {
+            //Place this node centered over the child nodes
+            block.col = singleChild ? childColumn : (col - 2) / 2;
+            block.col_count = col;
+        }
+        else
+        {
+            //No child nodes, set single node's width (nodes are 2 columns wide to allow
+            //centering over a branch)
+            block.col = 0;
+            block.col_count = 2;
+        }
     }
+    block.row = 0;
     block.row_count = row_count;
 }
 

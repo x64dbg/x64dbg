@@ -193,6 +193,13 @@ public:
         //dummy class
     };
 
+    enum class LayoutType
+    {
+        Wide,
+        Medium,
+        Narrow,
+    };
+
     DisassemblerGraphView(QWidget* parent = nullptr);
     ~DisassemblerGraphView();
     void initFont();
@@ -298,6 +305,7 @@ private:
     duint mCip;
     bool forceCenter;
     bool saveGraph;
+    LayoutType layoutType;
 
     QAction* mToggleOverview;
     QAction* mToggleSyncOrigin;
