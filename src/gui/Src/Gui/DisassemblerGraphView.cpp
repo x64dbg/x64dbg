@@ -1038,10 +1038,9 @@ void DisassemblerGraphView::renderFunction(Function & func)
     visited.insert(func.entry);
     std::queue<duint> queue;
     queue.push(this->blocks[func.entry].block.entry);
+    std::vector<duint> blockOrder;
     bool changed = true;
 
-    int best_edges;
-    duint best_parent;
     while(changed)
     {
         changed = false;
@@ -1051,6 +1050,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
         {
             DisassemblerBlock & block = this->blocks[queue.front()];
             queue.pop();
+            blockOrder.push_back(block.block.entry);
 
             for(duint edge : block.block.exits)
             {
@@ -1075,6 +1075,8 @@ void DisassemblerGraphView::renderFunction(Function & func)
 
         //No more nodes satisfy constraints, pick a node to continue constructing the graph
         duint best = 0;
+        int best_edges;
+        duint best_parent;
         for(auto & blockIt : this->blocks)
         {
             DisassemblerBlock & block = blockIt.second;
@@ -1182,9 +1184,9 @@ void DisassemblerGraphView::renderFunction(Function & func)
     //puts("Prepare edge routing");
 
     //Perform edge routing
-    for(auto & blockIt : this->blocks)
+    for(duint blockId : blockOrder)
     {
-        DisassemblerBlock & block = blockIt.second;
+        DisassemblerBlock & block = blocks[blockId];
         DisassemblerBlock & start = block;
         for(duint edge : block.block.exits)
         {
