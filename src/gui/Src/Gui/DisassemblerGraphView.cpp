@@ -174,6 +174,14 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
     for(auto & blockIt : this->blocks)
     {
         DisassemblerBlock & block = blockIt.second;
+        bool blockSelected = false;
+        for (const Instr& instr : block.block.instrs)
+        {
+            if (instr.addr == this->cur_instr)
+            {
+                blockSelected = true;
+            }
+        }
 
         //Ignore blocks that are not in view
         if(viewportRect.intersects(QRect(block.x + this->charWidth , block.y + this->charWidth,
@@ -262,7 +270,12 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
         // Render edges
         for(DisassemblerEdge & edge : block.edges)
         {
-            p.setPen(edge.color);
+            QPen pen(edge.color);
+            if (blockSelected)
+            {
+                pen.setStyle(Qt::DashLine);
+            }
+            p.setPen(pen);
             p.setBrush(edge.color);
             p.drawPolyline(edge.polyline);
             p.drawConvexPolygon(edge.arrow);
@@ -663,8 +676,15 @@ void DisassemblerGraphView::mouseReleaseEvent(QMouseEvent* event)
 
 void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    duint instr = this->getInstrForMouseEvent(event);
-    DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)).toUtf8().constData());
+    if(drawOverview)
+    {
+        toggleOverviewSlot();
+    }
+    else
+    {
+        duint instr = this->getInstrForMouseEvent(event);
+        DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)).toUtf8().constData());
+    }
 }
 
 void DisassemblerGraphView::prepareGraphNode(DisassemblerBlock & block)
