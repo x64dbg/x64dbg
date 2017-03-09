@@ -744,11 +744,11 @@ bool DisassemblerGraphView::isEdgeMarked(EdgesVector & edges, int row, int col, 
     return edges[row][col][index];
 }
 
-void DisassemblerGraphView::markEdge(EdgesVector & edges, int row, int col, int index)
+void DisassemblerGraphView::markEdge(EdgesVector & edges, int row, int col, int index, bool used)
 {
     while(int(edges[row][col].size()) <= index)
         edges[row][col].push_back(false);
-    edges[row][col][index] = true;
+    edges[row][col][index] = used;
 }
 
 int DisassemblerGraphView::findHorizEdgeIndex(EdgesVector & edges, int row, int min_col, int max_col)
@@ -833,42 +833,46 @@ DisassemblerGraphView::DisassemblerEdge DisassemblerGraphView::routeEdge(EdgesVe
     int col = start.col + 1;
     if(min_row != max_row)
     {
-        int ofs = 0;
-        while(true)
+        auto checkColumn = [min_row, max_row, &edge_valid](int column)
         {
-            col = start.col + 1 - ofs;
-            if(col >= 0)
+            if (column < 0 || column >= int(edge_valid[min_row].size()))
+                return false;
+            for(int row = min_row; row < max_row; row++)
             {
-                bool valid = true;
-                for(int row = min_row; row < max_row + 1; row++)
+                if(!edge_valid[row][column])
                 {
-                    if(!edge_valid[row][col])
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        if (!checkColumn(col))
+        {
+            if (checkColumn(end.col + 1))
+            {
+                col = end.col + 1;
+            }
+            else
+            {
+                int ofs = 0;
+                while(true)
+                {
+                    col = start.col + 1 - ofs;
+                    if(checkColumn(col))
                     {
-                        valid = false;
                         break;
                     }
-                }
-                if(valid)
-                    break;
-            }
 
-            col = start.col + 1 + ofs;
-            if(col < int(edge_valid[min_row].size()))
-            {
-                bool valid = true;
-                for(int row = min_row; row < max_row + 1; row++)
-                {
-                    if(!edge_valid[row][col])
+                    col = start.col + 1 + ofs;
+                    if(checkColumn(col))
                     {
-                        valid = false;
                         break;
                     }
-                }
-                if(valid)
-                    break;
-            }
 
-            ofs += 1;
+                    ofs += 1;
+                }
+            }
         }
     }
 
@@ -894,7 +898,11 @@ DisassemblerGraphView::DisassemblerEdge DisassemblerGraphView::routeEdge(EdgesVe
     if(end.row != (start.row + 1))
     {
         //Not in same row, need to generate a line for moving to the correct row
+        if (col == (start.col + 1))
+            this->markEdge(vert_edges, start.row + 1, start.col + 1, i, false);
         int index = this->findVertEdgeIndex(vert_edges, col, min_row, max_row);
+        if (col == (start.col + 1))
+            edge.start_index = index;
         edge.addPoint(end.row, col, index);
         horiz = false;
     }

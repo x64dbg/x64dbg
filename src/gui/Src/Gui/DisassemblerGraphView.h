@@ -226,7 +226,7 @@ public:
     using Matrix = std::vector<std::vector<T>>;
     using EdgesVector = Matrix<std::vector<bool>>;
     bool isEdgeMarked(EdgesVector & edges, int row, int col, int index);
-    void markEdge(EdgesVector & edges, int row, int col, int index);
+    void markEdge(EdgesVector & edges, int row, int col, int index, bool used = true);
     int findHorizEdgeIndex(EdgesVector & edges, int row, int min_col, int max_col);
     int findVertEdgeIndex(EdgesVector & edges, int col, int min_row, int max_row);
     DisassemblerEdge routeEdge(EdgesVector & horiz_edges, EdgesVector & vert_edges, Matrix<bool> & edge_valid, DisassemblerBlock & start, DisassemblerBlock & end, QColor color);
