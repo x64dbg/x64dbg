@@ -53,16 +53,28 @@ BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserCont
     return TRUE;
 }
 
-void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
+void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, SYMBOLCBDATA* cbData)
 {
     SYMBOLINFO symbol;
     memset(&symbol, 0, sizeof(SYMBOLINFO));
     symbol.isImported = true;
     apienumimports(Base, [&](duint base, duint addr, char* name, char* moduleName)
     {
+        cbData->decoratedSymbol[0] = '\0';
+        cbData->undecoratedSymbol[0] = '\0';
+
         symbol.addr = addr;
-        symbol.decoratedSymbol = name;
-        EnumCallback(&symbol, UserData);
+        symbol.decoratedSymbol = cbData->decoratedSymbol.data();
+        symbol.undecoratedSymbol = cbData->undecoratedSymbol.data();
+        strncpy_s(symbol.decoratedSymbol, MAX_SYM_NAME, name, _TRUNCATE);
+
+        // Convert a mangled/decorated C++ name to a readable format
+        if(!SafeUnDecorateSymbolName(name, symbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
+            symbol.undecoratedSymbol = nullptr;
+        else if(!strcmp(symbol.decoratedSymbol, symbol.undecoratedSymbol))
+            symbol.undecoratedSymbol = nullptr;
+
+        EnumCallback(&symbol, cbData->user);
     });
 }
 
@@ -86,7 +98,7 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
     if(symbol.addr)
         EnumCallback(&symbol, UserData);
 
-    SymEnumImports(Base, EnumCallback, UserData);
+    SymEnumImports(Base, EnumCallback, &symbolCbData);
 }
 
 void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
