@@ -26,6 +26,7 @@ bool cbInstrDbload(int argc, char* argv[])
         DbClear();
     }
     DbLoad(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr);
+    DebugSetBreakpoints();
     GuiUpdateAllViews();
     return true;
 }

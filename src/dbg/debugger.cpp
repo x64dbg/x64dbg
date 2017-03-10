@@ -1176,6 +1176,11 @@ void DebugRemoveBreakpoints()
     BpEnumAll(cbRemoveModuleBreakpoints);
 }
 
+void DebugSetBreakpoints()
+{
+    BpEnumAll(cbSetModuleBreakpoints);
+}
+
 void cbStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -2375,7 +2380,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
     // Fill the UNICODE_STRING to be set in the debuggee
     UNICODE_STRING new_command_line;
-    new_command_line.Length = command_linewstr.length() * sizeof(WCHAR); //max value: 32766 * 2 = 65532
+    new_command_line.Length = USHORT(command_linewstr.length() * sizeof(WCHAR)); //max value: 32766 * 2 = 65532
     new_command_line.MaximumLength = new_command_line.Length + sizeof(WCHAR); //max value: 65532 + 2 = 65534
     new_command_line.Buffer = PWSTR(command_linewstr.c_str()); //allow cast from const because the UNICODE_STRING will not be used locally
 
