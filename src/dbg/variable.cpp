@@ -237,7 +237,7 @@ bool varget(const char* Name, char* String, int* Size, VAR_TYPE* Type)
     if(Type)
         *Type = vartype;
     if(String)
-        memcpy(String, varvalue.u.data->data(), varsize);
+        memcpy(String, varvalue.u.data->data(), Size ? min(*Size, varsize) : varsize);
     return true;
 }
 
