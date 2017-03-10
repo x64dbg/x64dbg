@@ -10,6 +10,7 @@
 #include "argument.h"
 #include "loop.h"
 #include "debugger.h"
+#include "stringformat.h"
 
 bool cbInstrDbsave(int argc, char* argv[])
 {
@@ -124,7 +125,7 @@ bool cbInstrLabelSet(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return false;
-    if(!LabelSet(addr, argv[2], true))
+    if(!LabelSet(addr, stringformatinline(argv[2]).c_str(), true))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting label"));
         return false;
