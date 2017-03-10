@@ -159,7 +159,7 @@ void SymbolView::setupContextMenu()
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
 
     mCopyPathAction = new QAction(DIcon("copyfilepath.png"), tr("Copy File &Path"), this);
-    mCopyPathAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    mCopyPathAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mCopyPathAction);
     mModuleList->mList->addAction(mCopyPathAction);
     mModuleList->mSearchList->addAction(mCopyPathAction);
