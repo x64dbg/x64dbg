@@ -49,6 +49,7 @@ bool cbInstrCommentSet(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting comment"));
         return false;
     }
+    GuiUpdateAllViews();
     return true;
 }
 
