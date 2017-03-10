@@ -1554,9 +1554,10 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     {
         std::vector<THREADINFO> threads;
         ThreadGetList(threads);
-        if(!threads.size())
+        if(threads.size())
+            hActiveThread = threads[0].Handle;
+        else
             dputs(QT_TRANSLATE_NOOP("DBG", "No threads left to switch to (bug?)"));
-        hActiveThread = threads[0].Handle;
     }
     DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     PLUG_CB_EXITTHREAD callbackInfo;
