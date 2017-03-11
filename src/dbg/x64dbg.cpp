@@ -24,6 +24,7 @@
 #include "datainst_helper.h"
 #include "exception.h"
 #include "expressionfunctions.h"
+#include "formatfunctions.h"
 #include "yara/yara.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
@@ -684,6 +685,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dputs(QT_TRANSLATE_NOOP("DBG", "Registering GUI command handler..."));
     ExpressionFunctions::Init();
     dputs(QT_TRANSLATE_NOOP("DBG", "Registering expression functions..."));
+    FormatFunctions::Init();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Registering format functions..."));
     SCRIPTTYPEINFO info;
     strcpy_s(info.name, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Default")));
     info.id = 0;

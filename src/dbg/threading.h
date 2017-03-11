@@ -55,6 +55,7 @@ enum SectionLock
     LockPluginCommandList,
     LockPluginMenuList,
     LockPluginExprfunctionList,
+    LockPluginFormatfunctionList,
     LockSehCache,
     LockMnemonicHelp,
     LockTraceRecord,
@@ -71,6 +72,7 @@ enum SectionLock
     LockLineCache,
     LockTypeManager,
     LockModuleHashes,
+    LockFormatFunctions,
 
     // Number of elements in this enumeration. Must always be the last
     // index.

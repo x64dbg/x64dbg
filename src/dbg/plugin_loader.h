@@ -52,6 +52,12 @@ struct PLUG_EXPRFUNCTION
     char name[deflen];
 };
 
+struct PLUG_FORMATFUNCTION
+{
+    int pluginHandle;
+    char name[deflen];
+};
+
 //plugin management functions
 bool pluginload(const char* pluginname, bool loadall = false);
 bool pluginunload(const char* pluginname, bool unloadall = false);
@@ -81,5 +87,7 @@ void pluginmenusetname(int pluginHandle, int hMenu, const char* name);
 void pluginmenuentrysetname(int pluginHandle, int hEntry, const char* name);
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata);
 bool pluginexprfuncunregister(int pluginHandle, const char* name);
+bool pluginformatfuncregister(int pluginHandle, const char* type, CBPLUGINFORMATFUNCTION cbFunction, void* userdata);
+bool pluginformatfuncunregister(int pluginHandle, const char* type);
 
 #endif // _PLUGIN_LOADER_H
