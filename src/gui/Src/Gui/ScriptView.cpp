@@ -413,12 +413,12 @@ void ScriptView::error(int line, QString message)
         title = tr("Error on line") + title.sprintf(" %.4d!", line);
     else
         title = tr("Script Error!");
-    QMessageBox msg(QMessageBox::Critical, title, message);
-    msg.setWindowIcon(DIcon("script-error.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
-    Bridge::getBridge()->setResult();
+    msg->setIcon(QMessageBox::Critical);
+    msg->setWindowTitle(title);
+    msg->setText(message);
+    msg->setWindowIcon(DIcon("script-error.png"));
+    msg->setParent(this, Qt::Dialog);
+    msg->show();
 }
 
 void ScriptView::setTitle(QString title)
