@@ -449,7 +449,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
     if(bCanClose)
     {
         saveWindowSettings();
-        emit Bridge::getBridge()->close();
     }
     if(BridgeSettingGetUint("Gui", "NoCloseDialog", &noClose) && noClose)
         mCloseDialog->hide();
@@ -465,6 +464,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
         CloseSnowman(mSnowmanView);
         Sleep(100);
         mCloseThread->start();
+        emit Bridge::getBridge()->close();
     }
     if(bCanClose)
     {
