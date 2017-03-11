@@ -22,6 +22,8 @@ static bool volatile bAbort = false;
 
 static bool volatile bIsRunning = false;
 
+static bool scriptLogEnabled = false;
+
 enum CMDRESULT
 {
     STATUS_ERROR = false,
@@ -307,6 +309,7 @@ static bool scriptisinternalcommand(const char* text, const char* cmd)
 
 static CMDRESULT scriptinternalcmdexec(const char* cmd)
 {
+    scriptLogEnabled = false;
     if(scriptisinternalcommand(cmd, "ret")) //script finished
     {
         if(!scriptstack.size()) //nothing on the stack
@@ -325,6 +328,8 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_PAUSE;
     else if(scriptisinternalcommand(cmd, "nop")) //do nothing
         return STATUS_CONTINUE;
+    else if(scriptisinternalcommand(cmd, "log"))
+        scriptLogEnabled = true;
     auto res = cmddirectexec(cmd);
     while(DbgIsDebugging() && dbgisrunning() && !bAbort) //while not locked (NOTE: possible deadlock)
     {
@@ -628,4 +633,11 @@ bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info)
         return false;
     memcpy(info, &linemap.at(line - 1).u.branch, sizeof(SCRIPTBRANCH));
     return true;
+}
+
+void scriptlog(const char* msg)
+{
+    if(!scriptLogEnabled)
+        return;
+    GuiScriptSetInfoLine(scriptIp, msg);
 }
