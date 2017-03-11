@@ -12,6 +12,7 @@ bool cbInstrDisableGuiUpdate(int argc, char* argv[]);
 bool cbDebugSetfreezestack(int argc, char* argv[]);
 bool cbInstrRefinit(int argc, char* argv[]);
 bool cbInstrRefadd(int argc, char* argv[]);
+bool cbInstrRefGet(int argc, char* argv[]);
 bool cbInstrEnableLog(int argc, char* argv[]);
 bool cbInstrDisableLog(int argc, char* argv[]);
 bool cbInstrAddFavTool(int argc, char* argv[]);

@@ -1228,9 +1228,9 @@ BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
     _gui_sendmessage(GUI_REF_SETCELLCONTENT, &info, 0);
 }
 
-BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col)
+BRIDGE_IMPEXP char* GuiReferenceGetCellContent(int row, int col)
 {
-    return (const char*)_gui_sendmessage(GUI_REF_GETCELLCONTENT, (void*)(duint)row, (void*)(duint)col);
+    return (char*)_gui_sendmessage(GUI_REF_GETCELLCONTENT, (void*)(duint)row, (void*)(duint)col);
 }
 
 BRIDGE_IMPEXP void GuiReferenceReloadData()

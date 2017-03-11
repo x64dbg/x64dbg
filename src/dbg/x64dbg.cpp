@@ -385,6 +385,7 @@ static void registercommands()
     dbgcmdnew("setfreezestack", cbDebugSetfreezestack, false); //freeze the stack from auto updates
     dbgcmdnew("refinit", cbInstrRefinit, false);
     dbgcmdnew("refadd", cbInstrRefadd, false);
+    dbgcmdnew("refget", cbInstrRefGet, false);
     dbgcmdnew("EnableLog\1LogEnable", cbInstrEnableLog, false); //enable log
     dbgcmdnew("DisableLog\1LogDisable", cbInstrDisableLog, false); //disable log
     dbgcmdnew("ClearLog\1cls\1lc\1lclr", cbClearLog, false); //clear the log

@@ -209,7 +209,8 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REF_ADDCOLUMN:
-        referenceManager->currentReferenceView()->addColumnAt((int)param1, QString((const char*)param2));
+        if(referenceManager->currentReferenceView())
+            referenceManager->currentReferenceView()->addColumnAt((int)param1, QString((const char*)param2));
         break;
 
     case GUI_REF_SETROWCOUNT:
@@ -217,7 +218,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REF_GETROWCOUNT:
-        return (void*)referenceManager->currentReferenceView()->mList->getRowCount();
+        if(referenceManager->currentReferenceView())
+            return (void*)referenceManager->currentReferenceView()->mList->getRowCount();
+        return 0;
 
     case GUI_REF_DELETEALLCOLUMNS:
         GuiReferenceInitialize(tr("References").toUtf8().constData());
@@ -231,7 +234,15 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     break;
 
     case GUI_REF_GETCELLCONTENT:
-        return (void*)referenceManager->currentReferenceView()->mList->getCellContent((int)param1, (int)param2).toUtf8().constData();
+    {
+        QString content;
+        if(referenceManager->currentReferenceView())
+            content = referenceManager->currentReferenceView()->mList->getCellContent((int)param1, (int)param2);
+        auto bytes = content.toUtf8();
+        auto data = BridgeAlloc(bytes.size() + 1);
+        memcpy(data, bytes.constData(), bytes.size());
+        return data;
+    }
 
     case GUI_REF_RELOADDATA:
         emit referenceReloadData();
