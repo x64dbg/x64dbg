@@ -6,6 +6,7 @@
 #include "function.h"
 #include "stringformat.h"
 #include "value.h"
+#include "variable.h"
 
 bool cbDebugDisasm(int argc, char* argv[])
 {
@@ -167,7 +168,8 @@ static bool bRefinit = false;
 
 bool cbInstrRefinit(int argc, char* argv[])
 {
-    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script")));
+    auto title = argc > 1 ? stringformatinline(argv[1]) : GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script"));
+    GuiReferenceInitialize(title.c_str());
     GuiReferenceAddColumn(sizeof(duint) * 2, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
     GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data")));
     GuiReferenceSetRowCount(0);
@@ -192,6 +194,21 @@ bool cbInstrRefadd(int argc, char* argv[])
     GuiReferenceSetCellContent(index, 0, addr_text);
     GuiReferenceSetCellContent(index, 1, stringformatinline(argv[2]).c_str());
     GuiReferenceReloadData();
+    return true;
+}
+
+bool cbInstrRefGet(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    duint row;
+    if(!valfromstring(argv[1], &row, false))
+        return false;
+    auto content = GuiReferenceGetCellContent(int(row), 0);
+    duint addr = 0;
+    valfromstring(content, &addr, false);
+    varset("$result", addr, false);
+    BridgeFree(content);
     return true;
 }
 
