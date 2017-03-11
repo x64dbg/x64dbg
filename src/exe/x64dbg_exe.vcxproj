@@ -46,9 +46,6 @@
     <None Include="manifest.xml" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="app.manifest" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="..\bug32.ico" />
     <Image Include="..\bug64.ico" />
   </ItemGroup>

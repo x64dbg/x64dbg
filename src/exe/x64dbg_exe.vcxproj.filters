@@ -60,9 +60,6 @@
     <None Include="manifest.xml" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="app.manifest" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="..\bug32.ico">
       <Filter>Resource Files</Filter>
     </Image>
