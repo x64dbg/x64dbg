@@ -54,4 +54,7 @@ namespace Exprfunc
 
     duint funcstart(duint addr);
     duint funcend(duint addr);
+
+    duint refcount();
+    duint refaddr(duint row);
 }
