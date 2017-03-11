@@ -49,6 +49,9 @@ protected:
 
 private:
     Ui::CPUWidget* ui;
+
+private slots:
+    void splitterMoved(int pos, int index);
 };
 
 #endif // CPUWIDGET_H

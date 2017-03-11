@@ -22,7 +22,7 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowI
     setOkEnabled(false);
     ui->editExpression->setFocus();
     validRangeStart = 0;
-    validRangeEnd = 0;
+    validRangeEnd = ~0;
     fileOffset = false;
     mValidateThread = new ValidateExpressionThread(this);
     mValidateThread->setOnExpressionChangedCallback(std::bind(&GotoDialog::validateExpression, this, std::placeholders::_1));
@@ -148,7 +148,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
 
 bool GotoDialog::IsValidMemoryRange(duint addr)
 {
-    return ((!validRangeStart && !validRangeEnd) || (addr >= validRangeStart && addr < validRangeEnd));
+    return addr >= validRangeStart && addr < validRangeEnd;
 }
 
 void GotoDialog::setOkEnabled(bool enabled)

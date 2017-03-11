@@ -3,6 +3,7 @@
 #include "symbolinfo.h"
 #include "module.h"
 #include "disasm_fast.h"
+#include "formatfunctions.h"
 
 namespace ValueType
 {
@@ -93,11 +94,12 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
     return result;
 }
 
-static const char* getArgExpressionType(const String & formatString, ValueType::ValueType & type)
+static const char* getArgExpressionType(const String & formatString, ValueType::ValueType & type, String & complexArgs)
 {
-    auto hasExplicitType = false;
+    size_t toSkip = 0;
     type = ValueType::Hex;
-    if(formatString.size() > 2 && !isdigit(formatString[0]) && formatString[1] == ':')
+    complexArgs.clear();
+    if(formatString.size() > 2 && !isdigit(formatString[0]) && formatString[1] == ':') //simple type
     {
         switch(formatString[0])
         {
@@ -128,19 +130,25 @@ static const char* getArgExpressionType(const String & formatString, ValueType::
         default: //invalid format
             return nullptr;
         }
-        hasExplicitType = true;
+        toSkip = 2; //skip '?:'
     }
-    auto expression = formatString.c_str();
-    if(hasExplicitType)
-        expression += 2;
-    else
-        type = ValueType::Hex;
-    return expression;
+    else if(formatString.size() > 3 && (formatString[0] == ';' || formatString[0] == '@')) //complex type
+    {
+        for(toSkip = 1; toSkip < formatString.length(); toSkip++)
+            if(formatString[toSkip] == '@')
+            {
+                toSkip++;
+                break;
+            }
+        complexArgs = formatString.substr(1, toSkip - 2);
+    }
+    return formatString.c_str() + toSkip;
 }
 
 static unsigned int getArgNumType(const String & formatString, ValueType::ValueType & type)
 {
-    auto expression = getArgExpressionType(formatString, type);
+    String complexArgs;
+    auto expression = getArgExpressionType(formatString, type, complexArgs);
     unsigned int argnum = 0;
     if(!expression || sscanf(expression, "%u", &argnum) != 1)
         type = ValueType::Unknown;
@@ -205,11 +213,27 @@ String stringformat(String format, const FormatValueVector & values)
     return output;
 }
 
+static String printComplexValue(FormatValueType value, const String & complexArgs)
+{
+    auto split = StringUtils::Split(complexArgs, ';');
+    duint valuint;
+    if(!split.empty() && valfromstring(value, &valuint))
+    {
+        std::vector<char> dest(MAX_SETTING_SIZE, '\0'); //TODO: check performance, could be made static
+        if(FormatFunctions::Call(dest, split[0], split, valuint))
+            return String(dest.data());
+    }
+    return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Formatting Error]"));
+}
+
 static String handleFormatStringInline(const String & formatString)
 {
     auto type = ValueType::Unknown;
-    auto value = getArgExpressionType(formatString, type);
-    if(value && *value)
+    String complexArgs;
+    auto value = getArgExpressionType(formatString, type, complexArgs);
+    if(!complexArgs.empty())
+        return printComplexValue(value, complexArgs);
+    else if(value && *value)
         return printValue(value, type);
     return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Formatting Error]"));
 }

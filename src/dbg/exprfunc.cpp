@@ -8,6 +8,7 @@
 #include "TraceRecord.h"
 #include "disasm_helper.h"
 #include "function.h"
+#include "value.h"
 
 namespace Exprfunc
 {
@@ -294,5 +295,19 @@ namespace Exprfunc
     {
         duint end;
         return FunctionGet(addr, nullptr, &end) ? end : 0;
+    }
+
+    duint refcount()
+    {
+        return GuiReferenceGetRowCount();
+    }
+
+    duint refaddr(duint row)
+    {
+        auto content = GuiReferenceGetCellContent(int(row), 0);
+        duint addr = 0;
+        valfromstring(content, &addr, false);
+        BridgeFree(content);
+        return addr;
     }
 }

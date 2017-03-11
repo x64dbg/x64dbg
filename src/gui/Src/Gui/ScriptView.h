@@ -3,6 +3,8 @@
 
 #include "StdTable.h"
 
+class QMessageBox;
+
 class ScriptView : public StdTable
 {
     Q_OBJECT
@@ -39,6 +41,7 @@ public slots:
     void newIp();
     void question(QString message);
     void enableHighlighting(bool enable);
+    void messageResult(int result);
 
 private:
     //private functions
@@ -52,6 +55,7 @@ private:
     QString filename;
 
     MenuBuilder* mMenu;
+    QMessageBox* msg = nullptr;
 };
 
 #endif // SCRIPTVIEW_H

@@ -1088,7 +1088,7 @@ BRIDGE_IMPEXP int GuiReferenceGetRowCount();
 BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns();
 BRIDGE_IMPEXP void GuiReferenceInitialize(const char* name);
 BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str);
-BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col);
+BRIDGE_IMPEXP char* GuiReferenceGetCellContent(int row, int col);
 BRIDGE_IMPEXP void GuiReferenceReloadData();
 BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll);
 BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress);

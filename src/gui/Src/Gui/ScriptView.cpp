@@ -24,6 +24,12 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
 
     setupContextMenu();
 
+    //message box
+    msg = new QMessageBox(this);
+    msg->setWindowFlags(msg->windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    msg->setModal(false);
+    connect(msg, SIGNAL(finished(int)), this, SLOT(messageResult(int)));
+
     // Slots
     connect(Bridge::getBridge(), SIGNAL(scriptAdd(int, const char**)), this, SLOT(add(int, const char**)));
     connect(Bridge::getBridge(), SIGNAL(scriptClear()), this, SLOT(clear()));
@@ -34,6 +40,7 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(scriptMessage(QString)), this, SLOT(message(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptQuestion(QString)), this, SLOT(question(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptEnableHighlighting(bool)), this, SLOT(enableHighlighting(bool)));
+    connect(Bridge::getBridge(), SIGNAL(close()), msg, SLOT(close()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     Initialize();
@@ -406,12 +413,12 @@ void ScriptView::error(int line, QString message)
         title = tr("Error on line") + title.sprintf(" %.4d!", line);
     else
         title = tr("Script Error!");
-    QMessageBox msg(QMessageBox::Critical, title, message);
-    msg.setWindowIcon(DIcon("script-error.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
-    Bridge::getBridge()->setResult();
+    msg->setIcon(QMessageBox::Critical);
+    msg->setWindowTitle(title);
+    msg->setText(message);
+    msg->setWindowIcon(DIcon("script-error.png"));
+    msg->setParent(this, Qt::Dialog);
+    msg->show();
 }
 
 void ScriptView::setTitle(QString title)
@@ -505,12 +512,12 @@ void ScriptView::cmdExec()
 
 void ScriptView::message(QString message)
 {
-    QMessageBox msg(QMessageBox::Information, tr("Message"), message);
-    msg.setWindowIcon(DIcon("information.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
-    Bridge::getBridge()->setResult();
+    msg->setIcon(QMessageBox::Information);
+    msg->setWindowTitle(tr("Message"));
+    msg->setText(message);
+    msg->setStandardButtons(QMessageBox::Ok);
+    msg->setWindowIcon(DIcon("information.png"));
+    msg->show();
 }
 
 void ScriptView::newIp()
@@ -524,17 +531,20 @@ void ScriptView::newIp()
 
 void ScriptView::question(QString message)
 {
-    QMessageBox msg(QMessageBox::Question, tr("Question"), message, QMessageBox::Yes | QMessageBox::No);
-    msg.setWindowIcon(DIcon("question.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    if(msg.exec() == QMessageBox::Yes)
-        Bridge::getBridge()->setResult(1);
-    else
-        Bridge::getBridge()->setResult(0);
+    msg->setIcon(QMessageBox::Question);
+    msg->setWindowTitle(tr("Question"));
+    msg->setText(message);
+    msg->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msg->setWindowIcon(DIcon("question.png"));
+    msg->show();
 }
 
 void ScriptView::enableHighlighting(bool enable)
 {
     mEnableSyntaxHighlighting = enable;
+}
+
+void ScriptView::messageResult(int result)
+{
+    Bridge::getBridge()->setResult(result == QMessageBox::Yes);
 }

@@ -351,7 +351,7 @@ void cbDebuggerPaused()
         if(PrevThreadId == 0)
             PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
         DWORD currentThreadId = ThreadGetId(hActiveThread);
-        if(currentThreadId != PrevThreadId)
+        if(currentThreadId != PrevThreadId && PrevThreadId != 0)
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Thread switched from %X to %X !\n"), PrevThreadId, currentThreadId);
             PrevThreadId = currentThreadId;
@@ -541,7 +541,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
         static DWORD PrevThreadId = 0;
         if(PrevThreadId == 0)
             PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
-        if(currentThreadId != PrevThreadId)
+        if(currentThreadId != PrevThreadId && PrevThreadId != 0)
         {
             char threadName2[MAX_THREAD_NAME_SIZE] = "";
             if(!ThreadGetName(PrevThreadId, threadName2) || threadName2[0] == 0)
@@ -1176,6 +1176,11 @@ void DebugRemoveBreakpoints()
     BpEnumAll(cbRemoveModuleBreakpoints);
 }
 
+void DebugSetBreakpoints()
+{
+    BpEnumAll(cbSetModuleBreakpoints);
+}
+
 void cbStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -1554,9 +1559,10 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     {
         std::vector<THREADINFO> threads;
         ThreadGetList(threads);
-        if(!threads.size())
+        if(threads.size())
+            hActiveThread = threads[0].Handle;
+        else
             dputs(QT_TRANSLATE_NOOP("DBG", "No threads left to switch to (bug?)"));
-        hActiveThread = threads[0].Handle;
     }
     DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     PLUG_CB_EXITTHREAD callbackInfo;
@@ -2374,7 +2380,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
     // Fill the UNICODE_STRING to be set in the debuggee
     UNICODE_STRING new_command_line;
-    new_command_line.Length = command_linewstr.length() * sizeof(WCHAR); //max value: 32766 * 2 = 65532
+    new_command_line.Length = USHORT(command_linewstr.length() * sizeof(WCHAR)); //max value: 32766 * 2 = 65532
     new_command_line.MaximumLength = new_command_line.Length + sizeof(WCHAR); //max value: 65532 + 2 = 65534
     new_command_line.Buffer = PWSTR(command_linewstr.c_str()); //allow cast from const because the UNICODE_STRING will not be used locally
 

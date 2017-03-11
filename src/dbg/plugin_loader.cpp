@@ -9,6 +9,7 @@
 #include "debugger.h"
 #include "threading.h"
 #include "expressionfunctions.h"
+#include "formatfunctions.h"
 
 /**
 \brief List of plugins.
@@ -44,6 +45,11 @@ static std::vector<PLUG_MENU> pluginMenuList;
 \brief List of plugin exprfunctions.
 */
 static std::vector<PLUG_EXPRFUNCTION> pluginExprfunctionList;
+
+/**
+\brief List of plugin formatfunctions.
+*/
+static std::vector<PLUG_FORMATFUNCTION> pluginFormatfunctionList;
 
 /**
 \brief Loads a plugin from the plugin directory.
@@ -888,6 +894,39 @@ bool pluginexprfuncunregister(int pluginHandle, const char* name)
             if(!ExpressionFunctions::Unregister(name))
                 return false;
             dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Expression function \"%s\" unregistered!\n"), name);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool pluginformatfuncregister(int pluginHandle, const char* type, CBPLUGINFORMATFUNCTION cbFunction, void* userdata)
+{
+    PLUG_FORMATFUNCTION plugFormatfunction;
+    plugFormatfunction.pluginHandle = pluginHandle;
+    strcpy_s(plugFormatfunction.name, type);
+    if(!FormatFunctions::Register(type, cbFunction, userdata))
+        return false;
+    EXCLUSIVE_ACQUIRE(LockPluginFormatfunctionList);
+    pluginFormatfunctionList.push_back(plugFormatfunction);
+    EXCLUSIVE_RELEASE();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Format function \"%s\" registered!\n"), type);
+    return true;
+}
+
+bool pluginformatfuncunregister(int pluginHandle, const char* type)
+{
+    EXCLUSIVE_ACQUIRE(LockPluginFormatfunctionList);
+    for(auto it = pluginFormatfunctionList.begin(); it != pluginFormatfunctionList.end(); ++it)
+    {
+        const auto & currentFormatfunction = *it;
+        if(currentFormatfunction.pluginHandle == pluginHandle && !strcmp(currentFormatfunction.name, type))
+        {
+            pluginFormatfunctionList.erase(it);
+            EXCLUSIVE_RELEASE();
+            if(!FormatFunctions::Unregister(type))
+                return false;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Format function \"%s\" unregistered!\n"), type);
             return true;
         }
     }

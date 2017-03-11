@@ -240,7 +240,7 @@ bool cbInstrCapstone(int argc, char* argv[])
     const cs_insn* instr = cp.GetInstr();
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
-    dprintf("%s %s\n", instr->mnemonic, instr->op_str);
+    dprintf("%s %s | %s\n", instr->mnemonic, instr->op_str, cp.InstructionText(true).c_str());
     dprintf("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), cp.OpCount());
     for(int i = 0; i < argcount; i++)
     {

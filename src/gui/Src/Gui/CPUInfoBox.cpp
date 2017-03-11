@@ -232,9 +232,13 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                     continue;
                 setInfoLine(j, symbolicName);
             }
-            else
+            else if(!mnemonic.startsWith("xmm") && //TODO: properly handle display of these registers
+                    !mnemonic.startsWith("ymm") &&
+                    !mnemonic.startsWith("st"))
+            {
                 setInfoLine(j, mnemonic + "=" + symbolicName);
-            j++;
+                j++;
+            }
         }
     }
     if(getInfoLine(0) == getInfoLine(1)) //check for duplicate info line

@@ -2236,7 +2236,7 @@ bool valtostring(const char* string, duint value, bool silent)
 {
     if(!*string)
         return false;
-    else if(*string == '@' || strstr(string, "[")) //memory location
+    else if(strstr(string, "[")) //memory location
     {
         if(!DbgIsDebugging())
         {

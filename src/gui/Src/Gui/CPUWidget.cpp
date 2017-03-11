@@ -34,6 +34,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->mTopLeftUpperRightFrameLayout->addWidget(mDisas);
 
     ui->mTopLeftVSplitter->setCollapsible(1, true); //allow collapsing of the InfoBox
+    connect(ui->mTopLeftVSplitter, SIGNAL(splitterMoved(int, int)), this, SLOT(splitterMoved(int, int)));
 
     mInfo = new CPUInfoBox();
     ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
@@ -62,6 +63,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mGeneralRegs->SetChangeButton(button_changeview);
 
     ui->mTopRightVSplitter->setCollapsible(1, true); //allow collapsing of the ArgumentWidget
+    connect(ui->mTopRightVSplitter, SIGNAL(splitterMoved(int, int)), this, SLOT(splitterMoved(int, int)));
 
     ui->mTopRightUpperFrameLayout->addWidget(button_changeview);
     ui->mTopRightUpperFrameLayout->addWidget(upperScrollArea);
@@ -89,6 +91,7 @@ inline void loadSplitter(QSplitter* splitter, QString name)
         splitter->restoreGeometry(QByteArray::fromBase64(QByteArray(setting)));
     if(BridgeSettingGet("Main Window Settings", (name + "State").toUtf8().constData(), setting))
         splitter->restoreState(QByteArray::fromBase64(QByteArray(setting)));
+    splitter->splitterMoved(1, 0);
 }
 
 void CPUWidget::saveWindowSettings()
@@ -168,4 +171,21 @@ CPUMultiDump* CPUWidget::getDumpWidget()
 CPUStack* CPUWidget::getStackWidget()
 {
     return mStack;
+}
+
+void CPUWidget::splitterMoved(int pos, int index)
+{
+    Q_UNUSED(pos);
+    Q_UNUSED(index);
+    auto splitter = (QSplitter*)sender();
+    if(splitter->sizes().at(1) == 0)
+    {
+        splitter->handle(1)->setCursor(Qt::UpArrowCursor);
+        splitter->setStyleSheet("QSplitter::handle:vertical { border-top: 2px solid grey; }");
+    }
+    else
+    {
+        splitter->handle(1)->setCursor(Qt::SplitVCursor);
+        splitter->setStyleSheet("");
+    }
 }
