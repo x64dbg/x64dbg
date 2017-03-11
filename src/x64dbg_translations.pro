@@ -378,7 +378,6 @@ HEADERS += \
     gui/Src/Utils/MainWindowCloseThread.h \
     gui/Src/Utils/MenuBuilder.h \
     gui/Src/Utils/MiscUtil.h \
-    gui/Src/Utils/QActionLambda.h \
     gui/Src/Utils/RichTextPainter.h \
     gui/Src/Utils/StringUtil.h \
     gui/Src/Utils/UpdateChecker.h \

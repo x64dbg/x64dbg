@@ -1666,14 +1666,12 @@ void DisassemblerGraphView::fontsUpdatedSlot()
 
 void DisassemblerGraphView::shortcutsUpdatedSlot()
 {
-    for(const auto & actionShortcut : actionShortcutPairs)
-        actionShortcut.action->setShortcut(ConfigShortcut(actionShortcut.shortcut));
+    updateShortcuts();
 }
 
 void DisassemblerGraphView::toggleOverviewSlot()
 {
     drawOverview = !drawOverview;
-    mToggleOverview->setCheckable(true);
     mToggleOverview->setChecked(drawOverview);
     this->viewport()->update();
 }

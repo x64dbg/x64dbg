@@ -256,7 +256,6 @@ HEADERS += \
     Src/Gui/NotesManager.h \
     Src/Gui/NotepadView.h \
     Src/Utils/MenuBuilder.h \
-    Src/Utils/QActionLambda.h \
     Src/Gui/CPUMultiDump.h \
     Src/Gui/AssembleDialog.h \
     Src/ThirdPartyLibs/float128/float128.h \

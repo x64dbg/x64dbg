@@ -144,12 +144,6 @@ void AbstractTableView::invalidateCachedFont()
     mFontMetrics = new CachedFontMetrics(this, font());
 }
 
-void AbstractTableView::updateShortcuts()
-{
-    for(const auto & actionShortcut : actionShortcutPairs)
-        actionShortcut.action->setShortcut(ConfigShortcut(actionShortcut.shortcut));
-}
-
 void AbstractTableView::slot_updateColors()
 {
     updateColors();

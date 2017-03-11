@@ -17,13 +17,14 @@
 #include "Bridge.h"
 #include "RichTextPainter.h"
 #include "QBeaEngine.h"
+#include "ActionHelpers.h"
 
 class MenuBuilder;
 class CachedFontMetrics;
 class GotoDialog;
 class XrefBrowseDialog;
 
-class DisassemblerGraphView : public QAbstractScrollArea
+class DisassemblerGraphView : public QAbstractScrollArea, public ActionHelper<DisassemblerGraphView>
 {
     Q_OBJECT
 public:
@@ -334,8 +335,6 @@ private:
     QBeaEngine disasm;
     GotoDialog* mGoto;
     XrefBrowseDialog* mXrefDlg;
-protected:
-#include "ActionHelpers.h"
 };
 
 #endif // DISASSEMBLERGRAPHVIEW_H

@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "Bridge.h"
+#include "ActionHelpers.h"
 
 class MenuBuilder;
 class GotoDialog;
@@ -12,7 +13,7 @@ namespace Ui
     class StructWidget;
 }
 
-class StructWidget : public QWidget
+class StructWidget : public QWidget, public ActionHelper<StructWidget>
 {
     Q_OBJECT
 
@@ -49,9 +50,6 @@ private slots:
     void parseFileSlot();
     void changeAddrSlot();
     void refreshSlot();
-
-protected:
-#include "ActionHelpers.h"
 };
 
 #endif // STRUCTWIDGET_H
