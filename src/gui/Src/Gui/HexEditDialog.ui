@@ -179,6 +179,8 @@
  <tabstops>
   <tabstop>lineEditAscii</tabstop>
   <tabstop>lineEditUnicode</tabstop>
+  <tabstop>btnCodepage</tabstop>
+  <tabstop>lineEditCodepage</tabstop>
   <tabstop>chkKeepSize</tabstop>
   <tabstop>chkEntireBlock</tabstop>
   <tabstop>btnOk</tabstop>

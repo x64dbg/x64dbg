@@ -226,6 +226,7 @@
   <tabstop>editCommandCondition</tabstop>
   <tabstop>editName</tabstop>
   <tabstop>spinHitCount</tabstop>
+  <tabstop>checkBoxSingleshoot</tabstop>
   <tabstop>checkBoxSilent</tabstop>
   <tabstop>checkBoxFastResume</tabstop>
   <tabstop>buttonSave</tabstop>
