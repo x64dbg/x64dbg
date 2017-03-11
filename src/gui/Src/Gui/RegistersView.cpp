@@ -1668,10 +1668,16 @@ void RegistersView::mouseMoveEvent(QMouseEvent* event)
     REGISTER_NAME r = REGISTER_NAME::UNKNOWN;
     QString registerHelpInformation;
     // do we find a corresponding register?
-    if(identifyRegister((event->y() - yTopSpacing) / (double)mRowHeight, event->x() / (double)mCharWidth, &r))\
+    if(identifyRegister((event->y() - yTopSpacing) / (double)mRowHeight, event->x() / (double)mCharWidth, &r))
+    {
         registerHelpInformation = helpRegister(r);
+        setCursor(QCursor(Qt::PointingHandCursor));
+    }
     else
+    {
         registerHelpInformation = "";
+        setCursor(QCursor(Qt::ArrowCursor));
+    }
     if(!registerHelpInformation.isEmpty())
         QToolTip::showText(event->globalPos(), registerHelpInformation, this);
     else
