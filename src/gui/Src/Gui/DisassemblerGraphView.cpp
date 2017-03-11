@@ -1462,6 +1462,15 @@ void DisassemblerGraphView::fontChanged()
     }
 }
 
+void DisassemblerGraphView::setGraphLayout(DisassemblerGraphView::LayoutType layout)
+{
+    this->layoutType = layout;
+    if (this->ready)
+    {
+        this->renderFunction(this->analysis.functions[this->function]);
+    }
+}
+
 void DisassemblerGraphView::tokenizerConfigUpdatedSlot()
 {
     disasm.UpdateConfig();
@@ -1588,8 +1597,8 @@ void DisassemblerGraphView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
@@ -1598,9 +1607,25 @@ void DisassemblerGraphView::setupContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("snowman.png"), tr("Decompile"), SLOT(decompileSlot()), "ActionGraphDecompile"));
     mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
+    mToggleOverview->setCheckable(true);
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
+    mMenuBuilder->addAction(makeShortcutAction(tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
+
+    MenuBuilder* layoutMenu = new MenuBuilder(this);
+    QActionGroup* layoutGroup = new QActionGroup(this);
+    layoutGroup->addAction(makeAction(tr("Narrow"), [this](){ setGraphLayout(LayoutType::Narrow); }));
+    QAction* mediumLayout =
+    layoutGroup->addAction(makeAction(tr("Medium"), [this](){ setGraphLayout(LayoutType::Medium); }));
+    layoutGroup->addAction(makeAction(tr("Wide"), [this](){ setGraphLayout(LayoutType::Wide); }));
+    for (QAction* layoutAction : layoutGroup->actions())
+    {
+        layoutAction->setCheckable(true);
+        layoutMenu->addAction(layoutAction);
+    }
+    mediumLayout->setChecked(true);
+    mMenuBuilder->addMenu(makeMenu(tr("Layout")), layoutMenu);
+
     mMenuBuilder->addSeparator();
 
     mMenuBuilder->loadFromConfig();

@@ -242,6 +242,7 @@ public:
     void show_cur_instr(bool force = false);
     bool navigate(duint addr);
     void fontChanged();
+    void setGraphLayout(LayoutType layout);
 
 signals:
     void displaySnowmanWidget();
