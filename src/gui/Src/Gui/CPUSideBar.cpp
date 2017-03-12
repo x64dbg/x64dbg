@@ -457,6 +457,7 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
             (mLine < 0 || mLine >= mInstrBuffer->size()))
     {
         QToolTip::hideText();
+        setCursor(QCursor(Qt::ArrowCursor));
         return;
     }
 
@@ -475,6 +476,7 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
         QToolTip::showText(globalMousePos, tr("Breakpoint Not Set"));
         break;
     }
+    setCursor(QCursor(Qt::PointingHandCursor));
 }
 
 void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive)

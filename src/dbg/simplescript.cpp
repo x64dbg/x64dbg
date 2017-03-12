@@ -386,37 +386,44 @@ static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should
 static bool scriptinternalcmd()
 {
     bool bContinue = true;
-    LINEMAPENTRY cur = linemap.at(scriptIp - 1);
-    if(cur.type == linecommand)
+    try  // failed when scriptIp is bad
     {
-        switch(scriptinternalcmdexec(cur.u.command))
+        LINEMAPENTRY cur = linemap.at(scriptIp - 1);
+        if(cur.type == linecommand)
         {
-        case STATUS_CONTINUE:
-            break;
-        case STATUS_ERROR:
-            bContinue = false;
-            GuiScriptError(scriptIp, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Error executing command!")));
-            break;
-        case STATUS_EXIT:
-            bContinue = false;
-            scriptIp = scriptinternalstep(0);
-            GuiScriptSetIp(scriptIp);
-            break;
-        case STATUS_PAUSE:
-            bContinue = false; //stop running the script
-            scriptIp = scriptinternalstep(scriptIp);
-            GuiScriptSetIp(scriptIp);
-            break;
+            switch(scriptinternalcmdexec(cur.u.command))
+            {
+            case STATUS_CONTINUE:
+                break;
+            case STATUS_ERROR:
+                bContinue = false;
+                GuiScriptError(scriptIp, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Error executing command!")));
+                break;
+            case STATUS_EXIT:
+                bContinue = false;
+                scriptIp = scriptinternalstep(0);
+                GuiScriptSetIp(scriptIp);
+                break;
+            case STATUS_PAUSE:
+                bContinue = false; //stop running the script
+                scriptIp = scriptinternalstep(scriptIp);
+                GuiScriptSetIp(scriptIp);
+                break;
+            }
         }
+        else if(cur.type == linebranch)
+        {
+            if(cur.u.branch.type == scriptcall) //calls have a special meaning
+                scriptstack.push_back(scriptIp);
+            if(scriptinternalbranch(cur.u.branch.type))
+                scriptIp = scriptlabelfind(cur.u.branch.branchlabel);
+        }
+        return bContinue;
     }
-    else if(cur.type == linebranch)
+    catch(std::out_of_range &)
     {
-        if(cur.u.branch.type == scriptcall) //calls have a special meaning
-            scriptstack.push_back(scriptIp);
-        if(scriptinternalbranch(cur.u.branch.type))
-            scriptIp = scriptlabelfind(cur.u.branch.branchlabel);
+        return false;
     }
-    return bContinue;
 }
 
 DWORD WINAPI scriptRunSync(void* arg)
