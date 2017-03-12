@@ -322,6 +322,11 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         scriptstack.pop_back(); //remove last stack entry
         return STATUS_CONTINUE;
     }
+    else if(scriptisinternalcommand(cmd, "error")) //show an error and end the script
+    {
+        GuiScriptError(0, StringUtils::Trim(cmd + strlen("error"), " \"'").c_str());
+        return STATUS_EXIT;
+    }
     else if(scriptisinternalcommand(cmd, "invalid")) //invalid command for testing
         return STATUS_ERROR;
     else if(scriptisinternalcommand(cmd, "pause")) //pause the script

@@ -131,27 +131,52 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
                     command.truncate(comment_idx);
             }
 
+            QString mnemonic, argument;
+
             //setup the richText list
             switch(linetype)
             {
             case linecommand:
             {
-                if(isScriptCommand(command, "ret"))
+                if(isScriptCommand(command, "ret", mnemonic, argument))
                 {
                     newRichText.flags = RichTextPainter::FlagAll;
                     newRichText.textColor = ConfigColor("InstructionRetColor");
                     newRichText.textBackground = ConfigColor("InstructionRetBackgroundColor");
-                    newRichText.text = "ret";
+                    newRichText.text = mnemonic;
                     richText.push_back(newRichText);
-                    QString remainder = command.right(command.length() - 3);
-                    if(remainder.length())
+                    if(argument.length())
                     {
                         newRichText.flags = RichTextPainter::FlagAll;
                         newRichText.textColor = ConfigColor("InstructionUncategorizedColor");
                         newRichText.textBackground = ConfigColor("InstructionUncategorizedBackgroundColor");
-                        newRichText.text = remainder;
+                        newRichText.text = argument;
                         richText.push_back(newRichText);
                     }
+                }
+                else if(isScriptCommand(command, "invalid", mnemonic, argument) || isScriptCommand(command, "error", mnemonic, argument))
+                {
+                    newRichText.flags = RichTextPainter::FlagAll;
+                    newRichText.textColor = ConfigColor("InstructionUnusualColor");
+                    newRichText.textBackground = ConfigColor("InstructionUnusualBackgroundColor");
+                    newRichText.text = mnemonic;
+                    richText.push_back(newRichText);
+                    if(argument.length())
+                    {
+                        newRichText.flags = RichTextPainter::FlagAll;
+                        newRichText.textColor = ConfigColor("InstructionUncategorizedColor");
+                        newRichText.textBackground = ConfigColor("InstructionUncategorizedBackgroundColor");
+                        newRichText.text = argument;
+                        richText.push_back(newRichText);
+                    }
+                }
+                else if(isScriptCommand(command, "nop", mnemonic, argument))
+                {
+                    newRichText.flags = RichTextPainter::FlagAll;
+                    newRichText.textColor = ConfigColor("InstructionNopColor");
+                    newRichText.textBackground = ConfigColor("InstructionNopBackgroundColor");
+                    newRichText.text = mnemonic;
+                    richText.push_back(newRichText);
                 }
                 else
                 {
@@ -363,8 +388,10 @@ void ScriptView::setupContextMenu()
     mMenu->addAction(makeShortcutAction(DIcon("terminal-command.png"), tr("&Execute Command..."), SLOT(cmdExec()), "ActionExecuteCommandScript"));
 }
 
-bool ScriptView::isScriptCommand(QString text, QString cmd)
+bool ScriptView::isScriptCommand(QString text, QString cmd, QString & mnemonic, QString & argument)
 {
+    mnemonic = cmd;
+    argument.clear();
     int len = text.length();
     int cmdlen = cmd.length();
     if(cmdlen > len)
@@ -372,7 +399,10 @@ bool ScriptView::isScriptCommand(QString text, QString cmd)
     else if(cmdlen == len)
         return (text.compare(cmd, Qt::CaseInsensitive) == 0);
     else if(text.at(cmdlen) == ' ')
+    {
+        argument = text.mid(cmdlen);
         return (text.left(cmdlen).compare(cmd, Qt::CaseInsensitive) == 0);
+    }
     return false;
 }
 
@@ -417,7 +447,6 @@ void ScriptView::error(int line, QString message)
     msg->setWindowTitle(title);
     msg->setText(message);
     msg->setWindowIcon(DIcon("script-error.png"));
-    msg->setParent(this, Qt::Dialog);
     msg->show();
 }
 

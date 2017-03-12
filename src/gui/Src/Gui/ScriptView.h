@@ -48,7 +48,7 @@ private:
     //private functions
     void setupContextMenu();
     void setSelection(int line);
-    bool isScriptCommand(QString text, QString cmd);
+    bool isScriptCommand(QString text, QString cmd, QString & mnemonic, QString & argument);
 
     //private variables
     int mIpLine;
