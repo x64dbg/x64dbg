@@ -116,7 +116,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             if(xref.addr)
                 mXrefs.push_back(xref);
 
-            if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop()) //jump
+            if(!mCp.IsNop() && (mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())) //non-nop jump
             {
                 //set the branch destinations
                 node.brtrue = mCp.BranchDestination();
