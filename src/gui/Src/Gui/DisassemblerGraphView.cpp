@@ -176,9 +176,9 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
     {
         DisassemblerBlock & block = blockIt.second;
         bool blockSelected = false;
-        for (const Instr& instr : block.block.instrs)
+        for(const Instr & instr : block.block.instrs)
         {
-            if (instr.addr == this->cur_instr)
+            if(instr.addr == this->cur_instr)
             {
                 blockSelected = true;
             }
@@ -272,7 +272,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
         for(DisassemblerEdge & edge : block.edges)
         {
             QPen pen(edge.color);
-            if (blockSelected)
+            if(blockSelected)
             {
                 pen.setStyle(Qt::DashLine);
             }
@@ -748,11 +748,11 @@ void DisassemblerGraphView::computeGraphLayout(DisassemblerBlock & block)
         DisassemblerBlock & right = this->blocks[block.new_exits[1]];
         if(left.new_exits.size() == 0)
         {
-           left.col = right.col - 2;
-           int add = left.col < 0 ? - left.col : 0;
-           this->adjustGraphLayout(right, add, 1);
-           this->adjustGraphLayout(left, add, 1);
-           col = right.col_count + add;
+            left.col = right.col - 2;
+            int add = left.col < 0 ? - left.col : 0;
+            this->adjustGraphLayout(right, add, 1);
+            this->adjustGraphLayout(left, add, 1);
+            col = right.col_count + add;
         }
         else if(right.new_exits.size() == 0)
         {
@@ -896,7 +896,7 @@ DisassemblerGraphView::DisassemblerEdge DisassemblerGraphView::routeEdge(EdgesVe
     {
         auto checkColumn = [min_row, max_row, &edge_valid](int column)
         {
-            if (column < 0 || column >= int(edge_valid[min_row].size()))
+            if(column < 0 || column >= int(edge_valid[min_row].size()))
                 return false;
             for(int row = min_row; row < max_row; row++)
             {
@@ -908,9 +908,9 @@ DisassemblerGraphView::DisassemblerEdge DisassemblerGraphView::routeEdge(EdgesVe
             return true;
         };
 
-        if (!checkColumn(col))
+        if(!checkColumn(col))
         {
-            if (checkColumn(end.col + 1))
+            if(checkColumn(end.col + 1))
             {
                 col = end.col + 1;
             }
@@ -959,10 +959,10 @@ DisassemblerGraphView::DisassemblerEdge DisassemblerGraphView::routeEdge(EdgesVe
     if(end.row != (start.row + 1))
     {
         //Not in same row, need to generate a line for moving to the correct row
-        if (col == (start.col + 1))
+        if(col == (start.col + 1))
             this->markEdge(vert_edges, start.row + 1, start.col + 1, i, false);
         int index = this->findVertEdgeIndex(vert_edges, col, min_row, max_row);
-        if (col == (start.col + 1))
+        if(col == (start.col + 1))
             edge.start_index = index;
         edge.addPoint(end.row, col, index);
         horiz = false;
@@ -1068,7 +1068,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
                 }
                 else
                 {
-                     removeFromVec(this->blocks[edge].incoming, block.block.entry);
+                    removeFromVec(this->blocks[edge].incoming, block.block.entry);
                 }
             }
         }
@@ -1465,7 +1465,7 @@ void DisassemblerGraphView::fontChanged()
 void DisassemblerGraphView::setGraphLayout(DisassemblerGraphView::LayoutType layout)
 {
     this->layoutType = layout;
-    if (this->ready)
+    if(this->ready)
     {
         this->renderFunction(this->analysis.functions[this->function]);
     }
@@ -1614,11 +1614,11 @@ void DisassemblerGraphView::setupContextMenu()
 
     MenuBuilder* layoutMenu = new MenuBuilder(this);
     QActionGroup* layoutGroup = new QActionGroup(this);
-    layoutGroup->addAction(makeAction(tr("Narrow"), [this](){ setGraphLayout(LayoutType::Narrow); }));
+    layoutGroup->addAction(makeAction(tr("Narrow"), [this]() { setGraphLayout(LayoutType::Narrow); }));
     QAction* mediumLayout =
-    layoutGroup->addAction(makeAction(tr("Medium"), [this](){ setGraphLayout(LayoutType::Medium); }));
-    layoutGroup->addAction(makeAction(tr("Wide"), [this](){ setGraphLayout(LayoutType::Wide); }));
-    for (QAction* layoutAction : layoutGroup->actions())
+    layoutGroup->addAction(makeAction(tr("Medium"), [this]() { setGraphLayout(LayoutType::Medium); }));
+    layoutGroup->addAction(makeAction(tr("Wide"), [this]() { setGraphLayout(LayoutType::Wide); }));
+    for(QAction* layoutAction : layoutGroup->actions())
     {
         layoutAction->setCheckable(true);
         layoutMenu->addAction(layoutAction);
