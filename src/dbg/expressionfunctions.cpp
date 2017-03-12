@@ -2,6 +2,7 @@
 #include "threading.h"
 #include "exprfunc.h"
 #include "module.h"
+#include "debugger.h"
 
 std::unordered_map<String, ExpressionFunctions::Function> ExpressionFunctions::mFunctions;
 
@@ -58,6 +59,9 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.size", ModSizeFromAddr);
     RegisterEasy("mod.hash", ModHashFromAddr);
     RegisterEasy("mod.entry", ModEntryFromAddr);
+    RegisterEasy("mod.system,mod.issystem", modsystem);
+    RegisterEasy("mod.user,mod.isuser", moduser);
+    RegisterEasy("mod.main,mod.mainbase", dbggetdebuggedbase);
 
     //Process information
     RegisterEasy("peb,PEB", peb);
@@ -70,7 +74,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("GetTickCount,gettickcount", gettickcount);
 
     //Memory
-    RegisterEasy("mem.valid", memvalid);
+    RegisterEasy("mem.valid,mem.isvalid", memvalid);
     RegisterEasy("mem.base", membase);
     RegisterEasy("mem.size", memsize);
     RegisterEasy("mem.iscode", memiscode);

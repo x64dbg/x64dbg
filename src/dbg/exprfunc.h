@@ -8,6 +8,8 @@ namespace Exprfunc
     duint srcdisp(duint addr);
 
     duint modparty(duint addr);
+    duint modsystem(duint addr);
+    duint moduser(duint addr);
 
     duint disasmsel();
     duint dumpsel();

@@ -33,6 +33,16 @@ namespace Exprfunc
         return ModGetParty(addr);
     }
 
+    duint modsystem(duint addr)
+    {
+        return ModGetParty(addr) == 1;
+    }
+
+    duint moduser(duint addr)
+    {
+        return ModGetParty(addr) == 0;
+    }
+
     static duint selstart(int hWindow)
     {
         SELECTIONDATA selection;
