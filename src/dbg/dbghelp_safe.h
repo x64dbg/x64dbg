@@ -7,6 +7,9 @@
 #include <dbghelp.h>
 #endif //__GNUC__
 
+void SafeDbghelpInitialize();
+void SafeDbghelpDeinitialize();
+
 DWORD
 SafeUnDecorateSymbolName(
     __in PCSTR name,

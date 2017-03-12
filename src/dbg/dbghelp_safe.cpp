@@ -1,6 +1,42 @@
 #include "_global.h"
 #include "dbghelp_safe.h"
-#include "threading.h"
+
+static CRITICAL_SECTION criticalSection;
+
+struct Lock
+{
+    explicit Lock(bool weak)
+    {
+        if(weak)
+            success = !!TryEnterCriticalSection(&criticalSection);
+        else
+        {
+            EnterCriticalSection(&criticalSection);
+            success = true;
+        }
+    }
+
+    ~Lock()
+    {
+        if(success)
+            LeaveCriticalSection(&criticalSection);
+    }
+
+    bool success;
+};
+
+#define WEAK_ACQUIRE() Lock __lock(true); if(!__lock.success) return 0;
+#define STRONG_ACQUIRE() Lock __lock(false);
+
+void SafeDbghelpInitialize()
+{
+    InitializeCriticalSection(&criticalSection);
+}
+
+void SafeDbghelpDeinitialize()
+{
+    DeleteCriticalSection(&criticalSection);
+}
 
 DWORD
 SafeUnDecorateSymbolName(
@@ -10,8 +46,7 @@ SafeUnDecorateSymbolName(
     __in DWORD flags
 )
 {
-    // NOTE: Disabled because of potential recursive deadlocks
-    EXCLUSIVE_ACQUIRE(LockSym);
+    WEAK_ACQUIRE();
     return UnDecorateSymbolName(name, outputString, maxStringLength, flags);
 }
 BOOL
@@ -20,7 +55,7 @@ SafeSymUnloadModule64(
     __in DWORD64 BaseOfDll
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymUnloadModule64(hProcess, BaseOfDll);
 }
 BOOL
@@ -29,7 +64,7 @@ SafeSymSetSearchPathW(
     __in_opt PCWSTR SearchPath
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymSetSearchPathW(hProcess, SearchPath);
 }
 DWORD
@@ -37,14 +72,14 @@ SafeSymSetOptions(
     __in DWORD   SymOptions
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymSetOptions(SymOptions);
 }
 DWORD
 SafeSymGetOptions(
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymGetOptions();
 }
 BOOL
@@ -54,7 +89,7 @@ SafeSymInitializeW(
     __in BOOL fInvadeProcess
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymInitializeW(hProcess, UserSearchPath, fInvadeProcess);
 }
 BOOL
@@ -64,7 +99,7 @@ SafeSymRegisterCallbackW64(
     __in ULONG64 UserContext
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymRegisterCallbackW64(hProcess, CallbackFunction, UserContext);
 }
 DWORD64
@@ -79,7 +114,7 @@ SafeSymLoadModuleExW(
     __in_opt DWORD Flags
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymLoadModuleExW(hProcess, hFile, ImageName, ModuleName, BaseOfDll, DllSize, Data, Flags);
 }
 BOOL
@@ -89,7 +124,7 @@ SafeSymGetModuleInfoW64(
     __out PIMAGEHLP_MODULEW64 ModuleInfo
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymGetModuleInfoW64(hProcess, qwAddr, ModuleInfo);
 }
 BOOL
@@ -99,7 +134,7 @@ SafeSymGetSearchPathW(
     __in DWORD SearchPathLength
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymGetSearchPathW(hProcess, SearchPath, SearchPathLength);
 }
 BOOL
@@ -111,7 +146,7 @@ SafeSymEnumSymbols(
     __in_opt PVOID UserContext
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymEnumSymbols(hProcess, BaseOfDll, Mask, EnumSymbolsCallback, UserContext);
 }
 BOOL
@@ -122,7 +157,7 @@ SafeSymGetLineFromAddrW64(
     __out PIMAGEHLP_LINEW64 Line64
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    WEAK_ACQUIRE();
     return SymGetLineFromAddrW64(hProcess, qwAddr, pdwDisplacement, Line64);
 }
 BOOL
@@ -132,7 +167,7 @@ SafeSymFromName(
     __inout PSYMBOL_INFO Symbol
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    WEAK_ACQUIRE();
     return SymFromName(hProcess, Name, Symbol);
 }
 BOOL
@@ -143,7 +178,7 @@ SafeSymFromAddr(
     __inout PSYMBOL_INFO Symbol
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    WEAK_ACQUIRE();
     return SymFromAddr(hProcess, Address, Displacement, Symbol);
 }
 BOOL
@@ -151,6 +186,6 @@ SafeSymCleanup(
     __in HANDLE hProcess
 )
 {
-    EXCLUSIVE_ACQUIRE(LockSym);
+    STRONG_ACQUIRE();
     return SymCleanup(hProcess);
 }

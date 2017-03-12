@@ -613,6 +613,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing wait objects..."));
     waitinitialize();
+    SafeDbghelpInitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger..."));
     dbginit();
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing debugger functions..."));
@@ -750,6 +751,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     Capstone::GlobalFinalize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));
     waitdeinitialize();
+    SafeDbghelpDeinitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up debugger threads..."));
     dbgstop();
     dputs(QT_TRANSLATE_NOOP("DBG", "Saving notes..."));

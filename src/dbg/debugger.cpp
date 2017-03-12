@@ -1634,6 +1634,7 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
     DebugUpdateGuiSetStateAsync(cip, true, running);
 
     MemInitRemoteProcessCookie();
+    GuiUpdateAllViews();
 
     //log message
     if(bIsAttached)
