@@ -1610,21 +1610,21 @@ void DisassemblerGraphView::setupContextMenu()
     mToggleOverview->setCheckable(true);
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
-    mMenuBuilder->addAction(makeShortcutAction(tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("image.png"), tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
 
     MenuBuilder* layoutMenu = new MenuBuilder(this);
     QActionGroup* layoutGroup = new QActionGroup(this);
-    layoutGroup->addAction(makeAction(tr("Narrow"), [this]() { setGraphLayout(LayoutType::Narrow); }));
+    layoutGroup->addAction(makeAction(DIcon("narrow.png"), tr("Narrow"), [this]() { setGraphLayout(LayoutType::Narrow); }));
     QAction* mediumLayout =
-    layoutGroup->addAction(makeAction(tr("Medium"), [this]() { setGraphLayout(LayoutType::Medium); }));
-    layoutGroup->addAction(makeAction(tr("Wide"), [this]() { setGraphLayout(LayoutType::Wide); }));
+    layoutGroup->addAction(makeAction(DIcon("medium.png"), tr("Medium"), [this]() { setGraphLayout(LayoutType::Medium); }));
+    layoutGroup->addAction(makeAction(DIcon("wide.png"), tr("Wide"), [this]() { setGraphLayout(LayoutType::Wide); }));
     for(QAction* layoutAction : layoutGroup->actions())
     {
         layoutAction->setCheckable(true);
         layoutMenu->addAction(layoutAction);
     }
     mediumLayout->setChecked(true);
-    mMenuBuilder->addMenu(makeMenu(tr("Layout")), layoutMenu);
+    mMenuBuilder->addMenu(makeMenu(DIcon("layout.png"), tr("Layout")), layoutMenu);
 
     mMenuBuilder->addSeparator();
 

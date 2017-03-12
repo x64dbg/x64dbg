@@ -288,5 +288,10 @@
         <file>images/christmas6.png</file>
         <file>images/christmas7.png</file>
         <file>images/christmas8.png</file>
+        <file>images/image.png</file>
+        <file>images/medium.png</file>
+        <file>images/narrow.png</file>
+        <file>images/wide.png</file>
+        <file>images/layout.png</file>
     </qresource>
 </RCC>
