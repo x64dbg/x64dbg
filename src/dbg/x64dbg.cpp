@@ -110,14 +110,12 @@ static void registercommands()
     dbgcmdnew("serun\1sego", cbDebugSerun, true); //run + swallow exception
     dbgcmdnew("pause", cbDebugPause, false); //pause debugger
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
-    dbgcmdnew("StepInto\1sti", cbDebugStepInto, true); //StepInto
+    dbgcmdnew("StepInto\1sti\1SingleStep\1sstep\1sst", cbDebugStepInto, true); //StepInto
     dbgcmdnew("eStepInto\1esti", cbDebugeStepInto, true); //StepInto + skip first chance exceptions
-    dbgcmdnew("seStepInto\1sesti", cbDebugseStepInto, true); //StepInto + swallow exception
+    dbgcmdnew("seStepInto\1sesti\1eSingleStep\1esstep\1esst", cbDebugseStepInto, true); //StepInto + swallow exception
     dbgcmdnew("StepOver\1step\1sto\1st", cbDebugStepOver, true); //StepOver
     dbgcmdnew("eStepOver\1estep\1esto\1est", cbDebugeStepOver, true); //StepOver + skip first chance exceptions
     dbgcmdnew("seStepOver\1sestep\1sesto\1sest", cbDebugseStepOver, true); //StepOver + swallow exception
-    dbgcmdnew("SingleStep\1sstep\1sst", cbDebugSingleStep, true); //SingleStep arg1:count
-    dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     dbgcmdnew("StepOut\1rtr", cbDebugStepOut, true); //StepOut
     dbgcmdnew("eStepOut\1ertr", cbDebugeStepOut, true); //rtr + skip first chance exceptions
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction

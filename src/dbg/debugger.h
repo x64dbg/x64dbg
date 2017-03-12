@@ -89,7 +89,7 @@ void DebugRemoveBreakpoints();
 void DebugSetBreakpoints();
 void GuiSetDebugStateAsync(DBGSTATE state);
 void dbgsetskipexceptions(bool skip);
-void dbgsetstepping(bool stepping);
+void dbgsetsteprepeat(bool steppingIn, duint repeat);
 void dbgsetispausedbyuser(bool b);
 void dbgsetisdetachedbyuser(bool b);
 void dbgsetfreezestack(bool freeze);

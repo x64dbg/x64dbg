@@ -19,8 +19,10 @@ static bool skipInt3Stepping(int argc, char* argv[])
     MemRead(cip, &ch, sizeof(ch));
     if(ch == 0xCC && getLastExceptionInfo().ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
     {
+        //Don't allow skipping of multiple consecutive INT3 instructions
+        getLastExceptionInfo().ExceptionRecord.ExceptionCode = 0;
         dputs(QT_TRANSLATE_NOOP("DBG", "Skipped INT3!"));
-        cbDebugSkip(argc, argv);
+        cbDebugSkip(1, argv);
         return true;
     }
     return false;
@@ -206,7 +208,7 @@ bool cbDebugDetach(int argc, char* argv[])
 bool cbDebugRun(int argc, char* argv[])
 {
     HistoryClear();
-    skipInt3Stepping(argc, argv);
+    skipInt3Stepping(1, argv);
     return cbDebugRunInternal(argc, argv);
 }
 
@@ -288,12 +290,17 @@ bool cbDebugContinue(int argc, char* argv[])
 
 bool cbDebugStepInto(int argc, char* argv[])
 {
-    if(skipInt3Stepping(argc, argv))
+    duint steprepeat = 1;
+    if(argc > 1 && !valfromstring(argv[1], &steprepeat, false))
+        return false;
+    if(!steprepeat) //nothing to be done
+        return true;
+    if(skipInt3Stepping(1, argv) && !--steprepeat)
         return true;
     StepIntoWow64((void*)cbStep);
     // History
     HistoryAdd();
-    dbgsetstepping(true);
+    dbgsetsteprepeat(true, steprepeat);
     return cbDebugRunInternal(1, argv);
 }
 
@@ -311,12 +318,17 @@ bool cbDebugseStepInto(int argc, char* argv[])
 
 bool cbDebugStepOver(int argc, char* argv[])
 {
-    if(skipInt3Stepping(argc, argv))
+    duint steprepeat = 1;
+    if(argc > 1 && !valfromstring(argv[1], &steprepeat, false))
+        return false;
+    if(!steprepeat) //nothing to be done
+        return true;
+    if(skipInt3Stepping(1, argv) && !--steprepeat)
         return true;
     StepOver((void*)cbStep);
     // History
     HistoryClear();
-    dbgsetstepping(true);
+    dbgsetsteprepeat(false, steprepeat);
     return cbDebugRunInternal(1, argv);
 }
 
@@ -332,28 +344,16 @@ bool cbDebugseStepOver(int argc, char* argv[])
     return cbDebugStepOver(argc, argv);
 }
 
-bool cbDebugSingleStep(int argc, char* argv[])
-{
-    duint stepcount = 1;
-    if(argc > 1)
-        if(!valfromstring(argv[1], &stepcount))
-            stepcount = 1;
-    SingleStep((DWORD)stepcount, (void*)cbStep);
-    HistoryClear();
-    dbgsetstepping(true);
-    return cbDebugRunInternal(1, argv);
-}
-
-bool cbDebugeSingleStep(int argc, char* argv[])
-{
-    dbgsetskipexceptions(true);
-    return cbDebugSingleStep(argc, argv);
-}
-
 bool cbDebugStepOut(int argc, char* argv[])
 {
+    duint steprepeat = 1;
+    if(argc > 1 && !valfromstring(argv[1], &steprepeat, false))
+        return false;
+    if(!steprepeat) //nothing to be done
+        return true;
     HistoryClear();
     StepOver((void*)cbRtrStep);
+    dbgsetsteprepeat(false, steprepeat);
     return cbDebugRunInternal(1, argv);
 }
 
@@ -365,13 +365,18 @@ bool cbDebugeStepOut(int argc, char* argv[])
 
 bool cbDebugSkip(int argc, char* argv[])
 {
+    duint skiprepeat = 1;
+    if(argc > 1 && !valfromstring(argv[1], &skiprepeat, false))
+        return false;
     SetNextDbgContinueStatus(DBG_CONTINUE); //swallow the exception
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     BASIC_INSTRUCTION_INFO basicinfo;
-    memset(&basicinfo, 0, sizeof(basicinfo));
-    disasmfast(cip, &basicinfo);
-    cip += basicinfo.size;
-    _dbg_dbgtraceexecute(cip);
+    while(skiprepeat--)
+    {
+        disasmfast(cip, &basicinfo);
+        cip += basicinfo.size;
+        _dbg_dbgtraceexecute(cip);
+    }
     SetContextDataEx(hActiveThread, UE_CIP, cip);
     DebugUpdateGuiAsync(cip, false); //update GUI
     return true;

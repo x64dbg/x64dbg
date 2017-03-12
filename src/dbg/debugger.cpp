@@ -177,7 +177,8 @@ static bool bFileIsDll = false;
 static duint pDebuggedBase = 0;
 static duint pCreateProcessBase = 0;
 static duint pDebuggedEntry = 0;
-static bool isStepping = false;
+static bool bRepeatIn = false;
+static duint stepRepeat = 0;
 static bool isPausedByUser = false;
 static bool isDetachedByUser = false;
 static bool bIsAttached = false;
@@ -407,9 +408,10 @@ void dbgsetskipexceptions(bool skip)
     skipExceptionCount = 0;
 }
 
-void dbgsetstepping(bool stepping)
+void dbgsetsteprepeat(bool steppingIn, duint repeat)
 {
-    isStepping = stepping;
+    bRepeatIn = steppingIn;
+    stepRepeat = repeat;
 }
 
 void dbgsetispausedbyuser(bool b)
@@ -1183,41 +1185,54 @@ void DebugSetBreakpoints()
 void cbStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    isStepping = false;
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    DebugUpdateGuiSetStateAsync(CIP, true);
-    // Trace record
-    _dbg_dbgtraceexecute(CIP);
-    // Plugin interaction
-    PLUG_CB_STEPPED stepInfo;
-    stepInfo.reserved = 0;
-    //lock
-    lock(WAITID_RUN);
-    // Plugin callback
-    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    dbgsetforeground();
-    dbgsetskipexceptions(false);
-    plugincbcall(CB_STEPPED, &stepInfo);
-    wait(WAITID_RUN);
+    if(!stepRepeat || !--stepRepeat)
+    {
+        DebugUpdateGuiSetStateAsync(CIP, true);
+        // Trace record
+        _dbg_dbgtraceexecute(CIP);
+        // Plugin interaction
+        PLUG_CB_STEPPED stepInfo;
+        stepInfo.reserved = 0;
+        //lock
+        lock(WAITID_RUN);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+        dbgsetforeground();
+        dbgsetskipexceptions(false);
+        plugincbcall(CB_STEPPED, &stepInfo);
+        wait(WAITID_RUN);
+    }
+    else
+    {
+        if(bTraceRecordEnabledDuringTrace)
+            _dbg_dbgtraceexecute(CIP);
+        (bRepeatIn ? StepIntoWow64 : StepOver)(cbStep);
+    }
 }
 
-static void cbRtrFinalStep()
+static void cbRtrFinalStep(bool checkRepeat = false)
 {
-    dbgcleartracestate();
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    // Trace record
-    _dbg_dbgtraceexecute(CIP);
-    DebugUpdateGuiSetStateAsync(CIP, true);
-    //lock
-    lock(WAITID_RUN);
-    // Plugin callback
-    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    dbgsetforeground();
-    dbgsetskipexceptions(false);
-    wait(WAITID_RUN);
+    if(!checkRepeat || !stepRepeat || !--stepRepeat)
+    {
+        dbgcleartracestate();
+        hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+        duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+        // Trace record
+        _dbg_dbgtraceexecute(CIP);
+        DebugUpdateGuiSetStateAsync(CIP, true);
+        //lock
+        lock(WAITID_RUN);
+        // Plugin callback
+        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+        dbgsetforeground();
+        dbgsetskipexceptions(false);
+        wait(WAITID_RUN);
+    }
+    else
+        StepOver((void*)cbRtrStep);
 }
 
 void cbRtrStep()
@@ -1229,7 +1244,7 @@ void cbRtrStep()
     if(bTraceRecordEnabledDuringTrace)
         _dbg_dbgtraceexecute(cip);
     if(ch == 0xC3 || ch == 0xC2)
-        cbRtrFinalStep();
+        cbRtrFinalStep(true);
     else if(ch == 0x26 || ch == 0x36 || ch == 0x2e || ch == 0x3e || (ch >= 0x64 && ch <= 0x67) || ch == 0xf2 || ch == 0xf3 //instruction prefixes
 #ifdef _WIN64
             || (ch >= 0x40 && ch <= 0x4f)
@@ -1241,7 +1256,7 @@ void cbRtrStep()
         memset(data, 0, sizeof(data));
         MemRead(cip, data, MAX_DISASM_BUFFER);
         if(cp.Disassemble(cip, data) && cp.GetId() == X86_INS_RET)
-            cbRtrFinalStep();
+            cbRtrFinalStep(true);
         else
             StepOver((void*)cbRtrStep);
     }

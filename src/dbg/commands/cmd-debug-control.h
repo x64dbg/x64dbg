@@ -18,8 +18,6 @@ bool cbDebugseStepInto(int argc, char* argv[]);
 bool cbDebugStepOver(int argc, char* argv[]);
 bool cbDebugeStepOver(int argc, char* argv[]);
 bool cbDebugseStepOver(int argc, char* argv[]);
-bool cbDebugSingleStep(int argc, char* argv[]);
-bool cbDebugeSingleStep(int argc, char* argv[]);
 bool cbDebugStepOut(int argc, char* argv[]);
 bool cbDebugeStepOut(int argc, char* argv[]);
 bool cbDebugSkip(int argc, char* argv[]);
