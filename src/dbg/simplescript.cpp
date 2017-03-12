@@ -386,44 +386,39 @@ static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should
 static bool scriptinternalcmd()
 {
     bool bContinue = true;
-    try  // failed when scriptIp is bad
-    {
-        LINEMAPENTRY cur = linemap.at(scriptIp - 1);
-        if(cur.type == linecommand)
-        {
-            switch(scriptinternalcmdexec(cur.u.command))
-            {
-            case STATUS_CONTINUE:
-                break;
-            case STATUS_ERROR:
-                bContinue = false;
-                GuiScriptError(scriptIp, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Error executing command!")));
-                break;
-            case STATUS_EXIT:
-                bContinue = false;
-                scriptIp = scriptinternalstep(0);
-                GuiScriptSetIp(scriptIp);
-                break;
-            case STATUS_PAUSE:
-                bContinue = false; //stop running the script
-                scriptIp = scriptinternalstep(scriptIp);
-                GuiScriptSetIp(scriptIp);
-                break;
-            }
-        }
-        else if(cur.type == linebranch)
-        {
-            if(cur.u.branch.type == scriptcall) //calls have a special meaning
-                scriptstack.push_back(scriptIp);
-            if(scriptinternalbranch(cur.u.branch.type))
-                scriptIp = scriptlabelfind(cur.u.branch.branchlabel);
-        }
-        return bContinue;
-    }
-    catch(std::out_of_range &)
-    {
+    if(size_t(scriptIp - 1) >= linemap.size())
         return false;
+    LINEMAPENTRY cur = linemap.at(scriptIp - 1);
+    if(cur.type == linecommand)
+    {
+        switch(scriptinternalcmdexec(cur.u.command))
+        {
+        case STATUS_CONTINUE:
+            break;
+        case STATUS_ERROR:
+            bContinue = false;
+            GuiScriptError(scriptIp, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Error executing command!")));
+            break;
+        case STATUS_EXIT:
+            bContinue = false;
+            scriptIp = scriptinternalstep(0);
+            GuiScriptSetIp(scriptIp);
+            break;
+        case STATUS_PAUSE:
+            bContinue = false; //stop running the script
+            scriptIp = scriptinternalstep(scriptIp);
+            GuiScriptSetIp(scriptIp);
+            break;
+        }
     }
+    else if(cur.type == linebranch)
+    {
+        if(cur.u.branch.type == scriptcall) //calls have a special meaning
+            scriptstack.push_back(scriptIp);
+        if(scriptinternalbranch(cur.u.branch.type))
+            scriptIp = scriptlabelfind(cur.u.branch.branchlabel);
+    }
+    return bContinue;
 }
 
 DWORD WINAPI scriptRunSync(void* arg)
@@ -500,7 +495,10 @@ void scriptload(const char* filename)
 {
     static char filename_[MAX_PATH] = "";
     strcpy_s(filename_, filename);
-    CloseHandle(CreateThread(0, 0, scriptLoadSync, filename_, 0, 0));
+    auto hThread = CreateThread(nullptr, 0, scriptLoadSync, filename_, 0, nullptr);
+    while(WaitForSingleObject(hThread, 100) == WAIT_TIMEOUT)
+        GuiProcessEvents();
+    CloseHandle(hThread);
 }
 
 void scriptunload()
