@@ -199,7 +199,6 @@ static duint timeWastedDebugging = 0;
 static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
 static char szDebuggeeInitializationScript[MAX_PATH] = "";
 static WString gInitExe, gInitCmd, gInitDir;
-static duint ntdllBase = 0;
 char szProgramDir[MAX_PATH] = "";
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
@@ -229,7 +228,7 @@ static duint dbgcleartracestate()
 static void dbgClearRtuBreakpoints()
 {
     EXCLUSIVE_ACQUIRE(LockRunToUserCode);
-    for(auto i : RunToUserCodeBreakpoints)
+    for(auto & i : RunToUserCodeBreakpoints)
     {
         BREAKPOINT bp;
         if(!BpGet(i.first, BPMEMORY, nullptr, &bp))
@@ -1673,11 +1672,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     char modname[256] = "";
     if(ModNameFromAddr(duint(base), modname, true))
-    {
-        if(!_stricmp(modname, "ntdll.dll"))
-            ntdllBase = duint(base);
         BpEnumAll(cbSetModuleBreakpoints, modname, duint(base));
-    }
     GuiUpdateBreakpointsView();
     bool bAlreadySetEntry = false;
 
@@ -2768,13 +2763,13 @@ void StepIntoWow64(LPVOID traceCallBack)
     {
         unsigned char data[7];
         auto cip = GetContextDataEx(hActiveThread, UE_CIP);
-        if(!ModBaseFromAddr(cip) && MemRead(cip, data, sizeof(data)) && data[0] == 0xEA && data[5] == 0x33 && data[6] == 0x00) //ljmp 33,XXXXXXXX
+        if(MemRead(cip, data, sizeof(data)) && data[0] == 0xEA && data[5] == 0x33 && data[6] == 0x00) //ljmp 33,XXXXXXXX
         {
             auto csp = GetContextDataEx(hActiveThread, UE_CSP);
             duint ret;
-            if(MemRead(csp, &ret, sizeof(ret)) && ModBaseFromAddr(ret) == ntdllBase) //return address in ntdll
+            if(MemRead(csp, &ret, sizeof(ret)))
             {
-                SetBPX(ret, UE_BREAKPOINT, traceCallBack);
+                SetBPX(ret, UE_SINGLESHOOT, traceCallBack);
                 return;
             }
         }
