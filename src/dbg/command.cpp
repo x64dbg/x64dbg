@@ -109,7 +109,7 @@ bool cmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
         cmd = (COMMAND*)emalloc(sizeof(COMMAND), "cmdnew:cmd");
     memset(cmd, 0, sizeof(COMMAND));
     cmd->names = new std::vector<String>;
-    auto split = StringUtils::Split(name, '\1');
+    auto split = StringUtils::Split(name, ',');
     for(const auto & s : split)
     {
         auto trimmed = StringUtils::Trim(s);
