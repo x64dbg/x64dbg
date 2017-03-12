@@ -59,4 +59,7 @@ namespace Exprfunc
 
     duint refcount();
     duint refaddr(duint row);
+
+    duint argget(duint index);
+    duint argset(duint index, duint value);
 }

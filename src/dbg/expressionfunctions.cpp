@@ -117,6 +117,10 @@ void ExpressionFunctions::Init()
     //References
     RegisterEasy("ref.count", refcount);
     RegisterEasy("ref.addr", refaddr);
+
+    //Arguments
+    RegisterEasy("arg.get,arg", argget);
+    RegisterEasy("arg.set", argset);
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)

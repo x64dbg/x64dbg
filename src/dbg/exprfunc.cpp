@@ -320,4 +320,41 @@ namespace Exprfunc
         BridgeFree(content);
         return addr;
     }
+
+    static String argExpr(duint index)
+    {
+#ifdef _WIN64
+        //http://msdn.microsoft.com/en-us/library/windows/hardware/ff561499(v=vs.85).aspx
+        switch(index)
+        {
+        case 0:
+            return "rcx";
+        case 1:
+            return "rdx";
+        case 2:
+            return "r8";
+        case 3:
+            return "r9";
+        default:
+            break;
+        }
+#endif
+        return StringUtils::sprintf("[csp+%X]", int32_t(++index * sizeof(duint)));
+    }
+
+    duint argget(duint index)
+    {
+        duint value;
+        valfromstring(argExpr(index).c_str(), &value);
+        return value;
+    }
+
+    duint argset(duint index, duint value)
+    {
+        auto expr = argExpr(index);
+        duint oldvalue;
+        valfromstring(expr.c_str(), &oldvalue);
+        valtostring(expr.c_str(), value, true);
+        return oldvalue;
+    }
 }
