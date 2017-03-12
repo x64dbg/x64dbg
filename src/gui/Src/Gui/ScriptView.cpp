@@ -40,7 +40,7 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(scriptMessage(QString)), this, SLOT(message(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptQuestion(QString)), this, SLOT(question(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptEnableHighlighting(bool)), this, SLOT(enableHighlighting(bool)));
-    connect(Bridge::getBridge(), SIGNAL(close()), msg, SLOT(close()));
+    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeSlot()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     Initialize();
@@ -547,4 +547,10 @@ void ScriptView::enableHighlighting(bool enable)
 void ScriptView::messageResult(int result)
 {
     Bridge::getBridge()->setResult(result == QMessageBox::Yes);
+}
+
+void ScriptView::closeSlot()
+{
+    msg->close();
+    unload();
 }
