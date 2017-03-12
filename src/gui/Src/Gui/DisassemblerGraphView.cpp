@@ -273,12 +273,12 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
         {
             QPen pen(edge.color);
             if(blockSelected)
-            {
                 pen.setStyle(Qt::DashLine);
-            }
             p.setPen(pen);
             p.setBrush(edge.color);
             p.drawPolyline(edge.polyline);
+            pen.setStyle(Qt::SolidLine);
+            p.setPen(pen);
             p.drawConvexPolygon(edge.arrow);
         }
     }
