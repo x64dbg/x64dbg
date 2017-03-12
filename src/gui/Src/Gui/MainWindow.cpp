@@ -254,7 +254,7 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actioneStepInto, "eStepInto");
     makeCommandAction(ui->actioneRun, "eRun");
     makeCommandAction(ui->actioneRtr, "eRtr");
-    makeCommandAction(ui->actionRtu, "TraceIntoConditional !mod.party(cip)");
+    makeCommandAction(ui->actionRtu, "TraceOverConditional mod.user(cip)");
     connect(ui->actionTicnd, SIGNAL(triggered()), this, SLOT(execTicnd()));
     connect(ui->actionTocnd, SIGNAL(triggered()), this, SLOT(execTocnd()));
     connect(ui->actionTRBit, SIGNAL(triggered()), this, SLOT(execTRBit()));
