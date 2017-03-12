@@ -28,6 +28,8 @@ static bool skipInt3Stepping(int argc, char* argv[])
 
 bool cbDebugRunInternal(int argc, char* argv[])
 {
+    if(argc >= 2 && !DbgCmdExecDirect(StringUtils::sprintf("bp \"%s\", ss", argv[1]).c_str()))
+        return false;
     // Don't "run" twice if the program is already running
     if(dbgisrunning())
         return false;
@@ -292,7 +294,7 @@ bool cbDebugStepInto(int argc, char* argv[])
     // History
     HistoryAdd();
     dbgsetstepping(true);
-    return cbDebugRunInternal(argc, argv);
+    return cbDebugRunInternal(1, argv);
 }
 
 bool cbDebugeStepInto(int argc, char* argv[])
@@ -315,13 +317,13 @@ bool cbDebugStepOver(int argc, char* argv[])
     // History
     HistoryClear();
     dbgsetstepping(true);
-    return cbDebugRunInternal(argc, argv);
+    return cbDebugRunInternal(1, argv);
 }
 
 bool cbDebugeStepOver(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
-    return cbDebugStepOver(argc, argv);
+    return cbDebugStepOver(1, argv);
 }
 
 bool cbDebugseStepOver(int argc, char* argv[])
@@ -339,7 +341,7 @@ bool cbDebugSingleStep(int argc, char* argv[])
     SingleStep((DWORD)stepcount, (void*)cbStep);
     HistoryClear();
     dbgsetstepping(true);
-    return cbDebugRunInternal(argc, argv);
+    return cbDebugRunInternal(1, argv);
 }
 
 bool cbDebugeSingleStep(int argc, char* argv[])
@@ -352,7 +354,7 @@ bool cbDebugStepOut(int argc, char* argv[])
 {
     HistoryClear();
     StepOver((void*)cbRtrStep);
-    return cbDebugRunInternal(argc, argv);
+    return cbDebugRunInternal(1, argv);
 }
 
 bool cbDebugeStepOut(int argc, char* argv[])

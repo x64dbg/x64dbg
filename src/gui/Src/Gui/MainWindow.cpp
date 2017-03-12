@@ -1340,18 +1340,8 @@ void MainWindow::setNameMenu(int hMenu, QString name)
 
 void MainWindow::runSelection()
 {
-    QString command;
-
-    if(!DbgIsDebugging())
-        return;
-
-    if(mGraphView->hasFocus())
-        command = "bp " + ToPtrString(mGraphView->get_cursor_pos()) + ", ss";
-    else
-        command = "bp " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa()) + ", ss";
-
-    if(DbgCmdExecDirect(command.toUtf8().constData()))
-        DbgCmdExecDirect("run");
+    if(DbgIsDebugging())
+        DbgCmdExec(("run " + ToPtrString(mGraphView->hasFocus() ? mGraphView->get_cursor_pos() : mCpuWidget->getDisasmWidget()->getSelectedVa())).toUtf8().constData());
 }
 
 void MainWindow::runExpression()

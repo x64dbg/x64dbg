@@ -34,7 +34,7 @@ static bool cbDebugConditionalTrace(void(*callback)(), bool stepOver, int argc, 
         StepOver((void*)callback);
     else
         StepIntoWow64((void*)callback);
-    return cbDebugRunInternal(argc, argv);
+    return cbDebugRunInternal(1, argv);
 }
 
 bool cbDebugTraceIntoConditional(int argc, char* argv[])
@@ -118,7 +118,7 @@ bool cbDebugRunToParty(int argc, char* argv[])
             }
         }
     }
-    return cbDebugRunInternal(argc, argv);
+    return cbDebugRunInternal(1, argv);
 }
 
 bool cbDebugRunToUserCode(int argc, char* argv[])
