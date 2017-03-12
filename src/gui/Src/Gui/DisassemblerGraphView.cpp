@@ -23,7 +23,8 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
       mCip(0),
       mGoto(nullptr),
       syncOrigin(false),
-      forceCenter(false)
+      forceCenter(false),
+      layoutType(LayoutType::Medium)
 {
     this->status = "Loading...";
 
@@ -174,6 +175,14 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
     for(auto & blockIt : this->blocks)
     {
         DisassemblerBlock & block = blockIt.second;
+        bool blockSelected = false;
+        for (const Instr& instr : block.block.instrs)
+        {
+            if (instr.addr == this->cur_instr)
+            {
+                blockSelected = true;
+            }
+        }
 
         //Ignore blocks that are not in view
         if(viewportRect.intersects(QRect(block.x + this->charWidth , block.y + this->charWidth,
@@ -262,7 +271,12 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
         // Render edges
         for(DisassemblerEdge & edge : block.edges)
         {
-            p.setPen(edge.color);
+            QPen pen(edge.color);
+            if (blockSelected)
+            {
+                pen.setStyle(Qt::DashLine);
+            }
+            p.setPen(pen);
             p.setBrush(edge.color);
             p.drawPolyline(edge.polyline);
             p.drawConvexPolygon(edge.arrow);
@@ -663,8 +677,15 @@ void DisassemblerGraphView::mouseReleaseEvent(QMouseEvent* event)
 
 void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    duint instr = this->getInstrForMouseEvent(event);
-    DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)).toUtf8().constData());
+    if(drawOverview)
+    {
+        toggleOverviewSlot();
+    }
+    else
+    {
+        duint instr = this->getInstrForMouseEvent(event);
+        DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)).toUtf8().constData());
+    }
 }
 
 void DisassemblerGraphView::prepareGraphNode(DisassemblerBlock & block)
@@ -710,30 +731,70 @@ void DisassemblerGraphView::computeGraphLayout(DisassemblerBlock & block)
     //Compute child node layouts and arrange them horizontally
     int col = 0;
     int row_count = 1;
+    int childColumn = 0;
+    bool singleChild = block.new_exits.size() == 1;
     for(size_t i = 0; i < block.new_exits.size(); i++)
     {
-        duint edge = block.new_exits[block.new_exits.size() - i - 1];
+        duint edge = block.new_exits[i];
         this->computeGraphLayout(this->blocks[edge]);
-        this->adjustGraphLayout(this->blocks[edge], col, 1);
-        col += this->blocks[edge].col_count;
         if((this->blocks[edge].row_count + 1) > row_count)
             row_count = this->blocks[edge].row_count + 1;
+        childColumn = this->blocks[edge].col;
     }
 
-    block.row = 0;
-    if(col >= 2)
+    if(this->layoutType != LayoutType::Wide && block.new_exits.size() == 2)
     {
-        //Place this node centered over the child nodes
-        block.col = (col - 2) / 2;
-        block.col_count = col;
+        DisassemblerBlock & left = this->blocks[block.new_exits[0]];
+        DisassemblerBlock & right = this->blocks[block.new_exits[1]];
+        if(left.new_exits.size() == 0)
+        {
+           left.col = right.col - 2;
+           int add = left.col < 0 ? - left.col : 0;
+           this->adjustGraphLayout(right, add, 1);
+           this->adjustGraphLayout(left, add, 1);
+           col = right.col_count + add;
+        }
+        else if(right.new_exits.size() == 0)
+        {
+            this->adjustGraphLayout(left, 0, 1);
+            this->adjustGraphLayout(right, left.col + 2, 1);
+            col = std::max(left.col_count, right.col + 2);
+        }
+        else
+        {
+            this->adjustGraphLayout(left, 0, 1);
+            this->adjustGraphLayout(right, left.col_count, 1);
+            col = left.col_count + right.col_count;
+        }
+
+        block.col_count = std::max(2, col);
+        if(layoutType == LayoutType::Medium)
+            block.col = (left.col + right.col) / 2;
+        else
+            block.col = singleChild ? childColumn : (col - 2) / 2;
     }
     else
     {
-        //No child nodes, set single node's width (nodes are 2 columns wide to allow
-        //centering over a branch)
-        block.col = 0;
-        block.col_count = 2;
+        for(duint edge : block.new_exits)
+        {
+            this->adjustGraphLayout(this->blocks[edge], col, 1);
+            col += this->blocks[edge].col_count;
+        }
+        if(col >= 2)
+        {
+            //Place this node centered over the child nodes
+            block.col = singleChild ? childColumn : (col - 2) / 2;
+            block.col_count = col;
+        }
+        else
+        {
+            //No child nodes, set single node's width (nodes are 2 columns wide to allow
+            //centering over a branch)
+            block.col = 0;
+            block.col_count = 2;
+        }
     }
+    block.row = 0;
     block.row_count = row_count;
 }
 
@@ -744,11 +805,11 @@ bool DisassemblerGraphView::isEdgeMarked(EdgesVector & edges, int row, int col, 
     return edges[row][col][index];
 }
 
-void DisassemblerGraphView::markEdge(EdgesVector & edges, int row, int col, int index)
+void DisassemblerGraphView::markEdge(EdgesVector & edges, int row, int col, int index, bool used)
 {
     while(int(edges[row][col].size()) <= index)
         edges[row][col].push_back(false);
-    edges[row][col][index] = true;
+    edges[row][col][index] = used;
 }
 
 int DisassemblerGraphView::findHorizEdgeIndex(EdgesVector & edges, int row, int min_col, int max_col)
@@ -833,42 +894,46 @@ DisassemblerGraphView::DisassemblerEdge DisassemblerGraphView::routeEdge(EdgesVe
     int col = start.col + 1;
     if(min_row != max_row)
     {
-        int ofs = 0;
-        while(true)
+        auto checkColumn = [min_row, max_row, &edge_valid](int column)
         {
-            col = start.col + 1 - ofs;
-            if(col >= 0)
+            if (column < 0 || column >= int(edge_valid[min_row].size()))
+                return false;
+            for(int row = min_row; row < max_row; row++)
             {
-                bool valid = true;
-                for(int row = min_row; row < max_row + 1; row++)
+                if(!edge_valid[row][column])
                 {
-                    if(!edge_valid[row][col])
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        if (!checkColumn(col))
+        {
+            if (checkColumn(end.col + 1))
+            {
+                col = end.col + 1;
+            }
+            else
+            {
+                int ofs = 0;
+                while(true)
+                {
+                    col = start.col + 1 - ofs;
+                    if(checkColumn(col))
                     {
-                        valid = false;
                         break;
                     }
-                }
-                if(valid)
-                    break;
-            }
 
-            col = start.col + 1 + ofs;
-            if(col < int(edge_valid[min_row].size()))
-            {
-                bool valid = true;
-                for(int row = min_row; row < max_row + 1; row++)
-                {
-                    if(!edge_valid[row][col])
+                    col = start.col + 1 + ofs;
+                    if(checkColumn(col))
                     {
-                        valid = false;
                         break;
                     }
-                }
-                if(valid)
-                    break;
-            }
 
-            ofs += 1;
+                    ofs += 1;
+                }
+            }
         }
     }
 
@@ -894,7 +959,11 @@ DisassemblerGraphView::DisassemblerEdge DisassemblerGraphView::routeEdge(EdgesVe
     if(end.row != (start.row + 1))
     {
         //Not in same row, need to generate a line for moving to the correct row
+        if (col == (start.col + 1))
+            this->markEdge(vert_edges, start.row + 1, start.col + 1, i, false);
         int index = this->findVertEdgeIndex(vert_edges, col, min_row, max_row);
+        if (col == (start.col + 1))
+            edge.start_index = index;
         edge.addPoint(end.row, col, index);
         horiz = false;
     }
@@ -969,10 +1038,9 @@ void DisassemblerGraphView::renderFunction(Function & func)
     visited.insert(func.entry);
     std::queue<duint> queue;
     queue.push(this->blocks[func.entry].block.entry);
+    std::vector<duint> blockOrder;
     bool changed = true;
 
-    int best_edges;
-    duint best_parent;
     while(changed)
     {
         changed = false;
@@ -982,6 +1050,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
         {
             DisassemblerBlock & block = this->blocks[queue.front()];
             queue.pop();
+            blockOrder.push_back(block.block.entry);
 
             for(duint edge : block.block.exits)
             {
@@ -997,11 +1066,17 @@ void DisassemblerGraphView::renderFunction(Function & func)
                     visited.insert(edge);
                     changed = true;
                 }
+                else
+                {
+                     removeFromVec(this->blocks[edge].incoming, block.block.entry);
+                }
             }
         }
 
         //No more nodes satisfy constraints, pick a node to continue constructing the graph
         duint best = 0;
+        int best_edges;
+        duint best_parent;
         for(auto & blockIt : this->blocks)
         {
             DisassemblerBlock & block = blockIt.second;
@@ -1027,6 +1102,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
             removeFromVec(this->blocks[best].incoming, best_parentb.block.entry);
             best_parentb.new_exits.push_back(best);
             visited.insert(best);
+            queue.push(best);
             changed = true;
         }
     }
@@ -1108,9 +1184,9 @@ void DisassemblerGraphView::renderFunction(Function & func)
     //puts("Prepare edge routing");
 
     //Perform edge routing
-    for(auto & blockIt : this->blocks)
+    for(duint blockId : blockOrder)
     {
-        DisassemblerBlock & block = blockIt.second;
+        DisassemblerBlock & block = blocks[blockId];
         DisassemblerBlock & start = block;
         for(duint edge : block.block.exits)
         {
@@ -1386,6 +1462,15 @@ void DisassemblerGraphView::fontChanged()
     }
 }
 
+void DisassemblerGraphView::setGraphLayout(DisassemblerGraphView::LayoutType layout)
+{
+    this->layoutType = layout;
+    if (this->ready)
+    {
+        this->renderFunction(this->analysis.functions[this->function]);
+    }
+}
+
 void DisassemblerGraphView::tokenizerConfigUpdatedSlot()
 {
     disasm.UpdateConfig();
@@ -1512,8 +1597,8 @@ void DisassemblerGraphView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
@@ -1522,9 +1607,25 @@ void DisassemblerGraphView::setupContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("snowman.png"), tr("Decompile"), SLOT(decompileSlot()), "ActionGraphDecompile"));
     mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
+    mToggleOverview->setCheckable(true);
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
+    mMenuBuilder->addAction(makeShortcutAction(tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
+
+    MenuBuilder* layoutMenu = new MenuBuilder(this);
+    QActionGroup* layoutGroup = new QActionGroup(this);
+    layoutGroup->addAction(makeAction(tr("Narrow"), [this](){ setGraphLayout(LayoutType::Narrow); }));
+    QAction* mediumLayout =
+    layoutGroup->addAction(makeAction(tr("Medium"), [this](){ setGraphLayout(LayoutType::Medium); }));
+    layoutGroup->addAction(makeAction(tr("Wide"), [this](){ setGraphLayout(LayoutType::Wide); }));
+    for (QAction* layoutAction : layoutGroup->actions())
+    {
+        layoutAction->setCheckable(true);
+        layoutMenu->addAction(layoutAction);
+    }
+    mediumLayout->setChecked(true);
+    mMenuBuilder->addMenu(makeMenu(tr("Layout")), layoutMenu);
+
     mMenuBuilder->addSeparator();
 
     mMenuBuilder->loadFromConfig();
@@ -1590,14 +1691,12 @@ void DisassemblerGraphView::fontsUpdatedSlot()
 
 void DisassemblerGraphView::shortcutsUpdatedSlot()
 {
-    for(const auto & actionShortcut : actionShortcutPairs)
-        actionShortcut.action->setShortcut(ConfigShortcut(actionShortcut.shortcut));
+    updateShortcuts();
 }
 
 void DisassemblerGraphView::toggleOverviewSlot()
 {
     drawOverview = !drawOverview;
-    mToggleOverview->setCheckable(true);
     mToggleOverview->setChecked(drawOverview);
     this->viewport()->update();
 }

@@ -1,3 +1,17 @@
+#ifndef ACTIONHELPERS_H
+#define ACTIONHELPERS_H
+
+#include <QAction>
+
+template<class Base>
+class ActionHelper
+{
+private:
+Base* getBase()
+{
+    return static_cast<Base*>(this);
+}
+
 struct ActionShortcut
 {
     QAction* action;
@@ -10,18 +24,25 @@ struct ActionShortcut
     }
 };
 
-std::vector<ActionShortcut> actionShortcutPairs;
+public:
+virtual void updateShortcuts()
+{
+    for(const auto & actionShortcut : actionShortcutPairs)
+        actionShortcut.action->setShortcut(ConfigShortcut(actionShortcut.shortcut));
+}
+
+private:
 
 inline QAction* connectAction(QAction* action, const char* slot)
 {
-    connect(action, SIGNAL(triggered(bool)), this, slot);
+    QObject::connect(action, SIGNAL(triggered(bool)), getBase(), slot);
     return action;
 }
 
-inline QAction* connectAction(QAction* action, QActionLambda::TriggerCallback callback)
+template<class T> // lambda or base member pointer
+inline QAction* connectAction(QAction* action, T callback)
 {
-    auto lambda = new QActionLambda(action->parent(), callback);
-    connect(action, SIGNAL(triggered(bool)), lambda, SLOT(triggeredSlot()));
+    QObject::connect(action, &QAction::triggered, getBase(), callback);
     return action;
 }
 
@@ -30,7 +51,7 @@ inline QAction* connectShortcutAction(QAction* action, const char* shortcut)
     actionShortcutPairs.push_back(ActionShortcut(action, shortcut));
     action->setShortcut(ConfigShortcut(shortcut));
     action->setShortcutContext(Qt::WidgetShortcut);
-    addAction(action);
+    getBase()->addAction(action);
     return action;
 }
 
@@ -39,15 +60,16 @@ inline QAction* connectMenuAction(QMenu* menu, QAction* action)
     menu->addAction(action);
     return action;
 }
+protected:
 
 inline QMenu* makeMenu(const QString & title)
 {
-    return new QMenu(title, this);
+    return new QMenu(title, getBase());
 }
 
 inline QMenu* makeMenu(const QIcon & icon, const QString & title)
 {
-    QMenu* menu = new QMenu(title, this);
+    QMenu* menu = new QMenu(title, getBase());
     menu->setIcon(icon);
     return menu;
 }
@@ -55,13 +77,13 @@ inline QMenu* makeMenu(const QIcon & icon, const QString & title)
 template<typename T>
 inline QAction* makeAction(const QString & text, T slot)
 {
-    return connectAction(new QAction(text, this), slot);
+    return connectAction(new QAction(text, getBase()), slot);
 }
 
 template<typename T>
 inline QAction* makeAction(const QIcon & icon, const QString & text, T slot)
 {
-    return connectAction(new QAction(icon, text, this), slot);
+    return connectAction(new QAction(icon, text, getBase()), slot);
 }
 
 template<typename T>
@@ -99,3 +121,9 @@ inline QAction* makeShortcutMenuAction(QMenu* menu, const QIcon & icon, const QS
 {
     return connectShortcutAction(makeMenuAction(menu, icon, text, slot), shortcut);
 }
+
+private:
+std::vector<ActionShortcut> actionShortcutPairs;
+};
+
+#endif

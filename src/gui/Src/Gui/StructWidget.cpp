@@ -56,8 +56,7 @@ void StructWidget::fontsUpdatedSlot()
 
 void StructWidget::shortcutsUpdatedSlot()
 {
-    for(const auto & actionShortcut : actionShortcutPairs)
-        actionShortcut.action->setShortcut(ConfigShortcut(actionShortcut.shortcut));
+    updateShortcuts();
 }
 
 void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
