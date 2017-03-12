@@ -460,14 +460,15 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                     return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
                 else
                 {
-                    if(party == 0)
-                        painter->setPen(QPen(mUserStackFrameColor, 2));
-                    else
-                        painter->setPen(QPen(mSystemStackFrameColor, 2));
                     int height = getRowHeight();
                     int halfHeight = height / 2;
                     int width = 5;
                     int offset = 2;
+                    auto result = HexDump::paintContent(painter, rowBase, rowOffset, 1, x + (width - 2), y, w - (width - 2), h);
+                    if(party == 0)
+                        painter->setPen(QPen(mUserStackFrameColor, 2));
+                    else
+                        painter->setPen(QPen(mSystemStackFrameColor, 2));
                     if((stackFrameBitfield & 1) != 0)
                     {
                         painter->drawLine(x + width, y + halfHeight / 2, x + offset, y + halfHeight / 2);
@@ -482,8 +483,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                     }
                     else
                         painter->drawLine(x + offset, y + height, x + offset, y + halfHeight);
-                    width -= 2;
-                    return HexDump::paintContent(painter, rowBase, rowOffset, 1, x + width, y, w - width, h);
+                    return result;
                 }
             }
             else
