@@ -5,6 +5,7 @@
 #include <QRegularExpression>
 #include <QDesktopServices>
 #include <QClipboard>
+#include <QTimer>
 
 /**
  * @brief LogView::LogView The constructor constructs a rich text browser
@@ -19,6 +20,11 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     this->setOpenLinks(false);
     this->setLoggingEnabled(true);
     autoScroll = true;
+
+    flushTimer = new QTimer(this);
+    flushTimer->setInterval(500);
+    connect(flushTimer, SIGNAL(timeout()), this, SLOT(flushTimerSlot()));
+    connect(Bridge::getBridge(), SIGNAL(close()), flushTimer, SLOT(stop()));
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
@@ -128,6 +134,19 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.exec(event->globalPos());
 }
 
+void LogView::showEvent(QShowEvent* event)
+{
+    flushTimerSlot();
+    flushTimer->start();
+    QTextBrowser::showEvent(event);
+}
+
+void LogView::hideEvent(QHideEvent* event)
+{
+    flushTimer->stop();
+    QTextBrowser::hideEvent(event);
+}
+
 /**
  * @brief linkify Add hyperlink HTML to the message where applicable.
  * @param msg The message passed by reference.
@@ -176,7 +195,6 @@ void LogView::addMsgToLogSlot(QByteArray msg)
             {
                 fclose(logRedirection);
                 logRedirection = NULL;
-                //msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
                 redirectError = true;
             }
         }
@@ -209,7 +227,6 @@ void LogView::addMsgToLogSlot(QByteArray msg)
             {
                 fclose(logRedirection);
                 logRedirection = NULL;
-                //msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
                 redirectError = true;
             }
             if(loggingEnabled)
@@ -243,13 +260,12 @@ void LogView::addMsgToLogSlot(QByteArray msg)
         msgUtf16.replace(QString("\r\n"), QString("<br/>\n"));
     }
     linkify(msgUtf16);
-    QTextCursor cursor = this->textCursor();
-    cursor.movePosition(QTextCursor::End);
     if(redirectError)
-        msgUtf16 += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError());
-    cursor.insertHtml(msgUtf16);
-    if(autoScroll)
-        this->moveCursor(QTextCursor::End);
+        msgUtf16.append(tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError()));
+
+    if(logBuffer.length() >= 10000 * 10) //limit the log buffer to ~10mb
+        logBuffer.clear();
+    logBuffer.append(msgUtf16);
 }
 
 /**
@@ -408,4 +424,18 @@ void LogView::pasteSlot()
     if(!clipboardText.endsWith('\n'))
         clipboardText.append('\n');
     addMsgToLogSlot(clipboardText.toUtf8());
+}
+
+void LogView::flushTimerSlot()
+{
+    if(logBuffer.isEmpty())
+        return;
+    setUpdatesEnabled(false);
+    QTextCursor cursor = textCursor();
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertHtml(logBuffer);
+    if(autoScroll)
+        moveCursor(QTextCursor::End);
+    setUpdatesEnabled(true);
+    logBuffer.clear();
 }
