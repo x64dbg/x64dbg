@@ -490,7 +490,7 @@ bool CapstoneTokenizer::tokenizeRegOperand(const cs_x86_op & op)
         registerType = TokenType::ZmmRegister;
     else if(reg == ArchValue(X86_REG_FS, X86_REG_GS))
         registerType = TokenType::MnemonicUnusual;
-    addToken(registerType, _cp.RegName(x86_reg(reg)));
+    addToken(registerType, _cp.RegName(reg));
     return true;
 }
 
@@ -516,10 +516,10 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
 
     //memory segment
     const auto & mem = op.mem;
-    const char* segmentText = _cp.RegName(x86_reg(mem.segment));
+    const char* segmentText = _cp.RegName(mem.segment);
     if(mem.segment == X86_REG_INVALID) //segment not set
     {
-        switch(x86_reg(mem.base))
+        switch(mem.base)
         {
 #ifdef _WIN64
         case X86_REG_RSP:
@@ -541,7 +541,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
 
     //memory opening bracket
     auto bracketsType = TokenType::MemoryBrackets;
-    switch(x86_reg(mem.base))
+    switch(mem.base)
     {
     case X86_REG_ESP:
     case X86_REG_RSP:
@@ -566,14 +566,14 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
         bool prependPlus = false;
         if(mem.base != X86_REG_INVALID)  //base register
         {
-            addToken(TokenType::MemoryBaseRegister, _cp.RegName(x86_reg(mem.base)));
+            addToken(TokenType::MemoryBaseRegister, _cp.RegName(mem.base));
             prependPlus = true;
         }
         if(mem.index != X86_REG_INVALID)  //index register
         {
             if(prependPlus)
                 addMemoryOperator('+');
-            addToken(TokenType::MemoryIndexRegister, _cp.RegName(x86_reg(mem.index)));
+            addToken(TokenType::MemoryIndexRegister, _cp.RegName(mem.index));
             if(mem.scale > 1)
             {
                 addMemoryOperator('*');

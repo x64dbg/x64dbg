@@ -238,14 +238,45 @@ bool cbInstrCapstone(int argc, char* argv[])
     }
 
     const cs_insn* instr = cp.GetInstr();
+    const cs_detail* detail = instr->detail;
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
     dprintf("%s %s | %s\n", instr->mnemonic, instr->op_str, cp.InstructionText(true).c_str());
     dprintf("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), cp.OpCount());
+    if(detail->regs_read_count)
+    {
+        dprintf("implicit read:");
+        for(uint8_t i = 0; i < detail->regs_read_count; i++)
+            dprintf(" %s", cp.RegName(x86_reg(detail->regs_read[i])));
+        dputs("");
+    }
+    if(detail->regs_write_count)
+    {
+        dprintf("implicit write:");
+        for(uint8_t i = 0; i < detail->regs_write_count; i++)
+            dprintf(" %s", cp.RegName(x86_reg(detail->regs_write[i])));
+        dputs("");
+    }
+    auto rwstr = [](uint8_t access)
+    {
+        switch(access)
+        {
+        case CS_AC_INVALID:
+            return "none";
+        case CS_AC_READ:
+            return "read";
+        case CS_AC_WRITE:
+            return "write";
+        case CS_AC_READ | CS_AC_WRITE:
+            return "read+write";
+        default:
+            return "???";
+        }
+    };
     for(int i = 0; i < argcount; i++)
     {
         const cs_x86_op & op = x86.operands[i];
-        dprintf("operand %d (size: %d) \"%s\", ", i + 1, op.size, cp.OperandText(i).c_str());
+        dprintf("operand %d (size: %d, access: %s) \"%s\", ", i + 1, op.size, rwstr(op.access), cp.OperandText(i).c_str());
         switch(op.type)
         {
         case X86_OP_REG:
@@ -259,9 +290,9 @@ bool cbInstrCapstone(int argc, char* argv[])
             //[base + index * scale +/- disp]
             const x86_op_mem & mem = op.mem;
             dprintf("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
-                    cp.RegName((x86_reg)mem.segment),
-                    cp.RegName((x86_reg)mem.base),
-                    cp.RegName((x86_reg)mem.index),
+                    cp.RegName(mem.segment),
+                    cp.RegName(mem.base),
+                    cp.RegName(mem.index),
                     mem.scale,
                     mem.disp);
         }
