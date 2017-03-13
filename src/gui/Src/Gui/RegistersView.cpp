@@ -1340,6 +1340,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     connect(Bridge::getBridge(), SIGNAL(updateRegisters()), this, SLOT(updateRegistersSlot()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
+    connect(parent->getDisasmWidget(), SIGNAL(selectionChanged(dsint)), this, SLOT(disasmSelectionChangedSlot(dsint)));
     // self communication for repainting (maybe some other widgets needs this information, too)
     connect(this, SIGNAL(refresh()), this, SLOT(reload()));
     // context menu actions
@@ -2296,7 +2297,44 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         }
 #endif //_WIN64
 
-        p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, mRegisterMapping[reg]);
+        //draw the register name
+        auto regName = mRegisterMapping[reg];
+        p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, regName);
+
+        //highlight the register based on access
+        uint8_t highlight = 0;
+        for(const auto & reg : mHighlightRegs)
+        {
+            if(!CapstoneTokenizer::tokenTextPoolEquals(regName, reg.first))
+                continue;
+            highlight = reg.second;
+            break;
+        }
+        if(highlight)
+        {
+            const char* name = "";
+            switch(highlight & ~(Capstone::Implicit | Capstone::Explicit))
+            {
+            case Capstone::Read:
+                name = "RegistersHighlightReadColor";
+                break;
+            case Capstone::Write:
+                name = "RegistersHighlightWriteColor";
+                break;
+            case Capstone::Read | Capstone::Write:
+                name = "RegistersHighlightReadWriteColor";
+                break;
+            }
+            auto highlightColor = ConfigColor(name);
+            if(highlightColor.alpha())
+            {
+                QPen highlightPen(highlightColor);
+                highlightPen.setWidth(2);
+                p->setPen(highlightPen);
+                p->drawLine(x + 1, y + mRowHeight - 1, x + mCharWidth * regName.length() - 1, y + mRowHeight - 1);
+            }
+        }
+
         x += (mRegisterPlaces[reg].labelwidth) * mCharWidth;
         //p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1),mRegisterMapping[reg]);
 
@@ -3603,5 +3641,11 @@ void RegistersView::onSIMDUQWord()
 void RegistersView::onSIMDHQWord()
 {
     wSIMDRegDispMode = SIMD_REG_DISP_QWORD_HEX;
+    emit refresh();
+}
+
+void RegistersView::disasmSelectionChangedSlot(dsint va)
+{
+    mHighlightRegs = mParent->getDisasmWidget()->DisassembleAt(va - mParent->getDisasmWidget()->getBase()).regsReferenced;
     emit refresh();
 }

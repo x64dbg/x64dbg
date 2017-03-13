@@ -88,6 +88,9 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("RegistersLabelColor", QColor("#000000"));
     defaultColors.insert("RegistersArgumentLabelColor", Qt::darkGreen);
     defaultColors.insert("RegistersExtraInfoColor", QColor("#000000"));
+    defaultColors.insert("RegistersHighlightReadColor", QColor("#00A000"));
+    defaultColors.insert("RegistersHighlightWriteColor", QColor("#B00000"));
+    defaultColors.insert("RegistersHighlightReadWriteColor", QColor("#808000"));
 
     defaultColors.insert("InstructionHighlightColor", QColor("#FF0000"));
     defaultColors.insert("InstructionCommaColor", QColor("#000000"));

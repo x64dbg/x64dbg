@@ -467,6 +467,9 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Register Names"), "RegistersLabelColor", "");
     colorInfoListAppend(tr("Argument Register Names"), "RegistersArgumentLabelColor", "");
     colorInfoListAppend(tr("Extra Information"), "RegistersExtraInfoColor", "");
+    colorInfoListAppend(tr("Highlight Read"), "RegistersHighlightReadColor", "");
+    colorInfoListAppend(tr("Highlight Write"), "RegistersHighlightWriteColor", "");
+    colorInfoListAppend(tr("Highlight Read+Write"), "RegistersHighlightReadWriteColor", "");
 
     colorInfoListAppend(tr("Instructions:"), "", "");
     colorInfoListAppend(tr("Text"), "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");

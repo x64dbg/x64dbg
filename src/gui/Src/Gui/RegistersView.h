@@ -204,6 +204,7 @@ protected slots:
     //unsigned int GetStatusWordTOPValueFromString(const char* string);
     QString GetStatusWordTOPStateString(unsigned short state);
     void appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32);
+    void disasmSelectionChangedSlot(dsint va);
 private:
     QPushButton* mChangeViewButton;
     CPUWidget* mParent;
@@ -293,6 +294,7 @@ private:
     QAction* SIMDUQWord;
     QAction* SIMDHQWord;
     dsint mCip;
+    std::vector<std::pair<const char*, uint8_t>> mHighlightRegs;
 };
 
 #endif // REGISTERSVIEW_H
