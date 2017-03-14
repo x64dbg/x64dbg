@@ -1280,6 +1280,18 @@ bool setregister(const char* string, duint value)
     return false;
 }
 
+static FARPROC SafeGetProcAddress(HMODULE hModule, const char* lpProcName)
+{
+    __try
+    {
+        return GetProcAddress(hModule, lpProcName);
+    }
+    __except(EXCEPTION_EXECUTE_HANDLER)
+    {
+        return nullptr;
+    }
+}
+
 /**
 \brief Gets the address of an API from a name.
 \param name The name of the API, see the command help for more information about valid constructions.
@@ -1424,7 +1436,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                         HMODULE hModule = LoadLibraryExW(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES);
                         if(hModule)
                         {
-                            ULONG_PTR funcAddress = (ULONG_PTR)GetProcAddress(hModule, name);
+                            ULONG_PTR funcAddress = (ULONG_PTR)SafeGetProcAddress(hModule, name);
                             if(funcAddress)
                             {
                                 if(!_wcsicmp(szBaseName, L"kernel32.dll"))
