@@ -1,6 +1,7 @@
 #include "ScriptView.h"
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QDesktopServices>
 #include "Configuration.h"
 #include "Bridge.h"
 #include "RichTextPainter.h"
@@ -377,6 +378,7 @@ void ScriptView::setupContextMenu()
     };
     mMenu->addAction(makeShortcutAction(DIcon("arrow-restart.png"), tr("Re&load Script"), SLOT(reload()), "ActionReloadScript"), isempty);
     mMenu->addAction(makeShortcutAction(DIcon("control-exit.png"), tr("&Unload Script"), SLOT(unload()), "ActionUnloadScript"), isempty);
+    mMenu->addAction(makeShortcutAction(DIcon("edit-script.png"), tr("&Edit Script"), SLOT(edit()), "ActionEditScript"), isempty);
     mMenu->addSeparator();
     mMenu->addAction(makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle &BP"), SLOT(bpToggle()), "ActionToggleBreakpointScript"), isempty);
     mMenu->addAction(makeShortcutAction(DIcon("arrow-run-cursor.png"), tr("Ru&n until selection"), SLOT(runCursor()), "ActionRunToCursorScript"), isempty);
@@ -385,7 +387,7 @@ void ScriptView::setupContextMenu()
     mMenu->addAction(makeShortcutAction(DIcon("control-stop.png"), tr("&Abort"), SLOT(abort()), "ActionAbortScript"), isempty);
     mMenu->addAction(makeAction(DIcon("neworigin.png"), tr("&Continue here..."), SLOT(newIp())), isempty);
     mMenu->addSeparator();
-    mMenu->addAction(makeShortcutAction(DIcon("terminal-command.png"), tr("&Execute Command..."), SLOT(cmdExec()), "ActionExecuteCommandScript"));
+    mMenu->addAction(makeShortcutAction(DIcon("terminal-command.png"), tr("E&xecute Command..."), SLOT(cmdExec()), "ActionExecuteCommandScript"));
 }
 
 bool ScriptView::isScriptCommand(QString text, QString cmd, QString & mnemonic, QString & argument)
@@ -474,6 +476,7 @@ void ScriptView::openFile()
 void ScriptView::paste()
 {
     DbgScriptUnload();
+    filename.clear();
     DbgScriptLoad("x64dbg://localhost/clipboard");
 }
 
@@ -487,7 +490,14 @@ void ScriptView::reload()
 
 void ScriptView::unload()
 {
+    filename.clear();
     DbgScriptUnload();
+}
+
+void ScriptView::edit()
+{
+    if(!filename.isEmpty())
+        QDesktopServices::openUrl(QUrl(QDir::fromNativeSeparators(filename)));
 }
 
 void ScriptView::run()

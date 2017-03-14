@@ -294,5 +294,6 @@
         <file>images/wide.png</file>
         <file>images/layout.png</file>
         <file>images/summary.png</file>
+        <file>images/edit-script.png</file>
     </qresource>
 </RCC>

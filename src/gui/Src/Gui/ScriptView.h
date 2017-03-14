@@ -31,6 +31,7 @@ public slots:
     void paste();
     void reload();
     void unload();
+    void edit();
     void run();
     void bpToggle();
     void runCursor();
