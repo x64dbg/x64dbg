@@ -192,6 +192,8 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
             p.setPen(QColor(0, 0, 0, 0));
             if(block.block.terminal)
                 p.setBrush(retShadowColor);
+            else if(block.block.indirectcall)
+                p.setBrush(indirectcallShadowColor);
             else
                 p.setBrush(QColor(0, 0, 0, 128));
             p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
@@ -199,7 +201,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
 
             //Render node background
             p.setPen(graphNodeColor);
-            p.setBrush(QBrush(disassemblyBackgroundColor));
+            p.setBrush(disassemblyBackgroundColor);
             p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
                        block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
@@ -340,9 +342,11 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
 
         //Render shadow
         p.setPen(QColor(0, 0, 0, 0));
-        if(traceCount && block.block.terminal)
+        if((isCip || traceCount) && block.block.terminal)
             p.setBrush(retShadowColor);
-        else if(block.block.terminal || isCip)
+        else if((isCip || traceCount) && block.block.indirectcall)
+            p.setBrush(indirectcallShadowColor);
+        else if(isCip)
             p.setBrush(QColor(0, 0, 0, 0));
         else
             p.setBrush(QColor(0, 0, 0, 128));
@@ -353,7 +357,7 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         pen.setColor(graphNodeColor);
         p.setPen(pen);
         if(isCip)
-            p.setBrush(QBrush(mCipBackgroundColor));
+            p.setBrush(mCipBackgroundColor);
         else if(traceCount)
         {
             // Color depending on how often a sequence of code is executed
@@ -366,14 +370,16 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
             if(disassemblyTracedColor.blue() > 160)
                 colorDiff *= -1;
 
-            p.setBrush(QBrush(QColor(disassemblyTracedColor.red(),
-                                     disassemblyTracedColor.green(),
-                                     std::max(0, std::min(256, disassemblyTracedColor.blue() + colorDiff)))));
+            p.setBrush(QColor(disassemblyTracedColor.red(),
+                              disassemblyTracedColor.green(),
+                              std::max(0, std::min(256, disassemblyTracedColor.blue() + colorDiff))));
         }
         else if(block.block.terminal)
-            p.setBrush(QBrush(retShadowColor));
+            p.setBrush(retShadowColor);
+        else if(block.block.indirectcall)
+            p.setBrush(indirectcallShadowColor);
         else
-            p.setBrush(QBrush(disassemblyBackgroundColor));
+            p.setBrush(disassemblyBackgroundColor);
         p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
                    block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
     }
@@ -400,7 +406,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
 
     //Render background
     QRect viewportRect(this->viewport()->rect().topLeft(), this->viewport()->rect().bottomRight() - QPoint(1, 1));
-    p.setBrush(QBrush(backgroundColor));
+    p.setBrush(backgroundColor);
     p.drawRect(viewportRect);
     p.setBrush(Qt::black);
 
@@ -1498,6 +1504,7 @@ void DisassemblerGraphView::loadCurrentGraph()
                 block.false_path = node.brfalse;
                 block.true_path = node.brtrue;
                 block.terminal = node.terminal;
+                block.indirectcall = node.indirectcall;
                 block.header_text = Text(getSymbolicName(block.entry), mLabelColor, mLabelBackgroundColor);
                 {
                     Instr instr;
@@ -1676,6 +1683,7 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     brtrueColor = ConfigColor("GraphBrtrueColor");
     brfalseColor = ConfigColor("GraphBrfalseColor");
     retShadowColor = ConfigColor("GraphRetShadowColor");
+    indirectcallShadowColor = ConfigColor("GraphIndirectcallShadowColor");
     backgroundColor = ConfigColor("GraphBackgroundColor");
     if(!backgroundColor.alpha())
         backgroundColor = disassemblySelectionColor;

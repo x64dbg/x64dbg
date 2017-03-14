@@ -550,6 +550,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Background"), "GraphBackgroundColor", "");
     colorInfoListAppend(tr("Node"), "GraphNodeColor", "GraphNodeBackgroundColor");
     colorInfoListAppend(tr("Terminal node shadow"), "GraphRetShadowColor", "");
+    colorInfoListAppend(tr("Indirect call shadow"), "GraphIndirectcallShadowColor", "");
     colorInfoListAppend(tr("Unconditional branch line"), "GraphJmpColor", "");
     colorInfoListAppend(tr("True branch line"), "GraphBrtrueColor", "");
     colorInfoListAppend(tr("False branch line"), "GraphBrfalseColor", "");

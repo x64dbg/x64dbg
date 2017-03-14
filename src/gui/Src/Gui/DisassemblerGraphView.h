@@ -143,6 +143,7 @@ public:
         duint true_path = 0;
         duint false_path = 0;
         bool terminal = false;
+        bool indirectcall = false;
     };
 
     struct DisassemblerBlock
@@ -320,6 +321,7 @@ private:
     QColor brtrueColor;
     QColor brfalseColor;
     QColor retShadowColor;
+    QColor indirectcallShadowColor;
     QColor backgroundColor;
     QColor mAutoCommentColor;
     QColor mAutoCommentBackgroundColor;

@@ -138,11 +138,11 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
 
                 break;
             }
-            if(mCp.InGroup(CS_GRP_CALL))  //call
+            if(mCp.InGroup(CS_GRP_CALL)) //call
             {
                 //TODO: add this to a queue to be analyzed later
             }
-            if(mCp.InGroup(CS_GRP_RET))  //return
+            if(mCp.InGroup(CS_GRP_RET)) //return
             {
                 node.terminal = true;
                 graph.AddNode(node);
@@ -191,9 +191,25 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             continue;
         node.instrs.reserve(node.icount);
         auto addr = node.start;
-        while(addr <= node.end)
+        while(addr <= node.end) //disassemble all instructions
         {
             auto size = mCp.Disassemble(addr, translateAddr(addr)) ? mCp.Size() : 1;
+            if(mCp.InGroup(CS_GRP_CALL) && mCp.OpCount()) //call reg / call [reg+X]
+            {
+                auto & op = mCp[0];
+                switch(op.type)
+                {
+                case X86_OP_REG:
+                    node.indirectcall = true;
+                    break;
+                case X86_OP_MEM:
+                    node.indirectcall |= op.mem.base != X86_REG_RIP &&
+                                         (op.mem.base != X86_REG_INVALID || op.mem.index != X86_REG_INVALID);
+                    break;
+                default:
+                    break;
+                }
+            }
             BridgeCFInstruction instr;
             instr.addr = addr;
             for(int i = 0; i < size; i++)
