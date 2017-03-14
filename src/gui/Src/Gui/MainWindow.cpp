@@ -50,6 +50,7 @@
 #include "main.h"
 #include "SimpleTraceDialog.h"
 #include "CPUArgumentWidget.h"
+#include "MRUList.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -101,7 +102,10 @@ MainWindow::MainWindow(QWidget* parent)
     SetApplicationIcon(MainWindow::winId());
 
     // Load recent files
-    loadMRUList(16);
+    mMRUList = new MRUList(this, "Recent Files");
+    connect(mMRUList, SIGNAL(openFile(QString)), this, SLOT(openRecentFileSlot(QString)));
+    mMRUList->load();
+    updateMRUMenu();
 
     // Accept drops
     setAcceptDrops(true);
@@ -245,7 +249,7 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actionRtr, "rtr");
     connect(ui->actionLog, SIGNAL(triggered()), this, SLOT(displayLogWidget()));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(displayAboutWidget()));
-    connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openFile()));
+    connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openFileSlot()));
     makeCommandAction(ui->actionPause, "pause");
     makeCommandAction(ui->actionScylla, "StartScylla");
     connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restartDebugging()));
@@ -706,91 +710,13 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionCalls, ConfigShortcut("ActionFindIntermodularCalls"));
 }
 
-//Reads recent files list from settings
-void MainWindow::loadMRUList(int maxItems)
-{
-    mMaxMRU = maxItems;
-    for(int i = 0; i < mMaxMRU; i++)
-    {
-        char currentFile[MAX_SETTING_SIZE] = "";
-        if(!BridgeSettingGet("Recent Files", QString().sprintf("%.2d", i + 1).toUtf8().constData(), currentFile))
-            break;
-        if(QString(currentFile).size() && QFile(currentFile).exists())
-            mMRUList.push_back(currentFile);
-    }
-    mMRUList.removeDuplicates();
-    updateMRUMenu();
-}
-
-//save recent files to settings
-void MainWindow::saveMRUList()
-{
-    BridgeSettingSet("Recent Files", 0, 0); //clear
-    mMRUList.removeDuplicates();
-    int mruSize = mMRUList.size();
-    for(int i = 0; i < mruSize; i++)
-    {
-        if(QFile(mMRUList.at(i)).exists())
-            BridgeSettingSet("Recent Files", QString().sprintf("%.2d", i + 1).toUtf8().constData(), mMRUList.at(i).toUtf8().constData());
-    }
-}
-
-void MainWindow::addMRUEntry(QString entry)
-{
-    if(!entry.size())
-        return;
-    //remove duplicate entry if it exists
-    removeMRUEntry(entry);
-    mMRUList.insert(mMRUList.begin(), entry);
-    if(mMRUList.size() > mMaxMRU)
-        mMRUList.erase(mMRUList.begin() + mMaxMRU, mMRUList.end());
-}
-
-void MainWindow::removeMRUEntry(QString entry)
-{
-    if(!entry.size())
-        return;
-    QList<QString>::iterator it;
-
-    for(it = mMRUList.begin(); it != mMRUList.end(); ++it)
-    {
-        if((*it) == entry)
-        {
-            mMRUList.erase(it);
-            break;
-        }
-    }
-}
-
 void MainWindow::updateMRUMenu()
 {
-    if(mMaxMRU < 1)
-        return;
-
     QMenu* fileMenu = ui->menuRecentFiles;
     QList<QAction*> list = fileMenu->actions();
     for(int i = 1; i < list.length(); ++i)
         fileMenu->removeAction(list.at(i));
-
-    //add items to list
-    if(mMRUList.size() > 0)
-    {
-        list = fileMenu->actions();
-        for(int index = 0; index < mMRUList.size(); ++index)
-        {
-            fileMenu->addAction(new QAction(mMRUList.at(index), this));
-            fileMenu->actions().last()->setObjectName(QString("MRU").append(QString::number(index)));
-            connect(fileMenu->actions().last(), SIGNAL(triggered()), this, SLOT(openFile()));
-        }
-    }
-}
-
-QString MainWindow::getMRUEntry(int index)
-{
-    if(index < mMRUList.size())
-        return mMRUList.at(index);
-
-    return "";
+    mMRUList->appendMenu(fileMenu);
 }
 
 void MainWindow::executeCommand()
@@ -894,27 +820,18 @@ void MainWindow::displayAboutWidget()
     msg.exec();
 }
 
-void MainWindow::openFile()
+void MainWindow::openFileSlot()
 {
-    QString lastPath, filename;
-    QAction* fileToOpen = qobject_cast<QAction*>(sender());
+    auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), mMRUList->getEntry(0), tr("Executables (*.exe *.dll);;All files (*.*)"));
+    if(!filename.length())
+        return;
+    filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
+    openRecentFileSlot(filename);
+}
 
-    //if sender is from recent list directly open file, otherwise show dialog
-    if(fileToOpen == NULL || !fileToOpen->objectName().startsWith("MRU") || !(fileToOpen->text().length()))
-    {
-        lastPath = (mMRUList.size() > 0) ? mMRUList.at(0) : 0;
-        filename = QFileDialog::getOpenFileName(this, tr("Open file"), lastPath, tr("Executables (*.exe *.dll);;All files (*.*)"));
-        if(!filename.length())
-            return;
-        filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
-    }
-    else
-    {
-        filename = fileToOpen->text();
-    }
+void MainWindow::openRecentFileSlot(QString filename)
+{
     DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
-    if(DbgValFromString("$pid") != 0)
-        mCpuWidget->setDisasmFocus();
 }
 
 void MainWindow::runSlot()
@@ -927,11 +844,9 @@ void MainWindow::runSlot()
 
 void MainWindow::restartDebugging()
 {
-    if(!mMRUList.size())
-        return;
-    DbgCmdExec(QString().sprintf("init \"%s\"", mMRUList.at(0).toUtf8().constData()).toUtf8().constData());
-
-    mCpuWidget->setDisasmFocus();
+    auto last = mMRUList->getEntry(0);
+    if(!last.isEmpty())
+        DbgCmdExec(QString("init \"%1\"").arg(last).toUtf8().constData());
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -1058,9 +973,9 @@ void MainWindow::changeTopmost(bool checked)
 
 void MainWindow::addRecentFile(QString file)
 {
-    addMRUEntry(file);
+    mMRUList->addEntry(file);
     updateMRUMenu();
-    saveMRUList();
+    mMRUList->save();
 }
 
 void MainWindow::setLastException(unsigned int exceptionCode)
@@ -1739,7 +1654,7 @@ void MainWindow::clickFavouriteTool()
         QString toolPath = data.mid(5);
         duint PID = DbgValFromString("$pid");
         toolPath.replace(QString("%PID%"), QString::number(PID), Qt::CaseInsensitive);
-        toolPath.replace(QString("%DEBUGGEE%"), mMRUList.at(0), Qt::CaseInsensitive);
+        toolPath.replace(QString("%DEBUGGEE%"), mMRUList->getEntry(0), Qt::CaseInsensitive);
         char modpath[MAX_MODULE_SIZE] = "";
         DbgFunctions()->ModPathFromAddr(DbgValFromString("dis.sel()"), modpath, MAX_MODULE_SIZE);
         toolPath.replace(QString("%MODULE%"), modpath, Qt::CaseInsensitive);

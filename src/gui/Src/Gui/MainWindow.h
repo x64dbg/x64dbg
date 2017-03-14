@@ -32,6 +32,7 @@ class NotesManager;
 class SettingsDialog;
 class DisassemblerGraphView;
 class SimpleTraceDialog;
+class MRUList;
 
 namespace Ui
 {
@@ -69,7 +70,8 @@ public slots:
     void animateIntoSlot();
     void animateOverSlot();
     void animateCommandSlot();
-    void openFile();
+    void openFileSlot();
+    void openRecentFileSlot(QString filename);
     void restartDebugging();
     void displayBreakpointWidget();
     void updateWindowTitleSlot(QString filename);
@@ -184,18 +186,12 @@ private:
 
     QString mWindowMainTitle;
 
-    QStringList mMRUList;
-    int mMaxMRU;
+    MRUList* mMRUList;
     unsigned int lastException;
 
     QAction* actionManageFavourites;
 
-    void loadMRUList(int maxItems);
-    void saveMRUList();
-    void addMRUEntry(QString entry);
-    void removeMRUEntry(QString entry);
     void updateMRUMenu();
-    QString getMRUEntry(int index);
     void setupLanguagesMenu();
     void onMenuCustomized();
     void setupMenuCustomization();

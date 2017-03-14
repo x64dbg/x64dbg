@@ -216,7 +216,8 @@ SOURCES += \
     gui/Src/Gui/BreakpointsViewTable.cpp \
     dbg/formatfunctions.cpp \
     dbg/types.cpp \
-    dbg/typesparser.cpp
+    dbg/typesparser.cpp \
+    gui/Src/Utils/MRUList.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -443,7 +444,8 @@ HEADERS += \
     gui/Src/Gui/BreakpointsViewTable.h \
     dbg/filemap.h \
     dbg/formatfunctions.h \
-    dbg/types.h
+    dbg/types.h \
+    gui/Src/Utils/MRUList.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
