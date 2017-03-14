@@ -130,6 +130,7 @@ static bool shouldFilterSymbol(const char* name)
 }
 
 // https://github.com/llvm-mirror/llvm/blob/2ae7de27f7d9276e7bada445ea7576bbc4c83ae6/lib/DebugInfo/Symbolize/Symbolize.cpp#L427
+// https://github.com/x64dbg/x64dbg/pull/1478
 // Undo these various manglings for Win32 extern "C" functions:
 // cdecl       - _foo
 // stdcall     - _foo@12
@@ -143,25 +144,26 @@ static char* demanglePE32ExternCFunc(char* SymbolName)
     return SymbolName;
 #endif //_WIN64
 
-    // Remove any '_' or '@' prefix.
+    // Don't try to demangle C++ names
     char Front = SymbolName[0];
+    if(Front == '?')
+        return SymbolName;
+
+    // Remove any '_' or '@' prefix.
     if(Front == '_' || Front == '@')
         SymbolName++;
 
     // Remove any '@[0-9]+' suffix.
-    if(Front != '?')
+    auto AtPos = strrchr(SymbolName, '@');
+    if(AtPos)
     {
-        auto AtPos = strrchr(SymbolName, '@');
-        if(AtPos)
-        {
-            auto p = AtPos + 1;
-            while(*p && isdigit(*p))
-                p++;
+        auto p = AtPos + 1;
+        while(*p && isdigit(*p))
+            p++;
 
-            // All characters after '@' were digits
-            if(!*p)
-                *AtPos = '\0';
-        }
+        // All characters after '@' were digits
+        if(!*p)
+            *AtPos = '\0';
     }
 
     // Remove any ending '@' for vectorcall.
