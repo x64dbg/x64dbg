@@ -258,6 +258,7 @@ public slots:
     void fontsUpdatedSlot();
     void shortcutsUpdatedSlot();
     void toggleOverviewSlot();
+    void toggleSummarySlot();
     void selectionGetSlot(SELECTIONDATA* selection);
     void tokenizerConfigUpdatedSlot();
     void loadCurrentGraph();
@@ -301,6 +302,7 @@ private:
     CachedFontMetrics* mFontMetrics;
     MenuBuilder* mMenuBuilder;
     bool drawOverview;
+    bool onlySummary;
     bool syncOrigin;
     int overviewXOfs;
     int overviewYOfs;
@@ -311,6 +313,7 @@ private:
     LayoutType layoutType;
 
     QAction* mToggleOverview;
+    QAction* mToggleSummary;
     QAction* mToggleSyncOrigin;
 
     QColor disassemblyBackgroundColor;

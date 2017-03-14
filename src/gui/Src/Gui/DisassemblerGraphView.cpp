@@ -39,6 +39,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->scroll_base_y = 0;
     this->scroll_mode = false;
     this->drawOverview = false;
+    this->onlySummary = false;
     this->blocks.clear();
     this->saveGraph = false;
 
@@ -1559,7 +1560,13 @@ void DisassemblerGraphView::loadCurrentGraph()
                         }
                         instr.text = Text(richText);
 
-                        block.instrs.push_back(instr);
+                        //The summary contains calls, rets, user comments and string references
+                        if(!onlySummary ||
+                                instrTok.branchType == Instruction_t::Call ||
+                                instrTok.instStr.startsWith("ret", Qt::CaseInsensitive) ||
+                                (!commentText.text.isEmpty() && !autoComment) ||
+                                commentText.text.contains('\"'))
+                            block.instrs.push_back(instr);
                     }
                 }
                 func.blocks.push_back(block);
@@ -1615,6 +1622,8 @@ void DisassemblerGraphView::setupContextMenu()
     mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
     mToggleOverview->setCheckable(true);
+    mMenuBuilder->addAction(mToggleSummary = makeShortcutAction(DIcon("summary.png"), tr("S&ummary"), SLOT(toggleSummarySlot()), "ActionGraphToggleSummary"));
+    mToggleSummary->setCheckable(true);
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("image.png"), tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
@@ -1705,8 +1714,20 @@ void DisassemblerGraphView::shortcutsUpdatedSlot()
 void DisassemblerGraphView::toggleOverviewSlot()
 {
     drawOverview = !drawOverview;
-    mToggleOverview->setChecked(drawOverview);
-    this->viewport()->update();
+    if(onlySummary)
+    {
+        onlySummary = false;
+        loadCurrentGraph();
+    }
+    else
+        this->viewport()->update();
+}
+
+void DisassemblerGraphView::toggleSummarySlot()
+{
+    drawOverview = false;
+    onlySummary = !onlySummary;
+    loadCurrentGraph();
 }
 
 void DisassemblerGraphView::selectionGetSlot(SELECTIONDATA* selection)

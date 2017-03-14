@@ -293,5 +293,6 @@
         <file>images/narrow.png</file>
         <file>images/wide.png</file>
         <file>images/layout.png</file>
+        <file>images/summary.png</file>
     </qresource>
 </RCC>
