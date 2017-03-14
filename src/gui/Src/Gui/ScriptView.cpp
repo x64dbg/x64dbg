@@ -6,6 +6,7 @@
 #include "Bridge.h"
 #include "RichTextPainter.h"
 #include "LineEditDialog.h"
+#include "MRUList.h"
 
 ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
 {
@@ -30,6 +31,11 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     msg->setWindowFlags(msg->windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg->setModal(false);
     connect(msg, SIGNAL(finished(int)), this, SLOT(messageResult(int)));
+
+    // recent script
+    mMRUList = new MRUList(this, "Recent Scripts");
+    connect(mMRUList, SIGNAL(openFile(QString)), this, SLOT(openRecentFile(QString)));
+    mMRUList->load();
 
     // Slots
     connect(Bridge::getBridge(), SIGNAL(scriptAdd(int, const char**)), this, SLOT(add(int, const char**)));
@@ -368,10 +374,16 @@ void ScriptView::keyPressEvent(QKeyEvent* event)
 void ScriptView::setupContextMenu()
 {
     mMenu = new MenuBuilder(this);
-    MenuBuilder* mLoadMenu = new MenuBuilder(this);
-    mLoadMenu->addAction(makeShortcutAction(DIcon("folder-horizontal-open.png"), tr("&Open..."), SLOT(openFile()), "ActionLoadScript"));
-    mLoadMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(paste()), "ActionBinaryPaste"));
-    mMenu->addMenu(makeMenu(tr("Load Script")), mLoadMenu);
+    MenuBuilder* loadMenu = new MenuBuilder(this);
+    loadMenu->addAction(makeShortcutAction(DIcon("folder-horizontal-open.png"), tr("&Open..."), SLOT(openFile()), "ActionLoadScript"));
+    loadMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(paste()), "ActionBinaryPaste"));
+    loadMenu->addSeparator();
+    loadMenu->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
+    {
+        mMRUList->appendMenu(menu);
+        return true;
+    }));
+    mMenu->addMenu(makeMenu(DIcon("load-script.png"), tr("Load Script")), loadMenu);
     auto isempty = [this](QMenu*)
     {
         return getRowCount() != 0;
@@ -463,29 +475,34 @@ void ScriptView::setInfoLine(int line, QString info)
     reloadData(); //repaint
 }
 
+void ScriptView::openRecentFile(QString file)
+{
+    filename = file;
+    DbgScriptUnload();
+    DbgScriptLoad(filename.toUtf8().constData());
+    mMRUList->addEntry(filename);
+    mMRUList->save();
+}
+
 void ScriptView::openFile()
 {
     filename = QFileDialog::getOpenFileName(this, tr("Select script"), 0, tr("Script files (*.txt *.scr);;All files (*.*)"));
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
-    DbgScriptUnload();
-    DbgScriptLoad(filename.toUtf8().constData());
+    openRecentFile(filename);
 }
 
 void ScriptView::paste()
 {
-    DbgScriptUnload();
     filename.clear();
+    DbgScriptUnload();
     DbgScriptLoad("x64dbg://localhost/clipboard");
 }
 
 void ScriptView::reload()
 {
-    if(!filename.length())
-        return;
-    DbgScriptUnload();
-    DbgScriptLoad(filename.toUtf8().constData());
+    openRecentFile(filename);
 }
 
 void ScriptView::unload()

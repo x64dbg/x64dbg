@@ -4,6 +4,7 @@
 #include "StdTable.h"
 
 class QMessageBox;
+class MRUList;
 
 class ScriptView : public StdTable
 {
@@ -27,6 +28,7 @@ public slots:
     void error(int line, QString message);
     void setTitle(QString title);
     void setInfoLine(int line, QString info);
+    void openRecentFile(QString file);
     void openFile();
     void paste();
     void reload();
@@ -57,7 +59,8 @@ private:
     QString filename;
 
     MenuBuilder* mMenu;
-    QMessageBox* msg = nullptr;
+    QMessageBox* msg;
+    MRUList* mMRUList;
 };
 
 #endif // SCRIPTVIEW_H
