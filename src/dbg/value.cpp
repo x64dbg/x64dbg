@@ -1280,15 +1280,15 @@ bool setregister(const char* string, duint value)
     return false;
 }
 
-static FARPROC SafeGetProcAddress(HMODULE hModule, const char* lpProcName)
+duint SafeGetProcAddress(HMODULE hModule, const char* lpProcName)
 {
     __try
     {
-        return GetProcAddress(hModule, lpProcName);
+        return duint(GetProcAddress(hModule, lpProcName));
     }
     __except(EXCEPTION_EXECUTE_HANDLER)
     {
-        return nullptr;
+        return 0;
     }
 }
 
@@ -1354,7 +1354,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
             }
             else
             {
-                duint addr = noexports ? 0 : (duint)GetProcAddress(mod, apiname);
+                duint addr = noexports ? 0 : SafeGetProcAddress(mod, apiname);
                 if(addr) //found exported function
                     addr = modbase + (addr - (duint)mod); //correct for loaded base
                 else //not found
@@ -1379,7 +1379,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                     {
                         if(noexports) //get the exported functions with the '?' delimiter
                         {
-                            addr = (duint)GetProcAddress(mod, apiname);
+                            addr = SafeGetProcAddress(mod, apiname);
                             if(addr) //found exported function
                                 addr = modbase + (addr - (duint)mod); //correct for loaded base
                         }
@@ -1391,7 +1391,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                                 radix = 10, apiname++;
                             if(convertNumber(apiname, ordinal, radix) && ordinal <= 0xFFFF)
                             {
-                                addr = duint(GetProcAddress(mod, LPCSTR(ordinal)));
+                                addr = SafeGetProcAddress(mod, LPCSTR(ordinal));
                                 if(addr) //found exported function
                                     addr = modbase + (addr - (duint)mod); //correct for loaded base
                                 else if(!ordinal) //support for getting the image base using <modname>:0
@@ -1436,7 +1436,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                         HMODULE hModule = LoadLibraryExW(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES);
                         if(hModule)
                         {
-                            ULONG_PTR funcAddress = (ULONG_PTR)SafeGetProcAddress(hModule, name);
+                            duint funcAddress = SafeGetProcAddress(hModule, name);
                             if(funcAddress)
                             {
                                 if(!_wcsicmp(szBaseName, L"kernel32.dll"))

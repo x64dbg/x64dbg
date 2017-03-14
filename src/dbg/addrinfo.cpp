@@ -8,6 +8,7 @@
 #include "debugger.h"
 #include "memory.h"
 #include "module.h"
+#include "value.h"
 
 ///api functions
 bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
@@ -64,7 +65,7 @@ bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
                 HINSTANCE hTempDll = LoadLibraryExA(forwarded_api, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
                 if(hTempDll)
                 {
-                    duint local_addr = (duint)GetProcAddress(hTempDll, forwarded_api + j + 1);
+                    duint local_addr = SafeGetProcAddress(hTempDll, forwarded_api + j + 1);
                     if(local_addr)
                     {
                         duint remote_addr = ImporterGetRemoteAPIAddress(fdProcessInfo->hProcess, local_addr);
