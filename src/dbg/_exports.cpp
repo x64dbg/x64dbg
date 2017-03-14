@@ -35,6 +35,7 @@
 #include "TraceRecord.h"
 
 static bool bOnlyCipAutoComments = false;
+static TITAN_ENGINE_CONTEXT_t titcontext;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -329,7 +330,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             char string_text[MAX_STRING_SIZE] = "";
 
             Capstone cp;
-            auto getregs = !bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP);
+            auto getregs = !bOnlyCipAutoComments || addr == titcontext.cip;
             disasmget(cp, addr, &instr, getregs);
 
             //Ignore register values when not on CIP and OnlyCipAutoComments is enabled: https://github.com/x64dbg/x64dbg/issues/1383
@@ -622,7 +623,6 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return true;
     }
 
-    TITAN_ENGINE_CONTEXT_t titcontext;
     if(!GetFullContextDataEx(hActiveThread, &titcontext))
         return false;
     TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
@@ -732,58 +732,58 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
             {
 #ifndef _WIN64 //x32
             case X86_REG_EAX:
-                return GetContextDataEx(hActiveThread, UE_EAX);
+                return titcontext.cax;
             case X86_REG_EBX:
-                return GetContextDataEx(hActiveThread, UE_EBX);
+                return titcontext.cbx;
             case X86_REG_ECX:
-                return GetContextDataEx(hActiveThread, UE_ECX);
+                return titcontext.ccx;
             case X86_REG_EDX:
-                return GetContextDataEx(hActiveThread, UE_EDX);
+                return titcontext.cdx;
             case X86_REG_EBP:
-                return GetContextDataEx(hActiveThread, UE_EBP);
+                return titcontext.cbp;
             case X86_REG_ESP:
-                return GetContextDataEx(hActiveThread, UE_ESP);
+                return titcontext.csp;
             case X86_REG_ESI:
-                return GetContextDataEx(hActiveThread, UE_ESI);
+                return titcontext.csi;
             case X86_REG_EDI:
-                return GetContextDataEx(hActiveThread, UE_EDI);
+                return titcontext.cdi;
             case X86_REG_EIP:
-                return GetContextDataEx(hActiveThread, UE_EIP);
+                return titcontext.cip;
 #else //x64
             case X86_REG_RAX:
-                return GetContextDataEx(hActiveThread, UE_RAX);
+                return titcontext.cax;
             case X86_REG_RBX:
-                return GetContextDataEx(hActiveThread, UE_RBX);
+                return titcontext.cbx;
             case X86_REG_RCX:
-                return GetContextDataEx(hActiveThread, UE_RCX);
+                return titcontext.ccx;
             case X86_REG_RDX:
-                return GetContextDataEx(hActiveThread, UE_RDX);
+                return titcontext.cdx;
             case X86_REG_RBP:
-                return GetContextDataEx(hActiveThread, UE_RBP);
+                return titcontext.cbp;
             case X86_REG_RSP:
-                return GetContextDataEx(hActiveThread, UE_RSP);
+                return titcontext.csp;
             case X86_REG_RSI:
-                return GetContextDataEx(hActiveThread, UE_RSI);
+                return titcontext.csi;
             case X86_REG_RDI:
-                return GetContextDataEx(hActiveThread, UE_RDI);
+                return titcontext.cdi;
             case X86_REG_RIP:
-                return GetContextDataEx(hActiveThread, UE_RIP);
+                return titcontext.cip;
             case X86_REG_R8:
-                return GetContextDataEx(hActiveThread, UE_R8);
+                return titcontext.r8;
             case X86_REG_R9:
-                return GetContextDataEx(hActiveThread, UE_R9);
+                return titcontext.r9;
             case X86_REG_R10:
-                return GetContextDataEx(hActiveThread, UE_R10);
+                return titcontext.r10;
             case X86_REG_R11:
-                return GetContextDataEx(hActiveThread, UE_R11);
+                return titcontext.r11;
             case X86_REG_R12:
-                return GetContextDataEx(hActiveThread, UE_R12);
+                return titcontext.r12;
             case X86_REG_R13:
-                return GetContextDataEx(hActiveThread, UE_R13);
+                return titcontext.r13;
             case X86_REG_R14:
-                return GetContextDataEx(hActiveThread, UE_R14);
+                return titcontext.r14;
             case X86_REG_R15:
-                return GetContextDataEx(hActiveThread, UE_R15);
+                return titcontext.r15;
 #endif //_WIN64
             default:
                 return 0;
@@ -806,7 +806,7 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
     }
     if(cp.InGroup(CS_GRP_RET))
     {
-        auto csp = GetContextDataEx(hActiveThread, UE_CSP);
+        auto csp = titcontext.csp;
         duint dest = 0;
         if(MemRead(csp, &dest, sizeof(dest)))
             return dest;
