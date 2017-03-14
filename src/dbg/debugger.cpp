@@ -199,7 +199,7 @@ static String lastDebugText;
 static duint timeWastedDebugging = 0;
 static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
 static char szDebuggeeInitializationScript[MAX_PATH] = "";
-static WString gInitExe, gInitCmd, gInitDir;
+static WString gInitExe, gInitCmd, gInitDir, gDllLoader;
 char szProgramDir[MAX_PATH] = "";
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
@@ -1444,6 +1444,9 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
         bTraceRecordEnabledDuringTrace = settingboolget("Engine", "TraceRecordEnabledDuringTrace");
     }
+    else if(bFileIsDll && strstr(DebugFileName, "DLLLoader" ArchValue("32", "64"))) //DLL Loader
+        gDllLoader = StringUtils::Utf8ToUtf16(DebugFileName);
+
     GuiUpdateBreakpointsView();
 
     //call plugin callback
@@ -2721,6 +2724,11 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     pDebuggedBase = 0;
     pCreateProcessBase = 0;
     isDetachedByUser = false;
+    if(!gDllLoader.empty()) //Delete the DLL loader (#1496)
+    {
+        DeleteFileW(gDllLoader.c_str());
+        gDllLoader.clear();
+    }
 }
 
 void dbgsetdebuggeeinitscript(const char* fileName)
