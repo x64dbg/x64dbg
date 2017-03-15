@@ -140,7 +140,7 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
                 return true;
         }
     }
-    if(!readwritejitkey(auto_on ? L"1" : L"0", &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
+    if(!readwritejitkey((wchar_t*)(auto_on ? L"1" : L"0"), &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;

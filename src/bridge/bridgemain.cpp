@@ -38,7 +38,7 @@ static bool bDisableGUIUpdate;
     *((FARPROC*)&name)=GetProcAddress(hInst, #name); \
     if(!name) \
     { \
-        wsprintfW(szError, L"Export %s:%s could not be found!", szLib, L#name); \
+        wsprintfW(szError, L"Export %s:%S could not be found!", szLib, #name); \
         return szError; \
     }
 
@@ -1449,7 +1449,7 @@ BRIDGE_IMPEXP void GuiCloseQWidgetTab(void* qWidget)
 
 BRIDGE_IMPEXP void GuiExecuteOnGuiThread(GUICALLBACK cbGuiThread)
 {
-    _gui_sendmessage(GUI_EXECUTE_ON_GUI_THREAD, cbGuiThread, nullptr);
+    _gui_sendmessage(GUI_EXECUTE_ON_GUI_THREAD, (void*)cbGuiThread, nullptr);
 }
 
 BRIDGE_IMPEXP void GuiUpdateTimeWastedCounter()

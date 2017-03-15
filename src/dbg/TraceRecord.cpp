@@ -244,7 +244,7 @@ TraceRecordManager::TraceRecordByteType TraceRecordManager::getByteType(duint ad
 
 void TraceRecordManager::increaseInstructionCounter()
 {
-    InterlockedIncrement(&instructionCounter);
+    InterlockedIncrement((volatile long*)&instructionCounter);
 }
 
 void TraceRecordManager::saveToDb(JSON root)
