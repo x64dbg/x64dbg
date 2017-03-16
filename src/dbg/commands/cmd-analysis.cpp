@@ -155,12 +155,12 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
     dputs(QT_TRANSLATE_NOOP("DBG", "This may take very long, depending on your network connection and data in the debug directory..."));
     Memory<char*> szDefaultStore(MAX_SETTING_SIZE + 1);
     const char* szSymbolStore = szDefaultStore();
-    if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore()))  //get default symbol store from settings
+    if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore())) //get default symbol store from settings
     {
         strcpy_s(szDefaultStore(), MAX_SETTING_SIZE, "https://msdl.microsoft.com/download/symbols");
         BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore());
     }
-    if(argc < 2)  //no arguments
+    if(argc < 2) //no arguments
     {
         SymDownloadAllSymbols(szSymbolStore); //download symbols for all modules
         GuiSymbolRefreshCurrent();
@@ -181,7 +181,7 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
         return false;
     }
     wchar_t szOldSearchPath[MAX_PATH] = L"";
-    if(!SafeSymGetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH))  //backup current search path
+    if(!SafeSymGetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "SymGetSearchPath failed!"));
         return false;
@@ -190,12 +190,12 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
     if(argc > 2)
         szSymbolStore = argv[2];
     sprintf_s(szServerSearchPath, "SRV*%s*%s", szSymbolCachePath, szSymbolStore);
-    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(szServerSearchPath).c_str()))  //set new search path
+    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(szServerSearchPath).c_str())) //set new search path
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPath (1) failed!"));
         return false;
     }
-    if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase))  //unload module
+    if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase)) //unload module
     {
         SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath);
         dputs(QT_TRANSLATE_NOOP("DBG", "SymUnloadModule64 failed!"));
@@ -203,7 +203,7 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
     }
     auto symOptions = SafeSymGetOptions();
     SafeSymSetOptions(symOptions & ~SYMOPT_IGNORE_CVREC);
-    if(!SymLoadModuleExW(fdProcessInfo->hProcess, 0, wszModulePath, 0, (DWORD64)modbase, 0, 0, 0))  //load module
+    if(!SymLoadModuleExW(fdProcessInfo->hProcess, 0, wszModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx failed!"));
         SafeSymSetOptions(symOptions);
@@ -405,7 +405,7 @@ bool cbInstrExinfo(int argc, char* argv[])
     dputs_untranslated("EXCEPTION_DEBUG_INFO:");
     dprintf_untranslated("           dwFirstChance: %X\n", info.dwFirstChance);
     auto exceptionName = ExceptionCodeToName(record.ExceptionCode);
-    if(!exceptionName.size())    //if no exception was found, try the error codes (RPC_S_*)
+    if(!exceptionName.size()) //if no exception was found, try the error codes (RPC_S_*)
         exceptionName = ErrorCodeToName(record.ExceptionCode);
     if(exceptionName.size())
         dprintf_untranslated("           ExceptionCode: %08X (%s)\n", record.ExceptionCode, exceptionName.c_str());

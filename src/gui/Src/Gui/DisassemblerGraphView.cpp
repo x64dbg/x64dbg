@@ -186,7 +186,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
         }
 
         //Ignore blocks that are not in view
-        if(viewportRect.intersects(QRect(block.x + this->charWidth , block.y + this->charWidth,
+        if(viewportRect.intersects(QRect(block.x + this->charWidth, block.y + this->charWidth,
                                          block.width - (2 * this->charWidth), block.height - (2 * this->charWidth))))
         {
             //Render shadow
@@ -1405,7 +1405,7 @@ void DisassemblerGraphView::show_cur_instr(bool force)
                 QRect viewportRect = this->viewport()->rect();
                 QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
                 viewportRect.translate(-translation.x(), -translation.y());
-                if(force || !viewportRect.contains(QRect(block.x + this->charWidth , block.y + this->charWidth,
+                if(force || !viewportRect.contains(QRect(block.x + this->charWidth, block.y + this->charWidth,
                                                    block.width - (2 * this->charWidth), block.height - (2 * this->charWidth))))
                 {
                     auto x = block.x + int(block.width / 2);

@@ -126,7 +126,7 @@ namespace
         dd_real("0.0263157894736842105263157894736842105"),          //  1/38
         dd_real("0.0256410256410256410256410256410256410"),          //  1/39
         dd_real("0.025"),                                            //  1/40
-        dd_real("0.0243902439024390243902439024390243902")       //  1/41
+        dd_real("0.0243902439024390243902439024390243902") //  1/41
     };
 
     dd_real const inv_fact[] =
@@ -872,11 +872,11 @@ recompute:
 
         int ilog = std::ilogb(a) + 1;       //  0.5 <= frac < 1.0
 
-        if(ilog < -std::numeric_limits<dd_real>::digits / 2)        //  |a| <= 2^-54 - error O( 2^-108)
+        if(ilog < -std::numeric_limits<dd_real>::digits / 2) //  |a| <= 2^-54 - error O( 2^-108)
             return a;
-        if(ilog < -std::numeric_limits<dd_real>::digits / 3)        //  |a| <= 2^-36 - error O( 2^-108)
+        if(ilog < -std::numeric_limits<dd_real>::digits / 3) //  |a| <= 2^-36 - error O( 2^-108)
             return a * std::Fma(a, -0.5, 1.0);
-        if(ilog < -std::numeric_limits<dd_real>::digits / 4)        //  |a| <= 2^-27 - error O( 2^-108)
+        if(ilog < -std::numeric_limits<dd_real>::digits / 4) //  |a| <= 2^-27 - error O( 2^-108)
             return a * std::Fma(a, -std::Fma(a, -_third, 0.5), 1.0);
 
         dd_real f_minus = a;
@@ -1324,7 +1324,7 @@ std::string dd_real::to_string(std::streamsize precision, std::streamsize width,
                 {
                     // fix the string if it's been computed incorrectly
                     // round here in the decimal string if required
-                    round_string(t, d + 1 , &off);
+                    round_string(t, d + 1, &off);
 
                     if(off > 0)
                     {
@@ -2155,7 +2155,7 @@ namespace std
             //  align exponents of x, y and subtract
             //
             auto ys = scalbn(y, ix - iy);
-            if(x < ys)               //  if mantissa( y ) > mantissa( x ),
+            if(x < ys) //  if mantissa( y ) > mantissa( x ),
                 scalbn(ys, -1);      //      divide by 2
 
             double z[3];
@@ -2748,7 +2748,7 @@ namespace std
             return signbit(a) ? -1.0 : a;
 
         //  exp( a ) > 2.0; no destructive cancelation is possible
-        if(std::abs(a) > _ln2)                    //  exp( a ) < 0.5; no destructive cancellation is possible
+        if(std::abs(a) > _ln2) //  exp( a ) < 0.5; no destructive cancellation is possible
         {
             return exp(a) - 1.0;
         }
@@ -2809,7 +2809,7 @@ namespace std
             return a;
 
 
-        if((a >= 2.0) || (a <= -0.5))                  //  a >= 2.0 - no loss of significant bits - use log()
+        if((a >= 2.0) || (a <= -0.5)) //  a >= 2.0 - no loss of significant bits - use log()
             return _log(1.0 + a);
 
         //  at this point, -1.0 < a < 2.0

@@ -395,7 +395,7 @@ void ExpressionParser::shuntingYard()
         case Token::Type::Comma:
             while(true)
             {
-                if(stack.empty())  //empty stack = problems
+                if(stack.empty()) //empty stack = problems
                 {
                     mIsValidExpression = false;
                     return;
@@ -414,14 +414,14 @@ void ExpressionParser::shuntingYard()
         {
             while(true)
             {
-                if(stack.empty())  //empty stack = bracket mismatch
+                if(stack.empty()) //empty stack = bracket mismatch
                 {
                     mIsValidExpression = false;
                     return;
                 }
                 auto curToken = stack[stack.size() - 1];
                 stack.pop_back();
-                if(curToken.type() == Token::Type::OpenBracket)  //the bracket is already popped here
+                if(curToken.type() == Token::Type::OpenBracket) //the bracket is already popped here
                     break;
                 queue.push_back(curToken);
             }
@@ -456,7 +456,7 @@ void ExpressionParser::shuntingYard()
     while(!stack.empty())
     {
         const auto & curToken = stack[stack.size() - 1];
-        if(curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket)  //brackets on the stack means invalid expression
+        if(curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket) //brackets on the stack means invalid expression
         {
             mIsValidExpression = false;
             return;

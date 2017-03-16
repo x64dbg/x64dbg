@@ -57,9 +57,9 @@ void RegistersView::InitMappings()
     offset++;
 
     mRegisterMapping.insert(R8, "R8");
-    mRegisterPlaces.insert(R8 , Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterPlaces.insert(R8, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R9, "R9");
-    mRegisterPlaces.insert(R9 , Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterPlaces.insert(R9, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R10, "R10");
     mRegisterPlaces.insert(R10, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R11, "R11");
@@ -1702,7 +1702,7 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     // is current register general purposes register or FPU register?
     else if(mMODIFYDISPLAY.contains(mSelected))
         wCM_Modify->trigger();
-    else if(mBOOLDISPLAY.contains(mSelected))  // is flag ?
+    else if(mBOOLDISPLAY.contains(mSelected)) // is flag ?
         wCM_ToggleValue->trigger();
     else if(mCANSTOREADDRESS.contains(mSelected))
         wCM_FollowInDisassembly->trigger();
@@ -1746,7 +1746,7 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
 QSize RegistersView::sizeHint() const
 {
     // 32 character width
-    return QSize(32 * mCharWidth , this->viewport()->height());
+    return QSize(32 * mCharWidth, this->viewport()->height());
 }
 
 void* RegistersView::operator new(size_t size)
@@ -1806,7 +1806,7 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
                 isCharacter = IsCharacterRegister(register_selected);
             }
         }
-        else if(register_value == (register_value & 0xFFF))  //UNICODE?
+        else if(register_value == (register_value & 0xFFF)) //UNICODE?
         {
             QChar c = QChar((wchar_t)register_value);
             if(c.isPrint())
@@ -2681,7 +2681,7 @@ void RegistersView::onPushAction()
     duint regVal = 0;
     regVal = * ((duint*) registerValue(&wRegDumpStruct, mSelected));
     setRegister(CSP, csp);
-    DbgMemWrite(csp, (const unsigned char*)&regVal , sizeof(void*));
+    DbgMemWrite(csp, (const unsigned char*)&regVal, sizeof(void*));
 }
 
 void RegistersView::onPopAction()

@@ -117,9 +117,9 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPUDisassembly::addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences, bool isFollowInCPU)
 {
-    foreach(QAction * action, menu->actions()) //check for duplicate action
-    if(action->text() == name)
-        return;
+    foreach(QAction* action, menu->actions()) //check for duplicate action
+        if(action->text() == name)
+            return;
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
@@ -488,7 +488,7 @@ void CPUDisassembly::setupRightClickContextMenu()
                               };
 
     ENCODETYPE enctypeTable[] = {enc_code, enc_byte, enc_word, enc_dword, enc_fword, enc_qword, enc_tbyte, enc_oword, enc_middle,
-                                 enc_real4, enc_real8, enc_real10 , enc_middle,
+                                 enc_real4, enc_real8, enc_real10, enc_middle,
                                  enc_ascii, enc_unicode, enc_middle,
                                  enc_mmword, enc_xmmword, enc_ymmword
                                 };

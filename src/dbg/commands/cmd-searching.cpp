@@ -284,7 +284,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
 
 static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm || !basicinfo)   //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
@@ -372,7 +372,7 @@ struct VALUERANGE
 
 static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm || !basicinfo)   //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(sizeof(duint) * 2, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
@@ -454,7 +454,7 @@ bool cbInstrRefFindRange(int argc, char* argv[])
 
 static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm || !basicinfo)   //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
@@ -467,7 +467,7 @@ static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINF
     }
     bool found = false;
     char string[MAX_STRING_SIZE] = "";
-    if(basicinfo->branch)   //branches have no strings (jmp dword [401000])
+    if(basicinfo->branch) //branches have no strings (jmp dword [401000])
         return false;
     auto addRef = [&]()
     {
@@ -524,7 +524,7 @@ bool cbInstrRefStr(int argc, char* argv[])
 
 static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm || !basicinfo)   //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
@@ -537,7 +537,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     bool found = false;
     char label[MAX_LABEL_SIZE] = "";
     char module[MAX_MODULE_SIZE] = "";
-    if(basicinfo->call)   //we are looking for calls
+    if(basicinfo->call) //we are looking for calls
     {
         duint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
         found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label) && !strstr(label, "sub_") && DbgGetModuleAt(ptr, module); //a non-user label
@@ -674,7 +674,7 @@ struct GUIDRefInfo
 
 static bool cbGUIDFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm || !basicinfo)   //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
@@ -942,7 +942,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                         pattern = yara_print_string(match->data, match->match_length);
                     auto offset = duint(match->base + match->offset);
                     duint addr;
-                    if(scanInfo->rawFile)   //convert raw offset to virtual offset
+                    if(scanInfo->rawFile) //convert raw offset to virtual offset
                         addr = valfileoffsettova(scanInfo->modname, offset);
                     else
                         addr = base + offset;
@@ -1019,7 +1019,7 @@ bool cbInstrYara(int argc, char* argv[])
         base = addr;
     }
     std::vector<unsigned char> rawFileData;
-    if(rawFile)   //read the file from disk
+    if(rawFile) //read the file from disk
     {
         char modPath[MAX_PATH] = "";
         if(!ModPathFromAddr(base, modPath, MAX_PATH))
@@ -1055,7 +1055,7 @@ bool cbInstrYara(int argc, char* argv[])
     if(yr_compiler_create(&yrCompiler) == ERROR_SUCCESS)
     {
         yr_compiler_set_callback(yrCompiler, yaraCompilerCallback, 0);
-        if(yr_compiler_add_string(yrCompiler, rulesContent.c_str(), nullptr) == 0)    //no errors found
+        if(yr_compiler_add_string(yrCompiler, rulesContent.c_str(), nullptr) == 0) //no errors found
         {
             YR_RULES* yrRules;
             if(yr_compiler_get_rules(yrCompiler, &yrRules) == ERROR_SUCCESS)

@@ -85,7 +85,7 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint, bool writedata)
     {
         auto start = queue.front();
         queue.pop();
-        if(visited.count(start) || !inRange(start))   //already visited or out of range
+        if(visited.count(start) || !inRange(start)) //already visited or out of range
             continue;
         visited.insert(start);
 
@@ -106,11 +106,11 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint, bool writedata)
                 for(int i = 1; i < mCp.Size(); i++)
                     mEncMap[node.end - mBase + i] = (byte)enc_middle;
             }
-            if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())   //jump
+            if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop()) //jump
             {
                 //set the branch destinations
                 node.brtrue = mCp.BranchDestination();
-                if(mCp.GetId() != X86_INS_JMP)   //unconditional jumps dont have a brfalse
+                if(mCp.GetId() != X86_INS_JMP) //unconditional jumps dont have a brfalse
                     node.brfalse = node.end + mCp.Size();
 
                 //add node to the function graph
@@ -124,14 +124,14 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint, bool writedata)
 
                 break;
             }
-            if(mCp.InGroup(CS_GRP_CALL))   //call
+            if(mCp.InGroup(CS_GRP_CALL)) //call
             {
                 //TODO: handle no return
                 duint target = mCp.BranchDestination();
                 if(inRange(target) && mEntryPoints.find(target) == mEntryPoints.end())
                     mCandidateEPs.insert(target);
             }
-            if(mCp.InGroup(CS_GRP_RET))   //return
+            if(mCp.InGroup(CS_GRP_RET)) //return
             {
                 node.terminal = true;
                 graph.AddNode(node);

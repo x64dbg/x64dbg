@@ -109,7 +109,7 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
             if(background.alpha())
                 painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
         }
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
         returnString = "";
     }
     break;

@@ -263,7 +263,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
                 }
             }
         }
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, text);
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, text);
         text = "";
     }
     else if(highlightText.length() && text.contains(highlightText, Qt::CaseInsensitive))

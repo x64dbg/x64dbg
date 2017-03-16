@@ -324,9 +324,9 @@ void CPUInfoBox::followActionSlot()
  */
 void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, duint value)
 {
-    foreach(QAction * action, menu->actions()) //check for duplicate action
-    if(action->text() == name)
-        return;
+    foreach(QAction* action, menu->actions()) //check for duplicate action
+        if(action->text() == name)
+            return;
     QAction* newAction = new QAction(name, menu);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
@@ -389,9 +389,9 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, duint wVA)
  */
 void CPUInfoBox::addWatchMenuItem(QMenu* menu, QString name, duint value)
 {
-    foreach(QAction * action, menu->actions()) //check for duplicate action
-    if(action->text() == name)
-        return;
+    foreach(QAction* action, menu->actions()) //check for duplicate action
+        if(action->text() == name)
+            return;
     QAction* newAction = new QAction(name, menu);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);

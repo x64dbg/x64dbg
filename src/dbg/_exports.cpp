@@ -202,11 +202,11 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
                 strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
             }
         }
-        if(!retval)  //search for CALL <jmp.&user32.MessageBoxA>
+        if(!retval) //search for CALL <jmp.&user32.MessageBoxA>
         {
             BASIC_INSTRUCTION_INFO basicinfo;
             memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
-            if(disasmfast(addr, &basicinfo, true) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value)  //thing is a JMP
+            if(disasmfast(addr, &basicinfo, true) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
             {
                 duint val = 0;
                 if(MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
@@ -229,7 +229,7 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
                 }
             }
         }
-        if(!retval)  //search for module entry
+        if(!retval) //search for module entry
         {
             if(addr != 0 && ModEntryFromAddr(addr) == addr)
             {
@@ -825,7 +825,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 {
     if(dbgisstopped())
     {
-        switch(type)  //ignore win events
+        switch(type) //ignore win events
         {
         //these functions are safe to call when we did not initialize yet
         case DBG_DEINITIALIZE_LOCKS:

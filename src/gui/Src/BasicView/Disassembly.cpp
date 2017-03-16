@@ -389,7 +389,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 }
             }
         }
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
     }
     break;
 
@@ -443,7 +443,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         }
 
         int charwidth = getCharWidth();
-        painter->drawText(QRect(x + funcsize, y , charwidth , h), Qt::AlignVCenter | Qt::AlignLeft, indicator);
+        painter->drawText(QRect(x + funcsize, y, charwidth, h), Qt::AlignVCenter | Qt::AlignLeft, indicator);
         funcsize += charwidth;
 
         //draw jump arrows
@@ -621,7 +621,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 width = w;
             if(width)
                 painter->fillRect(QRect(x + argsize, y, width, h), QBrush(backgroundColor)); //fill comment color
-            painter->drawText(QRect(x + argsize, y , width , h), Qt::AlignVCenter | Qt::AlignLeft, comment);
+            painter->drawText(QRect(x + argsize, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, comment);
             argsize += width + 3;
         }
         else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
@@ -659,7 +659,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                     width = w;
                 if(width)
                     painter->fillRect(QRect(x + argsize, y, width, h), QBrush(mMnemonicBriefBackgroundColor)); //mnemonic brief background color
-                painter->drawText(QRect(x + argsize, y , width, h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
+                painter->drawText(QRect(x + argsize, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
             }
             break;
         }
@@ -1130,7 +1130,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
     {
         QPoint wPoints[] =
         {
-            QPoint(x , y + halfRow + 1),
+            QPoint(x, y + halfRow + 1),
             QPoint(x + 2, y + halfRow - 1),
             QPoint(x + 4, y + halfRow + 1),
         };
@@ -1141,7 +1141,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
     {
         QPoint wPoints[] =
         {
-            QPoint(x , y + halfRow - 1),
+            QPoint(x, y + halfRow - 1),
             QPoint(x + 2, y + halfRow + 1),
             QPoint(x + 4, y + halfRow - 1),
         };
@@ -1363,7 +1363,7 @@ dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
 
     mMemPage->read(wBuffer.data(), wBottomByteRealRVA, wBuffer.size());
 
-    dsint addr = mDisasm->DisassembleBack((byte_t*)wBuffer.data(), rvaToVa(wBottomByteRealRVA), wBuffer.size(), wVirtualRVA , count);
+    dsint addr = mDisasm->DisassembleBack((byte_t*)wBuffer.data(), rvaToVa(wBottomByteRealRVA), wBuffer.size(), wVirtualRVA, count);
 
     addr += rva - wVirtualRVA;
 

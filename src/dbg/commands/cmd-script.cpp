@@ -37,12 +37,12 @@ bool cbInstrLog(int argc, char* argv[])
         dputs_untranslated(msg);
         scriptlog(msg);
     };
-    if(argc == 1)   //just log newline
+    if(argc == 1) //just log newline
     {
         logputs("");
         return true;
     }
-    if(argc == 2)  //inline logging: log "format {rax}"
+    if(argc == 2) //inline logging: log "format {rax}"
     {
         logputs(stringformatinline(argv[1]).c_str());
     }

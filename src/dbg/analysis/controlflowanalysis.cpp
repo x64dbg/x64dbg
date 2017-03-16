@@ -154,14 +154,14 @@ void ControlFlowAnalysis::BasicBlockStarts()
             {
                 bSkipFilling = true; //skip INT3/NOP/whatever filling bytes (those are not part of the control flow)
             }
-            else if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())   //branches
+            else if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop()) //branches
             {
                 auto dest1 = getReferenceOperand();
                 duint dest2 = 0;
-                if(mCp.GetId() != X86_INS_JMP)    //conditional jump
+                if(mCp.GetId() != X86_INS_JMP) //conditional jump
                     dest2 = addr + mCp.Size();
 
-                if(!dest1 && !dest2)  //TODO: better code for this (make sure absolutely no filling is inserted)
+                if(!dest1 && !dest2) //TODO: better code for this (make sure absolutely no filling is inserted)
                     bSkipFilling = true;
                 if(dest1)
                     mBlockStarts.insert(dest1);
@@ -224,7 +224,7 @@ void ControlFlowAnalysis::BasicBlocks()
             }
             else
                 addr++;
-            if(addr == nextStart)   //special case handling overlapping blocks
+            if(addr == nextStart) //special case handling overlapping blocks
             {
                 insertBlock(BasicBlock(start, prevaddr, 0, nextStart));
                 insertParent(nextStart, start);
@@ -263,7 +263,7 @@ void ControlFlowAnalysis::Functions()
         auto parents = findParents(block->start);
         if(!block->function)
         {
-            if(!parents || mFunctionStarts.count(block->start))  //no parents = function start
+            if(!parents || mFunctionStarts.count(block->start)) //no parents = function start
             {
                 auto functionStart = block->start;
                 block->function = functionStart;
@@ -274,7 +274,7 @@ void ControlFlowAnalysis::Functions()
             else //in function
             {
                 auto function = findFunctionStart(block, parents);
-                if(!function)  //this happens with loops / unreferenced blocks sometimes
+                if(!function) //this happens with loops / unreferenced blocks sometimes
                     delayedBlocks.push_back(DelayedBlock(block, parents));
                 else
                     block->function = function;
@@ -315,7 +315,7 @@ void ControlFlowAnalysis::Functions()
     for(const auto & block : mBlocks)
     {
         auto found = mFunctions.find(block.second.function);
-        if(found == mFunctions.end())  //unreferenced block
+        if(found == mFunctions.end()) //unreferenced block
         {
             unreferencedCount++;
             continue;
@@ -425,7 +425,7 @@ duint ControlFlowAnalysis::getReferenceOperand() const
         else if(op.type == X86_OP_MEM)
         {
             auto dest = duint(op.mem.disp);
-            if(op.mem.base == X86_REG_RIP)  //rip-relative
+            if(op.mem.base == X86_REG_RIP) //rip-relative
                 dest += mCp.Address() + mCp.Size();
             if(inRange(dest))
                 return dest;

@@ -191,7 +191,7 @@ protected slots:
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
-    QString GetRegStringValueFromValue(REGISTER_NAME reg , const char* value);
+    QString GetRegStringValueFromValue(REGISTER_NAME reg, const char* value);
     QString GetTagWordStateString(unsigned short);
     //unsigned int GetTagWordValueFromString(const char* string);
     QString GetControlWordPCStateString(unsigned short);

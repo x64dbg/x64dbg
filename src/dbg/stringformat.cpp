@@ -261,12 +261,12 @@ String stringformatinline(String format)
             continue;
         }
         //handle actual formatting
-        if(format[i] == '{' && !inFormatter)  //opening bracket
+        if(format[i] == '{' && !inFormatter) //opening bracket
         {
             inFormatter = true;
             formatString.clear();
         }
-        else if(format[i] == '}' && inFormatter)  //closing bracket
+        else if(format[i] == '}' && inFormatter) //closing bracket
         {
             inFormatter = false;
             if(formatString.length())
@@ -275,7 +275,7 @@ String stringformatinline(String format)
                 formatString.clear();
             }
         }
-        else if(inFormatter)  //inside brackets
+        else if(inFormatter) //inside brackets
             formatString += format[i];
         else //outside brackets
             output += format[i];

@@ -43,7 +43,7 @@ bool varset(const char* Name, VAR_VALUE* Value, bool ReadOnly)
         name_ = "$";
     name_ += Name;
     auto found = variables.find(name_);
-    if(found == variables.end())  //not found
+    if(found == variables.end()) //not found
         return false;
     if(found->second.alias.length())
         return varset(found->second.alias.c_str(), Value, ReadOnly);

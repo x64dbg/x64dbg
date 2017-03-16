@@ -124,7 +124,7 @@ typedef struct _YR_COMPILER
         compiler->last_error_extra_info, \
         info, \
         sizeof(compiler->last_error_extra_info)); \
- 
+
 
 #define yr_compiler_set_error_extra_info_fmt(compiler, fmt, ...) \
     snprintf( \

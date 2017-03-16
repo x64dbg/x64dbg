@@ -144,7 +144,7 @@ bool pluginload(const char* pluginName, bool loadall)
         SetCurrentDirectoryW(currentDir);
         return false;
     }
-    if(pluginData.initStruct.sdkVersion < PLUG_SDKVERSION)  //the plugin SDK is not compatible
+    if(pluginData.initStruct.sdkVersion < PLUG_SDKVERSION) //the plugin SDK is not compatible
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s is incompatible with this SDK version\n"), pluginData.initStruct.pluginName);
         for(int i = CB_INITDEBUG; i < CB_LAST; i++)

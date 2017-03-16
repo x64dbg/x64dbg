@@ -72,7 +72,7 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo, bool instrTe
             if(instrText)
                 strcpy_s(basicinfo->memory.mnemonic, cp->OperandText(i).c_str());
             basicinfo->memory.size = MEMORY_SIZE(op.size);
-            if(op.mem.base == X86_REG_RIP)  //rip-relative
+            if(op.mem.base == X86_REG_RIP) //rip-relative
             {
                 basicinfo->memory.value = ULONG_PTR(cp->Address() + op.mem.disp + basicinfo->size);
                 basicinfo->type |= TYPE_MEMORY;

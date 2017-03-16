@@ -295,7 +295,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   for (block = iterator->first(iterator); \
        block != NULL; \
        block = iterator->next(iterator)) \
- 
+
 
 #define first_memory_block(context) \
       (context)->iterator->first((context)->iterator)

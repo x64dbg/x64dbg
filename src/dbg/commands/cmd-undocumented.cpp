@@ -19,7 +19,7 @@ bool cbBadCmd(int argc, char* argv[])
     int valsize = 0;
     bool isvar = false;
     bool hexonly = false;
-    if(valfromstring(*argv, &value, false, false, &valsize, &isvar, &hexonly, true))   //dump variable/value/register/etc
+    if(valfromstring(*argv, &value, false, false, &valsize, &isvar, &hexonly, true)) //dump variable/value/register/etc
     {
         varset("$ans", value, true);
         if(valsize)
@@ -30,11 +30,11 @@ bool cbBadCmd(int argc, char* argv[])
         auto symbolic = SymGetSymbolicName(value);
         if(symbolic.length())
             symbolic = " " + symbolic;
-        if(isvar)  // and *cmd!='.' and *cmd!='x') //prevent stupid 0=0 stuff
+        if(isvar) // and *cmd!='.' and *cmd!='x') //prevent stupid 0=0 stuff
         {
             if(value > 9 && !hexonly)
             {
-                if(!valuesignedcalc())   //signed numbers
+                if(!valuesignedcalc()) //signed numbers
 #ifdef _WIN64
                     sprintf_s(format_str, "%%s=%%.%dllX (%%llud)%%s\n", valsize); // TODO: This and the following statements use "%llX" for a "int"-typed variable. Maybe we can use "%X" everywhere?
 #else //x86
@@ -58,7 +58,7 @@ bool cbBadCmd(int argc, char* argv[])
         {
             if(value > 9 && !hexonly)
             {
-                if(!valuesignedcalc())   //signed numbers
+                if(!valuesignedcalc()) //signed numbers
 #ifdef _WIN64
                     sprintf_s(format_str, "%%s=%%.%dllX (%%llud)%%s\n", valsize);
 #else //x86
@@ -354,31 +354,31 @@ bool cbInstrVisualize(int argc, char* argv[])
             const unsigned char* curData = (addr >= _base && addr < _base + _size) ? _data() + (addr - _base) : nullptr;
             if(_cp.Disassemble(addr, curData, MAX_DISASM_BUFFER))
             {
-                if(addr + _cp.Size() > maxaddr)      //we went past the maximum allowed address
+                if(addr + _cp.Size() > maxaddr) //we went past the maximum allowed address
                     break;
 
                 const cs_x86_op & operand = _cp.x86().operands[0];
-                if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM)      //jump
+                if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM) //jump
                 {
                     duint dest = (duint)operand.imm;
 
-                    if(dest >= maxaddr)      //jump across function boundaries
+                    if(dest >= maxaddr) //jump across function boundaries
                     {
                         //currently unused
                     }
-                    else if(dest > addr && dest > fardest)      //save the farthest JXX destination forward
+                    else if(dest > addr && dest > fardest) //save the farthest JXX destination forward
                     {
                         fardest = dest;
                     }
-                    else if(end && dest < end && _cp.GetId() == X86_INS_JMP)      //save the last JMP backwards
+                    else if(end && dest < end && _cp.GetId() == X86_INS_JMP) //save the last JMP backwards
                     {
                         jumpback = addr;
                     }
                 }
-                else if(_cp.InGroup(CS_GRP_RET))      //possible function end?
+                else if(_cp.InGroup(CS_GRP_RET)) //possible function end?
                 {
                     end = addr;
-                    if(fardest < addr)     //we stop if the farthest JXX destination forward is before this RET
+                    if(fardest < addr) //we stop if the farthest JXX destination forward is before this RET
                         break;
                 }
 

@@ -343,11 +343,11 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
         moduleText += ".";
     QString addrText = ToHexString(addr);
     QString finalText;
-    if(bHasLabel && bHasModule)  //<module.label>
+    if(bHasLabel && bHasModule) //<module.label>
         finalText = QString("<%1%2>").arg(moduleText).arg(labelText);
-    else if(bHasModule)  //module.addr
+    else if(bHasModule) //module.addr
         finalText = QString("%1%2").arg(moduleText).arg(addrText);
-    else if(bHasLabel)  //<label>
+    else if(bHasLabel) //<label>
         finalText = QString("<%1>").arg(labelText);
     else
         finalText = addrText;
@@ -554,7 +554,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     addToken(bracketsType, "[");
 
     //stuff inside the brackets
-    if(mem.base == X86_REG_RIP)   //rip-relative (#replacement)
+    if(mem.base == X86_REG_RIP) //rip-relative (#replacement)
     {
         duint addr = _cp.Address() + duint(mem.disp) + _cp.Size();
         TokenValue value = TokenValue(op.size, addr);
@@ -564,12 +564,12 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     else //#base + #index * #scale + #displacement
     {
         bool prependPlus = false;
-        if(mem.base != X86_REG_INVALID)  //base register
+        if(mem.base != X86_REG_INVALID) //base register
         {
             addToken(TokenType::MemoryBaseRegister, _cp.RegName(mem.base));
             prependPlus = true;
         }
-        if(mem.index != X86_REG_INVALID)  //index register
+        if(mem.index != X86_REG_INVALID) //index register
         {
             if(prependPlus)
                 addMemoryOperator('+');

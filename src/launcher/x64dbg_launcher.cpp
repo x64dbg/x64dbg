@@ -404,7 +404,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     //Handle command line
     auto argc = 0;
     auto argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    if(argc <= 1)  //no arguments -> set configuration
+    if(argc <= 1) //no arguments -> set configuration
     {
         if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
         {
@@ -439,7 +439,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if(bDoneSomething)
             MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);
     }
-    else if(argc >= 2)  //one or more arguments -> execute debugger
+    else if(argc >= 2) //one or more arguments -> execute debugger
     {
         BOOL canDisableRedirect = FALSE;
         RedirectWow rWow;
@@ -453,19 +453,19 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
 
         TCHAR szPath[MAX_PATH] = TEXT("");
-        if(PathIsRelative(argv[1]))  //resolve the full path if a relative path is specified
+        if(PathIsRelative(argv[1])) //resolve the full path if a relative path is specified
         {
             GetCurrentDirectory(_countof(szPath), szPath);
             PathAppend(szPath, argv[1]);
         }
-        else if(!ResolveShortcut(nullptr, argv[1], szPath, _countof(szPath)))  //attempt to resolve the shortcut path
+        else if(!ResolveShortcut(nullptr, argv[1], szPath, _countof(szPath))) //attempt to resolve the shortcut path
             _tcscpy_s(szPath, argv[1]); //fall back to the origin full path
 
         std::wstring cmdLine;
         cmdLine.push_back(L'\"');
         cmdLine += szPath;
         cmdLine.push_back(L'\"');
-        if(argc > 2)  //forward any commandline parameters
+        if(argc > 2) //forward any commandline parameters
         {
             cmdLine += L" \"";
             for(auto i = 2; i < argc; i++)

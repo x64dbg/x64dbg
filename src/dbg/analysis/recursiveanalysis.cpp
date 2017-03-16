@@ -120,7 +120,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             {
                 //set the branch destinations
                 node.brtrue = mCp.BranchDestination();
-                if(mCp.GetId() != X86_INS_JMP && mCp.GetId() != X86_INS_LJMP)  //unconditional jumps dont have a brfalse
+                if(mCp.GetId() != X86_INS_JMP && mCp.GetId() != X86_INS_LJMP) //unconditional jumps dont have a brfalse
                     node.brfalse = node.end + mCp.Size();
 
                 //consider register/memory branches as terminal nodes

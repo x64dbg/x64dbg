@@ -53,7 +53,7 @@ String StringUtils::Escape(unsigned char ch)
     case '\"':
         return "\\\"";
     default:
-        if(!isprint(ch))  //unknown unprintable character
+        if(!isprint(ch)) //unknown unprintable character
             sprintf_s(buf, "\\x%02X", ch);
         else
             *buf = ch;
@@ -143,7 +143,7 @@ String StringUtils::Escape(const String & s)
                 memcpy(buf, s.c_str() + i, UTF8CharSize);
                 i += UTF8CharSize - 1;
             }
-            else if(!isprint(ch))  //unknown unprintable character
+            else if(!isprint(ch)) //unknown unprintable character
                 sprintf_s(buf, "\\x%02X", ch);
             else
                 *buf = ch;
@@ -181,7 +181,7 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
         }
         if(mLastChar == '\r' || mLastChar == '\n')
             return false; //unexpected newline in string literal (1)
-        if(quoted && mLastChar == '\"')  //end of quoted string literal
+        if(quoted && mLastChar == '\"') //end of quoted string literal
             break;
         if(mLastChar == '\\') //escape sequence
         {
@@ -208,7 +208,7 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
                 mLastChar = '\v';
             else if(mLastChar == '0')
                 mLastChar = '\0';
-            else if(mLastChar == 'x')  //\xHH
+            else if(mLastChar == 'x') //\xHH
             {
                 auto ch1 = nextChar();
                 auto ch2 = nextChar();

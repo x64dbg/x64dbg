@@ -1607,7 +1607,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         int read_size = sizeof(duint);
         int prefix_size = 1;
         size_t seg_offset = 0;
-        if(string[1] == ':')   //n:[ (number of bytes to read)
+        if(string[1] == ':') //n:[ (number of bytes to read)
         {
             prefix_size = 3;
             int new_size = string[0] - '0';
@@ -1617,7 +1617,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         else if(string[1] == 's' && string[2] == ':')
         {
             prefix_size = 4;
-            if(string[0] == 'f')  // fs:[...]
+            if(string[0] == 'f') // fs:[...]
             {
                 // TODO: get real segment offset instead of assuming them
 #ifdef _WIN64
@@ -1626,7 +1626,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
                 seg_offset = (size_t)GetTEBLocation(hActiveThread);
 #endif //_WIN64
             }
-            else if(string[0] == 'g')  // gs:[...]
+            else if(string[0] == 'g') // gs:[...]
             {
 #ifdef _WIN64
                 seg_offset = (size_t)GetTEBLocation(hActiveThread);
@@ -1670,13 +1670,13 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(varget(string, value, value_size, 0))    //then come variables
+    else if(varget(string, value, value_size, 0)) //then come variables
     {
         if(isvar)
             *isvar = true;
         return true;
     }
-    else if(isregister(string))  //register
+    else if(isregister(string)) //register
     {
         if(!DbgIsDebugging())
         {
@@ -1694,7 +1694,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(*string == '_' && isflag(string + 1))  //flag
+    else if(*string == '_' && isflag(string + 1)) //flag
     {
         if(!DbgIsDebugging())
         {
@@ -1718,7 +1718,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(isdecnumber(string))  //decimal numbers come 'first'
+    else if(isdecnumber(string)) //decimal numbers come 'first'
     {
         if(value_size)
             *value_size = 0;
@@ -1726,7 +1726,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = false;
         return convertNumber(string + 1, *value, 10);
     }
-    else if(ishexnumber(string))  //then hex numbers
+    else if(ishexnumber(string)) //then hex numbers
     {
         if(value_size)
             *value_size = 0;
@@ -1763,13 +1763,13 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
     if(baseonly)
         return false;
 
-    if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
+    if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
         return true;
-    else if(LabelFromString(string, value))  //then come labels
+    else if(LabelFromString(string, value)) //then come labels
         return true;
-    else if(SymAddrFromName(string, value))  //then come symbols
+    else if(SymAddrFromName(string, value)) //then come symbols
         return true;
-    else if(strstr(string, "sub_") == string)  //then come sub_ functions
+    else if(strstr(string, "sub_") == string) //then come sub_ functions
     {
 #ifdef _WIN64
         bool result = sscanf(string, "sub_%llX", value) == 1;
@@ -2329,7 +2329,7 @@ bool valtostring(const char* string, duint value, bool silent)
             GuiUpdateAllViews(); //repaint gui
         return ok;
     }
-    else if(*string == '_' && isflag(string + 1))  //flag
+    else if(*string == '_' && isflag(string + 1)) //flag
     {
         if(!DbgIsDebugging())
         {

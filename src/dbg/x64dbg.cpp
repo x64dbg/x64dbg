@@ -711,11 +711,11 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     if(argc == 2) //1 argument (init filename)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\"", argv[1])).c_str());
-    else if(argc == 3)  //2 arguments (init filename, cmdline)
+    else if(argc == 3) //2 arguments (init filename, cmdline)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\"", argv[1], argv[2])).c_str());
-    else if(argc == 4)  //3 arguments (init filename, cmdline, currentdir)
+    else if(argc == 4) //3 arguments (init filename, cmdline, currentdir)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\", \"%s\"", argv[1], argv[2], argv[3])).c_str());
-    else if(argc == 5 && !_wcsicmp(argv[1], L"-a") && !_wcsicmp(argv[3], L"-e"))  //4 arguments (JIT)
+    else if(argc == 5 && !_wcsicmp(argv[1], L"-a") && !_wcsicmp(argv[3], L"-e")) //4 arguments (JIT)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, .%s", argv[2], argv[4])).c_str()); //attach pid, event
     LocalFree(argv);
 

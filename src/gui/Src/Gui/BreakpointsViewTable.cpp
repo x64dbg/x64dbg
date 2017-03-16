@@ -41,7 +41,7 @@ QString BreakpointsViewTable::paintContent(QPainter* painter, dsint rowBase, int
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
             painter->setPen(QPen(mCipColor));
-            painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, bpAddrStr);
+            painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, bpAddrStr);
             ret = "";
         }
     }

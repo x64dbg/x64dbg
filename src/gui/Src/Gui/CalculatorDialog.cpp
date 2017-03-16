@@ -89,7 +89,7 @@ void CalculatorDialog::expressionChanged(bool validExpression, bool validPointer
         else
             ui->txtAscii->setText("???");
         ui->txtAscii->setCursorPosition(1);
-        if((value == (value & 0xFFF)))  //UNICODE?
+        if((value == (value & 0xFFF))) //UNICODE?
         {
             QChar c = QChar((ushort)value);
             if(c.isPrint())

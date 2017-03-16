@@ -117,7 +117,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
-    else if(type == ALL_MODULES)  // Search in all Modules
+    else if(type == ALL_MODULES) // Search in all Modules
     {
         bool initCallBack = true;
         std::vector<MODINFO> modList;

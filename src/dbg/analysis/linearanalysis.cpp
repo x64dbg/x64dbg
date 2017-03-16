@@ -62,7 +62,7 @@ void LinearAnalysis::analyseFunctions()
     for(size_t i = 0; i < mFunctions.size(); i++)
     {
         auto & function = mFunctions[i];
-        if(function.end)  //skip already-analysed functions
+        if(function.end) //skip already-analysed functions
             continue;
         auto maxaddr = mBase + mSize;
         if(i < mFunctions.size() - 1)
@@ -96,19 +96,19 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
     {
         if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
         {
-            if(addr + mCp.Size() > maxaddr)  //we went past the maximum allowed address
+            if(addr + mCp.Size() > maxaddr) //we went past the maximum allowed address
                 break;
 
             const auto & op = mCp.x86().operands[0];
-            if((mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop()) && op.type == X86_OP_IMM)   //jump
+            if((mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop()) && op.type == X86_OP_IMM) //jump
             {
                 auto dest = duint(op.imm);
 
-                if(dest >= maxaddr)   //jump across function boundaries
+                if(dest >= maxaddr) //jump across function boundaries
                 {
                     //currently unused
                 }
-                else if(dest > addr && dest > fardest)   //save the farthest JXX destination forward
+                else if(dest > addr && dest > fardest) //save the farthest JXX destination forward
                 {
                     fardest = dest;
                 }
@@ -117,10 +117,10 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
                     jumpback = addr;
                 }
             }
-            else if(mCp.InGroup(CS_GRP_RET))   //possible function end?
+            else if(mCp.InGroup(CS_GRP_RET)) //possible function end?
             {
                 end = addr;
-                if(fardest < addr)  //we stop if the farthest JXX destination forward is before this RET
+                if(fardest < addr) //we stop if the farthest JXX destination forward is before this RET
                     break;
             }
 
@@ -137,9 +137,9 @@ duint LinearAnalysis::getReferenceOperand() const
     for(auto i = 0; i < mCp.OpCount(); i++)
     {
         const auto & op = mCp.x86().operands[i];
-        if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())  //skip jumps/loops
+        if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop()) //skip jumps/loops
             continue;
-        if(op.type == X86_OP_IMM)  //we are looking for immediate references
+        if(op.type == X86_OP_IMM) //we are looking for immediate references
         {
             auto dest = duint(op.imm);
             if(inRange(dest))

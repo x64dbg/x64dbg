@@ -64,7 +64,7 @@ template<class S1, class S2> struct concat;
 
 template<unsigned... I1, unsigned... I2>
 struct concat<seq<I1...>, seq<I2...>>
-: seq < I1..., (sizeof...(I1) + I2)... > {};
+                                   : seq < I1..., (sizeof...(I1) + I2)... > {};
 
 template<class S1, class S2> using Concat = Invoke<concat<S1, S2>>;
 

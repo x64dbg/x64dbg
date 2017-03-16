@@ -178,7 +178,7 @@ QString WatchView::paintContent(QPainter* painter, dsint rowBase, int rowOffset,
     {
         painter->fillRect(QRect(x, y, w, h), mWatchTriggeredBackgroundColor);
         painter->setPen(mWatchTriggeredColor); //white text
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, ret);
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, ret);
         return "";
     }
     else

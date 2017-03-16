@@ -641,7 +641,7 @@ static void printSoftBpInfo(const BREAKPOINT & bp)
 static void printHwBpInfo(const BREAKPOINT & bp)
 {
     const char* bpsize = "";
-    switch(TITANGETSIZE(bp.titantype))   //size
+    switch(TITANGETSIZE(bp.titantype)) //size
     {
     case UE_HARDWARE_SIZE_1:
         bpsize = "byte, ";
@@ -659,7 +659,7 @@ static void printHwBpInfo(const BREAKPOINT & bp)
 #endif //_WIN64
     }
     char* bptype;
-    switch(TITANGETTYPE(bp.titantype))   //type
+    switch(TITANGETTYPE(bp.titantype)) //type
     {
     case UE_HARDWARE_EXECUTE:
         bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "execute")));
@@ -765,9 +765,9 @@ static void printExceptionBpInfo(const BREAKPOINT & bp, duint CIP)
 static bool getConditionValue(const char* expression)
 {
     auto word = *(uint16*)expression;
-    if(word == '0')  // short circuit for condition "0\0"
+    if(word == '0') // short circuit for condition "0\0"
         return false;
-    if(word == '1')  //short circuit for condition "1\0"
+    if(word == '1') //short circuit for condition "1\0"
         return true;
     duint value;
     if(valfromstring(expression, &value))
@@ -862,7 +862,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     default:
         break;
     }
-    if(!(bpPtr && bpPtr->enabled))  //invalid / disabled breakpoint hit (most likely a bug)
+    if(!(bpPtr && bpPtr->enabled)) //invalid / disabled breakpoint hit (most likely a bug)
     {
         if(bptype != BPDLL || !BpUpdateDllPath(reinterpret_cast<const char*>(ExceptionAddress), &bpPtr))
         {
@@ -899,7 +899,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
         breakCondition = getConditionValue(bp.breakCondition);
     else
         breakCondition = true; //break if no condition is set
-    if(bp.fastResume && !breakCondition)  // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
+    if(bp.fastResume && !breakCondition) // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
         return;
     if(*bp.logCondition)
         logCondition = getConditionValue(bp.logCondition);
@@ -929,11 +929,11 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     // Update breakpoint view
     DebugUpdateBreakpointsViewAsync();
 
-    if(*bp.logText && logCondition)  //log
+    if(*bp.logText && logCondition) //log
     {
         dprintf_untranslated("%s\n", stringformatinline(bp.logText).c_str());
     }
-    if(*bp.commandText && commandCondition)  //command
+    if(*bp.commandText && commandCondition) //command
     {
         //TODO: commands like run/step etc will fuck up your shit
         varset("$breakpointcondition", breakCondition ? 1 : 0, false);
@@ -951,7 +951,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
                 breakCondition = false;
         }
     }
-    if(breakCondition)  //break the debugger
+    if(breakCondition) //break the debugger
     {
         dbgsetforeground();
         dbgsetskipexceptions(false);
@@ -1860,7 +1860,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         if(MemRead((duint)DebugString->lpDebugStringData, DebugText(), DebugString->nDebugStringLength))
         {
             String str = String(DebugText());
-            if(str != lastDebugText)  //fix for every string being printed twice
+            if(str != lastDebugText) //fix for every string being printed twice
             {
                 if(str != "\n")
                     dprintf(QT_TRANSLATE_NOOP("DBG", "DebugString: \"%s\"\n"), StringUtils::Escape(str).c_str());
@@ -1977,7 +1977,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     if(bVerboseExceptionLogging)
         DbgCmdExecDirect("exinfo"); //show extended exception information
     auto exceptionName = ExceptionCodeToName(ExceptionCode);
-    if(!exceptionName.size())  //if no exception was found, try the error codes (RPC_S_*)
+    if(!exceptionName.size()) //if no exception was found, try the error codes (RPC_S_*)
         exceptionName = ErrorCodeToName(ExceptionCode);
     if(ExceptionData->dwFirstChance) //first chance exception
     {
@@ -2134,9 +2134,9 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
 
                     char* nextSlash = strchr(exeNameInCmdTmp, '\\') ? strchr(exeNameInCmdTmp, '\\') :
                                       strchr(exeNameInCmdTmp, '/') ? strchr(exeNameInCmdTmp, '/') : NULL;
-                    if(nextSlash && posEnum.posEnum == NO_QOUTES)  //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
+                    if(nextSlash && posEnum.posEnum == NO_QOUTES) //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
                     {
-                        if(strchr(exeNameInCmdTmp, ' ') < nextSlash)  //slash is in arguments
+                        if(strchr(exeNameInCmdTmp, ' ') < nextSlash) //slash is in arguments
                         {
                             peNameInCmd = exeNameInCmdTmp;
                             break;
@@ -2146,7 +2146,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                     }
                     else if(nextSlash && posEnum.posEnum == QOUTES_AROUND_EXE)
                     {
-                        if((cmdline + posEnum.secondPos) < nextSlash)  //slash is in arguments
+                        if((cmdline + posEnum.secondPos) < nextSlash) //slash is in arguments
                         {
                             peNameInCmd = exeNameInCmdTmp;
                             break;
@@ -2181,9 +2181,9 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
 
                         char* nextSlash = strchr(basicNameInCmdTmp, '\\') ? strchr(basicNameInCmdTmp, '\\') :
                                           strchr(basicNameInCmdTmp, '/') ? strchr(basicNameInCmdTmp, '/') : NULL;
-                        if(nextSlash && posEnum.posEnum == NO_QOUTES)  //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
+                        if(nextSlash && posEnum.posEnum == NO_QOUTES) //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
                         {
-                            if(strchr(basicNameInCmdTmp, ' ') < nextSlash)  //slash is in arguments
+                            if(strchr(basicNameInCmdTmp, ' ') < nextSlash) //slash is in arguments
                             {
                                 peNameInCmd = basicNameInCmdTmp;
                                 break;
@@ -2193,7 +2193,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                         }
                         else if(nextSlash && posEnum.posEnum == QOUTES_AROUND_EXE)
                         {
-                            if((cmdline + posEnum.secondPos) < nextSlash)  //slash is in arguments
+                            if((cmdline + posEnum.secondPos) < nextSlash) //slash is in arguments
                             {
                                 peNameInCmd = basicNameInCmdTmp;
                                 break;

@@ -391,7 +391,7 @@ struct AddrInfoHashMap : SerializableModuleHashMap<TLock, TValue, TSerializer>
     {
         this->DeleteRangeWhere(start, end, [manual](duint start, duint end, const TValue & value)
         {
-            if(manual ? !value.manual : value.manual)   //ignore non-matching entries
+            if(manual ? !value.manual : value.manual) //ignore non-matching entries
                 return false;
             return value.addr >= start && value.addr < end;
         });

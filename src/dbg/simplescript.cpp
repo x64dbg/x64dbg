@@ -175,7 +175,7 @@ static bool scriptcreatelinemap(const char* filename)
         {
             cur.type = lineempty;
         }
-        else if(!strncmp(cur.raw, "//", 2) || *cur.raw == ';')  //comment
+        else if(!strncmp(cur.raw, "//", 2) || *cur.raw == ';') //comment
         {
             cur.type = linecomment;
             strcpy_s(cur.u.comment, cur.raw);
@@ -234,7 +234,7 @@ static bool scriptcreatelinemap(const char* filename)
     for(int i = 0; i < linemapsize; i++)
     {
         auto & currentLine = linemap.at(i);
-        if(currentLine.type == linebranch)  //invalid branch label
+        if(currentLine.type == linebranch) //invalid branch label
         {
             int labelline = scriptlabelfind(currentLine.u.branch.branchlabel);
             if(!labelline) //invalid branch label

@@ -234,7 +234,7 @@ BRIDGE_IMPEXP bool BridgeSettingRead(int* errorLine)
         }
         CloseHandle(hFile);
     }
-    if(success)  //if we failed to read the file, the current settings are better than none at all
+    if(success) //if we failed to read the file, the current settings are better than none at all
     {
         EnterCriticalSection(&csIni);
         int errline = 0;

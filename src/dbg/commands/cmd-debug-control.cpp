@@ -134,7 +134,7 @@ bool cbDebugStop(int argc, char* argv[])
     //history
     HistoryClear();
     DWORD BeginTick = GetTickCount();
-    while(waitislocked(WAITID_STOP))   //custom waiting
+    while(waitislocked(WAITID_STOP)) //custom waiting
     {
         unlock(WAITID_RUN);
         Sleep(100);

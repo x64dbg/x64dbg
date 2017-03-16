@@ -17,7 +17,7 @@ std::map<BreakpointKey, BREAKPOINT> breakpoints;
 
 static void setBpActive(BREAKPOINT & bp)
 {
-    if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
+    if(bp.type == BPHARDWARE) //TODO: properly implement this (check debug registers)
         bp.active = true;
     else if(bp.type == BPDLL || bp.type == BPEXCEPTION)
         bp.active = true;
@@ -478,7 +478,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
         BREAKPOINT bpInfo = j->second;
         if(bpInfo.type != BPDLL && bpInfo.type != BPEXCEPTION)
         {
-            if(base)  //workaround for some Windows bullshit with compatibility mode
+            if(base) //workaround for some Windows bullshit with compatibility mode
                 bpInfo.addr += base;
             else
                 bpInfo.addr += ModBaseFromName(bpInfo.mod);

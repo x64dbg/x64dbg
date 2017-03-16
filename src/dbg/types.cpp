@@ -85,7 +85,7 @@ bool TypeManager::AddMember(const std::string & parent, const std::string & type
     m.type = type;
     m.offset = offset;
 
-    if(offset >= 0)  //user-defined offset
+    if(offset >= 0) //user-defined offset
     {
         if(offset < s.size)
             return false;
@@ -363,7 +363,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
         {
             if(!isDefined(t.pointto))
                 return false;
-            if(visitor.visitPtr(root, t))  //allow the visitor to bail out
+            if(visitor.visitPtr(root, t)) //allow the visitor to bail out
             {
                 if(!Visit(t.pointto, "*" + root.name, visitor))
                     return false;

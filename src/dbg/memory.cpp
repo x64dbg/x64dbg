@@ -84,7 +84,7 @@ void MemUpdateMap()
                 else
                 {
                     // Otherwise append the page to the last created entry
-                    if(pageVector.size())  //make sure to not dereference an invalid pointer
+                    if(pageVector.size()) //make sure to not dereference an invalid pointer
                         pageVector.back().mbi.RegionSize += mbi.RegionSize;
                 }
             }
@@ -106,7 +106,7 @@ void MemUpdateMap()
     for(int i = pagecount - 1; i > -1; i--)
     {
         auto & currentPage = pageVector.at(i);
-        if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages))   //there is a module
+        if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages)) //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
         if(!ModBaseFromName(currentPage.info))
@@ -116,9 +116,9 @@ void MemUpdateMap()
         if(!ModSectionsFromAddr(base, &sections))
             continue;
         int SectionNumber = (int)sections.size();
-        if(!SectionNumber)  //no sections = skip
+        if(!SectionNumber) //no sections = skip
             continue;
-        if(!bListAllPages)  //normal view
+        if(!bListAllPages) //normal view
         {
             MEMPAGE newPage;
             //remove the current module page (page = size of module at this point) and insert the module sections
@@ -129,7 +129,7 @@ void MemUpdateMap()
                 memset(&newPage, 0, sizeof(MEMPAGE));
                 VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)currentSection.addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
                 duint SectionSize = currentSection.size;
-                if(SectionSize % PAGE_SIZE)  //unaligned page size
+                if(SectionSize % PAGE_SIZE) //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 if(SectionSize)
                     newPage.mbi.RegionSize = SectionSize;
@@ -151,16 +151,16 @@ void MemUpdateMap()
                 const auto & currentSection = sections.at(j);
                 duint secStart = currentSection.addr;
                 duint SectionSize = currentSection.size;
-                if(SectionSize % PAGE_SIZE)  //unaligned page size
+                if(SectionSize % PAGE_SIZE) //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 duint secEnd = secStart + SectionSize;
-                if(secStart >= start && secEnd <= end)  //section is inside the memory page
+                if(secStart >= start && secEnd <= end) //section is inside the memory page
                 {
                     if(k)
                         k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, ",");
                     k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, " \"%s\"", currentSection.name);
                 }
-                else if(start >= secStart && end <= secEnd)  //memory page is inside the section
+                else if(start >= secStart && end <= secEnd) //memory page is inside the section
                 {
                     if(k)
                         k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, ",");
@@ -523,7 +523,7 @@ bool MemGetPageRights(duint Address, char* Rights)
 
 bool MemPageRightsToString(DWORD Protect, char* Rights)
 {
-    if(!Protect)  //reserved pages don't have a protection (https://goo.gl/Izkk0c)
+    if(!Protect) //reserved pages don't have a protection (https://goo.gl/Izkk0c)
     {
         *Rights = '\0';
         return true;

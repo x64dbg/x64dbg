@@ -64,7 +64,7 @@ bool ExHandlerGetSEH(std::vector<duint> & Entries)
         while(addr_ExRegRecord != 0xFFFFFFFF && MAX_DEPTH)
         {
             Entries.push_back(addr_ExRegRecord);
-            if(!MemRead(addr_ExRegRecord , &sehr, sizeof(EXCEPTION_REGISTRATION_RECORD)))
+            if(!MemRead(addr_ExRegRecord, &sehr, sizeof(EXCEPTION_REGISTRATION_RECORD)))
                 break;
             addr_ExRegRecord = (duint)sehr.Next;
             MAX_DEPTH--;
