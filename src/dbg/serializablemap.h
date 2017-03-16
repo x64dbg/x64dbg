@@ -1,3 +1,6 @@
+#ifndef _SERIALIZABLEMAP_H
+#define _SERIALIZABLEMAP_H
+
 #include "_global.h"
 #include "threading.h"
 #include "module.h"
@@ -303,7 +306,7 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
         // 0x00000000 - 0xFFFFFFFF
         if(start == 0 && end == ~0)
         {
-            Clear();
+            this->Clear();
         }
         else
         {
@@ -317,7 +320,7 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
             start -= moduleBase;
             end -= moduleBase;
 
-            DeleteWhere([start, end, inRange](const TValue & value)
+            this->DeleteWhere([start, end, inRange](const TValue & value)
             {
                 return inRange(start, end, value);
             });
@@ -344,21 +347,21 @@ struct AddrInfoSerializer : JSONWrapper<TValue>
 
     bool Save(const TValue & value) override
     {
-        setString("module", value.mod());
-        setHex("address", value.addr);
-        setBool("manual", value.manual);
+        this->setString("module", value.mod());
+        this->setHex("address", value.addr);
+        this->setBool("manual", value.manual);
         return true;
     }
 
     bool Load(TValue & value) override
     {
         value.manual = true; //legacy support
-        getBool("manual", value.manual);
+        this->getBool("manual", value.manual);
         std::string mod;
-        if(!getString("module", mod))
+        if(!this->getString("module", mod))
             return false;
         value.modhash = ModHashFromName(mod.c_str());
-        return getHex("address", value.addr);
+        return this->getHex("address", value.addr);
     }
 };
 
@@ -386,7 +389,7 @@ struct AddrInfoHashMap : SerializableModuleHashMap<TLock, TValue, TSerializer>
 
     void DeleteRange(duint start, duint end, bool manual)
     {
-        DeleteRangeWhere(start, end, [manual](duint start, duint end, const TValue & value)
+        this->DeleteRangeWhere(start, end, [manual](duint start, duint end, const TValue & value)
         {
             if(manual ? !value.manual : value.manual)   //ignore non-matching entries
                 return false;
@@ -400,3 +403,5 @@ protected:
         return value.modhash + value.addr;
     }
 };
+
+#endif // _SERIALIZABLEMAP_H

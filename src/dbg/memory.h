@@ -2,25 +2,9 @@
 #define _MEMORY_H
 
 #include "_global.h"
-#include "addrinfo.h"
 #include "patternfind.h"
 
-extern std::map<Range, MEMPAGE, RangeCompare> memoryPages;
-extern bool bListAllPages;
-extern DWORD memMapThreadCounter;
-
-struct SimplePage
-{
-    duint address;
-    duint size;
-
-    SimplePage(duint address, duint size)
-    {
-        this->address = address;
-        this->size = size;
-    }
-};
-
+struct SimplePage;
 void MemUpdateMap();
 void MemUpdateMapAsync();
 duint MemFindBaseAddr(duint Address, duint* Size = nullptr, bool Refresh = false, bool FindReserved = false);
@@ -43,5 +27,23 @@ bool MemFindInPage(const SimplePage & page, duint startoffset, const std::vector
 bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults, bool progress = true);
 bool MemDecodePointer(duint* Pointer, bool vistaPlus);
 void MemInitRemoteProcessCookie();
+
+#include "addrinfo.h"
+
+extern std::map<Range, MEMPAGE, RangeCompare> memoryPages;
+extern bool bListAllPages;
+extern DWORD memMapThreadCounter;
+
+struct SimplePage
+{
+    duint address;
+    duint size;
+
+    SimplePage(duint address, duint size)
+    {
+        this->address = address;
+        this->size = size;
+    }
+};
 
 #endif // _MEMORY_H

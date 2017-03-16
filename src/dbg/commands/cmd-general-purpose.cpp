@@ -4,6 +4,7 @@
 #include "variable.h"
 #include "_scriptapi_stack.h"
 #include "debugger.h"
+#include <intrin.h>
 
 static bool ReadWriteVariable(const char* varname, const std::function<bool(duint*, int)> & callback)
 {

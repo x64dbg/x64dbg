@@ -469,7 +469,7 @@ bool dbgcmddel(const char* name)
 
 duint dbggetdbgevents()
 {
-    return InterlockedExchange(&DbgEvents, 0);
+    return InterlockedExchange((volatile long*)&DbgEvents, 0);
 }
 
 static DWORD WINAPI updateCallStackThread(duint ptr)
@@ -526,7 +526,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     static volatile duint cacheCsp = 0;
     if(csp != cacheCsp)
     {
-        InterlockedExchange(&cacheCsp, csp);
+        InterlockedExchange((volatile long*)&cacheCsp, csp);
         updateCallStackAsync(csp);
         updateSEHChainAsync();
     }
@@ -881,7 +881,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     }
 
     // increment hit count
-    InterlockedIncrement(&bpPtr->hitcount);
+    InterlockedIncrement((volatile long*)&bpPtr->hitcount);
 
     auto bp = *bpPtr;
     SHARED_RELEASE();
@@ -1143,7 +1143,7 @@ bool cbSetDLLBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
-EXCEPTION_DEBUG_INFO getLastExceptionInfo()
+EXCEPTION_DEBUG_INFO & getLastExceptionInfo()
 {
     return lastExceptionInfo;
 }
@@ -1208,7 +1208,7 @@ void cbStep()
     {
         if(bTraceRecordEnabledDuringTrace)
             _dbg_dbgtraceexecute(CIP);
-        (bRepeatIn ? StepIntoWow64 : StepOver)(cbStep);
+        (bRepeatIn ? StepIntoWow64 : StepOver)((void*)cbStep);
     }
 }
 
@@ -1312,7 +1312,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
             _dbg_dbgtraceexecute(cip);
         if(switchCondition) //switch (invert) the step type once
             bStepInto = !bStepInto;
-        (bStepInto ? StepIntoWow64 : StepOver)(callback);
+        (bStepInto ? StepIntoWow64 : StepOver)((void*)callback);
     }
 }
 
@@ -2012,7 +2012,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 
 static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 {
-    InterlockedIncrement(&DbgEvents);
+    InterlockedIncrement((volatile long*)&DbgEvents);
     PLUG_CB_DEBUGEVENT debugEventInfo;
     debugEventInfo.DebugEvent = DebugEvent;
     plugincbcall(CB_DEBUGEVENT, &debugEventInfo);
@@ -2520,7 +2520,7 @@ static DWORD WINAPI scriptThread(void* data)
 
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
 {
-    CloseHandle(CreateThread(0, 0, scriptThread, cbScript, 0, 0));
+    CloseHandle(CreateThread(0, 0, scriptThread, (LPVOID)cbScript, 0, 0));
 }
 
 duint dbggetdebuggedbase()

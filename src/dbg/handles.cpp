@@ -230,11 +230,11 @@ bool HandlesEnumWindows(std::vector<WINDOW_INFO> & windowsList)
     std::vector<WINDOW_INFO> childWindowsList;
     EnumWindows(getWindowInfoCallback, (LPARAM)&windowsList);
     auto i = windowsList.begin();
-    for(auto & i = windowsList.cbegin(); i != windowsList.cend(); i++)
+    for(auto i = windowsList.cbegin(); i != windowsList.cend(); ++i)
     {
         EnumChildWindows((HWND)i->handle, getWindowInfoCallback, (LPARAM)&childWindowsList);
     }
-    for(auto & i = childWindowsList.cbegin(); i != childWindowsList.cend(); i++)
+    for(auto i = childWindowsList.cbegin(); i != childWindowsList.cend(); ++i)
     {
         windowsList.push_back(*i);
     }

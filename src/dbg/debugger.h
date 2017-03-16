@@ -134,7 +134,7 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress);
 DWORD WINAPI threadAttachLoop(void* lpParameter);
 void cbDetach();
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
-EXCEPTION_DEBUG_INFO getLastExceptionInfo();
+EXCEPTION_DEBUG_INFO & getLastExceptionInfo();
 bool dbgrestartadmin();
 void StepIntoWow64(void* traceCallBack);
 bool dbgisdepenabled();

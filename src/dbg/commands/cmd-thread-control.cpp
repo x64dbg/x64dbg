@@ -184,7 +184,7 @@ bool cbDebugSetPriority(int argc, char* argv[])
     }
     else
     {
-        switch(priority)  //check if the priority value is valid
+        switch((int)priority)  //check if the priority value is valid
         {
         case THREAD_PRIORITY_NORMAL:
         case THREAD_PRIORITY_ABOVE_NORMAL:

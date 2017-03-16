@@ -7,9 +7,6 @@
 #include <stdbool.h>
 #endif
 
-//list structure (and C++ wrapper)
-#include "bridgelist.h"
-
 //default structure alignments forced
 #ifdef _WIN64
 #pragma pack(push, 16)
@@ -58,6 +55,9 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #ifdef __cplusplus
 }
 #endif
+
+//list structure (and C++ wrapper)
+#include "bridgelist.h"
 
 #include "bridgegraph.h"
 
