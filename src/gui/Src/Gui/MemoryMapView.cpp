@@ -335,18 +335,17 @@ void MemoryMapView::refreshMap()
 
     setRowCount(wMemMapStruct.count);
 
+    QString wS;
+    MEMORY_BASIC_INFORMATION wMbi;
     for(wI = 0; wI < wMemMapStruct.count; wI++)
     {
-        QString wS;
-        MEMORY_BASIC_INFORMATION wMbi = (wMemMapStruct.page)[wI].mbi;
+        wMbi = (wMemMapStruct.page)[wI].mbi;
 
         // Base address
-        wS = ToPtrString((duint)wMbi.BaseAddress);
-        setCellContent(wI, 0, wS);
+        setCellContent(wI, 0, ToPtrString((duint)wMbi.BaseAddress));
 
         // Size
-        wS = ToPtrString((duint)wMbi.RegionSize);
-        setCellContent(wI, 1, wS);
+        setCellContent(wI, 1, ToPtrString((duint)wMbi.RegionSize));
 
         // Information
         wS = QString((wMemMapStruct.page)[wI].info);
@@ -386,30 +385,29 @@ void MemoryMapView::refreshMap()
         setCellContent(wI, 3, wS);
 
         // Type
+        const char* type = "";
         switch(wMbi.Type)
         {
         case MEM_IMAGE:
-            wS = QString("IMG");
+            type = "IMG";
             break;
         case MEM_MAPPED:
-            wS = QString("MAP");
+            type = "MAP";
             break;
         case MEM_PRIVATE:
-            wS = QString("PRV");
+            type = "PRV";
             break;
         default:
-            wS = QString("N/A");
+            type = "N/A";
             break;
         }
-        setCellContent(wI, 4, wS);
+        setCellContent(wI, 4, type);
 
         // current access protection
-        wS = getProtectionString(wMbi.Protect);
-        setCellContent(wI, 5, wS);
+        setCellContent(wI, 5, getProtectionString(wMbi.Protect));
 
         // allocation protection
-        wS = getProtectionString(wMbi.AllocationProtect);
-        setCellContent(wI, 6, wS);
+        setCellContent(wI, 6, getProtectionString(wMbi.AllocationProtect));
 
     }
     if(wMemMapStruct.page != 0)

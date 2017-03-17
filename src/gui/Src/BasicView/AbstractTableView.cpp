@@ -290,6 +290,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     y = getHeaderHeight();
 
     // Iterate over all columns and cells
+    QString wStr;
     for(int k = 0; k < getColumnCount(); k++)
     {
         int j = mColumnOrder[k];
@@ -303,7 +304,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
                 // Don't draw cells if the flag is set, and no process is running
                 if(!mDrawDebugOnly || DbgIsDebugging())
                 {
-                    QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
+                    wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
 
                     if(wStr.length())
                     {
