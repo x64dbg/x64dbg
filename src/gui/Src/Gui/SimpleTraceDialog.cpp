@@ -2,6 +2,7 @@
 #include "ui_SimpleTraceDialog.h"
 #include "Bridge.h"
 #include <QMessageBox>
+#include "BrowseDialog.h"
 
 SimpleTraceDialog::SimpleTraceDialog(QWidget* parent) :
     QDialog(parent),
@@ -60,6 +61,11 @@ void SimpleTraceDialog::on_btnOk_clicked()
         QMessageBox::warning(this, tr("Error"), tr("Failed to set switch condition!"));
         return;
     }
+    if(!DbgCmdExecDirect(QString("TraceSetLogFile \"%1\"").arg(escapeText(mLogFile)).toUtf8().constData()))
+    {
+        QMessageBox::warning(this, tr("Error"), tr("Failed to set log file!"));
+        return;
+    }
     auto breakCondition = ui->editBreakCondition->addHistoryClear();
     auto maxTraceCount = ui->spinMaxTraceCount->value();
     if(!DbgCmdExecDirect(QString("%1 \"%2\", .%3").arg(mTraceCommand, escapeText(breakCondition)).arg(maxTraceCount).toUtf8().constData()))
@@ -68,4 +74,13 @@ void SimpleTraceDialog::on_btnOk_clicked()
         return;
     }
     accept();
+}
+
+void SimpleTraceDialog::on_btnLogFile_clicked()
+{
+    BrowseDialog browse(this, tr("Trace log file"), tr("Enter the path to the log file."), tr("Log Files (*.txt *.log);;All Files (*.*)"), QCoreApplication::applicationDirPath(), true);
+    if(browse.exec() == QDialog::Accepted)
+        mLogFile = browse.path;
+    else
+        mLogFile.clear();
 }

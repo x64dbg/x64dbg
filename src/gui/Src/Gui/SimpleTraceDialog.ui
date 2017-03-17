@@ -66,6 +66,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="btnLogFile">
+       <property name="text">
+        <string>Log &amp;File...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btnOk">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -187,6 +194,8 @@
   <tabstop>editCommandText</tabstop>
   <tabstop>editCommandCondition</tabstop>
   <tabstop>spinMaxTraceCount</tabstop>
+  <tabstop>editSwitchCondition</tabstop>
+  <tabstop>btnLogFile</tabstop>
   <tabstop>btnOk</tabstop>
   <tabstop>btnCancel</tabstop>
  </tabstops>
