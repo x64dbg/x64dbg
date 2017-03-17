@@ -824,12 +824,12 @@ void CPUDisassembly::setLabelSlot()
         return;
     duint wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
     QString addr_text = ToPtrString(wVA);
     char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
-    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
 restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -870,12 +870,12 @@ void CPUDisassembly::setLabelAddressSlot()
     if(!DbgMemIsValidReadPtr(addr))
         return;
     LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
     QString addr_text = ToPtrString(addr);
     char label_text[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt(addr, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
-    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
 restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -904,6 +904,7 @@ void CPUDisassembly::setCommentSlot()
         return;
     duint wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
     QString addr_text = ToPtrString(wVA);
     char comment_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetCommentAt((duint)wVA, comment_text))
@@ -914,7 +915,6 @@ void CPUDisassembly::setCommentSlot()
             mLineEdit.setText(QString(comment_text));
     }
     mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
-    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))

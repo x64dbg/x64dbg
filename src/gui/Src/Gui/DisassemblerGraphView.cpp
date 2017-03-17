@@ -1789,6 +1789,7 @@ void DisassemblerGraphView::setCommentSlot()
 {
     duint wVA = this->get_cursor_pos();
     LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
     QString addr_text = ToPtrString(wVA);
     char comment_text[MAX_COMMENT_SIZE] = "";
     if(!DbgIsDebugging())
@@ -1805,7 +1806,6 @@ void DisassemblerGraphView::setCommentSlot()
     }
 
     mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
-    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
 
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -1820,6 +1820,7 @@ void DisassemblerGraphView::setLabelSlot()
 {
     duint wVA = this->get_cursor_pos();
     LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
     QString addr_text = ToPtrString(wVA);
     char label_text[MAX_LABEL_SIZE] = "";
     if(!DbgIsDebugging())
@@ -1831,7 +1832,6 @@ void DisassemblerGraphView::setLabelSlot()
         mLineEdit.setText(QString(label_text));
 
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
-    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
 restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
