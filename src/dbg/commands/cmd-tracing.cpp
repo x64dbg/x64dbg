@@ -154,11 +154,16 @@ bool cbDebugTraceSetCommand(int argc, char* argv[])
 bool cbDebugTraceSetSwitchCondition(int argc, char* argv[])
 {
     auto condition = argc > 1 ? argv[1] : "";
-    dputs(condition);
     if(!dbgsettraceswitchcondition(condition))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression \"%s\"\n"), condition);
         return false;
     }
     return true;
+}
+
+bool cbDebugTraceSetLogFile(int argc, char* argv[])
+{
+    auto fileName = argc > 1 ? argv[1] : "";
+    return dbgsettracelogfile(fileName);
 }

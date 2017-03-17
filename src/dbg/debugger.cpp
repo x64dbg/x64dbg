@@ -29,6 +29,7 @@
 #include "simplescript.h"
 #include "capstone_wrapper.h"
 #include "cmd-watch-control.h"
+#include "filemap.h"
 
 struct TraceCondition
 {
@@ -73,6 +74,28 @@ struct TraceState
         delete traceCondition;
         traceCondition = new TraceCondition(expression, maxSteps);
         return traceCondition->condition.IsValidExpression();
+    }
+
+    bool InitLogFile()
+    {
+        if(logFile.empty())
+            return true;
+        auto hFile = CreateFileW(logFile.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if(hFile == INVALID_HANDLE_VALUE)
+            return false;
+        logWriter = new BufferedWriter(hFile);
+        return true;
+    }
+
+    void LogWrite(String text)
+    {
+        if(logWriter)
+        {
+            logWriter->Write(text.c_str(), text.size());
+            logWriter->Write("\n", 1);
+        }
+        else
+            dprintf_untranslated("%s\n", text.c_str());
     }
 
     bool IsActive() const
@@ -150,6 +173,11 @@ struct TraceState
         return switchCondition && switchCondition->Evaluate(defaultValue);
     }
 
+    void SetLogFile(const char* fileName)
+    {
+        logFile = StringUtils::Utf8ToUtf16(fileName);
+    }
+
     void Clear()
     {
         delete traceCondition;
@@ -160,6 +188,9 @@ struct TraceState
         cmdCondition = nullptr;
         delete switchCondition;
         switchCondition = nullptr;
+        logFile.clear();
+        delete logWriter;
+        logWriter = nullptr;
     }
 
 private:
@@ -168,6 +199,8 @@ private:
     TextCondition* cmdCondition = nullptr;
     TextCondition* switchCondition = nullptr;
     String emptyString;
+    WString logFile;
+    BufferedWriter* logWriter = nullptr;
 };
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
@@ -242,7 +275,9 @@ bool dbgsettracecondition(const String & expression, duint maxSteps)
 {
     if(dbgtraceactive())
         return false;
-    if(traceState.InitTraceCondition(expression, maxSteps))
+    if(!traceState.InitTraceCondition(expression, maxSteps))
+        return false;
+    if(traceState.InitLogFile())
         return true;
     dbgcleartracestate();
     return false;
@@ -272,6 +307,12 @@ bool dbgsettraceswitchcondition(const String & expression)
 bool dbgtraceactive()
 {
     return traceState.IsActive();
+}
+
+bool dbgsettracelogfile(const char* fileName)
+{
+    traceState.SetLogFile(fileName);
+    return true;
 }
 
 static DWORD WINAPI memMapThread(void* ptr)
@@ -1280,7 +1321,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     auto switchCondition = traceState.EvaluateSwitch(false);
     if(logCondition) //log
     {
-        dprintf_untranslated("%s\n", stringformatinline(traceState.LogText()).c_str());
+        traceState.LogWrite(stringformatinline(traceState.LogText()));
     }
     if(cmdCondition) //command
     {
