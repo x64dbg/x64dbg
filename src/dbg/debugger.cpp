@@ -328,6 +328,8 @@ static DWORD WINAPI memMapThread(void* ptr)
         if(bStopMemMapThread)
             break;
         MemUpdateMapAsync();
+        ThreadUpdateWaitReasons();
+        GuiUpdateThreadView();
         Sleep(2000);
     }
 

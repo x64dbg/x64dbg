@@ -10,6 +10,8 @@
 #include "undocumented.h"
 
 static std::unordered_map<DWORD, THREADINFO> threadList;
+static std::unordered_map<DWORD, THREADWAITREASON> threadWaitReasons;
+
 // Function pointer for dynamic linking. Do not link statically for Windows XP compatibility.
 // TODO: move this function definition out of thread.cpp
 BOOL(WINAPI* QueryThreadCycleTime)(HANDLE ThreadHandle, PULONG64 CycleTime) = nullptr;
@@ -132,7 +134,12 @@ void ThreadGetList(THREADLIST* List)
     }
 
     // Get the wait reason for every thread in the list
-    ThreadGetWaitReasons(List);
+    for(int i = 0; i < List->count; i++)
+    {
+        auto found = threadWaitReasons.find(List->list[i].BasicInfo.ThreadId);
+        if(found != threadWaitReasons.end())
+            List->list[i].WaitReason = found->second;
+    }
 }
 
 void ThreadGetList(std::vector<THREADINFO> & list)
@@ -197,44 +204,6 @@ int ThreadGetSuspendCount(HANDLE Thread)
 THREADPRIORITY ThreadGetPriority(HANDLE Thread)
 {
     return (THREADPRIORITY)GetThreadPriority(Thread);
-}
-
-bool ThreadGetWaitReasons(THREADLIST* List)
-{
-    typedef NTSTATUS(NTAPI * NTQUERYSYSTEMINFORMATION)(
-        /*SYSTEM_INFORMATION_CLASS*/ ULONG SystemInformationClass,
-        PVOID SystemInformation,
-        ULONG SystemInformationLength,
-        PULONG ReturnLength);
-    static auto NtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation");
-    if(NtQuerySystemInformation == NULL)
-        return false;
-
-    ULONG size;
-    if(NtQuerySystemInformation(SystemProcessInformation, NULL, 0, &size) != STATUS_INFO_LENGTH_MISMATCH)
-        return false;
-    Memory<PSYSTEM_PROCESS_INFORMATION> systemProcessInfo(2 * size, "_dbg_threadwaitreason");
-    NTSTATUS status = NtQuerySystemInformation(SystemProcessInformation, systemProcessInfo(), (ULONG)systemProcessInfo.size(), NULL);
-    if(!NT_SUCCESS(status))
-        return false;
-
-    PSYSTEM_PROCESS_INFORMATION process = systemProcessInfo();
-
-    while(true)
-    {
-        for(ULONG thread = 0; thread < process->NumberOfThreads; ++thread)
-        {
-            for(int i = 0; i < List->count; ++i)
-            {
-                if(process->Threads[thread].ClientId.UniqueThread == (HANDLE)List->list[i].BasicInfo.ThreadId)
-                    List->list[i].WaitReason = (THREADWAITREASON)process->Threads[thread].WaitReason;
-            }
-        }
-        if(process->NextEntryOffset == 0) // Last entry
-            break;
-        process = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)process + process->NextEntryOffset);
-    }
-    return true;
 }
 
 DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)
@@ -371,4 +340,40 @@ ULONG64 ThreadQueryCycleTime(HANDLE hThread)
     if(!QueryThreadCycleTime(hThread, &CycleTime))
         CycleTime = 0;
     return CycleTime;
+}
+
+void ThreadUpdateWaitReasons()
+{
+    typedef NTSTATUS(NTAPI * NTQUERYSYSTEMINFORMATION)(
+        /*SYSTEM_INFORMATION_CLASS*/ ULONG SystemInformationClass,
+        PVOID SystemInformation,
+        ULONG SystemInformationLength,
+        PULONG ReturnLength);
+    static auto NtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation");
+    if(NtQuerySystemInformation == NULL)
+        return;
+
+    ULONG size;
+    if(NtQuerySystemInformation(SystemProcessInformation, NULL, 0, &size) != STATUS_INFO_LENGTH_MISMATCH)
+        return;
+    Memory<PSYSTEM_PROCESS_INFORMATION> systemProcessInfo(2 * size, "_dbg_threadwaitreason");
+    NTSTATUS status = NtQuerySystemInformation(SystemProcessInformation, systemProcessInfo(), (ULONG)systemProcessInfo.size(), NULL);
+    if(!NT_SUCCESS(status))
+        return;
+
+    PSYSTEM_PROCESS_INFORMATION process = systemProcessInfo();
+
+    EXCLUSIVE_ACQUIRE(LockThreads);
+    while(true)
+    {
+        for(ULONG thread = 0; thread < process->NumberOfThreads; ++thread)
+        {
+            auto tid = (DWORD)process->Threads[thread].ClientId.UniqueThread;
+            if(threadList.count(tid))
+                threadWaitReasons[tid] = (THREADWAITREASON)process->Threads[thread].WaitReason;
+        }
+        if(process->NextEntryOffset == 0) // Last entry
+            break;
+        process = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)process + process->NextEntryOffset);
+    }
 }
