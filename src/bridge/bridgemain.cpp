@@ -1026,6 +1026,11 @@ BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId)
     return (duint)_dbg_sendmessage(DBG_GET_TEB_ADDRESS, (void*)ThreadId, nullptr);
 }
 
+BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph)
+{
+    return !!_dbg_sendmessage(DBG_ANALYZE_FUNCTION, (void*)entry, graph);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);

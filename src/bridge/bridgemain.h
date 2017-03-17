@@ -238,6 +238,7 @@ typedef enum
     DBG_GET_THREAD_ID,              // param1=unused,                    param2=unused
     DBG_GET_PEB_ADDRESS,            // param1=DWORD ProcessId,           param2=unused
     DBG_GET_TEB_ADDRESS,            // param1=DWORD ThreadId,            param2=unused
+    DBG_ANALYZE_FUNCTION,           // param1=BridgeCFGraphList* graph,  param2=duint entry
 } DBGMSG;
 
 typedef enum
@@ -875,6 +876,7 @@ BRIDGE_IMPEXP DWORD DbgGetProcessId();
 BRIDGE_IMPEXP DWORD DbgGetThreadId();
 BRIDGE_IMPEXP duint DbgGetPebAddress(DWORD ProcessId);
 BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId);
+BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

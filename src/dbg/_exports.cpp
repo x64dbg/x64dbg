@@ -33,6 +33,7 @@
 #include "watch.h"
 #include "animate.h"
 #include "TraceRecord.h"
+#include "recursiveanalysis.h"
 
 static bool bOnlyCipAutoComments = false;
 static TITAN_ENGINE_CONTEXT_t titcontext;
@@ -1440,6 +1441,26 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
             CloseHandle(hThread);
         }
         return tebAddress;
+    }
+    break;
+
+    case DBG_ANALYZE_FUNCTION:
+    {
+        auto entry = duint(param1);
+        duint size;
+        auto base = MemFindBaseAddr(entry, &size);
+        if(!base || !MemIsValidReadPtr(entry))
+            return false;
+        auto modbase = ModBaseFromAddr(base);
+        if(modbase)
+            base = modbase, size = ModSizeFromAddr(modbase);
+        RecursiveAnalysis analysis(base, size, entry, 0, true);
+        analysis.Analyse();
+        auto graph = analysis.GetFunctionGraph(entry);
+        if(!graph)
+            return false;
+        *(BridgeCFGraphList*)param2 = graph->ToGraphList();
+        return true;
     }
     break;
 
