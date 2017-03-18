@@ -997,6 +997,7 @@ typedef enum
     GUI_MENU_SET_ENTRY_VISIBLE,     // param1=int hEntry,           param2=bool visible
     GUI_MENU_SET_NAME,              // param1=int hMenu,            param2=const char* name
     GUI_MENU_SET_ENTRY_NAME,        // param1=int hEntry,           param2=const char* name
+    GUI_FLUSH_LOG,                  // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1164,6 +1165,7 @@ BRIDGE_IMPEXP void* GuiTypeAddNode(void* parent, const TYPEDESCRIPTOR* type);
 BRIDGE_IMPEXP bool GuiTypeClear();
 BRIDGE_IMPEXP void GuiUpdateTypeWidget();
 BRIDGE_IMPEXP void GuiCloseApplication();
+BRIDGE_IMPEXP void GuiFlushLog();
 
 #ifdef __cplusplus
 }

@@ -116,6 +116,7 @@ void CommandLineEdit::execute()
     {
         // Send this string directly to the user
         exec(cmd.toUtf8().constData());
+        DbgCmdExec("flushlog");
     }
 
     // Add this line to the history and clear text, regardless if it was executed

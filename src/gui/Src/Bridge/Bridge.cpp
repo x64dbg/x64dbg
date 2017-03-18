@@ -778,6 +778,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_CLOSE_APPLICATION:
         emit closeApplication();
         break;
+
+    case GUI_FLUSH_LOG:
+        emit flushLog();
+        break;
     }
 
     return nullptr;

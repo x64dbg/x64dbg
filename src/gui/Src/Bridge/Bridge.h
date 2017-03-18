@@ -151,6 +151,7 @@ signals:
     void typeClear();
     void typeUpdateWidget();
     void closeApplication();
+    void flushLog();
 
 private:
     QMutex* mBridgeMutex;

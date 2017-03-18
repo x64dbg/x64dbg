@@ -430,6 +430,7 @@ static void registercommands()
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
     dbgcmdnew("focusinfo", cbInstrFocusinfo, false);
     dbgcmdnew("printstack,logstack", cbInstrPrintStack, true); //print the call stack
+    dbgcmdnew("flushlog", cbInstrFlushlog, false); //flush the log
 };
 
 bool cbCommandProvider(char* cmd, int maxlen)

@@ -31,6 +31,7 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QByteArray)), this, SLOT(addMsgToLogSlot(QByteArray)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
+    connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushTimerSlot()));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
 
     duint setting;

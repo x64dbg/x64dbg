@@ -469,3 +469,9 @@ bool cbInstrFocusinfo(int argc, char* argv[])
     dprintf("activeTitle: %s, activeClass: %s\n", activeView.title, activeView.className);
     return true;
 }
+
+bool cbInstrFlushlog(int argc, char* argv[])
+{
+    GuiFlushLog();
+    return true;
+}
