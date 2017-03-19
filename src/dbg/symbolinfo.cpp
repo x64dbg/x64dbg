@@ -172,37 +172,76 @@ void SymDownloadAllSymbols(const char* SymbolStore)
     char customSearchPath[MAX_PATH * 2];
     sprintf_s(customSearchPath, "SRV*%s*%s", szSymbolCachePath, SymbolStore);
 
-    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(customSearchPath).c_str()))
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPathW (1) failed!"));
-        return;
-    }
-
     auto symOptions = SafeSymGetOptions();
     SafeSymSetOptions(symOptions & ~SYMOPT_IGNORE_CVREC);
+
+    const WString search_paths[] =
+    {
+        WString(),
+        StringUtils::Utf8ToUtf16(customSearchPath)
+    };
 
     // Reload
     for(auto & module : modList)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Downloading symbols for %s...\n"), module.name);
-
-        wchar_t modulePath[MAX_PATH];
-        if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)module.base, modulePath, MAX_PATH))
+        for(unsigned k = 0; k < sizeof(search_paths) / sizeof(*search_paths); k++)
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExW (%p) failed!\n"), module.base);
-            continue;
-        }
+            const WString & cur_path = search_paths[k];
 
-        if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)module.base))
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "SymUnloadModule64 (%p) failed!\n"), module.base);
-            continue;
-        }
+            if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, cur_path.c_str()))
+            {
+                dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPathW (1) failed!"));
+                continue;
+            }
 
-        if(!SafeSymLoadModuleExW(fdProcessInfo->hProcess, 0, modulePath, 0, (DWORD64)module.base, 0, 0, 0))
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx (%p) failed!\n"), module.base);
-            continue;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Downloading symbols for %s...\n"), module.name);
+
+            wchar_t modulePath[MAX_PATH];
+            if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)module.base, modulePath, MAX_PATH))
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExW (%p) failed!\n"), module.base);
+                continue;
+            }
+
+            if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)module.base))
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "SymUnloadModule64 (%p) failed!\n"), module.base);
+                continue;
+            }
+
+            if(!SafeSymLoadModuleExW(fdProcessInfo->hProcess, 0, modulePath, 0, (DWORD64)module.base, 0, 0, 0))
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx (%p) failed!\n"), module.base);
+                continue;
+            }
+
+            // symbols are lazy-loaded so let's load them and get the real return value
+
+            IMAGEHLP_MODULEW64 info;
+            info.SizeOfStruct = sizeof(info);
+
+            if(!SafeSymGetModuleInfoW64(fdProcessInfo->hProcess, (DWORD64)module.base, &info))
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "SymGetModuleInfo64 (%p) failed!\n"), module.base);
+                continue;
+            }
+
+            bool status;
+
+            switch(info.SymType)
+            {
+            // XXX there may be more enum values meaning proper load
+            case SymPdb:
+                status = 1;
+                break;
+            default:
+            case SymExport: // always treat export symbols as failure
+                status = 0;
+                break;
+            }
+
+            if(status)
+                break;
         }
     }
 
