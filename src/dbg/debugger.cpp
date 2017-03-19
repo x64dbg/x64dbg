@@ -30,6 +30,7 @@
 #include "capstone_wrapper.h"
 #include "cmd-watch-control.h"
 #include "filemap.h"
+#include "jit.h"
 
 struct TraceCondition
 {
@@ -2633,7 +2634,9 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         if(!fdProcessInfo)
         {
             auto lastError = GetLastError();
-            if(lastError == ERROR_ELEVATION_REQUIRED)
+            auto isElevated = IsProcessElevated();
+            auto error = ErrorCodeToName(lastError);
+            if(lastError == ERROR_ELEVATION_REQUIRED && !isElevated)
             {
                 auto msg = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "The executable you are trying to debug requires elevation. Restart as admin?")));
                 auto title = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Elevation")));
@@ -2647,9 +2650,16 @@ static void debugLoopFunction(void* lpParameter, bool attach)
                     return;
                 }
             }
+            else if(isElevated)
+            {
+                //This is most likely an application with uiAccess="true"
+                //https://github.com/x64dbg/x64dbg/issues/1501
+                //https://blogs.techsmith.com/inside-techsmith/devcorner-debug-uiaccess
+                error += ", uiAccess=\"true\"";
+            }
             fdProcessInfo = &g_pi;
             unlock(WAITID_STOP);
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), ErrorCodeToName(lastError).c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), error.c_str());
             return;
         }
 
