@@ -1680,8 +1680,7 @@ void MainWindow::clickFavouriteTool()
     else if(data.startsWith("Script,"))
     {
         QString scriptPath = data.mid(7);
-        DbgScriptUnload();
-        DbgScriptLoad(scriptPath.toUtf8().constData());
+        mScriptView->openRecentFile(scriptPath);
         displayScriptWidget();
     }
     else if(data.compare("Command") == 0)

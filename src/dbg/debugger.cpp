@@ -569,7 +569,11 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     static volatile duint cacheCsp = 0;
     if(csp != cacheCsp)
     {
-        InterlockedExchange((volatile long*)&cacheCsp, csp);
+#ifdef _WIN64
+        InterlockedExchange((volatile unsigned long long*)&cacheCsp, csp);
+#else
+        InterlockedExchange((volatile unsigned long*)&cacheCsp, csp);
+#endif //_WIN64        
         updateCallStackAsync(csp);
         updateSEHChainAsync();
     }

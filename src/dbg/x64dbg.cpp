@@ -691,7 +691,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     SCRIPTTYPEINFO info;
     strcpy_s(info.name, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Default")));
     info.id = 0;
-    info.execute = DbgCmdExec;
+    info.execute = [](const char* cmd)
+    {
+        if(!DbgCmdExec(cmd))
+            return false;
+        GuiFlushLog();
+        return true;
+    };
     info.completeCommand = nullptr;
     GuiRegisterScriptLanguage(&info);
     dputs(QT_TRANSLATE_NOOP("DBG", "Registering Script DLL command handler..."));
