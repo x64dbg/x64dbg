@@ -31,7 +31,7 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QByteArray)), this, SLOT(addMsgToLogSlot(QByteArray)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
-    connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushTimerSlot()));
+    connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushLogSlot()));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
 
     duint setting;
@@ -267,6 +267,11 @@ void LogView::addMsgToLogSlot(QByteArray msg)
     if(logBuffer.length() >= 10000 * 10) //limit the log buffer to ~10mb
         logBuffer.clear();
     logBuffer.append(msgUtf16);
+    if(flushLog)
+    {
+        flushTimerSlot();
+        flushLog = false;
+    }
 }
 
 /**
@@ -439,4 +444,10 @@ void LogView::flushTimerSlot()
         moveCursor(QTextCursor::End);
     setUpdatesEnabled(true);
     logBuffer.clear();
+}
+
+void LogView::flushLogSlot()
+{
+    flushLog = true;
+    flushTimerSlot();
 }

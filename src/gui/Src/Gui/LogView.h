@@ -32,6 +32,7 @@ public slots:
     void saveSlot();
     void toggleLoggingSlot();
     void flushTimerSlot();
+    void flushLogSlot();
 
 private:
     bool loggingEnabled;
@@ -53,6 +54,7 @@ private:
     FILE* logRedirection;
     QString logBuffer;
     QTimer* flushTimer;
+    bool flushLog;
 };
 
 #endif // LOGVIEW_H
