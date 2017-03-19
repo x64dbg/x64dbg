@@ -1,5 +1,6 @@
 #include "_scriptapi_memory.h"
 #include "memory.h"
+#include "threading.h"
 
 SCRIPT_EXPORT bool Script::Memory::Read(duint addr, void* data, duint size, duint* sizeRead)
 {
@@ -24,6 +25,31 @@ SCRIPT_EXPORT duint Script::Memory::RemoteAlloc(duint addr, duint size)
 SCRIPT_EXPORT bool Script::Memory::RemoteFree(duint addr)
 {
     return MemFreeRemote(addr);
+}
+
+SCRIPT_EXPORT unsigned int Script::Memory::GetProtect(duint addr, bool reserved, bool cache)
+{
+    if(!cache)
+        MemUpdateMap();
+    SHARED_ACQUIRE(LockMemoryPages);
+    auto found = memoryPages.find({ addr, addr });
+    if(found == memoryPages.end())
+        return 0;
+    if(!reserved && found->second.mbi.State == MEM_RESERVE) //check if the current page is reserved.
+        return 0;
+    return found->second.mbi.Protect;
+}
+
+SCRIPT_EXPORT duint Script::Memory::GetBase(duint addr, bool reserved, bool cache)
+{
+    return MemFindBaseAddr(addr, nullptr, !cache, reserved);
+}
+
+SCRIPT_EXPORT duint Script::Memory::GetSize(duint addr, bool reserved, bool cache)
+{
+    duint size = 0;
+    MemFindBaseAddr(addr, &size, !cache, reserved);
+    return size;
 }
 
 SCRIPT_EXPORT unsigned char Script::Memory::ReadByte(duint addr)
