@@ -278,6 +278,7 @@ PLUG_IMPEXP bool _plugin_registercommand(int pluginHandle, const char* command, 
 PLUG_IMPEXP bool _plugin_unregistercommand(int pluginHandle, const char* command);
 PLUG_IMPEXP void _plugin_logprintf(const char* format, ...);
 PLUG_IMPEXP void _plugin_logputs(const char* text);
+PLUG_IMPEXP void _plugin_logprint(const char* text);
 PLUG_IMPEXP void _plugin_debugpause();
 PLUG_IMPEXP void _plugin_debugskipexceptions(bool skip);
 PLUG_IMPEXP int _plugin_menuadd(int hMenu, const char* title);

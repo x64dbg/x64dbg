@@ -46,6 +46,11 @@ PLUG_IMPEXP void _plugin_logputs(const char* text)
     dputs_untranslated(text);
 }
 
+PLUG_IMPEXP void _plugin_logprint(const char* text)
+{
+    dprintf_untranslated("%s", text);
+}
+
 PLUG_IMPEXP void _plugin_debugpause()
 {
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
