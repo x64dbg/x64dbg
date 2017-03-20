@@ -3,6 +3,7 @@
 #include "exprfunc.h"
 #include "module.h"
 #include "debugger.h"
+#include "value.h"
 
 std::unordered_map<String, ExpressionFunctions::Function> ExpressionFunctions::mFunctions;
 
@@ -62,6 +63,8 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.system,mod.issystem", modsystem);
     RegisterEasy("mod.user,mod.isuser", moduser);
     RegisterEasy("mod.main,mod.mainbase", dbggetdebuggedbase);
+    RegisterEasy("mod.rva", modrva);
+    RegisterEasy("mod.offset,mod.fileoffset", valvatofileoffset);
 
     //Process information
     RegisterEasy("peb,PEB", peb);

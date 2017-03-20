@@ -43,6 +43,12 @@ namespace Exprfunc
         return ModGetParty(addr) == 0;
     }
 
+    duint modrva(duint addr)
+    {
+        auto base = ModBaseFromAddr(addr);
+        return base ? addr - base : 0;
+    }
+
     static duint selstart(int hWindow)
     {
         SELECTIONDATA selection;
