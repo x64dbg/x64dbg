@@ -85,6 +85,9 @@ struct TraceState
         if(hFile == INVALID_HANDLE_VALUE)
             return false;
         logWriter = new BufferedWriter(hFile);
+        duint setting;
+        if(BridgeSettingGetUint("Misc", "Utf16LogRedirect", &setting))
+            writeUtf16 = !!setting;
         return true;
     }
 
@@ -92,8 +95,17 @@ struct TraceState
     {
         if(logWriter)
         {
-            logWriter->Write(text.c_str(), text.size());
-            logWriter->Write("\n", 1);
+            if(writeUtf16)
+            {
+                auto textUtf16 = StringUtils::Utf8ToUtf16(text);
+                logWriter->Write(textUtf16.c_str(), textUtf16.size() * 2);
+                logWriter->Write(L"\r\n", 4);
+            }
+            else
+            {
+                logWriter->Write(text.c_str(), text.size());
+                logWriter->Write("\n", 1);
+            }
         }
         else
             dprintf_untranslated("%s\n", text.c_str());
@@ -192,6 +204,7 @@ struct TraceState
         logFile.clear();
         delete logWriter;
         logWriter = nullptr;
+        writeUtf16 = false;
     }
 
 private:
@@ -202,6 +215,7 @@ private:
     String emptyString;
     WString logFile;
     BufferedWriter* logWriter = nullptr;
+    bool writeUtf16 = false;
 };
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};

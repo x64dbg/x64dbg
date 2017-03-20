@@ -67,11 +67,11 @@ struct BufferedWriter
         memset(mBuffer, 0, size);
     }
 
-    bool Write(const char* buffer, size_t size)
+    bool Write(const void* buffer, size_t size)
     {
         for(size_t i = 0; i < size; i++)
         {
-            mBuffer[mIndex++] = buffer[i];
+            mBuffer[mIndex++] = ((const char*)buffer)[i];
             if(mIndex == mSize)
             {
                 if(!flush())

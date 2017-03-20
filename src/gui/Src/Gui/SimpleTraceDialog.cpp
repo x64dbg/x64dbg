@@ -41,6 +41,16 @@ static QString escapeText(QString str)
 
 void SimpleTraceDialog::on_btnOk_clicked()
 {
+    if(!mLogFile.isEmpty() && ui->editLogText->text().isEmpty())
+    {
+        QMessageBox msgyn(QMessageBox::Warning, tr("Trace log file"),
+                          tr("It appears you have set the log file, but not the log text. <b>This will result in an empty log</b>. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
+        msgyn.setWindowIcon(DIcon("compile-warning.png"));
+        msgyn.setParent(this, Qt::Dialog);
+        msgyn.setWindowFlags(msgyn.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msgyn.exec() == QMessageBox::No)
+            return;
+    }
     auto logText = ui->editLogText->addHistoryClear();
     auto logCondition = ui->editLogCondition->addHistoryClear();
     if(!DbgCmdExecDirect(QString("TraceSetLog \"%1\", \"%2\"").arg(escapeText(logText), escapeText(logCondition)).toUtf8().constData()))
