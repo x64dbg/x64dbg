@@ -142,7 +142,7 @@ static bool scriptcreatelinemap(const char* filename)
         linemap.push_back(entry);
     }
     int linemapsize = (int)linemap.size();
-    while(!*linemap.at(linemapsize - 1).raw) //remove empty lines from the end
+    while(linemapsize && !*linemap.at(linemapsize - 1).raw) //remove empty lines from the end
     {
         linemapsize--;
         linemap.pop_back();
@@ -249,7 +249,7 @@ static bool scriptcreatelinemap(const char* filename)
                 currentLine.u.branch.dest = scriptinternalstep(labelline);
         }
     }
-    if(linemap.at(linemapsize - 1).type == linecomment || linemap.at(linemapsize - 1).type == linelabel) //label/comment on the end
+    if(linemapsize && (linemap.at(linemapsize - 1).type == linecomment || linemap.at(linemapsize - 1).type == linelabel)) //label/comment on the end
     {
         memset(&entry, 0, sizeof(entry));
         entry.type = linecommand;
