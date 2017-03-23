@@ -238,14 +238,6 @@ void LogView::addMsgToLogSlot(QByteArray msg)
         msgUtf16 = QString::fromUtf8(msg);
     if(!loggingEnabled)
         return;
-    static unsigned char counter = 100;
-    counter--;
-    if(counter == 0)
-    {
-        if(this->document()->characterCount() > 10000 * 100) //limit the log to ~100mb
-            this->clear();
-        counter = 100;
-    }
     msgUtf16 = msgUtf16.toHtmlEscaped();
     msgUtf16.replace(QChar(' '), QString("&nbsp;"));
     if(logRedirection)
@@ -264,8 +256,6 @@ void LogView::addMsgToLogSlot(QByteArray msg)
     if(redirectError)
         msgUtf16.append(tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError()));
 
-    if(logBuffer.length() >= 10000 * 10) //limit the log buffer to ~10mb
-        logBuffer.clear();
     logBuffer.append(msgUtf16);
     if(flushLog)
     {
@@ -437,6 +427,14 @@ void LogView::flushTimerSlot()
     if(logBuffer.isEmpty())
         return;
     setUpdatesEnabled(false);
+    static unsigned char counter = 100;
+    counter--;
+    if(counter == 0)
+    {
+        if(document()->characterCount() > 1024 * 1024 * 100) //limit the log to ~100mb
+            clear();
+        counter = 100;
+    }
     QTextCursor cursor = textCursor();
     cursor.movePosition(QTextCursor::End);
     cursor.insertHtml(logBuffer);
