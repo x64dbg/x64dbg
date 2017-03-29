@@ -8,7 +8,7 @@ Please run `install.bat` before you start committing code, this ensures your cod
 
 ## Compiling
 
-For a complete guide on compiling *x64dbg* read [this](https://github.com/x64dbg/x64dbg/wiki/Compiling).
+For a complete guide on compiling *x64dbg* read [this](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project).
 
 ## Downloads
 
