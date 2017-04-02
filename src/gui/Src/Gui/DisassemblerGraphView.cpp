@@ -426,7 +426,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     if(saveGraph)
     {
         saveGraph = false;
-        QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;JPG file (*.jpg)"));
+        QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;BMP file (*.bmp)"));
         if(path.isEmpty())
             return;
 

@@ -19,6 +19,7 @@ Additional information can help solve the issue quicker, such as:
 - A POC or sample executable that causes the issue.
 - A short clip or a screenshot clearly showing the issue.
 - Any supporting information that could help solve/understand the issue.
+- The translation you are using. Make sure to also test without translation.
 
 Examples of good issues:
 
