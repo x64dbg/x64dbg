@@ -378,6 +378,102 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
+static QString getTooltipForVa(duint va)
+{
+    duint ptr = 0;
+    if(!DbgMemRead(va, &ptr, sizeof(duint)))
+        return "";
+
+    QString tooltip;
+    /* TODO: if this is enabled, make sure the context menu items also work
+    // If the VA is not a valid pointer, try to align it
+    if(!DbgMemIsValidReadPtr(ptr))
+    {
+     va -= va % sizeof(duint);
+     DbgMemRead(va, &ptr, sizeof(duint));
+    }*/
+
+    // Check if its a pointer
+    switch(DbgGetEncodeTypeAt(va, 1))
+    {
+    // Get information about the pointer type
+    case enc_unknown:
+    default:
+        if(DbgMemIsValidReadPtr(ptr))
+        {
+            tooltip = QString("[%1] = %2").arg(ToPtrString(ptr), getTooltipForVa(ptr));
+        }
+        // If not a pointer, hide tooltips
+        else
+        {
+            bool isCodePage;
+            isCodePage = DbgFunctions()->MemIsCodePage(va, false);
+            char disassembly[GUI_MAX_DISASSEMBLY_SIZE];
+            if(isCodePage)
+            {
+                if(GuiGetDisassembly(va, disassembly))
+                    tooltip = QString::fromUtf8(disassembly);
+                else
+                    tooltip = "";
+            }
+            else
+                tooltip = QString("[%1] = %2").arg(ToPtrString(va)).arg(ToPtrString(ptr));
+            if(DbgFunctions()->ModGetParty(va) == 1)
+                tooltip += " (" + (isCodePage ? CPUDump::tr("System Code") : CPUDump::tr("System Data)")) + ")";
+            else
+                tooltip += " (" + (isCodePage ? CPUDump::tr("User Code") : CPUDump::tr("User Data")) + ")";
+        }
+        break;
+    case enc_code:
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE];
+        if(GuiGetDisassembly(va, disassembly))
+            tooltip = QString::fromUtf8(disassembly);
+        else
+            tooltip = "";
+        if(DbgFunctions()->ModGetParty(va) == 1)
+            tooltip += " (" + CPUDump::tr("System Code") + ")";
+        else
+            tooltip += " (" + CPUDump::tr("User Code") + ")";
+        break;
+    case enc_real4:
+        tooltip = ToFloatString(&va) + CPUDump::tr(" (Real4)");
+        break;
+    case enc_real8:
+        double numd;
+        DbgMemRead(va, &numd, sizeof(double));
+        tooltip = ToDoubleString(&numd) + CPUDump::tr(" (Real8)");
+        break;
+    case enc_byte:
+        tooltip = ToByteString(va) + CPUDump::tr(" (BYTE)");
+        break;
+    case enc_word:
+        tooltip = ToWordString(va) + CPUDump::tr(" (WORD)");
+        break;
+    case enc_dword:
+        tooltip = QString("%1").arg((unsigned int)va, 8, 16, QChar('0')).toUpper() + CPUDump::tr(" (DWORD)");
+        break;
+    case enc_qword:
+#ifdef _WIN64
+        tooltip = QString("%1").arg((unsigned long long)va, 16, 16, QChar('0')).toUpper() + CPUDump::tr(" (QWORD)");
+#else //x86
+        unsigned long long qword;
+        qword = 0;
+        DbgMemRead(va, &qword, 8);
+        tooltip = QString("%1").arg((unsigned long long)qword, 16, 16, QChar('0')).toUpper() + CPUDump::tr(" (QWORD)");
+#endif //_WIN64
+        break;
+    case enc_ascii:
+    case enc_unicode:
+        char str[MAX_STRING_SIZE];
+        if(DbgGetStringAt(va, str))
+            tooltip = QString::fromUtf8(str) + CPUDump::tr(" (String)");
+        else
+            tooltip = CPUDump::tr("(Unknown String)");
+        break;
+    }
+    return tooltip;
+}
+
 void CPUDump::mouseMoveEvent(QMouseEvent* event)
 {
     // Get mouse pointer relative position
@@ -388,57 +484,7 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
     auto va = rvaToVa(getItemStartingAddress(x, y));
 
     // Read VA
-    duint ptr;
-    DbgMemRead(va, &ptr, sizeof(duint));
-
-    /* TODO: if this is enabled, make sure the context menu items also work
-    // If the VA is not a valid pointer, try to align it
-    if(!DbgMemIsValidReadPtr(ptr))
-    {
-        va -= va % sizeof(duint);
-        DbgMemRead(va, &ptr, sizeof(duint));
-    }*/
-
-    // Check if its a pointer
-    if(DbgMemIsValidReadPtr(ptr))
-    {
-        // Get information about the pointer type
-        auto codePage = DbgFunctions()->MemIsCodePage(ptr, false);
-        auto modbase = DbgFunctions()->ModBaseFromAddr(ptr);
-        QString type;
-        if(modbase)
-        {
-            if(DbgFunctions()->ModGetParty(modbase) == 1) //system
-                type = codePage ? tr("System Code") : tr("System Data");
-            else //user
-                type = codePage ? tr("User Code") : tr("User Data");
-        }
-        else
-            type = codePage ? tr("Unknown Code") : tr("Unknown Data");
-
-        // Get the value at the address pointed by the ptr
-        QString ptrValueText;
-        if(codePage)
-        {
-            char text[GUI_MAX_DISASSEMBLY_SIZE] = "";
-            GuiGetDisassembly(ptr, text);
-            ptrValueText = text;
-        }
-        else
-        {
-            duint ptrValue;
-            DbgMemRead(ptr, (unsigned char*)&ptrValue, sizeof(dsint));
-            ptrValueText = ToPtrString(ptrValue);
-        }
-
-        // Show tooltip
-        QToolTip::showText(event->globalPos(), QString("[%1] = %2 (%3)").arg(ToPtrString(ptr), ptrValueText, type));
-    }
-    // If not a pointer, hide tooltips
-    else
-    {
-        QToolTip::hideText();
-    }
+    QToolTip::showText(event->globalPos(), getTooltipForVa(va), this);
 
     HexDump::mouseMoveEvent(event);
 }
