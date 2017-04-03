@@ -213,6 +213,11 @@ void CPUArgumentWidget::loadConfig()
     thiscall.addArgument(Argument("this", "ecx", ""));
     mCallingConventions.push_back(thiscall);
 
+    CallingConvention fastcall(tr("fastcall"), 5);
+    fastcall.addArgument(Argument("", "ecx", ""));
+    fastcall.addArgument(Argument("", "edx", ""));
+    mCallingConventions.push_back(fastcall);
+
     CallingConvention delphi(tr("Delphi (Borland fastcall)"), 2);
     delphi.addArgument(Argument("", "eax", ""));
     delphi.addArgument(Argument("", "edx", ""));
