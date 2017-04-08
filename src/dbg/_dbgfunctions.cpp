@@ -312,6 +312,14 @@ static bool _enumheaps(ListOf(HEAPINFO) heaps)
     return BridgeList<HEAPINFO>::CopyData(heaps, heapInfoV);
 }
 
+static void _getcallstackex(DBGCALLSTACK* callstack, bool cache)
+{
+    auto csp = GetContextDataEx(hActiveThread, UE_CSP);
+    if(!cache)
+        stackupdatecallstack(csp);
+    stackgetcallstack(csp, (CALLSTACK*)callstack);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -373,4 +381,5 @@ void dbgfunctionsinit()
     _dbgfunctions.EnumHeaps = _enumheaps;
     _dbgfunctions.ThreadGetName = ThreadGetName;
     _dbgfunctions.IsDepEnabled = dbgisdepenabled;
+    _dbgfunctions.GetCallStackEx = _getcallstackex;
 }
