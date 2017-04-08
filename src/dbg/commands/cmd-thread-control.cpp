@@ -24,13 +24,15 @@ bool cbDebugCreatethread(int argc, char* argv[])
             return false;
     }
     DWORD ThreadId = 0;
-    if(ThreaderCreateRemoteThread(Entry, true, reinterpret_cast<LPVOID>(Argument), &ThreadId) != 0)
+    auto hThread = CreateRemoteThread(fdProcessInfo->hProcess, nullptr, 0, LPTHREAD_START_ROUTINE(Entry), LPVOID(Argument), 0, &ThreadId);
+    if(!hThread)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Create thread failed!"));
         return false;
     }
     else
     {
+        CloseHandle(hThread);
         char label[MAX_LABEL_SIZE];
         if(!LabelGet(Entry, label))
             label[0] = 0;
