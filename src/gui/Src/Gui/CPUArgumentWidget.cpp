@@ -16,6 +16,7 @@ CPUArgumentWidget::CPUArgumentWidget(QWidget* parent) :
     setupTable();
     loadConfig();
     refreshData();
+    ui->checkBoxLock->setToolTip(tr("Refresh is automatical."));
 
     mFollowDisasm = new QAction(this);
     connect(mFollowDisasm, SIGNAL(triggered()), this, SLOT(followDisasmSlot()));
@@ -269,6 +270,7 @@ void CPUArgumentWidget::on_checkBoxLock_stateChanged(int)
     case Qt::Checked: //Locked, update disabled.
         refreshData(); //first refresh then lock
         ui->checkBoxLock->setText(tr("Locked"));
+        ui->checkBoxLock->setToolTip(tr("Refresh is disabled."));
         ui->spinArgCount->setEnabled(false);
         ui->comboCallingConvention->setEnabled(false);
         mAllowUpdate = false;
@@ -276,12 +278,14 @@ void CPUArgumentWidget::on_checkBoxLock_stateChanged(int)
     case Qt::PartiallyChecked://Locked, but still update when a call is encountered.
         refreshData(); //first refresh then lock
         ui->checkBoxLock->setText(tr("Calls"));
+        ui->checkBoxLock->setToolTip(tr("Refresh is only done when executing a CALL instruction."));
         ui->spinArgCount->setEnabled(false);
         ui->comboCallingConvention->setEnabled(false);
         mAllowUpdate = false;
         break;
     case Qt::Unchecked://Unlocked, update enabled
         ui->checkBoxLock->setText(tr("Unlocked"));
+        ui->checkBoxLock->setToolTip(tr("Refresh is automatical."));
         ui->spinArgCount->setEnabled(true);
         ui->comboCallingConvention->setEnabled(true);
         mAllowUpdate = true;
