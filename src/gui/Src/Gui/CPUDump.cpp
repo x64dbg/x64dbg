@@ -378,7 +378,7 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
-static QString getTooltipForVa(duint va)
+static QString getTooltipForVa(duint va, int depth)
 {
     duint ptr = 0;
     if(!DbgMemRead(va, &ptr, sizeof(duint)))
@@ -399,9 +399,9 @@ static QString getTooltipForVa(duint va)
     // Get information about the pointer type
     case enc_unknown:
     default:
-        if(DbgMemIsValidReadPtr(ptr))
+        if(DbgMemIsValidReadPtr(ptr) && depth >= 0)
         {
-            tooltip = QString("[%1] = %2").arg(ToPtrString(ptr), getTooltipForVa(ptr));
+            tooltip = QString("[%1] = %2").arg(ToPtrString(ptr), getTooltipForVa(ptr, depth - 1));
         }
         // If not a pointer, hide tooltips
         else
@@ -484,7 +484,7 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
     auto va = rvaToVa(getItemStartingAddress(x, y));
 
     // Read VA
-    QToolTip::showText(event->globalPos(), getTooltipForVa(va), this);
+    QToolTip::showText(event->globalPos(), getTooltipForVa(va, 4), this);
 
     HexDump::mouseMoveEvent(event);
 }

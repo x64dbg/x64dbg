@@ -439,6 +439,7 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
     if(!DbgIsDebugging() || !mInstrBuffer->size())
     {
         QAbstractScrollArea::mouseMoveEvent(event);
+        setCursor(QCursor(Qt::ArrowCursor));
         return;
     }
 
