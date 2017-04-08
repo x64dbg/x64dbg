@@ -1664,7 +1664,11 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 void RegistersView::mouseMoveEvent(QMouseEvent* event)
 {
     if(!DbgIsDebugging())
+    {
+        QScrollArea::mouseMoveEvent(event);
+        setCursor(QCursor(Qt::ArrowCursor));
         return;
+    }
 
     REGISTER_NAME r = REGISTER_NAME::UNKNOWN;
     QString registerHelpInformation;

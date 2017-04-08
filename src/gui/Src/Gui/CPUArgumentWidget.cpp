@@ -38,6 +38,12 @@ CPUArgumentWidget::~CPUArgumentWidget()
     delete ui;
 }
 
+void CPUArgumentWidget::updateStackOffset(bool iscall)
+{
+    const auto & cur = mCallingConventions[mCurrentCallingConvention];
+    mStackOffset = cur.getStackOffset() + (iscall ? 0 : cur.getCallOffset());
+}
+
 void CPUArgumentWidget::disassembledAtSlot(dsint, dsint cip, bool, dsint)
 {
     if(mCurrentCallingConvention == -1) //no calling conventions
@@ -46,12 +52,9 @@ void CPUArgumentWidget::disassembledAtSlot(dsint, dsint cip, bool, dsint)
         mTable->reloadData();
         return;
     }
-
     BASIC_INSTRUCTION_INFO disasm;
     DbgDisasmFastAt(cip, &disasm);
-
-    const auto & cur = mCallingConventions[mCurrentCallingConvention];
-    mStackOffset = cur.getStackOffset() + (disasm.call ? 0 : cur.getCallOffset());
+    updateStackOffset(disasm.call);
     if(ui->checkBoxLock->checkState() == Qt::PartiallyChecked) //Calls
     {
         mAllowUpdate = disasm.call;
@@ -206,14 +209,14 @@ void CPUArgumentWidget::loadConfig()
     CallingConvention x32(tr("Default (stdcall)"), 5);
     mCallingConventions.push_back(x32);
 
-    CallingConvention x32ebp(tr("Default (stdcall, EBP stack)"), 5, "ebp");
+    CallingConvention x32ebp(tr("Default (stdcall, EBP stack)"), 5, "ebp", 8, 0);
     mCallingConventions.push_back(x32ebp);
 
     CallingConvention thiscall(tr("thiscall"), 4);
     thiscall.addArgument(Argument("this", "ecx", ""));
     mCallingConventions.push_back(thiscall);
 
-    CallingConvention fastcall(tr("fastcall"), 5);
+    CallingConvention fastcall(tr("fastcall"), 3);
     fastcall.addArgument(Argument("", "ecx", ""));
     fastcall.addArgument(Argument("", "edx", ""));
     mCallingConventions.push_back(fastcall);
@@ -245,6 +248,11 @@ void CPUArgumentWidget::on_comboCallingConvention_currentIndexChanged(int index)
     mCurrentCallingConvention = index;
     const auto & cur = mCallingConventions[index];
     ui->spinArgCount->setValue(int(cur.arguments.size()) + cur.stackArgCount); //set the default argument count
+    if(!DbgIsDebugging())
+        return;
+    BASIC_INSTRUCTION_INFO disasm;
+    DbgDisasmFastAt(DbgValFromString("CIP"), &disasm);
+    updateStackOffset(disasm.call);
     refreshData();
 }
 
@@ -258,21 +266,21 @@ void CPUArgumentWidget::on_checkBoxLock_stateChanged(int)
 {
     switch(ui->checkBoxLock->checkState())
     {
-    case Qt::Checked:
+    case Qt::Checked: //Locked, update disabled.
         refreshData(); //first refresh then lock
         ui->checkBoxLock->setText(tr("Locked"));
         ui->spinArgCount->setEnabled(false);
         ui->comboCallingConvention->setEnabled(false);
         mAllowUpdate = false;
         break;
-    case Qt::PartiallyChecked:
+    case Qt::PartiallyChecked://Locked, but still update when a call is encountered.
         refreshData(); //first refresh then lock
         ui->checkBoxLock->setText(tr("Calls"));
         ui->spinArgCount->setEnabled(false);
         ui->comboCallingConvention->setEnabled(false);
         mAllowUpdate = false;
         break;
-    case Qt::Unchecked:
+    case Qt::Unchecked://Unlocked, update enabled
         ui->checkBoxLock->setText(tr("Unlocked"));
         ui->spinArgCount->setEnabled(true);
         ui->comboCallingConvention->setEnabled(true);

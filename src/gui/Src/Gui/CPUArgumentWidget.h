@@ -150,6 +150,8 @@ private:
 
     void loadConfig();
     void setupTable();
+
+    void updateStackOffset(bool iscall);
 };
 
 #endif // CPUARGUMENTWIDGET_H
