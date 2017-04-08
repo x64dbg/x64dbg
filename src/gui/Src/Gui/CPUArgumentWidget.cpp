@@ -16,7 +16,7 @@ CPUArgumentWidget::CPUArgumentWidget(QWidget* parent) :
     setupTable();
     loadConfig();
     refreshData();
-    ui->checkBoxLock->setToolTip(tr("Refresh is automatical."));
+    ui->checkBoxLock->setToolTip(tr("Refresh is automatic."));
 
     mFollowDisasm = new QAction(this);
     connect(mFollowDisasm, SIGNAL(triggered()), this, SLOT(followDisasmSlot()));
@@ -285,7 +285,7 @@ void CPUArgumentWidget::on_checkBoxLock_stateChanged(int)
         break;
     case Qt::Unchecked://Unlocked, update enabled
         ui->checkBoxLock->setText(tr("Unlocked"));
-        ui->checkBoxLock->setToolTip(tr("Refresh is automatical."));
+        ui->checkBoxLock->setToolTip(tr("Refresh is automatic."));
         ui->spinArgCount->setEnabled(true);
         ui->comboCallingConvention->setEnabled(true);
         mAllowUpdate = true;
