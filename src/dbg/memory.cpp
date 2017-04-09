@@ -12,6 +12,7 @@
 #include "module.h"
 #include "taskthread.h"
 #include "value.h"
+#include "comment.h"
 
 #define PAGE_SHIFT              (12)
 //#define PAGE_SIZE               (4096)
@@ -237,10 +238,13 @@ void MemUpdateMap()
     EXCLUSIVE_ACQUIRE(LockMemoryPages);
     memoryPages.clear();
 
+    char comment[MAX_COMMENT_SIZE] = "";
     for(auto & page : pageVector)
     {
         duint start = (duint)page.mbi.BaseAddress;
         duint size = (duint)page.mbi.RegionSize;
+        if(CommentGet(start, comment)) //user comments override info
+            strncpy_s(page.info, comment, _TRUNCATE);
         memoryPages.insert(std::make_pair(std::make_pair(start, start + size - 1), page));
     }
 }
