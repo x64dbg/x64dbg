@@ -136,6 +136,7 @@ void RegistersView::InitMappings()
 
     mRegisterMapping.insert(LastError, "LastError");
     mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 10, 20));
+    mMODIFYDISPLAY.insert(LastError);
 
     offset++;
 
@@ -2633,6 +2634,27 @@ void RegistersView::displayEditDialog()
             }
             while(errorinput);
         }
+    }
+    else if(mSelected == LastError)
+    {
+        bool errorinput = false;
+        LineEditDialog mLineEdit(this);
+        LASTERROR* error = (LASTERROR*)registerValue(&wRegDumpStruct, LastError);
+        mLineEdit.setText(QString::number(error->code, 16));
+        mLineEdit.setWindowTitle(tr("Set Last Error"));
+        mLineEdit.setCursorPosition(0);
+        do
+        {
+            errorinput = true;
+            mLineEdit.show();
+            mLineEdit.selectAllText();
+            if(mLineEdit.exec() != QDialog::Accepted)
+                return;
+            if(DbgIsValidExpression(mLineEdit.editText.toUtf8().constData()))
+                errorinput = false;
+        }
+        while(errorinput);
+        setRegister(LastError, DbgValFromString(mLineEdit.editText.toUtf8().constData()));
     }
     else
     {
