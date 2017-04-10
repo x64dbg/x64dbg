@@ -90,7 +90,7 @@ bool cbBadCmd(int argc, char* argv[])
     }
     else //unknown command
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Unknown command/expression: \"%s\"\n"), *argv);
+        dprintf_untranslated("Unknown command/expression: \"%s\"\n", *argv);
         return false;
     }
     return true;
@@ -109,7 +109,7 @@ bool cbDebugBenchmark(int argc, char* argv[])
         ArgumentAdd(i, i, false);
         LoopAdd(i, i, false);
     }
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%ums\n"), GetTickCount() - ticks);
+    dprintf_untranslated("%ums\n", GetTickCount() - ticks);
     return true;
 }
 
@@ -215,14 +215,14 @@ bool cbInstrCapstone(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !MemIsValidReadPtr(addr))
     {
-        dprintf("Invalid address \"%s\"\n", argv[1]);
+        dprintf_untranslated("Invalid address \"%s\"\n", argv[1]);
         return false;
     }
 
     unsigned char data[16];
     if(!MemRead(addr, data, sizeof(data)))
     {
-        dprintf("Could not read memory at %p\n", addr);
+        dprintf_untranslated("Could not read memory at %p\n", addr);
         return false;
     }
 
@@ -233,7 +233,7 @@ bool cbInstrCapstone(int argc, char* argv[])
     Capstone cp;
     if(!cp.Disassemble(addr, data))
     {
-        dputs("Failed to disassemble!\n");
+        dputs_untranslated("Failed to disassemble!\n");
         return false;
     }
 
@@ -241,21 +241,21 @@ bool cbInstrCapstone(int argc, char* argv[])
     const cs_detail* detail = instr->detail;
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
-    dprintf("%s %s | %s\n", instr->mnemonic, instr->op_str, cp.InstructionText(true).c_str());
-    dprintf("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), cp.OpCount());
+    dprintf_untranslated("%s %s | %s\n", instr->mnemonic, instr->op_str, cp.InstructionText(true).c_str());
+    dprintf_untranslated("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), cp.OpCount());
     if(detail->regs_read_count)
     {
-        dprintf("implicit read:");
+        dprintf_untranslated("implicit read:");
         for(uint8_t i = 0; i < detail->regs_read_count; i++)
             dprintf(" %s", cp.RegName(x86_reg(detail->regs_read[i])));
-        dputs("");
+        dputs_untranslated("");
     }
     if(detail->regs_write_count)
     {
-        dprintf("implicit write:");
+        dprintf_untranslated("implicit write:");
         for(uint8_t i = 0; i < detail->regs_write_count; i++)
             dprintf(" %s", cp.RegName(x86_reg(detail->regs_write[i])));
-        dputs("");
+        dputs_untranslated("");
     }
     auto rwstr = [](uint8_t access)
     {
@@ -280,21 +280,21 @@ bool cbInstrCapstone(int argc, char* argv[])
         switch(op.type)
         {
         case X86_OP_REG:
-            dprintf("register: %s\n", cp.RegName((x86_reg)op.reg));
+            dprintf_untranslated("register: %s\n", cp.RegName((x86_reg)op.reg));
             break;
         case X86_OP_IMM:
-            dprintf("immediate: 0x%p\n", op.imm);
+            dprintf_untranslated("immediate: 0x%p\n", op.imm);
             break;
         case X86_OP_MEM:
         {
             //[base + index * scale +/- disp]
             const x86_op_mem & mem = op.mem;
-            dprintf("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
-                    cp.RegName(mem.segment),
-                    cp.RegName(mem.base),
-                    cp.RegName(mem.index),
-                    mem.scale,
-                    mem.disp);
+            dprintf_untranslated("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
+                                 cp.RegName(mem.segment),
+                                 cp.RegName(mem.base),
+                                 cp.RegName(mem.index),
+                                 mem.scale,
+                                 mem.disp);
         }
         break;
         }
@@ -311,7 +311,7 @@ bool cbInstrVisualize(int argc, char* argv[])
     duint maxaddr;
     if(!valfromstring(argv[1], &start) || !valfromstring(argv[2], &maxaddr))
     {
-        dputs("Invalid arguments!");
+        dputs_untranslated("Invalid arguments!");
         return false;
     }
     //actual algorithm
@@ -403,28 +403,28 @@ bool cbInstrMeminfo(int argc, char* argv[])
 {
     if(argc < 3)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Usage: meminfo a/r, addr"));
+        dputs_untranslated("Usage: meminfo a/r, addr");
         return false;
     }
     duint addr;
     if(!valfromstring(argv[2], &addr))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid argument"));
+        dputs_untranslated("Invalid argument");
         return false;
     }
     if(argv[1][0] == 'a')
     {
         unsigned char buf = 0;
         if(!ReadProcessMemory(fdProcessInfo->hProcess, (void*)addr, &buf, sizeof(buf), nullptr))
-            dputs(QT_TRANSLATE_NOOP("DBG", "ReadProcessMemory failed!"));
+            dputs_untranslated("ReadProcessMemory failed!");
         else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Data: %02X\n"), buf);
+            dprintf_untranslated("Data: %02X\n", buf);
     }
     else if(argv[1][0] == 'r')
     {
         MemUpdateMap();
         GuiUpdateMemoryView();
-        dputs(QT_TRANSLATE_NOOP("DBG", "Memory map updated!"));
+        dputs_untranslated("Memory map updated!");
     }
     return true;
 }
@@ -457,7 +457,7 @@ bool cbInstrBriefcheck(int argc, char* argv[])
         if(brief.length() || reported.count(mnem))
             continue;
         reported.insert(mnem);
-        dprintf("%p: %s\n", cp.Address(), mnem.c_str());
+        dprintf_untranslated("%p: %s\n", cp.Address(), mnem.c_str());
     }
     return true;
 }
@@ -466,12 +466,23 @@ bool cbInstrFocusinfo(int argc, char* argv[])
 {
     ACTIVEVIEW activeView;
     GuiGetActiveView(&activeView);
-    dprintf("activeTitle: %s, activeClass: %s\n", activeView.title, activeView.className);
+    dprintf_untranslated("activeTitle: %s, activeClass: %s\n", activeView.title, activeView.className);
     return true;
 }
 
 bool cbInstrFlushlog(int argc, char* argv[])
 {
     GuiFlushLog();
+    return true;
+}
+
+extern char animate_command[deflen];
+
+bool cbInstrAnimateWait(int argc, char* argv[])
+{
+    while(DbgIsDebugging() && dbgisrunning() && animate_command[0] != 0) //while not locked (NOTE: possible deadlock)
+    {
+        Sleep(1);
+    }
     return true;
 }

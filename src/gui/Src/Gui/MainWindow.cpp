@@ -1793,13 +1793,13 @@ void MainWindow::setFavouriteItemShortcut(int type, const QString & name, const 
 void MainWindow::animateIntoSlot()
 {
     if(DbgIsDebugging())
-        DbgFunctions()->AnimateCommand("StepInto");
+        DbgFunctions()->AnimateCommand("StepInto;AnimateWait");
 }
 
 void MainWindow::animateOverSlot()
 {
     if(DbgIsDebugging())
-        DbgFunctions()->AnimateCommand("StepOver");
+        DbgFunctions()->AnimateCommand("StepOver;AnimateWait");
 }
 
 void MainWindow::animateCommandSlot()
