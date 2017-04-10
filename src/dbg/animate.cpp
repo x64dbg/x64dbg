@@ -1,5 +1,6 @@
 #include "animate.h"
 #include "x64dbg.h"
+#include "command.h"
 
 static char animate_command[deflen];
 static unsigned int animate_interval = 50;
@@ -10,9 +11,14 @@ static DWORD WINAPI animateThread(void* arg1)
     while(animate_command[0] != 0)
     {
         auto beforeTime = GetTickCount();
-        if(!DbgCmdExecDirect(animate_command))
+        if(!cmddirectexec(animate_command))
+        {
             // An error occurs
-            break;
+            duint value = 0;
+            BridgeSettingGetUint("Misc", "AnimateStopWhenError", &value);
+            if(value != 0)
+                break;
+        }
         auto currentTime = GetTickCount();
         if(currentTime < (beforeTime + animate_interval))
         {
