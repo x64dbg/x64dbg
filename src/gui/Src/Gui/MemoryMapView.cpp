@@ -351,8 +351,11 @@ void MemoryMapView::refreshMap()
         wS = QString((wMemMapStruct.page)[wI].info);
         setCellContent(wI, 2, wS);
 
-        // Content TODO: proper section content analysis in dbg/memory.cpp:MemUpdateMap
-        if(wS.contains(".bss"))
+        // Content, TODO: proper section content analysis in dbg/memory.cpp:MemUpdateMap
+        char comment_text[MAX_COMMENT_SIZE];
+        if(DbgFunctions()->GetUserComment((duint)wMbi.BaseAddress, comment_text)) // user comment present
+            wS = comment_text;
+        else if(wS.contains(".bss"))
             wS = tr("Uninitialized data");
         else if(wS.contains(".data"))
             wS = tr("Initialized data");

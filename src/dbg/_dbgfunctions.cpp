@@ -27,6 +27,7 @@
 #include "watch.h"
 #include "animate.h"
 #include "thread.h"
+#include "comment.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -382,4 +383,5 @@ void dbgfunctionsinit()
     _dbgfunctions.ThreadGetName = ThreadGetName;
     _dbgfunctions.IsDepEnabled = dbgisdepenabled;
     _dbgfunctions.GetCallStackEx = _getcallstackex;
+    _dbgfunctions.GetUserComment = CommentGet;
 }
