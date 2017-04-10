@@ -8,17 +8,12 @@ HANDLE hAnimateThread = nullptr;
 
 static DWORD WINAPI animateThread(void* arg1)
 {
+    auto ignoreError = settingboolget("Misc", "AnimateIgnoreError");
     while(animate_command[0] != 0)
     {
         auto beforeTime = GetTickCount();
-        if(!cmddirectexec(animate_command))
-        {
-            // An error occurs
-            duint value = 0;
-            BridgeSettingGetUint("Misc", "AnimateIgnoreError", &value);
-            if(value == 0)
-                break;
-        }
+        if(!cmddirectexec(animate_command) && !ignoreError)
+            break;
         auto currentTime = GetTickCount();
         if(currentTime < (beforeTime + animate_interval))
         {
