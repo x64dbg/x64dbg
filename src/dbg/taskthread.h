@@ -21,8 +21,9 @@ protected:
     HANDLE wakeupSemaphore;
 
     size_t minSleepTimeMs = 0;
-    size_t wakeups = 0;
-    size_t execs = 0;
+    //size_t wakeups = 0;
+    //size_t execs = 0;
+    bool outstandingRequest = false;
     void Loop();
 
     // Given new args, compress it into old args.
@@ -98,12 +99,15 @@ std::tuple<Args...> TaskThread_<F, Args...>::CompressArguments(Args && ... _args
 
 template <typename F, typename... Args> void TaskThread_<F, Args...>::WakeUp(Args... _args)
 {
-    ++this->wakeups;
+    //++this->wakeups;
     EnterCriticalSection(&this->access);
     this->args = CompressArguments(std::forward<Args>(_args)...);
     LeaveCriticalSection(&this->access);
     // This will fail silently if it's redundant, which is what we want.
-    ReleaseSemaphore(this->wakeupSemaphore, 1, nullptr);
+    if(ReleaseSemaphore(this->wakeupSemaphore, 1, nullptr) == FALSE)
+    {
+        outstandingRequest = true;
+    }
 }
 
 template <typename F, typename... Args> void TaskThread_<F, Args...>::Loop()
@@ -111,9 +115,11 @@ template <typename F, typename... Args> void TaskThread_<F, Args...>::Loop()
     std::tuple<Args...> argLatch;
     while(this->active)
     {
-        WaitForSingleObject(this->wakeupSemaphore, INFINITE);
+        if(outstandingRequest == false)
+            WaitForSingleObject(this->wakeupSemaphore, INFINITE);
 
         EnterCriticalSection(&this->access);
+        outstandingRequest = false;
         argLatch = this->args;
         this->ResetArgs();
         LeaveCriticalSection(&this->access);
@@ -122,7 +128,7 @@ template <typename F, typename... Args> void TaskThread_<F, Args...>::Loop()
         {
             apply_from_tuple(this->fn, argLatch);
             std::this_thread::sleep_for(std::chrono::milliseconds(this->minSleepTimeMs));
-            ++this->execs;
+            //++this->execs;
         }
     }
 }
