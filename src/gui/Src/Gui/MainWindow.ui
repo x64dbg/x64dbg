@@ -147,6 +147,7 @@
     <addaction name="actionBlog"/>
     <addaction name="actionDonate"/>
     <addaction name="actionReportBug"/>
+    <addaction name="actionPlugins"/>
     <addaction name="separator"/>
     <addaction name="actionManual"/>
     <addaction name="actionFaq"/>
@@ -1143,6 +1144,15 @@
    </property>
    <property name="text">
     <string>Restart as Admin</string>
+   </property>
+  </action>
+  <action name="actionPlugins">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/plugin.png</normaloff>:/icons/images/plugin.png</iconset>
+   </property>
+   <property name="text">
+    <string>Plugins</string>
    </property>
   </action>
  </widget>

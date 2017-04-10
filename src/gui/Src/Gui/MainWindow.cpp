@@ -1982,3 +1982,8 @@ void MainWindow::on_actionRestartAdmin_triggered()
 {
     DbgCmdExec("restartadmin");
 }
+
+void MainWindow::on_actionPlugins_triggered()
+{
+    QDesktopServices::openUrl(QUrl("http://plugins.x64dbg.com"));
+}
