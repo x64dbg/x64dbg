@@ -1515,25 +1515,25 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     {
     //We don't display help messages for general purpose registers as they are very well-known.
     case CF:
-        return tr("CF (bit 0) : Carry flag - Set if an arithmetic operation generates a carry or a borrow out of the mostsignificant bit of the result; cleared otherwise.\r\n"
+        return tr("CF (bit 0) : Carry flag - Set if an arithmetic operation generates a carry or a borrow out of the mostsignificant bit of the result; cleared otherwise.\n"
                   "This flag indicates an overflow condition for unsigned-integer arithmetic. It is also used in multiple-precision arithmetic.");
     case PF:
         return tr("PF (bit 2) : Parity flag - Set if the least-significant byte of the result contains an even number of 1 bits; cleared otherwise.");
     case AF:
-        return tr("AF (bit 4) : Auxiliary Carry flag - Set if an arithmetic operation generates a carry or a borrow out of bit\r\n"
+        return tr("AF (bit 4) : Auxiliary Carry flag - Set if an arithmetic operation generates a carry or a borrow out of bit\n"
                   "3 of the result; cleared otherwise. This flag is used in binary-coded decimal (BCD) arithmetic.");
     case ZF:
         return tr("ZF (bit 6) : Zero flag - Set if the result is zero; cleared otherwise.");
     case SF:
-        return tr("SF (bit 7) : Sign flag - Set equal to the most-significant bit of the result, which is the sign bit of a signed\r\n"
+        return tr("SF (bit 7) : Sign flag - Set equal to the most-significant bit of the result, which is the sign bit of a signed\n"
                   "integer. (0 indicates a positive value and 1 indicates a negative value.)");
     case OF:
-        return tr("OF (bit 11) : Overflow flag - Set if the integer result is too large a positive number or too small a negative\r\n"
-                  "number (excluding the sign-bit) to fit in the destination operand; cleared otherwise. This flag indicates an overflow\r\n"
+        return tr("OF (bit 11) : Overflow flag - Set if the integer result is too large a positive number or too small a negative\n"
+                  "number (excluding the sign-bit) to fit in the destination operand; cleared otherwise. This flag indicates an overflow\n"
                   "condition for signed-integer (two’s complement) arithmetic.");
     case DF:
-        return tr("DF (bit 10) : The direction flag controls string instructions (MOVS, CMPS, SCAS, LODS, and STOS). Setting the DF flag causes the string instructions\r\n"
-                  "to auto-decrement (to process strings from high addresses to low addresses). Clearing the DF flag causes the string instructions to auto-increment\r\n"
+        return tr("DF (bit 10) : The direction flag controls string instructions (MOVS, CMPS, SCAS, LODS, and STOS). Setting the DF flag causes the string instructions\n"
+                  "to auto-decrement (to process strings from high addresses to low addresses). Clearing the DF flag causes the string instructions to auto-increment\n"
                   "(process strings from low addresses to high addresses).");
     case TF:
         return tr("TF (bit 8) : Trap flag - Set to enable single-step mode for debugging; clear to disable single-step mode.");
@@ -1550,12 +1550,12 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case x87CW_RC:
         return tr("The rounding-control (RC) field of the x87 FPU control register (bits 10 and 11) controls how the results of x87 FPU floating-point instructions are rounded.");
     case x87CW_IC:
-        return tr("The infinity control flag (bit 12 of the x87 FPU control word) is provided for compatibility with the Intel 287 Math Coprocessor;\r\n"
+        return tr("The infinity control flag (bit 12 of the x87 FPU control word) is provided for compatibility with the Intel 287 Math Coprocessor;\n"
                   "it is not meaningful for later version x87 FPU coprocessors or IA-32 processors.");
     case x87SW_SF:
-        return tr("The stack fault flag (bit 6 of the x87 FPU status word) indicates that stack overflow or stack underflow has occurred with data\r\nin the x87 FPU data register stack.");
+        return tr("The stack fault flag (bit 6 of the x87 FPU status word) indicates that stack overflow or stack underflow has occurred with data\nin the x87 FPU data register stack.");
     case x87SW_TOP:
-        return tr("A pointer to the x87 FPU data register that is currently at the top of the x87 FPU register stack is contained in bits 11 through 13\r\n"
+        return tr("A pointer to the x87 FPU data register that is currently at the top of the x87 FPU register stack is contained in bits 11 through 13\n"
                   "of the x87 FPU status word. This pointer, which is commonly referred to as TOP (for top-of-stack), is a binary value from 0 to 7.");
     case MxCsr:
         return tr("The 32-bit MXCSR register contains control and status information for SIMD floating-point operations.");
@@ -1586,7 +1586,7 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case MxCsr_FZ:
         return tr("Bit 15 (FZ) of the MXCSR register enables the flush-to-zero mode, which controls the masked response to a SIMD floating-point underflow condition.");
     case MxCsr_DAZ:
-        return tr("Bit 6 (DAZ) of the MXCSR register enables the denormals-are-zeros mode, which controls the processor’s response to a SIMD floating-point\r\n"
+        return tr("Bit 6 (DAZ) of the MXCSR register enables the denormals-are-zeros mode, which controls the processor’s response to a SIMD floating-point\n"
                   "denormal operand condition.");
     case MxCsr_RC:
         return tr("Bits 13 and 14 of the MXCSR register (the rounding control [RC] field) control how the results of SIMD floating-point instructions are rounded.");
@@ -1595,10 +1595,10 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
         return tr("The value of GetLastError(). This value is stored in the TEB.");
 #ifdef _WIN64
     case GS:
-        return tr("The TEB of the current thread can be accessed as an offset of segment register GS (x64).\r\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
+        return tr("The TEB of the current thread can be accessed as an offset of segment register GS (x64).\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
 #else //x86
     case FS:
-        return tr("The TEB of the current thread can be accessed as an offset of segment register FS (x86).\r\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
+        return tr("The TEB of the current thread can be accessed as an offset of segment register FS (x86).\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
 #endif //_WIN64
     default:
         return "";
