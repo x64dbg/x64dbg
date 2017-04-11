@@ -419,7 +419,7 @@ static QString getTooltipForVa(duint va, int depth)
             else
                 tooltip = QString("[%1] = %2").arg(ToPtrString(va)).arg(ToPtrString(ptr));
             if(DbgFunctions()->ModGetParty(va) == 1)
-                tooltip += " (" + (isCodePage ? CPUDump::tr("System Code") : CPUDump::tr("System Data)")) + ")";
+                tooltip += " (" + (isCodePage ? CPUDump::tr("System Code") : CPUDump::tr("System Data")) + ")";
             else
                 tooltip += " (" + (isCodePage ? CPUDump::tr("User Code") : CPUDump::tr("User Data")) + ")";
         }
