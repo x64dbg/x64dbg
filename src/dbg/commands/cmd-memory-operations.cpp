@@ -6,6 +6,7 @@
 #include "filehelper.h"
 #include "value.h"
 #include "stringformat.h"
+#include "comment.h"
 
 bool cbDebugAlloc(int argc, char* argv[])
 {
@@ -23,6 +24,8 @@ bool cbDebugAlloc(int argc, char* argv[])
         dprintf("%p\n", mem);
     if(mem)
         varset("$lastalloc", mem, true);
+    if(mem)
+        CommentSet(mem, QT_TRANSLATE_NOOP("DBG", "User-allocated memory"), true);
     //update memory map
     MemUpdateMap();
     GuiUpdateMemoryView();
