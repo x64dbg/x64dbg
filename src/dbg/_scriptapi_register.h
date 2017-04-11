@@ -92,6 +92,13 @@ namespace Script
 
             CIP,
             CSP,
+            CAX,
+            CBX,
+            CCX,
+            CDX,
+            CDI,
+            CSI,
+            CBP
         }; //RegisterEnum
 
         SCRIPT_EXPORT duint Get(RegisterEnum reg);

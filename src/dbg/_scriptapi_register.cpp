@@ -1,5 +1,7 @@
 #include "_scriptapi_register.h"
 #include "value.h"
+#include "debugger.h"
+#include "TraceRecord.h"
 
 static const char* regTable[] =
 {
@@ -84,13 +86,15 @@ static const char* regTable[] =
     "R15",
 #endif //_WIN64
 
-#ifdef _WIN64
-    "RIP",
-    "RSP"
-#else //x32
-    "EIP",
-    "ESP"
-#endif //_WIN64
+    ArchValue("EIP", "RIP"),
+    ArchValue("ESP", "RSP"),
+    ArchValue("EAX", "RAX"),
+    ArchValue("EBX", "RBX"),
+    ArchValue("ECX", "RCX"),
+    ArchValue("EDX", "RDX"),
+    ArchValue("EDI", "RDI"),
+    ArchValue("ESI", "RSI"),
+    ArchValue("EBP", "RBP")
 };
 
 SCRIPT_EXPORT duint Script::Register::Get(Script::Register::RegisterEnum reg)
@@ -100,7 +104,21 @@ SCRIPT_EXPORT duint Script::Register::Get(Script::Register::RegisterEnum reg)
 
 SCRIPT_EXPORT bool Script::Register::Set(Script::Register::RegisterEnum reg, duint value)
 {
-    return setregister(regTable[reg], value);
+    auto result = setregister(regTable[reg], value);
+
+    if(reg == ArchValue(EIP, RIP) || reg == CIP)
+    {
+        auto cip = GetContextDataEx(hActiveThread, UE_CIP);
+        _dbg_dbgtraceexecute(cip);
+        DebugUpdateGuiAsync(cip, false); //update disassembly + register view
+    }
+    else if(reg == ArchValue(ESP, RSP) || reg == SP || reg == CSP) //update stack
+    {
+        duint csp = GetContextDataEx(hActiveThread, UE_CSP);
+        DebugUpdateStack(csp, csp);
+    }
+
+    return result;
 }
 
 SCRIPT_EXPORT int Script::Register::Size()
@@ -872,90 +890,90 @@ SCRIPT_EXPORT bool Script::Register::SetR15B(unsigned char value)
 
 SCRIPT_EXPORT duint Script::Register::GetCAX()
 {
-    return Get(ArchValue(EAX, RAX));
+    return Get(CAX);
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCAX(duint value)
 {
-    return Set(ArchValue(EAX, RAX), value);
+    return Set(CAX, value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCBX()
 {
-    return Get(ArchValue(EBX, RBX));
+    return Get(CBX);
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCBX(duint value)
 {
-    return Set(ArchValue(EBX, RBX), value);
+    return Set(CBX, value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCCX()
 {
-    return Get(ArchValue(ECX, RCX));
+    return Get(CCX);
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCCX(duint value)
 {
-    return Set(ArchValue(ECX, RCX), value);
+    return Set(CCX, value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCDX()
 {
-    return Get(ArchValue(EDX, RDX));
+    return Get(CDX);
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCDX(duint value)
 {
-    return Set(ArchValue(EDX, RDX), value);
+    return Set(CDX, value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCDI()
 {
-    return Get(ArchValue(EDI, RDI));
+    return Get(CDI);
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCDI(duint value)
 {
-    return Set(ArchValue(EDI, RDI), value);
+    return Set(CDI, value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCSI()
 {
-    return Get(ArchValue(ESI, RSI));
+    return Get(CSI);
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCSI(duint value)
 {
-    return Set(ArchValue(ESI, RSI), value);
+    return Set(CSI, value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCBP()
 {
-    return Get(ArchValue(EBP, RBP));
+    return Get(CBP);
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCBP(duint value)
 {
-    return Set(ArchValue(EBP, RBP), value);
+    return Set(CBP, value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCSP()
 {
-    return Get(ArchValue(ESP, RSP));
+    return Get(CSP);
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCSP(duint value)
 {
-    return Set(ArchValue(ESP, RSP), value);
+    return Set(CSP, value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCIP()
 {
-    return Get(ArchValue(EIP, RIP));
+    return Get(CIP);
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCIP(duint value)
 {
-    return Set(ArchValue(EIP, RIP), value);
+    return Set(CIP, value);
 }
