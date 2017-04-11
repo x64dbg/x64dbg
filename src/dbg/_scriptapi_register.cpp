@@ -870,22 +870,92 @@ SCRIPT_EXPORT bool Script::Register::SetR15B(unsigned char value)
 }
 #endif //_WIN64
 
-SCRIPT_EXPORT duint Script::Register::GetCIP()
+SCRIPT_EXPORT duint Script::Register::GetCAX()
 {
-    return Get(CIP);
+    return Get(ArchValue(EAX, RAX));
 }
 
-SCRIPT_EXPORT bool Script::Register::SetCIP(duint value)
+SCRIPT_EXPORT bool Script::Register::SetCAX(duint value)
 {
-    return Set(CIP, value);
+    return Set(ArchValue(EAX, RAX), value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCBX()
+{
+    return Get(ArchValue(EBX, RBX));
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCBX(duint value)
+{
+    return Set(ArchValue(EBX, RBX), value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCCX()
+{
+    return Get(ArchValue(ECX, RCX));
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCCX(duint value)
+{
+    return Set(ArchValue(ECX, RCX), value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCDX()
+{
+    return Get(ArchValue(EDX, RDX));
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCDX(duint value)
+{
+    return Set(ArchValue(EDX, RDX), value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCDI()
+{
+    return Get(ArchValue(EDI, RDI));
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCDI(duint value)
+{
+    return Set(ArchValue(EDI, RDI), value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCSI()
+{
+    return Get(ArchValue(ESI, RSI));
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCSI(duint value)
+{
+    return Set(ArchValue(ESI, RSI), value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCBP()
+{
+    return Get(ArchValue(EBP, RBP));
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCBP(duint value)
+{
+    return Set(ArchValue(EBP, RBP), value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCSP()
 {
-    return Get(CSP);
+    return Get(ArchValue(ESP, RSP));
 }
 
 SCRIPT_EXPORT bool Script::Register::SetCSP(duint value)
 {
-    return Set(CSP, value);
+    return Set(ArchValue(ESP, RSP), value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCIP()
+{
+    return Get(ArchValue(EIP, RIP));
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCIP(duint value)
+{
+    return Set(ArchValue(EIP, RIP), value);
 }
