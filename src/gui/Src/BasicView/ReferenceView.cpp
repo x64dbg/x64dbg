@@ -245,7 +245,10 @@ void ReferenceView::followGenericAddress()
     if(DbgFunctions()->MemIsCodePage(addr, false))
         followAddress();
     else
+    {
         followDumpAddress();
+        emit Bridge::getBridge()->getDumpAttention();
+    }
 }
 
 void ReferenceView::setBreakpointAt(int row, BPSetAction action)

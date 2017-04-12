@@ -787,6 +787,16 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     return nullptr;
 }
 
+void DbgCmdExec(const QString & cmd)
+{
+    DbgCmdExec(cmd.toUtf8().constData());
+}
+
+bool DbgCmdExecDirect(const QString & cmd)
+{
+    return DbgCmdExecDirect(cmd.toUtf8().constData());
+}
+
 /************************************************************************************
                             Exported Functions
 ************************************************************************************/

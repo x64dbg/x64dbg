@@ -283,7 +283,10 @@ void LogView::onAnchorClicked(const QUrl & link)
                     if(DbgFunctions()->MemIsCodePage(address, true))
                         DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
                     else
+                    {
                         DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+                        emit Bridge::getBridge()->getDumpAttention();
+                    }
                 }
             }
         }
@@ -298,7 +301,10 @@ void LogView::onAnchorClicked(const QUrl & link)
                     if(DbgFunctions()->MemIsCodePage(address, true))
                         DbgCmdExec(QString("disasm %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
                     else if(DbgMemIsValidReadPtr(address))
+                    {
                         DbgCmdExec(QString("dump %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
+                        emit Bridge::getBridge()->getDumpAttention();
+                    }
                 }
             }
         }

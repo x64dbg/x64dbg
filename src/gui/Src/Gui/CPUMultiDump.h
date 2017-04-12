@@ -31,6 +31,7 @@ public slots:
     void openChangeTabTitleDialogSlot(int tabIndex);
     void displayReferencesWidgetSlot();
     void focusCurrentDumpSlot();
+    void getDumpAttention();
 
 private:
     CPUDump* mCurrentCPUDump;

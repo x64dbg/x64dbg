@@ -436,7 +436,10 @@ void MemoryMapView::doubleClickedSlot()
     if(DbgFunctions()->MemIsCodePage(addr, false))
         followDisassemblerSlot();
     else
+    {
         followDumpSlot();
+        emit Bridge::getBridge()->getDumpAttention();
+    }
 }
 
 void MemoryMapView::yaraSlot()

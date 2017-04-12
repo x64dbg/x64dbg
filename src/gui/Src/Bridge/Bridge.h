@@ -152,6 +152,7 @@ signals:
     void typeUpdateWidget();
     void closeApplication();
     void flushLog();
+    void getDumpAttention();
 
 private:
     QMutex* mBridgeMutex;
@@ -159,5 +160,8 @@ private:
     HANDLE hResultEvent;
     volatile bool dbgStopped;
 };
+
+void DbgCmdExec(const QString & cmd);
+bool DbgCmdExecDirect(const QString & cmd);
 
 #endif // BRIDGE_H

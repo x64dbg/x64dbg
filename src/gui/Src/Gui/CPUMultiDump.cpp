@@ -3,6 +3,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QTabBar>
+#include "FlickerThread.h"
 
 CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* parent)
     : MHTabWidget(parent, true)
@@ -43,6 +44,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     connect(Bridge::getBridge(), SIGNAL(selectionDumpSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(focusDump()), this, SLOT(focusCurrentDumpSlot()));
+    connect(Bridge::getBridge(), SIGNAL(getDumpAttention()), this, SLOT(getDumpAttention()));
 
     connect(mCurrentCPUDump, SIGNAL(selectionUpdated()), mCurrentCPUDump, SLOT(selectionUpdatedSlot()));
 }
@@ -210,4 +212,12 @@ void CPUMultiDump::focusCurrentDumpSlot()
 {
     SwitchToDumpWindow();
     mCurrentCPUDump->setFocus();
+}
+
+void CPUMultiDump::getDumpAttention()
+{
+    FlickerThread* thread = new FlickerThread(mCurrentCPUDump, this);
+    thread->setProperties(3, 1);
+    connect(thread, SIGNAL(setStyleSheet(QString)), mCurrentCPUDump, SLOT(setStyleSheet(QString)));
+    thread->start();
 }

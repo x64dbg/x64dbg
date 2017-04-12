@@ -30,6 +30,7 @@ private slots:
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void symbolFollow();
     void symbolFollowDump();
+    void symbolFollowImport();
     void enterPressedSlot();
     void symbolContextMenu(QMenu* wMenu);
     void symbolRefreshCurrent();
@@ -68,6 +69,7 @@ private:
     QMap<QString, duint> mModuleBaseList;
     QAction* mFollowSymbolAction;
     QAction* mFollowSymbolDumpAction;
+    QAction* mFollowSymbolImportAction;
     QAction* mToggleBreakpoint;
     QAction* mToggleBookmark;
     QAction* mFollowModuleAction;

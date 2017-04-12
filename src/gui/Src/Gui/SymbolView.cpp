@@ -116,6 +116,9 @@ void SymbolView::setupContextMenu()
     mFollowSymbolDumpAction = new QAction(DIcon("dump.png"), tr("Follow in &Dump"), this);
     connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
 
+    mFollowSymbolImportAction = new QAction(DIcon("import.png"), tr("Follow &imported address"), this);
+    connect(mFollowSymbolImportAction, SIGNAL(triggered(bool)), this, SLOT(symbolFollowImport()));
+
     mToggleBreakpoint = new QAction(DIcon("breakpoint.png"), tr("Toggle Breakpoint"), this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBreakpoint);
@@ -355,6 +358,8 @@ void SymbolView::symbolContextMenu(QMenu* wMenu)
         return;
     wMenu->addAction(mFollowSymbolAction);
     wMenu->addAction(mFollowSymbolDumpAction);
+    if(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 1) == tr("Import"))
+        wMenu->addAction(mFollowSymbolImportAction);
     wMenu->addSeparator();
     wMenu->addAction(mToggleBreakpoint);
     wMenu->addAction(mToggleBookmark);
@@ -375,15 +380,38 @@ void SymbolView::symbolFollowDump()
     DbgCmdExec(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
 }
 
+void SymbolView::symbolFollowImport()
+{
+    auto addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
+    auto addr = DbgValFromString(QString("[%1]").arg(addrText).toUtf8().constData());
+    if(!DbgMemIsValidReadPtr(addr))
+        return;
+    if(DbgFunctions()->MemIsCodePage(addr, false))
+    {
+        DbgCmdExec(QString("disasm %1").arg(ToPtrString(addr)).toUtf8().constData());
+        DbgCmdExec(QString("dump %1").arg(addrText));
+    }
+    else
+    {
+        DbgCmdExec(QString("dump %1").arg(ToPtrString(addr)).toUtf8().constData());
+        emit Bridge::getBridge()->getDumpAttention();
+    }
+}
+
 void SymbolView::enterPressedSlot()
 {
     auto addr = DbgValFromString(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0).toUtf8().constData());
-    if(!addr)
+    if(!DbgMemIsValidReadPtr(addr))
         return;
-    if(DbgFunctions()->MemIsCodePage(addr, false))
+    if(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 1) == tr("Import"))
+        symbolFollowImport();
+    else if(DbgFunctions()->MemIsCodePage(addr, false))
         symbolFollow();
     else
+    {
         symbolFollowDump();
+        emit Bridge::getBridge()->getDumpAttention();
+    }
 }
 
 void SymbolView::moduleContextMenu(QMenu* wMenu)
