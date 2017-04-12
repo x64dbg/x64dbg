@@ -25,7 +25,7 @@ bool cbDebugAlloc(int argc, char* argv[])
     if(mem)
         varset("$lastalloc", mem, true);
     if(mem)
-        CommentSet(mem, QT_TRANSLATE_NOOP("DBG", "User-allocated memory"), true);
+        CommentSet(mem, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "User-allocated memory")), true);
     //update memory map
     MemUpdateMap();
     GuiUpdateMemoryView();
