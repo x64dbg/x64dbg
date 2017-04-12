@@ -34,10 +34,12 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
     mModuleList->mList->addColumnAt(300, tr("Module"), true);
     mModuleList->mList->addColumnAt(charwidth * 8, tr("Party"), false);
+    mModuleList->mList->addColumnAt(charwidth * 60, tr("Path"), false);
     mModuleList->mSearchList->setCipBase(true);
     mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
     mModuleList->mSearchList->addColumnAt(300, "Module", true);
     mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), false);
+    mModuleList->mSearchList->addColumnAt(charwidth * 60, tr("Path"), false);
 
     // Setup symbol list
     mSearchListView->mList->enableMultiSelection(true);
@@ -336,6 +338,10 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
             mModuleList->mList->setCellContent(i, 2, tr("Party: %1").arg(party));
             break;
         }
+        char szModPath[MAX_PATH] = "";
+        if(!DbgFunctions()->ModPathFromAddr(modules[i].base, szModPath, _countof(szModPath)))
+            *szModPath = '\0';
+        mModuleList->mList->setCellContent(i, 3, szModPath);
     }
     mModuleList->mList->reloadData();
     //NOTE: DO NOT CALL mModuleList->refreshSearchList() IT WILL DEGRADE PERFORMANCE!
