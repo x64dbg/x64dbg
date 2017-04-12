@@ -196,56 +196,76 @@ void DataCopyDialog::printData(DataType type)
     case DataPascalByte:
     {
         int numbytes = mData->size() / sizeof(unsigned char);
-        data += QString().sprintf("Array [1..%u] of Byte = (", numbytes);
+        data.reserve(numbytes * (2 + 3) + 100);
+        data += QString().sprintf("Array [1..%u] of Byte = (\n", numbytes);
         for(int i = 0; i < numbytes; i++)
         {
             if(i)
+            {
                 data += ", ";
+                if(i % 42 == 0)
+                    data += '\n';
+            }
             data += QString().sprintf("$%02X", ((unsigned char*)mData->constData())[i]);
         }
-        data += ");";
+        data += "\n);";
     }
     break;
 
     case DataPascalWord:
     {
         int numwords = mData->size() / sizeof(unsigned short);
-        data += QString().sprintf("Array [1..%u] of Word = (", numwords);
+        data.reserve(numwords * (4 + 3) + 100);
+        data += QString().sprintf("Array [1..%u] of Word = (\n", numwords);
         for(int i = 0; i < numwords; i++)
         {
             if(i)
+            {
                 data += ", ";
+                if(i % 21 == 0)
+                    data += '\n';
+            }
             data += QString().sprintf("$%04X", ((unsigned short*)mData->constData())[i]);
         }
-        data += ");";
+        data += "\n);";
     }
     break;
 
     case DataPascalDword:
     {
         int numdwords = mData->size() / sizeof(unsigned int);
-        data += QString().sprintf("Array [1..%u] of Dword = (", numdwords);
+        data.reserve(numdwords * (8 + 3) + 100);
+        data += QString().sprintf("Array [1..%u] of Dword = (\n", numdwords);
         for(int i = 0; i < numdwords; i++)
         {
             if(i)
+            {
                 data += ", ";
+                if(i % 10 == 0)
+                    data += '\n';
+            }
             data += QString().sprintf("$%08X", ((unsigned int*)mData->constData())[i]);
         }
-        data += ");";
+        data += "\n);";
     }
     break;
 
     case DataPascalQword:
     {
         int numqwords = mData->size() / sizeof(unsigned long long);
-        data += QString().sprintf("Array [1..%u] of Int64 = (", numqwords);
+        data.reserve(numqwords * (16 + 3) + 100);
+        data += QString().sprintf("Array [1..%u] of Int64 = (\n", numqwords);
         for(int i = 0; i < numqwords; i++)
         {
             if(i)
+            {
                 data += ", ";
+                if(i % 5 == 0)
+                    data += '\n';
+            }
             data += QString().sprintf("$%016llX", ((unsigned long long*)mData->constData())[i]);
         }
-        data += ");";
+        data += "\n);";
     }
     break;
 
