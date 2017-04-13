@@ -1031,6 +1031,15 @@ BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph)
     return !!_dbg_sendmessage(DBG_ANALYZE_FUNCTION, (void*)entry, graph);
 }
 
+BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* success)
+{
+    duint value = 0;
+    auto res = _dbg_valfromstring(expression, &value);
+    if(success)
+        *success = res;
+    return value;
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);

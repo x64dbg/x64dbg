@@ -877,6 +877,7 @@ BRIDGE_IMPEXP DWORD DbgGetThreadId();
 BRIDGE_IMPEXP duint DbgGetPebAddress(DWORD ProcessId);
 BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId);
 BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph);
+BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* success = 0);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
