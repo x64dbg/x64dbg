@@ -298,6 +298,8 @@ int ThreadSuspendAll()
     {
         if(SuspendThread(entry.second.Handle) != -1)
             count++;
+        else
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to suspend thread 0x%X...\n"), entry.second.ThreadId);
     }
 
     return count;
