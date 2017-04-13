@@ -219,7 +219,7 @@ static String printComplexValue(FormatValueType value, const String & complexArg
     duint valuint;
     if(!split.empty() && valfromstring(value, &valuint))
     {
-        std::vector<char> dest(MAX_SETTING_SIZE, '\0'); //TODO: check performance, could be made static
+        std::vector<char> dest;
         if(FormatFunctions::Call(dest, split[0], split, valuint))
             return String(dest.data());
     }

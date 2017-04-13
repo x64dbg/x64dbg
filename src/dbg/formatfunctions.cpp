@@ -10,13 +10,27 @@ void FormatFunctions::Init()
     Register("mem", [](char* dest, size_t destCount, int argc, char* argv[], duint addr, void* userdata)
     {
         duint size;
-        if(argc < 2 || !valfromstring(argv[1], &size) || size > 128)
-            return false;
+        if(argc < 2 || !valfromstring(argv[1], &size))
+        {
+            strcpy_s(dest, destCount, "Invalid argument...");
+            return FORMAT_ERROR_MESSAGE;
+        }
+        if(size > 1024 * 1024 * 10) //10mb max
+        {
+            strcpy_s(dest, destCount, "Too much data (10mb max)...");
+            return FORMAT_ERROR_MESSAGE;
+        }
         std::vector<unsigned char> data(size);
         if(!MemRead(addr, data.data(), data.size()))
-            return false;
-        strncpy_s(dest, destCount, StringUtils::ToHex(data.data(), data.size()).c_str(), _TRUNCATE);
-        return true;
+        {
+            strcpy_s(dest, destCount, "Failed to read memory...");
+            return FORMAT_ERROR_MESSAGE;
+        }
+        auto result = StringUtils::ToHex(data.data(), data.size());
+        if(result.size() > destCount)
+            return FORMAT_BUFFER_TOO_SMALL;
+        strcpy_s(dest, destCount, result.c_str());
+        return FORMAT_SUCCESS;
     });
 }
 
@@ -66,11 +80,21 @@ bool FormatFunctions::Call(std::vector<char> & dest, const String & type, std::v
     auto found = mFunctions.find(type);
     if(found == mFunctions.end())
         return false;
+
     std::vector<char*> argvn(argv.size());
     for(size_t i = 0; i < argv.size(); i++)
         argvn[i] = (char*)argv[i].c_str();
+
     const auto & f = found->second;
-    return f.cbFunction(dest.data(), dest.size(), int(argv.size()), argvn.data(), value, f.userdata);
+    dest.resize(512, '\0');
+fuckthis:
+    auto result = f.cbFunction(dest.data(), dest.size() - 1, int(argv.size()), argvn.data(), value, f.userdata);
+    if(result == FORMAT_BUFFER_TOO_SMALL)
+    {
+        dest.resize(dest.size() * 2, '\0');
+        goto fuckthis;
+    }
+    return result != FORMAT_ERROR;
 }
 
 bool FormatFunctions::isValidName(const String & name)

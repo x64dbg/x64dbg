@@ -6,7 +6,7 @@
 class FormatFunctions
 {
 public:
-    using CBFORMATFUNCTION = std::function<bool(char* dest, size_t destCount, int argc, char* argv[], duint value, void* userdata)>;
+    using CBFORMATFUNCTION = std::function<FORMATRESULT(char* dest, size_t destCount, int argc, char* argv[], duint value, void* userdata)>;
 
     static void Init();
     static bool Register(const String & type, const CBFORMATFUNCTION & cbFunction, void* userdata = nullptr);

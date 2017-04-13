@@ -259,12 +259,20 @@ typedef enum
     CB_LAST
 } CBTYPE;
 
+typedef enum
+{
+    FORMAT_ERROR, //generic failure (no message)
+    FORMAT_SUCCESS, //success
+    FORMAT_ERROR_MESSAGE, //formatting failed but an error was put in the buffer (there are always at least 511 characters available).
+    FORMAT_BUFFER_TOO_SMALL //buffer too small (x64dbg will retry until the buffer is big enough)
+} FORMATRESULT;
+
 //typedefs
 typedef void (*CBPLUGIN)(CBTYPE cbType, void* callbackInfo);
 typedef bool (*CBPLUGINCOMMAND)(int argc, char** argv);
 typedef void (*CBPLUGINSCRIPT)();
 typedef duint(*CBPLUGINEXPRFUNCTION)(int argc, duint* argv, void* userdata);
-typedef bool(*CBPLUGINFORMATFUNCTION)(char* dest, size_t destCount, int argc, char* argv[], duint value, void* userdata);
+typedef FORMATRESULT(*CBPLUGINFORMATFUNCTION)(char* dest, size_t destCount, int argc, char* argv[], duint value, void* userdata);
 
 //exports
 #ifdef __cplusplus

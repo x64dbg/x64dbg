@@ -30,11 +30,12 @@ template<typename... Ts>
 static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
 {
     auto aliases = StringUtils::Split(name, ',');
-    if(!ExpressionFunctions::Register(aliases[0], sizeof...(Ts), [cbFunction](int argc, duint * argv, void* userdata)
-{
-    return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
-    }))
-    return false;
+    auto tempFunc = [cbFunction](int argc, duint * argv, void* userdata)
+    {
+        return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
+    };
+    if(!ExpressionFunctions::Register(aliases[0], sizeof...(Ts), tempFunc))
+        return false;
     for(size_t i = 1; i < aliases.size(); i++)
         ExpressionFunctions::RegisterAlias(aliases[0], aliases[i]);
     return true;
