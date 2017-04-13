@@ -272,12 +272,12 @@ void LogView::onAnchorClicked(const QUrl & link)
 {
     if(link.scheme() == "x64dbg")
     {
-        if(link.path() == "/address64")
+        if(link.path() == "/address32" || link.path() == "/address64")
         {
             if(DbgIsDebugging())
             {
                 bool ok = false;
-                duint address = link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16);
+                auto address = duint(link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16));
                 if(ok && DbgMemIsValidReadPtr(address))
                 {
                     if(DbgFunctions()->MemIsCodePage(address, true))
@@ -288,24 +288,8 @@ void LogView::onAnchorClicked(const QUrl & link)
                         emit Bridge::getBridge()->getDumpAttention();
                     }
                 }
-            }
-        }
-        else if(link.path() == "/address32")
-        {
-            if(DbgIsDebugging())
-            {
-                bool ok = false;
-                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok, 16);
-                if(ok)
-                {
-                    if(DbgFunctions()->MemIsCodePage(address, true))
-                        DbgCmdExec(QString("disasm %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
-                    else if(DbgMemIsValidReadPtr(address))
-                    {
-                        DbgCmdExec(QString("dump %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
-                        emit Bridge::getBridge()->getDumpAttention();
-                    }
-                }
+                else
+                    SimpleErrorBox(this, tr("Invalid address!"), tr("The address %1 is not a valid memory location...").arg(ToPtrString(address)));
             }
         }
         else
