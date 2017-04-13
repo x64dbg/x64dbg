@@ -600,13 +600,17 @@ void MemoryMapView::findPatternSlot()
 
 void MemoryMapView::dumpMemory()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Memory Region"), QDir::currentPath(), tr("All files (*.*)"));
+    char modname[MAX_MODULE_SIZE] = "";
+    if(!DbgFunctions()->ModNameFromAddr(DbgEval("mod.main()"), modname, false))
+        *modname = '\0';
+    auto addr = getCellContent(getInitialSelection(), 0);
+    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), *modname ? modname +  QString("_") : "", addr);
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Memory Region"), defaultFile, tr("Binary files (*.bin);;All files (*.*)"));
 
     if(fileName.length())
     {
         fileName = QDir::toNativeSeparators(fileName);
-        QString cmd = QString("savedata ""%1"",%2,%3").arg(fileName, getCellContent(getInitialSelection(), 0),
-                      getCellContent(getInitialSelection(), 1));
+        QString cmd = QString("savedata \"%1\",%2,%3").arg(fileName, addr, getCellContent(getInitialSelection(), 1));
         DbgCmdExec(cmd.toUtf8().constData());
     }
 }
