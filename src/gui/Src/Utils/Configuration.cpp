@@ -921,6 +921,12 @@ void Configuration::setShortcut(const QString key_id, const QKeySequence key_seq
         noMoreMsgbox = true;
 }
 
+void Configuration::setPluginShortcut(const QString key_id, QString description, QString defaultShortcut, bool global)
+{
+    defaultShortcuts[key_id] = Shortcut(description, defaultShortcut, global);
+    readShortcuts();
+}
+
 QColor Configuration::colorFromConfig(const QString id)
 {
     char setting[MAX_SETTING_SIZE] = "";

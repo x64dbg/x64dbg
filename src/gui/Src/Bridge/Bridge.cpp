@@ -782,6 +782,18 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_FLUSH_LOG:
         emit flushLog();
         break;
+
+    case GUI_MENU_SET_ENTRY_HOTKEY:
+    {
+        BridgeResult result;
+        auto params = QString((const char*)param2).split('\1');
+        if(params.length() == 2)
+        {
+            emit setHotkeyMenuEntry(int(param1), params[0], params[1]);
+            result.Wait();
+        }
+    }
+    break;
     }
 
     return nullptr;

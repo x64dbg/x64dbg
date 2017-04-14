@@ -273,6 +273,7 @@ typedef bool (*CBPLUGINCOMMAND)(int argc, char** argv);
 typedef void (*CBPLUGINSCRIPT)();
 typedef duint(*CBPLUGINEXPRFUNCTION)(int argc, duint* argv, void* userdata);
 typedef FORMATRESULT(*CBPLUGINFORMATFUNCTION)(char* dest, size_t destCount, int argc, char* argv[], duint value, void* userdata);
+typedef bool (*CBPLUGINPREDICATE)(void* userdata);
 
 //exports
 #ifdef __cplusplus
@@ -300,6 +301,7 @@ PLUG_IMPEXP void _plugin_menusetvisible(int pluginHandle, int hMenu, bool visibl
 PLUG_IMPEXP void _plugin_menuentrysetvisible(int pluginHandle, int hEntry, bool visible);
 PLUG_IMPEXP void _plugin_menusetname(int pluginHandle, int hMenu, const char* name);
 PLUG_IMPEXP void _plugin_menuentrysetname(int pluginHandle, int hEntry, const char* name);
+PLUG_IMPEXP void _plugin_menuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey);
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript);
 PLUG_IMPEXP bool _plugin_waituntilpaused();
 PLUG_IMPEXP bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata);

@@ -79,6 +79,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setCheckedMenuEntry(int, bool)), this, SLOT(setCheckedMenuEntry(int, bool)));
+    connect(Bridge::getBridge(), SIGNAL(setHotkeyMenuEntry(int, QString, QString)), this, SLOT(setHotkeyMenuEntry(int, QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
@@ -708,6 +709,10 @@ void MainWindow::refreshShortcuts()
 
     setGlobalShortcut(ui->actionStrings, ConfigShortcut("ActionFindStrings"));
     setGlobalShortcut(ui->actionCalls, ConfigShortcut("ActionFindIntermodularCalls"));
+
+    for(const MenuEntryInfo & entry : mEntryList)
+        if(!entry.hotkeyId.isEmpty())
+            entry.mAction->setShortcut(ConfigShortcut(entry.hotkeyId));
 }
 
 void MainWindow::updateMRUMenu()
@@ -1014,7 +1019,7 @@ const MainWindow::MenuInfo* MainWindow::findMenu(int hMenu)
 void MainWindow::addMenuToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu)
 {
     if(!findMenu(hMenu))
-        mMenuList.push_back(MenuInfo(parent, menu, hMenu, hParentMenu));
+        mMenuList.push_back(MenuInfo(parent, menu, hMenu, hParentMenu, hMenu == GUI_PLUGIN_MENU));
     Bridge::getBridge()->setResult();
 }
 
@@ -1030,7 +1035,7 @@ void MainWindow::addMenu(int hMenu, QString title)
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QMenu* wMenu = new QMenu(title, parent);
     wMenu->menuAction()->setVisible(false);
-    mMenuList.push_back(MenuInfo(parent, wMenu, hMenuNew, hMenu));
+    mMenuList.push_back(MenuInfo(parent, wMenu, hMenuNew, hMenu, menu->globalMenu));
     if(hMenu == -1) //top-level
         ui->menuBar->addMenu(wMenu);
     else //deeper level
@@ -1056,6 +1061,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QAction* wAction = new QAction(title, parent);
     wAction->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
+    wAction->setShortcutContext(menu->globalMenu ? Qt::ApplicationShortcut : Qt::WidgetShortcut);
     parent->addAction(wAction);
     connect(wAction, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
     newInfo.mAction = wAction;
@@ -1199,6 +1205,55 @@ void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
     Bridge::getBridge()->setResult();
 }
 
+QString MainWindow::nestedMenuDescription(const MenuInfo* menu)
+{
+    auto found = findMenu(menu->hParentMenu);
+    if(!found)
+        return menu->mMenu->title();
+    auto nest = nestedMenuDescription(found);
+    if(nest.isEmpty())
+    {
+        switch(menu->hParentMenu)
+        {
+        case GUI_DISASM_MENU:
+            nest = tr("&Plugins") + " -> " + tr("Disassembly");
+            break;
+        case GUI_DUMP_MENU:
+            nest = tr("&Plugins") + " -> " + tr("Dump");
+            break;
+        case GUI_STACK_MENU:
+            nest = tr("&Plugins") + " -> " + tr("Stack");
+            break;
+        }
+    }
+    nest += " -> ";
+    return nest + menu->mMenu->title();
+}
+
+QString MainWindow::nestedMenuEntryDescription(const MenuEntryInfo & entry)
+{
+    return QString(nestedMenuDescription(findMenu(entry.hParentMenu)) + " -> " + entry.mAction->text()).replace("&", "");
+}
+
+void MainWindow::setHotkeyMenuEntry(int hEntry, QString hotkey, QString id)
+{
+    for(int i = 0; i < mEntryList.size(); i++)
+    {
+        if(mEntryList.at(i).hEntry == hEntry)
+        {
+            MenuEntryInfo & entry = mEntryList[i];
+            entry.hotkeyId = QString("Plugin_") + id;
+            id.truncate(id.lastIndexOf('_'));
+            entry.hotkey = hotkey;
+            entry.hotkeyGlobal = entry.mAction->shortcutContext() == Qt::ApplicationShortcut;
+            Config()->setPluginShortcut(entry.hotkeyId, nestedMenuEntryDescription(entry), hotkey, entry.hotkeyGlobal);
+            refreshShortcuts();
+            break;
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
 void MainWindow::setVisibleMenuEntry(int hEntry, bool visible)
 {
     for(int i = 0; i < mEntryList.size(); i++)
@@ -1234,6 +1289,7 @@ void MainWindow::setNameMenuEntry(int hEntry, QString name)
         {
             const MenuEntryInfo & entry = mEntryList.at(i);
             entry.mAction->setText(name);
+            Config()->setPluginShortcut(entry.hotkeyId, nestedMenuEntryDescription(entry), entry.hotkey, entry.hotkeyGlobal);
             break;
         }
     }

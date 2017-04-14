@@ -76,18 +76,45 @@ QString getSymbolicName(duint addr)
         return addrText;
 }
 
-static bool isChristmas()
+static bool allowSeasons()
 {
     srand(GetTickCount());
     duint setting = 0;
-    if(BridgeSettingGetUint("Misc", "NoChristmas", &setting) && setting)
-        return false;
+    return !BridgeSettingGetUint("Misc", "NoSeasons", &setting) || !setting;
+}
+
+static bool isChristmas()
+{
     auto date = QDateTime::currentDateTime().date();
     return date.month() == 12 && date.day() >= 23 && date.day() <= 26;
 }
 
-QString couldItBeChristmas(QString icon)
+//https://www.daniweb.com/programming/software-development/threads/463261/c-easter-day-calculation
+bool isEaster()
+{
+    auto date = QDateTime::currentDateTime().date();
+    int K, M, S, A, D, R, OG, SZ, OE, X = date.year();
+    K  = X / 100;                                   // Secular number
+    M  = 15 + (3 * K + 3) / 4 - (8 * K + 13) / 25;  // Secular Moon shift
+    S  = 2 - (3 * K + 3) / 4;                       // Secular sun shift
+    A  = X % 19;                                    // Moon parameter
+    D  = (19 * A + M) % 30;                         // Seed for 1st full Moon in spring
+    R  = D / 29 + (D / 28 - D / 29) * (A / 11);     // Calendarian correction quantity
+    OG = 21 + D - R;                                // Easter limit
+    SZ = 7 - (X + X / 4 + S) % 7;                   // 1st sunday in March
+    OE = 7 - (OG - SZ) % 7;                         // Distance Easter sunday from Easter limit in days
+    int MM = ((OG + OE) > 31) ? 4 : 3;
+    int DD = (((OG + OE) % 31) == 0) ? 31 : ((OG + OE) % 31);
+    return date.month() == MM && date.day() >= DD - 2 && date.day() <= DD + 1;
+}
+
+QString couldItBeSeasonal(QString icon)
 {
     static bool christmas = isChristmas();
-    return christmas ? QString("christmas%0.png").arg(rand() % 8 + 1) : icon;
+    static bool easter = isEaster();
+    if(christmas)
+        return QString("christmas%1.png").arg(rand() % 8 + 1);
+    else if(easter)
+        return QString("easter%1.png").arg(rand() % 8 + 1);
+    return icon;
 }

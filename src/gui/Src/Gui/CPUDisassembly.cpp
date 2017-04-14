@@ -917,8 +917,20 @@ void CPUDisassembly::setCommentSlot()
     mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
+    QString comment = mLineEdit.editText.replace('\r', "").replace('\n', "");
+    if(!DbgSetCommentAt(wVA, comment.toUtf8().constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
+
+    static bool easter = isEaster();
+    if(easter && comment.toLower() == "oep")
+    {
+        QFile file(":/icons/images/egg.wav");
+        if(file.open(QIODevice::ReadOnly))
+        {
+            QByteArray egg = file.readAll();
+            PlaySoundA(egg.data(), 0, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+        }
+    }
 
     GuiUpdateAllViews();
 }

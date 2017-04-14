@@ -1441,6 +1441,11 @@ BRIDGE_IMPEXP void GuiMenuSetEntryName(int hEntry, const char* name)
     _gui_sendmessage(GUI_MENU_SET_VISIBLE, (void*)hEntry, (void*)name);
 }
 
+BRIDGE_IMPEXP void GuiMenuSetEntryHotkey(int hEntry, const char* hack)
+{
+    _gui_sendmessage(GUI_MENU_SET_ENTRY_HOTKEY, (void*)hEntry, (void*)hack);
+}
+
 BRIDGE_IMPEXP void GuiShowCpu()
 {
     _gui_sendmessage(GUI_SHOW_CPU, 0, 0);

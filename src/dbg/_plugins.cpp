@@ -123,6 +123,11 @@ PLUG_IMPEXP void _plugin_menuentrysetname(int pluginHandle, int hEntry, const ch
     pluginmenuentrysetname(pluginHandle, hEntry, name);
 }
 
+PLUG_IMPEXP void _plugin_menuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey)
+{
+    pluginmenuentrysethotkey(pluginHandle, hEntry, hotkey);
+}
+
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript)
 {
     dbgstartscriptthread(cbScript);

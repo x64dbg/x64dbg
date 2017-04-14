@@ -66,6 +66,7 @@ public:
     const QFont getFont(const QString id) const;
     const Shortcut getShortcut(const QString key_id) const;
     void setShortcut(const QString key_id, const QKeySequence key_sequence);
+    void setPluginShortcut(const QString key_id, QString description, QString defaultShortcut, bool global);
 
     //default setting maps
     QMap<QString, QColor> defaultColors;

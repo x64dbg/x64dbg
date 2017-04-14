@@ -108,6 +108,7 @@ public slots:
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
     void setCheckedMenuEntry(int hEntry, bool checked);
+    void setHotkeyMenuEntry(int hEntry, QString hotkey, QString id);
     void setVisibleMenuEntry(int hEntry, bool visible);
     void setVisibleMenu(int hMenu, bool visible);
     void setNameMenuEntry(int hEntry, QString name);
@@ -212,23 +213,24 @@ private:
         QAction* mAction;
         int hEntry;
         int hParentMenu;
+        QString hotkey;
+        QString hotkeyId;
+        bool hotkeyGlobal;
     };
 
     struct MenuInfo
     {
     public:
-        MenuInfo(QWidget* parent, QMenu* mMenu, int hMenu, int hParentMenu)
+        MenuInfo(QWidget* parent, QMenu* mMenu, int hMenu, int hParentMenu, bool globalMenu)
+            : parent(parent), mMenu(mMenu), hMenu(hMenu), hParentMenu(hParentMenu), globalMenu(globalMenu)
         {
-            this->parent = parent;
-            this->mMenu = mMenu;
-            this->hMenu = hMenu;
-            this->hParentMenu = hParentMenu;
         }
 
         QWidget* parent;
         QMenu* mMenu;
         int hMenu;
         int hParentMenu;
+        bool globalMenu;
     };
 
     QList<MenuEntryInfo> mEntryList;
@@ -238,6 +240,8 @@ private:
 
     void initMenuApi();
     const MenuInfo* findMenu(int hMenu);
+    QString nestedMenuDescription(const MenuInfo* menu);
+    QString nestedMenuEntryDescription(const MenuEntryInfo & entry);
 
     bool bCanClose;
     MainWindowCloseThread* mCloseThread;

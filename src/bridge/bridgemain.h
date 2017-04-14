@@ -999,6 +999,7 @@ typedef enum
     GUI_MENU_SET_NAME,              // param1=int hMenu,            param2=const char* name
     GUI_MENU_SET_ENTRY_NAME,        // param1=int hEntry,           param2=const char* name
     GUI_FLUSH_LOG,                  // param1=unused,               param2=unused
+    GUI_MENU_SET_ENTRY_HOTKEY,      // param1=int hEntry,           param2=const char* hack
 } GUIMSG;
 
 //GUI Typedefs
@@ -1130,6 +1131,7 @@ BRIDGE_IMPEXP void GuiMenuSetVisible(int hMenu, bool visible);
 BRIDGE_IMPEXP void GuiMenuSetEntryVisible(int hEntry, bool visible);
 BRIDGE_IMPEXP void GuiMenuSetName(int hMenu, const char* name);
 BRIDGE_IMPEXP void GuiMenuSetEntryName(int hEntry, const char* name);
+BRIDGE_IMPEXP void GuiMenuSetEntryHotkey(int hEntry, const char* hack);
 BRIDGE_IMPEXP void GuiShowCpu();
 BRIDGE_IMPEXP void GuiAddQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiShowQWidgetTab(void* qWidget);

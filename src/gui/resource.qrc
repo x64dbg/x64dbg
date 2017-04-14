@@ -297,5 +297,14 @@
         <file>images/edit-script.png</file>
         <file>images/load-script.png</file>
         <file>images/import.png</file>
+        <file>images/easter1.png</file>
+        <file>images/easter2.png</file>
+        <file>images/easter3.png</file>
+        <file>images/easter4.png</file>
+        <file>images/easter5.png</file>
+        <file>images/easter6.png</file>
+        <file>images/easter7.png</file>
+        <file>images/easter8.png</file>
+        <file>images/egg.wav</file>
     </qresource>
 </RCC>

@@ -867,6 +867,32 @@ void pluginmenuentrysetname(int pluginHandle, int hEntry, const char* name)
     }
 }
 
+void pluginmenuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey)
+{
+    if(hEntry == -1 || !hotkey)
+        return;
+    SHARED_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
+    {
+        if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
+        {
+            for(const auto & plugin : pluginList)
+            {
+                if(plugin.initStruct.pluginHandle == pluginHandle)
+                {
+                    char name[MAX_PATH] = "";
+                    strcpy_s(name, plugin.plugname);
+                    *strrchr(name, '.') = '\0';
+                    auto hack = StringUtils::sprintf("%s\1%s_%d", hotkey, name, hEntry);
+                    GuiMenuSetEntryHotkey(currentMenu.hEntryMenu, hack.c_str());
+                    break;
+                }
+            }
+            break;
+        }
+    }
+}
+
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata)
 {
     PLUG_EXPRFUNCTION plugExprfunction;
