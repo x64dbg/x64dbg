@@ -174,7 +174,6 @@ SOURCES += \
     gui/Src/BasicView/StdTable.cpp \
     gui/Src/Memory/MemoryPage.cpp \
     gui/Src/QEntropyView/QEntropyView.cpp \
-    gui/Src/ThirdPartyLibs/float128/float128.cpp \
     dbg/analysis/advancedanalysis.cpp \
     dbg/analysis/analysis.cpp \
     dbg/analysis/analysis_nukem.cpp \
@@ -403,7 +402,6 @@ HEADERS += \
     gui/Src/Memory/MemoryPage.h \
     gui/Src/QEntropyView/Entropy.h \
     gui/Src/QEntropyView/QEntropyView.h \
-    gui/Src/ThirdPartyLibs/float128/float128.h \
     gui/Src/ThirdPartyLibs/snowman/SnowmanView.h \
     dbg/analysis/advancedanalysis.h \
     dbg/analysis/analysis.h \

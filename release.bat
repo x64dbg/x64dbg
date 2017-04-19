@@ -47,6 +47,7 @@ copy bin\x32\asmjit.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x32\yara.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x32\snowman.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x32\keystone.dll %RELEASEDIR%\bin_base\x32\
+copy bin\x32\ldconvert.dll %RELEASEDIR%\bin_base\x32\
 copy bin\x64\x64_bridge.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\x64_dbg.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\capstone.dll %RELEASEDIR%\bin_base\x64\
@@ -62,6 +63,7 @@ copy bin\x64\asmjit.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\yara.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\snowman.dll %RELEASEDIR%\bin_base\x64\
 copy bin\x64\keystone.dll %RELEASEDIR%\bin_base\x64\
+copy bin\x64\ldconvert.dll %RELEASEDIR%\bin_base\x64\
 
 echo help
 

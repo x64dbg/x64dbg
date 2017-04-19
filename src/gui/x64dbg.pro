@@ -66,7 +66,7 @@ INCLUDEPATH += \
     Src/Global \
     Src/Utils \
     Src/ThirdPartyLibs/snowman \
-    Src/ThirdPartyLibs/float128 \
+    Src/ThirdPartyLibs/ldconvert \
     ../capstone_wrapper
 
 # Resources, sources, headers, and forms
@@ -147,7 +147,6 @@ SOURCES += \
     Src/Gui/NotepadView.cpp \
     Src/Gui/CPUMultiDump.cpp \
     Src/Gui/AssembleDialog.cpp \
-    Src/ThirdPartyLibs/float128/float128.cpp \
     Src/Utils/StringUtil.cpp \
     Src/Gui/SEHChainView.cpp \
     Src/Gui/EditBreakpointDialog.cpp \
@@ -259,7 +258,6 @@ HEADERS += \
     Src/Utils/MenuBuilder.h \
     Src/Gui/CPUMultiDump.h \
     Src/Gui/AssembleDialog.h \
-    Src/ThirdPartyLibs/float128/float128.h \
     Src/Gui/SEHChainView.h \
     Src/Gui/EditBreakpointDialog.h \
     Src/Gui/CPUArgumentWidget.h \
@@ -340,11 +338,13 @@ LIBS += -luser32 -ladvapi32 -lwinmm
     LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x86
     LIBS += -L"$$PWD/../capstone_wrapper/bin/x32$${DIR_SUFFIX}" -lcapstone_wrapper
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x86
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x86
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x64
     LIBS += -L"$$PWD/../capstone_wrapper/bin/x64$${DIR_SUFFIX}" -lcapstone_wrapper
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x64
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x64
     LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
 }
