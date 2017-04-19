@@ -214,7 +214,7 @@ QString ToDateString(const QDate & date)
         "Jan",
         "Feb",
         "Mar",
-        "Arp",
+        "Apr",
         "May",
         "Jun",
         "Jul",
