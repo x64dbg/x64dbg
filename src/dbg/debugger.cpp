@@ -903,7 +903,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     BREAKPOINT* bpPtr = nullptr;
-    SHARED_ACQUIRE(LockBreakpoints);
+    //NOTE: this locking is very tricky, make sure you understand it before modifying anything
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
     switch(bptype)
     {
     case BPNORMAL:
@@ -928,6 +929,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     {
         if(bptype != BPDLL || !BpUpdateDllPath(reinterpret_cast<const char*>(ExceptionAddress), &bpPtr))
         {
+            // release the breakpoint lock to prevent deadlocks during the wait
+            EXCLUSIVE_RELEASE();
             dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint reached not in list!"));
             DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
             //lock
@@ -945,8 +948,10 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     // increment hit count
     InterlockedIncrement((volatile long*)&bpPtr->hitcount);
 
+    // copy the breakpoint structure and release the breakpoint lock to prevent deadlocks during the wait
     auto bp = *bpPtr;
-    SHARED_RELEASE();
+    EXCLUSIVE_RELEASE();
+
     if(bptype != BPDLL && bptype != BPEXCEPTION)
         bp.addr += ModBaseFromAddr(CIP);
     bp.active = true; //a breakpoint that has been hit is active

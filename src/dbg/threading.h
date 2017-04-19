@@ -74,8 +74,7 @@ enum SectionLock
     LockModuleHashes,
     LockFormatFunctions,
 
-    // Number of elements in this enumeration. Must always be the last
-    // index.
+    // Number of elements in this enumeration. Must always be the last index.
     LockLast
 };
 
@@ -168,22 +167,25 @@ public:
         if(m_LockCount > 0)
             Unlock();
 
-#ifdef _DEBUG
-        // Assert that the lock count is zero on destructor
-        if(m_LockCount > 0)
-            __debugbreak();
-#endif
+        // The lock count should be zero after destruction.
+        assert(m_LockCount == 0);
     }
 
     inline void Lock()
     {
         Internal::AcquireLock(LockIndex, Shared);
 
+        // We cannot recursively lock more than 255 times.
+        assert(m_LockCount < 255);
+
         m_LockCount++;
     }
 
     inline void Unlock()
     {
+        // Unlocking twice will cause undefined behaviour.
+        assert(m_LockCount != 0);
+
         m_LockCount--;
 
         Internal::ReleaseLock(LockIndex, Shared);
