@@ -24,6 +24,7 @@
 #include "MiscUtil.h"
 #include "DataCopyDialog.h"
 #include "SnowmanView.h"
+#include "MemoryPage.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {

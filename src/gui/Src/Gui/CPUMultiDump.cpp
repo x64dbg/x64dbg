@@ -1,4 +1,8 @@
 #include "CPUMultiDump.h"
+#include "CPUDump.h"
+#include "WatchView.h"
+#include "LocalVarsView.h"
+#include "StructWidget.h"
 #include "Bridge.h"
 #include <QInputDialog>
 #include <QMessageBox>
@@ -31,6 +35,9 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     this->addTabEx(mWatch, DIcon("animal-dog.png"), tr("Watch ") + QString::number(1), nativeTitle);
     mWatch->setWindowTitle(nativeTitle);
     mWatch->loadColumnFromConfig("Watch1");
+
+    mLocalVars = new LocalVarsView(this);
+    this->addTabEx(mLocalVars, DIcon("fatal-error.png"), tr("Local Var"), "LocalVar");
 
     mStructWidget = new StructWidget(this);
     this->addTabEx(mStructWidget, mStructWidget->windowIcon(), mStructWidget->windowTitle(), "Struct");
