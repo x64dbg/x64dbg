@@ -1602,7 +1602,10 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
 
     if(string[0] == '['
             || (isdigitduint(string[0]) && string[1] == ':' && string[2] == '[')
-            || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[')) //memory location
+            || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[') //memory location
+            || strstr(string, "byte")
+            || strstr(string, "word")
+        )
     {
         if(!DbgIsDebugging())
         {
@@ -1627,6 +1630,58 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             if(new_size < read_size)
                 read_size = new_size;
         }
+        else if (string[0] == 'b'
+            && string[1] == 'y'
+            && string[2] == 't'
+            && string[3] == 'e'
+            && string[4] == ':'
+            )
+        {
+            prefix_size = 6;
+            int new_size = 1;
+            if (new_size < read_size)
+                read_size = new_size;
+        }
+        else if (string[0] == 'w'
+            && string[1] == 'o'
+            && string[2] == 'r'
+            && string[3] == 'd'
+            && string[4] == ':'
+            )
+        {
+            prefix_size = 6;
+            int new_size = 2;
+            if (new_size < read_size)
+                read_size = new_size;
+        }
+        else if (string[0] == 'd'
+            && string[1] == 'w'
+            && string[2] == 'o'
+            && string[3] == 'r'
+            && string[4] == 'd'
+            && string[5] == ':'
+            )
+        {
+            prefix_size = 7;
+            int new_size = 4;
+            if (new_size < read_size)
+                read_size = new_size;
+        }
+#ifdef _WIN64
+        else if (string[0] == 'q'
+            && string[1] == 'w'
+            && string[2] == 'o'
+            && string[3] == 'r'
+            && string[4] == 'd'
+            && string[5] == ':'
+            )
+        {
+            prefix_size = 7;
+            int new_size = 8;
+            if (new_size < read_size)
+                read_size = new_size;
+        }
+#endif //_WIN64
         else if(string[1] == 's' && string[2] == ':')
         {
             prefix_size = 4;
