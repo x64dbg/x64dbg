@@ -9,7 +9,7 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
       isNop(false),
       _mnemonicType(TokenType::Uncategorized)
 {
-    SetConfig(false, false, false, false, false, false);
+    SetConfig(false, false, false, false, false, false, false);
 }
 
 CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
@@ -173,12 +173,13 @@ void CapstoneTokenizer::UpdateConfig()
               ConfigBool("Disassembler", "ArgumentSpaces"),
               ConfigBool("Disassembler", "MemorySpaces"),
               ConfigBool("Disassembler", "NoHighlightOperands"),
-              ConfigBool("Disassembler", "NoCurrentModuleText"));
+              ConfigBool("Disassembler", "NoCurrentModuleText"),
+              ConfigBool("Disassembler", "0xPrefixValues"));
     _maxModuleLength = (int)ConfigUint("Disassembler", "MaxModuleSize");
     UpdateStringPool();
 }
 
-void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText)
+void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues)
 {
     _bUppercase = bUppercase;
     _bTabbedMnemonic = bTabbedMnemonic;
@@ -186,6 +187,7 @@ void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bA
     _bMemorySpaces = bMemorySpaces;
     _bNoHighlightOperands = bNoHighlightOperands;
     _bNoCurrentModuleText = bNoCurrentModuleText;
+    _b0xPrefixValues = b0xPrefixValues;
 }
 
 int CapstoneTokenizer::Size() const
@@ -349,6 +351,8 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
         finalText = QString("%1%2").arg(moduleText).arg(addrText);
     else if(bHasLabel) //<label>
         finalText = QString("<%1>").arg(labelText);
+    else if (_b0xPrefixValues)
+        finalText = QString("0x")+addrText;
     else
         finalText = addrText;
     return finalText;
