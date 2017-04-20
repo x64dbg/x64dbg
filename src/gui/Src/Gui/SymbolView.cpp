@@ -390,7 +390,6 @@ void SymbolView::symbolFollowImport()
     if(DbgFunctions()->MemIsCodePage(addr, false))
     {
         DbgCmdExec(QString("disasm %1").arg(ToPtrString(addr)).toUtf8().constData());
-        DbgCmdExec(QString("dump %1").arg(addrText));
     }
     else
     {

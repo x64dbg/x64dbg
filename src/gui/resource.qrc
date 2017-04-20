@@ -306,5 +306,6 @@
         <file>images/easter7.png</file>
         <file>images/easter8.png</file>
         <file>images/egg.wav</file>
+        <file>images/localvars.png</file>
     </qresource>
 </RCC>

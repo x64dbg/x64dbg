@@ -37,7 +37,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     mWatch->loadColumnFromConfig("Watch1");
 
     mLocalVars = new LocalVarsView(this);
-    this->addTabEx(mLocalVars, DIcon("fatal-error.png"), tr("Local Var"), "LocalVar");
+    this->addTabEx(mLocalVars, DIcon("localvars.png"), tr("Locals"), "LocalVar");
 
     mStructWidget = new StructWidget(this);
     this->addTabEx(mStructWidget, mStructWidget->windowIcon(), mStructWidget->windowTitle(), "Struct");

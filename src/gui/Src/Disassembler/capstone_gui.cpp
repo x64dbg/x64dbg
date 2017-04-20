@@ -351,8 +351,8 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
         finalText = QString("%1%2").arg(moduleText).arg(addrText);
     else if(bHasLabel) //<label>
         finalText = QString("<%1>").arg(labelText);
-    else if (_b0xPrefixValues)
-        finalText = QString("0x")+addrText;
+    else if(_b0xPrefixValues)
+        finalText = QString("0x") + addrText;
     else
         finalText = addrText;
     return finalText;
