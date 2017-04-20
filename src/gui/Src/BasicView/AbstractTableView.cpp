@@ -1075,7 +1075,7 @@ QString AbstractTableView::getColTitle(int index)
 {
     if(mColumnList.size() > 0 && index >= 0 && index < mColumnList.size())
         return mColumnList[index].title;
-    return "";
+    return QString();
 }
 
 /************************************************************************************

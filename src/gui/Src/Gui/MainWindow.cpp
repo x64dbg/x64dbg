@@ -1692,7 +1692,7 @@ void MainWindow::updateFavouriteTools()
 static QString stringFormatInline(const QString & format)
 {
     if(!DbgFunctions()->StringFormatInline)
-        return "";
+        return QString();
     char result[MAX_SETTING_SIZE] = "";
     if(DbgFunctions()->StringFormatInline(format.toUtf8().constData(), MAX_SETTING_SIZE, result))
         return result;

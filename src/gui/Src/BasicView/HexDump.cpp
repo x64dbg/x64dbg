@@ -589,7 +589,7 @@ QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
     getColumnRichText(col, wRva, richText);
     RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, mFontMetrics);
 
-    return "";
+    return QString();
 }
 
 void HexDump::printSelected(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)

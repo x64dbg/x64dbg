@@ -54,7 +54,7 @@ void CPUInfoBox::setInfoLine(int line, QString text)
 QString CPUInfoBox::getInfoLine(int line)
 {
     if(line < 0 || line > 2)
-        return "";
+        return QString();
 
     return getCellContent(line, 0);
 }

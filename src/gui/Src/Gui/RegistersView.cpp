@@ -1601,7 +1601,7 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
         return tr("The TEB of the current thread can be accessed as an offset of segment register FS (x86).\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
 #endif //_WIN64
     default:
-        return "";
+        return QString();
     }
 }
 

@@ -37,7 +37,7 @@ public:
     {
         if(argText.length())
             return QString("%1: %2").arg(argName).arg(argText);
-        return "";
+        return QString();
     }
 
 public slots:

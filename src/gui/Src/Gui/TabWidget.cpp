@@ -191,7 +191,7 @@ QString MHTabWidget::getNativeName(int index)
         if(window)
             return window->mNativeName;
         else
-            return "";
+            return QString();
     }
 }
 

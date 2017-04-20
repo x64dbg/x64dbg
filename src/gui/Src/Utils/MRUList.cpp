@@ -87,7 +87,7 @@ QString MRUList::getEntry(int index)
     if(index < mMRUList.size())
         return mMRUList.at(index);
 
-    return "";
+    return QString();
 }
 
 void MRUList::openFileSlot()

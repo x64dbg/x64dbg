@@ -1056,7 +1056,7 @@ QString Configuration::shortcutFromConfig(const QString id)
     {
         return QString(setting);
     }
-    return "";
+    return QString();
 }
 
 bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortcut)

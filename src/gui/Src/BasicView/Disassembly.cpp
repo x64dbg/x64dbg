@@ -665,7 +665,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     }
     break;
     }
-    return "";
+    return QString();
 }
 
 /************************************************************************************

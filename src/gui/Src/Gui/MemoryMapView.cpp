@@ -299,7 +299,7 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
             painter->fillRect(QRect(x, y, w - 1, h), QBrush(backgroundColor));
         painter->setPen(color);
         painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
-        return "";
+        return QString();
     }
     else if(col == 2) //info
     {
@@ -308,7 +308,7 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
         {
             painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
             painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
-            return "";
+            return QString();
         }
     }
     else if(col == 4) //CPROT
@@ -318,7 +318,7 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
         {
             painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
             painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
-            return "";
+            return QString();
         }
     }
     return StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);

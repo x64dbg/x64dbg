@@ -51,10 +51,10 @@ QString MenuBuilder::getText(size_t id) const
         if(container.builder->_containers.size() == 1)
             return container.builder->getText(0); // recursively get the text inside the menu builder
         else
-            return "";
+            return QString();
     }
     default: // separator
-        return "";
+        return QString();
     }
 }
 
