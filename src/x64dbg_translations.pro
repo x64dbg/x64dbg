@@ -216,7 +216,8 @@ SOURCES += \
     dbg/formatfunctions.cpp \
     dbg/types.cpp \
     dbg/typesparser.cpp \
-    gui/Src/Utils/MRUList.cpp
+    gui/Src/Utils/MRUList.cpp \
+    gui/Src/Gui/LocalVarsView.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -443,7 +444,8 @@ HEADERS += \
     dbg/filemap.h \
     dbg/formatfunctions.h \
     dbg/types.h \
-    gui/Src/Utils/MRUList.h
+    gui/Src/Utils/MRUList.h \
+    gui/Src/Gui/LocalVarsView.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \

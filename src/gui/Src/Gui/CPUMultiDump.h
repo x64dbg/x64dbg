@@ -2,12 +2,14 @@
 #define CPUMULTIDUMP_H
 
 #include <QWidget>
-#include "CPUDump.h"
 #include "TabWidget.h"
-#include "WatchView.h"
-#include "StructWidget.h"
+#include "Bridge.h"
 
 class CPUDump;
+class WatchView;
+class StructWidget;
+class CPUDisassembly;
+class LocalVarsView;
 
 class CPUMultiDump : public MHTabWidget
 {
@@ -39,6 +41,7 @@ private:
     uint mMaxCPUDumpTabs;
 
     WatchView* mWatch;
+    LocalVarsView* mLocalVars;
     StructWidget* mStructWidget;
 
     int GetDumpWindowIndex(int dump);
