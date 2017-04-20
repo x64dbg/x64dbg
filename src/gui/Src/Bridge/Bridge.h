@@ -42,6 +42,7 @@ public:
     QWidget* scriptView;
     ReferenceManager* referenceManager;
     QWidget* snowmanView;
+    bool mIsRunning = false;
 
 signals:
     void disassembleAt(dsint va, dsint eip);

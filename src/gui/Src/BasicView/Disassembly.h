@@ -134,7 +134,6 @@ private:
     SelectionData_t mSelection;
 
     bool mIsLastInstDisplayed;
-    bool mIsRunning;
 
     GuiState_t mGuiState;
 

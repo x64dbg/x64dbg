@@ -21,7 +21,6 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
     mSelection = data;
 
     mCipRva = 0;
-    mIsRunning = false;
 
     mHighlightToken.text = "";
     mHighlightingMode = false;
@@ -217,7 +216,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         QString addrText = getAddrText(cur_addr, label);
         BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
-        if(mInstBuffer.at(rowOffset).rva == mCipRva && !mIsRunning && DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr)) //cip + not running + valid cip
+        if(mInstBuffer.at(rowOffset).rva == mCipRva && !Bridge::getBridge()->mIsRunning && DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr)) //cip + not running + valid cip
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
             if(!isbookmark) //no bookmark
@@ -1885,12 +1884,6 @@ void Disassembly::debugStateChangedSlot(DBGSTATE state)
     {
     case stopped:
         disassembleClear();
-        break;
-    case paused:
-        mIsRunning = false;
-        break;
-    case running:
-        mIsRunning = true;
         break;
     default:
         break;

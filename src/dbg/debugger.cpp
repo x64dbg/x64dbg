@@ -637,10 +637,16 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     GuiUpdateSideBar();
 }
 
-void DebugUpdateGuiSetState(duint disasm_addr, bool stack, DBGSTATE state = paused)
+void GuiSetDebugStateAsync(DBGSTATE state)
 {
-    GuiSetDebugState(state);
-    DebugUpdateGui(disasm_addr, stack);
+    static TaskThread_<decltype(&GuiSetDebugState), DBGSTATE> GuiSetDebugStateTask(&GuiSetDebugState);
+    GuiSetDebugStateTask.WakeUp(state);
+}
+
+void DebugUpdateGuiAsync(duint disasm_addr, bool stack)
+{
+    static TaskThread_<decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiTask(&DebugUpdateGui);
+    DebugUpdateGuiTask.WakeUp(disasm_addr, stack);
 }
 
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
@@ -648,15 +654,8 @@ void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
     // call paused routine to clean up various tracing states.
     if(state == DBGSTATE::paused)
         cbDebuggerPaused();
-    //correctly orders the GuiSetDebugState DebugUpdateGui to prevent drawing inconsistencies
-    static TaskThread_<decltype(&DebugUpdateGuiSetState), duint, bool, DBGSTATE> DebugUpdateGuiSetStateTask(&DebugUpdateGuiSetState);
-    DebugUpdateGuiSetStateTask.WakeUp(disasm_addr, stack, state);
-}
-
-void DebugUpdateGuiAsync(duint disasm_addr, bool stack)
-{
-    static TaskThread_<decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiTask(&DebugUpdateGui);
-    DebugUpdateGuiTask.WakeUp(disasm_addr, stack);
+    GuiSetDebugStateAsync(state);
+    DebugUpdateGuiAsync(disasm_addr, stack);
 }
 
 void DebugUpdateBreakpointsViewAsync()
@@ -835,12 +834,6 @@ static bool getConditionValue(const char* expression)
     if(valfromstring(expression, &value))
         return value != 0;
     return true;
-}
-
-void GuiSetDebugStateAsync(DBGSTATE state)
-{
-    static TaskThread_<decltype(&GuiSetDebugState), DBGSTATE> GuiSetDebugStateTask(&GuiSetDebugState);
-    GuiSetDebugStateTask.WakeUp(state);
 }
 
 void cbPauseBreakpoint()

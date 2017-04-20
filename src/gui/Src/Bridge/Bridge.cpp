@@ -103,6 +103,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_SET_DEBUG_STATE:
+        mIsRunning = DBGSTATE(duint(param1)) == running;
         emit dbgStateChanged((DBGSTATE)(dsint)param1);
         break;
 
