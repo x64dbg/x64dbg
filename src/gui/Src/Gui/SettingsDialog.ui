@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -535,6 +535,13 @@
         <widget class="QCheckBox" name="chk0xPrefixValues">
          <property name="text">
           <string>0x prefix for values</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkNoSourceLinesAutoComments">
+         <property name="text">
+          <string>Don't show source lines in comments</string>
          </property>
         </widget>
        </item>

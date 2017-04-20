@@ -71,6 +71,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmTabBetweenMnemonicAndArguments = false;
     settings.disasmNoCurrentModuleText = false;
     settings.disasm0xPrefixValues = false;
+    settings.disasmNoSourceLineAutoComments = false;
     settings.guiNoForegroundWindow = true;
 
     //Events tab
@@ -198,6 +199,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "PermanentHighlightingMode", &settings.disasmPermanentHighlightingMode);
     GetSettingBool("Disassembler", "NoCurrentModuleText", &settings.disasmNoCurrentModuleText);
     GetSettingBool("Disassembler", "0xPrefixValues", &settings.disasm0xPrefixValues);
+    GetSettingBool("Disassembler", "NoSourceLineAutoComments", &settings.disasmNoSourceLineAutoComments);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
@@ -207,6 +209,7 @@ void SettingsDialog::LoadSettings()
     ui->chkPermanentHighlightingMode->setChecked(settings.disasmPermanentHighlightingMode);
     ui->chkNoCurrentModuleText->setChecked(settings.disasmNoCurrentModuleText);
     ui->chk0xPrefixValues->setChecked(settings.disasm0xPrefixValues);
+    ui->chkNoSourceLinesAutoComments->setChecked(settings.disasmNoSourceLineAutoComments);
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
@@ -340,6 +343,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "PermanentHighlightingMode", settings.disasmPermanentHighlightingMode);
     BridgeSettingSetUint("Disassembler", "NoCurrentModuleText", settings.disasmNoCurrentModuleText);
     BridgeSettingSetUint("Disassembler", "0xPrefixValues", settings.disasm0xPrefixValues);
+    BridgeSettingSetUint("Disassembler", "NoSourceLineAutoComments", settings.disasmNoSourceLineAutoComments);
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
@@ -789,4 +793,9 @@ void SettingsDialog::on_chk0xPrefixValues_toggled(bool checked)
 {
     bTokenizerConfigUpdated = true;
     settings.disasm0xPrefixValues = checked;
+}
+
+void SettingsDialog::on_chkNoSourceLinesAutoComments_toggled(bool checked)
+{
+    settings.disasmNoSourceLineAutoComments = checked;
 }

@@ -71,6 +71,7 @@ private slots:
     void on_chkNoCurrentModuleText_toggled(bool checked);
     void on_chkPermanentHighlightingMode_toggled(bool checked);
     void on_chk0xPrefixValues_toggled(bool checked);
+    void on_chkNoSourceLinesAutoComments_toggled(bool checked);
     //Gui Tab
     void on_chkFpuRegistersLittleEndian_stateChanged(int arg1);
     void on_chkSaveColumnOrder_stateChanged(int arg1);
@@ -158,6 +159,7 @@ private:
         bool disasmNoCurrentModuleText;
         bool disasmPermanentHighlightingMode;
         bool disasm0xPrefixValues;
+        bool disasmNoSourceLineAutoComments;
         //Gui Tab
         bool guiFpuRegistersLittleEndian;
         bool guiSaveColumnOrder;

@@ -36,6 +36,7 @@
 #include "recursiveanalysis.h"
 
 static bool bOnlyCipAutoComments = false;
+static bool bNoSourceLineAutoComments = false;
 static TITAN_ENGINE_CONTEXT_t titcontext;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
@@ -314,7 +315,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             DWORD dwDisplacement;
             IMAGEHLP_LINEW64 line;
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-            if(SafeSymGetLineFromAddrW64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) && !dwDisplacement)
+            if(!bNoSourceLineAutoComments && SafeSymGetLineFromAddrW64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) && !dwDisplacement)
             {
                 wchar_t filename[deflen] = L"";
                 wcsncpy_s(filename, line.FileName, _TRUNCATE);
@@ -961,6 +962,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         valuesetsignedcalc(!settingboolget("Engine", "CalculationType")); //0:signed, 1:unsigned
         SetEngineVariable(UE_ENGINE_SET_DEBUG_PRIVILEGE, settingboolget("Engine", "EnableDebugPrivilege"));
         bOnlyCipAutoComments = settingboolget("Disassembler", "OnlyCipAutoComments");
+        bNoSourceLineAutoComments = settingboolget("Disassembler", "NoSourceLineAutoComments");
         bListAllPages = settingboolget("Engine", "ListAllPages");
         bUndecorateSymbolNames = settingboolget("Engine", "UndecorateSymbolNames");
         bEnableSourceDebugging = settingboolget("Engine", "EnableSourceDebugging");
