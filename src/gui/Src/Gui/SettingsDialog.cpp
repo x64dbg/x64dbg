@@ -70,6 +70,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmOnlyCipAutoComments = false;
     settings.disasmTabBetweenMnemonicAndArguments = false;
     settings.disasmNoCurrentModuleText = false;
+    settings.disasm0xPrefixValues = false;
     settings.guiNoForegroundWindow = true;
 
     //Events tab
@@ -196,6 +197,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "NoHighlightOperands", &settings.disasmNoHighlightOperands);
     GetSettingBool("Disassembler", "PermanentHighlightingMode", &settings.disasmPermanentHighlightingMode);
     GetSettingBool("Disassembler", "NoCurrentModuleText", &settings.disasmNoCurrentModuleText);
+    GetSettingBool("Disassembler", "0xPrefixValues", &settings.disasm0xPrefixValues);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
@@ -204,6 +206,7 @@ void SettingsDialog::LoadSettings()
     ui->chkNoHighlightOperands->setChecked(settings.disasmNoHighlightOperands);
     ui->chkPermanentHighlightingMode->setChecked(settings.disasmPermanentHighlightingMode);
     ui->chkNoCurrentModuleText->setChecked(settings.disasmNoCurrentModuleText);
+    ui->chk0xPrefixValues->setChecked(settings.disasm0xPrefixValues);
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
@@ -336,6 +339,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "NoHighlightOperands", settings.disasmNoHighlightOperands);
     BridgeSettingSetUint("Disassembler", "PermanentHighlightingMode", settings.disasmPermanentHighlightingMode);
     BridgeSettingSetUint("Disassembler", "NoCurrentModuleText", settings.disasmNoCurrentModuleText);
+    BridgeSettingSetUint("Disassembler", "0xPrefixValues", settings.disasm0xPrefixValues);
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
@@ -779,4 +783,10 @@ void SettingsDialog::on_chkNoCurrentModuleText_toggled(bool checked)
 {
     bTokenizerConfigUpdated = true;
     settings.disasmNoCurrentModuleText = checked;
+}
+
+void SettingsDialog::on_chk0xPrefixValues_toggled(bool checked)
+{
+    bTokenizerConfigUpdated = true;
+    settings.disasm0xPrefixValues = checked;
 }

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>508</height>
+    <height>514</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -528,6 +528,13 @@
         <widget class="QCheckBox" name="chkPermanentHighlightingMode">
          <property name="text">
           <string>Permanent highlighting mode</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chk0xPrefixValues">
+         <property name="text">
+          <string>0x prefix for values</string>
          </property>
         </widget>
        </item>
