@@ -639,7 +639,8 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
 
 void GuiSetDebugStateAsync(DBGSTATE state)
 {
-    static TaskThread_<decltype(&GuiSetDebugState), DBGSTATE> GuiSetDebugStateTask(&GuiSetDebugState);
+    GuiSetDebugStateFast(state);
+    static TaskThread_<decltype(&GuiSetDebugState), DBGSTATE> GuiSetDebugStateTask(&GuiSetDebugState, 300);
     GuiSetDebugStateTask.WakeUp(state);
 }
 
@@ -652,7 +653,7 @@ void DebugUpdateGuiAsync(duint disasm_addr, bool stack)
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
 {
     // call paused routine to clean up various tracing states.
-    if(state == DBGSTATE::paused)
+    if(state == paused)
         cbDebuggerPaused();
     GuiSetDebugStateAsync(state);
     DebugUpdateGuiAsync(disasm_addr, stack);

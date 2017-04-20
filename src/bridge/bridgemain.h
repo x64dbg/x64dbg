@@ -1064,6 +1064,7 @@ typedef struct _TYPEDESCRIPTOR
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source);
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state);
+BRIDGE_IMPEXP void GuiSetDebugStateFast(DBGSTATE state);
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg);
 BRIDGE_IMPEXP void GuiLogClear();
 BRIDGE_IMPEXP void GuiUpdateAllViews();

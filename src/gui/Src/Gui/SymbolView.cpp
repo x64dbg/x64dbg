@@ -14,6 +14,7 @@
 SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {
     ui->setupUi(this);
+    setAutoFillBackground(false);
 
     // Set main layout
     mMainLayout = new QVBoxLayout;

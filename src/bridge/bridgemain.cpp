@@ -1055,7 +1055,12 @@ BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
 {
-    _gui_sendmessage(GUI_SET_DEBUG_STATE, (void*)state, 0);
+    _gui_sendmessage(GUI_SET_DEBUG_STATE, (void*)state, (void*)false);
+}
+
+BRIDGE_IMPEXP void GuiSetDebugStateFast(DBGSTATE state)
+{
+    _gui_sendmessage(GUI_SET_DEBUG_STATE, (void*)state, (void*)true);
 }
 
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
