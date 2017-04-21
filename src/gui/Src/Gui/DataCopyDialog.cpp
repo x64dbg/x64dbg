@@ -8,24 +8,27 @@ typedef PCTSTR(__stdcall* INETNTOPW)(INT Family, PVOID pAddr, wchar_t* pStringBu
 DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : QDialog(parent), ui(new Ui::DataCopyDialog)
 {
     ui->setupUi(this);
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     mData = data;
 
-    ui->comboType->addItem(tr("C-Style BYTE (Hex)"));
-    ui->comboType->addItem(tr("C-Style WORD (Hex)"));
-    ui->comboType->addItem(tr("C-Style DWORD (Hex)"));
-    ui->comboType->addItem(tr("C-Style QWORD (Hex)"));
-    ui->comboType->addItem(tr("C-Style String"));
-    ui->comboType->addItem(tr("C-Style Unicode String"));
-    ui->comboType->addItem(tr("C-Style Shellcode String"));
-    ui->comboType->addItem(tr("Pascal BYTE (Hex)"));
-    ui->comboType->addItem(tr("Pascal WORD (Hex)"));
-    ui->comboType->addItem(tr("Pascal DWORD (Hex)"));
-    ui->comboType->addItem(tr("Pascal QWORD (Hex)"));
-    ui->comboType->addItem(tr("GUID"));
-    ui->comboType->addItem(tr("IP Address (IPv4)"));
-    ui->comboType->addItem(tr("IP Address (IPv6)"));
-    ui->comboType->addItem(tr("Base64"));
+    mTypes[DataCByte] = FormatType { tr("C-Style BYTE (Hex)"), 16 };
+    mTypes[DataCWord] = FormatType { tr("C-Style WORD (Hex)"), 12 };
+    mTypes[DataCDword] = FormatType { tr("C-Style DWORD (Hex)"), 8 };
+    mTypes[DataCQword] = FormatType { tr("C-Style QWORD (Hex)"), 4 };
+    mTypes[DataCString] = FormatType { tr("C-Style String"), -1 };
+    mTypes[DataCUnicodeString] = FormatType { tr("C-Style Unicode String"), -1 };
+    mTypes[DataCShellcodeString] = FormatType { tr("C-Style Shellcode String"), -1 };
+    mTypes[DataPascalByte] = FormatType { tr("Pascal BYTE (Hex)"), 42 };
+    mTypes[DataPascalWord] = FormatType { tr("Pascal WORD (Hex)"), 21 };
+    mTypes[DataPascalDword] = FormatType { tr("Pascal DWORD (Hex)"), 10 };
+    mTypes[DataPascalQword] = FormatType { tr("Pascal QWORD (Hex)"), 5 };
+    mTypes[DataGUID] = FormatType { tr("GUID"), 0 };
+    mTypes[DataIPv4] = FormatType { tr("IP Address (IPv4)"), 0 };
+    mTypes[DataIPv6] = FormatType { tr("IP Address (IPv6)"), 0 };
+    mTypes[DataBase64] = FormatType { tr("Base64"), -1 };
+
+    for(int i = 0; i < DataLast; i++)
+        ui->comboType->addItem(mTypes[i].name);
 
     ui->comboType->setCurrentIndex(DataCByte);
 
@@ -84,6 +87,26 @@ QString DataCopyDialog::printEscapedString(bool & bPrevWasHex, int ch, const cha
     return data;
 }
 
+template<typename T>
+QString formatLoop(const QVector<byte_t>* bytes, int itemsPerLine, QString(*format)(T))
+{
+    QString data;
+    int count = bytes->size() / sizeof(T);
+    for(int i = 0; i < count ; i++)
+    {
+        if(i)
+        {
+            data += ',';
+            if(itemsPerLine > 0 && i % itemsPerLine == 0)
+                data += '\n';
+            else
+                data += ' ';
+        }
+        data += format(((const T*)bytes->constData())[i]);
+    }
+    return data;
+}
+
 void DataCopyDialog::printData(DataType type)
 {
     ui->editCode->clear();
@@ -92,57 +115,37 @@ void DataCopyDialog::printData(DataType type)
     {
     case DataCByte:
     {
-        int numbytes = mData->size() / sizeof(unsigned char);
-        data += "{";
-        for(int i = 0; i < numbytes; i++)
+        data = "{\n" + formatLoop<unsigned char>(mData, mTypes[mIndex].itemsPerLine, [](unsigned char n)
         {
-            if(i)
-                data += ", ";
-            data += QString().sprintf("0x%02X", ((unsigned char*)mData->constData())[i]);
-        }
-        data += "};";
+            return QString().sprintf("0x%02X", n);
+        }) + "\n};";
     }
     break;
 
     case DataCWord:
     {
-        int numwords = mData->size() / sizeof(unsigned short);
-        data += "{";
-        for(int i = 0; i < numwords; i++)
+        data = "{\n" + formatLoop<unsigned short>(mData, mTypes[mIndex].itemsPerLine, [](unsigned short n)
         {
-            if(i)
-                data += ", ";
-            data += QString().sprintf("0x%04X", ((unsigned short*)mData->constData())[i]);
-        }
-        data += "};";
+            return QString().sprintf("0x%04X", n);
+        }) + "\n};";
     }
     break;
 
     case DataCDword:
     {
-        int numdwords = mData->size() / sizeof(unsigned int);
-        data += "{";
-        for(int i = 0; i < numdwords; i++)
+        data = "{\n" + formatLoop<unsigned int>(mData, mTypes[mIndex].itemsPerLine, [](unsigned int n)
         {
-            if(i)
-                data += ", ";
-            data += QString().sprintf("0x%08X", ((unsigned int*)mData->constData())[i]);
-        }
-        data += "};";
+            return QString().sprintf("0x%08X", n);
+        }) + "\n};";
     }
     break;
 
     case DataCQword:
     {
-        int numqwords = mData->size() / sizeof(unsigned long long);
-        data += "{";
-        for(int i = 0; i < numqwords; i++)
+        data = "{\n" + formatLoop<unsigned long long>(mData, mTypes[mIndex].itemsPerLine, [](unsigned long long n)
         {
-            if(i)
-                data += ", ";
-            data += QString().sprintf("0x%016llX", ((unsigned long long*)mData->constData())[i]);
-        }
-        data += "};";
+            return QString().sprintf("0x%016llX", n);
+        }) + "\n};";
     }
     break;
 
@@ -195,90 +198,54 @@ void DataCopyDialog::printData(DataType type)
 
     case DataPascalByte:
     {
-        int numbytes = mData->size() / sizeof(unsigned char);
-        data.reserve(numbytes * (2 + 3) + 100);
-        data += QString().sprintf("Array [1..%u] of Byte = (\n", numbytes);
-        for(int i = 0; i < numbytes; i++)
+        data += QString().sprintf("Array [1..%u] of Byte = (\n", mData->size());
+        data += formatLoop<unsigned char>(mData, mTypes[mIndex].itemsPerLine, [](unsigned char n)
         {
-            if(i)
-            {
-                data += ", ";
-                if(i % 42 == 0)
-                    data += '\n';
-            }
-            data += QString().sprintf("$%02X", ((unsigned char*)mData->constData())[i]);
-        }
+            return QString().sprintf("$%02X", n);
+        });
         data += "\n);";
     }
     break;
 
     case DataPascalWord:
     {
-        int numwords = mData->size() / sizeof(unsigned short);
-        data.reserve(numwords * (4 + 3) + 100);
-        data += QString().sprintf("Array [1..%u] of Word = (\n", numwords);
-        for(int i = 0; i < numwords; i++)
+        data += QString().sprintf("Array [1..%u] of Word = (\n", mData->size() / 2);
+        data += formatLoop<unsigned short>(mData, mTypes[mIndex].itemsPerLine, [](unsigned short n)
         {
-            if(i)
-            {
-                data += ", ";
-                if(i % 21 == 0)
-                    data += '\n';
-            }
-            data += QString().sprintf("$%04X", ((unsigned short*)mData->constData())[i]);
-        }
+            return QString().sprintf("$%04X", n);
+        });
         data += "\n);";
     }
     break;
 
     case DataPascalDword:
     {
-        int numdwords = mData->size() / sizeof(unsigned int);
-        data.reserve(numdwords * (8 + 3) + 100);
-        data += QString().sprintf("Array [1..%u] of Dword = (\n", numdwords);
-        for(int i = 0; i < numdwords; i++)
+        data += QString().sprintf("Array [1..%u] of Dword = (\n", mData->size() / 4);
+        data += formatLoop<unsigned int>(mData, mTypes[mIndex].itemsPerLine, [](unsigned int n)
         {
-            if(i)
-            {
-                data += ", ";
-                if(i % 10 == 0)
-                    data += '\n';
-            }
-            data += QString().sprintf("$%08X", ((unsigned int*)mData->constData())[i]);
-        }
+            return QString().sprintf("$%08X", n);
+        });
         data += "\n);";
     }
     break;
 
     case DataPascalQword:
     {
-        int numqwords = mData->size() / sizeof(unsigned long long);
-        data.reserve(numqwords * (16 + 3) + 100);
-        data += QString().sprintf("Array [1..%u] of Int64 = (\n", numqwords);
-        for(int i = 0; i < numqwords; i++)
+        data += QString().sprintf("Array [1..%u] of Int64 = (\n", mData->size() / 8);
+        data += formatLoop<unsigned long long>(mData, mTypes[mIndex].itemsPerLine, [](unsigned long long n)
         {
-            if(i)
-            {
-                data += ", ";
-                if(i % 5 == 0)
-                    data += '\n';
-            }
-            data += QString().sprintf("$%016llX", ((unsigned long long*)mData->constData())[i]);
-        }
+            return QString().sprintf("$%016llX", n);
+        });
         data += "\n);";
     }
     break;
 
     case DataGUID:
     {
-        int numguids = mData->size() / sizeof(GUID);
-        for(int i = 0; i < numguids; i++)
+        data = formatLoop<GUID>(mData, mTypes[mIndex].itemsPerLine, [](GUID guid)
         {
-            if(i)
-                data += ", ";
-            GUID guid = ((GUID*)(mData->constData()))[i];
-            data += QString().sprintf("{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", guid.Data1, guid.Data2, guid.Data3, guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-        }
+            return QString().sprintf("{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", guid.Data1, guid.Data2, guid.Data3, guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+        });
     }
     break;
 
@@ -349,10 +316,20 @@ DataCopyDialog::~DataCopyDialog()
 
 void DataCopyDialog::on_comboType_currentIndexChanged(int index)
 {
-    printData((DataType)index);
+    mIndex = index;
+    auto oldValue = ui->spinBox->value(), newValue = mTypes[mIndex].itemsPerLine;
+    ui->spinBox->setValue(newValue);
+    if(oldValue == newValue)
+        printData(DataType(mIndex));
 }
 
 void DataCopyDialog::on_buttonCopy_clicked()
 {
     Bridge::CopyToClipboard(ui->editCode->toPlainText());
+}
+
+void DataCopyDialog::on_spinBox_valueChanged(int value)
+{
+    mTypes[mIndex].itemsPerLine = value;
+    printData(DataType(mIndex));
 }

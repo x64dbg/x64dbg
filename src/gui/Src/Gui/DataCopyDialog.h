@@ -21,10 +21,12 @@ public:
 private slots:
     void on_comboType_currentIndexChanged(int index);
     void on_buttonCopy_clicked();
+    void on_spinBox_valueChanged(int arg1);
 
 private:
     Ui::DataCopyDialog* ui;
     const QVector<byte_t>* mData;
+    int mIndex;
 
     enum DataType
     {
@@ -42,8 +44,17 @@ private:
         DataGUID,
         DataIPv4,
         DataIPv6,
-        DataBase64
+        DataBase64,
+        DataLast
     };
+
+    struct FormatType
+    {
+        QString name;
+        int itemsPerLine;
+    };
+
+    FormatType mTypes[DataLast];
 
     void printData(DataType type);
     QString printEscapedString(bool & bPrevWasHex, int ch, const char* hexFormat);
