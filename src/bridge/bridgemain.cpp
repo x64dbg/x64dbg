@@ -1228,6 +1228,11 @@ BRIDGE_IMPEXP int GuiReferenceGetRowCount()
     return (int)(duint)_gui_sendmessage(GUI_REF_GETROWCOUNT, 0, 0);
 }
 
+BRIDGE_IMPEXP int GuiReferenceSearchGetRowCount()
+{
+    return int(_gui_sendmessage(GUI_REF_SEARCH_GETROWCOUNT, 0, 0));
+}
+
 BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns()
 {
     _gui_sendmessage(GUI_REF_DELETEALLCOLUMNS, 0, 0);
@@ -1250,6 +1255,11 @@ BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
 BRIDGE_IMPEXP char* GuiReferenceGetCellContent(int row, int col)
 {
     return (char*)_gui_sendmessage(GUI_REF_GETCELLCONTENT, (void*)(duint)row, (void*)(duint)col);
+}
+
+BRIDGE_IMPEXP char* GuiReferenceSearchGetCellContent(int row, int col)
+{
+    return (char*)_gui_sendmessage(GUI_REF_SEARCH_GETCELLCONTENT, (void*)row, (void*)col);
 }
 
 BRIDGE_IMPEXP void GuiReferenceReloadData()

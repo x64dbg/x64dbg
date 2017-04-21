@@ -224,6 +224,11 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
             return (void*)referenceManager->currentReferenceView()->mList->getRowCount();
         return 0;
 
+    case GUI_REF_SEARCH_GETROWCOUNT:
+        if(referenceManager->currentReferenceView())
+            return (void*)referenceManager->currentReferenceView()->mCurList->getRowCount();
+        return 0;
+
     case GUI_REF_DELETEALLCOLUMNS:
         GuiReferenceInitialize(tr("References").toUtf8().constData());
         break;
@@ -240,6 +245,17 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         QString content;
         if(referenceManager->currentReferenceView())
             content = referenceManager->currentReferenceView()->mList->getCellContent((int)param1, (int)param2);
+        auto bytes = content.toUtf8();
+        auto data = BridgeAlloc(bytes.size() + 1);
+        memcpy(data, bytes.constData(), bytes.size());
+        return data;
+    }
+
+    case GUI_REF_SEARCH_GETCELLCONTENT:
+    {
+        QString content;
+        if(referenceManager->currentReferenceView())
+            content = referenceManager->currentReferenceView()->mCurList->getCellContent((int)param1, (int)param2);
         auto bytes = content.toUtf8();
         auto data = BridgeAlloc(bytes.size() + 1);
         memcpy(data, bytes.constData(), bytes.size());

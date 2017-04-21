@@ -327,6 +327,20 @@ namespace Exprfunc
         return addr;
     }
 
+    duint refsearchcount()
+    {
+        return GuiReferenceSearchGetRowCount();
+    }
+
+    duint refsearchaddr(duint row)
+    {
+        auto content = GuiReferenceSearchGetCellContent(int(row), 0);
+        duint addr = 0;
+        valfromstring(content, &addr, false);
+        BridgeFree(content);
+        return addr;
+    }
+
     static String argExpr(duint index)
     {
 #ifdef _WIN64

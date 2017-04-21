@@ -1000,6 +1000,8 @@ typedef enum
     GUI_MENU_SET_ENTRY_NAME,        // param1=int hEntry,           param2=const char* name
     GUI_FLUSH_LOG,                  // param1=unused,               param2=unused
     GUI_MENU_SET_ENTRY_HOTKEY,      // param1=int hEntry,           param2=const char* hack
+    GUI_REF_SEARCH_GETROWCOUNT,     // param1=unused,               param2=unused
+    GUI_REF_SEARCH_GETCELLCONTENT,  // param1=int row,              param2=int col
 } GUIMSG;
 
 //GUI Typedefs
@@ -1091,10 +1093,12 @@ BRIDGE_IMPEXP void GuiSymbolRefreshCurrent();
 BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title);
 BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count);
 BRIDGE_IMPEXP int GuiReferenceGetRowCount();
+BRIDGE_IMPEXP int GuiReferenceSearchGetRowCount();
 BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns();
 BRIDGE_IMPEXP void GuiReferenceInitialize(const char* name);
 BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str);
 BRIDGE_IMPEXP char* GuiReferenceGetCellContent(int row, int col);
+BRIDGE_IMPEXP char* GuiReferenceSearchGetCellContent(int row, int col);
 BRIDGE_IMPEXP void GuiReferenceReloadData();
 BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll);
 BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress);

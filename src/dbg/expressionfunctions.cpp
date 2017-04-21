@@ -121,6 +121,8 @@ void ExpressionFunctions::Init()
     //References
     RegisterEasy("ref.count", refcount);
     RegisterEasy("ref.addr", refaddr);
+    RegisterEasy("refsearch.count", refsearchcount);
+    RegisterEasy("refsearch.addr", refsearchaddr);
 
     //Arguments
     RegisterEasy("arg.get,arg", argget);
