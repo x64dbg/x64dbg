@@ -1774,9 +1774,9 @@ void CPUDisassembly::findCommandSlot()
         refFindType = 2;
 
     LineEditDialog mLineEdit(this);
-    mLineEdit.enableCheckBox(false);
-    //    mLineEdit.setCheckBoxText(tr("Entire &Block"));
-    //    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
+    mLineEdit.enableCheckBox(refFindType == 0);
+    mLineEdit.setCheckBoxText(tr("Entire &Block"));
+    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
     mLineEdit.setWindowTitle("Find Command");
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -1786,8 +1786,10 @@ void CPUDisassembly::findCommandSlot()
     unsigned char dest[16];
     int asmsize = 0;
     duint va = rvaToVa(getInitialSelection());
+    if(mLineEdit.bChecked) // entire block
+        va = mMemPage->getBase();
 
-    if(!DbgFunctions()->Assemble(va + mMemPage->getSize() / 2, dest, &asmsize, mLineEdit.editText.toUtf8().constData(), error))
+    if(!DbgFunctions()->Assemble(mMemPage->getBase() + mMemPage->getSize() / 2, dest, &asmsize, mLineEdit.editText.toUtf8().constData(), error))
     {
         SimpleErrorBox(this, tr("Error!"), tr("Failed to assemble instruction \"") + mLineEdit.editText + "\" (" + error + ")");
         return;

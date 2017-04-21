@@ -10,6 +10,7 @@ LineEditDialog::LineEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Li
     ui->checkBox->hide();
     bChecked = false;
     this->fixed_size = 0;
+    ui->label->setVisible(false);
 }
 
 LineEditDialog::~LineEditDialog()
@@ -30,7 +31,8 @@ void LineEditDialog::setCursorPosition(int position)
 void LineEditDialog::ForceSize(unsigned int size)
 {
     this->fixed_size = size;
-
+    if(this->fixed_size)
+        ui->label->setVisible(true);
 }
 
 void LineEditDialog::setText(const QString & text)
