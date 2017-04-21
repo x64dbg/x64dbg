@@ -434,6 +434,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionBinaryCopy", Shortcut(tr("Actions -> Binary Copy"), "Shift+C"));
     defaultShortcuts.insert("ActionBinaryPaste", Shortcut(tr("Actions -> Binary Paste"), "Shift+V"));
     defaultShortcuts.insert("ActionBinaryPasteIgnoreSize", Shortcut(tr("Actions -> Binary Paste (Ignore Size)"), "Ctrl+Shift+V"));
+    defaultShortcuts.insert("ActionBinarySave", Shortcut(tr("Actions -> Binary Save")));
     defaultShortcuts.insert("ActionUndoSelection", Shortcut(tr("Actions -> Undo Selection"), "Ctrl+Backspace"));
     defaultShortcuts.insert("ActionSetLabel", Shortcut(tr("Actions -> Set Label"), ":"));
     defaultShortcuts.insert("ActionSetLabelOperand", Shortcut(tr("Actions -> Set Label for the Operand"), "Alt+;"));
@@ -551,12 +552,19 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionCreateNewThreadHere", Shortcut(tr("Actions -> Create New Thread Here")));
     defaultShortcuts.insert("ActionOpenSourceFile", Shortcut(tr("Actions -> Open Source File")));
     defaultShortcuts.insert("ActionFollowMemMap", Shortcut(tr("Actions -> Follow in Memory Map")));
+    defaultShortcuts.insert("ActionFollowStack", Shortcut(tr("Actions -> Follow in Stack")));
+    defaultShortcuts.insert("ActionFollowDisasm", Shortcut(tr("Actions -> Follow in Disassembler")));
+    defaultShortcuts.insert("ActionFollowDwordQwordDisasm", Shortcut(tr("Actions -> Follow DWORD/QWORD in Disassembler")));
+    defaultShortcuts.insert("ActionFollowDwordQwordDump", Shortcut(tr("Actions -> Follow DWORD/QWORD in Dump")));
     defaultShortcuts.insert("ActionFreezeStack", Shortcut(tr("Actions -> Freeze the stack")));
     defaultShortcuts.insert("ActionGotoBaseOfStackFrame", Shortcut(tr("Actions -> Go to Base of Stack Frame")));
     defaultShortcuts.insert("ActionGotoPrevStackFrame", Shortcut(tr("Actions -> Go to Previous Stack Frame")));
     defaultShortcuts.insert("ActionGotoNextStackFrame", Shortcut(tr("Actions -> Go to Next Stack Frame")));
     defaultShortcuts.insert("ActionGotoPreviousReference", Shortcut(tr("Actions -> Go to Previous Reference", "Ctrl+K")));
     defaultShortcuts.insert("ActionGotoNextReference", Shortcut(tr("Actions -> Go to Next Reference", "Ctrl+L")));
+    defaultShortcuts.insert("ActionModifyValue", Shortcut(tr("Actions -> Modify value", "Space")));
+    defaultShortcuts.insert("ActionWatchDwordQword", Shortcut(tr("Actions -> Watch DWORD/QWORD")));
+    defaultShortcuts.insert("ActionDataCopy", Shortcut(tr("Actions -> Data Copy")));
 
     Shortcuts = defaultShortcuts;
 
