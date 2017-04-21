@@ -27,6 +27,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mWindowsTable->setDrawDebugOnly(true);
     mWindowsTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), false);
+    mWindowsTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), false);
     mWindowsTable->addColumnAt(8 + 120 * wCharWidth, tr("Title"), false);
     mWindowsTable->addColumnAt(8 + 40 * wCharWidth, tr("Class"), false);
     mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), false);
@@ -34,7 +35,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mWindowsTable->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), false);
     mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), false);
     mWindowsTable->addColumnAt(8 + 20 * wCharWidth, tr("Size"), false);
-    mWindowsTable->addColumnAt(16, tr("Enable"), false);
+    mWindowsTable->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), false);
 
     mTcpConnectionsTable = new StdTable(this);
     mTcpConnectionsTable->setWindowTitle("TcpConnections");
@@ -325,25 +326,33 @@ void HandlesView::enumWindows()
         for(auto i = 0; i < count; i++)
         {
             mWindowsTable->setCellContent(i, 0, ToHexString(windows[i].handle));
-            mWindowsTable->setCellContent(i, 1, QString(windows[i].windowTitle));
-            mWindowsTable->setCellContent(i, 2, QString(windows[i].windowClass));
+            auto hwnd = HWND(windows[i].handle);
+            duint classproc;
+            //Thanks to ThunderCls!
+            if(IsWindowUnicode(hwnd))
+                classproc = GetClassLongW(hwnd, GCL_WNDPROC);
+            else
+                classproc = GetClassLongA(hwnd, GCL_WNDPROC);
+            mWindowsTable->setCellContent(i, 1, ToPtrString(classproc));
+            mWindowsTable->setCellContent(i, 2, QString(windows[i].windowTitle));
+            mWindowsTable->setCellContent(i, 3, QString(windows[i].windowClass));
             char threadname[MAX_THREAD_NAME_SIZE];
             if(DbgFunctions()->ThreadGetName(windows[i].threadId, threadname))
-                mWindowsTable->setCellContent(i, 3, QString::fromUtf8(threadname));
+                mWindowsTable->setCellContent(i, 4, QString::fromUtf8(threadname));
             else if(Config()->getBool("Gui", "PidInHex"))
-                mWindowsTable->setCellContent(i, 3, ToHexString(windows[i].threadId));
+                mWindowsTable->setCellContent(i, 4, ToHexString(windows[i].threadId));
             else
-                mWindowsTable->setCellContent(i, 3, QString::number(windows[i].threadId));
+                mWindowsTable->setCellContent(i, 4, QString::number(windows[i].threadId));
             //Style
-            mWindowsTable->setCellContent(i, 4, ToHexString(windows[i].style));
+            mWindowsTable->setCellContent(i, 5, ToHexString(windows[i].style));
             //StyleEx
-            mWindowsTable->setCellContent(i, 5, ToHexString(windows[i].styleEx));
-            mWindowsTable->setCellContent(i, 6, ToHexString(windows[i].parent) + (windows[i].parent == ((duint)GetDesktopWindow()) ? tr(" (Desktop window)") : ""));
+            mWindowsTable->setCellContent(i, 6, ToHexString(windows[i].styleEx));
+            mWindowsTable->setCellContent(i, 7, ToHexString(windows[i].parent) + (windows[i].parent == ((duint)GetDesktopWindow()) ? tr(" (Desktop window)") : ""));
             //Size
             QString sizeText = QString("(%1,%2);%3x%4").arg(windows[i].position.left).arg(windows[i].position.top)
                                .arg(windows[i].position.right - windows[i].position.left).arg(windows[i].position.bottom - windows[i].position.top);
-            mWindowsTable->setCellContent(i, 7, sizeText);
-            mWindowsTable->setCellContent(i, 8, windows[i].enabled != FALSE ? tr("Enabled") : tr("Disabled"));
+            mWindowsTable->setCellContent(i, 8, sizeText);
+            mWindowsTable->setCellContent(i, 9, windows[i].enabled != FALSE ? tr("Enabled") : tr("Disabled"));
         }
     }
     else
