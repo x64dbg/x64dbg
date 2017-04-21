@@ -48,6 +48,8 @@ public slots:
     void gotoFileOffsetSlot();
     void gotoStartSlot();
     void gotoEndSlot();
+    void gotoPreviousReferenceSlot();
+    void gotoNextReferenceSlot();
 
     void hexAsciiSlot();
     void hexUnicodeSlot();

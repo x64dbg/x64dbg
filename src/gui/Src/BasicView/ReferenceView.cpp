@@ -104,6 +104,8 @@ void ReferenceView::connectBridge()
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
+    connect(this->mSearchList, SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    connect(this->mList, SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
 }
 
 void ReferenceView::disconnectBridge()
@@ -116,6 +118,8 @@ void ReferenceView::disconnectBridge()
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchTotalProgress, SLOT(setValue(int)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
+    disconnect(this->mSearchList, SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    disconnect(this->mList, SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
 }
 
 void ReferenceView::refreshShortcutsSlot()
@@ -138,6 +142,12 @@ void ReferenceView::referenceSetCurrentTaskProgressSlot(int progress, QString ta
     mSearchCurrentTaskProgress->setFormat(taskTitle + " " + QString::number(progress) + "%");
 }
 
+void ReferenceView::searchSelectionChanged(int index)
+{
+    DbgValToString("$__disasm_refindex", index);
+    DbgValToString("$__dump_refindex", index);
+}
+
 void ReferenceView::addColumnAt(int width, QString title)
 {
     int charwidth = mList->getCharWidth();
@@ -154,6 +164,8 @@ void ReferenceView::addColumnAt(int width, QString title)
 
 void ReferenceView::setRowCount(dsint count)
 {
+    if(!mList->getRowCount() && count) //from zero to N rows
+        searchSelectionChanged(0);
     emit mCountTotalLabel->setText(QString("%1").arg(count));
     mSearchBox->setText("");
     mList->setRowCount(count);

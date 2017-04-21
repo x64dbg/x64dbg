@@ -189,6 +189,14 @@ void CPUDump::setupContextMenu()
     {
         return historyHasNext();
     });
+    wGotoMenu->addAction(makeShortcutAction(DIcon("prevref.png"), tr("Previous Reference"), SLOT(gotoPreviousReferenceSlot()), "ActionGotoPreviousReference"), [](QMenu*)
+    {
+        return !!DbgEval("refsearch.count() && ($__dump_refindex > 0 || dump.sel() != refsearch.addr($__dump_refindex))");
+    });
+    wGotoMenu->addAction(makeShortcutAction(DIcon("nextref.png"), tr("Next Reference"), SLOT(gotoNextReferenceSlot()), "ActionGotoNextReference"), [](QMenu*)
+    {
+        return !!DbgEval("refsearch.count() && ($__dump_refindex < refsearch.count() || dump.sel() != refsearch.addr($__dump_refindex))");
+    });
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("&Go to")), wGotoMenu);
     mMenuBuilder->addSeparator();
 
@@ -583,6 +591,28 @@ void CPUDump::gotoEndSlot()
 {
     duint dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * getBytePerRowCount());
     DbgCmdExec(QString().sprintf("dump \"%p\"", dest).toUtf8().constData());
+}
+
+void CPUDump::gotoPreviousReferenceSlot()
+{
+    auto count = DbgEval("refsearch.count()"), index = DbgEval("$__dump_refindex"), addr = DbgEval("refsearch.addr($__dump_refindex)");
+    if(count)
+    {
+        if(index > 0 && addr == rvaToVa(getInitialSelection()))
+            DbgValToString("$__dump_refindex", index - 1);
+        DbgCmdExec("dump refsearch.addr($__dump_refindex)");
+    }
+}
+
+void CPUDump::gotoNextReferenceSlot()
+{
+    auto count = DbgEval("refsearch.count()"), index = DbgEval("$__dump_refindex"), addr = DbgEval("refsearch.addr($__dump_refindex)");
+    if(count)
+    {
+        if(index + 1 < count && addr == rvaToVa(getInitialSelection()))
+            DbgValToString("$__dump_refindex", index + 1);
+        DbgCmdExec("dump refsearch.addr($__dump_refindex)");
+    }
 }
 
 void CPUDump::hexAsciiSlot()

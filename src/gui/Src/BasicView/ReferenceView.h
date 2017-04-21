@@ -36,6 +36,7 @@ public slots:
     void refreshShortcutsSlot();
     void referenceSetProgressSlot(int progress);
     void referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle);
+    void searchSelectionChanged(int index);
 
 signals:
     void showCpu();

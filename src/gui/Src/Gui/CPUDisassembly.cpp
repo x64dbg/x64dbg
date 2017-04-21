@@ -564,6 +564,15 @@ void CPUDisassembly::setupRightClickContextMenu()
     {
         return DbgFunctionGet(rvaToVa(getInitialSelection()), nullptr, nullptr);
     });
+    gotoMenu->addAction(makeShortcutAction(DIcon("prevref.png"), tr("Previous Reference"), SLOT(gotoPreviousReferenceSlot()), "ActionGotoPreviousReference"), [](QMenu*)
+    {
+        return !!DbgEval("refsearch.count() && ($__disasm_refindex > 0 || dis.sel() != refsearch.addr($__disasm_refindex))");
+    });
+    gotoMenu->addAction(makeShortcutAction(DIcon("nextref.png"), tr("Next Reference"), SLOT(gotoNextReferenceSlot()), "ActionGotoNextReference"), [](QMenu*)
+    {
+        return !!DbgEval("refsearch.count() && ($__disasm_refindex < refsearch.count()|| dis.sel() != refsearch.addr($__disasm_refindex))");
+    });
+
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
     mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("xrefs..."), SLOT(gotoXrefSlot()), "ActionXrefs"), [this](QMenu*)
@@ -1153,6 +1162,28 @@ void CPUDisassembly::gotoFunctionEndSlot()
     if(!DbgFunctionGet(rvaToVa(getInitialSelection()), nullptr, &end))
         return;
     DbgCmdExec(QString("disasm \"%1\"").arg(ToHexString(end)).toUtf8().constData());
+}
+
+void CPUDisassembly::gotoPreviousReferenceSlot()
+{
+    auto count = DbgEval("refsearch.count()"), index = DbgEval("$__disasm_refindex"), addr = DbgEval("refsearch.addr($__disasm_refindex)");
+    if(count)
+    {
+        if(index > 0 && addr == rvaToVa(getInitialSelection()))
+            DbgValToString("$__disasm_refindex", index - 1);
+        DbgCmdExec("disasm refsearch.addr($__disasm_refindex)");
+    }
+}
+
+void CPUDisassembly::gotoNextReferenceSlot()
+{
+    auto count = DbgEval("refsearch.count()"), index = DbgEval("$__disasm_refindex"), addr = DbgEval("refsearch.addr($__disasm_refindex)");
+    if(count)
+    {
+        if(index + 1 < count && addr == rvaToVa(getInitialSelection()))
+            DbgValToString("$__disasm_refindex", index + 1);
+        DbgCmdExec("disasm refsearch.addr($__disasm_refindex)");
+    }
 }
 
 void CPUDisassembly::gotoXrefSlot()

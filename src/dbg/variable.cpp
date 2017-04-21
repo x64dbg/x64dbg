@@ -67,6 +67,8 @@ void varinit()
     varnew("$result2\1$res2", 0, VAR_SYSTEM);
     varnew("$result3\1$res3", 0, VAR_SYSTEM);
     varnew("$result4\1$res4", 0, VAR_SYSTEM);
+    varnew("$__disasm_refindex", 0, VAR_SYSTEM);
+    varnew("$__dump_refindex", 0, VAR_SYSTEM);
 
     // InitDebug variables
     varnew("$hProcess\1$hp", 0, VAR_READONLY);  // Process handle

@@ -58,6 +58,8 @@ public slots:
     void gotoEndSlot();
     void gotoFunctionStartSlot();
     void gotoFunctionEndSlot();
+    void gotoPreviousReferenceSlot();
+    void gotoNextReferenceSlot();
     void followActionSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
