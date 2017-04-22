@@ -245,6 +245,8 @@ static void registercommands()
     dbgcmdnew("EnablePrivilege", cbEnablePrivilege, true); //enable priv
     dbgcmdnew("DisablePrivilege", cbDisablePrivilege, true); //disable priv
     dbgcmdnew("handleclose,closehandle", cbHandleClose, true); //close remote handle
+    dbgcmdnew("EnableWindow", cbEnableWindow, true); //enable remote window
+    dbgcmdnew("DisableWindow", cbDisableWindow, true); //disable remote window
 
     //watch control
     dbgcmdnew("AddWatch", cbAddWatch, true); // add watch
