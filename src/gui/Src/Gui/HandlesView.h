@@ -8,6 +8,7 @@ class StdTable;
 class ReferenceView;
 class QVBoxLayout;
 class LabeledSplitter;
+class HandlesWindowViewTable;
 
 class HandlesView : public QWidget
 {
@@ -30,6 +31,10 @@ public slots:
     void enablePrivilegeSlot();
     void disableAllPrivilegesSlot();
     void enableAllPrivilegesSlot();
+    void enableWindowSlot();
+    void disableWindowSlot();
+    void followInDisasmSlot();
+    void toggleBPSlot();
 
 private:
     QVBoxLayout* mVertLayout;
@@ -46,6 +51,11 @@ private:
     QAction* mActionEnablePrivilege;
     QAction* mActionDisableAllPrivileges;
     QAction* mActionEnableAllPrivileges;
+    QAction* mActionEnableWindow;
+    QAction* mActionDisableWindow;
+    QAction* mActionFollowProc;
+    QAction* mActionToggleProcBP;
+    QAction* mActionMessageProcBP;
 
     void enumHandles();
     void enumWindows();

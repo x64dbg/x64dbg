@@ -6,6 +6,7 @@
 #include "StringUtil.h"
 #include "ReferenceView.h"
 #include "MainWindow.h"
+#include "HandlesWindowViewTable.h"
 #include <QVBoxLayout>
 
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
@@ -22,7 +23,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mHandlesTable->addColumnAt(8 + wCharWidth * 20, tr("Name"), false);
     mHandlesTable->loadColumnFromConfig("Handle");
 
-    mWindowsTable = new StdTable(this);
+    mWindowsTable = new HandlesWindowViewTable(this);
     mWindowsTable->setWindowTitle("Windows");
     mWindowsTable->setDrawDebugOnly(true);
     mWindowsTable->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -93,6 +94,17 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     connect(mActionDisableAllPrivileges, SIGNAL(triggered()), this, SLOT(disableAllPrivilegesSlot()));
     mActionEnableAllPrivileges = new QAction(DIcon("enable.png"), tr("Enable all privileges"), this);
     connect(mActionEnableAllPrivileges, SIGNAL(triggered()), this, SLOT(enableAllPrivilegesSlot()));
+    mActionEnableWindow = new QAction(DIcon("enable.png"), tr("Enable window"), this);
+    connect(mActionEnableWindow, SIGNAL(triggered()), this, SLOT(enableWindowSlot()));
+    mActionDisableWindow = new QAction(DIcon("disable.png"), tr("Disable window"), this);
+    connect(mActionDisableWindow, SIGNAL(triggered()), this, SLOT(disableWindowSlot()));
+    mActionFollowProc = new QAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow Proc in Disassembler"), this);
+    connect(mActionFollowProc, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
+    mActionToggleProcBP = new QAction(DIcon("breakpoint_toggle.png"), tr("Toggle Breakpoint in Proc"), this);
+    connect(mActionToggleProcBP, SIGNAL(triggered()), this, SLOT(toggleBPSlot()));
+    mActionMessageProcBP = new QAction(DIcon("breakpoint_execute.png"), tr("Message Breakpoint in Proc"), this);
+    //connect(mActionMessageProcBP, SIGNAL(triggered()), this, SLOT(messageBPSlot()));
+    mActionMessageProcBP->setDisabled(true);
 
     connect(mHandlesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(handlesTableContextMenuSlot(const QPoint &)));
     connect(mWindowsTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(windowsTableContextMenuSlot(const QPoint &)));
@@ -180,8 +192,23 @@ void HandlesView::windowsTableContextMenuSlot(const QPoint & pos)
     QMenu wCopyMenu(tr("Copy"), this);
     wCopyMenu.setIcon(DIcon("copy.png"));
     wMenu.addAction(mActionRefresh);
+
     if(table.getRowCount())
     {
+        if(table.getCellContent(table.getInitialSelection(), 9) == tr("Enabled"))
+        {
+            mActionDisableWindow->setText(tr("Disable window"));
+            wMenu.addAction(mActionDisableWindow);
+        }
+        else
+        {
+            mActionEnableWindow->setText(tr("Enable window"));
+            wMenu.addAction(mActionEnableWindow);
+        }
+
+        wMenu.addAction(mActionFollowProc);
+        wMenu.addAction(mActionToggleProcBP);
+        wMenu.addAction(mActionMessageProcBP);
         wMenu.addSeparator();
         table.setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
@@ -253,6 +280,7 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 void HandlesView::closeHandleSlot()
 {
     DbgCmdExec(QString("handleclose %1").arg(mHandlesTable->getCellContent(mHandlesTable->getInitialSelection(), 2)).toUtf8().constData());
+    enumHandles();
 }
 
 void HandlesView::enablePrivilegeSlot()
@@ -287,6 +315,50 @@ void HandlesView::disableAllPrivilegesSlot()
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
             DbgCmdExec(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)).toUtf8().constData());
     enumPrivileges();
+}
+
+void HandlesView::enableWindowSlot()
+{
+    DbgCmdExec(QString("EnableWindow %1").arg(mWindowsTable->getCellContent(mWindowsTable->getInitialSelection(), 0)).toUtf8().constData());
+    enumWindows();
+}
+
+void HandlesView::disableWindowSlot()
+{
+    DbgCmdExec(QString("DisableWindow %1").arg(mWindowsTable->getCellContent(mWindowsTable->getInitialSelection(), 0)).toUtf8().constData());
+    enumWindows();
+}
+
+void HandlesView::followInDisasmSlot()
+{
+    DbgCmdExec(QString("disasm %1").arg(mWindowsTable->getCellContent(mWindowsTable->getInitialSelection(), 1)).toUtf8().constData());
+}
+
+void HandlesView::toggleBPSlot()
+{
+    StdTable & mCurList = *mWindowsTable;
+
+    if(!DbgIsDebugging())
+        return;
+
+    if(!mCurList.getRowCount())
+        return;
+    QString addrText = mCurList.getCellContent(mCurList.getInitialSelection(), 1).toUtf8().constData();
+    duint wVA;
+    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
+        return;
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
+
+    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
+    QString wCmd;
+
+    if((wBpType & bp_normal) == bp_normal)
+        wCmd = "bc " + ToPtrString(wVA);
+    else if(wBpType == bp_none)
+        wCmd = "bp " + ToPtrString(wVA);
+
+    DbgCmdExecDirect(wCmd.toUtf8().constData());
 }
 
 //Enum functions

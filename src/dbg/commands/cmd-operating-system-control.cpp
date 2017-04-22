@@ -95,3 +95,31 @@ bool cbHandleClose(int argc, char* argv[])
 #endif
     return true;
 }
+
+bool cbEnableWindow(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    duint handle;
+    if(!valfromstring(argv[1], &handle, false))
+        return false;
+
+    if(!IsWindowEnabled((HWND)handle))
+        EnableWindow((HWND)handle, TRUE);
+
+    return true;
+}
+
+bool cbDisableWindow(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    duint handle;
+    if(!valfromstring(argv[1], &handle, false))
+        return false;
+
+    if(IsWindowEnabled((HWND)handle))
+        EnableWindow((HWND)handle, FALSE);
+
+    return true;
+}

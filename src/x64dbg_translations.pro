@@ -217,7 +217,8 @@ SOURCES += \
     dbg/types.cpp \
     dbg/typesparser.cpp \
     gui/Src/Utils/MRUList.cpp \
-    gui/Src/Gui/LocalVarsView.cpp
+    gui/Src/Gui/LocalVarsView.cpp \
+    gui/Src/Gui/HandlesWindowViewTable.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -445,7 +446,8 @@ HEADERS += \
     dbg/formatfunctions.h \
     dbg/types.h \
     gui/Src/Utils/MRUList.h \
-    gui/Src/Gui/LocalVarsView.h
+    gui/Src/Gui/LocalVarsView.h \
+    gui/Src/Gui/HandlesWindowViewTable.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
