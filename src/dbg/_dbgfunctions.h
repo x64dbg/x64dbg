@@ -101,7 +101,7 @@ typedef struct
     DWORD threadId;
     DWORD style;
     DWORD styleEx;
-    duint wndProc;//not used yet
+    duint wndProc;
     bool enabled;
     RECT position;
     char windowTitle[MAX_COMMENT_SIZE];

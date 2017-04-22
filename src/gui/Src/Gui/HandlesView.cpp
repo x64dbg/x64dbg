@@ -326,14 +326,7 @@ void HandlesView::enumWindows()
         for(auto i = 0; i < count; i++)
         {
             mWindowsTable->setCellContent(i, 0, ToHexString(windows[i].handle));
-            auto hwnd = HWND(windows[i].handle);
-            duint classproc;
-            //Thanks to ThunderCls!
-            if(IsWindowUnicode(hwnd))
-                classproc = GetClassLongW(hwnd, GCL_WNDPROC);
-            else
-                classproc = GetClassLongA(hwnd, GCL_WNDPROC);
-            mWindowsTable->setCellContent(i, 1, ToPtrString(classproc));
+            mWindowsTable->setCellContent(i, 1, ToPtrString(windows[i].wndProc));
             mWindowsTable->setCellContent(i, 2, QString(windows[i].windowTitle));
             mWindowsTable->setCellContent(i, 3, QString(windows[i].windowClass));
             char threadname[MAX_THREAD_NAME_SIZE];

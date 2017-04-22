@@ -180,6 +180,7 @@ static WINDOW_INFO getWindowInfo(HWND hWnd)
     GetWindowRect(hWnd, &info.position); //Get Window Rect
     info.style = GetWindowLong(hWnd, GWL_STYLE); //Get Window Style
     info.styleEx = GetWindowLong(hWnd, GWL_EXSTYLE); //Get Window Stye ex
+    info.wndProc = (IsWindowUnicode(hWnd) ? GetClassLongPtrW : GetClassLongPtrA)(hWnd, GCLP_WNDPROC); //Get Window Proc (thanks to ThunderCls!)
     info.enabled = IsWindowEnabled(hWnd) == TRUE;
     info.parent = (duint)GetParent(hWnd); //Get Parent Window
     info.threadId = GetWindowThreadProcessId(hWnd, nullptr); //Get Window Thread Id
