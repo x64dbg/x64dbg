@@ -69,8 +69,17 @@ bool ConstantFromName(const String & name, duint & value)
 std::vector<CONSTANTINFO> ConstantList()
 {
     std::vector<CONSTANTINFO> result;
-    for(auto it : Constants)
-        result.push_back({ it.first.c_str(), it.second });
+    for(auto it = Constants.begin(); it != Constants.end(); ++it)
+    {
+        CONSTANTINFO info;
+        info.name = it->first.c_str();
+        info.value = it->second;
+        result.push_back(info);
+    }
+    std::sort(result.begin(), result.end(), [](const CONSTANTINFO & a, const CONSTANTINFO & b)
+    {
+        return strcmp(a.name, b.name) < 0;
+    });
     return result;
 }
 
@@ -138,7 +147,16 @@ const String & ErrorCodeToName(unsigned int ErrorCode)
 std::vector<CONSTANTINFO> ErrorCodeList()
 {
     std::vector<CONSTANTINFO> result;
-    for(auto it : ErrorNames)
-        result.push_back({ it.second.c_str(), it.first });
+    for(auto it = ErrorNames.begin(); it != ErrorNames.end(); ++it)
+    {
+        CONSTANTINFO info;
+        info.name = it->second.c_str();
+        info.value = it->first;
+        result.push_back(info);
+    }
+    std::sort(result.begin(), result.end(), [](const CONSTANTINFO & a, const CONSTANTINFO & b)
+    {
+        return strcmp(a.name, b.name) < 0;
+    });
     return result;
 }
