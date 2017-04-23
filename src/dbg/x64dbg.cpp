@@ -580,6 +580,12 @@ static DWORD WINAPI loadDbThread(LPVOID)
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load NTSTATUS codes..."));
 
+    // Load Windows constants
+    if(ConstantCodeInit(StringUtils::sprintf("%s\\..\\winconstants.txt", szProgramDir)))
+        dputs(QT_TRANSLATE_NOOP("DBG", "Windows constant database loaded!"));
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load Windows constants..."));
+
     // Load global notes
     dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes file..."));
     notesFile = String(szProgramDir) + "\\notes.txt";

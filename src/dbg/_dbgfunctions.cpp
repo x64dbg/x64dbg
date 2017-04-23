@@ -28,6 +28,7 @@
 #include "animate.h"
 #include "thread.h"
 #include "comment.h"
+#include "exception.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -321,6 +322,18 @@ static void _getcallstackex(DBGCALLSTACK* callstack, bool cache)
     stackgetcallstack(csp, (CALLSTACK*)callstack);
 }
 
+static void _enumconstants(ListOf(CONSTANTINFO) constants)
+{
+    auto constantsV = ConstantList();
+    BridgeList<CONSTANTINFO>::CopyData(constants, constantsV);
+}
+
+static void _enumerrorcodes(ListOf(CONSTANTINFO) errorcodes)
+{
+    auto errorcodesV = ErrorCodeList();
+    BridgeList<CONSTANTINFO>::CopyData(errorcodes, errorcodesV);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -384,4 +397,6 @@ void dbgfunctionsinit()
     _dbgfunctions.IsDepEnabled = dbgisdepenabled;
     _dbgfunctions.GetCallStackEx = _getcallstackex;
     _dbgfunctions.GetUserComment = CommentGet;
+    _dbgfunctions.EnumConstants = _enumconstants;
+    _dbgfunctions.EnumErrorCodes = _enumerrorcodes;
 }
