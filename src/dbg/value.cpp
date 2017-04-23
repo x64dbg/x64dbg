@@ -17,6 +17,7 @@
 #include "threading.h"
 #include "TraceRecord.h"
 #include "plugin_loader.h"
+#include "exception.h"
 
 static bool dosignedcalc = false;
 
@@ -1813,6 +1814,9 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         *hexonly = true;
     if(value_size)
         *value_size = sizeof(duint);
+
+    if(ConstantFromName(string, *value))
+        return true;
 
     PLUG_CB_VALFROMSTRING info;
     info.string = string;

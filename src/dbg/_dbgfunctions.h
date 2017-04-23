@@ -115,6 +115,12 @@ typedef struct
     duint flags;
 } HEAPINFO;
 
+typedef struct
+{
+    const char* name;
+    duint value;
+} CONSTANTINFO;
+
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
 typedef bool (*MODNAMEFROMADDR)(duint addr, char* modname, bool extension);
@@ -176,6 +182,7 @@ typedef bool(*THREADGETNAME)(DWORD tid, char* name);
 typedef bool(*ISDEPENABLED)();
 typedef void(*GETCALLSTACKEX)(DBGCALLSTACK* callstack, bool cache);
 typedef bool(*GETUSERCOMMENT)(duint addr, char* comment);
+typedef void(*ENUMCONSTANTS)(ListOf(CONSTANTINFO) constants);
 
 //The list of all the DbgFunctions() return value.
 //WARNING: This list is append only. Do not insert things in the middle or plugins would break.
@@ -242,6 +249,8 @@ typedef struct DBGFUNCTIONS_
     ISDEPENABLED IsDepEnabled;
     GETCALLSTACKEX GetCallStackEx;
     GETUSERCOMMENT GetUserComment;
+    ENUMCONSTANTS EnumConstants;
+    ENUMCONSTANTS EnumErrorCodes;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

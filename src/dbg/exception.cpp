@@ -7,6 +7,7 @@
 static std::unordered_map<unsigned int, String> ExceptionNames;
 static std::unordered_map<unsigned int, String> NtStatusNames;
 static std::unordered_map<unsigned int, String> ErrorNames;
+static std::unordered_map<String, unsigned int> Constants;
 
 static bool UniversalCodeInit(const String & file, std::unordered_map<unsigned int, String> & names, unsigned char radix)
 {
@@ -35,6 +36,7 @@ static bool UniversalCodeInit(const String & file, std::unordered_map<unsigned i
     }
     return result;
 }
+
 bool ErrorCodeInit(const String & errorFile)
 {
     return UniversalCodeInit(errorFile, ErrorNames, 10);
@@ -43,6 +45,33 @@ bool ErrorCodeInit(const String & errorFile)
 bool ExceptionCodeInit(const String & exceptionFile)
 {
     return UniversalCodeInit(exceptionFile, ExceptionNames, 16);
+}
+
+bool ConstantCodeInit(const String & constantFile)
+{
+    std::unordered_map<unsigned int, String> names;
+    if(!UniversalCodeInit(constantFile, names, 0))
+        return false;
+    for(auto it : names)
+        Constants.insert({ it.second, it.first });
+    return true;
+}
+
+bool ConstantFromName(const String & name, duint & value)
+{
+    auto found = Constants.find(name);
+    if(found == Constants.end())
+        return false;
+    value = found->second;
+    return true;
+}
+
+std::vector<CONSTANTINFO> ConstantList()
+{
+    std::vector<CONSTANTINFO> result;
+    for(auto it : Constants)
+        result.push_back({ it.first.c_str(), it.second });
+    return result;
 }
 
 static bool ExceptionDatabaseNameToCode(const std::unordered_map<unsigned int, String>* db, const char* Name, unsigned int* ErrorCode)
@@ -104,4 +133,12 @@ const String & ErrorCodeToName(unsigned int ErrorCode)
 {
     bool success;
     return ExceptionDatabaseCodeToName(&ErrorNames, ErrorCode, &success);
+}
+
+std::vector<CONSTANTINFO> ErrorCodeList()
+{
+    std::vector<CONSTANTINFO> result;
+    for(auto it : ErrorNames)
+        result.push_back({ it.second.c_str(), it.first });
+    return result;
 }

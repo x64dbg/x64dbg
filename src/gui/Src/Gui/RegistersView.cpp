@@ -2630,7 +2630,6 @@ void RegistersView::displayEditDialog()
                     else
                         setRegister(mSelected, fpuvalue);
                 }
-
             }
             while(errorinput);
         }
