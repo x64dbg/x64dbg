@@ -7,6 +7,7 @@
 #include "ReferenceView.h"
 #include "MainWindow.h"
 #include "HandlesWindowViewTable.h"
+#include "MessagesBreakpoints.h"
 #include <QVBoxLayout>
 
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
@@ -103,8 +104,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mActionToggleProcBP = new QAction(DIcon("breakpoint_toggle.png"), tr("Toggle Breakpoint in Proc"), this);
     connect(mActionToggleProcBP, SIGNAL(triggered()), this, SLOT(toggleBPSlot()));
     mActionMessageProcBP = new QAction(DIcon("breakpoint_execute.png"), tr("Message Breakpoint in Proc"), this);
-    //connect(mActionMessageProcBP, SIGNAL(triggered()), this, SLOT(messageBPSlot()));
-    mActionMessageProcBP->setDisabled(true);
+    connect(mActionMessageProcBP, SIGNAL(triggered()), this, SLOT(messagesBPSlot()));
 
     connect(mHandlesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(handlesTableContextMenuSlot(const QPoint &)));
     connect(mWindowsTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(windowsTableContextMenuSlot(const QPoint &)));
@@ -359,6 +359,21 @@ void HandlesView::toggleBPSlot()
         wCmd = "bp " + ToPtrString(wVA);
 
     DbgCmdExecDirect(wCmd.toUtf8().constData());
+}
+
+void HandlesView::messagesBPSlot()
+{
+    StdTable & mCurList = *mWindowsTable;
+    MessagesBreakpoints::MsgBreakpointData mbpData;
+
+    if(!mCurList.getRowCount())
+        return;
+
+    mbpData.wndHandle = mCurList.getCellContent(mCurList.getInitialSelection(), 0).toUtf8().constData();
+    mbpData.procVA = mCurList.getCellContent(mCurList.getInitialSelection(), 1).toUtf8().constData();
+
+    MessagesBreakpoints messagesBPDialog(mbpData, this);
+    messagesBPDialog.exec();
 }
 
 //Enum functions

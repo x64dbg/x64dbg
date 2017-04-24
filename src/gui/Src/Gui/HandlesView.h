@@ -35,6 +35,7 @@ public slots:
     void disableWindowSlot();
     void followInDisasmSlot();
     void toggleBPSlot();
+    void messagesBPSlot();
 
 private:
     QVBoxLayout* mVertLayout;
