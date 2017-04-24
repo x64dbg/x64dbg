@@ -41,7 +41,8 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
     auto file = dbfile ? dbfile : dbpath;
-    auto cmdlinepath = file + String(".cmdline");
+    auto filename = strrchr(file, '\\');
+    auto cmdlinepath = filename ? StringUtils::sprintf("%s%s.cmdline", dbbasepath, filename) : file + String(".cmdline");
     dprintf(QT_TRANSLATE_NOOP("DBG", "Saving database to %s "), file);
     DWORD ticks = GetTickCount();
     JSON root = json_object();
