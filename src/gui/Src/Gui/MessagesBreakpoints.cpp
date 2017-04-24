@@ -10,7 +10,14 @@ MessagesBreakpoints::MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* par
     setModal(true);
     bpData = pbpData;
 
-    filterMessages = { "ACM_", "BFFM_", "BM_", "CBEM_", "CDM_", "DDM_", "DL_", "DM_", "EM_", "HKM_", "IE_", "IPM_", "LVM_", "MCIWNDM_", "MSG_", "NIN_", "OCM_", "PBM_", "PSM_", "RB_", "SB_", "SBM_", "SM_", "TAPI_", "TB_", "TBM_", "TTM_", "UDM_", "UM_", "WIZ_", "WLX_", "WM_" };
+    filterMessages =
+    {
+        "ACM_", "BFFM_", "BM_", "CB_", "CBEM_", "CCM_", "CDM_", "CTL3D_", "DDM_", "DL_",
+        "DM_", "DTM_", "EM_", "HDM_", "HKM_", "IE_", "IPM_", "LB_", "LVM_", "MCIWNDM_",
+        "MCM_", "MN_", "MSG_", "NIN_", "OCM_", "PBM_", "PGM_", "PSM_", "RB_", "SB_",
+        "SBM_", "SM_", "STM_", "TAPI_", "TB_", "TBM_", "TCM_", "TTM_", "TV_", "TVM_",
+        "UDM_", "UM_", "WIZ_", "WLX_", "WM_"
+    };
 
     BridgeList<CONSTANTINFO> constants;
     DbgFunctions()->EnumConstants(&constants);
@@ -19,10 +26,11 @@ MessagesBreakpoints::MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* par
     {
         foreach(QString filter, filterMessages)
         {
-            if(QString(constants[i].name).contains(filter))
+            if(QString(constants[i].name).startsWith(filter))
             {
                 messages.insert(constants[i].value, constants[i].name);
                 ui->cboxMessages->addItem(constants[i].name);
+                break;
             }
         }
     }
@@ -52,6 +60,6 @@ void MessagesBreakpoints::on_btnOk_clicked()
         DbgCmdExec(QString("bp 0x%1").arg(bpData.procVA).toUtf8().constData());
 
     QString bpCondCmd = QString("bpcnd 0x%1, \"arg.get(1) == 0x%2").arg(bpData.procVA).arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
-    ui->rbtnBreakCurrent->isChecked() ? bpCondCmd.append(QString(" && arg.get(0) == 0x%1\"").arg(bpData.wndHandle)) : bpCondCmd.append("\"");
+    bpCondCmd.append(ui->rbtnBreakCurrent->isChecked() ? QString(" && arg.get(0) == 0x%1\"").arg(bpData.wndHandle) : "\"");
     DbgCmdExec(bpCondCmd.toUtf8().constData());
 }
