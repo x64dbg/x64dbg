@@ -343,7 +343,21 @@ void DbSetPath(const char* Directory, const char* ModulePath)
             }
         }
 
-        if(settingboolget("Engine", "SaveDatabaseInProgramDirectory"))
+        auto checkWritable = [](const char* fileDir)
+        {
+            auto testfile = StringUtils::Utf8ToUtf16(StringUtils::sprintf("%s\\%X.x64dbg", fileDir, GetTickCount()));
+            auto hFile = CreateFileW(testfile.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
+            if(hFile == INVALID_HANDLE_VALUE)
+            {
+                dputs(QT_TRANSLATE_NOOP("DBG", "Cannot write to the program directory, try running x64dbg as admin..."));
+                return false;
+            }
+            CloseHandle(hFile);
+            DeleteFileW(testfile.c_str());
+            return true;
+        };
+
+        if(settingboolget("Engine", "SaveDatabaseInProgramDirectory") && checkWritable(fileDir))
         {
             // Absolute path in the program directory
             sprintf_s(dbpath, "%s\\%s.%s", fileDir, dbName, dbType);
