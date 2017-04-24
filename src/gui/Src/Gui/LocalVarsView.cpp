@@ -42,7 +42,7 @@ void LocalVarsView::setupContextMenu()
     });
     mMenu->addAction(makeAction(DIcon("dump.png"), tr("&Follow in Dump"), SLOT(followDumpSlot())), [this](QMenu*)
     {
-        return getCellContent(getInitialSelection(), 2) != tr("[Error]");
+        return getCellContent(getInitialSelection(), 2) != "???";
     });
     mMenu->addAction(makeAction(DIcon("dump.png"), ArchValue(tr("Follow DWORD in Dump"), tr("Follow QWORD in Dump")), SLOT(followWordInDumpSlot())), [this](QMenu*)
     {
@@ -76,11 +76,11 @@ void LocalVarsView::setupContextMenu()
     });
     mMenu->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followMemMapSlot()), "ActionFollowMemMap"), [this](QMenu*)
     {
-        return getCellContent(getInitialSelection(), 2) != tr("[Error]");
+        return getCellContent(getInitialSelection(), 2) != "???";
     });
     mMenu->addAction(makeShortcutAction(DIcon("modify.png"), tr("&Modify Value"), SLOT(editSlot()), "ActionModifyValue"), [this](QMenu*)
     {
-        return getCellContent(getInitialSelection(), 2) != tr("[Error]");
+        return getCellContent(getInitialSelection(), 2) != "???";
     });
     mMenu->addSeparator();
     mMenu->addAction(makeAction(tr("&Rename"), SLOT(renameSlot())));
@@ -303,7 +303,7 @@ void LocalVarsView::updateSlot()
                 setCellContent(i, 2, ToPtrString(val));
             }
             else
-                setCellContent(i, 2, tr("[Error]"));
+                setCellContent(i, 2, "???");
         }
         reloadData();
     }
