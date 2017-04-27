@@ -2320,7 +2320,12 @@ bool valtostring(const char* string, duint value, bool silent)
 {
     if(!*string)
         return false;
-    else if(strstr(string, "[")) //memory location
+    if(string[0] == '['
+            || (isdigitduint(string[0]) && string[1] == ':' && string[2] == '[')
+            || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[') //memory location
+            || strstr(string, "byte:[")
+            || strstr(string, "word:[")
+      )
     {
         if(!DbgIsDebugging())
         {
@@ -2329,40 +2334,110 @@ bool valtostring(const char* string, duint value, bool silent)
             return false;
         }
         int len = (int)strlen(string);
-        Memory<char*> newstring(len * 2, "valfromstring:newstring");
-        if(strstr(string, "[")) //memory brackets: []
-        {
-            for(int i = 0, j = 0; i < len; i++)
-            {
-                if(string[i] == ']')
-                    j += sprintf(newstring() + j, ")");
-                else if(isdigit(string[i]) && string[i + 1] == ':' && string[i + 2] == '[') //n:[
-                {
-                    j += sprintf(newstring() + j, "@%c:(", string[i]);
-                    i += 2;
-                }
-                else if(string[i] == '[')
-                    j += sprintf(newstring() + j, "@(");
-                else
-                    j += sprintf(newstring() + j, "%c", string[i]);
-            }
-        }
-        else
-            strcpy_s(newstring(), len * 2, string);
+
         int read_size = sizeof(duint);
-        int add = 1;
-        if(newstring()[2] == ':' && isdigit((newstring()[1])))
+        int prefix_size = 1;
+        size_t seg_offset = 0;
+        if(string[1] == ':') //n:[ (number of bytes to read)
         {
-            add += 2;
-            int new_size = newstring()[1] - 0x30;
+            prefix_size = 3;
+            int new_size = string[0] - '0';
             if(new_size < read_size)
                 read_size = new_size;
         }
+        else if(string[1] == 's' && string[2] == ':')
+        {
+            prefix_size = 4;
+            if(string[0] == 'f') // fs:[...]
+            {
+                // TODO: get real segment offset instead of assuming them
+#ifdef _WIN64
+                seg_offset = 0;
+#else //x86
+                seg_offset = (size_t)GetTEBLocation(hActiveThread);
+#endif //_WIN64
+            }
+            else if(string[0] == 'g') // gs:[...]
+            {
+#ifdef _WIN64
+                seg_offset = (size_t)GetTEBLocation(hActiveThread);
+#else //x86
+                seg_offset = 0;
+#endif //_WIN64
+            }
+        }
+        else if(string[0] == 'b'
+                && string[1] == 'y'
+                && string[2] == 't'
+                && string[3] == 'e'
+                && string[4] == ':'
+               ) // byte:[...]
+        {
+            prefix_size = 6;
+            int new_size = 1;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+        else if(string[0] == 'w'
+                && string[1] == 'o'
+                && string[2] == 'r'
+                && string[3] == 'd'
+                && string[4] == ':'
+               ) // word:[...]
+        {
+            prefix_size = 6;
+            int new_size = 2;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+        else if(string[0] == 'd'
+                && string[1] == 'w'
+                && string[2] == 'o'
+                && string[3] == 'r'
+                && string[4] == 'd'
+                && string[5] == ':'
+               ) // dword:[...]
+        {
+            prefix_size = 7;
+            int new_size = 4;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+#ifdef _WIN64
+        else if(string[0] == 'q'
+                && string[1] == 'w'
+                && string[2] == 'o'
+                && string[3] == 'r'
+                && string[4] == 'd'
+                && string[5] == ':'
+               ) // qword:[...]
+        {
+            prefix_size = 7;
+            int new_size = 8;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+#endif //_WIN64
+
+        String ptrstring;
+        for(auto i = prefix_size, depth = 1; i < len; i++)
+        {
+            if(string[i] == '[')
+                depth++;
+            else if(string[i] == ']')
+            {
+                depth--;
+                if(!depth)
+                    break;
+            }
+            ptrstring += string[i];
+        }
+
         duint temp;
-        if(!valfromstring(newstring() + add, &temp, silent))
+        if(!valfromstring(ptrstring.c_str(), &temp, silent))
             return false;
         duint value_ = value;
-        if(!MemPatch(temp, &value_, read_size))
+        if(!MemPatch(temp + seg_offset, &value_, read_size))
         {
             if(!silent)
                 dputs(QT_TRANSLATE_NOOP("DBG", "Failed to write memory"));
