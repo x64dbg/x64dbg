@@ -5,23 +5,20 @@
 #include "disasm_fast.h"
 #include "formatfunctions.h"
 
-namespace ValueType
+enum class ValueType
 {
-    enum ValueType
-    {
-        Unknown,
-        SignedDecimal,
-        UnsignedDecimal,
-        Hex,
-        Pointer,
-        String,
-        AddrInfo,
-        Module,
-        Instruction
-    };
-}
+    Unknown,
+    SignedDecimal,
+    UnsignedDecimal,
+    Hex,
+    Pointer,
+    String,
+    AddrInfo,
+    Module,
+    Instruction
+};
 
-static String printValue(FormatValueType value, ValueType::ValueType type)
+static String printValue(FormatValueType value, ValueType type)
 {
     duint valuint = 0;
     char string[MAX_STRING_SIZE] = "";
@@ -94,58 +91,67 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
     return result;
 }
 
-static const char* getArgExpressionType(const String & formatString, ValueType::ValueType & type, String & complexArgs)
+static bool typeFromCh(char ch, ValueType & type)
+{
+    switch(ch)
+    {
+    case 'd':
+        type = ValueType::SignedDecimal;
+        break;
+    case 'u':
+        type = ValueType::UnsignedDecimal;
+        break;
+    case 'p':
+        type = ValueType::Pointer;
+        break;
+    case 's':
+        type = ValueType::String;
+        break;
+    case 'x':
+        type = ValueType::Hex;
+        break;
+    case 'a':
+        type = ValueType::AddrInfo;
+        break;
+    case 'm':
+        type = ValueType::Module;
+        break;
+    case 'i':
+        type = ValueType::Instruction;
+        break;
+    default: //invalid format
+        return false;
+    }
+    return true;
+}
+
+static const char* getArgExpressionType(const String & formatString, ValueType & type, String & complexArgs)
 {
     size_t toSkip = 0;
     type = ValueType::Hex;
     complexArgs.clear();
     if(formatString.size() > 2 && !isdigit(formatString[0]) && formatString[1] == ':') //simple type
     {
-        switch(formatString[0])
-        {
-        case 'd':
-            type = ValueType::SignedDecimal;
-            break;
-        case 'u':
-            type = ValueType::UnsignedDecimal;
-            break;
-        case 'p':
-            type = ValueType::Pointer;
-            break;
-        case 's':
-            type = ValueType::String;
-            break;
-        case 'x':
-            type = ValueType::Hex;
-            break;
-        case 'a':
-            type = ValueType::AddrInfo;
-            break;
-        case 'm':
-            type = ValueType::Module;
-            break;
-        case 'i':
-            type = ValueType::Instruction;
-            break;
-        default: //invalid format
+        if(!typeFromCh(formatString[0], type))
             return nullptr;
-        }
         toSkip = 2; //skip '?:'
     }
-    else if(formatString.size() > 3 && (formatString[0] == ';' || formatString[0] == '@')) //complex type
+    else if(formatString.size() > 2 && formatString.find('@') != String::npos) //complex type
     {
-        for(toSkip = 1; toSkip < formatString.length(); toSkip++)
+        for(; toSkip < formatString.length(); toSkip++)
             if(formatString[toSkip] == '@')
             {
                 toSkip++;
                 break;
             }
-        complexArgs = formatString.substr(1, toSkip - 2);
+        complexArgs = formatString.substr(0, toSkip - 1);
+        if(complexArgs.length() == 1 && typeFromCh(complexArgs[0], type))
+            complexArgs.clear();
     }
     return formatString.c_str() + toSkip;
 }
 
-static unsigned int getArgNumType(const String & formatString, ValueType::ValueType & type)
+static unsigned int getArgNumType(const String & formatString, ValueType & type)
 {
     String complexArgs;
     auto expression = getArgExpressionType(formatString, type, complexArgs);
