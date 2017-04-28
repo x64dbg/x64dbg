@@ -1037,10 +1037,10 @@ bool cbInstrYara(int argc, char* argv[])
     Memory<uint8_t*> data(size);
     if(rawFile)
         memcpy(data(), rawFileData.data(), size);
-    else if(!MemRead(base, data(), size))
+    else
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to read memory page %p[%X]!\n"), base, DWORD(size));
-        return false;
+        memset(data(), 0xCC, data.size());
+        MemReadDumb(base, data(), size);
     }
 
     String rulesContent;

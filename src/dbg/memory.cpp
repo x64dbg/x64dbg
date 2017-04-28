@@ -763,3 +763,24 @@ void MemInitRemoteProcessCookie()
 
     fallbackCookie = cookie;
 }
+
+//Workaround for modules that have holes between sections, it keeps parts it couldn't read the same as the input
+void MemReadDumb(duint BaseAddress, void* Buffer, duint Size)
+{
+    if(!MemIsCanonicalAddress(BaseAddress) || !Buffer || !Size)
+        return;
+
+    duint offset = 0;
+    duint requestedSize = Size;
+    duint sizeLeftInFirstPage = PAGE_SIZE - (BaseAddress & (PAGE_SIZE - 1));
+    duint readSize = min(sizeLeftInFirstPage, requestedSize);
+
+    while(readSize)
+    {
+        SIZE_T bytesRead = 0;
+        MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)(BaseAddress + offset), (PBYTE)Buffer + offset, readSize, &bytesRead);
+        offset += readSize;
+        requestedSize -= readSize;
+        readSize = min(PAGE_SIZE, requestedSize);
+    }
+}
