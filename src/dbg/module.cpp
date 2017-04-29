@@ -285,6 +285,21 @@ duint ModHashFromAddr(duint Address)
     return module->hash + (Address - module->base);
 }
 
+duint ModContentHashFromAddr(duint Address)
+{
+    SHARED_ACQUIRE(LockModules);
+
+    auto module = ModInfoFromAddr(Address);
+
+    if(!module)
+        return 0;
+
+    if(module->fileMapVA != 0 && module->loadedSize > 0)
+        return murmurhash((void*)module->fileMapVA, module->loadedSize);
+    else
+        return 0;
+}
+
 duint ModHashFromName(const char* Module)
 {
     // return MODINFO.hash (based on the name)

@@ -47,6 +47,7 @@ bool ModNameFromAddr(duint Address, char* Name, bool Extension);
 duint ModBaseFromAddr(duint Address);
 duint ModHashFromAddr(duint Address);
 duint ModHashFromName(const char* Module);
+duint ModContentHashFromAddr(duint Address);
 duint ModBaseFromName(const char* Module);
 duint ModSizeFromAddr(duint Address);
 std::string ModNameFromHash(duint Hash);
