@@ -2,6 +2,7 @@
 #define TRACERECORD_H
 #include "_global.h"
 #include "_dbgfunctions.h"
+#include "debugger.h"
 
 class TraceRecordManager
 {
@@ -55,6 +56,12 @@ public:
     unsigned int getHitCount(duint address);
     TraceRecordByteType getByteType(duint address);
     void increaseInstructionCounter();
+
+    REGDUMP rtOldContext;
+    DWORD rtOldThreadId;
+    DISASM_INSTR rtOldInstr;
+    bool rtEnabled;
+    HANDLE rtFile;
 
     void saveToDb(JSON root);
     void loadFromDb(JSON root);
