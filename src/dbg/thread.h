@@ -2,7 +2,6 @@
 #define _THREAD_H
 
 #include "_global.h"
-#include "debugger.h"
 #include "undocumented.h"
 
 void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread);

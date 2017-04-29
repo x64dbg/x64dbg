@@ -5,6 +5,7 @@
 #include "watch.h"
 #include "threading.h"
 #include "cmd-watch-control.h"
+#include "debugger.h"
 
 static const duint HistoryMaxCount = 4096;
 static std::deque<HistoryContext> history;

@@ -14,6 +14,7 @@
 #include "threading.h"
 #include "exhandlerinfo.h"
 #include "symbolinfo.h"
+#include "debugger.h"
 
 using SehMap = std::unordered_map<duint, STACK_COMMENT>;
 static SehMap SehCache;

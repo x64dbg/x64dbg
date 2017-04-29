@@ -23,8 +23,8 @@
 #include "encodemap.h"
 #include "plugin_loader.h"
 #include "argument.h"
-#include "debugger.h"
 #include "filemap.h"
+#include "debugger.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -226,7 +226,7 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
     if(loadType == DbLoadSaveType::DebugData || loadType == DbLoadSaveType::All)
     {
         if(strcmp(json_string_value(json_object_get(root, "hashAlgorithm")), "murmurhash") == 0) //Checking checksum of the debuggee.
-            dbhash = json_hex_value(json_object_get(root, "hash"));
+            dbhash = duint(json_hex_value(json_object_get(root, "hash")));
         else
             dbhash = 0;
 

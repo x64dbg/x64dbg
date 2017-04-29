@@ -1,5 +1,5 @@
 #include "module.h"
-#include "debugger.h"
+#include "TitanEngine/TitanEngine.h"
 #include "threading.h"
 #include "symbolinfo.h"
 #include "murmurhash.h"
