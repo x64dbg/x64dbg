@@ -34,6 +34,7 @@
 #include "animate.h"
 #include "TraceRecord.h"
 #include "recursiveanalysis.h"
+#include "dbghelp_safe.h"
 
 static bool bOnlyCipAutoComments = false;
 static bool bNoSourceLineAutoComments = false;

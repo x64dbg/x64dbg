@@ -7,6 +7,8 @@
 #include "breakpoint.h"
 #include "_plugins.h"
 #include "commandline.h"
+#include <tlhelp32.h>
+#include <psapi.h>
 
 //structures
 struct INIT_STRUCT

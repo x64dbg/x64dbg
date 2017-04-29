@@ -3,6 +3,8 @@
 
 #include "_global.h"
 #include <functional>
+#include <map>
+#include <unordered_map>
 
 //ranges
 typedef std::pair<duint, duint> Range;

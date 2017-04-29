@@ -15,6 +15,7 @@
 #include "exhandlerinfo.h"
 #include "symbolinfo.h"
 #include "debugger.h"
+#include "dbghelp_safe.h"
 
 using SehMap = std::unordered_map<duint, STACK_COMMENT>;
 static SehMap SehCache;

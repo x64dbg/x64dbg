@@ -1,5 +1,4 @@
-#ifndef _GLOBAL_H
-#define _GLOBAL_H
+#pragma once
 
 #define _WIN32_WINNT 0x0501
 
@@ -10,30 +9,10 @@
 
 #define _WIN32_IE 0x0500
 
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <windows.h>
-#include <psapi.h>
-#include <shlwapi.h>
-#include <vector>
-#include <stack>
-#include <map>
-#include <set>
-#include <algorithm>
-#include <functional>
-#include <unordered_map>
-#include <unordered_set>
-#include <tlhelp32.h>
 #include "../dbg_types.h"
 #include "../dbg_assert.h"
-#include "../bridge\bridgemain.h"
-#include "jansson/jansson.h"
-#include "jansson/jansson_x64dbg.h"
-#include "DeviceNameResolver/DeviceNameResolver.h"
-#include "handle.h"
+#include "../bridge/bridgemain.h"
 #include "stringutils.h"
-#include "dbghelp_safe.h"
 
 #ifndef DLL_EXPORT
 #define DLL_EXPORT __declspec(dllexport)
@@ -98,5 +77,3 @@ void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD t
 #endif //_WIN64
 
 #include "dynamicmem.h"
-
-#endif // _GLOBAL_H

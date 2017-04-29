@@ -9,6 +9,7 @@
 #include "console.h"
 #include "module.h"
 #include "addrinfo.h"
+#include "dbghelp_safe.h"
 
 struct SYMBOLCBDATA
 {

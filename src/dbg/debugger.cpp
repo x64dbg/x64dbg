@@ -31,6 +31,9 @@
 #include "cmd-watch-control.h"
 #include "filemap.h"
 #include "jit.h"
+#include "handle.h"
+#include "dbghelp_safe.h"
+
 /**
 \brief Conditional tracing structures
 */

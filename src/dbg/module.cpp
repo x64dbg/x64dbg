@@ -5,6 +5,7 @@
 #include "murmurhash.h"
 #include "memory.h"
 #include "label.h"
+#include <algorithm>
 
 std::map<Range, MODINFO, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;

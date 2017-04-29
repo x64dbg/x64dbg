@@ -2,6 +2,7 @@
 #define _BREAKPOINT_H
 
 #include "_global.h"
+#include "jansson/jansson_x64dbg.h"
 
 #define TITANSETDRX(titantype, drx) titantype &= 0x0FF; titantype |= (drx<<8)
 #define TITANGETDRX(titantype) (titantype >> 8) & 0xF

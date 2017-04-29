@@ -9,6 +9,7 @@
 #include "plugin_loader.h"
 #include "value.h"
 #include "TraceRecord.h"
+#include "handle.h"
 
 static bool skipInt3Stepping(int argc, char* argv[])
 {

@@ -14,6 +14,7 @@
 #include "symbolinfo.h"
 #include "exception.h"
 #include "TraceRecord.h"
+#include "dbghelp_safe.h"
 
 bool cbInstrAnalyse(int argc, char* argv[])
 {

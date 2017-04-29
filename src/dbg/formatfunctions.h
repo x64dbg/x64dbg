@@ -2,6 +2,7 @@
 
 #include "_global.h"
 #include "_plugins.h"
+#include <functional>
 
 class FormatFunctions
 {

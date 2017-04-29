@@ -6,6 +6,7 @@
 #include "threading.h"
 #include "cmd-watch-control.h"
 #include "debugger.h"
+#include <deque>
 
 static const duint HistoryMaxCount = 4096;
 static std::deque<HistoryContext> history;
