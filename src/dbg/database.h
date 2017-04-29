@@ -15,5 +15,6 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile = nullptr);
 void DbClose();
 void DbClear(bool terminating = false);
 void DbSetPath(const char* Directory, const char* ModulePath);
+bool DbCheckHash(duint currentHash);
 
 #endif // _DATABASE_H

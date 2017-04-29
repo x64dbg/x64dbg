@@ -31,7 +31,9 @@
 #include "cmd-watch-control.h"
 #include "filemap.h"
 #include "jit.h"
-
+/**
+\brief Conditional tracing structures
+*/
 struct TraceCondition
 {
     ExpressionParser condition;
@@ -217,7 +219,7 @@ private:
     BufferedWriter* logWriter = nullptr;
     bool writeUtf16 = false;
 };
-
+// Debugging variables
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
 static TraceState traceState;
@@ -1463,6 +1465,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     if(!bFileIsDll && !bIsAttached) //Set entry breakpoint
     {
         pDebuggedBase = pCreateProcessBase; //debugged base = executable
+        DbCheckHash(ModContentHashFromAddr(pDebuggedBase)); //Check hash mismatch
         char command[deflen] = "";
 
         if(settingboolget("Events", "TlsCallbacks"))
@@ -1762,6 +1765,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     {
         bIsDebuggingThis = true;
         pDebuggedBase = (duint)base;
+        DbCheckHash(ModContentHashFromAddr(pDebuggedBase)); //Check hash mismatch
         if(settingboolget("Events", "EntryBreakpoint"))
         {
             bAlreadySetEntry = true;

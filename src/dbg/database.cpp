@@ -32,6 +32,11 @@
 char dbbasepath[deflen];
 
 /**
+\brief The hash of the debuggee stored in the database
+*/
+duint dbhash = 0;
+
+/**
 \brief Path of the current program database. UTF-8 encoding.
 */
 char dbpath[deflen];
@@ -66,6 +71,11 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
         TraceRecord.saveToDb(root);
         BpCacheSave(root);
         WatchCacheSave(root);
+        if(dbhash != 0)
+        {
+            json_object_set_new(root, "hashAlgorithm", json_string("murmurhash"));
+            json_object_set_new(root, "hash", json_hex(dbhash));
+        }
 
         //save notes
         char* text = nullptr;
@@ -215,6 +225,11 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
 
     if(loadType == DbLoadSaveType::DebugData || loadType == DbLoadSaveType::All)
     {
+        if(strcmp(json_string_value(json_object_get(root, "hashAlgorithm")), "murmurhash") == 0) //Checking checksum of the debuggee.
+            dbhash = json_hex_value(json_object_get(root, "hash"));
+        else
+            dbhash = 0;
+
         // Finally load all structures
         CommentCacheLoad(root);
         LabelCacheLoad(root);
@@ -287,7 +302,10 @@ void DbClear(bool terminating)
     GuiSetDebuggeeNotes("");
 
     if(terminating)
+    {
         PatchClear();
+        dbhash = 0;
+    }
 }
 
 void DbSetPath(const char* Directory, const char* ModulePath)
@@ -369,5 +387,23 @@ void DbSetPath(const char* Directory, const char* ModulePath)
         }
 
         dprintf(QT_TRANSLATE_NOOP("DBG", "Database file: %s\n"), dbpath);
+    }
+}
+
+/**
+\brief Warn the user if the hash in the database and the executable mismatch.
+*/
+bool DbCheckHash(duint currentHash)
+{
+    if(dbhash != 0 && currentHash != 0 && dbhash != currentHash)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "WARNING: The database has a checksum that is different from the module you are debugging. It is possible that your debuggee has been modified since last session. The content of this database may be incorrect."));
+        dbhash = currentHash;
+        return false;
+    }
+    else
+    {
+        dbhash = currentHash;
+        return true;
     }
 }
