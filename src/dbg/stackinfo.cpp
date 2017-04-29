@@ -297,7 +297,7 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
 
         for(auto i = 0; i < MaxWalks; i++)
         {
-            if(!StackWalk64(
+            if(!SafeStackWalk64(
                         machineType,
                         fdProcessInfo->hProcess,
                         hActiveThread,
