@@ -2,6 +2,7 @@
 #include "console.h"
 #include "memory.h"
 #include "function.h"
+#include <algorithm>
 
 LinearAnalysis::LinearAnalysis(duint base, duint size) : Analysis(base, size)
 {

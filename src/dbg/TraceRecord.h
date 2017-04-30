@@ -2,9 +2,13 @@
 #define TRACERECORD_H
 #include "_global.h"
 #include "_dbgfunctions.h"
+<<< <<< < HEAD
 #include "debugger.h"
+== == == =
+#include "jansson/jansson_x64dbg.h"
+    >>> >>> > development
 
-class TraceRecordManager
+    class TraceRecordManager
 {
 public:
     enum TraceRecordByteType

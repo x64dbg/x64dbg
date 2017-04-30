@@ -47,6 +47,8 @@ private slots:
     void on_txtBin_textEdited(const QString & arg1);
     void on_txtAscii_textEdited(const QString & arg1);
     void on_txtUnicode_textEdited(const QString & arg1);
+    void on_txtAscii_clicked();
+    void on_txtUnicode_clicked();
     void on_txtExpression_textChanged(const QString & arg1);
 
     void on_btnGotoDump_clicked();

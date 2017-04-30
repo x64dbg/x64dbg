@@ -5,6 +5,7 @@
 #include "threading.h"
 #include "module.h"
 #include "memory.h"
+#include "jansson/jansson_x64dbg.h"
 
 template<class TValue>
 class JSONWrapper
@@ -300,7 +301,7 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
         return ModHashFromAddr(addr);
     }
 
-    void DeleteRangeWhere(duint start, duint end, std::function<bool(duint start, duint end, const TValue & value)> inRange)
+    void DeleteRangeWhere(duint start, duint end, std::function<bool(duint, duint, const TValue &)> inRange)
     {
         // Are all comments going to be deleted?
         // 0x00000000 - 0xFFFFFFFF

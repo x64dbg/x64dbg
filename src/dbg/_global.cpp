@@ -6,6 +6,8 @@
 #include "_global.h"
 #include <objbase.h>
 #include <shlobj.h>
+#include <psapi.h>
+#include "DeviceNameResolver/DeviceNameResolver.h"
 
 /**
 \brief x64dbg library instance.

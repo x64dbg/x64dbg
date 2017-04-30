@@ -1,5 +1,6 @@
 #include "mnemonichelp.h"
 #include "threading.h"
+#include "jansson/jansson_x64dbg.h"
 
 static std::unordered_map<String, String> MnemonicMap;
 static std::unordered_map<String, String> MnemonicBriefMap;

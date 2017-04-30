@@ -178,13 +178,8 @@ int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserDa
     // Allocate and read a buffer from the remote process
     Memory<unsigned char*> data(scanSize, "reffind:data");
 
-    if(!MemRead(scanStart, data(), scanSize))
-    {
-        if(!Silent)
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Error reading memory in reference search\n"));
-
-        return 0;
-    }
+    memset(data(), 0xCC, data.size());
+    MemReadDumb(scanStart, data(), scanSize);
 
     if(initCallBack)
         Callback(0, 0, &refInfo);

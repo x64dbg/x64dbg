@@ -1910,7 +1910,7 @@ static bool longEnough(const char* str, size_t min_length)
 static bool startsWith(const char* pre, const char* str)
 {
     size_t lenpre = strlen(pre);
-    return longEnough(str, lenpre) ? StrNCmpI(str, pre, (int) lenpre) == 0 : false;
+    return longEnough(str, lenpre) ? _strnicmp(str, pre, (int) lenpre) == 0 : false;
 }
 
 #define MxCsr_PRE_FIELD_STRING "MxCsr_"

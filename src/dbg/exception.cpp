@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <algorithm>
 #include "exception.h"
 #include "filehelper.h"
 #include "value.h"

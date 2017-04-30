@@ -26,6 +26,7 @@
 #include "expressionfunctions.h"
 #include "formatfunctions.h"
 #include "yara/yara.h"
+#include "dbghelp_safe.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;

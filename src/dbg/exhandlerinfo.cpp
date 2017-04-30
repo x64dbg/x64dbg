@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "thread.h"
 #include "value.h"
+#include "debugger.h"
 
 bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, std::vector<duint> & Entries)
 {
