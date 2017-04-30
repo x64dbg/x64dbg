@@ -2,6 +2,7 @@
 #include "undocumented.h"
 #include "exception.h"
 #include "debugger.h"
+#include <functional>
 
 typedef struct _OBJECT_NAME_INFORMATION
 {

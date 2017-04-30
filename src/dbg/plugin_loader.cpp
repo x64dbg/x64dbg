@@ -10,6 +10,8 @@
 #include "threading.h"
 #include "expressionfunctions.h"
 #include "formatfunctions.h"
+#include <algorithm>
+#include <shlwapi.h>
 
 /**
 \brief List of plugins.

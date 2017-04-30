@@ -14,6 +14,8 @@
 #include "threading.h"
 #include "exhandlerinfo.h"
 #include "symbolinfo.h"
+#include "debugger.h"
+#include "dbghelp_safe.h"
 
 using SehMap = std::unordered_map<duint, STACK_COMMENT>;
 static SehMap SehCache;
@@ -297,7 +299,7 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
 
         for(auto i = 0; i < MaxWalks; i++)
         {
-            if(!StackWalk64(
+            if(!SafeStackWalk64(
                         machineType,
                         fdProcessInfo->hProcess,
                         hActiveThread,

@@ -4,6 +4,7 @@
 #include "console.h"
 #include "variable.h"
 #include "value.h"
+#include <functional>
 
 static bool cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], const String & description, const std::function<bool(duint, BP_TYPE, const char*)> & setFunction)
 {

@@ -3,6 +3,8 @@
 #include "threading.h"
 #include "filehelper.h"
 #include "console.h"
+#include "jansson/jansson_x64dbg.h"
+#include <algorithm>
 
 using namespace Types;
 

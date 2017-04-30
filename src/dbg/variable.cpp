@@ -6,6 +6,7 @@
 
 #include "variable.h"
 #include "threading.h"
+#include <map>
 
 /**
 \brief The container that stores all variables.

@@ -31,9 +31,11 @@ public:
         QKeySequence Hotkey;
         bool GlobalShortcut;
 
-        inline Shortcut(QString n = QString(), QString h = QString(), bool g = false) : Name(n), Hotkey(h), GlobalShortcut(g)
-        {
-        }
+        Shortcut(QString name = QString(), QString hotkey = QString(), bool global = false)
+            : Name(name), Hotkey(hotkey), GlobalShortcut(global) { }
+
+        Shortcut(std::initializer_list<QString> names, QString hotkey = QString(), bool global = false)
+            : Shortcut(QStringList(names).join(" -> "), hotkey, global) { }
     };
 
     //Functions

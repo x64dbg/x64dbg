@@ -2,6 +2,7 @@
 #define TRACERECORD_H
 #include "_global.h"
 #include "_dbgfunctions.h"
+#include "jansson/jansson_x64dbg.h"
 
 class TraceRecordManager
 {

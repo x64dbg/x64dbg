@@ -1,3 +1,7 @@
+#pragma once
+
+#include "jansson.h"
+
 typedef json_t* JSON;
 
 static JSON_INLINE

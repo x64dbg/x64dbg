@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "threading.h"
 #include "undocumented.h"
+#include "debugger.h"
 
 static std::unordered_map<DWORD, THREADINFO> threadList;
 static std::unordered_map<DWORD, THREADWAITREASON> threadWaitReasons;

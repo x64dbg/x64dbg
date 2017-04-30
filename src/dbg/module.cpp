@@ -1,10 +1,11 @@
 #include "module.h"
-#include "debugger.h"
+#include "TitanEngine/TitanEngine.h"
 #include "threading.h"
 #include "symbolinfo.h"
 #include "murmurhash.h"
 #include "memory.h"
 #include "label.h"
+#include <algorithm>
 
 std::map<Range, MODINFO, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;
@@ -283,6 +284,21 @@ duint ModHashFromAddr(duint Address)
         return Address;
 
     return module->hash + (Address - module->base);
+}
+
+duint ModContentHashFromAddr(duint Address)
+{
+    SHARED_ACQUIRE(LockModules);
+
+    auto module = ModInfoFromAddr(Address);
+
+    if(!module)
+        return 0;
+
+    if(module->fileMapVA != 0 && module->loadedSize > 0)
+        return murmurhash((void*)module->fileMapVA, module->loadedSize);
+    else
+        return 0;
 }
 
 duint ModHashFromName(const char* Module)
