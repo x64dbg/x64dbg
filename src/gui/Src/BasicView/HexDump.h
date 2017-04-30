@@ -165,6 +165,7 @@ public slots:
     void copySelectionSlot();
     void copyAddressSlot();
     void copyRvaSlot();
+    void copyFileOffsetSlot();
 
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
@@ -217,6 +218,7 @@ protected:
     QAction* mCopyAddress;
     QAction* mCopyRva;
     QAction* mCopySelection;
+    QAction* mCopyFileOffset;
 };
 
 #endif // _HEXDUMP_H

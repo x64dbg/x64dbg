@@ -37,6 +37,7 @@ public:
     CPUDisassembly* getDisasmWidget();
     CPUMultiDump* getDumpWidget();
     CPUStack* getStackWidget();
+    CPUInfoBox* getInfoBoxWidget();
 
 protected:
     CPUSideBar* mSideBar;

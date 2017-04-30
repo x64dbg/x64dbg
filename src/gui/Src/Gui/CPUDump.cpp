@@ -56,7 +56,12 @@ void CPUDump::setupContextMenu()
     wCopyMenu->addAction(mCopyRva, [this](QMenu*)
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
+    });    
+    wCopyMenu->addAction(mCopyFileOffset, [this](QMenu*)
+    {
+        return DbgFunctions()->VaToFileOffset(rvaToVa(getInitialSelection())) != 0;
     });
+
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), wCopyMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)

@@ -1,5 +1,6 @@
 #include "CPUInfoBox.h"
 #include "Configuration.h"
+#include "WordEditDialog.h"
 #include "Bridge.h"
 
 CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
@@ -8,16 +9,18 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     enableMultiSelection(false);
     setShowHeader(false);
     addColumnAt(0, "", true);
-    setRowCount(3);
+    setRowCount(4);
     setCellContent(0, 0, "");
     setCellContent(1, 0, "");
     setCellContent(2, 0, "");
+    setCellContent(3, 0, "");
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
 
     int height = getHeight();
     setMinimumHeight(height);
+
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(addInfoLine(QString)), this, SLOT(addInfoLine(QString)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -39,12 +42,12 @@ void CPUInfoBox::setupContextMenu()
 
 int CPUInfoBox::getHeight()
 {
-    return ((getRowHeight() + 1) * 3);
+    return ((getRowHeight() + 1) * 4);
 }
 
 void CPUInfoBox::setInfoLine(int line, QString text)
 {
-    if(line < 0 || line > 2)
+    if(line < 0 || line > 3)
         return;
 
     setCellContent(line, 0, text);
@@ -53,7 +56,7 @@ void CPUInfoBox::setInfoLine(int line, QString text)
 
 QString CPUInfoBox::getInfoLine(int line)
 {
-    if(line < 0 || line > 2)
+    if(line < 0 || line > 3)
         return QString();
 
     return getCellContent(line, 0);
@@ -69,11 +72,12 @@ void CPUInfoBox::addInfoLine(const QString & infoLine)
 
 void CPUInfoBox::clear()
 {
-    // Set all 3 lines to empty strings
-    setRowCount(3);
+    // Set all 4 lines to empty strings
+    setRowCount(4);
     setInfoLine(0, "");
     setInfoLine(1, "");
     setInfoLine(2, "");
+    setInfoLine(3, "");
 }
 
 static QString escapeCh(QChar ch)
@@ -136,6 +140,24 @@ QString CPUInfoBox::getSymbolicName(dsint addr)
     return finalText;
 }
 
+// code extracted from ExtraInfo plugin by torusxxx
+int compareFunc(const void* a, const void* b)
+{
+    XREF_RECORD* A, *B;
+    A = (XREF_RECORD*)a;
+    B = (XREF_RECORD*)b;
+    if(A->type > B->type)
+        return 1;
+    else if(A->type < B->type)
+        return -1;
+    else if(A->addr > B->addr)
+        return 1;
+    else if(A->addr < B->addr)
+        return -1;
+    else
+        return 0;
+}
+
 void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 {
     curAddr = parVA;
@@ -145,10 +167,11 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
     if(!DbgIsDebugging() || !DbgMemIsValidReadPtr(parVA))
         return;
 
-    // Rather than using clear() or setInfoLine(), only reset the first two cells to reduce flicker
-    setRowCount(3);
+    // Rather than using clear() or setInfoLine(), only reset the first three cells to reduce flicker
+    setRowCount(4);
     setCellContent(0, 0, "");
     setCellContent(1, 0, "");
+    setCellContent(2, 0, "");
 
     DISASM_INSTR instr;
     memset(&instr, 0, sizeof(instr));
@@ -244,6 +267,52 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
     if(getInfoLine(0) == getInfoLine(1)) //check for duplicate info line
         setInfoLine(1, "");
 
+    // check references details
+    // code extracted from ExtraInfo plugin by torusxxx
+    XREF_INFO xrefInfo;
+    DbgXrefGet(parVA, &xrefInfo);
+    if(xrefInfo.refcount > 0)
+    {
+        QString output;
+        char clabel[MAX_LABEL_SIZE] = "";
+        std::qsort(xrefInfo.references, xrefInfo.refcount, sizeof(xrefInfo.references[0]), &compareFunc);
+
+        int t = -1;
+        for(duint i = 0; i < xrefInfo.refcount; i++)
+        {
+            if(t != xrefInfo.references[i].type)
+            {
+                if(t != -1)
+                    output += ", ";
+                switch(xrefInfo.references[i].type)
+                {
+                    case XREF_JMP:
+                        output += "Jump from ";
+                        break;
+                    case XREF_CALL:
+                        output += "Call from ";
+                        break;
+                    default:
+                        output += "Reference from ";
+                        break;
+                }
+
+                t = xrefInfo.references[i].type;
+            }
+
+            DbgGetLabelAt(xrefInfo.references[i].addr, SEG_DEFAULT, clabel);
+            if(*clabel)
+                output += QString(clabel);
+            else
+                output += QString().number(xrefInfo.references[i].addr, 16).toUpper().trimmed();
+
+            if(i != xrefInfo.refcount - 1)
+                output += ", ";
+        }
+
+        setInfoLine(2, output);
+    }
+
     // Set last line
     //
     // Format: SECTION:VA MODULE:$RVA :#FILE_OFFSET FUNCTION, Accessed %u times
@@ -293,7 +362,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         info += ", " + tr("Accessed %n time(s)", nullptr, tracedCount);
     }
 
-    setInfoLine(2, info);
+    setInfoLine(3, info);
 
     DbgSelChanged(GUI_DISASSEMBLY, parVA);
 }
@@ -314,6 +383,83 @@ void CPUInfoBox::followActionSlot()
         DbgCmdExec(QString("dump \"%1\"").arg(action->objectName().mid(5)).toUtf8().constData());
     else if(action && action->objectName().startsWith("WATCH|"))
         DbgCmdExec(QString("AddWatch \"[%1]\"").arg(action->objectName().mid(6)).toUtf8().constData());
+}
+
+void CPUInfoBox::modifySlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action)
+    {
+        duint addrVal = 0;
+        DbgFunctions()->ValFromString(action->objectName().toUtf8().constData(), &addrVal);
+        WordEditDialog wEditDialog(this);
+        dsint value = 0;        
+        DbgMemRead(addrVal, &value, sizeof(dsint));
+        wEditDialog.setup(tr("Modify Value"), value, sizeof(dsint));
+        if(wEditDialog.exec() != QDialog::Accepted)
+            return;
+        value = wEditDialog.getVal();
+        DbgMemWrite(addrVal, &value, sizeof(dsint));
+        GuiUpdateAllViews();
+    }
+}
+
+void CPUInfoBox::findReferencesSlot()
+{
+    DbgCmdExec(QString("findref ") + QString().number(curAddr, 16).toUtf8().constData());
+    emit displayReferencesWidget();
+}
+
+void CPUInfoBox::addModifyValueMenuItem(QMenu* menu, QString name, duint value)
+{
+    foreach(QAction* action, menu->actions()) //check for duplicate action
+        if(action->text() == name)
+            return;
+    QAction* newAction = new QAction(name, menu);
+    newAction->setFont(QFont("Courier New", 8));
+    menu->addAction(newAction);
+    newAction->setObjectName(ToPtrString(value));
+    connect(newAction, SIGNAL(triggered()), this, SLOT(modifySlot()));
+}
+
+void CPUInfoBox::setupModifyValueMenu(QMenu* menu, duint wVA)
+{
+    menu->setIcon(DIcon("modify.png"));
+
+    //add follow actions
+    DISASM_INSTR instr;
+    DbgDisasmAt(wVA, &instr);
+
+    for(int i = 0; i < instr.argcount; i++)
+    {
+        const DISASM_ARG arg = instr.arg[i];
+        if(arg.type == arg_memory)
+        {
+            QString segment = "";
+#ifdef _WIN64
+            if(arg.segment == SEG_GS)
+                segment = "gs:";
+#else //x32
+            if(arg.segment == SEG_FS)
+                segment = "fs:";
+#endif //_WIN64
+            if(DbgMemIsValidReadPtr(arg.value))
+                addModifyValueMenuItem(menu, tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
+            if(arg.value != arg.constant)
+            {
+                QString constant = QString("%1").arg(ToHexString(arg.constant));
+                if(DbgMemIsValidReadPtr(arg.constant))
+                    addModifyValueMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
+            }
+            if(DbgMemIsValidReadPtr(arg.memvalue))
+                addModifyValueMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic).toUpper().trimmed() + "]", arg.memvalue);
+        }
+        else
+        {
+            if(DbgMemIsValidReadPtr(arg.value))
+                addModifyValueMenuItem(menu, "&Value: [" + QString(arg.mnemonic).toUpper().trimmed() + "]", arg.value);
+        }
+    }
 }
 
 /**
@@ -371,7 +517,7 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, duint wVA)
                     addFollowMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue);
+                addFollowMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic).toUpper().trimmed() + "]", arg.memvalue);
         }
         else
         {
@@ -436,7 +582,7 @@ void CPUInfoBox::setupWatchMenu(QMenu* menu, duint wVA)
                     addWatchMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addWatchMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue);
+                addWatchMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic).toUpper().trimmed() + "]", arg.memvalue);
         }
         else
         {
@@ -497,9 +643,15 @@ void CPUInfoBox::contextMenuSlot(QPoint pos)
     QMenu wFollowMenu(tr("&Follow in Dump"), this);
     setupFollowMenu(&wFollowMenu, curAddr);
     wMenu.addMenu(&wFollowMenu);
+    QMenu wModifyValueMenu(tr("&Modify Value"), this);
+    setupModifyValueMenu(&wModifyValueMenu, curAddr);
+    if(!wModifyValueMenu.isEmpty())
+        wMenu.addMenu(&wModifyValueMenu);
     QMenu wWatchMenu(tr("&Watch"), this);
     setupWatchMenu(&wWatchMenu, curAddr);
     wMenu.addMenu(&wWatchMenu);
+    if(!getInfoLine(2).isEmpty())
+        wMenu.addAction(makeAction(DIcon("find.png"), tr("&Show References"), SLOT(findReferencesSlot())));
     QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(DbgIsDebugging())

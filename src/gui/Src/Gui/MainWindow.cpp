@@ -338,6 +338,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(mCpuWidget->getStackWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
+    connect((QObject*)mCpuWidget->getInfoBoxWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+
     connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 

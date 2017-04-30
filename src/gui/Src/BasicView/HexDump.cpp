@@ -317,6 +317,12 @@ void HexDump::setupCopyMenu()
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
     mCopyRva->setShortcutContext(Qt::WidgetShortcut);
     addAction(mCopyRva);
+
+    // Copy -> File Offset
+    mCopyFileOffset = new QAction(DIcon("fileoffset.png"), "&File Offset", this);
+    connect(mCopyFileOffset, SIGNAL(triggered()), this, SLOT(copyFileOffsetSlot()));
+    mCopyFileOffset->setShortcutContext(Qt::WidgetShortcut);
+    addAction(mCopyFileOffset);
 }
 
 void HexDump::copyAddressSlot()
@@ -336,6 +342,19 @@ void HexDump::copyRvaSlot()
     }
     else
         QMessageBox::warning(this, tr("Error!"), tr("Selection not in a module..."));
+}
+
+void HexDump::copyFileOffsetSlot()
+{
+    duint addr = rvaToVa(getInitialSelection());
+    duint offset = DbgFunctions()->VaToFileOffset(addr);
+    if(offset)
+    {
+        QString addrText = ToHexString(offset);
+        Bridge::CopyToClipboard(addrText);
+    }
+    else
+        QMessageBox::warning(this, tr("Error!"), tr("Selection not in a file..."));
 }
 
 void HexDump::mouseMoveEvent(QMouseEvent* event)
