@@ -76,19 +76,9 @@ bool isCmdLineEmpty()
 
 char* getCommandLineArgs()
 {
-    char* commandLineArguments = NULL;
-    char* extensionPtr = strchr(commandLine, '.');
-
-    if(!extensionPtr)
-        return NULL;
-
-    commandLineArguments = strchr(extensionPtr, ' ');
-
-    if(!commandLineArguments)
-        return NULL;
-
-    return (commandLineArguments + 1);
-
+    auto args = *commandLine == '\"' ? strchr(commandLine + 1, '\"') : nullptr;
+    args = strchr(args ? args : commandLine, ' ');
+    return args ? args + 1 : nullptr;
 }
 
 void CmdLineCacheSave(JSON Root, const String & cacheFile)
