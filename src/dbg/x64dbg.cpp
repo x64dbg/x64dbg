@@ -601,6 +601,13 @@ static DWORD WINAPI loadDbThread(LPVOID)
     return 0;
 }
 
+static WString escape(WString cmdline)
+{
+    StringUtils::ReplaceAll(cmdline, L"\\", L"\\\\");
+    StringUtils::ReplaceAll(cmdline, L"\"", L"\\\"");
+    return cmdline;
+}
+
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
     if(!EngineCheckStructAlignment(UE_STRUCT_TITAN_ENGINE_CONTEXT, sizeof(TITAN_ENGINE_CONTEXT_t)))
@@ -727,12 +734,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     //handle command line
     int argc = 0;
     wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    //MessageBoxW(0, GetCommandLineW(), StringUtils::sprintf(L"%d", argc).c_str(), MB_SYSTEMMODAL);
     if(argc == 2) //1 argument (init filename)
-        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\"", argv[1])).c_str());
+        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\"", escape(argv[1]).c_str())).c_str());
     else if(argc == 3) //2 arguments (init filename, cmdline)
-        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\"", argv[1], argv[2])).c_str());
+        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\"", escape(argv[1]).c_str(), escape(argv[2]).c_str())).c_str());
     else if(argc == 4) //3 arguments (init filename, cmdline, currentdir)
-        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\", \"%s\"", argv[1], argv[2], argv[3])).c_str());
+        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\", \"%s\"", escape(argv[1]).c_str(), escape(argv[2]).c_str(), escape(argv[3]).c_str())).c_str());
     else if(argc == 5 && !_wcsicmp(argv[1], L"-a") && !_wcsicmp(argv[3], L"-e")) //4 arguments (JIT)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, .%s", argv[2], argv[4])).c_str()); //attach pid, event
     LocalFree(argv);
