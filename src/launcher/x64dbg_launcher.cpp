@@ -461,7 +461,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         else if(!ResolveShortcut(nullptr, argv[1], szPath, _countof(szPath))) //attempt to resolve the shortcut path
             _tcscpy_s(szPath, argv[1]); //fall back to the origin full path
 
-        std::wstring cmdLine;
+        std::wstring cmdLine, escaped;
         cmdLine.push_back(L'\"');
         cmdLine += szPath;
         cmdLine.push_back(L'\"');
@@ -472,9 +472,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             {
                 if(i > 2)
                     cmdLine.push_back(L' ');
-                cmdLine.push_back(L'\"');
-                cmdLine += argv[i];
-                cmdLine.push_back(L'\"');
+
+                escaped.clear();
+                auto len = wcslen(argv[i]);
+                for(size_t i = 0; i < len; i++)
+                {
+                    if(escaped[i] == L'\"')
+                        escaped.push_back(escaped[i]);
+                    escaped.push_back(escaped[i]);
+                }
+
+                cmdLine += escaped;
             }
             cmdLine += L"\"";
         }
@@ -496,6 +504,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         auto architecture = GetFileArchitecture(szPath);
         if(architecture == dotnet)
             architecture = isWoW64() ? x64 : x32;
+
+        //MessageBoxW(0, cmdLine.c_str(), L"x96dbg", MB_SYSTEMMODAL);
+        //MessageBoxW(0, GetCommandLineW(), L"GetCommandLineW", MB_SYSTEMMODAL);
+        //MessageBoxW(0, szCurDir, L"GetCurrentDirectory", MB_SYSTEMMODAL);
 
         switch(architecture)
         {

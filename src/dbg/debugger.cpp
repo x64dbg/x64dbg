@@ -2639,7 +2639,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
             char* commandLineArguments = NULL;
             commandLineArguments = getCommandLineArgs();
 
-            if(commandLineArguments)
+            if(commandLineArguments && *commandLineArguments)
                 init->commandline = commandLineArguments;
         }
 
