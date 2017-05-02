@@ -2,13 +2,10 @@
 #define TRACERECORD_H
 #include "_global.h"
 #include "_dbgfunctions.h"
-<<< <<< < HEAD
 #include "debugger.h"
-== == == =
 #include "jansson/jansson_x64dbg.h"
-    >>> >>> > development
 
-    class TraceRecordManager
+class TraceRecordManager
 {
 public:
     enum TraceRecordByteType
@@ -56,16 +53,13 @@ public:
 
     void TraceExecute(duint address, duint size);
     //void TraceAccess(duint address, unsigned char size, TraceRecordByteType accessType);
+    void TraceExecuteRecord(Capstone & inst, DISASM_INSTR & disasm_instr);
 
     unsigned int getHitCount(duint address);
     TraceRecordByteType getByteType(duint address);
     void increaseInstructionCounter();
 
-    REGDUMP rtOldContext;
-    DWORD rtOldThreadId;
-    DISASM_INSTR rtOldInstr;
-    bool rtEnabled;
-    HANDLE rtFile;
+    bool isRunTraceEnabled();
 
     void saveToDb(JSON root);
     void loadFromDb(JSON root);
@@ -91,6 +85,13 @@ private:
     std::vector<std::string> ModuleNames;
     unsigned int getModuleIndex(const String & moduleName);
     unsigned int instructionCounter;
+
+    bool rtEnabled;
+    REGDUMP rtOldContext;
+    DWORD rtOldThreadId;
+    DISASM_INSTR rtOldInstr;
+    bool rtPrevInstAvailable;
+    HANDLE rtFile;
 };
 
 extern TraceRecordManager TraceRecord;

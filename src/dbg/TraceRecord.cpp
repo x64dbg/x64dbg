@@ -3,6 +3,8 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
+#include "disasm_helper.h"
+#include "disasm_fast.h"
 #include "plugin_loader.h"
 
 TraceRecordManager TraceRecord;
@@ -193,6 +195,16 @@ void TraceRecordManager::TraceExecute(duint address, duint size)
     }
 }
 
+void TraceRecordManager::TraceExecuteRecord(Capstone & inst, DISASM_INSTR & disasm_instr)
+{
+    if(!isRunTraceEnabled())
+        return;
+    if(!rtPrevInstAvailable)
+        return;
+    //....
+    DbgGetRegDump(&this->rtOldContext);
+}
+
 unsigned int TraceRecordManager::getHitCount(duint address)
 {
     SHARED_ACQUIRE(LockTraceRecord);
@@ -366,21 +378,29 @@ unsigned int TraceRecordManager::getModuleIndex(const String & moduleName)
     }
 }
 
+bool TraceRecordManager::isRunTraceEnabled()
+{
+    return rtEnabled;
+}
+
 void _dbg_dbgtraceexecute(duint CIP)
 {
     if(TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordType::TraceRecordNone)
     {
-        unsigned char buffer[MAX_DISASM_BUFFER];
-        if(MemRead(CIP, buffer, MAX_DISASM_BUFFER))
+        TraceRecord.increaseInstructionCounter();
+        Capstone instruction;
+        if(TraceRecord.isRunTraceEnabled())
         {
-            TraceRecord.increaseInstructionCounter();
-            Capstone instruction;
-            instruction.Disassemble(CIP, buffer, MAX_DISASM_BUFFER);
+            DISASM_INSTR instr;
+            disasmget(instruction, CIP, &instr);
             TraceRecord.TraceExecute(CIP, instruction.Size());
+            TraceRecord.TraceExecuteRecord(instruction, instr);
         }
         else
         {
-            // if we reaches here, then the executable had executed an invalid address. Don't trace it.
+            BASIC_INSTRUCTION_INFO info;
+            if(disasmfast(CIP, &info))
+                TraceRecord.TraceExecute(CIP, info.size);
         }
     }
     else
