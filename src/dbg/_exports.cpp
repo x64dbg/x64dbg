@@ -369,14 +369,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         temp_string.append(StringUtils::Escape((unsigned char)constant));
                         temp_string.push_back('\'');
                     }
-                    else if(DbgGetStringAt(instr.arg[i].constant, string_text))
+                    else if(disasmgetstringatwrapper(instr.arg[i].constant, string_text))
                     {
                         temp_string.assign(instr.arg[i].mnemonic);
                         temp_string.push_back(':');
                         temp_string.append(string_text);
                     }
                 }
-                else if(instr.arg[i].memvalue && (DbgGetStringAt(instr.arg[i].memvalue, string_text) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
+                else if(instr.arg[i].memvalue && (disasmgetstringatwrapper(instr.arg[i].memvalue, string_text) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
                 {
                     if(*string_text)
                     {
@@ -395,7 +395,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         temp_string.append(newinfo.label);
                     }
                 }
-                else if(instr.arg[i].value && (DbgGetStringAt(instr.arg[i].value, string_text) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
+                else if(instr.arg[i].value && (disasmgetstringatwrapper(instr.arg[i].value, string_text) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                 {
                     if(instr.type != instr_normal) //stack/jumps (eg add esp, 4 or jmp 401110) cannot directly point to strings
                     {
@@ -1282,46 +1282,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_STRING_AT:
     {
-        auto addr = duint(param1);
-        if(!MemIsValidReadPtrUnsafe(addr, true))
-            return false;
-
-        auto readValidPtr = [](duint addr) -> duint
-        {
-            duint addrPtr;
-            if(MemReadUnsafe(addr, &addrPtr, sizeof(addrPtr)) && MemIsValidReadPtrUnsafe(addrPtr, true))
-                return addrPtr;
-            return 0;
-        };
-
-        auto dest = (char*)param2;
-        *dest = '\0';
-        char string[MAX_STRING_SIZE];
-        duint addrPtr = readValidPtr(addr);
-        STRING_TYPE strtype;
-        auto possibleUnicode = disasmispossiblestring(addr, &strtype) && strtype == str_unicode;
-        if(addrPtr && !possibleUnicode)
-        {
-            if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 5))
-            {
-                if(int(strlen(string)) <= (strtype == str_ascii ? 3 : 2) && readValidPtr(addrPtr))
-                    return false;
-                if(strtype == str_ascii)
-                    sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
-                else //unicode
-                    sprintf_s(dest, MAX_STRING_SIZE, "&L\"%s\"", string);
-                return true;
-            }
-        }
-        if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 4))
-        {
-            if(strtype == str_ascii)
-                sprintf_s(dest, MAX_STRING_SIZE, "\"%s\"", string);
-            else //unicode
-                sprintf_s(dest, MAX_STRING_SIZE, "L\"%s\"", string);
-            return true;
-        }
-        return false;
+        return disasmgetstringatwrapper(duint(param1), (char*)param2);
     }
     break;
 
