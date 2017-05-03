@@ -9,6 +9,7 @@
 #include "label.h"
 #include "yara/yara.h"
 #include "stringformat.h"
+#include "disasm_helper.h"
 
 static int maxFindResults = 5000;
 
@@ -485,12 +486,12 @@ static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINF
     };
     if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
     {
-        if(DbgGetStringAt(basicinfo->value.value, string))
+        if(disasmgetstringatwrapper(basicinfo->value.value, string))
             addRef();
     }
     if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
-        if(DbgGetStringAt(basicinfo->memory.value, string))
+        if(disasmgetstringatwrapper(basicinfo->memory.value, string))
             addRef();
     }
     return false;
