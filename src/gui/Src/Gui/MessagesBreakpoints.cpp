@@ -10,6 +10,8 @@ MessagesBreakpoints::MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* par
     setModal(true);
     bpData = pbpData;
 
+    int index = 0;
+
     filterMessages =
     {
         "ACM_", "BFFM_", "BM_", "CB_", "CBEM_", "CCM_", "CDM_", "CTL3D_", "DDM_", "DL_",
@@ -34,8 +36,10 @@ MessagesBreakpoints::MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* par
             }
         }
     }
-
-    ui->cboxMessages->setCurrentIndex(0);
+    for(int i = 0; i < ui->cboxMessages->count(); i++)
+        if(ui->cboxMessages->itemText(i) == "WM_COMMAND")
+            index = i;
+    ui->cboxMessages->setCurrentIndex(index);
 }
 
 MessagesBreakpoints::~MessagesBreakpoints()
