@@ -31,7 +31,9 @@
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
 static bool bStopCommandLoopThread = false;
+#ifdef ENABLE_MEM_TRACE
 static char alloctrace[MAX_PATH] = "";
+#endif //ENABLE_MEM_TRACE
 static bool bIsStopped = true;
 static char scriptDllDir[MAX_PATH] = "";
 static String notesFile;
