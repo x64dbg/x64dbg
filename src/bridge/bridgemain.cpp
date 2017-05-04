@@ -330,7 +330,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
 {
     if(!text || !addr)
         return false;
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flaglabel | flagNoFuncOffset;
     if(!_dbg_addrinfoget(addr, segment, &info))
@@ -339,7 +339,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         if(!DbgMemIsValidReadPtr(addr))
             return false;
         DbgMemRead(addr, (unsigned char*)&addr_, sizeof(duint));
-        ADDRINFO ptrinfo = info;
+        BRIDGE_ADDRINFO ptrinfo = info;
         if(!_dbg_addrinfoget(addr_, SEG_DEFAULT, &ptrinfo))
             return false;
         sprintf_s(info.label, "&%s", ptrinfo.label);
@@ -352,7 +352,7 @@ BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 {
     if(!text || strlen(text) >= MAX_LABEL_SIZE || !addr)
         return false;
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flaglabel;
     strcpy_s(info.label, text);
@@ -371,7 +371,7 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 {
     if(!text || !addr)
         return false;
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagcomment;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
@@ -384,7 +384,7 @@ BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 {
     if(!text || strlen(text) >= MAX_COMMENT_SIZE || !addr)
         return false;
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagcomment;
     strcpy_s(info.comment, MAX_COMMENT_SIZE, text);
@@ -403,7 +403,7 @@ BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
 {
     if(!text || !addr)
         return false;
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagmodule;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
@@ -416,7 +416,7 @@ BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr)
 {
     if(!addr)
         return false;
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagbookmark;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
@@ -428,7 +428,7 @@ BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
 {
     if(!addr)
         return false;
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagbookmark;
     info.isbookmark = isbookmark;
@@ -493,7 +493,7 @@ BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd)
 
 BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 {
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagfunction;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
@@ -512,7 +512,7 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 // FIXME depth
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
 {
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagloop;
     info.loop.depth = depth;
@@ -940,7 +940,7 @@ BRIDGE_IMPEXP duint DbgGetTimeWastedCounter()
 
 BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr)
 {
-    ADDRINFO info;
+    BRIDGE_ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagargs;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))

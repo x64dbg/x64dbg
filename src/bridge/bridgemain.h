@@ -461,7 +461,6 @@ typedef struct
     duint instrcount; //OUT
 } LOOP;
 
-#ifndef _NO_ADDRINFO
 typedef struct
 {
     int flags; //ADDRINFOFLAGS (IN)
@@ -472,8 +471,7 @@ typedef struct
     FUNCTION function;
     LOOP loop;
     FUNCTION args;
-} ADDRINFO;
-#endif
+} BRIDGE_ADDRINFO;
 
 struct SYMBOLINFO_
 {

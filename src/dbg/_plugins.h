@@ -202,7 +202,7 @@ typedef struct
 typedef struct
 {
     duint addr;
-    ADDRINFO* addrinfo;
+    BRIDGE_ADDRINFO* addrinfo;
     bool retval;
 } PLUG_CB_ADDRINFO;
 

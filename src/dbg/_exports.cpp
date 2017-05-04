@@ -269,7 +269,7 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
     return retval;
 }
 
-extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo)
+extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRIDGE_ADDRINFO* addrinfo)
 {
     if(!DbgIsDebugging())
         return false;
@@ -331,7 +331,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
             DISASM_INSTR instr;
             String temp_string;
-            ADDRINFO newinfo;
+            BRIDGE_ADDRINFO newinfo;
             char string_text[MAX_STRING_SIZE] = "";
 
             Capstone cp;
@@ -347,7 +347,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
             for(int i = 0; i < instr.argcount; i++)
             {
-                memset(&newinfo, 0, sizeof(ADDRINFO));
+                memset(&newinfo, 0, sizeof(BRIDGE_ADDRINFO));
                 newinfo.flags = flaglabel;
 
                 STRING_TYPE strtype = str_none;
@@ -442,7 +442,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     return info.retval;
 }
 
-extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
+extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, BRIDGE_ADDRINFO* addrinfo)
 {
     bool retval = false;
     if(addrinfo->flags & flaglabel) //set label

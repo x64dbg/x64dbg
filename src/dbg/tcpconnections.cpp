@@ -1,4 +1,3 @@
-#define _NO_ADDRINFO
 #include <WS2tcpip.h>
 #undef _WIN32_WINNT
 #undef WINVER
