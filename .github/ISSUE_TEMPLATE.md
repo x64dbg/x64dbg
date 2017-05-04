@@ -20,6 +20,7 @@ Additional information can help solve the issue quicker, such as:
 - A short clip or a screenshot clearly showing the issue.
 - Any supporting information that could help solve/understand the issue.
 - The translation you are using. Make sure to also test without translation.
+- Plugins you have installed. Make sure to also test without plugins.
 
 Examples of good issues:
 
