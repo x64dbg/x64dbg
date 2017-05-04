@@ -46,7 +46,7 @@ void stackupdateseh()
 template<size_t _Count>
 static void getSymAddrName(duint addr, char(& str)[_Count])
 {
-    ADDRINFO addrinfo;
+    BRIDGE_ADDRINFO addrinfo;
     if(addr == 0)
     {
         memcpy(str, "???", 4);
@@ -113,7 +113,7 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
 
     //label
     char label[MAX_LABEL_SIZE] = "";
-    ADDRINFO addrinfo;
+    BRIDGE_ADDRINFO addrinfo;
     addrinfo.flags = flaglabel;
     if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
         strcpy_s(label, addrinfo.label);
