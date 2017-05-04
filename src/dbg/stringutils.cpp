@@ -268,38 +268,72 @@ String StringUtils::PadLeft(const String & s, size_t minLength, char ch)
 //Conversion functions taken from: http://www.nubaria.com/en/blog/?p=289
 String StringUtils::Utf16ToUtf8(const WString & wstr)
 {
-    String convertedString;
-    auto requiredSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-    if(requiredSize > 0)
-    {
-        std::vector<char> buffer(requiredSize);
-        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &buffer[0], requiredSize, nullptr, nullptr);
-        convertedString.assign(buffer.begin(), buffer.end() - 1);
-    }
-    return convertedString;
+    return Utf16ToUtf8(wstr.c_str());
 }
 
 String StringUtils::Utf16ToUtf8(const wchar_t* wstr)
 {
-    return Utf16ToUtf8(wstr ? WString(wstr) : WString());
-}
-
-WString StringUtils::Utf8ToUtf16(const String & str)
-{
-    WString convertedString;
-    int requiredSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+    String convertedString;
+    if(!wstr || !*wstr)
+        return convertedString;
+    auto requiredSize = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
     if(requiredSize > 0)
     {
-        std::vector<wchar_t> buffer(requiredSize);
-        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &buffer[0], requiredSize);
-        convertedString.assign(buffer.begin(), buffer.end() - 1);
+        convertedString.resize(requiredSize - 1);
+        if(!WideCharToMultiByte(CP_UTF8, 0, wstr, -1, (char*)convertedString.c_str(), requiredSize, nullptr, nullptr))
+            convertedString.clear();
     }
     return convertedString;
 }
 
+WString StringUtils::Utf8ToUtf16(const String & str)
+{
+    return Utf8ToUtf16(str.c_str());
+}
+
 WString StringUtils::Utf8ToUtf16(const char* str)
 {
-    return Utf8ToUtf16(str ? String(str) : String());
+    WString convertedString;
+    if(!str || !*str)
+        return convertedString;
+    int requiredSize = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
+    if(requiredSize > 0)
+    {
+        convertedString.resize(requiredSize - 1);
+        if(!MultiByteToWideChar(CP_UTF8, 0, str, -1, (wchar_t*)convertedString.c_str(), requiredSize))
+            convertedString.clear();
+    }
+    return convertedString;
+}
+
+String StringUtils::LocalCpToUtf8(const String & str)
+{
+    return LocalCpToUtf8(str.c_str());
+}
+
+String StringUtils::LocalCpToUtf8(const char* str)
+{
+    return Utf16ToUtf8(LocalCpToUtf16(str).c_str());
+}
+
+WString StringUtils::LocalCpToUtf16(const String & str)
+{
+    return LocalCpToUtf16(str.c_str());
+}
+
+WString StringUtils::LocalCpToUtf16(const char* str)
+{
+    WString convertedString;
+    if(!str || !*str)
+        return convertedString;
+    int requiredSize = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
+    if(requiredSize > 0)
+    {
+        convertedString.resize(requiredSize - 1);
+        if(!MultiByteToWideChar(CP_ACP, 0, str, -1, (wchar_t*)convertedString.c_str(), requiredSize))
+            convertedString.clear();
+    }
+    return convertedString;
 }
 
 //Taken from: https://stackoverflow.com/a/24315631
