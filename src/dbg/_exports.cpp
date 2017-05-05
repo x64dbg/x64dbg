@@ -369,14 +369,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
                         temp_string.append(StringUtils::Escape((unsigned char)constant));
                         temp_string.push_back('\'');
                     }
-                    else if(disasmgetstringatwrapper(instr.arg[i].constant, string_text))
+                    else if(DbgGetStringAt(instr.arg[i].constant, string_text))
                     {
                         temp_string.assign(instr.arg[i].mnemonic);
                         temp_string.push_back(':');
                         temp_string.append(string_text);
                     }
                 }
-                else if(instr.arg[i].memvalue && (disasmgetstringatwrapper(instr.arg[i].memvalue, string_text) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
+                else if(instr.arg[i].memvalue && (DbgGetStringAt(instr.arg[i].memvalue, string_text) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
                 {
                     if(*string_text)
                     {
@@ -395,7 +395,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
                         temp_string.append(newinfo.label);
                     }
                 }
-                else if(instr.arg[i].value && (disasmgetstringatwrapper(instr.arg[i].value, string_text) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
+                else if(instr.arg[i].value && (DbgGetStringAt(instr.arg[i].value, string_text) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                 {
                     if(instr.type != instr_normal) //stack/jumps (eg add esp, 4 or jmp 401110) cannot directly point to strings
                     {
