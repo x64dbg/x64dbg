@@ -486,12 +486,12 @@ static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINF
     };
     if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
     {
-        if(disasmgetstringatwrapper(basicinfo->value.value, string))
+        if(DbgGetStringAt(basicinfo->value.value, string))
             addRef();
     }
     if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
-        if(disasmgetstringatwrapper(basicinfo->memory.value, string))
+        if(DbgGetStringAt(basicinfo->memory.value, string))
             addRef();
     }
     return false;
