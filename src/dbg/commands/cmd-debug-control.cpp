@@ -38,6 +38,7 @@ bool cbDebugRunInternal(int argc, char* argv[])
         return false;
     dbgsetispausedbyuser(false);
     GuiSetDebugStateAsync(running);
+    GuiResumeDebug();
     unlock(WAITID_RUN);
     PLUG_CB_RESUMEDEBUG callbackInfo;
     callbackInfo.reserved = 0;

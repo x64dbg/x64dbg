@@ -166,6 +166,8 @@ public slots:
     void copyAddressSlot();
     void copyRvaSlot();
 
+    void updateOldData();
+
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
 
@@ -217,6 +219,11 @@ protected:
     QAction* mCopyAddress;
     QAction* mCopyRva;
     QAction* mCopySelection;
+
+    char* mOldData;
+    duint mOldDataBase;
+    size_t mOldDataSize;
+    bool matchOldData(duint addr, void* buffer, size_t size);
 };
 
 #endif // _HEXDUMP_H

@@ -1002,6 +1002,7 @@ typedef enum
     GUI_MENU_SET_ENTRY_HOTKEY,      // param1=int hEntry,           param2=const char* hack
     GUI_REF_SEARCH_GETROWCOUNT,     // param1=unused,               param2=unused
     GUI_REF_SEARCH_GETCELLCONTENT,  // param1=int row,              param2=int col
+    GUI_RESUME_DEBUG                // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1174,6 +1175,7 @@ BRIDGE_IMPEXP bool GuiTypeClear();
 BRIDGE_IMPEXP void GuiUpdateTypeWidget();
 BRIDGE_IMPEXP void GuiCloseApplication();
 BRIDGE_IMPEXP void GuiFlushLog();
+BRIDGE_IMPEXP void GuiResumeDebug();
 
 #ifdef __cplusplus
 }

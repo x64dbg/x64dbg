@@ -20,6 +20,10 @@ HexDump::HexDump(QWidget* parent)
 
     clearDescriptors();
 
+    mOldData = NULL;
+    mOldDataSize = 0;
+    mOldDataBase = 0;
+
     backgroundColor = ConfigColor("HexDumpBackgroundColor");
     textColor = ConfigColor("HexDumpTextColor");
     selectionColor = ConfigColor("HexDumpSelectionColor");
@@ -34,6 +38,7 @@ HexDump::HexDump(QWidget* parent)
     // Slots
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateDumpSlot()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
+    connect(Bridge::getBridge(), SIGNAL(resumeDebug()), this, SLOT(updateOldData()));
     setupCopyMenu();
 
     Initialize();
@@ -42,6 +47,7 @@ HexDump::HexDump(QWidget* parent)
 HexDump::~HexDump()
 {
     delete mMemPage;
+    delete[] mOldData;
 }
 
 void HexDump::updateColors()
@@ -138,7 +144,6 @@ void HexDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTab
     setRowCount(wRowCount); //set the number of rows
 
     mMemPage->setAttributes(wBase, wSize);  // Set base and size (Useful when memory page changed)
-
     if(updateTableOffset)
     {
         setTableOffset(-1); //make sure the requested address is always first
@@ -826,7 +831,7 @@ void HexDump::toString(DataDescriptor_t desc, duint rva, byte_t* data, RichTextP
 
     dsint start = rvaToVa(rva);
     dsint end = start + getSizeOf(desc.itemSize) - 1;
-    if(DbgFunctions()->PatchInRange(start, end))
+    if(DbgFunctions()->PatchInRange(start, end) || !matchOldData(start, data, getSizeOf(desc.itemSize)))
         richText.textColor = ConfigColor("HexDumpModifiedBytesColor");
 }
 
@@ -877,9 +882,11 @@ void HexDump::byteToString(duint rva, byte_t byte, ByteViewMode_e mode, RichText
     richText.text = wStr;
 
     DBGPATCHINFO patchInfo;
-    if(DbgFunctions()->PatchGetEx(rvaToVa(rva), &patchInfo))
+    duint va = rvaToVa(rva);
+    bool modified = !matchOldData(va, &byte, 1);
+    if(DbgFunctions()->PatchGetEx(va, &patchInfo) || modified)
     {
-        if(byte == patchInfo.newbyte)
+        if(byte == patchInfo.newbyte || modified)
         {
             richText.textColor = mModifiedBytesColor;
             richText.textBackground = mModifiedBytesBackgroundColor;
@@ -1395,5 +1402,32 @@ void HexDump::debugStateChanged(DBGSTATE state)
         mMemPage->setAttributes(0, 0);
         setRowCount(0);
         reloadData();
+        mOldDataSize = 0;
+        mOldDataBase = 0;
+        delete[] mOldData;
+        mOldData = NULL;
     }
+}
+
+void HexDump::updateOldData()
+{
+    delete[] mOldData;
+    mOldDataSize = mMemPage->getSize();
+    mOldData = new char[mOldDataSize];
+    mOldDataBase = mMemPage->getBase();
+    mMemPage->read(mOldData, 0, mOldDataSize);
+    Bridge::getBridge()->setResult();
+}
+
+bool HexDump::matchOldData(duint addr, void* buffer, size_t size)
+{
+    if(mOldData != NULL)
+    {
+        if(addr >= mOldDataBase && size + addr < mOldDataBase + mOldDataSize)
+            return memcmp(mOldData + addr - mOldDataBase, buffer, size) == 0;
+        else
+            return true;
+    }
+    else
+        return true;
 }

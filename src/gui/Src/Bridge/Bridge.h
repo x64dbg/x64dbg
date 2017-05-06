@@ -155,6 +155,7 @@ signals:
     void closeApplication();
     void flushLog();
     void getDumpAttention();
+    void resumeDebug();
 
 private:
     QMutex* mBridgeMutex;

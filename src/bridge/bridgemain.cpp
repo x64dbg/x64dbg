@@ -1633,6 +1633,11 @@ BRIDGE_IMPEXP void GuiFlushLog()
     _gui_sendmessage(GUI_FLUSH_LOG, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiResumeDebug()
+{
+    _gui_sendmessage(GUI_RESUME_DEBUG, nullptr, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

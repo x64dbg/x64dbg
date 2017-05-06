@@ -812,6 +812,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         }
     }
     break;
+
+    case GUI_RESUME_DEBUG:
+        BridgeResult result;
+        emit resumeDebug();
+        result.Wait();
+        break;
     }
 
     return nullptr;
