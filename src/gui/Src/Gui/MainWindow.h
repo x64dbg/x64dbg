@@ -33,6 +33,7 @@ class SettingsDialog;
 class DisassemblerGraphView;
 class SimpleTraceDialog;
 class MRUList;
+class CPUInfoBox;
 
 namespace Ui
 {

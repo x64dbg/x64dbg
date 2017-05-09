@@ -3,6 +3,8 @@
 
 #include "StdTable.h"
 
+class WordEditDialog;
+
 class CPUInfoBox : public StdTable
 {
     Q_OBJECT
@@ -11,6 +13,8 @@ public:
     int getHeight();
     void addFollowMenuItem(QMenu* menu, QString name, duint value);
     void setupFollowMenu(QMenu* menu, duint wVA);
+    void addModifyValueMenuItem(QMenu* menu, QString name, duint value);
+    void setupModifyValueMenu(QMenu* menu, duint wVA);
     void addWatchMenuItem(QMenu* menu, QString name, duint value);
     void setupWatchMenu(QMenu* menu, duint wVA);
     int followInDump(dsint wVA);
@@ -20,11 +24,16 @@ public slots:
     void dbgStateChanged(DBGSTATE state);
     void contextMenuSlot(QPoint pos);
     void followActionSlot();
+    void modifySlot();
+    void findReferencesSlot();
     void copyAddress();
     void copyRva();
     void copyOffset();
     void doubleClickedSlot();
     void addInfoLine(const QString & infoLine);
+
+signals:
+    void displayReferencesWidget();
 
 private:
     dsint curAddr;
