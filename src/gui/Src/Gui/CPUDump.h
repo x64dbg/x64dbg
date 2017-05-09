@@ -90,6 +90,7 @@ public slots:
     void binaryPasteIgnoreSizeSlot();
     void binarySaveToFileSlot();
     void findPattern();
+    void copyFileOffsetSlot();
     void undoSelectionSlot();
     void followStackSlot();
     void findReferencesSlot();

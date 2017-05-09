@@ -168,6 +168,11 @@ CPUMultiDump* CPUWidget::getDumpWidget()
     return mDump;
 }
 
+CPUInfoBox* CPUWidget::getInfoBoxWidget()
+{
+    return mInfo;
+}
+
 CPUStack* CPUWidget::getStackWidget()
 {
     return mStack;

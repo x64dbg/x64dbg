@@ -247,6 +247,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection to File (No Bytes)"), SLOT(copySelectionToFileNoBytesSlot())));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&Address"), SLOT(copyAddressSlot()), "ActionCopyAddress"));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot()), "ActionCopyRva"));
+    copyMenu->addAction(makeAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
     copyMenu->addAction(makeAction(DIcon("data-copy.png"), tr("&Data..."), SLOT(copyDataSlot())));
 
@@ -1711,6 +1712,27 @@ void CPUDisassembly::copyRvaSlot()
         else
         {
             SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
+            return false;
+        }
+        return true;
+    });
+    Bridge::CopyToClipboard(clipboard);
+}
+
+void CPUDisassembly::copyFileOffsetSlot()
+{
+    QString clipboard = "";
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
+    {
+        if(i)
+            clipboard += "\r\n";
+        duint addr = rvaToVa(inst.rva);
+        duint offset = DbgFunctions()->VaToFileOffset(addr);
+        if(offset)
+            clipboard += ToHexString(offset);
+        else
+        {
+            SimpleErrorBox(this, tr("Error!"), tr("Selection not in a file..."));
             return false;
         }
         return true;
