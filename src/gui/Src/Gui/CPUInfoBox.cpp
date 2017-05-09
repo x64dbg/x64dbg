@@ -140,24 +140,6 @@ QString CPUInfoBox::getSymbolicName(dsint addr)
     return finalText;
 }
 
-// code extracted from ExtraInfo plugin by torusxxx
-int compareFunc(const void* a, const void* b)
-{
-    XREF_RECORD* A, *B;
-    A = (XREF_RECORD*)a;
-    B = (XREF_RECORD*)b;
-    if(A->type > B->type)
-        return 1;
-    else if(A->type < B->type)
-        return -1;
-    else if(A->addr > B->addr)
-        return 1;
-    else if(A->addr < B->addr)
-        return -1;
-    else
-        return 0;
-}
-
 void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 {
     curAddr = parVA;
@@ -268,47 +250,66 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         setInfoLine(1, "");
 
     // check references details
-    // code extracted from ExtraInfo plugin by torusxxx
+    // code extracted from ExtraInfo plugin by torusrxxx
     XREF_INFO xrefInfo;
-    DbgXrefGet(parVA, &xrefInfo);
-    if(xrefInfo.refcount > 0)
+    xrefInfo.refcount = 0;
+    xrefInfo.references = nullptr;
+
+    if(DbgXrefGet(parVA, &xrefInfo) && xrefInfo.refcount > 0)
     {
         QString output;
-        char clabel[MAX_LABEL_SIZE] = "";
-        std::qsort(xrefInfo.references, xrefInfo.refcount, sizeof(xrefInfo.references[0]), &compareFunc);
-
-        int t = -1;
+        std::vector<XREF_RECORD*> data;
         for(duint i = 0; i < xrefInfo.refcount; i++)
+            data.push_back(&xrefInfo.references[i]);
+
+        std::sort(data.begin(), data.end(), [](const XREF_RECORD *A, const XREF_RECORD *B){
+            return ((A->type < B->type) || (A->addr < B->addr));
+        });
+
+        int t = XREF_NONE;
+        duint i;
+
+        for(i = 0; i < xrefInfo.refcount && i < 10; i++)
         {
-            if(t != xrefInfo.references[i].type)
+            if(t != data[i]->type)
             {
-                if(t != -1)
-                    output += ", ";
-                switch(xrefInfo.references[i].type)
+                switch(data[i]->type)
                 {
                     case XREF_JMP:
-                        output += "Jump from ";
+                        output += tr("Jump from ");
                         break;
                     case XREF_CALL:
-                        output += "Call from ";
+                        output += tr("Call from ");
                         break;
                     default:
-                        output += "Reference from ";
+                        output += tr("Reference from ");
                         break;
                 }
 
-                t = xrefInfo.references[i].type;
+                t = data[i]->type;
             }
 
-            DbgGetLabelAt(xrefInfo.references[i].addr, SEG_DEFAULT, clabel);
+            char clabel[MAX_LABEL_SIZE] = "";
+
+            DbgGetLabelAt(data[i]->addr, SEG_DEFAULT, clabel);
             if(*clabel)
                 output += QString(clabel);
             else
-                output += QString().number(xrefInfo.references[i].addr, 16).toUpper().trimmed();
+            {
+                duint start;
+                if(DbgFunctionGet(data[i]->addr, &start, nullptr) && DbgGetLabelAt(start, SEG_DEFAULT, clabel) && start != data[i]->addr)
+                    output += QString("%1+%2").arg(clabel).arg(ToHexString(data[i]->addr - start));
+                else
+                    output += QString("%1").arg(ToHexString(data[i]->addr));
+            }
 
             if(i != xrefInfo.refcount - 1)
                 output += ", ";
         }
+
+        data.clear();
+        if(xrefInfo.refcount > 10)
+            output += "...";
 
         setInfoLine(2, output);
     }
@@ -416,7 +417,6 @@ void CPUInfoBox::addModifyValueMenuItem(QMenu* menu, QString name, duint value)
         if(action->text() == name)
             return;
     QAction* newAction = new QAction(name, menu);
-    newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
     newAction->setObjectName(ToPtrString(value));
     connect(newAction, SIGNAL(triggered()), this, SLOT(modifySlot()));
@@ -474,7 +474,6 @@ void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, duint value)
         if(action->text() == name)
             return;
     QAction* newAction = new QAction(name, menu);
-    newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
     newAction->setObjectName(QString("DUMP|") + ToPtrString(value));
     connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
@@ -517,7 +516,7 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, duint wVA)
                     addFollowMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic).toUpper().trimmed() + "]", arg.memvalue);
+                addFollowMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue);
         }
         else
         {
@@ -539,7 +538,6 @@ void CPUInfoBox::addWatchMenuItem(QMenu* menu, QString name, duint value)
         if(action->text() == name)
             return;
     QAction* newAction = new QAction(name, menu);
-    newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
     newAction->setObjectName(QString("WATCH|") + ToPtrString(value));
     connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
@@ -582,7 +580,7 @@ void CPUInfoBox::setupWatchMenu(QMenu* menu, duint wVA)
                     addWatchMenuItem(menu, tr("&Constant: ") + constant, arg.constant);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addWatchMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic).toUpper().trimmed() + "]", arg.memvalue);
+                addWatchMenuItem(menu, tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue);
         }
         else
         {

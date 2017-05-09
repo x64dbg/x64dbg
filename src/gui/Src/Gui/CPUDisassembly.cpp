@@ -1732,7 +1732,7 @@ void CPUDisassembly::copyFileOffsetSlot()
             clipboard += ToHexString(offset);
         else
         {
-            SimpleWarningBox(this, tr("Error!"), tr("Selection not in a file..."));
+            SimpleErrorBox(this, tr("Error!"), tr("Selection not in a file..."));
             return false;
         }
         return true;
