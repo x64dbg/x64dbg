@@ -396,7 +396,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
             break;
         case bp_disabled:
             // is disabled --> delete or enable
-            if(Breakpoints::BPTrival(wVA))
+            if(Breakpoints::BPTrival(bp_normal, wVA))
                 wCmd = "bc ";
             else
                 wCmd = "be ";

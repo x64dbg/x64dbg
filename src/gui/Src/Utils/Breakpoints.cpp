@@ -399,7 +399,7 @@ BPXSTATE Breakpoints::BPState(BPXTYPE type, duint va)
     return result;
 }
 
-bool Breakpoints::BPTrival(duint va)
+bool Breakpoints::BPTrival(BPXTYPE type, duint va)
 {
     BPMAP wBPList;
     bool trival = true;
