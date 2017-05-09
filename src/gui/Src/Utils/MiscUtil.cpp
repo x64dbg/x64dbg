@@ -110,8 +110,11 @@ bool isEaster()
 
 QString couldItBeSeasonal(QString icon)
 {
+    static bool seasons = allowSeasons();
     static bool christmas = isChristmas();
     static bool easter = isEaster();
+    if(!seasons)
+        return icon;
     if(christmas)
         return QString("christmas%1.png").arg(rand() % 8 + 1);
     else if(easter)
