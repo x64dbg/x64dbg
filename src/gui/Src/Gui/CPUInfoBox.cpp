@@ -1,6 +1,7 @@
 #include "CPUInfoBox.h"
 #include "Configuration.h"
 #include "WordEditDialog.h"
+#include "XrefBrowseDialog.h"
 #include "Bridge.h"
 
 CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
@@ -405,10 +406,14 @@ void CPUInfoBox::modifySlot()
     }
 }
 
-void CPUInfoBox::findReferencesSlot()
+void CPUInfoBox::findXReferencesSlot()
 {
-    DbgCmdExec(QString("findref ") + QString().number(curAddr, 16).toUtf8().constData());
-    emit displayReferencesWidget();
+    if(!DbgIsDebugging())
+        return;
+    if(!mXrefDlg)
+        mXrefDlg = new XrefBrowseDialog(this);
+    mXrefDlg->setup(curAddr);
+    mXrefDlg->showNormal();
 }
 
 void CPUInfoBox::addModifyValueMenuItem(QMenu* menu, QString name, duint value)
@@ -649,7 +654,7 @@ void CPUInfoBox::contextMenuSlot(QPoint pos)
     setupWatchMenu(&wWatchMenu, curAddr);
     wMenu.addMenu(&wWatchMenu);
     if(!getInfoLine(2).isEmpty())
-        wMenu.addAction(makeAction(DIcon("find.png"), tr("&Show References"), SLOT(findReferencesSlot())));
+        wMenu.addAction(makeAction(DIcon("xrefs.png"), tr("&Show References"), SLOT(findXReferencesSlot())));
     QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(DbgIsDebugging())

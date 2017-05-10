@@ -53,6 +53,7 @@ private:
 
     void changeAddress(duint address);
     void setupContextMenu();
+    QString GetFunctionSymbol(duint addr);
 
     XREF_INFO mXrefInfo;
     duint mAddress;
