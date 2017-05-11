@@ -219,6 +219,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "SidebarWatchLabels", &settings.guiSidebarWatchLabels);
     GetSettingBool("Gui", "NoForegroundWindow", &settings.guiNoForegroundWindow);
     GetSettingBool("Gui", "LoadSaveTabOrder", &settings.guiLoadSaveTabOrder);
+    GetSettingBool("Gui", "ShowGraphRva", &settings.guiShowGraphRva);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
@@ -226,6 +227,7 @@ void SettingsDialog::LoadSettings()
     ui->chkSidebarWatchLabels->setChecked(settings.guiSidebarWatchLabels);
     ui->chkNoForegroundWindow->setChecked(settings.guiNoForegroundWindow);
     ui->chkSaveLoadTabOrder->setChecked(settings.guiLoadSaveTabOrder);
+    ui->chkShowGraphRva->setChecked(settings.guiShowGraphRva);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -353,6 +355,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "SidebarWatchLabels", settings.guiSidebarWatchLabels);
     BridgeSettingSetUint("Gui", "NoForegroundWindow", settings.guiNoForegroundWindow);
     BridgeSettingSetUint("Gui", "LoadSaveTabOrder", settings.guiLoadSaveTabOrder);
+    BridgeSettingSetUint("Gui", "ShowGraphRva", settings.guiShowGraphRva);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -798,4 +801,10 @@ void SettingsDialog::on_chk0xPrefixValues_toggled(bool checked)
 void SettingsDialog::on_chkNoSourceLinesAutoComments_toggled(bool checked)
 {
     settings.disasmNoSourceLineAutoComments = checked;
+}
+
+void SettingsDialog::on_chkShowGraphRva_toggled(bool checked)
+{
+    bTokenizerConfigUpdated = true;
+    settings.guiShowGraphRva = checked;
 }

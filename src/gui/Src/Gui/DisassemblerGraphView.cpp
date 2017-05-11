@@ -1486,6 +1486,7 @@ void DisassemblerGraphView::tokenizerConfigUpdatedSlot()
 
 void DisassemblerGraphView::loadCurrentGraph()
 {
+    bool showGraphRva = ConfigBool("Gui", "ShowGraphRva");
     Analysis anal;
     anal.update_id = this->update_id + 1;
     anal.entry = currentGraph.entryPoint;
@@ -1516,6 +1517,19 @@ void DisassemblerGraphView::loadCurrentGraph()
                         Instruction_t instrTok = disasm.DisassembleAt((byte_t*)nodeInstr.data, sizeof(nodeInstr.data), 0, addr, false);
                         RichTextPainter::List richText;
                         CapstoneTokenizer::TokenToRichText(instrTok.tokens, richText, 0);
+
+                        // add rva to node instruction text
+                        if(showGraphRva)
+                        {
+                            RichTextPainter::CustomRichText_t rvaText;
+                            rvaText.highlight = false;
+                            rvaText.textColor = mAddressColor;
+                            rvaText.textBackground = mAddressBackgroundColor;
+                            rvaText.text = QString().number(instrTok.rva, 16).toUpper().trimmed() + "  ";
+                            rvaText.flags = rvaText.textBackground.alpha() ? RichTextPainter::FlagAll : RichTextPainter::FlagColor;
+                            richText.insert(richText.begin(), rvaText);
+                        }
+
                         auto size = instrTok.length;
                         instr.addr = addr;
                         instr.opcode.resize(size);
@@ -1687,6 +1701,8 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
     mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
     mCipColor = ConfigColor("DisassemblyCipColor");
+    mAddressColor = ConfigColor("DisassemblyAddressColor");
+    mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
 
     jmpColor = ConfigColor("GraphJmpColor");
     brtrueColor = ConfigColor("GraphBrtrueColor");
