@@ -48,12 +48,15 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     // Highlight the search box
     mSearchListView->mCurList->setFocus();
 
+    Config()->setupWindowPos(this);
+
     // Populate the process list atleast once
     refresh();
 }
 
 AttachDialog::~AttachDialog()
 {
+    Config()->saveWindowPos(this);
     delete ui;
 }
 

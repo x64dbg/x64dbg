@@ -13,6 +13,13 @@ inline void insertMenuBuilderBools(QMap<QString, bool>* config, const char* id, 
         config->insert(QString("Menu%1Hidden%2").arg(id).arg(i), false);
 }
 
+inline static void addWindowPosConfig(QMap<QString, duint> & guiUint, const char* windowName)
+{
+    QString n(windowName);
+    guiUint.insert(n + "X", 0);
+    guiUint.insert(n + "Y", 0);
+}
+
 Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 {
     mPtr = this;
@@ -293,6 +300,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Privilege", 2);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "LocalVarsView", 3);
     guiUint.insert("SIMDRegistersDisplayMode", 0);
+    addWindowPosConfig(guiUint, "AssembleDialog");
+    addWindowPosConfig(guiUint, "AttachDialog");
+    addWindowPosConfig(guiUint, "GotoDialog");
+    addWindowPosConfig(guiUint, "EditBreakpointDialog");
     defaultUints.insert("Gui", guiUint);
 
     //uint settings
@@ -1095,4 +1106,27 @@ void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
 {
     NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
+}
+
+/**
+ * @brief Configuration::setupWindowPos Moves the dialog to the saved position
+ * @param window this
+ */
+void Configuration::setupWindowPos(QWidget* window)
+{
+    duint X, Y;
+    X = getUint("Gui", QString(window->metaObject()->className()) + "X");
+    Y = getUint("Gui", QString(window->metaObject()->className()) + "Y");
+    if(X != 0 && Y != 0)
+        window->move(X, Y);
+}
+
+/**
+ * @brief Configuration::saveWindowPos Saves the position of a dialog.
+ * @param window this
+ */
+void Configuration::saveWindowPos(QWidget* window)
+{
+    setUint("Gui",  QString(window->metaObject()->className()) + "X", window->pos().x());
+    setUint("Gui",  QString(window->metaObject()->className()) + "Y", window->pos().y());
 }
