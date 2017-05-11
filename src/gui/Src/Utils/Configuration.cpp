@@ -289,9 +289,12 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Script", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Thread", 14);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Handle", 5);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Window", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "TcpConnection", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Privilege", 2);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "LocalVarsView", 3);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Module", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Symbol", 4);
     guiUint.insert("SIMDRegistersDisplayMode", 0);
     defaultUints.insert("Gui", guiUint);
 

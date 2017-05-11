@@ -21,6 +21,8 @@ public:
     explicit SymbolView(QWidget* parent = 0);
     ~SymbolView();
     void setupContextMenu();
+    void saveWindowSettings();
+    void loadWindowSettings();
 
 private slots:
     void updateStyle();

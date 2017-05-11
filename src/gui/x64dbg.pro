@@ -178,7 +178,6 @@ SOURCES += \
     Src/Gui/BreakpointsViewTable.cpp \
     Src/Utils/MRUList.cpp \
     Src/Gui/LocalVarsView.cpp \
-    Src/Gui/HandlesWindowViewTable.cpp \
     Src/Gui/MessagesBreakpoints.cpp
 
 
@@ -292,7 +291,6 @@ HEADERS += \
     Src/Gui/BreakpointsViewTable.h \
     Src/Utils/MRUList.h \
     Src/Gui/LocalVarsView.h \
-    Src/Gui/HandlesWindowViewTable.h \
     Src/Gui/MessagesBreakpoints.h
     
 

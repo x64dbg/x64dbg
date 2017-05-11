@@ -6,47 +6,72 @@
 #include "StringUtil.h"
 #include "ReferenceView.h"
 #include "MainWindow.h"
-#include "HandlesWindowViewTable.h"
 #include "MessagesBreakpoints.h"
 #include <QVBoxLayout>
 
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
 {
-    mHandlesTable = new StdTable(this);
-    mHandlesTable->setWindowTitle("Handles");
-    mHandlesTable->setDrawDebugOnly(true);
-    int wCharWidth = mHandlesTable->getCharWidth();
-    mHandlesTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHandlesTable->addColumnAt(8 + 16 * wCharWidth, tr("Type"), false);
-    mHandlesTable->addColumnAt(8 + 8 * wCharWidth, tr("Type number"), false);
-    mHandlesTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), false);
-    mHandlesTable->addColumnAt(8 + 16 * wCharWidth, tr("Access"), false);
-    mHandlesTable->addColumnAt(8 + wCharWidth * 20, tr("Name"), false);
-    mHandlesTable->loadColumnFromConfig("Handle");
 
-    mWindowsTable = new HandlesWindowViewTable(this);
-    mWindowsTable->setWindowTitle("Windows");
-    mWindowsTable->setDrawDebugOnly(true);
-    mWindowsTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), false);
-    mWindowsTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), false);
-    mWindowsTable->addColumnAt(8 + 120 * wCharWidth, tr("Title"), false);
-    mWindowsTable->addColumnAt(8 + 40 * wCharWidth, tr("Class"), false);
-    mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), false);
-    mWindowsTable->addColumnAt(8 + 16 * wCharWidth, tr("Style"), false);
-    mWindowsTable->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), false);
-    mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), false);
-    mWindowsTable->addColumnAt(8 + 20 * wCharWidth, tr("Size"), false);
-    mWindowsTable->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), false);
+    mHandlesTable = new SearchListView(true, this, true);
+    mHandlesTable->mList->setWindowTitle("Handles");
+    mHandlesTable->mSearchStartCol = 0;
+    int wCharWidth = mHandlesTable->mList->getCharWidth();
+    // Setup handles list
+    mHandlesTable->mList->setDrawDebugOnly(true);
+    mHandlesTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("Type"), false);
+    mHandlesTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Type number"), false);
+    mHandlesTable->mList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), false);
+    mHandlesTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("Access"), false);
+    mHandlesTable->mList->addColumnAt(8 + wCharWidth * 20, tr("Name"), false);
+    mHandlesTable->mList->loadColumnFromConfig("Handle");
+    // Setup search list
+    mHandlesTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Type"), false);
+    mHandlesTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Type number"), false);
+    mHandlesTable->mSearchList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), false);
+    mHandlesTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Access"), false);
+    mHandlesTable->mSearchList->addColumnAt(8 + wCharWidth * 20, tr("Name"), false);
 
-    mTcpConnectionsTable = new StdTable(this);
+    mWindowsTable = new SearchListView(true, this, true);
+    mWindowsTable->mList->setWindowTitle("Windows");
+    mWindowsTable->mSearchStartCol = 0;
+    // Setup windows list
+    mWindowsTable->mList->setDrawDebugOnly(true);
+    mWindowsTable->mList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), false);
+    mWindowsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), false);
+    mWindowsTable->mList->addColumnAt(8 + 120 * wCharWidth, tr("Title"), false);
+    mWindowsTable->mList->addColumnAt(8 + 40 * wCharWidth, tr("Class"), false);
+    mWindowsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), false);
+    mWindowsTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("Style"), false);
+    mWindowsTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), false);
+    mWindowsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), false);
+    mWindowsTable->mList->addColumnAt(8 + 20 * wCharWidth, tr("Size"), false);
+    mWindowsTable->mList->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), false);
+    mWindowsTable->mList->loadColumnFromConfig("Window");
+    // Setup search list
+    mWindowsTable->mSearchList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + 120 * wCharWidth, tr("Title"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + 40 * wCharWidth, tr("Class"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Style"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + 20 * wCharWidth, tr("Size"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), false);
+
+    mTcpConnectionsTable = new SearchListView(true, this, true);
     mTcpConnectionsTable->setWindowTitle("TcpConnections");
-    mTcpConnectionsTable->setDrawDebugOnly(true);
-    mTcpConnectionsTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
-    mTcpConnectionsTable->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
-    mTcpConnectionsTable->addColumnAt(8 + 8 * wCharWidth, tr("State"), false);
-    mTcpConnectionsTable->loadColumnFromConfig("TcpConnection");
+    mHandlesTable->mSearchStartCol = 0;
+    // create tcp list
+    mTcpConnectionsTable->mList->setDrawDebugOnly(true);
+    mTcpConnectionsTable->mList->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
+    mTcpConnectionsTable->mList->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
+    mTcpConnectionsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("State"), false);
+    mTcpConnectionsTable->mList->loadColumnFromConfig("TcpConnection");
+    // create search list
+    mTcpConnectionsTable->mSearchList->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
+    mTcpConnectionsTable->mSearchList->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
+    mTcpConnectionsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("State"), false);
     /*
         mHeapsTable = new ReferenceView(this);
         mHeapsTable->setWindowTitle("Heaps");
@@ -106,18 +131,18 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mActionMessageProcBP = new QAction(DIcon("breakpoint_execute.png"), tr("Message Breakpoint in Proc"), this);
     connect(mActionMessageProcBP, SIGNAL(triggered()), this, SLOT(messagesBPSlot()));
 
-    connect(mHandlesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(handlesTableContextMenuSlot(const QPoint &)));
-    connect(mWindowsTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(windowsTableContextMenuSlot(const QPoint &)));
-    connect(mTcpConnectionsTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(tcpConnectionsTableContextMenuSlot(const QPoint &)));
+    connect(mHandlesTable, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(handlesTableContextMenuSlot(QMenu*)));
+    connect(mWindowsTable, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(windowsTableContextMenuSlot(QMenu*)));
+    connect(mTcpConnectionsTable, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(tcpConnectionsTableContextMenuSlot(QMenu*)));
     connect(mPrivilegesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(privilegesTableContextMenuSlot(const QPoint &)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
 
     if(!IsWindowsVistaOrGreater())
     {
-        mTcpConnectionsTable->setRowCount(1);
-        mTcpConnectionsTable->setCellContent(0, 0, tr("TCP Connection enumeration is only available on Windows Vista or greater."));
-        mTcpConnectionsTable->reloadData();
+        mTcpConnectionsTable->mList->setRowCount(1);
+        mTcpConnectionsTable->mList->setCellContent(0, 0, tr("TCP Connection enumeration is only available on Windows Vista or greater."));
+        mTcpConnectionsTable->mList->reloadData();
     }
     reloadData();
     refreshShortcuts();
@@ -135,12 +160,12 @@ void HandlesView::reloadData()
     }
     else
     {
-        mHandlesTable->setRowCount(0);
-        mHandlesTable->reloadData();
-        mWindowsTable->setRowCount(0);
-        mWindowsTable->reloadData();
-        mTcpConnectionsTable->setRowCount(0);
-        mTcpConnectionsTable->reloadData();
+        mHandlesTable->mList->setRowCount(0);
+        mHandlesTable->mList->reloadData();
+        mWindowsTable->mList->setRowCount(0);
+        mWindowsTable->mList->reloadData();
+        mTcpConnectionsTable->mList->setRowCount(0);
+        mTcpConnectionsTable->mList->reloadData();
         //mHeapsTable->setRowCount(0);
         //mHeapsTable->reloadData();
         mPrivilegesTable->setRowCount(0);
@@ -159,87 +184,81 @@ void HandlesView::dbgStateChanged(DBGSTATE state)
         reloadData();
 }
 
-void HandlesView::handlesTableContextMenuSlot(const QPoint & pos)
+void HandlesView::handlesTableContextMenuSlot(QMenu* wMenu)
 {
     if(!DbgIsDebugging())
         return;
-    StdTable & table = *mHandlesTable;
-    QMenu wMenu;
+    StdTable & table = *mHandlesTable->mCurList;
     QMenu wCopyMenu(tr("&Copy"), this);
     wCopyMenu.setIcon(DIcon("copy.png"));
 
-    wMenu.addAction(mActionRefresh);
+    wMenu->addAction(mActionRefresh);
     if(table.getRowCount())
     {
-        wMenu.addAction(mActionCloseHandle);
+        wMenu->addAction(mActionCloseHandle);
 
         table.setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
-            wMenu.addSeparator();
-            wMenu.addMenu(&wCopyMenu);
+            wMenu->addSeparator();
+            wMenu->addMenu(&wCopyMenu);
         }
     }
-    wMenu.exec(table.mapToGlobal(pos));
 }
 
-void HandlesView::windowsTableContextMenuSlot(const QPoint & pos)
+void HandlesView::windowsTableContextMenuSlot(QMenu* wMenu)
 {
     if(!DbgIsDebugging())
         return;
-    StdTable & table = *mWindowsTable;
-    QMenu wMenu;
+    StdTable & table = *mWindowsTable->mCurList;
     QMenu wCopyMenu(tr("Copy"), this);
     wCopyMenu.setIcon(DIcon("copy.png"));
-    wMenu.addAction(mActionRefresh);
+    wMenu->addAction(mActionRefresh);
 
     if(table.getRowCount())
     {
         if(table.getCellContent(table.getInitialSelection(), 9) == tr("Enabled"))
         {
             mActionDisableWindow->setText(tr("Disable window"));
-            wMenu.addAction(mActionDisableWindow);
+            wMenu->addAction(mActionDisableWindow);
         }
         else
         {
             mActionEnableWindow->setText(tr("Enable window"));
-            wMenu.addAction(mActionEnableWindow);
+            wMenu->addAction(mActionEnableWindow);
         }
 
-        wMenu.addAction(mActionFollowProc);
-        wMenu.addAction(mActionToggleProcBP);
-        wMenu.addAction(mActionMessageProcBP);
-        wMenu.addSeparator();
+        wMenu->addAction(mActionFollowProc);
+        wMenu->addAction(mActionToggleProcBP);
+        wMenu->addAction(mActionMessageProcBP);
+        wMenu->addSeparator();
         table.setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
-            wMenu.addSeparator();
-            wMenu.addMenu(&wCopyMenu);
+            wMenu->addSeparator();
+            wMenu->addMenu(&wCopyMenu);
         }
     }
-    wMenu.exec(table.mapToGlobal(pos));
 }
 
-void HandlesView::tcpConnectionsTableContextMenuSlot(const QPoint & pos)
+void HandlesView::tcpConnectionsTableContextMenuSlot(QMenu* wMenu)
 {
     if(!DbgIsDebugging())
         return;
-    StdTable & table = *mTcpConnectionsTable;
-    QMenu wMenu;
+    StdTable & table = *mTcpConnectionsTable->mCurList;
     QMenu wCopyMenu(tr("&Copy"), this);
     wCopyMenu.setIcon(DIcon("copy.png"));
 
-    wMenu.addAction(mActionRefresh);
+    wMenu->addAction(mActionRefresh);
     if(table.getRowCount())
     {
         table.setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
-            wMenu.addSeparator();
-            wMenu.addMenu(&wCopyMenu);
+            wMenu->addSeparator();
+            wMenu->addMenu(&wCopyMenu);
         }
     }
-    wMenu.exec(table.mapToGlobal(pos));
 }
 
 void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
@@ -279,7 +298,7 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 
 void HandlesView::closeHandleSlot()
 {
-    DbgCmdExec(QString("handleclose %1").arg(mHandlesTable->getCellContent(mHandlesTable->getInitialSelection(), 2)).toUtf8().constData());
+    DbgCmdExec(QString("handleclose %1").arg(mHandlesTable->mCurList->getCellContent(mHandlesTable->mCurList->getInitialSelection(), 2)).toUtf8().constData());
     enumHandles();
 }
 
@@ -319,31 +338,31 @@ void HandlesView::disableAllPrivilegesSlot()
 
 void HandlesView::enableWindowSlot()
 {
-    DbgCmdExec(QString("EnableWindow %1").arg(mWindowsTable->getCellContent(mWindowsTable->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExec(QString("EnableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)).toUtf8().constData());
     enumWindows();
 }
 
 void HandlesView::disableWindowSlot()
 {
-    DbgCmdExec(QString("DisableWindow %1").arg(mWindowsTable->getCellContent(mWindowsTable->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExec(QString("DisableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)).toUtf8().constData());
     enumWindows();
 }
 
 void HandlesView::followInDisasmSlot()
 {
-    DbgCmdExec(QString("disasm %1").arg(mWindowsTable->getCellContent(mWindowsTable->getInitialSelection(), 1)).toUtf8().constData());
+    DbgCmdExec(QString("disasm %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void HandlesView::toggleBPSlot()
 {
-    StdTable & mCurList = *mWindowsTable;
+    StdTable & mCurList = *mWindowsTable->mCurList;
 
     if(!DbgIsDebugging())
         return;
 
     if(!mCurList.getRowCount())
         return;
-    QString addrText = mCurList.getCellContent(mCurList.getInitialSelection(), 1).toUtf8().constData();
+    QString addrText = mCurList.getCellContent(mCurList.getInitialSelection(), 0).toUtf8().constData();
     duint wVA;
     if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
         return;
@@ -363,14 +382,14 @@ void HandlesView::toggleBPSlot()
 
 void HandlesView::messagesBPSlot()
 {
-    StdTable & mCurList = *mWindowsTable;
+    StdTable & mCurList = *mWindowsTable->mCurList;
     MessagesBreakpoints::MsgBreakpointData mbpData;
 
     if(!mCurList.getRowCount())
         return;
 
-    mbpData.wndHandle = mCurList.getCellContent(mCurList.getInitialSelection(), 0).toUtf8().constData();
-    mbpData.procVA = mCurList.getCellContent(mCurList.getInitialSelection(), 1).toUtf8().constData();
+    mbpData.wndHandle = mCurList.getCellContent(mCurList.getInitialSelection(), 1).toUtf8().constData();
+    mbpData.procVA = mCurList.getCellContent(mCurList.getInitialSelection(), 0).toUtf8().constData();
 
     MessagesBreakpoints messagesBPDialog(mbpData, this);
     messagesBPDialog.exec();
@@ -384,23 +403,23 @@ void HandlesView::enumHandles()
     if(DbgFunctions()->EnumHandles(&handles))
     {
         auto count = handles.Count();
-        mHandlesTable->setRowCount(count);
+        mHandlesTable->mList->setRowCount(count);
         for(auto i = 0; i < count; i++)
         {
             const HANDLEINFO & handle = handles[i];
             char name[MAX_STRING_SIZE] = "";
             char typeName[MAX_STRING_SIZE] = "";
             DbgFunctions()->GetHandleName(handle.Handle, name, sizeof(name), typeName, sizeof(typeName));
-            mHandlesTable->setCellContent(i, 0, typeName);
-            mHandlesTable->setCellContent(i, 1, ToHexString(handle.TypeNumber));
-            mHandlesTable->setCellContent(i, 2, ToHexString(handle.Handle));
-            mHandlesTable->setCellContent(i, 3, ToHexString(handle.GrantedAccess));
-            mHandlesTable->setCellContent(i, 4, name);
+            mHandlesTable->mList->setCellContent(i, 0, typeName);
+            mHandlesTable->mList->setCellContent(i, 1, ToHexString(handle.TypeNumber));
+            mHandlesTable->mList->setCellContent(i, 2, ToHexString(handle.Handle));
+            mHandlesTable->mList->setCellContent(i, 3, ToHexString(handle.GrantedAccess));
+            mHandlesTable->mList->setCellContent(i, 4, name);
         }
     }
     else
-        mHandlesTable->setRowCount(0);
-    mHandlesTable->reloadData();
+        mHandlesTable->mList->setRowCount(0);
+    mHandlesTable->mList->reloadData();
 }
 //Enumerate windows and update windows table
 void HandlesView::enumWindows()
@@ -409,35 +428,35 @@ void HandlesView::enumWindows()
     if(DbgFunctions()->EnumWindows(&windows))
     {
         auto count = windows.Count();
-        mWindowsTable->setRowCount(count);
+        mWindowsTable->mList->setRowCount(count);
         for(auto i = 0; i < count; i++)
         {
-            mWindowsTable->setCellContent(i, 0, ToHexString(windows[i].handle));
-            mWindowsTable->setCellContent(i, 1, ToPtrString(windows[i].wndProc));
-            mWindowsTable->setCellContent(i, 2, QString(windows[i].windowTitle));
-            mWindowsTable->setCellContent(i, 3, QString(windows[i].windowClass));
+            mWindowsTable->mList->setCellContent(i, 0, ToPtrString(windows[i].wndProc));
+            mWindowsTable->mList->setCellContent(i, 1, ToHexString(windows[i].handle));
+            mWindowsTable->mList->setCellContent(i, 2, QString(windows[i].windowTitle));
+            mWindowsTable->mList->setCellContent(i, 3, QString(windows[i].windowClass));
             char threadname[MAX_THREAD_NAME_SIZE];
             if(DbgFunctions()->ThreadGetName(windows[i].threadId, threadname))
-                mWindowsTable->setCellContent(i, 4, QString::fromUtf8(threadname));
+                mWindowsTable->mList->setCellContent(i, 4, QString::fromUtf8(threadname));
             else if(Config()->getBool("Gui", "PidInHex"))
-                mWindowsTable->setCellContent(i, 4, ToHexString(windows[i].threadId));
+                mWindowsTable->mList->setCellContent(i, 4, ToHexString(windows[i].threadId));
             else
-                mWindowsTable->setCellContent(i, 4, QString::number(windows[i].threadId));
+                mWindowsTable->mList->setCellContent(i, 4, QString::number(windows[i].threadId));
             //Style
-            mWindowsTable->setCellContent(i, 5, ToHexString(windows[i].style));
+            mWindowsTable->mList->setCellContent(i, 5, ToHexString(windows[i].style));
             //StyleEx
-            mWindowsTable->setCellContent(i, 6, ToHexString(windows[i].styleEx));
-            mWindowsTable->setCellContent(i, 7, ToHexString(windows[i].parent) + (windows[i].parent == ((duint)GetDesktopWindow()) ? tr(" (Desktop window)") : ""));
+            mWindowsTable->mList->setCellContent(i, 6, ToHexString(windows[i].styleEx));
+            mWindowsTable->mList->setCellContent(i, 7, ToHexString(windows[i].parent) + (windows[i].parent == ((duint)GetDesktopWindow()) ? tr(" (Desktop window)") : ""));
             //Size
             QString sizeText = QString("(%1,%2);%3x%4").arg(windows[i].position.left).arg(windows[i].position.top)
                                .arg(windows[i].position.right - windows[i].position.left).arg(windows[i].position.bottom - windows[i].position.top);
-            mWindowsTable->setCellContent(i, 8, sizeText);
-            mWindowsTable->setCellContent(i, 9, windows[i].enabled != FALSE ? tr("Enabled") : tr("Disabled"));
+            mWindowsTable->mList->setCellContent(i, 8, sizeText);
+            mWindowsTable->mList->setCellContent(i, 9, windows[i].enabled != FALSE ? tr("Enabled") : tr("Disabled"));
         }
     }
     else
-        mWindowsTable->setRowCount(0);
-    mWindowsTable->reloadData();
+        mWindowsTable->mList->setRowCount(0);
+    mWindowsTable->mList->reloadData();
 }
 
 //Enumerate privileges and update privileges table
@@ -507,20 +526,20 @@ void HandlesView::enumTcpConnections()
     if(DbgFunctions()->EnumTcpConnections(&connections))
     {
         auto count = connections.Count();
-        mTcpConnectionsTable->setRowCount(count);
+        mTcpConnectionsTable->mList->setRowCount(count);
         for(auto i = 0; i < count; i++)
         {
             const TCPCONNECTIONINFO & connection = connections[i];
             auto remoteText = QString("%1:%2").arg(connection.RemoteAddress).arg(connection.RemotePort);
-            mTcpConnectionsTable->setCellContent(i, 0, remoteText);
+            mTcpConnectionsTable->mList->setCellContent(i, 0, remoteText);
             auto localText = QString("%1:%2").arg(connection.LocalAddress).arg(connection.LocalPort);
-            mTcpConnectionsTable->setCellContent(i, 1, localText);
-            mTcpConnectionsTable->setCellContent(i, 2, connection.StateText);
+            mTcpConnectionsTable->mList->setCellContent(i, 1, localText);
+            mTcpConnectionsTable->mList->setCellContent(i, 2, connection.StateText);
         }
     }
     else
-        mTcpConnectionsTable->setRowCount(0);
-    mTcpConnectionsTable->reloadData();
+        mTcpConnectionsTable->mList->setRowCount(0);
+    mTcpConnectionsTable->mList->reloadData();
 }
 /*
 //Enumerate Heaps and update Heaps table

@@ -578,6 +578,7 @@ void MainWindow::saveWindowSettings()
     }
 
     mCpuWidget->saveWindowSettings();
+    mSymbolView->saveWindowSettings();
 }
 
 void MainWindow::loadWindowSettings()
@@ -612,6 +613,7 @@ void MainWindow::loadWindowSettings()
     }
 
     mCpuWidget->loadWindowSettings();
+    mSymbolView->loadWindowSettings();
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)

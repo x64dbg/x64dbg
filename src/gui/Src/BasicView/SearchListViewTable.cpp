@@ -46,12 +46,14 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         isaddr = false;
     if(!getRowCount())
         isaddr = false;
-    ULONGLONG val = 0;
     duint wVA;
-    if(sscanf_s(text.toUtf8().constData(), "%llX", &val) != 1 || !val)
-        isaddr = false;
-    else
-        wVA = val;
+
+#ifdef _WIN64
+        wVA = text.toULongLong(&isaddr, 16);
+#else //x86
+        wVA = text.toULong(&isaddr, 16);
+#endif //_WIN64
+
     auto wIsTraced = isaddr && DbgFunctions()->GetTraceRecordHitCount(wVA) != 0;
     QColor lineBackgroundColor;
     bool isBackgroundColorSet;
