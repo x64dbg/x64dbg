@@ -262,7 +262,8 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         for(duint i = 0; i < xrefInfo.refcount; i++)
             data.push_back(&xrefInfo.references[i]);
 
-        std::sort(data.begin(), data.end(), [](const XREF_RECORD *A, const XREF_RECORD *B){
+        std::sort(data.begin(), data.end(), [](const XREF_RECORD * A, const XREF_RECORD * B)
+        {
             return ((A->type < B->type) || (A->addr < B->addr));
         });
 
@@ -275,15 +276,15 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
             {
                 switch(data[i]->type)
                 {
-                    case XREF_JMP:
-                        output += tr("Jump from ");
-                        break;
-                    case XREF_CALL:
-                        output += tr("Call from ");
-                        break;
-                    default:
-                        output += tr("Reference from ");
-                        break;
+                case XREF_JMP:
+                    output += tr("Jump from ");
+                    break;
+                case XREF_CALL:
+                    output += tr("Call from ");
+                    break;
+                default:
+                    output += tr("Reference from ");
+                    break;
                 }
 
                 t = data[i]->type;
@@ -394,7 +395,7 @@ void CPUInfoBox::modifySlot()
         duint addrVal = 0;
         DbgFunctions()->ValFromString(action->objectName().toUtf8().constData(), &addrVal);
         WordEditDialog wEditDialog(this);
-        dsint value = 0;        
+        dsint value = 0;
         DbgMemRead(addrVal, &value, sizeof(dsint));
         wEditDialog.setup(tr("Modify Value"), value, sizeof(dsint));
         if(wEditDialog.exec() != QDialog::Accepted)

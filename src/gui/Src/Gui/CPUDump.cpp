@@ -56,7 +56,7 @@ void CPUDump::setupContextMenu()
     wCopyMenu->addAction(mCopyRva, [this](QMenu*)
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
-    });    
+    });
     wCopyMenu->addAction(makeShortcutAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot()), "ActionCopyFileOffset"), [this](QMenu*)
     {
         return DbgFunctions()->VaToFileOffset(rvaToVa(getInitialSelection())) != 0;
