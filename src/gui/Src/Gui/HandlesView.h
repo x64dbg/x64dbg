@@ -8,7 +8,8 @@ class StdTable;
 class ReferenceView;
 class QVBoxLayout;
 class LabeledSplitter;
-class HandlesWindowViewTable;
+class SearchListView;
+class QMenu;
 
 class HandlesView : public QWidget
 {
@@ -21,9 +22,9 @@ public slots:
     void refreshShortcuts();
     void dbgStateChanged(DBGSTATE state);
 
-    void handlesTableContextMenuSlot(const QPoint & pos);
-    void tcpConnectionsTableContextMenuSlot(const QPoint & pos);
-    void windowsTableContextMenuSlot(const QPoint & pos);
+    void handlesTableContextMenuSlot(QMenu* wMenu);
+    void tcpConnectionsTableContextMenuSlot(QMenu* wMenu);
+    void windowsTableContextMenuSlot(QMenu*);
     void privilegesTableContextMenuSlot(const QPoint & pos);
 
     void closeHandleSlot();
@@ -40,9 +41,9 @@ public slots:
 private:
     QVBoxLayout* mVertLayout;
     LabeledSplitter* mSplitter;
-    StdTable* mHandlesTable;
-    StdTable* mTcpConnectionsTable;
-    StdTable* mWindowsTable;
+    SearchListView* mHandlesTable;
+    SearchListView* mTcpConnectionsTable;
+    SearchListView* mWindowsTable;
     //ReferenceView* mHeapsTable;
     StdTable* mPrivilegesTable;
 

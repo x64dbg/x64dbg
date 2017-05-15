@@ -621,6 +621,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkShowGraphRva">
+         <property name="text">
+          <string>Show RVA addresses in graph view</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

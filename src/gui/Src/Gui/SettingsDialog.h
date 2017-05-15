@@ -86,6 +86,7 @@ private slots:
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
     void on_chkUtf16LogRedirect_toggled(bool checked);
+    void on_chkShowGraphRva_toggled(bool checked);
 
 private:
     //enums
@@ -168,6 +169,7 @@ private:
         bool guiSidebarWatchLabels;
         bool guiNoForegroundWindow;
         bool guiLoadSaveTabOrder;
+        bool guiShowGraphRva;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;

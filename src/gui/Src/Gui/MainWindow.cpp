@@ -51,7 +51,6 @@
 #include "SimpleTraceDialog.h"
 #include "CPUArgumentWidget.h"
 #include "MRUList.h"
-#include "CPUInfoBox.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -339,8 +338,6 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(mCpuWidget->getStackWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
-    connect(mCpuWidget->getInfoBoxWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
-
     connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
@@ -581,6 +578,7 @@ void MainWindow::saveWindowSettings()
     }
 
     mCpuWidget->saveWindowSettings();
+    mSymbolView->saveWindowSettings();
 }
 
 void MainWindow::loadWindowSettings()
@@ -615,6 +613,7 @@ void MainWindow::loadWindowSettings()
     }
 
     mCpuWidget->loadWindowSettings();
+    mSymbolView->loadWindowSettings();
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)

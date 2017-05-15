@@ -4,6 +4,7 @@
 #include "StdTable.h"
 
 class WordEditDialog;
+class XrefBrowseDialog;
 
 class CPUInfoBox : public StdTable
 {
@@ -25,15 +26,12 @@ public slots:
     void contextMenuSlot(QPoint pos);
     void followActionSlot();
     void modifySlot();
-    void findReferencesSlot();
+    void findXReferencesSlot();
     void copyAddress();
     void copyRva();
     void copyOffset();
     void doubleClickedSlot();
     void addInfoLine(const QString & infoLine);
-
-signals:
-    void displayReferencesWidget();
 
 private:
     dsint curAddr;
@@ -44,6 +42,8 @@ private:
     QString getInfoLine(int line);
     void clear();
     void setupContextMenu();
+
+    XrefBrowseDialog* mXrefDlg = nullptr;
 
     QAction* mCopyAddressAction;
     QAction* mCopyRvaAction;

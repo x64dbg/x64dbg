@@ -335,6 +335,8 @@ private:
     QColor mCipColor;
     QColor mCipBackgroundColor;
     QColor graphNodeColor;
+    QColor mAddressColor;
+    QColor mAddressBackgroundColor;
 
     BridgeCFGraph currentGraph;
     std::unordered_map<duint, duint> currentBlockMap;
