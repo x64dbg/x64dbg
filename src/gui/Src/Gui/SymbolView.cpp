@@ -41,7 +41,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
     mModuleList->mSearchList->addColumnAt(300, "Module", true);
     mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), false);
-    mModuleList->mSearchList->addColumnAt(charwidth * 60, tr("Path"), false);    
+    mModuleList->mSearchList->addColumnAt(charwidth * 60, tr("Path"), false);
 
     // Setup symbol list
     mSearchListView->mList->enableMultiSelection(true);
