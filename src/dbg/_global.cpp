@@ -43,7 +43,10 @@ void* emalloc(size_t size, const char* reason)
 #endif //ENABLE_MEM_TRACE
     if(!a)
     {
-        MessageBoxW(0, L"Could not allocate memory", L"Error", MB_ICONERROR);
+        wchar_t size[25];
+        swprintf_s(size, L"%p bytes", size);
+        MessageBoxW(0, L"Could not allocate memory (minidump will be created)", size, MB_ICONERROR);
+        __debugbreak();
         ExitProcess(1);
     }
     emalloc_count++;

@@ -13,9 +13,10 @@
 ///api functions
 bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
 {
-    MEMORY_BASIC_INFORMATION mbi;
-    VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
-    duint size = mbi.RegionSize;
+    duint size;
+    base = MemFindBaseAddr(base, &size);
+    if(!base || !size)
+        return false;
     Memory<void*> buffer(size, "apienumexports:buffer");
     if(!MemRead(base, buffer(), size))
         return false;
@@ -90,7 +91,6 @@ bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
     char importModuleName[MAX_MODULE_SIZE + 1] = "";
     duint regionSize;
     ULONG_PTR importTableRva, importTableSize;
-    MEMORY_BASIC_INFORMATION mbi;
     PIMAGE_IMPORT_DESCRIPTOR importTableVa;
     IMAGE_IMPORT_DESCRIPTOR importDescriptor;
     PIMAGE_THUNK_DATA imageIATVa, imageINTVa;
@@ -98,8 +98,9 @@ bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
     PIMAGE_IMPORT_BY_NAME pImageImportByNameVa;
 
     // Get page size
-    VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
-    regionSize = mbi.RegionSize;
+    base = MemFindBaseAddr(base, &regionSize);
+    if(!base || !regionSize)
+        return false;
     Memory<void*> buffer(regionSize, "apienumimports:buffer");
 
     // Read first page into buffer
