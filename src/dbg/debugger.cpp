@@ -271,6 +271,7 @@ bool bVerboseExceptionLogging = true;
 bool bNoWow64SingleStepWorkaround = false;
 duint DbgEvents = 0;
 duint maxSkipExceptionCount = 10000;
+HANDLE mProcHandle;
 
 static duint dbgcleartracestate()
 {
@@ -2147,7 +2148,46 @@ cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
     return quotesPos;
 }
 
-bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::string>* commandList)
+BOOL CALLBACK chkWindowPidCallback(HWND hWnd, LPARAM lParam)
+{
+    DWORD procId = (DWORD)lParam;
+    DWORD hwndPid = 0;
+    GetWindowThreadProcessId(hWnd, &hwndPid);
+    if(hwndPid == procId)
+    {
+        mProcHandle = hWnd;
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessId)
+{
+    mProcHandle = NULL;
+    EnumWindows(chkWindowPidCallback, dwProcessId);
+    if(mProcHandle)
+    {
+        wchar_t limitedbuffer[256];
+        limitedbuffer[255] = 0;
+        GetWindowTextW((HWND)mProcHandle, limitedbuffer, 256);
+        if(limitedbuffer[255] != 0)  //Window title too long. Add "..." to the end of buffer.
+        {
+            if(limitedbuffer[252] < 0xDC00 || limitedbuffer[252] > 0xDFFF)  //protect the last surrogate of UTF-16 surrogate pair
+                limitedbuffer[252] = L'.';
+            limitedbuffer[253] = L'.';
+            limitedbuffer[254] = L'.';
+            limitedbuffer[255] = 0;
+        }
+        auto UTF8WindowTitle = StringUtils::Utf16ToUtf8(limitedbuffer);
+        winTextList->push_back(UTF8WindowTitle);
+        return true;
+    }
+
+    return false;
+}
+
+bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::string>* commandList, std::vector<std::string>* winTextList)
 {
     infoList->clear();
     Handle hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -2177,6 +2217,9 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
         infoList->push_back(pe32);
         //
         char* cmdline;
+
+        if(!dbggetwintext(winTextList, pe32.th32ProcessID))
+            winTextList->push_back("");
 
         if(!dbggetcmdline(&cmdline, NULL, hProcess))
             commandList->push_back("ARG_GET_ERROR");

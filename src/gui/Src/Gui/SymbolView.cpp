@@ -28,7 +28,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
 
     // Create module list
     mModuleList = new SearchListView(true, this);
-    mModuleList->mSearchStartCol = 1;
+    mModuleList->mSearchStartCol = 0;
     int charwidth = mModuleList->mList->getCharWidth();
     mModuleList->mList->enableMultiSelection(true);
     mModuleList->mList->setCipBase(true);

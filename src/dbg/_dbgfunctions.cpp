@@ -169,7 +169,8 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
 {
     std::vector<PROCESSENTRY32> infoList;
     std::vector<std::string> commandList;
-    if(!dbglistprocesses(&infoList, &commandList))
+    std::vector<std::string> winTextList;
+    if(!dbglistprocesses(&infoList, &commandList, &winTextList))
         return false;
     *count = (int)infoList.size();
     if(!*count)
@@ -179,6 +180,7 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
     {
         (*entries)[*count - i - 1].dwProcessId = infoList.at(i).th32ProcessID;
         strncpy_s((*entries)[*count - i - 1].szExeFile, infoList.at(i).szExeFile, _TRUNCATE);
+        strncpy_s((*entries)[*count - i - 1].szExeMainWindowTitle, winTextList.at(i).c_str(), _TRUNCATE);
         strncpy_s((*entries)[*count - i - 1].szExeArgs, commandList.at(i).c_str(), _TRUNCATE);
     }
     return true;
