@@ -33,12 +33,15 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
         else if(setting == 2)
             ui->radioAsmjit->setChecked(true);
     }
+
+    Config()->setupWindowPos(this);
 }
 
 AssembleDialog::~AssembleDialog()
 {
     mValidateThread->stop();
     mValidateThread->wait();
+    Config()->saveWindowPos(this);
     delete ui;
 }
 

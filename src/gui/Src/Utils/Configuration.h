@@ -17,6 +17,8 @@
 #define ConfigHScrollBarStyle() "QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaaaaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}"
 #define ConfigVScrollBarStyle() "QScrollBar:vertical{border:1px solid grey;background:#f1f1f1;width:10px}QScrollBar::handle:vertical{background:#aaaaaa;min-height:20px;margin:1px}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{width:0;height:0}"
 
+
+
 class MenuBuilder;
 class QAction;
 
@@ -69,6 +71,8 @@ public:
     const Shortcut getShortcut(const QString key_id) const;
     void setShortcut(const QString key_id, const QKeySequence key_sequence);
     void setPluginShortcut(const QString key_id, QString description, QString defaultShortcut, bool global);
+    void setupWindowPos(QWidget* window);
+    void saveWindowPos(QWidget* window);
 
     //default setting maps
     QMap<QString, QColor> defaultColors;
