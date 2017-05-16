@@ -3,6 +3,7 @@
 #include "CPUMultiDump.h"
 #include "MiscUtil.h"
 #include "WordEditDialog.h"
+#include "EncodeMap.h"
 
 // Gets the address from an expression like "[EBP-7c]"
 static bool getAddress(QString addrText, duint & output)
@@ -196,7 +197,7 @@ void LocalVarsView::updateSlot()
             while(address < end)
             {
                 ENCODETYPE codeType = DbgGetEncodeTypeAt(address, 1);
-                if(codeType != enc_code && codeType != enc_unknown) //Skip data bytes
+                if(!EncodeMap::isCode(codeType)) //Skip data bytes
                 {
                     address += DbgGetEncodeSizeAt(address, 1);
                     continue;

@@ -186,8 +186,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     if(datainstr)
     {
         ENCODETYPE type = mEncodeMap->getDataType(origBase + origInstRVA);
-
-        if(type != enc_unknown && type != enc_code && type != enc_middle)
+        if(!mEncodeMap->isCode(type))
             return DecodeDataAt(data, size, origBase, origInstRVA, type);
     }
     //tokenize

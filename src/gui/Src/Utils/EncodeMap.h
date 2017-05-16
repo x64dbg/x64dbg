@@ -19,7 +19,7 @@ public:
     void delRange(duint start, duint size);
     void delSegment(duint va);
 
-    duint getEncodeTypeSize(ENCODETYPE type)
+    static duint getEncodeTypeSize(ENCODETYPE type)
     {
         switch(type)
         {
@@ -58,20 +58,21 @@ public:
         }
     }
 
-    bool isCode(ENCODETYPE type)
+    static bool isCode(ENCODETYPE type)
     {
         switch(type)
         {
         case enc_unknown:
         case enc_code:
         case enc_junk:
+        case enc_middle:
             return true;
         default:
             return false;
         }
     }
 
-    inline bool inBufferRange(duint addr)
+    bool inBufferRange(duint addr) const
     {
         return addr >= mBase && addr < mBase + mBufferSize;
     }
