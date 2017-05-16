@@ -544,7 +544,7 @@ static void Getx87StatusWordFields(X87STATUSWORDFIELDS* x87StatusWordFields, WOR
     x87StatusWordFields->C3 = valx87statuswordflagfromstring(StatusWord, "C3");
     x87StatusWordFields->D = valx87statuswordflagfromstring(StatusWord, "D");
     x87StatusWordFields->I = valx87statuswordflagfromstring(StatusWord, "I");
-    x87StatusWordFields->IR = valx87statuswordflagfromstring(StatusWord, "IR");
+    x87StatusWordFields->ES = valx87statuswordflagfromstring(StatusWord, "ES");
     x87StatusWordFields->O = valx87statuswordflagfromstring(StatusWord, "O");
     x87StatusWordFields->P = valx87statuswordflagfromstring(StatusWord, "P");
     x87StatusWordFields->SF = valx87statuswordflagfromstring(StatusWord, "SF");

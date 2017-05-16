@@ -534,7 +534,7 @@ typedef struct
     bool C2;
     bool C1;
     bool C0;
-    bool IR;
+    bool ES;
     bool SF;
     bool P;
     bool U;
