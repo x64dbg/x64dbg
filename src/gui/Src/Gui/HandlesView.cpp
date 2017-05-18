@@ -166,6 +166,7 @@ void HandlesView::reloadData()
         mWindowsTable->mList->reloadData();
         mTcpConnectionsTable->mList->setRowCount(0);
         mTcpConnectionsTable->mList->reloadData();
+
         //mHeapsTable->setRowCount(0);
         //mHeapsTable->reloadData();
         mPrivilegesTable->setRowCount(0);
@@ -298,13 +299,13 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 
 void HandlesView::closeHandleSlot()
 {
-    DbgCmdExec(QString("handleclose %1").arg(mHandlesTable->mCurList->getCellContent(mHandlesTable->mCurList->getInitialSelection(), 2)).toUtf8().constData());
+    DbgCmdExecDirect(QString("handleclose %1").arg(mHandlesTable->mCurList->getCellContent(mHandlesTable->mCurList->getInitialSelection(), 2)).toUtf8().constData());
     enumHandles();
 }
 
 void HandlesView::enablePrivilegeSlot()
 {
-    DbgCmdExec(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0)).toUtf8().constData());
     enumPrivileges();
 }
 
@@ -312,7 +313,7 @@ void HandlesView::disablePrivilegeSlot()
 {
     if(!DbgIsDebugging())
         return;
-    DbgCmdExec(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0)).toUtf8().constData());
     enumPrivileges();
 }
 
@@ -322,7 +323,7 @@ void HandlesView::enableAllPrivilegesSlot()
         return;
     for(int i = 0; i < mPrivilegesTable->getRowCount(); i++)
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
-            DbgCmdExec(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)).toUtf8().constData());
+            DbgCmdExecDirect(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)).toUtf8().constData());
     enumPrivileges();
 }
 
@@ -332,19 +333,19 @@ void HandlesView::disableAllPrivilegesSlot()
         return;
     for(int i = 0; i < mPrivilegesTable->getRowCount(); i++)
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
-            DbgCmdExec(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)).toUtf8().constData());
+            DbgCmdExecDirect(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)).toUtf8().constData());
     enumPrivileges();
 }
 
 void HandlesView::enableWindowSlot()
 {
-    DbgCmdExec(QString("EnableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)).toUtf8().constData());
+    DbgCmdExecDirect(QString("EnableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)).toUtf8().constData());
     enumWindows();
 }
 
 void HandlesView::disableWindowSlot()
 {
-    DbgCmdExec(QString("DisableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)).toUtf8().constData());
+    DbgCmdExecDirect(QString("DisableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)).toUtf8().constData());
     enumWindows();
 }
 
@@ -420,6 +421,8 @@ void HandlesView::enumHandles()
     else
         mHandlesTable->mList->setRowCount(0);
     mHandlesTable->mList->reloadData();
+    // refresh values also when in mSearchList
+    mHandlesTable->refreshSearchList();
 }
 //Enumerate windows and update windows table
 void HandlesView::enumWindows()
@@ -457,6 +460,8 @@ void HandlesView::enumWindows()
     else
         mWindowsTable->mList->setRowCount(0);
     mWindowsTable->mList->reloadData();
+    // refresh values also when in mSearchList
+    mWindowsTable->refreshSearchList();
 }
 
 //Enumerate privileges and update privileges table
@@ -540,6 +545,8 @@ void HandlesView::enumTcpConnections()
     else
         mTcpConnectionsTable->mList->setRowCount(0);
     mTcpConnectionsTable->mList->reloadData();
+    // refresh values also when in mSearchList
+    mTcpConnectionsTable->refreshSearchList();
 }
 /*
 //Enumerate Heaps and update Heaps table
