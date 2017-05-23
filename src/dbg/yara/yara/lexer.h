@@ -144,3 +144,7 @@ int yr_lex_parse_rules_string(
 int yr_lex_parse_rules_file(
     FILE* rules_file,
     YR_COMPILER* compiler);
+
+int yr_lex_parse_rules_fd(
+    YR_FILE_DESCRIPTOR rules_fd,
+    YR_COMPILER* compiler);

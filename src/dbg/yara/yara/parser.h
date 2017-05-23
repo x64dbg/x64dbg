@@ -59,9 +59,9 @@ int yr_parser_emit_with_arg_double(
 int yr_parser_emit_with_arg_reloc(
     yyscan_t yyscanner,
     uint8_t instruction,
-    int64_t argument,
+    void* argument,
     uint8_t** instruction_address,
-    int64_t** argument_address);
+    void** argument_address);
 
 
 int yr_parser_check_types(
@@ -121,7 +121,7 @@ int yr_parser_emit_pushes_for_strings(
 int yr_parser_reduce_external(
     yyscan_t yyscanner,
     const char* identifier,
-    uint8_t intruction);
+    uint8_t instruction);
 
 
 int yr_parser_reduce_import(

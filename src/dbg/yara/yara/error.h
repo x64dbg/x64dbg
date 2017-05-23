@@ -40,7 +40,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ERROR_SUCCESS                           0
 #endif
 
+// ERROR_INSUFICIENT_MEMORY is misspelled but it's kept for backward
+// compatibility, as some other programs can be using it in this form.
 #define ERROR_INSUFICIENT_MEMORY                1
+
+#define ERROR_INSUFFICIENT_MEMORY               1
 #define ERROR_COULD_NOT_ATTACH_TO_PROCESS       2
 #define ERROR_COULD_NOT_OPEN_FILE               3
 #define ERROR_COULD_NOT_MAP_FILE                4
@@ -87,6 +91,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ERROR_TOO_MANY_RE_FIBERS                46
 #define ERROR_COULD_NOT_READ_PROCESS_MEMORY     47
 #define ERROR_INVALID_EXTERNAL_VARIABLE_TYPE    48
+#define ERROR_REGULAR_EXPRESSION_TOO_COMPLEX    49
+#define ERROR_INVALID_MODULE_NAME               50
 
 
 #define FAIL_ON_ERROR(x) { \

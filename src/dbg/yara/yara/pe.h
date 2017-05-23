@@ -27,6 +27,12 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifndef YR_PE_H
+#define YR_PE_H
+
+#include "endian.h"
+#include "types.h"
+
 #pragma pack(push, 1)
 
 #if defined(_WIN32) || defined(__CYGWIN__)
@@ -125,10 +131,10 @@ typedef struct _IMAGE_FILE_HEADER
 
 
 #define IMAGE_FILE_RELOCS_STRIPPED           0x0001  // Relocation info stripped from file.
-#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved externel references).
-#define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line nunbers stripped from file.
+#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved external references).
+#define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line numbers stripped from file.
 #define IMAGE_FILE_LOCAL_SYMS_STRIPPED       0x0008  // Local symbols stripped from file.
-#define IMAGE_FILE_AGGRESIVE_WS_TRIM         0x0010  // Agressively trim working set
+#define IMAGE_FILE_AGGRESIVE_WS_TRIM         0x0010  // Aggressively trim working set
 #define IMAGE_FILE_LARGE_ADDRESS_AWARE       0x0020  // App can handle >2gb addresses
 #define IMAGE_FILE_BYTES_REVERSED_LO         0x0080  // Bytes of machine word are reversed.
 #define IMAGE_FILE_32BIT_MACHINE             0x0100  // 32 bit word machine.
@@ -308,25 +314,42 @@ typedef struct _IMAGE_NT_HEADERS64
 
 } IMAGE_NT_HEADERS64, *PIMAGE_NT_HEADERS64;
 
-
 // IMAGE_FIRST_SECTION doesn't need 32/64 versions since the file header is
 // the same either way.
 
 #define IMAGE_FIRST_SECTION( ntheader ) ((PIMAGE_SECTION_HEADER) \
     ((BYTE*)ntheader + \
      FIELD_OFFSET( IMAGE_NT_HEADERS32, OptionalHeader ) + \
-     ((PIMAGE_NT_HEADERS32)(ntheader))->FileHeader.SizeOfOptionalHeader \
+     yr_le16toh(((PIMAGE_NT_HEADERS32)(ntheader))->FileHeader.SizeOfOptionalHeader) \
     ))
 
 // Subsystem Values
 
-#define IMAGE_SUBSYSTEM_UNKNOWN              0   // Unknown subsystem.
-#define IMAGE_SUBSYSTEM_NATIVE               1   // Image doesn't require a subsystem.
-#define IMAGE_SUBSYSTEM_WINDOWS_GUI          2   // Image runs in the Windows GUI subsystem.
-#define IMAGE_SUBSYSTEM_WINDOWS_CUI          3   // Image runs in the Windows character subsystem.
-#define IMAGE_SUBSYSTEM_OS2_CUI              5   // image runs in the OS/2 character subsystem.
-#define IMAGE_SUBSYSTEM_POSIX_CUI            7   // image runs in the Posix character subsystem.
-#define IMAGE_SUBSYSTEM_NATIVE_WINDOWS       8   // image is a native Win9x driver.
+#define IMAGE_SUBSYSTEM_UNKNOWN                          0
+#define IMAGE_SUBSYSTEM_NATIVE                           1
+#define IMAGE_SUBSYSTEM_WINDOWS_GUI                      2
+#define IMAGE_SUBSYSTEM_WINDOWS_CUI                      3
+#define IMAGE_SUBSYSTEM_OS2_CUI                          5
+#define IMAGE_SUBSYSTEM_POSIX_CUI                        7
+#define IMAGE_SUBSYSTEM_NATIVE_WINDOWS                   8
+#define IMAGE_SUBSYSTEM_WINDOWS_CE_GUI                   9
+#define IMAGE_SUBSYSTEM_EFI_APPLICATION                 10
+#define IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER         11
+#define IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER              12
+#define IMAGE_SUBSYSTEM_EFI_ROM_IMAGE                   13
+#define IMAGE_SUBSYSTEM_XBOX                            14
+#define IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION        16
+
+// DllCharacteristics values
+
+#define IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE           0x0040
+#define IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY        0x0080
+#define IMAGE_DLLCHARACTERISTICS_NX_COMPAT              0x0100
+#define IMAGE_DLLCHARACTERISTICS_NO_ISOLATION           0x0200
+#define IMAGE_DLLCHARACTERISTICS_NO_SEH                 0x0400
+#define IMAGE_DLLCHARACTERISTICS_NO_BIND                0x0800
+#define IMAGE_DLLCHARACTERISTICS_WDM_DRIVER             0x2000
+#define IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE  0x8000
 
 //
 // Section header format.
@@ -505,11 +528,6 @@ typedef struct _RICH_SIGNATURE
 #define RICH_DANS 0x536e6144 // "DanS"
 #define RICH_RICH 0x68636952 // "Rich"
 
-typedef struct _RICH_DATA
-{
-    size_t len;
-    BYTE* raw_data;
-    BYTE* clear_data;
-} RICH_DATA, *PRICH_DATA;
 
 #pragma pack(pop)
+#endif

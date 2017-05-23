@@ -33,7 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef _MSC_VER
 
 #include <float.h>
+#ifndef isnan
 #define isnan _isnan
+#endif
 
 #ifndef INFINITY
 #define INFINITY (DBL_MAX + DBL_MAX)
@@ -55,9 +57,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define OBJECT_TYPE_STRUCTURE   3
 #define OBJECT_TYPE_ARRAY       4
 #define OBJECT_TYPE_FUNCTION    5
-#define OBJECT_TYPE_REGEXP      6
-#define OBJECT_TYPE_DICTIONARY  7
-#define OBJECT_TYPE_FLOAT       8
+#define OBJECT_TYPE_DICTIONARY  6
+#define OBJECT_TYPE_FLOAT       7
 
 
 int yr_object_create(
@@ -83,6 +84,11 @@ int yr_object_from_external_variable(
 
 void yr_object_destroy(
     YR_OBJECT* object);
+
+
+int yr_object_copy(
+    YR_OBJECT* object,
+    YR_OBJECT** object_copy);
 
 
 YR_OBJECT* yr_object_lookup_field(
