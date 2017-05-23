@@ -54,26 +54,10 @@ bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
         if(curFunctionRva >= export_dir_rva && curFunctionRva < export_dir_rva + export_dir_size)
         {
             char forwarded_api[deflen] = "";
-            memset(forwarded_api, 0, deflen);
-            MemRead((curFunctionRva + base), forwarded_api, deflen);
-            int len = (int)strlen(forwarded_api);
-            int j = 0;
-            while(forwarded_api[j] != '.' && j < len)
-                j++;
-            if(forwarded_api[j] == '.')
-            {
-                forwarded_api[j] = 0;
-                HINSTANCE hTempDll = LoadLibraryExA(forwarded_api, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
-                if(hTempDll)
-                {
-                    duint local_addr = SafeGetProcAddress(hTempDll, forwarded_api + j + 1);
-                    if(local_addr)
-                    {
-                        duint remote_addr = ImporterGetRemoteAPIAddress(fdProcessInfo->hProcess, local_addr);
-                        cbEnum(base, modname, cur_name, remote_addr);
-                    }
-                }
-            }
+            MemRead((curFunctionRva + base), forwarded_api, deflen - 1);
+            duint remote_addr;
+            if(valfromstring(forwarded_api, &remote_addr))
+                cbEnum(base, modname, cur_name, remote_addr);
         }
         else
         {
