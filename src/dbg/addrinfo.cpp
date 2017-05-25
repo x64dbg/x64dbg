@@ -13,16 +13,15 @@
 ///api functions
 bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
 {
-    duint size;
-    base = MemFindBaseAddr(base, &size);
-    if(!base || !size)
-        return false;
-    Memory<void*> buffer(size, "apienumexports:buffer");
-    if(!MemRead(base, buffer(), size))
-        return false;
-    IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)((duint)buffer() + GetPE32DataFromMappedFile((ULONG_PTR)buffer(), 0, UE_PE_OFFSET));
-    duint export_dir_rva = pnth->OptionalHeader.DataDirectory[0].VirtualAddress;
-    duint export_dir_size = pnth->OptionalHeader.DataDirectory[0].Size;
+    duint export_dir_rva, export_dir_size;
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto modinfo = ModInfoFromAddr(base);
+        if(!modinfo)
+            return false;
+        export_dir_rva = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_EXPORTTABLEADDRESS);
+        export_dir_size = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_EXPORTTABLESIZE);
+    }
     IMAGE_EXPORT_DIRECTORY export_dir;
     memset(&export_dir, 0, sizeof(export_dir));
     MemRead((export_dir_rva + base), &export_dir, sizeof(export_dir));
@@ -69,31 +68,25 @@ bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
 
 bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
 {
+    ULONG_PTR importTableRva, importTableSize;
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto modinfo = ModInfoFromAddr(base);
+        if(!modinfo)
+            return false;
+        importTableRva = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_IMPORTTABLEADDRESS);
+        importTableSize = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_IMPORTTABLESIZE);
+    }
     // Variables
     bool readSuccess;
     Memory<char*> importName(MAX_IMPORT_SIZE + 1, "apienumimports:buffer");
     char importModuleName[MAX_MODULE_SIZE + 1] = "";
     duint regionSize;
-    ULONG_PTR importTableRva, importTableSize;
     PIMAGE_IMPORT_DESCRIPTOR importTableVa;
     IMAGE_IMPORT_DESCRIPTOR importDescriptor;
     PIMAGE_THUNK_DATA imageIATVa, imageINTVa;
     IMAGE_THUNK_DATA imageOftThunkData, imageFtThunkData;
     PIMAGE_IMPORT_BY_NAME pImageImportByNameVa;
-
-    // Get page size
-    base = MemFindBaseAddr(base, &regionSize);
-    if(!base || !regionSize)
-        return false;
-    Memory<void*> buffer(regionSize, "apienumimports:buffer");
-
-    // Read first page into buffer
-    if(!MemRead(base, buffer(), regionSize))
-        return false;
-
-    // Import Table address and size
-    importTableRva = GetPE32DataFromMappedFile((duint)buffer(), 0, UE_IMPORTTABLEADDRESS);
-    importTableSize = GetPE32DataFromMappedFile((duint)buffer(), 0, UE_IMPORTTABLESIZE);
 
     // Return if no imports
     if(!importTableSize)

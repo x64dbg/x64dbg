@@ -224,35 +224,27 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
 
 bool cbInstrImageinfo(int argc, char* argv[])
 {
-    duint mod;
-    SHARED_ACQUIRE(LockModules);
-    MODINFO* info;
     duint address;
     if(argc < 2)
         address = GetContextDataEx(hActiveThread, UE_CIP);
-    else
+    else if(!valfromstring(argv[1], &address))
     {
-        if(!valfromstring(argv[1], &address))
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid argument"));
+        return false;
+    }
+    duint c, dllc, mod;
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto modinfo = ModInfoFromAddr(address);
+        if(!modinfo)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Invalid argument"));
             return false;
         }
+        c = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_CHARACTERISTICS);
+        dllc = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_DLLCHARACTERISTICS);
+        mod = modinfo->base;
     }
-    mod = MemFindBaseAddr(address, nullptr);
-    if(mod == 0)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid argument"));
-        return false;
-    }
-    info = ModInfoFromAddr(mod);
-    if(info == nullptr)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid argument"));
-        return false;
-    }
-    auto c = GetPE32DataFromMappedFile(info->fileMapVA, 0, UE_CHARACTERISTICS);
-    auto dllc = GetPE32DataFromMappedFile(info->fileMapVA, 0, UE_DLLCHARACTERISTICS);
-    SHARED_RELEASE();
 
     auto pFlag = [](ULONG_PTR value, ULONG_PTR flag, const char* name)
     {

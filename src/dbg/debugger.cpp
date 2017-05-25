@@ -2844,6 +2844,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     pDebuggedBase = 0;
     pCreateProcessBase = 0;
     isDetachedByUser = false;
+    hActiveThread = nullptr;
     if(!gDllLoader.empty()) //Delete the DLL loader (#1496)
     {
         DeleteFileW(gDllLoader.c_str());
