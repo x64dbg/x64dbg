@@ -127,11 +127,11 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
             QString command = getCellContent(rowBase + rowOffset, col);
 
             //handle comments
-            int comment_idx = command.indexOf("//"); //find the index of the space
+            int comment_idx = command.indexOf("\1"); //find the index of the comment
             QString comment = "";
             if(comment_idx != -1 && command.at(0) != QChar('/')) //there is a comment
             {
-                comment = command.right(command.length() - comment_idx);
+                comment = command.right(command.length() - comment_idx - 1);
                 if(command.at(comment_idx - 1) == QChar(' '))
                     command.truncate(comment_idx - 1);
                 else
