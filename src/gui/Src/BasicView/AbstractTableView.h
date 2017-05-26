@@ -68,7 +68,7 @@ public:
     // Coordinates Utils
     int getIndexOffsetFromY(int y);
     int getColumnIndexFromX(int x);
-    int getColumnPosition(int index);
+    int getColumnPosition(int index);    
     int transY(int y);
     int getViewableRowsCount();
     virtual int getLineToPrintcount();
@@ -94,6 +94,8 @@ public:
     int getRowHeight();
     int getColumnWidth(int index);
     void setColumnWidth(int index, int width);
+    void setColumnOrder(int pos, int index);
+    int getColumnOrder(int index);
     int getHeaderHeight();
     int getTableHeigth();
     int getGuiState();

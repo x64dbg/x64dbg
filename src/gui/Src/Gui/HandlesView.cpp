@@ -30,6 +30,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mHandlesTable->mSearchList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), false);
     mHandlesTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Access"), false);
     mHandlesTable->mSearchList->addColumnAt(8 + wCharWidth * 20, tr("Name"), false);
+    mHandlesTable->mSearchList->loadColumnFromConfig("Handle");
 
     mWindowsTable = new SearchListView(true, this, true);
     mWindowsTable->mList->setWindowTitle("Windows");
@@ -58,6 +59,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), false);
     mWindowsTable->mSearchList->addColumnAt(8 + 20 * wCharWidth, tr("Size"), false);
     mWindowsTable->mSearchList->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), false);
+    mWindowsTable->mSearchList->loadColumnFromConfig("Window");
 
     mTcpConnectionsTable = new SearchListView(true, this, true);
     mTcpConnectionsTable->setWindowTitle("TcpConnections");
@@ -72,6 +74,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mTcpConnectionsTable->mSearchList->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
     mTcpConnectionsTable->mSearchList->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
     mTcpConnectionsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("State"), false);
+    mTcpConnectionsTable->mSearchList->loadColumnFromConfig("TcpConnection");
     /*
         mHeapsTable = new ReferenceView(this);
         mHeapsTable->setWindowTitle("Heaps");
