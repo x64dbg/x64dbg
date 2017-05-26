@@ -1140,6 +1140,17 @@ void AbstractTableView::setColumnWidth(int index, int width)
     mColumnList[index].width = width;
 }
 
+void AbstractTableView::setColumnOrder(int pos, int index)
+{
+    if(index != 0)
+        mColumnOrder[pos] = index - 1;
+}
+
+int AbstractTableView::getColumnOrder(int index)
+{
+    return mColumnOrder[index] + 1;
+}
+
 int AbstractTableView::getHeaderHeight()
 {
     if(mHeader.isVisible == true)

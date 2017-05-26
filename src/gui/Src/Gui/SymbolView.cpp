@@ -42,6 +42,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList->mSearchList->addColumnAt(300, "Module", true);
     mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), false);
     mModuleList->mSearchList->addColumnAt(charwidth * 60, tr("Path"), false);
+    mModuleList->mSearchList->loadColumnFromConfig("Module");
 
     // Setup symbol list
     mSearchListView->mList->enableMultiSelection(true);
@@ -57,6 +58,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mSearchListView->mSearchList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 80, tr("Symbol"), true);
     mSearchListView->mSearchList->addColumnAt(2000, tr("Symbol (undecorated)"), true);
+    mSearchListView->mSearchList->loadColumnFromConfig("Symbol");
 
     // Setup list splitter
     ui->listSplitter->addWidget(mModuleList);

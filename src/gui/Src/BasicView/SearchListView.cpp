@@ -152,6 +152,8 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
 
 void SearchListView::searchTextChanged(const QString & arg1)
 {
+    SearchListViewTable* mPrevList = NULL;
+
     if(mSearchList->isHidden())
     {
         auto selList = mList->getSelection();
@@ -165,6 +167,12 @@ void SearchListView::searchTextChanged(const QString & arg1)
             mLastFirstColValue = mSearchList->getCellContent(selList[0], 0);
     }
 
+    // get the correct previous list instance
+    if(mList->isVisible())
+        mPrevList = mList;
+    else
+        mPrevList = mSearchList;
+
     if(arg1.length())
     {
         mList->hide();
@@ -177,6 +185,7 @@ void SearchListView::searchTextChanged(const QString & arg1)
         mList->show();
         mCurList = mList;
     }
+
     mCurList->setSingleSelection(0);
     mSearchList->setRowCount(0);
     int rows = mList->getRowCount();
@@ -223,6 +232,9 @@ void SearchListView::searchTextChanged(const QString & arg1)
         mSearchList->highlightText = arg1;
     else
         mSearchList->highlightText = "";
+
+    // setup the same layout of the prev list control
+    LoadPrevListLayout(mPrevList);
 }
 
 void SearchListView::refreshSearchList()
@@ -321,4 +333,18 @@ void SearchListView::searchSlot()
     FlickerThread* thread = new FlickerThread(mSearchBox, this);
     connect(thread, SIGNAL(setStyleSheet(QString)), mSearchBox, SLOT(setStyleSheet(QString)));
     thread->start();
+}
+
+void SearchListView::LoadPrevListLayout(SearchListViewTable* mPrevList)
+{
+    if(mPrevList == NULL || mPrevList == mCurList)
+        return;
+
+    int cols = mPrevList->getColumnCount();
+    for(int i = 0; i < cols; i++)
+    {
+        mCurList->setColumnOrder(i, mPrevList->getColumnOrder(i));
+        mCurList->setColumnHidden(i, mPrevList->getColumnHidden(i));
+        mCurList->setColumnWidth(i, mPrevList->getColumnWidth(i));
+    }
 }

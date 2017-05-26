@@ -52,7 +52,9 @@ protected:
 private:
     QCheckBox* mRegexCheckbox;
     QCheckBox* mLockCheckbox;
-    QAction* mSearchAction;
+    QAction* mSearchAction;    
+
+    void LoadPrevListLayout(SearchListViewTable* mPrevList);
 };
 
 #endif // SEARCHLISTVIEW_H
