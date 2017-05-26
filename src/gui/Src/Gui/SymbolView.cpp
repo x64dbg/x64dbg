@@ -507,7 +507,7 @@ void SymbolView::moduleBrowse()
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {
-        QProcess::startDetached("explorer.exe", QStringList({QString("/select,"), QString(szModPath)}));
+        QProcess::startDetached(QString("%1/explorer.exe").arg(QProcessEnvironment::systemEnvironment().value("windir")), QStringList({QString("/select,"), QString(szModPath)}));
     }
 }
 
