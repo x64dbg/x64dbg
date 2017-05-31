@@ -68,7 +68,7 @@ public:
     // Coordinates Utils
     int getIndexOffsetFromY(int y);
     int getColumnIndexFromX(int x);
-    int getColumnPosition(int index);    
+    int getColumnPosition(int index);
     int transY(int y);
     int getViewableRowsCount();
     virtual int getLineToPrintcount();

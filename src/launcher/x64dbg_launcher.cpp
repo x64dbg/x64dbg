@@ -473,7 +473,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
             bDoneSomething = true;
         }
-        if(!FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
+        if(isWoW64() && !FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
         {
             WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), sz64Path, szIniPath);
             bDoneSomething = true;
@@ -487,7 +487,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
             bDoneSomething = true;
         }
-        if(!FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
+        if(isWoW64() && !FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
         {
             WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), sz64Path, szIniPath);
             bDoneSomething = true;
