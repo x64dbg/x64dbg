@@ -994,7 +994,10 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         if(BridgeSettingGetUint("Engine", "Assembler", &setting))
             assemblerEngine = AssemblerEngine(setting);
         else
-            assemblerEngine = AssemblerEngine::XEDParse;
+        {
+            assemblerEngine = AssemblerEngine::asmjit;
+            BridgeSettingSetUint("Engine", "Assembler", duint(assemblerEngine));
+        }
 
         std::vector<char> settingText(MAX_SETTING_SIZE + 1, '\0');
         dbgclearignoredexceptions();
