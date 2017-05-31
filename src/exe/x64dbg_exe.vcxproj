@@ -27,7 +27,7 @@
     <ClInclude Include="icon.h" />
     <ClInclude Include="LoadResourceString.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
+    <ClInclude Include="strings.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon32.rc">

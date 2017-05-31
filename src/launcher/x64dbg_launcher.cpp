@@ -7,14 +7,17 @@
 #include <shlobj.h>
 #include <atlcomcli.h>
 
+#include "../exe/resource.h"
 #include "../exe/LoadResourceString.h"
+#include "../exe/icon.h"
 
-typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
-typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
-typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
+#pragma comment(lib, "comctl32.lib")
 
-LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
-LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
+static bool FileExists(const TCHAR* file)
+{
+    auto attrib = GetFileAttributes(file);
+    return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
+}
 
 enum arch
 {
@@ -24,12 +27,6 @@ enum arch
     x64,
     dotnet
 };
-
-static bool FileExists(const TCHAR* file)
-{
-    auto attrib = GetFileAttributes(file);
-    return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
-}
 
 static arch GetFileArchitecture(const TCHAR* szFileName)
 {
@@ -85,12 +82,18 @@ static bool BrowseFileOpen(HWND owner, const TCHAR* filter, const TCHAR* defext,
     return !!GetOpenFileName(&ofstruct);
 }
 
+typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
+typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
+
+LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
+LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
+
 static BOOL isWoW64()
 {
-    LPFN_ISWOW64PROCESS fnIsWow64Process;
     BOOL isWoW64 = FALSE;
 
-    fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+    static auto fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
 
     if(NULL != fnIsWow64Process)
     {
@@ -113,8 +116,27 @@ static BOOL isWowRedirectionSupported()
         return bRedirectSupported;
     else
         return !bRedirectSupported;
-
 }
+
+struct RedirectWow
+{
+    PVOID oldValue = NULL;
+
+    bool DisableRedirect()
+    {
+        return !!_Wow64DisableRedirection(&oldValue);
+    }
+
+    ~RedirectWow()
+    {
+        if(oldValue != NULL)
+        {
+            if(!_Wow64RevertRedirection(oldValue))
+                //Error occured here. Ignore or reset? (does it matter at this point?)
+                MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
+        }
+    }
+};
 
 static TCHAR* GetDesktopPath()
 {
@@ -123,11 +145,6 @@ static TCHAR* GetDesktopPath()
         return path;
     return nullptr;
 }
-
-const wchar_t* SHELLEXT_EXE_KEY = L"exefile\\shell\\Debug with x64dbg\\Command";
-const wchar_t* SHELLEXT_ICON_EXE_KEY = L"exefile\\shell\\Debug with x64dbg";
-const wchar_t* SHELLEXT_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg\\Command";
-const wchar_t* SHELLEXT_ICON_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg";
 
 static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink)
 {
@@ -249,26 +266,6 @@ static bool ResolveShortcut(HWND hwnd, const TCHAR* szShortcutPath, TCHAR* szRes
     return SUCCEEDED(hres);
 }
 
-struct RedirectWow
-{
-    PVOID oldValue = NULL;
-
-    bool DisableRedirect()
-    {
-        return !!_Wow64DisableRedirection(&oldValue);
-    }
-
-    ~RedirectWow()
-    {
-        if(oldValue != NULL)
-        {
-            if(!_Wow64RevertRedirection(oldValue))
-                //Error occured here. Ignore or reset? (does it matter at this point?)
-                MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
-        }
-    }
-};
-
 static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
 {
     HKEY hKeyCreatedx32;
@@ -337,13 +334,83 @@ static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
     return;
 }
 
+static TCHAR szModulePath[MAX_PATH] = TEXT("");
+static TCHAR szCurrentDir[MAX_PATH] = TEXT("");
+static TCHAR sz32Path[MAX_PATH] = TEXT("");
+static TCHAR sz32Dir[MAX_PATH] = TEXT("");
+static TCHAR sz64Path[MAX_PATH] = TEXT("");
+static TCHAR sz64Dir[MAX_PATH] = TEXT("");
+
+static BOOL CALLBACK DlgLauncher(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch(uMsg)
+    {
+    case WM_INITDIALOG:
+    {
+        HANDLE hIcon;
+        hIcon = LoadIconW(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1));
+        SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        SetDlgItemText(hwndDlg, IDC_BUTTONINSTALL, LoadResString(IDS_SETUP));
+        EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON32), *sz32Dir != TEXT('\0'));
+        EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON64), *sz64Dir != TEXT('\0') && isWoW64());
+    }
+    return TRUE;
+
+    case WM_CLOSE:
+    {
+        EndDialog(hwndDlg, 0);
+    }
+    return TRUE;
+
+    case WM_COMMAND:
+    {
+        switch(LOWORD(wParam))
+        {
+        case IDC_BUTTON32:
+        {
+            EndDialog(hwndDlg, 0);
+            ShellExecute(nullptr, TEXT("open"), sz32Path, TEXT(""), sz32Dir, SW_SHOWNORMAL);
+        }
+        return TRUE;
+
+        case IDC_BUTTON64:
+        {
+            EndDialog(hwndDlg, 0);
+            ShellExecute(nullptr, TEXT("open"), sz64Path, TEXT(""), sz64Dir, SW_SHOWNORMAL);
+        }
+        return TRUE;
+
+        case IDC_BUTTONINSTALL:
+        {
+            EndDialog(hwndDlg, 0);
+            OSVERSIONINFO osvi;
+            memset(&osvi, 0, sizeof(osvi));
+            osvi.dwOSVersionInfoSize = sizeof(osvi);
+            GetVersionEx(&osvi);
+            auto operation = osvi.dwMajorVersion >= 6 ? TEXT("runas") : TEXT("open");
+            ShellExecute(nullptr, operation, szModulePath, TEXT("::install"), szCurrentDir, SW_SHOWNORMAL);
+        }
+        return TRUE;
+        }
+    }
+    break;
+    }
+    return FALSE;
+}
+
+const wchar_t* SHELLEXT_EXE_KEY = L"exefile\\shell\\Debug with x64dbg\\Command";
+const wchar_t* SHELLEXT_ICON_EXE_KEY = L"exefile\\shell\\Debug with x64dbg";
+const wchar_t* SHELLEXT_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg\\Command";
+const wchar_t* SHELLEXT_ICON_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg";
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+    InitCommonControls();
+
     //Initialize COM
     CoInitialize(nullptr);
 
     //Get INI file path
-    TCHAR szModulePath[MAX_PATH] = TEXT("");
     if(!GetModuleFileName(nullptr, szModulePath, MAX_PATH))
     {
         MessageBox(nullptr, LoadResString(IDS_ERRORGETTINGMODULEPATH), LoadResString(IDS_ERROR), MB_ICONERROR | MB_SYSTEMMODAL);
@@ -351,7 +418,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     }
     TCHAR szIniPath[MAX_PATH] = TEXT("");
     _tcscpy_s(szIniPath, szModulePath);
-    TCHAR szCurrentDir[MAX_PATH] = TEXT("");
     _tcscpy_s(szCurrentDir, szModulePath);
     auto len = int(_tcslen(szCurrentDir));
     while(szCurrentDir[len] != TEXT('\\') && len)
@@ -369,7 +435,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //Load settings
     auto bDoneSomething = false;
-    TCHAR sz32Path[MAX_PATH] = TEXT("");
     if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), TEXT(""), sz32Path, MAX_PATH, szIniPath))
     {
         _tcscpy_s(sz32Path, szCurrentDir);
@@ -381,11 +446,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
     }
 
-    TCHAR sz32Dir[MAX_PATH] = TEXT("");
     _tcscpy_s(sz32Dir, sz32Path);
     PathRemoveFileSpec(sz32Dir);
 
-    TCHAR sz64Path[MAX_PATH] = TEXT("");
     if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), TEXT(""), sz64Path, MAX_PATH, szIniPath))
     {
         _tcscpy_s(sz64Path, szCurrentDir);
@@ -397,14 +460,27 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
     }
 
-    TCHAR sz64Dir[MAX_PATH] = TEXT("");
     _tcscpy_s(sz64Dir, sz64Path);
     PathRemoveFileSpec(sz64Dir);
 
     //Handle command line
     auto argc = 0;
     auto argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    if(argc <= 1) //no arguments -> set configuration
+    if(argc <= 1) //no arguments -> launcher dialog
+    {
+        if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
+        {
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
+            bDoneSomething = true;
+        }
+        if(!FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
+        {
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), sz64Path, szIniPath);
+            bDoneSomething = true;
+        }
+        DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DIALOGLAUNCHER), 0, DlgLauncher);
+    }
+    else if(argc >= 2 && !wcscmp(argv[1], L"::install")) //set configuration
     {
         if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
         {
@@ -426,15 +502,21 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 AddShellIcon(SHELLEXT_ICON_EXE_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
             if(RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand))
                 AddShellIcon(SHELLEXT_ICON_DLL_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
+            bDoneSomething = true;
         }
         if(MessageBox(nullptr, LoadResString(IDS_ASKDESKTOPSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
             AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
             if(isWoW64())
                 AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
+            bDoneSomething = true;
         }
 
-        AddDBFileTypeIcon(sz32Path, sz64Path);
+        if(MessageBox(nullptr, LoadResString(IDS_ASKICON), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
+        {
+            AddDBFileTypeIcon(sz32Path, sz64Path);
+            bDoneSomething = true;
+        }
 
         if(bDoneSomething)
             MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);

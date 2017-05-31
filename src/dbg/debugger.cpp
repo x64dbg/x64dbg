@@ -2894,7 +2894,12 @@ bool dbgrestartadmin()
             *last = L'\0';
         //TODO: possibly escape characters in gInitCmd
         std::wstring params = L"\"" + gInitExe + L"\" \"" + gInitCmd + L"\" \"" + gInitDir + L"\"";
-        auto result = ShellExecuteW(NULL, L"runas", file.c_str(), params.c_str(), wszProgramPath, SW_SHOWDEFAULT);
+        OSVERSIONINFOW osvi;
+        memset(&osvi, 0, sizeof(osvi));
+        osvi.dwOSVersionInfoSize = sizeof(osvi);
+        GetVersionExW(&osvi);
+        auto operation = osvi.dwMajorVersion >= 6 ? L"runas" : L"open";
+        auto result = ShellExecuteW(NULL, operation, file.c_str(), params.c_str(), wszProgramPath, SW_SHOWDEFAULT);
         return int(result) > 32 && GetLastError() == ERROR_SUCCESS;
     }
     return false;

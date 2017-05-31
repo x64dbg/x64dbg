@@ -1,7 +1,8 @@
 //{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ generated include file.
+// Used by Strings.rc
 //
-//
-//
+#define IDS_SETUP                       101
 #define IDS_ERROR                       105
 #define IDS_ERRORGETTINGMODULEPATH      106
 #define IDS_QUESTION                    107
@@ -20,13 +21,14 @@
 #define IDS_REGOPENKEYFAIL              120
 #define IDS_BRIDGEINITERR               121
 #define IDS_SHELLEXTDBG                 122
+#define IDS_ASKICON                     123
 #define IDS_BRIDGESTARTERR              126
 
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        101
+#define _APS_NEXT_RESOURCE_VALUE        102
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
