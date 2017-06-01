@@ -103,6 +103,7 @@ bool dbgrestartadmin();
 void StepIntoWow64(void* traceCallBack);
 bool dbgisdepenabled();
 BOOL CALLBACK chkWindowPidCallback(HWND hWnd, LPARAM lParam);
+BOOL ismainwindow(HWND handle);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;
@@ -121,5 +122,6 @@ extern bool bVerboseExceptionLogging;
 extern bool bNoWow64SingleStepWorkaround;
 extern duint maxSkipExceptionCount;
 extern HANDLE mProcHandle;
+extern HANDLE mForegroundHandle;
 
 #endif // _DEBUGGER_H
