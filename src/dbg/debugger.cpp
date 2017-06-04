@@ -846,7 +846,10 @@ static bool getConditionValue(const char* expression)
 
 void cbPauseBreakpoint()
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    if(hActiveThread != ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId))
+    {
+        return;
+    }
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     DeleteBPX(CIP);
     DebugUpdateGuiSetStateAsync(CIP, true);
