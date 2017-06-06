@@ -81,7 +81,6 @@ bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
     bool readSuccess;
     Memory<char*> importName(MAX_IMPORT_SIZE + 1, "apienumimports:buffer");
     char importModuleName[MAX_MODULE_SIZE + 1] = "";
-    duint regionSize;
     PIMAGE_IMPORT_DESCRIPTOR importTableVa;
     IMAGE_IMPORT_DESCRIPTOR importDescriptor;
     PIMAGE_THUNK_DATA imageIATVa, imageINTVa;
