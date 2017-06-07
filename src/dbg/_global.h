@@ -1,5 +1,6 @@
 #pragma once
 
+//things mybrach
 #define _WIN32_WINNT 0x0501
 
 #ifdef WINVER // Overwrite WINVER if given on command line
