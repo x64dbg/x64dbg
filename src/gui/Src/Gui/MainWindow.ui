@@ -143,7 +143,6 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionCalculator"/>
-    <addaction name="actionCheckUpdates"/>
     <addaction name="actionBlog"/>
     <addaction name="actionDonate"/>
     <addaction name="actionReportBug"/>

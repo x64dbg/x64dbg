@@ -309,5 +309,8 @@
         <file>images/localvars.png</file>
         <file>images/nextref.png</file>
         <file>images/prevref.png</file>
+        <file>images/donation_qr.png</file>
+        <file>images/bug32.png</file>
+        <file>images/bug64.png</file>
     </qresource>
 </RCC>
