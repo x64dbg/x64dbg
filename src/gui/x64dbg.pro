@@ -178,7 +178,8 @@ SOURCES += \
     Src/Gui/BreakpointsViewTable.cpp \
     Src/Utils/MRUList.cpp \
     Src/Gui/LocalVarsView.cpp \
-    Src/Gui/MessagesBreakpoints.cpp
+    Src/Gui/MessagesBreakpoints.cpp \
+    Src/Gui/AboutDialog.cpp
 
 
 HEADERS += \
@@ -291,7 +292,8 @@ HEADERS += \
     Src/Gui/BreakpointsViewTable.h \
     Src/Utils/MRUList.h \
     Src/Gui/LocalVarsView.h \
-    Src/Gui/MessagesBreakpoints.h
+    Src/Gui/MessagesBreakpoints.h \
+    Src/Gui/AboutDialog.h
     
 
 FORMS += \
@@ -331,7 +333,8 @@ FORMS += \
     Src/Gui/CustomizeMenuDialog.ui \
     Src/Gui/StructWidget.ui \
     Src/Gui/SimpleTraceDialog.ui \
-    Src/Gui/MessagesBreakpoints.ui
+    Src/Gui/MessagesBreakpoints.ui \
+    Src/Gui/AboutDialog.ui
 
 ##
 ## Libraries
