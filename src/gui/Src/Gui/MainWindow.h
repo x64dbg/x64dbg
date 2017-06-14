@@ -23,7 +23,6 @@ class PatchDialog;
 class CalculatorDialog;
 class DebugStatusLabel;
 class LogStatusLabel;
-class UpdateChecker;
 class SourceViewerManager;
 class HandlesView;
 class MainWindowCloseThread;
@@ -121,7 +120,6 @@ public slots:
     void displayLabels();
     void displayBookmarks();
     void displayFunctions();
-    void checkUpdates();
     void crashDump();
     void displayCallstack();
     void displaySEHChain();
@@ -182,7 +180,6 @@ private:
     DebugStatusLabel* mStatusLabel;
     LogStatusLabel* mLastLogLabel;
 
-    UpdateChecker* mUpdateChecker;
     TimeWastedCounter* mTimeWastedCounter;
 
     QString mWindowMainTitle;

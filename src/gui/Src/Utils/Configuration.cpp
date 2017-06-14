@@ -430,7 +430,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("HelpAbout", Shortcut({tr("Help"), tr("About")}, "", true));
     defaultShortcuts.insert("HelpBlog", Shortcut({tr("Help"), tr("Blog")}, "", true));
     defaultShortcuts.insert("HelpDonate", Shortcut({tr("Help"), tr("Donate")}, "", true));
-    defaultShortcuts.insert("HelpCheckForUpdates", Shortcut({tr("Help"), tr("Check for Updates")}, "", true));
     defaultShortcuts.insert("HelpCalculator", Shortcut({tr("Help"), tr("Calculator")}, "?"));
     defaultShortcuts.insert("HelpReportBug", Shortcut({tr("Help"), tr("Report Bug")}, "", true));
     defaultShortcuts.insert("HelpManual", Shortcut({tr("Help"), tr("Manual")}, "F1", true));
