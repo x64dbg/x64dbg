@@ -363,7 +363,7 @@ HEADERS += \
     dbg/thread.h \
     dbg/threading.h \
     dbg/TraceRecord.h \
-    dbg/undocumented.h \
+    dbg/ntdll/ntdll.h \
     dbg/value.h \
     dbg/variable.h \
     dbg/watch.h \

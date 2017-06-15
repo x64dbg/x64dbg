@@ -7,7 +7,7 @@
 #include "thread.h"
 #include "memory.h"
 #include "threading.h"
-#include "undocumented.h"
+#include "ntdll/ntdll.h"
 #include "debugger.h"
 
 static std::unordered_map<DWORD, THREADINFO> threadList;
@@ -173,7 +173,7 @@ bool ThreadIsValid(DWORD ThreadId)
 bool ThreadGetTib(duint TEBAddress, NT_TIB* Tib)
 {
     // Calculate offset from structure member
-    TEBAddress += offsetof(TEB, Tib);
+    TEBAddress += offsetof(TEB, NtTib);
 
     memset(Tib, 0, sizeof(NT_TIB));
     return MemReadUnsafe(TEBAddress, Tib, sizeof(NT_TIB));

@@ -2,7 +2,7 @@
 #define _THREAD_H
 
 #include "_global.h"
-#include "undocumented.h"
+#include "ntdll/ntdll.h"
 
 void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread);
 void ThreadExit(DWORD ThreadId);
