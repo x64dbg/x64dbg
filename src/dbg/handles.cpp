@@ -21,14 +21,11 @@ typedef NTSTATUS(NTAPI* ZWQUERYOBJECT)(
 
 bool HandlesEnum(duint pid, std::vector<HANDLEINFO> & handles)
 {
-    static auto ZwQuerySystemInformation = ZWQUERYSYSTEMINFORMATION(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "ZwQuerySystemInformation"));
-    if(!ZwQuerySystemInformation)
-        return 0;
     Memory<PSYSTEM_HANDLE_INFORMATION> HandleInformation(16 * 1024, "_dbg_enumhandles");
     NTSTATUS ErrorCode = ERROR_SUCCESS;
     for(;;)
     {
-        ErrorCode = ZwQuerySystemInformation(SystemHandleInformation, HandleInformation(), ULONG(HandleInformation.size()), nullptr);
+        ErrorCode = NtQuerySystemInformation(SystemHandleInformation, HandleInformation(), ULONG(HandleInformation.size()), nullptr);
         if(ErrorCode != STATUS_INFO_LENGTH_MISMATCH)
             break;
         HandleInformation.realloc(HandleInformation.size() * 2, "_dbg_enumhandles");
@@ -60,28 +57,25 @@ static DWORD WINAPI getNameThread(LPVOID lpParam)
 
 bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String & typeName)
 {
-    static auto ZwQueryObject = ZWQUERYOBJECT(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "ZwQueryObject"));
-    if(!ZwQueryObject)
-        return false;
     HANDLE hLocalHandle;
     if(DuplicateHandle(hProcess, remoteHandle, GetCurrentProcess(), &hLocalHandle, 0, FALSE, 0))
     {
         ULONG ReturnSize = 0;
-        if(ZwQueryObject(hLocalHandle, ObjectTypeInformation, nullptr, 0, &ReturnSize) == STATUS_INFO_LENGTH_MISMATCH)
+        if(NtQueryObject(hLocalHandle, ObjectTypeInformation, nullptr, 0, &ReturnSize) == STATUS_INFO_LENGTH_MISMATCH)
         {
             ReturnSize += 0x2000;
             Memory<OBJECT_TYPE_INFORMATION*> objectTypeInfo(ReturnSize + sizeof(WCHAR) * 16, "_dbg_gethandlename:objectTypeInfo");
-            if(ZwQueryObject(hLocalHandle, ObjectTypeInformation, objectTypeInfo(), ReturnSize, nullptr) == STATUS_SUCCESS)
+            if(NtQueryObject(hLocalHandle, ObjectTypeInformation, objectTypeInfo(), ReturnSize, nullptr) == STATUS_SUCCESS)
                 typeName = StringUtils::Utf16ToUtf8(objectTypeInfo()->TypeName.Buffer);
         }
 
         std::function<void()> getName = [&]()
         {
-            if(ZwQueryObject(hLocalHandle, ObjectNameInformation, nullptr, 0, &ReturnSize) == STATUS_INFO_LENGTH_MISMATCH)
+            if(NtQueryObject(hLocalHandle, ObjectNameInformation, nullptr, 0, &ReturnSize) == STATUS_INFO_LENGTH_MISMATCH)
             {
                 ReturnSize += 0x2000;
                 Memory<OBJECT_NAME_INFORMATION*> objectNameInfo(ReturnSize + sizeof(WCHAR) * 16, "_dbg_gethandlename:objectNameInfo");
-                if(ZwQueryObject(hLocalHandle, ObjectNameInformation, objectNameInfo(), ReturnSize, nullptr) == STATUS_SUCCESS)
+                if(NtQueryObject(hLocalHandle, ObjectNameInformation, objectNameInfo(), ReturnSize, nullptr) == STATUS_SUCCESS)
                     name = StringUtils::Utf16ToUtf8(objectNameInfo()->Name.Buffer);
             }
         };

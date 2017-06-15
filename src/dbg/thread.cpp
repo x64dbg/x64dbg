@@ -347,15 +347,6 @@ ULONG64 ThreadQueryCycleTime(HANDLE hThread)
 
 void ThreadUpdateWaitReasons()
 {
-    typedef NTSTATUS(NTAPI * NTQUERYSYSTEMINFORMATION)(
-        /*SYSTEM_INFORMATION_CLASS*/ ULONG SystemInformationClass,
-        PVOID SystemInformation,
-        ULONG SystemInformationLength,
-        PULONG ReturnLength);
-    static auto NtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation");
-    if(NtQuerySystemInformation == NULL)
-        return;
-
     ULONG size;
     if(NtQuerySystemInformation(SystemProcessInformation, NULL, 0, &size) != STATUS_INFO_LENGTH_MISMATCH)
         return;

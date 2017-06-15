@@ -663,24 +663,15 @@ bool MemDecodePointer(duint* Pointer, bool vistaPlus)
 {
     // Decode a pointer that has been encoded with a special "process cookie"
     // http://doxygen.reactos.org/dd/dc6/lib_2rtl_2process_8c_ad52c0f8f48ce65475a02a5c334b3e959.html
-    typedef NTSTATUS(NTAPI * pfnNtQueryInformationProcess)(
-        IN  HANDLE ProcessHandle,
-        IN  LONG ProcessInformationClass,
-        OUT PVOID ProcessInformation,
-        IN  ULONG ProcessInformationLength,
-        OUT PULONG ReturnLength
-    );
-
-    static auto NtQIP = (pfnNtQueryInformationProcess)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess");
 
     // Verify
-    if(!NtQIP || !Pointer)
+    if(!Pointer)
         return false;
 
     // Query the kernel for XOR key
     ULONG cookie;
 
-    if(NtQIP(fdProcessInfo->hProcess, /* ProcessCookie */36, &cookie, sizeof(ULONG), nullptr) < 0)
+    if(!NT_SUCCESS(NtQueryInformationProcess(fdProcessInfo->hProcess, ProcessCookie, &cookie, sizeof(ULONG), nullptr)))
     {
         if(!fallbackCookie)
             return false;
