@@ -443,7 +443,7 @@ static QAction* setupAction(const QString & text, RegistersView* this_object)
     return action;
 }
 
-RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
+RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
     setWindowTitle("Registers");
     mChangeViewButton = NULL;
@@ -574,7 +574,6 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mSwitchSIMDDispMode->addAction(SIMDHWord);
     mSwitchSIMDDispMode->addAction(SIMDHDWord);
     mSwitchSIMDDispMode->addAction(SIMDHQWord);
-    mFollowInDumpMenu = CreateDumpNMenu(multiDump);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1637,19 +1636,20 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     }
 }
 
-QMenu* RegistersView::CreateDumpNMenu(CPUMultiDump* multiDump)
+void RegistersView::CreateDumpNMenu(QMenu* dumpMenu)
 {
-    QMenu* dumpMenu = new QMenu(tr("Follow in &Dump"), this);
+    QList<QString> names;
+    CPUMultiDump* multiDump = mParent->getDumpWidget();
     dumpMenu->setIcon(DIcon("dump.png"));
     int maxDumps = multiDump->getMaxCPUTabs();
+    multiDump->getTabNames(names);
     for(int i = 0; i < maxDumps; i++)
     {
-        QAction* action = new QAction(tr("Dump %1").arg(i + 1), this);
+        QAction* action = new QAction(names.at(i), this);
         connect(action, SIGNAL(triggered()), this, SLOT(onFollowInDumpN()));
         dumpMenu->addAction(action);
         action->setData(i + 1);
     }
-    return dumpMenu;
 }
 
 void RegistersView::mousePressEvent(QMouseEvent* event)
@@ -3063,6 +3063,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     if(!DbgIsDebugging())
         return;
     QMenu wMenu(this);
+    QMenu* followInDumpNMenu = nullptr;
     const QAction* selectedAction;
     switch(wSIMDRegDispMode)
     {
@@ -3129,7 +3130,9 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             if(DbgMemIsValidReadPtr(addr))
             {
                 wMenu.addAction(wCM_FollowInDump);
-                wMenu.addMenu(mFollowInDumpMenu);
+                followInDumpNMenu = new QMenu(tr("Follow in &Dump"), &wMenu);
+                CreateDumpNMenu(followInDumpNMenu);
+                wMenu.addMenu(followInDumpNMenu);
                 wMenu.addAction(wCM_FollowInDisassembly);
                 wMenu.addAction(wCM_FollowInMemoryMap);
                 duint size = 0;

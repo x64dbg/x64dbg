@@ -108,7 +108,7 @@ public:
     };
 
 
-    explicit RegistersView(CPUWidget* parent, CPUMultiDump* multiDump);
+    explicit RegistersView(CPUWidget* parent);
     ~RegistersView();
 
     QSize sizeHint() const;
@@ -145,7 +145,7 @@ protected:
     char* registerValue(const REGDUMP* regd, const REGISTER_NAME reg);
     bool identifyRegister(const int y, const int x, REGISTER_NAME* clickedReg);
     QString helpRegister(REGISTER_NAME reg);
-    QMenu* CreateDumpNMenu(CPUMultiDump* multiDump);
+    void CreateDumpNMenu(QMenu* dumpMenu);
 
     void displayEditDialog();
 
@@ -256,7 +256,6 @@ private:
     // SIMD registers display mode
     SIMD_REG_DISP_MODE wSIMDRegDispMode;
     // context menu actions
-    QMenu* mFollowInDumpMenu;
     QMenu* mSwitchSIMDDispMode;
     QAction* mFollowInDump;
     QAction* wCM_Increment;
