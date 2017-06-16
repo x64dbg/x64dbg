@@ -46,7 +46,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mDump = new CPUMultiDump(mDisas, 5, 0); //dump widget
     ui->mBotLeftFrameLayout->addWidget(mDump);
 
-    mGeneralRegs = new RegistersView(this, mDump);
+    mGeneralRegs = new RegistersView(this);
     mGeneralRegs->setFixedWidth(1000);
     mGeneralRegs->ShowFPU(true);
 
