@@ -294,7 +294,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionLabels, SIGNAL(triggered()), this, SLOT(displayLabels()));
     connect(ui->actionBookmarks, SIGNAL(triggered()), this, SLOT(displayBookmarks()));
     connect(ui->actionFunctions, SIGNAL(triggered()), this, SLOT(displayFunctions()));
-    //connect(ui->actionCheckUpdates, SIGNAL(triggered()), this, SLOT(checkUpdates()));
     connect(ui->actionCallStack, SIGNAL(triggered()), this, SLOT(displayCallstack()));
     connect(ui->actionSEHChain, SIGNAL(triggered()), this, SLOT(displaySEHChain()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
@@ -356,6 +355,9 @@ MainWindow::MainWindow(QWidget* parent)
     // Don't need to set shortcuts because the code above will signal refreshShortcuts()
 
     mSimpleTraceDialog = new SimpleTraceDialog(this);
+
+    // About dialog
+    mAboutDialog = new AboutDialog(this);
 
     // Setup close thread and dialog
     bCanClose = false;
@@ -810,8 +812,7 @@ void MainWindow::displayScriptWidget()
 
 void MainWindow::displayAboutWidget()
 {
-    AboutDialog aboutBox(this);
-    aboutBox.exec();
+    mAboutDialog->exec();
 }
 
 void MainWindow::openFileSlot()

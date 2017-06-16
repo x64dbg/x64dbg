@@ -32,6 +32,7 @@ class SettingsDialog;
 class DisassemblerGraphView;
 class SimpleTraceDialog;
 class MRUList;
+class AboutDialog;
 
 namespace Ui
 {
@@ -176,7 +177,7 @@ private:
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
     SimpleTraceDialog* mSimpleTraceDialog;
-
+    AboutDialog *mAboutDialog;
     DebugStatusLabel* mStatusLabel;
     LogStatusLabel* mLastLogLabel;
 
