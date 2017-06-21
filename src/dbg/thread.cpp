@@ -7,7 +7,7 @@
 #include "thread.h"
 #include "memory.h"
 #include "threading.h"
-#include "undocumented.h"
+#include "ntdll/ntdll.h"
 #include "debugger.h"
 
 static std::unordered_map<DWORD, THREADINFO> threadList;
@@ -173,7 +173,7 @@ bool ThreadIsValid(DWORD ThreadId)
 bool ThreadGetTib(duint TEBAddress, NT_TIB* Tib)
 {
     // Calculate offset from structure member
-    TEBAddress += offsetof(TEB, Tib);
+    TEBAddress += offsetof(TEB, NtTib);
 
     memset(Tib, 0, sizeof(NT_TIB));
     return MemReadUnsafe(TEBAddress, Tib, sizeof(NT_TIB));
@@ -347,15 +347,6 @@ ULONG64 ThreadQueryCycleTime(HANDLE hThread)
 
 void ThreadUpdateWaitReasons()
 {
-    typedef NTSTATUS(NTAPI * NTQUERYSYSTEMINFORMATION)(
-        /*SYSTEM_INFORMATION_CLASS*/ ULONG SystemInformationClass,
-        PVOID SystemInformation,
-        ULONG SystemInformationLength,
-        PULONG ReturnLength);
-    static auto NtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation");
-    if(NtQuerySystemInformation == NULL)
-        return;
-
     ULONG size;
     if(NtQuerySystemInformation(SystemProcessInformation, NULL, 0, &size) != STATUS_INFO_LENGTH_MISMATCH)
         return;

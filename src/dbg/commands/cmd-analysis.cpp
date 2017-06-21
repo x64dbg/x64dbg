@@ -1,4 +1,5 @@
 #include "cmd-analysis.h"
+#include "ntdll/ntdll.h"
 #include "linearanalysis.h"
 #include "memory.h"
 #include "exceptiondirectoryanalysis.h"
