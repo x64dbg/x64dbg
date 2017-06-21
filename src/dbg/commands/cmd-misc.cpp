@@ -87,8 +87,8 @@ bool cbDebugLoadLib(int argc, char* argv[])
         return false;
     }
 
-    unsigned char loader[] =
 #ifdef _WIN64
+    unsigned char loader[] =
     {
         0x48, 0xB9, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, //movabs rcx, DLLNameAddr
         0x48, 0xB8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, //movabs rax, p_LoadLibraryW
@@ -96,12 +96,13 @@ bool cbDebugLoadLib(int argc, char* argv[])
         0x90 //nop
     };
 #else
-        {
-            0x68, 0xFF, 0xFF, 0xFF, 0xFF, //push DLLNameMem
-            0xB8, 0xFF, 0xFF, 0xFF, 0xFF, //mov eax, p_LoadLibraryW
-            0xFF, 0xD0, //call eax
-            0x90 //nop
-        };
+    unsigned char loader[] =
+    {
+        0x68, 0xFF, 0xFF, 0xFF, 0xFF, //push DLLNameMem
+        0xB8, 0xFF, 0xFF, 0xFF, 0xFF, //mov eax, p_LoadLibraryW
+        0xFF, 0xD0, //call eax
+        0x90 //nop
+    };
 #endif //_WIN64
     auto DLLNameOffset = ArchValue(1, 2), LoadLibraryOffset = ArchValue(6, 12);
 
