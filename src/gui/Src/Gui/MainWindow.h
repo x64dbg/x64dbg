@@ -23,7 +23,6 @@ class PatchDialog;
 class CalculatorDialog;
 class DebugStatusLabel;
 class LogStatusLabel;
-class UpdateChecker;
 class SourceViewerManager;
 class HandlesView;
 class MainWindowCloseThread;
@@ -33,6 +32,7 @@ class SettingsDialog;
 class DisassemblerGraphView;
 class SimpleTraceDialog;
 class MRUList;
+class AboutDialog;
 
 namespace Ui
 {
@@ -121,7 +121,6 @@ public slots:
     void displayLabels();
     void displayBookmarks();
     void displayFunctions();
-    void checkUpdates();
     void crashDump();
     void displayCallstack();
     void displaySEHChain();
@@ -178,11 +177,10 @@ private:
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
     SimpleTraceDialog* mSimpleTraceDialog;
-
+    AboutDialog *mAboutDialog;
     DebugStatusLabel* mStatusLabel;
     LogStatusLabel* mLastLogLabel;
 
-    UpdateChecker* mUpdateChecker;
     TimeWastedCounter* mTimeWastedCounter;
 
     QString mWindowMainTitle;

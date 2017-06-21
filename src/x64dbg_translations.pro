@@ -218,7 +218,8 @@ SOURCES += \
     dbg/typesparser.cpp \
     gui/Src/Utils/MRUList.cpp \
     gui/Src/Gui/LocalVarsView.cpp \
-    gui/Src/Gui/MessagesBreakpoints.cpp
+    gui/Src/Gui/MessagesBreakpoints.cpp \
+    gui/Src/Gui/AboutDialog.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -447,7 +448,8 @@ HEADERS += \
     dbg/types.h \
     gui/Src/Utils/MRUList.h \
     gui/Src/Gui/LocalVarsView.h \
-    gui/Src/Gui/MessagesBreakpoints.cpp
+    gui/Src/Gui/MessagesBreakpoints.h \
+    gui/Src/Gui/AboutDialog.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
@@ -486,7 +488,8 @@ FORMS += \
     gui/Src/Gui/CustomizeMenuDialog.ui \
     gui/Src/Gui/SimpleTraceDialog.ui \
     gui/Src/Gui/StructWidget.ui \
-    gui/Src/Gui/MessagesBreakpoints.ui
+    gui/Src/Gui/MessagesBreakpoints.ui \
+    gui/Src/Gui/AboutDialog.ui
 
 TRANSLATIONS += \
     gui/Translations/x64dbg.ts

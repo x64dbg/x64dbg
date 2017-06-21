@@ -33,7 +33,6 @@
 #include "CalculatorDialog.h"
 #include "DebugStatusLabel.h"
 #include "LogStatusLabel.h"
-#include "UpdateChecker.h"
 #include "SourceViewerManager.h"
 #include "SnowmanView.h"
 #include "HandlesView.h"
@@ -51,6 +50,7 @@
 #include "SimpleTraceDialog.h"
 #include "CPUArgumentWidget.h"
 #include "MRUList.h"
+#include "AboutDialog.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -294,7 +294,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionLabels, SIGNAL(triggered()), this, SLOT(displayLabels()));
     connect(ui->actionBookmarks, SIGNAL(triggered()), this, SLOT(displayBookmarks()));
     connect(ui->actionFunctions, SIGNAL(triggered()), this, SLOT(displayFunctions()));
-    connect(ui->actionCheckUpdates, SIGNAL(triggered()), this, SLOT(checkUpdates()));
     connect(ui->actionCallStack, SIGNAL(triggered()), this, SLOT(displayCallstack()));
     connect(ui->actionSEHChain, SIGNAL(triggered()), this, SLOT(displaySEHChain()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
@@ -355,9 +354,10 @@ MainWindow::MainWindow(QWidget* parent)
     defaultSettings.SaveSettings();
     // Don't need to set shortcuts because the code above will signal refreshShortcuts()
 
-    // Create updatechecker
-    mUpdateChecker = new UpdateChecker(this);
     mSimpleTraceDialog = new SimpleTraceDialog(this);
+
+    // About dialog
+    mAboutDialog = new AboutDialog(this);
 
     // Setup close thread and dialog
     bCanClose = false;
@@ -703,7 +703,6 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionAbout, ConfigShortcut("HelpAbout"));
     setGlobalShortcut(ui->actionBlog, ConfigShortcut("HelpBlog"));
     setGlobalShortcut(ui->actionDonate, ConfigShortcut("HelpDonate"));
-    setGlobalShortcut(ui->actionCheckUpdates, ConfigShortcut("HelpCheckForUpdates"));
     setGlobalShortcut(ui->actionCalculator, ConfigShortcut("HelpCalculator"));
     setGlobalShortcut(ui->actionReportBug, ConfigShortcut("HelpReportBug"));
     setGlobalShortcut(ui->actionManual, ConfigShortcut("HelpManual"));
@@ -813,18 +812,7 @@ void MainWindow::displayScriptWidget()
 
 void MainWindow::displayAboutWidget()
 {
-#ifdef _WIN64
-    QString title = tr("About x64dbg");
-#else
-    QString title = tr("About x32dbg");
-#endif //_WIN64
-    title += QString().sprintf(" v%d", BridgeGetDbgVersion());
-    QMessageBox msg(QMessageBox::Information, title, tr("Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>") + ToDateString(GetCompileDate()) + ", " __TIME__);
-    msg.setWindowIcon(DIcon("information.png"));
-    msg.setTextFormat(Qt::RichText);
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    mAboutDialog->exec();
 }
 
 void MainWindow::openFileSlot()
@@ -1384,11 +1372,6 @@ void MainWindow::displayFunctions()
         return;
     DbgCmdExec("functionlist");
     displayReferencesWidget();
-}
-
-void MainWindow::checkUpdates()
-{
-    mUpdateChecker->checkForUpdates();
 }
 
 void MainWindow::displayCallstack()
