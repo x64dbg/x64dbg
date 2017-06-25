@@ -12,6 +12,35 @@ QString ToLongDoubleString(void* buffer)
     return str;
 }
 
+QString EscapeCh(QChar ch)
+{
+    switch(ch.unicode())
+    {
+    case '\0':
+        return "\\0";
+    case '\t':
+        return "\\t";
+    case '\f':
+        return "\\f";
+    case '\v':
+        return "\\v";
+    case '\n':
+        return "\\n";
+    case '\r':
+        return "\\r";
+    case '\\':
+        return "\\\\";
+    case '\"':
+        return "\\\"";
+    case '\a':
+        return "\\a";
+    case '\b':
+        return "\\b";
+    default:
+        return QString(1, ch);
+    }
+}
+
 QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
 {
     switch(type)
@@ -23,13 +52,13 @@ QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
     case enc_dword:
         return ToIntegralString<unsigned int>(buffer);
     case enc_fword:
-        return QString(ByteReverse(QByteArray((char*)buffer, 6)).toHex());
+        return QString(ByteReverse(QByteArray((const char*)buffer, 6)).toHex());
     case enc_qword:
         return ToIntegralString<unsigned long long int>(buffer);
     case enc_tbyte:
-        return QString(ByteReverse(QByteArray((char*)buffer, 10)).toHex());
+        return QString(ByteReverse(QByteArray((const char*)buffer, 10)).toHex());
     case enc_oword:
-        return QString(ByteReverse(QByteArray((char*)buffer, 16)).toHex());
+        return QString(ByteReverse(QByteArray((const char*)buffer, 16)).toHex());
     case enc_mmword:
     case enc_xmmword:
     case enc_ymmword:
@@ -41,9 +70,9 @@ QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
     case enc_real10:
         return ToLongDoubleString(buffer);
     case enc_ascii:
-        return QString::fromLocal8Bit((const char*)buffer, size);
+        return EscapeCh(*(const char*)buffer);
     case enc_unicode:
-        return QString::fromWCharArray((const wchar_t*)buffer, size / sizeof(wchar_t));
+        return EscapeCh(*(const wchar_t*)buffer);
     default:
         return ToIntegralString<unsigned char>(buffer);
     }

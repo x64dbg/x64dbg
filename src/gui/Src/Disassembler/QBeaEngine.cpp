@@ -275,7 +275,6 @@ Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase,
     if(infoIter == dataInstMap.end())
         infoIter = dataInstMap.find(enc_byte);
 
-
     int len = mEncodeMap->getDataSize(origBase + origInstRVA, 1);
 
     QString mnemonic = _bLongDataInst ? infoIter.value().longName : infoIter.value().shortName;
@@ -316,7 +315,6 @@ void QBeaEngine::UpdateDataInstructionMap()
     dataInstMap.insert(enc_real10, {"real10", "real10", "long double"});
     dataInstMap.insert(enc_ascii, {"ascii", "ascii", "string"});
     dataInstMap.insert(enc_unicode, {"unicode", "unicode", "wstring"});
-
 }
 
 void QBeaEngine::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)

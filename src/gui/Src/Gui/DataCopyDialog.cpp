@@ -68,6 +68,14 @@ QString DataCopyDialog::printEscapedString(bool & bPrevWasHex, int ch, const cha
         data = "\\\"";
         bPrevWasHex = false;
         break;
+    case '\a':
+        data = "\\a";
+        bPrevWasHex = false;
+        break;
+    case '\b':
+        data = "\\b";
+        bPrevWasHex = false;
+        break;
     default:
         if(ch >= ' ' && ch <= '~')
         {

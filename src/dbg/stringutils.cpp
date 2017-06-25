@@ -52,6 +52,10 @@ String StringUtils::Escape(unsigned char ch)
         return "\\\\";
     case '\"':
         return "\\\"";
+    case '\a':
+        return "\\a";
+    case '\b':
+        return "\\b";
     default:
         if(!isprint(ch)) //unknown unprintable character
             sprintf_s(buf, "\\x%02X", ch);
