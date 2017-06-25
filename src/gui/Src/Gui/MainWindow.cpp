@@ -1714,9 +1714,40 @@ void MainWindow::clickFavouriteTool()
         memset(&procinfo, 0, sizeof(PROCESS_INFORMATION));
         memset(&startupinfo, 0, sizeof(startupinfo));
         startupinfo.cb = sizeof(startupinfo);
-        CreateProcessW(nullptr, (LPWSTR)toolPath.toStdWString().c_str(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startupinfo, &procinfo);
-        CloseHandle(procinfo.hThread);
-        CloseHandle(procinfo.hProcess);
+        if(CreateProcessW(nullptr, (LPWSTR)toolPath.toStdWString().c_str(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startupinfo, &procinfo))
+        {
+            CloseHandle(procinfo.hThread);
+            CloseHandle(procinfo.hProcess);
+        }
+        else if(GetLastError() == ERROR_ELEVATION_REQUIRED)
+        {
+            QString file, cmd;
+            if(toolPath.startsWith('\"'))
+            {
+                auto endQuote = toolPath.indexOf('\"', 1);
+                if(endQuote == -1) //"failure with spaces
+                    file = toolPath.mid(1);
+                else //"path with spaces" arguments
+                {
+                    file = toolPath.mid(1, endQuote - 1);
+                    cmd = toolPath.mid(endQuote + 1);
+                }
+            }
+            else
+            {
+                auto firstSpace = toolPath.indexOf(' ');
+                if(firstSpace == -1) //pathwithoutspaces
+                    file = toolPath;
+                else //pathwithoutspaces argument
+                {
+                    file = toolPath.left(firstSpace);
+                    cmd = toolPath.mid(firstSpace + 1);
+                }
+            }
+            file = file.trimmed();
+            cmd = cmd.trimmed();
+            ShellExecuteW(nullptr, L"runas", file.toStdWString().c_str(), cmd.toStdWString().c_str(), nullptr, SW_SHOWNORMAL);
+        }
     }
     else if(data.startsWith("Script,"))
     {

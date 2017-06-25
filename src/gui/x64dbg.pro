@@ -339,7 +339,7 @@ FORMS += \
 ##
 ## Libraries
 ##
-LIBS += -luser32 -ladvapi32 -lwinmm
+LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
 
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
