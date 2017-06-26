@@ -12,7 +12,7 @@ public:
     void updateColors() override;
 
 public slots:
-    void disassembleAtSlot(dsint cip, dsint addr);
+    void disassembleAtSlot(dsint addr, dsint cip);
 
 protected:
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);

@@ -17,7 +17,7 @@ void BreakpointsViewTable::updateColors()
     mCipColor = ConfigColor("ThreadCurrentColor");
 }
 
-void BreakpointsViewTable::disassembleAtSlot(dsint cip, dsint addr)
+void BreakpointsViewTable::disassembleAtSlot(dsint addr, dsint cip)
 {
     Q_UNUSED(addr)
     mCip = cip;
