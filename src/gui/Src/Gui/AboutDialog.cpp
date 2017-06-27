@@ -5,7 +5,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-AboutDialog::AboutDialog(QWidget *parent) :
+AboutDialog::AboutDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::AboutDialog)
 {
@@ -25,17 +25,17 @@ AboutDialog::~AboutDialog()
     delete ui;
 }
 
-void AboutDialog::on_lblWebsite_linkActivated(const QString &link)
+void AboutDialog::on_lblWebsite_linkActivated(const QString & link)
 {
     QDesktopServices::openUrl(QUrl(link));
 }
 
-void AboutDialog::on_lblVersion_7_linkActivated(const QString &link)
+void AboutDialog::on_lblVersion_7_linkActivated(const QString & link)
 {
     QDesktopServices::openUrl(QUrl(link));
 }
 
-void AboutDialog::on_lblAbout_2_linkActivated(const QString &link)
+void AboutDialog::on_lblAbout_2_linkActivated(const QString & link)
 {
     QDesktopServices::openUrl(QUrl(link));
 }

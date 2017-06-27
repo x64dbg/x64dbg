@@ -177,7 +177,7 @@ private:
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
     SimpleTraceDialog* mSimpleTraceDialog;
-    AboutDialog *mAboutDialog;
+    AboutDialog* mAboutDialog;
     DebugStatusLabel* mStatusLabel;
     LogStatusLabel* mLastLogLabel;
 

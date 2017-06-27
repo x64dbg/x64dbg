@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>326</width>
-    <height>384</height>
+    <width>321</width>
+    <height>321</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,10 +20,10 @@
   <widget class="QLabel" name="lblLogoImage">
    <property name="geometry">
     <rect>
-     <x>48</x>
-     <y>30</y>
-     <width>81</width>
-     <height>81</height>
+     <x>40</x>
+     <y>17</y>
+     <width>128</width>
+     <height>128</height>
     </rect>
    </property>
    <property name="text">
@@ -39,8 +39,8 @@
   <widget class="QLabel" name="lblWebsite">
    <property name="geometry">
     <rect>
-     <x>158</x>
-     <y>47</y>
+     <x>180</x>
+     <y>27</y>
      <width>101</width>
      <height>16</height>
     </rect>
@@ -55,23 +55,23 @@
     <set>Qt::ImhUrlCharactersOnly</set>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://x64dbg.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://x64dbg.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;a href=&quot;http://x64dbg.com&quot;&gt;http://x64dbg.com&lt;/a&gt;</string>
    </property>
    <property name="textFormat">
     <enum>Qt::RichText</enum>
    </property>
    <property name="openExternalLinks">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="textInteractionFlags">
-    <set>Qt::TextBrowserInteraction</set>
+    <set>Qt::LinksAccessibleByMouse</set>
    </property>
   </widget>
   <widget class="QLabel" name="lblWebsiteTitle">
    <property name="geometry">
     <rect>
-     <x>158</x>
-     <y>30</y>
+     <x>180</x>
+     <y>10</y>
      <width>101</width>
      <height>16</height>
     </rect>
@@ -92,8 +92,8 @@
   <widget class="QLabel" name="lblVersionTitle">
    <property name="geometry">
     <rect>
-     <x>158</x>
-     <y>71</y>
+     <x>180</x>
+     <y>51</y>
      <width>101</width>
      <height>16</height>
     </rect>
@@ -105,7 +105,7 @@
     <set>Qt::ImhUrlCharactersOnly</set>
    </property>
    <property name="text">
-    <string>Version</string>
+    <string>Version:</string>
    </property>
    <property name="openExternalLinks">
     <bool>true</bool>
@@ -114,8 +114,8 @@
   <widget class="QLabel" name="lblVersion">
    <property name="geometry">
     <rect>
-     <x>158</x>
-     <y>88</y>
+     <x>180</x>
+     <y>68</y>
      <width>141</width>
      <height>16</height>
     </rect>
@@ -132,13 +132,16 @@
    <property name="openExternalLinks">
     <bool>true</bool>
    </property>
+   <property name="textInteractionFlags">
+    <set>Qt::NoTextInteraction</set>
+   </property>
   </widget>
   <widget class="QLabel" name="lblAbout">
    <property name="geometry">
     <rect>
-     <x>46</x>
-     <y>126</y>
-     <width>241</width>
+     <x>0</x>
+     <y>152</y>
+     <width>321</width>
      <height>20</height>
     </rect>
    </property>
@@ -151,6 +154,9 @@
    <property name="text">
     <string>An open-source x64/x32 debugger for windows.</string>
    </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
    <property name="openExternalLinks">
     <bool>true</bool>
    </property>
@@ -159,7 +165,7 @@
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>164</y>
+     <y>185</y>
      <width>121</width>
      <height>28</height>
     </rect>
@@ -178,7 +184,7 @@
    <property name="geometry">
     <rect>
      <x>21</x>
-     <y>276</y>
+     <y>256</y>
      <width>201</width>
      <height>41</height>
     </rect>
@@ -190,21 +196,27 @@
     <set>Qt::ImhUrlCharactersOnly</set>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Consider donating using bitcoins using the following QR Code or just through the address: &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>Please consider donating using the Bitcoin address on the right or by going to &lt;a href=&quot;http://donate.x64dbg.com&quot;&gt;donate.x64dbg.com&lt;/a&gt;.</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
    </property>
    <property name="wordWrap">
     <bool>true</bool>
    </property>
    <property name="openExternalLinks">
     <bool>true</bool>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::LinksAccessibleByMouse</set>
    </property>
   </widget>
   <widget class="QLabel" name="lblDonation">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>256</y>
-     <width>101</width>
+     <y>236</y>
+     <width>201</width>
      <height>16</height>
     </rect>
    </property>
@@ -215,75 +227,19 @@
     <set>Qt::ImhUrlCharactersOnly</set>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Donations:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;h3&gt;Donations&lt;/h3&gt;</string>
    </property>
    <property name="openExternalLinks">
     <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lblDonation_3">
-   <property name="geometry">
-    <rect>
-     <x>22</x>
-     <y>336</y>
-     <width>211</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true"/>
-   </property>
-   <property name="inputMethodHints">
-    <set>Qt::ImhUrlCharactersOnly</set>
-   </property>
-   <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can also donate through the following link:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-   <property name="openExternalLinks">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lblVersion_7">
-   <property name="geometry">
-    <rect>
-     <x>45</x>
-     <y>350</y>
-     <width>101</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>PointingHandCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true"/>
-   </property>
-   <property name="inputMethodHints">
-    <set>Qt::ImhUrlCharactersOnly</set>
-   </property>
-   <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://donate.x64dbg.com&quot;&gt;&lt;span style=&quot;text-decoration: none;&quot;&gt;donate.x64dbg.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-   <property name="openExternalLinks">
-    <bool>false</bool>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::TextBrowserInteraction</set>
    </property>
   </widget>
   <widget class="QLabel" name="lblQrImage">
    <property name="geometry">
     <rect>
-     <x>237</x>
-     <y>266</y>
-     <width>71</width>
-     <height>71</height>
+     <x>230</x>
+     <y>230</y>
+     <width>81</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="cursor">
@@ -296,7 +252,7 @@
     <enum>Qt::RichText</enum>
    </property>
    <property name="pixmap">
-    <pixmap resource="../../resource.qrc">:/icons/images/donation_qr.png</pixmap>
+    <pixmap resource="../../resource.qrc">:/icons/images/donation_qr.svg</pixmap>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -305,17 +261,14 @@
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="lblAbout_2">
+  <widget class="QLabel" name="lblWebsiteTitle_2">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>314</y>
-     <width>201</width>
-     <height>20</height>
+     <x>180</x>
+     <y>92</y>
+     <width>101</width>
+     <height>16</height>
     </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>IBeamCursor</cursorShape>
    </property>
    <property name="styleSheet">
     <string notr="true"/>
@@ -324,13 +277,44 @@
     <set>Qt::ImhUrlCharactersOnly</set>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://blockchain.info/address/1GuXgtCrLk4aYgivAT7xAi8zVHWk5CkEoY&quot;&gt;&lt;span style=&quot;text-decoration: none;&quot;&gt;1GuXgtCrLk4aYgivAT7xAi8zVHWk5CkEoY&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>Icons:</string>
    </property>
    <property name="openExternalLinks">
-    <bool>false</bool>
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lblWebsite_2">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>110</y>
+     <width>141</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <property name="inputMethodHints">
+    <set>Qt::ImhUrlCharactersOnly</set>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://p.yusukekamiyamane.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Yusuke Kamiyamane&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;a href=&quot;https://github.com/mrfearless&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;mrfearless&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::RichText</enum>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+   </property>
+   <property name="openExternalLinks">
+    <bool>true</bool>
    </property>
    <property name="textInteractionFlags">
-    <set>Qt::TextBrowserInteraction</set>
+    <set>Qt::LinksAccessibleByMouse</set>
    </property>
   </widget>
  </widget>
