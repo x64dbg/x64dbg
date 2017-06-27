@@ -11,6 +11,7 @@
 #include "value.h"
 #include "TraceRecord.h"
 #include "handle.h"
+#include "thread.h"
 
 static bool skipInt3Stepping(int argc, char* argv[])
 {
@@ -266,7 +267,10 @@ bool cbDebugPause(int argc, char* argv[])
         }
         return false;
     }
-    dbgsetispausedbyuser(true);
+    //WORKAROUND: If a program is stuck in NtUserGetMessage (GetMessage was called), this
+    //will send a WM_NULL to stop the waiting. This only works if the message is not filtered.
+    //OllyDbg also does this in a similar way.
+    PostThreadMessageA(ThreadGetId(hActiveThread), WM_NULL, 0, 0);
     if(ResumeThread(hActiveThread) == -1)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
