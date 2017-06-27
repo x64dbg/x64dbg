@@ -19,10 +19,7 @@ public:
     ~AboutDialog();
 
 private slots:
-    void on_lblWebsite_linkActivated(const QString & link);
-    void on_lblVersion_7_linkActivated(const QString & link);
     void on_btnCheckUpdates_clicked();
-    void on_lblAbout_2_linkActivated(const QString & link);
 
 private:
     Ui::AboutDialog* ui;

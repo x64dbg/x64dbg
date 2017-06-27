@@ -180,7 +180,7 @@
     <string>Check for Updates</string>
    </property>
   </widget>
-  <widget class="QLabel" name="lblDonation_2">
+  <widget class="QLabel" name="lblDonation">
    <property name="geometry">
     <rect>
      <x>21</x>
@@ -211,7 +211,7 @@
     <set>Qt::LinksAccessibleByMouse</set>
    </property>
   </widget>
-  <widget class="QLabel" name="lblDonation">
+  <widget class="QLabel" name="lblDonationTitle">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -261,7 +261,7 @@
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="lblWebsiteTitle_2">
+  <widget class="QLabel" name="lblIconsTitle">
    <property name="geometry">
     <rect>
      <x>180</x>
@@ -283,7 +283,7 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="lblWebsite_2">
+  <widget class="QLabel" name="lblIcons">
    <property name="geometry">
     <rect>
      <x>180</x>
