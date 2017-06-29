@@ -310,6 +310,12 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     addWindowPosConfig(guiUint, "AttachDialog");
     addWindowPosConfig(guiUint, "GotoDialog");
     addWindowPosConfig(guiUint, "EditBreakpointDialog");
+    addWindowPosConfig(guiUint, "BrowseDialog");
+    addWindowPosConfig(guiUint, "FavouriteTools");
+    addWindowPosConfig(guiUint, "EntropyDialog");
+    addWindowPosConfig(guiUint, "HexEditDialog");
+    addWindowPosConfig(guiUint, "WordEditDialog");
+    addWindowPosConfig(guiUint, "DataCopyDialog");
     defaultUints.insert("Gui", guiUint);
 
     //uint settings

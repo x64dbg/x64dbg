@@ -67,6 +67,8 @@ FavouriteTools::FavouriteTools(QWidget* parent) :
     connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     emit ui->listTools->itemSelectionChanged();
     updateToolsBtnEnabled();
+
+    Config()->setupWindowPos(this);
 }
 
 void FavouriteTools::setupTools(QString name, QTableWidget* list)
@@ -484,6 +486,7 @@ void FavouriteTools::tabChanged(int i)
 
 FavouriteTools::~FavouriteTools()
 {
+    Config()->saveWindowPos(this);
     delete ui;
 }
 
