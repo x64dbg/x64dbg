@@ -362,6 +362,9 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log)
         return false;
 
     strncpy_s(bpInfo->logText, Log, _TRUNCATE);
+
+    // Make log breakpoints silent (meaning they don't output the default log).
+    bpInfo->silent = *Log != '\0';
     return true;
 }
 
