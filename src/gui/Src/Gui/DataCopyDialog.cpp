@@ -33,6 +33,7 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     ui->comboType->setCurrentIndex(DataCByte);
 
     printData((DataType)ui->comboType->currentIndex());
+    Config()->setupWindowPos(this);
 }
 
 QString DataCopyDialog::printEscapedString(bool & bPrevWasHex, int ch, const char* hexFormat)
@@ -319,6 +320,7 @@ void DataCopyDialog::printData(DataType type)
 
 DataCopyDialog::~DataCopyDialog()
 {
+    Config()->saveWindowPos(this);
     delete ui;
 }
 

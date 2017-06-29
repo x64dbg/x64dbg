@@ -58,6 +58,15 @@ void SimpleWarningBox(QWidget* parent, const QString & title, const QString & te
     msg.exec();
 }
 
+void SimpleInfoBox(QWidget* parent, const QString & title, const QString & text)
+{
+    QMessageBox msg(QMessageBox::Information, title, text, QMessageBox::NoButton, parent);
+    msg.setWindowIcon(DIcon("information.png"));
+    msg.setParent(parent, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    msg.exec();
+}
+
 QString getSymbolicName(duint addr)
 {
     char labelText[MAX_LABEL_SIZE]   = "";

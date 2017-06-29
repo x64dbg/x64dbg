@@ -566,14 +566,9 @@ void MemoryMapView::memoryAllocateSlot()
         DbgCmdExecDirect(QString("alloc %1").arg(ToPtrString(memsize)).toUtf8().constData());
         duint addr = DbgValFromString("$result");
         if(addr != 0)
-        {
             DbgCmdExec("dump $result");
-        }
         else
-        {
             SimpleErrorBox(this, tr("Error"), tr("Memory allocation failed!"));
-            return;
-        }
     }
 }
 
@@ -630,10 +625,7 @@ void MemoryMapView::selectAddress(duint va)
                 return;
             }
     }
-    QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Address %0 not found in memory map...").arg(ToPtrString(va)));
-    msg.setWindowIcon(DIcon("compile-error.png"));
-    msg.exec();
-    QMessageBox::warning(this, tr("Error"), QString());
+    SimpleErrorBox(this, tr("Error"), tr("Address %0 not found in memory map...").arg(ToPtrString(va)));
 }
 
 void MemoryMapView::gotoOriginSlot()

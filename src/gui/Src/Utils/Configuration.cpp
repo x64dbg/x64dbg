@@ -3,6 +3,8 @@
 #include <QFontInfo>
 #include <QMessageBox>
 #include <QIcon>
+#include <QScreen>
+#include <QGuiApplication>
 #include "AbstractTableView.h"
 
 Configuration* Configuration::mPtr = nullptr;
@@ -308,6 +310,12 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     addWindowPosConfig(guiUint, "AttachDialog");
     addWindowPosConfig(guiUint, "GotoDialog");
     addWindowPosConfig(guiUint, "EditBreakpointDialog");
+    addWindowPosConfig(guiUint, "BrowseDialog");
+    addWindowPosConfig(guiUint, "FavouriteTools");
+    addWindowPosConfig(guiUint, "EntropyDialog");
+    addWindowPosConfig(guiUint, "HexEditDialog");
+    addWindowPosConfig(guiUint, "WordEditDialog");
+    addWindowPosConfig(guiUint, "DataCopyDialog");
     defaultUints.insert("Gui", guiUint);
 
     //uint settings
@@ -1111,17 +1119,28 @@ void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
     NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
 }
 
+static bool IsPointVisible(QPoint pos)
+{
+    for(const auto & i : QGuiApplication::screens())
+    {
+        QRect rt = i->geometry();
+        if(rt.left() <= pos.x() && rt.right() >= pos.x() && rt.top() <= pos.y() && rt.bottom() >= pos.y())
+            return true;
+    }
+    return false;
+}
+
 /**
  * @brief Configuration::setupWindowPos Moves the dialog to the saved position
  * @param window this
  */
 void Configuration::setupWindowPos(QWidget* window)
 {
-    duint X, Y;
-    X = getUint("Gui", QString(window->metaObject()->className()) + "X");
-    Y = getUint("Gui", QString(window->metaObject()->className()) + "Y");
-    if(X != 0 && Y != 0)
-        window->move(X, Y);
+    QPoint pos;
+    pos.setX(getUint("Gui", QString(window->metaObject()->className()) + "X"));
+    pos.setY(getUint("Gui", QString(window->metaObject()->className()) + "Y"));
+    if(pos.x() != 0 && pos.y() != 0 && IsPointVisible(pos))
+        window->move(pos);
 }
 
 /**
