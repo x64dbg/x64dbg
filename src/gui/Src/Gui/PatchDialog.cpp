@@ -443,11 +443,7 @@ void PatchDialog::on_btnPatchFile_clicked()
             patchList.push_back(curPatchList.at(i).patch);
     if(!curPatchList.size() || !patchList.size())
     {
-        QMessageBox msg(QMessageBox::Information, tr("Information"), tr("Nothing to patch!"));
-        msg.setWindowIcon(DIcon("information.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleInfoBox(this, tr("Information"), tr("Nothing to patch!"));
         return;
     }
     char szModName[MAX_PATH] = "";
@@ -482,11 +478,7 @@ void PatchDialog::on_btnPatchFile_clicked()
         SimpleErrorBox(this, tr("Error!"), tr("Failed to save patched file (%1)").arg(error));
         return;
     }
-    QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1/%2 patch(es) applied!").arg(patched).arg(patchList.size()));
-    msg.setWindowIcon(DIcon("information.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    SimpleInfoBox(this, tr("Information"), tr("%1/%2 patch(es) applied!").arg(patched).arg(patchList.size()));
 }
 
 void PatchDialog::on_btnImport_clicked()
@@ -567,11 +559,7 @@ void PatchDialog::on_btnImport_clicked()
     //Check if any patch exists
     if(!patchList.size())
     {
-        QMessageBox msg(QMessageBox::Information, tr("Information"), tr("No patches to apply in the current process."));
-        msg.setWindowIcon(DIcon("information.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleInfoBox(this, tr("Information"), tr("No patches to apply in the current process."));
         return;
     }
 
@@ -619,11 +607,7 @@ void PatchDialog::on_btnImport_clicked()
     updatePatches();
     GuiUpdateAllViews();
 
-    QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1/%2 patch(es) applied!").arg(patched).arg(patchList.size()));
-    msg.setWindowIcon(DIcon("information.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    SimpleInfoBox(this, tr("Information"), tr("%1/%2 patch(es) applied!").arg(patched).arg(patchList.size()));
 }
 
 void PatchDialog::on_btnExport_clicked()
@@ -669,11 +653,7 @@ void PatchDialog::saveAs1337(const QString & filename)
 
     if(!lines.size())
     {
-        QMessageBox msg(QMessageBox::Information, tr("Information"), tr("No patches to export."));
-        msg.setWindowIcon(DIcon("information.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        SimpleInfoBox(this, tr("Information"), tr("No patches to export."));
         return;
     }
 
@@ -683,9 +663,5 @@ void PatchDialog::saveAs1337(const QString & filename)
     file.write(text.toUtf8().constData(), text.length());
     file.close();
 
-    QMessageBox msg(QMessageBox::Information, tr("Information"), tr("%1 patch(es) exported!").arg(patches));
-    msg.setWindowIcon(DIcon("information.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    SimpleInfoBox(this, tr("Information"), tr("%1 patch(es) exported!").arg(patches));
 }
