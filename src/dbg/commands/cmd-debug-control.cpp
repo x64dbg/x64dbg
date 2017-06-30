@@ -241,6 +241,11 @@ bool cbDebugPause(int argc, char* argv[])
         _dbg_animatestop(); // pause when animating
         return true;
     }
+    if(dbgtraceactive())
+    {
+        dbgforcebreaktrace(); // pause when tracing
+        return true;
+    }
     if(!DbgIsDebugging())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));

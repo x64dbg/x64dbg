@@ -196,6 +196,16 @@ struct TraceState
         logFile = StringUtils::Utf8ToUtf16(fileName);
     }
 
+    bool ForceBreakTrace()
+    {
+        return forceBreakTrace;
+    }
+
+    void SetForceBreakTrace()
+    {
+        forceBreakTrace = true;
+    }
+
     void Clear()
     {
         delete traceCondition;
@@ -210,6 +220,7 @@ struct TraceState
         delete logWriter;
         logWriter = nullptr;
         writeUtf16 = false;
+        forceBreakTrace = false;
     }
 
 private:
@@ -221,7 +232,9 @@ private:
     WString logFile;
     BufferedWriter* logWriter = nullptr;
     bool writeUtf16 = false;
+    bool forceBreakTrace = false;
 };
+
 // Debugging variables
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
@@ -329,6 +342,12 @@ bool dbgsettraceswitchcondition(const String & expression)
 bool dbgtraceactive()
 {
     return traceState.IsActive();
+}
+
+void dbgforcebreaktrace()
+{
+    if(traceState.IsActive())
+        traceState.SetForceBreakTrace();
 }
 
 bool dbgsettracelogfile(const char* fileName)
@@ -1363,7 +1382,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
         if(varget("$traceswitchcondition", &script_breakcondition, nullptr, nullptr))
             switchCondition = script_breakcondition != 0;
     }
-    if(breakCondition) //break the debugger
+    if(breakCondition || traceState.ForceBreakTrace()) //break the debugger
     {
         auto steps = dbgcleartracestate();
         varset("$tracecounter", steps, true);
