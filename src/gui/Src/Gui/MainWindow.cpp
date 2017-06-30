@@ -51,6 +51,7 @@
 #include "CPUArgumentWidget.h"
 #include "MRUList.h"
 #include "AboutDialog.h"
+#include "UpdateChecker.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -356,8 +357,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     mSimpleTraceDialog = new SimpleTraceDialog(this);
 
-    // About dialog
-    mAboutDialog = new AboutDialog(this);
+    // Update checker
+    mUpdateChecker = new UpdateChecker(this);
 
     // Setup close thread and dialog
     bCanClose = false;
@@ -812,7 +813,8 @@ void MainWindow::displayScriptWidget()
 
 void MainWindow::displayAboutWidget()
 {
-    mAboutDialog->exec();
+    AboutDialog dialog(mUpdateChecker, this);
+    dialog.exec();
 }
 
 void MainWindow::openFileSlot()
@@ -2058,4 +2060,9 @@ void MainWindow::on_actionRestartAdmin_triggered()
 void MainWindow::on_actionPlugins_triggered()
 {
     QDesktopServices::openUrl(QUrl("http://plugins.x64dbg.com"));
+}
+
+void MainWindow::on_actionCheckUpdates_triggered()
+{
+    mUpdateChecker->checkForUpdates();
 }

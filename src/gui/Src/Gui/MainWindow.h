@@ -32,7 +32,7 @@ class SettingsDialog;
 class DisassemblerGraphView;
 class SimpleTraceDialog;
 class MRUList;
-class AboutDialog;
+class UpdateChecker;
 
 namespace Ui
 {
@@ -177,7 +177,7 @@ private:
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
     SimpleTraceDialog* mSimpleTraceDialog;
-    AboutDialog* mAboutDialog;
+    UpdateChecker* mUpdateChecker;
     DebugStatusLabel* mStatusLabel;
     LogStatusLabel* mLastLogLabel;
 
@@ -274,6 +274,7 @@ private slots:
     void on_actionExportdatabase_triggered();
     void on_actionRestartAdmin_triggered();
     void on_actionPlugins_triggered();
+    void on_actionCheckUpdates_triggered();
 };
 
 #endif // MAINWINDOW_H
