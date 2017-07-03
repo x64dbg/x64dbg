@@ -1321,7 +1321,7 @@ bool cbDebugSetBPGoto(int argc, char* argv[])
     _snprintf(cmd, sizeof(cmd), "SetBreakpointCondition %s, 0", argv[1]);
     if(!cmddirectexec(cmd))
         return false;
-    _snprintf(cmd, sizeof(cmd), "SetBreakpointCommand %s, \"CIP=%s\"", argv[1], argv[2]);
+    _snprintf(cmd, sizeof(cmd), "SetBreakpointCommand %s, \"bpgoto(%s)\"", argv[1], argv[2]);
     if(!cmddirectexec(cmd))
         return false;
     _snprintf(cmd, sizeof(cmd), "SetBreakpointCommandCondition %s, 1", argv[1]);

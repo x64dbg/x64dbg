@@ -377,4 +377,11 @@ namespace Exprfunc
         valtostring(expr.c_str(), value, true);
         return oldvalue;
     }
+
+    duint bpgoto(duint cip)
+    {
+        //This is a function to sets CIP without calling DebugUpdateGui. This is a workaround for "bpgoto".
+        SetContextDataEx(hActiveThread, UE_CIP, cip);
+        return cip;
+    }
 }
