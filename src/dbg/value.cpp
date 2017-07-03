@@ -1894,7 +1894,7 @@ bool valfromstring(const char* string, duint* value, bool silent, bool baseonly,
 static bool longEnough(const char* str, size_t min_length)
 {
     size_t length = 0;
-    while(str[length] && length < min_length)
+    while(length < min_length && str[length])
         length++;
     if(length == min_length)
         return true;
