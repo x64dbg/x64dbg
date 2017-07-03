@@ -188,7 +188,7 @@ void LocalVarsView::updateSlot()
             unsigned char* buffer = new unsigned char[end - start + 16];
             if(!DbgMemRead(start, buffer, end - start + 16)) //failed to read memory for analyzing
             {
-                delete buffer;
+                delete[] buffer;
                 setRowCount(0);
                 return;
             }
@@ -234,7 +234,7 @@ void LocalVarsView::updateSlot()
                 }
                 address += dis.Size();
             }
-            delete buffer;
+            delete[] buffer;
             int rows = 0;
             for(int i = 0; i < ArchValue(8, 16); i++)
                 rows += usedOffsets[i].size();
