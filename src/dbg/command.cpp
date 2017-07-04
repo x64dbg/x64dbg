@@ -140,7 +140,7 @@ COMMAND* cmdget(const char* cmd)
     strcpy_s(new_cmd, deflen, cmd);
     int len = (int)strlen(new_cmd);
     int start = 0;
-    while(new_cmd[start] != ' ' && start < len)
+    while(start < len && new_cmd[start] != ' ')
         start++;
     new_cmd[start] = 0;
     COMMAND* found = cmdfind(new_cmd, 0);
