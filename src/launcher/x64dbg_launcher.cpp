@@ -139,14 +139,11 @@ static arch GetFileArchitecture(const TCHAR* szFileName)
                         hMapHandle = CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, dwSizeToMap, 0);
                         if(!hMapHandle)
                         {
-                            MessageBox(NULL, L"Failed File Mapping", L"", MB_OK);
-                            // retval = invalid;
                             return retval;
                         }
                         hMapView = MapViewOfFile(hMapHandle, FILE_MAP_READ, 0, 0, dwSizeToMap);
                         if(!hMapView)
                         {
-                            MessageBox(NULL, L"Failed MMapped View", L"", MB_OK);
                             CloseHandle(hMapHandle);
                             return retval;
                         }
@@ -158,7 +155,7 @@ static arch GetFileArchitecture(const TCHAR* szFileName)
                             IMAGE_DATA_DIRECTORY *entry = NULL;
                             entry = &_ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR];
                             //make sure we have a proper COR header
-                            if(entry->VirtualAddress == 0 || entry->Size == 0 )
+                            if(!entry || entry->VirtualAddress == 0 || entry->Size == 0 || entry->Size < sizeof(IMAGE_COR20_HEADER))
                             {
                                 UnmapViewOfFile(hMapView);
                                 CloseHandle(hFile);
