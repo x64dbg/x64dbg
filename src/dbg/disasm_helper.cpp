@@ -325,7 +325,6 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
 
     // Save a few pointer casts
     auto asciiData = (char*)data();
-    auto unicodeData = (wchar_t*)data();
 
     // First check if this was an ASCII only string
     if(isasciistring(data(), maxlen))
@@ -345,9 +344,6 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
     {
         if(type)
             *type = str_unicode;
-
-        // Determine string length only once, limited to output buffer size
-        int unicodeLength = min(int(wcslen(unicodeData)), maxlen);
 
         // Convert UTF-16 string to UTF-8
         std::string asciiData2 = StringUtils::Utf16ToUtf8((const wchar_t*)data());

@@ -19,10 +19,10 @@ struct MODIMPORTINFO
 
 struct MODINFO
 {
-    duint base;  // Module base
-    duint size;  // Module size
-    duint hash;  // Full module name hash
-    duint entry; // Entry point
+    duint base = 0;  // Module base
+    duint size = 0;  // Module size
+    duint hash = 0;  // Full module name hash
+    duint entry = 0; // Entry point
 
     char name[MAX_MODULE_SIZE];         // Module name (without extension)
     char extension[MAX_MODULE_SIZE];    // File extension
@@ -31,12 +31,19 @@ struct MODINFO
     std::vector<MODSECTIONINFO> sections;
     std::vector<MODIMPORTINFO> imports;
 
-    HANDLE fileHandle;
-    DWORD loadedSize;
-    HANDLE fileMap;
-    ULONG_PTR fileMapVA;
+    HANDLE fileHandle = nullptr;
+    DWORD loadedSize = 0;
+    HANDLE fileMap = nullptr;
+    ULONG_PTR fileMapVA = 0;
 
     int party;  // Party. Currently used value: 0: User, 1: System
+
+    MODINFO()
+    {
+        memset(name, 0, sizeof(name));
+        memset(extension, 0, sizeof(extension));
+        memset(path, 0, sizeof(path));
+    }
 };
 
 bool ModLoad(duint Base, duint Size, const char* FullPath);

@@ -157,7 +157,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
         return;
 
     // Skip loading if there aren't any found modules
-    if(modList.size() <= 0)
+    if(modList.empty())
         return;
 
     // Backup the current symbol search path
