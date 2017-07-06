@@ -16,7 +16,7 @@
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "Dbghelp.lib")
 
-#define COMIMAGE_FLAGS_32BITPREFERRED 0x20000
+#define COMFLAG_32BITPREFERRED 0x20000
 
 typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
 typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
@@ -119,76 +119,81 @@ static arch GetFileArchitecture(const TCHAR* szFileName)
                 }
                 if(pnth && pnth->Signature == IMAGE_NT_SIGNATURE)
                 {
-					if ((pnth->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR].VirtualAddress != 0 &&
-						pnth->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR].Size != 0 &&
-						(pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0))
-					{
-						// find out which flavor of dotnet we're dealing with. Specifically,
-						// ANYCPU can be compiled with two flavors, 32bit preferred or not.
-						// Without the 32bit preferred flag, the loader will load the .NET
-						// environment based on the current platforms bitness (x32 or x64)
+                    if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
+                        retval = x64;
 
-						// We take a shortcut because *lazy*. 
-						// Used a File Mapping object here because of *laziness*
+                    else if((pnth->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR].VirtualAddress != 0 &&
+                        pnth->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR].Size != 0 &&
+                        (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0))
+                    {
+                        // find out which flavor of dotnet we're dealing with. Specifically,
+                        // ANYCPU can be compiled with two flavors, 32bit preferred or not.
+                        // Without the 32bit preferred flag, the loader will load the .NET
+                        // environment based on the current platforms bitness (x32 or x64)
 
-						DWORD dwSizeToMap = NULL;
-						//reset file pointer 
-						SetFilePointer(hFile, 0, NULL, FILE_BEGIN);
-						dwSizeToMap = GetFileSize(hFile, 0);
+                        // We take a shortcut because *lazy*. 
+                        // Used a File Mapping object here because of *laziness*
+                        DWORD dwSizeToMap = NULL;
+                        dwSizeToMap = GetFileSize(hFile, 0);
 
-						hMapHandle = CreateFileMapping(hFile, NULL, PAGE_READONLY | SEC_IMAGE, 0, 0, 0);
-						if (!hMapHandle)
-							return retval;
-						hMapView = MapViewOfFile(hMapHandle, FILE_MAP_READ, 0, 0, dwSizeToMap);
-						if (!hMapView)
-						{
-							CloseHandle(hMapHandle);
-							return retval;
-						}
+                        hMapHandle = CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, dwSizeToMap, 0);
+                        if(!hMapHandle)
+                        {
+                            MessageBox(NULL, L"Failed File Mapping", L"", MB_OK);
+                            // retval = invalid;
+                            return retval;
+                        }
+                        hMapView = MapViewOfFile(hMapHandle, FILE_MAP_READ, 0, 0, dwSizeToMap);
+                        if(!hMapView)
+                        {
+                            MessageBox(NULL, L"Failed MMapped View", L"", MB_OK);
+                            CloseHandle(hMapHandle);
+                            return retval;
+                        }
 
-						PIMAGE_DOS_HEADER _dosHeader = (PIMAGE_DOS_HEADER)hMapView;
-						PIMAGE_NT_HEADERS _ntHeader = (PIMAGE_NT_HEADERS)((DWORD_PTR)hMapView + _dosHeader->e_lfanew);
-						if (_ntHeader && _ntHeader->Signature == IMAGE_NT_SIGNATURE)
-						{
-							IMAGE_DATA_DIRECTORY *entry = NULL;
-							entry = &_ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR];
-							//make sure we have a proper COR header
-							if (entry->VirtualAddress == 0 || entry->Size == 0 || entry->Size < sizeof(IMAGE_COR20_HEADER))
-							{
-								UnmapViewOfFile(hMapView);
-								CloseHandle(hFile);
-								CloseHandle(hMapHandle);
-								// It's a cockroach!
-								return invalid;
-							}
-							
-							PIMAGE_COR20_HEADER _corHeader = (PIMAGE_COR20_HEADER)ImageRvaToVa(_ntHeader, hMapView, entry->VirtualAddress, 0);
+                        PIMAGE_DOS_HEADER _dosHeader = (PIMAGE_DOS_HEADER)hMapView;
+                        PIMAGE_NT_HEADERS _ntHeader = (PIMAGE_NT_HEADERS)((DWORD_PTR)hMapView + _dosHeader->e_lfanew);
+                        if(_ntHeader && _ntHeader->Signature == IMAGE_NT_SIGNATURE)
+                        {
+                            IMAGE_DATA_DIRECTORY *entry = NULL;
+                            entry = &_ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR];
+                            //make sure we have a proper COR header
+                            if(entry->VirtualAddress == 0 || entry->Size == 0 )
+                            {
 
-							// Here we check for our pertinent flags
-							// First lets get the 32bits required out of the way, we know that requires x32dbg
-							if ( (_corHeader->Flags & COMIMAGE_FLAGS_32BITREQUIRED) == COMIMAGE_FLAGS_32BITREQUIRED)
-								retval = dotnet32;
-							// ILONLY, lets see if 32bit preferred is set
-							if ((_corHeader->Flags & COMIMAGE_FLAGS_ILONLY) == COMIMAGE_FLAGS_ILONLY)
-							{
-								if ((_corHeader->Flags & COMIMAGE_FLAGS_32BITPREFERRED) == COMIMAGE_FLAGS_32BITPREFERRED)
-									retval = dotnet32;
-								else if ((_corHeader->Flags & COMIMAGE_FLAGS_32BITREQUIRED) == COMIMAGE_FLAGS_32BITREQUIRED)
-									retval = dotnet32;
-								else 
-								{
-									// If IL_ONLY is set, then we must determine based on current platform which CLR will be loaded
-									// If we're running under wow64, we're on a 64bit system
-									if (isWoW64())
-										retval = dotnet64;
-									else
-										retval = dotnet32;
-								}
-							}
-						}
-					}
-					else if (pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
-						retval = x64;
+                                MessageBox(NULL, L"Bad Header", L"Error", MB_OK);
+                                UnmapViewOfFile(hMapView);
+                                CloseHandle(hFile);
+                                CloseHandle(hMapHandle);
+                                // It's a cockroach!
+                                return invalid;
+                            }
+
+                            PIMAGE_COR20_HEADER _corHeader = (PIMAGE_COR20_HEADER)ImageRvaToVa(_ntHeader, hMapView, entry->VirtualAddress, 0);
+
+                            // Here we check for our pertinent flags
+                            // First lets get the 32bits required out of the way, we know that requires x32dbg
+                            if((_corHeader->Flags & COMIMAGE_FLAGS_32BITREQUIRED) == COMIMAGE_FLAGS_32BITREQUIRED)
+                                retval = dotnet32;
+                            // ILONLY, lets see if 32bit preferred is set
+                            if((_corHeader->Flags & COMIMAGE_FLAGS_ILONLY) == COMIMAGE_FLAGS_ILONLY)
+                            {
+                                if((_corHeader->Flags & COMFLAG_32BITPREFERRED) == COMFLAG_32BITPREFERRED)
+                                    retval = dotnet32;
+                                else if((_corHeader->Flags & COMIMAGE_FLAGS_32BITREQUIRED) == COMIMAGE_FLAGS_32BITREQUIRED)
+                                    retval = dotnet32;
+                                else
+                                {
+                                    // If IL_ONLY is set, then we must determine based on current platform which CLR will be loaded
+                                    // If we're running under wow64, we're on a 64bit system
+                                    if(isWoW64())
+                                        retval = dotnet64;
+                                    else
+                                        retval = dotnet32;
+                                }
+                            }
+                        }
+                    }
 
 					else if (pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
 						retval = x32;
