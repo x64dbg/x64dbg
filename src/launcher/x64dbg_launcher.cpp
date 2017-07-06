@@ -160,8 +160,6 @@ static arch GetFileArchitecture(const TCHAR* szFileName)
                             //make sure we have a proper COR header
                             if(entry->VirtualAddress == 0 || entry->Size == 0 )
                             {
-
-                                MessageBox(NULL, L"Bad Header", L"Error", MB_OK);
                                 UnmapViewOfFile(hMapView);
                                 CloseHandle(hFile);
                                 CloseHandle(hMapHandle);
@@ -194,7 +192,6 @@ static arch GetFileArchitecture(const TCHAR* szFileName)
                             }
                         }
                     }
-
 					else if (pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
 						retval = x32;
                 }
