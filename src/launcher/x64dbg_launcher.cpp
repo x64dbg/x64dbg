@@ -131,8 +131,8 @@ static arch GetFileArchitecture(const TCHAR* szFileName)
                         // Without the 32bit preferred flag, the loader will load the .NET
                         // environment based on the current platforms bitness (x32 or x64)
 
-                        // We take a shortcut because *lazy*. 
-                        // Used a File Mapping object here because of *laziness*
+						// we use a file map so the OS handled loading the exe and we only need
+						// to perform an RVA to VA conversion. As opposed to RVA to file offset.
                         DWORD dwSizeToMap = NULL;
                         dwSizeToMap = GetFileSize(hFile, 0);
 
