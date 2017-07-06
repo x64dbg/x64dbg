@@ -6,12 +6,36 @@
 #include <objbase.h>
 #include <shlobj.h>
 #include <atlcomcli.h>
+#include <DbgHelp.h>
 
 #include "../exe/resource.h"
 #include "../exe/LoadResourceString.h"
 #include "../exe/icon.h"
 
+
 #pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "Dbghelp.lib")
+
+#define COMFLAG_32BITPREFERRED 0x20000
+
+typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
+typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
+
+LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
+LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
+
+
+enum arch
+{
+	notfound,
+	invalid,
+	x32,
+	x64,
+	dotnet32,
+	dotnet64
+};
+
 
 static bool FileExists(const TCHAR* file)
 {
@@ -19,18 +43,61 @@ static bool FileExists(const TCHAR* file)
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-enum arch
+static BOOL isWoW64()
 {
-    notfound,
-    invalid,
-    x32,
-    x64,
-    dotnet
+	BOOL isWoW64 = FALSE;
+
+	static auto fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+
+	if (NULL != fnIsWow64Process)
+	{
+		if (!fnIsWow64Process(GetCurrentProcess(), &isWoW64))
+		{
+			return FALSE;
+		}
+	}
+	return isWoW64;
+}
+
+static BOOL isWowRedirectionSupported()
+{
+	BOOL bRedirectSupported = FALSE;
+
+	_Wow64DisableRedirection = (LPFN_Wow64DisableWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64DisableWow64FsRedirection");
+	_Wow64RevertRedirection = (LPFN_Wow64RevertWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64RevertWow64FsRedirection");
+
+	if (!_Wow64DisableRedirection || !_Wow64RevertRedirection)
+		return bRedirectSupported;
+	else
+		return !bRedirectSupported;
+}
+
+struct RedirectWow
+{
+	PVOID oldValue = NULL;
+
+	bool DisableRedirect()
+	{
+		return !!_Wow64DisableRedirection(&oldValue);
+	}
+
+	~RedirectWow()
+	{
+		if (oldValue != NULL)
+		{
+			if (!_Wow64RevertRedirection(oldValue))
+				//Error occured here. Ignore or reset? (does it matter at this point?)
+				MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
+		}
+	}
 };
+
 
 static arch GetFileArchitecture(const TCHAR* szFileName)
 {
     arch retval = notfound;
+	HANDLE hMapHandle = NULL;
+	LPVOID hMapView = NULL;
     HANDLE hFile = CreateFile(szFileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile != INVALID_HANDLE_VALUE)
     {
@@ -52,15 +119,83 @@ static arch GetFileArchitecture(const TCHAR* szFileName)
                 }
                 if(pnth && pnth->Signature == IMAGE_NT_SIGNATURE)
                 {
-                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0 && (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0)
-                        retval = dotnet;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
-                        retval = x32;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
+                    if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
                         retval = x64;
+
+                    else if((pnth->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR].VirtualAddress != 0 &&
+                        pnth->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR].Size != 0 &&
+                        (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0))
+                    {
+                        // find out which flavor of dotnet we're dealing with. Specifically,
+                        // ANYCPU can be compiled with two flavors, 32bit preferred or not.
+                        // Without the 32bit preferred flag, the loader will load the .NET
+                        // environment based on the current platforms bitness (x32 or x64)
+
+						// we use a file map so the OS handled loading the exe and we only need
+						// to perform an RVA to VA conversion. As opposed to RVA to file offset.
+                        DWORD dwSizeToMap = NULL;
+                        dwSizeToMap = GetFileSize(hFile, 0);
+
+                        hMapHandle = CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, dwSizeToMap, 0);
+                        if(!hMapHandle)
+                        {
+                            return retval;
+                        }
+                        hMapView = MapViewOfFile(hMapHandle, FILE_MAP_READ, 0, 0, dwSizeToMap);
+                        if(!hMapView)
+                        {
+                            CloseHandle(hMapHandle);
+                            return retval;
+                        }
+
+                        PIMAGE_DOS_HEADER _dosHeader = (PIMAGE_DOS_HEADER)hMapView;
+                        PIMAGE_NT_HEADERS _ntHeader = (PIMAGE_NT_HEADERS)((DWORD_PTR)hMapView + _dosHeader->e_lfanew);
+                        if(_ntHeader && _ntHeader->Signature == IMAGE_NT_SIGNATURE)
+                        {
+                            IMAGE_DATA_DIRECTORY *entry = NULL;
+                            entry = &_ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR];
+                            //make sure we have a proper COR header
+                            if(!entry || entry->VirtualAddress == 0 || entry->Size == 0 || entry->Size < sizeof(IMAGE_COR20_HEADER))
+                            {
+                                UnmapViewOfFile(hMapView);
+                                CloseHandle(hFile);
+                                CloseHandle(hMapHandle);
+                                // It's a cockroach!
+                                return invalid;
+                            }
+
+                            PIMAGE_COR20_HEADER _corHeader = (PIMAGE_COR20_HEADER)ImageRvaToVa(_ntHeader, hMapView, entry->VirtualAddress, 0);
+
+                            // Here we check for our pertinent flags
+                            // First lets get the 32bits required out of the way, we know that requires x32dbg
+                            if((_corHeader->Flags & COMIMAGE_FLAGS_32BITREQUIRED) == COMIMAGE_FLAGS_32BITREQUIRED)
+                                retval = dotnet32;
+                            // ILONLY, lets see if 32bit preferred is set
+                            if((_corHeader->Flags & COMIMAGE_FLAGS_ILONLY) == COMIMAGE_FLAGS_ILONLY)
+                            {
+                                if((_corHeader->Flags & COMFLAG_32BITPREFERRED) == COMFLAG_32BITPREFERRED)
+                                    retval = dotnet32;
+                                else if((_corHeader->Flags & COMIMAGE_FLAGS_32BITREQUIRED) == COMIMAGE_FLAGS_32BITREQUIRED)
+                                    retval = dotnet32;
+                                else
+                                {
+                                    // If IL_ONLY is set, then we must determine based on current platform which CLR will be loaded
+                                    // If we're running under wow64, we're on a 64bit system
+                                    if(isWoW64())
+                                        retval = dotnet64;
+                                    else
+                                        retval = dotnet32;
+                                }
+                            }
+                        }
+                    }
+					else if (pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
+						retval = x32;
                 }
             }
         }
+		UnmapViewOfFile(hMapView);
+		CloseHandle(hMapHandle);
         CloseHandle(hFile);
     }
     return retval;
@@ -82,61 +217,6 @@ static bool BrowseFileOpen(HWND owner, const TCHAR* filter, const TCHAR* defext,
     return !!GetOpenFileName(&ofstruct);
 }
 
-typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
-typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
-typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
-
-LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
-LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
-
-static BOOL isWoW64()
-{
-    BOOL isWoW64 = FALSE;
-
-    static auto fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
-
-    if(NULL != fnIsWow64Process)
-    {
-        if(!fnIsWow64Process(GetCurrentProcess(), &isWoW64))
-        {
-            return FALSE;
-        }
-    }
-    return isWoW64;
-}
-
-static BOOL isWowRedirectionSupported()
-{
-    BOOL bRedirectSupported = FALSE;
-
-    _Wow64DisableRedirection = (LPFN_Wow64DisableWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64DisableWow64FsRedirection");
-    _Wow64RevertRedirection = (LPFN_Wow64RevertWow64FsRedirection)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "Wow64RevertWow64FsRedirection");
-
-    if(!_Wow64DisableRedirection || !_Wow64RevertRedirection)
-        return bRedirectSupported;
-    else
-        return !bRedirectSupported;
-}
-
-struct RedirectWow
-{
-    PVOID oldValue = NULL;
-
-    bool DisableRedirect()
-    {
-        return !!_Wow64DisableRedirection(&oldValue);
-    }
-
-    ~RedirectWow()
-    {
-        if(oldValue != NULL)
-        {
-            if(!_Wow64RevertRedirection(oldValue))
-                //Error occured here. Ignore or reset? (does it matter at this point?)
-                MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
-        }
-    }
-};
 
 static TCHAR* GetDesktopPath()
 {
@@ -584,8 +664,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             rWow.DisableRedirect();
 
         auto architecture = GetFileArchitecture(szPath);
-        if(architecture == dotnet)
-            architecture = isWoW64() ? x64 : x32;
+		if (architecture == dotnet32)
+			architecture = x32;
+		else if (architecture == dotnet64)
+			architecture = x64;
 
         //MessageBoxW(0, cmdLine.c_str(), L"x96dbg", MB_SYSTEMMODAL);
         //MessageBoxW(0, GetCommandLineW(), L"GetCommandLineW", MB_SYSTEMMODAL);
