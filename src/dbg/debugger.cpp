@@ -2743,6 +2743,8 @@ static void debugLoopFunction(void* lpParameter, bool attach)
             auto lastError = GetLastError();
             auto isElevated = IsProcessElevated();
             auto error = ErrorCodeToName(lastError);
+            if(error.empty())
+                error = StringUtils::sprintf("%d (0x%X)", lastError);
             if(lastError == ERROR_ELEVATION_REQUIRED && !isElevated)
             {
                 auto msg = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "The executable you are trying to debug requires elevation. Restart as admin?")));

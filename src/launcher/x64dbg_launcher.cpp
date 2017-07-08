@@ -10,6 +10,7 @@
 #include "../exe/resource.h"
 #include "../exe/LoadResourceString.h"
 #include "../exe/icon.h"
+#include "../dbg/GetPeArch.h"
 
 #pragma comment(lib, "comctl32.lib")
 
@@ -17,53 +18,6 @@ static bool FileExists(const TCHAR* file)
 {
     auto attrib = GetFileAttributes(file);
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
-}
-
-enum arch
-{
-    notfound,
-    invalid,
-    x32,
-    x64,
-    dotnet
-};
-
-static arch GetFileArchitecture(const TCHAR* szFileName)
-{
-    arch retval = notfound;
-    HANDLE hFile = CreateFile(szFileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if(hFile != INVALID_HANDLE_VALUE)
-    {
-        IMAGE_DOS_HEADER idh;
-        DWORD read = 0;
-        if(ReadFile(hFile, &idh, sizeof(idh), &read, nullptr))
-        {
-            if(idh.e_magic == IMAGE_DOS_SIGNATURE)
-            {
-                IMAGE_NT_HEADERS inth;
-                memset(&inth, 0, sizeof(inth));
-                PIMAGE_NT_HEADERS pnth = nullptr;
-                if(SetFilePointer(hFile, idh.e_lfanew, nullptr, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
-                {
-                    if(ReadFile(hFile, &inth, sizeof(inth), &read, nullptr))
-                        pnth = &inth;
-                    else if(ReadFile(hFile, &inth, sizeof(DWORD) + sizeof(WORD), &read, nullptr))
-                        pnth = &inth;
-                }
-                if(pnth && pnth->Signature == IMAGE_NT_SIGNATURE)
-                {
-                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0 && (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0)
-                        retval = dotnet;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
-                        retval = x32;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
-                        retval = x64;
-                }
-            }
-        }
-        CloseHandle(hFile);
-    }
-    return retval;
 }
 
 static bool BrowseFileOpen(HWND owner, const TCHAR* filter, const TCHAR* defext, TCHAR* filename, int filename_size, const TCHAR* init_dir)
@@ -583,37 +537,50 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if(canDisableRedirect)
             rWow.DisableRedirect();
 
-        auto architecture = GetFileArchitecture(szPath);
-        if(architecture == dotnet)
-            architecture = isWoW64() ? x64 : x32;
-
         //MessageBoxW(0, cmdLine.c_str(), L"x96dbg", MB_SYSTEMMODAL);
         //MessageBoxW(0, GetCommandLineW(), L"GetCommandLineW", MB_SYSTEMMODAL);
         //MessageBoxW(0, szCurDir, L"GetCurrentDirectory", MB_SYSTEMMODAL);
 
-        switch(architecture)
+        auto load32 = [&]()
         {
-        case x32:
             if(sz32Path[0])
                 ShellExecute(nullptr, TEXT("open"), sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
             else
                 MessageBox(nullptr, LoadResString(IDS_INVDPATH32), LoadResString(IDS_ERROR), MB_ICONERROR);
-            break;
-
-        case x64:
+        };
+        auto load64 = [&]()
+        {
             if(sz64Path[0])
                 ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
             else
                 MessageBox(nullptr, LoadResString(IDS_INVDPATH64), LoadResString(IDS_ERROR), MB_ICONERROR);
-            break;
+        };
 
-        case invalid:
-            MessageBox(nullptr, argv[1], LoadResString(IDS_INVDPE), MB_ICONERROR);
+        switch(GetPeArch(szPath))
+        {
+        case PeArch::Native86:
+        case PeArch::Dotnet86:
+        case PeArch::DotnetAnyCpuPrefer32:
+            load32();
             break;
-
-        case notfound:
-            MessageBox(nullptr, argv[1], LoadResString(IDS_FILEERR), MB_ICONERROR);
+        case PeArch::Native64:
+        case PeArch::Dotnet64:
+            load64();
             break;
+        case PeArch::DotnetAnyCpu:
+            if(isWoW64())
+                load64();
+            else
+                load32();
+            break;
+        case PeArch::Invalid:
+            if(FileExists(szPath))
+                MessageBox(nullptr, argv[1], LoadResString(IDS_INVDPE), MB_ICONERROR);
+            else
+                MessageBox(nullptr, argv[1], LoadResString(IDS_FILEERR), MB_ICONERROR);
+            break;
+        default:
+            __debugbreak();
         }
     }
     LocalFree(argv);

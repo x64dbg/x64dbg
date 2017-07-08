@@ -196,6 +196,7 @@
     <ClInclude Include="exprfunc.h" />
     <ClInclude Include="filemap.h" />
     <ClInclude Include="formatfunctions.h" />
+    <ClInclude Include="GetPeArch.h" />
     <ClInclude Include="handles.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="exhandlerinfo.h" />

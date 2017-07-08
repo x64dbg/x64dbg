@@ -302,7 +302,7 @@ bool cbInstrGpa(int argc, char* argv[])
 
 bool cbDebugSetJIT(int argc, char* argv[])
 {
-    arch actual_arch = invalid;
+    arch actual_arch = notfound;
     char* jit_debugger_cmd = "";
     Memory<char*> oldjit(MAX_SETTING_SIZE + 1);
     char path[JIT_ENTRY_DEF_SIZE];
@@ -493,7 +493,7 @@ bool cbDebugGetJIT(int argc, char* argv[])
 bool cbDebugGetJITAuto(int argc, char* argv[])
 {
     bool jit_auto = false;
-    arch actual_arch = invalid;
+    arch actual_arch = notfound;
 
     if(argc == 1)
     {

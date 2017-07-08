@@ -958,5 +958,8 @@
     <ClInclude Include="formatfunctions.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="GetPeArch.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -37,15 +37,6 @@
 //defines
 #define deflen 1024
 
-enum arch
-{
-    notfound,
-    invalid,
-    x32,
-    x64,
-    dotnet
-};
-
 //superglobal variables
 extern HINSTANCE hInst;
 
@@ -72,7 +63,6 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName);
 bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName);
 bool GetFileNameFromModuleHandle(HANDLE hProcess, HMODULE hModule, char* szFileName);
 bool settingboolget(const char* section, const char* name);
-arch GetFileArchitecture(const char* szFileName);
 bool IsWow64();
 bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize);
 void WaitForThreadTermination(HANDLE hThread, DWORD timeout = INFINITE);

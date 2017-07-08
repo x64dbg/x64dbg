@@ -12,6 +12,7 @@
 #include "TraceRecord.h"
 #include "handle.h"
 #include "thread.h"
+#include "GetPeArch.h"
 
 static bool skipInt3Stepping(int argc, char* argv[])
 {
@@ -66,7 +67,8 @@ bool cbDebugInit(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "File does not exist!"));
         return false;
     }
-    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    auto arg1w = StringUtils::Utf8ToUtf16(arg1);
+    Handle hFile = CreateFileW(arg1w.c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Could not open file!"));
@@ -76,23 +78,28 @@ bool cbDebugInit(int argc, char* argv[])
     dprintf(QT_TRANSLATE_NOOP("DBG", "Debugging: %s\n"), arg1);
     hFile.Close();
 
+    auto arch = GetPeArch(arg1w.c_str());
+    if(arch == PeArch::DotnetAnyCpu)
+        arch = IsWow64() ? PeArch::Dotnet64 : PeArch::Dotnet86;
+
     //do some basic checks
-    switch(GetFileArchitecture(arg1))
+    switch(GetPeArch(arg1w.c_str()))
     {
-    case invalid:
+    case PeArch::Invalid:
         dputs(QT_TRANSLATE_NOOP("DBG", "Invalid PE file!"));
         return false;
 #ifdef _WIN64
-    case x32:
+    case PeArch::Native86:
+    case PeArch::Dotnet86:
+    case PeArch::DotnetAnyCpuPrefer32:
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x32dbg to debug this file!"));
 #else //x86
-    case x64:
+    case PeArch::Native64:
+    case PeArch::Dotnet64:
+    case PeArch::DotnetAnyCpu:
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this file!"));
 #endif //_WIN64
         return false;
-    case dotnet:
-        dputs(QT_TRANSLATE_NOOP("DBG", "This file is a dotNET application."));
-        break;
     default:
         break;
     }

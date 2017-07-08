@@ -312,49 +312,6 @@ bool settingboolget(const char* section, const char* name)
 }
 
 /**
-\brief Gets file architecture.
-\param szFileName UTF-8 encoded file path.
-\return The file architecture (::arch).
-*/
-arch GetFileArchitecture(const char* szFileName)
-{
-    arch retval = notfound;
-    HANDLE hFile = CreateFileW(StringUtils::Utf8ToUtf16(szFileName).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if(hFile != INVALID_HANDLE_VALUE)
-    {
-        IMAGE_DOS_HEADER idh;
-        DWORD read = 0;
-        if(ReadFile(hFile, &idh, sizeof(idh), &read, nullptr))
-        {
-            if(idh.e_magic == IMAGE_DOS_SIGNATURE)
-            {
-                IMAGE_NT_HEADERS inth;
-                memset(&inth, 0, sizeof(inth));
-                PIMAGE_NT_HEADERS pnth = nullptr;
-                if(SetFilePointer(hFile, idh.e_lfanew, nullptr, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
-                {
-                    if(ReadFile(hFile, &inth, sizeof(inth), &read, nullptr))
-                        pnth = &inth;
-                    else if(ReadFile(hFile, &inth, sizeof(DWORD) + sizeof(WORD), &read, nullptr))
-                        pnth = &inth;
-                }
-                if(pnth && pnth->Signature == IMAGE_NT_SIGNATURE)
-                {
-                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0 && (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0)
-                        retval = dotnet;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
-                        retval = x32;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
-                        retval = x64;
-                }
-            }
-        }
-        CloseHandle(hFile);
-    }
-    return retval;
-}
-
-/**
 \brief Query if x64dbg is running in Wow64 mode.
 \return true if running in Wow64, false otherwise.
 */
