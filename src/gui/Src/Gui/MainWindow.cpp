@@ -452,6 +452,16 @@ void MainWindow::setupLanguagesMenu()
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     duint noClose = 0;
+    if(DbgIsDebugging())
+    {
+        QMessageBox closeDlg(QMessageBox::Question, tr("Quit while debugging"), tr("Debuggee is running. Do you really want to exit?"), QMessageBox::Yes | QMessageBox::No, this);
+        closeDlg.setWindowIcon(DIcon("bug.png"));
+        if(closeDlg.exec() != QMessageBox::Yes)
+        {
+            event->ignore();
+            return;
+        }
+    }
     if(bCanClose)
     {
         saveWindowSettings();
