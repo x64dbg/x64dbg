@@ -29,7 +29,7 @@ bool cbInstrFind(int argc, char* argv[])
         strcpy_s(pattern, argv[2] + 1);
     else
         strcpy_s(pattern, argv[2]);
-    int len = (int)strlen(pattern);
+    size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
 
@@ -81,7 +81,7 @@ bool cbInstrFindAll(int argc, char* argv[])
         strcpy_s(pattern, argv[2] + 1);
     else
         strcpy_s(pattern, argv[2]);
-    int len = (int)strlen(pattern);
+    size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
 
@@ -193,7 +193,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
         strcpy_s(pattern, argv[2] + 1);
     else
         strcpy_s(pattern, argv[2]);
-    int len = (int)strlen(pattern);
+    size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
     std::vector<PatternByte> searchpattern;
