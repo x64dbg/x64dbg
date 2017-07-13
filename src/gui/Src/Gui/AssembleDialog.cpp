@@ -22,6 +22,7 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
     mValidateThread->setOnExpressionChangedCallback(std::bind(&AssembleDialog::validateInstruction, this, std::placeholders::_1));
 
     connect(ui->lineEdit, SIGNAL(textChanged(QString)), this, SLOT(textChangedSlot(QString)));
+    connect(ui->checkBoxKeepSize, SIGNAL(stateChanged(int)), this, SLOT(stateChangeSlot(int)));
     connect(mValidateThread, SIGNAL(instructionChanged(dsint, QString)), this, SLOT(instructionChangedSlot(dsint, QString)));
     mValidateThread->start();
 
@@ -115,6 +116,11 @@ void AssembleDialog::validateInstruction(QString expression)
 void AssembleDialog::textChangedSlot(QString text)
 {
     mValidateThread->textChanged(text);
+}
+
+void AssembleDialog::stateChangeSlot(int)
+{
+    mValidateThread->additionalStateChanged();
 }
 
 void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)

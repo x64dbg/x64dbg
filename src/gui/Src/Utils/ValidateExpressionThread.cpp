@@ -38,6 +38,14 @@ void ValidateExpressionThread::textChanged(QString text)
     mExpressionMutex.unlock();
 }
 
+void ValidateExpressionThread::additionalStateChanged()
+{
+    mExpressionMutex.lock();
+    mExpressionChanged = true;
+    mExpressionMutex.unlock();
+
+}
+
 void ValidateExpressionThread::setOnExpressionChangedCallback(EXPRESSIONCHANGEDCB callback)
 {
     mOnExpressionChangedCallback = callback;
