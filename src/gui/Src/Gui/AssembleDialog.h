@@ -37,7 +37,6 @@ public:
 
 private slots:
     void textChangedSlot(QString text);
-    void stateChangeSlot(int state);
     void instructionChangedSlot(dsint sizeDifference, QString error);
     void on_lineEdit_textChanged(const QString & arg1);
     void on_checkBoxKeepSize_clicked(bool checked);

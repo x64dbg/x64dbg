@@ -22,7 +22,6 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
     mValidateThread->setOnExpressionChangedCallback(std::bind(&AssembleDialog::validateInstruction, this, std::placeholders::_1));
 
     connect(ui->lineEdit, SIGNAL(textChanged(QString)), this, SLOT(textChangedSlot(QString)));
-    connect(ui->checkBoxKeepSize, SIGNAL(stateChanged(int)), this, SLOT(stateChangeSlot(int)));
     connect(mValidateThread, SIGNAL(instructionChanged(dsint, QString)), this, SLOT(instructionChangedSlot(dsint, QString)));
     mValidateThread->start();
 
@@ -118,11 +117,6 @@ void AssembleDialog::textChangedSlot(QString text)
     mValidateThread->textChanged(text);
 }
 
-void AssembleDialog::stateChangeSlot(int)
-{
-    mValidateThread->additionalStateChanged();
-}
-
 void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
 {
     // If there was an error
@@ -179,7 +173,7 @@ void AssembleDialog::on_lineEdit_textChanged(const QString & arg1)
 void AssembleDialog::on_checkBoxKeepSize_clicked(bool checked)
 {
     bKeepSizeChecked = checked;
-    mValidateThread->textChanged(ui->lineEdit->text());
+    mValidateThread->additionalStateChanged();
 }
 
 void AssembleDialog::on_checkBoxFillWithNops_clicked(bool checked)
