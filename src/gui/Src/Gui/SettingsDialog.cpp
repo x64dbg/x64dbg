@@ -220,6 +220,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "NoForegroundWindow", &settings.guiNoForegroundWindow);
     GetSettingBool("Gui", "LoadSaveTabOrder", &settings.guiLoadSaveTabOrder);
     GetSettingBool("Gui", "ShowGraphRva", &settings.guiShowGraphRva);
+    GetSettingBool("Gui", "ShowExitConfirmation", &settings.guiShowExitConfirmation);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
@@ -228,6 +229,7 @@ void SettingsDialog::LoadSettings()
     ui->chkNoForegroundWindow->setChecked(settings.guiNoForegroundWindow);
     ui->chkSaveLoadTabOrder->setChecked(settings.guiLoadSaveTabOrder);
     ui->chkShowGraphRva->setChecked(settings.guiShowGraphRva);
+    ui->chkShowExitConfirmation->setChecked(settings.guiShowExitConfirmation);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -356,6 +358,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "NoForegroundWindow", settings.guiNoForegroundWindow);
     BridgeSettingSetUint("Gui", "LoadSaveTabOrder", settings.guiLoadSaveTabOrder);
     BridgeSettingSetUint("Gui", "ShowGraphRva", settings.guiShowGraphRva);
+    BridgeSettingSetUint("Gui", "ShowExitConfirmation", settings.guiShowExitConfirmation);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -802,4 +805,9 @@ void SettingsDialog::on_chkShowGraphRva_toggled(bool checked)
 {
     bTokenizerConfigUpdated = true;
     settings.guiShowGraphRva = checked;
+}
+
+void SettingsDialog::on_chkShowExitConfirmation_toggled(bool checked)
+{
+    settings.guiShowExitConfirmation = checked;
 }

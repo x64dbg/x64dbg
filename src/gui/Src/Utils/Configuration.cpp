@@ -263,6 +263,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("SidebarWatchLabels", true);
     guiBool.insert("LoadSaveTabOrder", false);
     guiBool.insert("ShowGraphRva", false);
+    guiBool.insert("ShowExitConfirmation", true);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump

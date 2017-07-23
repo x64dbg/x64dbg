@@ -451,6 +451,30 @@ void MainWindow::setupLanguagesMenu()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    if(DbgIsDebugging() && ConfigBool("Gui", "ShowExitConfirmation"))
+    {
+        auto cb = new QCheckBox(tr("Don't ask this question again"));
+        QMessageBox msgbox(this);
+        msgbox.setText(tr("The debuggee is still running and will be terminated if you exit. Do you really want to exit?"));
+        msgbox.setWindowTitle(tr("Debuggee is still running"));
+        msgbox.setWindowIcon(DIcon("bug.png"));
+        msgbox.addButton(QMessageBox::Yes);
+        msgbox.addButton(QMessageBox::No);
+        msgbox.setDefaultButton(QMessageBox::No);
+        msgbox.setCheckBox(cb);
+
+        QObject::connect(cb, &QCheckBox::toggled, [](bool checked)
+        {
+            Config()->setBool("Gui", "ShowExitConfirmation", !checked);
+        });
+
+        if(msgbox.exec() != QMessageBox::Yes)
+        {
+            event->ignore();
+            return;
+        }
+    }
+
     duint noClose = 0;
     if(bCanClose)
     {

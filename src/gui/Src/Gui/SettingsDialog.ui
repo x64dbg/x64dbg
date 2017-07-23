@@ -628,6 +628,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkShowExitConfirmation">
+         <property name="text">
+          <string>Show exit confirmation dialog</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
