@@ -410,7 +410,7 @@ void SymbolView::symbolFollow()
 
 void SymbolView::symbolFollowDump()
 {
-    DbgCmdExec(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void SymbolView::symbolFollowImport()
@@ -425,7 +425,7 @@ void SymbolView::symbolFollowImport()
     }
     else
     {
-        DbgCmdExec(QString("dump %1").arg(ToPtrString(addr)).toUtf8().constData());
+        DbgCmdExecDirect(QString("dump %1").arg(ToPtrString(addr)).toUtf8().constData());
         emit Bridge::getBridge()->getDumpAttention();
     }
 }

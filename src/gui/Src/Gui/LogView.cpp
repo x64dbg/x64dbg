@@ -284,7 +284,7 @@ void LogView::onAnchorClicked(const QUrl & link)
                         DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
                     else
                     {
-                        DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+                        DbgCmdExecDirect(QString("dump %1").arg(link.fragment()).toUtf8().constData());
                         emit Bridge::getBridge()->getDumpAttention();
                     }
                 }

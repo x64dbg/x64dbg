@@ -420,7 +420,7 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 
 void MemoryMapView::followDumpSlot()
 {
-    DbgCmdExec(QString("dump %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void MemoryMapView::followDisassemblerSlot()
