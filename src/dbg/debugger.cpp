@@ -1783,7 +1783,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     GuiUpdateBreakpointsView();
     bool bAlreadySetEntry = false;
 
-    char command[MAX_PATH*2] = "";
+    char command[MAX_PATH * 2] = "";
     bool bIsDebuggingThis = false;
     if(bFileIsDll && !_stricmp(DLLDebugFileName, szFileName) && !bIsAttached) //Set entry breakpoint
     {

@@ -103,7 +103,7 @@ void CmdLineCacheLoad(JSON Root)
     EXCLUSIVE_ACQUIRE(LockCmdLine);
 
     // Clear command line
-    memset(commandLine, 0, MAX_SETTING_SIZE);
+    memset(commandLine, 0, sizeof(commandLine));
 
     // Get a handle to the root object -> commandLine
     const JSON jsonCmdLine = json_object_get(Root, "commandLine");
