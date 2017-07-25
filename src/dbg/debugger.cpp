@@ -1777,13 +1777,13 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     // Update memory map
     MemUpdateMapAsync();
 
-    char modname[256] = "";
+    char modname[MAX_MODULE_SIZE] = "";
     if(ModNameFromAddr(duint(base), modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname, duint(base));
     GuiUpdateBreakpointsView();
     bool bAlreadySetEntry = false;
 
-    char command[256] = "";
+    char command[MAX_PATH*2] = "";
     bool bIsDebuggingThis = false;
     if(bFileIsDll && !_stricmp(DLLDebugFileName, szFileName) && !bIsAttached) //Set entry breakpoint
     {
