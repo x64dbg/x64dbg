@@ -173,7 +173,7 @@ void AssembleDialog::on_lineEdit_textChanged(const QString & arg1)
 void AssembleDialog::on_checkBoxKeepSize_clicked(bool checked)
 {
     bKeepSizeChecked = checked;
-    mValidateThread->textChanged(ui->lineEdit->text());
+    mValidateThread->additionalStateChanged();
 }
 
 void AssembleDialog::on_checkBoxFillWithNops_clicked(bool checked)
