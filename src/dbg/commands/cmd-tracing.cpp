@@ -102,6 +102,8 @@ bool cbDebugRunToParty(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Run to party is busy.\n"));
         return false;
     }
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
     int party = atoi(argv[1]); // party is a signed integer
     for(auto i : AllModules)
     {
@@ -112,8 +114,9 @@ bool cbDebugRunToParty(int argc, char* argv[])
                 BREAKPOINT bp;
                 if(!BpGet(j.addr, BPMEMORY, nullptr, &bp))
                 {
-                    RunToUserCodeBreakpoints.push_back(std::make_pair(j.addr, j.size));
-                    SetMemoryBPXEx(j.addr, j.size, UE_MEMORY_EXECUTE, false, (void*)cbRunToUserCodeBreakpoint);
+                    size_t size = DbgMemGetPageSize(j.addr);
+                    RunToUserCodeBreakpoints.push_back(std::make_pair(j.addr, size));
+                    SetMemoryBPXEx(j.addr, size, UE_MEMORY_EXECUTE, false, (void*)cbRunToUserCodeBreakpoint);
                 }
             }
         }
@@ -124,7 +127,7 @@ bool cbDebugRunToParty(int argc, char* argv[])
 bool cbDebugRunToUserCode(int argc, char* argv[])
 {
     char* newargv[] = { "RunToParty", "0" };
-    return cbDebugRunToParty(argc, newargv);
+    return cbDebugRunToParty(2, newargv);
 }
 
 bool cbDebugTraceSetLog(int argc, char* argv[])

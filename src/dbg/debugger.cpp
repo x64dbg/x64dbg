@@ -2030,9 +2030,6 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             //update memory map
             MemUpdateMap();
             DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
-            // Clear tracing conditions
-            dbgcleartracestate();
-            dbgClearRtuBreakpoints();
             //lock
             lock(WAITID_RUN);
             // Plugin callback
