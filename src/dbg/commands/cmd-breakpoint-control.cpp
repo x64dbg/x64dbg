@@ -136,7 +136,10 @@ bool cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         return false;
     }
     GuiUpdateAllViews();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint at %p set!\n"), addr);
+    if(bpname)
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint at %p (%s) set!\n"), addr, bpname);
+    else
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint at %p set!\n"), addr);
     return true;
 }
 
