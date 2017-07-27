@@ -13,6 +13,7 @@
 #include "EditFloatRegister.h"
 #include "SelectFields.h"
 #include "MiscUtil.h"
+#include "ldconvert.h"
 
 int RegistersView::getEstimateHeight()
 {
@@ -2594,6 +2595,8 @@ void RegistersView::displayEditDialog()
             mLineEdit.setWindowIcon(DIcon("log.png"));
             mLineEdit.setCursorPosition(0);
             auto sizeRegister = int(GetSizeRegister(mSelected));
+            if(sizeRegister == 10)
+                mLineEdit.setFpuMode();
             mLineEdit.ForceSize(sizeRegister * 2);
             do
             {
@@ -2613,43 +2616,53 @@ void RegistersView::displayEditDialog()
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
                     else if(mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
-                        QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
-
-                        if(pArray.size() == sizeRegister * 2)
+                        if(sizeRegister == 10 && mLineEdit.editText.contains(QChar('.')))
                         {
-                            char* pData = (char*) calloc(1, sizeof(char) * sizeRegister);
+                            char number[10];
+                            str2ld(mLineEdit.editText.toUtf8().constData(), number);
+                            setRegister(mSelected, reinterpret_cast<duint>(number));
+                            return;
+                        }
+                        else
+                        {
+                            QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
 
-                            if(pData != NULL)
+                            if(pArray.size() == sizeRegister * 2)
                             {
-                                ok = true;
-                                char actual_char[3];
-                                for(int i = 0; i < sizeRegister; i++)
+                                char* pData = (char*) calloc(1, sizeof(char) * sizeRegister);
+
+                                if(pData != NULL)
                                 {
-                                    memset(actual_char, 0, sizeof(actual_char));
-                                    memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
-                                    if(! isxdigit(actual_char[0]) || ! isxdigit(actual_char[1]))
+                                    ok = true;
+                                    char actual_char[3];
+                                    for(int i = 0; i < sizeRegister; i++)
                                     {
-                                        ok = false;
-                                        break;
+                                        memset(actual_char, 0, sizeof(actual_char));
+                                        memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
+                                        if(! isxdigit(actual_char[0]) || ! isxdigit(actual_char[1]))
+                                        {
+                                            ok = false;
+                                            break;
+                                        }
+                                        pData[i] = (char)strtol(actual_char, NULL, 16);
                                     }
-                                    pData[i] = (char)strtol(actual_char, NULL, 16);
-                                }
 
-                                if(ok)
-                                {
-                                    if(!ConfigBool("Gui", "FpuRegistersLittleEndian")) // reverse byte order if it is big-endian
+                                    if(ok)
                                     {
-                                        pArray = ByteReverse(QByteArray(pData, sizeRegister));
-                                        setRegister(mSelected, reinterpret_cast<duint>(pArray.constData()));
+                                        if(!ConfigBool("Gui", "FpuRegistersLittleEndian")) // reverse byte order if it is big-endian
+                                        {
+                                            pArray = ByteReverse(QByteArray(pData, sizeRegister));
+                                            setRegister(mSelected, reinterpret_cast<duint>(pArray.constData()));
+                                        }
+                                        else
+                                            setRegister(mSelected, reinterpret_cast<duint>(pData));
                                     }
-                                    else
-                                        setRegister(mSelected, reinterpret_cast<duint>(pData));
+
+                                    free(pData);
+
+                                    if(ok)
+                                        return;
                                 }
-
-                                free(pData);
-
-                                if(ok)
-                                    return;
                             }
                         }
                     }
