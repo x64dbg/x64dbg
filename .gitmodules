@@ -7,3 +7,6 @@
 [submodule "src/dbg/btparser"]
 	path = src/dbg/btparser
 	url = https://github.com/x64dbg/btparser
+[submodule "deps"]
+	path = deps
+	url = https://github.com/x64dbg/deps
