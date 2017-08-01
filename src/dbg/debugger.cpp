@@ -1486,10 +1486,10 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     BpEnumAll(cbSetModuleBreakpoints, "");
     GuiUpdateBreakpointsView();
     pCreateProcessBase = (duint)CreateProcessInfo->lpBaseOfImage;
+    pDebuggedBase = pCreateProcessBase; //debugged base = executable
+    DbCheckHash(ModContentHashFromAddr(pDebuggedBase)); //Check hash mismatch
     if(!bFileIsDll && !bIsAttached) //Set entry breakpoint
     {
-        pDebuggedBase = pCreateProcessBase; //debugged base = executable
-        DbCheckHash(ModContentHashFromAddr(pDebuggedBase)); //Check hash mismatch
         char command[deflen] = "";
 
         if(settingboolget("Events", "TlsCallbacks"))
