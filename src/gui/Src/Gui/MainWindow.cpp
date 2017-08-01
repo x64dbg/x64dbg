@@ -1526,9 +1526,15 @@ void MainWindow::changeCommandLine()
 
 void MainWindow::displayManual()
 {
-    // Open the Windows CHM in the upper directory
-    if(!QDesktopServices::openUrl(QUrl(QUrl::fromLocalFile(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath())))))
-        SimpleErrorBox(this, tr("Error"), tr("Manual cannot be opened. Please check if x64dbg.chm exists and ensure there is no other problems with your system."));
+    duint setting = 0;
+    if(BridgeSettingGetUint("Misc", "UseLocalHelpFile", &setting) && setting)
+    {
+        // Open the Windows CHM in the upper directory
+        if(!QDesktopServices::openUrl(QUrl(QUrl::fromLocalFile(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath())))))
+            SimpleErrorBox(this, tr("Error"), tr("Manual cannot be opened. Please check if x64dbg.chm exists and ensure there is no other problems with your system."));
+    }
+    else
+        QDesktopServices::openUrl(QUrl("http://help.x64dbg.com"));
 }
 
 void MainWindow::canClose()

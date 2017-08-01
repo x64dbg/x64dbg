@@ -88,6 +88,7 @@ private slots:
     void on_editSymbolCache_textEdited(const QString & arg1);
     void on_chkUtf16LogRedirect_toggled(bool checked);
     void on_chkShowGraphRva_toggled(bool checked);
+    void on_chkUseLocalHelpFile_toggled(bool checked);
 
 private:
     //enums
@@ -178,6 +179,7 @@ private:
         bool miscSymbolStore;
         bool miscSymbolCache;
         bool miscUtf16LogRedirect;
+        bool miscUseLocalHelpFile;
     };
 
     //variables

@@ -292,7 +292,9 @@ void SettingsDialog::LoadSettings()
     bJitAutoOld = settings.miscSetJITAuto;
 
     GetSettingBool("Misc", "Utf16LogRedirect", &settings.miscUtf16LogRedirect);
+    GetSettingBool("Misc", "UseLocalHelpFile", &settings.miscUseLocalHelpFile);
     ui->chkUtf16LogRedirect->setChecked(settings.miscUtf16LogRedirect);
+    ui->chkUseLocalHelpFile->setChecked(settings.miscUseLocalHelpFile);
 }
 
 void SettingsDialog::SaveSettings()
@@ -385,6 +387,7 @@ void SettingsDialog::SaveSettings()
         BridgeSettingSet("Symbols", "CachePath", ui->editSymbolCache->text().toUtf8().constData());
     BridgeSettingSet("Misc", "HelpOnSymbolicNameUrl", ui->editHelpOnSymbolicNameUrl->text().toUtf8().constData());
     BridgeSettingSetUint("Misc", "Utf16LogRedirect", settings.miscUtf16LogRedirect);
+    BridgeSettingSetUint("Misc", "UseLocalHelpFile", settings.miscUseLocalHelpFile);
 
     BridgeSettingFlush();
     Config()->load();
@@ -810,4 +813,9 @@ void SettingsDialog::on_chkShowGraphRva_toggled(bool checked)
 void SettingsDialog::on_chkShowExitConfirmation_toggled(bool checked)
 {
     settings.guiShowExitConfirmation = checked;
+}
+
+void SettingsDialog::on_chkUseLocalHelpFile_toggled(bool checked)
+{
+    settings.miscUseLocalHelpFile = checked;
 }

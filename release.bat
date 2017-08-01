@@ -65,7 +65,7 @@ mkdir %RELEASEDIR%\release\x64
 xcopy deps\x32 %RELEASEDIR%\release\x32 /S /Y
 xcopy deps\x64 %RELEASEDIR%\release\x64 /S /Y
 
-copy help\x64dbg.chm %RELEASEDIR%\
+copy help\x64dbg.chm %RELEASEDIR%\release\
 copy bin\x96dbg.exe %RELEASEDIR%\release\
 copy bin\mnemdb.json %RELEASEDIR%\release\
 copy bin\errordb.txt %RELEASEDIR%\release\

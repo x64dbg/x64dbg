@@ -749,6 +749,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkUseLocalHelpFile">
+         <property name="text">
+          <string>Use local help file (x64dbg.chm)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_3">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
