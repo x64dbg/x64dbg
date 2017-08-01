@@ -28,9 +28,7 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
     duint setting;
     if(BridgeSettingGetUint("Engine", "Assembler", &setting))
     {
-        if(setting == 1)
-            ui->radioKeystone->setChecked(true);
-        else if(setting == 2)
+        else if(setting == 1 || setting == 2)
             ui->radioAsmjit->setChecked(true);
     }
 
@@ -184,13 +182,6 @@ void AssembleDialog::on_checkBoxFillWithNops_clicked(bool checked)
 void AssembleDialog::on_radioXEDParse_clicked()
 {
     BridgeSettingSetUint("Engine", "Assembler", 0);
-    DbgSettingsUpdated();
-    validateInstruction(ui->lineEdit->text());
-}
-
-void AssembleDialog::on_radioKeystone_clicked()
-{
-    BridgeSettingSetUint("Engine", "Assembler", 1);
     DbgSettingsUpdated();
     validateInstruction(ui->lineEdit->text());
 }

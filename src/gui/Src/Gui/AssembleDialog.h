@@ -42,7 +42,6 @@ private slots:
     void on_checkBoxKeepSize_clicked(bool checked);
     void on_checkBoxFillWithNops_clicked(bool checked);
     void on_radioXEDParse_clicked();
-    void on_radioKeystone_clicked();
     void on_radioAsmjit_clicked();
 
 private:

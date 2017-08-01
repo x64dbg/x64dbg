@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>558</width>
+    <width>484</width>
     <height>85</height>
    </rect>
   </property>
@@ -69,13 +69,6 @@
        </property>
        <property name="checked">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioKeystone">
-       <property name="text">
-        <string>&amp;Keystone</string>
        </property>
       </widget>
      </item>
