@@ -98,7 +98,8 @@ namespace Script
             CDX,
             CDI,
             CSI,
-            CBP
+            CBP,
+            CFLAGS
         }; //RegisterEnum
 
         SCRIPT_EXPORT duint Get(RegisterEnum reg);
@@ -280,6 +281,8 @@ namespace Script
         SCRIPT_EXPORT bool SetCSP(duint value);
         SCRIPT_EXPORT duint GetCIP();
         SCRIPT_EXPORT bool SetCIP(duint value);
+        SCRIPT_EXPORT duint GetCFLAGS();
+        SCRIPT_EXPORT bool SetCFLAGS(duint value);
     }; //Register
 }; //Script
 
