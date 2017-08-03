@@ -28,7 +28,7 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
     duint setting;
     if(BridgeSettingGetUint("Engine", "Assembler", &setting))
     {
-        else if(setting == 1 || setting == 2)
+        if(setting == 1 || setting == 2)
             ui->radioAsmjit->setChecked(true);
     }
 
