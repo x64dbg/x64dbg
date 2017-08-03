@@ -21,16 +21,19 @@ if "%MAXCORES%"=="" (
     set CL=/MP%MAXCORES%
     msbuild.exe x64dbg.sln /m:1 /verbosity:minimal /t:Rebuild /p:%type%
 )
+if not %ERRORLEVEL%==0 exit
 
 echo Building GUI...
 rmdir /S /Q src\gui_build
 cd src\gui
 qmake x64dbg.pro CONFIG+=release
+if not %ERRORLEVEL%==0 exit
 if "%MAXCORES%"=="" (
     jom
 ) else (
     jom /J %MAXCORES%
 )
+if not %ERRORLEVEL%==0 exit
 cd ..\..
 goto :restorepath
 

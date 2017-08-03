@@ -11,6 +11,7 @@
 #include "../exe/LoadResourceString.h"
 #include "../exe/icon.h"
 #include "../dbg/GetPeArch.h"
+errorasdasd
 
 #pragma comment(lib, "comctl32.lib")
 

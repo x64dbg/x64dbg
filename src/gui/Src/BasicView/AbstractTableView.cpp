@@ -13,7 +13,7 @@ AbstractTableScrollBar::AbstractTableScrollBar(QScrollBar* scrollbar)
     setOrientation(scrollbar->orientation());
     setParent(scrollbar->parentWidget());
 }
-
+askdjhasdkjhasd
 void AbstractTableScrollBar::enterEvent(QEvent* event)
 {
     Q_UNUSED(event);
