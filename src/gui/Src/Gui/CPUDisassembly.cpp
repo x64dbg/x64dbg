@@ -678,6 +678,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
+        DbgMenuPrepare(GUI_DISASM_MENU);
         menu->addActions(mPluginMenu->actions());
         return true;
     }));

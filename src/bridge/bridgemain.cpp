@@ -1040,6 +1040,11 @@ BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* success)
     return value;
 }
 
+BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu)
+{
+    _dbg_sendmessage(DBG_MENU_PREPARE, (void*)hMenu, nullptr);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);

@@ -223,6 +223,11 @@ typedef struct
     bool retval;
 } PLUG_CB_VALTOSTRING;
 
+typedef struct
+{
+    int hMenu;
+} PLUG_CB_MENUPREPARE;
+
 //enums
 typedef enum
 {
@@ -256,6 +261,7 @@ typedef enum
     CB_ADDRINFO, //PLUG_CB_ADDRINFO
     CB_VALFROMSTRING, //PLUG_CB_VALFROMSTRING
     CB_VALTOSTRING, //PLUG_CB_VALTOSTRING
+    CB_MENUPREPARE, //PLUG_CB_MENUPREPARE
     CB_LAST
 } CBTYPE;
 

@@ -313,6 +313,7 @@ void CPUStack::setupContextMenu()
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
+        DbgMenuPrepare(GUI_STACK_MENU);
         menu->addActions(mPluginMenu->actions());
         return true;
     }));

@@ -200,6 +200,7 @@ bool pluginload(const char* pluginName, bool loadall)
     regExport("CBADDRINFO", CB_ADDRINFO);
     regExport("CBVALFROMSTRING", CB_VALFROMSTRING);
     regExport("CBVALTOSTRING", CB_VALTOSTRING);
+    regExport("CBMENUPREPARE", CB_MENUPREPARE);
 
     SectionLocker<LockPluginMenuList, false> menuLock; //exclusive lock
 

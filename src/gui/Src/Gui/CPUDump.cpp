@@ -266,6 +266,7 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
+        DbgMenuPrepare(GUI_DUMP_MENU);
         menu->addActions(mPluginMenu->actions());
         return true;
     }));
