@@ -966,7 +966,7 @@ void BreakpointsView::addDLLBPActionSlot()
     QString fileName;
     if(SimpleInputBox(this, tr("Enter the module name"), "", fileName, tr("Example: mydll.dll"), &DIcon("breakpoint.png")) && !fileName.isEmpty())
     {
-        DbgCmdExec((QString("bpdll ") + fileName).toUtf8().constData());
+        DbgCmdExec(QString("bpdll \"%1\"").arg(fileName).toUtf8().constData());
     }
 }
 
