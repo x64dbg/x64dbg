@@ -528,6 +528,15 @@ void CPUDisassembly::setupRightClickContextMenu()
     analysisMenu->addMenu(encodeTypeMenu);
 
     mMenuBuilder->addMenu(makeMenu(DIcon("analysis.png"), tr("Analysis")), analysisMenu);
+
+    MenuBuilder* downloadSymbolsMenu = new MenuBuilder(this);
+    downloadSymbolsMenu->addAction(makeShortcutAction(DIcon("pdb.png"), tr("&Current module"), SLOT(downloadCurrentSymbolsSlot()), "ActionDownloadSymbol"), [this](QMenu*)
+    {
+        char module[MAX_MODULE_SIZE] = "";
+        return DbgGetModuleAt(rvaToVa(getInitialSelection()), module);
+    });
+    downloadSymbolsMenu->addAction(makeShortcutAction(DIcon("pdb.png"), tr("&All modules"), SLOT(downloadAllSymbolsSlot()), "ActionDownloadAllSymbol"));
+    mMenuBuilder->addMenu(makeMenu(DIcon("pdb.png"), tr("Download Symbols")), downloadSymbolsMenu);
     mMenuBuilder->addSeparator();
 
 
@@ -2135,4 +2144,16 @@ bool CPUDisassembly::getTokenValueText(QString & text)
 void CPUDisassembly::followInMemoryMapSlot()
 {
     DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
+}
+
+void CPUDisassembly::downloadCurrentSymbolsSlot()
+{
+    char module[MAX_MODULE_SIZE] = "";
+    if(DbgGetModuleAt(rvaToVa(getInitialSelection()), module))
+        DbgCmdExec(QString("symdownload \"%0\"").arg(module).toUtf8().constData());
+}
+
+void CPUDisassembly::downloadAllSymbolsSlot()
+{
+    DbgCmdExec("symdownload");
 }
