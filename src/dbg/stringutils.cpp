@@ -1,7 +1,29 @@
 #include "stringutils.h"
-#include "value.h"
 #include <windows.h>
 #include <cstdint>
+
+static inline bool convertLongLongNumber(const char* str, unsigned long long & result, int radix)
+{
+    errno = 0;
+    char* end;
+    result = strtoull(str, &end, radix);
+    if(!result && end == str)
+        return false;
+    if(result == ULLONG_MAX && errno)
+        return false;
+    if(*end)
+        return false;
+    return true;
+}
+
+static inline bool convertNumber(const char* str, size_t & result, int radix)
+{
+    unsigned long long llr;
+    if(!convertLongLongNumber(str, llr, radix))
+        return false;
+    result = size_t(llr);
+    return true;
+}
 
 void StringUtils::Split(const String & s, char delim, std::vector<String> & elems)
 {
@@ -361,17 +383,11 @@ void StringUtils::ReplaceAll(WString & s, const WString & from, const WString & 
     }
 }
 
-String StringUtils::sprintf(_Printf_format_string_ const char* format, ...)
+String StringUtils::vsprintf(const char* format, va_list args)
 {
-    va_list args;
-    va_start(args, format);
-
     char sbuffer[64] = "";
     if(_vsnprintf_s(sbuffer, _TRUNCATE, format, args) != -1)
-    {
-        va_end(args);
         return sbuffer;
-    }
 
     std::vector<char> buffer(256, '\0');
     while(true)
@@ -385,21 +401,23 @@ String StringUtils::sprintf(_Printf_format_string_ const char* format, ...)
         else
             break;
     }
-    va_end(args);
     return String(buffer.data());
 }
 
-WString StringUtils::sprintf(_Printf_format_string_ const wchar_t* format, ...)
+String StringUtils::sprintf(_Printf_format_string_ const char* format, ...)
 {
     va_list args;
     va_start(args, format);
+    auto result = vsprintf(format, args);
+    va_end(args);
+    return result;
+}
 
+WString StringUtils::vsprintf(const wchar_t* format, va_list args)
+{
     wchar_t sbuffer[64] = L"";
     if(_vsnwprintf_s(sbuffer, _TRUNCATE, format, args) != -1)
-    {
-        va_end(args);
         return sbuffer;
-    }
 
     std::vector<wchar_t> buffer(256, L'\0');
     while(true)
@@ -413,8 +431,16 @@ WString StringUtils::sprintf(_Printf_format_string_ const wchar_t* format, ...)
         else
             break;
     }
-    va_end(args);
     return WString(buffer.data());
+}
+
+WString StringUtils::sprintf(_Printf_format_string_ const wchar_t* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    auto result = vsprintf(format, args);
+    va_end(args);
+    return result;
 }
 
 String StringUtils::ToLower(const String & s)
@@ -548,7 +574,7 @@ bool StringUtils::FromCompressedHex(const String & text, std::vector<unsigned ch
             }
             i++; //eat '}'
 
-            duint repeat = 0;
+            size_t repeat = 0;
             if(!convertNumber(repeatStr.c_str(), repeat, 16) || !repeat) //conversion failed or repeat zero times
                 return false;
             for(size_t j = 1; j < repeat; j++)

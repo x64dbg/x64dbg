@@ -403,6 +403,7 @@ void pluginloadall(const char* pluginDir)
         pluginload(StringUtils::Utf16ToUtf8(foundData.cFileName).c_str(), true);
     }
     while(FindNextFileW(hSearch, &foundData));
+    CloseHandle(hSearch);
     SetCurrentDirectoryW(currentDir);
 }
 

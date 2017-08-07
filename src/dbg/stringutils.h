@@ -33,7 +33,9 @@ public:
     static WString LocalCpToUtf16(const char* wstr);
     static void ReplaceAll(String & s, const String & from, const String & to);
     static void ReplaceAll(WString & s, const WString & from, const WString & to);
+    static String vsprintf(_In_z_ _Printf_format_string_ const char* format, va_list args);
     static String sprintf(_In_z_ _Printf_format_string_ const char* format, ...);
+    static WString vsprintf(_In_z_ _Printf_format_string_ const wchar_t* format, va_list args);
     static WString sprintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...);
     static String ToLower(const String & s);
     static bool StartsWith(const String & h, const String & n);
