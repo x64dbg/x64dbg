@@ -74,7 +74,7 @@ bool plugincmdunregister(int pluginHandle, const char* command);
 int pluginmenuadd(int hMenu, const char* title);
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title);
 bool pluginmenuaddseparator(int hMenu);
-bool pluginmenuclear(int hMenu);
+bool pluginmenuclear(int hMenu, bool erase);
 void pluginmenucall(int hEntry);
 bool pluginwinevent(MSG* message, long* result);
 bool pluginwineventglobal(MSG* message);

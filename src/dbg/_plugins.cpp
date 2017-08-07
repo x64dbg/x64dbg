@@ -85,7 +85,7 @@ PLUG_IMPEXP bool _plugin_menuaddseparator(int hMenu)
 
 PLUG_IMPEXP bool _plugin_menuclear(int hMenu)
 {
-    return pluginmenuclear(hMenu);
+    return pluginmenuclear(hMenu, false);
 }
 
 PLUG_IMPEXP void _plugin_menuseticon(int hMenu, const ICONDATA* icon)
