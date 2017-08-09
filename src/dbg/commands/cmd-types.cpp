@@ -6,6 +6,7 @@
 #include "memory.h"
 #include "variable.h"
 #include "filehelper.h"
+#include "label.h"
 
 using namespace Types;
 
@@ -456,6 +457,17 @@ struct PrintVisitor : TypeManager::Visitor
         else
             tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
 
+        std::string path;
+        for(size_t i = 0; i < mPath.size(); i++)
+        {
+            if(ptype == Parent::Array && i + 1 == mPath.size())
+                break;
+            path.append(mPath[i]);
+        }
+        path.append(member.name);
+        if(!LabelGet(mAddr + mOffset, nullptr) && (parent().index == 1 || ptype != Parent::Array))
+            LabelSet(mAddr + mOffset, path.c_str(), false, true);
+
         TYPEDESCRIPTOR td;
         td.expanded = false;
         td.reverse = false;
@@ -489,6 +501,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
+        mPath.push_back((member.name == "visit" ? type.name : member.name) + ".");
         mParents.push_back(Parent(type.isunion ? Parent::Union : Parent::Struct));
         parent().node = node;
         return true;
@@ -510,6 +523,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
+        mPath.push_back(member.name + ".");
         mParents.push_back(Parent(Parent::Array));
         parent().node = node;
         return true;
@@ -526,6 +540,7 @@ struct PrintVisitor : TypeManager::Visitor
         if(!mAddr || !MemRead(mAddr + offset, &value, sizeof(value)))
             return false;
 
+        mPath.push_back(member.name + "->");
         mParents.push_back(Parent(Parent::Pointer));
         parent().offset = mOffset;
         parent().addr = mAddr;
@@ -545,6 +560,7 @@ struct PrintVisitor : TypeManager::Visitor
             mPtrDepth--;
         }
         mParents.pop_back();
+        mPath.pop_back();
         return true;
     }
 
@@ -580,6 +596,7 @@ private:
     int mPtrDepth = 0;
     int mMaxPtrDepth = 0;
     void* mNode = nullptr;
+    std::vector<String> mPath;
 };
 
 bool cbInstrVisitType(int argc, char* argv[])
