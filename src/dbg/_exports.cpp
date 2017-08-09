@@ -412,6 +412,12 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
                         temp_string.push_back(':');
                         temp_string.append(string_text);
                     }
+                    else if(*newinfo.label)
+                    {
+                        temp_string = instr.arg[i].mnemonic;
+                        temp_string.push_back(':');
+                        temp_string.append(newinfo.label);
+                    }
                 }
                 else
                     continue;
