@@ -159,29 +159,26 @@ bool cbInstrLabelList(int argc, char* argv[])
     GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
-    size_t cbsize;
-    LabelEnum(0, &cbsize);
-    if(!cbsize)
+    std::vector<LABELSINFO> labels;
+    LabelGetList(labels);
+    if(labels.empty())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "No labels"));
         return true;
     }
-    Memory<LABELSINFO*> labels(cbsize, "cbInstrLabelList:labels");
-    LabelEnum(labels(), 0);
-    int count = (int)(cbsize / sizeof(LABELSINFO));
-    for(int i = 0; i < count; i++)
+    for(size_t i = 0; i < labels.size(); i++)
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf_s(addrText, "%p", labels()[i].addr);
+        sprintf_s(addrText, "%p", labels[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly(labels()[i].addr, disassembly))
+        if(GuiGetDisassembly(labels[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
-        GuiReferenceSetCellContent(i, 2, labels()[i].text.c_str());
+        GuiReferenceSetCellContent(i, 2, labels[i].text.c_str());
     }
-    varset("$result", count, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%d label(s) listed in Reference View\n"), count);
+    varset("$result", labels.size(), false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d label(s) listed in Reference View\n"), labels.size());
     GuiReferenceReloadData();
     return true;
 }
