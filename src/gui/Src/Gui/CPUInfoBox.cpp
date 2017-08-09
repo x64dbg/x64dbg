@@ -164,6 +164,11 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
             bool ok;
             argMnemonic.toULongLong(&ok, 16);
             QString valText = DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value);
+            auto valTextSym = getSymbolicName(arg.value);
+            if(!valTextSym.contains(valText))
+                valText = QString("%1 %2").arg(valText, valTextSym);
+            else
+                valText = valTextSym;
             argMnemonic = !ok ? QString("%1]=[%2").arg(argMnemonic).arg(valText) : valText;
             QString sizeName = "";
             int memsize = basicinfo.memory.size;
