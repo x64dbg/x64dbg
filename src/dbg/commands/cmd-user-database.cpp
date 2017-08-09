@@ -166,7 +166,8 @@ bool cbInstrLabelList(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "No labels"));
         return true;
     }
-    for(size_t i = 0; i < labels.size(); i++)
+    auto count = int(labels.size());
+    for(int i = 0; i < count; i++)
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
@@ -177,8 +178,8 @@ bool cbInstrLabelList(int argc, char* argv[])
             GuiReferenceSetCellContent(i, 1, disassembly);
         GuiReferenceSetCellContent(i, 2, labels[i].text.c_str());
     }
-    varset("$result", labels.size(), false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%d label(s) listed in Reference View\n"), labels.size());
+    varset("$result", count, false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d label(s) listed in Reference View\n"), count);
     GuiReferenceReloadData();
     return true;
 }
