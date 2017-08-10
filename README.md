@@ -2,7 +2,7 @@
 
 [![BountySource](https://www.bountysource.com/badge/team?team_id=18188&style=raised)](https://www.bountysource.com/teams/x64dbg?utm_source=x64dbg&utm_medium=shield&utm_campaign=raised) [![Build status](https://ci.appveyor.com/api/projects/status/h1j489qa1mx67e0h?svg=true)](https://ci.appveyor.com/project/mrexodia/x64dbg) [![coverity](https://scan.coverity.com/projects/7478/badge.svg?flat=1)](https://scan.coverity.com/projects/7478) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/x64dbg/localized.svg)](http://translate.x64dbg.com)
 
-[![Telegram](https://img.shields.io/badge/chat-%20on%20Telegram-blue.svg)](http://telegram.x64dbg.com) [![Join the chat at Gitter](https://badges.gitter.im/x64dbg/x64dbg.svg)](http://gitter.x64dbg.com) [![freenode](https://img.shields.io/badge/chat-%20on%20freenode-brightgreen.svg)](http://webchat.freenode.net/?channels=x64dbg) 
+[![Telegram](https://img.shields.io/badge/chat-%20on%20Telegram-blue.svg)](http://telegram.x64dbg.com) [![Join the chat at Gitter](https://badges.gitter.im/x64dbg/x64dbg.svg)](http://gitter.x64dbg.com) [![freenode](https://img.shields.io/badge/chat-%20on%20freenode-brightgreen.svg)](http://webchat.freenode.net/?channels=x64dbg) [![Download x64dbg](https://img.shields.io/sourceforge/dm/x64dbg.svg)](https://sourceforge.net/projects/x64dbg/files/latest/download)
 
 ## Note
 
