@@ -14,7 +14,12 @@ struct PLUG_MENU
 {
     int pluginHandle; //plugin handle
     int hEntryMenu; //GUI entry/menu handle (unique)
-    int hEntryPlugin; //plugin entry handle (unique per plugin), -1 means it's a menu
+    int hParentMenu; //parent GUI menu handle
+};
+
+struct PLUG_MENUENTRY : PLUG_MENU
+{
+    int hEntryPlugin; //plugin entry handle (unique per plugin)
 };
 
 struct PLUG_DATA
