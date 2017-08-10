@@ -1118,7 +1118,6 @@ void MainWindow::clearMenuHelper(int hMenu, bool erase)
         {
             if(menu && !erase)
                 menu->parent->removeAction(mEntryList.at(i).mAction); //remove the action for the top level menus
-            delete mEntryList.at(i).mAction; //delete the entry object
             mEntryList.erase(mEntryList.begin() + i);
         }
     }
@@ -1198,7 +1197,6 @@ void MainWindow::removeMenuEntry(int hEntryMenu)
             const MenuInfo* menu = findMenu(entry.hParentMenu);
             QWidget* parent = menu == 0 ? this : menu->parent;
             parent->removeAction(entry.mAction);
-            delete entry.mAction;
             if(menu->mMenu->actions().empty())
                 menu->mMenu->menuAction()->setVisible(false);
             mEntryList.erase(mEntryList.begin() + i);
