@@ -33,7 +33,6 @@ public:
     void setResult(dsint result = 0);
 
     //helper functions
-    void emitLoadSourceFile(const QString path, int line = 0, int selection = 0);
     void emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
     void setDbgStopped();
 

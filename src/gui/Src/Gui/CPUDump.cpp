@@ -30,6 +30,8 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
+    mPluginMenu = multiDump->mDumpPluginMenu;
+
     setupContextMenu();
 }
 
@@ -260,9 +262,6 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeAction(DIcon("address.png"), tr("&Address"), SLOT(addressSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("&Disassembly"), SLOT(disassemblySlot())))->setEnabled(false);
 
-    mPluginMenu = new QMenu(this);
-    mPluginMenu->setIcon(DIcon("plugin.png"));
-    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {

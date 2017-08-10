@@ -16,6 +16,10 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     mMaxCPUDumpTabs = nbCpuDumpTabs;
     mInitAllDumpTabs = false;
 
+    mDumpPluginMenu = new QMenu(this);
+    mDumpPluginMenu->setIcon(DIcon("plugin.png"));
+    Bridge::getBridge()->emitMenuAddToList(this, mDumpPluginMenu, GUI_DUMP_MENU);
+
     for(uint i = 0; i < mMaxCPUDumpTabs; i++)
     {
         CPUDump* cpuDump = new CPUDump(disas, this);

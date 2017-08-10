@@ -1844,7 +1844,7 @@ void CPUDisassembly::openSourceSlot()
     int line = 0;
     if(!DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), szSourceFile, &line))
         return;
-    Bridge::getBridge()->emitLoadSourceFile(szSourceFile, 0, line);
+    emit Bridge::getBridge()->loadSourceFile(szSourceFile, 0, line);
     emit displaySourceManagerWidget();
 }
 

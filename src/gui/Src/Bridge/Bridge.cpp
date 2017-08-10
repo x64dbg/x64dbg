@@ -71,11 +71,6 @@ void Bridge::initBridge()
                             Helper Functions
 ************************************************************************************/
 
-void Bridge::emitLoadSourceFile(const QString path, int line, int selection)
-{
-    emit loadSourceFile(path, line, selection);
-}
-
 void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu)
 {
     BridgeResult result;
@@ -493,7 +488,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_LOAD_SOURCE_FILE:
-        emitLoadSourceFile(QString((const char*)param1), (int)param2);
+        emit loadSourceFile(QString((const char*)param1), (int)param2, 0);
         break;
 
     case GUI_MENU_SET_ICON:
