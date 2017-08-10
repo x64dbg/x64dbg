@@ -1106,35 +1106,36 @@ void MainWindow::addSeparator(int hMenu)
     Bridge::getBridge()->setResult();
 }
 
-void MainWindow::clearMenu(int hMenu, bool erase)
+void MainWindow::clearMenuHelper(int hMenu, bool erase)
 {
     if(!mMenuList.size() || hMenu == -1)
-    {
-        Bridge::getBridge()->setResult();
         return;
-    }
     const MenuInfo* menu = findMenu(hMenu);
     //delete menu entries
     for(int i = mEntryList.size() - 1; i > -1; i--)
     {
         if(hMenu == mEntryList.at(i).hParentMenu) //we found an entry that has the menu as parent
         {
-            QWidget* parent = menu == 0 ? this : menu->parent;
-            parent->removeAction(mEntryList.at(i).mAction);
+            if(menu && !erase)
+                menu->parent->removeAction(mEntryList.at(i).mAction); //remove the action for the top level menus
             delete mEntryList.at(i).mAction; //delete the entry object
             mEntryList.erase(mEntryList.begin() + i);
         }
     }
     //recursively delete the menus
+    std::vector<int> menuClearQueue;
     for(int i = mMenuList.size() - 1; i > -1; i--)
     {
         if(hMenu == mMenuList.at(i).hParentMenu) //we found a menu that has the menu as parent
         {
-            clearMenu(mMenuList.at(i).hMenu, false); //delete children menus
+            menuClearQueue.push_back(mMenuList.at(i).hMenu); //add the child menu to the clear queue
             delete mMenuList.at(i).mMenu; //delete the child menu object
             mMenuList.erase(mMenuList.begin() + i); //delete the child entry
         }
     }
+    //recursively clear the menus
+    for(auto & hMenu : menuClearQueue)
+        clearMenuHelper(hMenu, false);
     //hide the empty menu
     if(menu)
     {
@@ -1154,6 +1155,11 @@ void MainWindow::clearMenu(int hMenu, bool erase)
         else
             menu->mMenu->menuAction()->setVisible(false);
     }
+}
+
+void MainWindow::clearMenu(int hMenu, bool erase)
+{
+    clearMenuHelper(hMenu, erase);
     Bridge::getBridge()->setResult();
 }
 
@@ -1161,8 +1167,8 @@ void MainWindow::initMenuApi()
 {
     //256 entries are reserved
     hEntryMenuPool = 256;
-    mEntryList.clear();
-    mMenuList.clear();
+    mEntryList.reserve(1024);
+    mMenuList.reserve(1024);
 }
 
 void MainWindow::menuEntrySlot()

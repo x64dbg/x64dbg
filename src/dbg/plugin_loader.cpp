@@ -386,6 +386,9 @@ bool pluginunload(const char* pluginName, bool unloadall)
 */
 void pluginloadall(const char* pluginDir)
 {
+    //reserve menu space
+    pluginMenuList.reserve(1024);
+    pluginMenuEntryList.reserve(1024);
     //load new plugins
     wchar_t currentDir[deflen] = L"";
     pluginDirectory = StringUtils::Utf8ToUtf16(pluginDir);
@@ -675,6 +678,31 @@ bool pluginmenuaddseparator(int hMenu)
     return false;
 }
 
+/// <summary>
+/// Helper function that recursively clears the menus and their items.
+/// </summary>
+/// <param name="hMenu">Handle of the menu to clear.</param>
+static void pluginmenuclear_helper(int hMenu)
+{
+    //delete menu entries
+    for(auto i = pluginMenuEntryList.size() - 1; i != -1; i--)
+        if(hMenu == pluginMenuEntryList.at(i).hParentMenu) //we found an entry that has the menu as parent
+            pluginMenuEntryList.erase(pluginMenuEntryList.begin() + i);
+    //delete the menus
+    std::vector<int> menuClearQueue;
+    for(auto i = pluginMenuList.size() - 1; i != -1; i--)
+    {
+        if(hMenu == pluginMenuList.at(i).hParentMenu) //we found a menu that has the menu as parent
+        {
+            menuClearQueue.push_back(pluginMenuList.at(i).hEntryMenu);
+            pluginMenuList.erase(pluginMenuList.begin() + i);
+        }
+    }
+    //recursively clear the menus
+    for(auto & hMenu : menuClearQueue)
+        pluginmenuclear_helper(hMenu);
+}
+
 /**
 \brief Clears a plugin menu.
 \param hMenu The menu to clear.
@@ -683,14 +711,19 @@ bool pluginmenuaddseparator(int hMenu)
 bool pluginmenuclear(int hMenu, bool erase)
 {
     EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    pluginmenuclear_helper(hMenu);
     for(auto it = pluginMenuList.begin(); it != pluginMenuList.end(); ++it)
     {
         const auto & currentMenu = *it;
         if(currentMenu.hEntryMenu == hMenu)
         {
             if(erase)
+            {
                 it = pluginMenuList.erase(it);
-            GuiMenuClear(hMenu);
+                GuiMenuRemove(hMenu);
+            }
+            else
+                GuiMenuClear(hMenu);
             return true;
         }
     }
