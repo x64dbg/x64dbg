@@ -614,9 +614,9 @@ int pluginmenuadd(int hMenu, const char* title)
 /**
 \brief Add a plugin menu entry to a menu.
 \param hMenu The menu to add the entry to.
-\param hEntry The handle you like to have the entry. It cannot be -1
+\param hEntry The handle you like to have the entry. This should be a unique value in the scope of the plugin that registered the \p hMenu. Cannot be -1.
 \param title The menu entry title.
-\return true if the entry was successfully added, false otherwise.
+\return true if the \p hEntry was unique and the entry was successfully added, false otherwise.
 */
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
@@ -635,6 +635,10 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
     }
     if(pluginHandle == -1) //not found
         return false;
+    //search if hEntry was previously used
+    for(const auto & currentMenu : pluginMenuList)
+        if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
+            return false;
     int hNewEntry = GuiMenuAddEntry(hMenu, title);
     if(hNewEntry == -1)
         return false;
