@@ -102,9 +102,9 @@ public slots:
     void addMenu(int hMenu, QString title);
     void addMenuEntry(int hMenu, QString title);
     void addSeparator(int hMenu);
-    void clearMenu(int hMenu);
+    void clearMenu(int hMenu, bool erase);
     void menuEntrySlot();
-    void removeMenuEntry(int hEntry);
+    void removeMenuEntry(int hEntryMenu);
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
     void setCheckedMenuEntry(int hEntry, bool checked);
@@ -231,10 +231,9 @@ private:
         bool globalMenu;
     };
 
+    int hEntryMenuPool;
     QList<MenuEntryInfo> mEntryList;
-    int hEntryNext;
     QList<MenuInfo> mMenuList;
-    int hMenuNext;
 
     void initMenuApi();
     const MenuInfo* findMenu(int hMenu);

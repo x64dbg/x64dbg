@@ -87,8 +87,8 @@ signals:
     void menuAddMenu(int hMenu, QString title);
     void menuAddMenuEntry(int hMenu, QString title);
     void menuAddSeparator(int hMenu);
-    void menuClearMenu(int hMenu);
-    void menuRemoveMenuEntry(int hEntry);
+    void menuClearMenu(int hMenu, bool erase);
+    void menuRemoveMenuEntry(int hEntryMenu);
     void selectionDisasmGet(SELECTIONDATA* selection);
     void selectionDisasmSet(const SELECTIONDATA* selection);
     void selectionDumpGet(SELECTIONDATA* selection);

@@ -360,10 +360,17 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_MENU_CLEAR:
     {
         BridgeResult result;
-        emit menuClearMenu((int)param1);
+        emit menuClearMenu((int)param1, false);
         result.Wait();
     }
     break;
+
+    case GUI_MENU_REMOVE:
+    {
+        BridgeResult result;
+        emit menuRemoveMenuEntry((int)param1);
+        result.Wait();
+    }
 
     case GUI_SELECTION_GET:
     {

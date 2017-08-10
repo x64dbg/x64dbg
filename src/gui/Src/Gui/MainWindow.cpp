@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(menuAddMenu(int, QString)), this, SLOT(addMenu(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(menuAddMenuEntry(int, QString)), this, SLOT(addMenuEntry(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(menuAddSeparator(int)), this, SLOT(addSeparator(int)));
-    connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int)), this, SLOT(clearMenu(int)));
+    connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int, bool)), this, SLOT(clearMenu(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(menuRemoveMenuEntry(int)), this, SLOT(removeMenuEntry(int)));
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
@@ -1047,7 +1047,7 @@ void MainWindow::addMenu(int hMenu, QString title)
         Bridge::getBridge()->setResult(-1);
         return;
     }
-    int hMenuNew = hMenuNext++;
+    int hMenuNew = hEntryMenuPool++;
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QMenu* wMenu = new QMenu(title, parent);
     wMenu->menuAction()->setVisible(false);
@@ -1071,7 +1071,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
         return;
     }
     MenuEntryInfo newInfo;
-    int hEntryNew = hEntryNext++;
+    int hEntryNew = hEntryMenuPool++;
     newInfo.hEntry = hEntryNew;
     newInfo.hParentMenu = hMenu;
     QWidget* parent = hMenu == -1 ? this : menu->parent;
@@ -1106,7 +1106,7 @@ void MainWindow::addSeparator(int hMenu)
     Bridge::getBridge()->setResult();
 }
 
-void MainWindow::clearMenu(int hMenu)
+void MainWindow::clearMenu(int hMenu, bool erase)
 {
     if(!mMenuList.size() || hMenu == -1)
     {
@@ -1130,24 +1130,39 @@ void MainWindow::clearMenu(int hMenu)
     {
         if(hMenu == mMenuList.at(i).hParentMenu) //we found a menu that has the menu as parent
         {
-            clearMenu(mMenuList.at(i).hMenu); //delete children menus
+            clearMenu(mMenuList.at(i).hMenu, false); //delete children menus
             delete mMenuList.at(i).mMenu; //delete the child menu object
             mMenuList.erase(mMenuList.begin() + i); //delete the child entry
         }
     }
     //hide the empty menu
     if(menu)
-        menu->mMenu->menuAction()->setVisible(false);
+    {
+        if(erase)
+        {
+            //delete the menu itself
+            for(int i = mMenuList.size() - 1; i > -1; i--)
+            {
+                if(hMenu == mMenuList.at(i).hMenu) //we found the menu
+                {
+                    delete mMenuList.at(i).mMenu; //delete the menu object
+                    mMenuList.erase(mMenuList.begin() + i); //delete the menu entry
+                    break;
+                }
+            }
+        }
+        else
+            menu->mMenu->menuAction()->setVisible(false);
+    }
     Bridge::getBridge()->setResult();
 }
 
 void MainWindow::initMenuApi()
 {
     //256 entries are reserved
+    hEntryMenuPool = 256;
     mEntryList.clear();
-    hEntryNext = 256;
     mMenuList.clear();
-    hMenuNext = 256;
 }
 
 void MainWindow::menuEntrySlot()
@@ -1161,11 +1176,11 @@ void MainWindow::menuEntrySlot()
     }
 }
 
-void MainWindow::removeMenuEntry(int hEntry)
+void MainWindow::removeMenuEntry(int hEntryMenu)
 {
     for(int i = 0; i < mEntryList.size(); i++)
     {
-        if(mEntryList.at(i).hEntry == hEntry)
+        if(mEntryList.at(i).hEntry == hEntryMenu)
         {
             const MenuEntryInfo & entry = mEntryList.at(i);
             const MenuInfo* menu = findMenu(entry.hParentMenu);
@@ -1173,10 +1188,11 @@ void MainWindow::removeMenuEntry(int hEntry)
             parent->removeAction(entry.mAction);
             delete entry.mAction;
             mEntryList.erase(mEntryList.begin() + i);
-            break;
+            Bridge::getBridge()->setResult();
+            return;
         }
     }
-    Bridge::getBridge()->setResult();
+    clearMenu(hEntryMenu, true);
 }
 
 void MainWindow::setIconMenuEntry(int hEntry, QIcon icon)
