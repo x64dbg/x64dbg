@@ -498,7 +498,7 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
     auto va = rvaToVa(getItemStartingAddress(x, y));
 
     // Read VA
-    QToolTip::showText(event->globalPos(), getTooltipForVa(va, 4), this);
+    QToolTip::showText(event->globalPos(), getTooltipForVa(va, 4));
 
     HexDump::mouseMoveEvent(event);
 }

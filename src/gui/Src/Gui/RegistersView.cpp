@@ -1718,7 +1718,7 @@ void RegistersView::mouseMoveEvent(QMouseEvent* event)
         setCursor(QCursor(Qt::ArrowCursor));
     }
     if(!registerHelpInformation.isEmpty())
-        QToolTip::showText(event->globalPos(), registerHelpInformation, this);
+        QToolTip::showText(event->globalPos(), registerHelpInformation);
     else
         QToolTip::hideText();
     QScrollArea::mouseMoveEvent(event);
