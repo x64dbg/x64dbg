@@ -128,6 +128,16 @@ PLUG_IMPEXP void _plugin_menuentrysethotkey(int pluginHandle, int hEntry, const 
     pluginmenuentrysethotkey(pluginHandle, hEntry, hotkey);
 }
 
+PLUG_IMPEXP bool _plugin_menuremove(int hMenu)
+{
+    return pluginmenuremove(hMenu);
+}
+
+PLUG_IMPEXP bool _plugin_menuentryremove(int pluginHandle, int hEntry)
+{
+    return pluginmenuentryremove(pluginHandle, hEntry);
+}
+
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript)
 {
     dbgstartscriptthread(cbScript);

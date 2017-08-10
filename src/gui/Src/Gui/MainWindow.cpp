@@ -1141,6 +1141,7 @@ void MainWindow::clearMenuHelper(int hMenu, bool erase)
     {
         if(erase)
         {
+            auto hParentMenu = menu->hParentMenu;
             //delete the menu itself
             for(int i = mMenuList.size() - 1; i > -1; i--)
             {
@@ -1151,6 +1152,11 @@ void MainWindow::clearMenuHelper(int hMenu, bool erase)
                     break;
                 }
             }
+            //hide the parent menu if empty
+            for(int i = mMenuList.size() - 1; i > -1; i--)
+                if(mMenuList.at(i).hMenu == hParentMenu)
+                    if(mMenuList.at(i).mMenu->actions().empty())
+                        mMenuList.at(i).mMenu->menuAction()->setVisible(false);
         }
         else
             menu->mMenu->menuAction()->setVisible(false);
@@ -1193,6 +1199,8 @@ void MainWindow::removeMenuEntry(int hEntryMenu)
             QWidget* parent = menu == 0 ? this : menu->parent;
             parent->removeAction(entry.mAction);
             delete entry.mAction;
+            if(menu->mMenu->actions().empty())
+                menu->mMenu->menuAction()->setVisible(false);
             mEntryList.erase(mEntryList.begin() + i);
             Bridge::getBridge()->setResult();
             return;

@@ -934,6 +934,31 @@ void pluginmenuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey)
     }
 }
 
+bool pluginmenuremove(int hMenu)
+{
+    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
+        if(currentMenu.hEntryMenu == hMenu && currentMenu.hParentMenu < 256)
+            return false;
+    return pluginmenuclear(hMenu, true);
+}
+
+bool pluginmenuentryremove(int pluginHandle, int hEntry)
+{
+    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    for(auto it = pluginMenuEntryList.begin(); it != pluginMenuEntryList.end(); ++it)
+    {
+        const auto & currentEntry = *it;
+        if(currentEntry.pluginHandle == pluginHandle && currentEntry.hEntryPlugin == hEntry)
+        {
+            GuiMenuRemove(currentEntry.hEntryMenu);
+            pluginMenuEntryList.erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata)
 {
     PLUG_EXPRFUNCTION plugExprfunction;
