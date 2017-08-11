@@ -1106,65 +1106,55 @@ void MainWindow::addSeparator(int hMenu)
     Bridge::getBridge()->setResult();
 }
 
-void MainWindow::clearMenuHelper(int hMenu, bool erase)
+void MainWindow::clearMenuHelper(int hMenu)
 {
-    if(!mMenuList.size() || hMenu == -1)
-        return;
-    const MenuInfo* menu = findMenu(hMenu);
     //delete menu entries
-    for(int i = mEntryList.size() - 1; i > -1; i--)
-    {
+    for(auto i = mEntryList.size() - 1; i != -1; i--)
         if(hMenu == mEntryList.at(i).hParentMenu) //we found an entry that has the menu as parent
-        {
-            if(menu && !erase)
-                menu->parent->removeAction(mEntryList.at(i).mAction); //remove the action for the top level menus
             mEntryList.erase(mEntryList.begin() + i);
-        }
-    }
-    //recursively delete the menus
+    //delete the menus
     std::vector<int> menuClearQueue;
-    for(int i = mMenuList.size() - 1; i > -1; i--)
+    for(auto i = mMenuList.size() - 1; i != -1; i--)
     {
         if(hMenu == mMenuList.at(i).hParentMenu) //we found a menu that has the menu as parent
         {
-            menuClearQueue.push_back(mMenuList.at(i).hMenu); //add the child menu to the clear queue
-            delete mMenuList.at(i).mMenu; //delete the child menu object
-            mMenuList.erase(mMenuList.begin() + i); //delete the child entry
+            menuClearQueue.push_back(mMenuList.at(i).hMenu);
+            mMenuList.erase(mMenuList.begin() + i);
         }
     }
     //recursively clear the menus
     for(auto & hMenu : menuClearQueue)
-        clearMenuHelper(hMenu, false);
-    //hide the empty menu
-    if(menu)
-    {
-        if(erase)
-        {
-            auto hParentMenu = menu->hParentMenu;
-            //delete the menu itself
-            for(int i = mMenuList.size() - 1; i > -1; i--)
-            {
-                if(hMenu == mMenuList.at(i).hMenu) //we found the menu
-                {
-                    delete mMenuList.at(i).mMenu; //delete the menu object
-                    mMenuList.erase(mMenuList.begin() + i); //delete the menu entry
-                    break;
-                }
-            }
-            //hide the parent menu if empty
-            for(int i = mMenuList.size() - 1; i > -1; i--)
-                if(mMenuList.at(i).hMenu == hParentMenu)
-                    if(mMenuList.at(i).mMenu->actions().empty())
-                        mMenuList.at(i).mMenu->menuAction()->setVisible(false);
-        }
-        else
-            menu->mMenu->menuAction()->setVisible(false);
-    }
+        clearMenuHelper(hMenu);
 }
 
 void MainWindow::clearMenu(int hMenu, bool erase)
 {
-    clearMenuHelper(hMenu, erase);
+    //this recursively removes the entries from mEntryList and mMenuList
+    clearMenuHelper(hMenu);
+    for(auto it = mMenuList.begin(); it != mMenuList.end(); ++it)
+    {
+        auto & curMenu = *it;
+        if(hMenu == curMenu.hMenu)
+        {
+            if(erase)
+            {
+                auto parentMenu = findMenu(curMenu.hParentMenu);
+                if(parentMenu)
+                {
+                    parentMenu->mMenu->removeAction(curMenu.mMenu->menuAction()); //remove the QMenu from the parent
+                    if(parentMenu->mMenu->actions().empty()) //hide the parent if it is now empty
+                        parentMenu->mMenu->menuAction()->setVisible(false);
+                }
+                it = mMenuList.erase(it);
+            }
+            else
+            {
+                curMenu.mMenu->clear(); //clear the QMenu
+                curMenu.mMenu->menuAction()->setVisible(false);
+            }
+            break;
+        }
+    }
     Bridge::getBridge()->setResult();
 }
 
@@ -1189,21 +1179,25 @@ void MainWindow::menuEntrySlot()
 
 void MainWindow::removeMenuEntry(int hEntryMenu)
 {
+    //find and remove the hEntryMenu from the mEntryList
     for(int i = 0; i < mEntryList.size(); i++)
     {
         if(mEntryList.at(i).hEntry == hEntryMenu)
         {
-            const MenuEntryInfo & entry = mEntryList.at(i);
-            const MenuInfo* menu = findMenu(entry.hParentMenu);
-            QWidget* parent = menu == 0 ? this : menu->parent;
-            parent->removeAction(entry.mAction);
-            if(menu->mMenu->actions().empty())
-                menu->mMenu->menuAction()->setVisible(false);
-            mEntryList.erase(mEntryList.begin() + i);
+            auto & entry = mEntryList.at(i);
+            auto parentMenu = findMenu(entry.hParentMenu);
+            if(parentMenu)
+            {
+                parentMenu->mMenu->removeAction(entry.mAction);
+                if(parentMenu->mMenu->actions().empty())
+                    parentMenu->mMenu->menuAction()->setVisible(false);
+                mEntryList.erase(mEntryList.begin() + i);
+            }
             Bridge::getBridge()->setResult();
             return;
         }
     }
+    //if hEntryMenu is not in mEntryList, clear+erase it from mMenuList
     clearMenu(hEntryMenu, true);
 }
 
