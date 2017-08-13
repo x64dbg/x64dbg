@@ -184,6 +184,7 @@ typedef bool(*ISDEPENABLED)();
 typedef void(*GETCALLSTACKEX)(DBGCALLSTACK* callstack, bool cache);
 typedef bool(*GETUSERCOMMENT)(duint addr, char* comment);
 typedef void(*ENUMCONSTANTS)(ListOf(CONSTANTINFO) constants);
+typedef duint(*MEMBPSIZE)(duint addr);
 
 //The list of all the DbgFunctions() return value.
 //WARNING: This list is append only. Do not insert things in the middle or plugins would break.
@@ -253,6 +254,7 @@ typedef struct DBGFUNCTIONS_
     ENUMCONSTANTS EnumConstants;
     ENUMCONSTANTS EnumErrorCodes;
     ENUMCONSTANTS EnumExceptions;
+    MEMBPSIZE MemBpSize;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

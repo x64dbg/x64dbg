@@ -342,6 +342,13 @@ static void _enumexceptions(ListOf(CONSTANTINFO) exceptions)
     BridgeList<CONSTANTINFO>::CopyData(exceptions, exceptionsV);
 }
 
+static duint _membpsize(duint addr)
+{
+    SHARED_ACQUIRE(LockBreakpoints);
+    auto info = BpInfoFromAddr(BPMEMORY, addr);
+    return info ? info->memsize : 0;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -408,4 +415,5 @@ void dbgfunctionsinit()
     _dbgfunctions.EnumConstants = _enumconstants;
     _dbgfunctions.EnumErrorCodes = _enumerrorcodes;
     _dbgfunctions.EnumExceptions = _enumexceptions;
+    _dbgfunctions.MemBpSize = _membpsize;
 }
