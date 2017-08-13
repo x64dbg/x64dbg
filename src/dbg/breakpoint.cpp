@@ -11,6 +11,7 @@
 #include "value.h"
 #include "debugger.h"
 #include "exception.h"
+#include <algorithm>
 
 typedef std::pair<BP_TYPE, duint> BreakpointKey;
 std::map<BreakpointKey, BREAKPOINT> breakpoints;
@@ -61,6 +62,10 @@ int BpGetList(std::vector<BREAKPOINT>* List)
 
             List->push_back(currentBp);
         }
+        std::sort(List->begin(), List->end(), [](const BREAKPOINT & a, const BREAKPOINT & b)
+        {
+            return std::make_pair(a.type, a.addr) < std::make_pair(b.type, b.addr);
+        });
     }
 
     return (int)breakpoints.size();

@@ -688,6 +688,9 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     BP_TYPE currentBpType;
     switch(type)
     {
+    case bp_none:
+        currentBpType = BP_TYPE(-1);
+        break;
     case bp_normal:
         currentBpType = BPNORMAL;
         break;
@@ -709,7 +712,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     unsigned short slot = 0;
     for(int i = 0; i < bpcount; i++)
     {
-        if(list[i].type != currentBpType)
+        if(currentBpType != -1 && list[i].type != currentBpType)
             continue;
         BpToBridge(&list[i], &curBp);
         bridgeList.push_back(curBp);

@@ -1484,7 +1484,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         BpEnumAll(cbSetModuleBreakpoints, modname, duint(base));
     BpEnumAll(cbSetDLLBreakpoints);
     BpEnumAll(cbSetModuleBreakpoints, "");
-    GuiUpdateBreakpointsView();
+    DebugUpdateBreakpointsViewAsync();
     pCreateProcessBase = (duint)CreateProcessInfo->lpBaseOfImage;
     pDebuggedBase = pCreateProcessBase; //debugged base = executable
     DbCheckHash(ModContentHashFromAddr(pDebuggedBase)); //Check hash mismatch
@@ -1535,7 +1535,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     else if(bFileIsDll && strstr(DebugFileName, "DLLLoader" ArchValue("32", "64"))) //DLL Loader
         gDllLoader = StringUtils::Utf8ToUtf16(DebugFileName);
 
-    GuiUpdateBreakpointsView();
+    DebugUpdateBreakpointsViewAsync();
 
     //call plugin callback
     PLUG_CB_CREATEPROCESS callbackInfo;
@@ -1780,7 +1780,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     char modname[MAX_MODULE_SIZE] = "";
     if(ModNameFromAddr(duint(base), modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname, duint(base));
-    GuiUpdateBreakpointsView();
+    DebugUpdateBreakpointsViewAsync();
     bool bAlreadySetEntry = false;
 
     char command[MAX_PATH * 2] = "";
@@ -1797,7 +1797,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
             cmddirectexec(command);
         }
     }
-    GuiUpdateBreakpointsView();
+    DebugUpdateBreakpointsViewAsync();
 
     if(settingboolget("Events", "TlsCallbacks"))
     {
@@ -1907,7 +1907,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     char modname[256] = "???";
     if(ModNameFromAddr((duint)base, modname, true))
         BpEnumAll(cbRemoveModuleBreakpoints, modname, duint(base));
-    GuiUpdateBreakpointsView();
+    DebugUpdateBreakpointsViewAsync();
     SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Unloaded: %p %s\n"), base, modname);
 
