@@ -10,6 +10,79 @@
 std::map<Range, MODINFO, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;
 
+bool MODRELOCATIONINFO::Contains(duint Address) const
+{
+    return Address >= rva && Address < rva + size;
+}
+
+bool MODRELOCATIONINFO::operator<(const MODRELOCATIONINFO & b) const
+{
+    return rva < b.rva;
+}
+
+bool MODRELOCATIONINFO::operator==(const MODRELOCATIONINFO & b) const
+{
+    return rva == b.rva;
+}
+
+void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
+{
+    // Clear relocations
+    Info.relocations.clear();
+
+    // Parse base relocation table
+    duint characteristics = GetPE32DataFromMappedFile(FileMapVA, 0, UE_CHARACTERISTICS);
+    if((characteristics & IMAGE_FILE_RELOCS_STRIPPED) == IMAGE_FILE_RELOCS_STRIPPED)
+        return;
+
+    // Get address and size of base relocation table
+    duint relocDirRva = GetPE32DataFromMappedFile(FileMapVA, 0, UE_RELOCATIONTABLEADDRESS);
+    duint relocDirSize = GetPE32DataFromMappedFile(FileMapVA, 0, UE_RELOCATIONTABLESIZE);
+    if(relocDirRva == 0 || relocDirSize == 0)
+        return;
+
+    duint curPos = Info.base + relocDirRva;
+    // Until we reach the end of base relocation table
+    while(curPos < Info.base + relocDirRva + relocDirSize)
+    {
+        // Read base relocation block header
+        IMAGE_BASE_RELOCATION baseRelocBlock;
+        MemRead(curPos, &baseRelocBlock, sizeof(baseRelocBlock));
+
+        // For every entry in base relocation block
+        duint count = (baseRelocBlock.SizeOfBlock - 8) / 2;
+        for(duint i = 0; i < count; i++)
+        {
+            uint16 data = 0;
+            MemRead(curPos + 8 + 2 * i, &data, sizeof(uint16));
+
+            auto type = (data & 0xF000) >> 12;
+            auto offset = data & 0x0FFF;
+
+            auto relocAddr = Info.base + baseRelocBlock.VirtualAddress + offset;
+            switch(type)
+            {
+            case IMAGE_REL_BASED_HIGHLOW:
+                Info.relocations.insert(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 4 });
+                break;
+            case IMAGE_REL_BASED_DIR64:
+                Info.relocations.insert(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 8 });
+                break;
+            case IMAGE_REL_BASED_HIGH:
+            case IMAGE_REL_BASED_LOW:
+            case IMAGE_REL_BASED_HIGHADJ:
+                Info.relocations.insert(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 2 });
+                break;
+            case IMAGE_REL_BASED_ABSOLUTE:
+            default:
+                break;
+            }
+        }
+
+        curPos += baseRelocBlock.SizeOfBlock;
+    }
+}
+
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Get the entry point
@@ -50,6 +123,8 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 
     // Clear imports by default
     Info.imports.clear();
+
+    ReadBaseRelocationTable(Info, FileMapVA);
 }
 
 bool ModLoad(duint Base, duint Size, const char* FullPath)
@@ -486,4 +561,69 @@ void ModSetParty(duint Address, int Party)
         return;
 
     module->party = Party;
+}
+
+bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO>* Relocations)
+{
+    SHARED_ACQUIRE(LockModules);
+
+    auto module = ModInfoFromAddr(Address);
+
+    if(!module || module->relocations.empty())
+        return false;
+
+    // Copy vector <-> set
+    Relocations->resize(module->relocations.size());
+    std::copy(module->relocations.begin(), module->relocations.end(), Relocations->begin());
+
+    return true;
+}
+
+bool ModRelocationAtAddr(duint Address, MODRELOCATIONINFO* Relocation)
+{
+    SHARED_ACQUIRE(LockModules);
+
+    auto module = ModInfoFromAddr(Address);
+
+    if(!module || module->relocations.empty())
+        return false;
+
+    DWORD rva = (DWORD)(Address - module->base);
+
+    // We assume there are no overlapping relocations
+    auto ub = module->relocations.upper_bound(MODRELOCATIONINFO { rva, 0 });
+    if(ub != module->relocations.begin() && (--ub)->Contains(rva))
+    {
+        *Relocation = *ub;
+        return true;
+    }
+
+    return false;
+}
+
+bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO>* Relocations)
+{
+    SHARED_ACQUIRE(LockModules);
+
+    auto module = ModInfoFromAddr(Address);
+
+    if(!module || module->relocations.empty())
+        return false;
+
+    DWORD rva = (DWORD)(Address - module->base);
+
+    // We assume there are no overlapping relocations
+    auto ub = module->relocations.upper_bound(MODRELOCATIONINFO { rva, 0 });
+    if(ub != module->relocations.begin())
+        ub--;
+
+    Relocations->clear();
+    while(ub != module->relocations.end() && ub->rva < rva + Size)
+    {
+        if(ub->rva >= rva)
+            Relocations->push_back(*ub);
+        ub++;
+    }
+
+    return !Relocations->empty();
 }
