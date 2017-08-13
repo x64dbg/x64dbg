@@ -730,7 +730,7 @@ bool cbDebugSetMemoryBpx(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint already set!"));
         return true;
     }
-    if(!BpNew(base, true, singleshoot, 0, BPMEMORY, type, 0))
+    if(!BpNew(base, true, singleshoot, 0, BPMEMORY, type, 0, size))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (BpNew)"));
         return false;

@@ -71,7 +71,7 @@ int BpGetList(std::vector<BREAKPOINT>* List)
     return (int)breakpoints.size();
 }
 
-bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name)
+bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name, duint memsize)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -109,6 +109,7 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     bp.singleshoot = Singleshot;
     bp.titantype = TitanType;
     bp.type = Type;
+    bp.memsize = memsize;
 
     // Insert new entry to the global list
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
@@ -658,9 +659,10 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "address", json_hex(breakpoint.addr));
         json_object_set_new(jsonObj, "enabled", json_boolean(breakpoint.enabled));
 
-        // "Normal" breakpoints save the old data
-        if(breakpoint.type == BPNORMAL)
+        if(breakpoint.type == BPNORMAL) // "Normal" breakpoints save the old data
             json_object_set_new(jsonObj, "oldbytes", json_hex(breakpoint.oldbytes));
+        else if(breakpoint.type == BPMEMORY) // Memory breakpoints save the memory size
+            json_object_set_new(jsonObj, "memsize", json_hex(breakpoint.memsize));
 
         json_object_set_new(jsonObj, "type", json_integer(breakpoint.type));
         json_object_set_new(jsonObj, "titantype", json_hex(breakpoint.titantype));
@@ -713,6 +715,8 @@ void BpCacheLoad(JSON Root)
         breakpoint.type = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
         if(breakpoint.type == BPNORMAL)
             breakpoint.oldbytes = (unsigned short)(json_hex_value(json_object_get(value, "oldbytes")) & 0xFFFF);
+        else if(breakpoint.type == BPMEMORY)
+            breakpoint.memsize = json_hex_value(json_object_get(value, "memsize"));
         breakpoint.addr = (duint)json_hex_value(json_object_get(value, "address"));
         breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
         breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
