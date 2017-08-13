@@ -547,7 +547,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Background"), "HexEditBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "HexEditSelectionColor", "");
 
-    colorInfoListAppend(tr("Graph"), "", "");
+    colorInfoListAppend(tr("Graph:"), "", "");
     colorInfoListAppend(tr("Background"), "GraphBackgroundColor", "");
     colorInfoListAppend(tr("Node"), "GraphNodeColor", "GraphNodeBackgroundColor");
     colorInfoListAppend(tr("Terminal node shadow"), "GraphRetShadowColor", "");
@@ -569,6 +569,8 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Breakpoint Summary Parentheses"), "BreakpointSummaryParenColor", "");
     colorInfoListAppend(tr("Breakpoint Summary Keywords"), "BreakpointSummaryKeywordColor", "");
     colorInfoListAppend(tr("Breakpoint Summary Strings"), "BreakpointSummaryStringColor", "");
+    colorInfoListAppend(tr("Patch located in relocation region"), "PatchRelocatedByteHighlightColor", "");
+
 
     //dev helper
     const QMap<QString, QColor>* Colors = &Config()->defaultColors;

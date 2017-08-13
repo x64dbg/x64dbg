@@ -237,6 +237,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("BreakpointSummaryKeywordColor", QColor("#8B671F"));
     defaultColors.insert("BreakpointSummaryStringColor", QColor("#008000"));
 
+    defaultColors.insert("PatchRelocatedByteHighlightColor", QColor("#0000DD"));
+
     //bool settings
     QMap<QString, bool> disassemblyBool;
     disassemblyBool.insert("ArgumentSpaces", false);
