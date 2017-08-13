@@ -116,12 +116,12 @@ void BreakpointsView::reloadData()
     {
         auto col = mSort.first;
         auto greater = mSort.second;
-        std::stable_sort(mData.begin(), mData.end(), [this, col, greater](const QList<QString> & a, const QList<QString> & b)
+        std::stable_sort(mData.begin(), mData.end(), [this, col, greater](const std::vector<CellData> & a, const std::vector<CellData> & b)
         {
             //this function sorts on header type first and then on column content
-            auto aHeader = !a.at(ColAddr).isEmpty(), bHeader = !b.at(ColAddr).isEmpty();
-            auto aData = &a.at(ColType), bData = &b.at(ColType);
-            auto aType = aData->rightRef(aData->indexOf('\1')).at(0).unicode(), bType = bData->rightRef(bData->indexOf('\1')).at(0).unicode();
+            auto aBp = &mBps.at(a.at(ColAddr).userdata), bBp = &mBps.at(b.at(ColAddr).userdata);
+            auto aType = aBp->type, bType = bBp->type;
+            auto aHeader = aBp->addr || aBp->active, bHeader = bBp->addr || bBp->active;
             struct Hax
             {
                 const bool & greater;
@@ -131,7 +131,7 @@ void BreakpointsView::reloadData()
                 {
                     return greater ? this->s > b.s : this->s < b.s;
                 }
-            } aHax(greater, a.at(col)), bHax(greater, b.at(col));
+            } aHax(greater, a.at(col).text), bHax(greater, b.at(col).text);
             return std::tie(aType, aHeader, aHax) < std::tie(bType, bHeader, bHax);
         });
     }
@@ -144,7 +144,7 @@ QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowO
         painter->fillRect(QRect(x, y, w, h), QBrush(col == ColDisasm ? mDisasmSelectionColor : selectionColor));
     else if(col == ColDisasm)
         painter->fillRect(QRect(x, y, w, h), QBrush(mDisasmBackgroundColor));
-    auto & bp = mBps.at(rowBase + rowOffset);
+    auto & bp = mBps.at(bpIndex(rowBase + rowOffset));
     auto cellContent = getCellContent(rowBase + rowOffset, col);
     if(col > ColType && !bp.addr && !bp.active)
     {
@@ -201,9 +201,11 @@ void BreakpointsView::updateBreakpointsSlot()
         {
             lasttype = bp.type;
             setRowCount(getRowCount() + 1);
-            setCellContent(row, ColType, QString("%1\1%2").arg(bpTypeName(bp.type), QString(QChar(bp.type))));
+            setCellContent(row, ColType, bpTypeName(bp.type));
+            setCellUserdata(row, ColType, bp.type);
             setCellContent(row, ColHits, QString());
             setCellContent(row, ColAddr, QString());
+            setCellUserdata(row, ColAddr, row);
             setCellContent(row, ColModLabel, QString());
             setCellContent(row, ColState, QString());
             setCellContent(row, ColDisasm, QString());
@@ -479,8 +481,10 @@ void BreakpointsView::updateBreakpointsSlot()
             return result;
         };
 
-        setCellContent(row, ColType, QString("\1%1").arg(QChar(bp.type)));
+        setCellContent(row, ColType, QString());
+        setCellUserdata(row, ColType, bp.type);
         setCellContent(row, ColAddr, addrText());
+        setCellUserdata(row, ColAddr, row);
         setCellContent(row, ColModLabel, modLabelText());
         setCellContent(row, ColState, stateName());
         setCellContent(row, ColDisasm, disasmText());

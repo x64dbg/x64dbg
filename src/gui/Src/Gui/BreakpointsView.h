@@ -62,14 +62,20 @@ private:
     QAction* mEnableDisableAction;
     QBeaEngine* mDisasm;
 
+    const int bpIndex(int i)
+    {
+        return mData.at(i).at(ColAddr).userdata;
+    }
+
     const BRIDGEBP & selectedBp()
     {
-        return mBps.at(getInitialSelection());
+        return mBps.at(bpIndex(getInitialSelection()));
     }
 
     bool isValidBp()
     {
-        return DbgIsDebugging() && !mBps.empty() && (selectedBp().addr != 0 || selectedBp().active);
+        auto & bp = selectedBp();
+        return DbgIsDebugging() && !mBps.empty() && (bp.addr != 0 || bp.active);
     }
 
     QString bpTypeName(BPXTYPE type)
