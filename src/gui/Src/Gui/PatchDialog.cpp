@@ -264,6 +264,11 @@ void PatchDialog::on_listModules_itemSelectionChanged()
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         Qt::CheckState state = patchList.at(i).status.checked ? Qt::Checked : Qt::Unchecked;
         item->setCheckState(state);
+        if(DbgFunctions()->ModRelocationAtAddr(patchList.at(i).patch.addr, nullptr))
+        {
+            item->setTextColor(ConfigColor("PatchRelocatedByteHighlightColor"));
+            item->setToolTip(tr("Byte is located in relocation region"));
+        }
     }
     mIsWorking = false;
 }
@@ -446,6 +451,10 @@ void PatchDialog::on_btnPatchFile_clicked()
         SimpleInfoBox(this, tr("Information"), tr("Nothing to patch!"));
         return;
     }
+
+    if(containsRelocatedBytes(curPatchList) && !showRelocatedBytesWarning())
+        return;
+
     char szModName[MAX_PATH] = "";
     if(!DbgFunctions()->ModPathFromAddr(DbgFunctions()->ModBaseFromName(mod.toUtf8().constData()), szModName, MAX_PATH))
     {
@@ -615,6 +624,9 @@ void PatchDialog::on_btnExport_clicked()
     if(!mPatches.size())
         return;
 
+    if(containsRelocatedBytes() && !showRelocatedBytesWarning())
+        return;
+
     QString filename = QFileDialog::getSaveFileName(this, tr("Save patch"), "", tr("Patch files (*.1337)"));
     if(!filename.length())
         return;
@@ -664,4 +676,32 @@ void PatchDialog::saveAs1337(const QString & filename)
     file.close();
 
     SimpleInfoBox(this, tr("Information"), tr("%1 patch(es) exported!").arg(patches));
+}
+
+bool PatchDialog::containsRelocatedBytes()
+{
+    for(PatchMap::iterator i = mPatches.begin(); i != mPatches.end(); ++i)
+    {
+        const PatchInfoList & curPatchList = i.value();
+        if(containsRelocatedBytes(curPatchList))
+            return true;
+    }
+    return false;
+}
+
+bool PatchDialog::containsRelocatedBytes(const PatchInfoList & patchList)
+{
+    for(int i = 0; i < patchList.size(); i++)
+    {
+        if(patchList.at(i).status.checked && DbgFunctions()->ModRelocationAtAddr(patchList.at(i).patch.addr, nullptr))
+            return true;
+    }
+
+    return false;
+}
+
+bool PatchDialog::showRelocatedBytesWarning()
+{
+    auto result = QMessageBox::question(this, tr("Patches overlap with relocation regions"), tr("Your patches overlap with relocation regions. This can cause your code to become corrupted when you load the patched executable. Do you want to continue?"));
+    return result == QMessageBox::Yes;
 }

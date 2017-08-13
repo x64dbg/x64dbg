@@ -17,6 +17,15 @@ struct MODIMPORTINFO
     char moduleName[MAX_MODULE_SIZE];
 };
 
+struct MODRELOCATIONINFO
+{
+    DWORD rva;     // Virtual address
+    BYTE type;      // Relocation type (IMAGE_REL_BASED_*)
+    WORD size;
+
+    bool Contains(duint Address) const;
+};
+
 struct MODINFO
 {
     duint base = 0;  // Module base
@@ -30,6 +39,7 @@ struct MODINFO
 
     std::vector<MODSECTIONINFO> sections;
     std::vector<MODIMPORTINFO> imports;
+    std::vector<MODRELOCATIONINFO> relocations;
 
     HANDLE fileHandle = nullptr;
     DWORD loadedSize = 0;
@@ -67,5 +77,8 @@ void ModGetList(std::vector<MODINFO> & list);
 int ModGetParty(duint Address);
 void ModSetParty(duint Address, int Party);
 bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo);
+bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO>* Relocations);
+bool ModRelocationAtAddr(duint Address, MODRELOCATIONINFO* Relocation);
+bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO>* Relocations);
 
 #endif // _MODULE_H

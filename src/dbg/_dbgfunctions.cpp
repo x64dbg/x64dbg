@@ -349,6 +349,26 @@ static duint _membpsize(duint addr)
     return info ? info->memsize : 0;
 }
 
+static bool _modrelocationsfromaddr(duint addr, ListOf(DBGRELOCATIONINFO) relocations)
+{
+    std::vector<MODRELOCATIONINFO> infos;
+    if(!ModRelocationsFromAddr(addr, &infos))
+        return false;
+
+    BridgeList<MODRELOCATIONINFO>::CopyData(relocations, infos);
+    return true;
+}
+
+static bool _modrelocationsinrange(duint addr, duint size, ListOf(DBGRELOCATIONINFO) relocations)
+{
+    std::vector<MODRELOCATIONINFO> infos;
+    if(!ModRelocationsInRange(addr, size, &infos))
+        return false;
+
+    BridgeList<MODRELOCATIONINFO>::CopyData(relocations, infos);
+    return true;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -416,4 +436,7 @@ void dbgfunctionsinit()
     _dbgfunctions.EnumErrorCodes = _enumerrorcodes;
     _dbgfunctions.EnumExceptions = _enumexceptions;
     _dbgfunctions.MemBpSize = _membpsize;
+    _dbgfunctions.ModRelocationsFromAddr = _modrelocationsfromaddr;
+    _dbgfunctions.ModRelocationAtAddr = (MODRELOCATIONATADDR)ModRelocationAtAddr;
+    _dbgfunctions.ModRelocationsInRange = _modrelocationsinrange;
 }

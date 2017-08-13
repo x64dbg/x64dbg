@@ -67,6 +67,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyByteFFBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyByteIsPrintColor", QColor("#800080"));
     defaultColors.insert("DisassemblyByteIsPrintBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyRelocationUnderlineColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyAutoCommentColor", QColor("#AA5500"));
@@ -235,6 +236,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("BreakpointSummaryParenColor", Qt::red);
     defaultColors.insert("BreakpointSummaryKeywordColor", QColor("#8B671F"));
     defaultColors.insert("BreakpointSummaryStringColor", QColor("#008000"));
+
+    defaultColors.insert("PatchRelocatedByteHighlightColor", QColor("#0000DD"));
 
     //bool settings
     QMap<QString, bool> disassemblyBool;
