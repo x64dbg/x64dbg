@@ -67,6 +67,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyByteFFBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyByteIsPrintColor", QColor("#800080"));
     defaultColors.insert("DisassemblyByteIsPrintBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyRelocationUnderlineColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyAutoCommentColor", QColor("#AA5500"));

@@ -452,19 +452,38 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         //draw bytes
         RichTextPainter::List richBytes;
         RichTextPainter::CustomRichText_t space;
-        space.highlight = false;
+        space.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
+        space.highlightWidth = 1;
+        space.highlightConnectPrev = true;
         space.flags = RichTextPainter::FlagNone;
         space.text = " ";
         RichTextPainter::CustomRichText_t curByte;
-        curByte.highlight = false;
+        curByte.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
+        curByte.highlightWidth = 1;
         curByte.flags = RichTextPainter::FlagAll;
         auto dump = mInstBuffer.at(rowOffset).dump;
         for(int i = 0; i < dump.size(); i++)
         {
+            DBGRELOCATIONINFO relocInfo;
+            if(DbgFunctions()->ModRelocationAtAddr(cur_addr + i, &relocInfo))
+            {
+                bool prevInSameReloc = relocInfo.rva < cur_addr + i - DbgFunctions()->ModBaseFromAddr(cur_addr + i);
+                space.highlight = prevInSameReloc;
+                curByte.highlight = true;
+                curByte.highlightConnectPrev = prevInSameReloc;
+            }
+            else
+            {
+                space.highlight = false;
+                curByte.highlight = false;
+            }
+
             if(i)
                 richBytes.push_back(space);
+
             auto byte = (unsigned char)dump.at(i);
             curByte.text = ToByteString(byte);
+
             DBGPATCHINFO patchInfo;
             if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
             {

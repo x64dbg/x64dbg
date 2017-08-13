@@ -424,6 +424,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("0x7F Bytes"), "DisassemblyByte7FColor", "DisassemblyByte7FBackgroundColor");
     colorInfoListAppend(tr("0xFF Bytes"), "DisassemblyByteFFColor", "DisassemblyByteFFBackgroundColor");
     colorInfoListAppend(tr("IsPrint Bytes"), "DisassemblyByteIsPrintColor", "DisassemblyByteIsPrintBackgroundColor");
+    colorInfoListAppend(tr("Relocation underline"), "DisassemblyRelocationUnderlineColor", "");
 #ifdef _WIN64
     colorInfoListAppend(tr("RIP"), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
 #else //x86

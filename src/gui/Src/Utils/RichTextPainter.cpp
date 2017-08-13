@@ -7,7 +7,6 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
 {
     QPen pen;
     QPen highlightPen;
-    highlightPen.setWidth(2);
     QBrush brush(Qt::cyan);
     for(const CustomRichText_t & curRichText : richText)
     {
@@ -46,8 +45,10 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
         if(curRichText.highlight && curRichText.highlightColor.alpha())
         {
             highlightPen.setColor(curRichText.highlightColor);
+            highlightPen.setWidth(curRichText.highlightWidth);
             painter->setPen(highlightPen);
-            painter->drawLine(x + xinc + 1, y + h - 1, x + xinc + backgroundWidth - 1, y + h - 1);
+            int highlightOffsetX = curRichText.highlightConnectPrev ? -1 : 1;
+            painter->drawLine(x + xinc + highlightOffsetX, y + h - 1, x + xinc + backgroundWidth - 1, y + h - 1);
         }
         xinc += textWidth;
     }
