@@ -1352,19 +1352,19 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         if(!strlen(apiname))
             return false;
         duint modbase = ModBaseFromName(modname);
-        wchar_t szModName[MAX_PATH] = L"";
-        if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
+        char szModPath[MAX_PATH];
+        if(!ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         {
             if(!silent)
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get filename of module %p\n"), modbase);
         }
         else
         {
-            HMODULE mod = LoadLibraryExW(szModName, 0, DONT_RESOLVE_DLL_REFERENCES);
+            HMODULE mod = LoadLibraryExW(StringUtils::Utf8ToUtf16(szModPath).c_str(), 0, DONT_RESOLVE_DLL_REFERENCES);
             if(!mod)
             {
                 if(!silent)
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to load library %s\n"), StringUtils::Utf16ToUtf8(szModName).c_str());
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to load library %s\n"), szModPath);
             }
             else
             {
