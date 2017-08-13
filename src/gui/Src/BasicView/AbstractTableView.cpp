@@ -1125,7 +1125,7 @@ void AbstractTableView::setColumnWidth(int index, int width)
             totalWidth += getColumnWidth(i);
     if(totalWidth > this->viewport()->width())
         horizontalScrollBar()->setRange(0, totalWidth - this->viewport()->width());
-    else if(totalWidth <= this->viewport()->width())
+    else
         horizontalScrollBar()->setRange(0, 0);
 
     mColumnList[index].width = width;

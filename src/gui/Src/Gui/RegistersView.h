@@ -6,8 +6,6 @@
 #include <QMap>
 #include "Bridge.h"
 
-#define IsCharacterRegister(x) ((x>=CAX && x<CIP))
-
 class CPUWidget;
 class CPUMultiDump;
 
