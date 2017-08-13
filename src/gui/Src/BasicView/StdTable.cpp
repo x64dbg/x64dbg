@@ -317,7 +317,7 @@ void StdTable::setCellContent(int r, int c, QString s)
 QString StdTable::getCellContent(int r, int c)
 {
     if(isValidIndex(r, c) == true)
-        return mData[r][c];
+        return mData[r][c].left(mData[r][c].indexOf('\1'));
     else
         return QString("");
 }

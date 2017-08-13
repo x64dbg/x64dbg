@@ -60,7 +60,7 @@ public slots:
     void contextMenuRequestedSlot(const QPoint & pos);
     void headerButtonPressedSlot(int col);
 
-private:
+protected:
     QString copyTable(const std::vector<int> & colWidths);
 
     class ColumnCompare
@@ -104,7 +104,7 @@ private:
     bool mCopyMenuDebugOnly;
     bool mIsColumnSortingAllowed;
 
-    QList<QList<QString>> mData;
+    QList<QList<QString>> mData; //listof(row) where row = (listof(col) where col = string)
     QList<QString> mCopyTitles;
     QPair<int, bool> mSort;
 };

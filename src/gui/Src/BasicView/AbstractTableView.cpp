@@ -331,7 +331,6 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     //emit repainted();
 }
 
-
 /************************************************************************************
                             Mouse Management
 ************************************************************************************/
@@ -439,7 +438,6 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
     }
 }
 
-
 /**
  * @brief       This method has been reimplemented. It manages the following actions:
  *               - Column resizing
@@ -477,18 +475,20 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
             mReorderStartX = event->x();
 
             int wColIndex = getColumnIndexFromX(event->x());
+            if(mColumnList[wColIndex].header.isClickable)
+            {
+                //qDebug() << "Button " << wColIndex << "has been pressed.";
+                emit headerButtonPressed(wColIndex);
 
-            //qDebug() << "Button " << wColIndex << "has been pressed.";
-            emit headerButtonPressed(wColIndex);
+                mColumnList[wColIndex].header.isPressed = true;
+                mColumnList[wColIndex].header.isMouseOver = true;
 
-            mColumnList[wColIndex].header.isPressed = true;
-            mColumnList[wColIndex].header.isMouseOver = true;
+                mHeader.activeButtonIndex = wColIndex;
 
-            mHeader.activeButtonIndex = wColIndex;
+                mGuiState = AbstractTableView::HeaderButtonPressed;
 
-            mGuiState = AbstractTableView::HeaderButtonPressed;
-
-            updateViewport();
+                updateViewport();
+            }
         }
     }
     else //right/middle click
@@ -616,7 +616,6 @@ void AbstractTableView::resizeEvent(QResizeEvent* event)
     QWidget::resizeEvent(event);
 }
 
-
 /************************************************************************************
                             Keyboard Management
 ************************************************************************************/
@@ -725,7 +724,6 @@ void AbstractTableView::vertSliderActionSlot(int action)
     verticalScrollBar()->setSliderPosition(wNewScrollBarValue);
 }
 
-
 /**
  * @brief       This virtual method is called at the end of the vertSliderActionSlot(...) method.
  *              It allows changing the table offset according to the action type, the old table offset
@@ -749,7 +747,6 @@ dsint AbstractTableView::sliderMovedHook(int type, dsint value, dsint delta)
 
     return wValue;
 }
-
 
 /**
  * @brief       This method scale the given 64bits integer to the scrollbar range (32bits).
@@ -778,7 +775,6 @@ int AbstractTableView::scaleFromUint64ToScrollBarRange(dsint value)
 }
 #endif
 
-
 /**
  * @brief       This method scale the given 32bits integer to the table range (64bits).
  *
@@ -804,7 +800,6 @@ dsint AbstractTableView::scaleFromScrollBarRangeToUint64(int value)
     }
 }
 #endif
-
 
 /**
  * @brief       This method updates the vertical scrollbar range and pre-computes some attributes for the 32<->64bits conversion methods.
@@ -872,7 +867,6 @@ int AbstractTableView::getIndexOffsetFromY(int y)
 {
     return (y / getRowHeight());
 }
-
 
 /**
  * @brief       Returns the index of the column corresponding to the given x coordinate.
@@ -942,7 +936,6 @@ int AbstractTableView::getColumnDisplayIndexFromX(int x)
     return getColumnCount() - 1;
 }
 
-
 /**
  * @brief       Returns the x coordinate of the beginning of the column at index index.
  *
@@ -967,7 +960,6 @@ int AbstractTableView::getColumnPosition(int index)
     }
 }
 
-
 /**
  * @brief       Substracts the header heigth from the given y.
  *
@@ -979,7 +971,6 @@ int AbstractTableView::transY(int y)
 {
     return y - getHeaderHeight();
 }
-
 
 /**
  * @brief       Returns the number of viewable rows in the current window (Partially viewable rows are aslo counted).
@@ -997,7 +988,6 @@ int AbstractTableView::getViewableRowsCount()
     return wCount;
 }
 
-
 /**
  * @brief       This virtual method returns the number of remaining lines to print.
  *
@@ -1010,7 +1000,6 @@ int AbstractTableView::getLineToPrintcount()
     int wCount = (dsint)wRemainingRowsCount > (dsint)wViewableRowsCount ? (int)wViewableRowsCount : (int)wRemainingRowsCount;
     return wCount;
 }
-
 
 /************************************************************************************
                                 New Columns/New Size
@@ -1114,12 +1103,14 @@ bool AbstractTableView::getColumnHidden(int col)
     else
         return true;
 }
+
 AbstractTableView::SortBy::t AbstractTableView::getColumnSortBy(int col) const
 {
     if(col < getColumnCount() && col >= 0)
         return mColumnList[col].sortFunction;
     return SortBy::AsText;
 }
+
 void AbstractTableView::setColumnHidden(int col, bool hidden)
 {
     if(col < getColumnCount() && col >= 0)
@@ -1211,7 +1202,6 @@ dsint AbstractTableView::getTableOffset()
     return mTableOffset;
 }
 
-
 void AbstractTableView::setTableOffset(dsint val)
 {
     dsint wMaxOffset = getRowCount() - getViewableRowsCount() + 1;
@@ -1247,7 +1237,6 @@ void AbstractTableView::reloadData()
     emit tableOffsetChanged(mTableOffset);
     this->viewport()->update();
 }
-
 
 void AbstractTableView::updateViewport()
 {
