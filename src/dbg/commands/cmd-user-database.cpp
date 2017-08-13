@@ -169,6 +169,7 @@ bool cbInstrLabelList(int argc, char* argv[])
     auto count = int(labels.size());
     for(int i = 0; i < count; i++)
     {
+        labels[i].addr += ModBaseFromName(labels[i].mod().c_str());
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
         sprintf_s(addrText, "%p", labels[i].addr);
