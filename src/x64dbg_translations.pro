@@ -212,7 +212,6 @@ SOURCES += \
     gui/Src/Utils/MenuBuilder.cpp \
     gui/Src/Gui/SimpleTraceDialog.cpp \
     gui/Src/Gui/StructWidget.cpp \
-    gui/Src/Gui/BreakpointsViewTable.cpp \
     dbg/formatfunctions.cpp \
     dbg/types.cpp \
     dbg/typesparser.cpp \
@@ -442,7 +441,6 @@ HEADERS += \
     dbg/commands/cmd-watch-control.h \
     gui/Src/Gui/CustomizeMenuDialog.h \
     gui/Src/Gui/SimpleTraceDialog.h \
-    gui/Src/Gui/BreakpointsViewTable.h \
     dbg/filemap.h \
     dbg/formatfunctions.h \
     dbg/types.h \

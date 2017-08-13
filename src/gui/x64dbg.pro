@@ -175,7 +175,6 @@ SOURCES += \
     Src/Gui/StructWidget.cpp \
     Src/Gui/CustomizeMenuDialog.cpp \
     Src/Gui/SimpleTraceDialog.cpp \
-    Src/Gui/BreakpointsViewTable.cpp \
     Src/Utils/MRUList.cpp \
     Src/Gui/LocalVarsView.cpp \
     Src/Gui/MessagesBreakpoints.cpp \
@@ -289,7 +288,6 @@ HEADERS += \
     Src/Gui/CustomizeMenuDialog.h \
     Src/Gui/StructWidget.h \
     Src/Gui/SimpleTraceDialog.h \
-    Src/Gui/BreakpointsViewTable.h \
     Src/Utils/MRUList.h \
     Src/Gui/LocalVarsView.h \
     Src/Gui/MessagesBreakpoints.h \
