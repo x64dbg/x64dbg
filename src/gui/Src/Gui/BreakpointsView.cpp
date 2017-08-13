@@ -258,7 +258,7 @@ void BreakpointsView::updateBreakpointsSlot()
         auto disasmText = [&]() -> QString
         {
             QString result;
-            if(bp.type == bp_dll || bp.type == bp_exception)
+            if(!bp.active || bp.type == bp_dll || bp.type == bp_exception)
                 return result;
             byte_t data[MAX_DISASM_BUFFER];
             if(DbgMemRead(bp.addr, data, sizeof(data)))

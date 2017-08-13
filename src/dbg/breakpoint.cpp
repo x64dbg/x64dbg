@@ -756,7 +756,7 @@ void BpCacheLoad(JSON Root)
         if(breakpoint.type == BPNORMAL)
             breakpoint.oldbytes = (unsigned short)(json_hex_value(json_object_get(value, "oldbytes")) & 0xFFFF);
         else if(breakpoint.type == BPMEMORY)
-            breakpoint.memsize = json_hex_value(json_object_get(value, "memsize"));
+            breakpoint.memsize = (duint)json_hex_value(json_object_get(value, "memsize"));
         breakpoint.addr = (duint)json_hex_value(json_object_get(value, "address"));
         breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
         breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
