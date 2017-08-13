@@ -252,6 +252,7 @@ typedef struct DBGFUNCTIONS_
     GETUSERCOMMENT GetUserComment;
     ENUMCONSTANTS EnumConstants;
     ENUMCONSTANTS EnumErrorCodes;
+    ENUMCONSTANTS EnumExceptions;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

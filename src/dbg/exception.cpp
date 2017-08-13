@@ -133,6 +133,26 @@ const String & ExceptionCodeToName(unsigned int ExceptionCode)
         return name;
 }
 
+std::vector<CONSTANTINFO> ExceptionList()
+{
+    std::vector<CONSTANTINFO> result;
+    for(auto it = ExceptionNames.begin(); it != ExceptionNames.end(); ++it)
+    {
+        CONSTANTINFO info;
+        info.name = it->second.c_str();
+        info.value = it->first;
+        result.push_back(info);
+    }
+    for(auto it = NtStatusNames.begin(); it != NtStatusNames.end(); ++it)
+    {
+        CONSTANTINFO info;
+        info.name = it->second.c_str();
+        info.value = it->first;
+        result.push_back(info);
+    }
+    return result;
+}
+
 const String & NtStatusCodeToName(unsigned int NtStatusCode)
 {
     bool success;

@@ -336,6 +336,12 @@ static void _enumerrorcodes(ListOf(CONSTANTINFO) errorcodes)
     BridgeList<CONSTANTINFO>::CopyData(errorcodes, errorcodesV);
 }
 
+static void _enumexceptions(ListOf(CONSTANTINFO) exceptions)
+{
+    auto exceptionsV = ExceptionList();
+    BridgeList<CONSTANTINFO>::CopyData(exceptions, exceptionsV);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -401,4 +407,5 @@ void dbgfunctionsinit()
     _dbgfunctions.GetUserComment = CommentGet;
     _dbgfunctions.EnumConstants = _enumconstants;
     _dbgfunctions.EnumErrorCodes = _enumerrorcodes;
+    _dbgfunctions.EnumExceptions = _enumexceptions;
 }
