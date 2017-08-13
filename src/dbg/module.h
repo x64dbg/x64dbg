@@ -2,7 +2,6 @@
 #define _MODULE_H
 
 #include "_global.h"
-#include <set>
 
 struct MODSECTIONINFO
 {
@@ -25,9 +24,6 @@ struct MODRELOCATIONINFO
     WORD size;
 
     bool Contains(duint Address) const;
-
-    bool operator<(const MODRELOCATIONINFO & b) const;
-    bool operator== (const MODRELOCATIONINFO & b) const;
 };
 
 struct MODINFO
@@ -43,7 +39,7 @@ struct MODINFO
 
     std::vector<MODSECTIONINFO> sections;
     std::vector<MODIMPORTINFO> imports;
-    std::set<MODRELOCATIONINFO> relocations;
+    std::vector<MODRELOCATIONINFO> relocations;
 
     HANDLE fileHandle = nullptr;
     DWORD loadedSize = 0;

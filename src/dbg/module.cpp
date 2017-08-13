@@ -15,16 +15,6 @@ bool MODRELOCATIONINFO::Contains(duint Address) const
     return Address >= rva && Address < rva + size;
 }
 
-bool MODRELOCATIONINFO::operator<(const MODRELOCATIONINFO & b) const
-{
-    return rva < b.rva;
-}
-
-bool MODRELOCATIONINFO::operator==(const MODRELOCATIONINFO & b) const
-{
-    return rva == b.rva;
-}
-
 void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Clear relocations
@@ -63,15 +53,15 @@ void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
             switch(type)
             {
             case IMAGE_REL_BASED_HIGHLOW:
-                Info.relocations.insert(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 4 });
+                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 4 });
                 break;
             case IMAGE_REL_BASED_DIR64:
-                Info.relocations.insert(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 8 });
+                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 8 });
                 break;
             case IMAGE_REL_BASED_HIGH:
             case IMAGE_REL_BASED_LOW:
             case IMAGE_REL_BASED_HIGHADJ:
-                Info.relocations.insert(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 2 });
+                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 2 });
                 break;
             case IMAGE_REL_BASED_ABSOLUTE:
             default:
@@ -81,6 +71,11 @@ void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
 
         curPos += baseRelocBlock.SizeOfBlock;
     }
+
+    std::sort(Info.relocations.begin(), Info.relocations.end(), [](MODRELOCATIONINFO const & a, MODRELOCATIONINFO const & b)
+    {
+        return a.rva < b.rva;
+    });
 }
 
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
@@ -574,7 +569,7 @@ bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO>* Reloc
 
     // Copy vector <-> set
     Relocations->resize(module->relocations.size());
-    std::copy(module->relocations.begin(), module->relocations.end(), Relocations->begin());
+    *Relocations = module->relocations;
 
     return true;
 }
@@ -591,10 +586,15 @@ bool ModRelocationAtAddr(duint Address, MODRELOCATIONINFO* Relocation)
     DWORD rva = (DWORD)(Address - module->base);
 
     // We assume there are no overlapping relocations
-    auto ub = module->relocations.upper_bound(MODRELOCATIONINFO { rva, 0 });
+    auto ub = std::upper_bound(module->relocations.cbegin(), module->relocations.cend(), rva,
+                               [](DWORD a, MODRELOCATIONINFO const & b)
+    {
+        return a < b.rva;
+    });
     if(ub != module->relocations.begin() && (--ub)->Contains(rva))
     {
-        *Relocation = *ub;
+        if(Relocation)
+            *Relocation = *ub;
         return true;
     }
 
@@ -613,7 +613,11 @@ bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONI
     DWORD rva = (DWORD)(Address - module->base);
 
     // We assume there are no overlapping relocations
-    auto ub = module->relocations.upper_bound(MODRELOCATIONINFO { rva, 0 });
+    auto ub = std::upper_bound(module->relocations.cbegin(), module->relocations.cend(), rva,
+                               [](DWORD a, MODRELOCATIONINFO const & b)
+    {
+        return a < b.rva;
+    });
     if(ub != module->relocations.begin())
         ub--;
 
