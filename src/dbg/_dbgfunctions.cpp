@@ -359,16 +359,6 @@ static bool _modrelocationsfromaddr(duint addr, ListOf(DBGRELOCATIONINFO) reloca
     return true;
 }
 
-static bool _modrelocationataddr(duint addr, DBGRELOCATIONINFO* relocation)
-{
-    MODRELOCATIONINFO info;
-    if(!ModRelocationAtAddr(addr, &info))
-        return false;
-
-    *(MODRELOCATIONINFO*)relocation = info;
-    return true;
-}
-
 static bool _modrelocationsinrange(duint addr, duint size, ListOf(DBGRELOCATIONINFO) relocations)
 {
     std::vector<MODRELOCATIONINFO> infos;
@@ -447,6 +437,6 @@ void dbgfunctionsinit()
     _dbgfunctions.EnumExceptions = _enumexceptions;
     _dbgfunctions.MemBpSize = _membpsize;
     _dbgfunctions.ModRelocationsFromAddr = _modrelocationsfromaddr;
-    _dbgfunctions.ModRelocationAtAddr = _modrelocationataddr;
+    _dbgfunctions.ModRelocationAtAddr = (MODRELOCATIONATADDR)ModRelocationAtAddr;
     _dbgfunctions.ModRelocationsInRange = _modrelocationsinrange;
 }
