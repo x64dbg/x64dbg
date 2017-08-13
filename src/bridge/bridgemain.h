@@ -388,6 +388,43 @@ typedef enum
     MODE_UNCHANGED // alert if expression is not changed
 } WATCHDOGMODE;
 
+typedef enum
+{
+    hw_access,
+    hw_write,
+    hw_execute
+} BPHWTYPE;
+
+typedef enum
+{
+    mem_access,
+    mem_read,
+    mem_write,
+    mem_execute
+} BPMEMTYPE;
+
+typedef enum
+{
+    dll_load = 1,
+    dll_unload,
+    dll_all
+} BPDLLTYPE;
+
+typedef enum
+{
+    ex_firstchance = 1,
+    ex_secondchance,
+    ex_all
+} BPEXTYPE;
+
+typedef enum
+{
+    hw_byte,
+    hw_word,
+    hw_dword,
+    hw_qword
+} BPHWSIZE;
+
 //Debugger typedefs
 typedef MEMORY_SIZE VALUE_SIZE;
 typedef struct SYMBOLINFO_ SYMBOLINFO;
@@ -419,6 +456,8 @@ typedef struct
     char mod[MAX_MODULE_SIZE];
     unsigned short slot;
     // extended part
+    unsigned char typeEx; //BPHWTYPE/BPMEMTYPE/BPDLLTYPE/BPEXTYPE
+    unsigned char hwSize; //BPHWSIZE
     unsigned int hitCount;
     bool fastResume;
     bool silent;

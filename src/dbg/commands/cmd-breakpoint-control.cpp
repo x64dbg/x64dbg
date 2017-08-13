@@ -1152,22 +1152,41 @@ bool cbDebugSetExceptionBPX(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Exception breakpoint %X (%s) already exists!\n"), DWORD(ExceptionCode), ExceptionName.c_str());
         return false;
     }
-    duint chance = 1;
+    auto extype = ex_firstchance;
     if(argc > 2)
     {
-        if(!valfromstring(argv[2], &chance))
+        duint chance;
+        if(scmp(argv[2], "first"))
+            extype = ex_firstchance;
+        else if(scmp(argv[2], "second"))
+            extype = ex_secondchance;
+        else if(scmp(argv[2], "all"))
+            extype = ex_all;
+        else if(valfromstring(argv[2], &chance))
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Invalid expression!"));
+            switch(chance)
+            {
+            case 1:
+                extype = ex_firstchance;
+                break;
+            case 2:
+                extype = ex_secondchance;
+                break;
+            case 3:
+                extype = ex_all;
+                break;
+            default:
+                _plugin_logprintf(QT_TRANSLATE_NOOP("DBG", "Invalid exception type!"));
+                return false;
+            }
+        }
+        else
+        {
+            _plugin_logprintf(QT_TRANSLATE_NOOP("DBG", "Invalid exception type!"));
             return false;
         }
-        // range limit
-        // chance: 1=first chance, 2=second chance, 3=all
-        if(chance > 3)
-            chance = 3;
-        if(chance == 0)
-            chance = 1;
     }
-    if(!BpNew(ExceptionCode, true, false, 0, BPEXCEPTION, DWORD(chance), ""))
+    if(!BpNew(ExceptionCode, true, false, 0, BPEXCEPTION, extype, ""))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to set exception breakpoint! (BpNew)"));
         return false;

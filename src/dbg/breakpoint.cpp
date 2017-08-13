@@ -610,6 +610,33 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
             BridgeBp->slot = 3;
             break;
         }
+        switch(TITANGETSIZE(Bp->titantype))
+        {
+        case UE_HARDWARE_SIZE_1:
+            BridgeBp->hwSize = hw_byte;
+            break;
+        case UE_HARDWARE_SIZE_2:
+            BridgeBp->hwSize = hw_word;
+            break;
+        case UE_HARDWARE_SIZE_4:
+            BridgeBp->hwSize = hw_dword;
+            break;
+        case UE_HARDWARE_SIZE_8:
+            BridgeBp->hwSize = hw_qword;
+            break;
+        }
+        switch(TITANGETTYPE(Bp->titantype))
+        {
+        case UE_HARDWARE_READWRITE:
+            BridgeBp->typeEx = hw_access;
+            break;
+        case UE_HARDWARE_WRITE:
+            BridgeBp->typeEx = hw_write;
+            break;
+        case UE_HARDWARE_EXECUTE:
+            BridgeBp->typeEx = hw_execute;
+            break;
+        }
         break;
     case BPMEMORY:
         BridgeBp->type = bp_memory;
@@ -619,19 +646,32 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         switch(Bp->titantype)
         {
         case UE_ON_LIB_LOAD:
-            BridgeBp->slot = 0;
+            BridgeBp->typeEx = dll_load;
             break;
         case UE_ON_LIB_UNLOAD:
-            BridgeBp->slot = 1;
+            BridgeBp->typeEx = dll_unload;
             break;
         case UE_ON_LIB_ALL:
-            BridgeBp->slot = 2;
+            BridgeBp->typeEx = dll_all;
             break;
         }
         break;
     case BPEXCEPTION:
         BridgeBp->type = bp_exception;
-        BridgeBp->slot = (unsigned short)Bp->titantype; //1:First-chance, 2:Second-chance, 3:Both
+        switch(Bp->titantype) //1:First-chance, 2:Second-chance, 3:Both
+        {
+        case 1:
+            BridgeBp->typeEx = ex_firstchance;
+            break;
+        case 2:
+            BridgeBp->typeEx = ex_secondchance;
+            break;
+        case 3:
+            BridgeBp->typeEx = ex_all;
+            break;
+        default:
+            __debugbreak();
+        }
         break;
     default:
         BridgeBp->type = bp_none;
