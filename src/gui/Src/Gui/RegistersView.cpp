@@ -1840,7 +1840,6 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
             if(c.isPrint())
             {
                 newText = QString("'%1'").arg((char)register_value);
-                IsCharacterRegister(register_selected);
             }
         }
         else if(register_value == (register_value & 0xFFF)) //UNICODE?
@@ -1849,7 +1848,6 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
             if(c.isPrint())
             {
                 newText = "L'" + QString(c) + "'";
-                IsCharacterRegister(register_selected);
             }
         }
     }
