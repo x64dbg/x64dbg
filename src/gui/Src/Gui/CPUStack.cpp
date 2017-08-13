@@ -637,7 +637,7 @@ void CPUStack::gotoNextFrameSlot()
 void CPUStack::gotoPreviousFrameSlot()
 {
     int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
-    if(frame != -1 && frame > 0)
+    if(frame > 0)
         DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame - 1].addr)).toUtf8().constData());
 }
 
