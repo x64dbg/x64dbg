@@ -36,9 +36,9 @@ BreakpointsView::BreakpointsView(QWidget* parent)
 
 void BreakpointsView::setupContextMenu()
 {
-    mMenuBuilder = new MenuBuilder(this, [](QMenu*)
+    mMenuBuilder = new MenuBuilder(this, [this](QMenu*)
     {
-        return DbgIsDebugging();
+        return DbgIsDebugging() && isValidIndex(getInitialSelection(), ColType);
     });
 
     auto validBp = [this](QMenu*)
@@ -494,7 +494,14 @@ void BreakpointsView::updateBreakpointsSlot()
         mRich.push_back(std::make_pair(std::move(richDisasm), std::move(richSummary)));
     }
     if(bpmap.count)
+    {
         BridgeFree(bpmap.bp);
+
+        auto sel = getInitialSelection();
+        auto rows = getRowCount();
+        if(sel >= rows)
+            setSingleSelection(rows - 1);
+    }
     reloadData();
 }
 

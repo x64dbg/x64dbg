@@ -74,8 +74,11 @@ private:
 
     bool isValidBp()
     {
-        auto & bp = selectedBp();
-        return DbgIsDebugging() && !mBps.empty() && (bp.addr != 0 || bp.active);
+        auto sel = getInitialSelection();
+        if(!DbgIsDebugging() || mBps.empty() || !isValidIndex(sel, ColType))
+            return false;
+        auto & bp = mBps.at(bpIndex(sel));
+        return bp.addr != 0 || bp.active;
     }
 
     QString bpTypeName(BPXTYPE type)
