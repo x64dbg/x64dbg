@@ -38,7 +38,7 @@ void BreakpointsView::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this, [this](QMenu*)
     {
-        return DbgIsDebugging() && isValidIndex(getInitialSelection(), ColType);
+        return DbgIsDebugging();
     });
 
     auto validBp = [this](QMenu*)
