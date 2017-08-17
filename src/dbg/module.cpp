@@ -53,15 +53,15 @@ void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
             switch(type)
             {
             case IMAGE_REL_BASED_HIGHLOW:
-                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 4 });
+                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, (BYTE)type, 4 });
                 break;
             case IMAGE_REL_BASED_DIR64:
-                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 8 });
+                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, (BYTE)type, 8 });
                 break;
             case IMAGE_REL_BASED_HIGH:
             case IMAGE_REL_BASED_LOW:
             case IMAGE_REL_BASED_HIGHADJ:
-                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, type, 2 });
+                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, (BYTE)type, 2 });
                 break;
             case IMAGE_REL_BASED_ABSOLUTE:
             default:
