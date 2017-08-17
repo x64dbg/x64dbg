@@ -38,7 +38,8 @@ public:
     static WString vsprintf(_In_z_ _Printf_format_string_ const wchar_t* format, va_list args);
     static WString sprintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...);
     static String ToLower(const String & s);
-    static bool StartsWith(const String & h, const String & n);
+    static bool StartsWith(const String & str, const String & prefix);
+    static bool EndsWith(const String & str, const String & suffix);
     static bool FromHex(const String & text, std::vector<unsigned char> & data, bool reverse = false);
     static String ToHex(unsigned long long value);
     static String ToHex(unsigned char* buffer, size_t size, bool reverse = false);

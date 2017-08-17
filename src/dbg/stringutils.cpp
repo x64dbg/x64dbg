@@ -451,9 +451,14 @@ String StringUtils::ToLower(const String & s)
     return result;
 }
 
-bool StringUtils::StartsWith(const String & h, const String & n)
+bool StringUtils::StartsWith(const String & str, const String & prefix)
 {
-    return strstr(h.c_str(), n.c_str()) == h.c_str();
+    return str.size() >= prefix.size() && 0 == str.compare(0, prefix.size(), prefix);
+}
+
+bool StringUtils::EndsWith(const String & str, const String & suffix)
+{
+    return str.size() >= suffix.size() && 0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
 }
 
 static int hex2int(char ch)

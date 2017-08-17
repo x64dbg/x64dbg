@@ -369,6 +369,7 @@ static void registercommands()
     dbgcmdnew("StartScylla,scylla,imprec", cbDebugStartScylla, false); //start scylla
     dbgcmdnew("plugload,pluginload,loadplugin", cbInstrPluginLoad, false); //load plugin
     dbgcmdnew("plugunload,pluginunload,unloadplugin", cbInstrPluginUnload, false); //unload plugin
+    dbgcmdnew("plugreload,plugunreload,reloadplugin", cbInstrPluginReload, false); //reload plugin
 
     //script
     dbgcmdnew("scriptload", cbScriptLoad, false);

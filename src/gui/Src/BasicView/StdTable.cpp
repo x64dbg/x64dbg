@@ -274,7 +274,7 @@ void StdTable::addColumnAt(int width, QString title, bool isClickable, QString c
     AbstractTableView::addColumnAt(width, title, isClickable, sortFn);
 
     //append empty column to list of rows
-    for(int i = 0; i < mData.size(); i++)
+    for(size_t i = 0; i < mData.size(); i++)
         mData[i].push_back(CellData());
 
     //Append copy title
@@ -335,9 +335,9 @@ duint StdTable::getCellUserdata(int r, int c)
 
 bool StdTable::isValidIndex(int r, int c)
 {
-    if(r < 0 || c < 0 || r >= mData.size())
+    if(r < 0 || c < 0 || r >= int(mData.size()))
         return false;
-    return c < mData.at(r).size();
+    return c < int(mData.at(r).size());
 }
 
 void StdTable::copyLineSlot()
