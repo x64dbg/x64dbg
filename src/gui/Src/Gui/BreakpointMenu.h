@@ -11,11 +11,19 @@ class BreakpointMenu : public QObject, public ActionHelperProxy
 public:
     using GetSelectionFunc = std::function<duint()>;
 
-    explicit BreakpointMenu(QObject* parent, ActionHelperFuncs funcs, GetSelectionFunc getSelection);
+    explicit BreakpointMenu(QWidget* parent, ActionHelperFuncs funcs, GetSelectionFunc getSelection);
     void build(MenuBuilder* builder);
+
+public slots:
+    void toggleInt3BPActionSlot();
+    void editSoftBpActionSlot();
+    void toggleHwBpActionSlot();
+    void setHwBpOnSlot0ActionSlot();
+    void setHwBpOnSlot1ActionSlot();
+    void setHwBpOnSlot2ActionSlot();
+    void setHwBpOnSlot3ActionSlot();
+    void setHwBpAt(duint va, int slot);
 
 private:
     GetSelectionFunc mGetSelection;
-
-    void testSlot();
 };

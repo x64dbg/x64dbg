@@ -3,6 +3,7 @@
 
 #include <QAction>
 #include <functional>
+#include "Configuration.h"
 
 //TODO: find the right "const &" "&", "&&" "" etc for passing around std::function
 using SlotFunc = std::function<void()>;

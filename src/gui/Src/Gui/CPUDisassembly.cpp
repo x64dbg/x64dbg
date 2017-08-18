@@ -25,6 +25,7 @@
 #include "DataCopyDialog.h"
 #include "SnowmanView.h"
 #include "MemoryPage.h"
+#include "BreakpointMenu.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -95,7 +96,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
     // (Opcodes) Set INT3 breakpoint
     case 1:
-        toggleInt3BPActionSlot();
+        mBreakpointMenu->toggleInt3BPActionSlot();
         break;
 
     // (Disassembly) Assemble dialog
@@ -269,73 +270,11 @@ void CPUDisassembly::setupRightClickContextMenu()
         return DbgFunctions()->PatchInRange(start, end); //something patched in selected range
     });
 
-    QAction* toggleBreakpointAction = makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle"), SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
-    QAction* editSoftwareBreakpointAction = makeShortcutAction(DIcon("breakpoint_edit_alt.png"), tr("Edit"), SLOT(editSoftBpActionSlot()), "ActionEditBreakpoint");
-    QAction* setHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()), "ActionSetHwBpE");
-    QAction* removeHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_remove.png"), tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()), "ActionRemoveHwBp");
-
-    QMenu* replaceSlotMenu = makeMenu(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"));
-    QAction* replaceSlot0Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot1.png"), tr("Replace Slot 0 (Free)"), SLOT(setHwBpOnSlot0ActionSlot()));
-    QAction* replaceSlot1Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot2.png"), tr("Replace Slot 1 (Free)"), SLOT(setHwBpOnSlot1ActionSlot()));
-    QAction* replaceSlot2Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot3.png"), tr("Replace Slot 2 (Free)"), SLOT(setHwBpOnSlot2ActionSlot()));
-    QAction* replaceSlot3Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot4.png"), tr("Replace Slot 3 (Free)"), SLOT(setHwBpOnSlot3ActionSlot()));
-
-    mMenuBuilder->addMenu(makeMenu(DIcon("breakpoint.png"), tr("Breakpoint")), [ = ](QMenu * menu)
+    mBreakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
     {
-        BPXTYPE bpType = DbgGetBpxTypeAt(rvaToVa(getInitialSelection()));
-        if((bpType & bp_normal) == bp_normal)
-            menu->addAction(editSoftwareBreakpointAction);
-
-        menu->addAction(toggleBreakpointAction);
-
-        if((bpType & bp_hardware) == bp_hardware)
-        {
-            menu->addAction(removeHwBreakpointAction);
-        }
-        else
-        {
-            BPMAP bpList;
-            DbgGetBpList(bp_hardware, &bpList);
-
-            //get enabled hwbp count
-            int enabledCount = bpList.count;
-            for(int i = 0; i < bpList.count; i++)
-                if(!bpList.bp[i].enabled)
-                    enabledCount--;
-
-            if(enabledCount < 4)
-            {
-                menu->addAction(setHwBreakpointAction);
-            }
-            else
-            {
-                for(int i = 0; i < 4; i++)
-                {
-                    switch(bpList.bp[i].slot)
-                    {
-                    case 0:
-                        replaceSlot0Action->setText(tr("Replace Slot %1 (0x%2)").arg(1).arg(ToPtrString(bpList.bp[i].addr)));
-                        break;
-                    case 1:
-                        replaceSlot1Action->setText(tr("Replace Slot %1 (0x%2)").arg(2).arg(ToPtrString(bpList.bp[i].addr)));
-                        break;
-                    case 2:
-                        replaceSlot2Action->setText(tr("Replace Slot %1 (0x%2)").arg(3).arg(ToPtrString(bpList.bp[i].addr)));
-                        break;
-                    case 3:
-                        replaceSlot3Action->setText(tr("Replace Slot %1 (0x%2)").arg(4).arg(ToPtrString(bpList.bp[i].addr)));
-                        break;
-                    default:
-                        break;
-                    }
-                }
-                menu->addMenu(replaceSlotMenu);
-            }
-            if(bpList.count)
-                BridgeFree(bpList.bp);
-        }
-        return true;
+        return rvaToVa(getInitialSelection());
     });
+    mBreakpointMenu->build(mMenuBuilder);
 
     mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), tr("&Follow in Dump")), [this](QMenu * menu)
     {
@@ -706,114 +645,7 @@ void CPUDisassembly::gotoOriginSlot()
 }
 
 
-void CPUDisassembly::toggleInt3BPActionSlot()
-{
-    if(!DbgIsDebugging())
-        return;
-    duint wVA = rvaToVa(getInitialSelection());
-    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-    QString wCmd;
 
-    if((wBpType & bp_normal) == bp_normal)
-    {
-        wCmd = "bc " + ToPtrString(wVA);
-    }
-    else
-    {
-        if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
-        {
-            QMessageBox msgyn(QMessageBox::Warning, tr("Current address is not executable"),
-                              tr("Setting software breakpoint here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
-            msgyn.setWindowIcon(DIcon("compile-warning.png"));
-            msgyn.setParent(this, Qt::Dialog);
-            msgyn.setWindowFlags(msgyn.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-            if(msgyn.exec() == QMessageBox::No)
-                return;
-        }
-        wCmd = "bp " + ToPtrString(wVA);
-    }
-
-    DbgCmdExec(wCmd.toUtf8().constData());
-    //emit Disassembly::repainted();
-}
-
-
-void CPUDisassembly::toggleHwBpActionSlot()
-{
-    duint wVA = rvaToVa(getInitialSelection());
-    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-    QString wCmd;
-
-    if((wBpType & bp_hardware) == bp_hardware)
-    {
-        wCmd = "bphwc " + ToPtrString(wVA);
-    }
-    else
-    {
-        wCmd = "bphws " + ToPtrString(wVA);
-    }
-
-    DbgCmdExec(wCmd.toUtf8().constData());
-}
-
-
-void CPUDisassembly::setHwBpOnSlot0ActionSlot()
-{
-    setHwBpAt(rvaToVa(getInitialSelection()), 0);
-}
-
-void CPUDisassembly::setHwBpOnSlot1ActionSlot()
-{
-    setHwBpAt(rvaToVa(getInitialSelection()), 1);
-}
-
-void CPUDisassembly::setHwBpOnSlot2ActionSlot()
-{
-    setHwBpAt(rvaToVa(getInitialSelection()), 2);
-}
-
-void CPUDisassembly::setHwBpOnSlot3ActionSlot()
-{
-    setHwBpAt(rvaToVa(getInitialSelection()), 3);
-}
-
-void CPUDisassembly::setHwBpAt(duint va, int slot)
-{
-    int wI = 0;
-    int wSlotIndex = -1;
-    BPMAP wBPList;
-    QString wCmd = "";
-
-    DbgGetBpList(bp_hardware, &wBPList);
-
-    // Find index of slot slot in the list
-    for(wI = 0; wI < wBPList.count; wI++)
-    {
-        if(wBPList.bp[wI].slot == (unsigned short)slot)
-        {
-            wSlotIndex = wI;
-            break;
-        }
-    }
-
-    if(wSlotIndex < 0) // Slot not used
-    {
-        wCmd = "bphws " + ToPtrString(va);
-        DbgCmdExec(wCmd.toUtf8().constData());
-    }
-    else // Slot used
-    {
-        wCmd = "bphwc " + ToPtrString((duint)(wBPList.bp[wSlotIndex].addr));
-        DbgCmdExec(wCmd.toUtf8().constData());
-
-        Sleep(200);
-
-        wCmd = "bphws " + ToPtrString(va);
-        DbgCmdExec(wCmd.toUtf8().constData());
-    }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
-}
 
 void CPUDisassembly::setNewOriginHereActionSlot()
 {
@@ -1933,11 +1765,6 @@ void CPUDisassembly::labelHelpSlot()
     {
         QDesktopServices::openUrl(QUrl(fullUrl));
     }
-}
-
-void CPUDisassembly::editSoftBpActionSlot()
-{
-    Breakpoints::editBP(bp_normal, ToHexString(rvaToVa(getInitialSelection())), this);
 }
 
 void CPUDisassembly::ActionTraceRecordBitSlot()
