@@ -1648,6 +1648,11 @@ void DisassemblerGraphView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
+    auto breakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
+    {
+        return cur_instr;
+    });
+    breakpointMenu->build(mMenuBuilder);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
     MenuBuilder* gotoMenu = new MenuBuilder(this);
@@ -1678,14 +1683,6 @@ void DisassemblerGraphView::setupContextMenu()
     }
     mediumLayout->setChecked(true);
     mMenuBuilder->addMenu(makeMenu(DIcon("layout.png"), tr("Layout")), layoutMenu);
-
-    mMenuBuilder->addSeparator();
-
-    auto breakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
-    {
-        return cur_instr;
-    });
-    breakpointMenu->build(mMenuBuilder);
 
     mMenuBuilder->loadFromConfig();
 }
