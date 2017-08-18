@@ -332,11 +332,12 @@ private:
     QColor mCommentBackgroundColor;
     QColor mLabelColor;
     QColor mLabelBackgroundColor;
-    QColor mCipColor;
-    QColor mCipBackgroundColor;
     QColor graphNodeColor;
     QColor mAddressColor;
     QColor mAddressBackgroundColor;
+    QColor mCipColor;
+    QColor mBreakpointColor;
+    QColor mDisabledBreakpointColor;
 
     BridgeCFGraph currentGraph;
     std::unordered_map<duint, duint> currentBlockMap;
