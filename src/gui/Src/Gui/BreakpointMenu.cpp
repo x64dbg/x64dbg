@@ -4,15 +4,17 @@
 #include "StringUtil.h"
 #include "MiscUtil.h"
 
-BreakpointMenu::BreakpointMenu(QObject* parent, GetSelectionFunc getSelection)
-    : QObject(parent), mGetSelection(getSelection)
+BreakpointMenu::BreakpointMenu(QObject* parent, ActionHelperFuncs funcs, GetSelectionFunc getSelection)
+    : QObject(parent), ActionHelperProxy(funcs), mGetSelection(getSelection)
 {
 }
 
-void BreakpointMenu::buildMenu(MenuBuilder* builder)
+void BreakpointMenu::build(MenuBuilder* builder)
 {
-    builder->addAction(makeAction(DIcon("bug.png"), tr("OMG?!"), [this]()
-    {
-        QMessageBox::information((QWidget*)this->parent(), "IT WORKEDZ", QString("selection: %1").arg(ToPtrString(mGetSelection())));
-    }));
+    builder->addAction(makeShortcutAction(DIcon("bug.png"), tr("OMG?!"), std::bind(&BreakpointMenu::testSlot, this), "ActionToggleBreakpoint"));
+}
+
+void BreakpointMenu::testSlot()
+{
+    QMessageBox::information((QWidget*)this->parent(), "IT WORKEDZ", QString("selection: %1").arg(ToPtrString(mGetSelection())));
 }

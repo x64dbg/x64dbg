@@ -1659,11 +1659,11 @@ void DisassemblerGraphView::setupContextMenu()
 
     mMenuBuilder->addSeparator();
 
-    auto breakpointMenu = new BreakpointMenu(this, [this]()
+    auto breakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
     {
         return cur_instr;
     });
-    breakpointMenu->setupContextMenu(mMenuBuilder, getActionHelperFuncs());
+    breakpointMenu->build(mMenuBuilder);
 
     mMenuBuilder->loadFromConfig();
 }
