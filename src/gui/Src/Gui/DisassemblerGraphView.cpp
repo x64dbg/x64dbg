@@ -14,6 +14,7 @@
 #include <QMimeData>
 #include <QFileDialog>
 #include <QMessageBox>
+#include "BreakpointMenu.h"
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent),
@@ -1657,6 +1658,12 @@ void DisassemblerGraphView::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("layout.png"), tr("Layout")), layoutMenu);
 
     mMenuBuilder->addSeparator();
+
+    auto breakpointMenu = new BreakpointMenu(this, [this]()
+    {
+        return cur_instr;
+    });
+    breakpointMenu->setupContextMenu(mMenuBuilder, getActionHelperFuncs());
 
     mMenuBuilder->loadFromConfig();
 }
