@@ -40,16 +40,85 @@ extern "C"
 #define DBG_VERSION 25
 
 //Bridge functions
+
+/// <summary>
+/// Initialize the bridge.
+/// </summary>
+/// <returns>On error it returns a non-null error message.</returns>
 BRIDGE_IMPEXP const wchar_t* BridgeInit();
+
+/// <summary>
+/// Start the bridge.
+/// </summary>
+/// <returns>On error it returns a non-null error message.</returns>
 BRIDGE_IMPEXP const wchar_t* BridgeStart();
+
+/// <summary>
+/// Allocate buffer. Use BridgeFree to free the buffer.
+/// </summary>
+/// <param name="size">Size in bytes of the buffer to allocate.</param>
+/// <returns>A pointer to the allocated buffer. This function will trigger a crash dump if unsuccessful.</returns>
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size);
+
+/// <summary>
+/// Free buffer allocated by BridgeAlloc.
+/// </summary>
+/// <param name="ptr">Buffer to free.</param>
 BRIDGE_IMPEXP void BridgeFree(void* ptr);
+
+/// <summary>
+/// Get a string setting from the in-memory setting store.
+/// </summary>
+/// <param name="section">Section the setting is in. Cannot be null.</param>
+/// <param name="key">Setting key (name). Cannot be null.</param>
+/// <param name="value">Output buffer for the value. Should be of MAX_SETTING_SIZE. Cannot be null.</param>
+/// <returns>True if the setting was found and copied in the value parameter.</returns>
 BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value);
+
+/// <summary>
+/// Get an integer setting from the in-memory setting store.
+/// </summary>
+/// <param name="section">Section the setting is in. Cannot be null.</param>
+/// <param name="key">Setting key (name). Cannot be null.</param>
+/// <param name="value">Output value.</param>
+/// <returns>True if the setting was found and successfully converted to an integer.</returns>
 BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value);
+
+/// <summary>
+/// Set a string setting in the in-memory setting store.
+/// </summary>
+/// <param name="section">Section the setting is in. Cannot be null.</param>
+/// <param name="key">Setting key (name). Set to null to clear the whole section.</param>
+/// <param name="value">New setting value. Set to null to remove the key from the section.</param>
+/// <returns>True if the operation was successful.</returns>
 BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value);
+
+/// <summary>
+/// Set an integer setting in the in-memory setting store.
+/// </summary>
+/// <param name="section">Section the setting is in. Cannot be null.</param>
+/// <param name="key">Setting key (name). Set to null to clear the whole section.</param>
+/// <param name="value">New setting value.</param>
+/// <returns>True if the operation was successful.</returns>
 BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value);
+
+/// <summary>
+/// Flush the in-memory setting store to disk.
+/// </summary>
+/// <returns></returns>
 BRIDGE_IMPEXP bool BridgeSettingFlush();
+
+/// <summary>
+/// Read the in-memory setting store from disk.
+/// </summary>
+/// <param name="errorLine">Line where the error occurred. Set to null to ignore this.</param>
+/// <returns>True if the setting were read and parsed correctly.</returns>
 BRIDGE_IMPEXP bool BridgeSettingRead(int* errorLine);
+
+/// <summary>
+/// Get the debugger version.
+/// </summary>
+/// <returns>25</returns>
 BRIDGE_IMPEXP int BridgeGetDbgVersion();
 
 #ifdef __cplusplus
