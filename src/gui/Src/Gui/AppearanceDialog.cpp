@@ -425,11 +425,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("0xFF Bytes"), "DisassemblyByteFFColor", "DisassemblyByteFFBackgroundColor");
     colorInfoListAppend(tr("IsPrint Bytes"), "DisassemblyByteIsPrintColor", "DisassemblyByteIsPrintBackgroundColor");
     colorInfoListAppend(tr("Relocation underline"), "DisassemblyRelocationUnderlineColor", "");
-#ifdef _WIN64
-    colorInfoListAppend(tr("RIP"), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
-#else //x86
-    colorInfoListAppend(tr("EIP"), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
-#endif //_WIN64
+    colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
     colorInfoListAppend(tr("Breakpoints"), "DisassemblyBreakpointColor", "DisassemblyBreakpointBackgroundColor");
     colorInfoListAppend(tr("Hardware Breakpoints"), "DisassemblyHardwareBreakpointColor", "DisassemblyHardwareBreakpointBackgroundColor");
     colorInfoListAppend(tr("Bookmarks"), "DisassemblyBookmarkColor", "DisassemblyBookmarkBackgroundColor");
@@ -528,11 +524,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Inactive Text"), "StackInactiveTextColor", "");
     colorInfoListAppend(tr("Background"), "StackBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "StackSelectionColor", "");
-#ifdef _WIN64
-    colorInfoListAppend(tr("RSP"), "StackCspColor", "StackCspBackgroundColor");
-#else //x86
-    colorInfoListAppend(tr("ESP"), "StackCspColor", "StackCspBackgroundColor");
-#endif //_WIN64
+    colorInfoListAppend(ArchValue(tr("ESP"), tr("RSP")), "StackCspColor", "StackCspBackgroundColor");
     colorInfoListAppend(tr("Addresses"), "StackAddressColor", "StackAddressBackgroundColor");
     colorInfoListAppend(tr("Selected Addresses"), "StackSelectedAddressColor", "StackSelectedAddressBackgroundColor");
     colorInfoListAppend(tr("Labels"), "StackLabelColor", "StackLabelBackgroundColor");
@@ -555,11 +547,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Unconditional branch line"), "GraphJmpColor", "");
     colorInfoListAppend(tr("True branch line"), "GraphBrtrueColor", "");
     colorInfoListAppend(tr("False branch line"), "GraphBrfalseColor", "");
-#ifdef _WIN64
-    colorInfoListAppend(tr("RIP"), "GraphCipColor", "");
-#else //x86
-    colorInfoListAppend(tr("EIP"), "GraphCipColor", "");
-#endif //_WIN64
+    colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "GraphCipColor", "");
     colorInfoListAppend(tr("Breakpoint"), "GraphBreakpointColor", "");
     colorInfoListAppend(tr("Disabled Breakpoint"), "GraphDisabledBreakpointColor", "");
 
