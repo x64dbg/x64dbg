@@ -14,6 +14,7 @@
 #include <QMimeData>
 #include <QFileDialog>
 #include <QMessageBox>
+#include "BreakpointMenu.h"
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent),
@@ -259,12 +260,34 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
             {
                 for(auto & line : instr.text.lines)
                 {
-                    if(instr.addr == mCip)
+                    int rectSize = qRound(this->charWidth);
+                    if(rectSize % 2)
+                        rectSize++;
+
+                    // Assume charWidth <= charHeight
+                    QRectF bpRect(x - rectSize / 3.0, y + (this->charHeight - rectSize) / 2.0, rectSize, rectSize);
+
+                    bool isbp = DbgGetBpxTypeAt(instr.addr) != bp_none;
+                    bool isbpdisabled = DbgIsBpDisabled(instr.addr);
+                    bool iscip = instr.addr == mCip;
+
+                    if(isbp || isbpdisabled)
                     {
-                        p.setPen(mCipColor);
-                        p.fillRect(x, y, this->charWidth, this->charHeight, mCipBackgroundColor);
-                        p.drawText(x, y, this->charWidth, this->charHeight, 0, QString("\xE2\x80\xA2"));
+                        if(iscip)
+                        {
+                            // Left half is cip
+                            bpRect.setWidth(bpRect.width() / 2);
+                            p.fillRect(bpRect, mCipColor);
+
+                            // Right half is breakpoint
+                            bpRect.translate(bpRect.width(), 0);
+                        }
+
+                        p.fillRect(bpRect, isbp ? mBreakpointColor : mDisabledBreakpointColor);
                     }
+                    else if(iscip)
+                        p.fillRect(bpRect, mCipColor);
+
                     RichTextPainter::paintRichText(&p, x + this->charWidth, y, block.width - this->charWidth, this->charHeight, 0, line, mFontMetrics);
                     y += this->charHeight;
                 }
@@ -358,7 +381,7 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         pen.setColor(graphNodeColor);
         p.setPen(pen);
         if(isCip)
-            p.setBrush(mCipBackgroundColor);
+            p.setBrush(mCipColor);
         else if(traceCount)
         {
             // Color depending on how often a sequence of code is executed
@@ -1625,6 +1648,11 @@ void DisassemblerGraphView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
+    auto breakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
+    {
+        return cur_instr;
+    });
+    breakpointMenu->build(mMenuBuilder);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
     MenuBuilder* gotoMenu = new MenuBuilder(this);
@@ -1655,8 +1683,6 @@ void DisassemblerGraphView::setupContextMenu()
     }
     mediumLayout->setChecked(true);
     mMenuBuilder->addMenu(makeMenu(DIcon("layout.png"), tr("Layout")), layoutMenu);
-
-    mMenuBuilder->addSeparator();
 
     mMenuBuilder->loadFromConfig();
 }
@@ -1699,8 +1725,6 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
     mLabelColor = ConfigColor("DisassemblyLabelColor");
     mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
-    mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
-    mCipColor = ConfigColor("DisassemblyCipColor");
     mAddressColor = ConfigColor("DisassemblyAddressColor");
     mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
 
@@ -1712,6 +1736,9 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     backgroundColor = ConfigColor("GraphBackgroundColor");
     if(!backgroundColor.alpha())
         backgroundColor = disassemblySelectionColor;
+    mCipColor = ConfigColor("GraphCipColor");
+    mBreakpointColor = ConfigColor("GraphBreakpointColor");
+    mDisabledBreakpointColor = ConfigColor("GraphDisabledBreakpointColor");
 
     fontChanged();
     loadCurrentGraph();

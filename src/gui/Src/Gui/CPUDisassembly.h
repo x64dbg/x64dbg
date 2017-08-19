@@ -2,6 +2,7 @@
 #define CPUDISASSEMBLY_H
 
 #include "Disassembly.h"
+#include "BreakpointMenu.h"
 
 // Needed forward declaration for parent container class
 class CPUWidget;
@@ -24,7 +25,6 @@ public:
     void setupRightClickContextMenu();
     void addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences, bool isFollowInCPU);
     void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences, bool isFollowInCPU);
-    void setHwBpAt(duint va, int slot);
     void copySelectionSlot(bool copyBytes);
     void copySelectionToFileSlot(bool copyBytes);
 
@@ -37,12 +37,6 @@ signals:
     void displayGraphWidget();
 
 public slots:
-    void toggleInt3BPActionSlot();
-    void toggleHwBpActionSlot();
-    void setHwBpOnSlot0ActionSlot();
-    void setHwBpOnSlot1ActionSlot();
-    void setHwBpOnSlot2ActionSlot();
-    void setHwBpOnSlot3ActionSlot();
     void setNewOriginHereActionSlot();
     void gotoOriginSlot();
     void setLabelSlot();
@@ -105,7 +99,6 @@ public slots:
     void ActionTraceRecordDisableSlot();
     void displayWarningSlot(QString title, QString text);
     void labelHelpSlot();
-    void editSoftBpActionSlot();
     void analyzeSingleFunctionSlot();
     void removeAnalysisSelectionSlot();
     void removeAnalysisModuleSlot();
@@ -174,6 +167,7 @@ private:
     MenuBuilder* mMenuBuilder;
     MenuBuilder* mHighlightMenuBuilder;
     bool mHighlightContextMenu = false;
+    BreakpointMenu* mBreakpointMenu;
 };
 
 #endif // CPUDISASSEMBLY_H

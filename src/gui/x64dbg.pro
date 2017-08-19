@@ -178,7 +178,8 @@ SOURCES += \
     Src/Utils/MRUList.cpp \
     Src/Gui/LocalVarsView.cpp \
     Src/Gui/MessagesBreakpoints.cpp \
-    Src/Gui/AboutDialog.cpp
+    Src/Gui/AboutDialog.cpp \
+    Src/Gui/BreakpointMenu.cpp
 
 
 HEADERS += \
@@ -291,7 +292,8 @@ HEADERS += \
     Src/Utils/MRUList.h \
     Src/Gui/LocalVarsView.h \
     Src/Gui/MessagesBreakpoints.h \
-    Src/Gui/AboutDialog.h
+    Src/Gui/AboutDialog.h \
+    Src/Gui/BreakpointMenu.h
     
 
 FORMS += \

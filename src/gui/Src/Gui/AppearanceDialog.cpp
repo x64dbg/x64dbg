@@ -555,6 +555,13 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Unconditional branch line"), "GraphJmpColor", "");
     colorInfoListAppend(tr("True branch line"), "GraphBrtrueColor", "");
     colorInfoListAppend(tr("False branch line"), "GraphBrfalseColor", "");
+#ifdef _WIN64
+    colorInfoListAppend(tr("RIP"), "GraphCipColor", "");
+#else //x86
+    colorInfoListAppend(tr("EIP"), "GraphCipColor", "");
+#endif //_WIN64
+    colorInfoListAppend(tr("Breakpoint"), "GraphBreakpointColor", "");
+    colorInfoListAppend(tr("Disabled Breakpoint"), "GraphDisabledBreakpointColor", "");
 
     colorInfoListAppend(tr("Other:"), "", "");
     colorInfoListAppend(tr("Current Thread"), "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
