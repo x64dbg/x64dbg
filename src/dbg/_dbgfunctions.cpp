@@ -352,7 +352,7 @@ static duint _membpsize(duint addr)
 static bool _modrelocationsfromaddr(duint addr, ListOf(DBGRELOCATIONINFO) relocations)
 {
     std::vector<MODRELOCATIONINFO> infos;
-    if(!ModRelocationsFromAddr(addr, &infos))
+    if(!ModRelocationsFromAddr(addr, infos))
         return false;
 
     BridgeList<MODRELOCATIONINFO>::CopyData(relocations, infos);
@@ -362,7 +362,7 @@ static bool _modrelocationsfromaddr(duint addr, ListOf(DBGRELOCATIONINFO) reloca
 static bool _modrelocationsinrange(duint addr, duint size, ListOf(DBGRELOCATIONINFO) relocations)
 {
     std::vector<MODRELOCATIONINFO> infos;
-    if(!ModRelocationsInRange(addr, size, &infos))
+    if(!ModRelocationsInRange(addr, size, infos))
         return false;
 
     BridgeList<MODRELOCATIONINFO>::CopyData(relocations, infos);

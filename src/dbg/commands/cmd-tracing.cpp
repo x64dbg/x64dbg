@@ -95,8 +95,6 @@ bool cbDebugRunToParty(int argc, char* argv[])
 {
     HistoryClear();
     EXCLUSIVE_ACQUIRE(LockRunToUserCode);
-    std::vector<MODINFO> AllModules;
-    ModGetList(AllModules);
     if(!RunToUserCodeBreakpoints.empty())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Run to party is busy.\n"));
@@ -105,7 +103,7 @@ bool cbDebugRunToParty(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 2))
         return false;
     int party = atoi(argv[1]); // party is a signed integer
-    for(auto i : AllModules)
+    ModEnum([party](const MODINFO & i)
     {
         if(i.party == party)
         {
@@ -120,7 +118,7 @@ bool cbDebugRunToParty(int argc, char* argv[])
                 }
             }
         }
-    }
+    });
     return cbDebugRunInternal(1, argv);
 }
 

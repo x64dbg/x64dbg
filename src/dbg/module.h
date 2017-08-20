@@ -2,6 +2,7 @@
 #define _MODULE_H
 
 #include "_global.h"
+#include <functional>
 
 struct MODSECTIONINFO
 {
@@ -73,12 +74,19 @@ bool ModImportsFromAddr(duint Address, std::vector<MODIMPORTINFO>* Imports);
 duint ModEntryFromAddr(duint Address);
 int ModPathFromAddr(duint Address, char* Path, int Size);
 int ModPathFromName(const char* Module, char* Path, int Size);
-void ModGetList(std::vector<MODINFO> & list);
+
+/// <summary>
+/// Enumerate all loaded modules with a function.
+/// A shared lock on the modules is held until this function returns.
+/// </summary>
+/// <param name="cbEnum">Enumeration function.</param>
+void ModEnum(const std::function<void(const MODINFO &)> & cbEnum);
+
 int ModGetParty(duint Address);
 void ModSetParty(duint Address, int Party);
 bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo);
-bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO>* Relocations);
+bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO> & Relocations);
 bool ModRelocationAtAddr(duint Address, MODRELOCATIONINFO* Relocation);
-bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO>* Relocations);
+bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO> & Relocations);
 
 #endif // _MODULE_H

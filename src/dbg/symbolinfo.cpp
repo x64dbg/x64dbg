@@ -109,16 +109,14 @@ void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 
 bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
 {
-    std::vector<MODINFO> modList;
-    ModGetList(modList);
-    for(auto & mod : modList)
+    ModEnum([List](const MODINFO & mod)
     {
         SYMBOLMODULEINFO curMod;
         curMod.base = mod.base;
         strcpy_s(curMod.name, mod.name);
         strcat_s(curMod.name, mod.extension);
         List->push_back(curMod);
-    }
+    });
     return true;
 }
 

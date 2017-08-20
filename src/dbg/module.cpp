@@ -499,8 +499,16 @@ void ModGetList(std::vector<MODINFO> & list)
 {
     SHARED_ACQUIRE(LockModules);
     list.clear();
+    list.reserve(modinfo.size());
     for(const auto & mod : modinfo)
         list.push_back(mod.second);
+}
+
+void ModEnum(const std::function<void(const MODINFO &)> & cbEnum)
+{
+    SHARED_ACQUIRE(LockModules);
+    for(const auto & mod : modinfo)
+        cbEnum(mod.second);
 }
 
 bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo)
@@ -558,7 +566,7 @@ void ModSetParty(duint Address, int Party)
     module->party = Party;
 }
 
-bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO>* Relocations)
+bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO> & Relocations)
 {
     SHARED_ACQUIRE(LockModules);
 
@@ -567,9 +575,7 @@ bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO>* Reloc
     if(!module || module->relocations.empty())
         return false;
 
-    // Copy vector <-> set
-    Relocations->resize(module->relocations.size());
-    *Relocations = module->relocations;
+    Relocations = module->relocations;
 
     return true;
 }
@@ -601,7 +607,7 @@ bool ModRelocationAtAddr(duint Address, MODRELOCATIONINFO* Relocation)
     return false;
 }
 
-bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO>* Relocations)
+bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO> & Relocations)
 {
     SHARED_ACQUIRE(LockModules);
 
@@ -621,13 +627,13 @@ bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONI
     if(ub != module->relocations.begin())
         ub--;
 
-    Relocations->clear();
+    Relocations.clear();
     while(ub != module->relocations.end() && ub->rva < rva + Size)
     {
         if(ub->rva >= rva)
-            Relocations->push_back(*ub);
+            Relocations.push_back(*ub);
         ub++;
     }
 
-    return !Relocations->empty();
+    return !Relocations.empty();
 }
