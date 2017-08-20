@@ -6,6 +6,7 @@
 #include "memory.h"
 #include "label.h"
 #include <algorithm>
+#include "console.h"
 
 std::map<Range, MODINFO, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;
@@ -31,25 +32,47 @@ void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
     if(relocDirRva == 0 || relocDirSize == 0)
         return;
 
-    duint curPos = Info.base + relocDirRva;
+    auto relocDirOffset = (duint)ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, relocDirRva, true, false);
+    if(!relocDirOffset || relocDirOffset + relocDirSize > Info.loadedSize)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation directory for module %s%s...\n"), Info.name, Info.extension);
+        return;
+    }
+
+    auto read = [&](duint offset, void* dest, size_t size)
+    {
+        if(offset + size > Info.loadedSize)
+            return false;
+        memcpy(dest, (char*)FileMapVA + offset, size);
+        return true;
+    };
+
+    duint curPos = relocDirOffset;
     // Until we reach the end of base relocation table
-    while(curPos < Info.base + relocDirRva + relocDirSize)
+    while(curPos < relocDirOffset + relocDirSize)
     {
         // Read base relocation block header
         IMAGE_BASE_RELOCATION baseRelocBlock;
-        MemRead(curPos, &baseRelocBlock, sizeof(baseRelocBlock));
+        if(!read(curPos, &baseRelocBlock, sizeof(baseRelocBlock)))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation block for module %s%s...\n"), Info.name, Info.extension);
+            return;
+        }
 
         // For every entry in base relocation block
         duint count = (baseRelocBlock.SizeOfBlock - 8) / 2;
         for(duint i = 0; i < count; i++)
         {
             uint16 data = 0;
-            MemRead(curPos + 8 + 2 * i, &data, sizeof(uint16));
+            if(!read(curPos + 8 + 2 * i, &data, sizeof(uint16)))
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation entry for module %s%s...\n"), Info.name, Info.extension);
+                return;
+            }
 
             auto type = (data & 0xF000) >> 12;
             auto offset = data & 0x0FFF;
 
-            auto relocAddr = Info.base + baseRelocBlock.VirtualAddress + offset;
             switch(type)
             {
             case IMAGE_REL_BASED_HIGHLOW:
