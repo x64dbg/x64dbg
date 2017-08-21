@@ -76,12 +76,16 @@ void BreakpointsView::setupContextMenu()
     QAction* enableAll = makeShortcutAction(DIcon("breakpoint_enable_all.png"), QString(), SLOT(enableAllBreakpointsSlot()), "ActionEnableAllBreakpoints");
     mMenuBuilder->addAction(enableAll, [this, enableAll](QMenu*)
     {
+        if(!isValidBp())
+            return false;
         enableAll->setText(tr("Enable all (%1)").arg(bpTypeName(selectedBp().type)));
         return true;
     });
     QAction* disableAll = makeShortcutAction(DIcon("breakpoint_disable_all.png"), QString(), SLOT(disableAllBreakpointsSlot()), "ActionDisableAllBreakpoints");
     mMenuBuilder->addAction(disableAll, [this, disableAll](QMenu*)
     {
+        if(!isValidBp())
+            return false;
         disableAll->setText(tr("Disable all (%1)").arg(bpTypeName(selectedBp().type)));
         return true;
     });
