@@ -4,7 +4,7 @@
 #include "Breakpoints.h"
 
 BreakpointsView::BreakpointsView(QWidget* parent)
-    : StdTable(parent)
+    : StdTable(parent), mExceptionMaxLength(0)
 {
     auto charWidth = [this](int count)
     {
@@ -187,7 +187,13 @@ void BreakpointsView::updateBreakpointsSlot()
         BridgeList<CONSTANTINFO> exceptions;
         DbgFunctions()->EnumExceptions(&exceptions);
         for(int i = 0; i < exceptions.Count(); i++)
+        {
             mExceptionMap.insert({exceptions[i].value, exceptions[i].name});
+            mExceptionList.append(QString(exceptions[i].name));
+            mExceptionMaxLength = std::max<int>(mExceptionMaxLength, strlen(exceptions[i].name));
+        }
+        mExceptionList.sort();
+
     }
     BPMAP bpmap;
     DbgGetBpList(bp_none, &bpmap);
@@ -650,7 +656,7 @@ void BreakpointsView::addDllBreakpointSlot()
 
 void BreakpointsView::addExceptionBreakpointSlot()
 {
-    QString fileName;
-    if(SimpleInputBox(this, tr("Enter the exception code"), "", fileName, tr("Example: EXCEPTION_ACCESS_VIOLATION"), &DIcon("breakpoint.png")) && !fileName.isEmpty())
-        DbgCmdExec((QString("SetExceptionBPX ") + fileName));
+    QString exception;
+    if(SimpleChoiceBox(this, tr("Enter the exception code"), "", mExceptionList, exception, true, tr("Example: EXCEPTION_ACCESS_VIOLATION"), &DIcon("breakpoint.png"), mExceptionMaxLength) && !exception.isEmpty())
+        DbgCmdExec((QString("SetExceptionBPX ") + exception));
 }

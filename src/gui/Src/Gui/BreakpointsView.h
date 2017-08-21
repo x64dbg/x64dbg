@@ -48,6 +48,8 @@ private:
     };
 
     std::unordered_map<duint, const char*> mExceptionMap;
+    QStringList mExceptionList;
+    int mExceptionMaxLength;
     std::vector<BRIDGEBP> mBps;
     std::vector<std::pair<RichTextPainter::List, RichTextPainter::List>> mRich;
     QColor mDisasmBackgroundColor;
