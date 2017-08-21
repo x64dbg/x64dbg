@@ -1617,12 +1617,24 @@ void DisassemblerGraphView::loadCurrentGraph()
 
 void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint addr)
 {
+    auto nodeCount = graphList->nodes.count;
+    if(nodeCount > 5000) //TODO: add configuration
+    {
+        auto title = tr("Large number of nodes");
+        auto message = tr("The graph you are trying to render has a large number of nodes (%1). This can cause x64dbg to hang or crash. It is recommended to save your data before you continue.\n\nDo you want to continue rendering this graph?").arg(nodeCount);
+        if(QMessageBox::question(this, title, message, QMessageBox::Yes, QMessageBox::No | QMessageBox::Default) == QMessageBox::No)
+        {
+            Bridge::getBridge()->setResult(0);
+            return;
+        }
+    }
+
     currentGraph = BridgeCFGraph(graphList, true);
     currentBlockMap.clear();
     this->cur_instr = addr ? addr : this->function;
     this->forceCenter = true;
     loadCurrentGraph();
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(1);
 }
 
 void DisassemblerGraphView::graphAtSlot(duint addr)

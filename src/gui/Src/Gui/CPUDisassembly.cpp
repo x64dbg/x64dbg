@@ -1904,8 +1904,8 @@ void CPUDisassembly::setEncodeTypeSlot()
 
 void CPUDisassembly::graphSlot()
 {
-    DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData());
-    emit displayGraphWidget();
+    if(DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData()))
+        emit displayGraphWidget();
 }
 
 void CPUDisassembly::togglePreviewSlot()

@@ -684,7 +684,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     {
         BridgeResult result;
         emit loadGraph((BridgeCFGraphList*)param1, duint(param2));
-        result.Wait();
+        return (void*)result.Wait();
     }
     break;
 

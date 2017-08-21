@@ -1552,9 +1552,9 @@ BRIDGE_IMPEXP void GuiFocusView(int hWindow)
     _gui_sendmessage(GUI_FOCUS_VIEW, (void*)hWindow, nullptr);
 }
 
-BRIDGE_IMPEXP void GuiLoadGraph(BridgeCFGraphList* graph, duint addr)
+BRIDGE_IMPEXP bool GuiLoadGraph(BridgeCFGraphList* graph, duint addr)
 {
-    _gui_sendmessage(GUI_LOAD_GRAPH, graph, (void*)addr);
+    return !!_gui_sendmessage(GUI_LOAD_GRAPH, graph, (void*)addr);
 }
 
 BRIDGE_IMPEXP duint GuiGraphAt(duint addr)

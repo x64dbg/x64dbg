@@ -126,7 +126,8 @@ bool cbInstrGraph(int argc, char* argv[])
             return false;
         }
         auto graphList = graph->ToGraphList();
-        GuiLoadGraph(&graphList, sel);
+        if(!GuiLoadGraph(&graphList, sel))
+            return false;
     }
     GuiUpdateAllViews();
     GuiFocusView(GUI_GRAPH);
