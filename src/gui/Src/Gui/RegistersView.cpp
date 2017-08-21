@@ -1293,16 +1293,10 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     mCANSTOREADDRESS.insert(DR3);
 
     mNoChange.insert(DR6);
-    mLABELDISPLAY.insert(DR6);
-    mONLYMODULEANDLABELDISPLAY.insert(DR6);
     mUINTDISPLAY.insert(DR6);
-    mCANSTOREADDRESS.insert(DR6);
 
     mNoChange.insert(DR7);
     mUINTDISPLAY.insert(DR7);
-    mONLYMODULEANDLABELDISPLAY.insert(DR7);
-    mCANSTOREADDRESS.insert(DR7);
-    mLABELDISPLAY.insert(DR7);
 
     mNoChange.insert(CIP);
     mUINTDISPLAY.insert(CIP);
