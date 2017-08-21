@@ -1,6 +1,7 @@
 #include "MiscUtil.h"
 #include <windows.h>
 #include "LineEditDialog.h"
+#include "ComboBoxDialog.h"
 #include <QMessageBox>
 #include "StringUtil.h"
 
@@ -34,6 +35,27 @@ bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue
     if(mEdit.exec() == QDialog::Accepted)
     {
         output = mEdit.editText;
+        return true;
+    }
+    else
+        return false;
+}
+
+bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValue, const QStringList & choices, QString & output, bool editable, const QString & placeholderText, QIcon* icon, int minimumContentsLength)
+{
+    ComboBoxDialog mChoice(parent);
+    mChoice.setWindowIcon(icon ? *icon : parent->windowIcon());
+    mChoice.setEditable(editable);
+    mChoice.setItems(choices);
+    mChoice.setText(defaultValue);
+    mChoice.setPlaceholderText(placeholderText);
+    mChoice.setWindowTitle(title);
+    mChoice.setCheckBox(false);
+    if(minimumContentsLength >= 0)
+        mChoice.setMinimumContentsLength(minimumContentsLength);
+    if(mChoice.exec() == QDialog::Accepted)
+    {
+        output = mChoice.currentText();
         return true;
     }
     else
