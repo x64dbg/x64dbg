@@ -692,10 +692,14 @@ bool MemDecodePointer(duint* Pointer, bool vistaPlus)
     return true;
 }
 
-void MemInitRemoteProcessCookie()
+void MemInitRemoteProcessCookie(ULONG cookie)
 {
     // Clear previous session's cookie
-    fallbackCookie = 0;
+    fallbackCookie = cookie;
+
+    // Allow a non-zero cookie to ignore the brute force
+    if(fallbackCookie)
+        return;
 
     // Windows XP/Vista/7 are unable to obtain remote process cookies using NtQueryInformationProcess
     // Guess the cookie by brute-forcing all possible hashes and validate it using known encodings
@@ -704,17 +708,10 @@ void MemInitRemoteProcessCookie()
     duint SingleHandler = 0;
     duint DefaultHandler = 0;
 
-#ifdef _WIN64
-    auto RtlpUnhandledExceptionFilterSymbol = "RtlpUnhandledExceptionFilter";
-    auto UnhandledExceptionFilterSymbol = "UnhandledExceptionFilter";
-    auto SingleHandlerSymbol = "SingleHandler";
-    auto DefaultHandlerSymbol = "DefaultHandler";
-#else
-    auto RtlpUnhandledExceptionFilterSymbol = "_RtlpUnhandledExceptionFilter";
-    auto UnhandledExceptionFilterSymbol = "_UnhandledExceptionFilter@4";
-    auto SingleHandlerSymbol = "_SingleHandler";
-    auto DefaultHandlerSymbol = "_DefaultHandler@4";
-#endif
+    auto RtlpUnhandledExceptionFilterSymbol = ArchValue("_RtlpUnhandledExceptionFilter", "RtlpUnhandledExceptionFilter");
+    auto UnhandledExceptionFilterSymbol = ArchValue("_UnhandledExceptionFilter@4", "UnhandledExceptionFilter");
+    auto SingleHandlerSymbol = ArchValue("_SingleHandler", "SingleHandler");
+    auto DefaultHandlerSymbol = ArchValue("_DefaultHandler@4", "DefaultHandler");
 
     if(!valfromstring(RtlpUnhandledExceptionFilterSymbol, &RtlpUnhandledExceptionFilter) ||
             !valfromstring(UnhandledExceptionFilterSymbol, &UnhandledExceptionFilter) ||
@@ -738,7 +735,7 @@ void MemInitRemoteProcessCookie()
         return DecodedValue == (ror(EncodedValue, 0x40 - (CookieGuess & 0x3F)) ^ CookieGuess);
     };
 
-    ULONG cookie = 0;
+    cookie = 0;
     for(int i = 64; i > 0; i--)
     {
         const ULONG guess = ULONG(ror(encodedDefaultHandler, i) ^ DefaultHandler);

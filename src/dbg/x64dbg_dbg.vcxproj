@@ -187,6 +187,7 @@
     <ClInclude Include="dbghelp\dbghelp.h" />
     <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />
+    <ClInclude Include="debugger_cookie.h" />
     <ClInclude Include="debugger_tracing.h" />
     <ClInclude Include="encodemap.h" />
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h" />

@@ -961,6 +961,9 @@
     <ClInclude Include="GetPeArch.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="debugger_cookie.h">
+      <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
     <ClInclude Include="debugger_tracing.h">
       <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>

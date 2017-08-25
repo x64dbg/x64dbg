@@ -73,6 +73,7 @@ void SettingsDialog::LoadSettings()
     settings.disasm0xPrefixValues = false;
     settings.disasmNoSourceLineAutoComments = false;
     settings.guiNoForegroundWindow = true;
+    settings.miscQueryProcessCookie = true;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -293,8 +294,10 @@ void SettingsDialog::LoadSettings()
 
     GetSettingBool("Misc", "Utf16LogRedirect", &settings.miscUtf16LogRedirect);
     GetSettingBool("Misc", "UseLocalHelpFile", &settings.miscUseLocalHelpFile);
+    GetSettingBool("Misc", "QueryProcessCookie", &settings.miscQueryProcessCookie);
     ui->chkUtf16LogRedirect->setChecked(settings.miscUtf16LogRedirect);
     ui->chkUseLocalHelpFile->setChecked(settings.miscUseLocalHelpFile);
+    ui->chkQueryProcessCookie->setChecked(settings.miscQueryProcessCookie);
 }
 
 void SettingsDialog::SaveSettings()
@@ -388,6 +391,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSet("Misc", "HelpOnSymbolicNameUrl", ui->editHelpOnSymbolicNameUrl->text().toUtf8().constData());
     BridgeSettingSetUint("Misc", "Utf16LogRedirect", settings.miscUtf16LogRedirect);
     BridgeSettingSetUint("Misc", "UseLocalHelpFile", settings.miscUseLocalHelpFile);
+    BridgeSettingSetUint("Misc", "QueryProcessCookie", settings.miscQueryProcessCookie);
 
     BridgeSettingFlush();
     Config()->load();
@@ -818,4 +822,9 @@ void SettingsDialog::on_chkShowExitConfirmation_toggled(bool checked)
 void SettingsDialog::on_chkUseLocalHelpFile_toggled(bool checked)
 {
     settings.miscUseLocalHelpFile = checked;
+}
+
+void SettingsDialog::on_chkQueryProcessCookie_toggled(bool checked)
+{
+    settings.miscQueryProcessCookie = checked;
 }

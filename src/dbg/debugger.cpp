@@ -33,6 +33,8 @@
 #include "jit.h"
 #include "handle.h"
 #include "dbghelp_safe.h"
+#include "exprfunc.h"
+#include "debugger_cookie.h"
 #include "debugger_tracing.h"
 
 // Debugging variables
@@ -66,6 +68,7 @@ static duint timeWastedDebugging = 0;
 static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
 static char szDebuggeeInitializationScript[MAX_PATH] = "";
 static WString gInitExe, gInitCmd, gInitDir, gDllLoader;
+static CookieQuery cookie;
 char szProgramDir[MAX_PATH] = "";
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
@@ -722,6 +725,11 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
+
+    //handle process cookie retrieval
+    if(bptype == BPNORMAL && cookie.HandleBreakpoint(CIP))
+        return;
+
     BREAKPOINT* bpPtr = nullptr;
     //NOTE: this locking is very tricky, make sure you understand it before modifying anything
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
@@ -1524,7 +1532,7 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
     GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
     DebugUpdateGuiSetStateAsync(cip, true, running);
 
-    MemInitRemoteProcessCookie();
+    MemInitRemoteProcessCookie(cookie.cookie);
     GuiUpdateAllViews();
 
     //log message
@@ -1642,6 +1650,10 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
             cmddirectexec(command);
         }
     }
+
+    //process cookie
+    if(settingboolget("Misc", "QueryProcessCookie") && ModNameFromAddr(duint(base), modname, true) && scmp(modname, "ntdll.dll"))
+        cookie.HandleNtdllLoad();
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Loaded: %p %s\n"), base, DLLDebugFileName);
 

@@ -26,7 +26,7 @@ bool MemPageRightsFromString(DWORD* Protect, const char* Rights);
 bool MemFindInPage(const SimplePage & page, duint startoffset, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults);
 bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults, bool progress = true);
 bool MemDecodePointer(duint* Pointer, bool vistaPlus);
-void MemInitRemoteProcessCookie();
+void MemInitRemoteProcessCookie(ULONG cookie);
 void MemReadDumb(duint BaseAddress, void* Buffer, duint Size);
 
 #include "addrinfo.h"
