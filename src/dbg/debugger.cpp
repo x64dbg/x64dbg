@@ -1794,8 +1794,8 @@ static bool dbgdetachDisableAllBreakpoints(const BREAKPOINT* bp)
             DeleteBPX(bp->addr);
         else if(bp->type == BPMEMORY)
             RemoveMemoryBPX(bp->addr, 0);
-        else if(bp->type == BPDLL)
-            LibrarianRemoveBreakPoint(bp->mod, bp->titantype);
+        else if(bp->type == BPHARDWARE)
+            DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype));
     }
     return true;
 }
@@ -2678,6 +2678,12 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
+    BpEnumAll([](const BREAKPOINT * bp) //RemoveAllBreakPoints doesn't remove librarian breakpoints
+    {
+        if(bp->type == BPDLL)
+            LibrarianRemoveBreakPoint(bp->mod, bp->titantype);
+        return true;
+    });
 
     //cleanup
     dbgcleartracestate();
