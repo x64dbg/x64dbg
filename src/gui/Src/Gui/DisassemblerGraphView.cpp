@@ -25,7 +25,8 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
       mGoto(nullptr),
       syncOrigin(false),
       forceCenter(false),
-      layoutType(LayoutType::Medium)
+      layoutType(LayoutType::Medium),
+      mXrefDlg(nullptr)
 {
     this->status = "Loading...";
 
@@ -1911,18 +1912,20 @@ restart:
 
 void DisassemblerGraphView::xrefSlot()
 {
-    XREF_INFO mXrefInfo;
+
     if(!DbgIsDebugging())
         return;
     duint wVA = this->get_cursor_pos();
     if(!DbgMemIsValidReadPtr(wVA))
         return;
-    DbgXrefGet(this->get_cursor_pos(), &mXrefInfo);
+    XREF_INFO mXrefInfo;
+    DbgXrefGet(wVA, &mXrefInfo);
     if(!mXrefInfo.refcount)
         return;
+    BridgeFree(mXrefInfo.references);
     if(!mXrefDlg)
         mXrefDlg = new XrefBrowseDialog(this);
-    mXrefDlg->setup(this->get_cursor_pos(), "graph");
+    mXrefDlg->setup(wVA, "graph");
     mXrefDlg->showNormal();
 }
 
