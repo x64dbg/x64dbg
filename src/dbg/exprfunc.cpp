@@ -9,6 +9,7 @@
 #include "disasm_helper.h"
 #include "function.h"
 #include "value.h"
+#include "exhandlerinfo.h"
 
 namespace Exprfunc
 {
@@ -123,7 +124,7 @@ namespace Exprfunc
     duint memdecodepointer(duint ptr)
     {
         auto decoded = ptr;
-        return MemDecodePointer(&decoded, true) ? decoded : ptr;
+        return MemDecodePointer(&decoded, IsVistaOrLater()) ? decoded : ptr;
     }
 
     duint dislen(duint addr)

@@ -380,15 +380,20 @@ bool cbInstrExhandlers(int argc, char* argv[])
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get VEH (loaded symbols for ntdll.dll?)"));
 
-    if(ExHandlerGetInfo(EX_HANDLER_VCH, entries))
-        printExhandlers("VectoredContinueHandler (VCH)", entries);
-    else
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get VCH (loaded symbols for ntdll.dll?)"));
+    if(IsVistaOrLater())
+    {
+        if(ExHandlerGetInfo(EX_HANDLER_VCH, entries))
+            printExhandlers("VectoredContinueHandler (VCH)", entries);
+        else
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get VCH (loaded symbols for ntdll.dll?)"));
+    }
 
     if(ExHandlerGetInfo(EX_HANDLER_UNHANDLED, entries))
         printExhandlers("UnhandledExceptionFilter", entries);
-    else
+    else if(IsVistaOrLater())
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get UnhandledExceptionFilter (loaded symbols for kernelbase.dll?)"));
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get UnhandledExceptionFilter (loaded symbols for kernel32.dll?)"));
     return true;
 }
 
