@@ -232,6 +232,7 @@
     <ClInclude Include="murmurhash.h" />
     <ClInclude Include="patches.h" />
     <ClInclude Include="patternfind.h" />
+    <ClInclude Include="PeParser.h" />
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />

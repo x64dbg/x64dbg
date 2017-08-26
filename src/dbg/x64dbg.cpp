@@ -68,6 +68,8 @@ static bool cbScriptDll(int argc, char* argv[])
     return DbgScriptDllExec(argv[1]);
 }
 
+#include "PeParser.h"
+
 #include "cmd-all.h"
 
 /**
@@ -436,6 +438,7 @@ static void registercommands()
     dbgcmdnew("printstack,logstack", cbInstrPrintStack, true); //print the call stack
     dbgcmdnew("flushlog", cbInstrFlushlog, false); //flush the log
     dbgcmdnew("AnimateWait", cbInstrAnimateWait, true); //Wait for the debuggee to pause.
+    dbgcmdnew("PeTest", cbPeTest, false); //test the pe parser
 };
 
 bool cbCommandProvider(char* cmd, int maxlen)
