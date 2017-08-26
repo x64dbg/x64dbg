@@ -419,7 +419,7 @@ void ReferenceView::referenceExecCommand()
     if(act != nullptr)
     {
         QString command = act->data().toString();
-        for(int selected : mCurList->getSelection())
+        for(int selected : mCurList->getSelection()) //to do: enable multi-selection
         {
             QString specializedCommand = command;
             for(int i = 0; i < mCurList->getColumnCount(); i++)
