@@ -4,7 +4,8 @@ struct CookieQuery
 {
     duint addr = 0;
     duint ret = 0;
-    duint cookie = 0;
+    duint cookieptr = 0;
+    ULONG cookie = 0;
     bool removeAddrBp = false;
     bool removeRetBp = false;
 
@@ -29,7 +30,7 @@ struct CookieQuery
         {
             if(valfromstring("[csp]", &ret))
             {
-                cookie = Exprfunc::argget(2);
+                cookieptr = Exprfunc::argget(2);
                 if(!BpGet(ret, BPNORMAL, nullptr, nullptr))
                 {
                     if(SetBPX(ret, UE_BREAKPOINT, (void*)cbUserBreakpoint))
@@ -49,8 +50,8 @@ struct CookieQuery
         }
         else if(ret && ret == cip)
         {
-            if(!MemRead(cookie, &cookie, sizeof(cookie)))
-                cookie = 0;
+            if(!MemRead(cookieptr, &cookie, sizeof(cookie)))
+                cookie = 0, cookieptr = 0;
             if(removeRetBp)
             {
                 DeleteBPX(ret);
