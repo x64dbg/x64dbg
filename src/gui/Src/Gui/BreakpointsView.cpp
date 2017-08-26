@@ -615,7 +615,7 @@ void BreakpointsView::enableAllBreakpointsSlot()
         case bp_memory:
             return "bpme";
         case bp_dll:
-            return "bpdell";
+            return "bpdll";
         case bp_exception:
             return "EnableExceptionBPX";
         default:
