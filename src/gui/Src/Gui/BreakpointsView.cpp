@@ -148,8 +148,7 @@ QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowO
         painter->fillRect(QRect(x, y, w, h), QBrush(col == ColDisasm ? mDisasmSelectionColor : selectionColor));
     else if(col == ColDisasm)
         painter->fillRect(QRect(x, y, w, h), QBrush(mDisasmBackgroundColor));
-    auto index = bpIndex(rowBase + rowOffset);
-    auto & bp = mBps.at(index);
+    auto & bp = mBps.at(bpIndex(rowBase + rowOffset));
     auto cellContent = getCellContent(rowBase + rowOffset, col);
     if(col > ColType && !bp.addr && !bp.active)
     {
@@ -170,12 +169,12 @@ QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowO
     }
     else if(col == ColDisasm)
     {
-        RichTextPainter::paintRichText(painter, x + 4, y, w - 4, h, 0, mRich.at(index).first, mFontMetrics);
+        RichTextPainter::paintRichText(painter, x + 4, y, w - 4, h, 0, mRich.at(rowBase + rowOffset).first, mFontMetrics);
         return QString();
     }
     else if(col == ColSummary)
     {
-        RichTextPainter::paintRichText(painter, x + 4, y, w - 4, h, 0, mRich.at(index).second, mFontMetrics);
+        RichTextPainter::paintRichText(painter, x + 4, y, w - 4, h, 0, mRich.at(rowBase + rowOffset).second, mFontMetrics);
         return QString();
     }
     return cellContent;
