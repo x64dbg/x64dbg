@@ -19,7 +19,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
       mCipBase(0)
 {
     setDrawDebugOnly(true);
-    enableMultiSelection(false);
+    enableMultiSelection(true);
 
     int charwidth = getCharWidth();
 
@@ -77,10 +77,10 @@ void MemoryMapView::setupContextMenu()
     mMemoryAccessMenu = new QMenu(tr("Access"), this);
     mMemoryAccessMenu->setIcon(DIcon("breakpoint_memory_access.png"));
     mMemoryAccessSingleshoot = new QAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
-    connect(mMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
+    makeCommandAction(mMemoryAccessSingleshoot, "bpm $, 0, a");
     mMemoryAccessMenu->addAction(mMemoryAccessSingleshoot);
     mMemoryAccessRestore = new QAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore"), this);
-    connect(mMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
+    makeCommandAction(mMemoryAccessRestore, "bpm $, 1, a");
     mMemoryAccessMenu->addAction(mMemoryAccessRestore);
     mBreakpointMenu->addMenu(mMemoryAccessMenu);
 
@@ -88,10 +88,10 @@ void MemoryMapView::setupContextMenu()
     mMemoryWriteMenu = new QMenu(tr("Write"), this);
     mMemoryWriteMenu->setIcon(DIcon("breakpoint_memory_write.png"));
     mMemoryWriteSingleshoot = new QAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
-    connect(mMemoryWriteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
+    makeCommandAction(mMemoryWriteSingleshoot, "bpm $, 0, w");
     mMemoryWriteMenu->addAction(mMemoryWriteSingleshoot);
     mMemoryWriteRestore = new QAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore"), this);
-    connect(mMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
+    makeCommandAction(mMemoryWriteRestore, "bpm $, 1, w");
     mMemoryWriteMenu->addAction(mMemoryWriteRestore);
     mBreakpointMenu->addMenu(mMemoryWriteMenu);
 
@@ -100,17 +100,17 @@ void MemoryMapView::setupContextMenu()
     mMemoryExecuteMenu->setIcon(DIcon("breakpoint_memory_execute.png"));
     mMemoryExecuteSingleshoot = new QAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
     mMemoryExecuteSingleshoot->setShortcutContext(Qt::WidgetShortcut);
-    connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
+    makeCommandAction(mMemoryExecuteSingleshoot, "bpm $, 0, x");
     mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
     mMemoryExecuteRestore = new QAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore"), this);
-    connect(mMemoryExecuteRestore, SIGNAL(triggered()), this, SLOT(memoryExecuteRestoreSlot()));
+    makeCommandAction(mMemoryExecuteRestore, "bpm $, 1, x");
     mMemoryExecuteMenu->addAction(mMemoryExecuteRestore);
     mBreakpointMenu->addMenu(mMemoryExecuteMenu);
 
     //Breakpoint->Remove
     mMemoryRemove = new QAction(tr("&Remove"), this);
     mMemoryRemove->setShortcutContext(Qt::WidgetShortcut);
-    connect(mMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
+    makeCommandAction(mMemoryRemove, "bpmc $");
     mBreakpointMenu->addAction(mMemoryRemove);
     this->addAction(mMemoryRemove);
 
@@ -129,7 +129,7 @@ void MemoryMapView::setupContextMenu()
     //Free memory
     mMemoryFree = new QAction(DIcon("memmap_free_memory.png"), tr("&Free memory"), this);
     mMemoryFree->setShortcutContext(Qt::WidgetShortcut);
-    connect(mMemoryFree, SIGNAL(triggered()), this, SLOT(memoryFreeSlot()));
+    makeCommandAction(mMemoryFree, "free $");
     this->addAction(mMemoryFree);
 
     //Goto
@@ -324,6 +324,36 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
     return StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }
 
+QAction* MemoryMapView::makeCommandAction(QAction* action, const QString & command)
+{
+    action->setData(QVariant(command));
+    connect(action, SIGNAL(triggered()), this, SLOT(ExecCommand()));
+    return action;
+}
+
+/**
+ * @brief MemoryMapView::ExecCommand execute command slot for menus.
+ */
+void MemoryMapView::ExecCommand()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action)
+    {
+        QString command = action->data().toString();
+        if(command.contains('$'))
+        {
+            for(int i : getSelection())
+            {
+                QString specializedCommand = command;
+                specializedCommand.replace(QChar('$'), getCellContent(i, 0)); // $ -> Base address
+                DbgCmdExec(specializedCommand.toUtf8().constData());
+            }
+        }
+        else
+            DbgCmdExec(command.toUtf8().constData());
+    }
+}
+
 void MemoryMapView::refreshMap()
 {
     MEMMAP wMemMapStruct;
@@ -454,60 +484,21 @@ void MemoryMapView::yaraSlot()
     }
 }
 
-void MemoryMapView::memoryAccessSingleshootSlot()
-{
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, a").toUtf8().constData());
-}
-
-void MemoryMapView::memoryAccessRestoreSlot()
-{
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, a").toUtf8().constData());
-}
-
-void MemoryMapView::memoryWriteSingleshootSlot()
-{
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, w").toUtf8().constData());
-}
-
-void MemoryMapView::memoryWriteRestoreSlot()
-{
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, w").toUtf8().constData());
-}
-
-void MemoryMapView::memoryExecuteSingleshootSlot()
-{
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, x").toUtf8().constData());
-}
-
-void MemoryMapView::memoryExecuteRestoreSlot()
-{
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, x").toUtf8().constData());
-}
-
-void MemoryMapView::memoryRemoveSlot()
-{
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpmc " + addr_text).toUtf8().constData());
-}
-
 void MemoryMapView::memoryExecuteSingleshootToggleSlot()
 {
-    QString addr_text = getCellContent(getInitialSelection(), 0);
+    for(int i : getSelection())
+    {
+        QString addr_text = getCellContent(i, 0);
 #ifdef _WIN64
-    duint selectedAddr = addr_text.toULongLong(0, 16);
+        duint selectedAddr = addr_text.toULongLong(0, 16);
 #else //x86
-    duint selectedAddr = addr_text.toULong(0, 16);
+        duint selectedAddr = addr_text.toULong(0, 16);
 #endif //_WIN64
-    if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
-        memoryRemoveSlot();
-    else
-        memoryExecuteSingleshootSlot();
+        if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
+            DbgCmdExec(QString("bpmc ") + selectedAddr);
+        else
+            DbgCmdExec(QString("bpm %1, 0, x").arg(selectedAddr));
+    }
 }
 
 void MemoryMapView::pageMemoryRights()
@@ -570,11 +561,6 @@ void MemoryMapView::memoryAllocateSlot()
         else
             SimpleErrorBox(this, tr("Error"), tr("Memory allocation failed!"));
     }
-}
-
-void MemoryMapView::memoryFreeSlot()
-{
-    DbgCmdExec(QString("free %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void MemoryMapView::findPatternSlot()

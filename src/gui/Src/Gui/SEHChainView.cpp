@@ -63,7 +63,7 @@ void SEHChainView::updateSEHChain()
 
 void SEHChainView::contextMenuSlot(const QPoint pos)
 {
-    if(!DbgIsDebugging())
+    if(!DbgIsDebugging() || this->getRowCount() == 0)
         return;
     QMenu wMenu(this); //create context menu
     wMenu.addAction(mFollowAddress);
