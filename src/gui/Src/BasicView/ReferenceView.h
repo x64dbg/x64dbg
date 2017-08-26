@@ -19,6 +19,7 @@ public slots:
     void addColumnAt(int width, QString title);
     void setRowCount(dsint count);
     void setCellContent(int r, int c, QString s);
+    void addCommand(QString title, QString command);
     void reloadData();
     void setSingleSelection(int index, bool scroll);
     void setSearchStartCol(int col);
@@ -41,6 +42,9 @@ public slots:
 signals:
     void showCpu();
 
+private slots:
+    void referenceExecCommand();
+
 private:
     QProgressBar* mSearchTotalProgress;
     QProgressBar* mSearchCurrentTaskProgress;
@@ -54,6 +58,8 @@ private:
     QAction* mSetBreakpointOnAllApiCalls;
     QAction* mRemoveBreakpointOnAllApiCalls;
     QLabel* mCountTotalLabel;
+    QVector<QString> mCommnadTitles;
+    QVector<QString> mCommands;
 
     enum BPSetAction
     {

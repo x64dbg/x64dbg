@@ -70,6 +70,7 @@ signals:
     void referenceAddColumnAt(int width, QString title);
     void referenceSetRowCount(dsint count);
     void referenceSetCellContent(int r, int c, QString s);
+    void referenceAddCommand(QString title, QString command);
     void referenceReloadData();
     void referenceSetSingleSelection(int index, bool scroll);
     void referenceSetProgress(int progress);
