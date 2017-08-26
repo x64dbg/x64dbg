@@ -21,7 +21,6 @@ BreakpointsView::BreakpointsView(QWidget* parent)
 
     mDisasm = new QBeaEngine(ConfigUint("Disassembler", "MaxModuleSize"));
     mDisasm->UpdateConfig();
-    enableMultiSelection(true);
 
     setupContextMenu();
     updateColors();
@@ -149,7 +148,8 @@ QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowO
         painter->fillRect(QRect(x, y, w, h), QBrush(col == ColDisasm ? mDisasmSelectionColor : selectionColor));
     else if(col == ColDisasm)
         painter->fillRect(QRect(x, y, w, h), QBrush(mDisasmBackgroundColor));
-    auto & bp = mBps.at(bpIndex(rowBase + rowOffset));
+    auto index = bpIndex(rowBase + rowOffset);
+    auto & bp = mBps.at(index);
     auto cellContent = getCellContent(rowBase + rowOffset, col);
     if(col > ColType && !bp.addr && !bp.active)
     {
@@ -170,12 +170,12 @@ QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowO
     }
     else if(col == ColDisasm)
     {
-        RichTextPainter::paintRichText(painter, x + 4, y, w - 4, h, 0, mRich.at(rowBase + rowOffset).first, mFontMetrics);
+        RichTextPainter::paintRichText(painter, x + 4, y, w - 4, h, 0, mRich.at(index).first, mFontMetrics);
         return QString();
     }
     else if(col == ColSummary)
     {
-        RichTextPainter::paintRichText(painter, x + 4, y, w - 4, h, 0, mRich.at(rowBase + rowOffset).second, mFontMetrics);
+        RichTextPainter::paintRichText(painter, x + 4, y, w - 4, h, 0, mRich.at(index).second, mFontMetrics);
         return QString();
     }
     return cellContent;
@@ -426,11 +426,6 @@ void BreakpointsView::updateBreakpointsSlot()
                     colored(tr("secondchance"), mSummaryKeywordColor);
                     colored("()", mSummaryParenColor);
                     break;
-                case ex_all:
-                    next();
-                    colored(tr("anychance"), mSummaryKeywordColor);
-                    colored("()", mSummaryParenColor);
-                    break;
                 }
                 break;
 
@@ -562,16 +557,14 @@ void BreakpointsView::followBreakpointSlot()
 
 void BreakpointsView::removeBreakpointSlot()
 {
-    for(int i : getSelection())
-        if(isValidBp(i))
-            Breakpoints::removeBP(selectedBp(i));
+    if(isValidBp())
+        Breakpoints::removeBP(selectedBp());
 }
 
 void BreakpointsView::toggleBreakpointSlot()
 {
-    for(int i : getSelection())
-        if(isValidBp(i))
-            Breakpoints::toggleBPByDisabling(selectedBp(i));
+    if(isValidBp())
+        Breakpoints::toggleBPByDisabling(selectedBp());
 }
 
 void BreakpointsView::editBreakpointSlot()
@@ -584,90 +577,75 @@ void BreakpointsView::editBreakpointSlot()
 
 void BreakpointsView::resetHitCountBreakpointSlot()
 {
-    for(int i : getSelection())
+    if(!isValidBp())
+        return;
+    auto & bp = selectedBp();
+    DbgCmdExec([&]()
     {
-        if(!isValidBp(i))
-            continue;
-        auto & bp = selectedBp(i);
-        QString cmd;
         switch(bp.type)
         {
         case bp_normal:
-            cmd = QString("ResetBreakpointHitCount %1").arg(ToPtrString(bp.addr));
-            break;
+            return QString("ResetBreakpointHitCount %1").arg(ToPtrString(bp.addr));
         case bp_hardware:
-            cmd = QString("ResetHardwareBreakpointHitCount %1").arg(ToPtrString(bp.addr));
-            break;
+            return QString("ResetHardwareBreakpointHitCount %1").arg(ToPtrString(bp.addr));
         case bp_memory:
-            cmd = QString("ResetMemoryBreakpointHitCount %1").arg(ToPtrString(bp.addr));
-            break;
+            return QString("ResetMemoryBreakpointHitCount %1").arg(ToPtrString(bp.addr));
         case bp_dll:
-            cmd = QString("ResetLibrarianBreakpointHitCount \"%1\"").arg(bp.mod);
-            break;
+            return QString("ResetLibrarianBreakpointHitCount \"%1\"").arg(bp.mod);
         case bp_exception:
-            cmd = QString("ResetExceptionBreakpointHitCount %1").arg(ToHexString(bp.addr));
-            break;
+            return QString("ResetExceptionBreakpointHitCount %1").arg(ToHexString(bp.addr));
         default:
-            return;
+            return QString();
         }
-        DbgCmdExec(cmd);
-    }
+    }());
 }
 
 void BreakpointsView::enableAllBreakpointsSlot()
 {
     if(mBps.empty())
         return;
-    QString cmd;
-    switch(selectedBp().type)
+    DbgCmdExec([this]() -> QString
     {
-    case bp_normal:
-        cmd = "bpe";
-        break;
-    case bp_hardware:
-        cmd =  "bphwe";
-        break;
-    case bp_memory:
-        cmd =  "bpme";
-        break;
-    case bp_dll:
-        cmd =  "bpdell"; //??? command not found
-        break;
-    case bp_exception:
-        cmd = "EnableExceptionBPX";
-        break;
-    default:
-        return;
-    }
-    DbgCmdExec(cmd);
+        switch(selectedBp().type)
+        {
+        case bp_normal:
+            return "bpe";
+        case bp_hardware:
+            return "bphwe";
+        case bp_memory:
+            return "bpme";
+        case bp_dll:
+            return "bpdell";
+        case bp_exception:
+            return "EnableExceptionBPX";
+        default:
+            return QString();
+        }
+    }());
 }
 
 void BreakpointsView::disableAllBreakpointsSlot()
 {
     if(mBps.empty())
         return;
-    QString cmd;
-    switch(selectedBp().type)
+    DbgCmdExec([this]() -> QString
     {
-    case bp_normal:
-        cmd = "bpd";
-        break;
-    case bp_hardware:
-        cmd = "bphwd";
-        break;
-    case bp_memory:
-        cmd = "bpmd";
-        break;
-    case bp_dll:
-        cmd = "bpddll";
-        break;
-    case bp_exception:
-        cmd = "DisableExceptionBPX";
-        break;
-    default:
-        cmd = QString();
-    }
-    DbgCmdExec(cmd);
+        switch(selectedBp().type)
+        {
+        case bp_normal:
+            return "bpd";
+        case bp_hardware:
+            return "bphwd";
+        case bp_memory:
+            return "bpmd";
+        case bp_dll:
+            return "bpddll";
+        case bp_exception:
+            return "DisableExceptionBPX";
+        default:
+            return QString();
+        }
+    }());
 }
 
 void BreakpointsView::addDllBreakpointSlot()

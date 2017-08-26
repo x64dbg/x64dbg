@@ -69,17 +69,14 @@ private:
         return mData.at(i).at(ColAddr).userdata;
     }
 
-    const BRIDGEBP & selectedBp(int index = -1)
+    const BRIDGEBP & selectedBp()
     {
-        if(index == -1)
-            index = getInitialSelection();
-        return mBps.at(bpIndex(index));
+        return mBps.at(bpIndex(getInitialSelection()));
     }
 
-    bool isValidBp(int sel = -1)
+    bool isValidBp()
     {
-        if(sel == -1)
-            sel = getInitialSelection();
+        auto sel = getInitialSelection();
         if(!DbgIsDebugging() || mBps.empty() || !isValidIndex(sel, ColType))
             return false;
         auto & bp = mBps.at(bpIndex(sel));
