@@ -594,14 +594,19 @@ void BreakpointsView::resetHitCountBreakpointSlot()
         {
         case bp_normal:
             cmd = QString("ResetBreakpointHitCount %1").arg(ToPtrString(bp.addr));
+            break;
         case bp_hardware:
             cmd = QString("ResetHardwareBreakpointHitCount %1").arg(ToPtrString(bp.addr));
+            break;
         case bp_memory:
             cmd = QString("ResetMemoryBreakpointHitCount %1").arg(ToPtrString(bp.addr));
+            break;
         case bp_dll:
             cmd = QString("ResetLibrarianBreakpointHitCount \"%1\"").arg(bp.mod);
+            break;
         case bp_exception:
             cmd = QString("ResetExceptionBreakpointHitCount %1").arg(ToHexString(bp.addr));
+            break;
         default:
             return;
         }
@@ -618,14 +623,19 @@ void BreakpointsView::enableAllBreakpointsSlot()
     {
     case bp_normal:
         cmd = "bpe";
+        break;
     case bp_hardware:
         cmd =  "bphwe";
+        break;
     case bp_memory:
         cmd =  "bpme";
+        break;
     case bp_dll:
         cmd =  "bpdell"; //??? command not found
+        break;
     case bp_exception:
         cmd = "EnableExceptionBPX";
+        break;
     default:
         return;
     }
@@ -641,14 +651,19 @@ void BreakpointsView::disableAllBreakpointsSlot()
     {
     case bp_normal:
         cmd = "bpd";
+        break;
     case bp_hardware:
         cmd = "bphwd";
+        break;
     case bp_memory:
         cmd = "bpmd";
+        break;
     case bp_dll:
         cmd = "bpddll";
+        break;
     case bp_exception:
         cmd = "DisableExceptionBPX";
+        break;
     default:
         cmd = QString();
     }
