@@ -121,10 +121,59 @@ class PeSectionMap
     RangeSectionMap mOffsetSectionMap;
     RangeSectionMap mRvaSectionMap;
     std::vector<IMAGE_SECTION_HEADER> mSections;
-    uint32 mAlignment;
+    uint32 mFileAlignment = 0;
+    uint32 mSectionAlignment = 0;
     const int HeaderSection = -1;
 
+    // https://github.com/erocarrera/pefile/blob/master/pefile.py#L5517
+    //
+    // According to http://corkami.blogspot.com/2010/01/parce-que-la-planche-aura-brule.html
+    // if PointerToRawData is less that 0x200 it's rounded to zero. Loading the test file
+    // in a debugger it's easy to verify that the PointerToRawData value of 1 is rounded
+    // to zero. Hence we reproduce the behavior
+    //
+    // According to the document:
+    // [ Microsoft Portable Executable and Common Object File Format Specification ]
+    // "The alignment factor (in bytes) that is used to align the raw data of sections in
+    //  the image file. The value should be a power of 2 between 512 and 64 K, inclusive.
+    //  The default is 512. If the SectionAlignment is less than the architecture's page
+    //  size, then FileAlignment must match SectionAlignment."
+    //
+    // The following is a hard-coded constant if the Windows loader
     template<typename T>
+    static T adjust_FileAlignment(T val, uint32 file_alignment)
+    {
+        const uint32 FILE_ALIGNMMENT_HARDCODED_VALUE = 0x200;
+        if(file_alignment < FILE_ALIGNMMENT_HARDCODED_VALUE)
+            return val;
+        return (val / 0x200) * 0x200;
+    }
+
+    // https://github.com/erocarrera/pefile/blob/master/pefile.py#L5545
+    //
+    // According to the document:
+    // [ Microsoft Portable Executable and Common Object File Format Specification ]
+    // "The alignment (in bytes) of sections when they are loaded into memory. It must be
+    //  greater than or equal to FileAlignment. The default is the page size for the
+    //  architecture."
+    template<typename T>
+    static T adjust_SectionAlignment(T val, uint32 section_alignment, uint32 file_alignment)
+    {
+        if(section_alignment < 0x1000)
+            section_alignment = file_alignment;
+
+        // 0x200 is the minimum valid FileAlignment according to the documentation
+        // although ntoskrnl.exe has an alignment of 0x80 in some Windows versions
+        //
+        //else if(section_alignment < 0x80)
+        //    section_alignment = 0x80
+
+        if(section_alignment && val % section_alignment)
+            return section_alignment * (val / section_alignment);
+        return val;
+    }
+
+    /*template<typename T>
     static T alignAdjustSize(T size, uint32 alignment) //TODO: check this
     {
         return size + (alignment - 1) & ~(alignment - 1);
@@ -134,7 +183,7 @@ class PeSectionMap
     static T alignAdjustAddress(T address, uint32 alignment) //TODO: check this
     {
         return address & ~(alignment - 1);
-    }
+    }*/
 
 public:
     int ParseSections(std::vector<IMAGE_SECTION_HEADER> & sections, uint32 sectionAlignment, uint32 fileAlignment)
@@ -187,7 +236,7 @@ public:
             }
 
             //rva -> section index
-            auto rva = alignAdjustAddress(section.VirtualAddress, sectionAlignment);
+            auto rva = adjust_SectionAlignment(section.VirtualAddress, sectionAlignment, fileAlignment);
             if(!mRvaSectionMap.insert({ Range(rva, rva + rsize - 1), i }).second)
                 return 2;
         }
@@ -207,7 +256,7 @@ public:
             return offset;
         const auto & section = mSections.at(index);
         offset -= uint32(found->first.first); //adjust the offset to be relative to the offset range in the map
-        return alignAdjustAddress(section.VirtualAddress, mAlignment) + offset;
+        return adjust_SectionAlignment(section.VirtualAddress, mSectionAlignment, mFileAlignment) + offset;
     }
 
     uint32 ConvertRvaToOffset(uint32 rva)
@@ -332,6 +381,9 @@ void testFileBasic(const std::wstring & file)
                 auto secErr = sectionMap.ParseSections(basic.sections, basic.SectionAlignment, basic.FileAlignment);
                 if(secErr)
                     dprintf("[!!!] ParseSections failed (%d)...\n", secErr);
+                if(wcscmp(L"", L"duphead.exe") == 0)
+                {
+                }
                 UnmapViewOfFile(fileMap);
             }
             else
