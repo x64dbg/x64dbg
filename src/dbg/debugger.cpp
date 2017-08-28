@@ -56,6 +56,7 @@ static bool bBreakOnNextDll = false;
 static bool bFreezeStack = false;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static HANDLE hEvent = 0;
+static duint tidToResume = 0;
 static HANDLE hProcess = 0;
 static HANDLE hMemMapThread = 0;
 static bool bStopMemMapThread = false;
@@ -287,6 +288,11 @@ bool dbgisdll()
 void dbgsetattachevent(HANDLE handle)
 {
     hEvent = handle;
+}
+
+void dbgsetresumetid(duint tid)
+{
+    tidToResume = tid;
 }
 
 void dbgsetskipexceptions(bool skip)
@@ -1922,6 +1928,11 @@ static void cbAttachDebugger()
     {
         SetEvent(hEvent);
         hEvent = 0;
+    }
+    if(tidToResume) //Resume a thread
+    {
+        cmddirectexec(StringUtils::sprintf("resumethread %p", tidToResume).c_str());
+        tidToResume = 0;
     }
     hProcess = fdProcessInfo->hProcess;
     varset("$hp", (duint)fdProcessInfo->hProcess, true);
