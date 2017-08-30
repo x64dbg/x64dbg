@@ -120,10 +120,29 @@ class PeSectionMap
     using RangeSectionMap = std::map<Range, size_t, RangeCompare>;
     RangeSectionMap mOffsetSectionMap;
     RangeSectionMap mRvaSectionMap;
+    RangeSectionMap mRvaVirtualMap;
     std::vector<IMAGE_SECTION_HEADER> mSections;
     uint32 mFileAlignment = 0;
     uint32 mSectionAlignment = 0;
     const int HeaderSection = -1;
+
+    static void printMap(const char* title, const RangeSectionMap & m)
+    {
+        dprintf("%s:\n", title);
+        if(m.empty())
+            dputs("<empty>");
+        for(auto & it : m)
+            dprintf("  Range(0x%p, 0x%p): %u\n", it.first.first, it.first.second, it.second);
+    }
+
+    void printSections() const
+    {
+        for(size_t i = 0; i < mSections.size(); i++)
+        {
+            auto & s = mSections.at(i);
+            dprintf("[%u] VirSize: 0x%p, VirAddr: 0x%p, RawSize: 0x%p RawAddr: 0x%p\n", i, s.Misc.VirtualSize, s.VirtualAddress, s.SizeOfRawData, s.PointerToRawData);
+        }
+    }
 
     // https://github.com/erocarrera/pefile/blob/master/pefile.py#L5517
     //
@@ -173,22 +192,18 @@ class PeSectionMap
         return val;
     }
 
-    /*template<typename T>
-    static T alignAdjustSize(T size, uint32 alignment) //TODO: check this
+    template<typename T>
+    static T align_VirtualSize(T size, uint32 alignment = 0x1000) //TODO: check how the Windows loader deals with small alignments + check where this alignment comes from...
     {
         return size + (alignment - 1) & ~(alignment - 1);
     }
-
-    template<typename T>
-    static T alignAdjustAddress(T address, uint32 alignment) //TODO: check this
-    {
-        return address & ~(alignment - 1);
-    }*/
 
 public:
     int ParseSections(std::vector<IMAGE_SECTION_HEADER> & sections, uint32 sectionAlignment, uint32 fileAlignment)
     {
         mSections = sections;
+        mSectionAlignment = sectionAlignment;
+        mFileAlignment = fileAlignment;
 
         //create rva/offset -> section maps
         auto minSection = std::min_element(mSections.begin(), mSections.end(), [](const IMAGE_SECTION_HEADER & a, const IMAGE_SECTION_HEADER & b)
@@ -200,45 +215,57 @@ public:
             return a.PointerToRawData < b.PointerToRawData;
         });
         //insert pe header offset/rva (file start >| first (physical) section is the PE header)
-        if(minSection != mSections.end() && minSection->PointerToRawData)
+        if(minSection != mSections.end() && adjust_FileAlignment(minSection->PointerToRawData, mFileAlignment))
         {
+            auto offset = adjust_FileAlignment(minSection->PointerToRawData, mFileAlignment);
             //TODO: rounding down with FileAlignment (duphead.exe)
-            mOffsetSectionMap.insert({ Range(0, minSection->PointerToRawData - 1), HeaderSection });
-            mRvaSectionMap.insert({ Range(0, minSection->PointerToRawData - 1), HeaderSection });
+            mOffsetSectionMap.insert({ Range(0, offset - 1), HeaderSection });
+            mRvaSectionMap.insert({ Range(0, offset - 1), HeaderSection });
         }
 
         for(size_t i = 0; i < mSections.size(); i++)
         {
             const auto & section = mSections.at(i);
             //offset -> section index
-            auto offset = section.PointerToRawData;
-            //bigSoRD.exe: if raw size is bigger than virtual size, then virtual size is taken.
-            auto rsize = min(section.SizeOfRawData, section.Misc.VirtualSize);
-            if(!rsize) //65535sects.exe
-                continue;
-            auto range = Range(offset, offset + rsize - 1);
-            auto result = mOffsetSectionMap.insert({ range, i });
-            if(!result.second)
+            auto offset = adjust_FileAlignment(section.PointerToRawData, mFileAlignment);
+            //TODO: duphead_mapping.exe if the PointerToRawData is rounded down the size of the mapped data is 'increased'
+            //eg the size of the data mapped isn't adjusted downwards like the PointerToRawData, it is instead rsize + offsetAdj.
+            //TODO: find out what happens in relation to bigSoRD_rounded.exe (raw size limited by virtual size)
+            auto offsetAdj = section.PointerToRawData - offset;
+            //bigSoRD.exe: if raw size is bigger than virtual size, then virtual size (TODO: AFTER alignment) is taken.
+            //TODO: check what happens with an unaligned virtual address + unaligned virtual size
+            auto rsize = section.SizeOfRawData > section.Misc.VirtualSize ? section.Misc.VirtualSize : section.SizeOfRawData;
+            //with a zero raw size (65535sects.exe) there is never any data mapped, even if PointerToRawData is rounded down (duphead_zero.exe)
+            if(rsize)
             {
-                //this happens if two sections share raw data:
-                //imports_1210.exe, secinsec.exe, maxsecXP.exe, dupsec.exe, bigSoRD.exe
-                auto prange = result.first->first;
-                dprintf("trying to insert Range(0x%X, 0x%X)\n", offset, offset + rsize - 1);
-                dprintf("prevented by Range(0x%X, 0x%X)\n", prange.first, prange.second);
-
-
-                if(range.first >= prange.first && range.second <= prange.second)
+                auto range = Range(offset, offset + rsize - 1);
+                auto result = mOffsetSectionMap.insert({ range, i });
+                if(!result.second)
                 {
-                    dputs("new range is contained in the preventing range => do nothing");
+                    //this happens if two sections share raw data:
+                    //imports_1210.exe, secinsec.exe, maxsecXP.exe, dupsec.exe, bigSoRD.exe
+                    auto prange = result.first->first;
+                    dprintf("trying to insert Range(0x%X, 0x%X)\n", offset, offset + rsize - 1);
+                    dprintf("prevented by Range(0x%X, 0x%X)\n", prange.first, prange.second);
+
+                    if(range.first >= prange.first && range.second <= prange.second)
+                    {
+                        dputs("new range is contained in the preventing range => do nothing");
+                    }
+                    else //range has to be split and the two ranges have to be tried to be added recursively
+                        return 1;
                 }
-                else //range has to be split and the two ranges have to be tried to be added recursively
-                    return 1;
             }
+
+            //nullvirt.exe: a section can have a null VirtualSize: in this case, only the SizeOfRawData is taken into consideration.
+            auto vsize = section.Misc.VirtualSize ? section.Misc.VirtualSize : section.SizeOfRawData;
 
             //rva -> section index
             auto rva = adjust_SectionAlignment(section.VirtualAddress, sectionAlignment, fileAlignment);
             if(!mRvaSectionMap.insert({ Range(rva, rva + rsize - 1), i }).second)
                 return 2;
+            if(!mRvaVirtualMap.insert({ Range(rva, rva + align_VirtualSize(vsize) - 1), i }).second)
+                return 3;
         }
 
         return 0;
@@ -271,7 +298,15 @@ public:
             return rva;
         const auto & section = mSections.at(index);
         rva -= uint32(found->first.first); //adjust the rva to be relative to the rva range in the map
-        return section.PointerToRawData + rva;
+        return adjust_FileAlignment(section.PointerToRawData, mFileAlignment) + rva;
+    }
+
+    void PrintSectionMaps() const
+    {
+        printSections();
+        printMap("mOffsetSectionMap", mOffsetSectionMap);
+        printMap("mRvaSectionMap", mRvaSectionMap);
+        printMap("mRvaVirtualMap", mRvaVirtualMap);
     }
 };
 
@@ -381,9 +416,8 @@ void testFileBasic(const std::wstring & file)
                 auto secErr = sectionMap.ParseSections(basic.sections, basic.SectionAlignment, basic.FileAlignment);
                 if(secErr)
                     dprintf("[!!!] ParseSections failed (%d)...\n", secErr);
-                if(wcscmp(L"", L"duphead.exe") == 0)
-                {
-                }
+                if(wcsstr(file.c_str(), L"duphead.exe"))
+                    sectionMap.PrintSectionMaps();
                 UnmapViewOfFile(fileMap);
             }
             else
