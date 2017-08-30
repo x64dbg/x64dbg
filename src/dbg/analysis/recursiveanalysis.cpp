@@ -125,7 +125,35 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
 
                 //consider register/memory branches as terminal nodes
                 if(mCp[0].type != X86_OP_IMM)
-                    node.terminal = true;
+                {
+                    if(mCp[0].type == X86_OP_MEM && mCp[0].mem.base == X86_OP_INVALID && mCp[0].mem.index != X86_OP_INVALID
+                            && mCp[0].mem.scale == ArchValue(4, 8) && MemIsValidReadPtr(mCp[0].mem.disp))
+                    {
+                        Memory<duint*> switchTable(512 * sizeof(duint));
+                        duint actualSize;
+                        int index;
+                        MemRead(mCp[0].mem.disp, switchTable(), 512 * sizeof(duint), &actualSize);
+                        actualSize /= sizeof(duint);
+                        for(index = 0; index < actualSize; index++)
+                            if(MemIsCodePage(switchTable()[index], false) == false)
+                                break;
+                        actualSize = index;
+                        if(actualSize >= 2 && actualSize < 512)
+                        {
+                            node.brtrue = 0;
+                            node.brfalse = 0;
+                            for(index = 0; index < actualSize; index++)
+                            {
+                                node.exits.push_back(switchTable()[index]);
+                                queue.emplace(switchTable()[index]);
+                            }
+                        }
+                        else
+                            node.terminal = true;
+                    }
+                    else
+                        node.terminal = true;
+                }
 
                 //add node to the function graph
                 graph.AddNode(node);
