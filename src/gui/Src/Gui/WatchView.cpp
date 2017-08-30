@@ -167,7 +167,7 @@ void WatchView::setupContextMenu()
 
 QString WatchView::getSelectedId()
 {
-    return getCellContent(getInitialSelection(), 5);
+    return QChar('.') + getCellContent(getInitialSelection(), 5);
 }
 
 QString WatchView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
