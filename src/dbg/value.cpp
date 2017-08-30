@@ -176,17 +176,17 @@ static bool isregister(const char* string)
     if(scmp(string, "dr7") || scmp(string, "dr5"))
         return true;
 
-	if(scmp(string, "cax"))
+    if(scmp(string, "cax"))
         return true;
-	if(scmp(string, "cbx"))
+    if(scmp(string, "cbx"))
         return true;
-	if(scmp(string, "ccx"))
+    if(scmp(string, "ccx"))
         return true;
-	if(scmp(string, "cdx"))
+    if(scmp(string, "cdx"))
         return true;
-	if(scmp(string, "csi"))
+    if(scmp(string, "csi"))
         return true;
-	if(scmp(string, "cdi"))
+    if(scmp(string, "cdi"))
         return true;
     if(scmp(string, "cip"))
         return true;
@@ -879,7 +879,7 @@ duint getregister(int* size, const char* string)
         return GetContextDataEx(hActiveThread, UE_DR7);
     }
 
-	if(scmp(string, "cax"))
+    if(scmp(string, "cax"))
     {
 #ifdef _WIN64
         return GetContextDataEx(hActiveThread, UE_RAX);
@@ -887,7 +887,7 @@ duint getregister(int* size, const char* string)
         return GetContextDataEx(hActiveThread, UE_EAX);
 #endif //_WIN64
     }
-	if(scmp(string, "cbx"))
+    if(scmp(string, "cbx"))
     {
 #ifdef _WIN64
         return GetContextDataEx(hActiveThread, UE_RBX);
@@ -895,7 +895,7 @@ duint getregister(int* size, const char* string)
         return GetContextDataEx(hActiveThread, UE_EBX);
 #endif //_WIN64
     }
-	if(scmp(string, "ccx"))
+    if(scmp(string, "ccx"))
     {
 #ifdef _WIN64
         return GetContextDataEx(hActiveThread, UE_RCX);
@@ -903,7 +903,7 @@ duint getregister(int* size, const char* string)
         return GetContextDataEx(hActiveThread, UE_ECX);
 #endif //_WIN64
     }
-	if(scmp(string, "cdx"))
+    if(scmp(string, "cdx"))
     {
 #ifdef _WIN64
         return GetContextDataEx(hActiveThread, UE_RDX);
@@ -911,7 +911,7 @@ duint getregister(int* size, const char* string)
         return GetContextDataEx(hActiveThread, UE_EDX);
 #endif //_WIN64
     }
-	if(scmp(string, "csi"))
+    if(scmp(string, "csi"))
     {
 #ifdef _WIN64
         return GetContextDataEx(hActiveThread, UE_RSI);
@@ -919,7 +919,7 @@ duint getregister(int* size, const char* string)
         return GetContextDataEx(hActiveThread, UE_ESI);
 #endif //_WIN64
     }
-	if(scmp(string, "cdi"))
+    if(scmp(string, "cdi"))
     {
 #ifdef _WIN64
         return GetContextDataEx(hActiveThread, UE_RDI);
@@ -1249,37 +1249,37 @@ bool setregister(const char* string, duint value)
     if(scmp(string, "dr7") || scmp(string, "dr5"))
         return SetContextDataEx(hActiveThread, UE_DR7, value);
 
-	if(scmp(string, "cax"))
+    if(scmp(string, "cax"))
 #ifdef _WIN64
         return SetContextDataEx(hActiveThread, UE_RAX, value);
 #else
         return SetContextDataEx(hActiveThread, UE_EAX, value);
 #endif //_WIN64
-	if(scmp(string, "cbx"))
+    if(scmp(string, "cbx"))
 #ifdef _WIN64
         return SetContextDataEx(hActiveThread, UE_RBX, value);
 #else
         return SetContextDataEx(hActiveThread, UE_EBX, value);
 #endif //_WIN64
-	if(scmp(string, "ccx"))
+    if(scmp(string, "ccx"))
 #ifdef _WIN64
         return SetContextDataEx(hActiveThread, UE_RCX, value);
 #else
         return SetContextDataEx(hActiveThread, UE_ECX, value);
 #endif //_WIN64
-	if(scmp(string, "cdx"))
+    if(scmp(string, "cdx"))
 #ifdef _WIN64
         return SetContextDataEx(hActiveThread, UE_RDX, value);
 #else
         return SetContextDataEx(hActiveThread, UE_EDX, value);
 #endif //_WIN64
-	if(scmp(string, "csi"))
+    if(scmp(string, "csi"))
 #ifdef _WIN64
         return SetContextDataEx(hActiveThread, UE_RSI, value);
 #else
         return SetContextDataEx(hActiveThread, UE_ESI, value);
 #endif //_WIN64
-	if(scmp(string, "cdi"))
+    if(scmp(string, "cdi"))
 #ifdef _WIN64
         return SetContextDataEx(hActiveThread, UE_RDI, value);
 #else
