@@ -18,6 +18,7 @@
 #include "RichTextPainter.h"
 #include "QBeaEngine.h"
 #include "ActionHelpers.h"
+#include "VaHistory.h"
 
 class MenuBuilder;
 class CachedFontMetrics;
@@ -245,6 +246,8 @@ public:
     void fontChanged();
     void setGraphLayout(LayoutType layout);
 
+    VaHistory mHistory;
+
 signals:
     void displaySnowmanWidget();
 
@@ -265,7 +268,10 @@ public slots:
     void disassembleAtSlot(dsint va, dsint cip);
     void gotoExpressionSlot();
     void gotoOriginSlot();
+    void gotoPreviousSlot();
+    void gotoNextSlot();
     void toggleSyncOriginSlot();
+    void followActionSlot();
     void refreshSlot();
     void saveImageSlot();
     void setCommentSlot();
@@ -310,6 +316,7 @@ private:
     duint mCip;
     bool forceCenter;
     bool saveGraph;
+    bool mHistoryLock; //Don't add a history while going to previous/next
     LayoutType layoutType;
 
     QAction* mToggleOverview;
@@ -344,6 +351,8 @@ private:
     QBeaEngine disasm;
     GotoDialog* mGoto;
     XrefBrowseDialog* mXrefDlg;
+
+    void addReferenceAction(QMenu* menu, duint addr);
 };
 
 #endif // DISASSEMBLERGRAPHVIEW_H

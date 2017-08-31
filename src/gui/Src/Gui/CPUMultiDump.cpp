@@ -153,8 +153,8 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
             cpuDump = qobject_cast<CPUDump*>(widget(i));
             if(cpuDump)
             {
-                cpuDump->historyClear();
-                cpuDump->addVaToHistory(parVa);
+                cpuDump->mHistory.historyClear();
+                cpuDump->mHistory.addVaToHistory(parVa);
                 cpuDump->printDumpAt(parVa);
             }
         }
@@ -165,7 +165,7 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
     {
         SwitchToDumpWindow();
         mCurrentCPUDump->printDumpAt(parVa);
-        mCurrentCPUDump->addVaToHistory(parVa);
+        mCurrentCPUDump->mHistory.addVaToHistory(parVa);
     }
 }
 
@@ -179,7 +179,7 @@ void CPUMultiDump::printDumpAtNSlot(duint parVa, int index)
         return;
     setCurrentIndex(tabindex);
     current->printDumpAt(parVa);
-    current->addVaToHistory(parVa);
+    current->mHistory.addVaToHistory(parVa);
 }
 
 void CPUMultiDump::selectionGetSlot(SELECTIONDATA* selectionData)

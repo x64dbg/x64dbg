@@ -34,8 +34,6 @@ public slots:
     void gotoCspSlot();
     void gotoCbpSlot();
     void gotoExpressionSlot();
-    void gotoPreviousSlot();
-    void gotoNextSlot();
     void gotoPreviousFrameSlot();
     void gotoNextFrameSlot();
     void gotoFrameBaseSlot();

@@ -295,7 +295,8 @@ HEADERS += \
     Src/Gui/MessagesBreakpoints.h \
     Src/Gui/AboutDialog.h \
     Src/Gui/BreakpointMenu.h \
-    Src/Gui/ComboBoxDialog.h
+    Src/Gui/ComboBoxDialog.h \
+    Src/Utils/VaHistory.h
     
 
 FORMS += \

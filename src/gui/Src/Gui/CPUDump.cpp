@@ -188,13 +188,13 @@ void CPUDump::setupContextMenu()
         return getSelectionStart() != 0;
     });
     wGotoMenu->addAction(makeShortcutAction(DIcon("bottom.png"), tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
-    wGotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPrevSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    wGotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
-        return historyHasPrev();
+        return mHistory.historyHasPrev();
     });
     wGotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
     {
-        return historyHasNext();
+        return mHistory.historyHasNext();
     });
     wGotoMenu->addAction(makeShortcutAction(DIcon("prevref.png"), tr("Previous Reference"), SLOT(gotoPreviousReferenceSlot()), "ActionGotoPreviousReference"), [](QMenu*)
     {
@@ -1628,16 +1628,6 @@ void CPUDump::allocMemorySlot()
             return;
         }
     }
-}
-
-void CPUDump::gotoNextSlot()
-{
-    historyNext();
-}
-
-void CPUDump::gotoPrevSlot()
-{
-    historyPrev();
 }
 
 void CPUDump::setView(ViewEnum_t view)
