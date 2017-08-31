@@ -108,8 +108,6 @@ public slots:
     void followInDumpNSlot();
     void allocMemorySlot();
 
-    void gotoNextSlot();
-    void gotoPrevSlot();
     void followInMemoryMapSlot();
 
 private:

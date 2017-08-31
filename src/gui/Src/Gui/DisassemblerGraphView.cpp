@@ -26,6 +26,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
       syncOrigin(false),
       forceCenter(false),
       layoutType(LayoutType::Medium),
+      mHistoryLock(false),
       mXrefDlg(nullptr)
 {
     this->status = "Loading...";
@@ -633,7 +634,7 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
             wMenu.exec(event->globalPos()); //execute context menu
         }
     }
-    else if(this->isMouseEventInBlock(event))
+    else if((event->button() == Qt::LeftButton || event->button() == Qt::RightButton) && this->isMouseEventInBlock(event))
     {
         //Check for click on a token and highlight it
         Token token;
@@ -695,6 +696,11 @@ void DisassemblerGraphView::mouseMoveEvent(QMouseEvent* event)
 
 void DisassemblerGraphView::mouseReleaseEvent(QMouseEvent* event)
 {
+    if(event->button() == Qt::ForwardButton)
+        gotoNextSlot();
+    else if(event->button() == Qt::BackButton)
+        gotoPreviousSlot();
+
     if(event->button() != Qt::LeftButton)
         return;
 
@@ -1448,10 +1454,15 @@ void DisassemblerGraphView::show_cur_instr(bool force)
 
 bool DisassemblerGraphView::navigate(duint addr)
 {
+    //Add address to history
+    if(!mHistoryLock)
+        mHistory.addVaToHistory(addr);
     //Check to see if address is within current function
     for(auto & blockIt : this->blocks)
     {
         DisassemblerBlock & block = blockIt.second;
+        if(block.block.entry > addr) //optimize it
+            continue;
         auto row = int(block.block.header_text.lines.size());
         for(Instr & instr : block.block.instrs)
         {
@@ -1648,6 +1659,15 @@ void DisassemblerGraphView::updateGraphSlot()
     this->viewport()->update();
 }
 
+void DisassemblerGraphView::addReferenceAction(QMenu* menu, duint addr)
+{
+    QAction* action = new QAction(menu);
+    action->setData(ToPtrString(addr));
+    action->setText(getSymbolicName(addr));
+    connect(action, SIGNAL(triggered()), this, SLOT(followActionSlot()));
+    menu->addAction(action);
+}
+
 void DisassemblerGraphView::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this, [](QMenu*)
@@ -1671,6 +1691,52 @@ void DisassemblerGraphView::setupContextMenu()
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
+    gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    {
+        return mHistory.historyHasPrev();
+    });
+    gotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
+    {
+        return mHistory.historyHasNext();
+    });
+    MenuBuilder* childrenAndParentMenu = new MenuBuilder(this, [this](QMenu * menu)
+    {
+        duint cursorpos = get_cursor_pos();
+        const DisassemblerBlock* currentBlock = nullptr;
+        const Instr* currentInstruction = nullptr;
+        for(const auto & i : blocks)
+        {
+            if(i.second.block.entry > cursorpos)
+                continue;
+            for(const Instr & inst : i.second.block.instrs)
+            {
+                if(inst.addr <= cursorpos && inst.addr + inst.opcode.size() > cursorpos)
+                {
+                    currentBlock = &i.second;
+                    currentInstruction = &inst;
+                    break;
+                }
+            }
+            if(currentInstruction)
+                break;
+        }
+        if(currentInstruction)
+        {
+            for(const duint & i : currentBlock->incoming) // This list is incomplete
+                addReferenceAction(menu, i);
+            if(!currentBlock->block.terminal)
+            {
+                menu->addSeparator();
+                for(const duint & i : currentBlock->block.exits)
+                    addReferenceAction(menu, i);
+            }
+            //to do: follow a constant
+            return true;
+        }
+        return false;
+    });
+    gotoMenu->addSeparator();
+    gotoMenu->addBuilder(childrenAndParentMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("snowman.png"), tr("Decompile"), SLOT(decompileSlot()), "ActionGraphDecompile"));
@@ -1821,6 +1887,26 @@ void DisassemblerGraphView::gotoOriginSlot()
     DbgCmdExec("graph cip, silent");
 }
 
+void DisassemblerGraphView::gotoPreviousSlot()
+{
+    if(mHistory.historyHasPrev())
+    {
+        mHistoryLock = true;
+        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyPrev())).toUtf8().constData());
+        mHistoryLock = false;
+    }
+}
+
+void DisassemblerGraphView::gotoNextSlot()
+{
+    if(mHistory.historyHasNext())
+    {
+        mHistoryLock = true;
+        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyNext())).toUtf8().constData());
+        mHistoryLock = false;
+    }
+}
+
 void DisassemblerGraphView::toggleSyncOriginSlot()
 {
     syncOrigin = !syncOrigin;
@@ -1955,4 +2041,14 @@ void DisassemblerGraphView::decompileSlot()
     });
     emit displaySnowmanWidget();
     DecompileRanges(Bridge::getBridge()->snowmanView, ranges.data(), ranges.size());
+}
+
+void DisassemblerGraphView::followActionSlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action)
+    {
+        QString data = action->data().toString();
+        DbgCmdExecDirect(QString("graph %1, silent").arg(data).toUtf8().constData());
+    }
 }

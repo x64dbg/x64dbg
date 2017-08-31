@@ -4,6 +4,7 @@
 #include "AbstractTableView.h"
 #include "RichTextPainter.h"
 #include "MemoryPage.h"
+#include "VaHistory.h"
 #include <QTextCodec>
 
 class HexDump : public AbstractTableView
@@ -146,14 +147,9 @@ public:
     QString makeAddrText(duint va);
     QString makeCopyText();
 
-    void addVaToHistory(dsint parVa);
-    bool historyHasPrev();
-    bool historyHasNext();
-    void historyPrev();
-    void historyNext();
-    void historyClear();
-
     void setupCopyMenu();
+
+    VaHistory mHistory;
 
 signals:
     void selectionUpdated();
@@ -165,6 +161,8 @@ public slots:
     void copySelectionSlot();
     void copyAddressSlot();
     void copyRvaSlot();
+    void gotoPreviousSlot();
+    void gotoNextSlot();
 
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
@@ -179,9 +177,6 @@ private:
     SelectionData_t mSelection;
 
     GuiState_t mGuiState;
-
-    QList<dsint> mVaHistory;
-    int mCurrentVa;
     QChar mNonprintReplace;
     QChar mNullReplace;
 
