@@ -1,12 +1,13 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QLabel>
+#include <QTabWidget>
 #include "ReferenceView.h"
 #include "Configuration.h"
 #include "Bridge.h"
 #include "MiscUtil.h"
 
-ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : SearchListView(true, parent)
+ReferenceView::ReferenceView(bool sourceView, QTabWidget* parent) : SearchListView(true, parent), mParent(parent)
 {
     // Setup SearchListView settings
     mSearchStartCol = 1;
@@ -431,4 +432,12 @@ void ReferenceView::referenceExecCommand()
             DbgCmdExec(specializedCommand);
         }
     }
+}
+
+void ReferenceView::mouseReleaseEvent(QMouseEvent* event)
+{
+    if(event->button() == Qt::ForwardButton)
+        mParent->setCurrentIndex(std::min(mParent->currentIndex() + 1, mParent->count()));
+    else if(event->button() == Qt::BackButton)
+        mParent->setCurrentIndex(std::max(mParent->currentIndex() - 1, 0));
 }
