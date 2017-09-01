@@ -7,7 +7,7 @@
 #include "Bridge.h"
 #include "MiscUtil.h"
 
-ReferenceView::ReferenceView(bool sourceView, QTabWidget* parent) : SearchListView(true, parent), mParent(parent)
+ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : SearchListView(true, parent), mParent(dynamic_cast<QTabWidget*>(parent))
 {
     // Setup SearchListView settings
     mSearchStartCol = 1;
@@ -436,8 +436,11 @@ void ReferenceView::referenceExecCommand()
 
 void ReferenceView::mouseReleaseEvent(QMouseEvent* event)
 {
-    if(event->button() == Qt::ForwardButton)
-        mParent->setCurrentIndex(std::min(mParent->currentIndex() + 1, mParent->count()));
-    else if(event->button() == Qt::BackButton)
-        mParent->setCurrentIndex(std::max(mParent->currentIndex() - 1, 0));
+    if(mParent)
+    {
+        if(event->button() == Qt::ForwardButton)
+            mParent->setCurrentIndex(std::min(mParent->currentIndex() + 1, mParent->count()));
+        else if(event->button() == Qt::BackButton)
+            mParent->setCurrentIndex(std::max(mParent->currentIndex() - 1, 0));
+    }
 }

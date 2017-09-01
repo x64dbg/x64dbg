@@ -12,7 +12,7 @@ class ReferenceView : public SearchListView
     Q_OBJECT
 
 public:
-    ReferenceView(bool sourceView = false, QTabWidget* parent = nullptr);
+    ReferenceView(bool sourceView = false, QWidget* parent = nullptr);
     void setupContextMenu();
     void connectBridge();
     void disconnectBridge();
