@@ -1111,6 +1111,7 @@ typedef enum
     GUI_REF_SEARCH_GETROWCOUNT,     // param1=unused,               param2=unused
     GUI_REF_SEARCH_GETCELLCONTENT,  // param1=int row,              param2=int col
     GUI_MENU_REMOVE,                // param1=int hEntryMenu,       param2=unused
+    GUI_REF_ADDCOMMAND              // param1=const char* title,    param2=const char* command
 } GUIMSG;
 
 //GUI Typedefs
@@ -1284,6 +1285,7 @@ BRIDGE_IMPEXP bool GuiTypeClear();
 BRIDGE_IMPEXP void GuiUpdateTypeWidget();
 BRIDGE_IMPEXP void GuiCloseApplication();
 BRIDGE_IMPEXP void GuiFlushLog();
+BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command);
 
 #ifdef __cplusplus
 }

@@ -343,22 +343,24 @@ bool StdTable::isValidIndex(int r, int c)
 void StdTable::copyLineSlot()
 {
     int colCount = getColumnCount();
-    int selected = getInitialSelection();
     QString finalText = "";
     if(colCount == 1)
-        finalText = getCellContent(selected, 0);
+        finalText = getCellContent(getInitialSelection(), 0);
     else
     {
-        for(int i = 0; i < colCount; i++)
+        for(int selected : getSelection())
         {
-            QString cellContent = getCellContent(selected, i);
-            if(!cellContent.length()) //skip empty cells
-                continue;
-            QString title = mCopyTitles.at(i);
-            if(title.length())
-                finalText += title + "=";
-            finalText += cellContent.trimmed();;
-            finalText += "\r\n";
+            for(int i = 0; i < colCount; i++)
+            {
+                QString cellContent = getCellContent(selected, i);
+                if(!cellContent.length()) //skip empty cells
+                    continue;
+                QString title = mCopyTitles.at(i);
+                if(title.length())
+                    finalText += title + "=";
+                finalText += cellContent.trimmed();;
+                finalText += "\r\n";
+            }
         }
     }
     Bridge::CopyToClipboard(finalText);

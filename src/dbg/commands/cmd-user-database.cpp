@@ -106,6 +106,7 @@ bool cbInstrCommentList(int argc, char* argv[])
         total++;
     }
     varset("$result", total, false);
+    GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Delete")), "commentdel $0");
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d comment(s) listed in Reference View\n"), total);
     GuiReferenceReloadData();
     return true;
@@ -180,6 +181,7 @@ bool cbInstrLabelList(int argc, char* argv[])
         GuiReferenceSetCellContent(i, 2, labels[i].text.c_str());
     }
     varset("$result", count, false);
+    GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Delete")), "labeldel $0");
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d label(s) listed in Reference View\n"), count);
     GuiReferenceReloadData();
     return true;
@@ -264,6 +266,7 @@ bool cbInstrBookmarkList(int argc, char* argv[])
         }
     }
     varset("$result", count, false);
+    GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Delete")), "bookmarkdel $0");
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d bookmark(s) listed\n"), count);
     GuiReferenceReloadData();
     return true;
@@ -354,6 +357,7 @@ bool cbInstrFunctionList(int argc, char* argv[])
         }
     }
     varset("$result", count, false);
+    GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Delete")), "functiondel $0");
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d function(s) listed\n"), count);
     GuiReferenceReloadData();
     return true;
@@ -444,6 +448,7 @@ bool cbInstrArgumentList(int argc, char* argv[])
         }
     }
     varset("$result", count, false);
+    GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Delete")), "argumentdel $0");
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d argument(s) listed\n"), count);
     GuiReferenceReloadData();
     return true;
@@ -543,6 +548,7 @@ bool cbInstrLoopList(int argc, char* argv[])
         }
     }
     varset("$result", count, false);
+    GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Delete")), "loopdel $0");
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d loop(s) listed\n"), count);
     GuiReferenceReloadData();
     return true;

@@ -138,13 +138,23 @@ void ThreadView::ExecCommand()
     if(action)
     {
         QString command = action->data().toString();
-        command.replace(QChar('$'), getCellContent(getInitialSelection(), 1)); // $ -> Thread Id
-        DbgCmdExec(command.toUtf8().constData());
+        if(command.contains('$'))
+        {
+            for(int i : getSelection())
+            {
+                QString specializedCommand = command;
+                specializedCommand.replace(QChar('$'), getCellContent(i, 1)); // $ -> Thread Id
+                DbgCmdExec(specializedCommand.toUtf8().constData());
+            }
+        }
+        else
+            DbgCmdExec(command.toUtf8().constData());
     }
 }
 
 ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
 {
+    enableMultiSelection(true);
     int charwidth = getCharWidth();
     addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("Number"), false, "", SortBy::AsInt);
     addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("ID"), false, "", SortBy::AsHex);
@@ -382,7 +392,7 @@ void ThreadView::SetNameSlot()
 {
     QString threadId = getCellContent(getInitialSelection(), 1);
     LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle(tr("Name"));
+    mLineEdit.setWindowTitle(tr("Name") + threadId);
     mLineEdit.setText(getCellContent(getInitialSelection(), 13));
     if(mLineEdit.exec() != QDialog::Accepted)
         return;

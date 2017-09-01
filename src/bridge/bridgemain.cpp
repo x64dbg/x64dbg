@@ -1643,6 +1643,11 @@ BRIDGE_IMPEXP void GuiFlushLog()
     _gui_sendmessage(GUI_FLUSH_LOG, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command)
+{
+    _gui_sendmessage(GUI_REF_ADDCOMMAND, (void*)title, (void*)command);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

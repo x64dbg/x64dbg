@@ -814,6 +814,17 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         }
     }
     break;
+
+    case GUI_REF_ADDCOMMAND:
+    {
+        if(param1 == nullptr && param2 == nullptr)
+            return nullptr;
+        else if(param1 == nullptr)
+            emit referenceAddCommand(QString::fromUtf8((const char*)param2), QString::fromUtf8((const char*)param2));
+        else
+            emit referenceAddCommand(QString::fromUtf8((const char*)param1), QString::fromUtf8((const char*)param2));
+    }
+    break;
     }
 
     return nullptr;
