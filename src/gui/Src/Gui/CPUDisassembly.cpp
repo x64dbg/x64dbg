@@ -156,7 +156,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
     {
         for(int i = 0; i < instr.argcount; i++)
         {
-            const DISASM_ARG arg = instr.arg[i];
+            const DISASM_ARG & arg = instr.arg[i];
             if(arg.type == arg_memory)
             {
                 QString segment = "";
@@ -176,7 +176,27 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
                         addFollowReferenceMenuItem(tr("&Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
                 }
                 if(DbgMemIsValidReadPtr(arg.memvalue))
+                {
                     addFollowReferenceMenuItem(tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
+                    //Check for switch statement
+                    if(memcmp(instr.instruction, "jmp ", 4) == 0 && DbgMemIsValidReadPtr(arg.constant)) //todo: extend check for exact form "jmp [reg*4+disp]"
+                    {
+                        duint* switchTable = new duint[512];
+                        memset(switchTable, 0, 512 * sizeof(duint));
+                        if(DbgMemRead(arg.constant, switchTable, 512 * sizeof(duint)))
+                        {
+                            int index;
+                            for(index = 0; index < 512; index++)
+                                if(!DbgFunctions()->MemIsCodePage(switchTable[index], false))
+                                    break;
+                            if(index >= 2 && index < 512)
+                                for(int index2 = 0; index2 < index; index2++)
+                                    addFollowReferenceMenuItem(tr("Jump table%1: ").arg(index2) + ToHexString(switchTable[index2]), switchTable[index2], menu, isReferences, isFollowInCPU);
+                        }
+                        delete[] switchTable;
+                    }
+                }
+
             }
             else //arg_normal
             {
