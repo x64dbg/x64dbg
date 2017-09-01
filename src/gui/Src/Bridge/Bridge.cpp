@@ -366,6 +366,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit menuRemoveMenuEntry((int)param1);
         result.Wait();
     }
+    break;
 
     case GUI_SELECTION_GET:
     {

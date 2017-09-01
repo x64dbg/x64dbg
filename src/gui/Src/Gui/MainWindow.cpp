@@ -1051,7 +1051,7 @@ void MainWindow::addMenu(int hMenu, QString title)
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QMenu* wMenu = new QMenu(title, parent);
     wMenu->menuAction()->setVisible(false);
-    mMenuList.push_back(MenuInfo(parent, wMenu, hMenuNew, hMenu, menu->globalMenu));
+    mMenuList.push_back(MenuInfo(parent, wMenu, hMenuNew, hMenu, !menu || menu->globalMenu));
     if(hMenu == -1) //top-level
         ui->menuBar->addMenu(wMenu);
     else //deeper level
@@ -1077,7 +1077,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QAction* wAction = new QAction(title, parent);
     wAction->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
-    wAction->setShortcutContext(menu->globalMenu ? Qt::ApplicationShortcut : Qt::WidgetShortcut);
+    wAction->setShortcutContext((!menu || menu->globalMenu) ? Qt::ApplicationShortcut : Qt::WidgetShortcut);
     parent->addAction(wAction);
     connect(wAction, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
     newInfo.mAction = wAction;
