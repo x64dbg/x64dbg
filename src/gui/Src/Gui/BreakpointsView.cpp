@@ -192,7 +192,7 @@ void BreakpointsView::updateBreakpointsSlot()
         {
             mExceptionMap.insert({exceptions[i].value, exceptions[i].name});
             mExceptionList.append(QString(exceptions[i].name));
-            mExceptionMaxLength = std::max<int>(mExceptionMaxLength, strlen(exceptions[i].name));
+            mExceptionMaxLength = std::max(mExceptionMaxLength, int(strlen(exceptions[i].name)));
         }
         mExceptionList.sort();
 

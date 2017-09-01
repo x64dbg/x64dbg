@@ -212,14 +212,6 @@
     </layout>
    </item>
   </layout>
-  <zorder>layoutWidget</zorder>
-  <zorder>paddingLayoutWidget</zorder>
-  <zorder>layoutWidget</zorder>
-  <zorder>pagetableWidget</zorder>
-  <zorder>label</zorder>
-  <zorder>chkPageguard</zorder>
-  <zorder>horizontalSpacer</zorder>
-  <zorder>horizontalSpacer_2</zorder>
  </widget>
  <tabstops>
   <tabstop>pagetableWidget</tabstop>

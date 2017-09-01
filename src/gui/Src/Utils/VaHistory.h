@@ -5,8 +5,6 @@
 class VaHistory
 {
 public:
-    VaHistory() : mCurrentVa(-1) {}
-
     void addVaToHistory(duint parVa)
     {
         //truncate everything right from the current VA
@@ -20,14 +18,17 @@ public:
             mVaHistory.push_back(parVa);
         }
     }
+
     bool historyHasPrev()
     {
         return !(!mCurrentVa || !mVaHistory.size()); //we are at the earliest history entry
     }
+
     bool historyHasNext()
     {
         return !(!mVaHistory.size() || mCurrentVa >= mVaHistory.size() - 1); //we are at the newest history entry
     }
+
     duint historyPrev()
     {
         if(!historyHasPrev())
@@ -35,6 +36,7 @@ public:
         mCurrentVa--;
         return mVaHistory.at(mCurrentVa);
     }
+
     duint historyNext()
     {
         if(!historyHasNext())
@@ -42,6 +44,7 @@ public:
         mCurrentVa++;
         return mVaHistory.at(mCurrentVa);
     }
+
     void historyClear()
     {
         mCurrentVa = -1;
@@ -50,7 +53,7 @@ public:
 
 private:
     std::vector<duint> mVaHistory;
-    int mCurrentVa;
+    size_t mCurrentVa = -1;
 };
 
 #endif //VAHISTORY_H

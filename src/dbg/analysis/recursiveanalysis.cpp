@@ -126,13 +126,13 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
                 //consider register/memory branches as terminal nodes
                 if(mCp[0].type != X86_OP_IMM)
                 {
+                    //jmp ptr [index * sizeof(duint) + switchTable]
                     if(mCp[0].type == X86_OP_MEM && mCp[0].mem.base == X86_OP_INVALID && mCp[0].mem.index != X86_OP_INVALID
-                            && mCp[0].mem.scale == sizeof(duint) && MemIsValidReadPtr(mCp[0].mem.disp))
+                            && mCp[0].mem.scale == sizeof(duint) && MemIsValidReadPtr(duint(mCp[0].mem.disp)))
                     {
                         Memory<duint*> switchTable(512 * sizeof(duint));
-                        duint actualSize;
-                        int index;
-                        MemRead(mCp[0].mem.disp, switchTable(), 512 * sizeof(duint), &actualSize);
+                        duint actualSize, index;
+                        MemRead(duint(mCp[0].mem.disp), switchTable(), 512 * sizeof(duint), &actualSize);
                         actualSize /= sizeof(duint);
                         for(index = 0; index < actualSize; index++)
                             if(MemIsCodePage(switchTable()[index], false) == false)

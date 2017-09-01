@@ -12,7 +12,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
-#include <algorithm>
 #include <QMutex>
 #include "Bridge.h"
 #include "RichTextPainter.h"
