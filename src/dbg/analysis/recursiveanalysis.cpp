@@ -127,7 +127,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
                 if(mCp[0].type != X86_OP_IMM)
                 {
                     if(mCp[0].type == X86_OP_MEM && mCp[0].mem.base == X86_OP_INVALID && mCp[0].mem.index != X86_OP_INVALID
-                            && mCp[0].mem.scale == ArchValue(4, 8) && MemIsValidReadPtr(mCp[0].mem.disp))
+                            && mCp[0].mem.scale == sizeof(duint) && MemIsValidReadPtr(mCp[0].mem.disp))
                     {
                         Memory<duint*> switchTable(512 * sizeof(duint));
                         duint actualSize;
@@ -146,6 +146,8 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
                             {
                                 node.exits.push_back(switchTable()[index]);
                                 queue.emplace(switchTable()[index]);
+                                xref.addr = switchTable()[index];
+                                mXrefs.push_back(xref);
                             }
                         }
                         else
