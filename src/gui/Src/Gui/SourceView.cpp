@@ -7,7 +7,7 @@
 #include <QDesktopServices>
 #include "Configuration.h"
 
-SourceView::SourceView(QString path, int line, QWidget* parent)
+SourceView::SourceView(QString path, int line, QTabWidget* parent)
     : ReferenceView(true, parent),
       mIpLine(0)
 {

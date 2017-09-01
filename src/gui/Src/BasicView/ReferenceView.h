@@ -5,12 +5,14 @@
 #include <QLabel>
 #include "SearchListView.h"
 
+class QTabWidget;
+
 class ReferenceView : public SearchListView
 {
     Q_OBJECT
 
 public:
-    ReferenceView(bool sourceView = false, QWidget* parent = nullptr);
+    ReferenceView(bool sourceView = false, QTabWidget* parent = nullptr);
     void setupContextMenu();
     void connectBridge();
     void disconnectBridge();
@@ -60,6 +62,7 @@ private:
     QLabel* mCountTotalLabel;
     QVector<QString> mCommnadTitles;
     QVector<QString> mCommands;
+    QTabWidget* mParent;
 
     enum BPSetAction
     {
@@ -71,6 +74,8 @@ private:
 
     void setBreakpointAt(int row, BPSetAction action);
     dsint apiAddressFromString(const QString & s);
+
+    void mouseReleaseEvent(QMouseEvent* event);
 };
 
 #endif // REFERENCEVIEW_H
