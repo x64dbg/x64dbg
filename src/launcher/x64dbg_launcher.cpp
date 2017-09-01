@@ -352,6 +352,28 @@ static BOOL CALLBACK DlgLauncher(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
     return FALSE;
 }
 
+static bool convertNumber(const wchar_t* str, unsigned long & result, int radix)
+{
+    errno = 0;
+    wchar_t* end;
+    result = wcstoul(str, &end, radix);
+    if(!result && end == str)
+        return false;
+    if(result == ULLONG_MAX && errno)
+        return false;
+    if(*end)
+        return false;
+    return true;
+}
+
+static bool parseId(const wchar_t* str, unsigned long & result)
+{
+    int radix = 10;
+    if(!wcsncmp(str, L"0x", 2))
+        radix = 16, str += 2;
+    return convertNumber(str, result, radix);
+}
+
 const wchar_t* SHELLEXT_EXE_KEY = L"exefile\\shell\\Debug with x64dbg\\Command";
 const wchar_t* SHELLEXT_ICON_EXE_KEY = L"exefile\\shell\\Debug with x64dbg";
 const wchar_t* SHELLEXT_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg\\Command";
@@ -417,9 +439,26 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     _tcscpy_s(sz64Dir, sz64Path);
     PathRemoveFileSpec(sz64Dir);
 
+    //Functions to load the relevant debugger with a command line
+    auto load32 = [](const wchar_t* cmdLine)
+    {
+        if(sz32Path[0])
+            ShellExecute(nullptr, TEXT("open"), sz32Path, cmdLine, sz32Dir, SW_SHOWNORMAL);
+        else
+            MessageBox(nullptr, LoadResString(IDS_INVDPATH32), LoadResString(IDS_ERROR), MB_ICONERROR);
+    };
+    auto load64 = [](const wchar_t* cmdLine)
+    {
+        if(sz64Path[0])
+            ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine, sz64Dir, SW_SHOWNORMAL);
+        else
+            MessageBox(nullptr, LoadResString(IDS_INVDPATH64), LoadResString(IDS_ERROR), MB_ICONERROR);
+    };
+
     //Handle command line
     auto argc = 0;
     auto argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    unsigned long pid = 0;
     if(argc <= 1) //no arguments -> launcher dialog
     {
         if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
@@ -474,6 +513,32 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
         if(bDoneSomething)
             MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);
+    }
+    else if(argc >= 3 && !wcscmp(argv[1], L"-p") && parseId(argv[2], pid)) //-p PID
+    {
+        wchar_t cmdLine[32] = L"";
+        unsigned long tid;
+        if(argc >= 5 && !wcscmp(argv[3], L"-tid") && parseId(argv[4], tid)) //-p PID -tid TID
+            wsprintfW(cmdLine, L"-p %u -tid %u", pid, tid);
+        else
+            wsprintfW(cmdLine, L"-p %u", pid);
+        if(isWoW64())
+        {
+            auto hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+            if(hProcess)
+            {
+                BOOL bWow64Process = FALSE;
+                if(IsWow64Process(hProcess, &bWow64Process) && bWow64Process)
+                    load32(cmdLine);
+                else
+                    load64(cmdLine);
+                CloseHandle(hProcess);
+            }
+            else
+                load64(cmdLine);
+        }
+        else
+            load32(cmdLine);
     }
     else if(argc >= 2) //one or more arguments -> execute debugger
     {
@@ -541,37 +606,22 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         //MessageBoxW(0, GetCommandLineW(), L"GetCommandLineW", MB_SYSTEMMODAL);
         //MessageBoxW(0, szCurDir, L"GetCurrentDirectory", MB_SYSTEMMODAL);
 
-        auto load32 = [&]()
-        {
-            if(sz32Path[0])
-                ShellExecute(nullptr, TEXT("open"), sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
-            else
-                MessageBox(nullptr, LoadResString(IDS_INVDPATH32), LoadResString(IDS_ERROR), MB_ICONERROR);
-        };
-        auto load64 = [&]()
-        {
-            if(sz64Path[0])
-                ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
-            else
-                MessageBox(nullptr, LoadResString(IDS_INVDPATH64), LoadResString(IDS_ERROR), MB_ICONERROR);
-        };
-
         switch(GetPeArch(szPath))
         {
         case PeArch::Native86:
         case PeArch::Dotnet86:
         case PeArch::DotnetAnyCpuPrefer32:
-            load32();
+            load32(cmdLine.c_str());
             break;
         case PeArch::Native64:
         case PeArch::Dotnet64:
-            load64();
+            load64(cmdLine.c_str());
             break;
         case PeArch::DotnetAnyCpu:
             if(isWoW64())
-                load64();
+                load64(cmdLine.c_str());
             else
-                load32();
+                load32(cmdLine.c_str());
             break;
         case PeArch::Invalid:
             if(FileExists(szPath))

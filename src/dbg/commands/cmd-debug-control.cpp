@@ -167,13 +167,6 @@ bool cbDebugAttach(int argc, char* argv[])
     duint pid = 0;
     if(!valfromstring(argv[1], &pid, false))
         return false;
-    if(argc > 2)
-    {
-        duint eventHandle = 0;
-        if(!valfromstring(argv[2], &eventHandle, false))
-            return false;
-        dbgsetattachevent((HANDLE)eventHandle);
-    }
     if(DbgIsDebugging())
         DbgCmdExecDirect("stop");
     Handle hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
@@ -201,6 +194,22 @@ bool cbDebugAttach(int argc, char* argv[])
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), DWORD(pid));
         return false;
+    }
+    if(argc > 2) //event handle (JIT)
+    {
+        duint eventHandle = 0;
+        if(!valfromstring(argv[2], &eventHandle, false))
+            return false;
+        if(eventHandle)
+            dbgsetattachevent((HANDLE)eventHandle);
+    }
+    if(argc > 3) //thread id to resume (PLMDebug)
+    {
+        duint tid = 0;
+        if(!valfromstring(argv[3], &tid, false))
+            return false;
+        if(tid)
+            dbgsetresumetid(tid);
     }
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
     return true;
