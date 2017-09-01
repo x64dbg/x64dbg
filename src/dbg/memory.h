@@ -8,7 +8,9 @@ struct SimplePage;
 void MemUpdateMap();
 void MemUpdateMapAsync();
 duint MemFindBaseAddr(duint Address, duint* Size = nullptr, bool Refresh = false, bool FindReserved = false);
+bool MemoryReadSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead);
 bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead = nullptr, bool cache = false);
+bool MemReadUnsafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead);
 bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead = nullptr);
 bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten = nullptr);
 bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten = nullptr);
@@ -33,6 +35,7 @@ void MemReadDumb(duint BaseAddress, void* Buffer, duint Size);
 
 extern std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 extern bool bListAllPages;
+extern bool bQueryWorkingSet;
 extern DWORD memMapThreadCounter;
 
 struct SimplePage

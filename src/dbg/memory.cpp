@@ -22,6 +22,7 @@
 static ULONG fallbackCookie = 0;
 std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
+bool bQueryWorkingSet = false;
 
 void MemUpdateMap()
 {
@@ -285,12 +286,36 @@ duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh, bool FindReserve
     return found->first.first;
 }
 
-static bool MemoryReadSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
+//http://www.triplefault.io/2017/08/detecting-debuggers-by-abusing-bad.html
+//TODO: name this function properly
+static bool IgnoreThisRead(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
+{
+    if(!bQueryWorkingSet)
+        return false;
+    PSAPI_WORKING_SET_EX_INFORMATION wsi;
+    wsi.VirtualAddress = (PVOID)PAGE_ALIGN(lpBaseAddress);
+    if(QueryWorkingSetEx(hProcess, &wsi, sizeof(wsi)) && !wsi.VirtualAttributes.Valid)
+    {
+        MEMORY_BASIC_INFORMATION mbi;
+        if(VirtualQueryEx(hProcess, wsi.VirtualAddress, &mbi, sizeof(mbi)) && mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE)
+        {
+            memset(lpBuffer, 0, nSize);
+            if(lpNumberOfBytesRead)
+                *lpNumberOfBytesRead = nSize;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool MemoryReadSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
 {
     //TODO: remove when proven stable, this function checks if reads are always within page boundaries
     auto base = duint(lpBaseAddress);
     if(nSize > PAGE_SIZE - (base & (PAGE_SIZE - 1)))
         __debugbreak();
+    if(IgnoreThisRead(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead))
+        return true;
     return MemoryReadSafe(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
 }
 
@@ -299,7 +324,7 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     if(!MemIsCanonicalAddress(BaseAddress))
         return false;
 
-    if(cache && !MemIsValidReadPtr(BaseAddress, cache))
+    if(cache && !MemIsValidReadPtr(BaseAddress, true))
         return false;
 
     if(!Buffer || !Size)
@@ -335,13 +360,53 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     return success;
 }
 
+bool MemReadUnsafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
+{
+    //TODO: remove when proven stable, this function checks if reads are always within page boundaries
+    auto base = duint(lpBaseAddress);
+    if(nSize > PAGE_SIZE - (base & (PAGE_SIZE - 1)))
+        __debugbreak();
+    if(IgnoreThisRead(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead))
+        return true;
+    return !!ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
+}
+
 bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead)
 {
-    SIZE_T read = 0;
-    auto result = !!ReadProcessMemory(fdProcessInfo->hProcess, LPCVOID(BaseAddress), Buffer, Size, &read);
-    if(NumberOfBytesRead)
-        *NumberOfBytesRead = read;
-    return result;
+    if(!MemIsCanonicalAddress(BaseAddress) || BaseAddress < PAGE_SIZE)
+        return false;
+
+    if(!Buffer || !Size)
+        return false;
+
+    duint bytesReadTemp = 0;
+    if(!NumberOfBytesRead)
+        NumberOfBytesRead = &bytesReadTemp;
+
+    duint offset = 0;
+    duint requestedSize = Size;
+    duint sizeLeftInFirstPage = PAGE_SIZE - (BaseAddress & (PAGE_SIZE - 1));
+    duint readSize = min(sizeLeftInFirstPage, requestedSize);
+
+    while(readSize)
+    {
+        SIZE_T bytesRead = 0;
+        auto readSuccess = MemReadUnsafePage(fdProcessInfo->hProcess, (PVOID)(BaseAddress + offset), (PBYTE)Buffer + offset, readSize, &bytesRead);
+        *NumberOfBytesRead += bytesRead;
+        if(!readSuccess)
+            break;
+
+        offset += readSize;
+        requestedSize -= readSize;
+        readSize = min(PAGE_SIZE, requestedSize);
+
+        if(readSize && (BaseAddress + offset) % PAGE_SIZE)
+            __debugbreak(); //TODO: remove when proven stable, this checks if (BaseAddress + offset) is aligned to PAGE_SIZE after the first call
+    }
+
+    auto success = *NumberOfBytesRead == Size;
+    SetLastError(success ? ERROR_SUCCESS : ERROR_PARTIAL_COPY);
+    return success;
 }
 
 static bool MemoryWriteSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPCVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
@@ -450,7 +515,7 @@ bool MemIsCanonicalAddress(duint Address)
     // 0xFFFF800000000000 = Significant 16 bits set
     // 0x0000800000000000 = 48th bit set
     return (((Address & 0xFFFF800000000000) + 0x800000000000) & ~0x800000000000) == 0;
-#endif // ndef _WIN64
+#endif //_WIN64
 }
 
 bool MemIsCodePage(duint Address, bool Refresh)
@@ -766,7 +831,7 @@ void MemReadDumb(duint BaseAddress, void* Buffer, duint Size)
     while(readSize)
     {
         SIZE_T bytesRead = 0;
-        MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)(BaseAddress + offset), (PBYTE)Buffer + offset, readSize, &bytesRead);
+        MemoryReadSafePage(fdProcessInfo->hProcess, (PVOID)(BaseAddress + offset), (PBYTE)Buffer + offset, readSize, &bytesRead);
         offset += readSize;
         requestedSize -= readSize;
         readSize = min(PAGE_SIZE, requestedSize);

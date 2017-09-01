@@ -295,9 +295,11 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Misc", "Utf16LogRedirect", &settings.miscUtf16LogRedirect);
     GetSettingBool("Misc", "UseLocalHelpFile", &settings.miscUseLocalHelpFile);
     GetSettingBool("Misc", "QueryProcessCookie", &settings.miscQueryProcessCookie);
+    GetSettingBool("Misc", "QueryWorkingSet", &settings.miscQueryWorkingSet);
     ui->chkUtf16LogRedirect->setChecked(settings.miscUtf16LogRedirect);
     ui->chkUseLocalHelpFile->setChecked(settings.miscUseLocalHelpFile);
     ui->chkQueryProcessCookie->setChecked(settings.miscQueryProcessCookie);
+    ui->chkQueryWorkingSet->setChecked(settings.miscQueryWorkingSet);
 }
 
 void SettingsDialog::SaveSettings()
@@ -392,6 +394,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Misc", "Utf16LogRedirect", settings.miscUtf16LogRedirect);
     BridgeSettingSetUint("Misc", "UseLocalHelpFile", settings.miscUseLocalHelpFile);
     BridgeSettingSetUint("Misc", "QueryProcessCookie", settings.miscQueryProcessCookie);
+    BridgeSettingSetUint("Misc", "QueryWorkingSet", settings.miscQueryWorkingSet);
 
     BridgeSettingFlush();
     Config()->load();
@@ -827,4 +830,9 @@ void SettingsDialog::on_chkUseLocalHelpFile_toggled(bool checked)
 void SettingsDialog::on_chkQueryProcessCookie_toggled(bool checked)
 {
     settings.miscQueryProcessCookie = checked;
+}
+
+void SettingsDialog::on_chkQueryWorkingSet_toggled(bool checked)
+{
+    settings.miscQueryWorkingSet = checked;
 }

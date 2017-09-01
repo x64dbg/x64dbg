@@ -763,6 +763,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkQueryWorkingSet">
+         <property name="text">
+          <string>Query working set before reading memory</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_3">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
