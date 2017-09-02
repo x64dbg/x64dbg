@@ -8,6 +8,8 @@
 #include "disasm_fast.h"
 #include "plugin_loader.h"
 
+#define MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP 512
+
 TraceRecordManager TraceRecord;
 
 TraceRecordManager::TraceRecordManager() : instructionCounter(0)
@@ -196,7 +198,7 @@ void TraceRecordManager::TraceExecute(duint address, duint size)
     }
 }
 
-void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
+void TraceRecordManager::TraceExecuteRecord(const DISASM_INSTR & newInstruction)
 {
     if(!isRunTraceEnabled())
         return;
@@ -211,7 +213,6 @@ void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
     duint oldMemory[32];
     unsigned char newMemoryArrayCount = 0;
     DbgGetRegDump(&newContext.registers);
-    disasmget(newContext.registers.regcontext.cip, &newInstruction, true);
     newThreadId = ThreadGetId(hActiveThread);
     // Don't try to resolve memory values for lea and nop instructions
     if(!(memcmp(newInstruction.instruction, "lea ", 4) == 0 || memcmp(newInstruction.instruction, "nop ", 4) == 0 || memcmp(newInstruction.instruction, "prefetch", 8) == 0))
@@ -220,6 +221,7 @@ void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
         {
             const DISASM_ARG & arg = newInstruction.arg[i];
             // TODO: Support SSE and AVX wide memory operands. They can be recorded in memory access log as multiple memory accesses of pointer size.
+            // TODO: Implicit memory access by push and pop instructions
             // TODO: Support memory value of ??? for invalid memory access
             if(arg.type == arg_memory)
             {
@@ -238,15 +240,19 @@ void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
         }
         //Delta compress registers
         //Data layout is Structure of Arrays to gather the same type of data in continuous memory to improve RLE compression performance.
-        //1byte:block type,1byte:reg changed count,1byte:memory accessed count,1byte:flags,4byte/none:threadid,string:opcode,1byte[]:position,4byte[]:regvalue,ptrbyte[]:address,1byte[]:flags,ptrbyte[]:oldmem,ptrbyte[]:newmem
+        //1byte:block type,1byte:reg changed count,1byte:memory accessed count,1byte:flags,4byte/none:threadid,string:opcode,1byte[]:position,ptrbyte[]:regvalue,ptrbyte[]:address,1byte[]:flags,ptrbyte[]:oldmem,ptrbyte[]:newmem
+
+        //Always record state of LAST INSTRUCTION! (NOT current instruction)
         unsigned char changed = 0;
-        for(unsigned char i = 0; i < _countof(rtOldContext.regdword); i++)
+        for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++)
         {
-            if(rtOldContext.regdword[i] != newContext.regdword[i])
+            //rtRecordedInstructions - 1 hack: always record full registers dump at first instruction (recorded at 2nd instruction execution time)
+            //prints ASCII table in run trace at first instruction :)
+            if(rtOldContext.regword[i] != newContext.regword[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
                 changed++;
         }
         unsigned char blockFlags = 0;
-        if(newThreadId != rtOldThreadId)
+        if(newThreadId != rtOldThreadId || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
             blockFlags = 0x80;
         blockFlags |= rtOldOpcodeSize;
 
@@ -257,25 +263,25 @@ void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
         WriteBufferPtr += 4;
         memcpy(WriteBufferPtr, rtOldOpcode, rtOldOpcodeSize);
         WriteBufferPtr += rtOldOpcodeSize;
-        if(newThreadId != rtOldThreadId)
+        if(newThreadId != rtOldThreadId || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
         {
-            memcpy(WriteBufferPtr, &newThreadId, sizeof(newThreadId));
-            WriteBufferPtr += sizeof(newThreadId);
+            memcpy(WriteBufferPtr, &rtOldThreadId, sizeof(rtOldThreadId));
+            WriteBufferPtr += sizeof(rtOldThreadId);
         }
-        for(unsigned char i = 0; i < _countof(rtOldContext.regdword); i++) //1byte: position
+        for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++) //1byte: position
         {
-            if(rtOldContext.regdword[i] != newContext.regdword[i])
+            if(rtOldContext.regword[i] != newContext.regword[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
             {
                 WriteBufferPtr[0] = i;
                 WriteBufferPtr++;
             }
         }
-        for(unsigned char i = 0; i < _countof(rtOldContext.regdword); i++) //4byte: newvalue
+        for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++) //ptrbyte: newvalue
         {
-            if(rtOldContext.regdword[i] != newContext.regdword[i])
+            if(rtOldContext.regword[i] != newContext.regword[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
             {
-                memcpy(WriteBufferPtr, &newContext.regdword[i], 4);
-                WriteBufferPtr += 4;
+                memcpy(WriteBufferPtr, &rtOldContext.regword[i], sizeof(duint));
+                WriteBufferPtr += sizeof(duint);
             }
         }
         for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: address
@@ -284,6 +290,7 @@ void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
             WriteBufferPtr += sizeof(duint);
         }
         for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //1byte: flags(reserved for invalid memory accesses or other uses)
+            //probably add a flag indicating memory is not changed so only old value is saved?
         {
             WriteBufferPtr[0] = 0;
             WriteBufferPtr += 1;
@@ -327,6 +334,7 @@ void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
             __debugbreak(); // Buffer overrun?
     }
     rtPrevInstAvailable = true;
+    rtRecordedInstructions++;
 }
 
 unsigned int TraceRecordManager::getHitCount(duint address)
@@ -383,7 +391,7 @@ void TraceRecordManager::increaseInstructionCounter()
     InterlockedIncrement((volatile long*)&instructionCounter);
 }
 
-void TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
+bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
 {
     if(enabled)
     {
@@ -395,9 +403,20 @@ void TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
             SetFilePointer(rtFile, 0, 0, FILE_END);
             rtPrevInstAvailable = false;
             rtEnabled = true;
+            rtRecordedInstructions = 0;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace started. File: %s\r\n"), fileName);
+            REGDUMP cip;
+            DISASM_INSTR instr;
+            DbgGetRegDump(&cip);
+            disasmget(cip.regcontext.cip, &instr);
+            TraceExecuteRecord(instr);
+            return true;
         }
         else
+        {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot create run trace file. GetLastError()= %X .\r\n"), GetLastError());
+            return false;
+        }
     }
     else
     {
@@ -406,7 +425,9 @@ void TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
             CloseHandle(rtFile);
             rtPrevInstAvailable = false;
             rtEnabled = false;
+            dputs(QT_TRANSLATE_NOOP("DBG", "Run trace stopped."));
         }
+        return true;
     }
 }
 
@@ -555,7 +576,15 @@ void _dbg_dbgtraceexecute(duint CIP)
         }
     }
     else
+    {
+        if(TraceRecord.isRunTraceEnabled())
+        {
+            DISASM_INSTR instr;
+            disasmget(CIP, &instr);
+            TraceRecord.TraceExecuteRecord(instr);
+        }
         TraceRecord.increaseInstructionCounter();
+    }
 }
 
 unsigned int _dbg_dbggetTraceRecordHitCount(duint address)
@@ -579,7 +608,12 @@ TRACERECORDTYPE _dbg_dbggetTraceRecordType(duint pageAddress)
 }
 
 // When disabled, file name is not relevant and can be NULL
-void _dbg_dbgenableRunTrace(bool enabled, const char* fileName)
+bool _dbg_dbgenableRunTrace(bool enabled, const char* fileName)
 {
-    TraceRecord.enableRunTrace(enabled, fileName);
+    return TraceRecord.enableRunTrace(enabled, fileName);
+}
+
+bool _dbg_dbgisRunTraceEnabled()
+{
+    return TraceRecord.isRunTraceEnabled();
 }

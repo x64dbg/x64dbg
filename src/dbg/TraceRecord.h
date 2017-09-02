@@ -53,14 +53,14 @@ public:
 
     void TraceExecute(duint address, duint size);
     //void TraceAccess(duint address, unsigned char size, TraceRecordByteType accessType);
-    void TraceExecuteRecord(DISASM_INSTR & newInstruction);
+    void TraceExecuteRecord(const DISASM_INSTR & newInstruction);
 
     unsigned int getHitCount(duint address);
     TraceRecordByteType getByteType(duint address);
     void increaseInstructionCounter();
 
     bool isRunTraceEnabled();
-    void enableRunTrace(bool enabled, const char* fileName);
+    bool enableRunTrace(bool enabled, const char* fileName);
 
     void saveToDb(JSON root);
     void loadFromDb(JSON root);
@@ -84,7 +84,9 @@ private:
     typedef union _REGDUMPDWORD
     {
         REGDUMP registers;
-        DWORD regdword[sizeof(REGDUMP) / sizeof(DWORD)];
+        // 172 qwords on x64, 216 dwords on x86. Almost no space left for AVX512
+        // strip off 128 bytes of lastError.name member.
+        duint regword[(sizeof(REGDUMP) - 128) / sizeof(duint)];
     } REGDUMPDWORD;
 
     //Key := page base, value := trace record raw data
@@ -103,6 +105,7 @@ private:
     duint rtOldMemory[32];
     duint rtOldMemoryAddress[32];
     char rtOldOpcode[16];
+    unsigned int rtRecordedInstructions;
     unsigned char rtOldOpcodeSize;
     unsigned char rtOldMemoryArrayCount;
 };
@@ -115,6 +118,7 @@ unsigned int _dbg_dbggetTraceRecordHitCount(duint address);
 TRACERECORDBYTETYPE _dbg_dbggetTraceRecordByteType(duint address);
 bool _dbg_dbgsetTraceRecordType(duint pageAddress, TRACERECORDTYPE type);
 TRACERECORDTYPE _dbg_dbggetTraceRecordType(duint pageAddress);
-void _dbg_dbgenableRunTrace(bool enabled, const char* fileName);
+bool _dbg_dbgenableRunTrace(bool enabled, const char* fileName);
+bool _dbg_dbgisRunTraceEnabled();
 
 #endif // TRACERECORD_H
