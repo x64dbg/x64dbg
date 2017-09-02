@@ -238,7 +238,7 @@ void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
         }
         //Delta compress registers
         //Data layout is Structure of Arrays to gather the same type of data in continuous memory to improve RLE compression performance.
-        //1byte:block type,1byte:reg changed count,1byte:memory accessed count,1byte:flags,4byte/none:threadid,1byte[]:position,4byte[]:regvalue,ptrbyte[]:address,1byte[]:flags,ptrbyte[]:oldmem,ptrbyte[]:newmem
+        //1byte:block type,1byte:reg changed count,1byte:memory accessed count,1byte:flags,4byte/none:threadid,string:opcode,1byte[]:position,4byte[]:regvalue,ptrbyte[]:address,1byte[]:flags,ptrbyte[]:oldmem,ptrbyte[]:newmem
         unsigned char changed = 0;
         for(unsigned char i = 0; i < _countof(rtOldContext.regdword); i++)
         {
@@ -247,13 +247,16 @@ void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
         }
         unsigned char blockFlags = 0;
         if(newThreadId != rtOldThreadId)
-            blockFlags = 1;
+            blockFlags = 0x80;
+        blockFlags |= rtOldOpcodeSize;
 
         WriteBufferPtr[0] = 0; //1byte: block type
         WriteBufferPtr[1] = changed; //1byte: registers changed
         WriteBufferPtr[2] = rtOldMemoryArrayCount; //1byte: memory accesses count
-        WriteBufferPtr[3] = blockFlags; //1byte: flags
+        WriteBufferPtr[3] = blockFlags; //1byte: flags and opcode size
         WriteBufferPtr += 4;
+        memcpy(WriteBufferPtr, rtOldOpcode, rtOldOpcodeSize);
+        WriteBufferPtr += rtOldOpcodeSize;
         if(newThreadId != rtOldThreadId)
         {
             memcpy(WriteBufferPtr, &newThreadId, sizeof(newThreadId));
@@ -303,6 +306,9 @@ void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
     rtOldMemoryArrayCount = newMemoryArrayCount;
     memcpy(rtOldMemory, newMemory, sizeof(newMemory));
     memcpy(rtOldMemoryAddress, newMemoryAddress, sizeof(newMemoryAddress));
+    memset(rtOldOpcode, 0, 16);
+    rtOldOpcodeSize = newInstruction.instr_size & 0x0F;
+    MemRead(newContext.registers.regcontext.cip, rtOldOpcode, rtOldOpcodeSize);
     //Write to file
     if(rtPrevInstAvailable)
     {

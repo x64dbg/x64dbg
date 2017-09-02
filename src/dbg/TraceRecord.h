@@ -102,6 +102,8 @@ private:
     DISASM_INSTR rtOldInstr;
     duint rtOldMemory[32];
     duint rtOldMemoryAddress[32];
+    char rtOldOpcode[16];
+    unsigned char rtOldOpcodeSize;
     unsigned char rtOldMemoryArrayCount;
 };
 
