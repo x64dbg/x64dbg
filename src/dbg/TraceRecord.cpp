@@ -261,13 +261,13 @@ void TraceRecordManager::TraceExecuteRecord(const DISASM_INSTR & newInstruction)
         WriteBufferPtr[2] = rtOldMemoryArrayCount; //1byte: memory accesses count
         WriteBufferPtr[3] = blockFlags; //1byte: flags and opcode size
         WriteBufferPtr += 4;
-        memcpy(WriteBufferPtr, rtOldOpcode, rtOldOpcodeSize);
-        WriteBufferPtr += rtOldOpcodeSize;
         if(newThreadId != rtOldThreadId || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
         {
             memcpy(WriteBufferPtr, &rtOldThreadId, sizeof(rtOldThreadId));
             WriteBufferPtr += sizeof(rtOldThreadId);
         }
+        memcpy(WriteBufferPtr, rtOldOpcode, rtOldOpcodeSize);
+        WriteBufferPtr += rtOldOpcodeSize;
         for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++) //1byte: position
         {
             if(rtOldContext.regword[i] != newContext.regword[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
