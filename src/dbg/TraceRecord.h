@@ -53,13 +53,14 @@ public:
 
     void TraceExecute(duint address, duint size);
     //void TraceAccess(duint address, unsigned char size, TraceRecordByteType accessType);
-    void TraceExecuteRecord(Capstone & inst, DISASM_INSTR & disasm_instr);
+    void TraceExecuteRecord(DISASM_INSTR & newInstruction);
 
     unsigned int getHitCount(duint address);
     TraceRecordByteType getByteType(duint address);
     void increaseInstructionCounter();
 
     bool isRunTraceEnabled();
+    void enableRunTrace(bool enabled, const char* fileName);
 
     void saveToDb(JSON root);
     void loadFromDb(JSON root);
@@ -80,6 +81,12 @@ private:
         unsigned int moduleIndex;
     };
 
+    typedef union _REGDUMPDWORD
+    {
+        REGDUMP registers;
+        DWORD regdword[sizeof(REGDUMP) / sizeof(DWORD)];
+    } REGDUMPDWORD;
+
     //Key := page base, value := trace record raw data
     std::unordered_map<duint, TraceRecordPage> TraceRecord;
     std::vector<std::string> ModuleNames;
@@ -87,11 +94,15 @@ private:
     unsigned int instructionCounter;
 
     bool rtEnabled;
-    REGDUMP rtOldContext;
-    DWORD rtOldThreadId;
-    DISASM_INSTR rtOldInstr;
     bool rtPrevInstAvailable;
     HANDLE rtFile;
+
+    REGDUMPDWORD rtOldContext;
+    DWORD rtOldThreadId;
+    DISASM_INSTR rtOldInstr;
+    duint rtOldMemory[32];
+    duint rtOldMemoryAddress[32];
+    unsigned char rtOldMemoryArrayCount;
 };
 
 extern TraceRecordManager TraceRecord;
@@ -102,5 +113,6 @@ unsigned int _dbg_dbggetTraceRecordHitCount(duint address);
 TRACERECORDBYTETYPE _dbg_dbggetTraceRecordByteType(duint address);
 bool _dbg_dbgsetTraceRecordType(duint pageAddress, TRACERECORDTYPE type);
 TRACERECORDTYPE _dbg_dbggetTraceRecordType(duint pageAddress);
+void _dbg_dbgenableRunTrace(bool enabled, const char* fileName);
 
 #endif // TRACERECORD_H

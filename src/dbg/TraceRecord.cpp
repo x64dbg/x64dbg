@@ -3,6 +3,7 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
+#include "thread.h"
 #include "disasm_helper.h"
 #include "disasm_fast.h"
 #include "plugin_loader.h"
@@ -195,14 +196,131 @@ void TraceRecordManager::TraceExecute(duint address, duint size)
     }
 }
 
-void TraceRecordManager::TraceExecuteRecord(Capstone & inst, DISASM_INSTR & disasm_instr)
+void TraceRecordManager::TraceExecuteRecord(DISASM_INSTR & newInstruction)
 {
     if(!isRunTraceEnabled())
         return;
-    if(!rtPrevInstAvailable)
-        return;
-    //....
-    DbgGetRegDump(&this->rtOldContext);
+    unsigned char WriteBuffer[2048];
+    unsigned char* WriteBufferPtr = WriteBuffer;
+    //Get current data
+    REGDUMPDWORD newContext;
+    //DISASM_INSTR newInstruction;
+    DWORD newThreadId;
+    duint newMemory[32];
+    duint newMemoryAddress[32];
+    duint oldMemory[32];
+    unsigned char newMemoryArrayCount = 0;
+    DbgGetRegDump(&newContext.registers);
+    disasmget(newContext.registers.regcontext.cip, &newInstruction, true);
+    newThreadId = ThreadGetId(hActiveThread);
+    // Don't try to resolve memory values for lea and nop instructions
+    if(!(memcmp(newInstruction.instruction, "lea ", 4) == 0 || memcmp(newInstruction.instruction, "nop ", 4) == 0 || memcmp(newInstruction.instruction, "prefetch", 8) == 0))
+    {
+        for(int i = 0; i < newInstruction.argcount; i++)
+        {
+            const DISASM_ARG & arg = newInstruction.arg[i];
+            // TODO: Support SSE and AVX wide memory operands. They can be recorded in memory access log as multiple memory accesses of pointer size.
+            // TODO: Support memory value of ??? for invalid memory access
+            if(arg.type == arg_memory)
+            {
+                newMemory[newMemoryArrayCount] = arg.memvalue;
+                newMemoryAddress[newMemoryArrayCount] = arg.value;
+                newMemoryArrayCount++;
+            }
+        }
+        assert(newMemoryArrayCount < 32);
+    }
+    if(rtPrevInstAvailable)
+    {
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++)
+        {
+            MemRead(rtOldMemoryAddress[i], oldMemory + i, sizeof(duint));
+        }
+        //Delta compress registers
+        //Data layout is Structure of Arrays to gather the same type of data in continuous memory to improve RLE compression performance.
+        //1byte:block type,1byte:reg changed count,1byte:memory accessed count,1byte:flags,4byte/none:threadid,1byte[]:position,4byte[]:regvalue,ptrbyte[]:address,1byte[]:flags,ptrbyte[]:oldmem,ptrbyte[]:newmem
+        unsigned char changed = 0;
+        for(unsigned char i = 0; i < _countof(rtOldContext.regdword); i++)
+        {
+            if(rtOldContext.regdword[i] != newContext.regdword[i])
+                changed++;
+        }
+        unsigned char blockFlags = 0;
+        if(newThreadId != rtOldThreadId)
+            blockFlags = 1;
+
+        WriteBufferPtr[0] = 0; //1byte: block type
+        WriteBufferPtr[1] = changed; //1byte: registers changed
+        WriteBufferPtr[2] = rtOldMemoryArrayCount; //1byte: memory accesses count
+        WriteBufferPtr[3] = blockFlags; //1byte: flags
+        WriteBufferPtr += 4;
+        if(newThreadId != rtOldThreadId)
+        {
+            memcpy(WriteBufferPtr, &newThreadId, sizeof(newThreadId));
+            WriteBufferPtr += sizeof(newThreadId);
+        }
+        for(unsigned char i = 0; i < _countof(rtOldContext.regdword); i++) //1byte: position
+        {
+            if(rtOldContext.regdword[i] != newContext.regdword[i])
+            {
+                WriteBufferPtr[0] = i;
+                WriteBufferPtr++;
+            }
+        }
+        for(unsigned char i = 0; i < _countof(rtOldContext.regdword); i++) //4byte: newvalue
+        {
+            if(rtOldContext.regdword[i] != newContext.regdword[i])
+            {
+                memcpy(WriteBufferPtr, &newContext.regdword[i], 4);
+                WriteBufferPtr += 4;
+            }
+        }
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: address
+        {
+            memcpy(WriteBufferPtr, &rtOldMemoryAddress[i], sizeof(duint));
+            WriteBufferPtr += sizeof(duint);
+        }
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //1byte: flags(reserved for invalid memory accesses or other uses)
+        {
+            WriteBufferPtr[0] = 0;
+            WriteBufferPtr += 1;
+        }
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: old content
+        {
+            memcpy(WriteBufferPtr, &rtOldMemory[i], sizeof(duint));
+            WriteBufferPtr += sizeof(duint);
+        }
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: new content
+        {
+            memcpy(WriteBufferPtr, &oldMemory[i], sizeof(duint));
+            WriteBufferPtr += sizeof(duint);
+        }
+    }
+    //Switch context buffers
+    rtOldThreadId = newThreadId;
+    rtOldContext = newContext;
+    rtOldInstr = newInstruction;
+    rtOldMemoryArrayCount = newMemoryArrayCount;
+    memcpy(rtOldMemory, newMemory, sizeof(newMemory));
+    memcpy(rtOldMemoryAddress, newMemoryAddress, sizeof(newMemoryAddress));
+    //Write to file
+    if(rtPrevInstAvailable)
+    {
+        if(WriteBufferPtr - WriteBuffer <= sizeof(WriteBuffer))
+        {
+            DWORD written;
+            WriteFile(rtFile, WriteBuffer, WriteBufferPtr - WriteBuffer, &written, NULL);
+            if(written < WriteBufferPtr - WriteBuffer) //Disk full?
+            {
+                CloseHandle(rtFile);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace has stopped unexpectedly because WriteFile() failed. GetLastError()= %X .\r\n"), GetLastError());
+                rtEnabled = false;
+            }
+        }
+        else
+            __debugbreak(); // Buffer overrun?
+    }
+    rtPrevInstAvailable = true;
 }
 
 unsigned int TraceRecordManager::getHitCount(duint address)
@@ -257,6 +375,33 @@ TraceRecordManager::TraceRecordByteType TraceRecordManager::getByteType(duint ad
 void TraceRecordManager::increaseInstructionCounter()
 {
     InterlockedIncrement((volatile long*)&instructionCounter);
+}
+
+void TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
+{
+    if(enabled)
+    {
+        if(rtEnabled)
+            enableRunTrace(false, NULL); //re-enable run trace
+        rtFile = CreateFileW(StringUtils::Utf8ToUtf16(fileName).c_str(), FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+        if(rtFile != INVALID_HANDLE_VALUE)
+        {
+            SetFilePointer(rtFile, 0, 0, FILE_END);
+            rtPrevInstAvailable = false;
+            rtEnabled = true;
+        }
+        else
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot create run trace file. GetLastError()= %X .\r\n"), GetLastError());
+    }
+    else
+    {
+        if(rtEnabled)
+        {
+            CloseHandle(rtFile);
+            rtPrevInstAvailable = false;
+            rtEnabled = false;
+        }
+    }
 }
 
 void TraceRecordManager::saveToDb(JSON root)
@@ -394,7 +539,7 @@ void _dbg_dbgtraceexecute(duint CIP)
             DISASM_INSTR instr;
             disasmget(instruction, CIP, &instr);
             TraceRecord.TraceExecute(CIP, instruction.Size());
-            TraceRecord.TraceExecuteRecord(instruction, instr);
+            TraceRecord.TraceExecuteRecord(instr);
         }
         else
         {
@@ -425,4 +570,10 @@ bool _dbg_dbgsetTraceRecordType(duint pageAddress, TRACERECORDTYPE type)
 TRACERECORDTYPE _dbg_dbggetTraceRecordType(duint pageAddress)
 {
     return (TRACERECORDTYPE)TraceRecord.getTraceRecordType(pageAddress);
+}
+
+// When disabled, file name is not relevant and can be NULL
+void _dbg_dbgenableRunTrace(bool enabled, const char* fileName)
+{
+    TraceRecord.enableRunTrace(enabled, fileName);
 }
