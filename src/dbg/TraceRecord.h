@@ -5,6 +5,8 @@
 #include "debugger.h"
 #include "jansson/jansson_x64dbg.h"
 
+class Capstone;
+
 class TraceRecordManager
 {
 public:
@@ -53,7 +55,7 @@ public:
 
     void TraceExecute(duint address, duint size);
     //void TraceAccess(duint address, unsigned char size, TraceRecordByteType accessType);
-    void TraceExecuteRecord(const DISASM_INSTR & newInstruction);
+    void TraceExecuteRecord(const Capstone & newInstruction);
 
     unsigned int getHitCount(duint address);
     TraceRecordByteType getByteType(duint address);
@@ -101,7 +103,6 @@ private:
 
     REGDUMPDWORD rtOldContext;
     DWORD rtOldThreadId;
-    DISASM_INSTR rtOldInstr;
     duint rtOldMemory[32];
     duint rtOldMemoryAddress[32];
     char rtOldOpcode[16];

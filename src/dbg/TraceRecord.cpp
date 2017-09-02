@@ -7,6 +7,7 @@
 #include "disasm_helper.h"
 #include "disasm_fast.h"
 #include "plugin_loader.h"
+#include "value.h"
 
 #define MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP 512
 
@@ -198,7 +199,51 @@ void TraceRecordManager::TraceExecute(duint address, duint size)
     }
 }
 
-void TraceRecordManager::TraceExecuteRecord(const DISASM_INSTR & newInstruction)
+
+static void HandleCapstoneOperand(const Capstone & cp, int opindex, DISASM_ARGTYPE* argType, duint* value, unsigned char* memoryContent, unsigned char* memorySize)
+{
+    *value = cp.ResolveOpValue(opindex, [&cp](x86_reg reg)
+    {
+        auto regName = cp.RegName(reg);
+        return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
+    });
+    const auto & op = cp[opindex];
+    switch(op.type)
+    {
+    case X86_OP_REG:
+        *argType = arg_normal;
+        break;
+
+    case X86_OP_IMM:
+        *argType = arg_normal;
+        break;
+
+    case X86_OP_MEM:
+    {
+        *argType = arg_memory;
+        const x86_op_mem & mem = op.mem;
+#ifdef _WIN64
+        if(mem.segment == X86_REG_GS)
+#else //x86
+        if(mem.segment == X86_REG_FS)
+#endif
+        {
+            *value += ThreadGetLocalBase(ThreadGetId(hActiveThread));
+        }
+        *memorySize = op.size;
+        if(DbgMemIsValidReadPtr(*value))
+        {
+            MemRead(*value, memoryContent, op.size);
+        }
+    }
+    break;
+
+    default:
+        __debugbreak();
+    }
+}
+
+void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
 {
     if(!isRunTraceEnabled())
         return;
@@ -215,19 +260,34 @@ void TraceRecordManager::TraceExecuteRecord(const DISASM_INSTR & newInstruction)
     DbgGetRegDump(&newContext.registers);
     newThreadId = ThreadGetId(hActiveThread);
     // Don't try to resolve memory values for lea and nop instructions
-    if(!(memcmp(newInstruction.instruction, "lea ", 4) == 0 || memcmp(newInstruction.instruction, "nop ", 4) == 0 || memcmp(newInstruction.instruction, "prefetch", 8) == 0))
+    if(!(newInstruction.IsNop() || newInstruction.GetId() == X86_INS_LEA))
     {
-        for(int i = 0; i < newInstruction.argcount; i++)
+        for(int i = 0; i < newInstruction.OpCount(); i++)
         {
-            const DISASM_ARG & arg = newInstruction.arg[i];
+            DISASM_ARGTYPE argType;
+            duint value;
+            unsigned char memoryContent[32]; //AVX
+            unsigned char memorySize;
+            memset(memoryContent, 0, sizeof(memoryContent));
+            HandleCapstoneOperand(newInstruction, i, &argType, &value, memoryContent, &memorySize);
             // TODO: Support SSE and AVX wide memory operands. They can be recorded in memory access log as multiple memory accesses of pointer size.
             // TODO: Implicit memory access by push and pop instructions
             // TODO: Support memory value of ??? for invalid memory access
-            if(arg.type == arg_memory)
+            if(argType == arg_memory)
             {
-                newMemory[newMemoryArrayCount] = arg.memvalue;
-                newMemoryAddress[newMemoryArrayCount] = arg.value;
-                newMemoryArrayCount++;
+                if(memorySize <= sizeof(duint))
+                {
+                    memcpy(&newMemory[newMemoryArrayCount], memoryContent, sizeof(duint));
+                    newMemoryAddress[newMemoryArrayCount] = value;
+                    newMemoryArrayCount++;
+                }
+                else
+                    for(unsigned char index = 0; index < memorySize / sizeof(duint) + ((memorySize % sizeof(duint)) > 0 ? 1 : 0); index++)
+                    {
+                        memcpy(&newMemory[newMemoryArrayCount], memoryContent + sizeof(duint) * index, sizeof(duint));
+                        newMemoryAddress[newMemoryArrayCount] = value + sizeof(duint) * index;
+                        newMemoryArrayCount++;
+                    }
             }
         }
         assert(newMemoryArrayCount < 32);
@@ -309,12 +369,11 @@ void TraceRecordManager::TraceExecuteRecord(const DISASM_INSTR & newInstruction)
     //Switch context buffers
     rtOldThreadId = newThreadId;
     rtOldContext = newContext;
-    rtOldInstr = newInstruction;
     rtOldMemoryArrayCount = newMemoryArrayCount;
     memcpy(rtOldMemory, newMemory, sizeof(newMemory));
     memcpy(rtOldMemoryAddress, newMemoryAddress, sizeof(newMemoryAddress));
     memset(rtOldOpcode, 0, 16);
-    rtOldOpcodeSize = newInstruction.instr_size & 0x0F;
+    rtOldOpcodeSize = newInstruction.Size() & 0x0F;
     MemRead(newContext.registers.regcontext.cip, rtOldOpcode, rtOldOpcodeSize);
     //Write to file
     if(rtPrevInstAvailable)
@@ -406,10 +465,14 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
             rtRecordedInstructions = 0;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace started. File: %s\r\n"), fileName);
             REGDUMP cip;
-            DISASM_INSTR instr;
+            Capstone cp;
+            unsigned char instr[MAX_DISASM_BUFFER];
             DbgGetRegDump(&cip);
-            disasmget(cip.regcontext.cip, &instr);
-            TraceExecuteRecord(instr);
+            if(MemRead(cip.regcontext.cip, instr, MAX_DISASM_BUFFER))
+            {
+                cp.DisassembleSafe(cip.regcontext.cip, instr, MAX_DISASM_BUFFER);
+                TraceExecuteRecord(cp);
+            }
             return true;
         }
         else
@@ -559,32 +622,36 @@ void _dbg_dbgtraceexecute(duint CIP)
 {
     if(TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordType::TraceRecordNone)
     {
-        TraceRecord.increaseInstructionCounter();
         Capstone instruction;
-        if(TraceRecord.isRunTraceEnabled())
+        unsigned char data[MAX_DISASM_BUFFER];
+        if(MemRead(CIP, data, MAX_DISASM_BUFFER))
         {
-            DISASM_INSTR instr;
-            disasmget(instruction, CIP, &instr);
-            TraceRecord.TraceExecute(CIP, instruction.Size());
-            TraceRecord.TraceExecuteRecord(instr);
-        }
-        else
-        {
-            BASIC_INSTRUCTION_INFO info;
-            if(disasmfast(CIP, &info))
-                TraceRecord.TraceExecute(CIP, info.size);
+            instruction.DisassembleSafe(CIP, data, MAX_DISASM_BUFFER);
+            if(TraceRecord.isRunTraceEnabled())
+            {
+                TraceRecord.TraceExecute(CIP, instruction.Size());
+                TraceRecord.TraceExecuteRecord(instruction);
+            }
+            else
+            {
+                TraceRecord.TraceExecute(CIP, instruction.Size());
+            }
         }
     }
     else
     {
         if(TraceRecord.isRunTraceEnabled())
         {
-            DISASM_INSTR instr;
-            disasmget(CIP, &instr);
-            TraceRecord.TraceExecuteRecord(instr);
+            Capstone instruction;
+            unsigned char data[MAX_DISASM_BUFFER];
+            if(MemRead(CIP, data, MAX_DISASM_BUFFER))
+            {
+                instruction.DisassembleSafe(CIP, data, MAX_DISASM_BUFFER);
+                TraceRecord.TraceExecuteRecord(instruction);
+            }
         }
-        TraceRecord.increaseInstructionCounter();
     }
+    TraceRecord.increaseInstructionCounter();
 }
 
 unsigned int _dbg_dbggetTraceRecordHitCount(duint address)

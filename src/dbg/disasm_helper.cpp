@@ -111,7 +111,7 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
     return ip;
 }
 
-static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, bool getregs)
+static void HandleCapstoneOperand(const Capstone & cp, int opindex, DISASM_ARG* arg, bool getregs)
 {
     auto value = cp.ResolveOpValue(opindex, [&cp, getregs](x86_reg reg)
     {
