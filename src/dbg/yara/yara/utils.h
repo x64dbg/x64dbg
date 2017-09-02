@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef YR_UTILS_H
 #define YR_UTILS_H
 
+#include <limits.h>
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -68,8 +70,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define yr_min(x, y) ((x < y) ? (x) : (y))
 #define yr_max(x, y) ((x > y) ? (x) : (y))
 
-#define PTR_TO_INT64(x)  ((int64_t) (size_t) x)
-
+#define yr_swap(x, y, T) do { T temp = x; x = y; y = temp; } while (0)
 
 #ifdef NDEBUG
 
@@ -86,5 +87,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     }
 
 #endif
+
+// Set, unset, and test bits in an array of unsigned characters by integer
+// index. The underlying array must be of type char or unsigned char to
+// ensure compatibility with the CHAR_BIT constant used in these definitions.
+
+#define YR_BITARRAY_SET(uchar_array_base, bitnum) \
+          (((uchar_array_base)[(bitnum)/CHAR_BIT]) = \
+            ((uchar_array_base)[(bitnum)/CHAR_BIT] | (1 << ((bitnum) % CHAR_BIT))))
+
+#define YR_BITARRAY_UNSET(uchar_array_base, bitnum) \
+          (((uchar_array_base)[(bitnum)/CHAR_BIT]) = \
+            ((uchar_array_base)[(bitnum)/CHAR_BIT] & (~(1 << ((bitnum) % CHAR_BIT)))))
+
+#define YR_BITARRAY_TEST(uchar_array_base, bitnum) \
+          (((uchar_array_base)[(bitnum)/CHAR_BIT] & (1 << ((bitnum) % CHAR_BIT))) != 0)
+
+#define YR_BITARRAY_NCHARS(bitnum) \
+          (((bitnum)+(CHAR_BIT-1))/CHAR_BIT)
 
 #endif

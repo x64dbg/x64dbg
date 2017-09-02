@@ -17,6 +17,26 @@ XrefBrowseDialog::XrefBrowseDialog(QWidget* parent) :
     setupContextMenu();
 }
 
+QString XrefBrowseDialog::GetFunctionSymbol(duint addr)
+{
+    QString line;
+    char clabel[MAX_LABEL_SIZE] = "";
+
+    DbgGetLabelAt(addr, SEG_DEFAULT, clabel);
+    if(*clabel)
+        line = QString(clabel);
+    else
+    {
+        duint start;
+        if(DbgFunctionGet(addr, &start, nullptr) && DbgGetLabelAt(start, SEG_DEFAULT, clabel) && start != addr)
+            line = QString("%1+%2").arg(clabel).arg(ToHexString(addr - start));
+        else
+            line = QString("%1").arg(ToHexString(addr));
+    }
+
+    return line;
+}
+
 void XrefBrowseDialog::setup(duint address, QString command)
 {
     if(mXrefInfo.refcount)
@@ -30,8 +50,21 @@ void XrefBrowseDialog::setup(duint address, QString command)
     ui->listWidget->clear();
     if(DbgXrefGet(address, &mXrefInfo))
     {
+        std::vector<XREF_RECORD> data;
+        for(duint i = 0; i < mXrefInfo.refcount; i++)
+            data.push_back(mXrefInfo.references[i]);
+
+        std::sort(data.begin(), data.end(), [](const XREF_RECORD A, const XREF_RECORD B)
+        {
+            return ((A.type < B.type) || (A.addr < B.addr));
+        });
+
+        for(duint i = 0; i < mXrefInfo.refcount; i++)
+            mXrefInfo.references[i] = data[i];
+
+        data.clear();
         char disasm[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        setWindowTitle(QString(tr("xrefs at %1")).arg(ToHexString(address)));
+        setWindowTitle(QString(tr("xrefs at <%1>")).arg(GetFunctionSymbol(address)));
         for(duint i = 0; i < mXrefInfo.refcount; i++)
         {
             if(GuiGetDisassembly(mXrefInfo.references[i].addr, disasm))

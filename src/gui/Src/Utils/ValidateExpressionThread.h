@@ -24,6 +24,7 @@ signals:
 
 public slots:
     void textChanged(QString text);
+    void additionalStateChanged();
     void setOnExpressionChangedCallback(EXPRESSIONCHANGEDCB callback);
 
 private:

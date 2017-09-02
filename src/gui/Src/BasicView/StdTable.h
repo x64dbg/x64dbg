@@ -36,6 +36,8 @@ public:
     void deleteAllColumns();
     void setCellContent(int r, int c, QString s);
     QString getCellContent(int r, int c);
+    void setCellUserdata(int r, int c, duint userdata);
+    duint getCellUserdata(int r, int c);
     bool isValidIndex(int r, int c);
 
     //context menu helpers
@@ -60,8 +62,14 @@ public slots:
     void contextMenuRequestedSlot(const QPoint & pos);
     void headerButtonPressedSlot(int col);
 
-private:
+protected:
     QString copyTable(const std::vector<int> & colWidths);
+
+    struct CellData
+    {
+        QString text;
+        duint userdata = 0;
+    };
 
     class ColumnCompare
     {
@@ -73,9 +81,9 @@ private:
             mSortFn = fn;
         }
 
-        inline bool operator()(const QList<QString> & a, const QList<QString> & b) const
+        inline bool operator()(const std::vector<CellData> & a, const std::vector<CellData> & b) const
         {
-            bool less = mSortFn(a.at(mCol), b.at(mCol));
+            bool less = mSortFn(a.at(mCol).text, b.at(mCol).text);
             if(mGreater)
                 return !less;
             return less;
@@ -104,8 +112,8 @@ private:
     bool mCopyMenuDebugOnly;
     bool mIsColumnSortingAllowed;
 
-    QList<QList<QString>> mData;
-    QList<QString> mCopyTitles;
+    std::vector<std::vector<CellData>> mData; //listof(row) where row = (listof(col) where col = string)
+    std::vector<QString> mCopyTitles;
     QPair<int, bool> mSort;
 };
 

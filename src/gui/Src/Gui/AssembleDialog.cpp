@@ -28,17 +28,18 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
     duint setting;
     if(BridgeSettingGetUint("Engine", "Assembler", &setting))
     {
-        if(setting == 1)
-            ui->radioKeystone->setChecked(true);
-        else if(setting == 2)
+        if(setting == 1 || setting == 2)
             ui->radioAsmjit->setChecked(true);
     }
+
+    Config()->setupWindowPos(this);
 }
 
 AssembleDialog::~AssembleDialog()
 {
     mValidateThread->stop();
     mValidateThread->wait();
+    Config()->saveWindowPos(this);
     delete ui;
 }
 
@@ -170,7 +171,7 @@ void AssembleDialog::on_lineEdit_textChanged(const QString & arg1)
 void AssembleDialog::on_checkBoxKeepSize_clicked(bool checked)
 {
     bKeepSizeChecked = checked;
-    mValidateThread->textChanged(ui->lineEdit->text());
+    mValidateThread->additionalStateChanged();
 }
 
 void AssembleDialog::on_checkBoxFillWithNops_clicked(bool checked)
@@ -181,13 +182,6 @@ void AssembleDialog::on_checkBoxFillWithNops_clicked(bool checked)
 void AssembleDialog::on_radioXEDParse_clicked()
 {
     BridgeSettingSetUint("Engine", "Assembler", 0);
-    DbgSettingsUpdated();
-    validateInstruction(ui->lineEdit->text());
-}
-
-void AssembleDialog::on_radioKeystone_clicked()
-{
-    BridgeSettingSetUint("Engine", "Assembler", 1);
     DbgSettingsUpdated();
     validateInstruction(ui->lineEdit->text());
 }

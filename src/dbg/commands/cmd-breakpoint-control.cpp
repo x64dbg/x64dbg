@@ -136,7 +136,10 @@ bool cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         return false;
     }
     GuiUpdateAllViews();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint at %p set!\n"), addr);
+    if(bpname)
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint at %p (%s) set!\n"), addr, bpname);
+    else
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint at %p set!\n"), addr);
     return true;
 }
 
@@ -727,7 +730,7 @@ bool cbDebugSetMemoryBpx(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint already set!"));
         return true;
     }
-    if(!BpNew(base, true, singleshoot, 0, BPMEMORY, type, 0))
+    if(!BpNew(base, true, singleshoot, 0, BPMEMORY, type, 0, size))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (BpNew)"));
         return false;
@@ -1149,22 +1152,41 @@ bool cbDebugSetExceptionBPX(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Exception breakpoint %X (%s) already exists!\n"), DWORD(ExceptionCode), ExceptionName.c_str());
         return false;
     }
-    duint chance = 1;
+    auto extype = ex_firstchance;
     if(argc > 2)
     {
-        if(!valfromstring(argv[2], &chance))
+        duint chance;
+        if(scmp(argv[2], "first"))
+            extype = ex_firstchance;
+        else if(scmp(argv[2], "second"))
+            extype = ex_secondchance;
+        else if(scmp(argv[2], "all"))
+            extype = ex_all;
+        else if(valfromstring(argv[2], &chance))
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Invalid expression!"));
+            switch(chance)
+            {
+            case 1:
+                extype = ex_firstchance;
+                break;
+            case 2:
+                extype = ex_secondchance;
+                break;
+            case 3:
+                extype = ex_all;
+                break;
+            default:
+                _plugin_logprintf(QT_TRANSLATE_NOOP("DBG", "Invalid exception type!"));
+                return false;
+            }
+        }
+        else
+        {
+            _plugin_logprintf(QT_TRANSLATE_NOOP("DBG", "Invalid exception type!"));
             return false;
         }
-        // range limit
-        // chance: 1=first chance, 2=second chance, 3=all
-        if(chance > 3)
-            chance = 3;
-        if(chance == 0)
-            chance = 1;
     }
-    if(!BpNew(ExceptionCode, true, false, 0, BPEXCEPTION, DWORD(chance), ""))
+    if(!BpNew(ExceptionCode, true, false, 0, BPEXCEPTION, extype, ""))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to set exception breakpoint! (BpNew)"));
         return false;
@@ -1321,7 +1343,7 @@ bool cbDebugSetBPGoto(int argc, char* argv[])
     _snprintf(cmd, sizeof(cmd), "SetBreakpointCondition %s, 0", argv[1]);
     if(!cmddirectexec(cmd))
         return false;
-    _snprintf(cmd, sizeof(cmd), "SetBreakpointCommand %s, \"CIP=%s\"", argv[1], argv[2]);
+    _snprintf(cmd, sizeof(cmd), "SetBreakpointCommand %s, \"bpgoto(%s)\"", argv[1], argv[2]);
     if(!cmddirectexec(cmd))
         return false;
     _snprintf(cmd, sizeof(cmd), "SetBreakpointCommandCondition %s, 1", argv[1]);

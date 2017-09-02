@@ -65,4 +65,6 @@ namespace Exprfunc
 
     duint argget(duint index);
     duint argset(duint index, duint value);
+
+    duint bpgoto(duint cip);
 }

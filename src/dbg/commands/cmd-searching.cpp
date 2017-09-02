@@ -9,6 +9,8 @@
 #include "label.h"
 #include "yara/yara.h"
 #include "stringformat.h"
+#include "disasm_helper.h"
+#include "symbolinfo.h"
 
 static int maxFindResults = 5000;
 
@@ -27,7 +29,7 @@ bool cbInstrFind(int argc, char* argv[])
         strcpy_s(pattern, argv[2] + 1);
     else
         strcpy_s(pattern, argv[2]);
-    int len = (int)strlen(pattern);
+    size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
 
@@ -79,7 +81,7 @@ bool cbInstrFindAll(int argc, char* argv[])
         strcpy_s(pattern, argv[2] + 1);
     else
         strcpy_s(pattern, argv[2]);
-    int len = (int)strlen(pattern);
+    size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
 
@@ -191,7 +193,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
         strcpy_s(pattern, argv[2] + 1);
     else
         strcpy_s(pattern, argv[2]);
-    int len = (int)strlen(pattern);
+    size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
     std::vector<PatternByte> searchpattern;
@@ -376,7 +378,7 @@ static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(sizeof(duint) * 2, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
@@ -458,7 +460,7 @@ static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINF
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(500, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String")));
         GuiReferenceSetSearchStartCol(2); //only search the strings
         GuiReferenceSetRowCount(0);
@@ -528,41 +530,81 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(MAX_LABEL_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Destination")));
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
     }
-    bool found = false;
+    duint foundaddr = 0;
     char label[MAX_LABEL_SIZE] = "";
     char module[MAX_MODULE_SIZE] = "";
+    duint base = ModBaseFromAddr(disasm->Address()), size = 0;
+    if(!base)
+        base = MemFindBaseAddr(disasm->Address(), &size);
+    else
+        size = ModSizeFromAddr(base);
+    if(!base || !size)
+        __debugbreak();
     if(basicinfo->call) //we are looking for calls
     {
-        duint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
-        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label) && !strstr(label, "sub_") && DbgGetModuleAt(ptr, module); //a non-user label
+        if(basicinfo->addr && MemIsValidReadPtr(basicinfo->addr, true))
+        {
+            if(basicinfo->addr < base || basicinfo->addr >= base + size) //call api
+                foundaddr = basicinfo->addr;
+            else //call [jmp.api]
+            {
+                BASIC_INSTRUCTION_INFO info;
+                memset(&info, 0, sizeof(BASIC_INSTRUCTION_INFO));
+                if(disasmfast(basicinfo->addr, &info, true) && info.branch && !info.call && info.memory.value) //jmp [addr]
+                {
+                    duint memaddr;
+                    if(MemRead(info.memory.value, &memaddr, sizeof(memaddr), nullptr, true))
+                    {
+                        if((memaddr < base || memaddr >= base + size) && MemIsValidReadPtr(memaddr, true))
+                            foundaddr = memaddr;
+                    }
+                }
+            }
+        }
     }
-    if(found)
+    switch(disasm->GetId())
     {
+    case X86_INS_CALL: //call dword ptr: [&api]
+    case X86_INS_MOV: //mov reg, dword ptr:[&api]
+        if(!foundaddr && basicinfo->memory.value)
+        {
+            duint memaddr;
+            if(MemRead(basicinfo->memory.value, &memaddr, sizeof(memaddr), nullptr, true))
+            {
+                if((memaddr < base || memaddr >= base + size) && ModBaseFromAddr(memaddr))
+                    foundaddr = memaddr;
+            }
+        }
+        break;
+    }
+    if(foundaddr)
+    {
+        auto symbolic = SymGetSymbolicName(foundaddr);
+        if(!symbolic.length())
+            symbolic = StringUtils::sprintf("%p", foundaddr);
         char addrText[20] = "";
-        char moduleTargetText[MAX_MODULE_SIZE] = "";
         sprintf_s(addrText, "%p", disasm->Address());
-        sprintf(moduleTargetText, "%s.%s", module, label);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
         {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
-            GuiReferenceSetCellContent(refinfo->refcount, 2, moduleTargetText);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, symbolic.c_str());
         }
         else
         {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
-            GuiReferenceSetCellContent(refinfo->refcount, 2, moduleTargetText);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, symbolic.c_str());
         }
     }
-    return found;
+    return foundaddr != 0;
 }
 
 bool cbInstrModCallFind(int argc, char* argv[])
@@ -678,7 +720,7 @@ static bool cbGUIDFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GUID")));
         GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "ProgId")));
         GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Path")));

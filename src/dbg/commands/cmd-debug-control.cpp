@@ -1,4 +1,5 @@
 #include "cmd-debug-control.h"
+#include "ntdll/ntdll.h"
 #include "console.h"
 #include "debugger.h"
 #include "animate.h"
@@ -10,6 +11,8 @@
 #include "value.h"
 #include "TraceRecord.h"
 #include "handle.h"
+#include "thread.h"
+#include "GetPeArch.h"
 
 static bool skipInt3Stepping(int argc, char* argv[])
 {
@@ -64,7 +67,8 @@ bool cbDebugInit(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "File does not exist!"));
         return false;
     }
-    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    auto arg1w = StringUtils::Utf8ToUtf16(arg1);
+    Handle hFile = CreateFileW(arg1w.c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Could not open file!"));
@@ -74,23 +78,28 @@ bool cbDebugInit(int argc, char* argv[])
     dprintf(QT_TRANSLATE_NOOP("DBG", "Debugging: %s\n"), arg1);
     hFile.Close();
 
+    auto arch = GetPeArch(arg1w.c_str());
+    if(arch == PeArch::DotnetAnyCpu)
+        arch = IsWow64() ? PeArch::Dotnet64 : PeArch::Dotnet86;
+
     //do some basic checks
-    switch(GetFileArchitecture(arg1))
+    switch(GetPeArch(arg1w.c_str()))
     {
-    case invalid:
+    case PeArch::Invalid:
         dputs(QT_TRANSLATE_NOOP("DBG", "Invalid PE file!"));
         return false;
 #ifdef _WIN64
-    case x32:
+    case PeArch::Native86:
+    case PeArch::Dotnet86:
+    case PeArch::DotnetAnyCpuPrefer32:
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x32dbg to debug this file!"));
 #else //x86
-    case x64:
+    case PeArch::Native64:
+    case PeArch::Dotnet64:
+    case PeArch::DotnetAnyCpu:
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this file!"));
 #endif //_WIN64
         return false;
-    case dotnet:
-        dputs(QT_TRANSLATE_NOOP("DBG", "This file is a dotNET application."));
-        break;
     default:
         break;
     }
@@ -158,13 +167,6 @@ bool cbDebugAttach(int argc, char* argv[])
     duint pid = 0;
     if(!valfromstring(argv[1], &pid, false))
         return false;
-    if(argc > 2)
-    {
-        duint eventHandle = 0;
-        if(!valfromstring(argv[2], &eventHandle, false))
-            return false;
-        dbgsetattachevent((HANDLE)eventHandle);
-    }
     if(DbgIsDebugging())
         DbgCmdExecDirect("stop");
     Handle hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
@@ -192,6 +194,22 @@ bool cbDebugAttach(int argc, char* argv[])
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), DWORD(pid));
         return false;
+    }
+    if(argc > 2) //event handle (JIT)
+    {
+        duint eventHandle = 0;
+        if(!valfromstring(argv[2], &eventHandle, false))
+            return false;
+        if(eventHandle)
+            dbgsetattachevent((HANDLE)eventHandle);
+    }
+    if(argc > 3) //thread id to resume (PLMDebug)
+    {
+        duint tid = 0;
+        if(!valfromstring(argv[3], &tid, false))
+            return false;
+        if(tid)
+            dbgsetresumetid(tid);
     }
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
     return true;
@@ -239,6 +257,11 @@ bool cbDebugPause(int argc, char* argv[])
         _dbg_animatestop(); // pause when animating
         return true;
     }
+    if(dbgtraceactive())
+    {
+        dbgforcebreaktrace(); // pause when tracing
+        return true;
+    }
     if(!DbgIsDebugging())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
@@ -265,7 +288,10 @@ bool cbDebugPause(int argc, char* argv[])
         }
         return false;
     }
-    dbgsetispausedbyuser(true);
+    //WORKAROUND: If a program is stuck in NtUserGetMessage (GetMessage was called), this
+    //will send a WM_NULL to stop the waiting. This only works if the message is not filtered.
+    //OllyDbg also does this in a similar way.
+    PostThreadMessageA(ThreadGetId(hActiveThread), WM_NULL, 0, 0);
     if(ResumeThread(hActiveThread) == -1)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));

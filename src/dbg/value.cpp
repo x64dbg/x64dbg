@@ -176,6 +176,18 @@ static bool isregister(const char* string)
     if(scmp(string, "dr7") || scmp(string, "dr5"))
         return true;
 
+    if(scmp(string, "cax"))
+        return true;
+    if(scmp(string, "cbx"))
+        return true;
+    if(scmp(string, "ccx"))
+        return true;
+    if(scmp(string, "cdx"))
+        return true;
+    if(scmp(string, "csi"))
+        return true;
+    if(scmp(string, "cdi"))
+        return true;
     if(scmp(string, "cip"))
         return true;
     if(scmp(string, "csp"))
@@ -371,7 +383,7 @@ bool valmxcsrflagfromstring(duint mxcsrflags, const char* string)
 #define x87STATUSWORD_FLAG_U 0x10
 #define x87STATUSWORD_FLAG_P 0x20
 #define x87STATUSWORD_FLAG_SF 0x40
-#define x87STATUSWORD_FLAG_IR 0x80
+#define x87STATUSWORD_FLAG_ES 0x80
 #define x87STATUSWORD_FLAG_C0 0x100
 #define x87STATUSWORD_FLAG_C1 0x200
 #define x87STATUSWORD_FLAG_C2 0x400
@@ -396,7 +408,7 @@ static unsigned int getx87statuswordflagfromstring(const char* string)
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(U),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(P),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(SF),
-        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(IR),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(ES),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C0),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C1),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C2),
@@ -867,6 +879,54 @@ duint getregister(int* size, const char* string)
         return GetContextDataEx(hActiveThread, UE_DR7);
     }
 
+    if(scmp(string, "cax"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RAX);
+#else
+        return GetContextDataEx(hActiveThread, UE_EAX);
+#endif //_WIN64
+    }
+    if(scmp(string, "cbx"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RBX);
+#else
+        return GetContextDataEx(hActiveThread, UE_EBX);
+#endif //_WIN64
+    }
+    if(scmp(string, "ccx"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RCX);
+#else
+        return GetContextDataEx(hActiveThread, UE_ECX);
+#endif //_WIN64
+    }
+    if(scmp(string, "cdx"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RDX);
+#else
+        return GetContextDataEx(hActiveThread, UE_EDX);
+#endif //_WIN64
+    }
+    if(scmp(string, "csi"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RSI);
+#else
+        return GetContextDataEx(hActiveThread, UE_ESI);
+#endif //_WIN64
+    }
+    if(scmp(string, "cdi"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RDI);
+#else
+        return GetContextDataEx(hActiveThread, UE_EDI);
+#endif //_WIN64
+    }
     if(scmp(string, "cip"))
     {
         return GetContextDataEx(hActiveThread, UE_CIP);
@@ -1189,6 +1249,42 @@ bool setregister(const char* string, duint value)
     if(scmp(string, "dr7") || scmp(string, "dr5"))
         return SetContextDataEx(hActiveThread, UE_DR7, value);
 
+    if(scmp(string, "cax"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RAX, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_EAX, value);
+#endif //_WIN64
+    if(scmp(string, "cbx"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RBX, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_EBX, value);
+#endif //_WIN64
+    if(scmp(string, "ccx"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RCX, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_ECX, value);
+#endif //_WIN64
+    if(scmp(string, "cdx"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RDX, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_EDX, value);
+#endif //_WIN64
+    if(scmp(string, "csi"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RSI, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_ESI, value);
+#endif //_WIN64
+    if(scmp(string, "cdi"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RDI, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_EDI, value);
+#endif //_WIN64
     if(scmp(string, "cip"))
         return SetContextDataEx(hActiveThread, UE_CIP, value);
     if(scmp(string, "csp"))
@@ -1352,19 +1448,19 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         if(!strlen(apiname))
             return false;
         duint modbase = ModBaseFromName(modname);
-        wchar_t szModName[MAX_PATH] = L"";
-        if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
+        char szModPath[MAX_PATH];
+        if(!ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         {
             if(!silent)
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get filename of module %p\n"), modbase);
         }
         else
         {
-            HMODULE mod = LoadLibraryExW(szModName, 0, DONT_RESOLVE_DLL_REFERENCES);
+            HMODULE mod = LoadLibraryExW(StringUtils::Utf8ToUtf16(szModPath).c_str(), 0, DONT_RESOLVE_DLL_REFERENCES);
             if(!mod)
             {
                 if(!silent)
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to load library %s\n"), StringUtils::Utf16ToUtf8(szModName).c_str());
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to load library %s\n"), szModPath);
             }
             else
             {
@@ -1894,7 +1990,7 @@ bool valfromstring(const char* string, duint* value, bool silent, bool baseonly,
 static bool longEnough(const char* str, size_t min_length)
 {
     size_t length = 0;
-    while(str[length] && length < min_length)
+    while(length < min_length && str[length])
         length++;
     if(length == min_length)
         return true;

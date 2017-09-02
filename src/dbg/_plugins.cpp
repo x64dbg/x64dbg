@@ -85,7 +85,7 @@ PLUG_IMPEXP bool _plugin_menuaddseparator(int hMenu)
 
 PLUG_IMPEXP bool _plugin_menuclear(int hMenu)
 {
-    return pluginmenuclear(hMenu);
+    return pluginmenuclear(hMenu, false);
 }
 
 PLUG_IMPEXP void _plugin_menuseticon(int hMenu, const ICONDATA* icon)
@@ -126,6 +126,16 @@ PLUG_IMPEXP void _plugin_menuentrysetname(int pluginHandle, int hEntry, const ch
 PLUG_IMPEXP void _plugin_menuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey)
 {
     pluginmenuentrysethotkey(pluginHandle, hEntry, hotkey);
+}
+
+PLUG_IMPEXP bool _plugin_menuremove(int hMenu)
+{
+    return pluginmenuremove(hMenu);
+}
+
+PLUG_IMPEXP bool _plugin_menuentryremove(int pluginHandle, int hEntry)
+{
+    return pluginmenuentryremove(pluginHandle, hEntry);
 }
 
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript)

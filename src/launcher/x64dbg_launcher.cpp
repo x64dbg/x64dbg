@@ -7,66 +7,17 @@
 #include <shlobj.h>
 #include <atlcomcli.h>
 
+#include "../exe/resource.h"
 #include "../exe/LoadResourceString.h"
+#include "../exe/icon.h"
+#include "../dbg/GetPeArch.h"
 
-typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
-typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
-typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
-
-LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
-LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
-
-enum arch
-{
-    notfound,
-    invalid,
-    x32,
-    x64,
-    dotnet
-};
+#pragma comment(lib, "comctl32.lib")
 
 static bool FileExists(const TCHAR* file)
 {
     auto attrib = GetFileAttributes(file);
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
-}
-
-static arch GetFileArchitecture(const TCHAR* szFileName)
-{
-    arch retval = notfound;
-    HANDLE hFile = CreateFile(szFileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if(hFile != INVALID_HANDLE_VALUE)
-    {
-        IMAGE_DOS_HEADER idh;
-        DWORD read = 0;
-        if(ReadFile(hFile, &idh, sizeof(idh), &read, nullptr))
-        {
-            if(idh.e_magic == IMAGE_DOS_SIGNATURE)
-            {
-                IMAGE_NT_HEADERS inth;
-                memset(&inth, 0, sizeof(inth));
-                PIMAGE_NT_HEADERS pnth = nullptr;
-                if(SetFilePointer(hFile, idh.e_lfanew, nullptr, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
-                {
-                    if(ReadFile(hFile, &inth, sizeof(inth), &read, nullptr))
-                        pnth = &inth;
-                    else if(ReadFile(hFile, &inth, sizeof(DWORD) + sizeof(WORD), &read, nullptr))
-                        pnth = &inth;
-                }
-                if(pnth && pnth->Signature == IMAGE_NT_SIGNATURE)
-                {
-                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0 && (pnth->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0)
-                        retval = dotnet;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
-                        retval = x32;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
-                        retval = x64;
-                }
-            }
-        }
-        CloseHandle(hFile);
-    }
-    return retval;
 }
 
 static bool BrowseFileOpen(HWND owner, const TCHAR* filter, const TCHAR* defext, TCHAR* filename, int filename_size, const TCHAR* init_dir)
@@ -85,12 +36,18 @@ static bool BrowseFileOpen(HWND owner, const TCHAR* filter, const TCHAR* defext,
     return !!GetOpenFileName(&ofstruct);
 }
 
+typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+typedef BOOL(WINAPI* LPFN_Wow64DisableWow64FsRedirection)(PVOID);
+typedef BOOL(WINAPI* LPFN_Wow64RevertWow64FsRedirection)(PVOID);
+
+LPFN_Wow64DisableWow64FsRedirection _Wow64DisableRedirection = NULL;
+LPFN_Wow64RevertWow64FsRedirection _Wow64RevertRedirection = NULL;
+
 static BOOL isWoW64()
 {
-    LPFN_ISWOW64PROCESS fnIsWow64Process;
     BOOL isWoW64 = FALSE;
 
-    fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+    static auto fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
 
     if(NULL != fnIsWow64Process)
     {
@@ -113,8 +70,27 @@ static BOOL isWowRedirectionSupported()
         return bRedirectSupported;
     else
         return !bRedirectSupported;
-
 }
+
+struct RedirectWow
+{
+    PVOID oldValue = NULL;
+
+    bool DisableRedirect()
+    {
+        return !!_Wow64DisableRedirection(&oldValue);
+    }
+
+    ~RedirectWow()
+    {
+        if(oldValue != NULL)
+        {
+            if(!_Wow64RevertRedirection(oldValue))
+                //Error occured here. Ignore or reset? (does it matter at this point?)
+                MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
+        }
+    }
+};
 
 static TCHAR* GetDesktopPath()
 {
@@ -123,11 +99,6 @@ static TCHAR* GetDesktopPath()
         return path;
     return nullptr;
 }
-
-const wchar_t* SHELLEXT_EXE_KEY = L"exefile\\shell\\Debug with x64dbg\\Command";
-const wchar_t* SHELLEXT_ICON_EXE_KEY = L"exefile\\shell\\Debug with x64dbg";
-const wchar_t* SHELLEXT_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg\\Command";
-const wchar_t* SHELLEXT_ICON_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg";
 
 static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink)
 {
@@ -249,26 +220,6 @@ static bool ResolveShortcut(HWND hwnd, const TCHAR* szShortcutPath, TCHAR* szRes
     return SUCCEEDED(hres);
 }
 
-struct RedirectWow
-{
-    PVOID oldValue = NULL;
-
-    bool DisableRedirect()
-    {
-        return !!_Wow64DisableRedirection(&oldValue);
-    }
-
-    ~RedirectWow()
-    {
-        if(oldValue != NULL)
-        {
-            if(!_Wow64RevertRedirection(oldValue))
-                //Error occured here. Ignore or reset? (does it matter at this point?)
-                MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
-        }
-    }
-};
-
 static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
 {
     HKEY hKeyCreatedx32;
@@ -337,13 +288,105 @@ static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
     return;
 }
 
+static TCHAR szModulePath[MAX_PATH] = TEXT("");
+static TCHAR szCurrentDir[MAX_PATH] = TEXT("");
+static TCHAR sz32Path[MAX_PATH] = TEXT("");
+static TCHAR sz32Dir[MAX_PATH] = TEXT("");
+static TCHAR sz64Path[MAX_PATH] = TEXT("");
+static TCHAR sz64Dir[MAX_PATH] = TEXT("");
+
+static BOOL CALLBACK DlgLauncher(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch(uMsg)
+    {
+    case WM_INITDIALOG:
+    {
+        HANDLE hIcon;
+        hIcon = LoadIconW(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1));
+        SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        SetDlgItemText(hwndDlg, IDC_BUTTONINSTALL, LoadResString(IDS_SETUP));
+        EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON32), *sz32Dir != TEXT('\0'));
+        EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON64), *sz64Dir != TEXT('\0') && isWoW64());
+    }
+    return TRUE;
+
+    case WM_CLOSE:
+    {
+        EndDialog(hwndDlg, 0);
+    }
+    return TRUE;
+
+    case WM_COMMAND:
+    {
+        switch(LOWORD(wParam))
+        {
+        case IDC_BUTTON32:
+        {
+            EndDialog(hwndDlg, 0);
+            ShellExecute(nullptr, TEXT("open"), sz32Path, TEXT(""), sz32Dir, SW_SHOWNORMAL);
+        }
+        return TRUE;
+
+        case IDC_BUTTON64:
+        {
+            EndDialog(hwndDlg, 0);
+            ShellExecute(nullptr, TEXT("open"), sz64Path, TEXT(""), sz64Dir, SW_SHOWNORMAL);
+        }
+        return TRUE;
+
+        case IDC_BUTTONINSTALL:
+        {
+            EndDialog(hwndDlg, 0);
+            OSVERSIONINFO osvi;
+            memset(&osvi, 0, sizeof(osvi));
+            osvi.dwOSVersionInfoSize = sizeof(osvi);
+            GetVersionEx(&osvi);
+            auto operation = osvi.dwMajorVersion >= 6 ? TEXT("runas") : TEXT("open");
+            ShellExecute(nullptr, operation, szModulePath, TEXT("::install"), szCurrentDir, SW_SHOWNORMAL);
+        }
+        return TRUE;
+        }
+    }
+    break;
+    }
+    return FALSE;
+}
+
+static bool convertNumber(const wchar_t* str, unsigned long & result, int radix)
+{
+    errno = 0;
+    wchar_t* end;
+    result = wcstoul(str, &end, radix);
+    if(!result && end == str)
+        return false;
+    if(result == ULLONG_MAX && errno)
+        return false;
+    if(*end)
+        return false;
+    return true;
+}
+
+static bool parseId(const wchar_t* str, unsigned long & result)
+{
+    int radix = 10;
+    if(!wcsncmp(str, L"0x", 2))
+        radix = 16, str += 2;
+    return convertNumber(str, result, radix);
+}
+
+const wchar_t* SHELLEXT_EXE_KEY = L"exefile\\shell\\Debug with x64dbg\\Command";
+const wchar_t* SHELLEXT_ICON_EXE_KEY = L"exefile\\shell\\Debug with x64dbg";
+const wchar_t* SHELLEXT_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg\\Command";
+const wchar_t* SHELLEXT_ICON_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg";
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+    InitCommonControls();
+
     //Initialize COM
     CoInitialize(nullptr);
 
     //Get INI file path
-    TCHAR szModulePath[MAX_PATH] = TEXT("");
     if(!GetModuleFileName(nullptr, szModulePath, MAX_PATH))
     {
         MessageBox(nullptr, LoadResString(IDS_ERRORGETTINGMODULEPATH), LoadResString(IDS_ERROR), MB_ICONERROR | MB_SYSTEMMODAL);
@@ -351,7 +394,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     }
     TCHAR szIniPath[MAX_PATH] = TEXT("");
     _tcscpy_s(szIniPath, szModulePath);
-    TCHAR szCurrentDir[MAX_PATH] = TEXT("");
     _tcscpy_s(szCurrentDir, szModulePath);
     auto len = int(_tcslen(szCurrentDir));
     while(szCurrentDir[len] != TEXT('\\') && len)
@@ -369,7 +411,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //Load settings
     auto bDoneSomething = false;
-    TCHAR sz32Path[MAX_PATH] = TEXT("");
     if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), TEXT(""), sz32Path, MAX_PATH, szIniPath))
     {
         _tcscpy_s(sz32Path, szCurrentDir);
@@ -381,11 +422,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
     }
 
-    TCHAR sz32Dir[MAX_PATH] = TEXT("");
     _tcscpy_s(sz32Dir, sz32Path);
     PathRemoveFileSpec(sz32Dir);
 
-    TCHAR sz64Path[MAX_PATH] = TEXT("");
     if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), TEXT(""), sz64Path, MAX_PATH, szIniPath))
     {
         _tcscpy_s(sz64Path, szCurrentDir);
@@ -397,21 +436,51 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
     }
 
-    TCHAR sz64Dir[MAX_PATH] = TEXT("");
     _tcscpy_s(sz64Dir, sz64Path);
     PathRemoveFileSpec(sz64Dir);
+
+    //Functions to load the relevant debugger with a command line
+    auto load32 = [](const wchar_t* cmdLine)
+    {
+        if(sz32Path[0])
+            ShellExecute(nullptr, TEXT("open"), sz32Path, cmdLine, sz32Dir, SW_SHOWNORMAL);
+        else
+            MessageBox(nullptr, LoadResString(IDS_INVDPATH32), LoadResString(IDS_ERROR), MB_ICONERROR);
+    };
+    auto load64 = [](const wchar_t* cmdLine)
+    {
+        if(sz64Path[0])
+            ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine, sz64Dir, SW_SHOWNORMAL);
+        else
+            MessageBox(nullptr, LoadResString(IDS_INVDPATH64), LoadResString(IDS_ERROR), MB_ICONERROR);
+    };
 
     //Handle command line
     auto argc = 0;
     auto argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    if(argc <= 1) //no arguments -> set configuration
+    unsigned long pid = 0;
+    if(argc <= 1) //no arguments -> launcher dialog
     {
         if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
         {
             WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
             bDoneSomething = true;
         }
-        if(!FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
+        if(isWoW64() && !FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
+        {
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), sz64Path, szIniPath);
+            bDoneSomething = true;
+        }
+        DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DIALOGLAUNCHER), 0, DlgLauncher);
+    }
+    else if(argc >= 2 && !wcscmp(argv[1], L"::install")) //set configuration
+    {
+        if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
+        {
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
+            bDoneSomething = true;
+        }
+        if(isWoW64() && !FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
         {
             WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), sz64Path, szIniPath);
             bDoneSomething = true;
@@ -426,18 +495,50 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 AddShellIcon(SHELLEXT_ICON_EXE_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
             if(RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand))
                 AddShellIcon(SHELLEXT_ICON_DLL_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
+            bDoneSomething = true;
         }
         if(MessageBox(nullptr, LoadResString(IDS_ASKDESKTOPSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
             AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
             if(isWoW64())
                 AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
+            bDoneSomething = true;
         }
 
-        AddDBFileTypeIcon(sz32Path, sz64Path);
+        if(MessageBox(nullptr, LoadResString(IDS_ASKICON), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
+        {
+            AddDBFileTypeIcon(sz32Path, sz64Path);
+            bDoneSomething = true;
+        }
 
         if(bDoneSomething)
             MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);
+    }
+    else if(argc >= 3 && !wcscmp(argv[1], L"-p") && parseId(argv[2], pid)) //-p PID
+    {
+        wchar_t cmdLine[32] = L"";
+        unsigned long tid;
+        if(argc >= 5 && !wcscmp(argv[3], L"-tid") && parseId(argv[4], tid)) //-p PID -tid TID
+            wsprintfW(cmdLine, L"-p %u -tid %u", pid, tid);
+        else
+            wsprintfW(cmdLine, L"-p %u", pid);
+        if(isWoW64())
+        {
+            auto hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+            if(hProcess)
+            {
+                BOOL bWow64Process = FALSE;
+                if(IsWow64Process(hProcess, &bWow64Process) && bWow64Process)
+                    load32(cmdLine);
+                else
+                    load64(cmdLine);
+                CloseHandle(hProcess);
+            }
+            else
+                load64(cmdLine);
+        }
+        else
+            load32(cmdLine);
     }
     else if(argc >= 2) //one or more arguments -> execute debugger
     {
@@ -501,37 +602,35 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if(canDisableRedirect)
             rWow.DisableRedirect();
 
-        auto architecture = GetFileArchitecture(szPath);
-        if(architecture == dotnet)
-            architecture = isWoW64() ? x64 : x32;
-
         //MessageBoxW(0, cmdLine.c_str(), L"x96dbg", MB_SYSTEMMODAL);
         //MessageBoxW(0, GetCommandLineW(), L"GetCommandLineW", MB_SYSTEMMODAL);
         //MessageBoxW(0, szCurDir, L"GetCurrentDirectory", MB_SYSTEMMODAL);
 
-        switch(architecture)
+        switch(GetPeArch(szPath))
         {
-        case x32:
-            if(sz32Path[0])
-                ShellExecute(nullptr, TEXT("open"), sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
+        case PeArch::Native86:
+        case PeArch::Dotnet86:
+        case PeArch::DotnetAnyCpuPrefer32:
+            load32(cmdLine.c_str());
+            break;
+        case PeArch::Native64:
+        case PeArch::Dotnet64:
+            load64(cmdLine.c_str());
+            break;
+        case PeArch::DotnetAnyCpu:
+            if(isWoW64())
+                load64(cmdLine.c_str());
             else
-                MessageBox(nullptr, LoadResString(IDS_INVDPATH32), LoadResString(IDS_ERROR), MB_ICONERROR);
+                load32(cmdLine.c_str());
             break;
-
-        case x64:
-            if(sz64Path[0])
-                ShellExecute(nullptr, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
+        case PeArch::Invalid:
+            if(FileExists(szPath))
+                MessageBox(nullptr, argv[1], LoadResString(IDS_INVDPE), MB_ICONERROR);
             else
-                MessageBox(nullptr, LoadResString(IDS_INVDPATH64), LoadResString(IDS_ERROR), MB_ICONERROR);
+                MessageBox(nullptr, argv[1], LoadResString(IDS_FILEERR), MB_ICONERROR);
             break;
-
-        case invalid:
-            MessageBox(nullptr, argv[1], LoadResString(IDS_INVDPE), MB_ICONERROR);
-            break;
-
-        case notfound:
-            MessageBox(nullptr, argv[1], LoadResString(IDS_FILEERR), MB_ICONERROR);
-            break;
+        default:
+            __debugbreak();
         }
     }
     LocalFree(argv);

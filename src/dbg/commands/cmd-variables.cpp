@@ -132,6 +132,7 @@ bool cbInstrVarList(int argc, char* argv[])
             realvarcount++;
         }
     }
+    GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Delete")), "vardel $1");
     GuiReferenceReloadData();
     return true;
 }

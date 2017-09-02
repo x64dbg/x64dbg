@@ -32,7 +32,7 @@
     <ClInclude Include="icon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource1.h">
+    <ClInclude Include="strings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LoadResourceString.h">

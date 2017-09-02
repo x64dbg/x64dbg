@@ -14,6 +14,11 @@ struct PLUG_MENU
 {
     int pluginHandle; //plugin handle
     int hEntryMenu; //GUI entry/menu handle (unique)
+    int hParentMenu; //parent GUI menu handle
+};
+
+struct PLUG_MENUENTRY : PLUG_MENU
+{
     int hEntryPlugin; //plugin entry handle (unique per plugin)
 };
 
@@ -74,7 +79,7 @@ bool plugincmdunregister(int pluginHandle, const char* command);
 int pluginmenuadd(int hMenu, const char* title);
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title);
 bool pluginmenuaddseparator(int hMenu);
-bool pluginmenuclear(int hMenu);
+bool pluginmenuclear(int hMenu, bool erase);
 void pluginmenucall(int hEntry);
 bool pluginwinevent(MSG* message, long* result);
 bool pluginwineventglobal(MSG* message);
@@ -86,6 +91,8 @@ void pluginmenuentrysetvisible(int pluginHandle, int hEntry, bool visible);
 void pluginmenusetname(int pluginHandle, int hMenu, const char* name);
 void pluginmenuentrysetname(int pluginHandle, int hEntry, const char* name);
 void pluginmenuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey);
+bool pluginmenuremove(int hMenu);
+bool pluginmenuentryremove(int pluginHandle, int hEntry);
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata);
 bool pluginexprfuncunregister(int pluginHandle, const char* name);
 bool pluginformatfuncregister(int pluginHandle, const char* type, CBPLUGINFORMATFUNCTION cbFunction, void* userdata);

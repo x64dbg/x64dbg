@@ -43,8 +43,16 @@ typedef struct
 {
     DWORD dwProcessId;
     char szExeFile[MAX_PATH];
+    char szExeMainWindowTitle[MAX_PATH];
     char szExeArgs[MAX_COMMAND_LINE_SIZE];
 } DBGPROCESSINFO;
+
+typedef struct
+{
+    DWORD rva;
+    BYTE type;
+    WORD size;
+} DBGRELOCATIONINFO;
 
 typedef enum
 {
@@ -183,6 +191,10 @@ typedef bool(*ISDEPENABLED)();
 typedef void(*GETCALLSTACKEX)(DBGCALLSTACK* callstack, bool cache);
 typedef bool(*GETUSERCOMMENT)(duint addr, char* comment);
 typedef void(*ENUMCONSTANTS)(ListOf(CONSTANTINFO) constants);
+typedef duint(*MEMBPSIZE)(duint addr);
+typedef bool(*MODRELOCATIONSFROMADDR)(duint addr, ListOf(DBGRELOCATIONINFO) relocations);
+typedef bool(*MODRELOCATIONATADDR)(duint addr, DBGRELOCATIONINFO* relocation);
+typedef bool(*MODRELOCATIONSINRANGE)(duint addr, duint size, ListOf(DBGRELOCATIONINFO) relocations);
 
 //The list of all the DbgFunctions() return value.
 //WARNING: This list is append only. Do not insert things in the middle or plugins would break.
@@ -251,6 +263,11 @@ typedef struct DBGFUNCTIONS_
     GETUSERCOMMENT GetUserComment;
     ENUMCONSTANTS EnumConstants;
     ENUMCONSTANTS EnumErrorCodes;
+    ENUMCONSTANTS EnumExceptions;
+    MEMBPSIZE MemBpSize;
+    MODRELOCATIONSFROMADDR ModRelocationsFromAddr;
+    MODRELOCATIONATADDR ModRelocationAtAddr;
+    MODRELOCATIONSINRANGE ModRelocationsInRange;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

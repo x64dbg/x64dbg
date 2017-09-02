@@ -102,6 +102,7 @@ void MHTabWidget::DetachTab(int index, QPoint & dropPoint)
     detachedWidget->setWindowTitle(tabText(index));
     detachedWidget->setWindowIcon(tabIcon(index));
     detachedWidget->mNativeName = mNativeNames[index];
+    mNativeNames.removeAt(index);
 
     // Remove from tab bar
     QWidget* tearOffWidget = widget(index);
@@ -181,13 +182,13 @@ MHTabBar* MHTabWidget::tabBar() const
 
 QString MHTabWidget::getNativeName(int index)
 {
-    if(index < count())
+    if(index < QTabWidget::count())
     {
         return mNativeNames.at(index);
     }
     else
     {
-        MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(widget(index)->parent());
+        MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(m_Windows.at(index - QTabWidget::count())->parent());
         if(window)
             return window->mNativeName;
         else

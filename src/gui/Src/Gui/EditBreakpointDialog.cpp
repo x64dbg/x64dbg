@@ -20,10 +20,13 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     }
     setWindowIcon(DIcon("breakpoint.png"));
     loadFromBp();
+
+    Config()->setupWindowPos(this);
 }
 
 EditBreakpointDialog::~EditBreakpointDialog()
 {
+    Config()->saveWindowPos(this);
     delete ui;
 }
 
@@ -61,6 +64,7 @@ void EditBreakpointDialog::on_editBreakCondition_textEdited(const QString & arg1
 
 void EditBreakpointDialog::on_editLogText_textEdited(const QString & arg1)
 {
+    ui->checkBoxSilent->setChecked(true);
     copyTruncate(mBp.logText, arg1);
 }
 

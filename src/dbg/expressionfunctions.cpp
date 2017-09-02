@@ -127,6 +127,9 @@ void ExpressionFunctions::Init()
     //Arguments
     RegisterEasy("arg.get,arg", argget);
     RegisterEasy("arg.set", argset);
+
+    //Undocumented
+    RegisterEasy("bpgoto", bpgoto);
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)

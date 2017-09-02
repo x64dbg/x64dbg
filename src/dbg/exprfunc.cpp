@@ -9,6 +9,7 @@
 #include "disasm_helper.h"
 #include "function.h"
 #include "value.h"
+#include "exhandlerinfo.h"
 
 namespace Exprfunc
 {
@@ -123,7 +124,7 @@ namespace Exprfunc
     duint memdecodepointer(duint ptr)
     {
         auto decoded = ptr;
-        return MemDecodePointer(&decoded, true) ? decoded : ptr;
+        return MemDecodePointer(&decoded, IsVistaOrLater()) ? decoded : ptr;
     }
 
     duint dislen(duint addr)
@@ -376,5 +377,12 @@ namespace Exprfunc
         valfromstring(expr.c_str(), &oldvalue);
         valtostring(expr.c_str(), value, true);
         return oldvalue;
+    }
+
+    duint bpgoto(duint cip)
+    {
+        //This is a function to sets CIP without calling DebugUpdateGui. This is a workaround for "bpgoto".
+        SetContextDataEx(hActiveThread, UE_CIP, cip);
+        return cip;
     }
 }

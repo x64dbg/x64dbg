@@ -16,6 +16,10 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     mMaxCPUDumpTabs = nbCpuDumpTabs;
     mInitAllDumpTabs = false;
 
+    mDumpPluginMenu = new QMenu(this);
+    mDumpPluginMenu->setIcon(DIcon("plugin.png"));
+    Bridge::getBridge()->emitMenuAddToList(this, mDumpPluginMenu, GUI_DUMP_MENU);
+
     for(uint i = 0; i < mMaxCPUDumpTabs; i++)
     {
         CPUDump* cpuDump = new CPUDump(disas, this);
@@ -61,34 +65,33 @@ CPUDump* CPUMultiDump::getCurrentCPUDump()
     return mCurrentCPUDump;
 }
 
+// Only get tab names for all dump tabs!
 void CPUMultiDump::getTabNames(QList<QString> & names)
 {
-    bool addedDetachedWindows = false;
     names.clear();
-    for(int i = 0; i < count(); i++)
+    int i;
+    int index;
+    // placeholders
+    for(i = 0; i < getMaxCPUTabs(); i++)
+        names.push_back(QString("Dump %1").arg(i + 1));
+    // enumerate all tabs
+    for(i = 0; i < QTabWidget::count(); i++)
     {
         if(!getNativeName(i).startsWith("Dump "))
             continue;
-        // If empty name, then widget is detached
-        if(this->tabBar()->tabText(i).length() == 0)
+        index = getNativeName(i).mid(5).toInt() - 1;
+        if(index < getMaxCPUTabs())
+            names[index] = this->tabBar()->tabText(i);
+    }
+    // enumerate all detached windows
+    for(i = 0; i < windows().count(); i++)
+    {
+        QString nativeName = dynamic_cast<MHDetachedWindow*>(windows()[i]->parent())->mNativeName;
+        if(nativeName.startsWith("Dump "))
         {
-            // If we added all the detached windows once, no need to do it again
-            if(addedDetachedWindows)
-                continue;
-
-            QString windowName;
-            // Loop through all detached widgets
-            for(int n = 0; n < this->windows().size(); n++)
-            {
-                // Get the name and add it to the list
-                windowName = ((MHDetachedWindow*)this->windows().at(n)->parent())->windowTitle();
-                names.push_back(windowName);
-            }
-            addedDetachedWindows = true;
-        }
-        else
-        {
-            names.push_back(this->tabBar()->tabText(i));
+            index = nativeName.mid(5).toInt() - 1;
+            if(index < getMaxCPUTabs())
+                names[index] = dynamic_cast<MHDetachedWindow*>(windows()[i]->parent())->windowTitle();
         }
     }
 }
@@ -150,8 +153,8 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
             cpuDump = qobject_cast<CPUDump*>(widget(i));
             if(cpuDump)
             {
-                cpuDump->historyClear();
-                cpuDump->addVaToHistory(parVa);
+                cpuDump->mHistory.historyClear();
+                cpuDump->mHistory.addVaToHistory(parVa);
                 cpuDump->printDumpAt(parVa);
             }
         }
@@ -162,7 +165,7 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
     {
         SwitchToDumpWindow();
         mCurrentCPUDump->printDumpAt(parVa);
-        mCurrentCPUDump->addVaToHistory(parVa);
+        mCurrentCPUDump->mHistory.addVaToHistory(parVa);
     }
 }
 
@@ -176,7 +179,7 @@ void CPUMultiDump::printDumpAtNSlot(duint parVa, int index)
         return;
     setCurrentIndex(tabindex);
     current->printDumpAt(parVa);
-    current->addVaToHistory(parVa);
+    current->mHistory.addVaToHistory(parVa);
 }
 
 void CPUMultiDump::selectionGetSlot(SELECTIONDATA* selectionData)

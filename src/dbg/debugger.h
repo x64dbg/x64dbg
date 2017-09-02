@@ -42,6 +42,7 @@ duint dbggettimewastedcounter();
 bool dbgisrunning();
 bool dbgisdll();
 void dbgsetattachevent(HANDLE handle);
+void dbgsetresumetid(duint tid);
 void DebugUpdateGui(duint disasm_addr, bool stack);
 void DebugUpdateGuiAsync(duint disasm_addr, bool stack);
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state = paused);
@@ -60,7 +61,7 @@ void dbgaddignoredexception(ExceptionRange range);
 bool dbgisignoredexception(unsigned int exception);
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
-bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::string>* commandList);
+bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::string>* commandList, std::vector<std::string>* winTextList);
 bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess = NULL);
 cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline);
@@ -72,10 +73,12 @@ bool dbgsettracelog(const String & expression, const String & text);
 bool dbgsettracecmd(const String & expression, const String & text);
 bool dbgsettraceswitchcondition(const String & expression);
 bool dbgtraceactive();
+void dbgforcebreaktrace();
 bool dbgsettracelogfile(const char* fileName);
 void dbgsetdebuggeeinitscript(const char* fileName);
 const char* dbggetdebuggeeinitscript();
 void dbgsetforeground();
+bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessId);
 
 void cbStep();
 void cbRtrStep();
@@ -101,6 +104,8 @@ EXCEPTION_DEBUG_INFO & getLastExceptionInfo();
 bool dbgrestartadmin();
 void StepIntoWow64(void* traceCallBack);
 bool dbgisdepenabled();
+BOOL CALLBACK chkWindowPidCallback(HWND hWnd, LPARAM lParam);
+BOOL ismainwindow(HWND handle);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;
@@ -118,5 +123,7 @@ extern bool bNoForegroundWindow;
 extern bool bVerboseExceptionLogging;
 extern bool bNoWow64SingleStepWorkaround;
 extern duint maxSkipExceptionCount;
+extern HANDLE mProcHandle;
+extern HANDLE mForegroundHandle;
 
 #endif // _DEBUGGER_H

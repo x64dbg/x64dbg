@@ -216,20 +216,11 @@
    <addaction name="actionStepInto"/>
    <addaction name="actionStepOver"/>
    <addaction name="separator"/>
+   <addaction name="actionTicnd"/>
+   <addaction name="actionTocnd"/>
+   <addaction name="separator"/>
    <addaction name="actionRtr"/>
    <addaction name="actionRtu"/>
-   <addaction name="separator"/>
-   <addaction name="actionCpu"/>
-   <addaction name="actionLog"/>
-   <addaction name="actionBreakpoints"/>
-   <addaction name="actionMemoryMap"/>
-   <addaction name="actionCallStack"/>
-   <addaction name="actionSEHChain"/>
-   <addaction name="actionScript"/>
-   <addaction name="actionSymbolInfo"/>
-   <addaction name="actionSource"/>
-   <addaction name="actionReferences"/>
-   <addaction name="actionThreads"/>
    <addaction name="separator"/>
    <addaction name="actionScylla"/>
    <addaction name="separator"/>
@@ -238,18 +229,13 @@
    <addaction name="actionLabels"/>
    <addaction name="actionBookmarks"/>
    <addaction name="actionFunctions"/>
+   <addaction name="actionVariables"/>
    <addaction name="separator"/>
    <addaction name="actionStrings"/>
    <addaction name="actionCalls"/>
    <addaction name="separator"/>
    <addaction name="actionCalculator"/>
    <addaction name="actionCheckUpdates"/>
-   <addaction name="actionDonate"/>
-   <addaction name="actionReportBug"/>
-   <addaction name="separator"/>
-   <addaction name="actionManual"/>
-   <addaction name="actionFaq"/>
-   <addaction name="actionAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusBar">
    <property name="sizeGripEnabled">

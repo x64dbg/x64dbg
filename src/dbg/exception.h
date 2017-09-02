@@ -9,6 +9,7 @@
 
 bool ExceptionCodeInit(const String & exceptionFile);
 const String & ExceptionCodeToName(unsigned int ExceptionCode);
+std::vector<CONSTANTINFO> ExceptionList();
 bool NtStatusCodeInit(const String & ntStatusFile);
 const String & NtStatusCodeToName(unsigned int NtStatusCode);
 bool ErrorCodeInit(const String & errorFile);

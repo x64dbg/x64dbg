@@ -49,16 +49,27 @@ bool cbInstrPluginLoad(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return false;
-    if(pluginload(argv[1]))
-        return true;
-    return false;
+    return pluginload(argv[1]);
 }
 
 bool cbInstrPluginUnload(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return false;
-    if(pluginunload(argv[1]))
-        return true;
-    return false;
+    return pluginunload(argv[1]);
+}
+
+bool cbInstrPluginReload(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    if(!pluginunload(argv[1]))
+        return false;
+    if(argc <= 2)
+    {
+        auto text = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Press OK to reload the plugin...")));
+        auto title = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Reload")));
+        MessageBoxW(GuiGetWindowHandle(), text.c_str(), title.c_str(), 0);
+    }
+    return pluginload(argv[1]);
 }

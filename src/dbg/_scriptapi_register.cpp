@@ -94,7 +94,8 @@ static const char* regTable[] =
     ArchValue("EDX", "RDX"),
     ArchValue("EDI", "RDI"),
     ArchValue("ESI", "RSI"),
-    ArchValue("EBP", "RBP")
+    ArchValue("EBP", "RBP"),
+    ArchValue("EFLAGS", "RFLAGS")
 };
 
 SCRIPT_EXPORT duint Script::Register::Get(Script::Register::RegisterEnum reg)
@@ -976,4 +977,14 @@ SCRIPT_EXPORT duint Script::Register::GetCIP()
 SCRIPT_EXPORT bool Script::Register::SetCIP(duint value)
 {
     return Set(CIP, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCFLAGS()
+{
+    return Get(CFLAGS);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCFLAGS(duint value)
+{
+    return Set(CFLAGS, value);
 }

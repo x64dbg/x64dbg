@@ -269,7 +269,7 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
     return retval;
 }
 
-extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo)
+extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRIDGE_ADDRINFO* addrinfo)
 {
     if(!DbgIsDebugging())
         return false;
@@ -331,7 +331,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
             DISASM_INSTR instr;
             String temp_string;
-            ADDRINFO newinfo;
+            BRIDGE_ADDRINFO newinfo;
             char string_text[MAX_STRING_SIZE] = "";
 
             Capstone cp;
@@ -347,7 +347,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
             for(int i = 0; i < instr.argcount; i++)
             {
-                memset(&newinfo, 0, sizeof(ADDRINFO));
+                memset(&newinfo, 0, sizeof(BRIDGE_ADDRINFO));
                 newinfo.flags = flaglabel;
 
                 STRING_TYPE strtype = str_none;
@@ -412,6 +412,12 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         temp_string.push_back(':');
                         temp_string.append(string_text);
                     }
+                    else if(*newinfo.label)
+                    {
+                        temp_string = instr.arg[i].mnemonic;
+                        temp_string.push_back(':');
+                        temp_string.append(newinfo.label);
+                    }
                 }
                 else
                     continue;
@@ -442,7 +448,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     return info.retval;
 }
 
-extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
+extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, BRIDGE_ADDRINFO* addrinfo)
 {
     bool retval = false;
     if(addrinfo->flags & flaglabel) //set label
@@ -544,7 +550,7 @@ static void Getx87StatusWordFields(X87STATUSWORDFIELDS* x87StatusWordFields, WOR
     x87StatusWordFields->C3 = valx87statuswordflagfromstring(StatusWord, "C3");
     x87StatusWordFields->D = valx87statuswordflagfromstring(StatusWord, "D");
     x87StatusWordFields->I = valx87statuswordflagfromstring(StatusWord, "I");
-    x87StatusWordFields->IR = valx87statuswordflagfromstring(StatusWord, "IR");
+    x87StatusWordFields->ES = valx87statuswordflagfromstring(StatusWord, "ES");
     x87StatusWordFields->O = valx87statuswordflagfromstring(StatusWord, "O");
     x87StatusWordFields->P = valx87statuswordflagfromstring(StatusWord, "P");
     x87StatusWordFields->SF = valx87statuswordflagfromstring(StatusWord, "SF");
@@ -682,6 +688,9 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     BP_TYPE currentBpType;
     switch(type)
     {
+    case bp_none:
+        currentBpType = BP_TYPE(-1);
+        break;
     case bp_normal:
         currentBpType = BPNORMAL;
         break;
@@ -703,7 +712,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     unsigned short slot = 0;
     for(int i = 0; i < bpcount; i++)
     {
-        if(list[i].type != currentBpType)
+        if(currentBpType != -1 && list[i].type != currentBpType)
             continue;
         BpToBridge(&list[i], &curBp);
         bridgeList.push_back(curBp);
@@ -973,6 +982,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         bNoForegroundWindow = settingboolget("Gui", "NoForegroundWindow");
         bVerboseExceptionLogging = settingboolget("Engine", "VerboseExceptionLogging");
         bNoWow64SingleStepWorkaround = settingboolget("Engine", "NoWow64SingleStepWorkaround");
+        bQueryWorkingSet = settingboolget("Misc", "QueryWorkingSet");
         stackupdatesettings();
 
         duint setting;
@@ -994,7 +1004,10 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         if(BridgeSettingGetUint("Engine", "Assembler", &setting))
             assemblerEngine = AssemblerEngine(setting);
         else
-            assemblerEngine = AssemblerEngine::XEDParse;
+        {
+            assemblerEngine = AssemblerEngine::asmjit;
+            BridgeSettingSetUint("Engine", "Assembler", duint(assemblerEngine));
+        }
 
         std::vector<char> settingText(MAX_SETTING_SIZE + 1, '\0');
         dbgclearignoredexceptions();
@@ -1282,46 +1295,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_STRING_AT:
     {
-        auto addr = duint(param1);
-        if(!MemIsValidReadPtrUnsafe(addr, true))
-            return false;
-
-        auto readValidPtr = [](duint addr) -> duint
-        {
-            duint addrPtr;
-            if(MemReadUnsafe(addr, &addrPtr, sizeof(addrPtr)) && MemIsValidReadPtrUnsafe(addrPtr, true))
-                return addrPtr;
-            return 0;
-        };
-
-        auto dest = (char*)param2;
-        *dest = '\0';
-        char string[MAX_STRING_SIZE];
-        duint addrPtr = readValidPtr(addr);
-        STRING_TYPE strtype;
-        auto possibleUnicode = disasmispossiblestring(addr, &strtype) && strtype == str_unicode;
-        if(addrPtr && !possibleUnicode)
-        {
-            if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 5))
-            {
-                if(int(strlen(string)) <= (strtype == str_ascii ? 3 : 2) && readValidPtr(addrPtr))
-                    return false;
-                if(strtype == str_ascii)
-                    sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
-                else //unicode
-                    sprintf_s(dest, MAX_STRING_SIZE, "&L\"%s\"", string);
-                return true;
-            }
-        }
-        if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 4))
-        {
-            if(strtype == str_ascii)
-                sprintf_s(dest, MAX_STRING_SIZE, "\"%s\"", string);
-            else //unicode
-                sprintf_s(dest, MAX_STRING_SIZE, "L\"%s\"", string);
-            return true;
-        }
-        return false;
+        return disasmgetstringatwrapper(duint(param1), (char*)param2);
     }
     break;
 
@@ -1467,6 +1441,13 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     }
     break;
 
+    case DBG_MENU_PREPARE:
+    {
+        PLUG_CB_MENUPREPARE info;
+        info.hMenu = int(param1);
+        plugincbcall(CB_MENUPREPARE, &info);
+    }
+    break;
     }
     return 0;
 }

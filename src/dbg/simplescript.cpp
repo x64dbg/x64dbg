@@ -153,9 +153,35 @@ static bool scriptcreatelinemap(const char* filename)
 
         //temp. remove comments from the raw line
         char line_comment[256] = "";
-        char* comment = strstr(&cur.raw[0], "//");
-        if(!comment)
-            comment = strstr(&cur.raw[0], ";");
+        char* comment = nullptr;
+        {
+            auto len = strlen(cur.raw);
+            auto inquote = false;
+            auto inescape = false;
+            for(size_t i = 0; i < len; i++)
+            {
+                auto ch = cur.raw[i];
+                switch(ch) //simple state machine to determine if the "//" is in quotes
+                {
+                case '\"':
+                    if(!inescape)
+                        inquote = !inquote;
+                    inescape = false;
+                    break;
+                case '\\':
+                    inescape = !inescape;
+                    break;
+                default:
+                    inescape = false;
+                }
+                if(!inquote && ch == '/' && i + 1 < len && cur.raw[i + 1] == '/')
+                {
+                    comment = cur.raw + i;
+                    break;
+                }
+            }
+        }
+
         if(comment && comment != cur.raw) //only when the line doesnt start with a comment
         {
             if(*(comment - 1) == ' ') //space before comment
@@ -227,7 +253,7 @@ static bool scriptcreatelinemap(const char* filename)
 
         //append the comment to the raw line again
         if(*line_comment)
-            sprintf(cur.raw + rawlen, " %s", line_comment);
+            sprintf(cur.raw + rawlen, "\1%s", line_comment);
         linemap.at(i) = cur;
     }
     linemapsize = (int)linemap.size();

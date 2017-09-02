@@ -19,6 +19,7 @@ public:
     CPUDump* getCurrentCPUDump();
     void getTabNames(QList<QString> & names);
     int getMaxCPUTabs();
+    QMenu* mDumpPluginMenu;
 
 signals:
     void displayReferencesWidget();

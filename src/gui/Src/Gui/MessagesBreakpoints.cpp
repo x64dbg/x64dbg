@@ -10,6 +10,8 @@ MessagesBreakpoints::MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* par
     setModal(true);
     bpData = pbpData;
 
+    int index = 0;
+
     filterMessages =
     {
         "ACM_", "BFFM_", "BM_", "CB_", "CBEM_", "CCM_", "CDM_", "CTL3D_", "DDM_", "DL_",
@@ -34,8 +36,10 @@ MessagesBreakpoints::MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* par
             }
         }
     }
-
-    ui->cboxMessages->setCurrentIndex(0);
+    for(int i = 0; i < ui->cboxMessages->count(); i++)
+        if(ui->cboxMessages->itemText(i) == "WM_COMMAND")
+            index = i;
+    ui->cboxMessages->setCurrentIndex(index);
 }
 
 MessagesBreakpoints::~MessagesBreakpoints()
@@ -47,6 +51,8 @@ void MessagesBreakpoints::on_btnOk_clicked()
 {
     duint procVA;
     duint wndHandle;
+    QString bpCondCmd;
+    bool translMsg = ui->chkTranslateMessage->isChecked();
 
     if(!DbgFunctions()->ValFromString(bpData.wndHandle.toUtf8().constData(), &wndHandle) ||
             !DbgFunctions()->ValFromString(bpData.procVA.toUtf8().constData(), &procVA))
@@ -55,11 +61,29 @@ void MessagesBreakpoints::on_btnOk_clicked()
     if(!DbgMemIsValidReadPtr(procVA) || !IsWindow((HWND)wndHandle))
         return;
 
-    BPXTYPE wBpType = DbgGetBpxTypeAt(procVA);
-    if(wBpType == bp_none)
-        DbgCmdExec(QString("bp 0x%1").arg(bpData.procVA).toUtf8().constData());
+    if(!translMsg)
+    {
+        BPXTYPE wBpType = DbgGetBpxTypeAt(procVA);
+        if(wBpType == bp_none)
+            DbgCmdExec(QString("bp 0x%1").arg(bpData.procVA).toUtf8().constData());
 
-    QString bpCondCmd = QString("bpcnd 0x%1, \"arg.get(1) == 0x%2").arg(bpData.procVA).arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
-    bpCondCmd.append(ui->rbtnBreakCurrent->isChecked() ? QString(" && arg.get(0) == 0x%1\"").arg(bpData.wndHandle) : "\"");
+        bpCondCmd = QString("bpcnd 0x%1, \"arg.get(1) == 0x%2").arg(bpData.procVA).arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
+        bpCondCmd.append(ui->rbtnBreakCurrent->isChecked() ? QString(" && arg.get(0) == 0x%1\"").arg(bpData.wndHandle) : "\"");
+    }
+    else
+    {
+        BPXTYPE wBpType = DbgGetBpxTypeAt(DbgValFromString("TranslateMessage"));
+        if(wBpType == bp_none)
+            DbgCmdExec("bp TranslateMessage");
+
+#ifdef _WIN64
+        bpCondCmd = QString("bpcnd TranslateMessage, \"4:[arg.get(0)+8] == 0x%1").arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
+        bpCondCmd.append(ui->rbtnBreakCurrent->isChecked() ? QString(" && 4:[arg.get(0)] == 0x%1\"").arg(bpData.wndHandle) : "\"");
+#else //x86
+        bpCondCmd = QString("bpcnd TranslateMessage, \"[arg.get(0)+4] == 0x%1").arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
+        bpCondCmd.append(ui->rbtnBreakCurrent->isChecked() ? QString(" && [arg.get(0)] == 0x%1\"").arg(bpData.wndHandle) : "\"");
+#endif //_WIN64
+    }
+
     DbgCmdExec(bpCondCmd.toUtf8().constData());
 }

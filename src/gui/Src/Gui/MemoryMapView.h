@@ -23,16 +23,9 @@ public slots:
     void followDisassemblerSlot();
     void doubleClickedSlot();
     void yaraSlot();
-    void memoryAccessSingleshootSlot();
-    void memoryAccessRestoreSlot();
-    void memoryWriteSingleshootSlot();
-    void memoryWriteRestoreSlot();
-    void memoryExecuteSingleshootSlot();
-    void memoryExecuteRestoreSlot();
-    void memoryRemoveSlot();
     void memoryExecuteSingleshootToggleSlot();
     void memoryAllocateSlot();
-    void memoryFreeSlot();
+    void ExecCommand();
     void contextMenuSlot(const QPoint & pos);
     void switchView();
     void pageMemoryRights();
@@ -50,6 +43,7 @@ public slots:
 
 private:
     QString getProtectionString(DWORD Protect);
+    QAction* makeCommandAction(QAction* action, const QString & command);
 
     GotoDialog* mGoto = nullptr;
 

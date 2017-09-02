@@ -3,6 +3,7 @@
 #include "symbolinfo.h"
 #include "module.h"
 #include "disasm_fast.h"
+#include "disasm_helper.h"
 #include "formatfunctions.h"
 
 enum class ValueType
@@ -54,13 +55,13 @@ static String printValue(FormatValueType value, ValueType type)
             result = StringUtils::sprintf("%p", valuint);
             break;
         case ValueType::String:
-            if(DbgGetStringAt(valuint, string))
+            if(disasmgetstringatwrapper(valuint, string, false))
                 result = string;
             break;
         case ValueType::AddrInfo:
         {
             auto symbolic = SymGetSymbolicName(valuint);
-            if(DbgGetStringAt(valuint, string))
+            if(disasmgetstringatwrapper(valuint, string, false))
                 result = string;
             else if(symbolic.length())
                 result = symbolic;

@@ -1,6 +1,7 @@
 #include "MiscUtil.h"
 #include <windows.h>
 #include "LineEditDialog.h"
+#include "ComboBoxDialog.h"
 #include <QMessageBox>
 #include "StringUtil.h"
 
@@ -40,6 +41,27 @@ bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue
         return false;
 }
 
+bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValue, const QStringList & choices, QString & output, bool editable, const QString & placeholderText, QIcon* icon, int minimumContentsLength)
+{
+    ComboBoxDialog mChoice(parent);
+    mChoice.setWindowIcon(icon ? *icon : parent->windowIcon());
+    mChoice.setEditable(editable);
+    mChoice.setItems(choices);
+    mChoice.setText(defaultValue);
+    mChoice.setPlaceholderText(placeholderText);
+    mChoice.setWindowTitle(title);
+    mChoice.setCheckBox(false);
+    if(minimumContentsLength >= 0)
+        mChoice.setMinimumContentsLength(minimumContentsLength);
+    if(mChoice.exec() == QDialog::Accepted)
+    {
+        output = mChoice.currentText();
+        return true;
+    }
+    else
+        return false;
+}
+
 void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text)
 {
     QMessageBox msg(QMessageBox::Critical, title, text, QMessageBox::NoButton, parent);
@@ -53,6 +75,15 @@ void SimpleWarningBox(QWidget* parent, const QString & title, const QString & te
 {
     QMessageBox msg(QMessageBox::Warning, title, text, QMessageBox::NoButton, parent);
     msg.setWindowIcon(DIcon("compile-warning.png"));
+    msg.setParent(parent, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    msg.exec();
+}
+
+void SimpleInfoBox(QWidget* parent, const QString & title, const QString & text)
+{
+    QMessageBox msg(QMessageBox::Information, title, text, QMessageBox::NoButton, parent);
+    msg.setWindowIcon(DIcon("information.png"));
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -110,8 +141,11 @@ bool isEaster()
 
 QString couldItBeSeasonal(QString icon)
 {
+    static bool seasons = allowSeasons();
     static bool christmas = isChristmas();
     static bool easter = isEaster();
+    if(!seasons)
+        return icon;
     if(christmas)
         return QString("christmas%1.png").arg(rand() % 8 + 1);
     else if(easter)

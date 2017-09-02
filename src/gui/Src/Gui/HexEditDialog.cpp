@@ -36,10 +36,12 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
 
     updateStyle();
     updateCodepage();
+    Config()->setupWindowPos(this);
 }
 
 HexEditDialog::~HexEditDialog()
 {
+    Config()->saveWindowPos(this);
     delete ui;
 }
 

@@ -2,6 +2,7 @@
 #include "ValidateExpressionThread.h"
 #include "ui_GotoDialog.h"
 #include "StringUtil.h"
+#include "Configuration.h"
 
 GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowInvalidAddress)
     : QDialog(parent),
@@ -30,12 +31,15 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowI
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->editExpression, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
+
+    Config()->setupWindowPos(this);
 }
 
 GotoDialog::~GotoDialog()
 {
     mValidateThread->stop();
     mValidateThread->wait();
+    Config()->saveWindowPos(this);
     delete ui;
 }
 

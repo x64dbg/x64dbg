@@ -120,8 +120,23 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
     else if(type == ALL_MODULES) // Search in all Modules
     {
         bool initCallBack = true;
-        std::vector<MODINFO> modList;
-        ModGetList(modList);
+
+        struct RefModInfo
+        {
+            duint base;
+            duint size;
+            char name[MAX_MODULE_SIZE];
+        };
+        std::vector<RefModInfo> modList;
+        ModEnum([&modList](const MODINFO & mod)
+        {
+            RefModInfo info;
+            info.base = mod.base;
+            info.size = mod.size;
+            strncpy_s(info.name, mod.name, _TRUNCATE);
+            strncat_s(info.name, mod.extension, _TRUNCATE);
+            modList.push_back(info);
+        });
 
         if(!modList.size())
         {
@@ -156,9 +171,6 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
                 float fTotalPercent = ((float)i + fPercent) / (float)modList.size();
 
                 int totalPercent = (int)floor(fTotalPercent * 100.f);
-
-                char tst[256];
-                strcpy_s(tst, modList[i].name);
 
                 GuiReferenceSetCurrentTaskProgress(percent, modList[i].name);
                 GuiReferenceSetProgress(totalPercent);

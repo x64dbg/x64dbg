@@ -29,8 +29,6 @@ HexDump::HexDump(QWidget* parent)
     mNonprintReplace = QChar('.'); //QChar(0x25CA);
     mNullReplace = QChar('.'); //QChar(0x2022);
 
-    historyClear();
-
     // Slots
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateDumpSlot()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
@@ -161,6 +159,16 @@ void HexDump::printDumpAt(dsint parVA)
     printDumpAt(parVA, true);
 }
 
+void HexDump::gotoPreviousSlot()
+{
+    printDumpAt(mHistory.historyPrev());
+}
+
+void HexDump::gotoNextSlot()
+{
+    printDumpAt(mHistory.historyNext());
+}
+
 duint HexDump::rvaToVa(dsint rva)
 {
     return mMemPage->va(rva);
@@ -245,57 +253,6 @@ QString HexDump::makeCopyText()
         result += "\n";
     }
     return std::move(result);
-}
-
-void HexDump::addVaToHistory(dsint parVa)
-{
-    //truncate everything right from the current VA
-    if(mVaHistory.size() && mCurrentVa < mVaHistory.size() - 1) //mCurrentVa is not the last
-        mVaHistory.erase(mVaHistory.begin() + mCurrentVa + 1, mVaHistory.end());
-
-    //do not have 2x the same va in a row
-    if(!mVaHistory.size() || mVaHistory.last() != parVa)
-    {
-        mCurrentVa++;
-        mVaHistory.push_back(parVa);
-    }
-}
-
-bool HexDump::historyHasPrev()
-{
-    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
-        return false;
-    return true;
-}
-
-bool HexDump::historyHasNext()
-{
-    int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
-        return false;
-    return true;
-}
-
-void HexDump::historyPrev()
-{
-    if(!historyHasPrev())
-        return;
-    mCurrentVa--;
-    printDumpAt(mVaHistory.at(mCurrentVa));
-}
-
-void HexDump::historyNext()
-{
-    if(!historyHasNext())
-        return;
-    mCurrentVa++;
-    printDumpAt(mVaHistory.at(mCurrentVa));
-}
-
-void HexDump::historyClear()
-{
-    mCurrentVa = -1;
-    mVaHistory.clear();
 }
 
 void HexDump::setupCopyMenu()
@@ -536,12 +493,12 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
     if((event->button() & Qt::BackButton) != 0)
     {
         wAccept = true;
-        historyPrev();
+        printDumpAt(mHistory.historyPrev());
     }
     else if((event->button() & Qt::ForwardButton) != 0)
     {
         wAccept = true;
-        historyNext();
+        printDumpAt(mHistory.historyNext());
     }
 
     if(wAccept == true)
@@ -556,7 +513,7 @@ void HexDump::keyPressEvent(QKeyEvent* event)
         if(DbgMemFindBaseAddr(rvaToVa(getTableOffsetRva()), nullptr) == DbgMemFindBaseAddr(offsetVa, nullptr))
         {
             printDumpAt(offsetVa);
-            addVaToHistory(offsetVa);
+            mHistory.addVaToHistory(offsetVa);
         }
     }
     else if(event->key() == Qt::Key_Down && event->modifiers() == Qt::ControlModifier)
@@ -565,7 +522,7 @@ void HexDump::keyPressEvent(QKeyEvent* event)
         if(DbgMemFindBaseAddr(rvaToVa(getTableOffsetRva()), nullptr) == DbgMemFindBaseAddr(offsetVa, nullptr))
         {
             printDumpAt(offsetVa);
-            addVaToHistory(offsetVa);
+            mHistory.addVaToHistory(offsetVa);
         }
     }
     else

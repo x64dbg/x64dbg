@@ -13,15 +13,15 @@
 ///api functions
 bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
 {
-    MEMORY_BASIC_INFORMATION mbi;
-    VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
-    duint size = mbi.RegionSize;
-    Memory<void*> buffer(size, "apienumexports:buffer");
-    if(!MemRead(base, buffer(), size))
-        return false;
-    IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)((duint)buffer() + GetPE32DataFromMappedFile((ULONG_PTR)buffer(), 0, UE_PE_OFFSET));
-    duint export_dir_rva = pnth->OptionalHeader.DataDirectory[0].VirtualAddress;
-    duint export_dir_size = pnth->OptionalHeader.DataDirectory[0].Size;
+    duint export_dir_rva, export_dir_size;
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto modinfo = ModInfoFromAddr(base);
+        if(!modinfo)
+            return false;
+        export_dir_rva = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_EXPORTTABLEADDRESS);
+        export_dir_size = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_EXPORTTABLESIZE);
+    }
     IMAGE_EXPORT_DIRECTORY export_dir;
     memset(&export_dir, 0, sizeof(export_dir));
     MemRead((export_dir_rva + base), &export_dir, sizeof(export_dir));
@@ -53,26 +53,10 @@ bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
         if(curFunctionRva >= export_dir_rva && curFunctionRva < export_dir_rva + export_dir_size)
         {
             char forwarded_api[deflen] = "";
-            memset(forwarded_api, 0, deflen);
-            MemRead((curFunctionRva + base), forwarded_api, deflen);
-            int len = (int)strlen(forwarded_api);
-            int j = 0;
-            while(forwarded_api[j] != '.' && j < len)
-                j++;
-            if(forwarded_api[j] == '.')
-            {
-                forwarded_api[j] = 0;
-                HINSTANCE hTempDll = LoadLibraryExA(forwarded_api, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
-                if(hTempDll)
-                {
-                    duint local_addr = SafeGetProcAddress(hTempDll, forwarded_api + j + 1);
-                    if(local_addr)
-                    {
-                        duint remote_addr = ImporterGetRemoteAPIAddress(fdProcessInfo->hProcess, local_addr);
-                        cbEnum(base, modname, cur_name, remote_addr);
-                    }
-                }
-            }
+            MemRead((curFunctionRva + base), forwarded_api, deflen - 1);
+            duint remote_addr;
+            if(valfromstring(forwarded_api, &remote_addr))
+                cbEnum(base, modname, cur_name, remote_addr);
         }
         else
         {
@@ -84,31 +68,24 @@ bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)
 
 bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
 {
+    ULONG_PTR importTableRva, importTableSize;
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto modinfo = ModInfoFromAddr(base);
+        if(!modinfo)
+            return false;
+        importTableRva = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_IMPORTTABLEADDRESS);
+        importTableSize = GetPE32DataFromMappedFile(modinfo->fileMapVA, 0, UE_IMPORTTABLESIZE);
+    }
     // Variables
     bool readSuccess;
     Memory<char*> importName(MAX_IMPORT_SIZE + 1, "apienumimports:buffer");
     char importModuleName[MAX_MODULE_SIZE + 1] = "";
-    duint regionSize;
-    ULONG_PTR importTableRva, importTableSize;
-    MEMORY_BASIC_INFORMATION mbi;
     PIMAGE_IMPORT_DESCRIPTOR importTableVa;
     IMAGE_IMPORT_DESCRIPTOR importDescriptor;
     PIMAGE_THUNK_DATA imageIATVa, imageINTVa;
     IMAGE_THUNK_DATA imageOftThunkData, imageFtThunkData;
     PIMAGE_IMPORT_BY_NAME pImageImportByNameVa;
-
-    // Get page size
-    VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
-    regionSize = mbi.RegionSize;
-    Memory<void*> buffer(regionSize, "apienumimports:buffer");
-
-    // Read first page into buffer
-    if(!MemRead(base, buffer(), regionSize))
-        return false;
-
-    // Import Table address and size
-    importTableRva = GetPE32DataFromMappedFile((duint)buffer(), 0, UE_IMPORTTABLEADDRESS);
-    importTableSize = GetPE32DataFromMappedFile((duint)buffer(), 0, UE_IMPORTTABLESIZE);
 
     // Return if no imports
     if(!importTableSize)

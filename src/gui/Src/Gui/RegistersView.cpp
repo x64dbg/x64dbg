@@ -13,6 +13,7 @@
 #include "EditFloatRegister.h"
 #include "SelectFields.h"
 #include "MiscUtil.h"
+#include "ldconvert.h"
 
 int RegistersView::getEstimateHeight()
 {
@@ -227,8 +228,8 @@ void RegistersView::InitMappings()
         mRegisterPlaces.insert(x87SW_C1, Register_Position(offset, 0, 9, 1));
         mRegisterMapping.insert(x87SW_C0, "x87SW_C0");
         mRegisterPlaces.insert(x87SW_C0, Register_Position(offset, 12, 10, 1));
-        mRegisterMapping.insert(x87SW_IR, "x87SW_IR");
-        mRegisterPlaces.insert(x87SW_IR, Register_Position(offset++, 25, 10, 1));
+        mRegisterMapping.insert(x87SW_ES, "x87SW_ES");
+        mRegisterPlaces.insert(x87SW_ES, Register_Position(offset++, 25, 10, 1));
 
         mRegisterMapping.insert(x87SW_SF, "x87SW_SF");
         mRegisterPlaces.insert(x87SW_SF, Register_Position(offset, 0, 9, 1));
@@ -256,8 +257,8 @@ void RegistersView::InitMappings()
 
         mRegisterMapping.insert(x87CW_IC, "x87CW_IC");
         mRegisterPlaces.insert(x87CW_IC, Register_Position(offset, 0, 9, 1));
-        mRegisterMapping.insert(x87CW_IEM, "x87CW_IEM");
-        mRegisterPlaces.insert(x87CW_IEM, Register_Position(offset, 12, 10, 1));
+        mRegisterMapping.insert(x87CW_ZM, "x87CW_ZM");
+        mRegisterPlaces.insert(x87CW_ZM, Register_Position(offset, 12, 10, 1));
         mRegisterMapping.insert(x87CW_PM, "x87CW_PM");
         mRegisterPlaces.insert(x87CW_PM, Register_Position(offset++, 25, 10, 1));
 
@@ -265,8 +266,8 @@ void RegistersView::InitMappings()
         mRegisterPlaces.insert(x87CW_UM, Register_Position(offset, 0, 9, 1));
         mRegisterMapping.insert(x87CW_OM, "x87CW_OM");
         mRegisterPlaces.insert(x87CW_OM, Register_Position(offset, 12, 10, 1));
-        mRegisterMapping.insert(x87CW_ZM, "x87CW_ZM");
-        mRegisterPlaces.insert(x87CW_ZM, Register_Position(offset++, 25, 10, 1));
+        mRegisterMapping.insert(x87CW_PC, "x87CW_PC");
+        mRegisterPlaces.insert(x87CW_PC, Register_Position(offset++, 25, 10, 14));
 
         mRegisterMapping.insert(x87CW_DM, "x87CW_DM");
         mRegisterPlaces.insert(x87CW_DM, Register_Position(offset, 0, 9, 1));
@@ -274,9 +275,6 @@ void RegistersView::InitMappings()
         mRegisterPlaces.insert(x87CW_IM, Register_Position(offset, 12, 10, 1));
         mRegisterMapping.insert(x87CW_RC, "x87CW_RC");
         mRegisterPlaces.insert(x87CW_RC, Register_Position(offset++, 25, 10, 14));
-
-        mRegisterMapping.insert(x87CW_PC, "x87CW_PC");
-        mRegisterPlaces.insert(x87CW_PC, Register_Position(offset++, 0, 9, 14));
 
         offset++;
 
@@ -446,7 +444,7 @@ static QAction* setupAction(const QString & text, RegistersView* this_object)
     return action;
 }
 
-RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
+RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
     setWindowTitle("Registers");
     mChangeViewButton = NULL;
@@ -577,7 +575,6 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mSwitchSIMDDispMode->addAction(SIMDHWord);
     mSwitchSIMDDispMode->addAction(SIMDHDWord);
     mSwitchSIMDDispMode->addAction(SIMDHQWord);
-    mFollowInDumpMenu = CreateDumpNMenu(multiDump);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -874,10 +871,10 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mBOOLDISPLAY.insert(x87SW_C0);
     mFPU.insert(x87SW_C0);
 
-    mSETONEZEROTOGGLE.insert(x87SW_IR);
-    mFPUx87.insert(x87SW_IR);
-    mBOOLDISPLAY.insert(x87SW_IR);
-    mFPU.insert(x87SW_IR);
+    mSETONEZEROTOGGLE.insert(x87SW_ES);
+    mFPUx87.insert(x87SW_ES);
+    mBOOLDISPLAY.insert(x87SW_ES);
+    mFPU.insert(x87SW_ES);
 
     mSETONEZEROTOGGLE.insert(x87SW_SF);
     mFPUx87.insert(x87SW_SF);
@@ -986,11 +983,6 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mFPU.insert(x87CW_PC);
     mMODIFYDISPLAY.insert(x87CW_PC);
     mUNDODISPLAY.insert(x87CW_PC);
-
-    mSETONEZEROTOGGLE.insert(x87CW_IEM);
-    mFPUx87.insert(x87CW_IEM);
-    mBOOLDISPLAY.insert(x87CW_IEM);
-    mFPU.insert(x87CW_IEM);
 
     mSETONEZEROTOGGLE.insert(x87CW_PM);
     mFPUx87.insert(x87CW_PM);
@@ -1301,16 +1293,10 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mCANSTOREADDRESS.insert(DR3);
 
     mNoChange.insert(DR6);
-    mLABELDISPLAY.insert(DR6);
-    mONLYMODULEANDLABELDISPLAY.insert(DR6);
     mUINTDISPLAY.insert(DR6);
-    mCANSTOREADDRESS.insert(DR6);
 
     mNoChange.insert(DR7);
     mUINTDISPLAY.insert(DR7);
-    mONLYMODULEANDLABELDISPLAY.insert(DR7);
-    mCANSTOREADDRESS.insert(DR7);
-    mLABELDISPLAY.insert(DR7);
 
     mNoChange.insert(CIP);
     mUINTDISPLAY.insert(CIP);
@@ -1545,6 +1531,7 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
         return tr("The 16-bit x87 FPU status register indicates the current state of the x87 FPU.");
     case x87TagWord:
         return tr("The 16-bit tag word indicates the contents of each the 8 registers in the x87 FPU data-register stack (one 2-bit tag per register).");
+
     case x87CW_PC:
         return tr("The precision-control (PC) field (bits 8 and 9 of the x87 FPU control word) determines the precision (64, 53, or 24 bits) of floating-point calculations made by the x87 FPU");
     case x87CW_RC:
@@ -1552,11 +1539,50 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case x87CW_IC:
         return tr("The infinity control flag (bit 12 of the x87 FPU control word) is provided for compatibility with the Intel 287 Math Coprocessor;\n"
                   "it is not meaningful for later version x87 FPU coprocessors or IA-32 processors.");
+    case x87CW_IM:
+        return tr("The invalid operation exception mask (bit 0). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_DM:
+        return tr("The denormal-operand exception mask (bit 2). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_ZM:
+        return tr("The floating-point divide-by-zero exception mask (bit 3). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_OM:
+        return tr("The floating-point numeric overflow exception mask (bit 4). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_UM:
+        return tr("The potential floating-point numeric underflow condition mask (bit 5). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_PM:
+        return tr("The inexact-result/precision exception mask (bit 6). When the mask bit is set, its corresponding exception is blocked from being generated.");
+
+    case x87SW_B:
+        return tr("The busy flag (bit 15) indicates if the FPU is busy (B=1) while executing an instruction, or is idle (B=0).\n"
+                  "The B-bit (bit 15) is included for 8087 compatibility only. It reflects the contents of the ES flag.");
+    case x87SW_C0:
+        return tr("The C%1 condition code flag (bit %2) is used to indicate the results of floating-point comparison and arithmetic operations.").arg(0).arg(8);
+    case x87SW_C1:
+        return tr("The C%1 condition code flag (bit %2) is used to indicate the results of floating-point comparison and arithmetic operations.").arg(1).arg(9);
+    case x87SW_C2:
+        return tr("The C%1 condition code flag (bit %2) is used to indicate the results of floating-point comparison and arithmetic operations.").arg(2).arg(10);
+    case x87SW_C3:
+        return tr("The C%1 condition code flag (bit %2) is used to indicate the results of floating-point comparison and arithmetic operations.").arg(3).arg(14);
+    case x87SW_ES:
+        return tr("The error/exception summary status flag (bit 7) is set when any of the unmasked exception flags are set.");
     case x87SW_SF:
         return tr("The stack fault flag (bit 6 of the x87 FPU status word) indicates that stack overflow or stack underflow has occurred with data\nin the x87 FPU data register stack.");
     case x87SW_TOP:
         return tr("A pointer to the x87 FPU data register that is currently at the top of the x87 FPU register stack is contained in bits 11 through 13\n"
                   "of the x87 FPU status word. This pointer, which is commonly referred to as TOP (for top-of-stack), is a binary value from 0 to 7.");
+    case x87SW_I:
+        return tr("The processor reports an invalid operation exception (bit 0) in response to one or more invalid arithmetic operands.");
+    case x87SW_D:
+        return tr("The processor reports the denormal-operand exception (bit 2) if an arithmetic instruction attempts to operate on a denormal operand.");
+    case x87SW_Z:
+        return tr("The processor reports the floating-point divide-by-zero exception (bit 3) whenever an instruction attempts to divide a finite non-zero operand by 0.");
+    case x87SW_O:
+        return tr("The processor reports a floating-point numeric overflow exception (bit 4) whenever the rounded result of an instruction exceeds the largest allowable finite value that will fit into the destination operand.");
+    case x87SW_U:
+        return tr("The processor detects a potential floating-point numeric underflow condition (bit 5) whenever the result of rounding with unbounded exponent is non-zero and tiny.");
+    case x87SW_P:
+        return tr("The inexact-result/precision exception (bit 6) occurs if the result of an operation is not exactly representable in the destination format.");
+
     case MxCsr:
         return tr("The 32-bit MXCSR register contains control and status information for SIMD floating-point operations.");
     case MxCsr_IE:
@@ -1572,17 +1598,17 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case MxCsr_PE:
         return tr("Bit 5 (PE) : Precision Flag; indicate whether a SIMD floating-point exception has been detected.");
     case MxCsr_IM:
-        return tr("Bit 7 (IM) : Invalid Operation Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 7 (IM) : Invalid Operation Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_DM:
-        return tr("Bit 8 (DM) : Denormal Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 8 (DM) : Denormal Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_ZM:
-        return tr("Bit 9 (ZM) : Divide-by-Zero Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 9 (ZM) : Divide-by-Zero Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_OM:
-        return tr("Bit 10 (OM) : Overflow Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 10 (OM) : Overflow Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_UM:
-        return tr("Bit 11 (UM) : Underflow Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 11 (UM) : Underflow Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_PM:
-        return tr("Bit 12 (PM) : Precision Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 12 (PM) : Precision Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_FZ:
         return tr("Bit 15 (FZ) of the MXCSR register enables the flush-to-zero mode, which controls the masked response to a SIMD floating-point underflow condition.");
     case MxCsr_DAZ:
@@ -1605,19 +1631,20 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     }
 }
 
-QMenu* RegistersView::CreateDumpNMenu(CPUMultiDump* multiDump)
+void RegistersView::CreateDumpNMenu(QMenu* dumpMenu)
 {
-    QMenu* dumpMenu = new QMenu(tr("Follow in &Dump"), this);
+    QList<QString> names;
+    CPUMultiDump* multiDump = mParent->getDumpWidget();
     dumpMenu->setIcon(DIcon("dump.png"));
     int maxDumps = multiDump->getMaxCPUTabs();
+    multiDump->getTabNames(names);
     for(int i = 0; i < maxDumps; i++)
     {
-        QAction* action = new QAction(tr("Dump %1").arg(i + 1), this);
+        QAction* action = new QAction(names.at(i), this);
         connect(action, SIGNAL(triggered()), this, SLOT(onFollowInDumpN()));
         dumpMenu->addAction(action);
         action->setData(i + 1);
     }
-    return dumpMenu;
 }
 
 void RegistersView::mousePressEvent(QMouseEvent* event)
@@ -1676,7 +1703,7 @@ void RegistersView::mouseMoveEvent(QMouseEvent* event)
     // do we find a corresponding register?
     if(identifyRegister((event->y() - yTopSpacing) / (double)mRowHeight, event->x() / (double)mCharWidth, &r))
     {
-        registerHelpInformation = helpRegister(r);
+        registerHelpInformation = helpRegister(r).replace(" : ", ": ");
         setCursor(QCursor(Qt::PointingHandCursor));
     }
     else
@@ -1685,7 +1712,7 @@ void RegistersView::mouseMoveEvent(QMouseEvent* event)
         setCursor(QCursor(Qt::ArrowCursor));
     }
     if(!registerHelpInformation.isEmpty())
-        QToolTip::showText(event->globalPos(), registerHelpInformation, this);
+        QToolTip::showText(event->globalPos(), registerHelpInformation);
     else
         QToolTip::hideText();
     QScrollArea::mouseMoveEvent(event);
@@ -1801,14 +1828,12 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     }
     else if(!mONLYMODULEANDLABELDISPLAY.contains(register_selected))
     {
-        bool isCharacter = false;
         if(register_value == (register_value & 0xFF))
         {
             QChar c = QChar((char)register_value);
             if(c.isPrint())
             {
                 newText = QString("'%1'").arg((char)register_value);
-                isCharacter = IsCharacterRegister(register_selected);
             }
         }
         else if(register_value == (register_value & 0xFFF)) //UNICODE?
@@ -1817,7 +1842,6 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
             if(c.isPrint())
             {
                 newText = "L'" + QString(c) + "'";
-                isCharacter = IsCharacterRegister(register_selected);
             }
         }
     }
@@ -2562,6 +2586,8 @@ void RegistersView::displayEditDialog()
             mLineEdit.setWindowIcon(DIcon("log.png"));
             mLineEdit.setCursorPosition(0);
             auto sizeRegister = int(GetSizeRegister(mSelected));
+            if(sizeRegister == 10)
+                mLineEdit.setFpuMode();
             mLineEdit.ForceSize(sizeRegister * 2);
             do
             {
@@ -2581,43 +2607,53 @@ void RegistersView::displayEditDialog()
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
                     else if(mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
-                        QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
-
-                        if(pArray.size() == sizeRegister * 2)
+                        if(sizeRegister == 10 && mLineEdit.editText.contains(QChar('.')))
                         {
-                            char* pData = (char*) calloc(1, sizeof(char) * sizeRegister);
+                            char number[10];
+                            str2ld(mLineEdit.editText.toUtf8().constData(), number);
+                            setRegister(mSelected, reinterpret_cast<duint>(number));
+                            return;
+                        }
+                        else
+                        {
+                            QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
 
-                            if(pData != NULL)
+                            if(pArray.size() == sizeRegister * 2)
                             {
-                                ok = true;
-                                char actual_char[3];
-                                for(int i = 0; i < sizeRegister; i++)
+                                char* pData = (char*) calloc(1, sizeof(char) * sizeRegister);
+
+                                if(pData != NULL)
                                 {
-                                    memset(actual_char, 0, sizeof(actual_char));
-                                    memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
-                                    if(! isxdigit(actual_char[0]) || ! isxdigit(actual_char[1]))
+                                    ok = true;
+                                    char actual_char[3];
+                                    for(int i = 0; i < sizeRegister; i++)
                                     {
-                                        ok = false;
-                                        break;
+                                        memset(actual_char, 0, sizeof(actual_char));
+                                        memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
+                                        if(! isxdigit(actual_char[0]) || ! isxdigit(actual_char[1]))
+                                        {
+                                            ok = false;
+                                            break;
+                                        }
+                                        pData[i] = (char)strtol(actual_char, NULL, 16);
                                     }
-                                    pData[i] = (char)strtol(actual_char, NULL, 16);
-                                }
 
-                                if(ok)
-                                {
-                                    if(!ConfigBool("Gui", "FpuRegistersLittleEndian")) // reverse byte order if it is big-endian
+                                    if(ok)
                                     {
-                                        pArray = ByteReverse(QByteArray(pData, sizeRegister));
-                                        setRegister(mSelected, reinterpret_cast<duint>(pArray.constData()));
+                                        if(!ConfigBool("Gui", "FpuRegistersLittleEndian")) // reverse byte order if it is big-endian
+                                        {
+                                            pArray = ByteReverse(QByteArray(pData, sizeRegister));
+                                            setRegister(mSelected, reinterpret_cast<duint>(pArray.constData()));
+                                        }
+                                        else
+                                            setRegister(mSelected, reinterpret_cast<duint>(pData));
                                     }
-                                    else
-                                        setRegister(mSelected, reinterpret_cast<duint>(pData));
+
+                                    free(pData);
+
+                                    if(ok)
+                                        return;
                                 }
-
-                                free(pData);
-
-                                if(ok)
-                                    return;
                             }
                         }
                     }
@@ -2883,7 +2919,7 @@ void RegistersView::onCopyAllAction()
         appendRegister(text, REGISTER_NAME::x87SW_C2, "x87SW_C2 : ", "x87SW_C2 : ");
         appendRegister(text, REGISTER_NAME::x87SW_C1, "x87SW_C1 : ", "x87SW_C1 : ");
         appendRegister(text, REGISTER_NAME::x87SW_O, "x87SW_O : ", "x87SW_O : ");
-        appendRegister(text, REGISTER_NAME::x87SW_IR, "x87SW_IR : ", "x87SW_IR : ");
+        appendRegister(text, REGISTER_NAME::x87SW_ES, "x87SW_ES : ", "x87SW_ES : ");
         appendRegister(text, REGISTER_NAME::x87SW_SF, "x87SW_SF : ", "x87SW_SF : ");
         appendRegister(text, REGISTER_NAME::x87SW_P, "x87SW_P : ", "x87SW_P : ");
         appendRegister(text, REGISTER_NAME::x87SW_U, "x87SW_U : ", "x87SW_U : ");
@@ -2894,7 +2930,6 @@ void RegistersView::onCopyAllAction()
         appendRegister(text, REGISTER_NAME::x87CW_IC, "x87CW_IC : ", "x87CW_IC : ");
         appendRegister(text, REGISTER_NAME::x87CW_RC, "x87CW_RC : ", "x87CW_RC : ");
         appendRegister(text, REGISTER_NAME::x87CW_PC, "x87CW_PC : ", "x87CW_PC : ");
-        appendRegister(text, REGISTER_NAME::x87CW_IEM, "x87CW_IEM : ", "x87CW_IEM : ");
         appendRegister(text, REGISTER_NAME::x87CW_PM, "x87CW_PM : ", "x87CW_PM : ");
         appendRegister(text, REGISTER_NAME::x87CW_UM, "x87CW_UM : ", "x87CW_UM : ");
         appendRegister(text, REGISTER_NAME::x87CW_OM, "x87CW_OM : ", "x87CW_OM : ");
@@ -3032,6 +3067,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     if(!DbgIsDebugging())
         return;
     QMenu wMenu(this);
+    QMenu* followInDumpNMenu = nullptr;
     const QAction* selectedAction;
     switch(wSIMDRegDispMode)
     {
@@ -3098,7 +3134,9 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             if(DbgMemIsValidReadPtr(addr))
             {
                 wMenu.addAction(wCM_FollowInDump);
-                wMenu.addMenu(mFollowInDumpMenu);
+                followInDumpNMenu = new QMenu(tr("Follow in &Dump"), &wMenu);
+                CreateDumpNMenu(followInDumpNMenu);
+                wMenu.addMenu(followInDumpNMenu);
                 wMenu.addAction(wCM_FollowInDisassembly);
                 wMenu.addAction(wCM_FollowInMemoryMap);
                 duint size = 0;
@@ -3417,8 +3455,6 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
 
     case x87CW_IC:
         return (char*) &regd->x87ControlWordFields.IC;
-    case x87CW_IEM:
-        return (char*) &regd->x87ControlWordFields.IEM;
     case x87CW_PM:
         return (char*) &regd->x87ControlWordFields.PM;
     case x87CW_UM:
@@ -3449,8 +3485,8 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
         return (char*) &regd->x87StatusWordFields.C1;
     case x87SW_O:
         return (char*) &regd->x87StatusWordFields.O;
-    case x87SW_IR:
-        return (char*) &regd->x87StatusWordFields.IR;
+    case x87SW_ES:
+        return (char*) &regd->x87StatusWordFields.ES;
     case x87SW_SF:
         return (char*) &regd->x87StatusWordFields.SF;
     case x87SW_P:

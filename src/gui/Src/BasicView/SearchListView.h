@@ -53,6 +53,8 @@ private:
     QCheckBox* mRegexCheckbox;
     QCheckBox* mLockCheckbox;
     QAction* mSearchAction;
+
+    void LoadPrevListLayout(SearchListViewTable* mPrevList);
 };
 
 #endif // SEARCHLISTVIEW_H

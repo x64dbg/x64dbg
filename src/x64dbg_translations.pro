@@ -212,14 +212,14 @@ SOURCES += \
     gui/Src/Utils/MenuBuilder.cpp \
     gui/Src/Gui/SimpleTraceDialog.cpp \
     gui/Src/Gui/StructWidget.cpp \
-    gui/Src/Gui/BreakpointsViewTable.cpp \
     dbg/formatfunctions.cpp \
     dbg/types.cpp \
     dbg/typesparser.cpp \
     gui/Src/Utils/MRUList.cpp \
     gui/Src/Gui/LocalVarsView.cpp \
-    gui/Src/Gui/HandlesWindowViewTable.cpp \
-    gui/Src/Gui/MessagesBreakpoints.cpp
+    gui/Src/Gui/MessagesBreakpoints.cpp \
+    gui/Src/Gui/AboutDialog.cpp \
+    gui/Src/Gui/BreakpointMenu.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -364,7 +364,7 @@ HEADERS += \
     dbg/thread.h \
     dbg/threading.h \
     dbg/TraceRecord.h \
-    dbg/undocumented.h \
+    dbg/ntdll/ntdll.h \
     dbg/value.h \
     dbg/variable.h \
     dbg/watch.h \
@@ -442,14 +442,14 @@ HEADERS += \
     dbg/commands/cmd-watch-control.h \
     gui/Src/Gui/CustomizeMenuDialog.h \
     gui/Src/Gui/SimpleTraceDialog.h \
-    gui/Src/Gui/BreakpointsViewTable.h \
     dbg/filemap.h \
     dbg/formatfunctions.h \
     dbg/types.h \
     gui/Src/Utils/MRUList.h \
     gui/Src/Gui/LocalVarsView.h \
-    gui/Src/Gui/HandlesWindowViewTable.h \
-    gui/Src/Gui/MessagesBreakpoints.cpp
+    gui/Src/Gui/MessagesBreakpoints.h \
+    gui/Src/Gui/AboutDialog.h \
+    gui/Src/Gui/BreakpointMenu.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
@@ -488,7 +488,8 @@ FORMS += \
     gui/Src/Gui/CustomizeMenuDialog.ui \
     gui/Src/Gui/SimpleTraceDialog.ui \
     gui/Src/Gui/StructWidget.ui \
-    gui/Src/Gui/MessagesBreakpoints.ui
+    gui/Src/Gui/MessagesBreakpoints.ui \
+    gui/Src/Gui/AboutDialog.ui
 
 TRANSLATIONS += \
     gui/Translations/x64dbg.ts

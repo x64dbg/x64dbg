@@ -94,6 +94,8 @@ public:
     int getRowHeight();
     int getColumnWidth(int index);
     void setColumnWidth(int index, int width);
+    void setColumnOrder(int pos, int index);
+    int getColumnOrder(int index);
     int getHeaderHeight();
     int getTableHeigth();
     int getGuiState();

@@ -1,6 +1,6 @@
 #include <string>
 
-#include "resource1.h" // String resources
+#include "strings.h" // String resources
 
 inline std::wstring _LoadResString(UINT uID)
 {

@@ -369,6 +369,7 @@ static void registercommands()
     dbgcmdnew("StartScylla,scylla,imprec", cbDebugStartScylla, false); //start scylla
     dbgcmdnew("plugload,pluginload,loadplugin", cbInstrPluginLoad, false); //load plugin
     dbgcmdnew("plugunload,pluginunload,unloadplugin", cbInstrPluginUnload, false); //unload plugin
+    dbgcmdnew("plugreload,pluginreload,reloadplugin", cbInstrPluginReload, false); //reload plugin
 
     //script
     dbgcmdnew("scriptload", cbScriptLoad, false);
@@ -731,18 +732,23 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dputs(QT_TRANSLATE_NOOP("DBG", "Loading plugins..."));
     pluginloadall(plugindir);
     dputs(QT_TRANSLATE_NOOP("DBG", "Handling command line..."));
+    dprintf("  %s\n", StringUtils::Utf16ToUtf8(GetCommandLineW()).c_str());
     //handle command line
     int argc = 0;
     wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     //MessageBoxW(0, GetCommandLineW(), StringUtils::sprintf(L"%d", argc).c_str(), MB_SYSTEMMODAL);
     if(argc == 2) //1 argument (init filename)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\"", escape(argv[1]).c_str())).c_str());
+    else if(argc == 3 && !_wcsicmp(argv[1], L"-p")) //2 arguments (-p PID)
+        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s", argv[2])).c_str()); //attach pid
     else if(argc == 3) //2 arguments (init filename, cmdline)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\"", escape(argv[1]).c_str(), escape(argv[2]).c_str())).c_str());
     else if(argc == 4) //3 arguments (init filename, cmdline, currentdir)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\", \"%s\"", escape(argv[1]).c_str(), escape(argv[2]).c_str(), escape(argv[3]).c_str())).c_str());
     else if(argc == 5 && !_wcsicmp(argv[1], L"-a") && !_wcsicmp(argv[3], L"-e")) //4 arguments (JIT)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, .%s", argv[2], argv[4])).c_str()); //attach pid, event
+    else if(argc == 5 && !_wcsicmp(argv[1], L"-p") && !_wcsicmp(argv[3], L"-tid")) //4 arguments (PLMDebug)
+        DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, 0, .%s", argv[2], argv[4])).c_str()); //attach pid, 0, tid
     LocalFree(argv);
 
     dputs(QT_TRANSLATE_NOOP("DBG", "Initialization successful!"));

@@ -202,7 +202,7 @@ typedef struct
 typedef struct
 {
     duint addr;
-    ADDRINFO* addrinfo;
+    BRIDGE_ADDRINFO* addrinfo;
     bool retval;
 } PLUG_CB_ADDRINFO;
 
@@ -222,6 +222,11 @@ typedef struct
     duint value;
     bool retval;
 } PLUG_CB_VALTOSTRING;
+
+typedef struct
+{
+    int hMenu;
+} PLUG_CB_MENUPREPARE;
 
 //enums
 typedef enum
@@ -256,6 +261,7 @@ typedef enum
     CB_ADDRINFO, //PLUG_CB_ADDRINFO
     CB_VALFROMSTRING, //PLUG_CB_VALFROMSTRING
     CB_VALTOSTRING, //PLUG_CB_VALTOSTRING
+    CB_MENUPREPARE, //PLUG_CB_MENUPREPARE
     CB_LAST
 } CBTYPE;
 
@@ -302,6 +308,8 @@ PLUG_IMPEXP void _plugin_menuentrysetvisible(int pluginHandle, int hEntry, bool 
 PLUG_IMPEXP void _plugin_menusetname(int pluginHandle, int hMenu, const char* name);
 PLUG_IMPEXP void _plugin_menuentrysetname(int pluginHandle, int hEntry, const char* name);
 PLUG_IMPEXP void _plugin_menuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey);
+PLUG_IMPEXP bool _plugin_menuremove(int hMenu);
+PLUG_IMPEXP bool _plugin_menuentryremove(int pluginHandle, int hEntry);
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript);
 PLUG_IMPEXP bool _plugin_waituntilpaused();
 PLUG_IMPEXP bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata);

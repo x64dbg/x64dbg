@@ -384,26 +384,30 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     //if(y < bulletY - mBulletRadius || y > bulletY + bulletRadius)
     //    return;
 
-
-    QString wCmd;
-    // create --> disable --> delete --> create --> ...
-    switch(Breakpoints::BPState(bp_normal, wVA))
+    if(e->button() == Qt::LeftButton)
     {
-    case bp_enabled:
-        // breakpoint exists and is enabled --> disable breakpoint
-        wCmd = "bd " + ToPtrString(wVA);
+        QString wCmd;
+        // create --> disable --> delete --> create --> ...
+        switch(Breakpoints::BPState(bp_normal, wVA))
+        {
+        case bp_enabled:
+            // breakpoint exists and is enabled --> disable breakpoint
+            wCmd = "bd ";
+            break;
+        case bp_disabled:
+            // is disabled --> delete or enable
+            if(Breakpoints::BPTrival(bp_normal, wVA))
+                wCmd = "bc ";
+            else
+                wCmd = "be ";
+            break;
+        case bp_non_existent:
+            // no breakpoint was found --> create breakpoint
+            wCmd = "bp ";
+            break;
+        }
+        wCmd += ToPtrString(wVA);
         DbgCmdExec(wCmd.toUtf8().constData());
-        break;
-    case bp_disabled:
-        // is disabled --> delete
-        wCmd = "bc " + ToPtrString(wVA);
-        DbgCmdExec(wCmd.toUtf8().constData());
-        break;
-    case bp_non_existent:
-        // no breakpoint was found --> create breakpoint
-        wCmd = "bp " + ToPtrString(wVA);
-        DbgCmdExec(wCmd.toUtf8().constData());
-        break;
     }
 }
 

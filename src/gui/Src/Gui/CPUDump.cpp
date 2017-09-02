@@ -30,6 +30,8 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
+    mPluginMenu = multiDump->mDumpPluginMenu;
+
     setupContextMenu();
 }
 
@@ -57,6 +59,11 @@ void CPUDump::setupContextMenu()
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
     });
+    wCopyMenu->addAction(makeShortcutAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot()), "ActionCopyFileOffset"), [this](QMenu*)
+    {
+        return DbgFunctions()->VaToFileOffset(rvaToVa(getInitialSelection())) != 0;
+    });
+
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), wCopyMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
@@ -181,13 +188,13 @@ void CPUDump::setupContextMenu()
         return getSelectionStart() != 0;
     });
     wGotoMenu->addAction(makeShortcutAction(DIcon("bottom.png"), tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
-    wGotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPrevSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    wGotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
-        return historyHasPrev();
+        return mHistory.historyHasPrev();
     });
     wGotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
     {
-        return historyHasNext();
+        return mHistory.historyHasNext();
     });
     wGotoMenu->addAction(makeShortcutAction(DIcon("prevref.png"), tr("Previous Reference"), SLOT(gotoPreviousReferenceSlot()), "ActionGotoPreviousReference"), [](QMenu*)
     {
@@ -255,12 +262,10 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeAction(DIcon("address.png"), tr("&Address"), SLOT(addressSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("&Disassembly"), SLOT(disassemblySlot())))->setEnabled(false);
 
-    mPluginMenu = new QMenu(this);
-    mPluginMenu->setIcon(DIcon("plugin.png"));
-    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
+        DbgMenuPrepare(GUI_DUMP_MENU);
         menu->addActions(mPluginMenu->actions());
         return true;
     }));
@@ -492,7 +497,7 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
     auto va = rvaToVa(getItemStartingAddress(x, y));
 
     // Read VA
-    QToolTip::showText(event->globalPos(), getTooltipForVa(va, 4), this);
+    QToolTip::showText(event->globalPos(), getTooltipForVa(va, 4));
 
     HexDump::mouseMoveEvent(event);
 }
@@ -1478,6 +1483,19 @@ void CPUDump::findPattern()
     emit displayReferencesWidget();
 }
 
+void CPUDump::copyFileOffsetSlot()
+{
+    duint addr = rvaToVa(getInitialSelection());
+    duint offset = DbgFunctions()->VaToFileOffset(addr);
+    if(offset)
+    {
+        QString addrText = ToHexString(offset);
+        Bridge::CopyToClipboard(addrText);
+    }
+    else
+        QMessageBox::warning(this, tr("Error!"), tr("Selection not in a file..."));
+}
+
 void CPUDump::undoSelectionSlot()
 {
     dsint start = rvaToVa(getSelectionStart());
@@ -1610,16 +1628,6 @@ void CPUDump::allocMemorySlot()
             return;
         }
     }
-}
-
-void CPUDump::gotoNextSlot()
-{
-    historyNext();
-}
-
-void CPUDump::gotoPrevSlot()
-{
-    historyPrev();
 }
 
 void CPUDump::setView(ViewEnum_t view)

@@ -1,3 +1,4 @@
+#include <ntstatus.h>
 #include "threading.h"
 
 static HANDLE waitArray[WAITID_LAST];

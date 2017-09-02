@@ -28,7 +28,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
 
     // Create module list
     mModuleList = new SearchListView(true, this);
-    mModuleList->mSearchStartCol = 1;
+    mModuleList->mSearchStartCol = 0;
     int charwidth = mModuleList->mList->getCharWidth();
     mModuleList->mList->enableMultiSelection(true);
     mModuleList->mList->setCipBase(true);
@@ -36,11 +36,13 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList->mList->addColumnAt(300, tr("Module"), true);
     mModuleList->mList->addColumnAt(charwidth * 8, tr("Party"), false);
     mModuleList->mList->addColumnAt(charwidth * 60, tr("Path"), false);
+    mModuleList->mList->loadColumnFromConfig("Module");
     mModuleList->mSearchList->setCipBase(true);
     mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
     mModuleList->mSearchList->addColumnAt(300, "Module", true);
     mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), false);
     mModuleList->mSearchList->addColumnAt(charwidth * 60, tr("Path"), false);
+    mModuleList->mSearchList->loadColumnFromConfig("Module");
 
     // Setup symbol list
     mSearchListView->mList->enableMultiSelection(true);
@@ -48,6 +50,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mSearchListView->mList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
     mSearchListView->mList->addColumnAt(charwidth * 80, tr("Symbol"), true);
     mSearchListView->mList->addColumnAt(2000, tr("Symbol (undecorated)"), true);
+    mSearchListView->mList->loadColumnFromConfig("Symbol");
 
     // Setup search list
     mSearchListView->mSearchList->enableMultiSelection(true);
@@ -55,6 +58,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mSearchListView->mSearchList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 80, tr("Symbol"), true);
     mSearchListView->mSearchList->addColumnAt(2000, tr("Symbol (undecorated)"), true);
+    mSearchListView->mSearchList->loadColumnFromConfig("Symbol");
 
     // Setup list splitter
     ui->listSplitter->addWidget(mModuleList);
@@ -105,6 +109,34 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
 SymbolView::~SymbolView()
 {
     delete ui;
+}
+
+inline void saveSymbolsSplitter(QSplitter* splitter, QString name)
+{
+    BridgeSettingSet("SymbolsSettings", (name + "Geometry").toUtf8().constData(), splitter->saveGeometry().toBase64().data());
+    BridgeSettingSet("SymbolsSettings", (name + "State").toUtf8().constData(), splitter->saveState().toBase64().data());
+}
+
+inline void loadSymbolsSplitter(QSplitter* splitter, QString name)
+{
+    char setting[MAX_SETTING_SIZE] = "";
+    if(BridgeSettingGet("SymbolsSettings", (name + "Geometry").toUtf8().constData(), setting))
+        splitter->restoreGeometry(QByteArray::fromBase64(QByteArray(setting)));
+    if(BridgeSettingGet("SymbolsSettings", (name + "State").toUtf8().constData(), setting))
+        splitter->restoreState(QByteArray::fromBase64(QByteArray(setting)));
+    splitter->splitterMoved(1, 0);
+}
+
+void SymbolView::saveWindowSettings()
+{
+    saveSymbolsSplitter(ui->listSplitter, "mVSymbolsSplitter");
+    saveSymbolsSplitter(ui->mainSplitter, "mHSymbolsLogSplitter");
+}
+
+void SymbolView::loadWindowSettings()
+{
+    loadSymbolsSplitter(ui->listSplitter, "mVSymbolsSplitter");
+    loadSymbolsSplitter(ui->mainSplitter, "mHSymbolsLogSplitter");
 }
 
 void SymbolView::setupContextMenu()
@@ -378,7 +410,7 @@ void SymbolView::symbolFollow()
 
 void SymbolView::symbolFollowDump()
 {
-    DbgCmdExec(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void SymbolView::symbolFollowImport()
@@ -393,7 +425,7 @@ void SymbolView::symbolFollowImport()
     }
     else
     {
-        DbgCmdExec(QString("dump %1").arg(ToPtrString(addr)).toUtf8().constData());
+        DbgCmdExecDirect(QString("dump %1").arg(ToPtrString(addr)).toUtf8().constData());
         emit Bridge::getBridge()->getDumpAttention();
     }
 }
@@ -477,7 +509,7 @@ void SymbolView::moduleBrowse()
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {
-        QProcess::startDetached("explorer.exe", QStringList({QString("/select,"), QString(szModPath)}));
+        QProcess::startDetached(QString("%1/explorer.exe").arg(QProcessEnvironment::systemEnvironment().value("windir")), QStringList({QString("/select,"), QString(szModPath)}));
     }
 }
 

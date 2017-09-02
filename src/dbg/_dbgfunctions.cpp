@@ -169,7 +169,8 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
 {
     std::vector<PROCESSENTRY32> infoList;
     std::vector<std::string> commandList;
-    if(!dbglistprocesses(&infoList, &commandList))
+    std::vector<std::string> winTextList;
+    if(!dbglistprocesses(&infoList, &commandList, &winTextList))
         return false;
     *count = (int)infoList.size();
     if(!*count)
@@ -179,6 +180,7 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
     {
         (*entries)[*count - i - 1].dwProcessId = infoList.at(i).th32ProcessID;
         strncpy_s((*entries)[*count - i - 1].szExeFile, infoList.at(i).szExeFile, _TRUNCATE);
+        strncpy_s((*entries)[*count - i - 1].szExeMainWindowTitle, winTextList.at(i).c_str(), _TRUNCATE);
         strncpy_s((*entries)[*count - i - 1].szExeArgs, commandList.at(i).c_str(), _TRUNCATE);
     }
     return true;
@@ -334,6 +336,39 @@ static void _enumerrorcodes(ListOf(CONSTANTINFO) errorcodes)
     BridgeList<CONSTANTINFO>::CopyData(errorcodes, errorcodesV);
 }
 
+static void _enumexceptions(ListOf(CONSTANTINFO) exceptions)
+{
+    auto exceptionsV = ExceptionList();
+    BridgeList<CONSTANTINFO>::CopyData(exceptions, exceptionsV);
+}
+
+static duint _membpsize(duint addr)
+{
+    SHARED_ACQUIRE(LockBreakpoints);
+    auto info = BpInfoFromAddr(BPMEMORY, addr);
+    return info ? info->memsize : 0;
+}
+
+static bool _modrelocationsfromaddr(duint addr, ListOf(DBGRELOCATIONINFO) relocations)
+{
+    std::vector<MODRELOCATIONINFO> infos;
+    if(!ModRelocationsFromAddr(addr, infos))
+        return false;
+
+    BridgeList<MODRELOCATIONINFO>::CopyData(relocations, infos);
+    return true;
+}
+
+static bool _modrelocationsinrange(duint addr, duint size, ListOf(DBGRELOCATIONINFO) relocations)
+{
+    std::vector<MODRELOCATIONINFO> infos;
+    if(!ModRelocationsInRange(addr, size, infos))
+        return false;
+
+    BridgeList<MODRELOCATIONINFO>::CopyData(relocations, infos);
+    return true;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -399,4 +434,9 @@ void dbgfunctionsinit()
     _dbgfunctions.GetUserComment = CommentGet;
     _dbgfunctions.EnumConstants = _enumconstants;
     _dbgfunctions.EnumErrorCodes = _enumerrorcodes;
+    _dbgfunctions.EnumExceptions = _enumexceptions;
+    _dbgfunctions.MemBpSize = _membpsize;
+    _dbgfunctions.ModRelocationsFromAddr = _modrelocationsfromaddr;
+    _dbgfunctions.ModRelocationAtAddr = (MODRELOCATIONATADDR)ModRelocationAtAddr;
+    _dbgfunctions.ModRelocationsInRange = _modrelocationsinrange;
 }

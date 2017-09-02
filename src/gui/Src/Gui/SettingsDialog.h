@@ -80,12 +80,17 @@ private slots:
     void on_chkPidInHex_clicked(bool checked);
     void on_chkSidebarWatchLabels_stateChanged(int arg1);
     void on_chkNoForegroundWindow_toggled(bool checked);
+    void on_chkShowExitConfirmation_toggled(bool checked);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
     void on_chkUtf16LogRedirect_toggled(bool checked);
+    void on_chkShowGraphRva_toggled(bool checked);
+    void on_chkUseLocalHelpFile_toggled(bool checked);
+    void on_chkQueryProcessCookie_toggled(bool checked);
+    void on_chkQueryWorkingSet_toggled(bool checked);
 
 private:
     //enums
@@ -168,12 +173,17 @@ private:
         bool guiSidebarWatchLabels;
         bool guiNoForegroundWindow;
         bool guiLoadSaveTabOrder;
+        bool guiShowGraphRva;
+        bool guiShowExitConfirmation;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;
         bool miscSymbolStore;
         bool miscSymbolCache;
         bool miscUtf16LogRedirect;
+        bool miscUseLocalHelpFile;
+        bool miscQueryProcessCookie;
+        bool miscQueryWorkingSet;
     };
 
     //variables

@@ -3,6 +3,8 @@
 #include <QFontInfo>
 #include <QMessageBox>
 #include <QIcon>
+#include <QScreen>
+#include <QGuiApplication>
 #include "AbstractTableView.h"
 
 Configuration* Configuration::mPtr = nullptr;
@@ -11,6 +13,13 @@ inline void insertMenuBuilderBools(QMap<QString, bool>* config, const char* id, 
 {
     for(size_t i = 0; i < count; i++)
         config->insert(QString("Menu%1Hidden%2").arg(id).arg(i), false);
+}
+
+inline static void addWindowPosConfig(QMap<QString, duint> & guiUint, const char* windowName)
+{
+    QString n(windowName);
+    guiUint.insert(n + "X", 0);
+    guiUint.insert(n + "Y", 0);
 }
 
 Configuration::Configuration() : QObject(), noMoreMsgbox(false)
@@ -58,6 +67,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyByteFFBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyByteIsPrintColor", QColor("#800080"));
     defaultColors.insert("DisassemblyByteIsPrintBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyRelocationUnderlineColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyAutoCommentColor", QColor("#AA5500"));
@@ -208,6 +218,9 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("GraphBackgroundColor", Qt::transparent);
     defaultColors.insert("GraphNodeColor", QColor("#000000"));
     defaultColors.insert("GraphNodeBackgroundColor", Qt::transparent);
+    defaultColors.insert("GraphCipColor", QColor("#000000"));
+    defaultColors.insert("GraphBreakpointColor", QColor("#FF0000"));
+    defaultColors.insert("GraphDisabledBreakpointColor", QColor("#00AA00"));
 
     defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
     defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
@@ -223,6 +236,11 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("StructAlternateBackgroundColor", QColor("#DCD9CF"));
     defaultColors.insert("LogLinkColor", QColor("#00CC00"));
     defaultColors.insert("LogLinkBackgroundColor", Qt::transparent);
+    defaultColors.insert("BreakpointSummaryParenColor", Qt::red);
+    defaultColors.insert("BreakpointSummaryKeywordColor", QColor("#8B671F"));
+    defaultColors.insert("BreakpointSummaryStringColor", QColor("#008000"));
+
+    defaultColors.insert("PatchRelocatedByteHighlightColor", QColor("#0000DD"));
 
     //bool settings
     QMap<QString, bool> disassemblyBool;
@@ -253,6 +271,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("PidInHex", true);
     guiBool.insert("SidebarWatchLabels", true);
     guiBool.insert("LoadSaveTabOrder", false);
+    guiBool.insert("ShowGraphRva", false);
+    guiBool.insert("ShowExitConfirmation", true);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
@@ -278,21 +298,30 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     for(int i = 1; i <= 5; i++)
         AbstractTableView::setupColumnConfigDefaultValue(guiUint, QString("CPUDump%1").arg(i), 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Watch1", 6);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SoftwareBreakpoint", 10);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "HardwareBreakpoint", 10);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryBreakpoint", 10);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "DLLBreakpoint", 8);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "ExceptionBreakpoint", 8);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "BreakpointsView", 7);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 8);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 6);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Script", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Thread", 14);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Handle", 5);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Window", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "TcpConnection", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Privilege", 2);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "LocalVarsView", 3);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Module", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Symbol", 4);
     guiUint.insert("SIMDRegistersDisplayMode", 0);
+    addWindowPosConfig(guiUint, "AssembleDialog");
+    addWindowPosConfig(guiUint, "AttachDialog");
+    addWindowPosConfig(guiUint, "GotoDialog");
+    addWindowPosConfig(guiUint, "EditBreakpointDialog");
+    addWindowPosConfig(guiUint, "BrowseDialog");
+    addWindowPosConfig(guiUint, "FavouriteTools");
+    addWindowPosConfig(guiUint, "EntropyDialog");
+    addWindowPosConfig(guiUint, "HexEditDialog");
+    addWindowPosConfig(guiUint, "WordEditDialog");
+    addWindowPosConfig(guiUint, "DataCopyDialog");
     defaultUints.insert("Gui", guiUint);
 
     //uint settings
@@ -332,7 +361,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultFonts.insert("Registers", font);
     defaultFonts.insert("HexEdit", font);
     defaultFonts.insert("Application", QApplication::font());
-    defaultFonts.insert("Log", QFont("Courier", 8, QFont::Normal, false));
+    defaultFonts.insert("Log", QFont("Courier New", 8, QFont::Normal, false));
 
     // hotkeys settings
     defaultShortcuts.insert("FileOpen", Shortcut({tr("File"), tr("Open")}, "F3", true));
@@ -369,7 +398,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewHideTab", Shortcut({tr("View"), tr("Hide Tab")}, "Ctrl+W"));
 
     defaultShortcuts.insert("DebugRun", Shortcut({tr("Debug"), tr("Run")}, "F9", true));
-    defaultShortcuts.insert("DebugeRun", Shortcut({tr("Debug"), tr("Run (pass exceptions)")}, "Shift+F9", true));
+    defaultShortcuts.insert("DebugeRun", Shortcut({tr("Debug"), tr("Run (pass exception)")}, "Shift+F9", true));
     defaultShortcuts.insert("DebugseRun", Shortcut({tr("Debug"), tr("Run (swallow exception)")}, "Ctrl+Alt+Shift+F9", true));
     defaultShortcuts.insert("DebugRunSelection", Shortcut({tr("Debug"), tr("Run until selection")}, "F4", true));
     defaultShortcuts.insert("DebugRunExpression", Shortcut({tr("Debug"), tr("Run until expression")}, "Shift+F4", true));
@@ -377,15 +406,15 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugRestart", Shortcut({tr("Debug"), tr("Restart")}, "Ctrl+F2", true));
     defaultShortcuts.insert("DebugClose", Shortcut({tr("Debug"), tr("Close")}, "Alt+F2", true));
     defaultShortcuts.insert("DebugStepInto", Shortcut({tr("Debug"), tr("Step into")}, "F7", true));
-    defaultShortcuts.insert("DebugeStepInto", Shortcut({tr("Debug"), tr("Step into (pass execptions)")}, "Shift+F7", true));
+    defaultShortcuts.insert("DebugeStepInto", Shortcut({tr("Debug"), tr("Step into (pass exception)")}, "Shift+F7", true));
     defaultShortcuts.insert("DebugseStepInto", Shortcut({tr("Debug"), tr("Step into (swallow exception)")}, "Ctrl+Alt+Shift+F7", true));
     defaultShortcuts.insert("DebugStepIntoSource", Shortcut({tr("Debug"), tr("Step into (source)")}, "F11", true));
     defaultShortcuts.insert("DebugStepOver", Shortcut({tr("Debug"), tr("Step over")}, "F8", true));
-    defaultShortcuts.insert("DebugeStepOver", Shortcut({tr("Debug"), tr("Step over (pass execptions)")}, "Shift+F8", true));
+    defaultShortcuts.insert("DebugeStepOver", Shortcut({tr("Debug"), tr("Step over (pass exception)")}, "Shift+F8", true));
     defaultShortcuts.insert("DebugseStepOver", Shortcut({tr("Debug"), tr("Step over (swallow exception)")}, "Ctrl+Alt+Shift+F8", true));
     defaultShortcuts.insert("DebugStepOverSource", Shortcut({tr("Debug"), tr("Step over (source)")}, "F10", true));
     defaultShortcuts.insert("DebugRtr", Shortcut({tr("Debug"), tr("Execute till return")}, "Ctrl+F9", true));
-    defaultShortcuts.insert("DebugeRtr", Shortcut({tr("Debug"), tr("Execute till return (pass exceptions)")}, "Ctrl+Shift+F9", true));
+    defaultShortcuts.insert("DebugeRtr", Shortcut({tr("Debug"), tr("Execute till return (pass exception)")}, "Ctrl+Shift+F9", true));
     defaultShortcuts.insert("DebugRtu", Shortcut({tr("Debug"), tr("Run to user code")}, "Alt+F9", true));
     defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut({tr("Debug"), tr("Skip next instruction")}, "", true));
     defaultShortcuts.insert("DebugCommand", Shortcut({tr("Debug"), tr("Command")}, "Ctrl+Return", true));
@@ -415,7 +444,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("HelpAbout", Shortcut({tr("Help"), tr("About")}, "", true));
     defaultShortcuts.insert("HelpBlog", Shortcut({tr("Help"), tr("Blog")}, "", true));
     defaultShortcuts.insert("HelpDonate", Shortcut({tr("Help"), tr("Donate")}, "", true));
-    defaultShortcuts.insert("HelpCheckForUpdates", Shortcut({tr("Help"), tr("Check for Updates")}, "", true));
     defaultShortcuts.insert("HelpCalculator", Shortcut({tr("Help"), tr("Calculator")}, "?"));
     defaultShortcuts.insert("HelpReportBug", Shortcut({tr("Help"), tr("Report Bug")}, "", true));
     defaultShortcuts.insert("HelpManual", Shortcut({tr("Help"), tr("Manual")}, "F1", true));
@@ -427,6 +455,9 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionToggleBookmark", Shortcut({tr("Actions"), tr("Toggle Bookmark")}, "Ctrl+D"));
     defaultShortcuts.insert("ActionDeleteBreakpoint", Shortcut({tr("Actions"), tr("Delete Breakpoint")}, "Delete"));
     defaultShortcuts.insert("ActionEnableDisableBreakpoint", Shortcut({tr("Actions"), tr("Enable/Disable Breakpoint")}, "Space"));
+    defaultShortcuts.insert("ActionResetHitCountBreakpoint", Shortcut({tr("Actions"), tr("Reset breakpoint hit count")}));
+    defaultShortcuts.insert("ActionEnableAllBreakpoints", Shortcut({tr("Actions"), tr("Enable all breakpoints")}));
+    defaultShortcuts.insert("ActionDisableAllBreakpoints", Shortcut({tr("Actions"), tr("Disable all breakpoints")}));
 
     defaultShortcuts.insert("ActionBinaryEdit", Shortcut({tr("Actions"), tr("Binary Edit")}, "Ctrl+E"));
     defaultShortcuts.insert("ActionBinaryFill", Shortcut({tr("Actions"), tr("Binary Fill")}, "F"));
@@ -565,6 +596,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionModifyValue", Shortcut({tr("Actions"), tr("Modify value")}, "Space"));
     defaultShortcuts.insert("ActionWatchDwordQword", Shortcut({tr("Actions"), tr("Watch DWORD/QWORD")}));
     defaultShortcuts.insert("ActionDataCopy", Shortcut({tr("Actions"), tr("Data Copy")}));
+    defaultShortcuts.insert("ActionCopyFileOffset", Shortcut({tr("Actions"), tr("Copy File Offset")}));
 
     Shortcuts = defaultShortcuts;
 
@@ -1094,4 +1126,38 @@ void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
 {
     NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
+}
+
+static bool IsPointVisible(QPoint pos)
+{
+    for(const auto & i : QGuiApplication::screens())
+    {
+        QRect rt = i->geometry();
+        if(rt.left() <= pos.x() && rt.right() >= pos.x() && rt.top() <= pos.y() && rt.bottom() >= pos.y())
+            return true;
+    }
+    return false;
+}
+
+/**
+ * @brief Configuration::setupWindowPos Moves the dialog to the saved position
+ * @param window this
+ */
+void Configuration::setupWindowPos(QWidget* window)
+{
+    QPoint pos;
+    pos.setX(getUint("Gui", QString(window->metaObject()->className()) + "X"));
+    pos.setY(getUint("Gui", QString(window->metaObject()->className()) + "Y"));
+    if(pos.x() != 0 && pos.y() != 0 && IsPointVisible(pos))
+        window->move(pos);
+}
+
+/**
+ * @brief Configuration::saveWindowPos Saves the position of a dialog.
+ * @param window this
+ */
+void Configuration::saveWindowPos(QWidget* window)
+{
+    setUint("Gui",  QString(window->metaObject()->className()) + "X", window->pos().x());
+    setUint("Gui",  QString(window->metaObject()->className()) + "Y", window->pos().y());
 }

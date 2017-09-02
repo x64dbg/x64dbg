@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define OP_ERROR          0
 #define OP_HALT           255
+#define OP_NOP            254
 
 #define OP_AND            1
 #define OP_OR             2

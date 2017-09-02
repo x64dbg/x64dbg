@@ -3,6 +3,7 @@
 #include "SearchListView.h"
 #include <QMenu>
 #include <QMessageBox>
+#include <QFileInfo>
 
 AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AttachDialog)
 {
@@ -32,12 +33,16 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     //setup process list
     int charwidth = mSearchListView->mList->getCharWidth();
     mSearchListView->mList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->mList->addColumnAt(150, tr("Name"), true);
+    mSearchListView->mList->addColumnAt(300, tr("Title"), true);
     mSearchListView->mList->addColumnAt(500, tr("Path"), true);
     mSearchListView->mList->addColumnAt(800, tr("Command Line Arguments"), true);
     mSearchListView->mList->setDrawDebugOnly(false);
 
     charwidth = mSearchListView->mSearchList->getCharWidth();
     mSearchListView->mSearchList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->mSearchList->addColumnAt(150, tr("Name"), true);
+    mSearchListView->mSearchList->addColumnAt(300, tr("Title"), true);
     mSearchListView->mSearchList->addColumnAt(500, tr("Path"), true);
     mSearchListView->mSearchList->addColumnAt(800, tr("Command Line Arguments"), true);
     mSearchListView->mSearchList->setDrawDebugOnly(false);
@@ -48,12 +53,15 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     // Highlight the search box
     mSearchListView->mCurList->setFocus();
 
+    Config()->setupWindowPos(this);
+
     // Populate the process list atleast once
     refresh();
 }
 
 AttachDialog::~AttachDialog()
 {
+    Config()->saveWindowPos(this);
     delete ui;
 }
 
@@ -68,9 +76,12 @@ void AttachDialog::refresh()
     mSearchListView->mList->setRowCount(count);
     for(int i = 0; i < count; i++)
     {
+        QFileInfo fi(entries[i].szExeFile);
         mSearchListView->mList->setCellContent(i, 0, QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
-        mSearchListView->mList->setCellContent(i, 1, QString(entries[i].szExeFile));
-        mSearchListView->mList->setCellContent(i, 2, QString(entries[i].szExeArgs));
+        mSearchListView->mList->setCellContent(i, 1, fi.baseName());
+        mSearchListView->mList->setCellContent(i, 2, QString(entries[i].szExeMainWindowTitle));
+        mSearchListView->mList->setCellContent(i, 3, QString(entries[i].szExeFile));
+        mSearchListView->mList->setCellContent(i, 4, QString(entries[i].szExeArgs));
     }
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->reloadData();

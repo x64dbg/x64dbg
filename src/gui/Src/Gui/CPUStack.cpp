@@ -230,13 +230,13 @@ void CPUStack::setupContextMenu()
     //Go to Previous
     gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Go to Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
-        return historyHasPrev();
+        return mHistory.historyHasPrev();
     });
 
     //Go to Next
     gotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Go to Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
     {
-        return historyHasNext();
+        return mHistory.historyHasNext();
     });
 
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("&Go to")), gotoMenu);
@@ -313,6 +313,7 @@ void CPUStack::setupContextMenu()
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
+        DbgMenuPrepare(GUI_STACK_MENU);
         menu->addActions(mPluginMenu->actions());
         return true;
     }));
@@ -539,7 +540,7 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
 void CPUStack::stackDumpAt(duint addr, duint csp)
 {
     if(DbgMemIsValidReadPtr(addr))
-        addVaToHistory(addr);
+        mHistory.addVaToHistory(addr);
     mCsp = csp;
 
     // Get the callstack
@@ -636,7 +637,7 @@ void CPUStack::gotoNextFrameSlot()
 void CPUStack::gotoPreviousFrameSlot()
 {
     int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
-    if(frame != -1 && frame > 0)
+    if(frame > 0)
         DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame - 1].addr)).toUtf8().constData());
 }
 
@@ -656,16 +657,6 @@ void CPUStack::gotoExpressionSlot()
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
         DbgCmdExec(QString().sprintf("sdump %p", value).toUtf8().constData());
     }
-}
-
-void CPUStack::gotoPreviousSlot()
-{
-    historyPrev();
-}
-
-void CPUStack::gotoNextSlot()
-{
-    historyNext();
 }
 
 void CPUStack::selectionGet(SELECTIONDATA* selection)

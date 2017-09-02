@@ -191,7 +191,7 @@ static bool isInstructionPointingToExMemory(duint addr, const unsigned char* des
 
 bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop)
 {
-    int destSize;
+    int destSize = 0;
     Memory<unsigned char*> dest(16 * sizeof(unsigned char), "AssembleBuffer");
     unsigned char* newbuffer = nullptr;
     if(!assemble(addr, dest(), 16, &destSize, instruction, error))
@@ -200,11 +200,12 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
         {
             dest.realloc(destSize);
             if(!assemble(addr, dest(), destSize, &destSize, instruction, error))
-            {
                 return false;
-            }
         }
+        else
+            return false;
     }
+
     //calculate the number of NOPs to insert
     int origLen = disasmgetsize(addr);
     while(origLen < destSize)

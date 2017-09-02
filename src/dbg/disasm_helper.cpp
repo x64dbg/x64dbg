@@ -325,7 +325,6 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
 
     // Save a few pointer casts
     auto asciiData = (char*)data();
-    auto unicodeData = (wchar_t*)data();
 
     // First check if this was an ASCII only string
     if(isasciistring(data(), maxlen))
@@ -346,9 +345,6 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
         if(type)
             *type = str_unicode;
 
-        // Determine string length only once, limited to output buffer size
-        int unicodeLength = min(int(wcslen(unicodeData)), maxlen);
-
         // Convert UTF-16 string to UTF-8
         std::string asciiData2 = StringUtils::Utf16ToUtf8((const wchar_t*)data());
         memcpy(asciiData, asciiData2.c_str(), min((size_t(maxlen) + 1) * 2, asciiData2.size() + 1));
@@ -361,6 +357,48 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
         return true;
     }
 
+    return false;
+}
+
+bool disasmgetstringatwrapper(duint addr, char* dest, bool cache)
+{
+    if(!MemIsValidReadPtrUnsafe(addr, cache))
+        return false;
+
+    auto readValidPtr = [cache](duint addr) -> duint
+    {
+        duint addrPtr;
+        if(MemReadUnsafe(addr, &addrPtr, sizeof(addrPtr)) && MemIsValidReadPtrUnsafe(addrPtr, cache))
+            return addrPtr;
+        return 0;
+    };
+
+    *dest = '\0';
+    char string[MAX_STRING_SIZE];
+    duint addrPtr = readValidPtr(addr);
+    STRING_TYPE strtype;
+    auto possibleUnicode = disasmispossiblestring(addr, &strtype) && strtype == str_unicode;
+    if(addrPtr && !possibleUnicode)
+    {
+        if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 5))
+        {
+            if(int(strlen(string)) <= (strtype == str_ascii ? 3 : 2) && readValidPtr(addrPtr))
+                return false;
+            if(strtype == str_ascii)
+                sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
+            else //unicode
+                sprintf_s(dest, MAX_STRING_SIZE, "&L\"%s\"", string);
+            return true;
+        }
+    }
+    if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 4))
+    {
+        if(strtype == str_ascii)
+            sprintf_s(dest, MAX_STRING_SIZE, "\"%s\"", string);
+        else //unicode
+            sprintf_s(dest, MAX_STRING_SIZE, "L\"%s\"", string);
+        return true;
+    }
     return false;
 }
 

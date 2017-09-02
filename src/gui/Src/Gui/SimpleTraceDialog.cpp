@@ -55,32 +55,32 @@ void SimpleTraceDialog::on_btnOk_clicked()
     auto logCondition = ui->editLogCondition->addHistoryClear();
     if(!DbgCmdExecDirect(QString("TraceSetLog \"%1\", \"%2\"").arg(escapeText(logText), escapeText(logCondition)).toUtf8().constData()))
     {
-        QMessageBox::warning(this, tr("Error"), tr("Failed to set log text/condition!"));
+        SimpleWarningBox(this, tr("Error"), tr("Failed to set log text/condition!"));
         return;
     }
     auto commandText = ui->editCommandText->addHistoryClear();
     auto commandCondition = ui->editCommandCondition->addHistoryClear();
     if(!DbgCmdExecDirect(QString("TraceSetCommand \"%1\", \"%2\"").arg(escapeText(commandText), escapeText(commandCondition)).toUtf8().constData()))
     {
-        QMessageBox::warning(this, tr("Error"), tr("Failed to set command text/condition!"));
+        SimpleWarningBox(this, tr("Error"), tr("Failed to set command text/condition!"));
         return;
     }
     auto switchCondition = ui->editSwitchCondition->addHistoryClear();
     if(!DbgCmdExecDirect(QString("TraceSetSwitchCondition \"%1\"").arg(escapeText(switchCondition)).toUtf8().constData()))
     {
-        QMessageBox::warning(this, tr("Error"), tr("Failed to set switch condition!"));
+        SimpleWarningBox(this, tr("Error"), tr("Failed to set switch condition!"));
         return;
     }
     if(!DbgCmdExecDirect(QString("TraceSetLogFile \"%1\"").arg(escapeText(mLogFile)).toUtf8().constData()))
     {
-        QMessageBox::warning(this, tr("Error"), tr("Failed to set log file!"));
+        SimpleWarningBox(this, tr("Error"), tr("Failed to set log file!"));
         return;
     }
     auto breakCondition = ui->editBreakCondition->addHistoryClear();
     auto maxTraceCount = ui->spinMaxTraceCount->value();
     if(!DbgCmdExecDirect(QString("%1 \"%2\", .%3").arg(mTraceCommand, escapeText(breakCondition)).arg(maxTraceCount).toUtf8().constData()))
     {
-        QMessageBox::warning(this, tr("Error"), tr("Failed to start trace!"));
+        SimpleWarningBox(this, tr("Error"), tr("Failed to start trace!"));
         return;
     }
     accept();

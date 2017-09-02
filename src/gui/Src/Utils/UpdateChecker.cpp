@@ -49,9 +49,5 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
         info = QString(tr("You have a development build (%1) of x64dbg!")).arg(ToDateString(build));
     else
         info = QString(tr("You have the latest build (%1) of x64dbg!")).arg(ToDateString(build));
-    QMessageBox msg(QMessageBox::Information, tr("Information"), info);
-    msg.setWindowIcon(DIcon("information.png"));
-    msg.setParent(mParent, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    SimpleInfoBox(mParent, tr("Information"), info);
 }

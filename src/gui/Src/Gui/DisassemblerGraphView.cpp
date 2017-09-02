@@ -14,6 +14,7 @@
 #include <QMimeData>
 #include <QFileDialog>
 #include <QMessageBox>
+#include "BreakpointMenu.h"
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent),
@@ -24,7 +25,9 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
       mGoto(nullptr),
       syncOrigin(false),
       forceCenter(false),
-      layoutType(LayoutType::Medium)
+      layoutType(LayoutType::Medium),
+      mHistoryLock(false),
+      mXrefDlg(nullptr)
 {
     this->status = "Loading...";
 
@@ -259,12 +262,34 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
             {
                 for(auto & line : instr.text.lines)
                 {
-                    if(instr.addr == mCip)
+                    int rectSize = qRound(this->charWidth);
+                    if(rectSize % 2)
+                        rectSize++;
+
+                    // Assume charWidth <= charHeight
+                    QRectF bpRect(x - rectSize / 3.0, y + (this->charHeight - rectSize) / 2.0, rectSize, rectSize);
+
+                    bool isbp = DbgGetBpxTypeAt(instr.addr) != bp_none;
+                    bool isbpdisabled = DbgIsBpDisabled(instr.addr);
+                    bool iscip = instr.addr == mCip;
+
+                    if(isbp || isbpdisabled)
                     {
-                        p.setPen(mCipColor);
-                        p.fillRect(x, y, this->charWidth, this->charHeight, mCipBackgroundColor);
-                        p.drawText(x, y, this->charWidth, this->charHeight, 0, QString("\xE2\x80\xA2"));
+                        if(iscip)
+                        {
+                            // Left half is cip
+                            bpRect.setWidth(bpRect.width() / 2);
+                            p.fillRect(bpRect, mCipColor);
+
+                            // Right half is breakpoint
+                            bpRect.translate(bpRect.width(), 0);
+                        }
+
+                        p.fillRect(bpRect, isbp ? mBreakpointColor : mDisabledBreakpointColor);
                     }
+                    else if(iscip)
+                        p.fillRect(bpRect, mCipColor);
+
                     RichTextPainter::paintRichText(&p, x + this->charWidth, y, block.width - this->charWidth, this->charHeight, 0, line, mFontMetrics);
                     y += this->charHeight;
                 }
@@ -358,7 +383,7 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
         pen.setColor(graphNodeColor);
         p.setPen(pen);
         if(isCip)
-            p.setBrush(mCipBackgroundColor);
+            p.setBrush(mCipColor);
         else if(traceCount)
         {
             // Color depending on how often a sequence of code is executed
@@ -609,7 +634,7 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
             wMenu.exec(event->globalPos()); //execute context menu
         }
     }
-    else if(this->isMouseEventInBlock(event))
+    else if((event->button() == Qt::LeftButton || event->button() == Qt::RightButton) && this->isMouseEventInBlock(event))
     {
         //Check for click on a token and highlight it
         Token token;
@@ -671,6 +696,11 @@ void DisassemblerGraphView::mouseMoveEvent(QMouseEvent* event)
 
 void DisassemblerGraphView::mouseReleaseEvent(QMouseEvent* event)
 {
+    if(event->button() == Qt::ForwardButton)
+        gotoNextSlot();
+    else if(event->button() == Qt::BackButton)
+        gotoPreviousSlot();
+
     if(event->button() != Qt::LeftButton)
         return;
 
@@ -1424,10 +1454,15 @@ void DisassemblerGraphView::show_cur_instr(bool force)
 
 bool DisassemblerGraphView::navigate(duint addr)
 {
+    //Add address to history
+    if(!mHistoryLock)
+        mHistory.addVaToHistory(addr);
     //Check to see if address is within current function
     for(auto & blockIt : this->blocks)
     {
         DisassemblerBlock & block = blockIt.second;
+        if(block.block.entry > addr) //optimize it
+            continue;
         auto row = int(block.block.header_text.lines.size());
         for(Instr & instr : block.block.instrs)
         {
@@ -1486,6 +1521,7 @@ void DisassemblerGraphView::tokenizerConfigUpdatedSlot()
 
 void DisassemblerGraphView::loadCurrentGraph()
 {
+    bool showGraphRva = ConfigBool("Gui", "ShowGraphRva");
     Analysis anal;
     anal.update_id = this->update_id + 1;
     anal.entry = currentGraph.entryPoint;
@@ -1516,6 +1552,19 @@ void DisassemblerGraphView::loadCurrentGraph()
                         Instruction_t instrTok = disasm.DisassembleAt((byte_t*)nodeInstr.data, sizeof(nodeInstr.data), 0, addr, false);
                         RichTextPainter::List richText;
                         CapstoneTokenizer::TokenToRichText(instrTok.tokens, richText, 0);
+
+                        // add rva to node instruction text
+                        if(showGraphRva)
+                        {
+                            RichTextPainter::CustomRichText_t rvaText;
+                            rvaText.highlight = false;
+                            rvaText.textColor = mAddressColor;
+                            rvaText.textBackground = mAddressBackgroundColor;
+                            rvaText.text = QString().number(instrTok.rva, 16).toUpper().trimmed() + "  ";
+                            rvaText.flags = rvaText.textBackground.alpha() ? RichTextPainter::FlagAll : RichTextPainter::FlagColor;
+                            richText.insert(richText.begin(), rvaText);
+                        }
+
                         auto size = instrTok.length;
                         instr.addr = addr;
                         instr.opcode.resize(size);
@@ -1580,12 +1629,24 @@ void DisassemblerGraphView::loadCurrentGraph()
 
 void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint addr)
 {
+    auto nodeCount = graphList->nodes.count;
+    if(nodeCount > 5000) //TODO: add configuration
+    {
+        auto title = tr("Large number of nodes");
+        auto message = tr("The graph you are trying to render has a large number of nodes (%1). This can cause x64dbg to hang or crash. It is recommended to save your data before you continue.\n\nDo you want to continue rendering this graph?").arg(nodeCount);
+        if(QMessageBox::question(this, title, message, QMessageBox::Yes, QMessageBox::No | QMessageBox::Default) == QMessageBox::No)
+        {
+            Bridge::getBridge()->setResult(0);
+            return;
+        }
+    }
+
     currentGraph = BridgeCFGraph(graphList, true);
     currentBlockMap.clear();
     this->cur_instr = addr ? addr : this->function;
     this->forceCenter = true;
     loadCurrentGraph();
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(1);
 }
 
 void DisassemblerGraphView::graphAtSlot(duint addr)
@@ -1596,6 +1657,15 @@ void DisassemblerGraphView::graphAtSlot(duint addr)
 void DisassemblerGraphView::updateGraphSlot()
 {
     this->viewport()->update();
+}
+
+void DisassemblerGraphView::addReferenceAction(QMenu* menu, duint addr)
+{
+    QAction* action = new QAction(menu);
+    action->setData(ToPtrString(addr));
+    action->setText(getSymbolicName(addr));
+    connect(action, SIGNAL(triggered()), this, SLOT(followActionSlot()));
+    menu->addAction(action);
 }
 
 void DisassemblerGraphView::setupContextMenu()
@@ -1611,11 +1681,62 @@ void DisassemblerGraphView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
+    auto breakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
+    {
+        return cur_instr;
+    });
+    breakpointMenu->build(mMenuBuilder);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
+    gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    {
+        return mHistory.historyHasPrev();
+    });
+    gotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
+    {
+        return mHistory.historyHasNext();
+    });
+    MenuBuilder* childrenAndParentMenu = new MenuBuilder(this, [this](QMenu * menu)
+    {
+        duint cursorpos = get_cursor_pos();
+        const DisassemblerBlock* currentBlock = nullptr;
+        const Instr* currentInstruction = nullptr;
+        for(const auto & i : blocks)
+        {
+            if(i.second.block.entry > cursorpos)
+                continue;
+            for(const Instr & inst : i.second.block.instrs)
+            {
+                if(inst.addr <= cursorpos && inst.addr + inst.opcode.size() > cursorpos)
+                {
+                    currentBlock = &i.second;
+                    currentInstruction = &inst;
+                    break;
+                }
+            }
+            if(currentInstruction)
+                break;
+        }
+        if(currentInstruction)
+        {
+            for(const duint & i : currentBlock->incoming) // This list is incomplete
+                addReferenceAction(menu, i);
+            if(!currentBlock->block.terminal)
+            {
+                menu->addSeparator();
+                for(const duint & i : currentBlock->block.exits)
+                    addReferenceAction(menu, i);
+            }
+            //to do: follow a constant
+            return true;
+        }
+        return false;
+    });
+    gotoMenu->addSeparator();
+    gotoMenu->addBuilder(childrenAndParentMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("snowman.png"), tr("Decompile"), SLOT(decompileSlot()), "ActionGraphDecompile"));
@@ -1641,8 +1762,6 @@ void DisassemblerGraphView::setupContextMenu()
     }
     mediumLayout->setChecked(true);
     mMenuBuilder->addMenu(makeMenu(DIcon("layout.png"), tr("Layout")), layoutMenu);
-
-    mMenuBuilder->addSeparator();
 
     mMenuBuilder->loadFromConfig();
 }
@@ -1685,8 +1804,8 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
     mLabelColor = ConfigColor("DisassemblyLabelColor");
     mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
-    mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
-    mCipColor = ConfigColor("DisassemblyCipColor");
+    mAddressColor = ConfigColor("DisassemblyAddressColor");
+    mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
 
     jmpColor = ConfigColor("GraphJmpColor");
     brtrueColor = ConfigColor("GraphBrtrueColor");
@@ -1696,6 +1815,9 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     backgroundColor = ConfigColor("GraphBackgroundColor");
     if(!backgroundColor.alpha())
         backgroundColor = disassemblySelectionColor;
+    mCipColor = ConfigColor("GraphCipColor");
+    mBreakpointColor = ConfigColor("GraphBreakpointColor");
+    mDisabledBreakpointColor = ConfigColor("GraphDisabledBreakpointColor");
 
     fontChanged();
     loadCurrentGraph();
@@ -1763,6 +1885,26 @@ void DisassemblerGraphView::gotoExpressionSlot()
 void DisassemblerGraphView::gotoOriginSlot()
 {
     DbgCmdExec("graph cip, silent");
+}
+
+void DisassemblerGraphView::gotoPreviousSlot()
+{
+    if(mHistory.historyHasPrev())
+    {
+        mHistoryLock = true;
+        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyPrev())).toUtf8().constData());
+        mHistoryLock = false;
+    }
+}
+
+void DisassemblerGraphView::gotoNextSlot()
+{
+    if(mHistory.historyHasNext())
+    {
+        mHistoryLock = true;
+        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyNext())).toUtf8().constData());
+        mHistoryLock = false;
+    }
 }
 
 void DisassemblerGraphView::toggleSyncOriginSlot()
@@ -1856,18 +1998,20 @@ restart:
 
 void DisassemblerGraphView::xrefSlot()
 {
-    XREF_INFO mXrefInfo;
+
     if(!DbgIsDebugging())
         return;
     duint wVA = this->get_cursor_pos();
     if(!DbgMemIsValidReadPtr(wVA))
         return;
-    DbgXrefGet(this->get_cursor_pos(), &mXrefInfo);
+    XREF_INFO mXrefInfo;
+    DbgXrefGet(wVA, &mXrefInfo);
     if(!mXrefInfo.refcount)
         return;
+    BridgeFree(mXrefInfo.references);
     if(!mXrefDlg)
         mXrefDlg = new XrefBrowseDialog(this);
-    mXrefDlg->setup(this->get_cursor_pos(), "graph");
+    mXrefDlg->setup(wVA, "graph");
     mXrefDlg->showNormal();
 }
 
@@ -1897,4 +2041,14 @@ void DisassemblerGraphView::decompileSlot()
     });
     emit displaySnowmanWidget();
     DecompileRanges(Bridge::getBridge()->snowmanView, ranges.data(), ranges.size());
+}
+
+void DisassemblerGraphView::followActionSlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action)
+    {
+        QString data = action->data().toString();
+        DbgCmdExecDirect(QString("graph %1, silent").arg(data).toUtf8().constData());
+    }
 }

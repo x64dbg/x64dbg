@@ -30,6 +30,9 @@
     <Filter Include="Header Files\Third Party">
       <UniqueIdentifier>{d2362bf7-ff20-493d-be01-0fb7e6dca8c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Third Party\ntdll">
+      <UniqueIdentifier>{aea02a5a-fad2-4cf4-a932-80c0d43f621e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\Third Party\TitanEngine">
       <UniqueIdentifier>{23226861-3b20-42db-8dd6-c5d276ba7a83}</UniqueIdentifier>
     </Filter>
@@ -436,6 +439,9 @@
     <ClInclude Include="XEDParse\XEDParse.h">
       <Filter>Header Files\Third Party\XEDParse</Filter>
     </ClInclude>
+    <ClInclude Include="ntdll\ntdll.h">
+      <Filter>Header Files\Third Party\ntdll</Filter>
+    </ClInclude>
     <ClInclude Include="TitanEngine\TitanEngine.h">
       <Filter>Header Files\Third Party\TitanEngine</Filter>
     </ClInclude>
@@ -525,9 +531,6 @@
     </ClInclude>
     <ClInclude Include="handle.h">
       <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="undocumented.h">
-      <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
     <ClInclude Include="stringutils.h">
       <Filter>Header Files\Utilities</Filter>
@@ -954,6 +957,15 @@
     </ClInclude>
     <ClInclude Include="formatfunctions.h">
       <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GetPeArch.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="debugger_cookie.h">
+      <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
+    <ClInclude Include="debugger_tracing.h">
+      <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

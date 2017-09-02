@@ -399,6 +399,30 @@ BPXSTATE Breakpoints::BPState(BPXTYPE type, duint va)
     return result;
 }
 
+bool Breakpoints::BPTrival(BPXTYPE type, duint va)
+{
+    BPMAP wBPList;
+    bool trival = true;
+
+    // Get breakpoints list
+    DbgGetBpList(type, &wBPList);
+
+    // Find breakpoint at address VA
+    for(int wI = 0; wI < wBPList.count; wI++)
+    {
+        BRIDGEBP & bp = wBPList.bp[wI];
+        if(bp.addr == va)
+        {
+            trival = !(bp.breakCondition[0] || bp.logCondition[0] || bp.commandCondition[0] || bp.commandText[0] || bp.logText[0] || bp.name[0] || bp.fastResume || bp.silent);
+            break;
+        }
+    }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
+
+    return trival;
+}
+
 
 /**
  * @brief       Toggle the given breakpoint by disabling it when enabled.@n

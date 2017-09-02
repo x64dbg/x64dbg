@@ -9,12 +9,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>301</width>
-    <height>183</height>
+    <width>289</width>
+    <height>214</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Message Breakpoint on WinProc</string>
+   <string>Message Breakpoint</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../../resource.qrc">
@@ -29,7 +29,7 @@
   <widget class="QLabel" name="lblMessages">
    <property name="geometry">
     <rect>
-     <x>22</x>
+     <x>16</x>
      <y>16</y>
      <width>51</width>
      <height>16</height>
@@ -42,10 +42,10 @@
   <widget class="QGroupBox" name="gboxBreakpoints">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>14</x>
      <y>50</y>
      <width>261</width>
-     <height>91</height>
+     <height>121</height>
     </rect>
    </property>
    <property name="title">
@@ -54,7 +54,7 @@
    <widget class="QRadioButton" name="rbtnBreakAny">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>14</x>
       <y>20</y>
       <width>221</width>
       <height>17</height>
@@ -70,7 +70,7 @@
    <widget class="QRadioButton" name="rbtnBreakCurrent">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>14</x>
       <y>40</y>
       <width>221</width>
       <height>31</height>
@@ -81,12 +81,25 @@
 (Invalid for next session)</string>
     </property>
    </widget>
+   <widget class="QCheckBox" name="chkTranslateMessage">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>90</y>
+      <width>221</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Use TranslateMessage</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QPushButton" name="btnOk">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>150</y>
+     <x>114</x>
+     <y>180</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -98,7 +111,7 @@
   <widget class="QComboBox" name="cboxMessages">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>74</x>
      <y>16</y>
      <width>201</width>
      <height>20</height>
@@ -111,8 +124,8 @@
   <widget class="QPushButton" name="btnCancel">
    <property name="geometry">
     <rect>
-     <x>206</x>
-     <y>150</y>
+     <x>200</x>
+     <y>180</y>
      <width>75</width>
      <height>23</height>
     </rect>

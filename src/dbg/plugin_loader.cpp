@@ -44,6 +44,11 @@ static std::vector<PLUG_COMMAND> pluginCommandList;
 static std::vector<PLUG_MENU> pluginMenuList;
 
 /**
+\brief List of plugin menu entries.
+*/
+static std::vector<PLUG_MENUENTRY> pluginMenuEntryList;
+
+/**
 \brief List of plugin exprfunctions.
 */
 static std::vector<PLUG_EXPRFUNCTION> pluginExprfunctionList;
@@ -200,6 +205,7 @@ bool pluginload(const char* pluginName, bool loadall)
     regExport("CBADDRINFO", CB_ADDRINFO);
     regExport("CBVALFROMSTRING", CB_VALFROMSTRING);
     regExport("CBVALTOSTRING", CB_VALTOSTRING);
+    regExport("CBMENUPREPARE", CB_MENUPREPARE);
 
     SectionLocker<LockPluginMenuList, false> menuLock; //exclusive lock
 
@@ -214,7 +220,7 @@ bool pluginload(const char* pluginName, bool loadall)
     {
         PLUG_MENU newMenu;
         newMenu.hEntryMenu = hNewMenu;
-        newMenu.hEntryPlugin = -1;
+        newMenu.hParentMenu = GUI_PLUGIN_MENU;
         newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
         pluginMenuList.push_back(newMenu);
         pluginData.hMenu = newMenu.hEntryMenu;
@@ -231,7 +237,7 @@ bool pluginload(const char* pluginName, bool loadall)
     {
         PLUG_MENU newMenu;
         newMenu.hEntryMenu = hNewMenu;
-        newMenu.hEntryPlugin = -1;
+        newMenu.hParentMenu = GUI_DISASM_MENU;
         newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
         pluginMenuList.push_back(newMenu);
         pluginData.hMenuDisasm = newMenu.hEntryMenu;
@@ -248,7 +254,7 @@ bool pluginload(const char* pluginName, bool loadall)
     {
         PLUG_MENU newMenu;
         newMenu.hEntryMenu = hNewMenu;
-        newMenu.hEntryPlugin = -1;
+        newMenu.hParentMenu = GUI_DUMP_MENU;
         newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
         pluginMenuList.push_back(newMenu);
         pluginData.hMenuDump = newMenu.hEntryMenu;
@@ -265,7 +271,7 @@ bool pluginload(const char* pluginName, bool loadall)
     {
         PLUG_MENU newMenu;
         newMenu.hEntryMenu = hNewMenu;
-        newMenu.hEntryPlugin = -1;
+        newMenu.hParentMenu = GUI_STACK_MENU;
         newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
         pluginMenuList.push_back(newMenu);
         pluginData.hMenuStack = newMenu.hEntryMenu;
@@ -352,7 +358,7 @@ bool pluginunload(const char* pluginName, bool unloadall)
         }
         {
             EXCLUSIVE_ACQUIRE(LockPluginList);
-            pluginmenuclear(currentPlugin.hMenu);
+            pluginmenuclear(currentPlugin.hMenu, true);
 
             //remove from main pluginlist. We do this so unloadall doesn't try to unload an already released plugin
             auto pbegin = pluginList.begin();
@@ -380,6 +386,9 @@ bool pluginunload(const char* pluginName, bool unloadall)
 */
 void pluginloadall(const char* pluginDir)
 {
+    //reserve menu space
+    pluginMenuList.reserve(1024);
+    pluginMenuEntryList.reserve(1024);
     //load new plugins
     wchar_t currentDir[deflen] = L"";
     pluginDirectory = StringUtils::Utf8ToUtf16(pluginDir);
@@ -403,6 +412,7 @@ void pluginloadall(const char* pluginDir)
         pluginload(StringUtils::Utf16ToUtf8(foundData.cFileName).c_str(), true);
     }
     while(FindNextFileW(hSearch, &foundData));
+    FindClose(hSearch);
     SetCurrentDirectoryW(currentDir);
 }
 
@@ -592,7 +602,7 @@ int pluginmenuadd(int hMenu, const char* title)
     int nFound = -1;
     for(unsigned int i = 0; i < pluginMenuList.size(); i++)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hMenu && pluginMenuList.at(i).hEntryPlugin == -1)
+        if(pluginMenuList.at(i).hEntryMenu == hMenu)
         {
             nFound = i;
             break;
@@ -600,11 +610,11 @@ int pluginmenuadd(int hMenu, const char* title)
     }
     if(nFound == -1) //not a valid menu handle
         return -1;
-    int hMenuNew = GuiMenuAdd(pluginMenuList.at(nFound).hEntryMenu, title);
+    int hMenuNew = GuiMenuAdd(hMenu, title);
     PLUG_MENU newMenu;
     newMenu.pluginHandle = pluginMenuList.at(nFound).pluginHandle;
-    newMenu.hEntryPlugin = -1;
     newMenu.hEntryMenu = hMenuNew;
+    newMenu.hParentMenu = hMenu;
     pluginMenuList.push_back(newMenu);
     return hMenuNew;
 }
@@ -612,7 +622,7 @@ int pluginmenuadd(int hMenu, const char* title)
 /**
 \brief Add a plugin menu entry to a menu.
 \param hMenu The menu to add the entry to.
-\param hEntry The handle you like to have the entry. This should be a unique value in the scope of the plugin that registered the \p hMenu.
+\param hEntry The handle you like to have the entry. This should be a unique value in the scope of the plugin that registered the \p hMenu. Cannot be -1.
 \param title The menu entry title.
 \return true if the \p hEntry was unique and the entry was successfully added, false otherwise.
 */
@@ -625,7 +635,7 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
     //find plugin handle
     for(const auto & currentMenu : pluginMenuList)
     {
-        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
+        if(currentMenu.hEntryMenu == hMenu)
         {
             pluginHandle = currentMenu.pluginHandle;
             break;
@@ -634,17 +644,18 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
     if(pluginHandle == -1) //not found
         return false;
     //search if hEntry was previously used
-    for(const auto & currentMenu : pluginMenuList)
+    for(const auto & currentMenu : pluginMenuEntryList)
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
             return false;
     int hNewEntry = GuiMenuAddEntry(hMenu, title);
     if(hNewEntry == -1)
         return false;
-    PLUG_MENU newMenu;
+    PLUG_MENUENTRY newMenu;
     newMenu.hEntryMenu = hNewEntry;
+    newMenu.hParentMenu = hMenu;
     newMenu.hEntryPlugin = hEntry;
     newMenu.pluginHandle = pluginHandle;
-    pluginMenuList.push_back(newMenu);
+    pluginMenuEntryList.push_back(newMenu);
     return true;
 }
 
@@ -658,7 +669,7 @@ bool pluginmenuaddseparator(int hMenu)
     SHARED_ACQUIRE(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
     {
-        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
+        if(currentMenu.hEntryMenu == hMenu)
         {
             GuiMenuAddSeparator(hMenu);
             return true;
@@ -667,28 +678,56 @@ bool pluginmenuaddseparator(int hMenu)
     return false;
 }
 
+/// <summary>
+/// Helper function that recursively clears the menus and their items.
+/// </summary>
+/// <param name="hMenu">Handle of the menu to clear.</param>
+static void pluginmenuclear_helper(int hMenu)
+{
+    //delete menu entries
+    for(auto i = pluginMenuEntryList.size() - 1; i != -1; i--)
+        if(hMenu == pluginMenuEntryList.at(i).hParentMenu) //we found an entry that has the menu as parent
+            pluginMenuEntryList.erase(pluginMenuEntryList.begin() + i);
+    //delete the menus
+    std::vector<int> menuClearQueue;
+    for(auto i = pluginMenuList.size() - 1; i != -1; i--)
+    {
+        if(hMenu == pluginMenuList.at(i).hParentMenu) //we found a menu that has the menu as parent
+        {
+            menuClearQueue.push_back(pluginMenuList.at(i).hEntryMenu);
+            pluginMenuList.erase(pluginMenuList.begin() + i);
+        }
+    }
+    //recursively clear the menus
+    for(auto & hMenu : menuClearQueue)
+        pluginmenuclear_helper(hMenu);
+}
+
 /**
 \brief Clears a plugin menu.
 \param hMenu The menu to clear.
 \return true if it succeeds, false otherwise.
 */
-bool pluginmenuclear(int hMenu)
+bool pluginmenuclear(int hMenu, bool erase)
 {
     EXCLUSIVE_ACQUIRE(LockPluginMenuList);
-    bool bFound = false;
+    pluginmenuclear_helper(hMenu);
     for(auto it = pluginMenuList.begin(); it != pluginMenuList.end(); ++it)
     {
         const auto & currentMenu = *it;
-        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
+        if(currentMenu.hEntryMenu == hMenu)
         {
-            it = pluginMenuList.erase(it);
-            bFound = true;
+            if(erase)
+            {
+                it = pluginMenuList.erase(it);
+                GuiMenuRemove(hMenu);
+            }
+            else
+                GuiMenuClear(hMenu);
+            return true;
         }
     }
-    if(!bFound)
-        return false;
-    GuiMenuClear(hMenu);
-    return true;
+    return false;
 }
 
 /**
@@ -701,8 +740,8 @@ void pluginmenucall(int hEntry)
         return;
 
     SectionLocker<LockPluginMenuList, true> menuLock; //shared lock
-    auto i = pluginMenuList.begin();
-    while(i != pluginMenuList.end())
+    auto i = pluginMenuEntryList.begin();
+    while(i != pluginMenuEntryList.end())
     {
         const auto currentMenu = *i;
         ++i;
@@ -767,7 +806,7 @@ void pluginmenuseticon(int hMenu, const ICONDATA* icon)
     SHARED_ACQUIRE(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
     {
-        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
+        if(currentMenu.hEntryMenu == hMenu)
         {
             GuiMenuSetIcon(hMenu, icon);
             break;
@@ -786,7 +825,7 @@ void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
     if(hEntry == -1)
         return;
     SHARED_ACQUIRE(LockPluginMenuList);
-    for(const auto & currentMenu : pluginMenuList)
+    for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
         {
@@ -801,7 +840,7 @@ void pluginmenuentrysetchecked(int pluginHandle, int hEntry, bool checked)
     if(hEntry == -1)
         return;
     SHARED_ACQUIRE(LockPluginMenuList);
-    for(const auto & currentMenu : pluginMenuList)
+    for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
         {
@@ -816,7 +855,7 @@ void pluginmenusetvisible(int pluginHandle, int hMenu, bool visible)
     SHARED_ACQUIRE(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
     {
-        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
+        if(currentMenu.hEntryMenu == hMenu)
         {
             GuiMenuSetVisible(hMenu, visible);
             break;
@@ -829,7 +868,7 @@ void pluginmenuentrysetvisible(int pluginHandle, int hEntry, bool visible)
     if(hEntry == -1)
         return;
     SHARED_ACQUIRE(LockPluginMenuList);
-    for(const auto & currentMenu : pluginMenuList)
+    for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
         {
@@ -846,7 +885,7 @@ void pluginmenusetname(int pluginHandle, int hMenu, const char* name)
     SHARED_ACQUIRE(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
     {
-        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
+        if(currentMenu.hEntryMenu == hMenu)
         {
             GuiMenuSetName(hMenu, name);
             break;
@@ -859,7 +898,7 @@ void pluginmenuentrysetname(int pluginHandle, int hEntry, const char* name)
     if(hEntry == -1 || !name)
         return;
     SHARED_ACQUIRE(LockPluginMenuList);
-    for(const auto & currentMenu : pluginMenuList)
+    for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
         {
@@ -874,7 +913,7 @@ void pluginmenuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey)
     if(hEntry == -1 || !hotkey)
         return;
     SHARED_ACQUIRE(LockPluginMenuList);
-    for(const auto & currentMenu : pluginMenuList)
+    for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
         {
@@ -893,6 +932,31 @@ void pluginmenuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey)
             break;
         }
     }
+}
+
+bool pluginmenuremove(int hMenu)
+{
+    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
+        if(currentMenu.hEntryMenu == hMenu && currentMenu.hParentMenu < 256)
+            return false;
+    return pluginmenuclear(hMenu, true);
+}
+
+bool pluginmenuentryremove(int pluginHandle, int hEntry)
+{
+    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    for(auto it = pluginMenuEntryList.begin(); it != pluginMenuEntryList.end(); ++it)
+    {
+        const auto & currentEntry = *it;
+        if(currentEntry.pluginHandle == pluginHandle && currentEntry.hEntryPlugin == hEntry)
+        {
+            GuiMenuRemove(currentEntry.hEntryMenu);
+            pluginMenuEntryList.erase(it);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata)
