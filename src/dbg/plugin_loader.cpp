@@ -537,6 +537,21 @@ bool plugincbempty(CBTYPE cbType)
     return pluginCallbackList[cbType].empty();
 }
 
+static bool findPluginName(int pluginHandle, String & name)
+{
+    SHARED_ACQUIRE(LockPluginList);
+    for(auto & plugin : pluginList)
+    {
+        if(plugin.initStruct.pluginHandle == pluginHandle)
+        {
+            name = plugin.initStruct.pluginName;
+            return true;
+        }
+    }
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Invalid plugin handle %d...\n"), pluginHandle);
+    return false;
+}
+
 /**
 \brief Register a plugin command.
 \param pluginHandle Handle of the plugin to register a command for.
@@ -549,15 +564,21 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
 {
     if(!command || strlen(command) >= deflen || strstr(command, "\1"))
         return false;
+    String plugName;
+    if(!findPluginName(pluginHandle, plugName))
+        return false;
     PLUG_COMMAND plugCmd;
     plugCmd.pluginHandle = pluginHandle;
     strcpy_s(plugCmd.command, command);
     if(!dbgcmdnew(command, (CBCOMMAND)cbCommand, debugonly))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Command \"%s\" failed to register...\n"), plugName.c_str(), command);
         return false;
+    }
     EXCLUSIVE_ACQUIRE(LockPluginCommandList);
     pluginCommandList.push_back(plugCmd);
     EXCLUSIVE_RELEASE();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Command \"%s\" registered!\n"), command);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Command \"%s\" registered!\n"), plugName.c_str(), command);
     return true;
 }
 
@@ -571,6 +592,9 @@ bool plugincmdunregister(int pluginHandle, const char* command)
 {
     if(!command || strlen(command) >= deflen || strstr(command, "\1"))
         return false;
+    String plugName;
+    if(!findPluginName(pluginHandle, plugName))
+        return false;
     EXCLUSIVE_ACQUIRE(LockPluginCommandList);
     for(auto it = pluginCommandList.begin(); it != pluginCommandList.end(); ++it)
     {
@@ -580,11 +604,13 @@ bool plugincmdunregister(int pluginHandle, const char* command)
             pluginCommandList.erase(it);
             EXCLUSIVE_RELEASE();
             if(!dbgcmddel(command))
-                return false;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Command \"%s\" unregistered!\n"), command);
+                goto beach;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Command \"%s\" unregistered!\n"), plugName.c_str(), command);
             return true;
         }
     }
+beach:
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Command \"%s\" failed to unregister...\n"), plugName.c_str(), command);
     return false;
 }
 
@@ -961,20 +987,29 @@ bool pluginmenuentryremove(int pluginHandle, int hEntry)
 
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata)
 {
+    String plugName;
+    if(!findPluginName(pluginHandle, plugName))
+        return false;
     PLUG_EXPRFUNCTION plugExprfunction;
     plugExprfunction.pluginHandle = pluginHandle;
     strcpy_s(plugExprfunction.name, name);
     if(!ExpressionFunctions::Register(name, argc, cbFunction, userdata))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Expression function \"%s\" failed to register...\n"), plugName.c_str(), name);
         return false;
+    }
     EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
     pluginExprfunctionList.push_back(plugExprfunction);
     EXCLUSIVE_RELEASE();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Expression function \"%s\" registered!\n"), name);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Expression function \"%s\" registered!\n"), plugName.c_str(), name);
     return true;
 }
 
 bool pluginexprfuncunregister(int pluginHandle, const char* name)
 {
+    String plugName;
+    if(!findPluginName(pluginHandle, plugName))
+        return false;
     EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
     for(auto it = pluginExprfunctionList.begin(); it != pluginExprfunctionList.end(); ++it)
     {
@@ -984,30 +1019,41 @@ bool pluginexprfuncunregister(int pluginHandle, const char* name)
             pluginExprfunctionList.erase(it);
             EXCLUSIVE_RELEASE();
             if(!ExpressionFunctions::Unregister(name))
-                return false;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Expression function \"%s\" unregistered!\n"), name);
+                goto beach;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Expression function \"%s\" unregistered!\n"), plugName.c_str(), name);
             return true;
         }
     }
+beach:
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Expression function \"%s\" failed to unregister...\n"), plugName.c_str(), name);
     return false;
 }
 
 bool pluginformatfuncregister(int pluginHandle, const char* type, CBPLUGINFORMATFUNCTION cbFunction, void* userdata)
 {
+    String plugName;
+    if(!findPluginName(pluginHandle, plugName))
+        return false;
     PLUG_FORMATFUNCTION plugFormatfunction;
     plugFormatfunction.pluginHandle = pluginHandle;
     strcpy_s(plugFormatfunction.name, type);
     if(!FormatFunctions::Register(type, cbFunction, userdata))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Format function \"%s\" failed to register...\n"), plugName.c_str(), type);
         return false;
+    }
     EXCLUSIVE_ACQUIRE(LockPluginFormatfunctionList);
     pluginFormatfunctionList.push_back(plugFormatfunction);
     EXCLUSIVE_RELEASE();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Format function \"%s\" registered!\n"), type);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Format function \"%s\" registered!\n"), plugName.c_str(), type);
     return true;
 }
 
 bool pluginformatfuncunregister(int pluginHandle, const char* type)
 {
+    String plugName;
+    if(!findPluginName(pluginHandle, plugName))
+        return false;
     EXCLUSIVE_ACQUIRE(LockPluginFormatfunctionList);
     for(auto it = pluginFormatfunctionList.begin(); it != pluginFormatfunctionList.end(); ++it)
     {
@@ -1017,10 +1063,12 @@ bool pluginformatfuncunregister(int pluginHandle, const char* type)
             pluginFormatfunctionList.erase(it);
             EXCLUSIVE_RELEASE();
             if(!FormatFunctions::Unregister(type))
-                return false;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Format function \"%s\" unregistered!\n"), type);
+                goto beach;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Format function \"%s\" unregistered!\n"), plugName.c_str(), type);
             return true;
         }
     }
+beach:
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Format function \"%s\" failed to unregister...\n"), plugName.c_str(), type);
     return false;
 }
