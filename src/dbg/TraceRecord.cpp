@@ -247,7 +247,7 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
 {
     if(!isRunTraceEnabled())
         return;
-    unsigned char WriteBuffer[2048];
+    unsigned char WriteBuffer[3072];
     unsigned char* WriteBufferPtr = WriteBuffer;
     //Get current data
     REGDUMPDWORD newContext;
@@ -262,15 +262,14 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
     // Don't try to resolve memory values for lea and nop instructions
     if(!(newInstruction.IsNop() || newInstruction.GetId() == X86_INS_LEA))
     {
+        DISASM_ARGTYPE argType;
+        duint value;
+        unsigned char memoryContent[128];
+        unsigned char memorySize;
         for(int i = 0; i < newInstruction.OpCount(); i++)
         {
-            DISASM_ARGTYPE argType;
-            duint value;
-            unsigned char memoryContent[32]; //AVX
-            unsigned char memorySize;
             memset(memoryContent, 0, sizeof(memoryContent));
             HandleCapstoneOperand(newInstruction, i, &argType, &value, memoryContent, &memorySize);
-            // TODO: Support SSE and AVX wide memory operands. They can be recorded in memory access log as multiple memory accesses of pointer size.
             // TODO: Implicit memory access by push and pop instructions
             // TODO: Support memory value of ??? for invalid memory access
             if(argType == arg_memory)
@@ -290,6 +289,16 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
                     }
             }
         }
+        if(newInstruction.GetId() == X86_INS_PUSH || newInstruction.GetId() == X86_INS_PUSHF || newInstruction.GetId() == X86_INS_PUSHFD
+                || newInstruction.GetId() == X86_INS_PUSHFQ || newInstruction.GetId() == X86_INS_CALL //TODO: far call accesses 2 stack entries
+                || newInstruction.GetId() == X86_INS_POP || newInstruction.GetId() == X86_INS_POPF || newInstruction.GetId() == X86_INS_POPFD
+                || newInstruction.GetId() == X86_INS_POPFQ || newInstruction.GetId() == X86_INS_RET)
+        {
+            MemRead(newContext.registers.regcontext.csp - sizeof(duint), &newMemory[newMemoryArrayCount], sizeof(duint));
+            newMemoryAddress[newMemoryArrayCount] = newContext.registers.regcontext.csp - sizeof(duint);
+            newMemoryArrayCount++;
+        }
+        //TODO: PUSHAD/POPAD
         assert(newMemoryArrayCount < 32);
     }
     if(rtPrevInstAvailable)
@@ -300,7 +309,7 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
         }
         //Delta compress registers
         //Data layout is Structure of Arrays to gather the same type of data in continuous memory to improve RLE compression performance.
-        //1byte:block type,1byte:reg changed count,1byte:memory accessed count,1byte:flags,4byte/none:threadid,string:opcode,1byte[]:position,ptrbyte[]:regvalue,ptrbyte[]:address,1byte[]:flags,ptrbyte[]:oldmem,ptrbyte[]:newmem
+        //1byte:block type,1byte:reg changed count,1byte:memory accessed count,1byte:flags,4byte/none:threadid,string:opcode,1byte[]:position,ptrbyte[]:regvalue,1byte[]:flags,ptrbyte[]:address,ptrbyte[]:oldmem,ptrbyte[]:newmem
 
         //Always record state of LAST INSTRUCTION! (NOT current instruction)
         unsigned char changed = 0;
@@ -328,12 +337,14 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
         }
         memcpy(WriteBufferPtr, rtOldOpcode, rtOldOpcodeSize);
         WriteBufferPtr += rtOldOpcodeSize;
+        unsigned char lastChangedPosition = 255; //-1
         for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++) //1byte: position
         {
             if(rtOldContext.regword[i] != newContext.regword[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
             {
-                WriteBufferPtr[0] = i;
+                WriteBufferPtr[0] = i - lastChangedPosition - 1;
                 WriteBufferPtr++;
+                lastChangedPosition = i;
             }
         }
         for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++) //ptrbyte: newvalue
@@ -344,16 +355,19 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
                 WriteBufferPtr += sizeof(duint);
             }
         }
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //1byte: flags
+        {
+            unsigned char memoryOperandFlags = 0;
+            if(rtOldMemory[i] == oldMemory[i]) //bit 0: memory is unchanged, no new memory is saved
+                memoryOperandFlags |= 1;
+            //proposed flags: is memory valid, is memory zero
+            WriteBufferPtr[0] = memoryOperandFlags;
+            WriteBufferPtr += 1;
+        }
         for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: address
         {
             memcpy(WriteBufferPtr, &rtOldMemoryAddress[i], sizeof(duint));
             WriteBufferPtr += sizeof(duint);
-        }
-        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //1byte: flags(reserved for invalid memory accesses or other uses)
-            //probably add a flag indicating memory is not changed so only old value is saved?
-        {
-            WriteBufferPtr[0] = 0;
-            WriteBufferPtr += 1;
         }
         for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: old content
         {
@@ -362,8 +376,11 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
         }
         for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: new content
         {
-            memcpy(WriteBufferPtr, &oldMemory[i], sizeof(duint));
-            WriteBufferPtr += sizeof(duint);
+            if(rtOldMemory[i] != oldMemory[i])
+            {
+                memcpy(WriteBufferPtr, &oldMemory[i], sizeof(duint));
+                WriteBufferPtr += sizeof(duint);
+            }
         }
     }
     //Switch context buffers

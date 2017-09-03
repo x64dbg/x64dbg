@@ -2011,7 +2011,8 @@ void CPUDisassembly::ActionTraceRecordToggleRunTraceSlot()
         DbgCmdExec("StopRunTrace");
     else
     {
-        BrowseDialog browse(this, tr("Select stored file"), tr("Store run trace to the following file"), tr("Run trace files (*.trace);;All files (*.*)"), QCoreApplication::applicationDirPath(), true);
+        BrowseDialog browse(this, tr("Select stored file"), tr("Store run trace to the following file"),
+                            tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QCoreApplication::applicationDirPath(), true);
         if(browse.exec() == QDialog::Accepted)
             DbgCmdExec(QString("StartRunTrace %1").arg(browse.path).toUtf8().constData());
     }
