@@ -101,7 +101,7 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index)
             pages.erase(pageOutIndex);
         }
         //binary search fileIndex to get file offset, push a TraceFilePage into cache and return it.
-        auto fileOffset = std::upper_bound(fileIndex.begin(), fileIndex.end(), index, [](unsigned long long a, std::pair<unsigned long long, Range> & b)
+        auto fileOffset = std::lower_bound(fileIndex.begin(), fileIndex.end(), index, [](unsigned long long a, std::pair<unsigned long long, Range> & b)
         {
             return a < b.first;
         });
