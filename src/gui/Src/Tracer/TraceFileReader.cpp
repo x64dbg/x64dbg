@@ -27,6 +27,7 @@ bool TraceFileReader::Open(const QString & fileName)
         connect(parser, SIGNAL(finished()), this, SLOT(parseFinished()));
         progress.store(0);
         parser->start();
+        return true;
     }
     else
         return false;
@@ -79,37 +80,57 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index)
         GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
         lastAccessedPage = &cache->second;
         GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
-        return &lastAccessedPage;
+        return lastAccessedPage;
     }
-    else if(index >= Length())
+    else if(index >= Length()) //Out of bound
         return nullptr;
     else //page in
     {
         if(pages.size() >= 2048) //TODO: trim resident pages based on system memory usage, instead of a hard limit.
         {
-            FILETIME pageOutTime = pages.at(0).lastAccessed;
-            int pageOutIndex = 0;
-            for(int i = 1; i < pages.size(); i++)
+            FILETIME pageOutTime = pages.begin()->second.lastAccessed;
+            Range pageOutIndex = pages.begin()->first;
+            for(auto i : pages)
             {
-                if(pageOutTime.dwHighDateTime < pages.at(i).lastAccessed.dwHighDateTime || (pageOutTime.dwHighDateTime == pages.at(i).lastAccessed.dwHighDateTime && pageOutTime.dwLowDateTime < pages.at(i).lastAccessed.dwLowDateTime))
+                if(pageOutTime.dwHighDateTime < i.second.lastAccessed.dwHighDateTime || (pageOutTime.dwHighDateTime == i.second.lastAccessed.dwHighDateTime && pageOutTime.dwLowDateTime < i.second.lastAccessed.dwLowDateTime))
                 {
-                    pageOutTime = pages.at(i).lastAccessed;
-                    pageOutIndex = i;
+                    pageOutTime = i.second.lastAccessed;
+                    pageOutIndex = i.first;
                 }
             }
-            pages.erase(pages.at(pageOutIndex));
+            pages.erase(pageOutIndex);
         }
-        //TODO: binary search fileIndex to get file offset, push a TraceFilePage into cache and return it.
+        //binary search fileIndex to get file offset, push a TraceFilePage into cache and return it.
+        auto fileOffset = std::upper_bound(fileIndex.begin(), fileIndex.end(), index, [](unsigned long long a, std::pair<unsigned long long, Range> & b)
+        {
+            return a < b.first;
+        });
+        if(fileOffset->second.second + fileOffset->first > index)
+        {
+            pages.insert(std::make_pair(Range(fileOffset->first, fileOffset->second.second), TraceFilePage(this, fileOffset->second.first, fileOffset->second.second)));
+            const auto newPage = pages.find(Range(index, index));
+            if(cache != pages.cend())
+            {
+                GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
+                lastAccessedPage = &newPage->second;
+                GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
+                return lastAccessedPage;
+            }
+            else
+                return nullptr; //???
+        }
+        else
+            return nullptr; //???
     }
 }
 
 //Parser
-void TraceFileReader::TraceFileParser::run()
+void TraceFileParser::run()
 {
     TraceFileReader* that = dynamic_cast<TraceFileReader*>(parent());
     unsigned long long index = 0;
     unsigned long long lastIndex = 0;
-    if(that == NULL) SimpleErrorBox(this, "debug", "error");
+    if(that == NULL) SimpleErrorBox(nullptr, "debug", "error");
     try
     {
         //Process file header
@@ -150,7 +171,7 @@ void TraceFileReader::TraceFileParser::run()
                 {
                     if(lastIndex != 0)
                         that->fileIndex.at(lastIndex - 1).second.second = index - (lastIndex - 1);
-                    that->fileIndex.push_back(std::make_pair(index, Range(blockStart, 0)));
+                    that->fileIndex.push_back(std::make_pair(index, TraceFileReader::Range(blockStart, 0)));
                     lastIndex = index + 1;
                     //Update progress
                     that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
@@ -165,12 +186,12 @@ void TraceFileReader::TraceFileParser::run()
     }
     catch(const std::exception &)
     {
-        error = true;
+        that->error = true;
     }
 }
 
 //TraceFilePage
-TraceFileReader::TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOffset, unsigned long long maxLength)
+TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOffset, unsigned long long maxLength)
 {
     DWORD lastThreadId = 0;
     union
@@ -185,15 +206,15 @@ TraceFileReader::TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned 
     mParent = parent;
     length = 0;
     GetSystemTimes(nullptr, nullptr, &lastAccessed); //system user time, no GetTickCount64() for XP compatibility.
-    memset(registers, 0, sizeof(registers));
+    memset(&registers, 0, sizeof(registers));
     try
     {
         if(mParent->traceFile.seek(fileOffset) == false)
             throw std::exception();
         //Process file content
-        while(!that->traceFile.atEnd() && length < maxLength)
+        while(!mParent->traceFile.atEnd() && length < maxLength)
         {
-            if(!that->traceFile.isReadable())
+            if(!mParent->traceFile.isReadable())
                 throw std::exception();
             unsigned char blockType;
             unsigned char changedCountFlags[3]; //reg changed count, mem accessed count, flags
@@ -284,4 +305,9 @@ TraceFileReader::TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned 
     {
         mParent->error = true;
     }
+}
+
+unsigned long long TraceFilePage::Length() const
+{
+    return length;
 }
