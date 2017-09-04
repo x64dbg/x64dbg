@@ -18,18 +18,18 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     int wCharWidth = mHandlesTable->mList->getCharWidth();
     // Setup handles list
     mHandlesTable->mList->setDrawDebugOnly(true);
-    mHandlesTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("Type"), false);
-    mHandlesTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Type number"), false);
-    mHandlesTable->mList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), false);
-    mHandlesTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("Access"), false);
-    mHandlesTable->mList->addColumnAt(8 + wCharWidth * 20, tr("Name"), false);
+    mHandlesTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("Type"), true);
+    mHandlesTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Type number"), true);
+    mHandlesTable->mList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), true);
+    mHandlesTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("Access"), true);
+    mHandlesTable->mList->addColumnAt(8 + wCharWidth * 20, tr("Name"), true);
     mHandlesTable->mList->loadColumnFromConfig("Handle");
     // Setup search list
-    mHandlesTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Type"), false);
-    mHandlesTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Type number"), false);
-    mHandlesTable->mSearchList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), false);
-    mHandlesTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Access"), false);
-    mHandlesTable->mSearchList->addColumnAt(8 + wCharWidth * 20, tr("Name"), false);
+    mHandlesTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Type"), true);
+    mHandlesTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Type number"), true);
+    mHandlesTable->mSearchList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), true);
+    mHandlesTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Access"), true);
+    mHandlesTable->mSearchList->addColumnAt(8 + wCharWidth * 20, tr("Name"), true);
     mHandlesTable->mSearchList->loadColumnFromConfig("Handle");
 
     mWindowsTable = new SearchListView(true, this, true);
@@ -37,28 +37,28 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mWindowsTable->mSearchStartCol = 0;
     // Setup windows list
     mWindowsTable->mList->setDrawDebugOnly(true);
-    mWindowsTable->mList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), false);
-    mWindowsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), false);
-    mWindowsTable->mList->addColumnAt(8 + 120 * wCharWidth, tr("Title"), false);
-    mWindowsTable->mList->addColumnAt(8 + 40 * wCharWidth, tr("Class"), false);
-    mWindowsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), false);
-    mWindowsTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("Style"), false);
-    mWindowsTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), false);
-    mWindowsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), false);
-    mWindowsTable->mList->addColumnAt(8 + 20 * wCharWidth, tr("Size"), false);
-    mWindowsTable->mList->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), false);
+    mWindowsTable->mList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), true);
+    mWindowsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), true);
+    mWindowsTable->mList->addColumnAt(8 + 120 * wCharWidth, tr("Title"), true);
+    mWindowsTable->mList->addColumnAt(8 + 40 * wCharWidth, tr("Class"), true);
+    mWindowsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), true);
+    mWindowsTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("Style"), true);
+    mWindowsTable->mList->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), true);
+    mWindowsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), true);
+    mWindowsTable->mList->addColumnAt(8 + 20 * wCharWidth, tr("Size"), true);
+    mWindowsTable->mList->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), true);
     mWindowsTable->mList->loadColumnFromConfig("Window");
     // Setup search list
-    mWindowsTable->mSearchList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), false);
-    mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), false);
-    mWindowsTable->mSearchList->addColumnAt(8 + 120 * wCharWidth, tr("Title"), false);
-    mWindowsTable->mSearchList->addColumnAt(8 + 40 * wCharWidth, tr("Class"), false);
-    mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), false);
-    mWindowsTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Style"), false);
-    mWindowsTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), false);
-    mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), false);
-    mWindowsTable->mSearchList->addColumnAt(8 + 20 * wCharWidth, tr("Size"), false);
-    mWindowsTable->mSearchList->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), false);
+    mWindowsTable->mSearchList->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), true);
+    mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), true);
+    mWindowsTable->mSearchList->addColumnAt(8 + 120 * wCharWidth, tr("Title"), true);
+    mWindowsTable->mSearchList->addColumnAt(8 + 40 * wCharWidth, tr("Class"), true);
+    mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), true);
+    mWindowsTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("Style"), true);
+    mWindowsTable->mSearchList->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), true);
+    mWindowsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), true);
+    mWindowsTable->mSearchList->addColumnAt(8 + 20 * wCharWidth, tr("Size"), true);
+    mWindowsTable->mSearchList->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), true);
     mWindowsTable->mSearchList->loadColumnFromConfig("Window");
 
     mTcpConnectionsTable = new SearchListView(true, this, true);
@@ -66,14 +66,14 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mHandlesTable->mSearchStartCol = 0;
     // create tcp list
     mTcpConnectionsTable->mList->setDrawDebugOnly(true);
-    mTcpConnectionsTable->mList->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
-    mTcpConnectionsTable->mList->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
-    mTcpConnectionsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("State"), false);
+    mTcpConnectionsTable->mList->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), true);
+    mTcpConnectionsTable->mList->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), true);
+    mTcpConnectionsTable->mList->addColumnAt(8 + 8 * wCharWidth, tr("State"), true);
     mTcpConnectionsTable->mList->loadColumnFromConfig("TcpConnection");
     // create search list
-    mTcpConnectionsTable->mSearchList->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), false);
-    mTcpConnectionsTable->mSearchList->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), false);
-    mTcpConnectionsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("State"), false);
+    mTcpConnectionsTable->mSearchList->addColumnAt(8 + 64 * wCharWidth, tr("Remote address"), true);
+    mTcpConnectionsTable->mSearchList->addColumnAt(8 + 64 * wCharWidth, tr("Local address"), true);
+    mTcpConnectionsTable->mSearchList->addColumnAt(8 + 8 * wCharWidth, tr("State"), true);
     mTcpConnectionsTable->mSearchList->loadColumnFromConfig("TcpConnection");
     /*
         mHeapsTable = new ReferenceView(this);
@@ -88,8 +88,8 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mPrivilegesTable->setWindowTitle("Privileges");
     mPrivilegesTable->setDrawDebugOnly(true);
     mPrivilegesTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mPrivilegesTable->addColumnAt(8 + 32 * wCharWidth, tr("Privilege"), false);
-    mPrivilegesTable->addColumnAt(8 + 16 * wCharWidth, tr("State"), false);
+    mPrivilegesTable->addColumnAt(8 + 32 * wCharWidth, tr("Privilege"), true);
+    mPrivilegesTable->addColumnAt(8 + 16 * wCharWidth, tr("State"), true);
     mPrivilegesTable->loadColumnFromConfig("Privilege");
 
     // Splitter

@@ -7,12 +7,12 @@
 WatchView::WatchView(CPUMultiDump* parent) : StdTable(parent)
 {
     int charWidth = getCharWidth();
-    addColumnAt(8 + charWidth * 12, tr("Name"), false);
-    addColumnAt(8 + charWidth * 20, tr("Expression"), false);
-    addColumnAt(8 + charWidth * sizeof(duint) * 2, tr("Value"), false);
-    addColumnAt(8 + charWidth * 8, tr("Type"), false);
-    addColumnAt(150, tr("Watchdog Mode"), false);
-    addColumnAt(30, tr("ID"), false);
+    addColumnAt(8 + charWidth * 12, tr("Name"), true);
+    addColumnAt(8 + charWidth * 20, tr("Expression"), true);
+    addColumnAt(8 + charWidth * sizeof(duint) * 2, tr("Value"), true);
+    addColumnAt(8 + charWidth * 8, tr("Type"), true);
+    addColumnAt(150, tr("Watchdog Mode"), true);
+    addColumnAt(30, tr("ID"), true, "", SortBy::AsInt);
 
     connect(Bridge::getBridge(), SIGNAL(updateWatch()), this, SLOT(updateWatch()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));

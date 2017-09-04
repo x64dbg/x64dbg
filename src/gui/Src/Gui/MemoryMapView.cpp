@@ -23,7 +23,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
 
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, tr("Address")); //addr
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), true, tr("Address")); //addr
     addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, tr("Size")); //size
     addColumnAt(8 + charwidth * 32, tr("Info"), false, tr("Page Information")); //page information
     addColumnAt(8 + charwidth * 28, tr("Content"), false, tr("Content of section")); //content of section
