@@ -180,7 +180,9 @@ SOURCES += \
     Src/Gui/MessagesBreakpoints.cpp \
     Src/Gui/AboutDialog.cpp \
     Src/Gui/BreakpointMenu.cpp \
-    Src/Gui/ComboBoxDialog.cpp
+    Src/Gui/ComboBoxDialog.cpp \
+    Src/Tracer/TraceBrowser.cpp \
+    Src/Tracer/TraceFileReader.cpp
 
 
 HEADERS += \
@@ -296,7 +298,9 @@ HEADERS += \
     Src/Gui/AboutDialog.h \
     Src/Gui/BreakpointMenu.h \
     Src/Gui/ComboBoxDialog.h \
-    Src/Utils/VaHistory.h
+    Src/Utils/VaHistory.h \
+    Src/Tracer/TraceBrowser.h \
+    Src/Tracer/TraceFileReader.h
     
 
 FORMS += \

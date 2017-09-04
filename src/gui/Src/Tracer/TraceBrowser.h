@@ -1,0 +1,4 @@
+#ifndef TRACEBROWSER_H
+#define TRACEBROWSER_H
+
+#endif //TRACEBROWSER_H
