@@ -32,6 +32,7 @@ private slots:
     void resetHitCountBreakpointSlot();
     void enableAllBreakpointsSlot();
     void disableAllBreakpointsSlot();
+    void removeAllBreakpointsSlot();
     void addDllBreakpointSlot();
     void addExceptionBreakpointSlot();
 
