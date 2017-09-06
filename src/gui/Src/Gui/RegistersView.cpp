@@ -2969,6 +2969,7 @@ void RegistersView::onCopyAllAction()
         appendRegister(text, REGISTER_NAME::XMM13, "XMM13 : ", "XMM13 : ");
         appendRegister(text, REGISTER_NAME::XMM14, "XMM14 : ", "XMM14 : ");
         appendRegister(text, REGISTER_NAME::XMM15, "XMM15 : ", "XMM15 : ");
+#endif
         appendRegister(text, REGISTER_NAME::YMM0, "YMM0  : ", "YMM0  : ");
         appendRegister(text, REGISTER_NAME::YMM1, "YMM1  : ", "YMM1  : ");
         appendRegister(text, REGISTER_NAME::YMM2, "YMM2  : ", "YMM2  : ");
@@ -2977,6 +2978,7 @@ void RegistersView::onCopyAllAction()
         appendRegister(text, REGISTER_NAME::YMM5, "YMM5  : ", "YMM5  : ");
         appendRegister(text, REGISTER_NAME::YMM6, "YMM6  : ", "YMM6  : ");
         appendRegister(text, REGISTER_NAME::YMM7, "YMM7  : ", "YMM7  : ");
+#ifdef _WIN64
         appendRegister(text, REGISTER_NAME::YMM8, "YMM8  : ", "YMM8  : ");
         appendRegister(text, REGISTER_NAME::YMM9, "YMM9  : ", "YMM9  : ");
         appendRegister(text, REGISTER_NAME::YMM10, "YMM10 : ", "YMM10 : ");
