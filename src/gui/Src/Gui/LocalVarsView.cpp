@@ -24,9 +24,9 @@ LocalVarsView::LocalVarsView(CPUMultiDump* parent) : StdTable(parent)
     configUpdatedSlot();
 
     int charWidth = getCharWidth();
-    addColumnAt(8 + 20 * charWidth, tr("Name"), false);
-    addColumnAt(8 + 10 * charWidth, tr("Expression"), false); //[EBP + 10]
-    addColumnAt(8 + 10 * charWidth, tr("Value"), false);
+    addColumnAt(8 + 20 * charWidth, tr("Name"), true);
+    addColumnAt(8 + 10 * charWidth, tr("Expression"), true); //[EBP + 10]
+    addColumnAt(8 + 10 * charWidth, tr("Value"), true);
     loadColumnFromConfig("LocalVarsView");
 
     setupContextMenu();

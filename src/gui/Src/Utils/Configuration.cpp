@@ -458,6 +458,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionResetHitCountBreakpoint", Shortcut({tr("Actions"), tr("Reset breakpoint hit count")}));
     defaultShortcuts.insert("ActionEnableAllBreakpoints", Shortcut({tr("Actions"), tr("Enable all breakpoints")}));
     defaultShortcuts.insert("ActionDisableAllBreakpoints", Shortcut({tr("Actions"), tr("Disable all breakpoints")}));
+    defaultShortcuts.insert("ActionRemoveAllBreakpoints", Shortcut({tr("Actions"), tr("Remove all breakpoints")}));
 
     defaultShortcuts.insert("ActionBinaryEdit", Shortcut({tr("Actions"), tr("Binary Edit")}, "Ctrl+E"));
     defaultShortcuts.insert("ActionBinaryFill", Shortcut({tr("Actions"), tr("Binary Fill")}, "F"));

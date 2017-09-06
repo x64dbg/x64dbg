@@ -156,24 +156,20 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
 {
     enableMultiSelection(true);
     int charwidth = getCharWidth();
-    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("Number"), false, "", SortBy::AsInt);
-    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("ID"), false, "", SortBy::AsHex);
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("Entry"), false, "", SortBy::AsHex);
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("TEB"), false, "", SortBy::AsHex);
-#ifdef _WIN64
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("RIP"), false, "", SortBy::AsHex);
-#else
-    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("EIP"), false, "", SortBy::AsHex);
-#endif //_WIN64
-    addColumnAt(8 + charwidth * 14, tr("Suspend Count"), false, "", SortBy::AsInt);
-    addColumnAt(8 + charwidth * 12, tr("Priority"), false);
-    addColumnAt(8 + charwidth * 12, tr("Wait Reason"), false);
-    addColumnAt(8 + charwidth * 10, tr("Last Error"), false);
-    addColumnAt(8 + charwidth * 16, tr("User Time"), false);
-    addColumnAt(8 + charwidth * 16, tr("Kernel Time"), false);
-    addColumnAt(8 + charwidth * 16, tr("Creation Time"), false);
-    addColumnAt(8 + charwidth * 10, tr("CPU Cycles"), false, "", SortBy::AsInt);
-    addColumnAt(8, tr("Name"), false);
+    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("Number"), true, "", SortBy::AsInt);
+    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("ID"), true, "", SortBy::AsHex);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("Entry"), true, "", SortBy::AsHex);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("TEB"), true, "", SortBy::AsHex);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, ArchValue(tr("EIP"), tr("RIP")), true, "", SortBy::AsHex);
+    addColumnAt(8 + charwidth * 14, tr("Suspend Count"), true, "", SortBy::AsInt);
+    addColumnAt(8 + charwidth * 12, tr("Priority"), true);
+    addColumnAt(8 + charwidth * 12, tr("Wait Reason"), true);
+    addColumnAt(8 + charwidth * 10, tr("Last Error"), true, "", SortBy::AsHex);
+    addColumnAt(8 + charwidth * 16, tr("User Time"), true);
+    addColumnAt(8 + charwidth * 16, tr("Kernel Time"), true);
+    addColumnAt(8 + charwidth * 16, tr("Creation Time"), true);
+    addColumnAt(8 + charwidth * 10, tr("CPU Cycles"), true, "", SortBy::AsHex);
+    addColumnAt(8, tr("Name"), true);
     loadColumnFromConfig("Thread");
 
     //setCopyMenuOnly(true);

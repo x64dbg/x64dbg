@@ -2848,16 +2848,14 @@ void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char
 void RegistersView::onCopyAllAction()
 {
     QString text;
-    QClipboard* clipboard;
-    // Auto generated code
     appendRegister(text, REGISTER_NAME::CAX, "RAX : ", "EAX : ");
+    appendRegister(text, REGISTER_NAME::CBX, "RBX : ", "EBX : ");
     appendRegister(text, REGISTER_NAME::CCX, "RCX : ", "ECX : ");
     appendRegister(text, REGISTER_NAME::CDX, "RDX : ", "EDX : ");
-    appendRegister(text, REGISTER_NAME::CBX, "RBX : ", "EBX : ");
-    appendRegister(text, REGISTER_NAME::CDI, "RDI : ", "EDI : ");
     appendRegister(text, REGISTER_NAME::CBP, "RBP : ", "EBP : ");
-    appendRegister(text, REGISTER_NAME::CSI, "RSI : ", "ESI : ");
     appendRegister(text, REGISTER_NAME::CSP, "RSP : ", "ESP : ");
+    appendRegister(text, REGISTER_NAME::CSI, "RSI : ", "ESI : ");
+    appendRegister(text, REGISTER_NAME::CDI, "RDI : ", "EDI : ");
 #ifdef _WIN64
     appendRegister(text, REGISTER_NAME::R8, "R8  : ", "R8  : ");
     appendRegister(text, REGISTER_NAME::R9, "R9  : ", "R9  : ");
@@ -2870,28 +2868,22 @@ void RegistersView::onCopyAllAction()
 #endif
     appendRegister(text, REGISTER_NAME::CIP, "RIP : ", "EIP : ");
     appendRegister(text, REGISTER_NAME::EFLAGS, "RFLAGS : ", "EFLAGS : ");
+    appendRegister(text, REGISTER_NAME::ZF, "ZF : ", "ZF : ");
+    appendRegister(text, REGISTER_NAME::OF, "OF : ", "OF : ");
     appendRegister(text, REGISTER_NAME::CF, "CF : ", "CF : ");
     appendRegister(text, REGISTER_NAME::PF, "PF : ", "PF : ");
-    appendRegister(text, REGISTER_NAME::AF, "AF : ", "AF : ");
-    appendRegister(text, REGISTER_NAME::ZF, "ZF : ", "ZF : ");
     appendRegister(text, REGISTER_NAME::SF, "SF : ", "SF : ");
     appendRegister(text, REGISTER_NAME::TF, "TF : ", "TF : ");
-    appendRegister(text, REGISTER_NAME::IF, "IF : ", "IF : ");
+    appendRegister(text, REGISTER_NAME::AF, "AF : ", "AF : ");
     appendRegister(text, REGISTER_NAME::DF, "DF : ", "DF : ");
-    appendRegister(text, REGISTER_NAME::OF, "OF : ", "OF : ");
-    appendRegister(text, REGISTER_NAME::GS, "GS : ", "GS : ");
-    appendRegister(text, REGISTER_NAME::FS, "FS : ", "FS : ");
-    appendRegister(text, REGISTER_NAME::ES, "ES : ", "ES : ");
-    appendRegister(text, REGISTER_NAME::DS, "DS : ", "DS : ");
-    appendRegister(text, REGISTER_NAME::CS, "CS : ", "CS : ");
-    appendRegister(text, REGISTER_NAME::SS, "SS : ", "SS : ");
+    appendRegister(text, REGISTER_NAME::IF, "IF : ", "IF : ");
     appendRegister(text, REGISTER_NAME::LastError, "LastError : ", "LastError : ");
-    appendRegister(text, REGISTER_NAME::DR0, "DR0 : ", "DR0 : ");
-    appendRegister(text, REGISTER_NAME::DR1, "DR1 : ", "DR1 : ");
-    appendRegister(text, REGISTER_NAME::DR2, "DR2 : ", "DR2 : ");
-    appendRegister(text, REGISTER_NAME::DR3, "DR3 : ", "DR3 : ");
-    appendRegister(text, REGISTER_NAME::DR6, "DR6 : ", "DR6 : ");
-    appendRegister(text, REGISTER_NAME::DR7, "DR7 : ", "DR7 : ");
+    appendRegister(text, REGISTER_NAME::GS, "GS : ", "GS : ");
+    appendRegister(text, REGISTER_NAME::ES, "ES : ", "ES : ");
+    appendRegister(text, REGISTER_NAME::CS, "CS : ", "CS : ");
+    appendRegister(text, REGISTER_NAME::FS, "FS : ", "FS : ");
+    appendRegister(text, REGISTER_NAME::DS, "DS : ", "DS : ");
+    appendRegister(text, REGISTER_NAME::SS, "SS : ", "SS : ");
     if(mShowFpu)
     {
         appendRegister(text, REGISTER_NAME::x87r0, "x87r0 : ", "x87r0 : ");
@@ -2995,8 +2987,14 @@ void RegistersView::onCopyAllAction()
         appendRegister(text, REGISTER_NAME::YMM15, "YMM15 : ", "YMM15 : ");
 #endif
     }
-    // Auto generated code end
-    clipboard = QApplication::clipboard();
+    appendRegister(text, REGISTER_NAME::DR0, "DR0 : ", "DR0 : ");
+    appendRegister(text, REGISTER_NAME::DR1, "DR1 : ", "DR1 : ");
+    appendRegister(text, REGISTER_NAME::DR2, "DR2 : ", "DR2 : ");
+    appendRegister(text, REGISTER_NAME::DR3, "DR3 : ", "DR3 : ");
+    appendRegister(text, REGISTER_NAME::DR6, "DR6 : ", "DR6 : ");
+    appendRegister(text, REGISTER_NAME::DR7, "DR7 : ", "DR7 : ");
+
+    auto clipboard = QApplication::clipboard();
     clipboard->setText(text);
 }
 

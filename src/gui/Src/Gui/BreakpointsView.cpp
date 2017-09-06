@@ -90,6 +90,14 @@ void BreakpointsView::setupContextMenu()
         disableAll->setText(tr("Disable all (%1)").arg(bpTypeName(selectedBp().type)));
         return true;
     });
+    QAction* removeAll = makeShortcutAction(DIcon("breakpoint_remove_all.png"), QString(), SLOT(removeAllBreakpointsSlot()), "ActionRemoveAllBreakpoints");
+    mMenuBuilder->addAction(removeAll, [this, removeAll](QMenu*)
+    {
+        if(!isValidBp())
+            return false;
+        removeAll->setText(tr("Remove all (%1)").arg(bpTypeName(selectedBp().type)));
+        return true;
+    });
     mMenuBuilder->addSeparator();
 
     mMenuBuilder->addAction(makeAction(DIcon("breakpoint_module_add.png"), tr("Add DLL breakpoint"), SLOT(addDllBreakpointSlot())));
@@ -661,6 +669,30 @@ void BreakpointsView::disableAllBreakpointsSlot()
             return "bpddll";
         case bp_exception:
             return "DisableExceptionBPX";
+        default:
+            return "invalid";
+        }
+    }());
+}
+
+void BreakpointsView::removeAllBreakpointsSlot()
+{
+    if(mBps.empty())
+        return;
+    DbgCmdExec([this]()
+    {
+        switch(selectedBp().type)
+        {
+        case bp_normal:
+            return "bc";
+        case bp_hardware:
+            return "bphwc";
+        case bp_memory:
+            return "bpmc";
+        case bp_dll:
+            return "bcdll";
+        case bp_exception:
+            return "DeleteExceptionBPX";
         default:
             return "invalid";
         }

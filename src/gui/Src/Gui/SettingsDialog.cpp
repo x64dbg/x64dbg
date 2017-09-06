@@ -73,7 +73,6 @@ void SettingsDialog::LoadSettings()
     settings.disasm0xPrefixValues = false;
     settings.disasmNoSourceLineAutoComments = false;
     settings.guiNoForegroundWindow = true;
-    settings.miscQueryProcessCookie = true;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);

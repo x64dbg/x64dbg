@@ -32,16 +32,16 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     int charwidth = mModuleList->mList->getCharWidth();
     mModuleList->mList->enableMultiSelection(true);
     mModuleList->mList->setCipBase(true);
-    mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
+    mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), true);
     mModuleList->mList->addColumnAt(300, tr("Module"), true);
-    mModuleList->mList->addColumnAt(charwidth * 8, tr("Party"), false);
-    mModuleList->mList->addColumnAt(charwidth * 60, tr("Path"), false);
+    mModuleList->mList->addColumnAt(charwidth * 8, tr("Party"), true);
+    mModuleList->mList->addColumnAt(charwidth * 60, tr("Path"), true);
     mModuleList->mList->loadColumnFromConfig("Module");
     mModuleList->mSearchList->setCipBase(true);
-    mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), false);
+    mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), true);
     mModuleList->mSearchList->addColumnAt(300, "Module", true);
-    mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), false);
-    mModuleList->mSearchList->addColumnAt(charwidth * 60, tr("Path"), false);
+    mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), true);
+    mModuleList->mSearchList->addColumnAt(charwidth * 60, tr("Path"), true);
     mModuleList->mSearchList->loadColumnFromConfig("Module");
 
     // Setup symbol list

@@ -181,6 +181,14 @@ static DWORD WINAPI memMapThread(void* ptr)
     return 0;
 }
 
+static bool isUserIdle()
+{
+    LASTINPUTINFO lii;
+    lii.cbSize = sizeof(LASTINPUTINFO);
+    GetLastInputInfo(&lii);
+    return GetTickCount() - lii.dwTime > 1000 * 60; //60 seconds without input is considered idle
+}
+
 static DWORD WINAPI timeWastedCounterThread(void* ptr)
 {
     if(!BridgeSettingGetUint("Engine", "TimeWastedDebugging", &timeWastedDebugging))
@@ -188,7 +196,7 @@ static DWORD WINAPI timeWastedCounterThread(void* ptr)
     GuiUpdateTimeWastedCounter();
     while(!bStopTimeWastedCounterThread)
     {
-        while(!DbgIsDebugging())
+        while(!DbgIsDebugging() || isUserIdle())
         {
             if(bStopTimeWastedCounterThread)
                 break;

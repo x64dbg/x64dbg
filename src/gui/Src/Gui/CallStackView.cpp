@@ -6,11 +6,11 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
     int charwidth = getCharWidth();
 
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Address"), true); //address in the stack
-    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), true); //return to
-    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), true); //return from
-    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Size"), true); //size
-    addColumnAt(50 * charwidth, tr("Comment"), true);
-    addColumnAt(8 * charwidth, tr("Party"), true); //party
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), false); //return to
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), false); //return from
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Size"), false); //size
+    addColumnAt(50 * charwidth, tr("Comment"), false);
+    addColumnAt(8 * charwidth, tr("Party"), false); //party
     loadColumnFromConfig("CallStack");
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));

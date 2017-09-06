@@ -290,11 +290,13 @@ duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh, bool FindReserve
 //TODO: name this function properly
 static bool IgnoreThisRead(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
 {
-    if(!bQueryWorkingSet)
+    typedef BOOL(WINAPI * QUERYWORKINGSETEX)(HANDLE, PVOID, DWORD);
+    static auto fnQueryWorkingSetEx = QUERYWORKINGSETEX(GetProcAddress(GetModuleHandleW(L"psapi.dll"), "QueryWorkingSetEx"));
+    if(!bQueryWorkingSet || !fnQueryWorkingSetEx)
         return false;
     PSAPI_WORKING_SET_EX_INFORMATION wsi;
     wsi.VirtualAddress = (PVOID)PAGE_ALIGN(lpBaseAddress);
-    if(QueryWorkingSetEx(hProcess, &wsi, sizeof(wsi)) && !wsi.VirtualAttributes.Valid)
+    if(fnQueryWorkingSetEx(hProcess, &wsi, sizeof(wsi)) && !wsi.VirtualAttributes.Valid)
     {
         MEMORY_BASIC_INFORMATION mbi;
         if(VirtualQueryEx(hProcess, wsi.VirtualAddress, &mbi, sizeof(mbi)) && mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE)
