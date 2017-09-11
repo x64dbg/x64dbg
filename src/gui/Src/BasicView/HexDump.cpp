@@ -507,23 +507,19 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
 
 void HexDump::keyPressEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_Up && event->modifiers() == Qt::ControlModifier)
+    auto key = event->key();
+    auto control = event->modifiers() == Qt::ControlModifier;
+    if(key == Qt::Key_Left || (key == Qt::Key_Up && control)) //TODO: see if Ctrl+Up is redundant
     {
         duint offsetVa = rvaToVa(getTableOffsetRva()) - 1;
-        if(DbgMemFindBaseAddr(rvaToVa(getTableOffsetRva()), nullptr) == DbgMemFindBaseAddr(offsetVa, nullptr))
-        {
-            printDumpAt(offsetVa);
-            mHistory.addVaToHistory(offsetVa);
-        }
+        if(mMemPage->inRange(offsetVa))
+            printDumpAt(offsetVa, false);
     }
-    else if(event->key() == Qt::Key_Down && event->modifiers() == Qt::ControlModifier)
+    else if(key == Qt::Key_Right || (key == Qt::Key_Down && control)) //TODO: see if Ctrl+Down is redundant
     {
         duint offsetVa = rvaToVa(getTableOffsetRva()) + 1;
-        if(DbgMemFindBaseAddr(rvaToVa(getTableOffsetRva()), nullptr) == DbgMemFindBaseAddr(offsetVa, nullptr))
-        {
-            printDumpAt(offsetVa);
-            mHistory.addVaToHistory(offsetVa);
-        }
+        if(mMemPage->inRange(offsetVa))
+            printDumpAt(offsetVa, false);
     }
     else
         AbstractTableView::keyPressEvent(event);
