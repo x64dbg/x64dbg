@@ -14,19 +14,16 @@ static Bridge* mBridge;
 ************************************************************************************/
 Bridge::Bridge(QObject* parent) : QObject(parent)
 {
-    mBridgeMutex = new QMutex();
-    winId = 0;
-    scriptView = 0;
-    referenceManager = 0;
-    bridgeResult = 0;
-    hResultEvent = CreateEventW(nullptr, true, true, nullptr);
-    dbgStopped = false;
+    InitializeCriticalSection(&csBridge);
+    hResultEvent = CreateEventW(nullptr, true, true, nullptr);;
+    dwMainThreadId = GetCurrentThreadId();
 }
 
 Bridge::~Bridge()
 {
     CloseHandle(hResultEvent);
-    delete mBridgeMutex;
+    EnterCriticalSection(&csBridge);
+    DeleteCriticalSection(&csBridge);
 }
 
 void Bridge::CopyToClipboard(const QString & text)
