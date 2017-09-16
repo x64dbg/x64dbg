@@ -99,7 +99,6 @@ void MemoryMapView::setupContextMenu()
     mMemoryExecuteMenu = new QMenu(tr("Execute"), this);
     mMemoryExecuteMenu->setIcon(DIcon("breakpoint_memory_execute.png"));
     mMemoryExecuteSingleshoot = new QAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
-    mMemoryExecuteSingleshoot->setShortcutContext(Qt::WidgetShortcut);
     makeCommandAction(mMemoryExecuteSingleshoot, "bpm $, 0, x");
     mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
     mMemoryExecuteRestore = new QAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore"), this);
@@ -112,7 +111,6 @@ void MemoryMapView::setupContextMenu()
     mMemoryRemove->setShortcutContext(Qt::WidgetShortcut);
     makeCommandAction(mMemoryRemove, "bpmc $");
     mBreakpointMenu->addAction(mMemoryRemove);
-    this->addAction(mMemoryRemove);
 
     //Action shortcut action that does something
     mMemoryExecuteSingleshootToggle = new QAction(this);
@@ -495,9 +493,9 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
         duint selectedAddr = addr_text.toULong(0, 16);
 #endif //_WIN64
         if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
-            DbgCmdExec(QString("bpmc ") + selectedAddr);
+            DbgCmdExec(QString("bpmc ") + addr_text);
         else
-            DbgCmdExec(QString("bpm %1, 0, x").arg(selectedAddr));
+            DbgCmdExec(QString("bpm %1, 0, x").arg(addr_text));
     }
 }
 
