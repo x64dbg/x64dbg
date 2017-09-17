@@ -68,10 +68,68 @@ unsigned long long TraceFileReader::Length()
     return length;
 }
 
-TraceFilePage* TraceFileReader::getPage(unsigned long long index)
+
+REGDUMP TraceFileReader::Registers(unsigned long long index)
+{
+    unsigned long long base;
+    TraceFilePage* page = getPage(index, &base);
+    if(page == nullptr)
+    {
+        REGDUMP registers;
+        memset(&registers, 0, sizeof(registers));
+        return registers;
+    }
+    else
+        return page->Registers(index - base);
+}
+
+void TraceFileReader::OpCode(unsigned long long index, unsigned char* buffer)
+{
+    unsigned long long base;
+    TraceFilePage* page = getPage(index, &base);
+    if(page == nullptr)
+    {
+        return;
+    }
+    else
+        page->OpCode(index - base, buffer);
+}
+
+DWORD TraceFileReader::ThreadId(unsigned long long index)
+{
+    unsigned long long base;
+    TraceFilePage* page = getPage(index, &base);
+    if(page == nullptr)
+        return;
+    else
+        return page->ThreadId(index - base);
+}
+
+int TraceFileReader::MemoryAccessCount(unsigned long long index)
+{
+    unsigned long long base;
+    TraceFilePage* page = getPage(index, &base);
+    if(page == nullptr)
+        return;
+    else
+        return page->MemoryAccessCount(index - base);
+}
+
+void TraceFileReader::MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid)
+{
+    unsigned long long base;
+    TraceFilePage* page = getPage(index, &base);
+    if(page == nullptr)
+        return;
+    else
+        return page->MemoryAccessInfo(index - base, address, oldMemory, newMemory, isValid);
+}
+
+TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long long* base)
 {
     if(index >= lastAccessedIndexOffset && index < lastAccessedIndexOffset + lastAccessedPage->Length())
     {
+        *base = lastAccessedIndexOffset;
         return lastAccessedPage;
     }
     const auto cache = pages.find(Range(index, index));
@@ -79,7 +137,9 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index)
     {
         GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
         lastAccessedPage = &cache->second;
+        lastAccessedIndexOffset = cache->first.first;
         GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
+        *base = lastAccessedIndexOffset;
         return lastAccessedPage;
     }
     else if(index >= Length()) //Out of bound
@@ -113,6 +173,7 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index)
             {
                 GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
                 lastAccessedPage = &newPage->second;
+                lastAccessedIndexOffset = newPage->first.first;
                 GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
                 return lastAccessedPage;
             }
@@ -310,4 +371,41 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
 unsigned long long TraceFilePage::Length() const
 {
     return length;
+}
+
+REGDUMP TraceFilePage::Registers(unsigned long long index) const
+{
+    return mRegisters.at(index);
+}
+
+void TraceFilePage::OpCode(unsigned long long index, unsigned char* buffer) const
+{
+    memcpy(buffer, opcodes.constData() + opcodeOffset.at(index), opcodeSize.at(index));
+}
+
+DWORD TraceFilePage::ThreadId(unsigned long long index) const
+{
+    return threadId.at(index);
+}
+
+int TraceFilePage::MemoryAccessCount(unsigned long long index) const
+{
+    size_t a = memoryOperandOffset.at(index);
+    if(index == length - 1)
+        return memoryAddress.size() - a;
+    else
+        return memoryOperandOffset.at(index + 1) - a;
+}
+
+void TraceFilePage::MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid) const
+{
+    auto count = MemoryAccessCount(index);
+    auto base = memoryOperandOffset.at(index);
+    for(size_t i = 0; i < count; i++)
+    {
+        address[i] = memoryAddress.at(base + i);
+        oldMemory[i] = this->oldMemory.at(base + i);
+        newMemory[i] = this->newMemory.at(base + i);
+        isValid[i] = true; // proposed flag
+    }
 }

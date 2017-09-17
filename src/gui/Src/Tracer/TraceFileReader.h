@@ -53,7 +53,7 @@ private:
 
     TraceFileParser* parser;
     std::map<Range, TraceFilePage, RangeCompare> pages;
-    TraceFilePage* getPage(unsigned long long index);
+    TraceFilePage* getPage(unsigned long long index, unsigned long long* base);
 };
 
 class TraceFileParser : public QThread
