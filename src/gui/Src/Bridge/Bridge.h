@@ -37,10 +37,9 @@ public:
     void setDbgStopped();
 
     //Public variables
-    void* winId;
-    QWidget* scriptView;
-    ReferenceManager* referenceManager;
-    QWidget* snowmanView;
+    void* winId = nullptr;
+    ReferenceManager* referenceManager = nullptr;
+    QWidget* snowmanView = nullptr;
     bool mIsRunning = false;
 
 signals:
@@ -157,10 +156,11 @@ signals:
     void getDumpAttention();
 
 private:
-    QMutex* mBridgeMutex;
-    dsint bridgeResult;
+    CRITICAL_SECTION csBridge;
     HANDLE hResultEvent;
-    volatile bool dbgStopped;
+    DWORD dwMainThreadId = 0;
+    dsint bridgeResult = 0;
+    volatile bool dbgStopped = false;
 };
 
 void DbgCmdExec(const QString & cmd);

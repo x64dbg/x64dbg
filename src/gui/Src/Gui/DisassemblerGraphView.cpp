@@ -1839,6 +1839,7 @@ void DisassemblerGraphView::toggleOverviewSlot()
     if(onlySummary)
     {
         onlySummary = false;
+        mToggleSummary->setChecked(false);
         loadCurrentGraph();
     }
     else

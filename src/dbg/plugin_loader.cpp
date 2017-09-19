@@ -58,6 +58,8 @@ static std::vector<PLUG_EXPRFUNCTION> pluginExprfunctionList;
 */
 static std::vector<PLUG_FORMATFUNCTION> pluginFormatfunctionList;
 
+static PLUG_DATA pluginData;
+
 /**
 \brief Loads a plugin from the plugin directory.
 \param pluginName Name of the plugin.
@@ -72,7 +74,6 @@ bool pluginload(const char* pluginName, bool loadall)
 
     char name[MAX_PATH] = "";
     strncpy_s(name, pluginName, _TRUNCATE);
-    PLUG_DATA pluginData;
 
     if(!loadall)
 #ifdef _WIN64
@@ -117,6 +118,7 @@ bool pluginload(const char* pluginName, bool loadall)
     }
 
     //setup plugin data
+    memset(&pluginData, 0, sizeof(pluginData));
     pluginData.initStruct.pluginHandle = curPluginHandle;
     pluginData.hPlugin = LoadLibraryW(StringUtils::Utf8ToUtf16(searchName).c_str()); //load the plugin library
     if(!pluginData.hPlugin)
@@ -170,7 +172,7 @@ bool pluginload(const char* pluginName, bool loadall)
         for(int i = CB_INITDEBUG; i < CB_LAST; i++)
             pluginregistercallback(curPluginHandle, CBTYPE(i), cbPlugin);
     }
-    auto regExport = [&pluginData](const char* exportname, CBTYPE cbType)
+    auto regExport = [](const char* exportname, CBTYPE cbType)
     {
         auto cbPlugin = CBPLUGIN(GetProcAddress(pluginData.hPlugin, exportname));
         if(cbPlugin)
@@ -540,6 +542,11 @@ bool plugincbempty(CBTYPE cbType)
 static bool findPluginName(int pluginHandle, String & name)
 {
     SHARED_ACQUIRE(LockPluginList);
+    if(pluginData.initStruct.pluginHandle == pluginHandle)
+    {
+        name = pluginData.initStruct.pluginName;
+        return true;
+    }
     for(auto & plugin : pluginList)
     {
         if(plugin.initStruct.pluginHandle == pluginHandle)
