@@ -42,9 +42,9 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
         painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
     }
 
-    if(!mTraceFile || mTraceFile->Progress() != 100)
+    if(!mTraceFile || mTraceFile->Progress() != 100 || index >= mTraceFile->Length())
     {
-        return "debug";
+        return "";
     }
     switch(col)
     {

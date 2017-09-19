@@ -57,8 +57,8 @@ void TraceFileReader::parseFinishedSlot()
     progress.store(100);
     emit parseFinished();
 
-    for(auto i : fileIndex)
-        GuiAddLogMessage(QString("%1;%2;%3\r\n").arg(i.first).arg(i.second.first).arg(i.second.second).toUtf8().constData());
+    //for(auto i : fileIndex)
+    //GuiAddLogMessage(QString("%1;%2;%3\r\n").arg(i.first).arg(i.second.first).arg(i.second.second).toUtf8().constData());
 }
 
 bool TraceFileReader::isError()
@@ -180,7 +180,7 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
         });
         if(fileOffset->second.second + fileOffset->first > index)
         {
-            pages.insert(std::make_pair(Range(fileOffset->first, fileOffset->first + fileOffset->second.second), TraceFilePage(this, fileOffset->second.first, fileOffset->second.second)));
+            pages.insert(std::make_pair(Range(fileOffset->first, fileOffset->first + fileOffset->second.second - 1), TraceFilePage(this, fileOffset->second.first, fileOffset->second.second)));
             const auto newPage = pages.find(Range(index, index));
             if(newPage != pages.cend())
             {
