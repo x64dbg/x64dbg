@@ -172,19 +172,37 @@ void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
 
 void TraceBrowser::mousePressEvent(QMouseEvent* event)
 {
-    dsint index = getIndexOffsetFromY(transY(event->y()));
+    duint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
     switch(event->button())
     {
     case Qt::LeftButton:
-        if(index + getTableOffset() < getRowCount())
+        if(index < getRowCount())
         {
-            mSelection.firstSelectedIndex = index + getTableOffset();
-            mSelection.fromIndex = index + getTableOffset();
-            mSelection.toIndex = index + getTableOffset();
+            if(event->modifiers() & Qt::ShiftModifier)
+                expandSelectionUpTo(index);
+            else
+                setSingleSelection(index);
             updateViewport();
-            break;
+            return;
         }
     }
+    AbstractTableView::mousePressEvent(event);
+}
+
+void TraceBrowser::mouseMoveEvent(QMouseEvent* event)
+{
+    duint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
+    if(event->buttons() & Qt::LeftButton)
+    {
+        if(index < getRowCount())
+        {
+            setSingleSelection(getInitialSelection());
+            expandSelectionUpTo(index);
+            updateViewport();
+            return;
+        }
+    }
+    AbstractTableView::mouseMoveEvent(event);
 }
 
 void TraceBrowser::mouseReleaseEvent(QMouseEvent* event)
@@ -193,9 +211,117 @@ void TraceBrowser::mouseReleaseEvent(QMouseEvent* event)
     updateViewport();
 }
 
+void TraceBrowser::keyPressEvent(QKeyEvent* event)
+{
+    int key = event->key();
+    int curindex = getInitialSelection();
+    int visibleindex = curindex;
+    if((key == Qt::Key_Up || key == Qt::Key_Down) && mTraceFile && mTraceFile->Progress() == 100)
+    {
+        if(key == Qt::Key_Up)
+        {
+            if(event->modifiers() == Qt::ShiftModifier)
+            {
+                if(curindex == getSelectionStart())
+                {
+                    if(getSelectionEnd() > 0)
+                    {
+                        expandSelectionUpTo(getSelectionEnd() - 1);
+                        visibleindex = getSelectionEnd() - 1;
+                    }
+                }
+                else
+                {
+                    if(getSelectionStart() > 0)
+                    {
+                        expandSelectionUpTo(getSelectionStart() - 1);
+                        visibleindex = getSelectionStart() - 1;
+                    }
+                }
+            }
+            else
+            {
+                if(curindex > 0)
+                {
+                    setSingleSelection(curindex - 1);
+                    visibleindex = curindex - 1;
+                }
+            }
+        }
+        else
+        {
+            if(getSelectionEnd() + 1 < mTraceFile->Length())
+            {
+                if(event->modifiers() == Qt::ShiftModifier)
+                {
+                    expandSelectionUpTo(getSelectionEnd() + 1);
+                    visibleindex = getSelectionEnd() + 1;
+                }
+                else
+                {
+                    setSingleSelection(getSelectionEnd() + 1);
+                    visibleindex = getSelectionEnd() + 1;
+                }
+            }
+        }
+        if(visibleindex < getTableOffset())
+            setTableOffset(visibleindex);
+        else if(visibleindex > getTableOffset() + getViewableRowsCount())
+            setTableOffset(visibleindex - getViewableRowsCount());
+        updateViewport();
+    }
+    else
+        AbstractTableView::keyPressEvent(event);
+}
+
+void TraceBrowser::expandSelectionUpTo(duint to)
+{
+    if(to < mSelection.firstSelectedIndex)
+    {
+        mSelection.fromIndex = to;
+    }
+    else if(to > mSelection.firstSelectedIndex)
+    {
+        mSelection.toIndex = to;
+    }
+    else if(to == mSelection.firstSelectedIndex)
+    {
+        setSingleSelection(to);
+    }
+}
+
+void TraceBrowser::setSingleSelection(duint index)
+{
+    mSelection.firstSelectedIndex = index;
+    mSelection.fromIndex = index;
+    mSelection.toIndex = index;
+}
+
+duint TraceBrowser::getInitialSelection()
+{
+    return mSelection.firstSelectedIndex;
+}
+
+duint TraceBrowser::getSelectionSize()
+{
+    return mSelection.toIndex - mSelection.fromIndex + 1;
+}
+
+duint TraceBrowser::getSelectionStart()
+{
+    return mSelection.fromIndex;
+}
+
+duint TraceBrowser::getSelectionEnd()
+{
+    return mSelection.toIndex;
+}
+
 void TraceBrowser::updateColors()
 {
     AbstractTableView::updateColors();
+    //CapstoneTokenizer::UpdateColors(); //Already called in disassembly
+    mDisasm->UpdateConfig();
     mBytesColor = ConfigColor("DisassemblyBytesColor");
     mBytesBackgroundColor = ConfigColor("DisassemblyBytesBackgroundColor");
 }

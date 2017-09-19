@@ -26,6 +26,7 @@ bool TraceFileReader::Open(const QString & fileName)
         parser = new TraceFileParser(this);
         connect(parser, SIGNAL(finished()), this, SLOT(parseFinishedSlot()));
         progress.store(0);
+        traceFile.moveToThread(parser);
         parser->start();
         return true;
     }
@@ -55,6 +56,7 @@ void TraceFileReader::parseFinishedSlot()
     delete parser;
     parser = nullptr;
     progress.store(100);
+    traceFile.moveToThread(QThread::currentThread());
     emit parseFinished();
 
     //for(auto i : fileIndex)
@@ -147,62 +149,85 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
     const auto cache = pages.find(Range(index, index));
     if(cache != pages.cend())
     {
-        if(lastAccessedPage)
+        if(cache->first.first >= index && cache->first.second <= index)
+        {
+            if(lastAccessedPage)
+                GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
+            lastAccessedPage = &cache->second;
+            lastAccessedIndexOffset = cache->first.first;
             GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
-        lastAccessedPage = &cache->second;
-        lastAccessedIndexOffset = cache->first.first;
-        GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
-        *base = lastAccessedIndexOffset;
-        return lastAccessedPage;
+            *base = lastAccessedIndexOffset;
+            return lastAccessedPage;
+        }
     }
     else if(index >= Length()) //Out of bound
         return nullptr;
-    else //page in
+    //page in
+    if(pages.size() >= 2048) //TODO: trim resident pages based on system memory usage, instead of a hard limit.
     {
-        if(pages.size() >= 2048) //TODO: trim resident pages based on system memory usage, instead of a hard limit.
+        FILETIME pageOutTime = pages.begin()->second.lastAccessed;
+        Range pageOutIndex = pages.begin()->first;
+        for(auto i : pages)
         {
-            FILETIME pageOutTime = pages.begin()->second.lastAccessed;
-            Range pageOutIndex = pages.begin()->first;
-            for(auto i : pages)
+            if(pageOutTime.dwHighDateTime < i.second.lastAccessed.dwHighDateTime || (pageOutTime.dwHighDateTime == i.second.lastAccessed.dwHighDateTime && pageOutTime.dwLowDateTime < i.second.lastAccessed.dwLowDateTime))
             {
-                if(pageOutTime.dwHighDateTime < i.second.lastAccessed.dwHighDateTime || (pageOutTime.dwHighDateTime == i.second.lastAccessed.dwHighDateTime && pageOutTime.dwLowDateTime < i.second.lastAccessed.dwLowDateTime))
-                {
-                    pageOutTime = i.second.lastAccessed;
-                    pageOutIndex = i.first;
-                }
+                pageOutTime = i.second.lastAccessed;
+                pageOutIndex = i.first;
             }
-            pages.erase(pageOutIndex);
         }
-        //binary search fileIndex to get file offset, push a TraceFilePage into cache and return it.
-        auto fileOffset = std::lower_bound(fileIndex.begin(), fileIndex.end(), index, [](std::pair<unsigned long long, Range> & b, unsigned long long a)
+        pages.erase(pageOutIndex);
+    }
+    //binary search fileIndex to get file offset, push a TraceFilePage into cache and return it.
+    size_t start = 0;
+    size_t end = fileIndex.size() - 1;
+    size_t middle = (start + end) / 2;
+    std::pair<unsigned long long, Range>* fileOffset;
+    while(true)
+    {
+        if(start == end || start == end - 1)
         {
-            return b.first < a;
-        });
-        if(fileOffset->second.second + fileOffset->first > index)
-        {
-            pages.insert(std::make_pair(Range(fileOffset->first, fileOffset->first + fileOffset->second.second - 1), TraceFilePage(this, fileOffset->second.first, fileOffset->second.second)));
-            const auto newPage = pages.find(Range(index, index));
-            if(newPage != pages.cend())
-            {
-                if(lastAccessedPage)
-                    GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
-                lastAccessedPage = &newPage->second;
-                lastAccessedIndexOffset = newPage->first.first;
-                GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
-                *base = lastAccessedIndexOffset;
-                return lastAccessedPage;
-            }
+            if(fileIndex[end].first <= index)
+                fileOffset = &fileIndex[end];
             else
-            {
-                GuiAddLogMessage("PAGEFAULT2\r\n"); //debug
-                return nullptr; //???
-            }
+                fileOffset = &fileIndex[start];
+            break;
+        }
+        if(fileIndex[middle].first > index)
+            end = middle;
+        else if(fileIndex[middle].first == index)
+        {
+            fileOffset = &fileIndex[middle];
+            break;
+        }
+        else
+            start = middle;
+        middle = (start + end) / 2;
+    }
+
+    if(fileOffset->second.second + fileOffset->first >= index && fileOffset->first <= index)
+    {
+        pages.insert(std::make_pair(Range(fileOffset->first, fileOffset->first + fileOffset->second.second - 1), TraceFilePage(this, fileOffset->second.first, fileOffset->second.second)));
+        const auto newPage = pages.find(Range(index, index));
+        if(newPage != pages.cend())
+        {
+            if(lastAccessedPage)
+                GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
+            lastAccessedPage = &newPage->second;
+            lastAccessedIndexOffset = newPage->first.first;
+            GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
+            *base = lastAccessedIndexOffset;
+            return lastAccessedPage;
         }
         else
         {
-            GuiAddLogMessage("PAGEFAULT1\r\n"); //debug
+            GuiAddLogMessage("PAGEFAULT2\r\n"); //debug
             return nullptr; //???
         }
+    }
+    else
+    {
+        GuiAddLogMessage("PAGEFAULT1\r\n"); //debug
+        return nullptr; //???
     }
 }
 

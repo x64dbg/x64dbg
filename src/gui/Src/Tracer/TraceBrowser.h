@@ -19,20 +19,29 @@ public:
     void prepareData();
     virtual void updateColors();
 
+    void expandSelectionUpTo(duint to);
+    void setSingleSelection(duint index);
+    duint getInitialSelection();
+    duint getSelectionSize();
+    duint getSelectionStart();
+    duint getSelectionEnd();
+
 private:
     void setupRightClickContextMenu();
     void contextMenuEvent(QContextMenuEvent* event);
     void mousePressEvent(QMouseEvent* event);
+    void mouseMoveEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
+    void keyPressEvent(QKeyEvent* event);
 
     VaHistory mHistory;
     MenuBuilder* mMenuBuilder;
 
     typedef struct _SelectionData_t
     {
-        dsint firstSelectedIndex;
-        dsint fromIndex;
-        dsint toIndex;
+        duint firstSelectedIndex;
+        duint fromIndex;
+        duint toIndex;
     } SelectionData_t;
 
     SelectionData_t mSelection;
