@@ -1,4 +1,4 @@
-#include "TraceFileReader.h"
+#include "TraceFileReaderInternal.h"
 #include <QThread>
 
 TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
@@ -24,13 +24,17 @@ bool TraceFileReader::Open(const QString & fileName)
     if(traceFile.isReadable())
     {
         parser = new TraceFileParser(this);
-        connect(parser, SIGNAL(finished()), this, SLOT(parseFinished()));
+        connect(parser, SIGNAL(finished()), this, SLOT(parseFinishedSlot()));
         progress.store(0);
         parser->start();
         return true;
     }
     else
+    {
+        progress.store(0);
+        emit parseFinished();
         return false;
+    }
 }
 
 void TraceFileReader::Close()
@@ -46,11 +50,12 @@ void TraceFileReader::Close()
     fileIndex.clear();
 }
 
-void TraceFileReader::parseFinished()
+void TraceFileReader::parseFinishedSlot()
 {
     delete parser;
     parser = nullptr;
     progress.store(100);
+    emit parseFinished();
 }
 
 bool TraceFileReader::isError()
@@ -100,7 +105,7 @@ DWORD TraceFileReader::ThreadId(unsigned long long index)
     unsigned long long base;
     TraceFilePage* page = getPage(index, &base);
     if(page == nullptr)
-        return;
+        return 0;
     else
         return page->ThreadId(index - base);
 }
@@ -110,7 +115,7 @@ int TraceFileReader::MemoryAccessCount(unsigned long long index)
     unsigned long long base;
     TraceFilePage* page = getPage(index, &base);
     if(page == nullptr)
-        return;
+        return 0;
     else
         return page->MemoryAccessCount(index - base);
 }
@@ -127,15 +132,19 @@ void TraceFileReader::MemoryAccessInfo(unsigned long long index, duint* address,
 
 TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long long* base)
 {
-    if(index >= lastAccessedIndexOffset && index < lastAccessedIndexOffset + lastAccessedPage->Length())
+    if(lastAccessedPage)
     {
-        *base = lastAccessedIndexOffset;
-        return lastAccessedPage;
+        if(index >= lastAccessedIndexOffset && index < lastAccessedIndexOffset + lastAccessedPage->Length())
+        {
+            *base = lastAccessedIndexOffset;
+            return lastAccessedPage;
+        }
     }
     const auto cache = pages.find(Range(index, index));
     if(cache != pages.cend())
     {
-        GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
+        if(lastAccessedPage)
+            GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
         lastAccessedPage = &cache->second;
         lastAccessedIndexOffset = cache->first.first;
         GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
@@ -171,7 +180,8 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
             const auto newPage = pages.find(Range(index, index));
             if(cache != pages.cend())
             {
-                GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
+                if(lastAccessedPage)
+                    GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
                 lastAccessedPage = &newPage->second;
                 lastAccessedIndexOffset = newPage->first.first;
                 GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
@@ -201,32 +211,29 @@ void TraceFileParser::run()
         while(!that->traceFile.atEnd())
         {
             if(!that->traceFile.isReadable())
-                throw std::exception();
+                throw std::wstring(L"File is not readable");
             unsigned char blockType;
             unsigned char changedCountFlags[3]; //reg changed count, mem accessed count, flags
-            that->traceFile.read((char*)&blockType, 1);
+            if(that->traceFile.read((char*)&blockType, 1) != 1)
+                throw std::wstring(L"Read block type failed");
             if(blockType == 0)
             {
                 quint64 blockStart = that->traceFile.pos();
 
-                if(that->traceFile.read((char*)&blockType, 1) != 1)
-                    throw std::exception();
-                if(blockType != 0)
-                    throw std::exception();
                 if(that->traceFile.read((char*)&changedCountFlags, 3) != 3)
-                    throw std::exception();
+                    throw std::wstring(L"Read flags failed");
                 //skipping: thread id, registers
                 if(that->traceFile.seek(that->traceFile.pos() + ((changedCountFlags[2] & 0x80) ? 4 : 0) + (changedCountFlags[2] & 0x0F) + changedCountFlags[0] * (1 + sizeof(duint))) == false)
-                    throw std::exception();
+                    throw std::wstring(L"Unspecified");
                 QByteArray memflags;
                 memflags = that->traceFile.read(changedCountFlags[1]);
                 if(memflags.length() < changedCountFlags[1])
-                    throw std::exception();
+                    throw std::wstring(L"Read memory flags failed");
                 unsigned int skipOffset = 0;
                 for(unsigned char i = 0; i < changedCountFlags[1]; i++)
                     skipOffset += ((memflags[i] & 1) == 1) ? 2 : 3;
                 if(that->traceFile.seek(that->traceFile.pos() + skipOffset * sizeof(duint)) == false)
-                    throw std::exception();
+                    throw std::wstring(L"Unspecified");
                 //Gathered information, build index
                 if(changedCountFlags[0] == (sizeof(REGDUMP) - 128) / sizeof(duint))
                 {
@@ -237,16 +244,19 @@ void TraceFileParser::run()
                     //Update progress
                     that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
                     if(this->isInterruptionRequested() && !that->traceFile.atEnd()) //Cancel loading
-                        throw std::exception();
+                        throw std::wstring(L"Canceled");
                 }
                 index++;
             }
             else
-                throw std::exception();
+                throw std::wstring(L"Unsupported block type");
         }
+        that->error = false;
+        that->length = index;
     }
-    catch(const std::exception &)
+    catch(const std::wstring & errReason)
     {
+        MessageBox(0, errReason.c_str(), L"debug", MB_ICONERROR);
         that->error = true;
     }
 }

@@ -300,7 +300,8 @@ HEADERS += \
     Src/Gui/ComboBoxDialog.h \
     Src/Utils/VaHistory.h \
     Src/Tracer/TraceBrowser.h \
-    Src/Tracer/TraceFileReader.h
+    Src/Tracer/TraceFileReader.h \
+    Src/Tracer/TraceFileReaderInternal.h
     
 
 FORMS += \

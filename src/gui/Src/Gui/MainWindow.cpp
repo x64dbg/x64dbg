@@ -52,6 +52,7 @@
 #include "MRUList.h"
 #include "AboutDialog.h"
 #include "UpdateChecker.h"
+#include "Tracer/TraceBrowser.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -204,6 +205,11 @@ MainWindow::MainWindow(QWidget* parent)
     mGraphView->setWindowTitle(tr("Graph"));
     mGraphView->setWindowIcon(DIcon("graph.png"));
 
+    // Trace view
+    mTraceBrowser = new TraceBrowser(this);
+    mTraceBrowser->setWindowTitle(tr("Trace"));
+    mTraceBrowser->setWindowIcon(DIcon("trace.png"));
+
     // Create the tab widget and enable detaching and hiding
     mTabWidget = new MHTabWidget(this, true, true);
 
@@ -223,6 +229,7 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
     mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
+    mWidgetList.push_back(WidgetInfo(mTraceBrowser, "TraceTab"));
 
     // If LoadSaveTabOrder disabled, load tabs in default order
     if(!ConfigBool("Gui", "LoadSaveTabOrder"))

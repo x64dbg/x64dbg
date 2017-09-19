@@ -3,7 +3,6 @@
 
 #include "Bridge.h"
 #include <QFile>
-#include <QThread>
 #include <atomic>
 
 class TraceFileParser;
@@ -27,9 +26,11 @@ public:
     int MemoryAccessCount(unsigned long long index);
     void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid);
 
-private slots:
-
+signals:
     void parseFinished();
+
+public slots:
+    void parseFinishedSlot();
 
 private:
     typedef std::pair<unsigned long long, unsigned long long> Range;
@@ -54,43 +55,6 @@ private:
     TraceFileParser* parser;
     std::map<Range, TraceFilePage, RangeCompare> pages;
     TraceFilePage* getPage(unsigned long long index, unsigned long long* base);
-};
-
-class TraceFileParser : public QThread
-{
-    Q_OBJECT
-    friend class TraceFileReader;
-    TraceFileParser(TraceFileReader* parent) : QThread(parent) {}
-    void run();
-};
-
-class TraceFilePage
-{
-public:
-    TraceFilePage(TraceFileReader* parent, unsigned long long fileOffset, unsigned long long maxLength);
-    unsigned long long Length() const;
-    REGDUMP Registers(unsigned long long index) const;
-    void OpCode(unsigned long long index, unsigned char* buffer) const;
-    DWORD ThreadId(unsigned long long index) const;
-    int MemoryAccessCount(unsigned long long index) const;
-    void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid) const;
-
-    FILETIME lastAccessed; //system user time
-
-private:
-    friend class TraceFileReader;
-    TraceFileReader* mParent;
-    std::vector<REGDUMP> mRegisters;
-    QByteArray opcodes;
-    std::vector<size_t> opcodeOffset;
-    std::vector<unsigned char> opcodeSize;
-    std::vector<size_t> memoryOperandOffset;
-    std::vector<char> memoryFlags;
-    std::vector<duint> memoryAddress;
-    std::vector<duint> oldMemory;
-    std::vector<duint> newMemory;
-    std::vector<DWORD> threadId;
-    unsigned long long length;
 };
 
 #endif //TRACEFILEREADER_H
