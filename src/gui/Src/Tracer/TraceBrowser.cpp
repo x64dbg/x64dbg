@@ -3,6 +3,7 @@
 #include "RichTextPainter.h"
 #include "BrowseDialog.h"
 #include "QBeaEngine.h"
+#include "GotoDialog.h"
 
 TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 {
@@ -153,14 +154,24 @@ void TraceBrowser::prepareData()
 void TraceBrowser::setupRightClickContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
-    mMenuBuilder->addAction(makeAction(DIcon("open.png"), tr("Open"), SLOT(openFileSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(DIcon("folder-horizontal-open.png"), tr("Open"), SLOT(openFileSlot())), [this](QMenu*)
     {
         return mTraceFile == nullptr;
     });
-    mMenuBuilder->addAction(makeAction(DIcon("close.png"), tr("Close"), SLOT(closeFileSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(DIcon("fatal-error.png"), tr("Close"), SLOT(closeFileSlot())), [this](QMenu*)
     {
         return mTraceFile != nullptr;
     });
+    mMenuBuilder->addSeparator();
+    auto isValid = [this](QMenu*)
+    {
+        return mTraceFile != nullptr && mTraceFile->Progress() == 100;
+    };
+    MenuBuilder* copyMenu = new MenuBuilder(this, isValid);
+    copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
+
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("goto.png"), tr("Go to..."), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
 }
 
 void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
@@ -198,9 +209,16 @@ void TraceBrowser::mouseMoveEvent(QMouseEvent* event)
         {
             setSingleSelection(getInitialSelection());
             expandSelectionUpTo(index);
-            updateViewport();
-            return;
         }
+        if(transY(event->y()) > this->height())
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        }
+        else if(transY(event->y()) < 0)
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        }
+        updateViewport();
     }
     AbstractTableView::mouseMoveEvent(event);
 }
@@ -226,16 +244,16 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
                 {
                     if(getSelectionEnd() > 0)
                     {
-                        expandSelectionUpTo(getSelectionEnd() - 1);
                         visibleindex = getSelectionEnd() - 1;
+                        expandSelectionUpTo(visibleindex);
                     }
                 }
                 else
                 {
                     if(getSelectionStart() > 0)
                     {
-                        expandSelectionUpTo(getSelectionStart() - 1);
                         visibleindex = getSelectionStart() - 1;
+                        expandSelectionUpTo(visibleindex);
                     }
                 }
             }
@@ -243,8 +261,8 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
             {
                 if(curindex > 0)
                 {
-                    setSingleSelection(curindex - 1);
                     visibleindex = curindex - 1;
+                    setSingleSelection(visibleindex);
                 }
             }
         }
@@ -254,20 +272,17 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
             {
                 if(event->modifiers() == Qt::ShiftModifier)
                 {
-                    expandSelectionUpTo(getSelectionEnd() + 1);
                     visibleindex = getSelectionEnd() + 1;
+                    expandSelectionUpTo(visibleindex);
                 }
                 else
                 {
-                    setSingleSelection(getSelectionEnd() + 1);
                     visibleindex = getSelectionEnd() + 1;
+                    setSingleSelection(visibleindex);
                 }
             }
         }
-        if(visibleindex < getTableOffset())
-            setTableOffset(visibleindex);
-        else if(visibleindex > getTableOffset() + getViewableRowsCount())
-            setTableOffset(visibleindex - getViewableRowsCount());
+        makeVisible(visibleindex);
         updateViewport();
     }
     else
@@ -317,6 +332,14 @@ duint TraceBrowser::getSelectionEnd()
     return mSelection.toIndex;
 }
 
+void TraceBrowser::makeVisible(duint index)
+{
+    if(index < getTableOffset())
+        setTableOffset(index);
+    else if(index + 2 > getTableOffset() + getViewableRowsCount())
+        setTableOffset(index - getViewableRowsCount() + 2);
+}
+
 void TraceBrowser::updateColors()
 {
     AbstractTableView::updateColors();
@@ -356,4 +379,41 @@ void TraceBrowser::parseFinishedSlot()
     else
         setRowCount(mTraceFile->Length());
     reloadData();
+}
+
+void TraceBrowser::gotoSlot()
+{
+    GotoDialog gotoDlg(this, false, true); // Problem: Cannot use when not debugging
+    if(gotoDlg.exec() == QDialog::Accepted)
+    {
+        auto val = DbgValFromString(gotoDlg.expressionText.toUtf8().constData());
+        if(val > 0 && val < mTraceFile->Length())
+        {
+            setSingleSelection(val);
+            makeVisible(val);
+        }
+    }
+}
+
+void TraceBrowser::copyDisassemblySlot()
+{
+    QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
+    QString clipboard = "";
+    for(auto i = getSelectionStart(); i <= getSelectionEnd(); i++)
+    {
+        if(i != getSelectionStart())
+        {
+            clipboard += "\r\n";
+            clipboardHtml += "<br/>";
+        }
+        RichTextPainter::List richText;
+        unsigned char opcode[16];
+        int opcodeSize;
+        mTraceFile->OpCode(i, opcode, &opcodeSize);
+        Instruction_t inst = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(i).regcontext.cip, 0);
+        CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+        RichTextPainter::htmlRichText(richText, clipboardHtml, clipboard);
+    }
+    clipboardHtml += QString("</div>");
+    Bridge::CopyToClipboard(clipboard, clipboardHtml);
 }

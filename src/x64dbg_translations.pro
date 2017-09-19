@@ -219,7 +219,9 @@ SOURCES += \
     gui/Src/Gui/LocalVarsView.cpp \
     gui/Src/Gui/MessagesBreakpoints.cpp \
     gui/Src/Gui/AboutDialog.cpp \
-    gui/Src/Gui/BreakpointMenu.cpp
+    gui/Src/Gui/BreakpointMenu.cpp \
+    gui/Src/Tracer/TraceBrowser.cpp \
+    gui/Src/Tracer/TraceFileReader.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -449,7 +451,10 @@ HEADERS += \
     gui/Src/Gui/LocalVarsView.h \
     gui/Src/Gui/MessagesBreakpoints.h \
     gui/Src/Gui/AboutDialog.h \
-    gui/Src/Gui/BreakpointMenu.h
+    gui/Src/Gui/BreakpointMenu.h \
+    gui/Src/Tracer/TraceBrowser.h \
+    gui/Src/Tracer/TraceFileReader.h \
+    gui/Src/Tracer/TraceFileReaderInternal.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \

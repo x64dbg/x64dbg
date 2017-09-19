@@ -28,6 +28,8 @@ public:
 
 private:
     void setupRightClickContextMenu();
+    void makeVisible(duint index);
+
     void contextMenuEvent(QContextMenuEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
@@ -57,6 +59,9 @@ public slots:
     void openFileSlot();
     void closeFileSlot();
     void parseFinishedSlot();
+
+    void gotoSlot();
+    void copyDisassemblySlot();
 };
 
 #endif //TRACEBROWSER_H
