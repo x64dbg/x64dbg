@@ -21,7 +21,7 @@ public:
     unsigned long long Length();
 
     REGDUMP Registers(unsigned long long index);
-    void OpCode(unsigned long long index, unsigned char* buffer);
+    void OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize);
     DWORD ThreadId(unsigned long long index);
     int MemoryAccessCount(unsigned long long index);
     void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid);
@@ -44,7 +44,7 @@ private:
 
     QFile traceFile;
     unsigned long long length;
-    std::vector<std::pair<unsigned long long, Range>> fileIndex; //index->file offset, index;<file offset;length>
+    std::vector<std::pair<unsigned long long, Range>> fileIndex; //index;<file offset;length>
     std::atomic<int> progress;
     bool error;
     TraceFilePage* lastAccessedPage;

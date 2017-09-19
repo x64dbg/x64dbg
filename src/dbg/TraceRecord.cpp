@@ -337,8 +337,8 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
         }
         memcpy(WriteBufferPtr, rtOldOpcode, rtOldOpcodeSize);
         WriteBufferPtr += rtOldOpcodeSize;
-        unsigned char lastChangedPosition = 255; //-1
-        for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++) //1byte: position
+        int lastChangedPosition = -1; //-1
+        for(int i = 0; i < _countof(rtOldContext.regword); i++) //1byte: position
         {
             if(rtOldContext.regword[i] != newContext.regword[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
             {

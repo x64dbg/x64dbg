@@ -56,6 +56,9 @@ void TraceFileReader::parseFinishedSlot()
     parser = nullptr;
     progress.store(100);
     emit parseFinished();
+
+    for(auto i : fileIndex)
+        GuiAddLogMessage(QString("%1;%2;%3\r\n").arg(i.first).arg(i.second.first).arg(i.second.second).toUtf8().constData());
 }
 
 bool TraceFileReader::isError()
@@ -88,16 +91,17 @@ REGDUMP TraceFileReader::Registers(unsigned long long index)
         return page->Registers(index - base);
 }
 
-void TraceFileReader::OpCode(unsigned long long index, unsigned char* buffer)
+void TraceFileReader::OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize)
 {
     unsigned long long base;
     TraceFilePage* page = getPage(index, &base);
     if(page == nullptr)
     {
+        memset(buffer, 0, 16);
         return;
     }
     else
-        page->OpCode(index - base, buffer);
+        page->OpCode(index - base, buffer, opcodeSize);
 }
 
 DWORD TraceFileReader::ThreadId(unsigned long long index)
@@ -176,22 +180,29 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
         });
         if(fileOffset->second.second + fileOffset->first > index)
         {
-            pages.insert(std::make_pair(Range(fileOffset->first, fileOffset->second.second), TraceFilePage(this, fileOffset->second.first, fileOffset->second.second)));
+            pages.insert(std::make_pair(Range(fileOffset->first, fileOffset->first + fileOffset->second.second), TraceFilePage(this, fileOffset->second.first, fileOffset->second.second)));
             const auto newPage = pages.find(Range(index, index));
-            if(cache != pages.cend())
+            if(newPage != pages.cend())
             {
                 if(lastAccessedPage)
                     GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
                 lastAccessedPage = &newPage->second;
                 lastAccessedIndexOffset = newPage->first.first;
                 GetSystemTimes(nullptr, nullptr, &lastAccessedPage->lastAccessed);
+                *base = lastAccessedIndexOffset;
                 return lastAccessedPage;
             }
             else
+            {
+                GuiAddLogMessage("PAGEFAULT2\r\n"); //debug
                 return nullptr; //???
+            }
         }
         else
+        {
+            GuiAddLogMessage("PAGEFAULT1\r\n"); //debug
             return nullptr; //???
+        }
     }
 }
 
@@ -201,7 +212,8 @@ void TraceFileParser::run()
     TraceFileReader* that = dynamic_cast<TraceFileReader*>(parent());
     unsigned long long index = 0;
     unsigned long long lastIndex = 0;
-    if(that == NULL) SimpleErrorBox(nullptr, "debug", "error");
+    if(that == NULL)
+        return; //Error
     try
     {
         //Process file header
@@ -218,7 +230,7 @@ void TraceFileParser::run()
                 throw std::wstring(L"Read block type failed");
             if(blockType == 0)
             {
-                quint64 blockStart = that->traceFile.pos();
+                quint64 blockStart = that->traceFile.pos() - 1;
 
                 if(that->traceFile.read((char*)&changedCountFlags, 3) != 3)
                     throw std::wstring(L"Read flags failed");
@@ -238,7 +250,7 @@ void TraceFileParser::run()
                 if(changedCountFlags[0] == (sizeof(REGDUMP) - 128) / sizeof(duint))
                 {
                     if(lastIndex != 0)
-                        that->fileIndex.at(lastIndex - 1).second.second = index - (lastIndex - 1);
+                        that->fileIndex.back().second.second = index - (lastIndex - 1);
                     that->fileIndex.push_back(std::make_pair(index, TraceFileReader::Range(blockStart, 0)));
                     lastIndex = index + 1;
                     //Update progress
@@ -251,12 +263,13 @@ void TraceFileParser::run()
             else
                 throw std::wstring(L"Unsupported block type");
         }
+        that->fileIndex.back().second.second = index - (lastIndex - 1);
         that->error = false;
         that->length = index;
     }
     catch(const std::wstring & errReason)
     {
-        MessageBox(0, errReason.c_str(), L"debug", MB_ICONERROR);
+        //MessageBox(0, errReason.c_str(), L"debug", MB_ICONERROR);
         that->error = true;
     }
 }
@@ -292,10 +305,6 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
             mParent->traceFile.read((char*)&blockType, 1);
             if(blockType == 0)
             {
-                if(mParent->traceFile.read((char*)&blockType, 1) != 1)
-                    throw std::exception();
-                if(blockType != 0)
-                    throw std::exception();
                 if(mParent->traceFile.read((char*)&changedCountFlags, 3) != 3)
                     throw std::exception();
                 if(changedCountFlags[2] & 0x80) //Thread Id
@@ -314,7 +323,7 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                     throw std::exception();
                 if(changedCountFlags[0] > 0) //registers
                 {
-                    unsigned char lastPosition = 0;
+                    int lastPosition = -1;
                     QByteArray changed;
                     changed = mParent->traceFile.read(changedCountFlags[0]);
                     if(changed.size() != changedCountFlags[0])
@@ -327,7 +336,7 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                     }
                     for(int i = 0; i < changedCountFlags[0]; i++)
                     {
-                        lastPosition += changed[i];
+                        lastPosition = lastPosition + changed[i] + 1;
                         regwords[lastPosition] = regContent[i];
                     }
                     delete[] regContent;
@@ -388,9 +397,10 @@ REGDUMP TraceFilePage::Registers(unsigned long long index) const
     return mRegisters.at(index);
 }
 
-void TraceFilePage::OpCode(unsigned long long index, unsigned char* buffer) const
+void TraceFilePage::OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize) const
 {
-    memcpy(buffer, opcodes.constData() + opcodeOffset.at(index), opcodeSize.at(index));
+    *opcodeSize = this->opcodeSize.at(index);
+    memcpy(buffer, opcodes.constData() + opcodeOffset.at(index), *opcodeSize);
 }
 
 DWORD TraceFilePage::ThreadId(unsigned long long index) const

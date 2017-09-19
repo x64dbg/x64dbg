@@ -16,7 +16,7 @@ public:
     TraceFilePage(TraceFileReader* parent, unsigned long long fileOffset, unsigned long long maxLength);
     unsigned long long Length() const;
     REGDUMP Registers(unsigned long long index) const;
-    void OpCode(unsigned long long index, unsigned char* buffer) const;
+    void OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize) const;
     DWORD ThreadId(unsigned long long index) const;
     int MemoryAccessCount(unsigned long long index) const;
     void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid) const;
