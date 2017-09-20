@@ -2,7 +2,7 @@
 #define _ANALYSIS_H
 
 #include "_global.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 
 class Analysis
 {

@@ -355,9 +355,9 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
                 if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
                 {
                     auto constant = instr.arg[i].constant;
-                    if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_CALL))
+                    if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.IsCall())
                         temp_string.assign("call $0");
-                    else if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.InGroup(CS_GRP_JUMP))
+                    else if(instr.arg[i].type == arg_normal && instr.arg[i].value == addr + instr.instr_size && cp.IsJump())
                         temp_string.assign("jmp $0");
                     else if(instr.type == instr_branch)
                         continue;
@@ -738,77 +738,77 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
     Capstone cp;
     if(!cp.Disassemble(addr, data))
         return 0;
-    if(cp.InGroup(CS_GRP_JUMP) || cp.InGroup(CS_GRP_CALL) || cp.IsLoop())
+    if(cp.IsBranchType(Capstone::BT_Jmp | Capstone::BT_Call | Capstone::BT_Loop))
     {
-        auto opValue = cp.ResolveOpValue(0, [](x86_reg reg) -> size_t
+        auto opValue = cp.ResolveOpValue(0, [](ZydisRegister reg) -> size_t
         {
-            switch(reg)
+            switch(reg) 
             {
 #ifndef _WIN64 //x32
-            case X86_REG_EAX:
+            case ZYDIS_REGISTER_EAX:
                 return titcontext.cax;
-            case X86_REG_EBX:
+            case ZYDIS_REGISTER_EBX:
                 return titcontext.cbx;
-            case X86_REG_ECX:
+            case ZYDIS_REGISTER_ECX:
                 return titcontext.ccx;
-            case X86_REG_EDX:
+            case ZYDIS_REGISTER_EDX:
                 return titcontext.cdx;
-            case X86_REG_EBP:
+            case ZYDIS_REGISTER_EBP:
                 return titcontext.cbp;
-            case X86_REG_ESP:
+            case ZYDIS_REGISTER_ESP:
                 return titcontext.csp;
-            case X86_REG_ESI:
+            case ZYDIS_REGISTER_ESI:
                 return titcontext.csi;
-            case X86_REG_EDI:
+            case ZYDIS_REGISTER_EDI:
                 return titcontext.cdi;
-            case X86_REG_EIP:
+            case ZYDIS_REGISTER_EIP:
                 return titcontext.cip;
 #else //x64
-            case X86_REG_RAX:
+            case ZYDIS_REGISTER_RAX:
                 return titcontext.cax;
-            case X86_REG_RBX:
+            case ZYDIS_REGISTER_RBX:
                 return titcontext.cbx;
-            case X86_REG_RCX:
+            case ZYDIS_REGISTER_RCX:
                 return titcontext.ccx;
-            case X86_REG_RDX:
+            case ZYDIS_REGISTER_RDX:
                 return titcontext.cdx;
-            case X86_REG_RBP:
+            case ZYDIS_REGISTER_RBP:
                 return titcontext.cbp;
-            case X86_REG_RSP:
+            case ZYDIS_REGISTER_RSP:
                 return titcontext.csp;
-            case X86_REG_RSI:
+            case ZYDIS_REGISTER_RSI:
                 return titcontext.csi;
-            case X86_REG_RDI:
+            case ZYDIS_REGISTER_RDI:
                 return titcontext.cdi;
-            case X86_REG_RIP:
+            case ZYDIS_REGISTER_RIP:
                 return titcontext.cip;
-            case X86_REG_R8:
+            case ZYDIS_REGISTER_R8:
                 return titcontext.r8;
-            case X86_REG_R9:
+            case ZYDIS_REGISTER_R9:
                 return titcontext.r9;
-            case X86_REG_R10:
+            case ZYDIS_REGISTER_R10:
                 return titcontext.r10;
-            case X86_REG_R11:
+            case ZYDIS_REGISTER_R11:
                 return titcontext.r11;
-            case X86_REG_R12:
+            case ZYDIS_REGISTER_R12:
                 return titcontext.r12;
-            case X86_REG_R13:
+            case ZYDIS_REGISTER_R13:
                 return titcontext.r13;
-            case X86_REG_R14:
+            case ZYDIS_REGISTER_R14:
                 return titcontext.r14;
-            case X86_REG_R15:
+            case ZYDIS_REGISTER_R15:
                 return titcontext.r15;
 #endif //_WIN64
             default:
                 return 0;
             }
         });
-        if(cp[0].type == X86_OP_MEM)
+        if(cp[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
         {
 #ifdef _WIN64
-            auto const tebseg = X86_REG_GS;
+            auto const tebseg = ZYDIS_REGISTER_GS;
 #else
-            auto const tebseg = X86_REG_FS;
+            auto const tebseg = ZYDIS_REGISTER_FS;
 #endif //_WIN64
             if(cp[0].mem.segment == tebseg)
                 opValue += duint(GetTEBLocation(hActiveThread));
@@ -818,7 +818,7 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
         else
             return opValue;
     }
-    if(cp.InGroup(CS_GRP_RET))
+    if(cp.IsRet())
     {
         auto csp = titcontext.csp;
         duint dest = 0;

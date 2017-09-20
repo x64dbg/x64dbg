@@ -27,7 +27,7 @@
 #include "taskthread.h"
 #include "animate.h"
 #include "simplescript.h"
-#include "capstone_wrapper.h"
+#include "zydis_wrapper.h"
 #include "cmd-watch-control.h"
 #include "filemap.h"
 #include "jit.h"
@@ -1164,7 +1164,7 @@ void cbRtrStep()
         unsigned char data[MAX_DISASM_BUFFER];
         memset(data, 0, sizeof(data));
         MemRead(cip, data, MAX_DISASM_BUFFER);
-        if(cp.Disassemble(cip, data) && cp.GetId() == X86_INS_RET)
+        if(cp.Disassemble(cip, data) && cp.IsRet())
             cbRtrFinalStep(true);
         else
             StepOver((void*)cbRtrStep);

@@ -21,7 +21,7 @@ void XrefsAnalysis::Analyse()
         xref.from = mCp.Address();
         for(auto i = 0; i < mCp.OpCount(); i++)
         {
-            duint dest = mCp.ResolveOpValue(i, [](x86_reg)->size_t
+            duint dest = mCp.ResolveOpValue(i, [](ZydisRegister)->size_t
             {
                 return 0;
             });

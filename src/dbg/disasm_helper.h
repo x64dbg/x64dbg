@@ -2,7 +2,7 @@
 #define _DISASM_HELPER_H
 
 #include "_global.h"
-#include "capstone_wrapper.h"
+#include "zydis_wrapper.h"
 
 //functions
 duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n);
