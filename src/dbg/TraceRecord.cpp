@@ -374,7 +374,7 @@ void _dbg_dbgtraceexecute(duint CIP)
         if(MemRead(CIP, buffer, MAX_DISASM_BUFFER))
         {
             TraceRecord.increaseInstructionCounter();
-            Capstone instruction;
+			Zydis instruction;
             instruction.Disassemble(CIP, buffer, MAX_DISASM_BUFFER);
             TraceRecord.TraceExecute(CIP, instruction.Size());
         }

@@ -24,7 +24,7 @@ static MEMORY_SIZE argsize2memsize(int argsize)
     return size_byte;
 }
 
-void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo, bool instrText)
+void fillbasicinfo(Zydis* cp, BASIC_INSTRUCTION_INFO* basicinfo, bool instrText)
 {
     //zero basicinfo
     memset(basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
@@ -95,7 +95,7 @@ bool disasmfast(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* b
 {
     if(!data || !basicinfo)
         return false;
-    Capstone cp;
+	Zydis cp;
     cp.Disassemble(addr, data, MAX_DISASM_BUFFER);
     if(trydisasmfast(data, addr, basicinfo, cp.Success() ? cp.Size() : 1))
         return true;

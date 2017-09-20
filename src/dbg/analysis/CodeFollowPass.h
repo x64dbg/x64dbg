@@ -15,5 +15,5 @@ public:
 
 private:
     duint GetReferenceOperand(const ZydisDecodedInstruction & Context);
-    duint GetMemoryOperand(Capstone & Disasm, const ZydisDecodedInstruction & Context, bool* Indirect);
+    duint GetMemoryOperand(Zydis & Disasm, const ZydisDecodedInstruction & Context, bool* Indirect);
 };

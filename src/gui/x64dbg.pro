@@ -350,6 +350,8 @@ LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
     # Windows x86 (32bit) specific build
     LIBS += -L"$$PWD/../zydis_wrapper/Zydis" -lZydis_x86
     LIBS += -L"$$PWD/../zydis_wrapper/bin/x32$${DIR_SUFFIX}" -lzydis_wrapper
+    LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x86
+    LIBS += -L"$$PWD/../capstone_wrapper/bin/x32$${DIR_SUFFIX}" -lcapstone_wrapper
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x86
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x86
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
@@ -357,6 +359,8 @@ LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/../zydis_wrapper/Zydis" -lZydis_x64
     LIBS += -L"$$PWD/../zydis_wrapper/bin/x64$${DIR_SUFFIX}" -lzydis_wrapper
+    LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x64
+    LIBS += -L"$$PWD/../capstone_wrapper/bin/x64$${DIR_SUFFIX}" -lcapstone_wrapper
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x64
     LIBS += -L"$${X64_BIN_DIR}" -lx64bridge

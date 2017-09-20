@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
     TLS_TranslatedStringMap = new std::map<DWORD, TranslatedStringStorage>();
 
     // initialize capstone
-    Capstone::GlobalInitialize();
+    Zydis::GlobalInitialize();
 
     // load config file + set config font
     mConfiguration = new Configuration;
