@@ -1160,7 +1160,7 @@ void cbRtrStep()
 #endif //_WIN64
            )
     {
-        Capstone cp;
+		Zydis cp;
         unsigned char data[MAX_DISASM_BUFFER];
         memset(data, 0, sizeof(data));
         MemRead(cip, data, MAX_DISASM_BUFFER);

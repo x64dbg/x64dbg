@@ -35,7 +35,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+    Zydis cp;
 
     // Check if the pointer is not null
     if(data == NULL)
@@ -131,7 +131,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+    Zydis cp;
 
     if(data == NULL)
         return 0;
@@ -200,14 +200,14 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     auto branchType = Instruction_t::None;
     Instruction_t wInst;
-    if(success && (cp.IsBranchType(Capstone::BT_Jmp | Capstone::BT_Call | Capstone::BT_Ret | Capstone::BT_Loop)))
+    if(success && (cp.IsBranchType(Zydis::BT_Jmp | Zydis::BT_Call | Zydis::BT_Ret | Zydis::BT_Loop)))
     {
         wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
-        if(cp.IsBranchType(Capstone::BT_UncondJmp))
+        if(cp.IsBranchType(Zydis::BT_UncondJmp))
             branchType = Instruction_t::Unconditional;
-        else if(cp.IsBranchType(Capstone::BT_Call))
+        else if(cp.IsBranchType(Zydis::BT_Call))
             branchType = Instruction_t::Call;
-        else if(cp.IsBranchType(Capstone::BT_CondJmp))
+        else if(cp.IsBranchType(Zydis::BT_CondJmp))
             branchType = Instruction_t::Conditional;
     }
     else

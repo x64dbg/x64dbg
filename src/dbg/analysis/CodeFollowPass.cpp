@@ -50,7 +50,7 @@ duint CodeFollowPass::GetReferenceOperand(const ZydisDecodedInstruction & Contex
     return 0;
 }
 
-duint CodeFollowPass::GetMemoryOperand(Capstone & Disasm, const ZydisDecodedInstruction & Context, bool* Indirect)
+duint CodeFollowPass::GetMemoryOperand(Zydis & Disasm, const ZydisDecodedInstruction & Context, bool* Indirect)
 {
     if(Context.operandCount <= 0)
         return 0;

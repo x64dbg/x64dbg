@@ -195,7 +195,7 @@ int CapstoneTokenizer::Size() const
     return _success ? _cp.Size() : 1;
 }
 
-const Capstone & CapstoneTokenizer::GetCapstone() const
+const Zydis & CapstoneTokenizer::GetCapstone() const
 {
     return _cp;
 }
@@ -480,7 +480,7 @@ bool CapstoneTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
 {
     duint value;
     TokenType valueType;
-    if(_cp.IsBranchType(Capstone::BT_Jmp | Capstone::BT_Call | Capstone::BT_Loop))
+    if(_cp.IsBranchType(Zydis::BT_Jmp | Zydis::BT_Call | Zydis::BT_Loop))
     {
         value = _cp.BranchDestination();
         valueType = TokenType::Address;

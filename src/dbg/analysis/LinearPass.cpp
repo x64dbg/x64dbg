@@ -142,7 +142,7 @@ void LinearPass::AnalyseOverlaps()
 
 void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
 {
-    Capstone disasm;
+	Zydis disasm;
 
     duint blockBegin = Start;        // BBlock starting virtual address
     duint blockEnd = 0;              // BBlock ending virtual address

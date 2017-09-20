@@ -184,7 +184,7 @@ void LocalVarsView::updateSlot()
     {
         if(start != this->currentFunc) //needs analyzing
         {
-            Capstone dis;
+            Zydis dis;
             unsigned char* buffer = new unsigned char[end - start + 16];
             if(!DbgMemRead(start, buffer, end - start + 16)) //failed to read memory for analyzing
             {

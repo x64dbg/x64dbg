@@ -149,7 +149,7 @@ public:
     void UpdateConfig();
     void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues);
     int Size() const;
-    const Capstone & GetCapstone() const;
+    const Zydis & GetCapstone() const;
 
     static void UpdateColors();
     static void UpdateStringPool();
@@ -162,7 +162,7 @@ public:
     static bool tokenTextPoolEquals(const QString & a, const QString & b);
 
 private:
-    Capstone _cp;
+    Zydis _cp;
     bool isNop;
     InstructionToken _inst;
     bool _success;

@@ -22,7 +22,7 @@ duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+	Zydis cp;
 
     // Check if the pointer is not null
     if(data == NULL)
@@ -82,7 +82,7 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+	Zydis cp;
 
     if(data == NULL)
         return 0;
@@ -111,7 +111,7 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
     return ip;
 }
 
-static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, bool getregs)
+static void HandleCapstoneOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool getregs)
 {
     auto value = cp.ResolveOpValue(opindex, [&cp, getregs](ZydisRegister reg)
     {
@@ -185,7 +185,7 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, b
     }
 }
 
-void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
+void disasmget(Zydis & cp, unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
 {
     memset(instr, 0, sizeof(DISASM_INSTR));
     cp.Disassemble(addr, buffer, MAX_DISASM_BUFFER);
@@ -202,7 +202,7 @@ void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* i
     auto cpInstr = cp.GetInstr();
     strcpy_s(instr->instruction, cp.InstructionText().c_str());
     instr->instr_size = cpInstr->length;
-    if(cp.IsBranchType(Capstone::BT_Jmp | Capstone::BT_Loop | Capstone::BT_Ret | Capstone::BT_Call))
+	if(cp.IsBranchType(Zydis::BT_Jmp | Zydis::BT_Loop | Zydis::BT_Ret | Zydis::BT_Call))
         instr->type = instr_branch;
     else if(strstr(instr->instruction, "sp") || strstr(instr->instruction, "bp"))
         instr->type = instr_stack;
@@ -213,7 +213,7 @@ void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* i
         HandleCapstoneOperand(cp, i, &instr->arg[i], getregs);
 }
 
-void disasmget(Capstone & cp, duint addr, DISASM_INSTR* instr, bool getregs)
+void disasmget(Zydis & cp, duint addr, DISASM_INSTR* instr, bool getregs)
 {
     if(!DbgIsDebugging())
     {
@@ -230,7 +230,7 @@ void disasmget(Capstone & cp, duint addr, DISASM_INSTR* instr, bool getregs)
 
 void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
 {
-    Capstone cp;
+	Zydis cp;
     disasmget(cp, buffer, addr, instr, getregs);
 }
 
@@ -404,7 +404,7 @@ bool disasmgetstringatwrapper(duint addr, char* dest, bool cache)
 
 int disasmgetsize(duint addr, unsigned char* data)
 {
-    Capstone cp;
+	Zydis cp;
     if(!cp.Disassemble(addr, data, MAX_DISASM_BUFFER))
         return 1;
     return int(EncodeMapGetSize(addr, cp.Size()));
