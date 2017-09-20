@@ -1,7 +1,7 @@
 #ifndef _CAPSTONE_GUI_H
 #define _CAPSTONE_GUI_H
 
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 #include "RichTextPainter.h"
 #include "Configuration.h"
 #include <map>
@@ -187,11 +187,11 @@ private:
     bool tokenizePrefix();
     bool tokenizeMnemonic();
     bool tokenizeMnemonic(TokenType type, const QString & mnemonic);
-    bool tokenizeOperand(const cs_x86_op & op);
-    bool tokenizeRegOperand(const cs_x86_op & op);
-    bool tokenizeImmOperand(const cs_x86_op & op);
-    bool tokenizeMemOperand(const cs_x86_op & op);
-    bool tokenizeInvalidOperand(const cs_x86_op & op);
+    bool tokenizeOperand(const ZydisDecodedOperand & op);
+    bool tokenizeRegOperand(const ZydisDecodedOperand & op);
+    bool tokenizeImmOperand(const ZydisDecodedOperand & op);
+    bool tokenizeMemOperand(const ZydisDecodedOperand & op);
+    bool tokenizeInvalidOperand(const ZydisDecodedOperand & op);
 };
 
 #endif //_CAPSTONE_GUI_H

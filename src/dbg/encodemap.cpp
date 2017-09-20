@@ -1,7 +1,7 @@
 #include "encodemap.h"
 #include <unordered_map>
 #include "addrinfo.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 
 struct ENCODEMAP : AddrInfo
 {

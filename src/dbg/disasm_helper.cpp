@@ -11,7 +11,7 @@
 #include "debugger.h"
 #include "value.h"
 #include "encodemap.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 #include "datainst_helper.h"
 
 duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
@@ -113,7 +113,7 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
 
 static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, bool getregs)
 {
-    auto value = cp.ResolveOpValue(opindex, [&cp, getregs](x86_reg reg)
+    auto value = cp.ResolveOpValue(opindex, [&cp, getregs](ZydisRegister reg)
     {
         auto regName = getregs ? cp.RegName(reg) : nullptr;
         return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
@@ -123,34 +123,34 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, b
     strcpy_s(arg->mnemonic, cp.OperandText(opindex).c_str());
     switch(op.type)
     {
-    case X86_OP_REG:
+    case ZYDIS_OPERAND_TYPE_REGISTER:
     {
         arg->type = arg_normal;
         arg->value = value;
     }
     break;
 
-    case X86_OP_IMM:
+    case ZYDIS_OPERAND_TYPE_IMMEDIATE:
     {
         arg->type = arg_normal;
         arg->constant = arg->value = value;
     }
     break;
 
-    case X86_OP_MEM:
+    case ZYDIS_OPERAND_TYPE_MEMORY:
     {
         arg->type = arg_memory;
-        const x86_op_mem & mem = op.mem;
-        if(mem.base == X86_REG_RIP) //rip-relative
-            arg->constant = cp.Address() + duint(mem.disp) + cp.Size();
+        const auto & mem = op.mem;
+        if(mem.base == ZYDIS_REGISTER_RIP) //rip-relative
+            arg->constant = cp.Address() + duint(mem.disp.value) + cp.Size();
         else
-            arg->constant = duint(mem.disp);
+            arg->constant = duint(mem.disp.value);
 #ifdef _WIN64
-        if(mem.segment == X86_REG_GS)
+        if(mem.segment == ZYDIS_REGISTER_GS)
         {
             arg->segment = SEG_GS;
 #else //x86
-        if(mem.segment == X86_REG_FS)
+        if(mem.segment == ZYDIS_REGISTER_FS)
         {
             arg->segment = SEG_FS;
 #endif
@@ -199,16 +199,16 @@ void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* i
         instr->argcount = 0;
         return;
     }
-    const cs_insn* cpInstr = cp.GetInstr();
-    sprintf_s(instr->instruction, "%s %s", cpInstr->mnemonic, cpInstr->op_str);
-    instr->instr_size = cpInstr->size;
-    if(cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_RET) || cp.InGroup(CS_GRP_CALL))
+    auto cpInstr = cp.GetInstr();
+    strcpy_s(instr->instruction, cp.InstructionText().c_str());
+    instr->instr_size = cpInstr->length;
+    if(cp.IsBranchType(Capstone::BT_Jmp | Capstone::BT_Loop | Capstone::BT_Ret | Capstone::BT_Call))
         instr->type = instr_branch;
-    else if(strstr(cpInstr->op_str, "sp") || strstr(cpInstr->op_str, "bp"))
+    else if(strstr(instr->instruction, "sp") || strstr(instr->instruction, "bp"))
         instr->type = instr_stack;
     else
         instr->type = instr_normal;
-    instr->argcount = cp.x86().op_count <= 3 ? cp.x86().op_count : 3;
+	instr->argcount = cp.OpCount() <= 3 ? cp.OpCount() : 3;
     for(int i = 0; i < instr->argcount; i++)
         HandleCapstoneOperand(cp, i, &instr->arg[i], getregs);
 }

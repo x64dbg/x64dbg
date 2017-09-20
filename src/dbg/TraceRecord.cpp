@@ -1,5 +1,5 @@
 #include "TraceRecord.h"
-#include "capstone_wrapper.h"
+#include "zydis_wrapper.h"
 #include "module.h"
 #include "memory.h"
 #include "threading.h"

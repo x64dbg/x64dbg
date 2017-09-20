@@ -2,7 +2,7 @@
 #include <ppl.h>
 #include "AnalysisPass.h"
 #include "LinearPass.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 
 LinearPass::LinearPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
@@ -167,10 +167,10 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
         insnCount++;
 
         // The basic block ends here if it is a branch
-        bool call = disasm.InGroup(CS_GRP_CALL);    // CALL
-        bool jmp = disasm.InGroup(CS_GRP_JUMP);     // JUMP
-        bool ret = disasm.InGroup(CS_GRP_RET);      // RETURN
-        bool padding = disasm.IsFilling();          // INSTRUCTION PADDING
+        bool call = disasm.IsCall();        // CALL
+        bool jmp = disasm.IsJump();         // JUMP
+        bool ret = disasm.IsRet();          // RETURN
+        bool padding = disasm.IsFilling();  // INSTRUCTION PADDING
 
         if(padding)
         {
@@ -211,25 +211,25 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
                 if(!padding)
                 {
                     // Check if absolute jump, regardless of operand
-                    if(disasm.GetId() == X86_INS_JMP)
+                    if(disasm.GetId() == ZYDIS_MNEMONIC_JMP)
                         block->SetFlag(BASIC_BLOCK_FLAG_ABSJMP);
 
                     // Figure out the operand type(s)
-                    const auto & operand = disasm.x86().operands[0];
+                    const auto & operand = disasm[0];
 
-                    if(operand.type == X86_OP_IMM)
+                    if(operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
                     {
                         // Branch target immediate
-                        block->Target = (duint)operand.imm;
+                        block->Target = (duint)operand.imm.value.u;
                     }
                     else
                     {
                         // Indirects (no operand, register, or memory)
                         block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
 
-                        if(operand.type == X86_OP_MEM &&
-                                operand.mem.base == X86_REG_RIP &&
-                                operand.mem.index == X86_REG_INVALID &&
+                        if(operand.type == ZYDIS_OPERAND_TYPE_MEMORY &&
+                                operand.mem.base == ZYDIS_REGISTER_RIP &&
+                                operand.mem.index == ZYDIS_REGISTER_NONE &&
                                 operand.mem.scale == 1)
                         {
                             /*

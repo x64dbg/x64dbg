@@ -200,23 +200,15 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     auto branchType = Instruction_t::None;
     Instruction_t wInst;
-    if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_CALL) || cp.InGroup(CS_GRP_RET)))
+    if(success && (cp.IsBranchType(Capstone::BT_Jmp | Capstone::BT_Call | Capstone::BT_Ret | Capstone::BT_Loop)))
     {
         wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
-        switch(cp.GetId())
-        {
-        case X86_INS_JMP:
-        case X86_INS_LJMP:
+        if(cp.IsBranchType(Capstone::BT_UncondJmp))
             branchType = Instruction_t::Unconditional;
-            break;
-        case X86_INS_CALL:
-        case X86_INS_LCALL:
+        else if(cp.IsBranchType(Capstone::BT_Call))
             branchType = Instruction_t::Call;
-            break;
-        default:
-            branchType = cp.InGroup(CS_GRP_RET) ? Instruction_t::None : Instruction_t::Conditional;
-            break;
-        }
+        else if(cp.IsBranchType(Capstone::BT_CondJmp))
+            branchType = Instruction_t::Conditional;
     }
     else
         wInst.branchDestination = 0;
@@ -233,8 +225,9 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     if(success)
     {
+        /* TODO
+        auto instr = cp.GetInstr();
         cp.RegInfo(reginfo);
-        cp.FlagInfo(flaginfo);
 
         auto flaginfo2reginfo = [](uint8_t info)
         {
@@ -253,14 +246,15 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
         for(uint8_t i = Capstone::FLAG_INVALID; i < Capstone::FLAG_ENDING; i++)
             if(flaginfo[i])
             {
-                reginfo[X86_REG_EFLAGS] = Capstone::None;
+                reginfo[ZYDIS_REGISTER_FLAGS] = Capstone::None;
                 wInst.regsReferenced.push_back({cp.FlagName(Capstone::Flag(i)), flaginfo2reginfo(flaginfo[i])});
             }
 
-        reginfo[ArchValue(X86_REG_EIP, X86_REG_RIP)] = Capstone::None;
-        for(uint8_t i = X86_REG_INVALID; i < X86_REG_ENDING; i++)
+        reginfo[ArchValue(ZYDIS_REGISTER_EIP, ZYDIS_REGISTER_RIP)] = Capstone::None;
+        for(uint8_t i = ZYDIS_REGISTER_NONE; i < ZYDIS_REGISTER_ENUM_COUNT; i++)
             if(reginfo[i])
                 wInst.regsReferenced.push_back({cp.RegName(x86_reg(i)), reginfo[i]});
+        */
     }
 
     return wInst;

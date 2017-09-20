@@ -2,7 +2,7 @@
 #include "encodemap.h"
 #include "stringutils.h"
 #include "value.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 #include <algorithm>
 
 std::unordered_map<ENCODETYPE, std::string> disasmMap;

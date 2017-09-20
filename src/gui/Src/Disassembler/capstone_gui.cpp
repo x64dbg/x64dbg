@@ -362,21 +362,26 @@ bool CapstoneTokenizer::tokenizePrefix()
 {
     bool hasPrefix = true;
     QString prefixText;
-    //TODO: look at multiple prefixes on one instruction (https://github.com/aquynh/capstone/blob/921904888d7c1547c558db3a24fa64bcf97dede4/arch/X86/X86DisassemblerDecoder.c#L540)
-    switch(_cp.x86().prefix[0])
-    {
-    case X86_PREFIX_LOCK:
+
+    //TODO: look at multiple prefixes on one instruction
+    auto attr = _cp.GetInstr()->attributes;
+
+    if(attr & ZYDIS_ATTRIB_HAS_LOCK)
         prefixText = "lock";
-        break;
-    case X86_PREFIX_REP:
+    else if(attr & ZYDIS_ATTRIB_HAS_REP)
         prefixText = "rep";
-        break;
-    case X86_PREFIX_REPNE:
+    else if(attr & ZYDIS_ATTRIB_HAS_REPNE)
+        prefixText = "repe";
+    else if(attr & ZYDIS_ATTRIB_HAS_REPNE)
         prefixText = "repne";
-        break;
-    default:
+    else if(attr & ZYDIS_ATTRIB_HAS_BOUND)
+        prefixText = "bnd";
+    else if(attr & ZYDIS_ATTRIB_HAS_XACQUIRE)
+        prefixText = "xacquire";
+    else if(attr & ZYDIS_ATTRIB_HAS_XRELEASE)
+        prefixText = "xrelease";
+    else
         hasPrefix = false;
-    }
 
     if(hasPrefix)
     {
@@ -391,52 +396,25 @@ bool CapstoneTokenizer::tokenizeMnemonic()
 {
     QString mnemonic = QString(_cp.Mnemonic().c_str());
     _mnemonicType = TokenType::MnemonicNormal;
+
     auto id = _cp.GetId();
     if(isNop)
         _mnemonicType = TokenType::MnemonicNop;
-    else if(_cp.InGroup(CS_GRP_CALL))
+    else if(_cp.IsCall())
         _mnemonicType = TokenType::MnemonicCall;
-    else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())
+    else if(_cp.IsJump() || _cp.IsLoop())
     {
-        switch(id)
-        {
-        case X86_INS_JMP:
-        case X86_INS_LJMP:
-            _mnemonicType = TokenType::MnemonicUncondJump;
-            break;
-        default:
-            _mnemonicType = TokenType::MnemonicCondJump;
-            break;
-        }
+        _mnemonicType = (id == ZYDIS_MNEMONIC_JMP) ?
+            TokenType::MnemonicUncondJump : TokenType::MnemonicCondJump;
     }
     else if(_cp.IsInt3())
         _mnemonicType = TokenType::MnemonicInt3;
     else if(_cp.IsUnusual())
         _mnemonicType = TokenType::MnemonicUnusual;
-    else if(_cp.InGroup(CS_GRP_RET))
+    else if(_cp.IsRet())
         _mnemonicType = TokenType::MnemonicRet;
-    else
-    {
-        switch(id)
-        {
-        case X86_INS_PUSH:
-        case X86_INS_PUSHF:
-        case X86_INS_PUSHFD:
-        case X86_INS_PUSHFQ:
-        case X86_INS_PUSHAL:
-        case X86_INS_PUSHAW:
-        case X86_INS_POP:
-        case X86_INS_POPF:
-        case X86_INS_POPFD:
-        case X86_INS_POPFQ:
-        case X86_INS_POPAL:
-        case X86_INS_POPAW:
-            _mnemonicType = TokenType::MnemonicPushPop;
-            break;
-        default:
-            break;
-        }
-    }
+    else if(_cp.IsPushPop())
+        _mnemonicType = TokenType::MnemonicPushPop;
 
     tokenizeMnemonic(_mnemonicType, mnemonic);
 
@@ -459,57 +437,65 @@ bool CapstoneTokenizer::tokenizeMnemonic(TokenType type, const QString & mnemoni
     return true;
 }
 
-bool CapstoneTokenizer::tokenizeOperand(const cs_x86_op & op)
+bool CapstoneTokenizer::tokenizeOperand(const ZydisDecodedOperand & op)
 {
     switch(op.type)
     {
-    case X86_OP_REG:
+    case ZYDIS_OPERAND_TYPE_REGISTER:
         return tokenizeRegOperand(op);
-    case X86_OP_IMM:
+    case ZYDIS_OPERAND_TYPE_IMMEDIATE:
         return tokenizeImmOperand(op);
-    case X86_OP_MEM:
+    case ZYDIS_OPERAND_TYPE_MEMORY:
         return tokenizeMemOperand(op);
-    case X86_OP_INVALID:
+    case ZYDIS_OPERAND_TYPE_UNUSED:
         return tokenizeInvalidOperand(op);
     default:
         return false;
     }
 }
 
-bool CapstoneTokenizer::tokenizeRegOperand(const cs_x86_op & op)
+bool CapstoneTokenizer::tokenizeRegOperand(const ZydisDecodedOperand & op)
 {
     auto registerType = TokenType::GeneralRegister;
     auto reg = op.reg;
-    if(reg >= X86_REG_FP0 && reg <= X86_REG_FP7)
-        registerType = TokenType::FpuRegister;
-    else if(reg >= X86_REG_ST0 && reg <= X86_REG_ST7)
-        registerType = TokenType::FpuRegister;
-    else if(reg >= X86_REG_MM0 && reg <= X86_REG_MM7)
-        registerType = TokenType::MmxRegister;
-    else if(reg >= X86_REG_XMM0 && reg <= X86_REG_XMM31)
-        registerType = TokenType::XmmRegister;
-    else if(reg >= X86_REG_YMM0 && reg <= X86_REG_YMM31)
-        registerType = TokenType::YmmRegister;
-    else if(reg >= X86_REG_ZMM0 && reg <= X86_REG_ZMM31)
-        registerType = TokenType::ZmmRegister;
-    else if(reg == ArchValue(X86_REG_FS, X86_REG_GS))
+    auto regClass = ZydisRegisterGetClass(reg);
+
+    switch(regClass)
+    {
+    case ZYDIS_REGCLASS_X87: registerType = TokenType::FpuRegister; break;
+    case ZYDIS_REGCLASS_MMX: registerType = TokenType::MmxRegister; break;
+    case ZYDIS_REGCLASS_XMM: registerType = TokenType::XmmRegister; break;
+    case ZYDIS_REGCLASS_YMM: registerType = TokenType::YmmRegister; break;
+    case ZYDIS_REGCLASS_ZMM: registerType = TokenType::ZmmRegister; break;
+    }
+
+    if(reg == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS))
         registerType = TokenType::MnemonicUnusual;
+
     addToken(registerType, _cp.RegName(reg));
     return true;
 }
 
-bool CapstoneTokenizer::tokenizeImmOperand(const cs_x86_op & op)
+bool CapstoneTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
 {
-    auto value = duint(op.imm) & (duint(-1) >> (op.size ? 8 * (sizeof(duint) - op.size) : 0));
-    auto valueType = TokenType::Value;
-    if(_cp.InGroup(CS_GRP_JUMP) || _cp.InGroup(CS_GRP_CALL) || _cp.IsLoop())
+    duint value;
+    TokenType valueType;
+    if(_cp.IsBranchType(Capstone::BT_Jmp | Capstone::BT_Call | Capstone::BT_Loop))
+    {
+        value = _cp.BranchDestination();
         valueType = TokenType::Address;
+    }
+    else
+    {
+        value = duint(op.imm.value.u) & (duint(-1) >> (op.size ? (8 * sizeof(duint) - op.size) : 0));
+        valueType = TokenType::Value;
+    }
     auto tokenValue = TokenValue(op.size, value);
     addToken(valueType, printValue(tokenValue, true, _maxModuleLength), tokenValue);
     return true;
 }
 
-bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
+bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
 {
     //memory size
     const char* sizeText = _cp.MemSizeName(op.size);
@@ -520,37 +506,19 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
 
     //memory segment
     const auto & mem = op.mem;
-    const char* segmentText = _cp.RegName(mem.segment);
-    if(mem.segment == X86_REG_INVALID) //segment not set
-    {
-        switch(mem.base)
-        {
-#ifdef _WIN64
-        case X86_REG_RSP:
-        case X86_REG_RBP:
-#else //x86
-        case X86_REG_ESP:
-        case X86_REG_EBP:
-#endif //_WIN64
-            segmentText = "ss";
-            break;
-        default:
-            segmentText = "ds";
-            break;
-        }
-    }
-    auto segmentType = op.reg == ArchValue(X86_REG_FS, X86_REG_GS) ? TokenType::MnemonicUnusual : TokenType::MemorySegment;
-    addToken(segmentType, segmentText);
+    auto segmentType = op.reg == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS)
+        ? TokenType::MnemonicUnusual : TokenType::MemorySegment;
+    addToken(segmentType, _cp.RegName(mem.segment));
     addToken(TokenType::Uncategorized, ":");
 
     //memory opening bracket
     auto bracketsType = TokenType::MemoryBrackets;
     switch(mem.base)
     {
-    case X86_REG_ESP:
-    case X86_REG_RSP:
-    case X86_REG_EBP:
-    case X86_REG_RBP:
+    case ZYDIS_REGISTER_ESP:
+    case ZYDIS_REGISTER_RSP:
+    case ZYDIS_REGISTER_EBP:
+    case ZYDIS_REGISTER_RBP:
         bracketsType = TokenType::MemoryStackBrackets;
     default:
         break;
@@ -558,9 +526,9 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     addToken(bracketsType, "[");
 
     //stuff inside the brackets
-    if(mem.base == X86_REG_RIP) //rip-relative (#replacement)
+    if(mem.base == ZYDIS_REGISTER_RIP) //rip-relative (#replacement)
     {
-        duint addr = _cp.Address() + duint(mem.disp) + _cp.Size();
+        duint addr = _cp.Address() + duint(mem.disp.value) + _cp.Size();
         TokenValue value = TokenValue(op.size, addr);
         auto displacementType = DbgMemIsValidReadPtr(addr) ? TokenType::Address : TokenType::Value;
         addToken(displacementType, printValue(value, false, _maxModuleLength), value);
@@ -568,12 +536,12 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     else //#base + #index * #scale + #displacement
     {
         bool prependPlus = false;
-        if(mem.base != X86_REG_INVALID) //base register
+        if(mem.base != ZYDIS_REGISTER_NONE) //base register
         {
             addToken(TokenType::MemoryBaseRegister, _cp.RegName(mem.base));
             prependPlus = true;
         }
-        if(mem.index != X86_REG_INVALID) //index register
+        if(mem.index != ZYDIS_REGISTER_NONE) //index register
         {
             if(prependPlus)
                 addMemoryOperator('+');
@@ -585,16 +553,16 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
             }
             prependPlus = true;
         }
-        if(mem.disp)
+        if(mem.disp.value)
         {
             char operatorText = '+';
-            TokenValue value(op.size, duint(mem.disp));
-            auto displacementType = DbgMemIsValidReadPtr(duint(mem.disp)) ? TokenType::Address : TokenType::Value;
+            TokenValue value(op.size, duint(mem.disp.value));
+            auto displacementType = DbgMemIsValidReadPtr(duint(mem.disp.value)) ? TokenType::Address : TokenType::Value;
             QString valueText;
-            if(mem.disp < 0)
+            if(mem.disp.value < 0)
             {
                 operatorText = '-';
-                valueText = printValue(TokenValue(op.size, duint(mem.disp * -1)), false, _maxModuleLength);
+                valueText = printValue(TokenValue(op.size, duint(mem.disp.value * -1)), false, _maxModuleLength);
             }
             else
                 valueText = printValue(value, false, _maxModuleLength);
@@ -611,7 +579,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     return true;
 }
 
-bool CapstoneTokenizer::tokenizeInvalidOperand(const cs_x86_op & op)
+bool CapstoneTokenizer::tokenizeInvalidOperand(const ZydisDecodedOperand & op)
 {
     addToken(TokenType::MnemonicUnusual, "???");
     return true;

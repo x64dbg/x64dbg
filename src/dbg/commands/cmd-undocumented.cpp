@@ -7,7 +7,7 @@
 #include "debugger.h"
 #include "variable.h"
 #include "loop.h"
-#include "capstone_wrapper.h"
+#include "zydis_wrapper.h"
 #include "mnemonichelp.h"
 #include "value.h"
 #include "symbolinfo.h"
@@ -209,6 +209,9 @@ bool cbInstrCopystr(int argc, char* argv[])
 
 bool cbInstrCapstone(int argc, char* argv[])
 {
+    return false;
+
+    /*
     if(IsArgumentsLessThan(argc, 2))
         return false;
 
@@ -237,10 +240,8 @@ bool cbInstrCapstone(int argc, char* argv[])
         return false;
     }
 
-    const cs_insn* instr = cp.GetInstr();
-    const cs_detail* detail = instr->detail;
-    const cs_x86 & x86 = cp.x86();
-    int argcount = x86.op_count;
+    auto instr = cp.GetInstr();
+    int argcount = instr->operandCount;
     dprintf_untranslated("%s %s | %s\n", instr->mnemonic, instr->op_str, cp.InstructionText(true).c_str());
     dprintf_untranslated("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), cp.OpCount());
     if(detail->regs_read_count)
@@ -301,6 +302,7 @@ bool cbInstrCapstone(int argc, char* argv[])
     }
 
     return true;
+    */
 }
 
 bool cbInstrVisualize(int argc, char* argv[])
@@ -357,10 +359,10 @@ bool cbInstrVisualize(int argc, char* argv[])
                 if(addr + _cp.Size() > maxaddr) //we went past the maximum allowed address
                     break;
 
-                const cs_x86_op & operand = _cp.x86().operands[0];
-                if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM) //jump
+                const auto & operand = _cp[0];
+                if((_cp.IsJump() || _cp.IsLoop()) && operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
                 {
-                    duint dest = (duint)operand.imm;
+                    duint dest = (duint)operand.imm.value.u;
 
                     if(dest >= maxaddr) //jump across function boundaries
                     {
@@ -370,12 +372,12 @@ bool cbInstrVisualize(int argc, char* argv[])
                     {
                         fardest = dest;
                     }
-                    else if(end && dest < end && _cp.GetId() == X86_INS_JMP) //save the last JMP backwards
+                    else if(end && dest < end && _cp.GetId() == ZYDIS_MNEMONIC_JMP) //save the last JMP backwards
                     {
                         jumpback = addr;
                     }
                 }
-                else if(_cp.InGroup(CS_GRP_RET)) //possible function end?
+                else if(_cp.IsRet()) //possible function end?
                 {
                     end = addr;
                     if(fardest < addr) //we stop if the farthest JXX destination forward is before this RET

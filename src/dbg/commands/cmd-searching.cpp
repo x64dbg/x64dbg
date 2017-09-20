@@ -570,8 +570,8 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     }
     switch(disasm->GetId())
     {
-    case X86_INS_CALL: //call dword ptr: [&api]
-    case X86_INS_MOV: //mov reg, dword ptr:[&api]
+    case ZYDIS_MNEMONIC_CALL: //call dword ptr: [&api]
+    case ZYDIS_MNEMONIC_MOV: //mov reg, dword ptr:[&api]
         if(!foundaddr && basicinfo->memory.value)
         {
             duint memaddr;

@@ -1,5 +1,5 @@
 #include "main.h"
-#include "capstone_wrapper.h"
+#include "zydis_wrapper.h"
 #include "MainWindow.h"
 #include "Configuration.h"
 #include <QTextCodec>
