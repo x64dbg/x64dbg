@@ -184,17 +184,20 @@ void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
 void TraceBrowser::mousePressEvent(QMouseEvent* event)
 {
     duint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
-    switch(event->button())
+    if(getGuiState() == AbstractTableView::NoState)
     {
-    case Qt::LeftButton:
-        if(index < getRowCount())
+        switch(event->button())
         {
-            if(event->modifiers() & Qt::ShiftModifier)
-                expandSelectionUpTo(index);
-            else
-                setSingleSelection(index);
-            updateViewport();
-            return;
+        case Qt::LeftButton:
+            if(index < getRowCount())
+            {
+                if(event->modifiers() & Qt::ShiftModifier)
+                    expandSelectionUpTo(index);
+                else
+                    setSingleSelection(index);
+                updateViewport();
+                return;
+            }
         }
     }
     AbstractTableView::mousePressEvent(event);
@@ -203,7 +206,7 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
 void TraceBrowser::mouseMoveEvent(QMouseEvent* event)
 {
     duint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
-    if(event->buttons() & Qt::LeftButton)
+    if((event->buttons() & Qt::LeftButton) != 0 && getGuiState() == AbstractTableView::NoState)
     {
         if(index < getRowCount())
         {
@@ -221,12 +224,6 @@ void TraceBrowser::mouseMoveEvent(QMouseEvent* event)
         updateViewport();
     }
     AbstractTableView::mouseMoveEvent(event);
-}
-
-void TraceBrowser::mouseReleaseEvent(QMouseEvent* event)
-{
-    AbstractTableView::mouseReleaseEvent(event);
-    updateViewport();
 }
 
 void TraceBrowser::keyPressEvent(QKeyEvent* event)
