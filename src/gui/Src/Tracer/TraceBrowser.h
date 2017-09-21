@@ -3,9 +3,9 @@
 
 #include "AbstractTableView.h"
 #include "VaHistory.h"
+#include "QBeaEngine.h"
 
 class TraceFileReader;
-class QBeaEngine;
 
 class TraceBrowser : public AbstractTableView
 {
@@ -49,6 +49,9 @@ private:
     } SelectionData_t;
 
     SelectionData_t mSelection;
+    CapstoneTokenizer::SingleToken mHighlightToken;
+    bool mHighlightingMode;
+    bool mPermanentHighlightingMode;
 
     TraceFileReader* mTraceFile;
     QBeaEngine* mDisasm;
@@ -85,11 +88,14 @@ public slots:
     void openFileSlot();
     void closeFileSlot();
     void parseFinishedSlot();
+    void tokenizerConfigUpdatedSlot();
 
     void gotoSlot();
     void followDisassemblySlot();
+    void enableHighlightingModeSlot();
     void copyDisassemblySlot();
     void copyCipSlot();
+    void copyIndexSlot();
 };
 
 #endif //TRACEBROWSER_H

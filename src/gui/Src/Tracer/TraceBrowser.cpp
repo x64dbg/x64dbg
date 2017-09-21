@@ -25,6 +25,8 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
     mDisasm = new QBeaEngine(maxModuleSize);
+    mHighlightingMode = false;
+    mPermanentHighlightingMode = false;
 
     setupRightClickContextMenu();
 
@@ -86,6 +88,16 @@ QString TraceBrowser::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bo
 
 QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    if(mHighlightingMode)
+    {
+        QPen pen(mInstructionHighlightColor);
+        pen.setWidth(2);
+        painter->setPen(pen);
+        QRect rect = viewport()->rect();
+        rect.adjust(1, 1, -1, -1);
+        painter->drawRect(rect);
+    }
+
     int index = rowBase + rowOffset;
     bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
     if(wIsSelected)
@@ -308,10 +320,10 @@ NotDebuggingLabel:
 
         Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, mTraceFile->Registers(index).regcontext.cip, false);
 
-        //if(mHighlightToken.text.length())
-        //CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
-        //else
-        CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+        if(mHighlightToken.text.length())
+            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+        else
+            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
         RichTextPainter::paintRichText(painter, x + 0, y, getColumnWidth(col) - 0, getRowHeight(), 4, richText, mFontMetrics);
         return "";
     }
@@ -369,8 +381,10 @@ void TraceBrowser::setupRightClickContextMenu()
     MenuBuilder* copyMenu = new MenuBuilder(this, isValid);
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("Address"), SLOT(copyCipSlot()), "ActionCopyAddress"));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("Index"), SLOT(copyIndexSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembly"), SLOT(followDisassemblySlot()), "ActionFollowDisasm"), isValid);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"), isValid);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("goto.png"), tr("Go to..."), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
 }
 
@@ -391,6 +405,45 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
         case Qt::LeftButton:
             if(index < getRowCount())
             {
+                if(mHighlightingMode || mPermanentHighlightingMode)
+                {
+                    if(getColumnIndexFromX(event->x()) == 3) //click in instruction column
+                    {
+                        Instruction_t inst;
+                        unsigned char opcode[16];
+                        int opcodeSize;
+                        mTraceFile->OpCode(index, opcode, &opcodeSize);
+                        inst = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(index).regcontext.cip, 0);
+                        CapstoneTokenizer::SingleToken token;
+                        if(CapstoneTokenizer::TokenFromX(inst.tokens, token, event->x() - getColumnPosition(3), mFontMetrics))
+                        {
+                            if(CapstoneTokenizer::IsHighlightableToken(token))
+                            {
+                                if(!CapstoneTokenizer::TokenEquals(&token, &mHighlightToken) || event->button() == Qt::RightButton)
+                                    mHighlightToken = token;
+                                else
+                                    mHighlightToken = CapstoneTokenizer::SingleToken();
+                            }
+                            else if(!mPermanentHighlightingMode)
+                            {
+                                mHighlightToken = CapstoneTokenizer::SingleToken();
+                            }
+                        }
+                        else if(!mPermanentHighlightingMode)
+                        {
+                            mHighlightToken = CapstoneTokenizer::SingleToken();
+                        }
+                    }
+                    else if(!mPermanentHighlightingMode)
+                    {
+                        mHighlightToken = CapstoneTokenizer::SingleToken();
+                    }
+                    if(mHighlightingMode) //disable highlighting mode after clicked
+                    {
+                        mHighlightingMode = false;
+                        reloadData();
+                    }
+                }
                 if(event->modifiers() & Qt::ShiftModifier)
                     expandSelectionUpTo(index);
                 else
@@ -398,6 +451,11 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
                 updateViewport();
                 return;
             }
+            break;
+        case Qt::MiddleButton:
+            copyCipSlot();
+            MessageBeep(MB_OK);
+            break;
         }
     }
     AbstractTableView::mousePressEvent(event);
@@ -484,6 +542,12 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
     }
     else
         AbstractTableView::keyPressEvent(event);
+}
+
+void TraceBrowser::tokenizerConfigUpdatedSlot()
+{
+    mDisasm->UpdateConfig();
+    mPermanentHighlightingMode = ConfigBool("Disassembler", "PermanentHighlightingMode");
 }
 
 void TraceBrowser::expandSelectionUpTo(duint to)
@@ -623,6 +687,28 @@ void TraceBrowser::copyCipSlot()
     Bridge::CopyToClipboard(clipboard);
 }
 
+void TraceBrowser::copyIndexSlot()
+{
+    QString clipboard;
+    for(auto i = getSelectionStart(); i <= getSelectionEnd(); i++)
+    {
+        if(i != getSelectionStart())
+            clipboard += "\r\n";
+        QString indexString;
+        indexString = QString::number(i, 16).toUpper();
+        int digits = ceil(log2(mTraceFile->Length()) / 4) + 1;
+        digits -= indexString.size();
+        while(digits > 0)
+        {
+            indexString = '0' + indexString;
+            digits = digits - 1;
+        }
+        clipboard += indexString;
+    }
+    Bridge::CopyToClipboard(clipboard);
+}
+
+
 void TraceBrowser::copyDisassemblySlot()
 {
     QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
@@ -644,6 +730,15 @@ void TraceBrowser::copyDisassemblySlot()
     }
     clipboardHtml += QString("</div>");
     Bridge::CopyToClipboard(clipboard, clipboardHtml);
+}
+
+void TraceBrowser::enableHighlightingModeSlot()
+{
+    if(mHighlightingMode)
+        mHighlightingMode = false;
+    else
+        mHighlightingMode = true;
+    reloadData();
 }
 
 void TraceBrowser::followDisassemblySlot()
