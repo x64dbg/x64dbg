@@ -4,6 +4,9 @@
 #include "BrowseDialog.h"
 #include "QBeaEngine.h"
 #include "GotoDialog.h"
+#include "LineEditDialog.h"
+#include "CachedFontMetrics.h"
+#include "BreakpointMenu.h"
 
 TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 {
@@ -99,6 +102,8 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     }
 
     int index = rowBase + rowOffset;
+    duint cur_addr;
+    cur_addr = mTraceFile->Registers(index).regcontext.cip;
     bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
     if(wIsSelected)
     {
@@ -113,24 +118,13 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     {
     case 0: //index
     {
-        QString indexString;
-        indexString = QString::number(index, 16).toUpper();
-        int digits = ceil(log2(mTraceFile->Length()) / 4) + 1;
-        digits -= indexString.size();
-        while(digits > 0)
-        {
-            indexString = '0' + indexString;
-            digits = digits - 1;
-        }
-        return indexString;
+        return getIndexText(index);
     }
 
     case 1: //address
     {
         QString addrText;
-        duint cur_addr;
         char label[MAX_LABEL_SIZE] = "";
-        cur_addr = mTraceFile->Registers(index).regcontext.cip;
         if(!DbgIsDebugging())
         {
             addrText = ToPtrString(cur_addr);
@@ -332,10 +326,44 @@ NotDebuggingLabel:
     {
         if(DbgIsDebugging())
         {
-            char comments[MAX_COMMENT_SIZE];
-            if(DbgGetCommentAt(mTraceFile->Registers(index).regcontext.cip, comments))
+            //TODO: draw arguments
+            QString comment;
+            bool autoComment = false;
+            char label[MAX_LABEL_SIZE] = "";
+            if(GetCommentFormat(cur_addr, comment, &autoComment))
             {
-                return QString::fromUtf8(comments);
+                QColor backgroundColor;
+                if(autoComment)
+                {
+                    painter->setPen(mAutoCommentColor);
+                    backgroundColor = mAutoCommentBackgroundColor;
+                }
+                else //user comment
+                {
+                    painter->setPen(mCommentColor);
+                    backgroundColor = mCommentBackgroundColor;
+                }
+
+                int width = mFontMetrics->width(comment);
+                if(width > w)
+                    width = w;
+                if(width)
+                    painter->fillRect(QRect(x, y, width, h), QBrush(backgroundColor)); //fill comment color
+                painter->drawText(QRect(x, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, comment);
+            }
+            else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
+            {
+                QString labelText(label);
+                QColor backgroundColor;
+                painter->setPen(mLabelColor);
+                backgroundColor = mLabelBackgroundColor;
+
+                int width = mFontMetrics->width(labelText);
+                if(width > w)
+                    width = w;
+                if(width)
+                    painter->fillRect(QRect(x, y, width, h), QBrush(backgroundColor)); //fill comment color
+                painter->drawText(QRect(x, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
             }
         }
         return "";
@@ -384,8 +412,28 @@ void TraceBrowser::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("Index"), SLOT(copyIndexSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembly"), SLOT(followDisassemblySlot()), "ActionFollowDisasm"), isValid);
+
+    mBreakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this, isValid]()
+    {
+        if(isValid(nullptr))
+            return mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+        else
+            return (duint)0;
+    });
+    mBreakpointMenu->build(mMenuBuilder);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), isValid);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"), isValid);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("goto.png"), tr("Go to..."), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
+    MenuBuilder* gotoMenu = new MenuBuilder(this, isValid);
+    gotoMenu->addAction(makeShortcutAction(DIcon("goto.png"), tr("Expression"), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
+    gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    {
+        return mHistory.historyHasPrev();
+    });
+    gotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
+    {
+        return mHistory.historyHasNext();
+    });
+    mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
 }
 
 void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
@@ -398,7 +446,7 @@ void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
 void TraceBrowser::mousePressEvent(QMouseEvent* event)
 {
     duint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
-    if(getGuiState() == AbstractTableView::NoState)
+    if(getGuiState() == AbstractTableView::NoState && mTraceFile != nullptr && mTraceFile->Progress() == 100)
     {
         switch(event->button())
         {
@@ -448,6 +496,7 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
                     expandSelectionUpTo(index);
                 else
                     setSingleSelection(index);
+                mHistory.addVaToHistory(index);
                 updateViewport();
                 return;
             }
@@ -456,15 +505,52 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
             copyCipSlot();
             MessageBeep(MB_OK);
             break;
+        case Qt::BackButton:
+            gotoPreviousSlot();
+            break;
+        case Qt::ForwardButton:
+            gotoNextSlot();
+            break;
         }
     }
     AbstractTableView::mousePressEvent(event);
 }
 
+void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    if(event->button() == Qt::LeftButton && mTraceFile != nullptr && mTraceFile->Progress() == 100)
+    {
+        switch(getColumnIndexFromX(event->x()))
+        {
+        case 0://Index: ???
+            break;
+        case 1://Address: set RVA
+            if(mRvaDisplayEnabled && mTraceFile->Registers(getInitialSelection()).regcontext.cip == mRvaDisplayBase)
+                mRvaDisplayEnabled = false;
+            else
+            {
+                mRvaDisplayEnabled = true;
+                mRvaDisplayBase = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+            }
+            reloadData();
+            break;
+        case 2: //Opcode: Breakpoint
+            mBreakpointMenu->toggleInt3BPActionSlot();
+            break;
+        case 3: //Instructions: ???
+            break;
+        case 4: //Comment
+            setCommentSlot();
+            break;
+        }
+    }
+    AbstractTableView::mouseDoubleClickEvent(event);
+}
+
 void TraceBrowser::mouseMoveEvent(QMouseEvent* event)
 {
-    duint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
-    if((event->buttons() & Qt::LeftButton) != 0 && getGuiState() == AbstractTableView::NoState)
+    dsint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
+    if((event->buttons() & Qt::LeftButton) != 0 && getGuiState() == AbstractTableView::NoState && mTraceFile != nullptr && mTraceFile->Progress() == 100)
     {
         if(index < getRowCount())
         {
@@ -538,6 +624,7 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
             }
         }
         makeVisible(visibleindex);
+        mHistory.addVaToHistory(visibleindex);
         updateViewport();
     }
     else
@@ -601,6 +688,23 @@ void TraceBrowser::makeVisible(duint index)
         setTableOffset(index - getViewableRowsCount() + 2);
 }
 
+QString TraceBrowser::getIndexText(duint index)
+{
+    QString indexString;
+    indexString = QString::number(index, 16).toUpper();
+    if(mTraceFile->Length() < 16)
+        return indexString;
+    int digits;
+    digits = floor(log2(mTraceFile->Length() - 1) / 4) + 1;
+    digits -= indexString.size();
+    while(digits > 0)
+    {
+        indexString = '0' + indexString;
+        digits = digits - 1;
+    }
+    return indexString;
+}
+
 void TraceBrowser::updateColors()
 {
     AbstractTableView::updateColors();
@@ -627,6 +731,10 @@ void TraceBrowser::updateColors()
     mAddressColor = ConfigColor("DisassemblyAddressColor");
     mBytesColor = ConfigColor("DisassemblyBytesColor");
     mBytesBackgroundColor = ConfigColor("DisassemblyBytesBackgroundColor");
+    mAutoCommentColor = ConfigColor("DisassemblyAutoCommentColor");
+    mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
+    mCommentColor = ConfigColor("DisassemblyCommentColor");
+    mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
 }
 
 void TraceBrowser::openFileSlot()
@@ -671,7 +779,31 @@ void TraceBrowser::gotoSlot()
         {
             setSingleSelection(val);
             makeVisible(val);
+            mHistory.addVaToHistory(val);
+            updateViewport();
         }
+    }
+}
+
+void TraceBrowser::gotoNextSlot()
+{
+    if(mHistory.historyHasNext())
+    {
+        auto index = mHistory.historyNext();
+        setSingleSelection(index);
+        makeVisible(index);
+        updateViewport();
+    }
+}
+
+void TraceBrowser::gotoPreviousSlot()
+{
+    if(mHistory.historyHasPrev())
+    {
+        auto index = mHistory.historyPrev();
+        setSingleSelection(index);
+        makeVisible(index);
+        updateViewport();
     }
 }
 
@@ -694,16 +826,7 @@ void TraceBrowser::copyIndexSlot()
     {
         if(i != getSelectionStart())
             clipboard += "\r\n";
-        QString indexString;
-        indexString = QString::number(i, 16).toUpper();
-        int digits = ceil(log2(mTraceFile->Length()) / 4) + 1;
-        digits -= indexString.size();
-        while(digits > 0)
-        {
-            indexString = '0' + indexString;
-            digits = digits - 1;
-        }
-        clipboard += indexString;
+        clipboard += getIndexText(i);
     }
     Bridge::CopyToClipboard(clipboard);
 }
@@ -730,6 +853,43 @@ void TraceBrowser::copyDisassemblySlot()
     }
     clipboardHtml += QString("</div>");
     Bridge::CopyToClipboard(clipboard, clipboardHtml);
+}
+
+void TraceBrowser::setCommentSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    duint wVA = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+    LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
+    QString addr_text = ToPtrString(wVA);
+    char comment_text[MAX_COMMENT_SIZE] = "";
+    if(DbgGetCommentAt((duint)wVA, comment_text))
+    {
+        if(comment_text[0] == '\1') //automatic comment
+            mLineEdit.setText(QString(comment_text + 1));
+        else
+            mLineEdit.setText(QString(comment_text));
+    }
+    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    QString comment = mLineEdit.editText.replace('\r', "").replace('\n', "");
+    if(!DbgSetCommentAt(wVA, comment.toUtf8().constData()))
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
+
+    static bool easter = isEaster();
+    if(easter && comment.toLower() == "oep")
+    {
+        QFile file(":/icons/images/egg.wav");
+        if(file.open(QIODevice::ReadOnly))
+        {
+            QByteArray egg = file.readAll();
+            PlaySoundA(egg.data(), 0, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+        }
+    }
+
+    GuiUpdateAllViews();
 }
 
 void TraceBrowser::enableHighlightingModeSlot()

@@ -6,6 +6,7 @@
 #include "QBeaEngine.h"
 
 class TraceFileReader;
+class BreakpointMenu;
 
 class TraceBrowser : public AbstractTableView
 {
@@ -30,10 +31,12 @@ private:
     void setupRightClickContextMenu();
     void makeVisible(duint index);
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel);
+    QString getIndexText(duint index);
 
     void contextMenuEvent(QContextMenuEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
     void keyPressEvent(QKeyEvent* event);
 
     VaHistory mHistory;
@@ -55,6 +58,7 @@ private:
 
     TraceFileReader* mTraceFile;
     QBeaEngine* mDisasm;
+    BreakpointMenu* mBreakpointMenu;
 
     QColor mBytesColor;
     QColor mBytesBackgroundColor;
@@ -83,6 +87,11 @@ private:
     QColor mAddressBackgroundColor;
     QColor mAddressColor;
 
+    QColor mAutoCommentColor;
+    QColor mAutoCommentBackgroundColor;
+    QColor mCommentColor;
+    QColor mCommentBackgroundColor;
+
 public slots:
 
     void openFileSlot();
@@ -91,8 +100,11 @@ public slots:
     void tokenizerConfigUpdatedSlot();
 
     void gotoSlot();
+    void gotoPreviousSlot();
+    void gotoNextSlot();
     void followDisassemblySlot();
     void enableHighlightingModeSlot();
+    void setCommentSlot();
     void copyDisassemblySlot();
     void copyCipSlot();
     void copyIndexSlot();
