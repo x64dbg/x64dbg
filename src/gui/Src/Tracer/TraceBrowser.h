@@ -29,6 +29,7 @@ public:
 private:
     void setupRightClickContextMenu();
     void makeVisible(duint index);
+    QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel);
 
     void contextMenuEvent(QContextMenuEvent* event);
     void mousePressEvent(QMouseEvent* event);
@@ -37,6 +38,8 @@ private:
 
     VaHistory mHistory;
     MenuBuilder* mMenuBuilder;
+    bool mRvaDisplayEnabled;
+    duint mRvaDisplayBase;
 
     typedef struct _SelectionData_t
     {
@@ -53,6 +56,30 @@ private:
     QColor mBytesColor;
     QColor mBytesBackgroundColor;
 
+    QColor mInstructionHighlightColor;
+    QColor mSelectionColor;
+
+    QColor mCipBackgroundColor;
+    QColor mCipColor;
+
+    QColor mBreakpointBackgroundColor;
+    QColor mBreakpointColor;
+
+    QColor mHardwareBreakpointBackgroundColor;
+    QColor mHardwareBreakpointColor;
+
+    QColor mBookmarkBackgroundColor;
+    QColor mBookmarkColor;
+
+    QColor mLabelColor;
+    QColor mLabelBackgroundColor;
+
+    QColor mSelectedAddressBackgroundColor;
+    QColor mTracedAddressBackgroundColor;
+    QColor mSelectedAddressColor;
+    QColor mAddressBackgroundColor;
+    QColor mAddressColor;
+
 public slots:
 
     void openFileSlot();
@@ -60,7 +87,9 @@ public slots:
     void parseFinishedSlot();
 
     void gotoSlot();
+    void followDisassemblySlot();
     void copyDisassemblySlot();
+    void copyCipSlot();
 };
 
 #endif //TRACEBROWSER_H

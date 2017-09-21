@@ -20,6 +20,8 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     mSelection.fromIndex = 0;
     mSelection.toIndex = 0;
     setRowCount(0);
+    mRvaDisplayBase = 0;
+    mRvaDisplayEnabled = false;
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
     mDisasm = new QBeaEngine(maxModuleSize);
@@ -34,11 +36,59 @@ TraceBrowser::~TraceBrowser()
     delete mDisasm;
 }
 
+QString TraceBrowser::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel)
+{
+    QString addrText = "";
+    if(mRvaDisplayEnabled) //RVA display
+    {
+        dsint rva = cur_addr - mRvaDisplayBase;
+        if(rva == 0)
+        {
+#ifdef _WIN64
+            addrText = "$ ==>            ";
+#else
+            addrText = "$ ==>    ";
+#endif //_WIN64
+        }
+        else if(rva > 0)
+        {
+#ifdef _WIN64
+            addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+        else if(rva < 0)
+        {
+#ifdef _WIN64
+            addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+    }
+    addrText += ToPtrString(cur_addr);
+    char label_[MAX_LABEL_SIZE] = "";
+    if(getLabel && DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
+    {
+        char module[MAX_MODULE_SIZE] = "";
+        if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&"))
+            addrText += " <" + QString(module) + "." + QString(label_) + ">";
+        else
+            addrText += " <" + QString(label_) + ">";
+    }
+    else
+        *label_ = 0;
+    if(label)
+        strcpy_s(label, MAX_LABEL_SIZE, label_);
+    return addrText;
+}
+
 QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     int index = rowBase + rowOffset;
-    bool isSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
-    if(isSelected)
+    bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
+    if(wIsSelected)
     {
         painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
     }
@@ -65,8 +115,157 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
 
     case 1: //address
     {
-        return ToPtrString(mTraceFile->Registers(index).regcontext.cip);
+        QString addrText;
+        duint cur_addr;
+        char label[MAX_LABEL_SIZE] = "";
+        cur_addr = mTraceFile->Registers(index).regcontext.cip;
+        if(!DbgIsDebugging())
+        {
+            addrText = ToPtrString(cur_addr);
+            goto NotDebuggingLabel;
+        }
+        else
+            addrText = getAddrText(cur_addr, label, true);
+        BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
+        bool isbookmark = DbgGetBookmarkAt(cur_addr);
+        //todo: cip
+        {
+            if(!isbookmark) //no bookmark
+            {
+                if(*label) //label
+                {
+                    if(bpxtype == bp_none) //label only : fill label background
+                    {
+                        painter->setPen(mLabelColor); //red -> address + label text
+                        painter->fillRect(QRect(x, y, w, h), QBrush(mLabelBackgroundColor)); //fill label background
+                    }
+                    else //label + breakpoint
+                    {
+                        if(bpxtype & bp_normal) //label + normal breakpoint
+                        {
+                            painter->setPen(mBreakpointColor);
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mBreakpointBackgroundColor)); //fill red
+                        }
+                        else if(bpxtype & bp_hardware) //label + hardware breakpoint only
+                        {
+                            painter->setPen(mHardwareBreakpointColor);
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mHardwareBreakpointBackgroundColor)); //fill ?
+                        }
+                        else //other cases -> do as normal
+                        {
+                            painter->setPen(mLabelColor); //red -> address + label text
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mLabelBackgroundColor)); //fill label background
+                        }
+                    }
+                }
+                else //no label
+                {
+                    if(bpxtype == bp_none) //no label, no breakpoint
+                    {
+NotDebuggingLabel:
+                        QColor background;
+                        if(wIsSelected)
+                        {
+                            background = mSelectedAddressBackgroundColor;
+                            painter->setPen(mSelectedAddressColor); //black address (DisassemblySelectedAddressColor)
+                        }
+                        else
+                        {
+                            background = mAddressBackgroundColor;
+                            painter->setPen(mAddressColor); //DisassemblyAddressColor
+                        }
+                        if(background.alpha())
+                            painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
+                    }
+                    else //breakpoint only
+                    {
+                        if(bpxtype & bp_normal) //normal breakpoint
+                        {
+                            painter->setPen(mBreakpointColor);
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mBreakpointBackgroundColor)); //fill red
+                        }
+                        else if(bpxtype & bp_hardware) //hardware breakpoint only
+                        {
+                            painter->setPen(mHardwareBreakpointColor);
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mHardwareBreakpointBackgroundColor)); //fill red
+                        }
+                        else //other cases (memory breakpoint in disassembly) -> do as normal
+                        {
+                            QColor background;
+                            if(wIsSelected)
+                            {
+                                background = mSelectedAddressBackgroundColor;
+                                painter->setPen(mSelectedAddressColor); //black address (DisassemblySelectedAddressColor)
+                            }
+                            else
+                            {
+                                background = mAddressBackgroundColor;
+                                painter->setPen(mAddressColor);
+                            }
+                            if(background.alpha())
+                                painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
+                        }
+                    }
+                }
+            }
+            else //bookmark
+            {
+                if(*label) //label + bookmark
+                {
+                    if(bpxtype == bp_none) //label + bookmark
+                    {
+                        painter->setPen(mLabelColor); //red -> address + label text
+                        painter->fillRect(QRect(x, y, w, h), QBrush(mBookmarkBackgroundColor)); //fill label background
+                    }
+                    else //label + breakpoint + bookmark
+                    {
+                        QColor color = mBookmarkBackgroundColor;
+                        if(!color.alpha()) //we don't want transparent text
+                            color = mAddressColor;
+                        painter->setPen(color);
+                        if(bpxtype & bp_normal) //label + bookmark + normal breakpoint
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mBreakpointBackgroundColor)); //fill red
+                        }
+                        else if(bpxtype & bp_hardware) //label + bookmark + hardware breakpoint only
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mHardwareBreakpointBackgroundColor)); //fill ?
+                        }
+                    }
+                }
+                else //bookmark, no label
+                {
+                    if(bpxtype == bp_none) //bookmark only
+                    {
+                        painter->setPen(mBookmarkColor); //black address
+                        painter->fillRect(QRect(x, y, w, h), QBrush(mBookmarkBackgroundColor)); //fill bookmark color
+                    }
+                    else //bookmark + breakpoint
+                    {
+                        QColor color = mBookmarkBackgroundColor;
+                        if(!color.alpha()) //we don't want transparent text
+                            color = mAddressColor;
+                        painter->setPen(color);
+                        if(bpxtype & bp_normal) //bookmark + normal breakpoint
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mBreakpointBackgroundColor)); //fill red
+                        }
+                        else if(bpxtype & bp_hardware) //bookmark + hardware breakpoint only
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mHardwareBreakpointBackgroundColor)); //fill red
+                        }
+                        else //other cases (bookmark + memory breakpoint in disassembly) -> do as normal
+                        {
+                            painter->setPen(mBookmarkColor); //black address
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mBookmarkBackgroundColor)); //fill bookmark color
+                        }
+                    }
+                }
+            }
+        }
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
     }
+    return "";
 
     case 2: //opcode
     {
@@ -168,9 +367,10 @@ void TraceBrowser::setupRightClickContextMenu()
         return mTraceFile != nullptr && mTraceFile->Progress() == 100;
     };
     MenuBuilder* copyMenu = new MenuBuilder(this, isValid);
+    copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("Address"), SLOT(copyCipSlot()), "ActionCopyAddress"));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
-
+    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembly"), SLOT(followDisassemblySlot()), "ActionFollowDisasm"), isValid);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("goto.png"), tr("Go to..."), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
 }
 
@@ -342,6 +542,25 @@ void TraceBrowser::updateColors()
     AbstractTableView::updateColors();
     //CapstoneTokenizer::UpdateColors(); //Already called in disassembly
     mDisasm->UpdateConfig();
+    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+
+    mInstructionHighlightColor = ConfigColor("InstructionHighlightColor");
+    mSelectionColor = ConfigColor("DisassemblySelectionColor");
+    mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
+    mCipColor = ConfigColor("DisassemblyCipColor");
+    mBreakpointBackgroundColor = ConfigColor("DisassemblyBreakpointBackgroundColor");
+    mBreakpointColor = ConfigColor("DisassemblyBreakpointColor");
+    mHardwareBreakpointBackgroundColor = ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
+    mHardwareBreakpointColor = ConfigColor("DisassemblyHardwareBreakpointColor");
+    mBookmarkBackgroundColor = ConfigColor("DisassemblyBookmarkBackgroundColor");
+    mBookmarkColor = ConfigColor("DisassemblyBookmarkColor");
+    mLabelColor = ConfigColor("DisassemblyLabelColor");
+    mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
+    mSelectedAddressBackgroundColor = ConfigColor("DisassemblySelectedAddressBackgroundColor");
+    mTracedAddressBackgroundColor = ConfigColor("DisassemblyTracedBackgroundColor");
+    mSelectedAddressColor = ConfigColor("DisassemblySelectedAddressColor");
+    mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
+    mAddressColor = ConfigColor("DisassemblyAddressColor");
     mBytesColor = ConfigColor("DisassemblyBytesColor");
     mBytesBackgroundColor = ConfigColor("DisassemblyBytesBackgroundColor");
 }
@@ -392,6 +611,18 @@ void TraceBrowser::gotoSlot()
     }
 }
 
+void TraceBrowser::copyCipSlot()
+{
+    QString clipboard;
+    for(auto i = getSelectionStart(); i <= getSelectionEnd(); i++)
+    {
+        if(i != getSelectionStart())
+            clipboard += "\r\n";
+        clipboard += ToPtrString(mTraceFile->Registers(i).regcontext.cip);
+    }
+    Bridge::CopyToClipboard(clipboard);
+}
+
 void TraceBrowser::copyDisassemblySlot()
 {
     QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
@@ -413,4 +644,9 @@ void TraceBrowser::copyDisassemblySlot()
     }
     clipboardHtml += QString("</div>");
     Bridge::CopyToClipboard(clipboard, clipboardHtml);
+}
+
+void TraceBrowser::followDisassemblySlot()
+{
+    DbgCmdExec(QString("dis ").append(ToPtrString(mTraceFile->Registers(getInitialSelection()).regcontext.cip)).toUtf8().constData());
 }
