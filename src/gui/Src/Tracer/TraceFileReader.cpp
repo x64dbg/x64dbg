@@ -462,7 +462,9 @@ DWORD TraceFilePage::ThreadId(unsigned long long index) const
 int TraceFilePage::MemoryAccessCount(unsigned long long index) const
 {
     size_t a = memoryOperandOffset.at(index);
-    if(index == length - 1)
+    if(a == -1)
+        return 0;
+    else if(index == length - 1)
         return memoryAddress.size() - a;
     else
         return memoryOperandOffset.at(index + 1) - a;
