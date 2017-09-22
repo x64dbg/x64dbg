@@ -1,5 +1,6 @@
 #include "TraceFileReaderInternal.h"
 #include <QThread>
+#include <QFileSystemWatcher>
 
 TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
 {
@@ -9,6 +10,8 @@ TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
     parser = nullptr;
     lastAccessedPage = nullptr;
     lastAccessedIndexOffset = 0;
+    streamMonitor = new QFileSystemWatcher(this);
+    connect(streamMonitor, SIGNAL(fileChanged(const QString &)), this, SLOT(fileUpdatedSlot(const QString &)));
 }
 
 bool TraceFileReader::Open(const QString & fileName)
@@ -45,18 +48,24 @@ void TraceFileReader::Close()
         parser->requestInterruption();
         parser->wait();
     }
+    streamMonitor->removePath(traceFile.fileName());
     traceFile.close();
     progress.store(0);
     length = 0;
     fileIndex.clear();
+    error = false;
 }
 
 void TraceFileReader::parseFinishedSlot()
 {
+    if(!error)
+        progress.store(100);
+    else
+        progress.store(0);
     delete parser;
     parser = nullptr;
-    progress.store(100);
-    traceFile.moveToThread(QThread::currentThread());
+    if(!error)
+        streamMonitor->addPath(traceFile.fileName());
     emit parseFinished();
 
     //for(auto i : fileIndex)
@@ -134,6 +143,11 @@ void TraceFileReader::MemoryAccessInfo(unsigned long long index, duint* address,
         return;
     else
         return page->MemoryAccessInfo(index - base, address, oldMemory, newMemory, isValid);
+}
+
+void TraceFileReader::fileUpdatedSlot(const QString & fileName)
+{
+    //GuiAddLogMessage("debug");
 }
 
 TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long long* base)
@@ -238,12 +252,17 @@ void TraceFileParser::run()
     unsigned long long index = 0;
     unsigned long long lastIndex = 0;
     if(that == NULL)
+    {
         return; //Error
+    }
     try
     {
         //Process file header
         //Update progress
-        that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
+        if(that->traceFile.size() != 0)
+            that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
+        else //failure: divide by zero
+            throw std::wstring(L"File is empty");
         //Process file content
         while(!that->traceFile.atEnd())
         {
@@ -297,6 +316,7 @@ void TraceFileParser::run()
         //MessageBox(0, errReason.c_str(), L"debug", MB_ICONERROR);
         that->error = true;
     }
+    that->traceFile.moveToThread(that->thread());
 }
 
 //TraceFilePage
@@ -308,6 +328,8 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
         REGDUMP registers;
         duint regwords[(sizeof(REGDUMP) - 128) / sizeof(duint)];
     };
+    unsigned char changed[_countof(regwords)];
+    duint regContent[_countof(regwords)];
     duint memAddress[32];
     duint memOldContent[32];
     duint memNewContent[32];
@@ -349,27 +371,31 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                 if(changedCountFlags[0] > 0) //registers
                 {
                     int lastPosition = -1;
-                    QByteArray changed;
-                    changed = mParent->traceFile.read(changedCountFlags[0]);
-                    if(changed.size() != changedCountFlags[0])
+                    if(changedCountFlags[0] > _countof(regwords)) //Bad count?
                         throw std::exception();
-                    duint* regContent = new duint[changedCountFlags[0]];
+                    if(mParent->traceFile.read((char*)changed, changedCountFlags[0]) != changedCountFlags[0])
+                        throw std::exception();
                     if(mParent->traceFile.read((char*)regContent, changedCountFlags[0] * sizeof(duint)) != changedCountFlags[0] * sizeof(duint))
                     {
-                        delete[] regContent;
                         throw std::exception();
                     }
                     for(int i = 0; i < changedCountFlags[0]; i++)
                     {
                         lastPosition = lastPosition + changed[i] + 1;
-                        regwords[lastPosition] = regContent[i];
-                    }
-                    delete[] regContent;
+                        if(lastPosition < _countof(regwords) && lastPosition >= 0)
+                            regwords[lastPosition] = regContent[i];
+                        else //out of bounds?
+                        {
+                            throw std::exception();
+                        }
+                    } \
                     mRegisters.push_back(registers);
                 }
                 if(changedCountFlags[1] > 0) //memory
                 {
                     QByteArray memflags;
+                    if(changedCountFlags[1] > _countof(memAddress)) //too many memory operands?
+                        throw std::exception();
                     memflags = mParent->traceFile.read(changedCountFlags[1]);
                     if(memflags.length() < changedCountFlags[1])
                         throw std::exception();

@@ -91,6 +91,19 @@ QString TraceBrowser::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bo
 
 QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    if(!mTraceFile || mTraceFile->Progress() != 100)
+    {
+        return "";
+    }
+    if(mTraceFile->isError())
+    {
+        GuiAddLogMessage(tr("An error occured when reading trace file.\r\n").toUtf8().constData());
+        mTraceFile->Close();
+        delete mTraceFile;
+        mTraceFile = nullptr;
+        setRowCount(0);
+        return "";
+    }
     if(mHighlightingMode)
     {
         QPen pen(mInstructionHighlightColor);
@@ -109,11 +122,8 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     {
         painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
     }
-
-    if(!mTraceFile || mTraceFile->Progress() != 100 || index >= mTraceFile->Length())
-    {
+    if(index >= mTraceFile->Length())
         return "";
-    }
     switch(col)
     {
     case 0: //index
