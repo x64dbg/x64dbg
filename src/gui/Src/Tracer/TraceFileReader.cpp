@@ -330,9 +330,9 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
     };
     unsigned char changed[_countof(regwords)];
     duint regContent[_countof(regwords)];
-    duint memAddress[32];
-    duint memOldContent[32];
-    duint memNewContent[32];
+    duint memAddress[MAX_MEMORY_OPERANDS];
+    duint memOldContent[MAX_MEMORY_OPERANDS];
+    duint memNewContent[MAX_MEMORY_OPERANDS];
     size_t memOperandOffset = 0;
     mParent = parent;
     length = 0;

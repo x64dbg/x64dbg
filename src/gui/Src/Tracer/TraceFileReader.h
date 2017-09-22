@@ -9,6 +9,8 @@ class QFileSystemWatcher;
 class TraceFileParser;
 class TraceFilePage;
 
+#define MAX_MEMORY_OPERANDS 32
+
 class TraceFileReader : public QObject
 {
     Q_OBJECT
