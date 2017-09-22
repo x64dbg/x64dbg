@@ -103,6 +103,7 @@ private:
 
     REGDUMPDWORD rtOldContext;
     DWORD rtOldThreadId;
+    bool rtNeedThreadId;
     duint rtOldMemory[32];
     duint rtOldMemoryAddress[32];
     char rtOldOpcode[16];

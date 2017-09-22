@@ -330,10 +330,11 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
         WriteBufferPtr[2] = rtOldMemoryArrayCount; //1byte: memory accesses count
         WriteBufferPtr[3] = blockFlags; //1byte: flags and opcode size
         WriteBufferPtr += 4;
-        if(newThreadId != rtOldThreadId || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
+        if(newThreadId != rtOldThreadId || rtNeedThreadId || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
         {
             memcpy(WriteBufferPtr, &rtOldThreadId, sizeof(rtOldThreadId));
             WriteBufferPtr += sizeof(rtOldThreadId);
+            rtNeedThreadId = (newThreadId != rtOldThreadId);
         }
         memcpy(WriteBufferPtr, rtOldOpcode, rtOldOpcodeSize);
         WriteBufferPtr += rtOldOpcodeSize;
@@ -480,6 +481,7 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
             rtPrevInstAvailable = false;
             rtEnabled = true;
             rtRecordedInstructions = 0;
+            rtNeedThreadId = true;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace started. File: %s\r\n"), fileName);
             REGDUMP cip;
             Capstone cp;
