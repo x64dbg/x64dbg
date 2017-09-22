@@ -444,6 +444,58 @@ void TraceBrowser::setupRightClickContextMenu()
         return mHistory.historyHasNext();
     });
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
+
+    // The following code adds a menu to view the information about currently selected instruction. When info box is completed, remove me.
+    MenuBuilder* infoMenu = new MenuBuilder(this, [this, isValid](QMenu * menu)
+    {
+        duint MemoryAddress[MAX_MEMORY_OPERANDS];
+        duint MemoryOldContent[MAX_MEMORY_OPERANDS];
+        duint MemoryNewContent[MAX_MEMORY_OPERANDS];
+        bool MemoryIsValid[MAX_MEMORY_OPERANDS];
+        int MemoryOperandsCount;
+        unsigned long long index;
+
+        if(!isValid(nullptr))
+            return false;
+        index = getInitialSelection();
+        MemoryOperandsCount = mTraceFile->MemoryAccessCount(index);
+        if(MemoryOperandsCount > 0)
+        {
+            mTraceFile->MemoryAccessInfo(index, MemoryAddress, MemoryOldContent, MemoryNewContent, MemoryIsValid);
+            bool RvaDisplayEnabled = mRvaDisplayEnabled;
+            char nolabel[MAX_LABEL_SIZE];
+            mRvaDisplayEnabled = false;
+            for(int i = 0; i < MemoryOperandsCount; i++)
+            {
+                menu->addAction(QString("%1: %2 -> %3").arg(getAddrText(MemoryAddress[i], nolabel, false)).arg(ToPtrString(MemoryOldContent[i])).arg(ToPtrString(MemoryNewContent[i])));
+            }
+            mRvaDisplayEnabled = RvaDisplayEnabled;
+            menu->addSeparator();
+        }
+#define addReg(str, reg) if(index + 1 != mTraceFile->Length()){menu->addAction(QString(str ":%1 -> %2").arg(ToPtrString(mTraceFile->Registers(index).regcontext.##reg)) \
+    .arg(ToPtrString(mTraceFile->Registers(index + 1).regcontext.##reg))); }else{ menu->addAction(QString(str ":%1").arg(ToPtrString(mTraceFile->Registers(index).regcontext.##reg))); }
+        addReg(ArchValue("EAX", "RAX"), cax)
+        addReg(ArchValue("EBX", "RBX"), cbx)
+        addReg(ArchValue("ECX", "RCX"), ccx)
+        addReg(ArchValue("EDX", "RDX"), cdx)
+        addReg(ArchValue("ESP", "RSP"), csp)
+        addReg(ArchValue("EBP", "RBP"), cbp)
+        addReg(ArchValue("ESI", "RSI"), csi)
+        addReg(ArchValue("EDI", "RDI"), cdi)
+#ifdef _WIN64
+        addReg("R8", r8)
+        addReg("R9", r9)
+        addReg("R10", r10)
+        addReg("R11", r11)
+        addReg("R12", r12)
+        addReg("R13", r13)
+        addReg("R14", r14)
+        addReg("R15", r15)
+#endif //_WIN64
+        addReg(ArchValue("EFLAGS", "RFLAGS"), eflags)
+        return true;
+    });
+    mMenuBuilder->addMenu(makeMenu(tr("Information")), infoMenu);
 }
 
 void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
