@@ -83,7 +83,9 @@ SOURCES += \
     Src/BasicView/HexDump.cpp \
     Src/BasicView/AbstractTableView.cpp \
     Src/Disassembler/QBeaEngine.cpp \
+    Src/Disassembler/CsQBeaEngine.cpp \
     Src/Disassembler/capstone_gui.cpp \
+    Src/Disassembler/cs_capstone_gui.cpp \
     Src/Memory/MemoryPage.cpp \
     Src/Bridge/Bridge.cpp \
     Src/BasicView/StdTable.cpp \
@@ -193,7 +195,9 @@ HEADERS += \
     Src/BasicView/HexDump.h \
     Src/BasicView/AbstractTableView.h \
     Src/Disassembler/QBeaEngine.h \
+    Src/Disassembler/CsQBeaEngine.h \
     Src/Disassembler/capstone_gui.h \
+    Src/Disassembler/cs_capstone_gui.h \
     Src/Memory/MemoryPage.h \
     Src/Bridge/Bridge.h \
     Src/Exports.h \

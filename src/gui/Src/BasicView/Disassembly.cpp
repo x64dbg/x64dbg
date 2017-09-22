@@ -6,6 +6,7 @@
 #include "MainWindow.h"
 #include "CachedFontMetrics.h"
 #include "QBeaEngine.h"
+#include "CsQBeaEngine.h"
 #include "MemoryPage.h"
 
 Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassemblyPopup(this)
@@ -32,6 +33,8 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     mDisasm = new QBeaEngine(maxModuleSize);
     mDisasm->UpdateConfig();
+    mCsDisasm = new CsQBeaEngine(maxModuleSize);
+    mCsDisasm->UpdateConfig();
 
     mCodeFoldingManager = nullptr;
     duint setting;
@@ -1493,7 +1496,76 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
     if(!mMemPage->read(wBuffer.data(), rva, wBuffer.size()))
         return Instruction_t();
 
-    return mDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva);
+    auto zy_instr = mDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva);
+    auto cs_instr = mCsDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva);
+
+    if (zy_instr.tokens.tokens != cs_instr.tokens.tokens)
+    {
+        if (zy_instr.instStr.startsWith("lea")) // cs scales lea mem op incorrectly
+            goto _exit;
+        if (cs_instr.instStr.startsWith("movabs")) // cs uses non-standard movabs mnem
+            goto _exit;
+        if (cs_instr.instStr.startsWith("lock") || cs_instr.instStr.startsWith("rep")) // cs includes prefix in mnem
+            goto _exit;
+        if (cs_instr.instStr.startsWith('j') && cs_instr.length == 4) // cs has AMD style handling of 66 branches
+            goto _exit;
+        if (cs_instr.instStr.startsWith("prefetchw")) // cs uses m8 (AMD/intel doc), zy m512 
+            goto _exit;                               // (doesn't matter, prefetch doesn't really have a size)
+        if (cs_instr.instStr.startsWith("xchg")) // cs/zy print operands in different order (doesn't make any diff)
+            goto _exit;
+        if (cs_instr.instStr.startsWith("rdpmc") ||
+            cs_instr.instStr.startsWith("in") ||
+            cs_instr.instStr.startsWith("out") ||
+            cs_instr.instStr.startsWith("sti") ||
+            cs_instr.instStr.startsWith("cli") ||
+            cs_instr.instStr.startsWith("iret")) // cs assumes priviliged, zydis doesn't (CPL is configurable for those)
+            goto _exit;
+        if (cs_instr.instStr.startsWith("sal")) // cs says sal, zydis say shl (both correct)
+            goto _exit;
+        if (cs_instr.instStr.startsWith("xlat")) // cs uses xlatb form, zydis xlat m8 form (both correct)
+            goto _exit;
+        if (cs_instr.instStr.startsWith("lcall") ||
+            cs_instr.instStr.startsWith("ljmp") ||
+            cs_instr.instStr.startsWith("retf")) // cs uses "f" mnem-suffic, zydis has seperate "far" token
+            goto _exit;
+        if (cs_instr.instStr.startsWith("movsxd")) // cs has wrong operand size (32) for 0x63 variant (e.g. "63646566")
+            goto _exit;
+        if (cs_instr.instStr.startsWith('j') && (cs_instr.dump[0] & 0x40) == 0x40) // cs honors rex.w on jumps, truncating the
+            goto _exit;                                                         // target address to 32 bit (must be ignored)
+        if (cs_instr.instStr.startsWith("enter")) // cs has wrong operand size (32)
+            goto _exit;
+        if (cs_instr.instStr.startsWith("wait")) // cs says wait, zy says fwait (both ok)
+            goto _exit;
+        if (cs_instr.dump.length() > 2 &&  // cs ignores segment prefixes if followed by branch hints
+            cs_instr.dump[1] == '\x2e' &&
+            cs_instr.dump[2] == '\x3e')
+            goto _exit;
+
+        auto insn_hex = zy_instr.dump.toHex().toStdString();
+        auto cs = cs_instr.instStr.toStdString();
+        auto zy = zy_instr.instStr.toStdString();
+
+        for (auto zy_it = zy_instr.tokens.tokens.begin(), cs_it = cs_instr.tokens.tokens.begin()
+            ; zy_it != zy_instr.tokens.tokens.end() && cs_it != cs_instr.tokens.tokens.end()
+            ; ++zy_it, ++cs_it)
+        {
+            auto zy_tok_text = zy_it->text.toStdString();
+            auto cs_tok_text = cs_it->text.toStdString();
+
+            if (zy_tok_text == "bnd") // cs doesn't support BND prefix
+                goto _exit;
+            if (zy_it->value.size != cs_it->value.size) // imm sizes in CS are completely broken
+                goto _exit;
+
+            if (!(*zy_it == *cs_it))
+                __debugbreak();
+        }
+
+        //__debugbreak();
+    }
+
+_exit:
+    return zy_instr;
 }
 
 /**

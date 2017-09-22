@@ -6,6 +6,7 @@
 
 class CodeFoldingHelper;
 class QBeaEngine;
+class CsQBeaEngine;
 class MemoryPage;
 
 class Disassembly : public AbstractTableView
@@ -223,6 +224,7 @@ protected:
     bool mPopupEnabled;
     MemoryPage* mMemPage;
     QBeaEngine* mDisasm;
+    CsQBeaEngine* mCsDisasm;
     bool mShowMnemonicBrief;
     XREF_INFO mXrefInfo;
     CodeFoldingHelper* mCodeFoldingManager;
