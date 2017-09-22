@@ -71,6 +71,11 @@ public:
             value(0)
         {
         }
+
+        bool operator == (const TokenValue & rhs) const
+        {
+            return /*size == rhs.size &&*/ value == rhs.value;
+        }
     };
 
     struct SingleToken
@@ -94,6 +99,11 @@ public:
         SingleToken(TokenType type, const QString & text) :
             SingleToken(type, text, TokenValue())
         {
+        }
+
+        bool operator == (const SingleToken & rhs) const
+        {
+            return type == rhs.type && text == rhs.text && value == rhs.value;
         }
     };
 

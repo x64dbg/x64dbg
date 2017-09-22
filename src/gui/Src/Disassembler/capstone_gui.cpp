@@ -116,6 +116,9 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
     _success = _cp.DisassembleSafe(addr, data, datasize);
     if(_success)
     {
+        if (!tokenizePrefix())
+            return false;
+
         isNop = _cp.IsNop();
         if(!tokenizeMnemonic())
             return false;
@@ -361,31 +364,30 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
 bool CapstoneTokenizer::tokenizePrefix()
 {
     bool hasPrefix = true;
-    QString prefixText;
+    QStringList prefixText;
 
-    //TODO: look at multiple prefixes on one instruction
     auto attr = _cp.GetInstr()->attributes;
 
     if(attr & ZYDIS_ATTRIB_HAS_LOCK)
-        prefixText = "lock";
+        prefixText += "lock";
     else if(attr & ZYDIS_ATTRIB_HAS_REP)
-        prefixText = "rep";
+        prefixText += "rep";
     else if(attr & ZYDIS_ATTRIB_HAS_REPNE)
-        prefixText = "repe";
+        prefixText += "repe";
     else if(attr & ZYDIS_ATTRIB_HAS_REPNE)
-        prefixText = "repne";
+        prefixText += "repne";
     else if(attr & ZYDIS_ATTRIB_HAS_BOUND)
-        prefixText = "bnd";
+        prefixText += "bnd";
     else if(attr & ZYDIS_ATTRIB_HAS_XACQUIRE)
-        prefixText = "xacquire";
+        prefixText += "xacquire";
     else if(attr & ZYDIS_ATTRIB_HAS_XRELEASE)
-        prefixText = "xrelease";
+        prefixText += "xrelease";
     else
         hasPrefix = false;
 
     if(hasPrefix)
     {
-        addToken(TokenType::Prefix, prefixText);
+        addToken(TokenType::Prefix, prefixText.join(' '));
         addToken(TokenType::Space, " ");
     }
 
@@ -458,7 +460,7 @@ bool CapstoneTokenizer::tokenizeRegOperand(const ZydisDecodedOperand & op)
 {
     auto registerType = TokenType::GeneralRegister;
     auto reg = op.reg;
-    auto regClass = ZydisRegisterGetClass(reg);
+    auto regClass = ZydisRegisterGetClass(reg.value);
 
     switch(regClass)
     {
@@ -469,10 +471,10 @@ bool CapstoneTokenizer::tokenizeRegOperand(const ZydisDecodedOperand & op)
     case ZYDIS_REGCLASS_ZMM: registerType = TokenType::ZmmRegister; break;
     }
 
-    if(reg == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS))
+    if(reg.value == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS))
         registerType = TokenType::MnemonicUnusual;
 
-    addToken(registerType, _cp.RegName(reg));
+    addToken(registerType, _cp.RegName(reg.value));
     return true;
 }
 
@@ -482,15 +484,17 @@ bool CapstoneTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
     TokenType valueType;
     if(_cp.IsBranchType(Zydis::BT_Jmp | Zydis::BT_Call | Zydis::BT_Loop))
     {
-        value = _cp.BranchDestination();
         valueType = TokenType::Address;
+        value = op.imm.value.u;
     }
     else
     {
-        value = duint(op.imm.value.u) & (duint(-1) >> (op.size ? (8 * sizeof(duint) - op.size) : 0));
+        auto opsize = _cp.GetInstr()->operandWidth;
         valueType = TokenType::Value;
+        value = duint(op.imm.value.u) & (duint(-1) >> (sizeof(duint) * 8 - opsize));
+
     }
-    auto tokenValue = TokenValue(op.size, value);
+    auto tokenValue = TokenValue(op.size / 8, value);
     addToken(valueType, printValue(tokenValue, true, _maxModuleLength), tokenValue);
     return true;
 }
@@ -498,7 +502,8 @@ bool CapstoneTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
 bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
 {
     //memory size
-    const char* sizeText = _cp.MemSizeName(op.size);
+    auto opsize = op.size / 8;
+    const char* sizeText = _cp.MemSizeName(opsize);
     if(!sizeText)
         return false;
     addToken(TokenType::MemorySize, QString(sizeText) + " ptr");
@@ -506,7 +511,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
 
     //memory segment
     const auto & mem = op.mem;
-    auto segmentType = op.reg == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS)
+    auto segmentType = mem.segment == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS)
         ? TokenType::MnemonicUnusual : TokenType::MemorySegment;
     addToken(segmentType, _cp.RegName(mem.segment));
     addToken(TokenType::Uncategorized, ":");
@@ -529,7 +534,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
     if(mem.base == ZYDIS_REGISTER_RIP) //rip-relative (#replacement)
     {
         duint addr = _cp.Address() + duint(mem.disp.value) + _cp.Size();
-        TokenValue value = TokenValue(op.size, addr);
+        TokenValue value = TokenValue(opsize, addr);
         auto displacementType = DbgMemIsValidReadPtr(addr) ? TokenType::Address : TokenType::Value;
         addToken(displacementType, printValue(value, false, _maxModuleLength), value);
     }
@@ -556,13 +561,13 @@ bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
         if(mem.disp.value)
         {
             char operatorText = '+';
-            TokenValue value(op.size, duint(mem.disp.value));
+            TokenValue value(opsize, duint(mem.disp.value));
             auto displacementType = DbgMemIsValidReadPtr(duint(mem.disp.value)) ? TokenType::Address : TokenType::Value;
             QString valueText;
             if(mem.disp.value < 0)
             {
                 operatorText = '-';
-                valueText = printValue(TokenValue(op.size, duint(mem.disp.value * -1)), false, _maxModuleLength);
+                valueText = printValue(TokenValue(opsize, duint(mem.disp.value * -1)), false, _maxModuleLength);
             }
             else
                 valueText = printValue(value, false, _maxModuleLength);
