@@ -116,7 +116,7 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
     _success = _cp.DisassembleSafe(addr, data, datasize);
     if(_success)
     {
-        if (!tokenizePrefix())
+        if(!tokenizePrefix())
             return false;
 
         isNop = _cp.IsNop();
@@ -399,7 +399,7 @@ bool CapstoneTokenizer::tokenizeMnemonic()
     QString mnemonic = QString(_cp.Mnemonic().c_str());
     _mnemonicType = TokenType::MnemonicNormal;
 
-    if (_cp.IsBranchType(Zydis::BT_FarCall | Zydis::BT_FarJmp))
+    if(_cp.IsBranchType(Zydis::BTFarCall | Zydis::BTFarJmp))
     {
         mnemonic += " far";
     }
@@ -408,9 +408,9 @@ bool CapstoneTokenizer::tokenizeMnemonic()
         _mnemonicType = TokenType::MnemonicNop;
     else if(_cp.IsCall())
         _mnemonicType = TokenType::MnemonicCall;
-    else if(_cp.IsBranchType(Zydis::BT_CondJmp | Zydis::BT_Loop | Zydis::BT_Xbegin))
+    else if(_cp.IsBranchType(Zydis::BTCondJmp | Zydis::BTLoop | Zydis::BTXbegin))
         _mnemonicType = TokenType::MnemonicCondJump;
-    else if (_cp.IsBranchType(Zydis::BT_UncondJmp | Zydis::BT_Xabort))
+    else if(_cp.IsBranchType(Zydis::BTUncondJmp | Zydis::BTXabort))
         _mnemonicType = TokenType::MnemonicUncondJump;
     else if(_cp.IsInt3())
         _mnemonicType = TokenType::MnemonicInt3;
@@ -465,11 +465,21 @@ bool CapstoneTokenizer::tokenizeRegOperand(const ZydisDecodedOperand & op)
 
     switch(regClass)
     {
-    case ZYDIS_REGCLASS_X87: registerType = TokenType::FpuRegister; break;
-    case ZYDIS_REGCLASS_MMX: registerType = TokenType::MmxRegister; break;
-    case ZYDIS_REGCLASS_XMM: registerType = TokenType::XmmRegister; break;
-    case ZYDIS_REGCLASS_YMM: registerType = TokenType::YmmRegister; break;
-    case ZYDIS_REGCLASS_ZMM: registerType = TokenType::ZmmRegister; break;
+    case ZYDIS_REGCLASS_X87:
+        registerType = TokenType::FpuRegister;
+        break;
+    case ZYDIS_REGCLASS_MMX:
+        registerType = TokenType::MmxRegister;
+        break;
+    case ZYDIS_REGCLASS_XMM:
+        registerType = TokenType::XmmRegister;
+        break;
+    case ZYDIS_REGCLASS_YMM:
+        registerType = TokenType::YmmRegister;
+        break;
+    case ZYDIS_REGCLASS_ZMM:
+        registerType = TokenType::ZmmRegister;
+        break;
     }
 
     if(reg.value == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS))
@@ -483,7 +493,7 @@ bool CapstoneTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
 {
     duint value;
     TokenType valueType;
-    if(_cp.IsBranchType(Zydis::BT_Jmp | Zydis::BT_Call | Zydis::BT_Loop))
+    if(_cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTLoop))
     {
         valueType = TokenType::Address;
         value = op.imm.value.u;
@@ -513,7 +523,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
     //memory segment
     const auto & mem = op.mem;
     auto segmentType = mem.segment == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS)
-        ? TokenType::MnemonicUnusual : TokenType::MemorySegment;
+                       ? TokenType::MnemonicUnusual : TokenType::MemorySegment;
     addToken(segmentType, _cp.RegName(mem.segment));
     addToken(TokenType::Uncategorized, ":");
 

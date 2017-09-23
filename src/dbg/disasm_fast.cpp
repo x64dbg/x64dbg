@@ -95,7 +95,7 @@ bool disasmfast(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* b
 {
     if(!data || !basicinfo)
         return false;
-	Zydis cp;
+    Zydis cp;
     cp.Disassemble(addr, data, MAX_DISASM_BUFFER);
     if(trydisasmfast(data, addr, basicinfo, cp.Success() ? cp.Size() : 1))
         return true;

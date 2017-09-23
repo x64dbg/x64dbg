@@ -200,14 +200,14 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     auto branchType = Instruction_t::None;
     Instruction_t wInst;
-    if(success && (cp.IsBranchType(Zydis::BT_Jmp | Zydis::BT_Call | Zydis::BT_Ret | Zydis::BT_Loop)))
+    if(success && (cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTRet | Zydis::BTLoop)))
     {
         wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
-        if(cp.IsBranchType(Zydis::BT_UncondJmp))
+        if(cp.IsBranchType(Zydis::BTUncondJmp))
             branchType = Instruction_t::Unconditional;
-        else if(cp.IsBranchType(Zydis::BT_Call))
+        else if(cp.IsBranchType(Zydis::BTCall))
             branchType = Instruction_t::Call;
-        else if(cp.IsBranchType(Zydis::BT_CondJmp))
+        else if(cp.IsBranchType(Zydis::BTCondJmp))
             branchType = Instruction_t::Conditional;
     }
     else
@@ -232,14 +232,14 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
         auto flaginfo2reginfo = [](uint8_t info)
         {
             auto result = 0;
-#define checkFlag(test, reg) result |= (info & test) == test ? reg : 0
+        #define checkFlag(test, reg) result |= (info & test) == test ? reg : 0
             checkFlag(Capstone::Modify, Capstone::Write);
             checkFlag(Capstone::Prior, Capstone::None);
             checkFlag(Capstone::Reset, Capstone::Write);
             checkFlag(Capstone::Set, Capstone::Write);
             checkFlag(Capstone::Test, Capstone::Read);
             checkFlag(Capstone::Undefined, Capstone::None);
-#undef checkFlag
+        #undef checkFlag
             return result;
         };
 

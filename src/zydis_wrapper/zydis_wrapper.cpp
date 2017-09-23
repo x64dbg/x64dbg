@@ -2,8 +2,8 @@
 #include <windows.h>
 
 bool Zydis::mInitialized = false;
-ZydisDecoder Zydis::mZyDecoder;
-ZydisFormatter Zydis::mZyFormatter;
+ZydisDecoder Zydis::mDecoder;
+ZydisFormatter Zydis::mFormatter;
 
 void Zydis::GlobalInitialize()
 {
@@ -11,11 +11,11 @@ void Zydis::GlobalInitialize()
     {
         mInitialized = true;
 #ifdef _WIN64
-		ZydisDecoderInit(&mZyDecoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+        ZydisDecoderInit(&mDecoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 #else //x86
-		ZydisDecoderInit(&mZyDecoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_ADDRESS_WIDTH_32);
+        ZydisDecoderInit(&mDecoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_ADDRESS_WIDTH_32);
 #endif //_WIN64
-		ZydisFormatterInit(&mZyFormatter, ZYDIS_FORMATTER_STYLE_INTEL);
+        ZydisFormatterInit(&mFormatter, ZYDIS_FORMATTER_STYLE_INTEL);
     }
 }
 
@@ -26,13 +26,13 @@ void Zydis::GlobalFinalize()
 
 Zydis::Zydis()
     : mSuccess(false),
-      mExplicitOpCount(0)
+      mVisibleOpCount(0)
 {
     GlobalInitialize();
 }
 
 Zydis::~Zydis()
-{    
+{
 }
 
 bool Zydis::Disassemble(size_t addr, const unsigned char data[MAX_DISASM_BUFFER])
@@ -48,34 +48,34 @@ bool Zydis::Disassemble(size_t addr, const unsigned char* data, int size)
     mSuccess = false;
 
     // Decode instruction.
-	if(!ZYDIS_SUCCESS(ZydisDecoderDecodeBuffer(
-		&mZyDecoder, data, size, addr, &mZyInstr
-	)))
+    if(!ZYDIS_SUCCESS(ZydisDecoderDecodeBuffer(
+                          &mDecoder, data, size, addr, &mInstr
+                      )))
         return false;
 
     // Format it to human readable representation.
     if(!ZYDIS_SUCCESS(ZydisFormatterFormatInstruction(
-        &mZyFormatter,
-        const_cast<ZydisDecodedInstruction*>(&mZyInstr),
-        mInstrText,
-        sizeof(mInstrText)
-    )))
+                          &mFormatter,
+                          const_cast<ZydisDecodedInstruction*>(&mInstr),
+                          mInstrText,
+                          sizeof(mInstrText)
+                      )))
         return false;
 
     // Count explicit operands.
-    mExplicitOpCount = 0;
-    for(size_t i = 0; i < ZYDIS_MAX_OPERAND_COUNT; ++i)
+    mVisibleOpCount = 0;
+    for(size_t i = 0; i < mInstr.operandCount; ++i)
     {
-        auto & op = mZyInstr.operands[i];
+        auto & op = mInstr.operands[i];
 
         // HACK (ath): Rebase IMM if relative (codebase expects it this way)
-        if (op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && op.imm.isRelative)
-            ZydisUtilsCalcAbsoluteTargetAddress(&mZyInstr, &op, &op.imm.value.u);
+        if(op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && op.imm.isRelative)
+            ZydisUtilsCalcAbsoluteTargetAddress(&mInstr, &op, &op.imm.value.u);
 
-        if (op.visibility != ZYDIS_OPERAND_VISIBILITY_EXPLICIT)
+        if(op.visibility == ZYDIS_OPERAND_VISIBILITY_HIDDEN)
             break;
 
-        ++mExplicitOpCount;
+        ++mVisibleOpCount;
     }
 
     mSuccess = true;
@@ -94,7 +94,7 @@ const ZydisDecodedInstruction* Zydis::GetInstr() const
 {
     if(!Success())
         return nullptr;
-    return &mZyInstr;
+    return &mInstr;
 }
 
 bool Zydis::Success() const
@@ -123,46 +123,50 @@ const char* Zydis::RegName(ZydisRegister reg) const
     case ZYDIS_REGISTER_ST7:
         return "st(7)";
     default:
-		return ZydisRegisterGetString(reg);
+        return ZydisRegisterGetString(reg);
     }
 }
 
 std::string Zydis::OperandText(int opindex) const
 {
-    if(!Success() || opindex >= mZyInstr.operandCount)
+    if(!Success() || opindex >= mInstr.operandCount)
         return "";
 
-    auto& op = mZyInstr.operands[opindex];
+    auto & op = mInstr.operands[opindex];
 
-	ZydisFormatterHookType type;
-	switch (op.type)
-	{
-	case ZYDIS_OPERAND_TYPE_IMMEDIATE:
-		type = ZYDIS_FORMATTER_HOOK_FORMAT_OPERAND_IMM; break;
-	case ZYDIS_OPERAND_TYPE_MEMORY:
-		type = ZYDIS_FORMATTER_HOOK_FORMAT_OPERAND_MEM; break;
-	case ZYDIS_OPERAND_TYPE_REGISTER:
-		type = ZYDIS_FORMATTER_HOOK_FORMAT_OPERAND_REG; break;
-	case ZYDIS_OPERAND_TYPE_POINTER:
-		type = ZYDIS_FORMATTER_HOOK_FORMAT_OPERAND_PTR; break;
-	default:
-		return "";
-	}
+    ZydisFormatterHookType type;
+    switch(op.type)
+    {
+    case ZYDIS_OPERAND_TYPE_IMMEDIATE:
+        type = ZYDIS_FORMATTER_HOOK_FORMAT_OPERAND_IMM;
+        break;
+    case ZYDIS_OPERAND_TYPE_MEMORY:
+        type = ZYDIS_FORMATTER_HOOK_FORMAT_OPERAND_MEM;
+        break;
+    case ZYDIS_OPERAND_TYPE_REGISTER:
+        type = ZYDIS_FORMATTER_HOOK_FORMAT_OPERAND_REG;
+        break;
+    case ZYDIS_OPERAND_TYPE_POINTER:
+        type = ZYDIS_FORMATTER_HOOK_FORMAT_OPERAND_PTR;
+        break;
+    default:
+        return "";
+    }
 
-	ZydisFormatterFormatOperandFunc fmtFunc = nullptr;
-	if (!ZYDIS_SUCCESS(ZydisFormatterSetHook(&mZyFormatter, type, (const void**)&fmtFunc)))
+    ZydisFormatterFormatOperandFunc fmtFunc = nullptr;
+    if(!ZYDIS_SUCCESS(ZydisFormatterSetHook(&mFormatter, type, (const void**)&fmtFunc)))
         return "";
 
-	char buf[200] = "";
-	auto bufPtr = buf;
-	fmtFunc(
-		&mZyFormatter, 
-		&bufPtr, 
-		sizeof(buf), 
-		(ZydisDecodedInstruction*)&mZyInstr, 
-		(ZydisDecodedOperand*)&op
-	);
-    
+    char buf[200] = "";
+    auto bufPtr = buf;
+    fmtFunc(
+        &mFormatter,
+        &bufPtr,
+        sizeof(buf),
+        (ZydisDecodedInstruction*)&mInstr,
+        (ZydisDecodedOperand*)&op
+    );
+
     return buf;
 }
 
@@ -186,7 +190,7 @@ bool Zydis::IsFilling() const
     if(!Success())
         return false;
 
-    switch(mZyInstr.mnemonic)
+    switch(mInstr.mnemonic)
     {
     case ZYDIS_MNEMONIC_NOP:
     case ZYDIS_MNEMONIC_INT3:
@@ -202,20 +206,20 @@ bool Zydis::IsBranchType(std::underlying_type_t<BranchType> bt) const
         return false;
 
     std::underlying_type_t<BranchType> ref = 0;
-    const auto & op0 = mZyInstr.operands[0];
+    const auto & op0 = mInstr.operands[0];
 
-    switch(mZyInstr.mnemonic)
+    switch(mInstr.mnemonic)
     {
-    case ZYDIS_MNEMONIC_RET: 
-        ref = BT_Ret; 
+    case ZYDIS_MNEMONIC_RET:
+        ref = BTRet;
         break;
     case ZYDIS_MNEMONIC_CALL:
         ref = (op0.elementType == ZYDIS_ELEMENT_TYPE_STRUCT ||
-            op0.type == ZYDIS_OPERAND_TYPE_POINTER) ? BT_FarCall : BT_Call;
+               op0.type == ZYDIS_OPERAND_TYPE_POINTER) ? BTFarCall : BTCall;
         break;
     case ZYDIS_MNEMONIC_JMP:
         ref = (op0.elementType == ZYDIS_ELEMENT_TYPE_STRUCT ||
-            op0.type == ZYDIS_OPERAND_TYPE_POINTER) ? BT_FarJmp : BT_UncondJmp;
+               op0.type == ZYDIS_OPERAND_TYPE_POINTER) ? BTFarJmp : BTUncondJmp;
         break;
     case ZYDIS_MNEMONIC_JB:
     case ZYDIS_MNEMONIC_JBE:
@@ -238,38 +242,38 @@ bool Zydis::IsBranchType(std::underlying_type_t<BranchType> bt) const
     case ZYDIS_MNEMONIC_JRCXZ:
     case ZYDIS_MNEMONIC_JS:
     case ZYDIS_MNEMONIC_JZ:
-        ref = BT_CondJmp;
+        ref = BTCondJmp;
         break;
     case ZYDIS_MNEMONIC_SYSCALL:
     case ZYDIS_MNEMONIC_SYSENTER:
-        ref = BT_Syscall;
+        ref = BTSyscall;
         break;
     case ZYDIS_MNEMONIC_SYSRET:
     case ZYDIS_MNEMONIC_SYSEXIT:
-        ref = BT_Sysret;
+        ref = BTSysret;
         break;
     case ZYDIS_MNEMONIC_INT:
-        ref = BT_Int;
+        ref = BTInt;
         break;
     case ZYDIS_MNEMONIC_INT3:
-        ref = BT_Int3;
+        ref = BTInt3;
         break;
     case ZYDIS_MNEMONIC_INT1:
-        ref = BT_Int1;
+        ref = BTInt1;
         break;
     case ZYDIS_MNEMONIC_XBEGIN:
-        ref = BT_Xbegin;
+        ref = BTXbegin;
         break;
     case ZYDIS_MNEMONIC_XABORT:
-        ref = BT_Xabort;
+        ref = BTXabort;
         break;
     case ZYDIS_MNEMONIC_RSM:
-        ref = BT_Rsm;
+        ref = BTRsm;
         break;
     case ZYDIS_MNEMONIC_LOOP:
     case ZYDIS_MNEMONIC_LOOPE:
     case ZYDIS_MNEMONIC_LOOPNE:
-        ref = BT_Loop;
+        ref = BTLoop;
     default:
         ;
     }
@@ -282,7 +286,7 @@ ZydisMnemonic Zydis::GetId() const
 {
     if(!Success())
         DebugBreak();
-    return mZyInstr.mnemonic;
+    return mInstr.mnemonic;
 }
 
 std::string Zydis::InstructionText(bool replaceRipRelative) const
@@ -325,14 +329,14 @@ int Zydis::OpCount() const
 {
     if(!Success())
         return 0;
-    return mExplicitOpCount;
+    return mVisibleOpCount;
 }
 
 const ZydisDecodedOperand & Zydis::operator[](int index) const
 {
     if(!Success() || index < 0 || index >= OpCount())
         DebugBreak();
-    return mZyInstr.operands[index];
+    return mInstr.operands[index];
 }
 
 static bool isSafe64NopRegOp(const ZydisDecodedOperand & op)
@@ -364,9 +368,9 @@ bool Zydis::IsNop() const
     if(!Success())
         return false;
 
-    const auto & ops = mZyInstr.operands;
+    const auto & ops = mInstr.operands;
 
-    switch(mZyInstr.mnemonic)
+    switch(mInstr.mnemonic)
     {
     case ZYDIS_MNEMONIC_NOP:
     case ZYDIS_MNEMONIC_PAUSE:
@@ -374,85 +378,85 @@ bool Zydis::IsNop() const
         // nop
         return true;
     case ZYDIS_MNEMONIC_MOV:
-	case ZYDIS_MNEMONIC_CMOVB:
-	case ZYDIS_MNEMONIC_CMOVBE:
-	case ZYDIS_MNEMONIC_CMOVL:
-	case ZYDIS_MNEMONIC_CMOVLE:
-	case ZYDIS_MNEMONIC_CMOVNB:
-	case ZYDIS_MNEMONIC_CMOVNBE:
-	case ZYDIS_MNEMONIC_CMOVNL:
-	case ZYDIS_MNEMONIC_CMOVNLE:
-	case ZYDIS_MNEMONIC_CMOVNO:
-	case ZYDIS_MNEMONIC_CMOVNP:
-	case ZYDIS_MNEMONIC_CMOVNS:
-	case ZYDIS_MNEMONIC_CMOVNZ:
-	case ZYDIS_MNEMONIC_CMOVO:
-	case ZYDIS_MNEMONIC_CMOVP:
-	case ZYDIS_MNEMONIC_CMOVS:
-	case ZYDIS_MNEMONIC_CMOVZ:
+    case ZYDIS_MNEMONIC_CMOVB:
+    case ZYDIS_MNEMONIC_CMOVBE:
+    case ZYDIS_MNEMONIC_CMOVL:
+    case ZYDIS_MNEMONIC_CMOVLE:
+    case ZYDIS_MNEMONIC_CMOVNB:
+    case ZYDIS_MNEMONIC_CMOVNBE:
+    case ZYDIS_MNEMONIC_CMOVNL:
+    case ZYDIS_MNEMONIC_CMOVNLE:
+    case ZYDIS_MNEMONIC_CMOVNO:
+    case ZYDIS_MNEMONIC_CMOVNP:
+    case ZYDIS_MNEMONIC_CMOVNS:
+    case ZYDIS_MNEMONIC_CMOVNZ:
+    case ZYDIS_MNEMONIC_CMOVO:
+    case ZYDIS_MNEMONIC_CMOVP:
+    case ZYDIS_MNEMONIC_CMOVS:
+    case ZYDIS_MNEMONIC_CMOVZ:
     case ZYDIS_MNEMONIC_MOVAPS:
     case ZYDIS_MNEMONIC_MOVAPD:
     case ZYDIS_MNEMONIC_MOVUPS:
     case ZYDIS_MNEMONIC_MOVUPD:
     case ZYDIS_MNEMONIC_XCHG:
         // mov edi, edi
-		return ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER 
-    		&& ops[1].type == ZYDIS_OPERAND_TYPE_REGISTER 
-    		&& ops[0].reg.value == ops[1].reg.value
-    		&& isSafe64NopRegOp(ops[0]);
+        return ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER
+               && ops[1].type == ZYDIS_OPERAND_TYPE_REGISTER
+               && ops[0].reg.value == ops[1].reg.value
+               && isSafe64NopRegOp(ops[0]);
     case ZYDIS_MNEMONIC_LEA:
     {
         // lea eax, [eax + 0]
         auto reg = ops[0].reg.value;
         auto mem = ops[1].mem;
-		return ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER 
-    		&& ops[1].type == ZYDIS_OPERAND_TYPE_REGISTER
-    		&& mem.disp.value == 0 
-    		&& ((mem.index == ZYDIS_REGISTER_NONE && mem.base == reg) ||
-				(mem.index == reg && mem.base == ZYDIS_REGISTER_NONE && mem.scale == 1)) 
-    		&& isSafe64NopRegOp(ops[0]);
+        return ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER
+               && ops[1].type == ZYDIS_OPERAND_TYPE_REGISTER
+               && mem.disp.value == 0
+               && ((mem.index == ZYDIS_REGISTER_NONE && mem.base == reg) ||
+                   (mem.index == reg && mem.base == ZYDIS_REGISTER_NONE && mem.scale == 1))
+               && isSafe64NopRegOp(ops[0]);
     }
-	case ZYDIS_MNEMONIC_JB:
-	case ZYDIS_MNEMONIC_JBE:
-	case ZYDIS_MNEMONIC_JCXZ:
-	case ZYDIS_MNEMONIC_JECXZ:
-	case ZYDIS_MNEMONIC_JKNZD:
-	case ZYDIS_MNEMONIC_JKZD:
-	case ZYDIS_MNEMONIC_JL:
-	case ZYDIS_MNEMONIC_JLE:
-	case ZYDIS_MNEMONIC_JMP:
-	case ZYDIS_MNEMONIC_JNB:
-	case ZYDIS_MNEMONIC_JNBE:
-	case ZYDIS_MNEMONIC_JNL:
-	case ZYDIS_MNEMONIC_JNLE:
-	case ZYDIS_MNEMONIC_JNO:
-	case ZYDIS_MNEMONIC_JNP:
-	case ZYDIS_MNEMONIC_JNS:
-	case ZYDIS_MNEMONIC_JNZ:
-	case ZYDIS_MNEMONIC_JO:
-	case ZYDIS_MNEMONIC_JP:
-	case ZYDIS_MNEMONIC_JRCXZ:
-	case ZYDIS_MNEMONIC_JS:
-	case ZYDIS_MNEMONIC_JZ:
+    case ZYDIS_MNEMONIC_JB:
+    case ZYDIS_MNEMONIC_JBE:
+    case ZYDIS_MNEMONIC_JCXZ:
+    case ZYDIS_MNEMONIC_JECXZ:
+    case ZYDIS_MNEMONIC_JKNZD:
+    case ZYDIS_MNEMONIC_JKZD:
+    case ZYDIS_MNEMONIC_JL:
+    case ZYDIS_MNEMONIC_JLE:
+    case ZYDIS_MNEMONIC_JMP:
+    case ZYDIS_MNEMONIC_JNB:
+    case ZYDIS_MNEMONIC_JNBE:
+    case ZYDIS_MNEMONIC_JNL:
+    case ZYDIS_MNEMONIC_JNLE:
+    case ZYDIS_MNEMONIC_JNO:
+    case ZYDIS_MNEMONIC_JNP:
+    case ZYDIS_MNEMONIC_JNS:
+    case ZYDIS_MNEMONIC_JNZ:
+    case ZYDIS_MNEMONIC_JO:
+    case ZYDIS_MNEMONIC_JP:
+    case ZYDIS_MNEMONIC_JRCXZ:
+    case ZYDIS_MNEMONIC_JS:
+    case ZYDIS_MNEMONIC_JZ:
         // jmp 0
-        return ops[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE 
-    		&& ops[0].imm.value.u == this->Address() + this->Size();
+        return ops[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE
+               && ops[0].imm.value.u == this->Address() + this->Size();
     case ZYDIS_MNEMONIC_SHL:
     case ZYDIS_MNEMONIC_SHR:
     case ZYDIS_MNEMONIC_ROL:
     case ZYDIS_MNEMONIC_ROR:
     case ZYDIS_MNEMONIC_SAR:
         // shl eax, 0
-		return ops[1].type == ZYDIS_OPERAND_TYPE_IMMEDIATE
-    		&& ops[1].imm.value.u == 0 
-    		&& isSafe64NopRegOp(ops[0]);
+        return ops[1].type == ZYDIS_OPERAND_TYPE_IMMEDIATE
+               && ops[1].imm.value.u == 0
+               && isSafe64NopRegOp(ops[0]);
     case ZYDIS_MNEMONIC_SHLD:
     case ZYDIS_MNEMONIC_SHRD:
         // shld eax, ebx, 0
-		return ops[2].type == ZYDIS_OPERAND_TYPE_IMMEDIATE
-    		&& ops[2].imm.value.u == 0 
-    		&& isSafe64NopRegOp(ops[0]) 
-    		&& isSafe64NopRegOp(ops[1]);
+        return ops[2].type == ZYDIS_OPERAND_TYPE_IMMEDIATE
+               && ops[2].imm.value.u == 0
+               && isSafe64NopRegOp(ops[0])
+               && isSafe64NopRegOp(ops[1]);
     default:
         return false;
     }
@@ -463,7 +467,7 @@ bool Zydis::IsPushPop() const
     if(!Success())
         return false;
 
-    switch(mZyInstr.meta.category)
+    switch(mInstr.meta.category)
     {
     case ZYDIS_CATEGORY_PUSH:
     case ZYDIS_CATEGORY_POP:
@@ -479,17 +483,17 @@ bool Zydis::IsUnusual() const
     if(!Success())
         return false;
 
-    auto id = mZyInstr.mnemonic;
-    return mZyInstr.attributes & ZYDIS_ATTRIB_IS_PRIVILEGED
-        || id == ZYDIS_MNEMONIC_RDTSC 
-	    || id == ZYDIS_MNEMONIC_SYSCALL 
-	    || id == ZYDIS_MNEMONIC_SYSENTER 
-	    || id == ZYDIS_MNEMONIC_CPUID 
-	    || id == ZYDIS_MNEMONIC_RDTSCP
-        || id == ZYDIS_MNEMONIC_RDRAND 
-	    || id == ZYDIS_MNEMONIC_RDSEED 
-	    || id == ZYDIS_MNEMONIC_UD1 
-	    || id == ZYDIS_MNEMONIC_UD2;
+    auto id = mInstr.mnemonic;
+    return mInstr.attributes & ZYDIS_ATTRIB_IS_PRIVILEGED
+           || id == ZYDIS_MNEMONIC_RDTSC
+           || id == ZYDIS_MNEMONIC_SYSCALL
+           || id == ZYDIS_MNEMONIC_SYSENTER
+           || id == ZYDIS_MNEMONIC_CPUID
+           || id == ZYDIS_MNEMONIC_RDTSCP
+           || id == ZYDIS_MNEMONIC_RDRAND
+           || id == ZYDIS_MNEMONIC_RDSEED
+           || id == ZYDIS_MNEMONIC_UD1
+           || id == ZYDIS_MNEMONIC_UD2;
 }
 
 std::string Zydis::Mnemonic() const
@@ -497,8 +501,8 @@ std::string Zydis::Mnemonic() const
     if(!Success())
         return "???";
 
-	switch(mZyInstr.mnemonic)
-	{
+    switch(mInstr.mnemonic)
+    {
     case ZYDIS_MNEMONIC_JZ:
         return "je";
     case ZYDIS_MNEMONIC_JNZ:
@@ -536,8 +540,8 @@ std::string Zydis::Mnemonic() const
     case ZYDIS_MNEMONIC_SETNZ:
         return "setne";
     default:
-        return ZydisMnemonicGetString(mZyInstr.mnemonic);
-	}
+        return ZydisMnemonicGetString(mInstr.mnemonic);
+    }
 }
 
 std::string Zydis::MnemonicId() const
@@ -579,18 +583,18 @@ const char* Zydis::MemSizeName(int size) const
 
 size_t Zydis::BranchDestination() const
 {
-    if(!Success() 
-        || mZyInstr.operands[0].type != ZYDIS_OPERAND_TYPE_IMMEDIATE
-        || !mZyInstr.operands[0].imm.isRelative)
+    if(!Success()
+            || mInstr.operands[0].type != ZYDIS_OPERAND_TYPE_IMMEDIATE
+            || !mInstr.operands[0].imm.isRelative)
         return 0;
 
-    return mZyInstr.operands[0].imm.value.u;
+    return mInstr.operands[0].imm.value.u;
 }
 
 size_t Zydis::ResolveOpValue(int opindex, const std::function<size_t(ZydisRegister)> & resolveReg) const
 {
     size_t dest = 0;
-	const auto & op = mZyInstr.operands[opindex];
+    const auto & op = mInstr.operands[opindex];
     switch(op.type)
     {
     case ZYDIS_OPERAND_TYPE_IMMEDIATE:
@@ -616,7 +620,7 @@ bool Zydis::IsBranchGoingToExecute(size_t cflags, size_t ccx) const
 {
     if(!Success())
         return false;
-    return IsBranchGoingToExecute(mZyInstr.mnemonic, cflags, ccx);
+    return IsBranchGoingToExecute(mInstr.mnemonic, cflags, ccx);
 }
 
 bool Zydis::IsBranchGoingToExecute(ZydisMnemonic id, size_t cflags, size_t ccx)
@@ -634,7 +638,7 @@ bool Zydis::IsBranchGoingToExecute(ZydisMnemonic id, size_t cflags, size_t ccx)
         return true;
     case ZYDIS_MNEMONIC_JNB: //jump short if above or equal
         return !bCF;
-	case ZYDIS_MNEMONIC_JNBE: //jump short if above
+    case ZYDIS_MNEMONIC_JNBE: //jump short if above
         return !bCF && !bZF;
     case ZYDIS_MNEMONIC_JBE: //jump short if below or equal/not above
         return bCF || bZF;
@@ -683,7 +687,7 @@ bool Zydis::IsConditionalGoingToExecute(size_t cflags, size_t ccx) const
 {
     if(!Success())
         return false;
-    return IsConditionalGoingToExecute(mZyInstr.mnemonic, cflags, ccx);
+    return IsConditionalGoingToExecute(mInstr.mnemonic, cflags, ccx);
 }
 
 bool Zydis::IsConditionalGoingToExecute(ZydisMnemonic id, size_t cflags, size_t ccx)
@@ -787,17 +791,17 @@ void Zydis::RegInfo(uint8_t regs[ZYDIS_REGISTER_MAX_VALUE + 1]) const
         return;
     for(int i = 0; i < OpCount(); i++)
     {
-        const auto & op = mZyInstr.operands[i];
+        const auto & op = mInstr.operands[i];
         switch(op.type)
         {
         case ZYDIS_OPERAND_TYPE_REGISTER:
         {
-			if(op.action & ZYDIS_OPERAND_ACTION_MASK_READ)
-				regs[op.reg.value] |= Read;
-			if(op.action & ZYDIS_OPERAND_ACTION_MASK_WRITE)
-				regs[op.reg.value] |= Write;
-            regs[op.reg.value] |= op.visibility == ZYDIS_OPERAND_VISIBILITY_EXPLICIT ?
-                Explicit : Implicit;
+            if(op.action & ZYDIS_OPERAND_ACTION_MASK_READ)
+                regs[op.reg.value] |= RAIRead;
+            if(op.action & ZYDIS_OPERAND_ACTION_MASK_WRITE)
+                regs[op.reg.value] |= RAIWrite;
+            regs[op.reg.value] |= op.visibility != ZYDIS_OPERAND_VISIBILITY_HIDDEN ?
+                                  RAIExplicit : RAIImplicit;
         }
         break;
 
@@ -814,17 +818,17 @@ void Zydis::RegInfo(uint8_t regs[ZYDIS_REGISTER_MAX_VALUE + 1]) const
                 case ZYDIS_REGISTER_ESP:
                 case ZYDIS_REGISTER_EBP:
 #endif //_WIN64
-                    regs[ZYDIS_REGISTER_SS] |= Read | Explicit;
+                    regs[ZYDIS_REGISTER_SS] |= RAIRead | RAIExplicit;
                     break;
                 default:
-                    regs[ZYDIS_REGISTER_DS] |= Read | Explicit;
+                    regs[ZYDIS_REGISTER_DS] |= RAIRead | RAIExplicit;
                     break;
                 }
             }
             else
-                regs[op.mem.segment] |= Read | Explicit;
-            regs[op.mem.base] |= Read | Explicit;
-            regs[op.mem.index] |= Read | Explicit;
+                regs[op.mem.segment] |= RAIRead | RAIExplicit;
+            regs[op.mem.base] |= RAIRead | RAIExplicit;
+            regs[op.mem.index] |= RAIRead | RAIExplicit;
         }
         break;
 
@@ -838,28 +842,48 @@ const char* Zydis::FlagName(ZydisCPUFlag flag) const
 {
     switch(flag)
     {
-    case ZYDIS_CPUFLAG_AF:
-        return "AF";
     case ZYDIS_CPUFLAG_CF:
         return "CF";
-    case ZYDIS_CPUFLAG_SF:
-        return "SF";
-    case ZYDIS_CPUFLAG_ZF:
-        return "ZF";
     case ZYDIS_CPUFLAG_PF:
         return "PF";
-    case ZYDIS_CPUFLAG_OF:
-        return "OF";
+    case ZYDIS_CPUFLAG_AF:
+        return "AF";
+    case ZYDIS_CPUFLAG_ZF:
+        return "ZF";
+    case ZYDIS_CPUFLAG_SF:
+        return "SF";
     case ZYDIS_CPUFLAG_TF:
         return "TF";
     case ZYDIS_CPUFLAG_IF:
         return "IF";
     case ZYDIS_CPUFLAG_DF:
         return "DF";
+    case ZYDIS_CPUFLAG_OF:
+        return "OF";
+    case ZYDIS_CPUFLAG_IOPL:
+        return "IOPL";
     case ZYDIS_CPUFLAG_NT:
         return "NT";
     case ZYDIS_CPUFLAG_RF:
         return "RF";
+    case ZYDIS_CPUFLAG_VM:
+        return "VM";
+    case ZYDIS_CPUFLAG_AC:
+        return "AC";
+    case ZYDIS_CPUFLAG_VIF:
+        return "VIF";
+    case ZYDIS_CPUFLAG_VIP:
+        return "VIP";
+    case ZYDIS_CPUFLAG_ID:
+        return "ID";
+    case ZYDIS_CPUFLAG_C0:
+        return "C0";
+    case ZYDIS_CPUFLAG_C1:
+        return "C1";
+    case ZYDIS_CPUFLAG_C2:
+        return "C2";
+    case ZYDIS_CPUFLAG_C3:
+        return "C3";
     default:
         return nullptr;
     }
