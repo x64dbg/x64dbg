@@ -1549,6 +1549,8 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
             goto _exit;
         if (cs_instr.instStr.startsWith("fstp")) // CS reports 3 operands but only prints 2 ... wat.
             goto _exit;
+        if (cs_instr.instStr.startsWith("fnstsw")) // CS reports wrong 32 bit operand size (is 16)
+            goto _exit;
 
         auto insn_hex = cs_instr.dump.toHex().toStdString();
         auto cs = cs_instr.instStr.toStdString();

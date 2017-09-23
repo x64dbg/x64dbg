@@ -12,7 +12,7 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
     SetConfig(false, false, false, false, false, false, false);
 }
 
-CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
+static CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
 QHash<QString, int> CapstoneTokenizer::stringPoolMap;
 int CapstoneTokenizer::poolId = 0;
 

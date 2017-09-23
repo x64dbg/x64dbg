@@ -4,6 +4,7 @@
 #include <QString>
 #include <vector>
 #include "cs_capstone_gui.h"
+#include "QBeaEngine.h" // for instruction_t
 
 class EncodeMap;
 class CodeFoldingHelper;
