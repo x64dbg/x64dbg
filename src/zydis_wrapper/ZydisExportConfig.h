@@ -8,16 +8,16 @@
 #else
 #  ifndef ZYDIS_EXPORT
 #    ifdef Zydis_EXPORTS
-        /* We are building this library */
-#      define ZYDIS_EXPORT 
+/* We are building this library */
+#      define ZYDIS_EXPORT
 #    else
-        /* We are using this library */
-#      define ZYDIS_EXPORT 
+/* We are using this library */
+#      define ZYDIS_EXPORT
 #    endif
 #  endif
 
 #  ifndef ZYDIS_NO_EXPORT
-#    define ZYDIS_NO_EXPORT 
+#    define ZYDIS_NO_EXPORT
 #  endif
 #endif
 

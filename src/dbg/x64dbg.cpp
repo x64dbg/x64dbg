@@ -643,7 +643,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     json_set_alloc_funcs(json_malloc, json_free);
     //#endif //ENABLE_MEM_TRACE
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing capstone..."));
-	Zydis::GlobalInitialize();
+    Zydis::GlobalInitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Yara..."));
     if(yr_initialize() != ERROR_SUCCESS)
         return "Failed to initialize Yara!";
@@ -780,7 +780,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     cmdfree();
     varfree();
     yr_finalize();
-	Zydis::GlobalFinalize();
+    Zydis::GlobalFinalize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));
     waitdeinitialize();
     SafeDbghelpDeinitialize();

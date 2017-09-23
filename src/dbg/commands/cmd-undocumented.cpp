@@ -326,7 +326,7 @@ bool cbInstrVisualize(int argc, char* argv[])
     //DisassemblyBreakpointColor = #000000
     {
         //initialize
-		Zydis _cp;
+        Zydis _cp;
         duint _base = start;
         duint _size = maxaddr - start;
         Memory<unsigned char*> _data(_size);
@@ -444,7 +444,7 @@ bool cbInstrBriefcheck(int argc, char* argv[])
         return false;
     Memory<unsigned char*> buffer(size + 16);
     DbgMemRead(base, buffer(), size);
-	Zydis cp;
+    Zydis cp;
     std::unordered_set<String> reported;
     for(duint i = 0; i < size;)
     {

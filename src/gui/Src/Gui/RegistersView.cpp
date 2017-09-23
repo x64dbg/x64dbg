@@ -2342,15 +2342,15 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         if(highlight)
         {
             const char* name = "";
-            switch(highlight & ~(Zydis::Implicit | Zydis::Explicit))
+            switch(highlight & ~(Zydis::RAIImplicit | Zydis::RAIExplicit))
             {
-            case Zydis::Read:
+            case Zydis::RAIRead:
                 name = "RegistersHighlightReadColor";
                 break;
-            case Zydis::Write:
+            case Zydis::RAIWrite:
                 name = "RegistersHighlightWriteColor";
                 break;
-            case Zydis::Read | Zydis::Write:
+            case Zydis::RAIRead | Zydis::RAIWrite:
                 name = "RegistersHighlightReadWriteColor";
                 break;
             }

@@ -98,7 +98,7 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
     unsigned char data[16];
     if(MemRead(addr, data, sizeof(data), nullptr, true))
     {
-		Zydis cp;
+        Zydis cp;
         if(cp.Disassemble(addr, data))
         {
             CONTEXT ctx;
@@ -334,7 +334,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
             BRIDGE_ADDRINFO newinfo;
             char string_text[MAX_STRING_SIZE] = "";
 
-			Zydis cp;
+            Zydis cp;
             auto getregs = !bOnlyCipAutoComments || addr == titcontext.cip;
             disasmget(cp, addr, &instr, getregs);
 
@@ -735,14 +735,14 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
     unsigned char data[MAX_DISASM_BUFFER];
     if(!MemIsValidReadPtr(addr, true) || !MemRead(addr, data, sizeof(data)))
         return 0;
-	Zydis cp;
+    Zydis cp;
     if(!cp.Disassemble(addr, data))
         return 0;
-	if(cp.IsBranchType(Zydis::BT_Jmp | Zydis::BT_Call | Zydis::BT_Loop))
+    if(cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTLoop))
     {
         auto opValue = cp.ResolveOpValue(0, [](ZydisRegister reg) -> size_t
         {
-            switch(reg) 
+            switch(reg)
             {
 #ifndef _WIN64 //x32
             case ZYDIS_REGISTER_EAX:
