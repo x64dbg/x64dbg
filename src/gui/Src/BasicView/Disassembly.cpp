@@ -1537,11 +1537,20 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
         if (cs_instr.instStr.startsWith("wait")) // cs says wait, zy says fwait (both ok)
             goto _exit;
         if (cs_instr.dump.length() > 2 &&  // cs ignores segment prefixes if followed by branch hints
-            cs_instr.dump[1] == '\x2e' &&
-            cs_instr.dump[2] == '\x3e')
+            (cs_instr.dump[1] == '\x2e' ||
+            cs_instr.dump[2] == '\x3e'))
+            goto _exit;
+        if (QRegExp("mov .s,.*").exactMatch(cs_instr.instStr) ||
+            cs_instr.instStr.startsWith("str")) // cs claims it's priviliged (it's not)
+            goto _exit;
+        if (QRegExp("l[defgs]s.*").exactMatch(cs_instr.instStr)) // cs allows LES (and friends) in 64 bit mode (invalid)
+            goto _exit;
+        if (QRegExp("f[^ ]+ st0.*").exactMatch(zy_instr.instStr)) // zy prints excplitic st0, cs omits (both ok)
+            goto _exit;
+        if (cs_instr.instStr.startsWith("fstp")) // CS reports 3 operands but only prints 2 ... wat.
             goto _exit;
 
-        auto insn_hex = zy_instr.dump.toHex().toStdString();
+        auto insn_hex = cs_instr.dump.toHex().toStdString();
         auto cs = cs_instr.instStr.toStdString();
         auto zy = zy_instr.instStr.toStdString();
 
