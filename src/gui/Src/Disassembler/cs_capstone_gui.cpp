@@ -7,18 +7,18 @@ CsCapstoneTokenizer::CsCapstoneTokenizer(int maxModuleLength)
     : _maxModuleLength(maxModuleLength),
       _success(false),
       isNop(false),
-      _mnemonicType(TokenType::Uncategorized)
+      _mnemonicType(CapstoneTokenizer::TokenType::Uncategorized)
 {
     SetConfig(false, false, false, false, false, false, false);
 }
 
-CsCapstoneTokenizer::TokenColor colorNamesMap[CsCapstoneTokenizer::TokenType::Last];
+static CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
 QHash<QString, int> CsCapstoneTokenizer::stringPoolMap;
 int CsCapstoneTokenizer::poolId = 0;
 
-void CsCapstoneTokenizer::addColorName(TokenType type, QString color, QString backgroundColor)
+void CsCapstoneTokenizer::addColorName(CapstoneTokenizer::TokenType type, QString color, QString backgroundColor)
 {
-    colorNamesMap[int(type)] = TokenColor(color, backgroundColor);
+    colorNamesMap[int(type)] = CapstoneTokenizer::TokenColor(color, backgroundColor);
 }
 
 void CsCapstoneTokenizer::addStringsToPool(const QString & strings)
@@ -32,42 +32,42 @@ void CsCapstoneTokenizer::addStringsToPool(const QString & strings)
 void CsCapstoneTokenizer::UpdateColors()
 {
     //filling
-    addColorName(TokenType::Comma, "InstructionCommaColor", "InstructionCommaBackgroundColor");
-    addColorName(TokenType::Space, "", "");
-    addColorName(TokenType::ArgumentSpace, "", "");
-    addColorName(TokenType::MemoryOperatorSpace, "", "");
+    addColorName(CapstoneTokenizer::TokenType::Comma, "InstructionCommaColor", "InstructionCommaBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::Space, "", "");
+    addColorName(CapstoneTokenizer::TokenType::ArgumentSpace, "", "");
+    addColorName(CapstoneTokenizer::TokenType::MemoryOperatorSpace, "", "");
     //general instruction parts
-    addColorName(TokenType::Prefix, "InstructionPrefixColor", "InstructionPrefixBackgroundColor");
-    addColorName(TokenType::Uncategorized, "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");
-    addColorName(TokenType::Address, "InstructionAddressColor", "InstructionAddressBackgroundColor"); //jump/call destinations
-    addColorName(TokenType::Value, "InstructionValueColor", "InstructionValueBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::Prefix, "InstructionPrefixColor", "InstructionPrefixBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::Uncategorized, "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::Address, "InstructionAddressColor", "InstructionAddressBackgroundColor"); //jump/call destinations
+    addColorName(CapstoneTokenizer::TokenType::Value, "InstructionValueColor", "InstructionValueBackgroundColor");
     //mnemonics
-    addColorName(TokenType::MnemonicNormal, "InstructionMnemonicColor", "InstructionMnemonicBackgroundColor");
-    addColorName(TokenType::MnemonicPushPop, "InstructionPushPopColor", "InstructionPushPopBackgroundColor");
-    addColorName(TokenType::MnemonicCall, "InstructionCallColor", "InstructionCallBackgroundColor");
-    addColorName(TokenType::MnemonicRet, "InstructionRetColor", "InstructionRetBackgroundColor");
-    addColorName(TokenType::MnemonicCondJump, "InstructionConditionalJumpColor", "InstructionConditionalJumpBackgroundColor");
-    addColorName(TokenType::MnemonicUncondJump, "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
-    addColorName(TokenType::MnemonicNop, "InstructionNopColor", "InstructionNopBackgroundColor");
-    addColorName(TokenType::MnemonicFar, "InstructionFarColor", "InstructionFarBackgroundColor");
-    addColorName(TokenType::MnemonicInt3, "InstructionInt3Color", "InstructionInt3BackgroundColor");
-    addColorName(TokenType::MnemonicUnusual, "InstructionUnusualColor", "InstructionUnusualBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicNormal, "InstructionMnemonicColor", "InstructionMnemonicBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicPushPop, "InstructionPushPopColor", "InstructionPushPopBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicCall, "InstructionCallColor", "InstructionCallBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicRet, "InstructionRetColor", "InstructionRetBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicCondJump, "InstructionConditionalJumpColor", "InstructionConditionalJumpBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicUncondJump, "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicNop, "InstructionNopColor", "InstructionNopBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicFar, "InstructionFarColor", "InstructionFarBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicInt3, "InstructionInt3Color", "InstructionInt3BackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MnemonicUnusual, "InstructionUnusualColor", "InstructionUnusualBackgroundColor");
     //memory
-    addColorName(TokenType::MemorySize, "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
-    addColorName(TokenType::MemorySegment, "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
-    addColorName(TokenType::MemoryBrackets, "InstructionMemoryBracketsColor", "InstructionMemoryBracketsBackgroundColor");
-    addColorName(TokenType::MemoryStackBrackets, "InstructionMemoryStackBracketsColor", "InstructionMemoryStackBracketsBackgroundColor");
-    addColorName(TokenType::MemoryBaseRegister, "InstructionMemoryBaseRegisterColor", "InstructionMemoryBaseRegisterBackgroundColor");
-    addColorName(TokenType::MemoryIndexRegister, "InstructionMemoryIndexRegisterColor", "InstructionMemoryIndexRegisterBackgroundColor");
-    addColorName(TokenType::MemoryScale, "InstructionMemoryScaleColor", "InstructionMemoryScaleBackgroundColor");
-    addColorName(TokenType::MemoryOperator, "InstructionMemoryOperatorColor", "InstructionMemoryOperatorBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MemorySize, "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MemorySegment, "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MemoryBrackets, "InstructionMemoryBracketsColor", "InstructionMemoryBracketsBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MemoryStackBrackets, "InstructionMemoryStackBracketsColor", "InstructionMemoryStackBracketsBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MemoryBaseRegister, "InstructionMemoryBaseRegisterColor", "InstructionMemoryBaseRegisterBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MemoryIndexRegister, "InstructionMemoryIndexRegisterColor", "InstructionMemoryIndexRegisterBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MemoryScale, "InstructionMemoryScaleColor", "InstructionMemoryScaleBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MemoryOperator, "InstructionMemoryOperatorColor", "InstructionMemoryOperatorBackgroundColor");
     //registers
-    addColorName(TokenType::GeneralRegister, "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
-    addColorName(TokenType::FpuRegister, "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
-    addColorName(TokenType::MmxRegister, "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");
-    addColorName(TokenType::XmmRegister, "InstructionXmmRegisterColor", "InstructionXmmRegisterBackgroundColor");
-    addColorName(TokenType::YmmRegister, "InstructionYmmRegisterColor", "InstructionYmmRegisterBackgroundColor");
-    addColorName(TokenType::ZmmRegister, "InstructionZmmRegisterColor", "InstructionZmmRegisterBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::GeneralRegister, "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::FpuRegister, "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::MmxRegister, "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::XmmRegister, "InstructionXmmRegisterColor", "InstructionXmmRegisterBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::YmmRegister, "InstructionYmmRegisterColor", "InstructionYmmRegisterBackgroundColor");
+    addColorName(CapstoneTokenizer::TokenType::ZmmRegister, "InstructionZmmRegisterColor", "InstructionZmmRegisterBackgroundColor");
 }
 
 void CsCapstoneTokenizer::UpdateStringPool()
@@ -109,9 +109,9 @@ void CsCapstoneTokenizer::UpdateStringPool()
     addStringsToPool("xmm15 ymm15");
 }
 
-bool CsCapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction)
+bool CsCapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int datasize, CapstoneTokenizer::InstructionToken & instruction)
 {
-    _inst = InstructionToken();
+    _inst = CapstoneTokenizer::InstructionToken();
 
     _success = _cp.DisassembleSafe(addr, data, datasize);
     if(_success)
@@ -124,9 +124,9 @@ bool CsCapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int da
         {
             if(i)
             {
-                addToken(TokenType::Comma, ",");
+                addToken(CapstoneTokenizer::TokenType::Comma, ",");
                 if(_bArgumentSpaces)
-                    addToken(TokenType::ArgumentSpace, " ");
+                    addToken(CapstoneTokenizer::TokenType::ArgumentSpace, " ");
             }
             if(!tokenizeOperand(_cp[i]))
                 return false;
@@ -135,14 +135,14 @@ bool CsCapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int da
     else
     {
         isNop = false;
-        addToken(TokenType::MnemonicUnusual, "???");
+        addToken(CapstoneTokenizer::TokenType::MnemonicUnusual, "???");
     }
 
     if(_bNoHighlightOperands)
     {
-        while(_inst.tokens.size() && _inst.tokens[_inst.tokens.size() - 1].type == TokenType::Space)
+        while(_inst.tokens.size() && _inst.tokens[_inst.tokens.size() - 1].type == CapstoneTokenizer::TokenType::Space)
             _inst.tokens.pop_back();
-        for(SingleToken & token : _inst.tokens)
+        for(CapstoneTokenizer::SingleToken & token : _inst.tokens)
             token.type = _mnemonicType;
     }
 
@@ -151,15 +151,15 @@ bool CsCapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int da
     return true;
 }
 
-bool CsCapstoneTokenizer::TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction)
+bool CsCapstoneTokenizer::TokenizeData(const QString & datatype, const QString & data, CapstoneTokenizer::InstructionToken & instruction)
 {
-    _inst = InstructionToken();
+    _inst = CapstoneTokenizer::InstructionToken();
     isNop = false;
 
-    if(!tokenizeMnemonic(TokenType::MnemonicNormal, datatype))
+    if(!tokenizeMnemonic(CapstoneTokenizer::TokenType::MnemonicNormal, datatype))
         return false;
 
-    addToken(TokenType::Value, data);
+    addToken(CapstoneTokenizer::TokenType::Value, data);
 
     instruction = _inst;
 
@@ -200,7 +200,7 @@ const Capstone & CsCapstoneTokenizer::GetCapstone() const
     return _cp;
 }
 
-void CsCapstoneTokenizer::TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken)
+void CsCapstoneTokenizer::TokenToRichText(const CapstoneTokenizer::InstructionToken & instr, RichTextPainter::List & richTextList, const CapstoneTokenizer::SingleToken* highlightToken)
 {
     QColor highlightColor = ConfigColor("InstructionHighlightColor");
     for(const auto & token : instr.tokens)
@@ -210,7 +210,7 @@ void CsCapstoneTokenizer::TokenToRichText(const InstructionToken & instr, RichTe
         richText.highlightColor = highlightColor;
         richText.flags = RichTextPainter::FlagNone;
         richText.text = token.text;
-        if(token.type < TokenType::Last)
+        if(token.type < CapstoneTokenizer::TokenType::Last)
         {
             const auto & tokenColor = colorNamesMap[int(token.type)];
             richText.flags = tokenColor.flags;
@@ -221,7 +221,7 @@ void CsCapstoneTokenizer::TokenToRichText(const InstructionToken & instr, RichTe
     }
 }
 
-bool CsCapstoneTokenizer::TokenFromX(const InstructionToken & instr, SingleToken & token, int x, CachedFontMetrics* fontMetrics)
+bool CsCapstoneTokenizer::TokenFromX(const CapstoneTokenizer::InstructionToken & instr, CapstoneTokenizer::SingleToken & token, int x, CachedFontMetrics* fontMetrics)
 {
     if(x < instr.x) //before the first token
         return false;
@@ -241,18 +241,18 @@ bool CsCapstoneTokenizer::TokenFromX(const InstructionToken & instr, SingleToken
     return false; //not found
 }
 
-bool CsCapstoneTokenizer::IsHighlightableToken(const SingleToken & token)
+bool CsCapstoneTokenizer::IsHighlightableToken(const CapstoneTokenizer::SingleToken & token)
 {
     switch(token.type)
     {
-    case TokenType::Comma:
-    case TokenType::Space:
-    case TokenType::ArgumentSpace:
-    case TokenType::Uncategorized:
-    case TokenType::MemoryOperatorSpace:
-    case TokenType::MemoryBrackets:
-    case TokenType::MemoryStackBrackets:
-    case TokenType::MemoryOperator:
+    case CapstoneTokenizer::TokenType::Comma:
+    case CapstoneTokenizer::TokenType::Space:
+    case CapstoneTokenizer::TokenType::ArgumentSpace:
+    case CapstoneTokenizer::TokenType::Uncategorized:
+    case CapstoneTokenizer::TokenType::MemoryOperatorSpace:
+    case CapstoneTokenizer::TokenType::MemoryBrackets:
+    case CapstoneTokenizer::TokenType::MemoryStackBrackets:
+    case CapstoneTokenizer::TokenType::MemoryOperator:
         return false;
         break;
     }
@@ -270,7 +270,7 @@ bool CsCapstoneTokenizer::tokenTextPoolEquals(const QString & a, const QString &
     return found1.value() == found2.value();
 }
 
-bool CsCapstoneTokenizer::TokenEquals(const SingleToken* a, const SingleToken* b, bool ignoreSize)
+bool CsCapstoneTokenizer::TokenEquals(const CapstoneTokenizer::SingleToken* a, const CapstoneTokenizer::SingleToken* b, bool ignoreSize)
 {
     if(!a || !b)
         return false;
@@ -284,13 +284,13 @@ bool CsCapstoneTokenizer::TokenEquals(const SingleToken* a, const SingleToken* b
     return tokenTextPoolEquals(a->text, b->text);
 }
 
-void CsCapstoneTokenizer::addToken(TokenType type, QString text, const TokenValue & value)
+void CsCapstoneTokenizer::addToken(CapstoneTokenizer::TokenType type, QString text, const CapstoneTokenizer::TokenValue & value)
 {
     switch(type)
     {
-    case TokenType::Space:
-    case TokenType::ArgumentSpace:
-    case TokenType::MemoryOperatorSpace:
+    case CapstoneTokenizer::TokenType::Space:
+    case CapstoneTokenizer::TokenType::ArgumentSpace:
+    case CapstoneTokenizer::TokenType::MemoryOperatorSpace:
         break;
     default:
         text = text.trimmed();
@@ -298,26 +298,26 @@ void CsCapstoneTokenizer::addToken(TokenType type, QString text, const TokenValu
     }
     if(_bUppercase && !value.size)
         text = text.toUpper();
-    _inst.tokens.push_back(SingleToken(isNop ? TokenType::MnemonicNop : type, text, value));
+    _inst.tokens.push_back(CapstoneTokenizer::SingleToken(isNop ? CapstoneTokenizer::TokenType::MnemonicNop : type, text, value));
 }
 
-void CsCapstoneTokenizer::addToken(TokenType type, const QString & text)
+void CsCapstoneTokenizer::addToken(CapstoneTokenizer::TokenType type, const QString & text)
 {
-    addToken(type, text, TokenValue());
+    addToken(type, text, CapstoneTokenizer::TokenValue());
 }
 
 void CsCapstoneTokenizer::addMemoryOperator(char operatorText)
 {
     if(_bMemorySpaces)
-        addToken(TokenType::MemoryOperatorSpace, " ");
+        addToken(CapstoneTokenizer::TokenType::MemoryOperatorSpace, " ");
     QString text;
     text += operatorText;
-    addToken(TokenType::MemoryOperator, text);
+    addToken(CapstoneTokenizer::TokenType::MemoryOperator, text);
     if(_bMemorySpaces)
-        addToken(TokenType::MemoryOperatorSpace, " ");
+        addToken(CapstoneTokenizer::TokenType::MemoryOperatorSpace, " ");
 }
 
-QString CsCapstoneTokenizer::printValue(const TokenValue & value, bool expandModule, int maxModuleLength) const
+QString CsCapstoneTokenizer::printValue(const CapstoneTokenizer::TokenValue & value, bool expandModule, int maxModuleLength) const
 {
     QString labelText;
     char label_[MAX_LABEL_SIZE] = "";
@@ -380,8 +380,8 @@ bool CsCapstoneTokenizer::tokenizePrefix()
 
     if(hasPrefix)
     {
-        addToken(TokenType::Prefix, prefixText);
-        addToken(TokenType::Space, " ");
+        addToken(CapstoneTokenizer::TokenType::Prefix, prefixText);
+        addToken(CapstoneTokenizer::TokenType::Space, " ");
     }
 
     return true;
@@ -390,31 +390,31 @@ bool CsCapstoneTokenizer::tokenizePrefix()
 bool CsCapstoneTokenizer::tokenizeMnemonic()
 {
     QString mnemonic = QString(_cp.Mnemonic().c_str());
-    _mnemonicType = TokenType::MnemonicNormal;
+    _mnemonicType = CapstoneTokenizer::TokenType::MnemonicNormal;
     auto id = _cp.GetId();
     if(isNop)
-        _mnemonicType = TokenType::MnemonicNop;
+        _mnemonicType = CapstoneTokenizer::TokenType::MnemonicNop;
     else if(_cp.InGroup(CS_GRP_CALL))
-        _mnemonicType = TokenType::MnemonicCall;
+        _mnemonicType = CapstoneTokenizer::TokenType::MnemonicCall;
     else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())
     {
         switch(id)
         {
         case X86_INS_JMP:
         case X86_INS_LJMP:
-            _mnemonicType = TokenType::MnemonicUncondJump;
+            _mnemonicType = CapstoneTokenizer::TokenType::MnemonicUncondJump;
             break;
         default:
-            _mnemonicType = TokenType::MnemonicCondJump;
+            _mnemonicType = CapstoneTokenizer::TokenType::MnemonicCondJump;
             break;
         }
     }
     else if(_cp.IsInt3())
-        _mnemonicType = TokenType::MnemonicInt3;
+        _mnemonicType = CapstoneTokenizer::TokenType::MnemonicInt3;
     else if(_cp.IsUnusual())
-        _mnemonicType = TokenType::MnemonicUnusual;
+        _mnemonicType = CapstoneTokenizer::TokenType::MnemonicUnusual;
     else if(_cp.InGroup(CS_GRP_RET))
-        _mnemonicType = TokenType::MnemonicRet;
+        _mnemonicType = CapstoneTokenizer::TokenType::MnemonicRet;
     else
     {
         switch(id)
@@ -431,7 +431,7 @@ bool CsCapstoneTokenizer::tokenizeMnemonic()
         case X86_INS_POPFQ:
         case X86_INS_POPAL:
         case X86_INS_POPAW:
-            _mnemonicType = TokenType::MnemonicPushPop;
+            _mnemonicType = CapstoneTokenizer::TokenType::MnemonicPushPop;
             break;
         default:
             break;
@@ -443,7 +443,7 @@ bool CsCapstoneTokenizer::tokenizeMnemonic()
     return true;
 }
 
-bool CsCapstoneTokenizer::tokenizeMnemonic(TokenType type, const QString & mnemonic)
+bool CsCapstoneTokenizer::tokenizeMnemonic(CapstoneTokenizer::TokenType type, const QString & mnemonic)
 {
     addToken(type, mnemonic);
     if(_bTabbedMnemonic)
@@ -452,10 +452,10 @@ bool CsCapstoneTokenizer::tokenizeMnemonic(TokenType type, const QString & mnemo
         if(spaceCount > 0)
         {
             for(int i = 0; i < spaceCount; i++)
-                addToken(TokenType::Space, " ");
+                addToken(CapstoneTokenizer::TokenType::Space, " ");
         }
     }
-    addToken(TokenType::Space, " ");
+    addToken(CapstoneTokenizer::TokenType::Space, " ");
     return true;
 }
 
@@ -478,22 +478,22 @@ bool CsCapstoneTokenizer::tokenizeOperand(const cs_x86_op & op)
 
 bool CsCapstoneTokenizer::tokenizeRegOperand(const cs_x86_op & op)
 {
-    auto registerType = TokenType::GeneralRegister;
+    auto registerType = CapstoneTokenizer::TokenType::GeneralRegister;
     auto reg = op.reg;
     if(reg >= X86_REG_FP0 && reg <= X86_REG_FP7)
-        registerType = TokenType::FpuRegister;
+        registerType = CapstoneTokenizer::TokenType::FpuRegister;
     else if(reg >= X86_REG_ST0 && reg <= X86_REG_ST7)
-        registerType = TokenType::FpuRegister;
+        registerType = CapstoneTokenizer::TokenType::FpuRegister;
     else if(reg >= X86_REG_MM0 && reg <= X86_REG_MM7)
-        registerType = TokenType::MmxRegister;
+        registerType = CapstoneTokenizer::TokenType::MmxRegister;
     else if(reg >= X86_REG_XMM0 && reg <= X86_REG_XMM31)
-        registerType = TokenType::XmmRegister;
+        registerType = CapstoneTokenizer::TokenType::XmmRegister;
     else if(reg >= X86_REG_YMM0 && reg <= X86_REG_YMM31)
-        registerType = TokenType::YmmRegister;
+        registerType = CapstoneTokenizer::TokenType::YmmRegister;
     else if(reg >= X86_REG_ZMM0 && reg <= X86_REG_ZMM31)
-        registerType = TokenType::ZmmRegister;
+        registerType = CapstoneTokenizer::TokenType::ZmmRegister;
     else if(reg == ArchValue(X86_REG_FS, X86_REG_GS))
-        registerType = TokenType::MnemonicUnusual;
+        registerType = CapstoneTokenizer::TokenType::MnemonicUnusual;
     addToken(registerType, _cp.RegName(reg));
     return true;
 }
@@ -501,10 +501,10 @@ bool CsCapstoneTokenizer::tokenizeRegOperand(const cs_x86_op & op)
 bool CsCapstoneTokenizer::tokenizeImmOperand(const cs_x86_op & op)
 {
     auto value = duint(op.imm) & (duint(-1) >> (op.size ? 8 * (sizeof(duint) - op.size) : 0));
-    auto valueType = TokenType::Value;
+    auto valueType = CapstoneTokenizer::TokenType::Value;
     if(_cp.InGroup(CS_GRP_JUMP) || _cp.InGroup(CS_GRP_CALL) || _cp.IsLoop())
-        valueType = TokenType::Address;
-    auto tokenValue = TokenValue(op.size, value);
+        valueType = CapstoneTokenizer::TokenType::Address;
+    auto tokenValue = CapstoneTokenizer::TokenValue(op.size, value);
     addToken(valueType, printValue(tokenValue, true, _maxModuleLength), tokenValue);
     return true;
 }
@@ -515,8 +515,8 @@ bool CsCapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     const char* sizeText = _cp.MemSizeName(op.size);
     if(!sizeText)
         return false;
-    addToken(TokenType::MemorySize, QString(sizeText) + " ptr");
-    addToken(TokenType::Space, " ");
+    addToken(CapstoneTokenizer::TokenType::MemorySize, QString(sizeText) + " ptr");
+    addToken(CapstoneTokenizer::TokenType::Space, " ");
 
     //memory segment
     const auto & mem = op.mem;
@@ -539,19 +539,19 @@ bool CsCapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
             break;
         }
     }
-    auto segmentType = op.reg == ArchValue(X86_REG_FS, X86_REG_GS) ? TokenType::MnemonicUnusual : TokenType::MemorySegment;
+    auto segmentType = op.reg == ArchValue(X86_REG_FS, X86_REG_GS) ? CapstoneTokenizer::TokenType::MnemonicUnusual : CapstoneTokenizer::TokenType::MemorySegment;
     addToken(segmentType, segmentText);
-    addToken(TokenType::Uncategorized, ":");
+    addToken(CapstoneTokenizer::TokenType::Uncategorized, ":");
 
     //memory opening bracket
-    auto bracketsType = TokenType::MemoryBrackets;
+    auto bracketsType = CapstoneTokenizer::TokenType::MemoryBrackets;
     switch(mem.base)
     {
     case X86_REG_ESP:
     case X86_REG_RSP:
     case X86_REG_EBP:
     case X86_REG_RBP:
-        bracketsType = TokenType::MemoryStackBrackets;
+        bracketsType = CapstoneTokenizer::TokenType::MemoryStackBrackets;
     default:
         break;
     }
@@ -561,8 +561,8 @@ bool CsCapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     if(mem.base == X86_REG_RIP) //rip-relative (#replacement)
     {
         duint addr = _cp.Address() + duint(mem.disp) + _cp.Size();
-        TokenValue value = TokenValue(op.size, addr);
-        auto displacementType = DbgMemIsValidReadPtr(addr) ? TokenType::Address : TokenType::Value;
+        CapstoneTokenizer::TokenValue value = CapstoneTokenizer::TokenValue(op.size, addr);
+        auto displacementType = DbgMemIsValidReadPtr(addr) ? CapstoneTokenizer::TokenType::Address : CapstoneTokenizer::TokenType::Value;
         addToken(displacementType, printValue(value, false, _maxModuleLength), value);
     }
     else //#base + #index * #scale + #displacement
@@ -570,31 +570,31 @@ bool CsCapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
         bool prependPlus = false;
         if(mem.base != X86_REG_INVALID) //base register
         {
-            addToken(TokenType::MemoryBaseRegister, _cp.RegName(mem.base));
+            addToken(CapstoneTokenizer::TokenType::MemoryBaseRegister, _cp.RegName(mem.base));
             prependPlus = true;
         }
         if(mem.index != X86_REG_INVALID) //index register
         {
             if(prependPlus)
                 addMemoryOperator('+');
-            addToken(TokenType::MemoryIndexRegister, _cp.RegName(mem.index));
+            addToken(CapstoneTokenizer::TokenType::MemoryIndexRegister, _cp.RegName(mem.index));
             if(mem.scale > 1)
             {
                 addMemoryOperator('*');
-                addToken(TokenType::MemoryScale, QString().sprintf("%d", mem.scale));
+                addToken(CapstoneTokenizer::TokenType::MemoryScale, QString().sprintf("%d", mem.scale));
             }
             prependPlus = true;
         }
         if(mem.disp)
         {
             char operatorText = '+';
-            TokenValue value(op.size, duint(mem.disp));
-            auto displacementType = DbgMemIsValidReadPtr(duint(mem.disp)) ? TokenType::Address : TokenType::Value;
+            CapstoneTokenizer::TokenValue value(op.size, duint(mem.disp));
+            auto displacementType = DbgMemIsValidReadPtr(duint(mem.disp)) ? CapstoneTokenizer::TokenType::Address : CapstoneTokenizer::TokenType::Value;
             QString valueText;
             if(mem.disp < 0)
             {
                 operatorText = '-';
-                valueText = printValue(TokenValue(op.size, duint(mem.disp * -1)), false, _maxModuleLength);
+                valueText = printValue(CapstoneTokenizer::TokenValue(op.size, duint(mem.disp * -1)), false, _maxModuleLength);
             }
             else
                 valueText = printValue(value, false, _maxModuleLength);
@@ -603,7 +603,7 @@ bool CsCapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
             addToken(displacementType, valueText, value);
         }
         else if(!prependPlus)
-            addToken(TokenType::Value, "0");
+            addToken(CapstoneTokenizer::TokenType::Value, "0");
     }
 
     //closing bracket
@@ -613,6 +613,6 @@ bool CsCapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
 
 bool CsCapstoneTokenizer::tokenizeInvalidOperand(const cs_x86_op & op)
 {
-    addToken(TokenType::MnemonicUnusual, "???");
+    addToken(CapstoneTokenizer::TokenType::MnemonicUnusual, "???");
     return true;
 }

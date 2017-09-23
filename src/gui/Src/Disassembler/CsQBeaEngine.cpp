@@ -190,7 +190,7 @@ Instruction_t CsQBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBa
             return DecodeDataAt(data, size, origBase, origInstRVA, type);
     }
     //tokenize
-    CsCapstoneTokenizer::InstructionToken cap;
+    CapstoneTokenizer::InstructionToken cap;
     _tokenizer.Tokenize(origBase + origInstRVA, data, size, cap);
     int len = _tokenizer.Size();
 
@@ -269,7 +269,7 @@ Instruction_t CsQBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBa
 Instruction_t CsQBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type)
 {
     //tokenize
-    CsCapstoneTokenizer::InstructionToken cap;
+    CapstoneTokenizer::InstructionToken cap;
 
     auto & infoIter = dataInstMap.find(type);
     if(infoIter == dataInstMap.end())
