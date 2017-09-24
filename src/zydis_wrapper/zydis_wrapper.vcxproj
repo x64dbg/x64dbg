@@ -69,6 +69,7 @@
     <TargetExt>.lib</TargetExt>
     <OutDir>$(ProjectDir)bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.lib</TargetExt>
@@ -79,6 +80,7 @@
     <TargetExt>.lib</TargetExt>
     <OutDir>$(ProjectDir)bin\x32d\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.lib</TargetExt>

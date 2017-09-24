@@ -575,7 +575,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
             TokenValue value(opsize, duint(mem.disp.value));
             auto displacementType = DbgMemIsValidReadPtr(duint(mem.disp.value)) ? TokenType::Address : TokenType::Value;
             QString valueText;
-            if(mem.disp.value < 0)
+            if(mem.disp.value < 0 && prependPlus)
             {
                 operatorText = '-';
                 valueText = printValue(TokenValue(opsize, duint(mem.disp.value * -1)), false, _maxModuleLength);

@@ -1541,7 +1541,8 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
                  cs_instr.dump[2] == '\x3e'))
             goto _exit;
         if(QRegExp("mov .s,.*").exactMatch(cs_instr.instStr) ||
-                cs_instr.instStr.startsWith("str")) // cs claims it's priviliged (it's not)
+                cs_instr.instStr.startsWith("str") ||
+                QRegExp("pop .s").exactMatch(cs_instr.instStr)) // cs claims it's priviliged (it's not)
             goto _exit;
         if(QRegExp("l[defgs]s.*").exactMatch(cs_instr.instStr))  // cs allows LES (and friends) in 64 bit mode (invalid)
             goto _exit;
@@ -1560,6 +1561,9 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
                 ; zy_it != zy_instr.tokens.tokens.end() && cs_it != cs_instr.tokens.tokens.end()
                 ; ++zy_it, ++cs_it)
         {
+            Zydis zd;
+            zd.Disassemble(0, (unsigned char*)zy_instr.dump.data(), zy_instr.length);
+
             auto zy_tok_text = zy_it->text.toStdString();
             auto cs_tok_text = cs_it->text.toStdString();
 
