@@ -163,8 +163,8 @@ std::string Zydis::OperandText(int opindex) const
         &mFormatter,
         &bufPtr,
         sizeof(buf),
-        (ZydisDecodedInstruction*)&mInstr,
-        (ZydisDecodedOperand*)&op
+        const_cast<ZydisDecodedInstruction*>(&mInstr),
+        const_cast<ZydisDecodedOperand*>(&op)
     );
 
     return buf;
