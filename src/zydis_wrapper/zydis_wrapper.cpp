@@ -546,7 +546,7 @@ std::string Zydis::Mnemonic() const
 
 std::string Zydis::MnemonicId() const
 {
-    // hax
+    // Zydis doesn't have instruction IDs.
     return Mnemonic();
 }
 
@@ -789,9 +789,11 @@ void Zydis::RegInfo(uint8_t regs[ZYDIS_REGISTER_MAX_VALUE + 1]) const
     memset(regs, 0, sizeof(uint8_t) * (ZYDIS_REGISTER_MAX_VALUE + 1));
     if(!Success() || IsNop())
         return;
-    for(int i = 0; i < OpCount(); i++)
+
+    for(int i = 0; i < mInstr.operandCount; ++i)
     {
         const auto & op = mInstr.operands[i];
+
         switch(op.type)
         {
         case ZYDIS_OPERAND_TYPE_REGISTER:
@@ -800,35 +802,18 @@ void Zydis::RegInfo(uint8_t regs[ZYDIS_REGISTER_MAX_VALUE + 1]) const
                 regs[op.reg.value] |= RAIRead;
             if(op.action & ZYDIS_OPERAND_ACTION_MASK_WRITE)
                 regs[op.reg.value] |= RAIWrite;
-            regs[op.reg.value] |= op.visibility != ZYDIS_OPERAND_VISIBILITY_HIDDEN ?
-                                  RAIExplicit : RAIImplicit;
+            regs[op.reg.value] |= op.visibility == ZYDIS_OPERAND_VISIBILITY_HIDDEN ?
+                                  RAIImplicit : RAIExplicit;
         }
         break;
 
         case ZYDIS_OPERAND_TYPE_MEMORY:
         {
-            if(op.mem.segment == ZYDIS_REGISTER_NONE)
-            {
-                switch(op.mem.base)
-                {
-#ifdef _WIN64
-                case ZYDIS_REGISTER_RSP:
-                case ZYDIS_REGISTER_RBP:
-#else //x86
-                case ZYDIS_REGISTER_ESP:
-                case ZYDIS_REGISTER_EBP:
-#endif //_WIN64
-                    regs[ZYDIS_REGISTER_SS] |= RAIRead | RAIExplicit;
-                    break;
-                default:
-                    regs[ZYDIS_REGISTER_DS] |= RAIRead | RAIExplicit;
-                    break;
-                }
-            }
-            else
-                regs[op.mem.segment] |= RAIRead | RAIExplicit;
-            regs[op.mem.base] |= RAIRead | RAIExplicit;
-            regs[op.mem.index] |= RAIRead | RAIExplicit;
+            regs[op.mem.segment] |= RAIRead | RAIExplicit;
+            if(op.mem.base != ZYDIS_REGISTER_NONE)
+                regs[op.mem.base] |= RAIRead | RAIExplicit;
+            if(op.mem.base != ZYDIS_REGISTER_NONE)
+                regs[op.mem.index] |= RAIRead | RAIExplicit;
         }
         break;
 
