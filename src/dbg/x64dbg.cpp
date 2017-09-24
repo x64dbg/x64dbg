@@ -428,7 +428,7 @@ static void registercommands()
     dbgcmdnew("setstr,strset", cbInstrSetstr, false); //set a string variable
     dbgcmdnew("getstr,strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr,strcpy", cbInstrCopystr, true); //write a string variable to memory
-    dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
+    dbgcmdnew("zydis", cbInstrZydis, true); //disassemble using zydis
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing

@@ -207,11 +207,8 @@ bool cbInstrCopystr(int argc, char* argv[])
     return true;
 }
 
-bool cbInstrCapstone(int argc, char* argv[])
+bool cbInstrZydis(int argc, char* argv[])
 {
-    return false;
-
-    /*
     if(IsArgumentsLessThan(argc, 2))
         return false;
 
@@ -233,7 +230,7 @@ bool cbInstrCapstone(int argc, char* argv[])
         if(!valfromstring(argv[2], &addr, false))
             return false;
 
-    Capstone cp;
+    Zydis cp;
     if(!cp.Disassemble(addr, data))
     {
         dputs_untranslated("Failed to disassemble!\n");
@@ -242,54 +239,34 @@ bool cbInstrCapstone(int argc, char* argv[])
 
     auto instr = cp.GetInstr();
     int argcount = instr->operandCount;
-    dprintf_untranslated("%s %s | %s\n", instr->mnemonic, instr->op_str, cp.InstructionText(true).c_str());
-    dprintf_untranslated("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), cp.OpCount());
-    if(detail->regs_read_count)
-    {
-        dprintf_untranslated("implicit read:");
-        for(uint8_t i = 0; i < detail->regs_read_count; i++)
-            dprintf(" %s", cp.RegName(x86_reg(detail->regs_read[i])));
-        dputs_untranslated("");
-    }
-    if(detail->regs_write_count)
-    {
-        dprintf_untranslated("implicit write:");
-        for(uint8_t i = 0; i < detail->regs_write_count; i++)
-            dprintf(" %s", cp.RegName(x86_reg(detail->regs_write[i])));
-        dputs_untranslated("");
-    }
+    dputs_untranslated(cp.InstructionText(true).c_str());
+    dprintf_untranslated("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), instr->operandCount);
     auto rwstr = [](uint8_t access)
     {
-        switch(access)
-        {
-        case CS_AC_INVALID:
-            return "none";
-        case CS_AC_READ:
-            return "read";
-        case CS_AC_WRITE:
-            return "write";
-        case CS_AC_READ | CS_AC_WRITE:
+        if(access & ZYDIS_OPERAND_ACTION_READ && access & ZYDIS_OPERAND_ACTION_WRITE)
             return "read+write";
-        default:
-            return "???";
-        }
+        if(access & ZYDIS_OPERAND_ACTION_READ)
+            return "read";
+        if(access & ZYDIS_OPERAND_ACTION_WRITE)
+            return "write";
+        return "???";
     };
     for(int i = 0; i < argcount; i++)
     {
-        const cs_x86_op & op = x86.operands[i];
-        dprintf("operand %d (size: %d, access: %s) \"%s\", ", i + 1, op.size, rwstr(op.access), cp.OperandText(i).c_str());
+        const auto & op = instr->operands[i];
+        dprintf("operand %d (size: %d, access: %s) \"%s\", ", i + 1, op.size, rwstr(op.action), cp.OperandText(i).c_str());
         switch(op.type)
         {
-        case X86_OP_REG:
-            dprintf_untranslated("register: %s\n", cp.RegName((x86_reg)op.reg));
+        case ZYDIS_OPERAND_TYPE_REGISTER:
+            dprintf_untranslated("register: %s\n", cp.RegName(op.reg.value));
             break;
-        case X86_OP_IMM:
+        case ZYDIS_OPERAND_TYPE_IMMEDIATE:
             dprintf_untranslated("immediate: 0x%p\n", op.imm);
             break;
-        case X86_OP_MEM:
+        case ZYDIS_OPERAND_TYPE_MEMORY:
         {
             //[base + index * scale +/- disp]
-            const x86_op_mem & mem = op.mem;
+            const auto & mem = op.mem;
             dprintf_untranslated("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
                                  cp.RegName(mem.segment),
                                  cp.RegName(mem.base),
@@ -302,7 +279,6 @@ bool cbInstrCapstone(int argc, char* argv[])
     }
 
     return true;
-    */
 }
 
 bool cbInstrVisualize(int argc, char* argv[])
