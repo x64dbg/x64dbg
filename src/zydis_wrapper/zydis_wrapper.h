@@ -53,37 +53,37 @@ public:
     void RegInfo(uint8_t info[ZYDIS_REGISTER_MAX_VALUE + 1]) const;
     const char* FlagName(ZydisCPUFlag flag) const;
 
-    enum BranchType : uint16_t
+    enum BranchType : uint32_t
     {
         // Basic types.
         BTRet          = 1 << 0,
         BTCall         = 1 << 1,
         BTFarCall      = 1 << 2,
-        BTSyscall      = 1 << 3, // Also sysenter
-        BTSysret       = 1 << 4, // Also sysexit
-        BTInt          = 1 << 5,
-        BTInt3         = 1 << 6,
-        BTInt1         = 1 << 7,
-        BTIret         = 1 << 8,
-        BTCondJmp      = 1 << 9,
-        BTUncondJmp    = 1 << 10,
-        BTFarJmp       = 1 << 11,
-        BTXbegin       = 1 << 12,
-        BTXabort       = 1 << 13,
-        BTRsm          = 1 << 14,
-        BTLoop         = 1 << 15,
+        BTFarRet       = 1 << 3,
+        BTSyscall      = 1 << 4, // Also sysenter
+        BTSysret       = 1 << 5, // Also sysexit
+        BTInt          = 1 << 6,
+        BTInt3         = 1 << 7,
+        BTInt1         = 1 << 8,
+        BTIret         = 1 << 9,
+        BTCondJmp      = 1 << 10,
+        BTUncondJmp    = 1 << 11,
+        BTFarJmp       = 1 << 12,
+        BTXbegin       = 1 << 13,
+        BTXabort       = 1 << 14,
+        BTRsm          = 1 << 15,
+        BTLoop         = 1 << 16,
 
         BTJmp          = BTCondJmp | BTUncondJmp,
 
         // Semantic groups (behaves like XX).
-        BTCallSem      = BTCall | BTSyscall | BTInt,
-        BTRetSem       = BTRet | BTSysret | BTIret | BTRsm | BTXabort,
-        BTIntSem       = BTInt | BTInt1 | BTInt3 | BTSyscall,
-        BTIretSem      = BTIret | BTSysret,
-        BTJmpSem       = BTJmp | BTLoop,
+        BTCallSem      = BTCall | BTFarCall | BTSyscall | BTInt,
+        BTRetSem       = BTRet | BTSysret | BTIret | BTFarRet| BTRsm,
+        BTCondJmpSem   = BTCondJmp | BTLoop | BTXbegin,
+        BTUncondJmpSem = BTUncondJmp | BTFarJmp | BTXabort,
 
         BTRtm          = BTXabort | BTXbegin,
-        BTCtxSwitch    = BTIntSem | BTIretSem | BTRsm | BTFarCall | BTFarJmp,
+        BTFar          = BTFarCall | BTFarJmp | BTFarRet,
 
         BTAny          = std::underlying_type_t<BranchType>(-1)
     };
@@ -91,11 +91,11 @@ public:
     bool IsBranchType(std::underlying_type_t<BranchType> bt) const;
 
     // Shortcuts.
-    bool IsRet() const { return IsBranchType(BTRet);    }
-    bool IsCall() const { return IsBranchType(BTCall);   }
-    bool IsJump() const { return IsBranchType(BTJmp);    }
-    bool IsLoop() const { return IsBranchType(BTLoop);   }
-    bool IsInt3() const { return IsBranchType(BTInt3);   }
+    bool IsRet() const { return IsBranchType(BTRet); }
+    bool IsCall() const { return IsBranchType(BTCall); }
+    bool IsJump() const { return IsBranchType(BTJmp); }
+    bool IsLoop() const { return IsBranchType(BTLoop); }
+    bool IsInt3() const { return IsBranchType(BTInt3); }
 private:
     static ZydisDecoder mDecoder;
     static ZydisFormatter mFormatter;

@@ -399,27 +399,25 @@ bool CapstoneTokenizer::tokenizeMnemonic()
     QString mnemonic = QString(_cp.Mnemonic().c_str());
     _mnemonicType = TokenType::MnemonicNormal;
 
-    if(_cp.IsBranchType(Zydis::BTFarCall | Zydis::BTFarJmp))
-    {
+    if(_cp.IsBranchType(Zydis::BTFar))
         mnemonic += " far";
-    }
 
     if(isNop)
         _mnemonicType = TokenType::MnemonicNop;
-    else if(_cp.IsCall())
-        _mnemonicType = TokenType::MnemonicCall;
-    else if(_cp.IsBranchType(Zydis::BTCondJmp | Zydis::BTLoop | Zydis::BTXbegin))
-        _mnemonicType = TokenType::MnemonicCondJump;
-    else if(_cp.IsBranchType(Zydis::BTUncondJmp | Zydis::BTXabort))
-        _mnemonicType = TokenType::MnemonicUncondJump;
     else if(_cp.IsInt3())
         _mnemonicType = TokenType::MnemonicInt3;
-    else if(_cp.IsUnusual())
-        _mnemonicType = TokenType::MnemonicUnusual;
-    else if(_cp.IsRet())
+    else if(_cp.IsBranchType(Zydis::BTCallSem))
+        _mnemonicType = TokenType::MnemonicCall;
+    else if(_cp.IsBranchType(Zydis::BTCondJmpSem))
+        _mnemonicType = TokenType::MnemonicCondJump;
+    else if(_cp.IsBranchType(Zydis::BTUncondJmpSem))
+        _mnemonicType = TokenType::MnemonicUncondJump;
+    else if(_cp.IsBranchType(Zydis::BTRetSem))
         _mnemonicType = TokenType::MnemonicRet;
     else if(_cp.IsPushPop())
         _mnemonicType = TokenType::MnemonicPushPop;
+    else if(_cp.IsUnusual())
+        _mnemonicType = TokenType::MnemonicUnusual;
 
     return tokenizeMnemonic(_mnemonicType, mnemonic);;
 }

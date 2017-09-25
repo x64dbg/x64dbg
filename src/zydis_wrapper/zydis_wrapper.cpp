@@ -216,15 +216,13 @@ bool Zydis::IsBranchType(std::underlying_type_t<BranchType> bt) const
     switch(mInstr.mnemonic)
     {
     case ZYDIS_MNEMONIC_RET:
-        ref = BTRet;
+        ref = (mInstr.attributes & ZYDIS_ATTRIB_IS_FAR_BRANCH) ? BTFarRet : BTRet;
         break;
     case ZYDIS_MNEMONIC_CALL:
-        ref = (op0.elementType == ZYDIS_ELEMENT_TYPE_STRUCT ||
-               op0.type == ZYDIS_OPERAND_TYPE_POINTER) ? BTFarCall : BTCall;
+        ref = (mInstr.attributes & ZYDIS_ATTRIB_IS_FAR_BRANCH) ? BTFarCall : BTCall;
         break;
     case ZYDIS_MNEMONIC_JMP:
-        ref = (op0.elementType == ZYDIS_ELEMENT_TYPE_STRUCT ||
-               op0.type == ZYDIS_OPERAND_TYPE_POINTER) ? BTFarJmp : BTUncondJmp;
+        ref = (mInstr.attributes & ZYDIS_ATTRIB_IS_FAR_BRANCH) ? BTFarJmp : BTUncondJmp;
         break;
     case ZYDIS_MNEMONIC_JB:
     case ZYDIS_MNEMONIC_JBE:
@@ -265,6 +263,11 @@ bool Zydis::IsBranchType(std::underlying_type_t<BranchType> bt) const
         break;
     case ZYDIS_MNEMONIC_INT1:
         ref = BTInt1;
+        break;
+    case ZYDIS_MNEMONIC_IRET:
+    case ZYDIS_MNEMONIC_IRETD:
+    case ZYDIS_MNEMONIC_IRETQ:
+        ref = BTIret;
         break;
     case ZYDIS_MNEMONIC_XBEGIN:
         ref = BTXbegin;
