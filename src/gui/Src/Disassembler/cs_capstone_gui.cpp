@@ -525,13 +525,12 @@ bool CsCapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     {
         switch(mem.base)
         {
-#ifdef _WIN64
         case X86_REG_RSP:
         case X86_REG_RBP:
-#else //x86
         case X86_REG_ESP:
         case X86_REG_EBP:
-#endif //_WIN64
+        case X86_REG_SP:
+        case X86_REG_BP:
             segmentText = "ss";
             break;
         default:
@@ -591,7 +590,7 @@ bool CsCapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
             CapstoneTokenizer::TokenValue value(op.size, duint(mem.disp));
             auto displacementType = DbgMemIsValidReadPtr(duint(mem.disp)) ? CapstoneTokenizer::TokenType::Address : CapstoneTokenizer::TokenType::Value;
             QString valueText;
-            if(mem.disp < 0)
+            if(mem.disp < 0 && prependPlus)
             {
                 operatorText = '-';
                 valueText = printValue(CapstoneTokenizer::TokenValue(op.size, duint(mem.disp * -1)), false, _maxModuleLength);
