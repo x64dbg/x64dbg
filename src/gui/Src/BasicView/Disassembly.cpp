@@ -1496,6 +1496,11 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
     if(!mMemPage->read(wBuffer.data(), rva, wBuffer.size()))
         return Instruction_t();
 
+    return mDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva);
+
+    /* Zydis<->Capstone diff logic.
+     * TODO: Remove once transition is completed.
+
     auto zy_instr = mDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva);
     auto cs_instr = mCsDisasm->DisassembleAt((byte_t*)wBuffer.data(), wBuffer.size(), base, rva);
 
@@ -1552,6 +1557,20 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
             goto _exit;
         if(cs_instr.instStr.startsWith("fnstsw"))  // CS reports wrong 32 bit operand size (is 16)
             goto _exit;
+        if(cs_instr.instStr.startsWith("popaw")) // CS prints popaw, zydis popa (both ok)
+            goto _exit;
+        if(cs_instr.instStr.startsWith("lsl")) // CS thinks the 2. operand is 32 bit (it's 16)
+            goto _exit;
+        if(QRegExp("mov [cd]r\\d").exactMatch(cs_instr.instStr)) // CS fails to reject bad DR/CRs (that #UD, like dr4)
+            goto _exit;
+        if(QRegExp("v?comi(ps|pd|ss|sd).*").exactMatch(zy_instr.instStr)) // CS has wrong operand size
+            goto _exit;
+        if(QRegExp("v?cmp(ps|pd|ss|sd).*").exactMatch(zy_instr.instStr)) // CS uses pseudo-op notation, Zy prints cond as imm (both ok)
+            goto _exit;
+        if(cs_instr.dump.length() > 2 &&
+            cs_instr.dump[0] == '\x0f' &&
+            (cs_instr.dump[1] == '\x1a' || cs_instr.dump[1] == '\x1b')) // CS doesn't support MPX
+            goto _exit;
 
         auto insn_hex = cs_instr.dump.toHex().toStdString();
         auto cs = cs_instr.instStr.toStdString();
@@ -1579,8 +1598,9 @@ Instruction_t Disassembly::DisassembleAt(dsint rva)
         //__debugbreak();
     }
 
-_exit:
+    _exit:
     return zy_instr;
+    */
 }
 
 /**

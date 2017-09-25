@@ -48,9 +48,7 @@ bool Zydis::Disassemble(size_t addr, const unsigned char* data, int size)
     mSuccess = false;
 
     // Decode instruction.
-    if(!ZYDIS_SUCCESS(ZydisDecoderDecodeBuffer(
-                          &mDecoder, data, size, addr, &mInstr
-                      )))
+    if(!ZYDIS_SUCCESS(ZydisDecoderDecodeBuffer(&mDecoder, data, size, addr, &mInstr)))
         return false;
 
     // Format it to human readable representation.
@@ -58,8 +56,7 @@ bool Zydis::Disassemble(size_t addr, const unsigned char* data, int size)
                           &mFormatter,
                           const_cast<ZydisDecodedInstruction*>(&mInstr),
                           mInstrText,
-                          sizeof(mInstrText)
-                      )))
+                          sizeof(mInstrText))))
         return false;
 
     // Count explicit operands.
@@ -68,9 +65,17 @@ bool Zydis::Disassemble(size_t addr, const unsigned char* data, int size)
     {
         auto & op = mInstr.operands[i];
 
-        // HACK (ath): Rebase IMM if relative (codebase expects it this way)
+        // Rebase IMM if relative and DISP if absolute (codebase expects it this way).
+        // Once, at some point in time, the disassembler is abstracted away more and more,
+        // we should probably refrain from hacking the Zydis data structure and perform
+        // such transformations in the getters instead.
         if(op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && op.imm.isRelative)
-            ZydisUtilsCalcAbsoluteTargetAddress(&mInstr, &op, &op.imm.value.u);
+            ZydisCalcAbsoluteAddress(&mInstr, &op, &op.imm.value.u);
+        else if(op.type == ZYDIS_OPERAND_TYPE_MEMORY &&
+                op.mem.base == ZYDIS_REGISTER_NONE &&
+                op.mem.index == ZYDIS_REGISTER_NONE &&
+                op.mem.disp.value != 0)
+            ZydisCalcAbsoluteAddress(&mInstr, &op, (uint64_t*)&op.mem.disp.value);
 
         if(op.visibility == ZYDIS_OPERAND_VISIBILITY_HIDDEN)
             break;
@@ -280,7 +285,6 @@ bool Zydis::IsBranchType(std::underlying_type_t<BranchType> bt) const
 
     return (bt & ref) != 0;
 }
-
 
 ZydisMnemonic Zydis::GetId() const
 {
@@ -588,7 +592,7 @@ size_t Zydis::BranchDestination() const
             || !mInstr.operands[0].imm.isRelative)
         return 0;
 
-    return mInstr.operands[0].imm.value.u;
+    return size_t(mInstr.operands[0].imm.value.u);
 }
 
 size_t Zydis::ResolveOpValue(int opindex, const std::function<size_t(ZydisRegister)> & resolveReg) const
