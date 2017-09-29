@@ -29,6 +29,8 @@ public:
     int MemoryAccessCount(unsigned long long index);
     void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid);
 
+    void purgeLastPage();
+
 signals:
     void parseFinished();
 

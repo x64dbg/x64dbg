@@ -246,6 +246,49 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
 }
 
 //Parser
+
+static void readFileHeader(QFile & traceFile)
+{
+    //TO DO
+    return;
+}
+
+static bool readBlock(QFile & traceFile)
+{
+    if(!traceFile.isReadable())
+        throw std::wstring(L"File is not readable");
+    unsigned char blockType;
+    unsigned char changedCountFlags[3]; //reg changed count, mem accessed count, flags
+    if(traceFile.read((char*)&blockType, 1) != 1)
+        throw std::wstring(L"Read block type failed");
+    if(blockType == 0)
+    {
+
+        if(traceFile.read((char*)&changedCountFlags, 3) != 3)
+            throw std::wstring(L"Read flags failed");
+        //skipping: thread id, registers
+        if(traceFile.seek(traceFile.pos() + ((changedCountFlags[2] & 0x80) ? 4 : 0) + (changedCountFlags[2] & 0x0F) + changedCountFlags[0] * (1 + sizeof(duint))) == false)
+            throw std::wstring(L"Unspecified");
+        QByteArray memflags;
+        memflags = traceFile.read(changedCountFlags[1]);
+        if(memflags.length() < changedCountFlags[1])
+            throw std::wstring(L"Read memory flags failed");
+        unsigned int skipOffset = 0;
+        for(unsigned char i = 0; i < changedCountFlags[1]; i++)
+            skipOffset += ((memflags[i] & 1) == 1) ? 2 : 3;
+        if(traceFile.seek(traceFile.pos() + skipOffset * sizeof(duint)) == false)
+            throw std::wstring(L"Unspecified");
+        //Gathered information, build index
+        if(changedCountFlags[0] == (sizeof(REGDUMP) - 128) / sizeof(duint))
+            return true;
+        else
+            return false;
+    }
+    else
+        throw std::wstring(L"Unsupported block type");
+    return false;
+}
+
 void TraceFileParser::run()
 {
     TraceFileReader* that = dynamic_cast<TraceFileReader*>(parent());
@@ -263,49 +306,25 @@ void TraceFileParser::run()
             that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
         else //failure: divide by zero
             throw std::wstring(L"File is empty");
+        //Process file header
+        readFileHeader(that->traceFile);
         //Process file content
         while(!that->traceFile.atEnd())
         {
-            if(!that->traceFile.isReadable())
-                throw std::wstring(L"File is not readable");
-            unsigned char blockType;
-            unsigned char changedCountFlags[3]; //reg changed count, mem accessed count, flags
-            if(that->traceFile.read((char*)&blockType, 1) != 1)
-                throw std::wstring(L"Read block type failed");
-            if(blockType == 0)
+            quint64 blockStart = that->traceFile.pos();
+            bool isPageBoundary = readBlock(that->traceFile);
+            if(isPageBoundary)
             {
-                quint64 blockStart = that->traceFile.pos() - 1;
-
-                if(that->traceFile.read((char*)&changedCountFlags, 3) != 3)
-                    throw std::wstring(L"Read flags failed");
-                //skipping: thread id, registers
-                if(that->traceFile.seek(that->traceFile.pos() + ((changedCountFlags[2] & 0x80) ? 4 : 0) + (changedCountFlags[2] & 0x0F) + changedCountFlags[0] * (1 + sizeof(duint))) == false)
-                    throw std::wstring(L"Unspecified");
-                QByteArray memflags;
-                memflags = that->traceFile.read(changedCountFlags[1]);
-                if(memflags.length() < changedCountFlags[1])
-                    throw std::wstring(L"Read memory flags failed");
-                unsigned int skipOffset = 0;
-                for(unsigned char i = 0; i < changedCountFlags[1]; i++)
-                    skipOffset += ((memflags[i] & 1) == 1) ? 2 : 3;
-                if(that->traceFile.seek(that->traceFile.pos() + skipOffset * sizeof(duint)) == false)
-                    throw std::wstring(L"Unspecified");
-                //Gathered information, build index
-                if(changedCountFlags[0] == (sizeof(REGDUMP) - 128) / sizeof(duint))
-                {
-                    if(lastIndex != 0)
-                        that->fileIndex.back().second.second = index - (lastIndex - 1);
-                    that->fileIndex.push_back(std::make_pair(index, TraceFileReader::Range(blockStart, 0)));
-                    lastIndex = index + 1;
-                    //Update progress
-                    that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
-                    if(this->isInterruptionRequested() && !that->traceFile.atEnd()) //Cancel loading
-                        throw std::wstring(L"Canceled");
-                }
-                index++;
+                if(lastIndex != 0)
+                    that->fileIndex.back().second.second = index - (lastIndex - 1);
+                that->fileIndex.push_back(std::make_pair(index, TraceFileReader::Range(blockStart, 0)));
+                lastIndex = index + 1;
+                //Update progress
+                that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
+                if(this->isInterruptionRequested() && !that->traceFile.atEnd()) //Cancel loading
+                    throw std::wstring(L"Canceled");
             }
-            else
-                throw std::wstring(L"Unsupported block type");
+            index++;
         }
         that->fileIndex.back().second.second = index - (lastIndex - 1);
         that->error = false;
@@ -317,6 +336,51 @@ void TraceFileParser::run()
         that->error = true;
     }
     that->traceFile.moveToThread(that->thread());
+}
+
+void TraceFileReader::purgeLastPage()
+{
+    unsigned long long index = fileIndex.back().first;
+    unsigned long long lastIndex = 0;
+    const auto lastpage = pages.find(Range(index, index));
+    bool isBlockExist = false;
+    if(lastpage != pages.cend())
+    {
+        //Purge last accessed page
+        if(index == lastAccessedIndexOffset)
+            lastAccessedPage = nullptr;
+        //Remove last page from page cache
+        pages.erase(lastpage);
+    }
+    //Seek start of last page
+    traceFile.seek(fileIndex.back().second.first);
+    //Remove last page from file index cache
+    fileIndex.pop_back();
+    try
+    {
+        while(!traceFile.atEnd())
+        {
+            quint64 blockStart = traceFile.pos();
+            bool isPageBoundary = readBlock(traceFile);
+            if(isPageBoundary)
+            {
+                if(lastIndex != 0)
+                    fileIndex.back().second.second = index - (lastIndex - 1);
+                fileIndex.push_back(std::make_pair(index, TraceFileReader::Range(blockStart, 0)));
+                lastIndex = index + 1;
+                isBlockExist = true;
+            }
+            index++;
+        }
+        if(isBlockExist)
+            fileIndex.back().second.second = index - (lastIndex - 1);
+        error = false;
+        length = index;
+    }
+    catch(std::wstring & errReason)
+    {
+        error = true;
+    }
 }
 
 //TraceFilePage
@@ -388,7 +452,7 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                         {
                             throw std::exception();
                         }
-                    } \
+                    }
                     mRegisters.push_back(registers);
                 }
                 if(changedCountFlags[1] > 0) //memory

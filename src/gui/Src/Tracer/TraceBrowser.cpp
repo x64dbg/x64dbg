@@ -496,6 +496,7 @@ void TraceBrowser::setupRightClickContextMenu()
         return true;
     });
     mMenuBuilder->addMenu(makeMenu(tr("Information")), infoMenu);
+    mMenuBuilder->addAction(makeAction(tr("Live update"), SLOT(updateSlot())), isValid); //debug
 }
 
 void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
@@ -966,4 +967,11 @@ void TraceBrowser::enableHighlightingModeSlot()
 void TraceBrowser::followDisassemblySlot()
 {
     DbgCmdExec(QString("dis ").append(ToPtrString(mTraceFile->Registers(getInitialSelection()).regcontext.cip)).toUtf8().constData());
+}
+
+void TraceBrowser::updateSlot()
+{
+    mTraceFile->purgeLastPage();
+    setRowCount(mTraceFile->Length());
+    reloadData();
 }

@@ -108,6 +108,8 @@ public slots:
     void copyDisassemblySlot();
     void copyCipSlot();
     void copyIndexSlot();
+
+    void updateSlot(); //debug
 };
 
 #endif //TRACEBROWSER_H
