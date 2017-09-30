@@ -64,7 +64,7 @@ bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName);
 bool GetFileNameFromModuleHandle(HANDLE hProcess, HMODULE hModule, char* szFileName);
 bool settingboolget(const char* section, const char* name);
 bool IsWow64();
-bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize);
+bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, wchar_t* szResolvedPath, size_t nSize);
 void WaitForThreadTermination(HANDLE hThread, DWORD timeout = INFINITE);
 void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout = INFINITE);
 
