@@ -472,7 +472,7 @@ void TraceBrowser::setupRightClickContextMenu()
             mRvaDisplayEnabled = RvaDisplayEnabled;
             menu->addSeparator();
         }
-#define addReg(str, reg) if(index + 1 != mTraceFile->Length()){menu->addAction(QString(str ":%1 -> %2").arg(ToPtrString(mTraceFile->Registers(index).regcontext.##reg)) \
+#define addReg(str, reg) if(index + 1 <= mTraceFile->Length()){menu->addAction(QString(str ":%1 -> %2").arg(ToPtrString(mTraceFile->Registers(index).regcontext.##reg)) \
     .arg(ToPtrString(mTraceFile->Registers(index + 1).regcontext.##reg))); }else{ menu->addAction(QString(str ":%1").arg(ToPtrString(mTraceFile->Registers(index).regcontext.##reg))); }
         addReg(ArchValue("EAX", "RAX"), cax)
         addReg(ArchValue("EBX", "RBX"), cbx)

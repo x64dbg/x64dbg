@@ -477,7 +477,18 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
         rtFile = CreateFileW(StringUtils::Utf8ToUtf16(fileName).c_str(), FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
         if(rtFile != INVALID_HANDLE_VALUE)
         {
-            SetFilePointer(rtFile, 0, 0, FILE_END);
+            LARGE_INTEGER size;
+            if(GetFileSizeEx(rtFile, &size))
+            {
+                if(size.QuadPart != 0)
+                {
+                    SetFilePointer(rtFile, 0, 0, FILE_END);
+                }
+                else //file is empty, write some file header
+                {
+
+                }
+            }
             rtPrevInstAvailable = false;
             rtEnabled = true;
             rtRecordedInstructions = 0;
