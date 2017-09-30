@@ -89,10 +89,7 @@ bool cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     int type = 0;
     bool singleshoot = false;
     if(strstr(argtype, "ss"))
-    {
-        type |= UE_SINGLESHOOT;
         singleshoot = true;
-    }
     else
         type |= UE_BREAKPOINT;
     if(strstr(argtype, "long"))
@@ -650,7 +647,7 @@ static bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
-    if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
+    if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, true, (void*)cbMemoryBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (SetMemoryBPXEx)\n"), bp->addr);
         return false;
@@ -735,7 +732,7 @@ bool cbDebugSetMemoryBpx(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (BpNew)"));
         return false;
     }
-    if(!SetMemoryBPXEx(base, size, type, restore, (void*)cbMemoryBreakpoint))
+    if(!SetMemoryBPXEx(base, size, type, true, (void*)cbMemoryBreakpoint))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (SetMemoryBPXEx)"));
         return false;
@@ -830,7 +827,7 @@ bool cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
     }
     duint size = 0;
     MemFindBaseAddr(found.addr, &size);
-    if(!SetMemoryBPXEx(found.addr, size, found.titantype, !found.singleshoot, (void*)cbMemoryBreakpoint))
+    if(!SetMemoryBPXEx(found.addr, size, found.titantype, true, (void*)cbMemoryBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (SetMemoryBPXEx)\n"), found.addr);
         return false;
@@ -916,7 +913,7 @@ static bool cbEnableAllDllBreakpoints(const BREAKPOINT* bp)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), bp->mod);
         return false;
     }
-    if(!LibrarianSetBreakPoint(bp->mod, bp->titantype, bp->singleshoot, (void*)cbLibrarianBreakpoint))
+    if(!LibrarianSetBreakPoint(bp->mod, bp->titantype, false, (void*)cbLibrarianBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), bp->mod);
         return false;
@@ -962,12 +959,12 @@ bool cbDebugBpDll(int argc, char* argv[])
     bool singleshoot = true;
     if(argc > 3)
         singleshoot = false;
-    if(!BpNewDll(argv[1], true, false, type, ""))
+    if(!BpNewDll(argv[1], true, singleshoot, type, ""))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error creating Dll breakpoint! (BpNewDll)"));
         return false;
     }
-    if(!LibrarianSetBreakPoint(argv[1], type, singleshoot, (void*)cbLibrarianBreakpoint))
+    if(!LibrarianSetBreakPoint(argv[1], type, false, (void*)cbLibrarianBreakpoint))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error creating Dll breakpoint! (LibrarianSetBreakPoint)"));
         return false;

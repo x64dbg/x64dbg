@@ -703,7 +703,33 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
     if(doBreak)
     {
         if(bp.singleshoot)
+        {
             BpDelete(bp.addr, bp.type);
+            switch(bp.type)
+            {
+            case BPNORMAL:
+                DeleteBPX(bp.addr);
+                break;
+            case BPHARDWARE:
+                DeleteHardwareBreakPoint(TITANGETDRX(bp.titantype));
+                break;
+            case BPMEMORY:
+            {
+                duint size = 0;
+                MemFindBaseAddr(bp.addr, &size);
+                RemoveMemoryBPX(bp.addr, size);
+            }
+            break;
+            case BPDLL:
+                LibrarianRemoveBreakPoint(bp.mod, bp.titantype);
+                break;
+            case BPEXCEPTION:
+                //empty on purpose
+                break;
+            default:
+                __debugbreak();
+            }
+        }
         if(!bp.silent)
         {
             switch(bp.type)
