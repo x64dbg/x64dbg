@@ -324,7 +324,8 @@ bool IsWow64()
 }
 
 //Taken from: http://www.cplusplus.com/forum/windows/64088/
-bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize)
+//And: https://codereview.stackexchange.com/a/2917
+bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, wchar_t* szResolvedPath, size_t nSize)
 {
     if(szResolvedPath == NULL)
         return SUCCEEDED(E_INVALIDARG);
@@ -334,8 +335,8 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
         return false;
 
     //Get a pointer to the IShellLink interface.
-    IShellLink* psl = NULL;
-    HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    IShellLinkW* psl = NULL;
+    HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
     if(SUCCEEDED(hres))
     {
         //Get a pointer to the IPersistFile interface.
@@ -354,12 +355,16 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
                 if(SUCCEEDED(hres))
                 {
                     //Get the path to the link target.
-                    char szGotPath[MAX_PATH] = {0};
-                    hres = psl->GetPath(szGotPath, _countof(szGotPath), NULL, SLGP_SHORTPATH);
+                    wchar_t linkTarget[MAX_PATH];
+                    hres = psl->GetPath(linkTarget, _countof(linkTarget), NULL, SLGP_RAWPATH);
 
-                    if(SUCCEEDED(hres))
+                    //Expand the environment variables.
+                    wchar_t expandedTarget[MAX_PATH];
+                    auto expandSuccess = !!ExpandEnvironmentStringsW(linkTarget, expandedTarget, _countof(expandedTarget));
+
+                    if(SUCCEEDED(hres) && expandSuccess)
                     {
-                        strcpy_s(szResolvedPath, nSize, szGotPath);
+                        wcscpy_s(szResolvedPath, nSize, expandedTarget);
                     }
                 }
             }

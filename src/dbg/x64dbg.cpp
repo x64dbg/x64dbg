@@ -731,6 +731,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcat_s(plugindir, "\\plugins");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), nullptr);
     CreateDirectoryW(StringUtils::Utf8ToUtf16(StringUtils::sprintf("%s\\memdumps", szProgramDir)).c_str(), nullptr);
+    dputs(QT_TRANSLATE_NOOP("DBG", "Initialization successful!"));
+    bIsStopped = false;
     dputs(QT_TRANSLATE_NOOP("DBG", "Loading plugins..."));
     pluginloadall(plugindir);
     dputs(QT_TRANSLATE_NOOP("DBG", "Handling command line..."));
@@ -753,8 +755,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, 0, .%s", argv[2], argv[4])).c_str()); //attach pid, 0, tid
     LocalFree(argv);
 
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initialization successful!"));
-    bIsStopped = false;
     return nullptr;
 }
 

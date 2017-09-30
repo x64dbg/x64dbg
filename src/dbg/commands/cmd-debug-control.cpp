@@ -56,11 +56,12 @@ bool cbDebugInit(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 2))
         return false;
     strcpy_s(arg1, argv[1]);
-    char szResolvedPath[MAX_PATH] = "";
+    wchar_t szResolvedPath[MAX_PATH] = L"";
     if(ResolveShortcut(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(arg1).c_str(), szResolvedPath, _countof(szResolvedPath)))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved shortcut \"%s\"->\"%s\"\n"), arg1, szResolvedPath);
-        strcpy_s(arg1, szResolvedPath);
+        auto resolvedPathUtf8 = StringUtils::Utf16ToUtf8(szResolvedPath);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved shortcut \"%s\"->\"%s\"\n"), arg1, resolvedPathUtf8.c_str());
+        strcpy_s(arg1, resolvedPathUtf8.c_str());
     }
     if(!FileExists(arg1))
     {

@@ -1013,7 +1013,7 @@ bool cbDebugBcDll(int argc, char* argv[])
 
 bool cbDebugBpDllEnable(int argc, char* argv[])
 {
-    if(argc < 2) //disable all DLL breakpoints
+    if(argc < 2) //enable all DLL breakpoints
     {
         if(!BpGetCount(BPDLL))
         {
@@ -1043,7 +1043,7 @@ bool cbDebugBpDllEnable(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), found.mod);
         return false;
     }
-    if(!LibrarianRemoveBreakPoint(found.mod, found.titantype))
+    if(!LibrarianSetBreakPoint(found.mod, found.titantype, found.singleshoot, (void*)cbLibrarianBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), found.mod);
     }
@@ -1084,9 +1084,9 @@ bool cbDebugBpDllDisable(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (BpEnable)\n"), found.mod);
         return false;
     }
-    if(!LibrarianSetBreakPoint(found.mod, found.titantype, found.singleshoot, (void*)cbLibrarianBreakpoint))
+    if(!LibrarianRemoveBreakPoint(found.mod, found.titantype))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), found.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), found.mod);
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint disabled!"));
     GuiUpdateAllViews();
