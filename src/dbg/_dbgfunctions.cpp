@@ -29,6 +29,7 @@
 #include "thread.h"
 #include "comment.h"
 #include "exception.h"
+#include "database.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -439,4 +440,5 @@ void dbgfunctionsinit()
     _dbgfunctions.ModRelocationsFromAddr = _modrelocationsfromaddr;
     _dbgfunctions.ModRelocationAtAddr = (MODRELOCATIONATADDR)ModRelocationAtAddr;
     _dbgfunctions.ModRelocationsInRange = _modrelocationsinrange;
+    _dbgfunctions.DbGetHash = DbGetHash;
 }

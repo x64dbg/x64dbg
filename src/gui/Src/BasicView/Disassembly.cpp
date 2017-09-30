@@ -709,7 +709,7 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
     {
         //qDebug() << "State = MultiRowsSelectionState";
 
-        if((transY(y) >= 0) && (transY(y) <= this->getTableHeigth()))
+        if((transY(y) >= 0) && (transY(y) <= this->getTableHeight()))
         {
             int wI = getIndexOffsetFromY(transY(y));
 

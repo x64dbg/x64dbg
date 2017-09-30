@@ -408,3 +408,8 @@ bool DbCheckHash(duint currentHash)
         return true;
     }
 }
+
+duint DbGetHash()
+{
+    return dbhash;
+}

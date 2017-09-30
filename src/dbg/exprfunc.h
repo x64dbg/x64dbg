@@ -47,6 +47,7 @@ namespace Exprfunc
 
     duint trenabled(duint addr);
     duint trhitcount(duint addr);
+    duint trisruntraceenabled();
     duint gettickcount();
 
     duint readbyte(duint addr);

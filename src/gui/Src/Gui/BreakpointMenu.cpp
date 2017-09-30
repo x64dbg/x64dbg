@@ -27,7 +27,10 @@ void BreakpointMenu::build(MenuBuilder* builder)
 
     builder->addMenu(makeMenu(DIcon("breakpoint.png"), tr("Breakpoint")), [ = ](QMenu * menu)
     {
-        BPXTYPE bpType = DbgGetBpxTypeAt(mGetSelection());
+        auto selection = mGetSelection();
+        if(selection == 0)
+            return false;
+        BPXTYPE bpType = DbgGetBpxTypeAt(selection);
         if((bpType & bp_normal) == bp_normal)
             menu->addAction(editSoftwareBreakpointAction);
 

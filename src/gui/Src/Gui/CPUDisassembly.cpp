@@ -26,6 +26,7 @@
 #include "SnowmanView.h"
 #include "MemoryPage.h"
 #include "BreakpointMenu.h"
+#include "BrowseDialog.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -382,6 +383,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     QAction* traceRecordEnableBit = makeAction(DIcon("bit.png"), tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
     QAction* traceRecordEnableByte = makeAction(DIcon("byte.png"), tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
     QAction* traceRecordEnableWord = makeAction(DIcon("word.png"), tr("Word"), SLOT(ActionTraceRecordWordSlot()));
+    QAction* traceRecordToggleRunTrace = makeAction(tr("Start Run Trace"), SLOT(ActionTraceRecordToggleRunTraceSlot()));
     mMenuBuilder->addMenu(makeMenu(DIcon("trace.png"), tr("Trace record")), [ = ](QMenu * menu)
     {
         if(DbgFunctions()->GetTraceRecordType(rvaToVa(getInitialSelection())) == TRACERECORDTYPE::TraceRecordNone)
@@ -392,6 +394,12 @@ void CPUDisassembly::setupRightClickContextMenu()
         }
         else
             menu->addAction(traceRecordDisable);
+        menu->addSeparator();
+        if(DbgValFromString("tr.runtraceenabled()") == 1)
+            traceRecordToggleRunTrace->setText(tr("Stop Run Trace"));
+        else
+            traceRecordToggleRunTrace->setText(tr("Start Run Trace"));
+        menu->addAction(traceRecordToggleRunTrace);
         return true;
     });
 
@@ -1995,4 +2003,17 @@ void CPUDisassembly::downloadCurrentSymbolsSlot()
     char module[MAX_MODULE_SIZE] = "";
     if(DbgGetModuleAt(rvaToVa(getInitialSelection()), module))
         DbgCmdExec(QString("symdownload \"%0\"").arg(module).toUtf8().constData());
+}
+
+void CPUDisassembly::ActionTraceRecordToggleRunTraceSlot()
+{
+    if(DbgValFromString("tr.runtraceenabled()") == 1)
+        DbgCmdExec("StopRunTrace");
+    else
+    {
+        BrowseDialog browse(this, tr("Select stored file"), tr("Store run trace to the following file"),
+                            tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QCoreApplication::applicationDirPath(), true);
+        if(browse.exec() == QDialog::Accepted)
+            DbgCmdExec(QString("StartRunTrace %1").arg(browse.path).toUtf8().constData());
+    }
 }
