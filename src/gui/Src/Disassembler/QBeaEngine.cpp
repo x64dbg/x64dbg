@@ -271,7 +271,7 @@ Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase,
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
 
-    auto & infoIter = dataInstMap.find(type);
+    auto infoIter = dataInstMap.find(type);
     if(infoIter == dataInstMap.end())
         infoIter = dataInstMap.find(enc_byte);
 

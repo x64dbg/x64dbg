@@ -2065,7 +2065,7 @@ void MainWindow::onMenuCustomized()
         QMenu* currentMenu = menus[i];
         QMenu* moreCommands = nullptr;
         bool moreCommandsUsed = false;
-        QList<QAction*> & list = currentMenu->actions();
+        QList<QAction*> list = currentMenu->actions();
         moreCommands = list.last()->menu();
         if(moreCommands && moreCommands->title().compare(tr("More Commands")) == 0)
         {
