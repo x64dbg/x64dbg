@@ -631,8 +631,9 @@ static BOOL CALLBACK SymAutoCompleteCallback(PSYMBOL_INFO pSymInfo, ULONG Symbol
     std::pair<char**, std::pair<int*, int>>* param = reinterpret_cast<std::pair<char**, std::pair<int*, int>>*>(UserContext);
     if(param->first)
     {
-        param->first[*param->second.first] = (char*)BridgeAlloc(pSymInfo->NameLen * 2 + 2);
-        memcpy(param->first[*param->second.first], pSymInfo->Name, pSymInfo->NameLen * 2 + 2);
+        param->first[*param->second.first] = (char*)BridgeAlloc(pSymInfo->NameLen + 1);
+        memcpy(param->first[*param->second.first], pSymInfo->Name, pSymInfo->NameLen + 1);
+        param->first[*param->second.first][pSymInfo->NameLen] = 0;
     }
     if(++*param->second.first >= param->second.second)
         return FALSE;
