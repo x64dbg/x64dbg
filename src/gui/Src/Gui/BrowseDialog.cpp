@@ -1,5 +1,7 @@
 #include "BrowseDialog.h"
 #include "ui_BrowseDialog.h"
+#include <QDirModel>
+#include <QCompleter>
 #include <QFileDialog>
 #include <Configuration.h>
 
@@ -12,6 +14,9 @@ BrowseDialog::BrowseDialog(QWidget* parent, const QString & title, const QString
     setWindowTitle(title);
     ui->label->setText(text);
     ui->lineEdit->setText(QDir::toNativeSeparators(defaultPath));
+    QCompleter* completer = new QCompleter(ui->lineEdit);
+    completer->setModel(new QDirModel(completer));
+    ui->lineEdit->setCompleter(completer);
     Config()->setupWindowPos(this);
 }
 

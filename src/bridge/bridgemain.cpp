@@ -1045,6 +1045,11 @@ BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu)
     _dbg_sendmessage(DBG_MENU_PREPARE, (void*)hMenu, nullptr);
 }
 
+BRIDGE_IMPEXP int DbgSymAutoComplete(const char* Search, char** Buffer)
+{
+    return _dbg_sendmessage(DBG_SYMBOL_AUTOCOMPLETE, (void*)Search, Buffer);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);

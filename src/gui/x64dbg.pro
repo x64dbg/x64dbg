@@ -180,7 +180,8 @@ SOURCES += \
     Src/Gui/MessagesBreakpoints.cpp \
     Src/Gui/AboutDialog.cpp \
     Src/Gui/BreakpointMenu.cpp \
-    Src/Gui/ComboBoxDialog.cpp
+    Src/Gui/ComboBoxDialog.cpp \
+    Src/Utils/SymbolAutoCompleteModel.cpp
 
 
 HEADERS += \
@@ -296,7 +297,8 @@ HEADERS += \
     Src/Gui/AboutDialog.h \
     Src/Gui/BreakpointMenu.h \
     Src/Gui/ComboBoxDialog.h \
-    Src/Utils/VaHistory.h
+    Src/Utils/VaHistory.h \
+    Src/Utils/SymbolAutoCompleteModel.h
     
 
 FORMS += \

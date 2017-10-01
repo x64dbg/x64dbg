@@ -3,6 +3,8 @@
 #include "ui_GotoDialog.h"
 #include "StringUtil.h"
 #include "Configuration.h"
+#include "QCompleter"
+#include "SymbolAutoCompleteModel.h"
 
 GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowInvalidAddress)
     : QDialog(parent),
@@ -22,6 +24,12 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowI
         ui->labelError->setText(tr("<font color='red'><b>Invalid expression...</b></font>"));
     setOkEnabled(false);
     ui->editExpression->setFocus();
+    QCompleter* completer = new QCompleter(this);
+    completer->setModel(new SymbolAutoCompleteModel([this]
+    {
+        return ui->editExpression->text();
+    }, completer));
+    ui->editExpression->setCompleter(completer);
     validRangeStart = 0;
     validRangeEnd = ~0;
     fileOffset = false;
