@@ -1,4 +1,5 @@
 #include "SymbolAutoCompleteModel.h"
+#include "QRegularExpression"
 #include "MiscUtil.h"
 
 static QString Decorate(const QString & text)
@@ -8,7 +9,12 @@ static QString Decorate(const QString & text)
 
 SymbolAutoCompleteModel::SymbolAutoCompleteModel(std::function<QString()> getTextProc, QObject* parent) : QAbstractItemModel(parent), mGetTextProc(getTextProc)
 {
+    isValidReg = new QRegularExpression("[\\w_@][\\w\\d_]*");
+}
 
+SymbolAutoCompleteModel::~SymbolAutoCompleteModel()
+{
+    delete isValidReg;
 }
 
 QModelIndex SymbolAutoCompleteModel::parent(const QModelIndex & child) const
@@ -24,7 +30,16 @@ QModelIndex SymbolAutoCompleteModel::index(int row, int column, const QModelInde
 int SymbolAutoCompleteModel::rowCount(const QModelIndex & parent) const
 {
     if(DbgIsDebugging())
-        return DbgSymAutoComplete(Decorate(mGetTextProc()).toUtf8().constData(), nullptr);
+    {
+        QString text = mGetTextProc();
+        auto match = isValidReg->match(text);
+        if(match.hasMatch())
+        {
+            return DbgSymAutoComplete(Decorate(text).toUtf8().constData(), nullptr);
+        }
+        else
+            return 0;
+    }
     else
         return 0;
 }

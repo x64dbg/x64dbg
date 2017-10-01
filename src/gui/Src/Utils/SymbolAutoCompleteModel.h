@@ -3,11 +3,14 @@
 #include <functional>
 #include <QAbstractItemModel>
 
+class QRegularExpression;
+
 class SymbolAutoCompleteModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
     SymbolAutoCompleteModel(std::function<QString()> getTextProc, QObject* parent = 0);
+    ~SymbolAutoCompleteModel();
 
     virtual QVariant data(const QModelIndex & index, int role) const override;
     virtual QModelIndex index(int row, int column, const QModelIndex & parent) const override;
@@ -16,4 +19,5 @@ public:
     virtual QModelIndex parent(const QModelIndex & child) const override;
 private:
     std::function<QString()> mGetTextProc;
+    QRegularExpression* isValidReg;
 };

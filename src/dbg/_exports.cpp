@@ -641,7 +641,7 @@ static BOOL CALLBACK SymAutoCompleteCallback(PSYMBOL_INFO pSymInfo, ULONG Symbol
         return TRUE;
 }
 
-__declspec(noinline) static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
+static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
 {
     //debug
     int count = 0;
