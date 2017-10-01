@@ -24,6 +24,18 @@ QByteArray & ByteReverse(QByteArray & array)
     return array;
 }
 
+QByteArray ByteReverse(QByteArray && array)
+{
+    int length = array.length();
+    for(int i = 0; i < length / 2; i++)
+    {
+        char temp = array[i];
+        array[i] = array[length - i - 1];
+        array[length - i - 1] = temp;
+    }
+    return array;
+}
+
 bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue, QString & output, const QString & placeholderText, QIcon* icon)
 {
     LineEditDialog mEdit(parent);
