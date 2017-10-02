@@ -89,7 +89,7 @@ void MHTabWidget::AttachTab(QWidget* parent)
 }
 
 // Convert a tab to an external window
-void MHTabWidget::DetachTab(int index, const QPoint & dropPoint)
+void MHTabWidget::DetachTab(int index, QPoint & dropPoint)
 {
     Q_UNUSED(dropPoint);
     // Create the window
