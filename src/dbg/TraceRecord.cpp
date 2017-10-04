@@ -250,7 +250,7 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
     unsigned char WriteBuffer[3072];
     unsigned char* WriteBufferPtr = WriteBuffer;
     //Get current data
-    REGDUMPDWORD newContext;
+    REGDUMPWORD newContext;
     //DISASM_INSTR newInstruction;
     DWORD newThreadId;
     duint newMemory[32];
@@ -317,7 +317,7 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
         {
             //rtRecordedInstructions - 1 hack: always record full registers dump at first instruction (recorded at 2nd instruction execution time)
             //prints ASCII table in run trace at first instruction :)
-            if(rtOldContext.regword[i] != newContext.regword[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
+            if(rtOldContext.regword[i] != newContext.regword[i] || rtOldContextChanged[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
                 changed++;
         }
         unsigned char blockFlags = 0;
@@ -341,20 +341,21 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
         int lastChangedPosition = -1; //-1
         for(int i = 0; i < _countof(rtOldContext.regword); i++) //1byte: position
         {
-            if(rtOldContext.regword[i] != newContext.regword[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
+            if(rtOldContext.regword[i] != newContext.regword[i] || rtOldContextChanged[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
             {
-                WriteBufferPtr[0] = i - lastChangedPosition - 1;
+                WriteBufferPtr[0] = (unsigned char)(i - lastChangedPosition - 1);
                 WriteBufferPtr++;
                 lastChangedPosition = i;
             }
         }
         for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++) //ptrbyte: newvalue
         {
-            if(rtOldContext.regword[i] != newContext.regword[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
+            if(rtOldContext.regword[i] != newContext.regword[i] || rtOldContextChanged[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
             {
                 memcpy(WriteBufferPtr, &rtOldContext.regword[i], sizeof(duint));
                 WriteBufferPtr += sizeof(duint);
             }
+            rtOldContextChanged[i] = (rtOldContext.regword[i] != newContext.regword[i]);
         }
         for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //1byte: flags
         {
@@ -493,6 +494,8 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
             rtEnabled = true;
             rtRecordedInstructions = 0;
             rtNeedThreadId = true;
+            for(size_t i = 0; i < _countof(rtOldContextChanged); i++)
+                rtOldContextChanged[i] = true;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace started. File: %s\r\n"), fileName);
             REGDUMP cip;
             Capstone cp;

@@ -83,13 +83,13 @@ private:
         unsigned int moduleIndex;
     };
 
-    typedef union _REGDUMPDWORD
+    typedef union _REGDUMPWORD
     {
         REGDUMP registers;
         // 172 qwords on x64, 216 dwords on x86. Almost no space left for AVX512
         // strip off 128 bytes of lastError.name member.
         duint regword[(sizeof(REGDUMP) - 128) / sizeof(duint)];
-    } REGDUMPDWORD;
+    } REGDUMPWORD;
 
     //Key := page base, value := trace record raw data
     std::unordered_map<duint, TraceRecordPage> TraceRecord;
@@ -101,7 +101,8 @@ private:
     bool rtPrevInstAvailable;
     HANDLE rtFile;
 
-    REGDUMPDWORD rtOldContext;
+    REGDUMPWORD rtOldContext;
+    bool rtOldContextChanged[(sizeof(REGDUMP) - 128) / sizeof(duint)];
     DWORD rtOldThreadId;
     bool rtNeedThreadId;
     duint rtOldMemory[32];
