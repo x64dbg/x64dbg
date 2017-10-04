@@ -224,7 +224,12 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         }
         else
         {
+            QString valText = DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value);
             auto symbolicName = getSymbolicName(arg.value);
+            if(!symbolicName.contains(valText))
+                valText = QString("%1 (%2)").arg(symbolicName, valText);
+            else
+                valText = symbolicName;
             QString mnemonic(arg.mnemonic);
             bool ok;
             mnemonic.toULongLong(&ok, 16);
@@ -238,7 +243,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                     !mnemonic.startsWith("ymm") &&
                     !mnemonic.startsWith("st"))
             {
-                setInfoLine(j, mnemonic + "=" + symbolicName);
+                setInfoLine(j, mnemonic + "=" + valText);
                 j++;
             }
         }
