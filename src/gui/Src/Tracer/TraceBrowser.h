@@ -92,6 +92,9 @@ private:
     QColor mCommentColor;
     QColor mCommentBackgroundColor;
 
+signals:
+    void displayReferencesWidget();
+
 public slots:
 
     void openFileSlot();
@@ -108,6 +111,9 @@ public slots:
     void copyDisassemblySlot();
     void copyCipSlot();
     void copyIndexSlot();
+
+    void searchConstantSlot();
+    void searchMemRefSlot();
 
     void updateSlot(); //debug
 };

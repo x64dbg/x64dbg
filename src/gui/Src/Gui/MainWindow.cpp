@@ -209,6 +209,7 @@ MainWindow::MainWindow(QWidget* parent)
     mTraceBrowser = new TraceBrowser(this);
     mTraceBrowser->setWindowTitle(tr("Trace"));
     mTraceBrowser->setWindowIcon(DIcon("trace.png"));
+    connect(mTraceBrowser, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
     // Create the tab widget and enable detaching and hiding
     mTabWidget = new MHTabWidget(this, true, true);

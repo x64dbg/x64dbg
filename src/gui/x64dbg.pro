@@ -182,7 +182,8 @@ SOURCES += \
     Src/Gui/BreakpointMenu.cpp \
     Src/Gui/ComboBoxDialog.cpp \
     Src/Tracer/TraceBrowser.cpp \
-    Src/Tracer/TraceFileReader.cpp
+    Src/Tracer/TraceFileReader.cpp \
+    Src/Tracer/TraceFileSearch.cpp
 
 
 HEADERS += \
@@ -301,7 +302,8 @@ HEADERS += \
     Src/Utils/VaHistory.h \
     Src/Tracer/TraceBrowser.h \
     Src/Tracer/TraceFileReader.h \
-    Src/Tracer/TraceFileReaderInternal.h
+    Src/Tracer/TraceFileReaderInternal.h \
+    Src/Tracer/TraceFileSearch.h
     
 
 FORMS += \

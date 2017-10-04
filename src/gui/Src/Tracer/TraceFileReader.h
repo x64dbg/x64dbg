@@ -5,7 +5,6 @@
 #include <QFile>
 #include <atomic>
 
-class QFileSystemWatcher;
 class TraceFileParser;
 class TraceFilePage;
 
@@ -36,7 +35,6 @@ signals:
 
 public slots:
     void parseFinishedSlot();
-    void fileUpdatedSlot(const QString & fileName);
 
 private:
     typedef std::pair<unsigned long long, unsigned long long> Range;
@@ -49,7 +47,6 @@ private:
     };
 
     QFile traceFile;
-    QFileSystemWatcher* streamMonitor;
     unsigned long long length;
     std::vector<std::pair<unsigned long long, Range>> fileIndex; //index;<file offset;length>
     std::atomic<int> progress;

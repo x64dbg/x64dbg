@@ -1,6 +1,5 @@
 #include "TraceFileReaderInternal.h"
 #include <QThread>
-#include <QFileSystemWatcher>
 
 TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
 {
@@ -10,8 +9,6 @@ TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
     parser = nullptr;
     lastAccessedPage = nullptr;
     lastAccessedIndexOffset = 0;
-    streamMonitor = new QFileSystemWatcher(this);
-    connect(streamMonitor, SIGNAL(fileChanged(const QString &)), this, SLOT(fileUpdatedSlot(const QString &)));
 }
 
 bool TraceFileReader::Open(const QString & fileName)
@@ -48,7 +45,6 @@ void TraceFileReader::Close()
         parser->requestInterruption();
         parser->wait();
     }
-    streamMonitor->removePath(traceFile.fileName());
     traceFile.close();
     progress.store(0);
     length = 0;
@@ -64,8 +60,6 @@ void TraceFileReader::parseFinishedSlot()
         progress.store(0);
     delete parser;
     parser = nullptr;
-    if(!error)
-        streamMonitor->addPath(traceFile.fileName());
     emit parseFinished();
 
     //for(auto i : fileIndex)
@@ -143,11 +137,6 @@ void TraceFileReader::MemoryAccessInfo(unsigned long long index, duint* address,
         return;
     else
         return page->MemoryAccessInfo(index - base, address, oldMemory, newMemory, isValid);
-}
-
-void TraceFileReader::fileUpdatedSlot(const QString & fileName)
-{
-    //GuiAddLogMessage("debug");
 }
 
 TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long long* base)

@@ -1,10 +1,12 @@
 #include "TraceBrowser.h"
 #include "TraceFileReader.h"
+#include "TraceFileSearch.h"
 #include "RichTextPainter.h"
 #include "BrowseDialog.h"
 #include "QBeaEngine.h"
 #include "GotoDialog.h"
 #include "LineEditDialog.h"
+#include "WordEditDialog.h"
 #include "CachedFontMetrics.h"
 #include "BreakpointMenu.h"
 
@@ -444,6 +446,11 @@ void TraceBrowser::setupRightClickContextMenu()
         return mHistory.historyHasNext();
     });
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
+
+    MenuBuilder* searchMenu = new MenuBuilder(this, isValid);
+    searchMenu->addAction(makeAction(tr("Constant"), SLOT(searchConstantSlot())));
+    searchMenu->addAction(makeAction(tr("Memory Reference"), SLOT(searchMemRefSlot())));
+    mMenuBuilder->addMenu(makeMenu(DIcon("search.png"), tr("&Search")), searchMenu);
 
     // The following code adds a menu to view the information about currently selected instruction. When info box is completed, remove me.
     MenuBuilder* infoMenu = new MenuBuilder(this, [this, isValid](QMenu * menu)
@@ -968,6 +975,28 @@ void TraceBrowser::enableHighlightingModeSlot()
 void TraceBrowser::followDisassemblySlot()
 {
     DbgCmdExec(QString("dis ").append(ToPtrString(mTraceFile->Registers(getInitialSelection()).regcontext.cip)).toUtf8().constData());
+}
+
+void TraceBrowser::searchConstantSlot()
+{
+    WordEditDialog constantDlg(this);
+    constantDlg.setup(tr("Constant"), 0, sizeof(duint));
+    if(constantDlg.exec() == QDialog::Accepted)
+    {
+        TraceFileSearchConstantRange(mTraceFile, constantDlg.getVal(), constantDlg.getVal());
+        emit displayReferencesWidget();
+    }
+}
+
+void TraceBrowser::searchMemRefSlot()
+{
+    WordEditDialog memRefDlg(this);
+    memRefDlg.setup(tr("References"), 0, sizeof(duint));
+    if(memRefDlg.exec() == QDialog::Accepted)
+    {
+        TraceFileSearchMemReference(mTraceFile, memRefDlg.getVal());
+        emit displayReferencesWidget();
+    }
 }
 
 void TraceBrowser::updateSlot()
