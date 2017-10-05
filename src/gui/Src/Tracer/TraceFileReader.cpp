@@ -477,7 +477,7 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                     }
                 }
                 else
-                    memoryOperandOffset.push_back(-1);
+                    memoryOperandOffset.push_back(memOperandOffset);
                 length++;
             }
             else
@@ -515,9 +515,7 @@ DWORD TraceFilePage::ThreadId(unsigned long long index) const
 int TraceFilePage::MemoryAccessCount(unsigned long long index) const
 {
     size_t a = memoryOperandOffset.at(index);
-    if(a == -1)
-        return 0;
-    else if(index == length - 1)
+    if(index == length - 1)
         return memoryAddress.size() - a;
     else
         return memoryOperandOffset.at(index + 1) - a;

@@ -233,7 +233,7 @@ static void HandleCapstoneOperand(const Capstone & cp, int opindex, DISASM_ARGTY
         *memorySize = op.size;
         if(DbgMemIsValidReadPtr(*value))
         {
-            MemRead(*value, memoryContent, op.size);
+            MemRead(*value, memoryContent, max(op.size, sizeof(duint)));
         }
     }
     break;
@@ -291,11 +291,17 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
         }
         if(newInstruction.GetId() == X86_INS_PUSH || newInstruction.GetId() == X86_INS_PUSHF || newInstruction.GetId() == X86_INS_PUSHFD
                 || newInstruction.GetId() == X86_INS_PUSHFQ || newInstruction.GetId() == X86_INS_CALL //TODO: far call accesses 2 stack entries
-                || newInstruction.GetId() == X86_INS_POP || newInstruction.GetId() == X86_INS_POPF || newInstruction.GetId() == X86_INS_POPFD
-                || newInstruction.GetId() == X86_INS_POPFQ || newInstruction.GetId() == X86_INS_RET)
+          )
         {
             MemRead(newContext.registers.regcontext.csp - sizeof(duint), &newMemory[newMemoryArrayCount], sizeof(duint));
             newMemoryAddress[newMemoryArrayCount] = newContext.registers.regcontext.csp - sizeof(duint);
+            newMemoryArrayCount++;
+        }
+        else if(newInstruction.GetId() == X86_INS_POP || newInstruction.GetId() == X86_INS_POPF || newInstruction.GetId() == X86_INS_POPFD
+                || newInstruction.GetId() == X86_INS_POPFQ || newInstruction.GetId() == X86_INS_RET)
+        {
+            MemRead(newContext.registers.regcontext.csp, &newMemory[newMemoryArrayCount], sizeof(duint));
+            newMemoryAddress[newMemoryArrayCount] = newContext.registers.regcontext.csp;
             newMemoryArrayCount++;
         }
         //TODO: PUSHAD/POPAD
