@@ -92,7 +92,7 @@ static PeArch GetPeArch(const wchar_t* szFileName)
                         }
                     }
                 }
-                __except(EXCEPTION_ACCESS_VIOLATION)
+                __except(EXCEPTION_EXECUTE_HANDLER)
                 {
                 }
                 UnmapViewOfFile(fileMap);
