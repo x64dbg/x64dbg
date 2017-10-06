@@ -2,6 +2,7 @@
 #include "TraceFileReader.h"
 #include "TraceFileSearch.h"
 #include "RichTextPainter.h"
+#include "main.h"
 #include "BrowseDialog.h"
 #include "QBeaEngine.h"
 #include "GotoDialog.h"
@@ -408,6 +409,15 @@ void TraceBrowser::prepareData()
 void TraceBrowser::setupRightClickContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
+    QAction* toggleRunTrace = makeAction(DIcon("trace.png"), tr("Start Run Trace"), SLOT(toggleRunTraceSlot()));
+    mMenuBuilder->addAction(toggleRunTrace, [toggleRunTrace](QMenu*)
+    {
+        if(DbgValFromString("tr.runtraceenabled()") == 1)
+            toggleRunTrace->setText(tr("Stop Run Trace"));
+        else
+            toggleRunTrace->setText(tr("Start Run Trace"));
+        return true;
+    });
     mMenuBuilder->addAction(makeAction(DIcon("folder-horizontal-open.png"), tr("Open"), SLOT(openFileSlot())), [this](QMenu*)
     {
         return mTraceFile == nullptr;
@@ -823,6 +833,28 @@ void TraceBrowser::openSlot(const QString & fileName)
     mTraceFile = new TraceFileReader(this);
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
     mTraceFile->Open(fileName);
+}
+
+void TraceBrowser::toggleRunTraceSlot()
+{
+    if(DbgValFromString("tr.runtraceenabled()") == 1)
+        DbgCmdExec("StopRunTrace");
+    else
+    {
+        QString defaultFileName;
+        char moduleName[MAX_MODULE_SIZE];
+        QDateTime currentTime = QDateTime::currentDateTime();
+        duint defaultModule = DbgValFromString("mod.main()");
+        if(DbgFunctions()->ModNameFromAddr(defaultModule, moduleName, false))
+        {
+            defaultFileName = QString::fromUtf8(moduleName);
+        }
+        defaultFileName += "-" + QLocale(QString(currentLocale)).toString(currentTime.date()) + "-" + currentTime.time().toString("hh-mm-ss") + ArchValue(".trace32", ".trace64");
+        BrowseDialog browse(this, tr("Select stored file"), tr("Store run trace to the following file"),
+                            tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QCoreApplication::applicationDirPath() + QDir::separator() + defaultFileName, true);
+        if(browse.exec() == QDialog::Accepted)
+            DbgCmdExec(QString("StartRunTrace %1").arg(browse.path).toUtf8().constData());
+    }
 }
 
 void TraceBrowser::closeFileSlot()
