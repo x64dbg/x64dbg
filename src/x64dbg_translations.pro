@@ -221,7 +221,8 @@ SOURCES += \
     gui/Src/Gui/AboutDialog.cpp \
     gui/Src/Gui/BreakpointMenu.cpp \
     gui/Src/Tracer/TraceBrowser.cpp \
-    gui/Src/Tracer/TraceFileReader.cpp
+    gui/Src/Tracer/TraceFileReader.cpp \
+    gui/Src/Tracer/TraceFileSearch.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -454,7 +455,8 @@ HEADERS += \
     gui/Src/Gui/BreakpointMenu.h \
     gui/Src/Tracer/TraceBrowser.h \
     gui/Src/Tracer/TraceFileReader.h \
-    gui/Src/Tracer/TraceFileReaderInternal.h
+    gui/Src/Tracer/TraceFileReaderInternal.h \
+    gui/Src/Tracer/TraceFileSearch.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \
