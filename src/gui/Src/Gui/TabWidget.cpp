@@ -11,7 +11,7 @@
 MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : QTabWidget(parent)
 {
     m_tabBar = new MHTabBar(this, allowDetach, allowDelete);
-    connect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint &)), this, SLOT(DetachTab(int, QPoint &)));
+    connect(m_tabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
     connect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
     connect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
     connect(m_tabBar, SIGNAL(tabMoved(int, int)), this, SLOT(tabMoved(int, int)));
@@ -29,7 +29,7 @@ MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : 
 MHTabWidget::~MHTabWidget(void)
 {
     disconnect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
-    disconnect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint &)), this, SLOT(DetachTab(int, QPoint &)));
+    disconnect(m_tabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
     disconnect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
     delete m_tabBar;
 }
@@ -89,7 +89,7 @@ void MHTabWidget::AttachTab(QWidget* parent)
 }
 
 // Convert a tab to an external window
-void MHTabWidget::DetachTab(int index, QPoint & dropPoint)
+void MHTabWidget::DetachTab(int index, const QPoint & dropPoint)
 {
     Q_UNUSED(dropPoint);
     // Create the window
