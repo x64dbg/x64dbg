@@ -1,5 +1,6 @@
 #include "TraceFileReaderInternal.h"
-#include "dbg/jansson/jansson_x64dbg.h"
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QThread>
 
 TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
@@ -250,20 +251,15 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
 
 //Parser
 
-static bool checkKey(json_t* node, const char* key, const char* value)
+static bool checkKey(const QJsonObject & root, const QString & key, const QString & value)
 {
-    json_t* attrib = json_object_get(node, key);
-    if(attrib)
-    {
-        const char* val = json_string_value(attrib);
-        if(val)
-            if(strcmp(val, value) == 0)
-            {
-                json_decref(attrib);
-                return true;
-            }
-    }
-    json_decref(attrib);
+    const auto obj = root.find(key);
+    if(obj == root.constEnd())
+        throw std::wstring(L"Unspecified");
+    QJsonValue val = obj.value();
+    if(val.isString())
+        if(val.toString() == value)
+            return true;
     return false;
 }
 
@@ -276,63 +272,51 @@ void TraceFileParser::readFileHeader(TraceFileReader* that)
         throw std::wstring(L"File type mismatch");
     if(header.HighPart > 16384)
         throw std::wstring(L"Header info is too big");
-    char* headerinfo;
-    headerinfo = new char[header.HighPart];
-    if(that->traceFile.read(headerinfo, header.HighPart) != header.HighPart)
-    {
-        delete[] headerinfo;
+    QByteArray jsonData = that->traceFile.read(header.HighPart);
+    if(jsonData.size() != header.HighPart)
         throw std::wstring(L"Unspecified");
-    }
-    json_t* root;
-    json_error_t err;
-    root = json_loadb(headerinfo, header.HighPart, 0, &err);
-    delete[] headerinfo;
-    if(root == nullptr)
-        throw std::wstring(L"Header info is not a valid JSON object");
-    json_t* verObject = json_object_get(root, "ver");
-    if(verObject == nullptr)
-    {
-        json_decref(verObject);
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+    if(jsonDoc.isNull())
+        throw std::wstring(L"Unspecified");
+    const QJsonObject jsonRoot = jsonDoc.object();
+
+    const auto ver = jsonRoot.find("ver");
+    if(ver == jsonRoot.constEnd())
+        throw std::wstring(L"Unspecified");
+    QJsonValue verVal = ver.value();
+    if(verVal.toInt(0) != 1)
         throw std::wstring(L"Version not supported");
-    }
-    if(json_integer_value(verObject) != 1)
+    checkKey(jsonRoot, "arch", ArchValue("x86", "x64"));
+    checkKey(jsonRoot, "compression", "");
+    const auto hashAlgorithmObj = jsonRoot.find("hashAlgorithm");
+    if(hashAlgorithmObj != jsonRoot.constEnd())
     {
-        throw std::wstring(L"Version not supported");
-        json_decref(verObject);
-    }
-    json_decref(verObject);
-    if(!checkKey(root, "arch", ArchValue("x86", "x64")))
-        throw std::wstring(L"Architecture is error");
-    if(!checkKey(root, "compression", ""))
-        throw std::wstring(L"Compression not supported");
-    json_t* hashAlgorithmObject = json_object_get(root, "hashAlgorithm");
-    if(hashAlgorithmObject)
-    {
-        const char* hashAlgorithm = json_string_value(hashAlgorithmObject);
-        if(hashAlgorithm && strcmp(hashAlgorithm, "murmurhash") == 0)
+        QJsonValue hashAlgorithmVal = hashAlgorithmObj.value();
+        if(hashAlgorithmVal.toString() == "murmurhash")
         {
-            json_t* hashObject = json_object_get(root, "hash");
-            if(hashObject)
+            const auto hashObj = jsonRoot.find("hash");
+            if(hashObj != jsonRoot.constEnd())
             {
-                that->hashValue = json_hex_value(hashObject);
-                json_decref(hashObject);
-            }
-            else
-            {
-                json_decref(hashAlgorithmObject);
+                QJsonValue hashVal = hashObj.value();
+                QString a = hashVal.toString();
+                if(a.startsWith("0x"))
+                {
+                    a = a.mid(2);
+#ifdef _WIN64
+                    that->hashValue = a.toLongLong(nullptr, 16);
+#else //x86
+                    that->hashValue = a.toLong(nullptr, 16);
+#endif //_WIN64
+                }
             }
         }
-        json_decref(hashAlgorithmObject);
     }
-    json_t* exePathObject = json_object_get(root, "path");
-    if(exePathObject)
+    const auto pathObj = jsonRoot.find("path");
+    if(pathObj != jsonRoot.constEnd())
     {
-        const char* exePath = json_string_value(exePathObject);
-        if(exePath)
-            that->EXEPath = QString::fromUtf8(exePath);
-        json_decref(exePathObject);
+        QJsonValue pathVal = pathObj.value();
+        that->EXEPath = pathVal.toString();
     }
-    json_decref(root);
 }
 
 static bool readBlock(QFile & traceFile)
