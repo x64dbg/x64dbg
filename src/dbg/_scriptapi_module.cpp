@@ -130,7 +130,7 @@ SCRIPT_EXPORT bool Script::Module::GetMainModuleInfo(ModuleInfo* info)
 
 SCRIPT_EXPORT duint Script::Module::GetMainModuleBase()
 {
-    return dbggetdebuggedbase();
+    return dbgdebuggedbase();
 }
 
 SCRIPT_EXPORT duint Script::Module::GetMainModuleSize()

@@ -98,6 +98,7 @@ signals:
 public slots:
 
     void openFileSlot();
+    void openSlot(const QString & fileName);
     void closeFileSlot();
     void parseFinishedSlot();
     void tokenizerConfigUpdatedSlot();

@@ -36,6 +36,9 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     setupRightClickContextMenu();
 
     Initialize();
+
+    connect(Bridge::getBridge(), SIGNAL(updateTraceBrowser()), this, SLOT(updateSlot()));
+    connect(Bridge::getBridge(), SIGNAL(openTraceFile(const QString &)), this, SLOT(openSlot(const QString &)));
 }
 
 TraceBrowser::~TraceBrowser()
@@ -416,7 +419,7 @@ void TraceBrowser::setupRightClickContextMenu()
     mMenuBuilder->addSeparator();
     auto isValid = [this](QMenu*)
     {
-        return mTraceFile != nullptr && mTraceFile->Progress() == 100;
+        return mTraceFile != nullptr && mTraceFile->Progress() == 100 && mTraceFile->Length() > 0;
     };
     MenuBuilder* copyMenu = new MenuBuilder(this, isValid);
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("Address"), SLOT(copyCipSlot()), "ActionCopyAddress"));
@@ -504,7 +507,6 @@ void TraceBrowser::setupRightClickContextMenu()
         return true;
     });
     mMenuBuilder->addMenu(makeMenu(tr("Information")), infoMenu);
-    mMenuBuilder->addAction(makeAction(tr("Live update"), SLOT(updateSlot())), isValid); //debug
 }
 
 void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
@@ -813,9 +815,14 @@ void TraceBrowser::openFileSlot()
     BrowseDialog browse(this, tr("Open run trace file"), tr("Open trace file"), tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QApplication::applicationDirPath(), false);
     if(browse.exec() != QDialog::Accepted)
         return;
+    emit openSlot(browse.path);
+}
+
+void TraceBrowser::openSlot(const QString & fileName)
+{
     mTraceFile = new TraceFileReader(this);
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
-    mTraceFile->Open(browse.path);
+    mTraceFile->Open(fileName);
 }
 
 void TraceBrowser::closeFileSlot()
@@ -836,7 +843,15 @@ void TraceBrowser::parseFinishedSlot()
         setRowCount(0);
     }
     else
+    {
+        if(mTraceFile->HashValue() && DbgIsDebugging())
+            if(DbgFunctions()->DbGetHash() != mTraceFile->HashValue())
+            {
+                SimpleWarningBox(this, tr("Trace file is recorded for another debuggee"),
+                                 tr("Checksum is different for current trace file and the debugee. This probably means you have opened a wrong trace file. This trace file is recorded for \"%1\"").arg(mTraceFile->ExePath()));
+            }
         setRowCount(mTraceFile->Length());
+    }
     reloadData();
 }
 
@@ -1001,7 +1016,10 @@ void TraceBrowser::searchMemRefSlot()
 
 void TraceBrowser::updateSlot()
 {
-    mTraceFile->purgeLastPage();
-    setRowCount(mTraceFile->Length());
-    reloadData();
+    if(mTraceFile && mTraceFile->Progress() == 100) // && this->isVisible()
+    {
+        mTraceFile->purgeLastPage();
+        setRowCount(mTraceFile->Length());
+        reloadData();
+    }
 }

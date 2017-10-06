@@ -1,4 +1,5 @@
 #include "TraceFileReaderInternal.h"
+#include "dbg/jansson/jansson_x64dbg.h"
 #include <QThread>
 
 TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
@@ -9,6 +10,8 @@ TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
     parser = nullptr;
     lastAccessedPage = nullptr;
     lastAccessedIndexOffset = 0;
+    hashValue = 0;
+    EXEPath.clear();
 }
 
 bool TraceFileReader::Open(const QString & fileName)
@@ -49,6 +52,8 @@ void TraceFileReader::Close()
     progress.store(0);
     length = 0;
     fileIndex.clear();
+    hashValue = 0;
+    EXEPath.clear();
     error = false;
 }
 
@@ -81,6 +86,15 @@ unsigned long long TraceFileReader::Length()
     return length;
 }
 
+duint TraceFileReader::HashValue()
+{
+    return hashValue;
+}
+
+QString TraceFileReader::ExePath()
+{
+    return EXEPath;
+}
 
 REGDUMP TraceFileReader::Registers(unsigned long long index)
 {
@@ -236,10 +250,89 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
 
 //Parser
 
-static void readFileHeader(QFile & traceFile)
+static bool checkKey(json_t* node, const char* key, const char* value)
 {
-    //TO DO
-    return;
+    json_t* attrib = json_object_get(node, key);
+    if(attrib)
+    {
+        const char* val = json_string_value(attrib);
+        if(val)
+            if(strcmp(val, value) == 0)
+            {
+                json_decref(attrib);
+                return true;
+            }
+    }
+    json_decref(attrib);
+    return false;
+}
+
+void TraceFileParser::readFileHeader(TraceFileReader* that)
+{
+    LARGE_INTEGER header;
+    if(that->traceFile.read((char*)&header, 8) != 8)
+        throw std::wstring(L"Unspecified");
+    if(header.LowPart != MAKEFOURCC('T', 'R', 'A', 'C'))
+        throw std::wstring(L"File type mismatch");
+    if(header.HighPart > 16384)
+        throw std::wstring(L"Header info is too big");
+    char* headerinfo;
+    headerinfo = new char[header.HighPart];
+    if(that->traceFile.read(headerinfo, header.HighPart) != header.HighPart)
+    {
+        delete[] headerinfo;
+        throw std::wstring(L"Unspecified");
+    }
+    json_t* root;
+    json_error_t err;
+    root = json_loadb(headerinfo, header.HighPart, 0, &err);
+    delete[] headerinfo;
+    if(root == nullptr)
+        throw std::wstring(L"Header info is not a valid JSON object");
+    json_t* verObject = json_object_get(root, "ver");
+    if(verObject == nullptr)
+    {
+        json_decref(verObject);
+        throw std::wstring(L"Version not supported");
+    }
+    if(json_integer_value(verObject) != 1)
+    {
+        throw std::wstring(L"Version not supported");
+        json_decref(verObject);
+    }
+    json_decref(verObject);
+    if(!checkKey(root, "arch", ArchValue("x86", "x64")))
+        throw std::wstring(L"Architecture is error");
+    if(!checkKey(root, "compression", ""))
+        throw std::wstring(L"Compression not supported");
+    json_t* hashAlgorithmObject = json_object_get(root, "hashAlgorithm");
+    if(hashAlgorithmObject)
+    {
+        const char* hashAlgorithm = json_string_value(hashAlgorithmObject);
+        if(hashAlgorithm && strcmp(hashAlgorithm, "murmurhash") == 0)
+        {
+            json_t* hashObject = json_object_get(root, "hash");
+            if(hashObject)
+            {
+                that->hashValue = json_hex_value(hashObject);
+                json_decref(hashObject);
+            }
+            else
+            {
+                json_decref(hashAlgorithmObject);
+            }
+        }
+        json_decref(hashAlgorithmObject);
+    }
+    json_t* exePathObject = json_object_get(root, "path");
+    if(exePathObject)
+    {
+        const char* exePath = json_string_value(exePathObject);
+        if(exePath)
+            that->EXEPath = QString::fromUtf8(exePath);
+        json_decref(exePathObject);
+    }
+    json_decref(root);
 }
 
 static bool readBlock(QFile & traceFile)
@@ -289,14 +382,12 @@ void TraceFileParser::run()
     }
     try
     {
-        //Process file header
-        //Update progress
-        if(that->traceFile.size() != 0)
-            that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
-        else //failure: divide by zero
+        if(that->traceFile.size() == 0)
             throw std::wstring(L"File is empty");
         //Process file header
-        readFileHeader(that->traceFile);
+        readFileHeader(that);
+        //Update progress
+        that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
         //Process file content
         while(!that->traceFile.atEnd())
         {
@@ -315,7 +406,8 @@ void TraceFileParser::run()
             }
             index++;
         }
-        that->fileIndex.back().second.second = index - (lastIndex - 1);
+        if(index > 0)
+            that->fileIndex.back().second.second = index - (lastIndex - 1);
         that->error = false;
         that->length = index;
     }
@@ -324,27 +416,36 @@ void TraceFileParser::run()
         //MessageBox(0, errReason.c_str(), L"debug", MB_ICONERROR);
         that->error = true;
     }
+    catch(std::bad_alloc &)
+    {
+        that->error = true;
+    }
+
     that->traceFile.moveToThread(that->thread());
 }
 
 void TraceFileReader::purgeLastPage()
 {
-    unsigned long long index = fileIndex.back().first;
+    unsigned long long index = 0;
     unsigned long long lastIndex = 0;
-    const auto lastpage = pages.find(Range(index, index));
     bool isBlockExist = false;
-    if(lastpage != pages.cend())
+    if(length > 0)
     {
-        //Purge last accessed page
-        if(index == lastAccessedIndexOffset)
-            lastAccessedPage = nullptr;
-        //Remove last page from page cache
-        pages.erase(lastpage);
+        index = fileIndex.back().first;
+        const auto lastpage = pages.find(Range(index, index));
+        if(lastpage != pages.cend())
+        {
+            //Purge last accessed page
+            if(index == lastAccessedIndexOffset)
+                lastAccessedPage = nullptr;
+            //Remove last page from page cache
+            pages.erase(lastpage);
+        }
+        //Seek start of last page
+        traceFile.seek(fileIndex.back().second.first);
+        //Remove last page from file index cache
+        fileIndex.pop_back();
     }
-    //Seek start of last page
-    traceFile.seek(fileIndex.back().second.first);
-    //Remove last page from file index cache
-    fileIndex.pop_back();
     try
     {
         while(!traceFile.atEnd())

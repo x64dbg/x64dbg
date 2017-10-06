@@ -27,6 +27,8 @@ public:
     DWORD ThreadId(unsigned long long index);
     int MemoryAccessCount(unsigned long long index);
     void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid);
+    duint HashValue();
+    QString ExePath();
 
     void purgeLastPage();
 
@@ -48,6 +50,8 @@ private:
 
     QFile traceFile;
     unsigned long long length;
+    duint hashValue;
+    QString EXEPath;
     std::vector<std::pair<unsigned long long, Range>> fileIndex; //index;<file offset;length>
     std::atomic<int> progress;
     bool error;

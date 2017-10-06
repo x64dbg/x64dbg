@@ -419,6 +419,8 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
     }
     rtPrevInstAvailable = true;
     rtRecordedInstructions++;
+
+    dbgtracebrowserneedsupdate();
 }
 
 unsigned int TraceRecordManager::getHitCount(duint address)
@@ -477,6 +479,8 @@ void TraceRecordManager::increaseInstructionCounter()
 
 bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
 {
+    if(!DbgIsDebugging())
+        return false;
     if(enabled)
     {
         if(rtEnabled)
@@ -493,7 +497,41 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
                 }
                 else //file is empty, write some file header
                 {
-
+                    //TRAC, SIZE, JSON header
+                    json_t* root = json_object();
+                    json_object_set_new(root, "ver", json_integer(1));
+                    json_object_set_new(root, "arch", json_string(ArchValue("x86", "x64")));
+                    json_object_set_new(root, "hashAlgorithm", json_string("murmurhash"));
+                    json_object_set_new(root, "hash", json_hex(dbgfunctionsget()->DbGetHash()));
+                    json_object_set_new(root, "compression", json_string(""));
+                    char path[MAX_PATH];
+                    ModPathFromAddr(dbgdebuggedbase(), path, MAX_PATH);
+                    json_object_set_new(root, "path", json_string(path));
+                    char* headerinfo;
+                    headerinfo = json_dumps(root, JSON_COMPACT);
+                    size_t headerinfosize = strlen(headerinfo);
+                    LARGE_INTEGER header;
+                    DWORD written;
+                    header.LowPart = MAKEFOURCC('T', 'R', 'A', 'C');
+                    header.HighPart = headerinfosize;
+                    WriteFile(rtFile, &header, 8, &written, nullptr);
+                    if(written < 8) //read-only?
+                    {
+                        CloseHandle(rtFile);
+                        json_free(headerinfo);
+                        json_decref(root);
+                        dputs(QT_TRANSLATE_NOOP("DBG", "Run trace failed to start because file header cannot be written."));
+                        return false;
+                    }
+                    WriteFile(rtFile, headerinfo, headerinfosize, &written, nullptr);
+                    json_free(headerinfo);
+                    json_decref(root);
+                    if(written < headerinfosize) //disk-full?
+                    {
+                        CloseHandle(rtFile);
+                        dputs(QT_TRANSLATE_NOOP("DBG", "Run trace failed to start because file header cannot be written."));
+                        return false;
+                    }
                 }
             }
             rtPrevInstAvailable = false;
@@ -512,6 +550,7 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
                 cp.DisassembleSafe(cip.regcontext.cip, instr, MAX_DISASM_BUFFER);
                 TraceExecuteRecord(cp);
             }
+            GuiOpenTraceFile(fileName);
             return true;
         }
         else

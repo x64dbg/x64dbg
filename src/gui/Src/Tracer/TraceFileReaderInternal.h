@@ -7,6 +7,7 @@ class TraceFileParser : public QThread
     Q_OBJECT
     friend class TraceFileReader;
     TraceFileParser(TraceFileReader* parent) : QThread(parent) {}
+    static void readFileHeader(TraceFileReader* that);
     void run();
 };
 
