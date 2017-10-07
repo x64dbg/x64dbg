@@ -174,7 +174,6 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
                     QString constant = ToHexString(arg.constant);
                     if(DbgMemIsValidReadPtr(arg.constant))
                         addFollowReferenceMenuItem(tr("&Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
-
                 }
                 if(DbgMemIsValidReadPtr(arg.memvalue))
                 {
