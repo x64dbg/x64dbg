@@ -7,6 +7,7 @@
 
 class TraceFileReader;
 class BreakpointMenu;
+class MRUList;
 
 class TraceBrowser : public AbstractTableView
 {
@@ -32,6 +33,10 @@ private:
     void makeVisible(duint index);
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel);
     QString getIndexText(duint index);
+    void updateMRUMenu();
+    void pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream = nullptr);
+    void copySelectionSlot(bool copyBytes);
+    void copySelectionToFileSlot(bool copyBytes);
 
     void contextMenuEvent(QContextMenuEvent* event);
     void mousePressEvent(QMouseEvent* event);
@@ -59,6 +64,9 @@ private:
     TraceFileReader* mTraceFile;
     QBeaEngine* mDisasm;
     BreakpointMenu* mBreakpointMenu;
+    MRUList* mMRUList;
+    QString mFileName;
+    QMenu* mMRUMenu;
 
     QColor mBytesColor;
     QColor mBytesBackgroundColor;
@@ -113,6 +121,12 @@ public slots:
     void copyDisassemblySlot();
     void copyCipSlot();
     void copyIndexSlot();
+    void copySelectionSlot();
+    void copySelectionNoBytesSlot();
+    void copySelectionToFileSlot();
+    void copySelectionToFileNoBytesSlot();
+    void copyFileOffsetSlot();
+    void copyRvaSlot();
 
     void searchConstantSlot();
     void searchMemRefSlot();

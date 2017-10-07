@@ -10,6 +10,8 @@
 #include "WordEditDialog.h"
 #include "CachedFontMetrics.h"
 #include "BreakpointMenu.h"
+#include "MRUList.h"
+#include <QFileDialog>
 
 TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 {
@@ -33,6 +35,12 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     mDisasm = new QBeaEngine(maxModuleSize);
     mHighlightingMode = false;
     mPermanentHighlightingMode = false;
+
+    mMRUMenu = new QMenu(tr("Recent Files"), this);
+    mMRUList = new MRUList(this, "Recent Trace Files");
+    connect(mMRUList, SIGNAL(openFile(QString)), this, SLOT(openSlot(QString)));
+    mMRUList->load();
+    updateMRUMenu();
 
     setupRightClickContextMenu();
 
@@ -412,15 +420,30 @@ void TraceBrowser::setupRightClickContextMenu()
     QAction* toggleRunTrace = makeAction(DIcon("trace.png"), tr("Start Run Trace"), SLOT(toggleRunTraceSlot()));
     mMenuBuilder->addAction(toggleRunTrace, [toggleRunTrace](QMenu*)
     {
+        if(!DbgIsDebugging())
+            return false;
         if(DbgValFromString("tr.runtraceenabled()") == 1)
             toggleRunTrace->setText(tr("Stop Run Trace"));
         else
             toggleRunTrace->setText(tr("Start Run Trace"));
         return true;
     });
-    mMenuBuilder->addAction(makeAction(DIcon("folder-horizontal-open.png"), tr("Open"), SLOT(openFileSlot())), [this](QMenu*)
+    auto mTraceFileIsNull = [this](QMenu*)
     {
         return mTraceFile == nullptr;
+    };
+
+    mMenuBuilder->addAction(makeAction(DIcon("folder-horizontal-open.png"), tr("Open"), SLOT(openFileSlot())), mTraceFileIsNull);
+    mMenuBuilder->addMenu(makeMenu(DIcon("recentfiles.png"), tr("Recent Files")), [this](QMenu * menu)
+    {
+        if(mTraceFile == nullptr)
+        {
+            for(auto i : mMRUMenu->actions())
+                menu->addAction(i);
+            return true;
+        }
+        else
+            return false;
     });
     mMenuBuilder->addAction(makeAction(DIcon("fatal-error.png"), tr("Close"), SLOT(closeFileSlot())), [this](QMenu*)
     {
@@ -431,10 +454,22 @@ void TraceBrowser::setupRightClickContextMenu()
     {
         return mTraceFile != nullptr && mTraceFile->Progress() == 100 && mTraceFile->Length() > 0;
     };
+    auto isDebugging = [this](QMenu*)
+    {
+        return mTraceFile != nullptr && mTraceFile->Progress() == 100 && mTraceFile->Length() > 0 && DbgIsDebugging();
+    };
+
     MenuBuilder* copyMenu = new MenuBuilder(this, isValid);
+    copyMenu->addAction(makeShortcutAction(DIcon("copy_selection.png"), tr("&Selection"), SLOT(copySelectionSlot()), "ActionCopy"));
+    copyMenu->addAction(makeAction(DIcon("copy_selection.png"), tr("Selection to &File"), SLOT(copySelectionToFileSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection (&No Bytes)"), SLOT(copySelectionNoBytesSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection to File (No Bytes)"), SLOT(copySelectionToFileNoBytesSlot())));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("Address"), SLOT(copyCipSlot()), "ActionCopyAddress"));
+    copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot()), "ActionCopyRva"), isDebugging);
+    copyMenu->addAction(makeAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot())), isDebugging);
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
     copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("Index"), SLOT(copyIndexSlot())));
+
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembly"), SLOT(followDisassemblySlot()), "ActionFollowDisasm"), isValid);
 
@@ -446,7 +481,7 @@ void TraceBrowser::setupRightClickContextMenu()
             return (duint)0;
     });
     mBreakpointMenu->build(mMenuBuilder);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), isValid);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), isDebugging);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"), isValid);
     MenuBuilder* gotoMenu = new MenuBuilder(this, isValid);
     gotoMenu->addAction(makeShortcutAction(DIcon("goto.png"), tr("Expression"), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
@@ -820,6 +855,14 @@ void TraceBrowser::updateColors()
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
 }
 
+void TraceBrowser::updateMRUMenu()
+{
+    QList<QAction*> list = mMRUMenu->actions();
+    for(int i = 1; i < list.length(); ++i)
+        mMRUMenu->removeAction(list.at(i));
+    mMRUList->appendMenu(mMRUMenu);
+}
+
 void TraceBrowser::openFileSlot()
 {
     BrowseDialog browse(this, tr("Open run trace file"), tr("Open trace file"), tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QApplication::applicationDirPath(), false);
@@ -832,11 +875,14 @@ void TraceBrowser::openSlot(const QString & fileName)
 {
     mTraceFile = new TraceFileReader(this);
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
+    mFileName = fileName;
     mTraceFile->Open(fileName);
 }
 
 void TraceBrowser::toggleRunTraceSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     if(DbgValFromString("tr.runtraceenabled()") == 1)
         DbgCmdExec("StopRunTrace");
     else
@@ -862,6 +908,7 @@ void TraceBrowser::closeFileSlot()
     mTraceFile->Close();
     delete mTraceFile;
     mTraceFile = nullptr;
+    updateMRUMenu();
     reloadData();
 }
 
@@ -883,6 +930,9 @@ void TraceBrowser::parseFinishedSlot()
                                  tr("Checksum is different for current trace file and the debugee. This probably means you have opened a wrong trace file. This trace file is recorded for \"%1\"").arg(mTraceFile->ExePath()));
             }
         setRowCount(mTraceFile->Length());
+        mMRUList->addEntry(mFileName);
+        updateMRUMenu();
+        mMRUList->save();
     }
     reloadData();
 }
@@ -949,6 +999,145 @@ void TraceBrowser::copyIndexSlot()
     Bridge::CopyToClipboard(clipboard);
 }
 
+void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream)
+{
+    const int addressLen = getColumnWidth(1) / getCharWidth() - 1;
+    const int bytesLen = getColumnWidth(2) / getCharWidth() - 1;
+    const int disassemblyLen = getColumnWidth(3) / getCharWidth() - 1;
+    if(htmlStream)
+        *htmlStream << QString("<table style=\"border-width:0px;border-color:#000000;font-family:%1;font-size:%2px;\">").arg(font().family()).arg(getRowHeight());
+    for(unsigned long long i = getSelectionStart(); i <= getSelectionEnd(); i++)
+    {
+        if(i != getSelectionStart())
+            stream << "\r\n";
+        duint cur_addr = mTraceFile->Registers(i).regcontext.cip;
+        unsigned char opcode[16];
+        int opcodeSize;
+        mTraceFile->OpCode(i, opcode, &opcodeSize);
+        Instruction_t inst;
+        inst = mDisasm->DisassembleAt(opcode, opcodeSize, cur_addr, 0);
+        QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
+        QString bytes;
+        if(copyBytes)
+        {
+            for(int j = 0; j < opcodeSize; j++)
+            {
+                if(j)
+                    bytes += " ";
+                bytes += ToByteString((unsigned char)(opcode[j]));
+            }
+        }
+        QString disassembly;
+        QString htmlDisassembly;
+        if(htmlStream)
+        {
+            RichTextPainter::List richText;
+            if(mHighlightToken.text.length())
+                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+            else
+                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, htmlDisassembly, disassembly);
+        }
+        else
+        {
+            for(const auto & token : inst.tokens.tokens)
+                disassembly += token.text;
+        }
+        QString fullComment;
+        QString comment;
+        bool autocomment;
+        if(GetCommentFormat(cur_addr, comment, &autocomment))
+            fullComment = " " + comment;
+        stream << address.leftJustified(addressLen, QChar(' '), true);
+        if(copyBytes)
+            stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
+        stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
+        if(htmlStream)
+        {
+            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(address.toHtmlEscaped(), htmlDisassembly);
+            if(!comment.isEmpty())
+            {
+                if(autocomment)
+                {
+                    *htmlStream << QString("<span style=\"color:%1").arg(mAutoCommentColor.name());
+                    if(mAutoCommentBackgroundColor != Qt::transparent)
+                        *htmlStream << QString(";background-color:%2").arg(mAutoCommentBackgroundColor.name());
+                }
+                else
+                {
+                    *htmlStream << QString("<span style=\"color:%1").arg(mCommentColor.name());
+                    if(mCommentBackgroundColor != Qt::transparent)
+                        *htmlStream << QString(";background-color:%2").arg(mCommentBackgroundColor.name());
+                }
+                *htmlStream << "\">" << comment.toHtmlEscaped() << "</span></td></tr>";
+            }
+            else
+            {
+                char label[MAX_LABEL_SIZE];
+                if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label))
+                {
+                    comment = QString::fromUtf8(label);
+                    *htmlStream << QString("<span style=\"color:%1").arg(mLabelColor.name());
+                    if(mLabelBackgroundColor != Qt::transparent)
+                        *htmlStream << QString(";background-color:%2").arg(mLabelBackgroundColor.name());
+                    *htmlStream << "\">" << comment.toHtmlEscaped() << "</span></td></tr>";
+                }
+                else
+                    *htmlStream << "</td></tr>";
+            }
+        }
+    }
+    if(htmlStream)
+        *htmlStream << "</table>";
+}
+
+void TraceBrowser::copySelectionSlot(bool copyBytes)
+{
+    QString selectionString = "";
+    QString selectionHtmlString = "";
+    QTextStream stream(&selectionString);
+    QTextStream htmlStream(&selectionHtmlString);
+    pushSelectionInto(copyBytes, stream, &htmlStream);
+    Bridge::CopyToClipboard(selectionString, selectionHtmlString);
+}
+
+void TraceBrowser::copySelectionToFileSlot(bool copyBytes)
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Open File"), "", tr("Text Files (*.txt)"));
+    if(fileName != "")
+    {
+        QFile file(fileName);
+        if(!file.open(QIODevice::WriteOnly))
+        {
+            QMessageBox::critical(this, tr("Error"), tr("Could not open file"));
+            return;
+        }
+
+        QTextStream stream(&file);
+        pushSelectionInto(copyBytes, stream);
+        file.close();
+    }
+}
+
+void TraceBrowser::copySelectionSlot()
+{
+    copySelectionSlot(true);
+}
+
+void TraceBrowser::copySelectionToFileSlot()
+{
+    copySelectionToFileSlot(true);
+}
+
+void TraceBrowser::copySelectionNoBytesSlot()
+{
+    copySelectionSlot(false);
+}
+
+void TraceBrowser::copySelectionToFileNoBytesSlot()
+{
+    copySelectionToFileSlot(false);
+}
 
 void TraceBrowser::copyDisassemblySlot()
 {
@@ -971,6 +1160,50 @@ void TraceBrowser::copyDisassemblySlot()
     }
     clipboardHtml += QString("</div>");
     Bridge::CopyToClipboard(clipboard, clipboardHtml);
+}
+
+void TraceBrowser::copyRvaSlot()
+{
+    QString text;
+    for(unsigned long long i = getSelectionStart(); i <= getSelectionEnd(); i++)
+    {
+        duint cip = mTraceFile->Registers(i).regcontext.cip;
+        duint base = DbgFunctions()->ModBaseFromAddr(cip);
+        if(base)
+        {
+            if(i != getSelectionStart())
+                text += "\r\n";
+            text += ToHexString(cip - base);
+        }
+        else
+        {
+            SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
+            return;
+        }
+    }
+    Bridge::CopyToClipboard(text);
+}
+
+void TraceBrowser::copyFileOffsetSlot()
+{
+    QString text;
+    for(unsigned long long i = getSelectionStart(); i <= getSelectionEnd(); i++)
+    {
+        duint cip = mTraceFile->Registers(i).regcontext.cip;
+        cip = DbgFunctions()->VaToFileOffset(cip);
+        if(cip)
+        {
+            if(i != getSelectionStart())
+                text += "\r\n";
+            text += ToHexString(cip);
+        }
+        else
+        {
+            SimpleErrorBox(this, tr("Error!"), tr("Selection not in a file..."));
+            return;
+        }
+    }
+    Bridge::CopyToClipboard(text);
 }
 
 void TraceBrowser::setCommentSlot()

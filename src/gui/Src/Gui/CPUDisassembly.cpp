@@ -1461,11 +1461,14 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         duint cur_addr = rvaToVa(inst.rva);
         QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
-        for(int j = 0; j < inst.dump.size(); j++)
+        if(copyBytes)
         {
-            if(j)
-                bytes += " ";
-            bytes += ToByteString((unsigned char)(inst.dump.at(j)));
+            for(int j = 0; j < inst.dump.size(); j++)
+            {
+                if(j)
+                    bytes += " ";
+                bytes += ToByteString((unsigned char)(inst.dump.at(j)));
+            }
         }
         QString disassembly;
         QString htmlDisassembly;
@@ -2008,6 +2011,8 @@ void CPUDisassembly::downloadCurrentSymbolsSlot()
 
 void CPUDisassembly::ActionTraceRecordToggleRunTraceSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     if(DbgValFromString("tr.runtraceenabled()") == 1)
         DbgCmdExec("StopRunTrace");
     else
