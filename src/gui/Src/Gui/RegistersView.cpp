@@ -3068,7 +3068,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         return;
     QMenu wMenu(this);
     QMenu* followInDumpNMenu = nullptr;
-    const QAction* selectedAction;
+    const QAction* selectedAction = nullptr;
     switch(wSIMDRegDispMode)
     {
     case SIMD_REG_DISP_HEX:

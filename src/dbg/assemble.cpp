@@ -6,11 +6,11 @@
 
 #include "assemble.h"
 #include "memory.h"
-#include "XEDParse\XEDParse.h"
+#include "XEDParse/XEDParse.h"
 #include "value.h"
 #include "disasm_fast.h"
 #include "disasm_helper.h"
-#include "keystone\keystone.h"
+#include "keystone/keystone.h"
 #include "datainst_helper.h"
 #include "debugger.h"
 
