@@ -36,11 +36,9 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     mHighlightingMode = false;
     mPermanentHighlightingMode = false;
 
-    mMRUMenu = new QMenu(tr("Recent Files"), this);
     mMRUList = new MRUList(this, "Recent Trace Files");
     connect(mMRUList, SIGNAL(openFile(QString)), this, SLOT(openSlot(QString)));
     mMRUList->load();
-    updateMRUMenu();
 
     setupRightClickContextMenu();
 
@@ -438,8 +436,7 @@ void TraceBrowser::setupRightClickContextMenu()
     {
         if(mTraceFile == nullptr)
         {
-            for(auto i : mMRUMenu->actions())
-                menu->addAction(i);
+            mMRUList->appendMenu(menu);
             return true;
         }
         else
@@ -855,14 +852,6 @@ void TraceBrowser::updateColors()
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
 }
 
-void TraceBrowser::updateMRUMenu()
-{
-    QList<QAction*> list = mMRUMenu->actions();
-    for(int i = 1; i < list.length(); ++i)
-        mMRUMenu->removeAction(list.at(i));
-    mMRUList->appendMenu(mMRUMenu);
-}
-
 void TraceBrowser::openFileSlot()
 {
     BrowseDialog browse(this, tr("Open run trace file"), tr("Open trace file"), tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QApplication::applicationDirPath(), false);
@@ -873,6 +862,11 @@ void TraceBrowser::openFileSlot()
 
 void TraceBrowser::openSlot(const QString & fileName)
 {
+    if(mTraceFile != nullptr)
+    {
+        mTraceFile->Close();
+        delete mTraceFile;
+    }
     mTraceFile = new TraceFileReader(this);
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
     mFileName = fileName;
@@ -908,7 +902,6 @@ void TraceBrowser::closeFileSlot()
     mTraceFile->Close();
     delete mTraceFile;
     mTraceFile = nullptr;
-    updateMRUMenu();
     reloadData();
 }
 
@@ -931,7 +924,6 @@ void TraceBrowser::parseFinishedSlot()
             }
         setRowCount(mTraceFile->Length());
         mMRUList->addEntry(mFileName);
-        updateMRUMenu();
         mMRUList->save();
     }
     reloadData();

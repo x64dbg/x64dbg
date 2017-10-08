@@ -33,7 +33,6 @@ private:
     void makeVisible(duint index);
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel);
     QString getIndexText(duint index);
-    void updateMRUMenu();
     void pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream = nullptr);
     void copySelectionSlot(bool copyBytes);
     void copySelectionToFileSlot(bool copyBytes);
@@ -66,7 +65,6 @@ private:
     BreakpointMenu* mBreakpointMenu;
     MRUList* mMRUList;
     QString mFileName;
-    QMenu* mMRUMenu;
 
     QColor mBytesColor;
     QColor mBytesBackgroundColor;
