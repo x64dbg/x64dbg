@@ -47,7 +47,7 @@ if "%2"=="" (
 call setenv.bat coverity
 echo Building with Coverity
 cov-configure --msvc
-cov-build --dir cov-int --instrument build.bat %2%
+cov-build --dir cov-int --instrument build.bat %2
 goto :restorepath
 
 
@@ -58,8 +58,12 @@ if "%2"=="" (
 )
 
 echo Building with SonarQube
-build-wrapper --out-dir bw-output build.bat %2%
-sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=mrexodia-github -Dsonar.login=%SONARQUBE_TOKEN%
+build-wrapper --out-dir bw-output build.bat %2
+if not defined APPVEYOR_PULL_REQUEST_NUMBER (
+sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=mrexodia-github -Dsonar.login=%SONARQUBE_TOKEN% -Dsonar.exclusions=src/capstone_wrapper/**,src/dbg/btparser/**,src/gui_build/**
+) else (
+sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=mrexodia-github -Dsonar.login=%SONARQUBE_TOKEN% -Dsonar.exclusions=src/capstone_wrapper/**,src/dbg/btparser/**,src/gui_build/** -Dsonar.analysis.mode=preview -Dsonar.github.pullRequest=%APPVEYOR_PULL_REQUEST_NUMBER% -Dsonar.github.repository=https://github.com/x64dbg/x64dbg -Dsonar.github.oauth=%GITHUB_TOKEN%
+)
 
 
 :usage
