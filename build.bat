@@ -64,6 +64,7 @@ sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-
 ) else (
 sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=mrexodia-github -Dsonar.login=%SONARQUBE_TOKEN% -Dsonar.exclusions=src/capstone_wrapper/**,src/dbg/btparser/**,src/gui_build/** -Dsonar.analysis.mode=preview -Dsonar.github.pullRequest=%APPVEYOR_PULL_REQUEST_NUMBER% -Dsonar.github.repository=https://github.com/x64dbg/x64dbg -Dsonar.github.oauth=%GITHUB_TOKEN%
 )
+goto :restorepath
 
 
 :usage
