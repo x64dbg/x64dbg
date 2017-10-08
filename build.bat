@@ -59,7 +59,7 @@ if "%2"=="" (
 
 echo Building with SonarQube
 build-wrapper --out-dir bw-output build.bat %2%
-sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=x64dbg-github -Dsonar.login=%SONARQUBE_TOKEN%
+sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=mrexodia-github -Dsonar.login=%SONARQUBE_TOKEN%
 
 
 :usage
