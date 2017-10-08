@@ -79,7 +79,7 @@ bool cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         strcpy_s(argtype, argname);
         *argname = 0;
     }
-    _strlwr(argtype);
+    _strlwr_s(argtype);
     duint addr = 0;
     if(!valfromstring(argaddr, &addr))
     {
@@ -1340,16 +1340,16 @@ bool cbDebugSetBPGoto(int argc, char* argv[])
         return false;
     }
     char cmd[deflen];
-    _snprintf(cmd, sizeof(cmd), "SetBreakpointCondition %s, 0", argv[1]);
+    sprintf_s(cmd, "SetBreakpointCondition %s, 0", argv[1]);
     if(!cmddirectexec(cmd))
         return false;
-    _snprintf(cmd, sizeof(cmd), "SetBreakpointCommand %s, \"bpgoto(%s)\"", argv[1], argv[2]);
+    sprintf_s(cmd, "SetBreakpointCommand %s, \"bpgoto(%s)\"", argv[1], argv[2]);
     if(!cmddirectexec(cmd))
         return false;
-    _snprintf(cmd, sizeof(cmd), "SetBreakpointCommandCondition %s, 1", argv[1]);
+    sprintf_s(cmd, "SetBreakpointCommandCondition %s, 1", argv[1]);
     if(!cmddirectexec(cmd))
         return false;
-    _snprintf(cmd, sizeof(cmd), "SetBreakpointFastResume %s, 0", argv[1]);
+    sprintf_s(cmd, "SetBreakpointFastResume %s, 0", argv[1]);
     if(!cmddirectexec(cmd))
         return false;
     return true;

@@ -1940,9 +1940,9 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
     else if(strstr(string, "sub_") == string) //then come sub_ functions
     {
 #ifdef _WIN64
-        bool result = sscanf(string, "sub_%llX", value) == 1;
+        bool result = sscanf_s(string, "sub_%llX", value) == 1;
 #else //x86
-        bool result = sscanf(string, "sub_%X", value) == 1;
+        bool result = sscanf_s(string, "sub_%X", value) == 1;
 #endif //_WIN64
         duint start;
         return result && FunctionGet(*value, &start, nullptr) && *value == start;
@@ -2555,7 +2555,7 @@ bool valtostring(const char* string, duint value, bool silent)
         int len = (int)strlen(string);
         Memory<char*> regName(len + 1, "valtostring:regname");
         strcpy_s(regName(), len + 1, string);
-        _strlwr(regName());
+        _strlwr_s(regName(), regName.size());
         if(strstr(regName(), "ip"))
         {
             auto cip = GetContextDataEx(hActiveThread, UE_CIP);

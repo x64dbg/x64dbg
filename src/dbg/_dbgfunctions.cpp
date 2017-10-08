@@ -135,7 +135,7 @@ static bool _getcmdline(char* cmd_line, size_t* cbsize)
     if(!cmd_line && cbsize)
         *cbsize = strlen(cmdline) + sizeof(char);
     else if(cmd_line)
-        strcpy(cmd_line, cmdline);
+        memcpy(cmd_line, cmdline, strlen(cmdline) + 1);
     efree(cmdline, "_getcmdline:cmdline");
     return true;
 }

@@ -37,7 +37,7 @@ static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
     char newtext[MAX_SCRIPT_LINE_SIZE] = "";
     strcpy_s(newtext, StringUtils::Trim(text).c_str());
     if(!strstr(newtext, " "))
-        strcat(newtext, " ");
+        strcat_s(newtext, " ");
     if(!strncmp(newtext, "jmp ", 4) || !strncmp(newtext, "goto ", 5))
         return scriptjmp;
     else if(!strncmp(newtext, "jbe ", 4) || !strncmp(newtext, "ifbe ", 5) || !strncmp(newtext, "ifbeq ", 6) || !strncmp(newtext, "jle ", 4) || !strncmp(newtext, "ifle ", 5) || !strncmp(newtext, "ifleq ", 6))
@@ -133,7 +133,7 @@ static bool scriptcreatelinemap(const char* filename)
             linemap.push_back(entry);
         }
         else
-            j += sprintf(temp + j, "%c", filedata[i]);
+            j += sprintf_s(temp + j, sizeof(temp) - j, "%c", filedata[i]);
     }
     if(*temp)
     {
@@ -209,14 +209,14 @@ static bool scriptcreatelinemap(const char* filename)
         else if(cur.raw[rawlen - 1] == ':') //label
         {
             cur.type = linelabel;
-            sprintf(cur.u.label, "l %.*s", rawlen - 1, cur.raw); //create a fake command for formatting
+            sprintf_s(cur.u.label, "l %.*s", rawlen - 1, cur.raw); //create a fake command for formatting
             strcpy_s(cur.u.label, StringUtils::Trim(cur.u.label).c_str());
             strcpy_s(temp, cur.u.label + 2);
             strcpy_s(cur.u.label, temp); //remove fake command
             if(!*cur.u.label || !strcmp(cur.u.label, "\"\"")) //no label text
             {
                 char message[256] = "";
-                sprintf(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Empty label detected on line %d!")), i + 1);
+                sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Empty label detected on line %d!")), i + 1);
                 GuiScriptError(0, message);
                 std::vector<LINEMAPENTRY>().swap(linemap);
                 return false;
@@ -225,7 +225,7 @@ static bool scriptcreatelinemap(const char* filename)
             if(foundlabel) //label defined twice
             {
                 char message[256] = "";
-                sprintf(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Duplicate label \"%s\" detected on lines %d and %d!")), cur.u.label, foundlabel, i + 1);
+                sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Duplicate label \"%s\" detected on lines %d and %d!")), cur.u.label, foundlabel, i + 1);
                 GuiScriptError(0, message);
                 std::vector<LINEMAPENTRY>().swap(linemap);
                 return false;
@@ -253,7 +253,7 @@ static bool scriptcreatelinemap(const char* filename)
 
         //append the comment to the raw line again
         if(*line_comment)
-            sprintf(cur.raw + rawlen, "\1%s", line_comment);
+            sprintf_s(cur.raw + rawlen, sizeof(cur.raw) - rawlen, "\1%s", line_comment);
         linemap.at(i) = cur;
     }
     linemapsize = (int)linemap.size();
@@ -266,7 +266,7 @@ static bool scriptcreatelinemap(const char* filename)
             if(!labelline) //invalid branch label
             {
                 char message[256] = "";
-                sprintf(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid branch label \"%s\" detected on line %d!")), currentLine.u.branch.branchlabel, i + 1);
+                sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid branch label \"%s\" detected on line %d!")), currentLine.u.branch.branchlabel, i + 1);
                 GuiScriptError(0, message);
                 std::vector<LINEMAPENTRY>().swap(linemap);
                 return false;

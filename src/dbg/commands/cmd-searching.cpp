@@ -160,8 +160,8 @@ bool cbInstrFindAll(int argc, char* argv[])
             for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
-                    k += sprintf(msg + k, " ");
-                k += sprintf(msg + k, "%.2X", printData()[j]);
+                    k += sprintf_s(msg + k, sizeof(msg) - k, " ");
+                k += sprintf_s(msg + k, sizeof(msg) - k, "%.2X", printData()[j]);
             }
         }
         else
@@ -264,8 +264,8 @@ bool cbInstrFindAllMem(int argc, char* argv[])
             for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
-                    k += sprintf(msg + k, " ");
-                k += sprintf(msg + k, "%.2X", printData()[j]);
+                    k += sprintf_s(msg + k, sizeof(msg) - k, " ");
+                k += sprintf_s(msg + k, sizeof(msg) - k, "%.2X", printData()[j]);
             }
         }
         else

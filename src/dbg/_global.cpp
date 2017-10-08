@@ -189,36 +189,6 @@ bool scmp(const char* a, const char* b)
 }
 
 /**
-\brief Formats a string to hexadecimal format (removes all non-hex characters).
-\param [in,out] String to format.
-*/
-void formathex(char* string)
-{
-    int len = (int)strlen(string);
-    _strupr(string);
-    Memory<char*> new_string(len + 1, "formathex:new_string");
-    for(int i = 0, j = 0; i < len; i++)
-        if(isxdigit(string[i]))
-            j += sprintf(new_string() + j, "%c", string[i]);
-    strcpy_s(string, len + 1, new_string());
-}
-
-/**
-\brief Formats a string to decimal format (removed all non-numeric characters).
-\param [in,out] String to format.
-*/
-void formatdec(char* string)
-{
-    int len = (int)strlen(string);
-    _strupr(string);
-    Memory<char*> new_string(len + 1, "formatdec:new_string");
-    for(int i = 0, j = 0; i < len; i++)
-        if(isdigit(string[i]))
-            j += sprintf(new_string() + j, "%c", string[i]);
-    strcpy_s(string, len + 1, new_string());
-}
-
-/**
 \brief Queries if a given file exists.
 \param file Path to the file to check (UTF-8).
 \return true if the file exists on the hard drive.

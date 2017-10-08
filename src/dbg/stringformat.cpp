@@ -157,7 +157,7 @@ static unsigned int getArgNumType(const String & formatString, ValueType & type)
     String complexArgs;
     auto expression = getArgExpressionType(formatString, type, complexArgs);
     unsigned int argnum = 0;
-    if(!expression || sscanf(expression, "%u", &argnum) != 1)
+    if(!expression || sscanf_s(expression, "%u", &argnum) != 1)
         type = ValueType::Unknown;
     return argnum;
 }

@@ -1013,19 +1013,20 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         dbgclearignoredexceptions();
         if(BridgeSettingGet("Exceptions", "IgnoreRange", settingText.data()))
         {
-            auto entry = strtok(settingText.data(), ",");
+            char* context = nullptr;
+            auto entry = strtok_s(settingText.data(), ",", &context);
             while(entry)
             {
                 unsigned long start;
                 unsigned long end;
-                if(sscanf(entry, "%08X-%08X", &start, &end) == 2 && start <= end)
+                if(sscanf_s(entry, "%08X-%08X", &start, &end) == 2 && start <= end)
                 {
                     ExceptionRange range;
                     range.start = start;
                     range.end = end;
                     dbgaddignoredexception(range);
                 }
-                entry = strtok(nullptr, ",");
+                entry = strtok_s(nullptr, ",", &context);
             }
         }
 
