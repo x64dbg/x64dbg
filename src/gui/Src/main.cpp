@@ -1,4 +1,5 @@
 #include "main.h"
+#include "zydis_wrapper.h"
 #include "capstone_wrapper.h"
 #include "MainWindow.h"
 #include "Configuration.h"
@@ -107,6 +108,7 @@ int main(int argc, char* argv[])
     TLS_TranslatedStringMap = new std::map<DWORD, TranslatedStringStorage>();
 
     // initialize capstone
+    Zydis::GlobalInitialize();
     Capstone::GlobalInitialize();
 
     // load config file + set config font

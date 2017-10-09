@@ -27,7 +27,7 @@
 #include "taskthread.h"
 #include "animate.h"
 #include "simplescript.h"
-#include "capstone_wrapper.h"
+#include "zydis_wrapper.h"
 #include "cmd-watch-control.h"
 #include "filemap.h"
 #include "jit.h"
@@ -967,7 +967,7 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE, ULONG ActionCode, ULONG64
             suspress = true;
             zerobar = true;
         }
-        else if(sscanf(text, "%*s %d percent", &percent) == 1 || sscanf(text, "%d percent", &percent) == 1)
+        else if(sscanf_s(text, "%*s %d percent", &percent) == 1 || sscanf_s(text, "%d percent", &percent) == 1)
         {
             GuiSymbolSetProgress(percent);
             suspress = true;
@@ -1171,11 +1171,11 @@ void cbRtrStep()
 #endif //_WIN64
            )
     {
-        Capstone cp;
+        Zydis cp;
         unsigned char data[MAX_DISASM_BUFFER];
         memset(data, 0, sizeof(data));
         MemRead(cip, data, MAX_DISASM_BUFFER);
-        if(cp.Disassemble(cip, data) && cp.GetId() == X86_INS_RET)
+        if(cp.Disassemble(cip, data) && cp.IsRet())
             cbRtrFinalStep(true);
         else
             StepOver((void*)cbRtrStep);

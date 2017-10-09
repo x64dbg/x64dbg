@@ -73,3 +73,6 @@ src/build-*/
 !/hooks/AStyle.dll
 !/bin/x64dbg_shell_remove.reg
 !*.lib
+.scannerwork/
+bw-output/
+build-wrapper*

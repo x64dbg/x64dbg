@@ -150,9 +150,9 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
     if(!BridgeSettingGet(section, key, newvalue))
         return false;
 #ifdef _WIN64
-    int ret = sscanf(newvalue, "%llX", value);
+    int ret = sscanf_s(newvalue, "%llX", value);
 #else
-    int ret = sscanf(newvalue, "%X", value);
+    int ret = sscanf_s(newvalue, "%X", value);
 #endif //_WIN64
     if(ret)
         return true;

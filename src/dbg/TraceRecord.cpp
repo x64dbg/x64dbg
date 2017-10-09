@@ -1,5 +1,5 @@
 #include "TraceRecord.h"
-#include "capstone_wrapper.h"
+#include "zydis_wrapper.h"
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
@@ -700,11 +700,13 @@ void _dbg_dbgtraceexecute(duint CIP)
 {
     if(TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordType::TraceRecordNone)
     {
-        Capstone instruction;
         unsigned char data[MAX_DISASM_BUFFER];
         if(MemRead(CIP, data, MAX_DISASM_BUFFER))
         {
-            instruction.DisassembleSafe(CIP, data, MAX_DISASM_BUFFER);
+            TraceRecord.increaseInstructionCounter();
+            Zydis instruction;
+            instruction.Disassemble(CIP, buffer, MAX_DISASM_BUFFER);
+            TraceRecord.TraceExecute(CIP, instruction.Size());
             if(TraceRecord.isRunTraceEnabled())
             {
                 TraceRecord.TraceExecute(CIP, instruction.Size());

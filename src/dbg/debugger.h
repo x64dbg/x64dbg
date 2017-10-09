@@ -2,7 +2,7 @@
 #define _DEBUGGER_H
 
 #include "_global.h"
-#include "TitanEngine\TitanEngine.h"
+#include "TitanEngine/TitanEngine.h"
 #include "command.h"
 #include "breakpoint.h"
 #include "_plugins.h"

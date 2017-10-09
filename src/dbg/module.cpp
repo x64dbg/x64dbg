@@ -163,7 +163,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
 
         // Dir <- lowercase(file path)
         strcpy_s(dir, FullPath);
-        _strlwr(dir);
+        _strlwr_s(dir);
 
         // Find the last instance of a path delimiter (slash)
         char* fileStart = strrchr(dir, '\\');

@@ -20,6 +20,6 @@ unsigned json_int_t json_hex_value(const json_t* hex)
     hexvalue = json_string_value(hex);
     if(!hexvalue)
         return 0;
-    sscanf(hexvalue, "0x%llX", &ret);
+    sscanf_s(hexvalue, "0x%llX", &ret);
     return ret;
 }

@@ -2342,15 +2342,15 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         if(highlight)
         {
             const char* name = "";
-            switch(highlight & ~(Capstone::Implicit | Capstone::Explicit))
+            switch(highlight & ~(Zydis::RAIImplicit | Zydis::RAIExplicit))
             {
-            case Capstone::Read:
+            case Zydis::RAIRead:
                 name = "RegistersHighlightReadColor";
                 break;
-            case Capstone::Write:
+            case Zydis::RAIWrite:
                 name = "RegistersHighlightWriteColor";
                 break;
-            case Capstone::Read | Capstone::Write:
+            case Zydis::RAIRead | Zydis::RAIWrite:
                 name = "RegistersHighlightReadWriteColor";
                 break;
             }
@@ -3068,7 +3068,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         return;
     QMenu wMenu(this);
     QMenu* followInDumpNMenu = nullptr;
-    const QAction* selectedAction;
+    const QAction* selectedAction = nullptr;
     switch(wSIMDRegDispMode)
     {
     case SIMD_REG_DISP_HEX:

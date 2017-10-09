@@ -1,5 +1,5 @@
 #include "LocalVarsView.h"
-#include "capstone_wrapper.h"
+#include "zydis_wrapper.h"
 #include "CPUMultiDump.h"
 #include "MiscUtil.h"
 #include "WordEditDialog.h"
@@ -184,7 +184,7 @@ void LocalVarsView::updateSlot()
     {
         if(start != this->currentFunc) //needs analyzing
         {
-            Capstone dis;
+            Zydis dis;
             unsigned char* buffer = new unsigned char[end - start + 16];
             if(!DbgMemRead(start, buffer, end - start + 16)) //failed to read memory for analyzing
             {
@@ -210,18 +210,22 @@ void LocalVarsView::updateSlot()
                 }
                 for(int i = 0; i < dis.OpCount(); i++)
                 {
-                    if(dis[i].type != X86_OP_MEM)
+                    if(dis[i].type != ZYDIS_OPERAND_TYPE_MEMORY)
                         continue;
-                    if(dis[i].mem.base == X86_REG_INVALID) //mov eax, [10000000], global variable
+                    if(dis[i].mem.base == ZYDIS_REGISTER_NONE) //mov eax, [10000000], global variable
                         continue;
-                    if(dis[i].mem.index != X86_REG_INVALID) //mov eax, dword ptr ds:[ebp+ecx*4-10], indexed array
+                    if(dis[i].mem.index != ZYDIS_REGISTER_NONE) //mov eax, dword ptr ds:[ebp+ecx*4-10], indexed array
                         continue;
-                    const x86_reg registers[] =
+                    const ZydisRegister registers[] =
                     {
 #ifdef _WIN64
-                        X86_REG_RAX, X86_REG_RBX, X86_REG_RCX, X86_REG_RDX, X86_REG_RBP, X86_REG_RSP, X86_REG_RSI, X86_REG_RDI, X86_REG_R8, X86_REG_R9, X86_REG_R10, X86_REG_R11, X86_REG_R12, X86_REG_R13, X86_REG_R14, X86_REG_R15
+                        ZYDIS_REGISTER_RAX, ZYDIS_REGISTER_RBX, ZYDIS_REGISTER_RCX, ZYDIS_REGISTER_RDX,
+                        ZYDIS_REGISTER_RBP, ZYDIS_REGISTER_RSP, ZYDIS_REGISTER_RSI, ZYDIS_REGISTER_RDI,
+                        ZYDIS_REGISTER_R8, ZYDIS_REGISTER_R9, ZYDIS_REGISTER_R10, ZYDIS_REGISTER_R11,
+                        ZYDIS_REGISTER_R12, ZYDIS_REGISTER_R13, ZYDIS_REGISTER_R14, ZYDIS_REGISTER_R15
 #else //x86
-                        X86_REG_EAX, X86_REG_EBX, X86_REG_ECX, X86_REG_EDX, X86_REG_EBP, X86_REG_ESP, X86_REG_ESI, X86_REG_EDI
+                        ZYDIS_REGISTER_EAX, ZYDIS_REGISTER_EBX, ZYDIS_REGISTER_ECX, ZYDIS_REGISTER_EDX,
+                        ZYDIS_REGISTER_EBP, ZYDIS_REGISTER_ESP, ZYDIS_REGISTER_ESI, ZYDIS_REGISTER_EDI
 #endif //_WIN64
                     };
                     for(char j = 0; j < ArchValue(8, 16); j++)
@@ -229,7 +233,7 @@ void LocalVarsView::updateSlot()
                         if(!baseRegisters[j]->isChecked())
                             continue;
                         if(dis[i].mem.base == registers[j])
-                            usedOffsets[j].insert(dis[i].mem.disp);
+                            usedOffsets[j].insert(dis[i].mem.disp.value);
                     }
                 }
                 address += dis.Size();

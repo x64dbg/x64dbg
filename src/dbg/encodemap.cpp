@@ -1,7 +1,7 @@
 #include "encodemap.h"
 #include <unordered_map>
 #include "addrinfo.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 
 struct ENCODEMAP : AddrInfo
 {
@@ -248,7 +248,7 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
         memset(map.data + offset, (byte)enc_middle, size);
         if(IsCodeType(type) && size > 1)
         {
-            Capstone cp;
+            Zydis cp;
             Memory<unsigned char*> buffer(size);
             if(!MemRead(addr, buffer(), size))
                 return false;

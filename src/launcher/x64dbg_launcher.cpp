@@ -124,7 +124,7 @@ static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink
         if(SUCCEEDED(hRes))
         {
             TCHAR path[MAX_PATH + 1] = TEXT("");
-            _tmakepath(path, nullptr, GetDesktopPath(), szNameOfLink, TEXT("lnk"));
+            _tmakepath_s(path, nullptr, GetDesktopPath(), szNameOfLink, TEXT("lnk"));
             CComBSTR tmp(path);
             hRes = ppf->Save(tmp, TRUE);
         }
@@ -406,7 +406,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if(szIniPath[len] == TEXT('\\'))
         _tcscat_s(szIniPath, TEXT(".ini"));
     else
-        _tcscpy(&szIniPath[len], TEXT(".ini"));
+        _tcscpy_s(&szIniPath[len], _countof(szIniPath) - len, TEXT(".ini"));
     CreateUnicodeFile(szIniPath);
 
     //Load settings

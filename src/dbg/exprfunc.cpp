@@ -179,7 +179,7 @@ namespace Exprfunc
         unsigned char data[16];
         if(MemRead(addr, data, sizeof(data), nullptr, true))
         {
-            Capstone cp;
+            Zydis cp;
             if(cp.Disassemble(addr, data))
                 return cp.IsNop();
         }
@@ -191,7 +191,7 @@ namespace Exprfunc
         unsigned char data[16];
         if(MemRead(addr, data, sizeof(data), nullptr, true))
         {
-            Capstone cp;
+            Zydis cp;
             if(cp.Disassemble(addr, data))
                 return cp.IsUnusual();
         }
