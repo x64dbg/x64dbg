@@ -372,7 +372,7 @@ bool CapstoneTokenizer::tokenizePrefix()
         prefixText += "lock";
     else if(attr & ZYDIS_ATTRIB_HAS_REP)
         prefixText += "rep";
-    else if(attr & ZYDIS_ATTRIB_HAS_REPNE)
+    else if(attr & ZYDIS_ATTRIB_HAS_REPE)
         prefixText += "repe";
     else if(attr & ZYDIS_ATTRIB_HAS_REPNE)
         prefixText += "repne";
