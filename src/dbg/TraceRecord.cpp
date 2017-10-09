@@ -407,7 +407,7 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
         {
             DWORD written;
             WriteFile(rtFile, WriteBuffer, WriteBufferPtr - WriteBuffer, &written, NULL);
-            if(written < WriteBufferPtr - WriteBuffer) //Disk full?
+            if(written < DWORD(WriteBufferPtr - WriteBuffer)) //Disk full?
             {
                 CloseHandle(rtFile);
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace has stopped unexpectedly because WriteFile() failed. GetLastError()= %X .\r\n"), GetLastError());
