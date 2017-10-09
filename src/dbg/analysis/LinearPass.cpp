@@ -215,27 +215,30 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
                         block->SetFlag(BASIC_BLOCK_FLAG_ABSJMP);
 
                     // Figure out the operand type(s)
-                    const auto & operand = disasm[0];
-
-                    if(operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
+                    if(disasm.OpCount() > 0)
                     {
-                        // Branch target immediate
-                        block->Target = (duint)operand.imm.value.u;
-                    }
-                    else
-                    {
-                        // Indirects (no operand, register, or memory)
-                        block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
+                        const auto & operand = disasm[0];
 
-                        if(operand.type == ZYDIS_OPERAND_TYPE_MEMORY &&
-                                operand.mem.base == ZYDIS_REGISTER_RIP &&
-                                operand.mem.index == ZYDIS_REGISTER_NONE &&
-                                operand.mem.scale == 1)
+                        if(operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
                         {
-                            /*
-                            block->SetFlag(BASIC_BLOCK_FLAG_INDIRPTR);
-                            block->Target = (duint)operand.mem.disp;
-                            */
+                            // Branch target immediate
+                            block->Target = (duint)operand.imm.value.u;
+                        }
+                        else
+                        {
+                            // Indirects (no operand, register, or memory)
+                            block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
+
+                            if(operand.type == ZYDIS_OPERAND_TYPE_MEMORY &&
+                                    operand.mem.base == ZYDIS_REGISTER_RIP &&
+                                    operand.mem.index == ZYDIS_REGISTER_NONE &&
+                                    operand.mem.scale == 1)
+                            {
+                                /*
+                                block->SetFlag(BASIC_BLOCK_FLAG_INDIRPTR);
+                                block->Target = (duint)operand.mem.disp;
+                                */
+                            }
                         }
                     }
                 }

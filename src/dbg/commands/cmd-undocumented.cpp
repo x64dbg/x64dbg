@@ -335,10 +335,9 @@ bool cbInstrVisualize(int argc, char* argv[])
                 if(addr + _cp.Size() > maxaddr) //we went past the maximum allowed address
                     break;
 
-                const auto & operand = _cp[0];
-                if((_cp.IsJump() || _cp.IsLoop()) && operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
+                if((_cp.IsJump() || _cp.IsLoop()) && _cp.OpCount() && _cp[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
                 {
-                    duint dest = (duint)operand.imm.value.u;
+                    duint dest = (duint)_cp[0].imm.value.u;
 
                     if(dest >= maxaddr) //jump across function boundaries
                     {

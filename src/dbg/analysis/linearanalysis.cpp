@@ -86,7 +86,7 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
     if(mCp.Disassemble(start, translateAddr(start), MAX_DISASM_BUFFER))
     {
         //JMP [123456] ; import
-        if(mCp.IsJump() && mCp[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
+        if(mCp.IsJump() && mCp.OpCount() && mCp[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
             return 0;
     }
 
@@ -100,10 +100,9 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
             if(addr + mCp.Size() > maxaddr) //we went past the maximum allowed address
                 break;
 
-            const auto & op = mCp[0];
-            if((mCp.IsJump() || mCp.IsLoop()) && op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
+            if((mCp.IsJump() || mCp.IsLoop()) && mCp.OpCount() && mCp[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
             {
-                auto dest = duint(op.imm.value.u);
+                auto dest = duint(mCp[0].imm.value.u);
 
                 if(dest >= maxaddr) //jump across function boundaries
                 {
