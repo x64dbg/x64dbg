@@ -11,7 +11,6 @@ void disasmget(Zydis & cp, unsigned char* buffer, duint addr, DISASM_INSTR* inst
 void disasmget(Zydis & cp, duint addr, DISASM_INSTR* instr, bool getregs = true);
 void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs = true);
 void disasmget(duint addr, DISASM_INSTR* instr, bool getregs = true);
-void disasmget(Capstone & cp, DISASM_INSTR* instr); //TO DO
 bool disasmispossiblestring(duint addr, STRING_TYPE* type = nullptr);
 bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen);
 bool disasmgetstringatwrapper(duint addr, char* text, bool cache = true);
