@@ -803,7 +803,7 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
                 return 0;
             }
         });
-        if(cp[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
+        if(cp.OpCount() && cp[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
         {
 #ifdef _WIN64
             auto const tebseg = ZYDIS_REGISTER_GS;

@@ -419,7 +419,7 @@ bool CapstoneTokenizer::tokenizeMnemonic()
     else if(_cp.IsUnusual())
         _mnemonicType = TokenType::MnemonicUnusual;
 
-    return tokenizeMnemonic(_mnemonicType, mnemonic);;
+    return tokenizeMnemonic(_mnemonicType, mnemonic);
 }
 
 bool CapstoneTokenizer::tokenizeMnemonic(TokenType type, const QString & mnemonic)
