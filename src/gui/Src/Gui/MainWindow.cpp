@@ -305,6 +305,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionFunctions, SIGNAL(triggered()), this, SLOT(displayFunctions()));
     connect(ui->actionCallStack, SIGNAL(triggered()), this, SLOT(displayCallstack()));
     connect(ui->actionSEHChain, SIGNAL(triggered()), this, SLOT(displaySEHChain()));
+    connect(ui->actionTrace, SIGNAL(triggered()), this, SLOT(displayRunTrace()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
     connect(ui->actionReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(ui->actionBlog, SIGNAL(triggered()), this, SLOT(blog()));
@@ -1438,6 +1439,11 @@ void MainWindow::displayCallstack()
 void MainWindow::displaySEHChain()
 {
     showQWidgetTab(mSEHChainView);
+}
+
+void MainWindow::displayRunTrace()
+{
+    showQWidgetTab(mTraceBrowser);
 }
 
 void MainWindow::donate()

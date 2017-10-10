@@ -89,6 +89,7 @@ public slots:
     void displaySnowmanWidget();
     void displayVariables();
     void displayGraphWidget();
+    void displayRunTrace();
     void displayPreviousTab();
     void displayNextTab();
     void hideTab();

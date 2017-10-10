@@ -35,11 +35,6 @@ void BrowseDialog::on_browse_clicked()
 
 void BrowseDialog::on_ok_clicked()
 {
-    if(ui->lineEdit->text().contains(QChar('"')) || ui->lineEdit->text().contains(QChar('\'')))
-        SimpleErrorBox(this, tr("Error"), tr("Filename contains invalid character."));
-    else
-    {
-        path = ui->lineEdit->text();
-        accept();
-    }
+    path = ui->lineEdit->text();
+    accept();
 }
