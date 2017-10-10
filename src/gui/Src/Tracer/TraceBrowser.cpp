@@ -415,7 +415,7 @@ void TraceBrowser::prepareData()
 void TraceBrowser::setupRightClickContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
-    QAction* toggleRunTrace = makeAction(DIcon("trace.png"), tr("Start Run Trace"), SLOT(toggleRunTraceSlot()));
+    QAction* toggleRunTrace = makeShortcutAction(DIcon("trace.png"), tr("Start Run Trace"), SLOT(toggleRunTraceSlot()), "ActionToggleRunTrace");
     mMenuBuilder->addAction(toggleRunTrace, [toggleRunTrace](QMenu*)
     {
         if(!DbgIsDebugging())

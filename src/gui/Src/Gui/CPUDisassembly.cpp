@@ -384,7 +384,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     QAction* traceRecordEnableBit = makeAction(DIcon("bit.png"), tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
     QAction* traceRecordEnableByte = makeAction(DIcon("byte.png"), tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
     QAction* traceRecordEnableWord = makeAction(DIcon("word.png"), tr("Word"), SLOT(ActionTraceRecordWordSlot()));
-    QAction* traceRecordToggleRunTrace = makeAction(tr("Start Run Trace"), SLOT(ActionTraceRecordToggleRunTraceSlot()));
+    QAction* traceRecordToggleRunTrace = makeShortcutAction(tr("Start Run Trace"), SLOT(ActionTraceRecordToggleRunTraceSlot()), "ActionToggleRunTrace");
     mMenuBuilder->addMenu(makeMenu(DIcon("trace.png"), tr("Trace record")), [ = ](QMenu * menu)
     {
         if(DbgFunctions()->GetTraceRecordType(rvaToVa(getInitialSelection())) == TRACERECORDTYPE::TraceRecordNone)
