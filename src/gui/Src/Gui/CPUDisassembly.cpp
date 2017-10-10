@@ -2025,10 +2025,10 @@ void CPUDisassembly::ActionTraceRecordToggleRunTraceSlot()
         {
             defaultFileName = QString::fromUtf8(moduleName);
         }
-        defaultFileName += "-" + QLocale(QString(currentLocale)).toString(currentTime.date()) + "-" + currentTime.time().toString("hh-mm-ss") + ArchValue(".trace32", ".trace64");
+        defaultFileName += "-" + QLocale(QString(currentLocale)).toString(currentTime.date()) + " " + currentTime.time().toString("hh-mm-ss") + ArchValue(".trace32", ".trace64");
         BrowseDialog browse(this, tr("Select stored file"), tr("Store run trace to the following file"),
                             tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QCoreApplication::applicationDirPath() + QDir::separator() + defaultFileName, true);
         if(browse.exec() == QDialog::Accepted)
-            DbgCmdExec(QString("StartRunTrace %1").arg(browse.path).toUtf8().constData());
+            DbgCmdExec(QString("StartRunTrace \"%1\"").arg(browse.path).toUtf8().constData());
     }
 }

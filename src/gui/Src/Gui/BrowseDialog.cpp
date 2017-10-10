@@ -1,5 +1,6 @@
 #include "BrowseDialog.h"
 #include "ui_BrowseDialog.h"
+#include "MiscUtil.h"
 #include <QFileDialog>
 #include <Configuration.h>
 
@@ -28,13 +29,17 @@ void BrowseDialog::on_browse_clicked()
         file = QFileDialog::getSaveFileName(this, ui->label->text(), ui->lineEdit->text(), mFilter);
     else
         file = QFileDialog::getOpenFileName(this, ui->label->text(), ui->lineEdit->text(), mFilter);
-    file = QDir::toNativeSeparators(file);
     if(file.size() != 0)
-        ui->lineEdit->setText(file);
+        ui->lineEdit->setText(QDir::toNativeSeparators(file));
 }
 
 void BrowseDialog::on_ok_clicked()
 {
-    path = ui->lineEdit->text();
-    accept();
+    if(ui->lineEdit->text().contains(QChar('"')) || ui->lineEdit->text().contains(QChar('\'')))
+        SimpleErrorBox(this, tr("Error"), tr("Filename contains invalid character."));
+    else
+    {
+        path = ui->lineEdit->text();
+        accept();
+    }
 }
