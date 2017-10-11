@@ -372,7 +372,7 @@ bool CapstoneTokenizer::tokenizePrefix()
         prefixText += "lock";
     else if(attr & ZYDIS_ATTRIB_HAS_REP)
         prefixText += "rep";
-    else if(attr & ZYDIS_ATTRIB_HAS_REPNE)
+    else if(attr & ZYDIS_ATTRIB_HAS_REPE)
         prefixText += "repe";
     else if(attr & ZYDIS_ATTRIB_HAS_REPNE)
         prefixText += "repne";
@@ -419,7 +419,7 @@ bool CapstoneTokenizer::tokenizeMnemonic()
     else if(_cp.IsUnusual())
         _mnemonicType = TokenType::MnemonicUnusual;
 
-    return tokenizeMnemonic(_mnemonicType, mnemonic);;
+    return tokenizeMnemonic(_mnemonicType, mnemonic);
 }
 
 bool CapstoneTokenizer::tokenizeMnemonic(TokenType type, const QString & mnemonic)

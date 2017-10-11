@@ -124,7 +124,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
                     node.brfalse = node.end + mCp.Size();
 
                 //consider register/memory branches as terminal nodes
-                if(mCp[0].type != ZYDIS_OPERAND_TYPE_IMMEDIATE)
+                if(mCp.OpCount() && mCp[0].type != ZYDIS_OPERAND_TYPE_IMMEDIATE)
                 {
                     //jmp ptr [index * sizeof(duint) + switchTable]
                     if(mCp[0].type == ZYDIS_OPERAND_TYPE_MEMORY && mCp[0].mem.base == ZYDIS_REGISTER_NONE && mCp[0].mem.index != ZYDIS_REGISTER_NONE

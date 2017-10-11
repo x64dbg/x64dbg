@@ -78,7 +78,7 @@ public:
 
         // Semantic groups (behaves like XX).
         BTCallSem      = BTCall | BTFarCall | BTSyscall | BTInt,
-        BTRetSem       = BTRet | BTSysret | BTIret | BTFarRet| BTRsm,
+        BTRetSem       = BTRet | BTSysret | BTIret | BTFarRet | BTRsm,
         BTCondJmpSem   = BTCondJmp | BTLoop | BTXbegin,
         BTUncondJmpSem = BTUncondJmp | BTFarJmp | BTXabort,
 
