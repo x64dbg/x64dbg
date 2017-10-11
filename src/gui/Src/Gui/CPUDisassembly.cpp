@@ -1167,7 +1167,7 @@ void CPUDisassembly::findCallsSlot()
     {
         duint start, end;
         if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
-            DbgCmdExec(QString("modcallfind %1, %2, 0").arg(addrText).arg(ToPtrString(start)).arg(ToPtrString(end - start)).toUtf8().constData());
+            DbgCmdExec(QString("modcallfind %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)).toUtf8().constData());
     }
     emit displayReferencesWidget();
 }

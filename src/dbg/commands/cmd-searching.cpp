@@ -545,7 +545,7 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
     else
         size = ModSizeFromAddr(base);
     if(!base || !size)
-        __debugbreak();
+        return false; //__debugbreak
     if(basicinfo->call) //we are looking for calls
     {
         if(basicinfo->addr && MemIsValidReadPtr(basicinfo->addr, true))
