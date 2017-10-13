@@ -60,7 +60,7 @@ void fillbasicinfo(Zydis* cp, BASIC_INSTRUCTION_INFO* basicinfo, bool instrText)
             else
             {
                 basicinfo->type |= TYPE_VALUE;
-                basicinfo->value.size = VALUE_SIZE(op.size);
+                basicinfo->value.size = VALUE_SIZE(op.size / 8);
                 basicinfo->value.value = duint(op.imm.value.u);
             }
         }
@@ -71,7 +71,7 @@ void fillbasicinfo(Zydis* cp, BASIC_INSTRUCTION_INFO* basicinfo, bool instrText)
             const auto & mem = op.mem;
             if(instrText)
                 strcpy_s(basicinfo->memory.mnemonic, cp->OperandText(i).c_str());
-            basicinfo->memory.size = MEMORY_SIZE(op.size);
+            basicinfo->memory.size = MEMORY_SIZE(op.size / 8);
             if(op.mem.base == ZYDIS_REGISTER_RIP) //rip-relative
             {
                 basicinfo->memory.value = ULONG_PTR(cp->Address() + op.mem.disp.value + basicinfo->size);

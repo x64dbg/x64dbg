@@ -263,36 +263,38 @@ void AdvancedAnalysis::writeDataXrefs()
                     //Todo: Analyze op type and set correct type
                     if(op.type == ZYDIS_OPERAND_TYPE_MEMORY)
                     {
-                        duint datasize = op.size;
+                        duint datasize = op.size / 8;
                         duint size = datasize;
                         duint offset = xref.addr - mBase;
                         switch(op.size)
                         {
-                        case 1:
+                        case 8:
                             type = enc_byte;
                             break;
-                        case 2:
+                        case 16:
                             type = enc_word;
                             break;
-                        case 4:
+                        case 32:
                             type = isfloat ? enc_real4 : enc_dword;
                             break;
-                        case 6:
+                        case 48:
                             type = enc_fword;
                             break;
-                        case 8:
+                        case 64:
                             type = isfloat ? enc_real8 : enc_qword;
                             break;
-                        case 10:
+                        case 80:
                             type = isfloat ? enc_real10 : enc_tbyte;
                             break;
-                        case 16:
+                        case 128:
                             type = enc_oword;
                             break;
-                        case 32:
+                        case 256:
                             type = enc_ymmword;
                             break;
-                            //case 64: type = enc_zmmword; break;
+                        //case 64: type = enc_zmmword; break;
+                        default:
+                            __debugbreak();
                         }
                         if(datasize == 1)
                         {
