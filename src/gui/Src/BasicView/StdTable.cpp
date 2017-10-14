@@ -148,39 +148,51 @@ void StdTable::keyPressEvent(QKeyEvent* event)
         switch(key)
         {
         case Qt::Key_Up:
-            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier)
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier) //Shift+Up -> expand selection upwards
             {
                 expandUp();
             }
-            else
+            else //Up -> select previous
             {
                 selectPrevious();
             }
             break;
+
         case Qt::Key_Down:
-            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier)
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier) //Shift+Down -> expand selection downwards
             {
                 expandDown();
             }
-            else
+            else //Down -> select next
             {
                 selectNext();
             }
             break;
+
         case Qt::Key_Home:
-            if(modifiers == Qt::ControlModifier)
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier) //Shift+Home -> expand selection to top
+            {
+                expandTop();
+            }
+            else if(modifiers == Qt::NoModifier) //Home -> select first line
             {
                 selectStart();
             }
             break;
+
         case Qt::Key_End:
-            if(modifiers == Qt::ControlModifier)
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier) //Shift+End -> expand selection to bottom
+            {
+                expandBottom();
+            }
+            else if(modifiers == Qt::NoModifier) //End -> select last line
             {
                 selectEnd();
             }
             break;
+
         case Qt::Key_A:
-            if(mIsMultiSelectionAllowed && modifiers == Qt::ControlModifier)
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ControlModifier) //Ctrl+A -> select all
             {
                 selectAll();
             }
@@ -281,6 +293,23 @@ void StdTable::expandDown()
 
 
         emit selectionChangedSignal(wRowIndex);
+    }
+}
+
+void StdTable::expandTop()
+{
+    if(getRowCount() > 0)
+    {
+        expandSelectionUpTo(0);
+    }
+}
+
+void StdTable::expandBottom()
+{
+    int endIndex = getRowCount() - 1;
+    if(endIndex >= 0)
+    {
+        expandSelectionUpTo(endIndex);
     }
 }
 

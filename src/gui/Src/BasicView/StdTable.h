@@ -24,6 +24,8 @@ public:
     void expandSelectionUpTo(int to);
     void expandUp();
     void expandDown();
+    void expandTop();
+    void expandBottom();
     void setSingleSelection(int index);
     int getInitialSelection();
     QList<int> getSelection();
