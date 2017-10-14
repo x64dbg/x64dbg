@@ -168,13 +168,21 @@ void StdTable::keyPressEvent(QKeyEvent* event)
             }
             break;
         case Qt::Key_Home:
-            if(modifiers == Qt::ControlModifier)
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier)
+            {
+                expandTop();
+            }
+            else
             {
                 selectStart();
             }
             break;
         case Qt::Key_End:
-            if(modifiers == Qt::ControlModifier)
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier)
+            {
+                expandBottom();
+            }
+            else
             {
                 selectEnd();
             }
@@ -270,7 +278,6 @@ void StdTable::expandDown()
             mSelection.fromIndex = mSelection.fromIndex;
             mSelection.firstSelectedIndex = wRowIndex;
             mSelection.toIndex = wRowIndex;
-
         }
         else
         {
@@ -279,8 +286,24 @@ void StdTable::expandDown()
             mSelection.toIndex =  mSelection.toIndex ;
         }
 
-
         emit selectionChangedSignal(wRowIndex);
+    }
+}
+
+void StdTable::expandTop()
+{
+    if(getRowCount() > 0)
+    {
+        expandSelectionUpTo(0);
+    }
+}
+
+void StdTable::expandBottom()
+{
+    int endIndex = getRowCount() - 1;
+    if(endIndex >= 0)
+    {
+        expandSelectionUpTo(endIndex);
     }
 }
 
