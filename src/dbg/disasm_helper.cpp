@@ -145,15 +145,9 @@ static void HandleCapstoneOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool
             arg->constant = cp.Address() + duint(mem.disp.value) + cp.Size();
         else
             arg->constant = duint(mem.disp.value);
-#ifdef _WIN64
-        if(mem.segment == ZYDIS_REGISTER_GS)
+        if(mem.segment == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS))
         {
-            arg->segment = SEG_GS;
-#else //x86
-        if(mem.segment == ZYDIS_REGISTER_FS)
-        {
-            arg->segment = SEG_FS;
-#endif
+            arg->segment = ArchValue(SEG_FS, SEG_GS);
             value += ThreadGetLocalBase(ThreadGetId(hActiveThread));
         }
         arg->value = value;
@@ -161,19 +155,24 @@ static void HandleCapstoneOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool
         {
             switch(op.size)
             {
-            case 1:
+            case 8:
                 MemRead(value, (unsigned char*)&arg->memvalue, 1);
                 break;
-            case 2:
+            case 16:
                 MemRead(value, (unsigned char*)&arg->memvalue, 2);
                 break;
-            case 4:
+            case 32:
                 MemRead(value, (unsigned char*)&arg->memvalue, 4);
                 break;
 #ifdef _WIN64
-            case 8:
+            case 48:
+                MemRead(value, (unsigned char*)&arg->memvalue, 6);
+                break;
+            case 64:
                 MemRead(value, (unsigned char*)&arg->memvalue, 8);
                 break;
+            default:
+                //TODO: not supported
 #endif //_WIN64
             }
         }

@@ -7,7 +7,7 @@ StdTable::StdTable(QWidget* parent) : AbstractTableView(parent)
     memset(&data, 0, sizeof(SelectionData_t));
     mSelection = data;
 
-    mIsMultiSelctionAllowed = false;
+    mIsMultiSelectionAllowed = false;
     mIsColumnSortingAllowed = true;
 
     mData.clear();
@@ -46,7 +46,7 @@ void StdTable::mouseMoveEvent(QMouseEvent* event)
 
             if(wRowIndex < getRowCount())
             {
-                if(mIsMultiSelctionAllowed)
+                if(mIsMultiSelectionAllowed)
                     expandSelectionUpTo(wRowIndex);
                 else
                     setSingleSelection(wRowIndex);
@@ -84,7 +84,7 @@ void StdTable::mousePressEvent(QMouseEvent* event)
 
                 if(wRowIndex < getRowCount())
                 {
-                    if(mIsMultiSelctionAllowed && (event->modifiers() & Qt::ShiftModifier))
+                    if(mIsMultiSelectionAllowed && (event->modifiers() & Qt::ShiftModifier))
                         expandSelectionUpTo(wRowIndex);
                     else
                         setSingleSelection(wRowIndex);
@@ -134,16 +134,58 @@ void StdTable::keyPressEvent(QKeyEvent* event)
 {
     emit keyPressedSignal(event);
     int key = event->key();
+    Qt::KeyboardModifiers modifiers = event->modifiers();
 
-    if(key == Qt::Key_Up || key == Qt::Key_Down)
+    if(key == Qt::Key_Up ||
+            key == Qt::Key_Down ||
+            key == Qt::Key_Home ||
+            key == Qt::Key_End ||
+            key == Qt::Key_A)
     {
         dsint wBotIndex = getTableOffset();
         dsint wTopIndex = wBotIndex + getNbrOfLineToPrint() - 1;
 
-        if(key == Qt::Key_Up)
-            selectPrevious();
-        else
-            selectNext();
+        switch(key)
+        {
+        case Qt::Key_Up:
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier)
+            {
+                expandUp();
+            }
+            else
+            {
+                selectPrevious();
+            }
+            break;
+        case Qt::Key_Down:
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier)
+            {
+                expandDown();
+            }
+            else
+            {
+                selectNext();
+            }
+            break;
+        case Qt::Key_Home:
+            if(modifiers == Qt::ControlModifier)
+            {
+                selectStart();
+            }
+            break;
+        case Qt::Key_End:
+            if(modifiers == Qt::ControlModifier)
+            {
+                selectEnd();
+            }
+            break;
+        case Qt::Key_A:
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ControlModifier)
+            {
+                selectAll();
+            }
+            break;
+        }
 
         if(getInitialSelection() < wBotIndex)
         {
@@ -164,7 +206,7 @@ void StdTable::keyPressEvent(QKeyEvent* event)
 
 void StdTable::enableMultiSelection(bool enabled)
 {
-    mIsMultiSelctionAllowed = enabled;
+    mIsMultiSelectionAllowed = enabled;
 }
 
 void StdTable::enableColumnSorting(bool enabled)
@@ -195,6 +237,53 @@ void StdTable::expandSelectionUpTo(int to)
     }
 }
 
+void StdTable::expandUp()
+{
+    int wRowIndex = mSelection.firstSelectedIndex - 1;
+    if(wRowIndex >= 0)
+    {
+        if(wRowIndex < mSelection.fromIndex)
+        {
+            mSelection.fromIndex = wRowIndex;
+            mSelection.firstSelectedIndex = wRowIndex;
+
+        }
+        else
+        {
+            mSelection.firstSelectedIndex = wRowIndex;
+            mSelection.toIndex = wRowIndex;
+        }
+
+        emit selectionChangedSignal(wRowIndex);
+    }
+}
+
+void StdTable::expandDown()
+{
+    int wRowIndex = mSelection.firstSelectedIndex + 1;
+    int endIndex = getRowCount() - 1;
+    if(wRowIndex <= endIndex)
+    {
+
+        if(wRowIndex > mSelection.toIndex)
+        {
+            mSelection.fromIndex = mSelection.fromIndex;
+            mSelection.firstSelectedIndex = wRowIndex;
+            mSelection.toIndex = wRowIndex;
+
+        }
+        else
+        {
+            mSelection.fromIndex = wRowIndex;
+            mSelection.firstSelectedIndex = wRowIndex;
+            mSelection.toIndex =  mSelection.toIndex ;
+        }
+
+
+        emit selectionChangedSignal(wRowIndex);
+    }
+}
+
 void StdTable::setSingleSelection(int index)
 {
     mSelection.firstSelectedIndex = index;
@@ -219,6 +308,23 @@ QList<int> StdTable::getSelection()
     return selection;
 }
 
+void StdTable::selectStart()
+{
+    if(getRowCount() > 0)
+    {
+        setSingleSelection(0);
+    }
+}
+
+void StdTable::selectEnd()
+{
+    int endIndex = getRowCount() - 1;
+    if(endIndex >= 0)
+    {
+        setSingleSelection(endIndex);
+    }
+}
+
 void StdTable::selectNext()
 {
     int wNext = getInitialSelection() + 1;
@@ -239,6 +345,18 @@ void StdTable::selectPrevious()
     wNext = wNext < 0  ? 0 : wNext;
 
     setSingleSelection(wNext);
+}
+
+void StdTable::selectAll()
+{
+    int index = 0;
+    int indexEnd = getRowCount() - 1;
+
+    mSelection.firstSelectedIndex = index;
+    mSelection.fromIndex = index;
+    mSelection.toIndex = indexEnd;
+
+    emit selectionChangedSignal(index);
 }
 
 bool StdTable::isSelected(int base, int offset)
