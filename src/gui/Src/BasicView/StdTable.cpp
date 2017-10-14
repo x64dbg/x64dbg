@@ -168,7 +168,7 @@ void StdTable::keyPressEvent(QKeyEvent* event)
             }
             break;
         case Qt::Key_Home:
-            if(modifiers == Qt::ShiftModifier)
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier)
             {
                 expandTop();
             }
@@ -178,7 +178,7 @@ void StdTable::keyPressEvent(QKeyEvent* event)
             }
             break;
         case Qt::Key_End:
-            if(modifiers == Qt::ShiftModifier)
+            if(mIsMultiSelectionAllowed && modifiers == Qt::ShiftModifier)
             {
                 expandBottom();
             }
