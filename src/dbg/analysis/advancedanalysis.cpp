@@ -292,7 +292,7 @@ void AdvancedAnalysis::writeDataXrefs()
                         case 256:
                             type = enc_ymmword;
                             break;
-                        //case 64: type = enc_zmmword; break;
+                        //case 512: type = enc_zmmword; break;
                         default:
                             __debugbreak();
                         }

@@ -165,12 +165,15 @@ static void HandleCapstoneOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool
                 MemRead(value, (unsigned char*)&arg->memvalue, 4);
                 break;
 #ifdef _WIN64
+            case 48:
+                MemRead(value, (unsigned char*)&arg->memvalue, 6);
+                break;
             case 64:
                 MemRead(value, (unsigned char*)&arg->memvalue, 8);
                 break;
-#endif //_WIN64
             default:
-                __debugbreak();
+                //TODO: not supported
+#endif //_WIN64
             }
         }
     }
