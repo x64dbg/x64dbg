@@ -173,6 +173,7 @@ static void HandleCapstoneOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool
                 break;
             default:
                 //TODO: not supported
+                break;
 #endif //_WIN64
             }
         }
