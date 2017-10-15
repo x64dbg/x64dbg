@@ -72,6 +72,7 @@ private slots:
     void on_chkPermanentHighlightingMode_toggled(bool checked);
     void on_chk0xPrefixValues_toggled(bool checked);
     void on_chkNoSourceLinesAutoComments_toggled(bool checked);
+    void on_spinMaximumModuleNameSize_valueChanged(int arg1);
     //Gui Tab
     void on_chkFpuRegistersLittleEndian_stateChanged(int arg1);
     void on_chkSaveColumnOrder_stateChanged(int arg1);
@@ -165,6 +166,7 @@ private:
         bool disasmPermanentHighlightingMode;
         bool disasm0xPrefixValues;
         bool disasmNoSourceLineAutoComments;
+        int disasmMaxModuleSize;
         //Gui Tab
         bool guiFpuRegistersLittleEndian;
         bool guiSaveColumnOrder;
