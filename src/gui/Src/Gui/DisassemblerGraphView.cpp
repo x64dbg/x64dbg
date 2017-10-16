@@ -1783,8 +1783,13 @@ void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
         DbgCmdExec(QString("graph dis.brtrue(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
     else if(key == Qt::Key_Right)
         DbgCmdExec(QString("graph dis.brfalse(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
-    if(key == Qt::Key_Return || key == Qt::Key_Enter)
+    else if(key == Qt::Key_Return || key == Qt::Key_Enter)
+    {
+        //Add address to history
+        if(!mHistoryLock)
+            mHistory.addVaToHistory(cur_instr);
         DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
+    }
 }
 
 void DisassemblerGraphView::followDisassemblerSlot()
