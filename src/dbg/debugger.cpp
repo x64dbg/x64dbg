@@ -86,6 +86,7 @@ bool bIgnoreInconsistentBreakpoints = false;
 bool bNoForegroundWindow = false;
 bool bVerboseExceptionLogging = true;
 bool bNoWow64SingleStepWorkaround = false;
+bool bTraceBrowserNeedsUpdate = false;
 duint DbgEvents = 0;
 duint maxSkipExceptionCount = 10000;
 HANDLE mProcHandle;
@@ -226,6 +227,11 @@ static DWORD WINAPI dumpRefreshThread(void* ptr)
             break;
         GuiUpdateDumpView();
         GuiUpdateWatchView();
+        if(bTraceBrowserNeedsUpdate)
+        {
+            bTraceBrowserNeedsUpdate = false;
+            GuiUpdateTraceBrowser();
+        }
         Sleep(400);
     }
     return 0;
@@ -371,6 +377,11 @@ bool dbgcmddel(const char* name)
 duint dbggetdbgevents()
 {
     return InterlockedExchange((volatile long*)&DbgEvents, 0);
+}
+
+void dbgtracebrowserneedsupdate()
+{
+    bTraceBrowserNeedsUpdate = true;
 }
 
 static DWORD WINAPI updateCallStackThread(duint ptr)
@@ -2506,11 +2517,6 @@ void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
     CloseHandle(CreateThread(0, 0, scriptThread, (LPVOID)cbScript, 0, 0));
 }
 
-duint dbggetdebuggedbase()
-{
-    return pDebuggedBase;
-}
-
 static void debugLoopFunction(void* lpParameter, bool attach)
 {
     //we are running
@@ -2712,6 +2718,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     ThreadClear();
     WatchClear();
     TraceRecord.clear();
+    _dbg_dbgenableRunTrace(false, nullptr); //Stop run trace
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Debugging stopped!"));

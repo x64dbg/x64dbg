@@ -1648,6 +1648,18 @@ BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command
     _gui_sendmessage(GUI_REF_ADDCOMMAND, (void*)title, (void*)command);
 }
 
+BRIDGE_IMPEXP void GuiUpdateTraceBrowser()
+{
+    CHECK_GUI_UPDATE_DISABLED
+    _gui_sendmessage(GUI_UPDATE_TRACE_BROWSER, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName)
+{
+    CHECK_GUI_UPDATE_DISABLED
+    _gui_sendmessage(GUI_OPEN_TRACE_FILE, (void*)fileName, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

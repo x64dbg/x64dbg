@@ -66,7 +66,6 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess = NULL);
 cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
-duint dbggetdebuggedbase();
 duint dbggetdbgevents();
 bool dbgsettracecondition(const String & expression, duint maxCount);
 bool dbgsettracelog(const String & expression, const String & text);
@@ -79,6 +78,7 @@ void dbgsetdebuggeeinitscript(const char* fileName);
 const char* dbggetdebuggeeinitscript();
 void dbgsetforeground();
 bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessId);
+void dbgtracebrowserneedsupdate();
 
 void cbStep();
 void cbRtrStep();

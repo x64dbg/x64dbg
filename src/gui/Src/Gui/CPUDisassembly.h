@@ -97,6 +97,7 @@ public slots:
     void ActionTraceRecordByteSlot();
     void ActionTraceRecordWordSlot();
     void ActionTraceRecordDisableSlot();
+    void ActionTraceRecordToggleRunTraceSlot();
     void displayWarningSlot(QString title, QString text);
     void labelHelpSlot();
     void analyzeSingleFunctionSlot();

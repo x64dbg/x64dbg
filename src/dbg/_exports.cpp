@@ -658,6 +658,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->regcontext.x87fpu.ControlWord);
     Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->regcontext.x87fpu.StatusWord);
     LASTERROR lastError;
+    memset(&lastError.name, 0, sizeof(lastError.name));
     lastError.code = ThreadGetLastError(ThreadGetId(hActiveThread));
     strncpy_s(lastError.name, ErrorCodeToName(lastError.code).c_str(), _TRUNCATE);
     regdump->lastError = lastError;

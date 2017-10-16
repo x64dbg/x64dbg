@@ -4,6 +4,7 @@
 #include <QDesktopServices>
 #include <QClipboard>
 #include "CPUDisassembly.h"
+#include "main.h"
 #include "CPUSideBar.h"
 #include "CPUWidget.h"
 #include "EncodeMap.h"
@@ -26,6 +27,7 @@
 #include "SnowmanView.h"
 #include "MemoryPage.h"
 #include "BreakpointMenu.h"
+#include "BrowseDialog.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -382,6 +384,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     QAction* traceRecordEnableBit = makeAction(DIcon("bit.png"), tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
     QAction* traceRecordEnableByte = makeAction(DIcon("byte.png"), tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
     QAction* traceRecordEnableWord = makeAction(DIcon("word.png"), tr("Word"), SLOT(ActionTraceRecordWordSlot()));
+    QAction* traceRecordToggleRunTrace = makeShortcutAction(tr("Start Run Trace"), SLOT(ActionTraceRecordToggleRunTraceSlot()), "ActionToggleRunTrace");
     mMenuBuilder->addMenu(makeMenu(DIcon("trace.png"), tr("Trace record")), [ = ](QMenu * menu)
     {
         if(DbgFunctions()->GetTraceRecordType(rvaToVa(getInitialSelection())) == TRACERECORDTYPE::TraceRecordNone)
@@ -392,6 +395,12 @@ void CPUDisassembly::setupRightClickContextMenu()
         }
         else
             menu->addAction(traceRecordDisable);
+        menu->addSeparator();
+        if(DbgValFromString("tr.runtraceenabled()") == 1)
+            traceRecordToggleRunTrace->setText(tr("Stop Run Trace"));
+        else
+            traceRecordToggleRunTrace->setText(tr("Start Run Trace"));
+        menu->addAction(traceRecordToggleRunTrace);
         return true;
     });
 
@@ -1452,11 +1461,14 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         duint cur_addr = rvaToVa(inst.rva);
         QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
-        for(int j = 0; j < inst.dump.size(); j++)
+        if(copyBytes)
         {
-            if(j)
-                bytes += " ";
-            bytes += ToByteString((unsigned char)(inst.dump.at(j)));
+            for(int j = 0; j < inst.dump.size(); j++)
+            {
+                if(j)
+                    bytes += " ";
+                bytes += ToByteString((unsigned char)(inst.dump.at(j)));
+            }
         }
         QString disassembly;
         QString htmlDisassembly;
@@ -1995,4 +2007,33 @@ void CPUDisassembly::downloadCurrentSymbolsSlot()
     char module[MAX_MODULE_SIZE] = "";
     if(DbgGetModuleAt(rvaToVa(getInitialSelection()), module))
         DbgCmdExec(QString("symdownload \"%0\"").arg(module).toUtf8().constData());
+}
+
+void CPUDisassembly::ActionTraceRecordToggleRunTraceSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    if(DbgValFromString("tr.runtraceenabled()") == 1)
+        DbgCmdExec("StopRunTrace");
+    else
+    {
+        QString defaultFileName;
+        char moduleName[MAX_MODULE_SIZE];
+        QDateTime currentTime = QDateTime::currentDateTime();
+        duint defaultModule = DbgValFromString("mod.main()");
+        if(DbgFunctions()->ModNameFromAddr(defaultModule, moduleName, false))
+        {
+            defaultFileName = QString::fromUtf8(moduleName);
+        }
+        defaultFileName += "-" + QLocale(QString(currentLocale)).toString(currentTime.date()) + " " + currentTime.time().toString("hh-mm-ss") + ArchValue(".trace32", ".trace64");
+        BrowseDialog browse(this, tr("Select stored file"), tr("Store run trace to the following file"),
+                            tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QCoreApplication::applicationDirPath() + QDir::separator() + "db" + QDir::separator() + defaultFileName, true);
+        if(browse.exec() == QDialog::Accepted)
+        {
+            if(browse.path.contains(QChar('"')) || browse.path.contains(QChar('\'')))
+                SimpleErrorBox(this, tr("Error"), tr("File name contains invalid character."));
+            else
+                DbgCmdExec(QString("StartRunTrace \"%1\"").arg(browse.path).toUtf8().constData());
+        }
+    }
 }

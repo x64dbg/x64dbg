@@ -40,7 +40,7 @@ void StdTable::mouseMoveEvent(QMouseEvent* event)
     {
         //qDebug() << "State = MultiRowsSelectionState";
 
-        if(y >= 0 && y <= this->getTableHeigth())
+        if(y >= 0 && y <= this->getTableHeight())
         {
             int wRowIndex = getTableOffset() + getIndexOffsetFromY(y);
 
@@ -60,7 +60,7 @@ void StdTable::mouseMoveEvent(QMouseEvent* event)
         {
             verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
         }
-        else if(y > getTableHeigth())
+        else if(y > getTableHeight())
         {
             verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
         }
