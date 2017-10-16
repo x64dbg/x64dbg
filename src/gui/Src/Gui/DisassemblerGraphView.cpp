@@ -141,7 +141,6 @@ duint DisassemblerGraphView::get_cursor_pos()
 
 void DisassemblerGraphView::set_cursor_pos(duint addr)
 {
-    Q_UNUSED(addr);
     if(!this->navigate(addr))
     {
         //TODO: show in hex editor?
@@ -720,6 +719,10 @@ void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
     }
     else
     {
+        //Add address to history
+        if(!mHistoryLock)
+            mHistory.addVaToHistory(addr);
+
         duint instr = this->getInstrForMouseEvent(event);
         DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)).toUtf8().constData());
     }
