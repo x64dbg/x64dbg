@@ -719,11 +719,12 @@ void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
     }
     else
     {
+        duint instr = this->getInstrForMouseEvent(event);
+
         //Add address to history
         if(!mHistoryLock)
-            mHistory.addVaToHistory(addr);
+            mHistory.addVaToHistory(instr);
 
-        duint instr = this->getInstrForMouseEvent(event);
         DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)).toUtf8().constData());
     }
 }
