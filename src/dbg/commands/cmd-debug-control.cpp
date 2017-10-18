@@ -380,6 +380,7 @@ bool cbDebugStepOut(int argc, char* argv[])
     if(!steprepeat) //nothing to be done
         return true;
     HistoryClear();
+    mRtrPreviousCSP = GetContextDataEx(hActiveThread, UE_CSP);
     StepOver((void*)cbRtrStep);
     dbgsetsteprepeat(false, steprepeat);
     return cbDebugRunInternal(1, argv);

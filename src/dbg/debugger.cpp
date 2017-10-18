@@ -91,6 +91,7 @@ duint DbgEvents = 0;
 duint maxSkipExceptionCount = 10000;
 HANDLE mProcHandle;
 HANDLE mForegroundHandle;
+duint mRtrPreviousCSP = 0;
 
 static duint dbgcleartracestate()
 {
@@ -245,6 +246,7 @@ void cbDebuggerPaused()
     // Clear tracing conditions
     dbgcleartracestate();
     dbgClearRtuBreakpoints();
+    mRtrPreviousCSP = 0;
     // Trace record is not handled by this function currently.
     // Signal thread switch warning
     if(settingboolget("Engine", "HardcoreThreadSwitchWarning"))
@@ -1160,30 +1162,36 @@ void cbRtrStep()
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     unsigned char ch = 0x90;
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     MemRead(cip, &ch, 1);
     if(bTraceRecordEnabledDuringTrace)
         _dbg_dbgtraceexecute(cip);
-    if(ch == 0xC3 || ch == 0xC2)
-        cbRtrFinalStep(true);
-    else if(ch == 0x26 || ch == 0x36 || ch == 0x2e || ch == 0x3e || (ch >= 0x64 && ch <= 0x67) || ch == 0xf2 || ch == 0xf3 //instruction prefixes
-#ifdef _WIN64
-            || (ch >= 0x40 && ch <= 0x4f)
-#endif //_WIN64
-           )
+    if(mRtrPreviousCSP <= csp) //"Run until return" should break only if RSP is bigger than or equal to current value
     {
-        Zydis cp;
-        unsigned char data[MAX_DISASM_BUFFER];
-        memset(data, 0, sizeof(data));
-        MemRead(cip, data, MAX_DISASM_BUFFER);
-        if(cp.Disassemble(cip, data) && cp.IsRet())
+        if(ch == 0xC3 || ch == 0xC2) //retn instruction
             cbRtrFinalStep(true);
+        else if(ch == 0x26 || ch == 0x36 || ch == 0x2e || ch == 0x3e || (ch >= 0x64 && ch <= 0x67) || ch == 0xf2 || ch == 0xf3 //instruction prefixes
+#ifdef _WIN64
+                || (ch >= 0x40 && ch <= 0x4f)
+#endif //_WIN64
+               )
+        {
+            Zydis cp;
+            unsigned char data[MAX_DISASM_BUFFER];
+            memset(data, 0, sizeof(data));
+            MemRead(cip, data, MAX_DISASM_BUFFER);
+            if(cp.Disassemble(cip, data) && cp.IsRet())
+                cbRtrFinalStep(true);
+            else
+                StepOver((void*)cbRtrStep);
+        }
         else
+        {
             StepOver((void*)cbRtrStep);
+        }
     }
     else
-    {
         StepOver((void*)cbRtrStep);
-    }
 }
 
 static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*callback)(), bool forceBreakTrace)

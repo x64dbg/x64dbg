@@ -125,5 +125,6 @@ extern bool bNoWow64SingleStepWorkaround;
 extern duint maxSkipExceptionCount;
 extern HANDLE mProcHandle;
 extern HANDLE mForegroundHandle;
+extern duint mRtrPreviousCSP;
 
 #endif // _DEBUGGER_H
