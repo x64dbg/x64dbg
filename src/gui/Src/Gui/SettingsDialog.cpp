@@ -72,6 +72,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmNoCurrentModuleText = false;
     settings.disasm0xPrefixValues = false;
     settings.disasmNoSourceLineAutoComments = false;
+    settings.disasmMaxModuleSize = -1;
     settings.guiNoForegroundWindow = true;
 
     //Events tab
@@ -200,6 +201,8 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "NoCurrentModuleText", &settings.disasmNoCurrentModuleText);
     GetSettingBool("Disassembler", "0xPrefixValues", &settings.disasm0xPrefixValues);
     GetSettingBool("Disassembler", "NoSourceLineAutoComments", &settings.disasmNoSourceLineAutoComments);
+    if(BridgeSettingGetUint("Disassembler", "MaxModuleSize", &cur))
+        settings.disasmMaxModuleSize = int(cur);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
@@ -210,6 +213,7 @@ void SettingsDialog::LoadSettings()
     ui->chkNoCurrentModuleText->setChecked(settings.disasmNoCurrentModuleText);
     ui->chk0xPrefixValues->setChecked(settings.disasm0xPrefixValues);
     ui->chkNoSourceLinesAutoComments->setChecked(settings.disasmNoSourceLineAutoComments);
+    ui->spinMaximumModuleNameSize->setValue(settings.disasmMaxModuleSize);
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
@@ -354,6 +358,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "NoCurrentModuleText", settings.disasmNoCurrentModuleText);
     BridgeSettingSetUint("Disassembler", "0xPrefixValues", settings.disasm0xPrefixValues);
     BridgeSettingSetUint("Disassembler", "NoSourceLineAutoComments", settings.disasmNoSourceLineAutoComments);
+    BridgeSettingSetUint("Disassembler", "MaxModuleSize", settings.disasmMaxModuleSize);
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
@@ -808,6 +813,11 @@ void SettingsDialog::on_chk0xPrefixValues_toggled(bool checked)
 void SettingsDialog::on_chkNoSourceLinesAutoComments_toggled(bool checked)
 {
     settings.disasmNoSourceLineAutoComments = checked;
+}
+
+void SettingsDialog::on_spinMaximumModuleNameSize_valueChanged(int arg1)
+{
+    settings.disasmMaxModuleSize = arg1;
 }
 
 void SettingsDialog::on_chkShowGraphRva_toggled(bool checked)
