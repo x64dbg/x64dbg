@@ -7,8 +7,8 @@ ZydisDecoder Zydis::mDecoder;
 ZydisFormatter Zydis::mFormatter;
 
 static ZydisStatus ZydisFormatterPrintDisplacementIntelCustom(const ZydisFormatter* formatter,
-        char** buffer, size_t bufferLen, ZydisDecodedInstruction* instruction,
-        ZydisDecodedOperand* operand)
+        char** buffer, size_t bufferLen, const ZydisDecodedInstruction* instruction,
+        const ZydisDecodedOperand* operand, void* userData)
 {
     if(!formatter || !buffer || !*buffer || (bufferLen <= 0) || !instruction || !operand)
     {
@@ -206,8 +206,9 @@ std::string Zydis::OperandText(int opindex) const
         &mFormatter,
         &bufPtr,
         sizeof(buf),
-        const_cast<ZydisDecodedInstruction*>(&mInstr),
-        const_cast<ZydisDecodedOperand*>(&op)
+        &mInstr,
+        &op,
+        nullptr
     );
 
     //Remove [] from memory operands
