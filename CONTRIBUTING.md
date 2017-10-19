@@ -49,6 +49,26 @@ Feature requests are often closed because they are out of scope. If you request 
 
 We understand that it can be disappointing to not get your feature implemented, but opening an issue is the best way to communicate it regardless.
 
+### Pull request guide
+
+Here is a little guide on how to do a clean pull request.
+
+1. First we need to [fork](https://help.github.com/articles/fork-a-repo/) the actual x64dbg repo on our github account.
+2. When the fork is finish, clone the repo: `git clone https://github.com/myname/x64dbg.git`.
+3. When pushing new features/bug/whatever to a github project the best practice is to create `branches`.
+The command `git checkout -b my-branch-name` will create a `branch` and automatically `checkout` it.
+4. Make all the change you want and when finishing it, use `git add myfiles` to add it to the repo.
+5. `Commit` your change. `git commit -m 'a nice commit comment'`. The change are applied to your local git repo.
+6. Push it to your `origin`. The `origin` is your repo which is hosted on github. `git push --set-upstream origin your-branch-name`.
+7. Sync with the `upstream` repo, the x64dbg real repo. `git remote add upstream https://github.com/x64dbg/x64dbg.git`, using `git remote -v` will show which origin/upstream are setup in the local repo.
+8. Sync your fork with the `upstream`, `git fetch upstream`. Now checkout in the master again `git checkout master` and merge the upstream `git merge upstream/master`.
+9. Time to create the pull request! Using the github ui, go to your account/repo, select the branch you already pushed, and click `Pull request`. Review your pull request and send it.
+
+Bonus:
+When you pull request get accepted, you can `fetch` and `merge` with your local and github repo. `git checkout master`, `git fetch upstream`, `git merge upstream/master`, and delete the branch you created `git push origin --delete my-branch-name`.
+
+Happy PRs !
+
 ### Write a blogpost
 
 The x64dbg blog is open to all contributors (foreign and domestic). We encourage anyone who has an interesting encounter with the x64dbg code base, or a use case to share it with the community. For a guideline on how/what to contribute see the [blog post](https://x64dbg.com/blog/2016/07/09/Looking-for-writers.html) about contributing to the blog. Don't worry about contributing complex posts, we welcome ALL experience levels to add content to the blog! 
