@@ -65,7 +65,7 @@ The command `git checkout -b my-branch-name` will create a `branch` and automati
 9. Time to create the pull request! Using the github ui, go to your account/repo, select the branch you already pushed, and click `Pull request`. Review your pull request and send it.
 
 Bonus:
-When you pull request get accepted, you can `fetch` and `merge` with your local and github repo. `git checkout master`, `git fetch upstream`, `git merge upstream/master`, and delete the branch you created `git push origin --delete my-branch-name`.
+When your pull request get accepted, you can `fetch` and `merge` with your local and github repo. `git checkout master`, `git fetch upstream`, `git merge upstream/master`, and delete the branch you created `git push origin --delete my-branch-name`.
 
 Happy PRs !
 
