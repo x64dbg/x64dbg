@@ -136,8 +136,11 @@ void RegistersView::InitMappings()
     offset++;
 
     mRegisterMapping.insert(LastError, "LastError");
-    mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 10, 20));
+    mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 11, 20));
     mMODIFYDISPLAY.insert(LastError);
+    mRegisterMapping.insert(LastStatus, "LastStatus");
+    mRegisterPlaces.insert(LastStatus, Register_Position(offset++, 0, 11, 20));
+    mMODIFYDISPLAY.insert(LastStatus);
 
     offset++;
 
@@ -1244,6 +1247,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
 #endif
     //registers that should not be changed
     mNoChange.insert(LastError);
+    mNoChange.insert(LastStatus);
 
     mNoChange.insert(GS);
     mUSHORTDISPLAY.insert(GS);
@@ -1619,6 +1623,9 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case LastError:
         //TODO: display help message of the specific error instead of this very generic message.
         return tr("The value of GetLastError(). This value is stored in the TEB.");
+    case LastStatus:
+        //TODO: display help message of the specific status instead of this very generic message.
+        return tr("The NTSTATUS in the LastStatusValue field of the TEB.");
 #ifdef _WIN64
     case GS:
         return tr("The TEB of the current thread can be accessed as an offset of segment register GS (x64).\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
@@ -2040,6 +2047,15 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, const char*
         else
             valueText = QString().sprintf("%08X", data->code);
         mRegisterPlaces[LastError].valuesize = valueText.length();
+    }
+    else if(reg == LastStatus)
+    {
+        LASTSTATUS* data = (LASTSTATUS*)value;
+        if(*data->name)
+            valueText = QString().sprintf("%08X (%s)", data->code, data->name);
+        else
+            valueText = QString().sprintf("%08X", data->code);
+        mRegisterPlaces[LastStatus].valuesize = valueText.length();
     }
     else
     {
@@ -2691,6 +2707,27 @@ void RegistersView::displayEditDialog()
         while(errorinput);
         setRegister(LastError, DbgValFromString(mLineEdit.editText.toUtf8().constData()));
     }
+    else if(mSelected == LastStatus)
+    {
+        bool statusinput = false;
+        LineEditDialog mLineEdit(this);
+        LASTSTATUS* status = (LASTSTATUS*)registerValue(&wRegDumpStruct, LastStatus);
+        mLineEdit.setText(QString::number(status->code, 16));
+        mLineEdit.setWindowTitle(tr("Set Last Status"));
+        mLineEdit.setCursorPosition(0);
+        do
+        {
+            statusinput = true;
+            mLineEdit.show();
+            mLineEdit.selectAllText();
+            if(mLineEdit.exec() != QDialog::Accepted)
+                return;
+            if(DbgIsValidExpression(mLineEdit.editText.toUtf8().constData()))
+                statusinput = false;
+        }
+        while(statusinput);
+        setRegister(LastStatus, DbgValFromString(mLineEdit.editText.toUtf8().constData()));
+    }
     else
     {
         WordEditDialog wEditDial(this);
@@ -2878,6 +2915,7 @@ void RegistersView::onCopyAllAction()
     appendRegister(text, REGISTER_NAME::DF, "DF : ", "DF : ");
     appendRegister(text, REGISTER_NAME::IF, "IF : ", "IF : ");
     appendRegister(text, REGISTER_NAME::LastError, "LastError : ", "LastError : ");
+    appendRegister(text, REGISTER_NAME::LastStatus, "LastStatus : ", "LastStatus : ");
     appendRegister(text, REGISTER_NAME::GS, "GS : ", "GS : ");
     appendRegister(text, REGISTER_NAME::ES, "ES : ", "ES : ");
     appendRegister(text, REGISTER_NAME::CS, "CS : ", "CS : ");
@@ -3280,7 +3318,9 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
     else if(mFPUYMM.contains(reg_name))
         size = 32;
     else if(reg_name == LastError)
-        return sizeof(DWORD);
+        size = sizeof(DWORD);
+    else if(reg_name == LastStatus)
+        size = sizeof(NTSTATUS);
     else
         size = 0;
 
@@ -3382,6 +3422,8 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
 
     case LastError:
         return (char*) &regd->lastError;
+    case LastStatus:
+        return (char*) &regd->lastStatus;
 
     case DR0:
         return (char*) &regd->regcontext.dr0;
