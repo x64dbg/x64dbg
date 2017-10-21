@@ -35,7 +35,7 @@ public:
         CIP,
         EFLAGS, CF, PF, AF, ZF, SF, TF, IF, DF, OF,
         GS, FS, ES, DS, CS, SS,
-        LastError,
+        LastError, LastStatus,
         DR0, DR1, DR2, DR3, DR6, DR7,
         // x87 stuff
         x87r0, x87r1, x87r2, x87r3, x87r4, x87r5, x87r6, x87r7,
