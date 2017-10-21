@@ -199,6 +199,8 @@ static bool isregister(const char* string)
 
     if(scmp(string, "lasterror"))
         return true;
+    if(scmp(string, "laststatus"))
+        return true;
 
     if(scmp(string, "gs"))
         return true;
@@ -711,6 +713,13 @@ duint getregister(int* size, const char* string)
         return error;
     }
 
+    if(scmp(string, "laststatus"))
+    {
+        duint status = 0;
+        MemReadUnsafe((duint)GetTEBLocation(hActiveThread) + ArchValue(0xBF4, 0x1250), &status, 4);
+        return status;
+    }
+
     if(size)
         *size = 2;
     if(scmp(string, "ax"))
@@ -1166,6 +1175,8 @@ bool setregister(const char* string, duint value)
 
     if(scmp(string, "lasterror"))
         return MemWrite((duint)GetTEBLocation(hActiveThread) + ArchValue(0x34, 0x68), &value, 4);
+    if(scmp(string, "laststatus"))
+        return MemWrite((duint)GetTEBLocation(hActiveThread) + ArchValue(0xBF4, 0x1250), &value, 4);
 
     if(scmp(string, "gs"))
         return SetContextDataEx(hActiveThread, UE_SEG_GS, value & 0xFFFF);
