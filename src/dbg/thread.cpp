@@ -129,6 +129,7 @@ void ThreadGetList(THREADLIST* List)
         List->list[index].SuspendCount = ThreadGetSuspendCount(threadHandle);
         List->list[index].Priority = ThreadGetPriority(threadHandle);
         List->list[index].LastError = ThreadGetLastErrorTEB(itr.second.ThreadLocalBase);
+        List->list[index].LastStatus = ThreadGetLastStatusTEB(itr.second.ThreadLocalBase);
         GetThreadTimes(threadHandle, &List->list[index].CreationTime, &threadExitTime, &List->list[index].KernelTime, &List->list[index].UserTime);
         List->list[index].Cycles = ThreadQueryCycleTime(threadHandle);
         index++;
@@ -225,6 +226,27 @@ DWORD ThreadGetLastError(DWORD ThreadId)
         return ThreadGetLastErrorTEB(threadList[ThreadId].ThreadLocalBase);
 
     ASSERT_ALWAYS("Trying to get last error of a thread that doesn't exist!");
+    return 0;
+}
+
+NTSTATUS ThreadGetLastStatusTEB(ULONG_PTR ThreadLocalBase)
+{
+    // Get the offset for the TEB::LastStatusValue and read it
+    NTSTATUS lastStatus = 0;
+    duint structOffset = ThreadLocalBase + offsetof(TEB, LastStatusValue);
+
+    MemReadUnsafe(structOffset, &lastStatus, sizeof(NTSTATUS));
+    return lastStatus;
+}
+
+NTSTATUS ThreadGetLastStatus(DWORD ThreadId)
+{
+    SHARED_ACQUIRE(LockThreads);
+
+    if(threadList.find(ThreadId) != threadList.end())
+        return ThreadGetLastStatusTEB(threadList[ThreadId].ThreadLocalBase);
+
+    ASSERT_ALWAYS("Trying to get last status of a thread that doesn't exist!");
     return 0;
 }
 

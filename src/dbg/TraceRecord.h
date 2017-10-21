@@ -87,8 +87,8 @@ private:
     {
         REGDUMP registers;
         // 172 qwords on x64, 216 dwords on x86. Almost no space left for AVX512
-        // strip off 128 bytes of lastError.name member.
-        duint regword[(sizeof(REGDUMP) - 128) / sizeof(duint)];
+        // strip off lastStatus and 128 bytes of lastError.name member.
+        duint regword[(FIELD_OFFSET(REGDUMP, lastError) + sizeof(DWORD)) / sizeof(duint)];
     } REGDUMPWORD;
 
     //Key := page base, value := trace record raw data
@@ -102,7 +102,7 @@ private:
     HANDLE rtFile;
 
     REGDUMPWORD rtOldContext;
-    bool rtOldContextChanged[(sizeof(REGDUMP) - 128) / sizeof(duint)];
+    bool rtOldContextChanged[(FIELD_OFFSET(REGDUMP, lastError) + sizeof(DWORD)) / sizeof(duint)];
     DWORD rtOldThreadId;
     bool rtNeedThreadId;
     duint rtOldMemory[32];
