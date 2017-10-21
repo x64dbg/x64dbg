@@ -468,7 +468,7 @@ void TraceBrowser::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("Index"), SLOT(copyIndexSlot())));
 
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembly"), SLOT(followDisassemblySlot()), "ActionFollowDisasm"), isValid);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("&Follow in Disassembler"), SLOT(followDisassemblySlot()), "ActionFollowDisasm"), isValid);
 
     mBreakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this, isValid]()
     {
