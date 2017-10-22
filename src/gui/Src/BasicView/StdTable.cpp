@@ -279,7 +279,6 @@ void StdTable::expandDown()
 
         if(wRowIndex > mSelection.toIndex)
         {
-            mSelection.fromIndex = mSelection.fromIndex;
             mSelection.firstSelectedIndex = wRowIndex;
             mSelection.toIndex = wRowIndex;
 
@@ -288,7 +287,6 @@ void StdTable::expandDown()
         {
             mSelection.fromIndex = wRowIndex;
             mSelection.firstSelectedIndex = wRowIndex;
-            mSelection.toIndex =  mSelection.toIndex ;
         }
 
 

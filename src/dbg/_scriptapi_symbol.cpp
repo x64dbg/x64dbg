@@ -8,7 +8,7 @@ struct cbSymbolEnumCtx
 {
     const SYMBOLMODULEINFO* module;
     std::vector<SymbolInfo>* symbols;
-} ;
+};
 
 static void cbSymbolEnum(SYMBOLINFO* info, void* user)
 {

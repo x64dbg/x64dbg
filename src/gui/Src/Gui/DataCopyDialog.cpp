@@ -101,7 +101,7 @@ QString formatLoop(const QVector<byte_t>* bytes, int itemsPerLine, QString(*form
 {
     QString data;
     int count = bytes->size() / sizeof(T);
-    for(int i = 0; i < count ; i++)
+    for(int i = 0; i < count; i++)
     {
         if(i)
         {
