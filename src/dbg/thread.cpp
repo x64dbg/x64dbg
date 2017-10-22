@@ -129,7 +129,6 @@ void ThreadGetList(THREADLIST* List)
         List->list[index].SuspendCount = ThreadGetSuspendCount(threadHandle);
         List->list[index].Priority = ThreadGetPriority(threadHandle);
         List->list[index].LastError = ThreadGetLastErrorTEB(itr.second.ThreadLocalBase);
-        List->list[index].LastStatus = ThreadGetLastStatusTEB(itr.second.ThreadLocalBase);
         GetThreadTimes(threadHandle, &List->list[index].CreationTime, &threadExitTime, &List->list[index].KernelTime, &List->list[index].UserTime);
         List->list[index].Cycles = ThreadQueryCycleTime(threadHandle);
         index++;
