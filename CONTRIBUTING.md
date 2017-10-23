@@ -33,6 +33,22 @@ As with any open source project, documentation is lacking and the code can seem 
 
 This is by no means an exhaustive list and we are still working on lowering the barrier for new contributors. The feedback of new contributors is vital to reaching this goal.
 
+#### Sending a pull request
+
+Here is a little guide on how to do a clean pull request for people who don't yet know how to use git. We recommend using [Git Extensions](http://gitextensions.github.io), but any git interface is fine.
+
+1. First we need to [fork](https://help.github.com/articles/fork-a-repo/) the actual x64dbg repo on our github account.
+2. When the fork is finished, clone the repo (`git clone https://github.com/myname/x64dbg.git`).
+3. When pushing new features/bug/whatever to a github project the best practice is to create branches. The command `git checkout -b my-branch-name` will automatically create a branch and check it out.
+4. Make all the changes you want and when finishing it, use `git add myfiles` to add it to the repo.
+5. Commit your change. `git commit -m 'a message about what you changed'`. The change are applied to your local git repo.
+6. Push it to your `origin`. The `origin` is your repo which is hosted on github. `git push --set-upstream origin your-branch-name`.
+7. Sync with the `upstream` repo, the real x64dbg repo. `git remote add upstream https://github.com/x64dbg/x64dbg.git`, using `git remote -v` will show which origin/upstream are setup in the local repo.
+8. Sync your fork with the `upstream`, `git fetch upstream`. Now checkout in the master again `git checkout master` and merge the upstream `git merge upstream/master`.
+9. Time to create the pull request! Using the github ui, go to your account/repo, select the branch you already pushed, and click `Pull request`. Review your pull request and send it.
+
+Happy PRs!
+
 ### Report bugs
 
 If you want to have the highest chance of getting your problem solved, you are going to have to put in some effort. The vital things are:
