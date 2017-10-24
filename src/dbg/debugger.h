@@ -79,6 +79,8 @@ const char* dbggetdebuggeeinitscript();
 void dbgsetforeground();
 bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessId);
 void dbgtracebrowserneedsupdate();
+bool dbgsetdllbreakpoint(const char* mod, DWORD type, bool singleshoot);
+bool dbgdeletedllbreakpoint(const char* mod, DWORD type);
 
 void cbStep();
 void cbRtrStep();
@@ -88,7 +90,6 @@ void cbMemoryBreakpoint(void* ExceptionAddress);
 void cbHardwareBreakpoint(void* ExceptionAddress);
 void cbUserBreakpoint();
 void cbDebugLoadLibBPX();
-void cbLibrarianBreakpoint(void* lpData);
 DWORD WINAPI threadDebugLoop(void* lpParameter);
 void cbTraceOverConditionalStep();
 void cbTraceIntoConditionalStep();

@@ -52,7 +52,6 @@ static bool isDetachedByUser = false;
 static bool bIsAttached = false;
 static bool bSkipExceptions = false;
 static duint skipExceptionCount = 0;
-static bool bBreakOnNextDll = false;
 static bool bFreezeStack = false;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static HANDLE hEvent = 0;
@@ -384,6 +383,39 @@ duint dbggetdbgevents()
 void dbgtracebrowserneedsupdate()
 {
     bTraceBrowserNeedsUpdate = true;
+}
+
+static std::unordered_map<std::string, std::pair<DWORD, bool>> dllBreakpoints;
+
+bool dbgsetdllbreakpoint(const char* mod, DWORD type, bool singleshoot)
+{
+    EXCLUSIVE_ACQUIRE(LockDllBreakpoints);
+    return dllBreakpoints.insert({ mod, { type, singleshoot } }).second;
+}
+
+bool dbgdeletedllbreakpoint(const char* mod, DWORD type)
+{
+    EXCLUSIVE_ACQUIRE(LockDllBreakpoints);
+    auto found = dllBreakpoints.find(mod);
+    if(found == dllBreakpoints.end())
+        return false;
+    dllBreakpoints.erase(found);
+    return true;
+}
+
+bool dbghandledllbreakpoint(const char* mod, bool loadDll)
+{
+    EXCLUSIVE_ACQUIRE(LockDllBreakpoints);
+    auto shouldBreak = false;
+    auto found = dllBreakpoints.find(mod);
+    if(found != dllBreakpoints.end())
+    {
+        if(found->second.first == UE_ON_LIB_ALL || found->second.first == (loadDll ? UE_ON_LIB_LOAD : UE_ON_LIB_UNLOAD))
+            shouldBreak = true;
+        if(found->second.second)
+            dllBreakpoints.erase(found);
+    }
+    return shouldBreak;
 }
 
 static DWORD WINAPI updateCallStackThread(duint ptr)
@@ -920,11 +952,6 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     wait(WAITID_RUN);
 }
 
-void cbLibrarianBreakpoint(void* lpData)
-{
-    bBreakOnNextDll = true;
-}
-
 static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE, ULONG ActionCode, ULONG64 CallbackData, ULONG64)
 {
     PIMAGEHLP_CBA_EVENT evt;
@@ -1060,8 +1087,7 @@ bool cbSetDLLBreakpoints(const BREAKPOINT* bp)
         return true;
     if(bp->type != BPDLL)
         return true;
-    dputs("debug:dll breakpoint in database\n");
-    LibrarianSetBreakPoint(bp->mod, bp->titantype, bp->singleshoot, (void*)cbLibrarianBreakpoint);
+    dbgsetdllbreakpoint(bp->mod, bp->titantype, bp->singleshoot);
     return true;
 }
 
@@ -1674,7 +1700,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         }
     }
 
-    if((bBreakOnNextDll || settingboolget("Events", "DllEntry")) && !bAlreadySetEntry)
+    auto breakOnDll = dbghandledllbreakpoint(modname, true);
+
+    if((breakOnDll || settingboolget("Events", "DllEntry")) && !bAlreadySetEntry)
     {
         auto entry = ModEntryFromAddr(duint(base));
         if(entry)
@@ -1722,9 +1750,8 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     callbackInfo.modname = modname;
     plugincbcall(CB_LOADDLL, &callbackInfo);
 
-    if(bBreakOnNextDll)
+    if(breakOnDll)
     {
-        bBreakOnNextDll = false;
         cbGenericBreakpoint(BPDLL, DLLDebugFileName);
     }
     else if(settingboolget("Events", "DllLoad"))
@@ -1756,9 +1783,8 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Unloaded: %p %s\n"), base, modname);
 
-    if(bBreakOnNextDll)
+    if(dbghandledllbreakpoint(modname, false))
     {
-        bBreakOnNextDll = false;
         cbGenericBreakpoint(BPDLL, modname);
     }
     else if(settingboolget("Events", "DllUnload"))
@@ -2534,7 +2560,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     //initialize variables
     bIsAttached = attach;
     dbgsetskipexceptions(false);
-    bBreakOnNextDll = false;
     bFreezeStack = false;
 
     //prepare attach/createprocess
@@ -2711,12 +2736,10 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
-    BpEnumAll([](const BREAKPOINT * bp) //RemoveAllBreakPoints doesn't remove librarian breakpoints
     {
-        if(bp->type == BPDLL)
-            LibrarianRemoveBreakPoint(bp->mod, bp->titantype);
-        return true;
-    });
+        EXCLUSIVE_ACQUIRE(LockDllBreakpoints);
+        dllBreakpoints.clear(); //RemoveAllBreakPoints doesn't remove librarian breakpoints
+    }
 
     //cleanup
     dbgcleartracestate();
