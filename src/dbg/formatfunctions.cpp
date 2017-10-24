@@ -2,6 +2,7 @@
 #include "threading.h"
 #include "value.h"
 #include "memory.h"
+#include "exception.h"
 
 std::unordered_map<String, FormatFunctions::Function> FormatFunctions::mFunctions;
 
@@ -12,18 +13,18 @@ void FormatFunctions::Init()
         duint size;
         if(argc < 2 || !valfromstring(argv[1], &size))
         {
-            strcpy_s(dest, destCount, "Invalid argument...");
+            strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid argument...")));
             return FORMAT_ERROR_MESSAGE;
         }
-        if(size > 1024 * 1024 * 10) //10mb max
+        if(size > 1024 * 1024 * 10) //10MB max
         {
-            strcpy_s(dest, destCount, "Too much data (10mb max)...");
+            strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Too much data (10MB max)...")));
             return FORMAT_ERROR_MESSAGE;
         }
         std::vector<unsigned char> data(size);
         if(!MemRead(addr, data.data(), data.size()))
         {
-            strcpy_s(dest, destCount, "Failed to read memory...");
+            strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed to read memory...")));
             return FORMAT_ERROR_MESSAGE;
         }
         auto result = StringUtils::ToHex(data.data(), data.size());
@@ -31,6 +32,48 @@ void FormatFunctions::Init()
             return FORMAT_BUFFER_TOO_SMALL;
         strcpy_s(dest, destCount, result.c_str());
         return FORMAT_SUCCESS;
+    });
+
+    Register("winerror", [](char* dest, size_t destCount, int argc, char* argv[], duint addr, void* userdata)
+    {
+        Memory<WCHAR*> helpMessage(destCount, "FormatFunctions.winerror(helpMessage)");
+        String errName = ErrorCodeToName(addr);
+        if(errName.size() == 0)
+            errName = StringUtils::sprintf("%p", addr);
+#ifdef _WIN64
+        if((addr >> 32) != 0)  //Data in high part: not an error code
+        {
+            if(destCount < errName.size() + 1)
+                return FORMAT_BUFFER_TOO_SMALL;
+            else
+            {
+                memcpy(dest, errName.c_str(), errName.size() + 1);
+                return FORMAT_SUCCESS;
+            }
+        }
+#endif //_WIN64
+        DWORD success = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, addr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), helpMessage(), destCount, NULL);
+        if(success > 0)
+        {
+            String UTF8ErrorMessage = StringUtils::Utf16ToUtf8(helpMessage());
+            if(destCount < errName.size() + 2 + UTF8ErrorMessage.size())
+                return FORMAT_BUFFER_TOO_SMALL;
+            else
+            {
+                sprintf_s(dest, destCount, "%s:%s", errName.c_str(), UTF8ErrorMessage.c_str());
+                return FORMAT_SUCCESS;
+            }
+        }
+        else
+        {
+            if(destCount < errName.size() + 1)
+                return FORMAT_BUFFER_TOO_SMALL;
+            else
+            {
+                memcpy(dest, errName.c_str(), errName.size() + 1);
+                return FORMAT_SUCCESS;
+            }
+        }
     });
 }
 

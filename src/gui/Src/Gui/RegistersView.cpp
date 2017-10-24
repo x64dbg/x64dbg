@@ -1621,8 +1621,13 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case MxCsr_RC:
         return tr("Bits 13 and 14 of the MXCSR register (the rounding control [RC] field) control how the results of SIMD floating-point instructions are rounded.");
     case LastError:
-        //TODO: display help message of the specific error instead of this very generic message.
-        return tr("The value of GetLastError(). This value is stored in the TEB.");
+        char dat[1024];
+        LASTERROR* error;
+        error = (LASTERROR*)registerValue(&wRegDumpStruct, LastError);
+        if(DbgFunctions()->StringFormatInline(QString().sprintf("{winerror@%X}", error->code).toUtf8().constData(), sizeof(dat), dat) == 1) //FORMAT_SUCCESS
+            return dat;
+        else
+            return tr("The value of GetLastError(). This value is stored in the TEB.");
     case LastStatus:
         //TODO: display help message of the specific status instead of this very generic message.
         return tr("The NTSTATUS in the LastStatusValue field of the TEB.");
