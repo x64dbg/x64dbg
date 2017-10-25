@@ -201,6 +201,7 @@ private:
     bool tokenizeRegOperand(const ZydisDecodedOperand & op);
     bool tokenizeImmOperand(const ZydisDecodedOperand & op);
     bool tokenizeMemOperand(const ZydisDecodedOperand & op);
+    bool tokenizePtrOperand(const ZydisDecodedOperand & op);
     bool tokenizeInvalidOperand(const ZydisDecodedOperand & op);
 };
 

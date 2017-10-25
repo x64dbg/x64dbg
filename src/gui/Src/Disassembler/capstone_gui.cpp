@@ -448,10 +448,10 @@ bool CapstoneTokenizer::tokenizeOperand(const ZydisDecodedOperand & op)
         return tokenizeImmOperand(op);
     case ZYDIS_OPERAND_TYPE_MEMORY:
         return tokenizeMemOperand(op);
-    case ZYDIS_OPERAND_TYPE_UNUSED:
-        return tokenizeInvalidOperand(op);
+    case ZYDIS_OPERAND_TYPE_POINTER:
+        return tokenizePtrOperand(op);
     default:
-        return false;
+        return tokenizeInvalidOperand(op);
     }
 }
 
@@ -590,6 +590,19 @@ bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
 
     //closing bracket
     addToken(bracketsType, "]");
+    return true;
+}
+
+bool CapstoneTokenizer::tokenizePtrOperand(const ZydisDecodedOperand & op)
+{
+    auto segValue = TokenValue(2, op.ptr.segment);
+    addToken(TokenType::MemorySegment, printValue(segValue, true, _maxModuleLength), segValue);
+
+    addToken(TokenType::Uncategorized, ":");
+
+    auto offsetValue = TokenValue(_cp.GetInstr()->operandWidth / 8, op.ptr.offset);
+    addToken(TokenType::Address, printValue(offsetValue, true, _maxModuleLength), offsetValue);
+
     return true;
 }
 
