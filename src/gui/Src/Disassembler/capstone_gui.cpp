@@ -600,7 +600,7 @@ bool CapstoneTokenizer::tokenizePtrOperand(const ZydisDecodedOperand & op)
 
     addToken(TokenType::Uncategorized, ":");
 
-    auto offsetValue = TokenValue(_cp.GetInstr()->operandWidth, op.ptr.offset);
+    auto offsetValue = TokenValue(_cp.GetInstr()->operandWidth / 8, op.ptr.offset);
     addToken(TokenType::Address, printValue(offsetValue, true, _maxModuleLength), offsetValue);
 
     return true;
