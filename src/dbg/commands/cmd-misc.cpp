@@ -527,7 +527,7 @@ bool cbDebugGetJITAuto(int argc, char* argv[])
     }
     else
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x32 as parameter"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x32 as parameter."));
     }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "JIT auto %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", jit_auto ? "ON" : "OFF");
@@ -581,7 +581,7 @@ bool cbDebugSetJITAuto(int argc, char* argv[])
             actual_arch = x32;
         else
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x32 as parameter"));
+            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x32 as parameter."));
             return false;
         }
 
