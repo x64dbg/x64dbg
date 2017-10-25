@@ -456,7 +456,7 @@ bool cbDebugGetJIT(int argc, char* argv[])
         {
             if(!BridgeSettingGet("JIT", "Old", oldjit()))
             {
-                dputs(QT_TRANSLATE_NOOP("DBG", "Error: there is not an OLD JIT entry stored yet."));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Error there is no old JIT entry stored."));
                 return false;
             }
             else
