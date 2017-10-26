@@ -465,7 +465,12 @@ BRIDGE_IMPEXP duint DbgValFromString(const char* string)
 
 BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
 {
-    return _dbg_getregdump(regdump);
+    return _dbg_getregdump(regdump, sizeof(REGDUMP));
+}
+
+BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP* regdump, size_t size)
+{
+    return _dbg_getregdump(regdump, size);
 }
 
 // FIXME all
