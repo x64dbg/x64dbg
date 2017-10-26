@@ -757,6 +757,12 @@ typedef struct
 
 typedef struct
 {
+    DWORD code;
+    char name[128];
+} LASTSTATUS;
+
+typedef struct
+{
     REGISTERCONTEXT regcontext;
     FLAGS flags;
     X87FPUREGISTER x87FPURegisters[8];
@@ -766,6 +772,19 @@ typedef struct
     X87CONTROLWORDFIELDS x87ControlWordFields;
     LASTERROR lastError;
 } REGDUMP;
+
+typedef struct
+{
+    REGISTERCONTEXT regcontext;
+    FLAGS flags;
+    X87FPUREGISTER x87FPURegisters[8];
+    unsigned long long mmx[8];
+    MXCSRFIELDS MxCsrFields;
+    X87STATUSWORDFIELDS x87StatusWordFields;
+    X87CONTROLWORDFIELDS x87ControlWordFields;
+    LASTERROR lastError;
+    LASTSTATUS lastStatus;
+} REGDUMP_V2;
 
 typedef struct
 {
@@ -926,6 +945,7 @@ BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text);
 BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
 BRIDGE_IMPEXP duint DbgValFromString(const char* string);
 BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump);
+BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP* regdump, size_t size);
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value);
 BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
 BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);

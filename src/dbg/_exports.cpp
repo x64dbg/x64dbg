@@ -627,11 +627,14 @@ static void TranslateTitanFpuRegisters(const x87FPURegister_t titanFpu[8], X87FP
         TranslateTitanFpuRegister(&titanFpu[i], &fpu[i]);
 }
 
-extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
+extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump, size_t size)
 {
+    if(size != sizeof(REGDUMP) && size != sizeof(REGDUMP_V2))
+        return false;
+
     if(!DbgIsDebugging())
     {
-        memset(regdump, 0, sizeof(REGDUMP));
+        memset(regdump, 0, size);
         return true;
     }
 
@@ -663,6 +666,12 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     lastError.code = ThreadGetLastError(ThreadGetId(hActiveThread));
     strncpy_s(lastError.name, ErrorCodeToName(lastError.code).c_str(), _TRUNCATE);
     regdump->lastError = lastError;
+
+    if(size >= sizeof(REGDUMP_V2))
+    {
+        REGDUMP_V2* regdumpV2 = (REGDUMP_V2*)regdump;
+        // TODO: retrieve name of lastStatus
+    }
 
     return true;
 }
