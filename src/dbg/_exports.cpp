@@ -666,16 +666,15 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump, size_t size)
     lastError.code = ThreadGetLastError(ThreadGetId(hActiveThread));
     strncpy_s(lastError.name, ErrorCodeToName(lastError.code).c_str(), _TRUNCATE);
     regdump->lastError = lastError;
-    LASTSTATUS lastStatus;
-    memset(&lastStatus.name, 0, sizeof(lastStatus.name));
-    lastStatus.code = ThreadGetLastStatus(ThreadGetId(hActiveThread));
-    strncpy_s(lastStatus.name, NtStatusCodeToName(lastStatus.code).c_str(), _TRUNCATE);
-    regdump->lastStatus = lastStatus;
 
     if(size >= sizeof(REGDUMP_V2))
     {
         REGDUMP_V2* regdumpV2 = (REGDUMP_V2*)regdump;
-        // TODO: retrieve name of lastStatus
+        LASTSTATUS lastStatus;
+        memset(&lastStatus.name, 0, sizeof(lastStatus.name));
+        lastStatus.code = ThreadGetLastStatus(ThreadGetId(hActiveThread));
+        strncpy_s(lastStatus.name, NtStatusCodeToName(lastStatus.code).c_str(), _TRUNCATE);
+        regdumpV2->lastStatus = lastStatus;
     }
 
     return true;

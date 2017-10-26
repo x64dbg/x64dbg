@@ -1315,8 +1315,8 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
 
     InitMappings();
 
-    memset(&wRegDumpStruct, 0, sizeof(REGDUMP));
-    memset(&wCipRegDumpStruct, 0, sizeof(REGDUMP));
+    memset(&wRegDumpStruct, 0, sizeof(REGDUMP_V2));
+    memset(&wCipRegDumpStruct, 0, sizeof(REGDUMP_V2));
     mCip = 0;
     mRegisterUpdates.clear();
 
@@ -2498,9 +2498,9 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
 void RegistersView::updateRegistersSlot()
 {
     // read registers
-    REGDUMP z;
-    memset(&z, 0, sizeof(REGDUMP));
-    DbgGetRegDump(&z);
+    REGDUMP_V2 z;
+    memset(&z, 0, sizeof(REGDUMP_V2));
+    DbgGetRegDumpEx((REGDUMP*)&z, sizeof(REGDUMP_V2));
     // update gui
     setRegisters(&z);
 }
@@ -3327,7 +3327,7 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
     return size;
 }
 
-int RegistersView::CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2)
+int RegistersView::CompareRegisters(const REGISTER_NAME reg_name, REGDUMP_V2* regdump1, REGDUMP_V2* regdump2)
 {
     SIZE_T size = GetSizeRegister(reg_name);
     char* reg1_data = registerValue(regdump1, reg_name);
@@ -3339,7 +3339,7 @@ int RegistersView::CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdu
     return -1;
 }
 
-char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
+char* RegistersView::registerValue(const REGDUMP_V2* regd, const REGISTER_NAME reg)
 {
     static int null_value = 0;
     // this is probably the most efficient general method to access the values of the struct
@@ -3654,7 +3654,7 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     return (char*) &null_value;
 }
 
-void RegistersView::setRegisters(REGDUMP* reg)
+void RegistersView::setRegisters(REGDUMP_V2* reg)
 {
     // tests if new-register-value == old-register-value holds
     if(mCip != reg->regcontext.cip) //CIP changed
