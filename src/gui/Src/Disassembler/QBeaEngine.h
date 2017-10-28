@@ -28,6 +28,7 @@ struct Instruction_t
 
     QString instStr;
     QByteArray dump;
+    uint8_t prefixSize, opcodeSize, group1Size, group2Size;
     duint rva;
     int length;
     duint branchDestination;
@@ -70,5 +71,7 @@ private:
     uint8_t reginfo[ZYDIS_REGISTER_MAX_VALUE + 1];
     uint8_t flaginfo[ZYDIS_CPUFLAG_MAX_VALUE + 1];
 };
+
+QString formatOpcodeString(const Instruction_t & inst);
 
 #endif // QBEAENGINE_H

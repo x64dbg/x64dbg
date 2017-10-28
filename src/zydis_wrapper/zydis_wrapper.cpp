@@ -455,9 +455,9 @@ const ZydisDecodedOperand & Zydis::operator[](int index) const
 
 static bool isSafe64NopRegOp(const ZydisDecodedOperand & op)
 {
+#ifdef _WIN64
     if(op.type != ZYDIS_OPERAND_TYPE_REGISTER)
         return true; //a non-register is safe
-#ifdef _WIN64
     switch(op.reg.value)
     {
     case ZYDIS_REGISTER_EAX:
@@ -938,5 +938,23 @@ const char* Zydis::FlagName(ZydisCPUFlag flag) const
         return "C3";
     default:
         return nullptr;
+    }
+}
+
+void Zydis::BytesGroup(uint8_t* prefixSize, uint8_t* opcodeSize, uint8_t* group1Size, uint8_t* group2Size) const
+{
+    if(Success())
+    {
+        *prefixSize = mInstr.raw.prefixes.count;
+        *group1Size = mInstr.raw.disp.size;
+        *group2Size = mInstr.raw.imm[0].size;
+        *opcodeSize = mInstr.length - *prefixSize - *group1Size - *group2Size;
+    }
+    else
+    {
+        *prefixSize = 0;
+        *opcodeSize = mInstr.length;
+        *group1Size = 0;
+        *group2Size = 0;
     }
 }

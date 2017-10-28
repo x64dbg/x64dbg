@@ -462,76 +462,10 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         curByte.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
         curByte.highlightWidth = 1;
         curByte.flags = RichTextPainter::FlagAll;
-        auto dump = mInstBuffer.at(rowOffset).dump;
-        for(int i = 0; i < dump.size(); i++)
-        {
-            DBGRELOCATIONINFO relocInfo;
-            if(DbgFunctions()->ModRelocationAtAddr(cur_addr + i, &relocInfo))
-            {
-                bool prevInSameReloc = relocInfo.rva < cur_addr + i - DbgFunctions()->ModBaseFromAddr(cur_addr + i);
-                space.highlight = prevInSameReloc;
-                curByte.highlight = true;
-                curByte.highlightConnectPrev = prevInSameReloc;
-            }
-            else
-            {
-                space.highlight = false;
-                curByte.highlight = false;
-            }
-
-            if(i)
-                richBytes.push_back(space);
-
-            auto byte = (unsigned char)dump.at(i);
-            curByte.text = ToByteString(byte);
-
-            DBGPATCHINFO patchInfo;
-            if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
-            {
-                if(byte == patchInfo.newbyte)
-                {
-                    curByte.textColor = mModifiedBytesColor;
-                    curByte.textBackground = mModifiedBytesBackgroundColor;
-                }
-                else
-                {
-                    curByte.textColor = mRestoredBytesColor;
-                    curByte.textBackground = mRestoredBytesBackgroundColor;
-                }
-            }
-            else
-            {
-                switch(byte)
-                {
-                case 0x00:
-                    curByte.textColor = mByte00Color;
-                    curByte.textBackground = mByte00BackgroundColor;
-                    break;
-                case 0x7F:
-                    curByte.textColor = mByte7FColor;
-                    curByte.textBackground = mByte7FBackgroundColor;
-                    break;
-                case 0xFF:
-                    curByte.textColor = mByteFFColor;
-                    curByte.textBackground = mByteFFBackgroundColor;
-                    break;
-                default:
-                    if(isprint(byte) || isspace(byte))
-                    {
-                        curByte.textColor = mByteIsPrintColor;
-                        curByte.textBackground = mByteIsPrintBackgroundColor;
-                    }
-                    else
-                    {
-                        curByte.textColor = mBytesColor;
-                        curByte.textBackground = mBytesBackgroundColor;
-                    }
-                    break;
-                }
-            }
-
-            richBytes.push_back(curByte);
-        }
+        curByte.text = formatOpcodeString(mInstBuffer.at(rowOffset));
+        curByte.textColor = mBytesColor;
+        curByte.textBackground = mBytesBackgroundColor;
+        richBytes.push_back(curByte);
         if(mCodeFoldingManager && mCodeFoldingManager->isFolded(cur_addr))
         {
             curByte.textColor = mBytesColor;

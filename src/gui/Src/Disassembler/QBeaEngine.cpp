@@ -222,6 +222,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
         wInst.length = len;
     wInst.branchType = branchType;
     wInst.tokens = cap;
+    cp.BytesGroup(&wInst.prefixSize, &wInst.opcodeSize, &wInst.group1Size, &wInst.group2Size);
 
     if(!success)
         return wInst;
@@ -326,4 +327,26 @@ void QBeaEngine::UpdateConfig()
 {
     _bLongDataInst = ConfigBool("Disassembler", "LongDataInstruction");
     _tokenizer.UpdateConfig();
+}
+
+QString formatOpcodeString(const Instruction_t & inst)
+{
+    QString output;
+    unsigned char offset = 0;
+    output = QString(inst.dump.toHex()).toUpper();
+    if(inst.prefixSize > 0)
+    {
+        output.insert(inst.prefixSize * 2, ':');
+        offset++;
+    }
+    if(inst.group1Size > 0)
+    {
+        output.insert((inst.opcodeSize + inst.prefixSize) * 2 + offset, ' ');
+        offset++;
+    }
+    if(inst.group2Size > 0)
+    {
+        output.insert((inst.opcodeSize + inst.prefixSize + inst.group1Size) * 2 + offset, ' ');
+    }
+    return output;
 }
