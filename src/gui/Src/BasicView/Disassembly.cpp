@@ -465,6 +465,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         curByte.text = formatOpcodeString(mInstBuffer.at(rowOffset));
         curByte.textColor = mBytesColor;
         curByte.textBackground = mBytesBackgroundColor;
+        curByte.highlight = false;
         richBytes.push_back(curByte);
         if(mCodeFoldingManager && mCodeFoldingManager->isFolded(cur_addr))
         {

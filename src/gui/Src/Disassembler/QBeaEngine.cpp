@@ -222,7 +222,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
         wInst.length = len;
     wInst.branchType = branchType;
     wInst.tokens = cap;
-    cp.BytesGroup(&wInst.prefixSize, &wInst.opcodeSize, &wInst.group1Size, &wInst.group2Size);
+    cp.BytesGroup(&wInst.prefixSize, &wInst.opcodeSize, &wInst.group1Size, &wInst.group2Size, &wInst.group3Size);
 
     if(!success)
         return wInst;
@@ -339,14 +339,23 @@ QString formatOpcodeString(const Instruction_t & inst)
         output.insert(inst.prefixSize * 2, ':');
         offset++;
     }
+    output.insert((inst.opcodeSize + inst.prefixSize) * 2 + offset, ' ');
+    offset++;
     if(inst.group1Size > 0)
     {
-        output.insert((inst.opcodeSize + inst.prefixSize) * 2 + offset, ' ');
+        output.insert((inst.opcodeSize + inst.prefixSize + inst.group1Size) * 2 + offset, ' ');
         offset++;
     }
     if(inst.group2Size > 0)
     {
-        output.insert((inst.opcodeSize + inst.prefixSize + inst.group1Size) * 2 + offset, ' ');
+        output.insert((inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size) * 2 + offset, ' ');
+        offset++;
     }
+    /*if(inst.group3Size > 0)
+    {
+        output.insert((inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size) * 2 + offset, '?');
+    }
+    output += QString("|%1.%2.%3.%4").arg(inst.opcodeSize).arg(inst.group1Size).arg(inst.group2Size).arg(inst.group3Size);
+    */
     return output;
 }

@@ -941,14 +941,15 @@ const char* Zydis::FlagName(ZydisCPUFlag flag) const
     }
 }
 
-void Zydis::BytesGroup(uint8_t* prefixSize, uint8_t* opcodeSize, uint8_t* group1Size, uint8_t* group2Size) const
+void Zydis::BytesGroup(uint8_t* prefixSize, uint8_t* opcodeSize, uint8_t* group1Size, uint8_t* group2Size, uint8_t* group3Size) const
 {
     if(Success())
     {
         *prefixSize = mInstr.raw.prefixes.count;
-        *group1Size = mInstr.raw.disp.size;
-        *group2Size = mInstr.raw.imm[0].size;
-        *opcodeSize = mInstr.length - *prefixSize - *group1Size - *group2Size;
+        *group1Size = mInstr.raw.disp.size / 8;
+        *group2Size = mInstr.raw.imm[0].size / 8;
+        *group3Size = mInstr.raw.imm[1].size / 8;
+        *opcodeSize = mInstr.length - *prefixSize - *group1Size - *group2Size - *group3Size;
     }
     else
     {
