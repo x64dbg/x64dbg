@@ -139,8 +139,8 @@ protected:
 
     // use-in-class-only methods
     void drawRegister(QPainter* p, REGISTER_NAME reg, char* value);
-    void setRegisters(REGDUMP_V2* reg);
-    char* registerValue(const REGDUMP_V2* regd, const REGISTER_NAME reg);
+    void setRegisters(REGDUMP* reg);
+    char* registerValue(const REGDUMP* regd, const REGISTER_NAME reg);
     bool identifyRegister(const int y, const int x, REGISTER_NAME* clickedReg);
     QString helpRegister(REGISTER_NAME reg);
     void CreateDumpNMenu(QMenu* dumpMenu);
@@ -187,7 +187,7 @@ protected slots:
     void onSIMDHQWord();
     void onClose();
     QString getRegisterLabel(REGISTER_NAME);
-    int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP_V2* regdump1, REGDUMP_V2* regdump2);
+    int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
     QString GetRegStringValueFromValue(REGISTER_NAME reg, const char* value);
     QString GetTagWordStateString(unsigned short);
@@ -247,8 +247,8 @@ private:
     // contains viewport positions
     QMap<REGISTER_NAME, Register_Position> mRegisterPlaces;
     // contains a dump of the current register values
-    REGDUMP_V2 wRegDumpStruct;
-    REGDUMP_V2 wCipRegDumpStruct;
+    REGDUMP wRegDumpStruct;
+    REGDUMP wCipRegDumpStruct;
     // font measures (TODO: create a class that calculates all thos values)
     unsigned int mRowHeight, mCharWidth;
     // SIMD registers display mode

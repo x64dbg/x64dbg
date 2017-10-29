@@ -345,7 +345,7 @@ static bool readBlock(QFile & traceFile)
         if(traceFile.seek(traceFile.pos() + skipOffset * sizeof(duint)) == false)
             throw std::wstring(L"Unspecified");
         //Gathered information, build index
-        if(changedCountFlags[0] == (sizeof(REGDUMP) - 128) / sizeof(duint))
+        if(changedCountFlags[0] == (FIELD_OFFSET(REGDUMP, lastError) + sizeof(DWORD)) / sizeof(duint))
             return true;
         else
             return false;
@@ -464,7 +464,7 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
     union
     {
         REGDUMP registers;
-        duint regwords[(sizeof(REGDUMP) - 128) / sizeof(duint)];
+        duint regwords[(FIELD_OFFSET(REGDUMP, lastError) + sizeof(DWORD)) / sizeof(duint)];
     };
     unsigned char changed[_countof(regwords)];
     duint regContent[_countof(regwords)];

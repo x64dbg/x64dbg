@@ -176,8 +176,7 @@ void LocalVarsView::updateSlot()
         return;
     }
     REGDUMP z;
-    memset(&z, 0, sizeof(REGDUMP));
-    DbgGetRegDump(&z);
+    DbgGetRegDumpEx(&z, sizeof(REGDUMP));
     duint start, end;
 
     if(DbgFunctionGet(z.regcontext.cip, &start, &end))

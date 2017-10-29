@@ -257,7 +257,7 @@ void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
     duint newMemoryAddress[32];
     duint oldMemory[32];
     unsigned char newMemoryArrayCount = 0;
-    DbgGetRegDump(&newContext.registers);
+    DbgGetRegDumpEx(&newContext.registers, sizeof(REGDUMP));
     newThreadId = ThreadGetId(hActiveThread);
     // Don't try to resolve memory values for lea and nop instructions
     if(!(newInstruction.IsNop() || newInstruction.GetId() == X86_INS_LEA))
@@ -541,13 +541,12 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
             for(size_t i = 0; i < _countof(rtOldContextChanged); i++)
                 rtOldContextChanged[i] = true;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace started. File: %s\r\n"), fileName);
-            REGDUMP cip;
             Capstone cp;
             unsigned char instr[MAX_DISASM_BUFFER];
-            DbgGetRegDump(&cip);
-            if(MemRead(cip.regcontext.cip, instr, MAX_DISASM_BUFFER))
+            auto cip = GetContextDataEx(hActiveThread, UE_CIP);
+            if(MemRead(cip, instr, MAX_DISASM_BUFFER))
             {
-                cp.DisassembleSafe(cip.regcontext.cip, instr, MAX_DISASM_BUFFER);
+                cp.DisassembleSafe(cip, instr, MAX_DISASM_BUFFER);
                 TraceExecuteRecord(cp);
             }
             GuiOpenTraceFile(fileName);

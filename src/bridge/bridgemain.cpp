@@ -463,14 +463,39 @@ BRIDGE_IMPEXP duint DbgValFromString(const char* string)
     return value;
 }
 
-BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
+//deprecated api, only provided for binary compatibility
+extern "C" __declspec(dllexport) bool DbgGetRegDump(REGDUMP* regdump)
 {
-    return _dbg_getregdump(regdump, sizeof(REGDUMP));
+    typedef struct
+    {
+        REGISTERCONTEXT regcontext;
+        FLAGS flags;
+        X87FPUREGISTER x87FPURegisters[8];
+        unsigned long long mmx[8];
+        MXCSRFIELDS MxCsrFields;
+        X87STATUSWORDFIELDS x87StatusWordFields;
+        X87CONTROLWORDFIELDS x87ControlWordFields;
+        LASTERROR lastError;
+    } REGDUMP_OLD;
+    return DbgGetRegDumpEx(regdump, sizeof(REGDUMP_OLD));
 }
 
 BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP* regdump, size_t size)
 {
-    return _dbg_getregdump(regdump, size);
+    if(size == sizeof(REGDUMP))
+        return _dbg_getregdump(regdump);
+
+    if(size > sizeof(REGDUMP))
+        __debugbreak();
+
+    REGDUMP temp;
+    if(!_dbg_getregdump(&temp))
+    {
+        memset(regdump, 0, size);
+        return false;
+    }
+    memcpy(regdump, &temp, size);
+    return true;
 }
 
 // FIXME all
