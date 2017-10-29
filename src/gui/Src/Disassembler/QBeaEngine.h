@@ -28,7 +28,7 @@ struct Instruction_t
 
     QString instStr;
     QByteArray dump;
-    uint8_t prefixSize, opcodeSize, group1Size, group2Size;
+    uint8_t prefixSize, opcodeSize, group1Size, group2Size, group3Size;
     duint rva;
     int length;
     duint branchDestination;

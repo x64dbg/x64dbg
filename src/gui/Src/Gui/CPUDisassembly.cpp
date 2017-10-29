@@ -1497,12 +1497,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         QString bytes;
         if(copyBytes)
         {
-            for(int j = 0; j < inst.dump.size(); j++)
-            {
-                if(j)
-                    bytes += " ";
-                bytes += ToByteString((unsigned char)(inst.dump.at(j)));
-            }
+            bytes += formatOpcodeString(inst);
         }
         QString disassembly;
         QString htmlDisassembly;
