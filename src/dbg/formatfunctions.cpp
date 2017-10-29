@@ -34,14 +34,14 @@ void FormatFunctions::Init()
         return FORMAT_SUCCESS;
     });
 
-    Register("winerror", [](char* dest, size_t destCount, int argc, char* argv[], duint addr, void* userdata)
+    Register("winerror", [](char* dest, size_t destCount, int argc, char* argv[], duint code, void* userdata)
     {
-        Memory<WCHAR*> helpMessage(destCount, "FormatFunctions.winerror(helpMessage)");
-        String errName = ErrorCodeToName(addr);
+        std::vector<wchar_t> helpMessage(destCount);
+        String errName = ErrorCodeToName((unsigned int)code);
         if(errName.size() == 0)
-            errName = StringUtils::sprintf("%p", addr);
+            errName = StringUtils::sprintf("%08X", DWORD(code));
 #ifdef _WIN64
-        if((addr >> 32) != 0)  //Data in high part: not an error code
+        if((code >> 32) != 0)  //Data in high part: not an error code
         {
             if(destCount < errName.size() + 1)
                 return FORMAT_BUFFER_TOO_SMALL;
@@ -52,15 +52,15 @@ void FormatFunctions::Init()
             }
         }
 #endif //_WIN64
-        DWORD success = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, addr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), helpMessage(), destCount, NULL);
+        DWORD success = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, DWORD(code), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), helpMessage.data(), DWORD(destCount), NULL);
         if(success > 0)
         {
-            String UTF8ErrorMessage = StringUtils::Utf16ToUtf8(helpMessage());
+            String UTF8ErrorMessage = StringUtils::Utf16ToUtf8(helpMessage.data());
             if(destCount < errName.size() + 2 + UTF8ErrorMessage.size())
                 return FORMAT_BUFFER_TOO_SMALL;
             else
             {
-                sprintf_s(dest, destCount, "%s:%s", errName.c_str(), UTF8ErrorMessage.c_str());
+                sprintf_s(dest, destCount, "%s: %s", errName.c_str(), UTF8ErrorMessage.c_str());
                 return FORMAT_SUCCESS;
             }
         }
