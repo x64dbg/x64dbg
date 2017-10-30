@@ -203,7 +203,11 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
             else //arg_normal
             {
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
+                {
+                    auto symbolicName = getSymbolicName(arg.value);
+                    QString valText = QString("%1 (%2)").arg(QString(arg.mnemonic).toUpper().trimmed(), symbolicName);
+                    addFollowReferenceMenuItem(valText, arg.value, menu, isReferences, isFollowInCPU);
+                }
             }
         }
     }
@@ -213,10 +217,16 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
         {
             const DISASM_ARG arg = instr.arg[i];
             QString constant = ToHexString(arg.constant);
+
             if(DbgMemIsValidReadPtr(arg.constant))
-                addFollowReferenceMenuItem(tr("Address: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
+            {
+                auto symbolicName = getSymbolicName(arg.constant);
+                addFollowReferenceMenuItem(tr("Address: ") + symbolicName, arg.constant, menu, isReferences, isFollowInCPU);
+            }
             else if(arg.constant)
+            {
                 addFollowReferenceMenuItem(tr("Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
+            }
         }
     }
 }
