@@ -45,6 +45,12 @@ private:
         DataIPv4,
         DataIPv6,
         DataBase64,
+        DataMD5,
+        DataSHA1,
+        DataSHA256,
+        DataSHA512,
+        DataSHA256_3,
+        DataSHA512_3,
         DataLast
     };
 
@@ -57,7 +63,6 @@ private:
     FormatType mTypes[DataLast];
 
     void printData(DataType type);
-    QString printEscapedString(bool & bPrevWasHex, int ch, const char* hexFormat);
 };
 
 #endif // DATACOPYDIALOG_H
