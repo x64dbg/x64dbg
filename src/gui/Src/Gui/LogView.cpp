@@ -5,6 +5,7 @@
 #include <QRegularExpression>
 #include <QDesktopServices>
 #include <QClipboard>
+#include <QMimeData>
 #include <QTimer>
 
 /**
@@ -115,7 +116,8 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(actionClear);
     wMenu.addAction(actionSelectAll);
     wMenu.addAction(actionCopy);
-    wMenu.addAction(actionPaste);
+    if(QApplication::clipboard()->mimeData()->hasText())
+        wMenu.addAction(actionPaste);
     wMenu.addAction(actionSave);
     if(getLoggingEnabled())
         actionToggleLogging->setText(tr("Disable &Logging"));
