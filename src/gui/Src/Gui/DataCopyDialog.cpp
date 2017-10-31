@@ -1,6 +1,7 @@
 #include "DataCopyDialog.h"
 #include "ui_DataCopyDialog.h"
 #include "Bridge.h"
+#include <QCryptographicHash>
 
 #define AF_INET6        23              // Internetwork Version 6
 typedef PCTSTR(__stdcall* INETNTOPW)(INT Family, PVOID pAddr, wchar_t* pStringBuf, size_t StringBufSize);
@@ -23,9 +24,15 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     mTypes[DataPascalDword] = FormatType { tr("Pascal DWORD (Hex)"), 10 };
     mTypes[DataPascalQword] = FormatType { tr("Pascal QWORD (Hex)"), 5 };
     mTypes[DataGUID] = FormatType { tr("GUID"), 0 };
-    mTypes[DataIPv4] = FormatType { tr("IP Address (IPv4)"), 0 };
-    mTypes[DataIPv6] = FormatType { tr("IP Address (IPv6)"), 0 };
+    mTypes[DataIPv4] = FormatType { tr("IP Address (IPv4)"), 5 };
+    mTypes[DataIPv6] = FormatType { tr("IP Address (IPv6)"), 1 };
     mTypes[DataBase64] = FormatType { tr("Base64"), -1 };
+    mTypes[DataMD5] = FormatType { "MD5", -1};
+    mTypes[DataSHA1] = FormatType { "SHA1", -1};
+    mTypes[DataSHA256] = FormatType { "SHA256 (SHA-2)", -1};
+    mTypes[DataSHA512] = FormatType { "SHA512 (SHA-2)", -1};
+    mTypes[DataSHA256_3] = FormatType { "SHA256 (SHA-3)", -1};
+    mTypes[DataSHA512_3] = FormatType { "SHA512 (SHA-3)", -1};
 
     for(int i = 0; i < DataLast; i++)
         ui->comboType->addItem(mTypes[i].name);
@@ -36,7 +43,7 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     Config()->setupWindowPos(this);
 }
 
-QString DataCopyDialog::printEscapedString(bool & bPrevWasHex, int ch, const char* hexFormat)
+static QString printEscapedString(bool & bPrevWasHex, int ch, const char* hexFormat)
 {
     QString data = "";
     switch(ch) //escaping
@@ -97,7 +104,7 @@ QString DataCopyDialog::printEscapedString(bool & bPrevWasHex, int ch, const cha
 }
 
 template<typename T>
-QString formatLoop(const QVector<byte_t>* bytes, int itemsPerLine, QString(*format)(T))
+static QString formatLoop(const QVector<byte_t>* bytes, int itemsPerLine, QString(*format)(T))
 {
     QString data;
     int count = bytes->size() / sizeof(T);
@@ -114,6 +121,13 @@ QString formatLoop(const QVector<byte_t>* bytes, int itemsPerLine, QString(*form
         data += format(((const T*)bytes->constData())[i]);
     }
     return data;
+}
+
+static QString printHash(const QVector<byte_t>* bytes, QCryptographicHash::Algorithm algorithm)
+{
+    QCryptographicHash temp(algorithm);
+    temp.addData((const char*)bytes->data(), bytes->size());
+    return temp.result().toHex().toUpper();
 }
 
 void DataCopyDialog::printData(DataType type)
@@ -264,7 +278,12 @@ void DataCopyDialog::printData(DataType type)
         for(int i = 0; i < numIPs; i++)
         {
             if(i)
-                data += ", ";
+            {
+                if((i % mTypes[mIndex].itemsPerLine) == 0)
+                    data += "\n";
+                else
+                    data += ", ";
+            }
             data += QString("%1.%2.%3.%4").arg(mData->constData()[i * 4]).arg(mData->constData()[i * 4 + 1]).arg(mData->constData()[i * 4 + 2]).arg(mData->constData()[i * 4 + 3]);
         }
     }
@@ -281,7 +300,12 @@ void DataCopyDialog::printData(DataType type)
             for(int i = 0; i < numIPs; i++)
             {
                 if(i)
-                    data += ", ";
+                {
+                    if((i % mTypes[mIndex].itemsPerLine) == 0)
+                        data += "\n";
+                    else
+                        data += ", ";
+                }
                 wchar_t buffer[56];
                 memset(buffer, 0, sizeof(buffer));
                 InetNtopW(AF_INET6, const_cast<byte_t*>(mData->constData() + i * 16), buffer, 56);
@@ -293,7 +317,12 @@ void DataCopyDialog::printData(DataType type)
             for(int i = 0; i < numIPs; i++)
             {
                 if(i)
-                    data += ", ";
+                {
+                    if((i % mTypes[mIndex].itemsPerLine) == 0)
+                        data += "\n";
+                    else
+                        data += ", ";
+                }
                 QString temp(QByteArray(reinterpret_cast<const char*>(mData->constData() + i * 16), 16).toHex());
                 temp.insert(28, ':');
                 temp.insert(24, ':');
@@ -314,6 +343,30 @@ void DataCopyDialog::printData(DataType type)
         data = QByteArray(reinterpret_cast<const char*>(mData->constData()), mData->size()).toBase64().constData();
     }
     break;
+
+    case DataMD5:
+        data = printHash(mData, QCryptographicHash::Md5);
+        break;
+
+    case DataSHA1:
+        data = printHash(mData, QCryptographicHash::Sha1);
+        break;
+
+    case DataSHA256:
+        data = printHash(mData, QCryptographicHash::Sha256);
+        break;
+
+    case DataSHA512:
+        data = printHash(mData, QCryptographicHash::Sha512);
+        break;
+
+    case DataSHA256_3:
+        data = printHash(mData, QCryptographicHash::Sha3_256);
+        break;
+
+    case DataSHA512_3:
+        data = printHash(mData, QCryptographicHash::Sha3_512);
+        break;
     }
     ui->editCode->setPlainText(data);
 }
@@ -327,10 +380,8 @@ DataCopyDialog::~DataCopyDialog()
 void DataCopyDialog::on_comboType_currentIndexChanged(int index)
 {
     mIndex = index;
-    auto oldValue = ui->spinBox->value(), newValue = mTypes[mIndex].itemsPerLine;
-    ui->spinBox->setValue(newValue);
-    if(oldValue == newValue)
-        printData(DataType(mIndex));
+    ui->spinBox->setValue(mTypes[mIndex].itemsPerLine);
+    printData(DataType(mIndex));
 }
 
 void DataCopyDialog::on_buttonCopy_clicked()
