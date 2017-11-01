@@ -271,9 +271,9 @@ Instruction_t CsQBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBas
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
 
-    auto & infoIter = dataInstMap.find(type);
+    auto infoIter = dataInstMap.constFind(type);
     if(infoIter == dataInstMap.end())
-        infoIter = dataInstMap.find(enc_byte);
+        infoIter = dataInstMap.constFind(enc_byte);
 
     int len = mEncodeMap->getDataSize(origBase + origInstRVA, 1);
 
