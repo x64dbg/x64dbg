@@ -488,6 +488,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGotoFileOffset", Shortcut({tr("Actions"), tr("Goto File Offset")}, "Ctrl+Shift+G"));
     defaultShortcuts.insert("ActionFindReferencesToSelectedAddress", Shortcut({tr("Actions"), tr("Find References to Selected Address")}, "Ctrl+R"));
     defaultShortcuts.insert("ActionFindPattern", Shortcut({tr("Actions"), tr("Find Pattern")}, "Ctrl+B"));
+    defaultShortcuts.insert("ActionFindPatternInModule", Shortcut({tr("Actions"), tr("Find Pattern in Current Module")}, "Ctrl+Shift+B"));
     defaultShortcuts.insert("ActionFindReferences", Shortcut({tr("Actions"), tr("Find References")}, "Ctrl+R"));
     defaultShortcuts.insert("ActionXrefs", Shortcut({tr("Actions"), tr("xrefs...")}, "X"));
     defaultShortcuts.insert("ActionAnalyzeSingleFunction", Shortcut({tr("Actions"), tr("Analyze Single Function")}, "A"));
@@ -497,6 +498,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionHighlightingMode", Shortcut({tr("Actions"), tr("Highlighting Mode")}, "H"));
     defaultShortcuts.insert("ActionToggleDestinationPreview", Shortcut({tr("Actions"), tr("Enable/Disable Branch Destination Preview")}, "P"));
     defaultShortcuts.insert("ActionFind", Shortcut({tr("Actions"), tr("Find")}, "Ctrl+F"));
+    defaultShortcuts.insert("ActionFindInModule", Shortcut({tr("Actions"), tr("Find in Current Module")}, "Ctrl+Shift+F"));
     defaultShortcuts.insert("ActionDecompileFunction", Shortcut({tr("Actions"), tr("Decompile Function")}, "F5"));
     defaultShortcuts.insert("ActionDecompileSelection", Shortcut({tr("Actions"), tr("Decompile Selection")}, "Shift+F5"));
     defaultShortcuts.insert("ActionEditBreakpoint", Shortcut({tr("Actions"), tr("Edit breakpoint")}, ""));
