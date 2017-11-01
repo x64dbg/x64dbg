@@ -1689,6 +1689,8 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
                     CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(r).value()));
                 else if(mFPUYMM.contains(r))
                     CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(r).value()));
+                else if(mSEGMENTREGISTER.contains(r))
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(r).value()));
                 else
                     mSelected = r;
             }
