@@ -123,6 +123,17 @@ void BreakpointsView::updateColors()
     updateBreakpointsSlot();
 }
 
+struct Hax
+{
+    const bool & greater;
+    const QString & s;
+    Hax(const bool & greater, const QString & s) : greater(greater), s(s) { }
+    bool operator<(const Hax & b)
+    {
+        return greater ? this->s > b.s : this->s < b.s;
+    }
+};
+
 void BreakpointsView::reloadData()
 {
     if(mSort.first != -1) //re-sort if the user wants to sort
@@ -135,16 +146,7 @@ void BreakpointsView::reloadData()
             auto aBp = &mBps.at(a.at(ColAddr).userdata), bBp = &mBps.at(b.at(ColAddr).userdata);
             auto aType = aBp->type, bType = bBp->type;
             auto aHeader = aBp->addr || aBp->active, bHeader = bBp->addr || bBp->active;
-            struct Hax
-            {
-                const bool & greater;
-                const QString & s;
-                Hax(const bool & greater, const QString & s) : greater(greater), s(s) { }
-                bool operator<(const Hax & b)
-                {
-                    return greater ? this->s > b.s : this->s < b.s;
-                }
-            } aHax(greater, a.at(col).text), bHax(greater, b.at(col).text);
+            Hax aHax(greater, a.at(col).text), bHax(greater, b.at(col).text);
             return std::tie(aType, aHeader, aHax) < std::tie(bType, bHeader, bHax);
         });
     }
