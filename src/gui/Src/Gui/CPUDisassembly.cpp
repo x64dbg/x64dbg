@@ -170,7 +170,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
                     segment = "fs:";
 #endif //_WIN64
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem(tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem(tr("&Address: ") + segment + QString(arg.mnemonic).trimmed(), arg.value, menu, isReferences, isFollowInCPU);
                 if(arg.value != arg.constant)
                 {
                     QString constant = ToHexString(arg.constant);
@@ -203,7 +203,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
             else //arg_normal
             {
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem(QString(arg.mnemonic).trimmed(), arg.value, menu, isReferences, isFollowInCPU);
             }
         }
     }
