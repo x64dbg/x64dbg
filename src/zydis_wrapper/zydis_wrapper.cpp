@@ -65,6 +65,7 @@ Zydis::Zydis()
       mVisibleOpCount(0)
 {
     GlobalInitialize();
+    memset(&mInstr, 0, sizeof(mInstr));
 }
 
 Zydis::~Zydis()
@@ -868,7 +869,7 @@ void Zydis::RegInfo(uint8_t regs[ZYDIS_REGISTER_MAX_VALUE + 1]) const
             regs[op.mem.segment] |= RAIRead | RAIExplicit;
             if(op.mem.base != ZYDIS_REGISTER_NONE)
                 regs[op.mem.base] |= RAIRead | RAIExplicit;
-            if(op.mem.base != ZYDIS_REGISTER_NONE)
+            if(op.mem.index != ZYDIS_REGISTER_NONE)
                 regs[op.mem.index] |= RAIRead | RAIExplicit;
         }
         break;

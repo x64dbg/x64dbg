@@ -96,6 +96,7 @@ public:
     bool IsJump() const { return IsBranchType(BTJmp); }
     bool IsLoop() const { return IsBranchType(BTLoop); }
     bool IsInt3() const { return IsBranchType(BTInt3); }
+
 private:
     static ZydisDecoder mDecoder;
     static ZydisFormatter mFormatter;
