@@ -85,6 +85,11 @@
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory.cpp" />
+    <ClCompile Include="minhook\buffer.c" />
+    <ClCompile Include="minhook\hde\hde32.c" />
+    <ClCompile Include="minhook\hde\hde64.c" />
+    <ClCompile Include="minhook\hook.c" />
+    <ClCompile Include="minhook\trampoline.c" />
     <ClCompile Include="mnemonichelp.cpp" />
     <ClCompile Include="module.cpp" />
     <ClCompile Include="msgqueue.cpp" />

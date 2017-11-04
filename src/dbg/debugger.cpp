@@ -427,8 +427,8 @@ static DWORD WINAPI updateCallStackThread(duint ptr)
 
 void updateCallStackAsync(duint ptr)
 {
-    static TaskThread_<decltype(&updateCallStackThread), duint> updateCallStackTask(&updateCallStackThread);
-    updateCallStackTask.WakeUp(ptr);
+    static TaskThread_<4, decltype(&updateCallStackThread), duint> updateCallStackTask(&updateCallStackThread);
+    updateCallStackTask.WakeUp(ptr, false);
 }
 
 DWORD WINAPI updateSEHChainThread()
@@ -441,8 +441,8 @@ DWORD WINAPI updateSEHChainThread()
 
 void updateSEHChainAsync()
 {
-    static TaskThread_<decltype(&updateSEHChainThread)> updateSEHChainTask(&updateSEHChainThread);
-    updateSEHChainTask.WakeUp();
+    static TaskThread_<5, decltype(&updateSEHChainThread)> updateSEHChainTask(&updateSEHChainThread);
+    updateSEHChainTask.WakeUp(false);
 }
 
 void DebugUpdateGui(duint disasm_addr, bool stack)
@@ -528,14 +528,15 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
 void GuiSetDebugStateAsync(DBGSTATE state)
 {
     GuiSetDebugStateFast(state);
-    static TaskThread_<decltype(&GuiSetDebugState), DBGSTATE> GuiSetDebugStateTask(&GuiSetDebugState, 300);
-    GuiSetDebugStateTask.WakeUp(state);
+    static TaskThread_<6, decltype(&GuiSetDebugState), DBGSTATE> GuiSetDebugStateTask(&GuiSetDebugState, 300,
+            new(VirtualAlloc(0, sizeof(DebugStruct), MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE)) DebugStruct());
+    GuiSetDebugStateTask.WakeUp(state, true);
 }
 
 void DebugUpdateGuiAsync(duint disasm_addr, bool stack)
 {
-    static TaskThread_<decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiTask(&DebugUpdateGui);
-    DebugUpdateGuiTask.WakeUp(disasm_addr, stack);
+    static TaskThread_<7, decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiTask(&DebugUpdateGui);
+    DebugUpdateGuiTask.WakeUp(disasm_addr, stack, false);
 }
 
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
@@ -549,8 +550,8 @@ void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
 
 void DebugUpdateBreakpointsViewAsync()
 {
-    static TaskThread_<decltype(&GuiUpdateBreakpointsView)> BreakpointsUpdateGuiTask(&GuiUpdateBreakpointsView);
-    BreakpointsUpdateGuiTask.WakeUp();
+    static TaskThread_<8, decltype(&GuiUpdateBreakpointsView)> BreakpointsUpdateGuiTask(&GuiUpdateBreakpointsView);
+    BreakpointsUpdateGuiTask.WakeUp(false);
 }
 
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)

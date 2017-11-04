@@ -8,11 +8,11 @@
 
 static void GuiAddLogMessageAsync(_In_z_ const char* msg)
 {
-    static StringConcatTaskThread_<void(*)(const std::string &)> task([](const std::string & msg)
+    static StringConcatTaskThread_<1, void(*)(const std::string &)> task([](const std::string & msg)
     {
         GuiAddLogMessage(msg.c_str());
     });
-    task.WakeUp(msg);
+    task.WakeUp(msg, false);
 }
 
 /**

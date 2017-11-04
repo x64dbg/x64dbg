@@ -33,6 +33,7 @@ BOOL
 
 void CrashDumpInitialize()
 {
+    return;
     // Get handles to kernel32 and dbghelp
     HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
     HMODULE hDbghelp = LoadLibraryA("dbghelp.dll");

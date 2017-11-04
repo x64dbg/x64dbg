@@ -96,6 +96,9 @@
     <Filter Include="Header Files\btparser">
       <UniqueIdentifier>{d20554d2-b3de-4e73-ac55-217da06783ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\minhook">
+      <UniqueIdentifier>{2936bd10-14a6-4af7-86af-5b7b5d91d4b8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -430,6 +433,21 @@
     </ClCompile>
     <ClCompile Include="formatfunctions.cpp">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="minhook\buffer.c">
+      <Filter>Source Files\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="minhook\hook.c">
+      <Filter>Source Files\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="minhook\trampoline.c">
+      <Filter>Source Files\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="minhook\hde\hde32.c">
+      <Filter>Source Files\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="minhook\hde\hde64.c">
+      <Filter>Source Files\minhook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

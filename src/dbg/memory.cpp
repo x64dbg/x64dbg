@@ -258,8 +258,8 @@ static DWORD WINAPI memUpdateMap()
 
 void MemUpdateMapAsync()
 {
-    static TaskThread_<decltype(&memUpdateMap)> memUpdateMapTask(&memUpdateMap, 1000);
-    memUpdateMapTask.WakeUp();
+    static TaskThread_<3, decltype(&memUpdateMap)> memUpdateMapTask(&memUpdateMap, 1000);
+    memUpdateMapTask.WakeUp(false);
 }
 
 duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh, bool FindReserved)

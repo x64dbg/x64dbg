@@ -105,8 +105,8 @@ void WatchExpr::modifyName(const char* newName)
 
 void GuiUpdateWatchViewAsync()
 {
-    static TaskThread_<decltype(&GuiUpdateWatchView)> task(&GuiUpdateWatchView);
-    task.WakeUp();
+    static TaskThread_<2, decltype(&GuiUpdateWatchView)> task(&GuiUpdateWatchView);
+    task.WakeUp(false);
 }
 
 // Global functions
