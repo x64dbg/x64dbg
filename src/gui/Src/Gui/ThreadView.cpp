@@ -40,7 +40,7 @@ void ThreadView::setupContextMenu()
     mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-kill.png"), tr("Kill Thread"), this), "killthread $"));
     mMenuBuilder->addSeparator();
     // Set name
-    mMenuBuilder->addAction(makeAction(tr("Set Name"), SLOT(SetNameSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("thread-setname.png"), tr("Set Name"), SLOT(SetNameSlot())));
     // Set priority
     QAction* mSetPriorityIdle = makeCommandAction(new QAction(DIcon("thread-priority-idle.png"), tr("Idle"), this), "setprioritythread $, Idle");
     QAction* mSetPriorityAboveNormal = makeCommandAction(new QAction(DIcon("thread-priority-above-normal.png"), tr("Above Normal"), this), "setprioritythread $, AboveNormal");
