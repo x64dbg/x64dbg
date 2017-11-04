@@ -155,7 +155,6 @@
     <ClInclude Include="zydis\include\Zydis\Decoder.h" />
     <ClInclude Include="zydis\include\Zydis\DecoderTypes.h" />
     <ClInclude Include="zydis\include\Zydis\Defines.h" />
-    <ClInclude Include="zydis\include\Zydis\Encoder.h" />
     <ClInclude Include="zydis\include\Zydis\Formatter.h" />
     <ClInclude Include="zydis\include\Zydis\MetaInfo.h" />
     <ClInclude Include="zydis\include\Zydis\Mnemonic.h" />

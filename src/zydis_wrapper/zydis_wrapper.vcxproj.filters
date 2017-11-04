@@ -67,9 +67,6 @@
     <ClInclude Include="zydis\include\Zydis\Defines.h">
       <Filter>Header Files\Zydis</Filter>
     </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\Encoder.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
     <ClInclude Include="zydis\include\Zydis\Formatter.h">
       <Filter>Header Files\Zydis</Filter>
     </ClInclude>
