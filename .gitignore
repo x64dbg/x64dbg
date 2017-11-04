@@ -69,7 +69,7 @@ RDb*
 src/build-*/
 
 # Exceptions
-!/hooks/AStyleWhore.exe
+!/hooks/AStyleHelper.exe
 !/hooks/AStyle.dll
 !/bin/x64dbg_shell_remove.reg
 !*.lib
