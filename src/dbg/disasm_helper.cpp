@@ -120,7 +120,9 @@ static void HandleCapstoneOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool
     });
     const auto & op = cp[opindex];
     arg->segment = SEG_DEFAULT;
-    strcpy_s(arg->mnemonic, cp.OperandText(opindex).c_str());
+    auto opText = cp.OperandText(opindex);
+    StringUtils::ReplaceAll(opText, "0x", "");
+    strcpy_s(arg->mnemonic, opText.c_str());
     switch(op.type)
     {
     case ZYDIS_OPERAND_TYPE_REGISTER:
