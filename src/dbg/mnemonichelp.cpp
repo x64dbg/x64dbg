@@ -1,15 +1,38 @@
 #include "mnemonichelp.h"
 #include "threading.h"
+#include <atomic>
 #include "jansson/jansson_x64dbg.h"
+#include "debugger.h"
+#include "filehelper.h"
 
 static std::unordered_map<String, String> MnemonicMap;
 static std::unordered_map<String, String> MnemonicBriefMap;
+static std::atomic<bool> isMnemonicLoaded(false);
+static bool loadFromText();
 
-bool MnemonicHelp::loadFromText(const char* json)
+static inline void loadMnemonicHelp()
 {
-    EXCLUSIVE_ACQUIRE(LockMnemonicHelp);
+    if(isMnemonicLoaded.load())
+        return;
+    else
+        // Load mnemonic help database
+        loadFromText();
+}
+
+static bool loadFromText()
+{
+    EXCLUSIVE_ACQUIRE(LockMnemonicHelp); //Protect the following code in a critical section
+    if(isMnemonicLoaded.load())
+        return true;
+    isMnemonicLoaded.store(true); //Don't retry failed load(and spam log).
+    String json;
+    if(!FileHelper::ReadAllText(StringUtils::sprintf("%s\\..\\mnemdb.json", szProgramDir), json))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read mnemonic help database..."));
+        return false;
+    }
     MnemonicMap.clear();
-    auto root = json_loads(json, 0, 0);
+    auto root = json_loads(json.c_str(), 0, 0);
     if(root)
     {
         // Get a handle to the root object -> x86-64 subtree
@@ -50,7 +73,11 @@ bool MnemonicHelp::loadFromText(const char* json)
         json_decref(root);
     }
     else
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load mnemonic help database..."));
         return false;
+    }
+    dputs(QT_TRANSLATE_NOOP("DBG", "Mnemonic help database loaded!"));
     return true;
 }
 
@@ -86,6 +113,7 @@ String MnemonicHelp::getDescription(const char* mnem, int depth)
         return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid mnemonic!"));
     if(depth == 10)
         return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Too many redirections..."));
+    loadMnemonicHelp();
     SHARED_ACQUIRE(LockMnemonicHelp);
     auto mnemuni = getUniversalMnemonic(mnem);
     auto found = MnemonicMap.find(mnemuni);
@@ -110,6 +138,7 @@ String MnemonicHelp::getBriefDescription(const char* mnem)
 {
     if(mnem == nullptr)
         return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid mnemonic!"));
+    loadMnemonicHelp();
     SHARED_ACQUIRE(LockMnemonicHelp);
     auto mnemLower = StringUtils::ToLower(mnem);
     if(mnemLower == "???")
