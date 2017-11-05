@@ -122,6 +122,16 @@ namespace Exprfunc
         return MemIsCodePage(addr, false);
     }
 
+    duint memisstring(duint addr)
+    {
+        STRING_TYPE strType;
+        disasmispossiblestring(addr, &strType);
+        if(strType != STRING_TYPE::str_none)
+            return strType == STRING_TYPE::str_unicode ? 2 : 1;
+        else
+            return 0;
+    }
+
     duint memdecodepointer(duint ptr)
     {
         auto decoded = ptr;

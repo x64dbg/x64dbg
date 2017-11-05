@@ -82,6 +82,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("mem.base", membase);
     RegisterEasy("mem.size", memsize);
     RegisterEasy("mem.iscode", memiscode);
+    RegisterEasy("mem.isstring", memisstring);
     RegisterEasy("mem.decodepointer", memdecodepointer);
 
     //Disassembly
