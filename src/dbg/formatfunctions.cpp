@@ -81,19 +81,6 @@ void FormatFunctions::Init()
     {
         std::vector<wchar_t> helpMessage(destCount);
         String errName = ErrorCodeToName((unsigned int)code);
-#ifdef _WIN64
-        if((code >> 32) != 0)  //Data in high part: not an error code
-        {
-            errName = StringUtils::sprintf("%p", code);
-            if(destCount < errName.size() + 1)
-                return FORMAT_BUFFER_TOO_SMALL;
-            else
-            {
-                memcpy(dest, errName.c_str(), errName.size() + 1);
-                return FORMAT_SUCCESS;
-            }
-        }
-#endif //_WIN64
         if(errName.size() == 0)
             errName = StringUtils::sprintf("%08X", DWORD(code));
         DWORD success = FormatMessageW(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, GetModuleHandleW(L"ntdll.dll"), DWORD(code), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), helpMessage.data(), DWORD(destCount), NULL);
