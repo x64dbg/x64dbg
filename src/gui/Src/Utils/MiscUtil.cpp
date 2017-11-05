@@ -119,6 +119,43 @@ QString getSymbolicName(duint addr)
         return addrText;
 }
 
+QString getSymbolicNameStr(duint addr)
+{
+    char labelText[MAX_LABEL_SIZE] = "";
+    char moduleText[MAX_MODULE_SIZE] = "";
+    char string[MAX_STRING_SIZE] = "";
+    bool bHasString = DbgGetStringAt(addr, string);
+    bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
+    bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
+    QString addrText = DbgMemIsValidReadPtr(addr) ? ToPtrString(addr) : ToHexString(addr);
+    QString finalText;
+    if(bHasString)
+        finalText = addrText + " " + QString(string);
+    else if(bHasLabel && bHasModule) //<module.label>
+        finalText = QString("<%1.%2>").arg(moduleText).arg(labelText);
+    else if(bHasModule) //module.addr
+        finalText = QString("%1.%2").arg(moduleText).arg(addrText);
+    else if(bHasLabel) //<label>
+        finalText = QString("<%1>").arg(labelText);
+    else
+    {
+        finalText = addrText;
+        if(addr == (addr & 0xFF))
+        {
+            QChar c = QChar((char)addr);
+            if(c.isPrint() || c.isSpace())
+                finalText += QString(" '%1'").arg(EscapeCh(c));
+        }
+        else if(addr == (addr & 0xFFF)) //UNICODE?
+        {
+            QChar c = QChar((ushort)addr);
+            if(c.isPrint() || c.isSpace())
+                finalText += QString(" L'%1'").arg(EscapeCh(c));
+        }
+    }
+    return finalText;
+}
+
 static bool allowSeasons()
 {
     srand(GetTickCount());

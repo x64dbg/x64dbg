@@ -14,7 +14,7 @@
    <string>Data Copy</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="../../resource.qrc">
     <normaloff>:/icons/images/data-copy.png</normaloff>:/icons/images/data-copy.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -82,6 +82,9 @@
          <height>20</height>
         </size>
        </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
        <property name="maximum">
         <number>200</number>
        </property>
@@ -91,6 +94,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

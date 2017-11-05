@@ -16,23 +16,23 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     mTypes[DataCWord] = FormatType { tr("C-Style WORD (Hex)"), 12 };
     mTypes[DataCDword] = FormatType { tr("C-Style DWORD (Hex)"), 8 };
     mTypes[DataCQword] = FormatType { tr("C-Style QWORD (Hex)"), 4 };
-    mTypes[DataCString] = FormatType { tr("C-Style String"), -1 };
-    mTypes[DataCUnicodeString] = FormatType { tr("C-Style Unicode String"), -1 };
-    mTypes[DataCShellcodeString] = FormatType { tr("C-Style Shellcode String"), -1 };
+    mTypes[DataCString] = FormatType { tr("C-Style String"), 1 };
+    mTypes[DataCUnicodeString] = FormatType { tr("C-Style Unicode String"), 1 };
+    mTypes[DataCShellcodeString] = FormatType { tr("C-Style Shellcode String"), 1 };
     mTypes[DataPascalByte] = FormatType { tr("Pascal BYTE (Hex)"), 42 };
     mTypes[DataPascalWord] = FormatType { tr("Pascal WORD (Hex)"), 21 };
     mTypes[DataPascalDword] = FormatType { tr("Pascal DWORD (Hex)"), 10 };
     mTypes[DataPascalQword] = FormatType { tr("Pascal QWORD (Hex)"), 5 };
-    mTypes[DataGUID] = FormatType { tr("GUID"), 0 };
+    mTypes[DataGUID] = FormatType { tr("GUID"), 1 };
     mTypes[DataIPv4] = FormatType { tr("IP Address (IPv4)"), 5 };
     mTypes[DataIPv6] = FormatType { tr("IP Address (IPv6)"), 1 };
-    mTypes[DataBase64] = FormatType { tr("Base64"), -1 };
-    mTypes[DataMD5] = FormatType { "MD5", -1};
-    mTypes[DataSHA1] = FormatType { "SHA1", -1};
-    mTypes[DataSHA256] = FormatType { "SHA256 (SHA-2)", -1};
-    mTypes[DataSHA512] = FormatType { "SHA512 (SHA-2)", -1};
-    mTypes[DataSHA256_3] = FormatType { "SHA256 (SHA-3)", -1};
-    mTypes[DataSHA512_3] = FormatType { "SHA512 (SHA-3)", -1};
+    mTypes[DataBase64] = FormatType { tr("Base64"), 1 };
+    mTypes[DataMD5] = FormatType { "MD5", 1};
+    mTypes[DataSHA1] = FormatType { "SHA1", 1};
+    mTypes[DataSHA256] = FormatType { "SHA256 (SHA-2)", 1};
+    mTypes[DataSHA512] = FormatType { "SHA512 (SHA-2)", 1};
+    mTypes[DataSHA256_3] = FormatType { "SHA256 (SHA-3)", 1};
+    mTypes[DataSHA512_3] = FormatType { "SHA512 (SHA-3)", 1};
 
     for(int i = 0; i < DataLast; i++)
         ui->comboType->addItem(mTypes[i].name);
