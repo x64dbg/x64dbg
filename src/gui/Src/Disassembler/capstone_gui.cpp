@@ -513,10 +513,12 @@ bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
     //memory size
     auto opsize = op.size / 8;
     const char* sizeText = _cp.MemSizeName(opsize);
-    if(!sizeText)
-        return false;
-    addToken(TokenType::MemorySize, QString(sizeText) + " ptr");
-    addToken(TokenType::Space, " ");
+
+    if(sizeText)
+    {
+        addToken(TokenType::MemorySize, QString(sizeText) + " ptr");
+        addToken(TokenType::Space, " ");
+    }
 
     //memory segment
     const auto & mem = op.mem;
