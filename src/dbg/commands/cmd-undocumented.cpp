@@ -261,7 +261,7 @@ bool cbInstrZydis(int argc, char* argv[])
             dprintf_untranslated("register: %s\n", cp.RegName(op.reg.value));
             break;
         case ZYDIS_OPERAND_TYPE_IMMEDIATE:
-            dprintf_untranslated("immediate: 0x%p\n", op.imm);
+            dprintf_untranslated("immediate: 0x%p\n", op.imm.value);
             break;
         case ZYDIS_OPERAND_TYPE_MEMORY:
         {
@@ -272,7 +272,7 @@ bool cbInstrZydis(int argc, char* argv[])
                                  cp.RegName(mem.base),
                                  cp.RegName(mem.index),
                                  mem.scale,
-                                 mem.disp);
+                                 mem.disp.value);
         }
         break;
         }
