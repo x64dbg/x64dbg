@@ -37,7 +37,6 @@ private:
     dsint curAddr;
     dsint curRva;
     dsint curOffset;
-    QString getSymbolicName(dsint addr);
     void setInfoLine(int line, QString text);
     QString getInfoLine(int line);
     void clear();

@@ -81,43 +81,6 @@ void CPUInfoBox::clear()
     setInfoLine(3, "");
 }
 
-QString CPUInfoBox::getSymbolicName(dsint addr)
-{
-    char labelText[MAX_LABEL_SIZE] = "";
-    char moduleText[MAX_MODULE_SIZE] = "";
-    char string[MAX_STRING_SIZE] = "";
-    bool bHasString = DbgGetStringAt(addr, string);
-    bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
-    bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
-    QString addrText = DbgMemIsValidReadPtr(addr) ? ToPtrString(addr) : ToHexString(addr);
-    QString finalText;
-    if(bHasString)
-        finalText = addrText + " " + QString(string);
-    else if(bHasLabel && bHasModule) //<module.label>
-        finalText = QString("<%1.%2>").arg(moduleText).arg(labelText);
-    else if(bHasModule) //module.addr
-        finalText = QString("%1.%2").arg(moduleText).arg(addrText);
-    else if(bHasLabel) //<label>
-        finalText = QString("<%1>").arg(labelText);
-    else
-    {
-        finalText = addrText;
-        if(addr == (addr & 0xFF))
-        {
-            QChar c = QChar((char)addr);
-            if(c.isPrint() || c.isSpace())
-                finalText += QString(" '%1'").arg(EscapeCh(c));
-        }
-        else if(addr == (addr & 0xFFF)) //UNICODE?
-        {
-            QChar c = QChar((ushort)addr);
-            if(c.isPrint() || c.isSpace())
-                finalText += QString(" L'%1'").arg(EscapeCh(c));
-        }
-    }
-    return finalText;
-}
-
 void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 {
     curAddr = parVA;
@@ -164,7 +127,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
             bool ok;
             argMnemonic.toULongLong(&ok, 16);
             QString valText = DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value);
-            auto valTextSym = getSymbolicName(arg.value);
+            auto valTextSym = getSymbolicNameStr(arg.value);
             if(!valTextSym.contains(valText))
                 valText = QString("%1 %2").arg(valText, valTextSym);
             else
@@ -217,7 +180,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=???");
             else
             {
-                QString addrText = getSymbolicName(arg.memvalue);
+                QString addrText = getSymbolicNameStr(arg.memvalue);
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + addrText);
             }
             j++;
@@ -225,7 +188,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         else
         {
             QString valText = DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value);
-            auto symbolicName = getSymbolicName(arg.value);
+            auto symbolicName = getSymbolicNameStr(arg.value);
             if(!symbolicName.contains(valText))
                 valText = QString("%1 (%2)").arg(symbolicName, valText);
             else

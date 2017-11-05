@@ -16,6 +16,7 @@ void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text
 void SimpleWarningBox(QWidget* parent, const QString & title, const QString & text);
 void SimpleInfoBox(QWidget* parent, const QString & title, const QString & text);
 QString getSymbolicName(duint addr);
+QString getSymbolicNameStr(duint addr);
 bool isEaster();
 QString couldItBeSeasonal(QString icon);
 

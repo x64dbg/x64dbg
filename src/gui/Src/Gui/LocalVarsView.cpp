@@ -304,7 +304,7 @@ void LocalVarsView::updateSlot()
             if(DbgIsValidExpression(buf.constData()))
             {
                 val = DbgValFromString(buf.constData());
-                setCellContent(i, 2, ToPtrString(val));
+                setCellContent(i, 2, getSymbolicNameStr(val));
             }
             else
                 setCellContent(i, 2, "???");
