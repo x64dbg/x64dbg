@@ -80,7 +80,7 @@ void FormatFunctions::Init()
     Register("ntstatus", [](char* dest, size_t destCount, int argc, char* argv[], duint code, void* userdata)
     {
         std::vector<wchar_t> helpMessage(destCount);
-        String errName = ErrorCodeToName((unsigned int)code);
+        String errName = NtStatusCodeToName((unsigned int)code);
         if(errName.size() == 0)
             errName = StringUtils::sprintf("%08X", DWORD(code));
         DWORD success = FormatMessageW(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, GetModuleHandleW(L"ntdll.dll"), DWORD(code), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), helpMessage.data(), DWORD(destCount), NULL);
