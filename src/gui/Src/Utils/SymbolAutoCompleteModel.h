@@ -1,7 +1,8 @@
-#pragma once
-
+#ifndef SYMBOLAUTOCOMPLETEMODEL
+#define SYMBOLAUTOCOMPLETEMODEL
 #include <functional>
 #include <QAbstractItemModel>
+#define MAXAUTOCOMPLETEENTRY 20
 
 class QRegularExpression;
 
@@ -21,3 +22,4 @@ private:
     std::function<QString()> mGetTextProc;
     QRegularExpression* isValidReg;
 };
+#endif //SYMBOLAUTOCOMPLETEMODEL

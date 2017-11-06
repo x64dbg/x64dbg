@@ -308,8 +308,7 @@ typedef enum
     DBG_GET_PEB_ADDRESS,            // param1=DWORD ProcessId,           param2=unused
     DBG_GET_TEB_ADDRESS,            // param1=DWORD ThreadId,            param2=unused
     DBG_ANALYZE_FUNCTION,           // param1=BridgeCFGraphList* graph,  param2=duint entry
-    DBG_MENU_PREPARE,               // param1=int hMenu,                 param2=unused
-    DBG_SYMBOL_AUTOCOMPLETE         // param1=const char* Search,        param2=char** Buffer (count is 20)
+    DBG_MENU_PREPARE               // param1=int hMenu,                 param2=unused
 } DBGMSG;
 
 typedef enum
@@ -1013,7 +1012,6 @@ BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId);
 BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph);
 BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* success = 0);
 BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu);
-BRIDGE_IMPEXP int DbgSymAutoComplete(const char* Search, char** Buffer);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

@@ -35,7 +35,7 @@ int SymbolAutoCompleteModel::rowCount(const QModelIndex & parent) const
         auto match = isValidReg->match(text);
         if(match.hasMatch())
         {
-            return DbgSymAutoComplete(Decorate(text).toUtf8().constData(), nullptr);
+            return DbgFunctions()->SymAutoComplete(Decorate(text).toUtf8().constData(), nullptr, MAXAUTOCOMPLETEENTRY);
         }
         else
             return 0;
@@ -59,9 +59,9 @@ QVariant SymbolAutoCompleteModel::data(const QModelIndex & index, int role) cons
             {
                 //TODO
                 QVariant value;
-                char* data[20];
+                char* data[MAXAUTOCOMPLETEENTRY];
                 memset(data, 0, sizeof(data));
-                int count = DbgSymAutoComplete(Decorate(mGetTextProc()).toUtf8().constData(), (char**)data);
+                int count = DbgFunctions()->SymAutoComplete(Decorate(mGetTextProc()).toUtf8().constData(), (char**)data, MAXAUTOCOMPLETEENTRY);
                 if(index.row() < count)
                     value = QVariant(QString::fromUtf8(data[index.row()]));
                 else

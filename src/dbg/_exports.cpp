@@ -627,31 +627,6 @@ static void TranslateTitanFpuRegisters(const x87FPURegister_t titanFpu[8], X87FP
         TranslateTitanFpuRegister(&titanFpu[i], &fpu[i]);
 }
 
-static BOOL CALLBACK SymAutoCompleteCallback(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
-{
-    std::pair<char**, std::pair<int*, int>>* param = reinterpret_cast<std::pair<char**, std::pair<int*, int>>*>(UserContext);
-    if(param->first)
-    {
-        param->first[*param->second.first] = (char*)BridgeAlloc(pSymInfo->NameLen + 1);
-        memcpy(param->first[*param->second.first], pSymInfo->Name, pSymInfo->NameLen + 1);
-        param->first[*param->second.first][pSymInfo->NameLen] = 0;
-    }
-    if(++*param->second.first >= param->second.second)
-        return FALSE;
-    else
-        return TRUE;
-}
-
-static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
-{
-    //debug
-    int count = 0;
-    std::pair<char**, std::pair<int*, int>> param(Buffer, std::make_pair(&count, MaxSymbols));
-    if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, 0, Search, SymAutoCompleteCallback, &param))
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymEnumSymbols failed!"));
-    return count;
-}
-
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 {
     if(!DbgIsDebugging())
@@ -968,12 +943,6 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     {
         SYMBOLCBINFO* cbInfo = (SYMBOLCBINFO*)param1;
         SymEnumFromCache(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
-    }
-    break;
-
-    case DBG_SYMBOL_AUTOCOMPLETE:
-    {
-        return SymAutoComplete((const char*)param1, (char**)param2, 20);
     }
     break;
 
