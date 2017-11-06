@@ -21,5 +21,10 @@ public:
 private:
     std::function<QString()> mGetTextProc;
     QRegularExpression* isValidReg;
+
+    mutable QString lastAutocompleteText;
+    mutable QString lastAutocomplete[MAXAUTOCOMPLETEENTRY];
+    mutable int lastAutocompleteCount;
+    void update() const;
 };
 #endif //SYMBOLAUTOCOMPLETEMODEL

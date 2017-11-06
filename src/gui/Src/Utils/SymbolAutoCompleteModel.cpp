@@ -9,6 +9,7 @@ static QString Decorate(const QString & text)
 
 SymbolAutoCompleteModel::SymbolAutoCompleteModel(std::function<QString()> getTextProc, QObject* parent) : QAbstractItemModel(parent), mGetTextProc(getTextProc)
 {
+    lastAutocompleteCount = 0;
     isValidReg = new QRegularExpression("[\\w_@][\\w\\d_]*");
 }
 
@@ -35,7 +36,8 @@ int SymbolAutoCompleteModel::rowCount(const QModelIndex & parent) const
         auto match = isValidReg->match(text);
         if(match.hasMatch())
         {
-            return DbgFunctions()->SymAutoComplete(Decorate(text).toUtf8().constData(), nullptr, MAXAUTOCOMPLETEENTRY);
+            update();
+            return lastAutocompleteCount;
         }
         else
             return 0;
@@ -58,19 +60,11 @@ QVariant SymbolAutoCompleteModel::data(const QModelIndex & index, int role) cons
             if(role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::AccessibleTextRole)
             {
                 //TODO
-                QVariant value;
-                char* data[MAXAUTOCOMPLETEENTRY];
-                memset(data, 0, sizeof(data));
-                int count = DbgFunctions()->SymAutoComplete(Decorate(mGetTextProc()).toUtf8().constData(), (char**)data, MAXAUTOCOMPLETEENTRY);
-                if(index.row() < count)
-                    value = QVariant(QString::fromUtf8(data[index.row()]));
+                update();
+                if(index.row() < lastAutocompleteCount)
+                    return QVariant(lastAutocomplete[index.row()]);
                 else
-                    value = QVariant();
-                for(int i = 0; i < count; i++)
-                {
-                    BridgeFree(data[i]);
-                }
-                return value;
+                    return QVariant();
             }
             else if(role == Qt::DecorationRole)
             {
@@ -79,4 +73,21 @@ QVariant SymbolAutoCompleteModel::data(const QModelIndex & index, int role) cons
         }
     }
     return QVariant();
+}
+
+void SymbolAutoCompleteModel::update() const
+{
+    QString text = Decorate(mGetTextProc());
+    if(text == lastAutocompleteText)
+        return;
+    char* data[MAXAUTOCOMPLETEENTRY];
+    memset(data, 0, sizeof(data));
+    int count = DbgFunctions()->SymAutoComplete(text.toUtf8().constData(), (char**)data, MAXAUTOCOMPLETEENTRY);
+    for(int i = 0; i < count; i++)
+    {
+        lastAutocomplete[i] = QString::fromUtf8(data[i]);
+        BridgeFree(data[i]);
+    }
+    lastAutocompleteCount = count;
+    lastAutocompleteText = text;
 }
