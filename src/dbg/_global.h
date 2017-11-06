@@ -55,8 +55,6 @@ void json_free(void* ptr);
 int memleaks();
 void setalloctrace(const char* file);
 bool scmp(const char* a, const char* b);
-void formathex(char* string);
-void formatdec(char* string);
 bool FileExists(const char* file);
 bool DirExists(const char* dir);
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName);

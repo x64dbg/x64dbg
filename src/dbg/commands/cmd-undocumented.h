@@ -7,7 +7,7 @@ bool cbDebugBenchmark(int argc, char* argv[]);
 bool cbInstrSetstr(int argc, char* argv[]);
 bool cbInstrGetstr(int argc, char* argv[]);
 bool cbInstrCopystr(int argc, char* argv[]);
-bool cbInstrCapstone(int argc, char* argv[]);
+bool cbInstrZydis(int argc, char* argv[]);
 bool cbInstrVisualize(int argc, char* argv[]);
 bool cbInstrMeminfo(int argc, char* argv[]);
 bool cbInstrBriefcheck(int argc, char* argv[]);

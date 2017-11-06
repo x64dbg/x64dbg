@@ -109,7 +109,7 @@ void MemUpdateMap()
         auto & currentPage = pageVector.at(i);
         if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages)) //there is a module
             continue; //skip non-modules
-        strcpy(curMod, pageVector.at(i).info);
+        strcpy_s(curMod, pageVector.at(i).info);
         if(!ModBaseFromName(currentPage.info))
             continue;
         auto base = duint(currentPage.mbi.AllocationBase);

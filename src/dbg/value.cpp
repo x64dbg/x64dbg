@@ -199,6 +199,8 @@ static bool isregister(const char* string)
 
     if(scmp(string, "lasterror"))
         return true;
+    if(scmp(string, "laststatus"))
+        return true;
 
     if(scmp(string, "gs"))
         return true;
@@ -711,6 +713,13 @@ duint getregister(int* size, const char* string)
         return error;
     }
 
+    if(scmp(string, "laststatus"))
+    {
+        duint status = 0;
+        MemReadUnsafe((duint)GetTEBLocation(hActiveThread) + ArchValue(0xBF4, 0x1250), &status, 4);
+        return status;
+    }
+
     if(size)
         *size = 2;
     if(scmp(string, "ax"))
@@ -1166,6 +1175,8 @@ bool setregister(const char* string, duint value)
 
     if(scmp(string, "lasterror"))
         return MemWrite((duint)GetTEBLocation(hActiveThread) + ArchValue(0x34, 0x68), &value, 4);
+    if(scmp(string, "laststatus"))
+        return MemWrite((duint)GetTEBLocation(hActiveThread) + ArchValue(0xBF4, 0x1250), &value, 4);
 
     if(scmp(string, "gs"))
         return SetContextDataEx(hActiveThread, UE_SEG_GS, value & 0xFFFF);
@@ -1940,9 +1951,9 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
     else if(strstr(string, "sub_") == string) //then come sub_ functions
     {
 #ifdef _WIN64
-        bool result = sscanf(string, "sub_%llX", value) == 1;
+        bool result = sscanf_s(string, "sub_%llX", value) == 1;
 #else //x86
-        bool result = sscanf(string, "sub_%X", value) == 1;
+        bool result = sscanf_s(string, "sub_%X", value) == 1;
 #endif //_WIN64
         duint start;
         return result && FunctionGet(*value, &start, nullptr) && *value == start;
@@ -2555,7 +2566,7 @@ bool valtostring(const char* string, duint value, bool silent)
         int len = (int)strlen(string);
         Memory<char*> regName(len + 1, "valtostring:regname");
         strcpy_s(regName(), len + 1, string);
-        _strlwr(regName());
+        _strlwr_s(regName(), regName.size());
         if(strstr(regName(), "ip"))
         {
             auto cip = GetContextDataEx(hActiveThread, UE_CIP);

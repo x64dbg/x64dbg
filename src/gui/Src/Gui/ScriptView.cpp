@@ -2,6 +2,8 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDesktopServices>
+#include <QClipboard>
+#include <QMimeData>
 #include "Configuration.h"
 #include "Bridge.h"
 #include "RichTextPainter.h"
@@ -376,7 +378,10 @@ void ScriptView::setupContextMenu()
     mMenu = new MenuBuilder(this);
     MenuBuilder* loadMenu = new MenuBuilder(this);
     loadMenu->addAction(makeShortcutAction(DIcon("folder-horizontal-open.png"), tr("&Open..."), SLOT(openFile()), "ActionLoadScript"));
-    loadMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(paste()), "ActionBinaryPaste"));
+    loadMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(paste()), "ActionBinaryPaste"), [](QMenu*)
+    {
+        return QApplication::clipboard()->mimeData()->hasText();
+    });
     loadMenu->addSeparator();
     loadMenu->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {

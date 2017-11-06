@@ -52,6 +52,7 @@
 #include "MRUList.h"
 #include "AboutDialog.h"
 #include "UpdateChecker.h"
+#include "Tracer/TraceBrowser.h"
 
 QString MainWindow::windowTitle = "";
 
@@ -204,6 +205,12 @@ MainWindow::MainWindow(QWidget* parent)
     mGraphView->setWindowTitle(tr("Graph"));
     mGraphView->setWindowIcon(DIcon("graph.png"));
 
+    // Trace view
+    mTraceBrowser = new TraceBrowser(this);
+    mTraceBrowser->setWindowTitle(tr("Trace"));
+    mTraceBrowser->setWindowIcon(DIcon("trace.png"));
+    connect(mTraceBrowser, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+
     // Create the tab widget and enable detaching and hiding
     mTabWidget = new MHTabWidget(this, true, true);
 
@@ -223,6 +230,7 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
     mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
+    mWidgetList.push_back(WidgetInfo(mTraceBrowser, "TraceTab"));
 
     // If LoadSaveTabOrder disabled, load tabs in default order
     if(!ConfigBool("Gui", "LoadSaveTabOrder"))
@@ -297,6 +305,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionFunctions, SIGNAL(triggered()), this, SLOT(displayFunctions()));
     connect(ui->actionCallStack, SIGNAL(triggered()), this, SLOT(displayCallstack()));
     connect(ui->actionSEHChain, SIGNAL(triggered()), this, SLOT(displaySEHChain()));
+    connect(ui->actionTrace, SIGNAL(triggered()), this, SLOT(displayRunTrace()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
     connect(ui->actionReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(ui->actionBlog, SIGNAL(triggered()), this, SLOT(blog()));
@@ -1432,6 +1441,11 @@ void MainWindow::displaySEHChain()
     showQWidgetTab(mSEHChainView);
 }
 
+void MainWindow::displayRunTrace()
+{
+    showQWidgetTab(mTraceBrowser);
+}
+
 void MainWindow::donate()
 {
     QMessageBox msg(QMessageBox::Information, tr("Donate"), tr("All the money will go to x64dbg development."));
@@ -2065,7 +2079,7 @@ void MainWindow::onMenuCustomized()
         QMenu* currentMenu = menus[i];
         QMenu* moreCommands = nullptr;
         bool moreCommandsUsed = false;
-        QList<QAction*> & list = currentMenu->actions();
+        QList<QAction*> list = currentMenu->actions();
         moreCommands = list.last()->menu();
         if(moreCommands && moreCommands->title().compare(tr("More Commands")) == 0)
         {

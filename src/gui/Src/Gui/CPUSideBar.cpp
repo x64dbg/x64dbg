@@ -101,8 +101,7 @@ void CPUSideBar::reload()
 void CPUSideBar::changeTopmostAddress(dsint i)
 {
     topVA = i;
-    memset(&regDump, 0, sizeof(REGDUMP));
-    DbgGetRegDump(&regDump);
+    DbgGetRegDumpEx(&regDump, sizeof(REGDUMP));
     reload();
 }
 

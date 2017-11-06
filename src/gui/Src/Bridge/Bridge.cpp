@@ -823,6 +823,19 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
             emit referenceAddCommand(QString::fromUtf8((const char*)param1), QString::fromUtf8((const char*)param2));
     }
     break;
+
+    case GUI_OPEN_TRACE_FILE:
+    {
+        if(param1 == nullptr)
+            return nullptr;
+        emit openTraceFile(QString::fromUtf8((const char*)param1));
+    }
+    break;
+
+    case GUI_UPDATE_TRACE_BROWSER:
+        emit updateTraceBrowser();
+        break;
+
     }
 
     return nullptr;

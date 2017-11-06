@@ -154,6 +154,8 @@ signals:
     void closeApplication();
     void flushLog();
     void getDumpAttention();
+    void openTraceFile(const QString & fileName);
+    void updateTraceBrowser();
 
 private:
     CRITICAL_SECTION csBridge;

@@ -160,8 +160,8 @@ bool cbInstrFindAll(int argc, char* argv[])
             for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
-                    k += sprintf(msg + k, " ");
-                k += sprintf(msg + k, "%.2X", printData()[j]);
+                    k += sprintf_s(msg + k, sizeof(msg) - k, " ");
+                k += sprintf_s(msg + k, sizeof(msg) - k, "%.2X", printData()[j]);
             }
         }
         else
@@ -264,8 +264,8 @@ bool cbInstrFindAllMem(int argc, char* argv[])
             for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
-                    k += sprintf(msg + k, " ");
-                k += sprintf(msg + k, "%.2X", printData()[j]);
+                    k += sprintf_s(msg + k, sizeof(msg) - k, " ");
+                k += sprintf_s(msg + k, sizeof(msg) - k, "%.2X", printData()[j]);
             }
         }
         else
@@ -284,7 +284,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
     return true;
 }
 
-static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbFindAsm(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -372,7 +372,7 @@ struct VALUERANGE
     duint end;
 };
 
-static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbRefFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -454,7 +454,7 @@ bool cbInstrRefFindRange(int argc, char* argv[])
     return true;
 }
 
-static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbRefStr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -524,7 +524,7 @@ bool cbInstrRefStr(int argc, char* argv[])
     return true;
 }
 
-static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -545,7 +545,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     else
         size = ModSizeFromAddr(base);
     if(!base || !size)
-        __debugbreak();
+        return false; //__debugbreak
     if(basicinfo->call) //we are looking for calls
     {
         if(basicinfo->addr && MemIsValidReadPtr(basicinfo->addr, true))
@@ -570,8 +570,8 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     }
     switch(disasm->GetId())
     {
-    case X86_INS_CALL: //call dword ptr: [&api]
-    case X86_INS_MOV: //mov reg, dword ptr:[&api]
+    case ZYDIS_MNEMONIC_CALL: //call dword ptr: [&api]
+    case ZYDIS_MNEMONIC_MOV: //mov reg, dword ptr:[&api]
         if(!foundaddr && basicinfo->memory.value)
         {
             duint memaddr;
@@ -714,7 +714,7 @@ struct GUIDRefInfo
     HKEY CLSID;
 };
 
-static bool cbGUIDFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbGUIDFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {

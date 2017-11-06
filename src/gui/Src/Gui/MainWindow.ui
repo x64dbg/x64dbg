@@ -23,7 +23,7 @@
      <x>0</x>
      <y>0</y>
      <width>868</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -67,15 +67,16 @@
     <addaction name="actionSource"/>
     <addaction name="actionReferences"/>
     <addaction name="actionThreads"/>
+    <addaction name="actionSnowman"/>
+    <addaction name="actionHandles"/>
+    <addaction name="actionGraph"/>
+    <addaction name="actionTrace"/>
     <addaction name="actionPatches"/>
     <addaction name="actionComments"/>
     <addaction name="actionLabels"/>
     <addaction name="actionBookmarks"/>
     <addaction name="actionFunctions"/>
     <addaction name="actionVariables"/>
-    <addaction name="actionSnowman"/>
-    <addaction name="actionHandles"/>
-    <addaction name="actionGraph"/>
     <addaction name="separator"/>
     <addaction name="actionPreviousTab"/>
     <addaction name="actionNextTab"/>
@@ -1139,6 +1140,15 @@
    </property>
    <property name="text">
     <string>Plugins</string>
+   </property>
+  </action>
+  <action name="actionTrace">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/trace.png</normaloff>:/icons/images/trace.png</iconset>
+   </property>
+   <property name="text">
+    <string>Trace</string>
    </property>
   </action>
  </widget>

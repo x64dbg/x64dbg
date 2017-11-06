@@ -1,2 +1,2 @@
 @echo off
-hooks\AStyleWhore.exe Silent
+hooks\AStyleHelper.exe Silent

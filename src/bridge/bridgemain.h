@@ -758,6 +758,12 @@ typedef struct
 
 typedef struct
 {
+    DWORD code;
+    char name[128];
+} LASTSTATUS;
+
+typedef struct
+{
     REGISTERCONTEXT regcontext;
     FLAGS flags;
     X87FPUREGISTER x87FPURegisters[8];
@@ -766,6 +772,7 @@ typedef struct
     X87STATUSWORDFIELDS x87StatusWordFields;
     X87CONTROLWORDFIELDS x87ControlWordFields;
     LASTERROR lastError;
+    LASTSTATUS lastStatus;
 } REGDUMP;
 
 typedef struct
@@ -926,7 +933,7 @@ BRIDGE_IMPEXP void DbgClearBookmarkRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text);
 BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
 BRIDGE_IMPEXP duint DbgValFromString(const char* string);
-BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump);
+BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP* regdump, size_t size);
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value);
 BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
 BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);
@@ -1132,7 +1139,9 @@ typedef enum
     GUI_REF_SEARCH_GETROWCOUNT,     // param1=unused,               param2=unused
     GUI_REF_SEARCH_GETCELLCONTENT,  // param1=int row,              param2=int col
     GUI_MENU_REMOVE,                // param1=int hEntryMenu,       param2=unused
-    GUI_REF_ADDCOMMAND              // param1=const char* title,    param2=const char* command
+    GUI_REF_ADDCOMMAND,             // param1=const char* title,    param2=const char* command
+    GUI_OPEN_TRACE_FILE,            // param1=const char* file name,param2=unused
+    GUI_UPDATE_TRACE_BROWSER        // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1307,6 +1316,8 @@ BRIDGE_IMPEXP void GuiUpdateTypeWidget();
 BRIDGE_IMPEXP void GuiCloseApplication();
 BRIDGE_IMPEXP void GuiFlushLog();
 BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command);
+BRIDGE_IMPEXP void GuiUpdateTraceBrowser();
+BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName);
 
 #ifdef __cplusplus
 }

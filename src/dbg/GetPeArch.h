@@ -68,6 +68,9 @@ static PeArch GetPeArch(const wchar_t* szFileName)
                                     // environment based on the current platforms bitness (x86 or x64)
                                     // Class libraries (DLLs) cannot specify the "Prefer 32 bit".
                                     // https://mega.nz/#!vx5nVILR!jLafWGWhhsC0Qo5fE-3oEIc-uHBcRpraOo8L_KlUeXI
+                                    // Binaries that do not have COMIMAGE_FLAGS_ILONLY appear to be executed
+                                    // in a process that matches their native type.
+                                    // https://github.com/x64dbg/x64dbg/issues/1758
 
                                     auto pcorh = PIMAGE_COR20_HEADER(ULONG_PTR(fileMap) + comAddr);
                                     if(pcorh->cb == sizeof(IMAGE_COR20_HEADER))
@@ -79,8 +82,10 @@ static PeArch GetPeArch(const wchar_t* szFileName)
                                         {
                                             if(test(COMIMAGE_FLAGS_32BITREQUIRED))
                                                 result = !isDll && test(MY_COMIMAGE_FLAGS_32BITPREFERRED) ? PeArch::DotnetAnyCpuPrefer32 : PeArch::Dotnet86;
-                                            else
+                                            else if(test(COMIMAGE_FLAGS_ILONLY))
                                                 result = PeArch::DotnetAnyCpu;
+                                            else
+                                                result = PeArch::Dotnet86;
                                         }
                                         else // x64
                                             result = PeArch::Dotnet64;
@@ -92,7 +97,7 @@ static PeArch GetPeArch(const wchar_t* szFileName)
                         }
                     }
                 }
-                __except(EXCEPTION_ACCESS_VIOLATION)
+                __except(EXCEPTION_EXECUTE_HANDLER)
                 {
                 }
                 UnmapViewOfFile(fileMap);

@@ -2,7 +2,7 @@
 #define _DEBUGGER_H
 
 #include "_global.h"
-#include "TitanEngine\TitanEngine.h"
+#include "TitanEngine/TitanEngine.h"
 #include "command.h"
 #include "breakpoint.h"
 #include "_plugins.h"
@@ -66,7 +66,6 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess = NULL);
 cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
-duint dbggetdebuggedbase();
 duint dbggetdbgevents();
 bool dbgsettracecondition(const String & expression, duint maxCount);
 bool dbgsettracelog(const String & expression, const String & text);
@@ -79,6 +78,9 @@ void dbgsetdebuggeeinitscript(const char* fileName);
 const char* dbggetdebuggeeinitscript();
 void dbgsetforeground();
 bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessId);
+void dbgtracebrowserneedsupdate();
+bool dbgsetdllbreakpoint(const char* mod, DWORD type, bool singleshoot);
+bool dbgdeletedllbreakpoint(const char* mod, DWORD type);
 
 void cbStep();
 void cbRtrStep();
@@ -88,7 +90,6 @@ void cbMemoryBreakpoint(void* ExceptionAddress);
 void cbHardwareBreakpoint(void* ExceptionAddress);
 void cbUserBreakpoint();
 void cbDebugLoadLibBPX();
-void cbLibrarianBreakpoint(void* lpData);
 DWORD WINAPI threadDebugLoop(void* lpParameter);
 void cbTraceOverConditionalStep();
 void cbTraceIntoConditionalStep();
@@ -125,5 +126,6 @@ extern bool bNoWow64SingleStepWorkaround;
 extern duint maxSkipExceptionCount;
 extern HANDLE mProcHandle;
 extern HANDLE mForegroundHandle;
+extern duint mRtrPreviousCSP;
 
 #endif // _DEBUGGER_H

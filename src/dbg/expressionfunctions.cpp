@@ -63,7 +63,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.entry", ModEntryFromAddr);
     RegisterEasy("mod.system,mod.issystem", modsystem);
     RegisterEasy("mod.user,mod.isuser", moduser);
-    RegisterEasy("mod.main,mod.mainbase", dbggetdebuggedbase);
+    RegisterEasy("mod.main,mod.mainbase", dbgdebuggedbase);
     RegisterEasy("mod.rva", modrva);
     RegisterEasy("mod.offset,mod.fileoffset", valvatofileoffset);
 
@@ -104,6 +104,7 @@ void ExpressionFunctions::Init()
     //Trace record
     RegisterEasy("tr.enabled", trenabled);
     RegisterEasy("tr.hitcount,tr.count", trhitcount);
+    RegisterEasy("tr.runtraceenabled", trisruntraceenabled);
 
     //Byte/Word/Dword/Qword/Pointer
     RegisterEasy("ReadByte,Byte,byte", readbyte);

@@ -9,6 +9,7 @@
 #include "disasm_helper.h"
 #include "function.h"
 #include "value.h"
+#include "TraceRecord.h"
 #include "exhandlerinfo.h"
 
 namespace Exprfunc
@@ -178,7 +179,7 @@ namespace Exprfunc
         unsigned char data[16];
         if(MemRead(addr, data, sizeof(data), nullptr, true))
         {
-            Capstone cp;
+            Zydis cp;
             if(cp.Disassemble(addr, data))
                 return cp.IsNop();
         }
@@ -190,7 +191,7 @@ namespace Exprfunc
         unsigned char data[16];
         if(MemRead(addr, data, sizeof(data), nullptr, true))
         {
-            Capstone cp;
+            Zydis cp;
             if(cp.Disassemble(addr, data))
                 return cp.IsUnusual();
         }
@@ -259,6 +260,11 @@ namespace Exprfunc
     duint trhitcount(duint addr)
     {
         return trenabled(addr) ? TraceRecord.getHitCount(addr) : 0;
+    }
+
+    duint trisruntraceenabled()
+    {
+        return _dbg_dbgisRunTraceEnabled() ? 1 : 0;
     }
 
     duint gettickcount()

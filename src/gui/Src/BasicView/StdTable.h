@@ -22,11 +22,18 @@ public:
 
     // Selection Management
     void expandSelectionUpTo(int to);
+    void expandUp();
+    void expandDown();
+    void expandTop();
+    void expandBottom();
     void setSingleSelection(int index);
     int getInitialSelection();
     QList<int> getSelection();
+    void selectStart();
+    void selectEnd();
     void selectNext();
     void selectPrevious();
+    void selectAll();
     bool isSelected(int base, int offset);
     bool scrollSelect(int offset);
 
@@ -107,7 +114,7 @@ protected:
 
     SelectionData_t mSelection;
 
-    bool mIsMultiSelctionAllowed;
+    bool mIsMultiSelectionAllowed;
     bool mCopyMenuOnly;
     bool mCopyMenuDebugOnly;
     bool mIsColumnSortingAllowed;

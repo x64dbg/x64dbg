@@ -10,3 +10,6 @@
 [submodule "deps"]
 	path = deps
 	url = https://github.com/x64dbg/deps
+[submodule "src/zydis_wrapper/zydis"]
+	path = src/zydis_wrapper/zydis
+	url = https://github.com/zyantific/zydis.git

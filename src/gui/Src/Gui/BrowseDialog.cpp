@@ -1,5 +1,6 @@
 #include "BrowseDialog.h"
 #include "ui_BrowseDialog.h"
+#include "MiscUtil.h"
 #include <QDirModel>
 #include <QCompleter>
 #include <QFileDialog>
@@ -33,9 +34,8 @@ void BrowseDialog::on_browse_clicked()
         file = QFileDialog::getSaveFileName(this, ui->label->text(), ui->lineEdit->text(), mFilter);
     else
         file = QFileDialog::getOpenFileName(this, ui->label->text(), ui->lineEdit->text(), mFilter);
-    file = QDir::toNativeSeparators(file);
     if(file.size() != 0)
-        ui->lineEdit->setText(file);
+        ui->lineEdit->setText(QDir::toNativeSeparators(file));
 }
 
 void BrowseDialog::on_ok_clicked()

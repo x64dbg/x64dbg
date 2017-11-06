@@ -103,7 +103,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             xref.from = mCp.Address();
             for(auto i = 0; i < mCp.OpCount(); i++)
             {
-                duint dest = mCp.ResolveOpValue(i, [](x86_reg)->size_t
+                duint dest = mCp.ResolveOpValue(i, [](ZydisRegister)->size_t
                 {
                     return 0;
                 });
@@ -116,23 +116,23 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
             if(xref.addr)
                 mXrefs.push_back(xref);
 
-            if(!mCp.IsNop() && (mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())) //non-nop jump
+            if(!mCp.IsNop() && (mCp.IsJump() || mCp.IsLoop())) //non-nop jump
             {
                 //set the branch destinations
                 node.brtrue = mCp.BranchDestination();
-                if(mCp.GetId() != X86_INS_JMP && mCp.GetId() != X86_INS_LJMP) //unconditional jumps dont have a brfalse
+                if(mCp.GetId() != ZYDIS_MNEMONIC_JMP) //unconditional jumps dont have a brfalse
                     node.brfalse = node.end + mCp.Size();
 
                 //consider register/memory branches as terminal nodes
-                if(mCp[0].type != X86_OP_IMM)
+                if(mCp.OpCount() && mCp[0].type != ZYDIS_OPERAND_TYPE_IMMEDIATE)
                 {
                     //jmp ptr [index * sizeof(duint) + switchTable]
-                    if(mCp[0].type == X86_OP_MEM && mCp[0].mem.base == X86_OP_INVALID && mCp[0].mem.index != X86_OP_INVALID
-                            && mCp[0].mem.scale == sizeof(duint) && MemIsValidReadPtr(duint(mCp[0].mem.disp)))
+                    if(mCp[0].type == ZYDIS_OPERAND_TYPE_MEMORY && mCp[0].mem.base == ZYDIS_REGISTER_NONE && mCp[0].mem.index != ZYDIS_REGISTER_NONE
+                            && mCp[0].mem.scale == sizeof(duint) && MemIsValidReadPtr(duint(mCp[0].mem.disp.value)))
                     {
                         Memory<duint*> switchTable(512 * sizeof(duint));
                         duint actualSize, index;
-                        MemRead(duint(mCp[0].mem.disp), switchTable(), 512 * sizeof(duint), &actualSize);
+                        MemRead(duint(mCp[0].mem.disp.value), switchTable(), 512 * sizeof(duint), &actualSize);
                         actualSize /= sizeof(duint);
                         for(index = 0; index < actualSize; index++)
                             if(MemIsCodePage(switchTable()[index], false) == false)
@@ -168,11 +168,11 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
 
                 break;
             }
-            if(mCp.InGroup(CS_GRP_CALL)) //call
+            if(mCp.IsCall())
             {
                 //TODO: add this to a queue to be analyzed later
             }
-            if(mCp.InGroup(CS_GRP_RET)) //return
+            if(mCp.IsRet())
             {
                 node.terminal = true;
                 graph.AddNode(node);
@@ -224,17 +224,17 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
         while(addr <= node.end) //disassemble all instructions
         {
             auto size = mCp.Disassemble(addr, translateAddr(addr)) ? mCp.Size() : 1;
-            if(mCp.InGroup(CS_GRP_CALL) && mCp.OpCount()) //call reg / call [reg+X]
+            if(mCp.IsCall() && mCp.OpCount()) //call reg / call [reg+X]
             {
                 auto & op = mCp[0];
                 switch(op.type)
                 {
-                case X86_OP_REG:
+                case ZYDIS_OPERAND_TYPE_REGISTER:
                     node.indirectcall = true;
                     break;
-                case X86_OP_MEM:
-                    node.indirectcall |= op.mem.base != X86_REG_RIP &&
-                                         (op.mem.base != X86_REG_INVALID || op.mem.index != X86_REG_INVALID);
+                case ZYDIS_OPERAND_TYPE_MEMORY:
+                    node.indirectcall |= op.mem.base != ZYDIS_REGISTER_RIP &&
+                                         (op.mem.base != ZYDIS_REGISTER_NONE || op.mem.index != ZYDIS_REGISTER_NONE);
                     break;
                 default:
                     break;

@@ -35,7 +35,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+    Zydis cp;
 
     // Check if the pointer is not null
     if(data == NULL)
@@ -131,7 +131,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+    Zydis cp;
 
     if(data == NULL)
         return 0;
@@ -200,23 +200,15 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     auto branchType = Instruction_t::None;
     Instruction_t wInst;
-    if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_CALL) || cp.InGroup(CS_GRP_RET)))
+    if(success && cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTRet | Zydis::BTLoop))
     {
         wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
-        switch(cp.GetId())
-        {
-        case X86_INS_JMP:
-        case X86_INS_LJMP:
+        if(cp.IsBranchType(Zydis::BTUncondJmp))
             branchType = Instruction_t::Unconditional;
-            break;
-        case X86_INS_CALL:
-        case X86_INS_LCALL:
+        else if(cp.IsBranchType(Zydis::BTCall))
             branchType = Instruction_t::Call;
-            break;
-        default:
-            branchType = cp.InGroup(CS_GRP_RET) ? Instruction_t::None : Instruction_t::Conditional;
-            break;
-        }
+        else if(cp.IsBranchType(Zydis::BTCondJmp))
+            branchType = Instruction_t::Conditional;
     }
     else
         wInst.branchDestination = 0;
@@ -231,37 +223,45 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     wInst.branchType = branchType;
     wInst.tokens = cap;
 
-    if(success)
+    if(!success)
+        return wInst;
+
+    auto instr = cp.GetInstr();
+    cp.RegInfo(reginfo);
+
+    for(ZydisCPUFlag i = 0; i <= ZYDIS_CPUFLAG_MAX_VALUE; ++i)
     {
-        cp.RegInfo(reginfo);
-        cp.FlagInfo(flaginfo);
+        auto flagAction = instr->accessedFlags[i].action;
+        if(flagAction == ZYDIS_CPUFLAG_ACTION_NONE)
+            continue;
 
-        auto flaginfo2reginfo = [](uint8_t info)
+        Zydis::RegAccessInfo rai;
+        switch(flagAction)
         {
-            auto result = 0;
-#define checkFlag(test, reg) result |= (info & test) == test ? reg : 0
-            checkFlag(Capstone::Modify, Capstone::Write);
-            checkFlag(Capstone::Prior, Capstone::None);
-            checkFlag(Capstone::Reset, Capstone::Write);
-            checkFlag(Capstone::Set, Capstone::Write);
-            checkFlag(Capstone::Test, Capstone::Read);
-            checkFlag(Capstone::Undefined, Capstone::None);
-#undef checkFlag
-            return result;
-        };
+        case ZYDIS_CPUFLAG_ACTION_MODIFIED:
+        case ZYDIS_CPUFLAG_ACTION_SET_0:
+        case ZYDIS_CPUFLAG_ACTION_SET_1:
+            rai = Zydis::RAIWrite;
+            break;
+        case ZYDIS_CPUFLAG_ACTION_TESTED:
+            rai = Zydis::RAIRead;
+            break;
+        default:
+            rai = Zydis::RAINone;
+            break;
+        }
 
-        for(uint8_t i = Capstone::FLAG_INVALID; i < Capstone::FLAG_ENDING; i++)
-            if(flaginfo[i])
-            {
-                reginfo[X86_REG_EFLAGS] = Capstone::None;
-                wInst.regsReferenced.push_back({cp.FlagName(Capstone::Flag(i)), flaginfo2reginfo(flaginfo[i])});
-            }
+        reginfo[ZYDIS_REGISTER_RFLAGS] = Zydis::RAINone;
+        reginfo[ZYDIS_REGISTER_EFLAGS] = Zydis::RAINone;
+        reginfo[ZYDIS_REGISTER_FLAGS]  = Zydis::RAINone;
 
-        reginfo[ArchValue(X86_REG_EIP, X86_REG_RIP)] = Capstone::None;
-        for(uint8_t i = X86_REG_INVALID; i < X86_REG_ENDING; i++)
-            if(reginfo[i])
-                wInst.regsReferenced.push_back({cp.RegName(x86_reg(i)), reginfo[i]});
+        wInst.regsReferenced.emplace_back(cp.FlagName(i), rai);
     }
+
+    reginfo[ArchValue(ZYDIS_REGISTER_EIP, ZYDIS_REGISTER_RIP)] = Zydis::RAINone;
+    for(ZydisRegister i = ZYDIS_REGISTER_NONE; i <= ZYDIS_REGISTER_MAX_VALUE; ++i)
+        if(reginfo[i])
+            wInst.regsReferenced.emplace_back(cp.RegName(ZydisRegister(i)), reginfo[i]);
 
     return wInst;
 }
@@ -271,7 +271,7 @@ Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase,
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
 
-    auto & infoIter = dataInstMap.find(type);
+    auto infoIter = dataInstMap.find(type);
     if(infoIter == dataInstMap.end())
         infoIter = dataInstMap.find(enc_byte);
 

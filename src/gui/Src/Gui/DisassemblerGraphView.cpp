@@ -141,7 +141,6 @@ duint DisassemblerGraphView::get_cursor_pos()
 
 void DisassemblerGraphView::set_cursor_pos(duint addr)
 {
-    Q_UNUSED(addr);
     if(!this->navigate(addr))
     {
         //TODO: show in hex editor?
@@ -721,6 +720,11 @@ void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
     else
     {
         duint instr = this->getInstrForMouseEvent(event);
+
+        //Add address to history
+        if(!mHistoryLock)
+            mHistory.addVaToHistory(instr);
+
         DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)).toUtf8().constData());
     }
 }
@@ -1779,8 +1783,13 @@ void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
         DbgCmdExec(QString("graph dis.brtrue(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
     else if(key == Qt::Key_Right)
         DbgCmdExec(QString("graph dis.brfalse(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
-    if(key == Qt::Key_Return || key == Qt::Key_Enter)
+    else if(key == Qt::Key_Return || key == Qt::Key_Enter)
+    {
+        //Add address to history
+        if(!mHistoryLock)
+            mHistory.addVaToHistory(cur_instr);
         DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
+    }
 }
 
 void DisassemblerGraphView::followDisassemblerSlot()

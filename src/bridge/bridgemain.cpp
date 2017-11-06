@@ -150,9 +150,9 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
     if(!BridgeSettingGet(section, key, newvalue))
         return false;
 #ifdef _WIN64
-    int ret = sscanf(newvalue, "%llX", value);
+    int ret = sscanf_s(newvalue, "%llX", value);
 #else
-    int ret = sscanf(newvalue, "%X", value);
+    int ret = sscanf_s(newvalue, "%X", value);
 #endif //_WIN64
     if(ret)
         return true;
@@ -463,9 +463,39 @@ BRIDGE_IMPEXP duint DbgValFromString(const char* string)
     return value;
 }
 
-BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
+//deprecated api, only provided for binary compatibility
+extern "C" __declspec(dllexport) bool DbgGetRegDump(REGDUMP* regdump)
 {
-    return _dbg_getregdump(regdump);
+    typedef struct
+    {
+        REGISTERCONTEXT regcontext;
+        FLAGS flags;
+        X87FPUREGISTER x87FPURegisters[8];
+        unsigned long long mmx[8];
+        MXCSRFIELDS MxCsrFields;
+        X87STATUSWORDFIELDS x87StatusWordFields;
+        X87CONTROLWORDFIELDS x87ControlWordFields;
+        LASTERROR lastError;
+    } REGDUMP_OLD;
+    return DbgGetRegDumpEx(regdump, sizeof(REGDUMP_OLD));
+}
+
+BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP* regdump, size_t size)
+{
+    if(size == sizeof(REGDUMP))
+        return _dbg_getregdump(regdump);
+
+    if(size > sizeof(REGDUMP))
+        __debugbreak();
+
+    REGDUMP temp;
+    if(!_dbg_getregdump(&temp))
+    {
+        memset(regdump, 0, size);
+        return false;
+    }
+    memcpy(regdump, &temp, size);
+    return true;
 }
 
 // FIXME all
@@ -1651,6 +1681,18 @@ BRIDGE_IMPEXP void GuiFlushLog()
 BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command)
 {
     _gui_sendmessage(GUI_REF_ADDCOMMAND, (void*)title, (void*)command);
+}
+
+BRIDGE_IMPEXP void GuiUpdateTraceBrowser()
+{
+    CHECK_GUI_UPDATE_DISABLED
+    _gui_sendmessage(GUI_UPDATE_TRACE_BROWSER, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName)
+{
+    CHECK_GUI_UPDATE_DISABLED
+    _gui_sendmessage(GUI_OPEN_TRACE_FILE, (void*)fileName, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

@@ -2528,6 +2528,15 @@ typedef struct _PEB_LDR_DATA
     HANDLE ShutdownThreadId;
 } PEB_LDR_DATA, *PPEB_LDR_DATA;
 
+typedef struct _ACTIVATION_CONTEXT_STACK
+{
+    struct _RTL_ACTIVATION_CONTEXT_STACK_FRAME* ActiveFrame;
+    LIST_ENTRY FrameListCache;
+    ULONG Flags;
+    ULONG NextCookieSequenceNumber;
+    ULONG StackId;
+} ACTIVATION_CONTEXT_STACK, *PACTIVATION_CONTEXT_STACK;
+
 typedef struct _PEB
 {
     BOOLEAN InheritedAddressSpace;
@@ -2585,12 +2594,14 @@ typedef struct _PEB
     ULONG TlsExpansionCounter;
     PVOID TlsBitmap;
     ULONG TlsBitmapBits[2];
+
     PVOID ReadOnlySharedMemoryBase;
-    PVOID HotpatchInformation;
+    PVOID SharedData; // HotpatchInformation
     PVOID* ReadOnlyStaticServerData;
-    PVOID AnsiCodePageData;
-    PVOID OemCodePageData;
-    PVOID UnicodeCaseTableData;
+
+    PVOID AnsiCodePageData; // PCPTABLEINFO
+    PVOID OemCodePageData; // PCPTABLEINFO
+    PVOID UnicodeCaseTableData; // PNLSTABLEINFO
 
     ULONG NumberOfProcessors;
     ULONG NtGlobalFlag;
@@ -2603,7 +2614,7 @@ typedef struct _PEB
 
     ULONG NumberOfHeaps;
     ULONG MaximumNumberOfHeaps;
-    PVOID* ProcessHeaps;
+    PVOID* ProcessHeaps; // PHEAP
 
     PVOID GdiSharedHandleTable;
     PVOID ProcessStarterHelper;
@@ -2631,14 +2642,14 @@ typedef struct _PEB
     ULARGE_INTEGER AppCompatFlags;
     ULARGE_INTEGER AppCompatFlagsUser;
     PVOID pShimData;
-    PVOID AppCompatInfo;
+    PVOID AppCompatInfo; // APPCOMPAT_EXE_DATA
 
     UNICODE_STRING CSDVersion;
 
-    PVOID ActivationContextData;
-    PVOID ProcessAssemblyStorageMap;
-    PVOID SystemDefaultActivationContextData;
-    PVOID SystemAssemblyStorageMap;
+    PVOID ActivationContextData; // ACTIVATION_CONTEXT_DATA
+    PVOID ProcessAssemblyStorageMap; // ASSEMBLY_STORAGE_MAP
+    PVOID SystemDefaultActivationContextData; // ACTIVATION_CONTEXT_DATA
+    PVOID SystemAssemblyStorageMap; // ASSEMBLY_STORAGE_MAP
 
     SIZE_T MinimumStackCommit;
 
@@ -2650,7 +2661,7 @@ typedef struct _PEB
 
     PVOID WerRegistrationData;
     PVOID WerShipAssertPtr;
-    PVOID pContextData;
+    PVOID pUnused; // pContextData
     PVOID pImageHeaderHash;
     union
     {
@@ -2667,6 +2678,8 @@ typedef struct _PEB
     PVOID TppWorkerpListLock;
     LIST_ENTRY TppWorkerpList;
     PVOID WaitOnAddressHashTable[128];
+    PVOID TelemetryCoverageHeader; // REDSTONE3
+    ULONG CloudFileFlags;
 } PEB, *PPEB;
 
 #define GDI_BATCH_BUFFER_SIZE 310
@@ -2711,17 +2724,31 @@ typedef struct _TEB
     LCID CurrentLocale;
     ULONG FpSoftwareStatusRegister;
     PVOID ReservedForDebuggerInstrumentation[16];
-    PVOID SystemReserved1[37];
+#ifdef _WIN64
+    PVOID SystemReserved1[30];
+#else
+    PVOID SystemReserved1[26];
+#endif
+    CHAR PlaceholderCompatibilityMode;
+    CHAR PlaceholderReserved[11];
+    ULONG ProxiedProcessId;
+    ACTIVATION_CONTEXT_STACK ActivationStack;
+
     UCHAR WorkingOnBehalfTicket[8];
     NTSTATUS ExceptionCode;
 
-    PVOID ActivationContextStackPointer;
+    PACTIVATION_CONTEXT_STACK ActivationContextStackPointer;
     ULONG_PTR InstrumentationCallbackSp;
     ULONG_PTR InstrumentationCallbackPreviousPc;
     ULONG_PTR InstrumentationCallbackPreviousSp;
+#ifdef _WIN64
     ULONG TxFsContext;
-
+#endif
     BOOLEAN InstrumentationCallbackDisabled;
+#ifndef _WIN64
+    UCHAR SpareBytes[23];
+    ULONG TxFsContext;
+#endif
     GDI_TEB_BATCH GdiTebBatch;
     CLIENT_ID RealClientId;
     HANDLE GdiCachedProcessHandle;

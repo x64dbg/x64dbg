@@ -97,7 +97,7 @@ public:
     void setColumnOrder(int pos, int index);
     int getColumnOrder(int index);
     int getHeaderHeight();
-    int getTableHeigth();
+    int getTableHeight();
     int getGuiState();
     int getNbrOfLineToPrint();
     void setNbrOfLineToPrint(int parNbrOfLineToPrint);

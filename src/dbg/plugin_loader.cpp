@@ -90,9 +90,9 @@ bool pluginload(const char* pluginName, bool loadall)
     }
     char searchName[deflen] = "";
 #ifdef _WIN64
-    sprintf(searchName, "%s\\%s", StringUtils::Utf16ToUtf8(pluginDirectory.c_str()).c_str(), name);
+    sprintf_s(searchName, "%s\\%s", StringUtils::Utf16ToUtf8(pluginDirectory.c_str()).c_str(), name);
 #else
-    sprintf(searchName, "%s\\%s", StringUtils::Utf16ToUtf8(pluginDirectory.c_str()).c_str(), name);
+    sprintf_s(searchName, "%s\\%s", StringUtils::Utf16ToUtf8(pluginDirectory.c_str()).c_str(), name);
 #endif // _WIN64
 
     //Check to see if this plugin is already loaded
@@ -398,9 +398,9 @@ void pluginloadall(const char* pluginDir)
     SetCurrentDirectoryW(pluginDirectory.c_str());
     char searchName[deflen] = "";
 #ifdef _WIN64
-    sprintf(searchName, "%s\\*.dp64", pluginDir);
+    sprintf_s(searchName, "%s\\*.dp64", pluginDir);
 #else
-    sprintf(searchName, "%s\\*.dp32", pluginDir);
+    sprintf_s(searchName, "%s\\*.dp32", pluginDir);
 #endif // _WIN64
     WIN32_FIND_DATAW foundData;
     HANDLE hSearch = FindFirstFileW(StringUtils::Utf8ToUtf16(searchName).c_str(), &foundData);

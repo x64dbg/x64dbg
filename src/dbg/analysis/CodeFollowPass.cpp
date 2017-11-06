@@ -31,16 +31,16 @@ bool CodeFollowPass::Analyse()
     return false;
 }
 
-duint CodeFollowPass::GetReferenceOperand(const cs_x86 & Context)
+duint CodeFollowPass::GetReferenceOperand(const ZydisDecodedInstruction & Context)
 {
-    for(int i = 0; i < Context.op_count; i++)
+    for(int i = 0; i < Context.operandCount; i++)
     {
         auto operand = Context.operands[i];
 
         // Looking for immediate references
-        if(operand.type == X86_OP_IMM)
+        if(operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
         {
-            duint dest = (duint)operand.imm;
+            duint dest = (duint)operand.imm.value.u;
 
             if(ValidateAddress(dest))
                 return dest;
@@ -50,25 +50,25 @@ duint CodeFollowPass::GetReferenceOperand(const cs_x86 & Context)
     return 0;
 }
 
-duint CodeFollowPass::GetMemoryOperand(Capstone & Disasm, const cs_x86 & Context, bool* Indirect)
+duint CodeFollowPass::GetMemoryOperand(Zydis & Disasm, const ZydisDecodedInstruction & Context, bool* Indirect)
 {
-    if(Context.op_count <= 0)
+    if(Context.operandCount <= 0)
         return 0;
 
     // Only the first operand matters
     auto operand = Context.operands[0];
 
     // Jumps and calls only
-    if(Disasm.InGroup(CS_GRP_CALL) || Disasm.InGroup(CS_GRP_JUMP))
+    if(Disasm.IsCall() || Disasm.IsJump())
     {
         // Looking for memory references
-        if(operand.type == X86_OP_MEM)
+        if(operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
         {
             // Notify if the operand was indirect
             if(Indirect)
             {
-                if(operand.mem.base != X86_REG_INVALID ||
-                        operand.mem.index != X86_REG_INVALID ||
+                if(operand.mem.base != ZYDIS_REGISTER_NONE ||
+                        operand.mem.index != ZYDIS_REGISTER_NONE ||
                         operand.mem.scale != 0)
                 {
                     *Indirect = true;
@@ -81,7 +81,7 @@ duint CodeFollowPass::GetMemoryOperand(Capstone & Disasm, const cs_x86 & Context
             // TODO: Translate RIP-Relative
             return 0;
 
-            duint dest = (duint)operand.mem.disp;
+            duint dest = (duint)operand.mem.disp.value;
 
             if(ValidateAddress(dest))
                 return dest;

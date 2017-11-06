@@ -29,6 +29,7 @@
 #include "thread.h"
 #include "comment.h"
 #include "exception.h"
+#include "database.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -135,7 +136,7 @@ static bool _getcmdline(char* cmd_line, size_t* cbsize)
     if(!cmd_line && cbsize)
         *cbsize = strlen(cmdline) + sizeof(char);
     else if(cmd_line)
-        strcpy(cmd_line, cmdline);
+        memcpy(cmd_line, cmdline, strlen(cmdline) + 1);
     efree(cmdline, "_getcmdline:cmdline");
     return true;
 }
@@ -439,4 +440,5 @@ void dbgfunctionsinit()
     _dbgfunctions.ModRelocationsFromAddr = _modrelocationsfromaddr;
     _dbgfunctions.ModRelocationAtAddr = (MODRELOCATIONATADDR)ModRelocationAtAddr;
     _dbgfunctions.ModRelocationsInRange = _modrelocationsinrange;
+    _dbgfunctions.DbGetHash = DbGetHash;
 }

@@ -67,7 +67,9 @@ INCLUDEPATH += \
     Src/Utils \
     Src/ThirdPartyLibs/snowman \
     Src/ThirdPartyLibs/ldconvert \
-    ../capstone_wrapper
+    ../capstone_wrapper \
+    ../zydis_wrapper \
+    ../zydis_wrapper/zydis/include
 
 # Resources, sources, headers, and forms
 RESOURCES += \
@@ -82,7 +84,9 @@ SOURCES += \
     Src/BasicView/HexDump.cpp \
     Src/BasicView/AbstractTableView.cpp \
     Src/Disassembler/QBeaEngine.cpp \
+    Src/Disassembler/CsQBeaEngine.cpp \
     Src/Disassembler/capstone_gui.cpp \
+    Src/Disassembler/cs_capstone_gui.cpp \
     Src/Memory/MemoryPage.cpp \
     Src/Bridge/Bridge.cpp \
     Src/BasicView/StdTable.cpp \
@@ -181,7 +185,10 @@ SOURCES += \
     Src/Gui/AboutDialog.cpp \
     Src/Gui/BreakpointMenu.cpp \
     Src/Gui/ComboBoxDialog.cpp \
-    Src/Utils/SymbolAutoCompleteModel.cpp
+    Src/Utils/SymbolAutoCompleteModel.cpp \
+    Src/Tracer/TraceBrowser.cpp \
+    Src/Tracer/TraceFileReader.cpp \
+    Src/Tracer/TraceFileSearch.cpp
 
 
 HEADERS += \
@@ -193,7 +200,9 @@ HEADERS += \
     Src/BasicView/HexDump.h \
     Src/BasicView/AbstractTableView.h \
     Src/Disassembler/QBeaEngine.h \
+    Src/Disassembler/CsQBeaEngine.h \
     Src/Disassembler/capstone_gui.h \
+    Src/Disassembler/cs_capstone_gui.h \
     Src/Memory/MemoryPage.h \
     Src/Bridge/Bridge.h \
     Src/Exports.h \
@@ -298,7 +307,11 @@ HEADERS += \
     Src/Gui/BreakpointMenu.h \
     Src/Gui/ComboBoxDialog.h \
     Src/Utils/VaHistory.h \
-    Src/Utils/SymbolAutoCompleteModel.h
+    Src/Utils/SymbolAutoCompleteModel.h \
+    Src/Tracer/TraceBrowser.h \
+    Src/Tracer/TraceFileReader.h \
+    Src/Tracer/TraceFileReaderInternal.h \
+    Src/Tracer/TraceFileSearch.h
     
 
 FORMS += \
@@ -349,6 +362,7 @@ LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
 
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
+    LIBS += -L"$$PWD/../zydis_wrapper/bin/x32$${DIR_SUFFIX}" -lzydis_wrapper
     LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x86
     LIBS += -L"$$PWD/../capstone_wrapper/bin/x32$${DIR_SUFFIX}" -lcapstone_wrapper
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x86
@@ -356,6 +370,7 @@ LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
     # Windows x64 (64bit) specific build
+    LIBS += -L"$$PWD/../zydis_wrapper/bin/x64$${DIR_SUFFIX}" -lzydis_wrapper
     LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x64
     LIBS += -L"$$PWD/../capstone_wrapper/bin/x64$${DIR_SUFFIX}" -lcapstone_wrapper
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x64

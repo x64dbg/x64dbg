@@ -16,7 +16,7 @@
 #include "watch.h"
 #include "plugin_loader.h"
 #include "_dbgfunctions.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 #include "_scriptapi_gui.h"
 #include "filehelper.h"
 #include "database.h"
@@ -221,6 +221,8 @@ static void registercommands()
     dbgcmdnew("TraceSetCommand,SetTraceCommand", cbDebugTraceSetCommand, true); //Set trace command text + condition
     dbgcmdnew("TraceSetSwitchCondition,SetTraceSwitchCondition", cbDebugTraceSetSwitchCondition, true); //Set trace switch condition
     dbgcmdnew("TraceSetLogFile,SetTraceLogFile", cbDebugTraceSetLogFile, true); //Set trace log file
+    dbgcmdnew("StartRunTrace,opentrace", cbDebugStartRunTrace, true); //start run trace (Ollyscript command "opentrace" "opens run trace window")
+    dbgcmdnew("StopRunTrace,tc", cbDebugStopRunTrace, true); //stop run trace (and Ollyscript command)
 
     //thread control
     dbgcmdnew("createthread,threadcreate,newthread,threadnew", cbDebugCreatethread, true); //create thread
@@ -428,7 +430,7 @@ static void registercommands()
     dbgcmdnew("setstr,strset", cbInstrSetstr, false); //set a string variable
     dbgcmdnew("getstr,strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr,strcpy", cbInstrCopystr, true); //write a string variable to memory
-    dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
+    dbgcmdnew("zydis", cbInstrZydis, true); //disassemble using zydis
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
     dbgcmdnew("briefcheck", cbInstrBriefcheck, true); //check if mnemonic briefs are missing
@@ -643,7 +645,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     json_set_alloc_funcs(json_malloc, json_free);
     //#endif //ENABLE_MEM_TRACE
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing capstone..."));
-    Capstone::GlobalInitialize();
+    Zydis::GlobalInitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Yara..."));
     if(yr_initialize() != ERROR_SUCCESS)
         return "Failed to initialize Yara!";
@@ -780,7 +782,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     cmdfree();
     varfree();
     yr_finalize();
-    Capstone::GlobalFinalize();
+    Zydis::GlobalFinalize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));
     waitdeinitialize();
     SafeDbghelpDeinitialize();

@@ -142,7 +142,7 @@ void BreakpointsView::reloadData()
                 Hax(const bool & greater, const QString & s) : greater(greater), s(s) { }
                 bool operator<(const Hax & b)
                 {
-                    return greater ? this->s > b.s : this->s < b.s;
+                    return greater ? s > b.s : s < b.s;
                 }
             } aHax(greater, a.at(col).text), bHax(greater, b.at(col).text);
             return std::tie(aType, aHeader, aHax) < std::tie(bType, bHeader, bHax);

@@ -11,7 +11,7 @@
 #include "debugger.h"
 #include "value.h"
 #include "encodemap.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 #include "datainst_helper.h"
 
 duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
@@ -22,7 +22,7 @@ duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+    Zydis cp;
 
     // Check if the pointer is not null
     if(data == NULL)
@@ -82,7 +82,7 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+    Zydis cp;
 
     if(data == NULL)
         return 0;
@@ -111,49 +111,45 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
     return ip;
 }
 
-static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, bool getregs)
+static void HandleCapstoneOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool getregs)
 {
-    auto value = cp.ResolveOpValue(opindex, [&cp, getregs](x86_reg reg)
+    auto value = cp.ResolveOpValue(opindex, [&cp, getregs](ZydisRegister reg)
     {
         auto regName = getregs ? cp.RegName(reg) : nullptr;
         return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
     });
     const auto & op = cp[opindex];
     arg->segment = SEG_DEFAULT;
-    strcpy_s(arg->mnemonic, cp.OperandText(opindex).c_str());
+    auto opText = cp.OperandText(opindex);
+    StringUtils::ReplaceAll(opText, "0x", "");
+    strcpy_s(arg->mnemonic, opText.c_str());
     switch(op.type)
     {
-    case X86_OP_REG:
+    case ZYDIS_OPERAND_TYPE_REGISTER:
     {
         arg->type = arg_normal;
         arg->value = value;
     }
     break;
 
-    case X86_OP_IMM:
+    case ZYDIS_OPERAND_TYPE_IMMEDIATE:
     {
         arg->type = arg_normal;
         arg->constant = arg->value = value;
     }
     break;
 
-    case X86_OP_MEM:
+    case ZYDIS_OPERAND_TYPE_MEMORY:
     {
         arg->type = arg_memory;
-        const x86_op_mem & mem = op.mem;
-        if(mem.base == X86_REG_RIP) //rip-relative
-            arg->constant = cp.Address() + duint(mem.disp) + cp.Size();
+        const auto & mem = op.mem;
+        if(mem.base == ZYDIS_REGISTER_RIP) //rip-relative
+            arg->constant = cp.Address() + duint(mem.disp.value) + cp.Size();
         else
-            arg->constant = duint(mem.disp);
-#ifdef _WIN64
-        if(mem.segment == X86_REG_GS)
+            arg->constant = duint(mem.disp.value);
+        if(mem.segment == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS))
         {
-            arg->segment = SEG_GS;
-#else //x86
-        if(mem.segment == X86_REG_FS)
-        {
-            arg->segment = SEG_FS;
-#endif
+            arg->segment = ArchValue(SEG_FS, SEG_GS);
             value += ThreadGetLocalBase(ThreadGetId(hActiveThread));
         }
         arg->value = value;
@@ -161,18 +157,24 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, b
         {
             switch(op.size)
             {
-            case 1:
+            case 8:
                 MemRead(value, (unsigned char*)&arg->memvalue, 1);
                 break;
-            case 2:
+            case 16:
                 MemRead(value, (unsigned char*)&arg->memvalue, 2);
                 break;
-            case 4:
+            case 32:
                 MemRead(value, (unsigned char*)&arg->memvalue, 4);
                 break;
 #ifdef _WIN64
-            case 8:
+            case 48:
+                MemRead(value, (unsigned char*)&arg->memvalue, 6);
+                break;
+            case 64:
                 MemRead(value, (unsigned char*)&arg->memvalue, 8);
+                break;
+            default:
+                //TODO: not supported
                 break;
 #endif //_WIN64
             }
@@ -185,7 +187,7 @@ static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg, b
     }
 }
 
-void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
+void disasmget(Zydis & cp, unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
 {
     memset(instr, 0, sizeof(DISASM_INSTR));
     cp.Disassemble(addr, buffer, MAX_DISASM_BUFFER);
@@ -199,21 +201,21 @@ void disasmget(Capstone & cp, unsigned char* buffer, duint addr, DISASM_INSTR* i
         instr->argcount = 0;
         return;
     }
-    const cs_insn* cpInstr = cp.GetInstr();
-    sprintf_s(instr->instruction, "%s %s", cpInstr->mnemonic, cpInstr->op_str);
-    instr->instr_size = cpInstr->size;
-    if(cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_RET) || cp.InGroup(CS_GRP_CALL))
+    auto cpInstr = cp.GetInstr();
+    strcpy_s(instr->instruction, cp.InstructionText().c_str());
+    instr->instr_size = cpInstr->length;
+    if(cp.IsBranchType(Zydis::BTJmp | Zydis::BTLoop | Zydis::BTRet | Zydis::BTCall))
         instr->type = instr_branch;
-    else if(strstr(cpInstr->op_str, "sp") || strstr(cpInstr->op_str, "bp"))
+    else if(strstr(instr->instruction, "sp") || strstr(instr->instruction, "bp"))
         instr->type = instr_stack;
     else
         instr->type = instr_normal;
-    instr->argcount = cp.x86().op_count <= 3 ? cp.x86().op_count : 3;
+    instr->argcount = cp.OpCount() <= 3 ? cp.OpCount() : 3;
     for(int i = 0; i < instr->argcount; i++)
         HandleCapstoneOperand(cp, i, &instr->arg[i], getregs);
 }
 
-void disasmget(Capstone & cp, duint addr, DISASM_INSTR* instr, bool getregs)
+void disasmget(Zydis & cp, duint addr, DISASM_INSTR* instr, bool getregs)
 {
     if(!DbgIsDebugging())
     {
@@ -230,7 +232,7 @@ void disasmget(Capstone & cp, duint addr, DISASM_INSTR* instr, bool getregs)
 
 void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
 {
-    Capstone cp;
+    Zydis cp;
     disasmget(cp, buffer, addr, instr, getregs);
 }
 
@@ -404,7 +406,7 @@ bool disasmgetstringatwrapper(duint addr, char* dest, bool cache)
 
 int disasmgetsize(duint addr, unsigned char* data)
 {
-    Capstone cp;
+    Zydis cp;
     if(!cp.Disassemble(addr, data, MAX_DISASM_BUFFER))
         return 1;
     return int(EncodeMapGetSize(addr, cp.Size()));

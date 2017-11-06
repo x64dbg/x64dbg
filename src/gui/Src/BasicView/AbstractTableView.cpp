@@ -961,11 +961,11 @@ int AbstractTableView::getColumnPosition(int index)
 }
 
 /**
- * @brief       Substracts the header heigth from the given y.
+ * @brief       Substracts the header height from the given y.
  *
  * @param[in]   y      y coordinate
  *
- * @return      y - getHeaderHeigth().
+ * @return      y - getHeaderHeight().
  */
 int AbstractTableView::transY(int y)
 {
@@ -1150,7 +1150,7 @@ int AbstractTableView::getHeaderHeight()
         return 0;
 }
 
-int AbstractTableView::getTableHeigth()
+int AbstractTableView::getTableHeight()
 {
     return this->viewport()->height() - getHeaderHeight();
 }

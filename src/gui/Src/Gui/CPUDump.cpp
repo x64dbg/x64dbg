@@ -47,8 +47,14 @@ void CPUDump::setupContextMenu()
     wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_fill.png"), tr("&Fill..."), SLOT(binaryFillSlot()), "ActionBinaryFill"));
     wBinaryMenu->addSeparator();
     wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_copy.png"), tr("&Copy"), SLOT(binaryCopySlot()), "ActionBinaryCopy"));
-    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
-    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"));
+    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"), [](QMenu*)
+    {
+        return QApplication::clipboard()->mimeData()->hasText();
+    });
+    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"), [](QMenu*)
+    {
+        return QApplication::clipboard()->mimeData()->hasText();
+    });
     wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_save.png"), tr("Save To a File"), SLOT(binarySaveToFileSlot()), "ActionBinarySave"));
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("B&inary")), wBinaryMenu);
 
@@ -1420,6 +1426,8 @@ void CPUDump::binaryCopySlot()
 
 void CPUDump::binaryPasteSlot()
 {
+    if(!QApplication::clipboard()->mimeData()->hasText())
+        return;
     HexEditDialog hexEdit(this);
     dsint selStart = getSelectionStart();
     dsint selSize = getSelectionEnd() - selStart + 1;
@@ -1437,6 +1445,8 @@ void CPUDump::binaryPasteSlot()
 
 void CPUDump::binaryPasteIgnoreSizeSlot()
 {
+    if(!QApplication::clipboard()->mimeData()->hasText())
+        return;
     HexEditDialog hexEdit(this);
     dsint selStart = getSelectionStart();
     dsint selSize = getSelectionEnd() - selStart + 1;

@@ -33,6 +33,7 @@ class DisassemblerGraphView;
 class SimpleTraceDialog;
 class MRUList;
 class UpdateChecker;
+class TraceBrowser;
 
 namespace Ui
 {
@@ -88,6 +89,7 @@ public slots:
     void displaySnowmanWidget();
     void displayVariables();
     void displayGraphWidget();
+    void displayRunTrace();
     void displayPreviousTab();
     void displayNextTab();
     void hideTab();
@@ -176,6 +178,7 @@ private:
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
+    TraceBrowser* mTraceBrowser;
     SimpleTraceDialog* mSimpleTraceDialog;
     UpdateChecker* mUpdateChecker;
     DebugStatusLabel* mStatusLabel;

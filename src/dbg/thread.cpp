@@ -228,6 +228,27 @@ DWORD ThreadGetLastError(DWORD ThreadId)
     return 0;
 }
 
+NTSTATUS ThreadGetLastStatusTEB(ULONG_PTR ThreadLocalBase)
+{
+    // Get the offset for the TEB::LastStatusValue and read it
+    NTSTATUS lastStatus = 0;
+    duint structOffset = ThreadLocalBase + offsetof(TEB, LastStatusValue);
+
+    MemReadUnsafe(structOffset, &lastStatus, sizeof(NTSTATUS));
+    return lastStatus;
+}
+
+NTSTATUS ThreadGetLastStatus(DWORD ThreadId)
+{
+    SHARED_ACQUIRE(LockThreads);
+
+    if(threadList.find(ThreadId) != threadList.end())
+        return ThreadGetLastStatusTEB(threadList[ThreadId].ThreadLocalBase);
+
+    ASSERT_ALWAYS("Trying to get last status of a thread that doesn't exist!");
+    return 0;
+}
+
 bool ThreadSetName(DWORD ThreadId, const char* Name)
 {
     EXCLUSIVE_ACQUIRE(LockThreads);

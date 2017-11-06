@@ -113,12 +113,19 @@ bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
         // Loop through all imported function in this dll
         while(imageFtThunkData.u1.AddressOfData)
         {
-            pImageImportByNameVa = (PIMAGE_IMPORT_BY_NAME)(base + imageOftThunkData.u1.AddressOfData);
+            if((imageOftThunkData.u1.Ordinal & IMAGE_ORDINAL_FLAG) == IMAGE_ORDINAL_FLAG)
+            {
+                sprintf_s(importName(), MAX_IMPORT_SIZE, "Ordinal%u", imageOftThunkData.u1.Ordinal);
+            }
+            else
+            {
+                pImageImportByNameVa = (PIMAGE_IMPORT_BY_NAME)(base + imageOftThunkData.u1.AddressOfData);
 
-            // Read every IMPORT_BY_NAME.name
-            duint bytesRead = 0;
-            if(!MemRead((duint)pImageImportByNameVa + sizeof(WORD), importName(), MAX_IMPORT_SIZE, &bytesRead) && !bytesRead)
-                return false;
+                // Read every IMPORT_BY_NAME.name
+                duint bytesRead = 0;
+                if(!MemRead((duint)pImageImportByNameVa + sizeof(WORD), importName(), MAX_IMPORT_SIZE, &bytesRead) && !bytesRead)
+                    return false;
+            }
 
             // Callback
             cbEnum(base, (duint)imageIATVa, importName(), importModuleName);

@@ -4,7 +4,7 @@
 @brief Implements runtime database saving and loading.
 */
 
-#include "lz4\lz4file.h"
+#include "lz4/lz4file.h"
 #include "console.h"
 #include "breakpoint.h"
 #include "patches.h"
@@ -407,4 +407,9 @@ bool DbCheckHash(duint currentHash)
         dbhash = currentHash;
         return true;
     }
+}
+
+duint DbGetHash()
+{
+    return dbhash;
 }

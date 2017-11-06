@@ -108,7 +108,7 @@ private:
         union
         {
             QAction* action;
-            QMenu* menu ;
+            QMenu* menu;
             MenuBuilder* builder;
         };
     };

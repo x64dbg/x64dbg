@@ -67,8 +67,8 @@ private:
     bool _bLongDataInst;
     EncodeMap* mEncodeMap;
     CodeFoldingHelper* mCodeFoldingManager;
-    uint8_t reginfo[X86_REG_ENDING];
-    uint8_t flaginfo[Capstone::FLAG_ENDING];
+    uint8_t reginfo[ZYDIS_REGISTER_MAX_VALUE + 1];
+    uint8_t flaginfo[ZYDIS_CPUFLAG_MAX_VALUE + 1];
 };
 
 #endif // QBEAENGINE_H
