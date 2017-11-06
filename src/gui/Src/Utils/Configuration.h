@@ -49,6 +49,7 @@ public:
     void writeColors();
     void emitColorsUpdated();
     void emitTokenizerConfigUpdated();
+    void emitDisableAutoCompleteUpdated();
     void readBools();
     void writeBools();
     void readUints();
@@ -115,6 +116,7 @@ signals:
     void fontsUpdated();
     void shortcutsUpdated();
     void tokenizerConfigUpdated();
+    void disableAutoCompleteUpdated();
 
 private:
     QColor colorFromConfig(const QString id);

@@ -273,6 +273,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("LoadSaveTabOrder", false);
     guiBool.insert("ShowGraphRva", false);
     guiBool.insert("ShowExitConfirmation", true);
+    guiBool.insert("DisableAutoComplete", false);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
@@ -661,6 +662,11 @@ void Configuration::emitColorsUpdated()
 void Configuration::emitTokenizerConfigUpdated()
 {
     emit tokenizerConfigUpdated();
+}
+
+void Configuration::emitDisableAutoCompleteUpdated()
+{
+    emit disableAutoCompleteUpdated();
 }
 
 void Configuration::readBools()

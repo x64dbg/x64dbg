@@ -1,21 +1,12 @@
 #include "SymbolAutoCompleteModel.h"
-#include "QRegularExpression"
 #include "MiscUtil.h"
+#include "Configuration.h"
 
-static QString Decorate(const QString & text)
-{
-    return "*!" + text + "*";
-}
-
-SymbolAutoCompleteModel::SymbolAutoCompleteModel(std::function<QString()> getTextProc, QObject* parent) : QAbstractItemModel(parent), mGetTextProc(getTextProc)
+SymbolAutoCompleteModel::SymbolAutoCompleteModel(std::function<QString()> getTextProc, QObject* parent) : QAbstractItemModel(parent), mGetTextProc(getTextProc), isValidReg("[\\w_@][\\w\\d_]*")
 {
     lastAutocompleteCount = 0;
-    isValidReg = new QRegularExpression("[\\w_@][\\w\\d_]*");
-}
-
-SymbolAutoCompleteModel::~SymbolAutoCompleteModel()
-{
-    delete isValidReg;
+    disableAutoCompleteUpdated();
+    connect(Config(), SIGNAL(disableAutoCompleteUpdated()), this, SLOT(disableAutoCompleteUpdated()));
 }
 
 QModelIndex SymbolAutoCompleteModel::parent(const QModelIndex & child) const
@@ -33,7 +24,7 @@ int SymbolAutoCompleteModel::rowCount(const QModelIndex & parent) const
     if(DbgIsDebugging())
     {
         QString text = mGetTextProc();
-        auto match = isValidReg->match(text);
+        auto match = isValidReg.match(text);
         if(match.hasMatch())
         {
             update();
@@ -77,7 +68,7 @@ QVariant SymbolAutoCompleteModel::data(const QModelIndex & index, int role) cons
 
 void SymbolAutoCompleteModel::update() const
 {
-    QString text = Decorate(mGetTextProc());
+    QString text = "*!" + mGetTextProc() + "*";
     if(text == lastAutocompleteText)
         return;
     char* data[MAXAUTOCOMPLETEENTRY];
@@ -90,4 +81,9 @@ void SymbolAutoCompleteModel::update() const
     }
     lastAutocompleteCount = count;
     lastAutocompleteText = text;
+}
+
+void SymbolAutoCompleteModel::disableAutoCompleteUpdated()
+{
+    lastAutocompleteText = "";
 }
