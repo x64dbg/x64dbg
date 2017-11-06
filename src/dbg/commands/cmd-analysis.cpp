@@ -179,7 +179,7 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
     wchar_t wszModulePath[MAX_PATH] = L"";
     if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, wszModulePath, MAX_PATH))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExA failed!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExW failed!"));
         return false;
     }
     wchar_t szOldSearchPath[MAX_PATH] = L"";
