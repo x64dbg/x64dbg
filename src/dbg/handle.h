@@ -18,10 +18,13 @@ public:
 
     void Close()
     {
-        DWORD dwFlags = 0;
-        if(GetHandleInformation(mHandle, &dwFlags) && !(dwFlags & HANDLE_FLAG_PROTECT_FROM_CLOSE))
-            CloseHandle(mHandle);
-        mHandle = INVALID_HANDLE_VALUE;
+        if(mHandle != INVALID_HANDLE_VALUE)
+        {
+            DWORD dwFlags = 0;
+            if(GetHandleInformation(mHandle, &dwFlags) && !(dwFlags & HANDLE_FLAG_PROTECT_FROM_CLOSE))
+                CloseHandle(mHandle);
+            mHandle = INVALID_HANDLE_VALUE;
+        }
     }
 
     const HANDLE & operator=(const HANDLE & h)
