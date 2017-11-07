@@ -308,7 +308,7 @@ typedef enum
     DBG_GET_PEB_ADDRESS,            // param1=DWORD ProcessId,           param2=unused
     DBG_GET_TEB_ADDRESS,            // param1=DWORD ThreadId,            param2=unused
     DBG_ANALYZE_FUNCTION,           // param1=BridgeCFGraphList* graph,  param2=duint entry
-    DBG_MENU_PREPARE,               // param1=int hMenu,                 param2=unused
+    DBG_MENU_PREPARE               // param1=int hMenu,                 param2=unused
 } DBGMSG;
 
 typedef enum

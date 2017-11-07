@@ -82,6 +82,7 @@ private slots:
     void on_chkSidebarWatchLabels_stateChanged(int arg1);
     void on_chkNoForegroundWindow_toggled(bool checked);
     void on_chkShowExitConfirmation_toggled(bool checked);
+    void on_chkDisableAutoComplete_toggled(bool checked);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
@@ -177,6 +178,7 @@ private:
         bool guiLoadSaveTabOrder;
         bool guiShowGraphRva;
         bool guiShowExitConfirmation;
+        bool guiDisableAutoComplete;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;
@@ -195,6 +197,7 @@ private:
     bool bJitOld;
     bool bJitAutoOld;
     bool bTokenizerConfigUpdated;
+    bool bDisableAutoCompleteUpdated;
 
     //functions
     void GetSettingBool(const char* section, const char* name, bool* set);

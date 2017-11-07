@@ -185,6 +185,7 @@ SOURCES += \
     Src/Gui/AboutDialog.cpp \
     Src/Gui/BreakpointMenu.cpp \
     Src/Gui/ComboBoxDialog.cpp \
+    Src/Utils/SymbolAutoCompleteModel.cpp \
     Src/Tracer/TraceBrowser.cpp \
     Src/Tracer/TraceFileReader.cpp \
     Src/Tracer/TraceFileSearch.cpp
@@ -306,6 +307,7 @@ HEADERS += \
     Src/Gui/BreakpointMenu.h \
     Src/Gui/ComboBoxDialog.h \
     Src/Utils/VaHistory.h \
+    Src/Utils/SymbolAutoCompleteModel.h \
     Src/Tracer/TraceBrowser.h \
     Src/Tracer/TraceFileReader.h \
     Src/Tracer/TraceFileReaderInternal.h \

@@ -3,6 +3,8 @@
 #include "ui_GotoDialog.h"
 #include "StringUtil.h"
 #include "Configuration.h"
+#include "QCompleter"
+#include "SymbolAutoCompleteModel.h"
 
 GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowInvalidAddress)
     : QDialog(parent),
@@ -22,6 +24,13 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowI
         ui->labelError->setText(tr("<font color='red'><b>Invalid expression...</b></font>"));
     setOkEnabled(false);
     ui->editExpression->setFocus();
+    completer = new QCompleter(this);
+    completer->setModel(new SymbolAutoCompleteModel([this]
+    {
+        return ui->editExpression->text();
+    }, completer));
+    if(!Config()->getBool("Gui", "DisableAutoComplete"))
+        ui->editExpression->setCompleter(completer);
     validRangeStart = 0;
     validRangeEnd = ~0;
     fileOffset = false;
@@ -31,6 +40,7 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowI
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->editExpression, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
+    connect(Config(), SIGNAL(disableAutoCompleteUpdated()), this, SLOT(disableAutoCompleteUpdated()));
 
     Config()->setupWindowPos(this);
 }
@@ -174,4 +184,12 @@ void GotoDialog::finishedSlot(int result)
     if(result == QDialog::Rejected)
         ui->editExpression->setText("");
     ui->editExpression->setFocus();
+}
+
+void GotoDialog::disableAutoCompleteUpdated()
+{
+    if(Config()->getBool("Gui", "DisableAutoComplete"))
+        ui->editExpression->setCompleter(nullptr);
+    else
+        ui->editExpression->setCompleter(completer);
 }

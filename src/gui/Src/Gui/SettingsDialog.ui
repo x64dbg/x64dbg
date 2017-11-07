@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -682,6 +682,13 @@
         <widget class="QCheckBox" name="chkShowExitConfirmation">
          <property name="text">
           <string>Show exit confirmation dialog</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkDisableAutoComplete">
+         <property name="text">
+          <string>Disable auto completion in goto dialog</string>
          </property>
         </widget>
        </item>

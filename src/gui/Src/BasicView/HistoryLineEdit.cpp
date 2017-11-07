@@ -37,10 +37,10 @@ void HistoryLineEdit::saveSettings(QString sectionPrefix)
 
 void HistoryLineEdit::addLineToHistory(QString parLine)
 {
-    mCmdHistory.prepend(parLine);
-
     if(mCmdHistory.size() > mCmdHistoryMaxSize)
         mCmdHistory.removeLast();
+
+    mCmdHistory.prepend(parLine);
 
     mCmdIndex = -1;
 }

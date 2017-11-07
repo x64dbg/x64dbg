@@ -15,6 +15,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     setModal(true);
     adjustSize();
     bTokenizerConfigUpdated = false;
+    bDisableAutoCompleteUpdated = false;
     LoadSettings(); //load settings from file
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
     lastException = 0;
@@ -74,6 +75,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmNoSourceLineAutoComments = false;
     settings.disasmMaxModuleSize = -1;
     settings.guiNoForegroundWindow = true;
+    settings.guiDisableAutoComplete = false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -225,6 +227,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "LoadSaveTabOrder", &settings.guiLoadSaveTabOrder);
     GetSettingBool("Gui", "ShowGraphRva", &settings.guiShowGraphRva);
     GetSettingBool("Gui", "ShowExitConfirmation", &settings.guiShowExitConfirmation);
+    GetSettingBool("Gui", "DisableAutoComplete", &settings.guiDisableAutoComplete);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
@@ -234,6 +237,7 @@ void SettingsDialog::LoadSettings()
     ui->chkSaveLoadTabOrder->setChecked(settings.guiLoadSaveTabOrder);
     ui->chkShowGraphRva->setChecked(settings.guiShowGraphRva);
     ui->chkShowExitConfirmation->setChecked(settings.guiShowExitConfirmation);
+    ui->chkDisableAutoComplete->setChecked(settings.guiDisableAutoComplete);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -370,6 +374,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "LoadSaveTabOrder", settings.guiLoadSaveTabOrder);
     BridgeSettingSetUint("Gui", "ShowGraphRva", settings.guiShowGraphRva);
     BridgeSettingSetUint("Gui", "ShowExitConfirmation", settings.guiShowExitConfirmation);
+    BridgeSettingSetUint("Gui", "DisableAutoComplete", settings.guiDisableAutoComplete);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -406,6 +411,11 @@ void SettingsDialog::SaveSettings()
     {
         Config()->emitTokenizerConfigUpdated();
         bTokenizerConfigUpdated = false;
+    }
+    if(bDisableAutoCompleteUpdated)
+    {
+        Config()->emitDisableAutoCompleteUpdated();
+        bDisableAutoCompleteUpdated = false;
     }
     DbgSettingsUpdated();
     GuiUpdateAllViews();
@@ -829,6 +839,12 @@ void SettingsDialog::on_chkShowGraphRva_toggled(bool checked)
 void SettingsDialog::on_chkShowExitConfirmation_toggled(bool checked)
 {
     settings.guiShowExitConfirmation = checked;
+}
+
+void SettingsDialog::on_chkDisableAutoComplete_toggled(bool checked)
+{
+    settings.guiDisableAutoComplete = checked;
+    bDisableAutoCompleteUpdated = true;
 }
 
 void SettingsDialog::on_chkUseLocalHelpFile_toggled(bool checked)
