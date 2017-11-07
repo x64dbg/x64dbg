@@ -173,7 +173,6 @@ static String handleFormatString(const String & formatString, const FormatValueV
 
 String stringformat(String format, const FormatValueVector & values)
 {
-    StringUtils::ReplaceAll(format, "\\n", "\n");
     int len = (int)format.length();
     String output;
     String formatString;
@@ -247,7 +246,6 @@ static String handleFormatStringInline(const String & formatString)
 
 String stringformatinline(String format)
 {
-    StringUtils::ReplaceAll(format, "\\n", "\n");
     int len = (int)format.length();
     String output;
     String formatString;
