@@ -165,7 +165,7 @@ bool cbInstrSavedata(int argc, char* argv[])
         return false;
     }
 
-    String name = stringformatinline(argv[1]);
+    String name = argv[1];
     if(name == ":memdump:")
         name = StringUtils::sprintf("%s\\memdumps\\memdump_%X_%p_%x.bin", szProgramDir, fdProcessInfo->dwProcessId, addr, size);
 
