@@ -188,7 +188,8 @@ SOURCES += \
     Src/Utils/SymbolAutoCompleteModel.cpp \
     Src/Tracer/TraceBrowser.cpp \
     Src/Tracer/TraceFileReader.cpp \
-    Src/Tracer/TraceFileSearch.cpp
+    Src/Tracer/TraceFileSearch.cpp \
+    Src/Utils/OpenViewsWindow.cpp
 
 
 HEADERS += \
@@ -311,7 +312,8 @@ HEADERS += \
     Src/Tracer/TraceBrowser.h \
     Src/Tracer/TraceFileReader.h \
     Src/Tracer/TraceFileReaderInternal.h \
-    Src/Tracer/TraceFileSearch.h
+    Src/Tracer/TraceFileSearch.h \
+    Src/Utils/OpenViewsWindow.h
     
 
 FORMS += \
