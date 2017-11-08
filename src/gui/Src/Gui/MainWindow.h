@@ -265,6 +265,7 @@ private:
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);
     void dropEvent(QDropEvent* pEvent);
+    bool event(QEvent *event);
 
 public:
     static QString windowTitle;

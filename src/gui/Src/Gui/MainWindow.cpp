@@ -212,7 +212,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mTraceBrowser, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
     // Create the tab widget and enable detaching and hiding
-    mTabWidget = new MHTabWidget(this, true, true);
+    mTabWidget = new MHTabWidget(true, this, true, true);
 
     // Add all widgets to the list
     mWidgetList.push_back(WidgetInfo(mCpuWidget, "CPUTab"));
@@ -900,6 +900,17 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
         DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
         pEvent->acceptProposedAction();
     }
+}
+
+bool MainWindow::event(QEvent *event)
+{
+    // just make sure mTabWidget take current view as the latest
+    if(event->type() == QEvent::WindowActivate && this->isActiveWindow())
+    {
+        mTabWidget->setCurrentIndex(mTabWidget->currentIndex());
+    }
+
+    return QMainWindow::event(event);
 }
 
 void MainWindow::updateWindowTitleSlot(QString filename)

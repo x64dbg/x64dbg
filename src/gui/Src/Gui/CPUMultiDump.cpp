@@ -10,7 +10,7 @@
 #include "FlickerThread.h"
 
 CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* parent)
-    : MHTabWidget(parent, true)
+    : MHTabWidget(false, parent, true)
 {
     setWindowTitle("CPUMultiDump");
     mMaxCPUDumpTabs = nbCpuDumpTabs;

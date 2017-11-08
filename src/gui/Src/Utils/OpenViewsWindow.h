@@ -9,14 +9,16 @@
 
 QT_BEGIN_NAMESPACE
 class QTreeWidgetItem;
+class QWidget;
 QT_END_NAMESPACE
 
+typedef QWidget* HPKey;
 class HistoryProvider
 {
 public:
-    virtual const QList<int>& getItems() const = 0;
-    virtual QString getName(int index) = 0;
-    virtual void selected(int index) = 0;
+    virtual const QList<HPKey>& getItems() const = 0;
+    virtual QString getName(HPKey index) = 0;
+    virtual void selected(HPKey index) = 0;
 };
 
 class OpenViewsWindow : public QFrame
@@ -46,7 +48,7 @@ private:
     void editorClicked(QTreeWidgetItem *item);
     void selectEditor(QTreeWidgetItem *item);
 
-    void addItem(const QString& title, int index);
+    void addItem(const QString& title, HPKey index);
     void ensureCurrentVisible();
     void selectUpDown(bool up);
 

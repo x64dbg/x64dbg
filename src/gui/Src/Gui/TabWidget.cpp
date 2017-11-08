@@ -8,13 +8,18 @@
 //////////////////////////////////////////////////////////////
 // Default Constructor
 //////////////////////////////////////////////////////////////
-MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : QTabWidget(parent)
+MHTabWidget::MHTabWidget(bool historyMode, QWidget* parent, bool allowDetach, bool allowDelete) : QTabWidget(parent)
+  , m_historyPopup(nullptr)
 {
+    if(historyMode)
+        m_historyPopup = new OpenViewsWindow(this, parentWidget());
+
     m_tabBar = new MHTabBar(this, allowDetach, allowDelete);
     connect(m_tabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
     connect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
     connect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
     connect(m_tabBar, SIGNAL(tabMoved(int, int)), this, SLOT(tabMoved(int, int)));
+    connect(m_tabBar, SIGNAL(currentChanged(int)), this, SLOT(currentChanged(int)));
 
     setTabBar(m_tabBar);
     setMovable(true);
@@ -31,6 +36,7 @@ MHTabWidget::~MHTabWidget(void)
     disconnect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
     disconnect(m_tabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
     disconnect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
+    disconnect(m_tabBar, SIGNAL(currentChanged(int)), this, SLOT(currentChanged(int)));
     delete m_tabBar;
 }
 
@@ -60,6 +66,7 @@ QList<QWidget*> MHTabWidget::windows()
 int MHTabWidget::addTabEx(QWidget* widget, const QIcon & icon, const QString & label, const QString & nativeName)
 {
     mNativeNames.append(nativeName);
+    m_history.push_back(widget);
     return this->addTab(widget, icon, label);
 }
 
@@ -84,6 +91,8 @@ void MHTabWidget::AttachTab(QWidget* parent)
 
     // Cleanup Window
     disconnect(detachedWidget, SIGNAL(OnClose(QWidget*)), this, SLOT(AttachTab(QWidget*)));
+    if(m_historyPopup)
+        disconnect(detachedWidget, SIGNAL(OnFocused(QWidget*)), this, SLOT(OnDetachFocused(QWidget*)));
     detachedWidget->hide();
     detachedWidget->close();
 }
@@ -98,6 +107,8 @@ void MHTabWidget::DetachTab(int index, const QPoint & dropPoint)
 
     // Find Widget and connect
     connect(detachedWidget, SIGNAL(OnClose(QWidget*)), this, SLOT(AttachTab(QWidget*)));
+    if(m_historyPopup)
+        connect(detachedWidget, SIGNAL(OnFocused(QWidget*)), this, SLOT(OnDetachFocused(QWidget*)));
 
     detachedWidget->setWindowTitle(tabText(index));
     detachedWidget->setWindowIcon(tabIcon(index));
@@ -145,6 +156,8 @@ void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 // Remove a tab, while still keeping the widget intact
 void MHTabWidget::DeleteTab(int index)
 {
+    QWidget* w = widget(index);
+    m_history.removeAll(w);
     removeTab(index);
     mNativeNames.removeAt(index);
 }
@@ -156,6 +169,20 @@ void MHTabWidget::tabMoved(int from, int to)
     mNativeNames.removeAt(from);
     mNativeNames.insert(to, nativeName);
     emit tabMovedTabWidget(from, to);
+}
+
+void MHTabWidget::OnDetachFocused(QWidget *parent)
+{
+    MHDetachedWindow* detachedWidget = reinterpret_cast<MHDetachedWindow*>(parent);
+    QWidget* tearOffWidget = detachedWidget->centralWidget();
+    m_history.removeAll(tearOffWidget);
+    m_history.push_front(tearOffWidget);
+}
+
+void MHTabWidget::currentChanged(int index)
+{
+    m_history.removeAll(widget(index));
+    m_history.push_front(widget(index));
 }
 
 void MHTabWidget::setCurrentIndex(int index)
@@ -173,11 +200,48 @@ void MHTabWidget::setCurrentIndex(int index)
         window->showNormal();
         window->setFocus();
     }
+
+    m_history.removeAll(widget(index));
+    m_history.push_front(widget(index));
 }
 
 MHTabBar* MHTabWidget::tabBar() const
 {
     return m_tabBar;
+}
+
+const QList<HPKey> &MHTabWidget::getItems() const
+{
+    return m_history;
+}
+
+QString MHTabWidget::getName(HPKey index)
+{
+    return index->windowTitle();
+}
+
+void MHTabWidget::selected(HPKey index)
+{
+    m_history.removeAll(index);
+    m_history.push_front(index);
+
+    // check in tabbar
+    for(auto i=0; i< QTabWidget::count(); ++i)
+    {
+        if(index == QTabWidget::widget(i))
+        {
+            QTabWidget::setCurrentIndex(i);
+            parentWidget()->activateWindow();
+            parentWidget()->setFocus();
+            return;
+        }
+    }
+
+    // check in detached window
+    MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(index->parent());
+    window->activateWindow();
+    window->showNormal();
+    window->setFocus();
 }
 
 QString MHTabWidget::getNativeName(int index)
@@ -198,32 +262,46 @@ QString MHTabWidget::getNativeName(int index)
 
 void MHTabWidget::showPreviousTab()
 {
-    if(QTabWidget::count() <= 1)
+    if(!m_historyPopup)
     {
-        return;
-    }
+        if(QTabWidget::count() <= 1)
+        {
+            return;
+        }
 
-    int previousTabIndex = QTabWidget::currentIndex();
-    if(previousTabIndex == 0)
-    {
-        previousTabIndex = QTabWidget::count() - 1;
+        int previousTabIndex = QTabWidget::currentIndex();
+        if(previousTabIndex == 0)
+        {
+            previousTabIndex = QTabWidget::count() - 1;
+        }
+        else
+        {
+            previousTabIndex--;
+        }
+
+        QTabWidget::setCurrentIndex(previousTabIndex);
     }
     else
     {
-        previousTabIndex--;
+        m_historyPopup->gotoPreviousHistory();
     }
-
-    QTabWidget::setCurrentIndex(previousTabIndex);
 }
 
 void MHTabWidget::showNextTab()
 {
-    if(QTabWidget::count() <= 1)
+    if(!m_historyPopup)
     {
-        return;
-    }
+        if(QTabWidget::count() <= 1)
+        {
+            return;
+        }
 
-    QTabWidget::setCurrentIndex((QTabWidget::currentIndex() + 1) % QTabWidget::count());
+        QTabWidget::setCurrentIndex((QTabWidget::currentIndex() + 1) % QTabWidget::count());
+    }
+    else
+    {
+        m_historyPopup->gotoNextHistory();
+    }
 }
 
 void MHTabWidget::deleteCurrentTab()
@@ -258,4 +336,13 @@ void MHDetachedWindow::closeEvent(QCloseEvent* event)
     Q_UNUSED(event);
 
     emit OnClose(this);
+}
+
+bool MHDetachedWindow::event(QEvent *event)
+{
+    if(event->type() == QEvent::WindowActivate && this->isActiveWindow())
+    {
+        emit OnFocused(this);
+    }
+    return QMainWindow::event(event);
 }

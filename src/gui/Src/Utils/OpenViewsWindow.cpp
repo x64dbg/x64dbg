@@ -193,7 +193,7 @@ void OpenViewsWindow::selectEditor(QTreeWidgetItem *item)
 {
     if (!item)
         return;
-    auto entry = item->data(0, int(Role::Entry)).value<int>();
+    auto entry = item->data(0, int(Role::Entry)).value<HPKey>();
     if(hp_)
     {
         hp_->selected(entry);
@@ -211,7 +211,7 @@ void OpenViewsWindow::ensureCurrentVisible()
     m_editorList->scrollTo(m_editorList->currentIndex(), QAbstractItemView::PositionAtCenter);
 }
 
-void OpenViewsWindow::addItem(const QString& title, int index)
+void OpenViewsWindow::addItem(const QString& title, HPKey index)
 {
     QTC_ASSERT(!title.isEmpty(), return);
     QTreeWidgetItem *item = new QTreeWidgetItem();

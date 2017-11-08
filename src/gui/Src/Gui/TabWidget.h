@@ -6,6 +6,7 @@
 #include <QTabWidget>
 #include <QMainWindow>
 #include "TabBar.h"
+#include "../Utils/OpenViewsWindow.h"
 
 // Qt forward class definitions
 class MHTabBar;
@@ -15,12 +16,12 @@ class MHTabBar;
 //    MHTabWidget implements the a Tab Widget with detach and attach
 //    functionality for MHTabBar.
 //////////////////////////////////////////////////////////////////////////////
-class MHTabWidget: public QTabWidget
+class MHTabWidget: public QTabWidget, public HistoryProvider
 {
     Q_OBJECT
 
 public:
-    MHTabWidget(QWidget* parent = nullptr, bool allowDetach = true, bool allowDelete = false);
+    MHTabWidget(bool historyMode, QWidget* parent = nullptr, bool allowDetach = true, bool allowDelete = false);
     virtual ~MHTabWidget(void);
 
     QWidget* widget(int index) const;
@@ -41,6 +42,8 @@ public slots:
     void MoveTab(int fromIndex, int toIndex);
     void DeleteTab(int index);
     void tabMoved(int from, int to);
+    void OnDetachFocused(QWidget* parent);
+    void currentChanged(int index);
 
 public Q_SLOTS:
     void setCurrentIndex(int index);
@@ -48,11 +51,18 @@ public Q_SLOTS:
 protected:
     MHTabBar* tabBar() const;
 
+    const QList<HPKey>& getItems() const;
+    QString getName(HPKey index);
+    void selected(HPKey index);
+
 private:
     MHTabBar* m_tabBar;
 
     QList<QWidget*> m_Windows;
     QList<QString> mNativeNames;
+
+    OpenViewsWindow* m_historyPopup;
+    QList<QWidget*> m_history;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -75,9 +85,10 @@ protected:
     MHTabWidget* m_TabWidget;
 
     void closeEvent(QCloseEvent* event);
-
+    bool event(QEvent *event);
 signals:
     void OnClose(QWidget* widget);
+    void OnFocused(QWidget* widget);
 };
 
 #endif // __MHTABWIDGET_H__
