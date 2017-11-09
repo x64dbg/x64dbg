@@ -1,4 +1,4 @@
-﻿#include "HistoryViewsPopupWindow.h"
+#include "HistoryViewsPopupWindow.h"
 
 #define QTC_ASSERT(cond, action) if (cond) {} else { action; } do {} while (0)
 
@@ -14,7 +14,7 @@ enum class Role
     View = Qt::UserRole + 1
 };
 
-HistoryViewsPopupWindow::HistoryViewsPopupWindow(HistoryProvider* hp, QWidget *parent) :
+HistoryViewsPopupWindow::HistoryViewsPopupWindow(HistoryProvider* hp, QWidget* parent) :
     QFrame(parent, Qt::Popup),
     hp_(hp),
     //m_emptyIcon(Utils::Icons::EMPTY14.icon()),
@@ -31,7 +31,7 @@ HistoryViewsPopupWindow::HistoryViewsPopupWindow(HistoryProvider* hp, QWidget *p
     setFrameStyle(m_editorList->frameStyle());
     m_editorList->setFrameStyle(QFrame::NoFrame);
 
-    QVBoxLayout *layout = new QVBoxLayout(this);
+    QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->addWidget(m_editorList);
 
@@ -43,9 +43,12 @@ HistoryViewsPopupWindow::HistoryViewsPopupWindow(HistoryProvider* hp, QWidget *p
 
 void HistoryViewsPopupWindow::gotoNextHistory()
 {
-    if (isVisible()) {
+    if(isVisible())
+    {
         selectPreviousEditor();
-    } else {
+    }
+    else
+    {
         addItems();
         selectPreviousEditor();
         showPopupOrSelectDocument();
@@ -54,9 +57,12 @@ void HistoryViewsPopupWindow::gotoNextHistory()
 
 void HistoryViewsPopupWindow::gotoPreviousHistory()
 {
-    if (isVisible()) {
+    if(isVisible())
+    {
         selectNextEditor();
-    } else {
+    }
+    else
+    {
         addItems();
         selectNextEditor();
         showPopupOrSelectDocument();
@@ -65,21 +71,24 @@ void HistoryViewsPopupWindow::gotoPreviousHistory()
 
 void HistoryViewsPopupWindow::showPopupOrSelectDocument()
 {
-    if (QApplication::keyboardModifiers() == Qt::NoModifier) {
+    if(QApplication::keyboardModifiers() == Qt::NoModifier)
+    {
         selectAndHide();
-    } else {
-        QWidget *activeWindow = QApplication::activeWindow();
+    }
+    else
+    {
+        QWidget* activeWindow = QApplication::activeWindow();
         if(!activeWindow)
             return;
 
-        QWidget *referenceWidget = activeWindow;
+        QWidget* referenceWidget = activeWindow;
         const QPoint p = referenceWidget->mapToGlobal(QPoint(0, 0));
 
         this->setMaximumSize(qMax(this->minimumWidth(), referenceWidget->width() / 2),
-                              qMax(this->minimumHeight(), referenceWidget->height() / 2));
+                             qMax(this->minimumHeight(), referenceWidget->height() / 2));
         this->adjustSize();
         this->move((referenceWidget->width() - this->width()) / 2 + p.x(),
-                    (referenceWidget->height() - this->height()) / 2 + p.y());
+                   (referenceWidget->height() - this->height()) / 2 + p.y());
         this->setVisible(true);
     }
 }
@@ -93,30 +102,37 @@ void HistoryViewsPopupWindow::selectAndHide()
 void HistoryViewsPopupWindow::setVisible(bool visible)
 {
     QWidget::setVisible(visible);
-    if (visible)
+    if(visible)
         setFocus();
 }
 
-bool HistoryViewsPopupWindow::eventFilter(QObject *obj, QEvent *e)
+bool HistoryViewsPopupWindow::eventFilter(QObject* obj, QEvent* e)
 {
-    if (obj == m_editorList) {
-        if (e->type() == QEvent::KeyPress) {
-            QKeyEvent *ke = static_cast<QKeyEvent*>(e);
-            if (ke->key() == Qt::Key_Escape) {
+    if(obj == m_editorList)
+    {
+        if(e->type() == QEvent::KeyPress)
+        {
+            QKeyEvent* ke = static_cast<QKeyEvent*>(e);
+            if(ke->key() == Qt::Key_Escape)
+            {
                 setVisible(false);
                 return true;
             }
-            if (ke->key() == Qt::Key_Return
-                    || ke->key() == Qt::Key_Enter) {
+            if(ke->key() == Qt::Key_Return
+                    || ke->key() == Qt::Key_Enter)
+            {
                 selectEditor(m_editorList->currentItem());
                 return true;
             }
-        } else if (e->type() == QEvent::KeyRelease) {
-            QKeyEvent *ke = static_cast<QKeyEvent*>(e);
-            if (ke->modifiers() == 0
+        }
+        else if(e->type() == QEvent::KeyRelease)
+        {
+            QKeyEvent* ke = static_cast<QKeyEvent*>(e);
+            if(ke->modifiers() == 0
                     /*HACK this is to overcome some event inconsistencies between platforms*/
                     || (ke->modifiers() == Qt::AltModifier
-                    && (ke->key() == Qt::Key_Alt || ke->key() == -1))) {
+                        && (ke->key() == Qt::Key_Alt || ke->key() == -1)))
+            {
                 selectAndHide();
             }
         }
@@ -124,7 +140,7 @@ bool HistoryViewsPopupWindow::eventFilter(QObject *obj, QEvent *e)
     return QWidget::eventFilter(obj, e);
 }
 
-void HistoryViewsPopupWindow::focusInEvent(QFocusEvent *)
+void HistoryViewsPopupWindow::focusInEvent(QFocusEvent*)
 {
     m_editorList->setFocus();
 }
@@ -132,27 +148,32 @@ void HistoryViewsPopupWindow::focusInEvent(QFocusEvent *)
 void HistoryViewsPopupWindow::selectUpDown(bool up)
 {
     int itemCount = m_editorList->topLevelItemCount();
-    if (itemCount < 2)
+    if(itemCount < 2)
         return;
     int index = m_editorList->indexOfTopLevelItem(m_editorList->currentItem());
-    if (index < 0)
+    if(index < 0)
         return;
-    QTreeWidgetItem *editor = 0;
+    QTreeWidgetItem* editor = 0;
     int count = 0;
-    while (!editor && count < itemCount) {
-        if (up) {
+    while(!editor && count < itemCount)
+    {
+        if(up)
+        {
             index--;
-            if (index < 0)
-                index = itemCount-1;
-        } else {
+            if(index < 0)
+                index = itemCount - 1;
+        }
+        else
+        {
             index++;
-            if (index >= itemCount)
+            if(index >= itemCount)
                 index = 0;
         }
         editor = m_editorList->topLevelItem(index);
         count++;
     }
-    if (editor) {
+    if(editor)
+    {
         m_editorList->setCurrentItem(editor);
         ensureCurrentVisible();
     }
@@ -182,25 +203,22 @@ void HistoryViewsPopupWindow::selectNextEditor()
 void HistoryViewsPopupWindow::addItems()
 {
     m_editorList->clear();
-    auto& history = hp_->getItems();
-    for(auto& i: history)
+    auto & history = hp_->HP_getItems();
+    for(auto & i : history)
     {
-        addItem(hp_->getName(i), i);
+        addItem(hp_->HP_getName(i), i, hp_->HP_getIcon(i));
     }
 }
 
-void HistoryViewsPopupWindow::selectEditor(QTreeWidgetItem *item)
+void HistoryViewsPopupWindow::selectEditor(QTreeWidgetItem* item)
 {
-    if (!item)
+    if(!item)
         return;
     auto entry = item->data(0, int(Role::Entry)).value<HPKey>();
-    if(hp_)
-    {
-        hp_->selected(entry);
-    }
+    hp_->HP_selected(entry);
 }
 
-void HistoryViewsPopupWindow::editorClicked(QTreeWidgetItem *item)
+void HistoryViewsPopupWindow::editorClicked(QTreeWidgetItem* item)
 {
     selectEditor(item);
     setFocus();
@@ -211,11 +229,12 @@ void HistoryViewsPopupWindow::ensureCurrentVisible()
     m_editorList->scrollTo(m_editorList->currentIndex(), QAbstractItemView::PositionAtCenter);
 }
 
-void HistoryViewsPopupWindow::addItem(const QString& title, HPKey index)
+void HistoryViewsPopupWindow::addItem(const QString & title, HPKey index, const QIcon & icon)
 {
     QTC_ASSERT(!title.isEmpty(), return);
-    QTreeWidgetItem *item = new QTreeWidgetItem();
+    QTreeWidgetItem* item = new QTreeWidgetItem();
 
+    item->setIcon(0, icon);
     /*item->setIcon(0, !entry->fileName().isEmpty() && entry->document->isFileReadOnly()
                   ? DocumentModel::lockedIcon() : m_emptyIcon);*/
     item->setText(0, title);
@@ -226,6 +245,6 @@ void HistoryViewsPopupWindow::addItem(const QString& title, HPKey index)
 
     m_editorList->addTopLevelItem(item);
 
-    if (m_editorList->topLevelItemCount() == 1)
+    if(m_editorList->topLevelItemCount() == 1)
         m_editorList->setCurrentItem(item);
 }

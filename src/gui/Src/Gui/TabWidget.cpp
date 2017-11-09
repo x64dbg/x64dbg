@@ -9,7 +9,7 @@
 // Default Constructor
 //////////////////////////////////////////////////////////////
 MHTabWidget::MHTabWidget(bool historyMode, QWidget* parent, bool allowDetach, bool allowDelete) : QTabWidget(parent)
-  , m_historyPopup(nullptr)
+    , m_historyPopup(nullptr)
 {
     if(historyMode)
         m_historyPopup = new HistoryViewsPopupWindow(this, parentWidget());
@@ -171,18 +171,16 @@ void MHTabWidget::tabMoved(int from, int to)
     emit tabMovedTabWidget(from, to);
 }
 
-void MHTabWidget::OnDetachFocused(QWidget *parent)
+void MHTabWidget::OnDetachFocused(QWidget* parent)
 {
     MHDetachedWindow* detachedWidget = reinterpret_cast<MHDetachedWindow*>(parent);
     QWidget* tearOffWidget = detachedWidget->centralWidget();
-    m_history.removeAll(tearOffWidget);
-    m_history.push_front(tearOffWidget);
+    setLatestFocused(tearOffWidget);
 }
 
 void MHTabWidget::currentChanged(int index)
 {
-    m_history.removeAll(widget(index));
-    m_history.push_front(widget(index));
+    setLatestFocused(widget(index));
 }
 
 void MHTabWidget::setCurrentIndex(int index)
@@ -201,8 +199,7 @@ void MHTabWidget::setCurrentIndex(int index)
         window->setFocus();
     }
 
-    m_history.removeAll(widget(index));
-    m_history.push_front(widget(index));
+    setLatestFocused(widget(index));
 }
 
 MHTabBar* MHTabWidget::tabBar() const
@@ -210,23 +207,22 @@ MHTabBar* MHTabWidget::tabBar() const
     return m_tabBar;
 }
 
-const QList<HPKey> &MHTabWidget::getItems() const
+const QList<HPKey> & MHTabWidget::HP_getItems() const
 {
     return m_history;
 }
 
-QString MHTabWidget::getName(HPKey index)
+QString MHTabWidget::HP_getName(HPKey index)
 {
     return index->windowTitle();
 }
 
-void MHTabWidget::selected(HPKey index)
+void MHTabWidget::HP_selected(HPKey index)
 {
-    m_history.removeAll(index);
-    m_history.push_front(index);
+    setLatestFocused(index);
 
     // check in tabbar
-    for(auto i=0; i< QTabWidget::count(); ++i)
+    for(auto i = 0; i < QTabWidget::count(); ++i)
     {
         if(index == QTabWidget::widget(i))
         {
@@ -237,11 +233,33 @@ void MHTabWidget::selected(HPKey index)
         }
     }
 
-    // check in detached window
+    // should be a detached window
     MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(index->parent());
     window->activateWindow();
     window->showNormal();
     window->setFocus();
+}
+
+QIcon MHTabWidget::HP_getIcon(HPKey index)
+{
+    // check in tabbar
+    for(auto i = 0; i < QTabWidget::count(); ++i)
+    {
+        if(index == QTabWidget::widget(i))
+        {
+            return m_tabBar->tabIcon(i);
+        }
+    }
+
+    // should be a detached window
+    MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(index->parent());
+    return window->windowIcon();
+}
+
+void MHTabWidget::setLatestFocused(QWidget* w)
+{
+    m_history.removeAll(w);
+    m_history.push_front(w);
 }
 
 QString MHTabWidget::getNativeName(int index)
@@ -338,7 +356,7 @@ void MHDetachedWindow::closeEvent(QCloseEvent* event)
     emit OnClose(this);
 }
 
-bool MHDetachedWindow::event(QEvent *event)
+bool MHDetachedWindow::event(QEvent* event)
 {
     if(event->type() == QEvent::WindowActivate && this->isActiveWindow())
     {

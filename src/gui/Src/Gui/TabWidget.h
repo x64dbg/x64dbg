@@ -1,4 +1,4 @@
-﻿#ifndef __MHTABWIDGET_H__
+#ifndef __MHTABWIDGET_H__
 #define __MHTABWIDGET_H__
 
 // Qt includes
@@ -51,9 +51,11 @@ public Q_SLOTS:
 protected:
     MHTabBar* tabBar() const;
 
-    const QList<HPKey>& getItems() const;
-    QString getName(HPKey index);
-    void selected(HPKey index);
+    const QList<HPKey> & HP_getItems() const override;
+    QString HP_getName(HPKey index) override;
+    void HP_selected(HPKey index) override;
+    QIcon HP_getIcon(HPKey index) override;
+    void setLatestFocused(QWidget* w);
 
 private:
     MHTabBar* m_tabBar;
@@ -85,7 +87,7 @@ protected:
     MHTabWidget* m_TabWidget;
 
     void closeEvent(QCloseEvent* event);
-    bool event(QEvent *event);
+    bool event(QEvent* event);
 signals:
     void OnClose(QWidget* widget);
     void OnFocused(QWidget* widget);

@@ -1,4 +1,4 @@
-﻿#ifndef OPENVIEWSWINDOW_H
+#ifndef OPENVIEWSWINDOW_H
 #define OPENVIEWSWINDOW_H
 // stolen from http://code.qt.io/cgit/qt-creator/qt-creator.git/tree/src/plugins/coreplugin/editormanager/openeditorswindow.h
 
@@ -16,16 +16,17 @@ typedef QWidget* HPKey;
 class HistoryProvider
 {
 public:
-    virtual const QList<HPKey>& getItems() const = 0;
-    virtual QString getName(HPKey index) = 0;
-    virtual void selected(HPKey index) = 0;
+    virtual const QList<HPKey> & HP_getItems() const = 0;
+    virtual QString HP_getName(HPKey index) = 0;
+    virtual QIcon HP_getIcon(HPKey index) = 0;
+    virtual void HP_selected(HPKey index) = 0;
 };
 
 class HistoryViewsPopupWindow : public QFrame
 {
     Q_OBJECT
 public:
-    explicit HistoryViewsPopupWindow(HistoryProvider* hp, QWidget *parent = 0);
+    explicit HistoryViewsPopupWindow(HistoryProvider* hp, QWidget* parent = 0);
 
     void gotoNextHistory();
     void gotoPreviousHistory();
@@ -36,8 +37,8 @@ private slots:
 private:
     void addItems();
 
-    bool eventFilter(QObject *src, QEvent *e);
-    void focusInEvent(QFocusEvent *);
+    bool eventFilter(QObject* src, QEvent* e);
+    void focusInEvent(QFocusEvent*);
 
     void setVisible(bool visible);
     void selectNextEditor();
@@ -45,22 +46,23 @@ private:
     QSize sizeHint() const;
     void showPopupOrSelectDocument();
 
-    void editorClicked(QTreeWidgetItem *item);
-    void selectEditor(QTreeWidgetItem *item);
+    void editorClicked(QTreeWidgetItem* item);
+    void selectEditor(QTreeWidgetItem* item);
 
-    void addItem(const QString& title, HPKey index);
+    void addItem(const QString & title, HPKey index, const QIcon & icon);
     void ensureCurrentVisible();
     void selectUpDown(bool up);
 
-    class OpenViewsTreeWidget : public QTreeWidget {
+    class OpenViewsTreeWidget : public QTreeWidget
+    {
     public:
-        explicit OpenViewsTreeWidget(QWidget *parent = 0) : QTreeWidget(parent) {}
+        explicit OpenViewsTreeWidget(QWidget* parent = 0) : QTreeWidget(parent) {}
         ~OpenViewsTreeWidget() {}
         QSize sizeHint() const;
     };
 
     //const QIcon m_emptyIcon;
-    OpenViewsTreeWidget *m_editorList;
+    OpenViewsTreeWidget* m_editorList;
 
     HistoryProvider* hp_ = nullptr;
 };
