@@ -211,8 +211,9 @@ MainWindow::MainWindow(QWidget* parent)
     mTraceBrowser->setWindowIcon(DIcon("trace.png"));
     connect(mTraceBrowser, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
-    // Create the tab widget and enable detaching and hiding
-    mTabWidget = new MHTabWidget(true, this, true, true);
+    duint bTabSwitchUseHistory = 0;
+    BridgeSettingGetUint("Gui", "TabSwitchUseHistory", &bTabSwitchUseHistory);
+    mTabWidget = new MHTabWidget(bTabSwitchUseHistory != 0, this, true, true);
 
     // Add all widgets to the list
     mWidgetList.push_back(WidgetInfo(mCpuWidget, "CPUTab"));
