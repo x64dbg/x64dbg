@@ -902,7 +902,7 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
     }
 }
 
-bool MainWindow::event(QEvent *event)
+bool MainWindow::event(QEvent* event)
 {
     // just make sure mTabWidget take current view as the latest
     if(event->type() == QEvent::WindowActivate && this->isActiveWindow())
