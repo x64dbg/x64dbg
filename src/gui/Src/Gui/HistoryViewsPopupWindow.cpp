@@ -1,4 +1,4 @@
-﻿#include "OpenViewsWindow.h"
+﻿#include "HistoryViewsPopupWindow.h"
 
 #define QTC_ASSERT(cond, action) if (cond) {} else { action; } do {} while (0)
 
@@ -14,7 +14,7 @@ enum class Role
     View = Qt::UserRole + 1
 };
 
-OpenViewsWindow::OpenViewsWindow(HistoryProvider* hp, QWidget *parent) :
+HistoryViewsPopupWindow::HistoryViewsPopupWindow(HistoryProvider* hp, QWidget *parent) :
     QFrame(parent, Qt::Popup),
     hp_(hp),
     //m_emptyIcon(Utils::Icons::EMPTY14.icon()),
@@ -36,12 +36,12 @@ OpenViewsWindow::OpenViewsWindow(HistoryProvider* hp, QWidget *parent) :
     layout->addWidget(m_editorList);
 
     connect(m_editorList, &QTreeWidget::itemClicked,
-            this, &OpenViewsWindow::editorClicked);
+            this, &HistoryViewsPopupWindow::editorClicked);
 
     setVisible(false);
 }
 
-void OpenViewsWindow::gotoNextHistory()
+void HistoryViewsPopupWindow::gotoNextHistory()
 {
     if (isVisible()) {
         selectPreviousEditor();
@@ -52,7 +52,7 @@ void OpenViewsWindow::gotoNextHistory()
     }
 }
 
-void OpenViewsWindow::gotoPreviousHistory()
+void HistoryViewsPopupWindow::gotoPreviousHistory()
 {
     if (isVisible()) {
         selectNextEditor();
@@ -63,7 +63,7 @@ void OpenViewsWindow::gotoPreviousHistory()
     }
 }
 
-void OpenViewsWindow::showPopupOrSelectDocument()
+void HistoryViewsPopupWindow::showPopupOrSelectDocument()
 {
     if (QApplication::keyboardModifiers() == Qt::NoModifier) {
         selectAndHide();
@@ -84,20 +84,20 @@ void OpenViewsWindow::showPopupOrSelectDocument()
     }
 }
 
-void OpenViewsWindow::selectAndHide()
+void HistoryViewsPopupWindow::selectAndHide()
 {
     setVisible(false);
     selectEditor(m_editorList->currentItem());
 }
 
-void OpenViewsWindow::setVisible(bool visible)
+void HistoryViewsPopupWindow::setVisible(bool visible)
 {
     QWidget::setVisible(visible);
     if (visible)
         setFocus();
 }
 
-bool OpenViewsWindow::eventFilter(QObject *obj, QEvent *e)
+bool HistoryViewsPopupWindow::eventFilter(QObject *obj, QEvent *e)
 {
     if (obj == m_editorList) {
         if (e->type() == QEvent::KeyPress) {
@@ -124,12 +124,12 @@ bool OpenViewsWindow::eventFilter(QObject *obj, QEvent *e)
     return QWidget::eventFilter(obj, e);
 }
 
-void OpenViewsWindow::focusInEvent(QFocusEvent *)
+void HistoryViewsPopupWindow::focusInEvent(QFocusEvent *)
 {
     m_editorList->setFocus();
 }
 
-void OpenViewsWindow::selectUpDown(bool up)
+void HistoryViewsPopupWindow::selectUpDown(bool up)
 {
     int itemCount = m_editorList->topLevelItemCount();
     if (itemCount < 2)
@@ -158,28 +158,28 @@ void OpenViewsWindow::selectUpDown(bool up)
     }
 }
 
-void OpenViewsWindow::selectPreviousEditor()
+void HistoryViewsPopupWindow::selectPreviousEditor()
 {
     selectUpDown(false);
 }
 
-QSize OpenViewsWindow::OpenViewsTreeWidget::sizeHint() const
+QSize HistoryViewsPopupWindow::OpenViewsTreeWidget::sizeHint() const
 {
     return QSize(sizeHintForColumn(0) + verticalScrollBar()->width() + frameWidth() * 2,
                  viewportSizeHint().height() + frameWidth() * 2);
 }
 
-QSize OpenViewsWindow::sizeHint() const
+QSize HistoryViewsPopupWindow::sizeHint() const
 {
     return m_editorList->sizeHint() + QSize(frameWidth() * 2, frameWidth() * 2);
 }
 
-void OpenViewsWindow::selectNextEditor()
+void HistoryViewsPopupWindow::selectNextEditor()
 {
     selectUpDown(true);
 }
 
-void OpenViewsWindow::addItems()
+void HistoryViewsPopupWindow::addItems()
 {
     m_editorList->clear();
     auto& history = hp_->getItems();
@@ -189,7 +189,7 @@ void OpenViewsWindow::addItems()
     }
 }
 
-void OpenViewsWindow::selectEditor(QTreeWidgetItem *item)
+void HistoryViewsPopupWindow::selectEditor(QTreeWidgetItem *item)
 {
     if (!item)
         return;
@@ -200,18 +200,18 @@ void OpenViewsWindow::selectEditor(QTreeWidgetItem *item)
     }
 }
 
-void OpenViewsWindow::editorClicked(QTreeWidgetItem *item)
+void HistoryViewsPopupWindow::editorClicked(QTreeWidgetItem *item)
 {
     selectEditor(item);
     setFocus();
 }
 
-void OpenViewsWindow::ensureCurrentVisible()
+void HistoryViewsPopupWindow::ensureCurrentVisible()
 {
     m_editorList->scrollTo(m_editorList->currentIndex(), QAbstractItemView::PositionAtCenter);
 }
 
-void OpenViewsWindow::addItem(const QString& title, HPKey index)
+void HistoryViewsPopupWindow::addItem(const QString& title, HPKey index)
 {
     QTC_ASSERT(!title.isEmpty(), return);
     QTreeWidgetItem *item = new QTreeWidgetItem();

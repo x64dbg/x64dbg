@@ -1,4 +1,4 @@
-#ifndef __MHTABWIDGET_H__
+﻿#ifndef __MHTABWIDGET_H__
 #define __MHTABWIDGET_H__
 
 // Qt includes
@@ -6,7 +6,7 @@
 #include <QTabWidget>
 #include <QMainWindow>
 #include "TabBar.h"
-#include "../Utils/OpenViewsWindow.h"
+#include "HistoryViewsPopupWindow.h"
 
 // Qt forward class definitions
 class MHTabBar;
@@ -61,7 +61,7 @@ private:
     QList<QWidget*> m_Windows;
     QList<QString> mNativeNames;
 
-    OpenViewsWindow* m_historyPopup;
+    HistoryViewsPopupWindow* m_historyPopup;
     QList<QWidget*> m_history;
 };
 

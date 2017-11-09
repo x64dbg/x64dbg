@@ -12,7 +12,7 @@ MHTabWidget::MHTabWidget(bool historyMode, QWidget* parent, bool allowDetach, bo
   , m_historyPopup(nullptr)
 {
     if(historyMode)
-        m_historyPopup = new OpenViewsWindow(this, parentWidget());
+        m_historyPopup = new HistoryViewsPopupWindow(this, parentWidget());
 
     m_tabBar = new MHTabBar(this, allowDetach, allowDelete);
     connect(m_tabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));

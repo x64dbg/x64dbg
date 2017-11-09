@@ -21,11 +21,11 @@ public:
     virtual void selected(HPKey index) = 0;
 };
 
-class OpenViewsWindow : public QFrame
+class HistoryViewsPopupWindow : public QFrame
 {
     Q_OBJECT
 public:
-    explicit OpenViewsWindow(HistoryProvider* hp, QWidget *parent = 0);
+    explicit HistoryViewsPopupWindow(HistoryProvider* hp, QWidget *parent = 0);
 
     void gotoNextHistory();
     void gotoPreviousHistory();
