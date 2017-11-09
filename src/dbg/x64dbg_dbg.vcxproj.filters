@@ -96,6 +96,9 @@
     <Filter Include="Header Files\btparser">
       <UniqueIdentifier>{d20554d2-b3de-4e73-ac55-217da06783ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{39823a49-c64a-4fcf-b1c2-6edebc4acc03}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -967,5 +970,13 @@
     <ClInclude Include="debugger_tracing.h">
       <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

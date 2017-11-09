@@ -14,14 +14,15 @@
     <ClCompile Include="x64dbg_launcher.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\exe\resource.rc" />
     <ResourceCompile Include="..\exe\icon.rc" />
     <ResourceCompile Include="..\exe\Strings.rc" />
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\exe\resource.h" />
     <ClInclude Include="..\exe\icon.h" />
     <ClInclude Include="..\exe\strings.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\exe\manifest.xml" />

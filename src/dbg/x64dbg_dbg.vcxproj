@@ -234,6 +234,7 @@
     <ClInclude Include="patternfind.h" />
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="serializablemap.h" />
     <ClInclude Include="symcache.h" />
     <ClInclude Include="taskthread.h" />
@@ -328,6 +329,9 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E6548308-401E-3A8A-5819-905DB90522A6}</ProjectGuid>
