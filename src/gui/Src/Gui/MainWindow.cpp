@@ -211,9 +211,7 @@ MainWindow::MainWindow(QWidget* parent)
     mTraceBrowser->setWindowIcon(DIcon("trace.png"));
     connect(mTraceBrowser, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
-    duint bTabSwitchUseHistory = 0;
-    BridgeSettingGetUint("Gui", "TabSwitchUseHistory", &bTabSwitchUseHistory);
-    mTabWidget = new MHTabWidget(bTabSwitchUseHistory != 0, this, true, true);
+    mTabWidget = new MHTabWidget(this, true, true);
 
     // Add all widgets to the list
     mWidgetList.push_back(WidgetInfo(mCpuWidget, "CPUTab"));
@@ -321,6 +319,8 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionGraph, SIGNAL(triggered()), this, SLOT(displayGraphWidget()));
     connect(ui->actionPreviousTab, SIGNAL(triggered()), this, SLOT(displayPreviousTab()));
     connect(ui->actionNextTab, SIGNAL(triggered()), this, SLOT(displayNextTab()));
+    connect(ui->actionPreviousView, SIGNAL(triggered()), this, SLOT(displayPreviousView()));
+    connect(ui->actionNextView, SIGNAL(triggered()), this, SLOT(displayNextView()));
     connect(ui->actionHideTab, SIGNAL(triggered()), this, SLOT(hideTab()));
     makeCommandAction(ui->actionStepIntoSource, "TraceIntoConditional src.line(cip) && !src.disp(cip)");
     makeCommandAction(ui->actionStepOverSource, "TraceOverConditional src.line(cip) && !src.disp(cip)");
@@ -689,6 +689,8 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionGraph, ConfigShortcut("ViewGraph"));
     setGlobalShortcut(ui->actionPreviousTab, ConfigShortcut("ViewPreviousTab"));
     setGlobalShortcut(ui->actionNextTab, ConfigShortcut("ViewNextTab"));
+    setGlobalShortcut(ui->actionPreviousView, ConfigShortcut("ViewPreviousHistory"));
+    setGlobalShortcut(ui->actionNextView, ConfigShortcut("ViewNextHistory"));
     setGlobalShortcut(ui->actionHideTab, ConfigShortcut("ViewHideTab"));
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
@@ -971,6 +973,16 @@ void MainWindow::displayPreviousTab()
 void MainWindow::displayNextTab()
 {
     mTabWidget->showNextTab();
+}
+
+void MainWindow::displayPreviousView()
+{
+    mTabWidget->showPreviousView();
+}
+
+void MainWindow::displayNextView()
+{
+    mTabWidget->showNextView();
 }
 
 void MainWindow::hideTab()

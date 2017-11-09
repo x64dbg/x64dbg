@@ -92,6 +92,8 @@ public slots:
     void displayRunTrace();
     void displayPreviousTab();
     void displayNextTab();
+    void displayPreviousView();
+    void displayNextView();
     void hideTab();
     void openSettings();
     void openAppearance();

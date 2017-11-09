@@ -8,11 +8,9 @@
 //////////////////////////////////////////////////////////////
 // Default Constructor
 //////////////////////////////////////////////////////////////
-MHTabWidget::MHTabWidget(bool historyMode, QWidget* parent, bool allowDetach, bool allowDelete) : QTabWidget(parent)
-    , m_historyPopup(nullptr)
+MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : QTabWidget(parent)
 {
-    if(historyMode)
-        m_historyPopup = new HistoryViewsPopupWindow(this, parentWidget());
+    m_historyPopup = new HistoryViewsPopupWindow(this, parentWidget());
 
     m_tabBar = new MHTabBar(this, allowDetach, allowDelete);
     connect(m_tabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
@@ -91,8 +89,7 @@ void MHTabWidget::AttachTab(QWidget* parent)
 
     // Cleanup Window
     disconnect(detachedWidget, SIGNAL(OnClose(QWidget*)), this, SLOT(AttachTab(QWidget*)));
-    if(m_historyPopup)
-        disconnect(detachedWidget, SIGNAL(OnFocused(QWidget*)), this, SLOT(OnDetachFocused(QWidget*)));
+    disconnect(detachedWidget, SIGNAL(OnFocused(QWidget*)), this, SLOT(OnDetachFocused(QWidget*)));
     detachedWidget->hide();
     detachedWidget->close();
 }
@@ -107,8 +104,7 @@ void MHTabWidget::DetachTab(int index, const QPoint & dropPoint)
 
     // Find Widget and connect
     connect(detachedWidget, SIGNAL(OnClose(QWidget*)), this, SLOT(AttachTab(QWidget*)));
-    if(m_historyPopup)
-        connect(detachedWidget, SIGNAL(OnFocused(QWidget*)), this, SLOT(OnDetachFocused(QWidget*)));
+    connect(detachedWidget, SIGNAL(OnFocused(QWidget*)), this, SLOT(OnDetachFocused(QWidget*)));
 
     detachedWidget->setWindowTitle(tabText(index));
     detachedWidget->setWindowIcon(tabIcon(index));
@@ -280,46 +276,42 @@ QString MHTabWidget::getNativeName(int index)
 
 void MHTabWidget::showPreviousTab()
 {
-    if(!m_historyPopup)
+    if(QTabWidget::count() <= 1)
     {
-        if(QTabWidget::count() <= 1)
-        {
-            return;
-        }
+        return;
+    }
 
-        int previousTabIndex = QTabWidget::currentIndex();
-        if(previousTabIndex == 0)
-        {
-            previousTabIndex = QTabWidget::count() - 1;
-        }
-        else
-        {
-            previousTabIndex--;
-        }
-
-        QTabWidget::setCurrentIndex(previousTabIndex);
+    int previousTabIndex = QTabWidget::currentIndex();
+    if(previousTabIndex == 0)
+    {
+        previousTabIndex = QTabWidget::count() - 1;
     }
     else
     {
-        m_historyPopup->gotoPreviousHistory();
+        previousTabIndex--;
     }
+
+    QTabWidget::setCurrentIndex(previousTabIndex);
 }
 
 void MHTabWidget::showNextTab()
 {
-    if(!m_historyPopup)
+    if(QTabWidget::count() <= 1)
     {
-        if(QTabWidget::count() <= 1)
-        {
-            return;
-        }
+        return;
+    }
 
-        QTabWidget::setCurrentIndex((QTabWidget::currentIndex() + 1) % QTabWidget::count());
-    }
-    else
-    {
-        m_historyPopup->gotoNextHistory();
-    }
+    QTabWidget::setCurrentIndex((QTabWidget::currentIndex() + 1) % QTabWidget::count());
+}
+
+void MHTabWidget::showPreviousView()
+{
+    m_historyPopup->gotoPreviousHistory();
+}
+
+void MHTabWidget::showNextView()
+{
+    m_historyPopup->gotoNextHistory();
 }
 
 void MHTabWidget::deleteCurrentTab()

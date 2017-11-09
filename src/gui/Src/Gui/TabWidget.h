@@ -21,7 +21,7 @@ class MHTabWidget: public QTabWidget, public HistoryProvider
     Q_OBJECT
 
 public:
-    MHTabWidget(bool historyMode, QWidget* parent = nullptr, bool allowDetach = true, bool allowDelete = false);
+    MHTabWidget(QWidget* parent = nullptr, bool allowDetach = true, bool allowDelete = false);
     virtual ~MHTabWidget(void);
 
     QWidget* widget(int index) const;
@@ -32,6 +32,8 @@ public:
     QString getNativeName(int index);
     void showPreviousTab();
     void showNextTab();
+    void showPreviousView();
+    void showNextView();
     void deleteCurrentTab();
 signals:
     void tabMovedTabWidget(int from, int to);
