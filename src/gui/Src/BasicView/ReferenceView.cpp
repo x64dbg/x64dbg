@@ -56,33 +56,34 @@ ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : SearchListView(
 
 void ReferenceView::setupContextMenu()
 {
-    mFollowAddress = new QAction(tr("&Follow in Disassembler"), this);
+    QIcon disassembler = DIcon(ArchValue("processor32.png", "processor64.png"));
+    mFollowAddress = new QAction(disassembler, tr("&Follow in Disassembler"), this);
     connect(mFollowAddress, SIGNAL(triggered()), this, SLOT(followAddress()));
 
-    mFollowDumpAddress = new QAction(tr("Follow in &Dump"), this);
+    mFollowDumpAddress = new QAction(DIcon("dump.png"), tr("Follow in &Dump"), this);
     connect(mFollowDumpAddress, SIGNAL(triggered()), this, SLOT(followDumpAddress()));
 
     mFollowApiAddress = new QAction(tr("Follow &API Address"), this);
     connect(mFollowApiAddress, SIGNAL(triggered()), this, SLOT(followApiAddress()));
 
-    mToggleBreakpoint = new QAction(tr("Toggle Breakpoint"), this);
+    mToggleBreakpoint = new QAction(DIcon("breakpoint_toggle.png"), tr("Toggle Breakpoint"), this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     addAction(mToggleBreakpoint);
     mList->addAction(mToggleBreakpoint);
     mSearchList->addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
-    mToggleBookmark = new QAction(tr("Toggle Bookmark"), this);
+    mToggleBookmark = new QAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), this);
     mToggleBookmark->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     addAction(mToggleBookmark);
     mList->addAction(mToggleBookmark);
     mSearchList->addAction(mToggleBookmark);
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 
-    mSetBreakpointOnAllCommands = new QAction(tr("Set breakpoint on all commands"), this);
+    mSetBreakpointOnAllCommands = new QAction(DIcon("breakpoint_seton_all_commands.png"), tr("Set breakpoint on all commands"), this);
     connect(mSetBreakpointOnAllCommands, SIGNAL(triggered()), this, SLOT(setBreakpointOnAllCommands()));
 
-    mRemoveBreakpointOnAllCommands = new QAction(tr("Remove breakpoint on all commands"), this);
+    mRemoveBreakpointOnAllCommands = new QAction(DIcon("breakpoint_remove_all_commands.png"), tr("Remove breakpoint on all commands"), this);
     connect(mRemoveBreakpointOnAllCommands, SIGNAL(triggered()), this, SLOT(removeBreakpointOnAllCommands()));
 
     mSetBreakpointOnAllApiCalls = new QAction(tr("Set breakpoint on all api calls"), this);
