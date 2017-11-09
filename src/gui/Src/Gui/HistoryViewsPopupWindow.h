@@ -61,7 +61,6 @@ private:
         QSize sizeHint() const;
     };
 
-    //const QIcon m_emptyIcon;
     OpenViewsTreeWidget* m_editorList;
 
     HistoryProvider* hp_ = nullptr;

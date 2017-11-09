@@ -10,14 +10,12 @@
 
 enum class Role
 {
-    Entry = Qt::UserRole,
-    View = Qt::UserRole + 1
+    ItemData = Qt::UserRole
 };
 
 HistoryViewsPopupWindow::HistoryViewsPopupWindow(HistoryProvider* hp, QWidget* parent) :
     QFrame(parent, Qt::Popup),
     hp_(hp),
-    //m_emptyIcon(Utils::Icons::EMPTY14.icon()),
     m_editorList(new OpenViewsTreeWidget(this))
 {
     setMinimumSize(300, 200);
@@ -214,8 +212,8 @@ void HistoryViewsPopupWindow::selectEditor(QTreeWidgetItem* item)
 {
     if(!item)
         return;
-    auto entry = item->data(0, int(Role::Entry)).value<HPKey>();
-    hp_->HP_selected(entry);
+    auto index = item->data(0, int(Role::ItemData)).value<HPKey>();
+    hp_->HP_selected(index);
 }
 
 void HistoryViewsPopupWindow::editorClicked(QTreeWidgetItem* item)
@@ -235,12 +233,8 @@ void HistoryViewsPopupWindow::addItem(const QString & title, HPKey index, const 
     QTreeWidgetItem* item = new QTreeWidgetItem();
 
     item->setIcon(0, icon);
-    /*item->setIcon(0, !entry->fileName().isEmpty() && entry->document->isFileReadOnly()
-                  ? DocumentModel::lockedIcon() : m_emptyIcon);*/
     item->setText(0, title);
-    //item->setToolTip(0, entry->fileName().toString());
-    item->setData(0, int(Role::Entry), QVariant::fromValue(index));
-    //item->setData(0, int(Role::View), QVariant::fromValue(view));
+    item->setData(0, int(Role::ItemData), QVariant::fromValue(index));
     item->setTextAlignment(0, Qt::AlignLeft);
 
     m_editorList->addTopLevelItem(item);
