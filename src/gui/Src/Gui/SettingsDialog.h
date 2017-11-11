@@ -63,6 +63,8 @@ private slots:
     void on_btnAddLast_clicked();
     //Disasm tab
     void on_chkArgumentSpaces_stateChanged(int arg1);
+    void on_chkHidePointerSizes_stateChanged(int arg1);
+    void on_chkHideNormalSegments_stateChanged(int arg1);
     void on_chkMemorySpaces_stateChanged(int arg1);
     void on_chkUppercase_stateChanged(int arg1);
     void on_chkOnlyCipAutoComments_stateChanged(int arg1);
@@ -159,6 +161,8 @@ private:
         //Disasm Tab
         bool disasmArgumentSpaces;
         bool disasmMemorySpaces;
+        bool disasmHidePointerSizes;
+        bool disasmHideNormalSegments;
         bool disasmUppercase;
         bool disasmOnlyCipAutoComments;
         bool disasmTabBetweenMnemonicAndArguments;

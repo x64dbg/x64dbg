@@ -9,7 +9,7 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
       isNop(false),
       _mnemonicType(TokenType::Uncategorized)
 {
-    SetConfig(false, false, false, false, false, false, false);
+    SetConfig(false, false, false, false, false, false, false, false, false);
 }
 
 static CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
@@ -174,6 +174,8 @@ void CapstoneTokenizer::UpdateConfig()
     SetConfig(ConfigBool("Disassembler", "Uppercase"),
               ConfigBool("Disassembler", "TabbedMnemonic"),
               ConfigBool("Disassembler", "ArgumentSpaces"),
+              ConfigBool("Disassembler", "HidePointerSizes"),
+              ConfigBool("Disassembler", "HideNormalSegments"),
               ConfigBool("Disassembler", "MemorySpaces"),
               ConfigBool("Disassembler", "NoHighlightOperands"),
               ConfigBool("Disassembler", "NoCurrentModuleText"),
@@ -182,11 +184,13 @@ void CapstoneTokenizer::UpdateConfig()
     UpdateStringPool();
 }
 
-void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues)
+void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues)
 {
     _bUppercase = bUppercase;
     _bTabbedMnemonic = bTabbedMnemonic;
     _bArgumentSpaces = bArgumentSpaces;
+    _bHidePointerSizes = bHidePointerSizes;
+    _bHideNormalSegments = bHideNormalSegments;
     _bMemorySpaces = bMemorySpaces;
     _bNoHighlightOperands = bNoHighlightOperands;
     _bNoCurrentModuleText = bNoCurrentModuleText;
@@ -510,22 +514,30 @@ bool CapstoneTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
 
 bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
 {
-    //memory size
     auto opsize = op.size / 8;
-    const char* sizeText = _cp.MemSizeName(opsize);
 
-    if(sizeText)
+    //memory size
+    if(!_bHidePointerSizes)
     {
-        addToken(TokenType::MemorySize, QString(sizeText) + " ptr");
-        addToken(TokenType::Space, " ");
+        const char* sizeText = _cp.MemSizeName(opsize);
+        if(sizeText)
+        {
+            addToken(TokenType::MemorySize, QString(sizeText) + " ptr");
+            addToken(TokenType::Space, " ");
+        }
     }
 
-    //memory segment
     const auto & mem = op.mem;
-    auto segmentType = mem.segment == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS)
-                       ? TokenType::MnemonicUnusual : TokenType::MemorySegment;
-    addToken(segmentType, _cp.RegName(mem.segment));
-    addToken(TokenType::Uncategorized, ":");
+
+    //memory segment
+    bool bUnusualSegment = (mem.segment == ZYDIS_REGISTER_FS || mem.segment == ZYDIS_REGISTER_GS);
+    if(!_bHideNormalSegments || bUnusualSegment)
+    {
+        auto segmentType = mem.segment == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS)
+                           ? TokenType::MnemonicUnusual : TokenType::MemorySegment;
+        addToken(segmentType, _cp.RegName(mem.segment));
+        addToken(TokenType::Uncategorized, ":");
+    }
 
     //memory opening bracket
     auto bracketsType = TokenType::MemoryBrackets;
