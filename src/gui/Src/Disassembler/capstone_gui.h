@@ -157,7 +157,7 @@ public:
     bool Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction);
     bool TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction);
     void UpdateConfig();
-    void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues);
+    void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues);
     int Size() const;
     const Zydis & GetCapstone() const;
 
@@ -180,6 +180,8 @@ private:
     bool _bUppercase;
     bool _bTabbedMnemonic;
     bool _bArgumentSpaces;
+    bool _bHidePointerSizes;
+    bool _bHideNormalSegments;
     bool _bMemorySpaces;
     bool _bNoHighlightOperands;
     bool _bNoCurrentModuleText;

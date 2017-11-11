@@ -245,6 +245,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     //bool settings
     QMap<QString, bool> disassemblyBool;
     disassemblyBool.insert("ArgumentSpaces", false);
+    disassemblyBool.insert("HidePointerSizes", false);
+    disassemblyBool.insert("HideNormalSegments", false);
     disassemblyBool.insert("MemorySpaces", false);
     disassemblyBool.insert("KeepSize", false);
     disassemblyBool.insert("FillNOPs", false);
