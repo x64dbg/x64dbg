@@ -6,7 +6,7 @@
 #include <QTabWidget>
 #include <QMainWindow>
 #include "TabBar.h"
-#include "HistoryViewsPopupWindow.h"
+#include "MultiItemsSelectWindow.h"
 
 // Qt forward class definitions
 class MHTabBar;
@@ -16,7 +16,7 @@ class MHTabBar;
 //    MHTabWidget implements the a Tab Widget with detach and attach
 //    functionality for MHTabBar.
 //////////////////////////////////////////////////////////////////////////////
-class MHTabWidget: public QTabWidget, public HistoryProvider
+class MHTabWidget: public QTabWidget, public MultiItemsDataProvider
 {
     Q_OBJECT
 
@@ -53,10 +53,10 @@ public Q_SLOTS:
 protected:
     MHTabBar* tabBar() const;
 
-    const QList<HPKey> & HP_getItems() const override;
-    QString HP_getName(HPKey index) override;
-    void HP_selected(HPKey index) override;
-    QIcon HP_getIcon(HPKey index) override;
+    const QList<MIDPKey> & MIDP_getItems() const override;
+    QString MIDP_getItemName(MIDPKey index) override;
+    void MIDP_selected(MIDPKey index) override;
+    QIcon MIDP_getIcon(MIDPKey index) override;
     void setLatestFocused(QWidget* w);
 
 private:
@@ -65,8 +65,8 @@ private:
     QList<QWidget*> m_Windows;
     QList<QString> mNativeNames;
 
-    HistoryViewsPopupWindow* m_historyPopup;
-    QList<QWidget*> m_history;
+    MultiItemsSelectWindow* m_historyPopup;
+    QList<MIDPKey> m_history;
 };
 
 //////////////////////////////////////////////////////////////////////////////

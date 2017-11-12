@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////
 MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : QTabWidget(parent)
 {
-    m_historyPopup = new HistoryViewsPopupWindow(this, parentWidget());
+    m_historyPopup = new MultiItemsSelectWindow(this, parentWidget(), true);
 
     m_tabBar = new MHTabBar(this, allowDetach, allowDelete);
     connect(m_tabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
@@ -64,7 +64,7 @@ QList<QWidget*> MHTabWidget::windows()
 int MHTabWidget::addTabEx(QWidget* widget, const QIcon & icon, const QString & label, const QString & nativeName)
 {
     mNativeNames.append(nativeName);
-    m_history.push_back(widget);
+    m_history.push_back((MIDPKey)widget);
     return this->addTab(widget, icon, label);
 }
 
@@ -153,7 +153,7 @@ void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 void MHTabWidget::DeleteTab(int index)
 {
     QWidget* w = widget(index);
-    m_history.removeAll(w);
+    m_history.removeAll((MIDPKey)w);
     removeTab(index);
     mNativeNames.removeAt(index);
 }
@@ -203,24 +203,24 @@ MHTabBar* MHTabWidget::tabBar() const
     return m_tabBar;
 }
 
-const QList<HPKey> & MHTabWidget::HP_getItems() const
+const QList<MIDPKey> & MHTabWidget::MIDP_getItems() const
 {
     return m_history;
 }
 
-QString MHTabWidget::HP_getName(HPKey index)
+QString MHTabWidget::MIDP_getItemName(MIDPKey index)
 {
-    return index->windowTitle();
+    return reinterpret_cast<QWidget*>(index)->windowTitle();
 }
 
-void MHTabWidget::HP_selected(HPKey index)
+void MHTabWidget::MIDP_selected(MIDPKey index)
 {
-    setLatestFocused(index);
+    setLatestFocused((QWidget*)index);
 
     // check in tabbar
     for(auto i = 0; i < QTabWidget::count(); ++i)
     {
-        if(index == QTabWidget::widget(i))
+        if(reinterpret_cast<QWidget*>(index) == QTabWidget::widget(i))
         {
             QTabWidget::setCurrentIndex(i);
             parentWidget()->activateWindow();
@@ -230,32 +230,32 @@ void MHTabWidget::HP_selected(HPKey index)
     }
 
     // should be a detached window
-    MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(index->parent());
+    MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(reinterpret_cast<QWidget*>(index)->parent());
     window->activateWindow();
     window->showNormal();
     window->setFocus();
 }
 
-QIcon MHTabWidget::HP_getIcon(HPKey index)
+QIcon MHTabWidget::MIDP_getIcon(MIDPKey index)
 {
     // check in tabbar
     for(auto i = 0; i < QTabWidget::count(); ++i)
     {
-        if(index == QTabWidget::widget(i))
+        if(reinterpret_cast<QWidget*>(index) == QTabWidget::widget(i))
         {
             return m_tabBar->tabIcon(i);
         }
     }
 
     // should be a detached window
-    MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(index->parent());
+    MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(reinterpret_cast<QWidget*>(index)->parent());
     return window->windowIcon();
 }
 
 void MHTabWidget::setLatestFocused(QWidget* w)
 {
-    m_history.removeAll(w);
-    m_history.push_front(w);
+    m_history.removeAll((MIDPKey)w);
+    m_history.push_front((MIDPKey)w);
 }
 
 QString MHTabWidget::getNativeName(int index)
@@ -306,12 +306,12 @@ void MHTabWidget::showNextTab()
 
 void MHTabWidget::showPreviousView()
 {
-    m_historyPopup->gotoPreviousHistory();
+    m_historyPopup->gotoPreviousItem();
 }
 
 void MHTabWidget::showNextView()
 {
-    m_historyPopup->gotoNextHistory();
+    m_historyPopup->gotoNextItem();
 }
 
 void MHTabWidget::deleteCurrentTab()

@@ -189,7 +189,7 @@ SOURCES += \
     Src/Tracer/TraceBrowser.cpp \
     Src/Tracer/TraceFileReader.cpp \
     Src/Tracer/TraceFileSearch.cpp \
-    Src/Gui/HistoryViewsPopupWindow.cpp
+    Src/Gui/MultiItemsSelectWindow.cpp
 
 
 HEADERS += \
@@ -313,7 +313,7 @@ HEADERS += \
     Src/Tracer/TraceFileReader.h \
     Src/Tracer/TraceFileReaderInternal.h \
     Src/Tracer/TraceFileSearch.h \
-    Src/Gui/HistoryViewsPopupWindow.h
+    Src/Gui/MultiItemsSelectWindow.h
     
 
 FORMS += \

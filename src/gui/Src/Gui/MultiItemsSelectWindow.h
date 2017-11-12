@@ -12,24 +12,24 @@ class QTreeWidgetItem;
 class QWidget;
 QT_END_NAMESPACE
 
-typedef QWidget* HPKey;
-class HistoryProvider
+typedef void* MIDPKey;
+class MultiItemsDataProvider
 {
 public:
-    virtual const QList<HPKey> & HP_getItems() const = 0;
-    virtual QString HP_getName(HPKey index) = 0;
-    virtual QIcon HP_getIcon(HPKey index) = 0;
-    virtual void HP_selected(HPKey index) = 0;
+    virtual const QList<MIDPKey> & MIDP_getItems() const = 0;
+    virtual QString MIDP_getItemName(MIDPKey index) = 0;
+    virtual QIcon MIDP_getIcon(MIDPKey index) = 0;
+    virtual void MIDP_selected(MIDPKey index) = 0;
 };
 
-class HistoryViewsPopupWindow : public QFrame
+class MultiItemsSelectWindow : public QFrame
 {
     Q_OBJECT
 public:
-    explicit HistoryViewsPopupWindow(HistoryProvider* hp, QWidget* parent = 0);
+    MultiItemsSelectWindow(MultiItemsDataProvider* hp, QWidget* parent, bool showIcon);
 
-    void gotoNextHistory();
-    void gotoPreviousHistory();
+    void gotoNextItem();
+    void gotoPreviousItem();
 
 private slots:
     void selectAndHide();
@@ -49,7 +49,7 @@ private:
     void editorClicked(QTreeWidgetItem* item);
     void selectEditor(QTreeWidgetItem* item);
 
-    void addItem(const QString & title, HPKey index, const QIcon & icon);
+    void addItem(MIDPKey index);
     void ensureCurrentVisible();
     void selectUpDown(bool up);
 
@@ -63,7 +63,8 @@ private:
 
     OpenViewsTreeWidget* m_editorList;
 
-    HistoryProvider* hp_ = nullptr;
+    MultiItemsDataProvider* m_dataProvider = nullptr;
+    bool m_showIcon;
 };
 
 #endif

@@ -1,4 +1,4 @@
-#include "HistoryViewsPopupWindow.h"
+#include "MultiItemsSelectWindow.h"
 
 #define QTC_ASSERT(cond, action) if (cond) {} else { action; } do {} while (0)
 
@@ -13,9 +13,10 @@ enum class Role
     ItemData = Qt::UserRole
 };
 
-HistoryViewsPopupWindow::HistoryViewsPopupWindow(HistoryProvider* hp, QWidget* parent) :
+MultiItemsSelectWindow::MultiItemsSelectWindow(MultiItemsDataProvider* hp, QWidget* parent, bool showIcon) :
     QFrame(parent, Qt::Popup),
-    hp_(hp),
+    m_dataProvider(hp),
+    m_showIcon(showIcon),
     m_editorList(new OpenViewsTreeWidget(this))
 {
     setMinimumSize(300, 200);
@@ -34,12 +35,12 @@ HistoryViewsPopupWindow::HistoryViewsPopupWindow(HistoryProvider* hp, QWidget* p
     layout->addWidget(m_editorList);
 
     connect(m_editorList, &QTreeWidget::itemClicked,
-            this, &HistoryViewsPopupWindow::editorClicked);
+            this, &MultiItemsSelectWindow::editorClicked);
 
     setVisible(false);
 }
 
-void HistoryViewsPopupWindow::gotoNextHistory()
+void MultiItemsSelectWindow::gotoNextItem()
 {
     if(isVisible())
     {
@@ -53,7 +54,7 @@ void HistoryViewsPopupWindow::gotoNextHistory()
     }
 }
 
-void HistoryViewsPopupWindow::gotoPreviousHistory()
+void MultiItemsSelectWindow::gotoPreviousItem()
 {
     if(isVisible())
     {
@@ -67,7 +68,7 @@ void HistoryViewsPopupWindow::gotoPreviousHistory()
     }
 }
 
-void HistoryViewsPopupWindow::showPopupOrSelectDocument()
+void MultiItemsSelectWindow::showPopupOrSelectDocument()
 {
     if(QApplication::keyboardModifiers() == Qt::NoModifier)
     {
@@ -91,20 +92,20 @@ void HistoryViewsPopupWindow::showPopupOrSelectDocument()
     }
 }
 
-void HistoryViewsPopupWindow::selectAndHide()
+void MultiItemsSelectWindow::selectAndHide()
 {
     setVisible(false);
     selectEditor(m_editorList->currentItem());
 }
 
-void HistoryViewsPopupWindow::setVisible(bool visible)
+void MultiItemsSelectWindow::setVisible(bool visible)
 {
     QWidget::setVisible(visible);
     if(visible)
         setFocus();
 }
 
-bool HistoryViewsPopupWindow::eventFilter(QObject* obj, QEvent* e)
+bool MultiItemsSelectWindow::eventFilter(QObject* obj, QEvent* e)
 {
     if(obj == m_editorList)
     {
@@ -138,12 +139,12 @@ bool HistoryViewsPopupWindow::eventFilter(QObject* obj, QEvent* e)
     return QWidget::eventFilter(obj, e);
 }
 
-void HistoryViewsPopupWindow::focusInEvent(QFocusEvent*)
+void MultiItemsSelectWindow::focusInEvent(QFocusEvent*)
 {
     m_editorList->setFocus();
 }
 
-void HistoryViewsPopupWindow::selectUpDown(bool up)
+void MultiItemsSelectWindow::selectUpDown(bool up)
 {
     int itemCount = m_editorList->topLevelItemCount();
     if(itemCount < 2)
@@ -177,63 +178,63 @@ void HistoryViewsPopupWindow::selectUpDown(bool up)
     }
 }
 
-void HistoryViewsPopupWindow::selectPreviousEditor()
+void MultiItemsSelectWindow::selectPreviousEditor()
 {
     selectUpDown(false);
 }
 
-QSize HistoryViewsPopupWindow::OpenViewsTreeWidget::sizeHint() const
+QSize MultiItemsSelectWindow::OpenViewsTreeWidget::sizeHint() const
 {
     return QSize(sizeHintForColumn(0) + verticalScrollBar()->width() + frameWidth() * 2,
                  viewportSizeHint().height() + frameWidth() * 2);
 }
 
-QSize HistoryViewsPopupWindow::sizeHint() const
+QSize MultiItemsSelectWindow::sizeHint() const
 {
     return m_editorList->sizeHint() + QSize(frameWidth() * 2, frameWidth() * 2);
 }
 
-void HistoryViewsPopupWindow::selectNextEditor()
+void MultiItemsSelectWindow::selectNextEditor()
 {
     selectUpDown(true);
 }
 
-void HistoryViewsPopupWindow::addItems()
+void MultiItemsSelectWindow::addItems()
 {
     m_editorList->clear();
-    auto & history = hp_->HP_getItems();
+    auto & history = m_dataProvider->MIDP_getItems();
     for(auto & i : history)
     {
-        addItem(hp_->HP_getName(i), i, hp_->HP_getIcon(i));
+        addItem(i);
     }
 }
 
-void HistoryViewsPopupWindow::selectEditor(QTreeWidgetItem* item)
+void MultiItemsSelectWindow::selectEditor(QTreeWidgetItem* item)
 {
     if(!item)
         return;
-    auto index = item->data(0, int(Role::ItemData)).value<HPKey>();
-    hp_->HP_selected(index);
+    auto index = item->data(0, int(Role::ItemData)).value<MIDPKey>();
+    m_dataProvider->MIDP_selected(index);
 }
 
-void HistoryViewsPopupWindow::editorClicked(QTreeWidgetItem* item)
+void MultiItemsSelectWindow::editorClicked(QTreeWidgetItem* item)
 {
     selectEditor(item);
     setFocus();
 }
 
-void HistoryViewsPopupWindow::ensureCurrentVisible()
+void MultiItemsSelectWindow::ensureCurrentVisible()
 {
     m_editorList->scrollTo(m_editorList->currentIndex(), QAbstractItemView::PositionAtCenter);
 }
 
-void HistoryViewsPopupWindow::addItem(const QString & title, HPKey index, const QIcon & icon)
+void MultiItemsSelectWindow::addItem(MIDPKey index)
 {
-    QTC_ASSERT(!title.isEmpty(), return);
     QTreeWidgetItem* item = new QTreeWidgetItem();
 
-    item->setIcon(0, icon);
-    item->setText(0, title);
+    if(m_showIcon)
+        item->setIcon(0, m_dataProvider->MIDP_getIcon(index));
+    item->setText(0, m_dataProvider->MIDP_getItemName(index));
     item->setData(0, int(Role::ItemData), QVariant::fromValue(index));
     item->setTextAlignment(0, Qt::AlignLeft);
 
