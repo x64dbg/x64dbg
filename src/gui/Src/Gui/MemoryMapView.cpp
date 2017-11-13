@@ -27,9 +27,9 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, tr("Size")); //size
     addColumnAt(8 + charwidth * 32, tr("Info"), false, tr("Page Information")); //page information
     addColumnAt(8 + charwidth * 28, tr("Content"), false, tr("Content of section")); //content of section
-    addColumnAt(8 + charwidth * 5, tr("Type"), false, tr("Allocation Type")); //allocation type
-    addColumnAt(8 + charwidth * 11, tr("Protection"), false, tr("Current Protection")); //current protection
-    addColumnAt(8 + charwidth * 8, tr("Initial"), false, tr("Allocation Protection")); //allocation protection
+    addColumnAt(8 + charwidth * 5, tr("Type"), true, tr("Allocation Type")); //allocation type
+    addColumnAt(8 + charwidth * 11, tr("Protection"), true, tr("Current Protection")); //current protection
+    addColumnAt(8 + charwidth * 8, tr("Initial"), true, tr("Allocation Protection")); //allocation protection
     loadColumnFromConfig("MemoryMap");
 
     connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
