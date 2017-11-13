@@ -383,6 +383,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewSEHChain", Shortcut({tr("View"), tr("SEH")}, "", true));
     defaultShortcuts.insert("ViewScript", Shortcut({tr("View"), tr("Script")}, "Alt+S", true));
     defaultShortcuts.insert("ViewSymbolInfo", Shortcut({tr("View"), tr("Symbol Info")}, "Ctrl+Alt+S", true));
+    defaultShortcuts.insert("ViewModules", Shortcut({tr("View"), tr("Modules")}, "Alt+E", true));
     defaultShortcuts.insert("ViewSource", Shortcut({tr("View"), tr("Source")}, "Ctrl+Shift+S", true));
     defaultShortcuts.insert("ViewReferences", Shortcut({tr("View"), tr("References")}, "Alt+R", true));
     defaultShortcuts.insert("ViewThreads", Shortcut({tr("View"), tr("Threads")}, "Alt+T", true));

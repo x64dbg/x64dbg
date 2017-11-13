@@ -64,6 +64,7 @@
     <addaction name="actionSEHChain"/>
     <addaction name="actionScript"/>
     <addaction name="actionSymbolInfo"/>
+    <addaction name="actionModules"/>
     <addaction name="actionSource"/>
     <addaction name="actionReferences"/>
     <addaction name="actionThreads"/>
@@ -1149,6 +1150,15 @@
    </property>
    <property name="text">
     <string>Trace</string>
+   </property>
+  </action>
+  <action name="actionModules">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/lib.png</normaloff>:/icons/images/lib.png</iconset>
+   </property>
+   <property name="text">
+    <string>Modules</string>
    </property>
   </action>
  </widget>
