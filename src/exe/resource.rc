@@ -13,11 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 非特定语言 resources
+// Neutral resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEU)
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-#pragma code_page(936)
+#pragma code_page(1252)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -67,17 +67,20 @@ VS_VERSION_INFO VERSIONINFO
  FILEFLAGS 0x0L
 #endif
  FILEOS 0x40004L
- FILETYPE 0x0L
+ FILETYPE 0x1L
  FILESUBTYPE 0x0L
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
         BLOCK "040904b0"
         BEGIN
+            VALUE "CompanyName", "x64dbg.com"
             VALUE "FileDescription", "x64dbg"
             VALUE "FileVersion", "0.0.2.5"
+            VALUE "InternalName", "x64dbg.exe"
             VALUE "LegalCopyright", "x64dbg.com"
-            VALUE "ProductName", "x64dbg"
+            VALUE "OriginalFilename", "x64dbg.exe"
+            VALUE "ProductName", "x64dbg.exe"
             VALUE "ProductVersion", "0.0.2.5"
         END
     END
@@ -133,7 +136,7 @@ BEGIN
     0x0000
 END
 
-#endif    // 非特定语言 resources
+#endif    // Neutral resources
 /////////////////////////////////////////////////////////////////////////////
 
 

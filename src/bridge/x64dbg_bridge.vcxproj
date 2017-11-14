@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -26,8 +26,12 @@
     <ClInclude Include="bridgegraph.h" />
     <ClInclude Include="bridgemain.h" />
     <ClInclude Include="bridgelist.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Utf8Ini.h" />
     <ClInclude Include="_global.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{944D9923-CB1A-6F6C-BCBC-9E00A71954C1}</ProjectGuid>
