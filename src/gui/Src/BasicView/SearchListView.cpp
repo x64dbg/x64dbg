@@ -186,7 +186,6 @@ void SearchListView::searchTextChanged(const QString & arg1)
         mCurList = mList;
     }
 
-    mCurList->setSingleSelection(0);
     mSearchList->setRowCount(0);
     int rows = mList->getRowCount();
     int columns = mList->getColumnCount();
@@ -203,6 +202,7 @@ void SearchListView::searchTextChanged(const QString & arg1)
 
     mSearchList->reloadData();
 
+    bool hasSetSingleSelection = false;
     if(!mLastFirstColValue.isEmpty())
     {
         rows = mCurList->getRowCount();
@@ -219,10 +219,13 @@ void SearchListView::searchTextChanged(const QString & arg1)
                     mCurList->setTableOffset(cur);
                 }
                 mCurList->setSingleSelection(i);
+                hasSetSingleSelection = true;
                 break;
             }
         }
     }
+    if(!hasSetSingleSelection)
+        mCurList->setSingleSelection(0);
 
     if(rows == 0)
         emit emptySearchResult();
