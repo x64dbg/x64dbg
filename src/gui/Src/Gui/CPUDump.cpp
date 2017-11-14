@@ -563,6 +563,7 @@ void CPUDump::gotoExpressionSlot()
     if(!mGoto)
         mGoto = new GotoDialog(this);
     mGoto->setWindowTitle(tr("Enter expression to follow in Dump..."));
+    mGoto->setInitialExpression(ToPtrString(rvaToVa(getInitialSelection())));
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());

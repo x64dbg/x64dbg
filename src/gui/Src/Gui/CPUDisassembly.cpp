@@ -981,6 +981,7 @@ void CPUDisassembly::gotoExpressionSlot()
         return;
     if(!mGoto)
         mGoto = new GotoDialog(this);
+    mGoto->setInitialExpression(ToPtrString(rvaToVa(getInitialSelection())));
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
