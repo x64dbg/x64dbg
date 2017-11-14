@@ -1003,6 +1003,17 @@ void CPUDisassembly::gotoFileOffsetSlot()
     mGotoOffset->fileOffset = true;
     mGotoOffset->modName = QString(modname);
     mGotoOffset->setWindowTitle(tr("Goto File Offset in ") + QString(modname));
+    QString offsetOfSelected;
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int, const Instruction_t & inst)
+    {
+        duint addr = rvaToVa(inst.rva);
+        duint offset = DbgFunctions()->VaToFileOffset(addr);
+        if(offset)
+            offsetOfSelected = ToHexString(offset);
+        return false;
+    });
+    if(!offsetOfSelected.isEmpty())
+        mGotoOffset->setInitialExpression(offsetOfSelected);
     if(mGotoOffset->exec() != QDialog::Accepted)
         return;
     duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());
