@@ -547,6 +547,16 @@ void TraceBrowser::setupRightClickContextMenu()
 #endif //_WIN64
         addReg(ArchValue("EIP", "RIP"), cip)
         addReg(ArchValue("EFLAGS", "RFLAGS"), eflags)
+        menu->addSeparator();
+        menu->addAction(QString("ThreadID: %1").arg(mTraceFile->ThreadId(index)));
+        if(index + 1 < mTraceFile->Length())
+        {
+            menu->addAction(QString("LastError: %1 -> %2").arg(ToPtrString(mTraceFile->Registers(index).lastError.code)).arg(ToPtrString(mTraceFile->Registers(index + 1).lastError.code)));
+        }
+        else
+        {
+            menu->addAction(QString("LastError: %1").arg(ToPtrString(mTraceFile->Registers(index).lastError.code)));
+        }
         return true;
     });
     mMenuBuilder->addMenu(makeMenu(tr("Information")), infoMenu);
@@ -1305,7 +1315,11 @@ void TraceBrowser::followDisassemblySlot()
     if(mTraceFile == nullptr || mTraceFile->Progress() < 100)
         return;
 
-    DbgCmdExec(QString("dis ").append(ToPtrString(mTraceFile->Registers(getInitialSelection()).regcontext.cip)).toUtf8().constData());
+    duint cip = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+    if(DbgMemIsValidReadPtr(cip))
+        DbgCmdExec(QString("dis ").append(ToPtrString(cip)).toUtf8().constData());
+    else
+        GuiAddStatusBarMessage(tr("Cannot follow %1. Address is invalid.\n").arg(ToPtrString(cip)).toUtf8().constData());
 }
 
 void TraceBrowser::searchConstantSlot()
