@@ -686,7 +686,7 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
         QString title = mCopyTitles.at(i);
         if(!title.length()) //skip empty copy titles
             continue;
-        QAction* mCopyAction = new QAction(title, copyMenu);
+        QAction* mCopyAction = new QAction(DIcon("copy_item.png"), title, copyMenu);
         mCopyAction->setObjectName(QString::number(i));
         connect(mCopyAction, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
         copyMenu->addAction(mCopyAction);
@@ -723,7 +723,7 @@ void StdTable::setupCopyMenu(MenuBuilder* copyMenu)
             QString title = mCopyTitles.at(i);
             if(!title.length()) //skip empty copy titles
                 continue;
-            QAction* action = new QAction(title, menu);
+            QAction* action = new QAction(DIcon("copy_item.png"), title, menu);
             action->setObjectName(QString::number(i));
             connect(action, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
             menu->addAction(action);

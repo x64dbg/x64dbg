@@ -490,6 +490,20 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkHidePointerSizes">
+         <property name="text">
+          <string>Hide pointer sizes</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkHideNormalSegments">
+         <property name="text">
+          <string>Only show FS/GS segments</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="chkMemorySpaces">
          <property name="text">
           <string>Memory Spaces</string>
