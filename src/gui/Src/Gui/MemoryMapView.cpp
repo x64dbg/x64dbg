@@ -84,6 +84,17 @@ void MemoryMapView::setupContextMenu()
     mMemoryAccessMenu->addAction(mMemoryAccessRestore);
     mBreakpointMenu->addMenu(mMemoryAccessMenu);
 
+    //Breakpoint->Memory Read
+    mMemoryReadMenu = new QMenu(tr("Read"), this);
+    mMemoryReadMenu->setIcon(DIcon("breakpoint_memory_read.png"));
+    mMemoryReadSingleshoot = new QAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), this);
+    makeCommandAction(mMemoryReadSingleshoot, "bpm $, 0, r");
+    mMemoryReadMenu->addAction(mMemoryReadSingleshoot);
+    mMemoryReadRestore = new QAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore"), this);
+    makeCommandAction(mMemoryReadRestore, "bpm $, 1, r");
+    mMemoryReadMenu->addAction(mMemoryReadRestore);
+    mBreakpointMenu->addMenu(mMemoryReadMenu);
+
     //Breakpoint->Memory Write
     mMemoryWriteMenu = new QMenu(tr("Write"), this);
     mMemoryWriteMenu->setIcon(DIcon("breakpoint_memory_write.png"));
@@ -233,6 +244,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
     {
         mMemoryAccessMenu->menuAction()->setVisible(false);
+        mMemoryReadMenu->menuAction()->setVisible(false);
         mMemoryWriteMenu->menuAction()->setVisible(false);
         mMemoryExecuteMenu->menuAction()->setVisible(false);
         mMemoryRemove->setVisible(true);
@@ -240,6 +252,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     else //memory breakpoint not set
     {
         mMemoryAccessMenu->menuAction()->setVisible(true);
+        mMemoryReadMenu->menuAction()->setVisible(true);
         mMemoryWriteMenu->menuAction()->setVisible(true);
         mMemoryExecuteMenu->menuAction()->setVisible(true);
         mMemoryRemove->setVisible(false);

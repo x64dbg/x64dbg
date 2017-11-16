@@ -58,6 +58,9 @@ private:
     QMenu* mMemoryAccessMenu;
     QAction* mMemoryAccessSingleshoot;
     QAction* mMemoryAccessRestore;
+    QMenu* mMemoryReadMenu;
+    QAction* mMemoryReadSingleshoot;
+    QAction* mMemoryReadRestore;
     QMenu* mMemoryWriteMenu;
     QAction* mMemoryWriteSingleshoot;
     QAction* mMemoryWriteRestore;
