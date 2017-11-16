@@ -251,10 +251,26 @@ bool cbInstrZydis(int argc, char* argv[])
             return "write";
         return "???";
     };
+    auto vis = [](uint8_t visibility)
+    {
+        switch(visibility)
+        {
+        case ZYDIS_OPERAND_VISIBILITY_INVALID:
+            return "invalid";
+        case ZYDIS_OPERAND_VISIBILITY_EXPLICIT:
+            return "explicit";
+        case ZYDIS_OPERAND_VISIBILITY_IMPLICIT:
+            return "implicit";
+        case ZYDIS_OPERAND_VISIBILITY_HIDDEN:
+            return "hidden";
+        default:
+            return "???";
+        }
+    };
     for(int i = 0; i < argcount; i++)
     {
         const auto & op = instr->operands[i];
-        dprintf("operand %d (size: %d, access: %s) \"%s\", ", i + 1, op.size, rwstr(op.action), cp.OperandText(i).c_str());
+        dprintf("operand %d (size: %d, access: %s, visibility: %s) \"%s\", ", i + 1, op.size, rwstr(op.action), vis(op.visibility), cp.OperandText(i).c_str());
         switch(op.type)
         {
         case ZYDIS_OPERAND_TYPE_REGISTER:

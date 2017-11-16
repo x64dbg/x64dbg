@@ -563,6 +563,7 @@ void CPUDump::gotoExpressionSlot()
     if(!mGoto)
         mGoto = new GotoDialog(this);
     mGoto->setWindowTitle(tr("Enter expression to follow in Dump..."));
+    mGoto->setInitialExpression(ToPtrString(rvaToVa(getInitialSelection())));
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
@@ -585,6 +586,10 @@ void CPUDump::gotoFileOffsetSlot()
     mGotoOffset->fileOffset = true;
     mGotoOffset->modName = QString(modname);
     mGotoOffset->setWindowTitle(tr("Goto File Offset in %1").arg(QString(modname)));
+    duint addr = rvaToVa(getInitialSelection());
+    duint offset = DbgFunctions()->VaToFileOffset(addr);
+    if(offset)
+        mGotoOffset->setInitialExpression(ToHexString(offset));
     if(mGotoOffset->exec() != QDialog::Accepted)
         return;
     duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());

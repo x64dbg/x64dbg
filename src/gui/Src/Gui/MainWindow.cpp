@@ -287,6 +287,7 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actionHideDebugger, "hide");
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
+    connect(ui->actionModules, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
     connect(ui->actionSource, SIGNAL(triggered()), this, SLOT(displaySourceViewWidget()));
     connect(mSymbolView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     connect(ui->actionReferences, SIGNAL(triggered()), this, SLOT(displayReferencesWidget()));
@@ -674,6 +675,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionSEHChain, ConfigShortcut("ViewSEHChain"));
     setGlobalShortcut(ui->actionScript, ConfigShortcut("ViewScript"));
     setGlobalShortcut(ui->actionSymbolInfo, ConfigShortcut("ViewSymbolInfo"));
+    setGlobalShortcut(ui->actionModules, ConfigShortcut("ViewModules"));
     setGlobalShortcut(ui->actionSource, ConfigShortcut("ViewSource"));
     setGlobalShortcut(ui->actionReferences, ConfigShortcut("ViewReferences"));
     setGlobalShortcut(ui->actionThreads, ConfigShortcut("ViewThreads"));
