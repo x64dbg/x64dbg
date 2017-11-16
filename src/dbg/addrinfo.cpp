@@ -115,7 +115,7 @@ bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum)
         {
             if((imageOftThunkData.u1.Ordinal & IMAGE_ORDINAL_FLAG) == IMAGE_ORDINAL_FLAG)
             {
-                sprintf_s(importName(), MAX_IMPORT_SIZE, "Ordinal%u", imageOftThunkData.u1.Ordinal);
+                sprintf_s(importName(), MAX_IMPORT_SIZE, "Ordinal%u", imageOftThunkData.u1.Ordinal & ~IMAGE_ORDINAL_FLAG);
             }
             else
             {

@@ -9,7 +9,7 @@ CsCapstoneTokenizer::CsCapstoneTokenizer(int maxModuleLength)
       isNop(false),
       _mnemonicType(CapstoneTokenizer::TokenType::Uncategorized)
 {
-    SetConfig(false, false, false, false, false, false, false);
+    SetConfig(false, false, false, false, false, false, false, false, false);
 }
 
 static CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
@@ -171,6 +171,8 @@ void CsCapstoneTokenizer::UpdateConfig()
     SetConfig(ConfigBool("Disassembler", "Uppercase"),
               ConfigBool("Disassembler", "TabbedMnemonic"),
               ConfigBool("Disassembler", "ArgumentSpaces"),
+              ConfigBool("Disassembler", "HidePointerSizes"),
+              ConfigBool("Disassembler", "HideNormalSegments"),
               ConfigBool("Disassembler", "MemorySpaces"),
               ConfigBool("Disassembler", "NoHighlightOperands"),
               ConfigBool("Disassembler", "NoCurrentModuleText"),
@@ -179,11 +181,13 @@ void CsCapstoneTokenizer::UpdateConfig()
     UpdateStringPool();
 }
 
-void CsCapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues)
+void CsCapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues)
 {
     _bUppercase = bUppercase;
     _bTabbedMnemonic = bTabbedMnemonic;
     _bArgumentSpaces = bArgumentSpaces;
+    _bHidePointerSizes = bHidePointerSizes;
+    _bHideNormalSegments = bHideNormalSegments;
     _bMemorySpaces = bMemorySpaces;
     _bNoHighlightOperands = bNoHighlightOperands;
     _bNoCurrentModuleText = bNoCurrentModuleText;
@@ -512,35 +516,44 @@ bool CsCapstoneTokenizer::tokenizeImmOperand(const cs_x86_op & op)
 bool CsCapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
 {
     //memory size
-    const char* sizeText = _cp.MemSizeName(op.size);
-    if(!sizeText)
-        return false;
-    addToken(CapstoneTokenizer::TokenType::MemorySize, QString(sizeText) + " ptr");
-    addToken(CapstoneTokenizer::TokenType::Space, " ");
+    if(!_bHidePointerSizes)
+    {
+        const char* sizeText = _cp.MemSizeName(op.size);
+        if(!sizeText)
+            return false;
+        addToken(CapstoneTokenizer::TokenType::MemorySize, QString(sizeText) + " ptr");
+        addToken(CapstoneTokenizer::TokenType::Space, " ");
+    }
+
+    const auto & mem = op.mem;
 
     //memory segment
-    const auto & mem = op.mem;
-    const char* segmentText = _cp.RegName(mem.segment);
-    if(mem.segment == X86_REG_INVALID) //segment not set
+    bool bUnusualSegment = (mem.segment == X86_REG_FS || mem.segment == X86_REG_GS);
+    if(!_bHideNormalSegments || bUnusualSegment)
     {
-        switch(mem.base)
+        const char* segmentText = _cp.RegName(mem.segment);
+        if(mem.segment == X86_REG_INVALID) //segment not set
         {
-        case X86_REG_RSP:
-        case X86_REG_RBP:
-        case X86_REG_ESP:
-        case X86_REG_EBP:
-        case X86_REG_SP:
-        case X86_REG_BP:
-            segmentText = "ss";
-            break;
-        default:
-            segmentText = "ds";
-            break;
+            switch(mem.base)
+            {
+            case X86_REG_RSP:
+            case X86_REG_RBP:
+            case X86_REG_ESP:
+            case X86_REG_EBP:
+            case X86_REG_SP:
+            case X86_REG_BP:
+                segmentText = "ss";
+                break;
+            default:
+                segmentText = "ds";
+                break;
+            }
         }
+        auto segmentType = op.reg == ArchValue(X86_REG_FS, X86_REG_GS)
+                           ? CapstoneTokenizer::TokenType::MnemonicUnusual : CapstoneTokenizer::TokenType::MemorySegment;
+        addToken(segmentType, segmentText);
+        addToken(CapstoneTokenizer::TokenType::Uncategorized, ":");
     }
-    auto segmentType = op.reg == ArchValue(X86_REG_FS, X86_REG_GS) ? CapstoneTokenizer::TokenType::MnemonicUnusual : CapstoneTokenizer::TokenType::MemorySegment;
-    addToken(segmentType, segmentText);
-    addToken(CapstoneTokenizer::TokenType::Uncategorized, ":");
 
     //memory opening bracket
     auto bracketsType = CapstoneTokenizer::TokenType::MemoryBrackets;

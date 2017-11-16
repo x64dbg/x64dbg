@@ -66,6 +66,8 @@ void SettingsDialog::LoadSettings()
     settings.engineVerboseExceptionLogging = true;
     settings.exceptionRanges = &realExceptionRanges;
     settings.disasmArgumentSpaces = false;
+    settings.disasmHidePointerSizes = false;
+    settings.disasmHideNormalSegments = false;
     settings.disasmMemorySpaces = false;
     settings.disasmUppercase = false;
     settings.disasmOnlyCipAutoComments = false;
@@ -194,6 +196,8 @@ void SettingsDialog::LoadSettings()
 
     //Disasm tab
     GetSettingBool("Disassembler", "ArgumentSpaces", &settings.disasmArgumentSpaces);
+    GetSettingBool("Disassembler", "HidePointerSizes", &settings.disasmHidePointerSizes);
+    GetSettingBool("Disassembler", "HideNormalSegments", &settings.disasmHideNormalSegments);
     GetSettingBool("Disassembler", "MemorySpaces", &settings.disasmMemorySpaces);
     GetSettingBool("Disassembler", "Uppercase", &settings.disasmUppercase);
     GetSettingBool("Disassembler", "OnlyCipAutoComments", &settings.disasmOnlyCipAutoComments);
@@ -206,6 +210,8 @@ void SettingsDialog::LoadSettings()
     if(BridgeSettingGetUint("Disassembler", "MaxModuleSize", &cur))
         settings.disasmMaxModuleSize = int(cur);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
+    ui->chkHidePointerSizes->setChecked(settings.disasmHidePointerSizes);
+    ui->chkHideNormalSegments->setChecked(settings.disasmHideNormalSegments);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
@@ -353,6 +359,8 @@ void SettingsDialog::SaveSettings()
 
     //Disasm tab
     BridgeSettingSetUint("Disassembler", "ArgumentSpaces", settings.disasmArgumentSpaces);
+    BridgeSettingSetUint("Disassembler", "HidePointerSizes", settings.disasmHidePointerSizes);
+    BridgeSettingSetUint("Disassembler", "HideNormalSegments", settings.disasmHideNormalSegments);
     BridgeSettingSetUint("Disassembler", "MemorySpaces", settings.disasmMemorySpaces);
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
@@ -693,6 +701,18 @@ void SettingsDialog::on_chkArgumentSpaces_stateChanged(int arg1)
 {
     bTokenizerConfigUpdated = true;
     settings.disasmArgumentSpaces = arg1 != Qt::Unchecked;
+}
+
+void SettingsDialog::on_chkHidePointerSizes_stateChanged(int arg1)
+{
+    bTokenizerConfigUpdated = true;
+    settings.disasmHidePointerSizes = arg1 != Qt::Unchecked;
+}
+
+void SettingsDialog::on_chkHideNormalSegments_stateChanged(int arg1)
+{
+    bTokenizerConfigUpdated = true;
+    settings.disasmHideNormalSegments = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkMemorySpaces_stateChanged(int arg1)

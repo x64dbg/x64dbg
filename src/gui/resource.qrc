@@ -312,5 +312,6 @@
         <file>images/bug.png</file>
         <file>images/donation_qr.png</file>
         <file>images/breakpoint_memory_read.png</file>
+        <file>images/lib.png</file>
     </qresource>
 </RCC>

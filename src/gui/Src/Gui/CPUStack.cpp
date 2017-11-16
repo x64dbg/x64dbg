@@ -652,6 +652,7 @@ void CPUStack::gotoExpressionSlot()
     mGoto->validRangeStart = base;
     mGoto->validRangeEnd = base + size;
     mGoto->setWindowTitle(tr("Enter expression to follow in Stack..."));
+    mGoto->setInitialExpression(ToPtrString(rvaToVa(getInitialSelection())));
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
