@@ -635,6 +635,7 @@ void MemoryMapView::gotoExpressionSlot()
     if(!mGoto)
         mGoto = new GotoDialog(this);
     mGoto->setWindowTitle(tr("Enter the address to find..."));
+    mGoto->setInitialExpression(ToPtrString(duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16))));
     if(mGoto->exec() == QDialog::Accepted)
     {
         selectAddress(DbgValFromString(mGoto->expressionText.toUtf8().constData()));

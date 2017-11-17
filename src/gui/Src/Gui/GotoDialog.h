@@ -36,6 +36,7 @@ private slots:
     void disableAutoCompleteUpdated();
     void on_buttonOk_clicked();
     void finishedSlot(int result);
+    void textEditedSlot(QString text);
 
 private:
     Ui::GotoDialog* ui;
@@ -43,6 +44,7 @@ private:
     QCompleter* completer;
     bool IsValidMemoryRange(duint addr);
     void setOkEnabled(bool enabled);
+    QString mCompletionText;
 };
 
 #endif // GOTODIALOG_H

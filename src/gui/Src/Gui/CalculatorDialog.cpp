@@ -38,7 +38,7 @@ void CalculatorDialog::validateExpression(QString expression)
 void CalculatorDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
-    mValidateThread->start(ui->txtExpression->text());
+    mValidateThread->start();
 }
 
 void CalculatorDialog::hideEvent(QHideEvent* event)

@@ -13,7 +13,7 @@ class ValidateExpressionThread : public QThread
     Q_OBJECT
 public:
     ValidateExpressionThread(QObject* parent = 0);
-    void start(QString initialValue = QString());
+    void start();
     void stop();
     void emitExpressionChanged(bool validExpression, bool validPointer, dsint value);
     void emitInstructionChanged(dsint sizeDifference, QString error);
