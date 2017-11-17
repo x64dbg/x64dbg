@@ -17,15 +17,16 @@ public:
     void insertWidget(int index, QWidget* widget, const QString & name);
     void collapseLowerTabs();
     void loadFromConfig(const QString & configName);
-    QList<QString> names;
-    QList<QWidget*> m_Windows;
+
 public slots:
     void attachSlot(LabeledSplitterDetachedWindow* widget);
     void contextMenuEvent(QContextMenuEvent* event);
+
 protected slots:
     void detachSlot();
     void collapseSlot();
     void closeSlot();
+
 protected:
     QMenu* mMenu;
     QAction* mExpandCollapseAction;
@@ -38,6 +39,10 @@ protected:
     void setupContextMenu();
 
     friend class LabeledSplitterHandle;
+
+private:
+    QList<QString> mNames;
+    QList<QWidget*> mWindows;
 };
 
 #endif //LABELEDSPLITTER_H

@@ -60,7 +60,7 @@ private:
     CachedFontMetrics* mFontMetrics;
     dsint topVA;
     dsint selectedVA;
-    QFont m_DefaultFont;
+    QFont mDefaultFont;
     int fontWidth, fontHeight;
     int viewableRows;
     int mBulletRadius;

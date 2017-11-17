@@ -10,7 +10,7 @@ SelectFields::SelectFields(QWidget* parent) :
     setModal(true);
 }
 
-QListWidget* SelectFields::GetList(void)
+QListWidget* SelectFields::GetList()
 {
     return ui->listWidget;
 }

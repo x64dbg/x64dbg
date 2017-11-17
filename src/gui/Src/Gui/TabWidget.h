@@ -22,7 +22,7 @@ class MHTabWidget: public QTabWidget, public MultiItemsDataProvider
 
 public:
     MHTabWidget(QWidget* parent = nullptr, bool allowDetach = true, bool allowDelete = false);
-    virtual ~MHTabWidget(void);
+    virtual ~MHTabWidget();
 
     QWidget* widget(int index) const;
     int count() const;
@@ -35,6 +35,7 @@ public:
     void showPreviousView();
     void showNextView();
     void deleteCurrentTab();
+
 signals:
     void tabMovedTabWidget(int from, int to);
 
@@ -46,13 +47,10 @@ public slots:
     void tabMoved(int from, int to);
     void OnDetachFocused(QWidget* parent);
     void currentChanged(int index);
-
-public Q_SLOTS:
     void setCurrentIndex(int index);
 
 protected:
     MHTabBar* tabBar() const;
-
     const QList<MIDPKey> & MIDP_getItems() const override;
     QString MIDP_getItemName(MIDPKey index) override;
     void MIDP_selected(MIDPKey index) override;
@@ -60,13 +58,11 @@ protected:
     void setLatestFocused(QWidget* w);
 
 private:
-    MHTabBar* m_tabBar;
-
-    QList<QWidget*> m_Windows;
+    MHTabBar* mTabBar;
+    QList<QWidget*> mWindows;
     QList<QString> mNativeNames;
-
-    MultiItemsSelectWindow* m_historyPopup;
-    QList<MIDPKey> m_history;
+    MultiItemsSelectWindow* mHistoryPopup;
+    QList<MIDPKey> mHistory;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -82,17 +78,19 @@ class MHDetachedWindow : public QMainWindow
 
 public:
     MHDetachedWindow(QWidget* parent = 0, MHTabWidget* tabwidget = 0);
-    ~MHDetachedWindow(void);
+    ~MHDetachedWindow();
+
     QString mNativeName;
 
-protected:
-    MHTabWidget* m_TabWidget;
-
-    void closeEvent(QCloseEvent* event);
-    bool event(QEvent* event);
 signals:
     void OnClose(QWidget* widget);
     void OnFocused(QWidget* widget);
+
+protected:
+    void closeEvent(QCloseEvent* event);
+    bool event(QEvent* event);
+
+    MHTabWidget* mTabWidget;
 };
 
 #endif // __MHTABWIDGET_H__

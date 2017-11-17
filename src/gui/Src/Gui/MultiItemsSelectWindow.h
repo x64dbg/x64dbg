@@ -1,5 +1,6 @@
 #ifndef OPENVIEWSWINDOW_H
 #define OPENVIEWSWINDOW_H
+
 // stolen from http://code.qt.io/cgit/qt-creator/qt-creator.git/tree/src/plugins/coreplugin/editormanager/openeditorswindow.h
 
 #include <QFrame>
@@ -13,6 +14,7 @@ class QWidget;
 QT_END_NAMESPACE
 
 typedef void* MIDPKey;
+
 class MultiItemsDataProvider
 {
 public:
@@ -61,10 +63,9 @@ private:
         QSize sizeHint() const;
     };
 
-    OpenViewsTreeWidget* m_editorList;
-
-    MultiItemsDataProvider* m_dataProvider = nullptr;
-    bool m_showIcon;
+    OpenViewsTreeWidget* mEditorList;
+    MultiItemsDataProvider* mDataProvider = nullptr;
+    bool mShowIcon;
 };
 
 #endif

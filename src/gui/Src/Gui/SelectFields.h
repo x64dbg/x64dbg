@@ -16,7 +16,7 @@ class SelectFields : public QDialog
 
 public:
     explicit SelectFields(QWidget* parent = 0);
-    QListWidget* GetList(void);
+    QListWidget* GetList();
     ~SelectFields();
 
 private:

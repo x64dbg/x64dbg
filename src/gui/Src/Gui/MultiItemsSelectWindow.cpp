@@ -15,26 +15,26 @@ enum class Role
 
 MultiItemsSelectWindow::MultiItemsSelectWindow(MultiItemsDataProvider* hp, QWidget* parent, bool showIcon) :
     QFrame(parent, Qt::Popup),
-    m_dataProvider(hp),
-    m_showIcon(showIcon),
-    m_editorList(new OpenViewsTreeWidget(this))
+    mDataProvider(hp),
+    mShowIcon(showIcon),
+    mEditorList(new OpenViewsTreeWidget(this))
 {
     setMinimumSize(300, 200);
-    m_editorList->setColumnCount(1);
-    m_editorList->header()->hide();
-    m_editorList->setIndentation(0);
-    m_editorList->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_editorList->setTextElideMode(Qt::ElideMiddle);
-    m_editorList->installEventFilter(this);
+    mEditorList->setColumnCount(1);
+    mEditorList->header()->hide();
+    mEditorList->setIndentation(0);
+    mEditorList->setSelectionMode(QAbstractItemView::SingleSelection);
+    mEditorList->setTextElideMode(Qt::ElideMiddle);
+    mEditorList->installEventFilter(this);
 
-    setFrameStyle(m_editorList->frameStyle());
-    m_editorList->setFrameStyle(QFrame::NoFrame);
+    setFrameStyle(mEditorList->frameStyle());
+    mEditorList->setFrameStyle(QFrame::NoFrame);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setMargin(0);
-    layout->addWidget(m_editorList);
+    layout->addWidget(mEditorList);
 
-    connect(m_editorList, &QTreeWidget::itemClicked,
+    connect(mEditorList, &QTreeWidget::itemClicked,
             this, &MultiItemsSelectWindow::editorClicked);
 
     setVisible(false);
@@ -95,7 +95,7 @@ void MultiItemsSelectWindow::showPopupOrSelectDocument()
 void MultiItemsSelectWindow::selectAndHide()
 {
     setVisible(false);
-    selectEditor(m_editorList->currentItem());
+    selectEditor(mEditorList->currentItem());
 }
 
 void MultiItemsSelectWindow::setVisible(bool visible)
@@ -107,7 +107,7 @@ void MultiItemsSelectWindow::setVisible(bool visible)
 
 bool MultiItemsSelectWindow::eventFilter(QObject* obj, QEvent* e)
 {
-    if(obj == m_editorList)
+    if(obj == mEditorList)
     {
         if(e->type() == QEvent::KeyPress)
         {
@@ -120,7 +120,7 @@ bool MultiItemsSelectWindow::eventFilter(QObject* obj, QEvent* e)
             if(ke->key() == Qt::Key_Return
                     || ke->key() == Qt::Key_Enter)
             {
-                selectEditor(m_editorList->currentItem());
+                selectEditor(mEditorList->currentItem());
                 return true;
             }
         }
@@ -141,15 +141,15 @@ bool MultiItemsSelectWindow::eventFilter(QObject* obj, QEvent* e)
 
 void MultiItemsSelectWindow::focusInEvent(QFocusEvent*)
 {
-    m_editorList->setFocus();
+    mEditorList->setFocus();
 }
 
 void MultiItemsSelectWindow::selectUpDown(bool up)
 {
-    int itemCount = m_editorList->topLevelItemCount();
+    int itemCount = mEditorList->topLevelItemCount();
     if(itemCount < 2)
         return;
-    int index = m_editorList->indexOfTopLevelItem(m_editorList->currentItem());
+    int index = mEditorList->indexOfTopLevelItem(mEditorList->currentItem());
     if(index < 0)
         return;
     QTreeWidgetItem* editor = 0;
@@ -168,12 +168,12 @@ void MultiItemsSelectWindow::selectUpDown(bool up)
             if(index >= itemCount)
                 index = 0;
         }
-        editor = m_editorList->topLevelItem(index);
+        editor = mEditorList->topLevelItem(index);
         count++;
     }
     if(editor)
     {
-        m_editorList->setCurrentItem(editor);
+        mEditorList->setCurrentItem(editor);
         ensureCurrentVisible();
     }
 }
@@ -191,7 +191,7 @@ QSize MultiItemsSelectWindow::OpenViewsTreeWidget::sizeHint() const
 
 QSize MultiItemsSelectWindow::sizeHint() const
 {
-    return m_editorList->sizeHint() + QSize(frameWidth() * 2, frameWidth() * 2);
+    return mEditorList->sizeHint() + QSize(frameWidth() * 2, frameWidth() * 2);
 }
 
 void MultiItemsSelectWindow::selectNextEditor()
@@ -201,8 +201,8 @@ void MultiItemsSelectWindow::selectNextEditor()
 
 void MultiItemsSelectWindow::addItems()
 {
-    m_editorList->clear();
-    auto & history = m_dataProvider->MIDP_getItems();
+    mEditorList->clear();
+    auto & history = mDataProvider->MIDP_getItems();
     for(auto & i : history)
     {
         addItem(i);
@@ -214,7 +214,7 @@ void MultiItemsSelectWindow::selectEditor(QTreeWidgetItem* item)
     if(!item)
         return;
     auto index = item->data(0, int(Role::ItemData)).value<MIDPKey>();
-    m_dataProvider->MIDP_selected(index);
+    mDataProvider->MIDP_selected(index);
 }
 
 void MultiItemsSelectWindow::editorClicked(QTreeWidgetItem* item)
@@ -225,21 +225,21 @@ void MultiItemsSelectWindow::editorClicked(QTreeWidgetItem* item)
 
 void MultiItemsSelectWindow::ensureCurrentVisible()
 {
-    m_editorList->scrollTo(m_editorList->currentIndex(), QAbstractItemView::PositionAtCenter);
+    mEditorList->scrollTo(mEditorList->currentIndex(), QAbstractItemView::PositionAtCenter);
 }
 
 void MultiItemsSelectWindow::addItem(MIDPKey index)
 {
     QTreeWidgetItem* item = new QTreeWidgetItem();
 
-    if(m_showIcon)
-        item->setIcon(0, m_dataProvider->MIDP_getIcon(index));
-    item->setText(0, m_dataProvider->MIDP_getItemName(index));
+    if(mShowIcon)
+        item->setIcon(0, mDataProvider->MIDP_getIcon(index));
+    item->setText(0, mDataProvider->MIDP_getItemName(index));
     item->setData(0, int(Role::ItemData), QVariant::fromValue(index));
     item->setTextAlignment(0, Qt::AlignLeft);
 
-    m_editorList->addTopLevelItem(item);
+    mEditorList->addTopLevelItem(item);
 
-    if(m_editorList->topLevelItemCount() == 1)
-        m_editorList->setCurrentItem(item);
+    if(mEditorList->topLevelItemCount() == 1)
+        mEditorList->setCurrentItem(item);
 }

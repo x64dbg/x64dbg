@@ -12,6 +12,7 @@ class LabeledSplitterHandle : public QSplitterHandle
 public:
     LabeledSplitterHandle(Qt::Orientation o, LabeledSplitter* parent);
     int originalSize;
+
 protected slots:
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
@@ -19,10 +20,12 @@ protected slots:
     void mousePressEvent(QMouseEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
+
 protected:
     int getIndex();
-    int charHeight;
     LabeledSplitter* getParent() const;
+
+    int charHeight;
 };
 
 class LabeledSplitterDetachedWindow : public QMainWindow
@@ -31,16 +34,17 @@ class LabeledSplitterDetachedWindow : public QMainWindow
 
 public:
     LabeledSplitterDetachedWindow(QWidget* parent = 0, LabeledSplitter* splitterwidget = 0);
-    ~LabeledSplitterDetachedWindow(void);
+    ~LabeledSplitterDetachedWindow();
+
     int index;
-
-protected:
-    LabeledSplitter* m_SplitterWidget;
-
-    void closeEvent(QCloseEvent* event);
 
 signals:
     void OnClose(LabeledSplitterDetachedWindow* widget);
+
+protected:
+    void closeEvent(QCloseEvent* event);
+
+    LabeledSplitter* mSplitterWidget;
 };
 
 

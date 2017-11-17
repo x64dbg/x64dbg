@@ -10,32 +10,32 @@
 //////////////////////////////////////////////////////////////
 MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : QTabWidget(parent)
 {
-    m_historyPopup = new MultiItemsSelectWindow(this, parentWidget(), true);
+    mHistoryPopup = new MultiItemsSelectWindow(this, parentWidget(), true);
 
-    m_tabBar = new MHTabBar(this, allowDetach, allowDelete);
-    connect(m_tabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
-    connect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
-    connect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
-    connect(m_tabBar, SIGNAL(tabMoved(int, int)), this, SLOT(tabMoved(int, int)));
-    connect(m_tabBar, SIGNAL(currentChanged(int)), this, SLOT(currentChanged(int)));
+    mTabBar = new MHTabBar(this, allowDetach, allowDelete);
+    connect(mTabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
+    connect(mTabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
+    connect(mTabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
+    connect(mTabBar, SIGNAL(tabMoved(int, int)), this, SLOT(tabMoved(int, int)));
+    connect(mTabBar, SIGNAL(currentChanged(int)), this, SLOT(currentChanged(int)));
 
-    setTabBar(m_tabBar);
+    setTabBar(mTabBar);
     setMovable(true);
     setStyleSheet("QTabWidget::pane { border: 0px; }");
 
-    m_Windows.clear();
+    mWindows.clear();
 }
 
 //////////////////////////////////////////////////////////////
 // Default Destructor
 //////////////////////////////////////////////////////////////
-MHTabWidget::~MHTabWidget(void)
+MHTabWidget::~MHTabWidget()
 {
-    disconnect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
-    disconnect(m_tabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
-    disconnect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
-    disconnect(m_tabBar, SIGNAL(currentChanged(int)), this, SLOT(currentChanged(int)));
-    delete m_tabBar;
+    disconnect(mTabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
+    disconnect(mTabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
+    disconnect(mTabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
+    disconnect(mTabBar, SIGNAL(currentChanged(int)), this, SLOT(currentChanged(int)));
+    delete mTabBar;
 }
 
 QWidget* MHTabWidget::widget(int index) const
@@ -47,24 +47,24 @@ QWidget* MHTabWidget::widget(int index) const
         return QTabWidget::widget(index);
 
     // Otherwise it's going to be a window
-    return m_Windows.at(index - baseCount);
+    return mWindows.at(index - baseCount);
 }
 
 int MHTabWidget::count() const
 {
-    return QTabWidget::count() + m_Windows.size();
+    return QTabWidget::count() + mWindows.size();
 }
 
 QList<QWidget*> MHTabWidget::windows()
 {
-    return m_Windows;
+    return mWindows;
 }
 
 // Add a tab
 int MHTabWidget::addTabEx(QWidget* widget, const QIcon & icon, const QString & label, const QString & nativeName)
 {
     mNativeNames.append(nativeName);
-    m_history.push_back((MIDPKey)widget);
+    mHistory.push_back((MIDPKey)widget);
     return this->addTab(widget, icon, label);
 }
 
@@ -79,11 +79,11 @@ void MHTabWidget::AttachTab(QWidget* parent)
     addTabEx(tearOffWidget, detachedWidget->windowIcon(), detachedWidget->windowTitle(), detachedWidget->mNativeName);
 
     // Remove it from the windows list
-    for(int i = 0; i < m_Windows.size(); i++)
+    for(int i = 0; i < mWindows.size(); i++)
     {
-        if(m_Windows.at(i) == tearOffWidget)
+        if(mWindows.at(i) == tearOffWidget)
         {
-            m_Windows.removeAt(i);
+            mWindows.removeAt(i);
         }
     }
 
@@ -116,7 +116,7 @@ void MHTabWidget::DetachTab(int index, const QPoint & dropPoint)
     tearOffWidget->setParent(detachedWidget);
 
     // Add it to the windows list
-    m_Windows.append(tearOffWidget);
+    mWindows.append(tearOffWidget);
 
     // Make first active
     if(count() > 0)
@@ -153,7 +153,7 @@ void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 void MHTabWidget::DeleteTab(int index)
 {
     QWidget* w = widget(index);
-    m_history.removeAll((MIDPKey)w);
+    mHistory.removeAll((MIDPKey)w);
     removeTab(index);
     mNativeNames.removeAt(index);
 }
@@ -200,12 +200,12 @@ void MHTabWidget::setCurrentIndex(int index)
 
 MHTabBar* MHTabWidget::tabBar() const
 {
-    return m_tabBar;
+    return mTabBar;
 }
 
 const QList<MIDPKey> & MHTabWidget::MIDP_getItems() const
 {
-    return m_history;
+    return mHistory;
 }
 
 QString MHTabWidget::MIDP_getItemName(MIDPKey index)
@@ -243,7 +243,7 @@ QIcon MHTabWidget::MIDP_getIcon(MIDPKey index)
     {
         if(reinterpret_cast<QWidget*>(index) == QTabWidget::widget(i))
         {
-            return m_tabBar->tabIcon(i);
+            return mTabBar->tabIcon(i);
         }
     }
 
@@ -254,8 +254,8 @@ QIcon MHTabWidget::MIDP_getIcon(MIDPKey index)
 
 void MHTabWidget::setLatestFocused(QWidget* w)
 {
-    m_history.removeAll((MIDPKey)w);
-    m_history.push_front((MIDPKey)w);
+    mHistory.removeAll((MIDPKey)w);
+    mHistory.push_front((MIDPKey)w);
 }
 
 QString MHTabWidget::getNativeName(int index)
@@ -266,7 +266,7 @@ QString MHTabWidget::getNativeName(int index)
     }
     else
     {
-        MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(m_Windows.at(index - QTabWidget::count())->parent());
+        MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(mWindows.at(index - QTabWidget::count())->parent());
         if(window)
             return window->mNativeName;
         else
@@ -306,12 +306,12 @@ void MHTabWidget::showNextTab()
 
 void MHTabWidget::showPreviousView()
 {
-    m_historyPopup->gotoPreviousItem();
+    mHistoryPopup->gotoPreviousItem();
 }
 
 void MHTabWidget::showNextView()
 {
-    m_historyPopup->gotoNextItem();
+    mHistoryPopup->gotoNextItem();
 }
 
 void MHTabWidget::deleteCurrentTab()
@@ -334,10 +334,10 @@ void MHTabWidget::deleteCurrentTab()
 
 MHDetachedWindow::MHDetachedWindow(QWidget* parent, MHTabWidget* tabwidget) : QMainWindow(parent)
 {
-    m_TabWidget = tabwidget;
+    mTabWidget = tabwidget;
 }
 
-MHDetachedWindow::~MHDetachedWindow(void)
+MHDetachedWindow::~MHDetachedWindow()
 {
 }
 

@@ -14,7 +14,7 @@ class MHTabBar: public QTabBar
 
 public:
     MHTabBar(QWidget* parent, bool allowDetach, bool allowDelete);
-    ~MHTabBar(void);
+    ~MHTabBar();
 
 protected:
     void contextMenuEvent(QContextMenuEvent* event);
