@@ -395,10 +395,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewSnowman", Shortcut({tr("View"), tr("Snowman")}, "", true));
     defaultShortcuts.insert("ViewHandles", Shortcut({tr("View"), tr("Handles")}, "", true));
     defaultShortcuts.insert("ViewGraph", Shortcut({tr("View"), tr("Graph")}, "Alt+G", true));
-    defaultShortcuts.insert("ViewPreviousTab", Shortcut({tr("View"), tr("Previous Tab")}, "Ctrl+Shift+Tab"));
-    defaultShortcuts.insert("ViewNextTab", Shortcut({tr("View"), tr("Next Tab")}, "Ctrl+Tab"));
-    defaultShortcuts.insert("ViewPreviousHistory", Shortcut({tr("View"), tr("Previous View")}, "Alt+Left"));
-    defaultShortcuts.insert("ViewNextHistory", Shortcut({tr("View"), tr("Next View")}, "Alt+Right"));
+    defaultShortcuts.insert("ViewPreviousTab", Shortcut({tr("View"), tr("Previous Tab")}, "Alt+Left"));
+    defaultShortcuts.insert("ViewNextTab", Shortcut({tr("View"), tr("Next Tab")}, "Alt+Right"));
+    defaultShortcuts.insert("ViewPreviousHistory", Shortcut({tr("View"), tr("Previous View")}, "Ctrl+Shift+Tab"));
+    defaultShortcuts.insert("ViewNextHistory", Shortcut({tr("View"), tr("Next View")}, "Ctrl+Tab"));
     defaultShortcuts.insert("ViewHideTab", Shortcut({tr("View"), tr("Hide Tab")}, "Ctrl+W"));
 
     defaultShortcuts.insert("DebugRun", Shortcut({tr("Debug"), tr("Run")}, "F9", true));
@@ -609,9 +609,21 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     Shortcuts = defaultShortcuts;
 
     load();
+
+    //because we changed the default this needs special handling for old configurations
+    if(Shortcuts["ViewPreviousTab"].Hotkey.toString() == Shortcuts["ViewPreviousHistory"].Hotkey.toString())
+    {
+        Shortcuts["ViewPreviousTab"].Hotkey = defaultShortcuts["ViewPreviousTab"].Hotkey;
+        save();
+    }
+    if(Shortcuts["ViewNextTab"].Hotkey.toString() == Shortcuts["ViewNextHistory"].Hotkey.toString())
+    {
+        Shortcuts["ViewNextTab"].Hotkey = defaultShortcuts["ViewNextTab"].Hotkey;
+        save();
+    }
 }
 
-Configuration* Config()
+Configuration* Configuration::instance()
 {
     return mPtr;
 }
