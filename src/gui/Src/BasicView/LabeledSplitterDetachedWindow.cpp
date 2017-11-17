@@ -5,7 +5,7 @@ LabeledSplitterDetachedWindow::LabeledSplitterDetachedWindow(QWidget* parent, La
     : QMainWindow(parent),
       index(0)
 {
-    m_SplitterWidget = splitterwidget;
+    mSplitterWidget = splitterwidget;
 }
 
 LabeledSplitterDetachedWindow::~LabeledSplitterDetachedWindow()

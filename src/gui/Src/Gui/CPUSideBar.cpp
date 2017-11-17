@@ -67,11 +67,11 @@ void CPUSideBar::updateColors()
 
 void CPUSideBar::updateFonts()
 {
-    m_DefaultFont = mDisas->font();
-    this->setFont(m_DefaultFont);
+    mDefaultFont = mDisas->font();
+    this->setFont(mDefaultFont);
 
     delete mFontMetrics;
-    mFontMetrics = new CachedFontMetrics(this, m_DefaultFont);
+    mFontMetrics = new CachedFontMetrics(this, mDefaultFont);
     fontWidth  = mFontMetrics->width(' ');
     fontHeight = mFontMetrics->height();
 
