@@ -171,7 +171,6 @@ public:
     {
         bool ready;
         duint entry;
-        duint update_id;
         std::vector<Block> blocks;
     };
 
@@ -180,7 +179,6 @@ public:
         duint entry = 0;
         std::unordered_map<duint, Function> functions;
         bool ready = false;
-        duint update_id = 0;
         QString status = "Analyzing...";
 
         bool find_instr(duint addr, duint & func, duint & instr)
@@ -251,7 +249,6 @@ signals:
     void displaySnowmanWidget();
 
 public slots:
-    void updateTimerEvent();
     void loadGraphSlot(BridgeCFGraphList* graph, duint addr);
     void graphAtSlot(duint addr);
     void updateGraphSlot();
@@ -296,7 +293,6 @@ private:
     duint cur_instr;
     int scroll_base_x;
     int scroll_base_y;
-    duint update_id;
     bool scroll_mode;
     bool ready;
     int* desired_pos;
