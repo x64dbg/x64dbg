@@ -35,6 +35,7 @@
 #include "TraceRecord.h"
 #include "recursiveanalysis.h"
 #include "dbghelp_safe.h"
+#include "symcache.h"
 
 static bool bOnlyCipAutoComments = false;
 static bool bNoSourceLineAutoComments = false;
@@ -179,94 +180,103 @@ static char* demanglePE32ExternCFunc(char* SymbolName)
 
 static bool getLabel(duint addr, char* label, bool noFuncOffset)
 {
-    bool retval = false;
-    label[0] = 0;
-    if(LabelGet(addr, label))
-        return true;
-    else //no user labels
-    {
-        DWORD64 displacement = 0;
-        char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
-        PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-        pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-        pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) &&
-                (!displacement || (!noFuncOffset && pSymbol->Flags != SYMFLAG_EXPORT))) //without PDB, SYMFLAG_EXPORT is reported with garbage displacements
-        {
-            pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-            auto name = demanglePE32ExternCFunc(pSymbol->Name);
-            if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(name, label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
-                strcpy_s(label, MAX_LABEL_SIZE, name);
-            retval = !shouldFilterSymbol(label);
-            if(retval && displacement)
-            {
-                char temp[32];
-                sprintf_s(temp, "+%llX", displacement);
-                strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
-            }
-        }
-        if(!retval) //search for CALL <jmp.&user32.MessageBoxA>
-        {
-            BASIC_INSTRUCTION_INFO basicinfo;
-            memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
-            if(disasmfast(addr, &basicinfo, true) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
-            {
-                duint val = 0;
-                if(MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
-                {
-                    if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) &&
-                            (!displacement || (!noFuncOffset && pSymbol->Flags != SYMFLAG_EXPORT))) //without PDB, SYMFLAG_EXPORT is reported with garbage displacements
-                    {
-                        pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                        auto name = demanglePE32ExternCFunc(pSymbol->Name);
-                        if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(name, label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
-                            sprintf_s(label, MAX_LABEL_SIZE, "JMP.&%s", name);
-                        retval = !shouldFilterSymbol(label);
-                        if(retval && displacement)
-                        {
-                            char temp[32];
-                            sprintf_s(temp, "+%llX", displacement);
-                            strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
-                        }
-                    }
-                }
-            }
-        }
-        if(!retval) //search for module entry
-        {
-            if(addr != 0 && ModEntryFromAddr(addr) == addr)
-            {
-                strcpy_s(label, MAX_LABEL_SIZE, "EntryPoint");
-                return true;
-            }
-            duint start;
-            if(FunctionGet(addr, &start, nullptr))
-            {
-                duint rva = addr - start;
-                if(rva == 0)
-                {
+	bool retval = false;
+	label[0] = 0;
+	if (LabelGet(addr, label))
+		return true;
+	else //no user labels
+	{
+		DWORD64 displacement = 0;
+
+//         char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
+//         PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+//         pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+//         pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+// 		if (SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) &&
+// 			(!displacement || (!noFuncOffset && pSymbol->Flags != SYMFLAG_EXPORT))) //without PDB, SYMFLAG_EXPORT is reported with garbage displacements
+
+		SymbolInfo symInfo;
+		if (SymbolFromAddrCached(fdProcessInfo->hProcess, addr, symInfo))
+		{
+			//auto name = demanglePE32ExternCFunc(symInfo.decoratedName.c_str());
+			if (!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(symInfo.decoratedName.c_str(), label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
+			{
+				strcpy_s(label, MAX_LABEL_SIZE, symInfo.decoratedName.c_str());
+			}
+			retval = !shouldFilterSymbol(label);
+			if (retval && displacement)
+			{
+				char temp[32];
+				sprintf_s(temp, "+%llX", displacement);
+				strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
+			}
+		}
+		if (!retval) //search for CALL <jmp.&user32.MessageBoxA>
+		{
+			BASIC_INSTRUCTION_INFO basicinfo;
+			memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
+			if (disasmfast(addr, &basicinfo, true) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
+			{
+				duint val = 0;
+				if (MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
+				{
+// 					if (SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) &&
+// 						(!displacement || (!noFuncOffset && pSymbol->Flags != SYMFLAG_EXPORT))) //without PDB, SYMFLAG_EXPORT is reported with garbage displacements
+					if (SymbolFromAddrCached(fdProcessInfo->hProcess, addr, symInfo))
+					{
+						//pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
+
+						//auto name = demanglePE32ExternCFunc(pSymbol->Name);
+						if (!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(symInfo.undecoratedName.c_str(), label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
+						{
+							sprintf_s(label, MAX_LABEL_SIZE, "JMP.&%s", symInfo.undecoratedName.c_str());
+						}
+						retval = !shouldFilterSymbol(label);
+						if (retval && displacement)
+						{
+							char temp[32];
+							sprintf_s(temp, "+%llX", displacement);
+							strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
+						}
+					}
+				}
+			}
+		}
+		if (!retval) //search for module entry
+		{
+			if (addr != 0 && ModEntryFromAddr(addr) == addr)
+			{
+				strcpy_s(label, MAX_LABEL_SIZE, "EntryPoint");
+				return true;
+			}
+			duint start;
+			if (FunctionGet(addr, &start, nullptr))
+			{
+				duint rva = addr - start;
+				if (rva == 0)
+				{
 #ifdef _WIN64
-                    sprintf_s(label, MAX_LABEL_SIZE, "sub_%llX", start);
+					sprintf_s(label, MAX_LABEL_SIZE, "sub_%llX", start);
 #else //x86
-                    sprintf_s(label, MAX_LABEL_SIZE, "sub_%X", start);
+					sprintf_s(label, MAX_LABEL_SIZE, "sub_%X", start);
 #endif //_WIN64
-                    return true;
-                }
-                if(noFuncOffset)
-                    return false;
-                getLabel(start, label, false);
-                char temp[32];
+					return true;
+				}
+				if (noFuncOffset)
+					return false;
+				getLabel(start, label, false);
+				char temp[32];
 #ifdef _WIN64
-                sprintf_s(temp, "+%llX", rva);
+				sprintf_s(temp, "+%llX", rva);
 #else //x86
-                sprintf_s(temp, "+%X", rva);
+				sprintf_s(temp, "+%X", rva);
 #endif //_WIN64
-                strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
-                return true;
-            }
-        }
-    }
-    return retval;
+				strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
+				return true;
+			}
+		}
+	}
+	return retval;
 }
 
 extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRIDGE_ADDRINFO* addrinfo)

@@ -3,6 +3,9 @@
 
 #include "_global.h"
 
+void InvalidateSymCache();
+//bool SymFromAddrCached(HANDLE hProcess, DWORD64 Address, PDWORD64 Displacement, PSYMBOL_INFO Symbol);
+
 void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData);
 void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData);
 bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List);

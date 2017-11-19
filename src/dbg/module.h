@@ -3,6 +3,7 @@
 
 #include "_global.h"
 #include <functional>
+#include "pdbdiafile.h"
 
 struct MODSECTIONINFO
 {
@@ -42,6 +43,8 @@ struct MODINFO
     std::vector<MODIMPORTINFO> imports;
     std::vector<MODRELOCATIONINFO> relocations;
     std::vector<duint> tlsCallbacks;
+	std::vector<bool> invalidSymbols;
+	PDBDiaFile pdb;
 
     HANDLE fileHandle = nullptr;
     DWORD loadedSize = 0;

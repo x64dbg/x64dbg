@@ -226,6 +226,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     info.loadedSize = 0;
     info.fileMap = nullptr;
     info.fileMapVA = 0;
+	info.invalidSymbols.resize(Size);
 
     // Determine whether the module is located in system
     wchar_t sysdir[MAX_PATH];
@@ -271,6 +272,21 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
         GetModuleInfo(info, (ULONG_PTR)data());
     }
 
+	// Load PDB if available.
+	if (PDBDiaFile::initLibrary())
+	{
+		if (!info.pdb.open(info.path))
+		{
+			std::string msg = StringUtils::sprintf("Unable to load (MSDIA) PDB: %s\n", info.path);
+			GuiAddLogMessage(msg.c_str());
+		}
+		else
+		{
+			std::string msg = StringUtils::sprintf("Loaded (MSDIA) PDB: %s\n", info.path);
+			GuiAddLogMessage(msg.c_str());
+		}
+	}
+
     // Add module to list
     EXCLUSIVE_ACQUIRE(LockModules);
     modinfo.insert(std::make_pair(Range(Base, Base + Size - 1), info));
@@ -287,6 +303,8 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
             LabelSet(addr, name, false);
         });
     }
+
+
 
     SymUpdateModuleList();
     return true;

@@ -8,6 +8,7 @@ struct SymbolInfo
     duint size;
     String decoratedName;
     String undecoratedName;
+	bool valid;
 };
 
 struct LineInfo
@@ -17,6 +18,8 @@ struct LineInfo
     int lineNumber;
     String sourceFile;
 };
+
+bool SymbolFromAddrCached(HANDLE hProcess, duint address, SymbolInfo& symInfo);
 
 bool SymbolFromAddr(duint addr, SymbolInfo & symbol);
 bool SymbolFromName(const char* name, SymbolInfo & symbol);

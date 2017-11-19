@@ -93,6 +93,9 @@
     <Filter Include="Header Files\btparser">
       <UniqueIdentifier>{d20554d2-b3de-4e73-ac55-217da06783ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Third Party\msdia">
+      <UniqueIdentifier>{638ee3a0-ab1a-4bb2-bb14-59461ddf86b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -427,6 +430,12 @@
     </ClCompile>
     <ClCompile Include="formatfunctions.cpp">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="pdbdiafile.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
+    <ClCompile Include="msdia\diacreate.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -936,6 +945,24 @@
     </ClInclude>
     <ClInclude Include="debugger_tracing.h">
       <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
+    <ClInclude Include="sortedlru.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="msdia\cvConst.h">
+      <Filter>Header Files\Third Party\msdia</Filter>
+    </ClInclude>
+    <ClInclude Include="msdia\dia2.h">
+      <Filter>Header Files\Third Party\msdia</Filter>
+    </ClInclude>
+    <ClInclude Include="msdia\diaCreate.h">
+      <Filter>Header Files\Third Party\msdia</Filter>
+    </ClInclude>
+    <ClInclude Include="pdbdiatypes.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="pdbdiafile.h">
+      <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
