@@ -1629,8 +1629,13 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
         else
             return tr("The value of GetLastError(). This value is stored in the TEB.");
     case LastStatus:
-        //TODO: display help message of the specific status instead of this very generic message.
-        return tr("The NTSTATUS in the LastStatusValue field of the TEB.");
+        char dat1[1024];
+        LASTSTATUS* error1;
+        error1 = (LASTSTATUS*)registerValue(&wRegDumpStruct, LastStatus);
+        if(DbgFunctions()->StringFormatInline(QString().sprintf("{ntstatus@%X}", error1->code).toUtf8().constData(), sizeof(dat1), dat1) == 1) //FORMAT_SUCCESS
+            return dat1;
+        else
+            return tr("The NTSTATUS in the LastStatusValue field of the TEB.");
 #ifdef _WIN64
     case GS:
         return tr("The TEB of the current thread can be accessed as an offset of segment register GS (x64).\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");

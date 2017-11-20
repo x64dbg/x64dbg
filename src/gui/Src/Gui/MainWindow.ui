@@ -81,6 +81,8 @@
     <addaction name="separator"/>
     <addaction name="actionPreviousTab"/>
     <addaction name="actionNextTab"/>
+    <addaction name="actionPreviousView"/>
+    <addaction name="actionNextView"/>    
     <addaction name="actionHideTab"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
@@ -1107,6 +1109,24 @@
     <string>Next Tab</string>
    </property>
   </action>
+  <action name="actionPreviousView">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/previous.png</normaloff>:/icons/images/previous.png</iconset>
+   </property>
+   <property name="text">
+    <string>Previous View</string>
+   </property>
+  </action>
+  <action name="actionNextView">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/next.png</normaloff>:/icons/images/next.png</iconset>
+   </property>
+   <property name="text">
+    <string>Next View</string>
+   </property>
+  </action>  
   <action name="actionHideTab">
    <property name="icon">
     <iconset resource="../../resource.qrc">

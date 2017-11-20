@@ -2,7 +2,10 @@
 #include "MiscUtil.h"
 #include "Configuration.h"
 
-SymbolAutoCompleteModel::SymbolAutoCompleteModel(std::function<QString()> getTextProc, QObject* parent) : QAbstractItemModel(parent), mGetTextProc(getTextProc), isValidReg("[\\w_@][\\w\\d_]*")
+SymbolAutoCompleteModel::SymbolAutoCompleteModel(std::function<QString()> getTextProc, QObject* parent)
+    : QAbstractItemModel(parent),
+      mGetTextProc(getTextProc),
+      isValidReg("[\\w_@][\\w\\d_]*")
 {
     lastAutocompleteCount = 0;
     disableAutoCompleteUpdated();

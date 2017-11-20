@@ -130,6 +130,10 @@ void CPUDump::setupContextMenu()
     {
         return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
     });
+    MenuBuilder* wMemoryReadMenu = new MenuBuilder(this, [this](QMenu*)
+    {
+        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
+    });
     MenuBuilder* wMemoryWriteMenu = new MenuBuilder(this, [this](QMenu*)
     {
         return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
@@ -163,11 +167,14 @@ void CPUDump::setupContextMenu()
     wBreakpointMenu->addSeparator();
     wMemoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryAccessSingleshootSlot())));
     wMemoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryAccessRestoreSlot())));
+    wMemoryReadMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryReadSingleshootSlot())));
+    wMemoryReadMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryReadRestoreSlot())));
     wMemoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryWriteSingleshootSlot())));
     wMemoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryWriteRestoreSlot())));
     wMemoryExecuteMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryExecuteSingleshootSlot())));
     wMemoryExecuteMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryExecuteRestoreSlot())));
     wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_access.png"), tr("Memory, Access")), wMemoryAccessMenu);
+    wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_read.png"), tr("Memory, Read")), wMemoryReadMenu);
     wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_write.png"), tr("Memory, Write")), wMemoryWriteMenu);
     wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_execute.png"), tr("Memory, Execute")), wMemoryExecuteMenu);
     wBreakpointMenu->addAction(makeAction(DIcon("breakpoint_remove.png"), tr("Remove &Memory"), SLOT(memoryRemoveSlot())), [this](QMenu*)
@@ -1274,6 +1281,18 @@ void CPUDump::memoryAccessRestoreSlot()
 {
     QString addr_text = ToPtrString(rvaToVa(getSelectionStart()));
     DbgCmdExec(QString("bpm " + addr_text + ", 1, a").toUtf8().constData());
+}
+
+void CPUDump::memoryReadSingleshootSlot()
+{
+    QString addr_text = ToPtrString(rvaToVa(getSelectionStart()));
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, r").toUtf8().constData());
+}
+
+void CPUDump::memoryReadRestoreSlot()
+{
+    QString addr_text = ToPtrString(rvaToVa(getSelectionStart()));
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, r").toUtf8().constData());
 }
 
 void CPUDump::memoryWriteSingleshootSlot()

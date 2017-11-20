@@ -92,6 +92,8 @@ public slots:
     void displayRunTrace();
     void displayPreviousTab();
     void displayNextTab();
+    void displayPreviousView();
+    void displayNextView();
     void hideTab();
     void openSettings();
     void openAppearance();
@@ -265,6 +267,7 @@ private:
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);
     void dropEvent(QDropEvent* pEvent);
+    bool event(QEvent* event);
 
 public:
     static QString windowTitle;

@@ -47,7 +47,7 @@ WordEditDialog::~WordEditDialog()
 void WordEditDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
-    mValidateThread->start(ui->expressionLineEdit->text());
+    mValidateThread->start();
 }
 
 void WordEditDialog::hideEvent(QHideEvent* event)

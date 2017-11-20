@@ -26,6 +26,8 @@ signals:
 public slots:
     void memoryAccessSingleshootSlot();
     void memoryAccessRestoreSlot();
+    void memoryReadSingleshootSlot();
+    void memoryReadRestoreSlot();
     void memoryWriteSingleshootSlot();
     void memoryWriteRestoreSlot();
     void memoryExecuteSingleshootSlot();

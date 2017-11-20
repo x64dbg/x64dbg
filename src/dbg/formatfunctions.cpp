@@ -3,8 +3,54 @@
 #include "value.h"
 #include "memory.h"
 #include "exception.h"
+#include "ntdll/ntdll.h"
 
 std::unordered_map<String, FormatFunctions::Function> FormatFunctions::mFunctions;
+
+static FORMATRESULT formatErrorMsg(HMODULE DLL, const String & errName, DWORD code, char* dest, size_t destCount)
+{
+    const NTSTATUS ErrorStatus = code;
+    PMESSAGE_RESOURCE_ENTRY Entry;
+    NTSTATUS Status = RtlFindMessage(DLL,
+                                     LDR_FORMAT_MESSAGE_FROM_SYSTEM_MESSAGE_TABLE,
+                                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                                     ErrorStatus,
+                                     &Entry);
+    if(!NT_SUCCESS(Status))
+    {
+        if(destCount < errName.size() + 1)
+            return FORMAT_BUFFER_TOO_SMALL;
+        else
+        {
+            memcpy(dest, errName.c_str(), errName.size() + 1);
+            return FORMAT_SUCCESS;
+        }
+    }
+
+    if((Entry->Flags & MESSAGE_RESOURCE_UNICODE) != 0)
+    {
+        String UTF8Description = StringUtils::Utf16ToUtf8((const wchar_t*)Entry->Text);
+        if(UTF8Description.size() + 3 + errName.size() > destCount)
+            return FORMAT_BUFFER_TOO_SMALL;
+        else
+        {
+            sprintf_s(dest, destCount, "%s: %s", errName.c_str(), UTF8Description.c_str());
+            return FORMAT_SUCCESS;
+        }
+    }
+    else
+    {
+        0;//printf("%s\n", (const char*)Entry->Text);
+        String UTF8Description = StringUtils::LocalCpToUtf8((const char*)Entry->Text);
+        if(UTF8Description.size() + 3 + errName.size() > destCount)
+            return FORMAT_BUFFER_TOO_SMALL;
+        else
+        {
+            sprintf_s(dest, destCount, "%s: %s", errName.c_str(), UTF8Description.c_str());
+            return FORMAT_SUCCESS;
+        }
+    }
+}
 
 void FormatFunctions::Init()
 {
@@ -53,28 +99,8 @@ void FormatFunctions::Init()
 #endif //_WIN64
         if(errName.size() == 0)
             errName = StringUtils::sprintf("%08X", DWORD(code));
-        DWORD success = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, DWORD(code), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), helpMessage.data(), DWORD(destCount), NULL);
-        if(success > 0)
-        {
-            String UTF8ErrorMessage = StringUtils::Utf16ToUtf8(helpMessage.data());
-            if(destCount < errName.size() + 3 + UTF8ErrorMessage.size())
-                return FORMAT_BUFFER_TOO_SMALL;
-            else
-            {
-                sprintf_s(dest, destCount, "%s: %s", errName.c_str(), UTF8ErrorMessage.c_str());
-                return FORMAT_SUCCESS;
-            }
-        }
-        else
-        {
-            if(destCount < errName.size() + 1)
-                return FORMAT_BUFFER_TOO_SMALL;
-            else
-            {
-                memcpy(dest, errName.c_str(), errName.size() + 1);
-                return FORMAT_SUCCESS;
-            }
-        }
+
+        return formatErrorMsg(GetModuleHandleW(L"kernel32.dll"), errName, code, dest, destCount);
     });
 
     Register("ntstatus", [](char* dest, size_t destCount, int argc, char* argv[], duint code, void* userdata)
@@ -83,28 +109,8 @@ void FormatFunctions::Init()
         String errName = NtStatusCodeToName((unsigned int)code);
         if(errName.size() == 0)
             errName = StringUtils::sprintf("%08X", DWORD(code));
-        DWORD success = FormatMessageW(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, GetModuleHandleW(L"ntdll.dll"), DWORD(code), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), helpMessage.data(), DWORD(destCount), NULL);
-        if(success > 0)
-        {
-            String UTF8ErrorMessage = StringUtils::Utf16ToUtf8(helpMessage.data());
-            if(destCount < errName.size() + 3 + UTF8ErrorMessage.size())
-                return FORMAT_BUFFER_TOO_SMALL;
-            else
-            {
-                sprintf_s(dest, destCount, "%s: %s", errName.c_str(), UTF8ErrorMessage.c_str());
-                return FORMAT_SUCCESS;
-            }
-        }
-        else
-        {
-            if(destCount < errName.size() + 1)
-                return FORMAT_BUFFER_TOO_SMALL;
-            else
-            {
-                memcpy(dest, errName.c_str(), errName.size() + 1);
-                return FORMAT_SUCCESS;
-            }
-        }
+
+        return formatErrorMsg(GetModuleHandleW(L"ntdll.dll"), errName, code, dest, destCount);
     });
 }
 

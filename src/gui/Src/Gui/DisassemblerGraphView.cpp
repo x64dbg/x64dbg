@@ -33,7 +33,6 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
 
     //Start disassembly view at the entry point of the binary
     this->function = 0;
-    this->update_id = 0;
     this->ready = false;
     this->desired_pos = nullptr;
     this->highlight_token = nullptr;
@@ -45,13 +44,6 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->onlySummary = false;
     this->blocks.clear();
     this->saveGraph = false;
-
-    //Create timer to automatically refresh view when it needs to be updated
-    this->updateTimer = new QTimer();
-    this->updateTimer->setInterval(100);
-    this->updateTimer->setSingleShot(false);
-    connect(this->updateTimer, SIGNAL(timeout()), this, SLOT(updateTimerEvent()));
-    this->updateTimer->start();
 
     this->initFont();
 
@@ -214,35 +206,38 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
                 int y = block.y + (2 * this->charWidth) + (int(block.block.header_text.lines.size()) * this->charHeight);
                 for(Instr & instr : block.block.instrs)
                 {
-                    auto selected = instr.addr == this->cur_instr;
-                    auto traceCount = dbgfunctions->GetTraceRecordHitCount(instr.addr);
-
-                    if(selected && traceCount)
+                    if(y > viewportRect.y() - int(instr.text.lines.size()) * this->charHeight && y < viewportRect.bottom())
                     {
-                        p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
-                                         int(instr.text.lines.size()) * this->charHeight), disassemblyTracedSelectionColor);
-                    }
-                    else if(selected)
-                    {
-                        p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
-                                         int(instr.text.lines.size()) * this->charHeight), disassemblySelectionColor);
-                    }
-                    else if(traceCount)
-                    {
-                        // Color depending on how often a sequence of code is executed
-                        int exponent = 1;
-                        while(traceCount >>= 1) //log2(traceCount)
-                            exponent++;
-                        int colorDiff = (exponent * exponent) / 2;
+                        auto selected = instr.addr == this->cur_instr;
+                        auto traceCount = dbgfunctions->GetTraceRecordHitCount(instr.addr);
 
-                        // If the user has a light trace background color, substract
-                        if(disassemblyTracedColor.blue() > 160)
-                            colorDiff *= -1;
+                        if(selected && traceCount)
+                        {
+                            p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
+                                             int(instr.text.lines.size()) * this->charHeight), disassemblyTracedSelectionColor);
+                        }
+                        else if(selected)
+                        {
+                            p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
+                                             int(instr.text.lines.size()) * this->charHeight), disassemblySelectionColor);
+                        }
+                        else if(traceCount)
+                        {
+                            // Color depending on how often a sequence of code is executed
+                            int exponent = 1;
+                            while(traceCount >>= 1) //log2(traceCount)
+                                exponent++;
+                            int colorDiff = (exponent * exponent) / 2;
 
-                        p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth), int(instr.text.lines.size()) * this->charHeight),
-                                   QColor(disassemblyTracedColor.red(),
-                                          disassemblyTracedColor.green(),
-                                          std::max(0, std::min(256, disassemblyTracedColor.blue() + colorDiff))));
+                            // If the user has a light trace background color, substract
+                            if(disassemblyTracedColor.blue() > 160)
+                                colorDiff *= -1;
+
+                            p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth), int(instr.text.lines.size()) * this->charHeight),
+                                       QColor(disassemblyTracedColor.red(),
+                                              disassemblyTracedColor.green(),
+                                              std::max(0, std::min(256, disassemblyTracedColor.blue() + colorDiff))));
+                        }
                     }
                     y += int(instr.text.lines.size()) * this->charHeight;
                 }
@@ -253,7 +248,10 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
             auto y = block.y + (2 * this->charWidth);
             for(auto & line : block.block.header_text.lines)
             {
-                RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
+                if(y > viewportRect.y() - this->charHeight && y < viewportRect.bottom())
+                {
+                    RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
+                }
                 y += this->charHeight;
             }
 
@@ -261,35 +259,38 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
             {
                 for(auto & line : instr.text.lines)
                 {
-                    int rectSize = qRound(this->charWidth);
-                    if(rectSize % 2)
-                        rectSize++;
-
-                    // Assume charWidth <= charHeight
-                    QRectF bpRect(x - rectSize / 3.0, y + (this->charHeight - rectSize) / 2.0, rectSize, rectSize);
-
-                    bool isbp = DbgGetBpxTypeAt(instr.addr) != bp_none;
-                    bool isbpdisabled = DbgIsBpDisabled(instr.addr);
-                    bool iscip = instr.addr == mCip;
-
-                    if(isbp || isbpdisabled)
+                    if(y > viewportRect.y() - this->charHeight && y < viewportRect.bottom())
                     {
-                        if(iscip)
+                        int rectSize = qRound(this->charWidth);
+                        if(rectSize % 2)
+                            rectSize++;
+
+                        // Assume charWidth <= charHeight
+                        QRectF bpRect(x - rectSize / 3.0, y + (this->charHeight - rectSize) / 2.0, rectSize, rectSize);
+
+                        bool isbp = DbgGetBpxTypeAt(instr.addr) != bp_none;
+                        bool isbpdisabled = DbgIsBpDisabled(instr.addr);
+                        bool iscip = instr.addr == mCip;
+
+                        if(isbp || isbpdisabled)
                         {
-                            // Left half is cip
-                            bpRect.setWidth(bpRect.width() / 2);
+                            if(iscip)
+                            {
+                                // Left half is cip
+                                bpRect.setWidth(bpRect.width() / 2);
+                                p.fillRect(bpRect, mCipColor);
+
+                                // Right half is breakpoint
+                                bpRect.translate(bpRect.width(), 0);
+                            }
+
+                            p.fillRect(bpRect, isbp ? mBreakpointColor : mDisabledBreakpointColor);
+                        }
+                        else if(iscip)
                             p.fillRect(bpRect, mCipColor);
 
-                            // Right half is breakpoint
-                            bpRect.translate(bpRect.width(), 0);
-                        }
-
-                        p.fillRect(bpRect, isbp ? mBreakpointColor : mDisabledBreakpointColor);
+                        RichTextPainter::paintRichText(&p, x + this->charWidth, y, block.width - this->charWidth, this->charHeight, 0, line, mFontMetrics);
                     }
-                    else if(iscip)
-                        p.fillRect(bpRect, mCipColor);
-
-                    RichTextPainter::paintRichText(&p, x + this->charWidth, y, block.width - this->charWidth, this->charHeight, 0, line, mFontMetrics);
                     y += this->charHeight;
                 }
             }
@@ -1386,41 +1387,9 @@ void DisassemblerGraphView::renderFunction(Function & func)
         this->verticalScrollBar()->setValue(0);
     }
 
-    this->analysis.update_id = this->update_id = func.update_id;
     this->ready = true;
     this->viewport()->update(0, 0, areaSize.width(), areaSize.height());
     //puts("Finished");
-}
-
-void DisassemblerGraphView::updateTimerEvent()
-{
-    auto status = this->analysis.status;
-    if(status != this->status)
-    {
-        this->status = status;
-        this->viewport()->update();
-    }
-
-    if(this->function == 0)
-        return;
-
-    if(this->ready)
-    {
-        //Check for updated code
-        if(this->update_id != this->analysis.update_id)
-            this->renderFunction(this->analysis.functions[this->function]);
-        return;
-    }
-
-    //View not up to date, check to see if active function is ready
-    if(this->analysis.functions.count(this->function))
-    {
-        if(this->analysis.functions[this->function].ready)
-        {
-            //Active function now ready, generate graph
-            this->renderFunction(this->analysis.functions[this->function]);
-        }
-    }
 }
 
 void DisassemblerGraphView::show_cur_instr(bool force)
@@ -1527,14 +1496,12 @@ void DisassemblerGraphView::loadCurrentGraph()
 {
     bool showGraphRva = ConfigBool("Gui", "ShowGraphRva");
     Analysis anal;
-    anal.update_id = this->update_id + 1;
     anal.entry = currentGraph.entryPoint;
     anal.ready = true;
     {
         Function func;
         func.entry = currentGraph.entryPoint;
         func.ready = true;
-        func.update_id = anal.update_id;
         {
             for(const auto & nodeIt : currentGraph.nodes)
             {
@@ -1629,6 +1596,7 @@ void DisassemblerGraphView::loadCurrentGraph()
     }
     this->analysis = anal;
     this->function = this->analysis.entry;
+    this->renderFunction(this->analysis.functions[this->function]);
 }
 
 void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint addr)
@@ -1885,6 +1853,7 @@ void DisassemblerGraphView::gotoExpressionSlot()
         return;
     if(!mGoto)
         mGoto = new GotoDialog(this);
+    mGoto->setInitialExpression(ToPtrString(this->cur_instr));
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());

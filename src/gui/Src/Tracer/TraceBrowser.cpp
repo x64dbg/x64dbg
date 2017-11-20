@@ -949,7 +949,7 @@ void TraceBrowser::gotoSlot()
 {
     if(mTraceFile == nullptr || mTraceFile->Progress() < 100)
         return;
-    GotoDialog gotoDlg(this, false, true); // Problem: Cannot use when not debugging
+    GotoDialog gotoDlg(this, false, true); // TODO: Cannot use when not debugging
     if(gotoDlg.exec() == QDialog::Accepted)
     {
         auto val = DbgValFromString(gotoDlg.expressionText.toUtf8().constData());
