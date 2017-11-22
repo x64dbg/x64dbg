@@ -477,7 +477,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
         InterlockedExchange((volatile unsigned long long*)&cacheCsp, csp);
 #else
         InterlockedExchange((volatile unsigned long*)&cacheCsp, csp);
-#endif //_WIN64        
+#endif //_WIN64
         updateCallStackAsync(csp);
         updateSEHChainAsync();
     }
@@ -1345,19 +1345,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     DbLoad(DbLoadSaveType::DebugData);
     bDatabaseLoaded = true;
 
-    SafeSymSetOptions(SYMOPT_IGNORE_CVREC | SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);
-    GuiSymbolLogClear();
-    char szServerSearchPath[MAX_PATH * 2] = "";
-    sprintf_s(szServerSearchPath, "SRV*%s", szSymbolCachePath);
-    SafeSymInitializeW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(szServerSearchPath).c_str(), false); //initialize symbols
-    SafeSymRegisterCallbackW64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
-    SafeSymLoadModuleExW(fdProcessInfo->hProcess, CreateProcessInfo->hFile, StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, (DWORD64)base, 0, 0, 0);
-
-    IMAGEHLP_MODULEW64 modInfo;
-    memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct = sizeof(modInfo);
-    if(SafeSymGetModuleInfoW64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        ModLoad((duint)base, modInfo.ImageSize, StringUtils::Utf16ToUtf8(modInfo.ImageName).c_str());
+	ModLoad((duint)base, 1, DebugFileName);
 
     char modname[256] = "";
     if(ModNameFromAddr((duint)base, modname, true))
@@ -1412,28 +1400,29 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     IMAGEHLP_MODULE64 modInfoUtf8;
     memset(&modInfoUtf8, 0, sizeof(modInfoUtf8));
     modInfoUtf8.SizeOfStruct = sizeof(modInfoUtf8);
-    modInfoUtf8.BaseOfImage = modInfo.BaseOfImage;
-    modInfoUtf8.ImageSize = modInfo.ImageSize;
-    modInfoUtf8.TimeDateStamp = modInfo.TimeDateStamp;
-    modInfoUtf8.CheckSum = modInfo.CheckSum;
-    modInfoUtf8.NumSyms = modInfo.NumSyms;
-    modInfoUtf8.SymType = modInfo.SymType;
-    strncpy_s(modInfoUtf8.ModuleName, StringUtils::Utf16ToUtf8(modInfo.ModuleName).c_str(), _TRUNCATE);
-    strncpy_s(modInfoUtf8.ImageName, StringUtils::Utf16ToUtf8(modInfo.ImageName).c_str(), _TRUNCATE);
-    strncpy_s(modInfoUtf8.LoadedImageName, StringUtils::Utf16ToUtf8(modInfo.LoadedImageName).c_str(), _TRUNCATE);
-    strncpy_s(modInfoUtf8.LoadedPdbName, StringUtils::Utf16ToUtf8(modInfo.LoadedPdbName).c_str(), _TRUNCATE);
-    modInfoUtf8.CVSig = modInfo.CVSig;
-    strncpy_s(modInfoUtf8.CVData, StringUtils::Utf16ToUtf8(modInfo.CVData).c_str(), _TRUNCATE);
-    modInfoUtf8.PdbSig = modInfo.PdbSig;
-    modInfoUtf8.PdbSig70 = modInfo.PdbSig70;
-    modInfoUtf8.PdbAge = modInfo.PdbAge;
-    modInfoUtf8.PdbUnmatched = modInfo.PdbUnmatched;
-    modInfoUtf8.DbgUnmatched = modInfo.DbgUnmatched;
-    modInfoUtf8.LineNumbers = modInfo.LineNumbers;
-    modInfoUtf8.GlobalSymbols = modInfo.GlobalSymbols;
-    modInfoUtf8.TypeInfo = modInfo.TypeInfo;
-    modInfoUtf8.SourceIndexed = modInfo.SourceIndexed;
-    modInfoUtf8.Publics = modInfo.Publics;
+    modInfoUtf8.BaseOfImage = (DWORD64)base;
+    modInfoUtf8.ImageSize = 0;
+    modInfoUtf8.TimeDateStamp = 0;
+	modInfoUtf8.CheckSum = 0;
+    modInfoUtf8.NumSyms = 1;
+    modInfoUtf8.SymType = SymDia;
+	strncpy_s(modInfoUtf8.ModuleName, DebugFileName, _TRUNCATE);
+	strncpy_s(modInfoUtf8.ImageName, DebugFileName, _TRUNCATE);
+    strncpy_s(modInfoUtf8.LoadedImageName, "", _TRUNCATE);
+    strncpy_s(modInfoUtf8.LoadedPdbName, "", _TRUNCATE);
+
+    modInfoUtf8.CVSig = 0;
+    strncpy_s(modInfoUtf8.CVData, "", _TRUNCATE);
+    modInfoUtf8.PdbSig = 0;
+    modInfoUtf8.PdbAge = 0;
+    modInfoUtf8.PdbUnmatched = FALSE;
+	modInfoUtf8.DbgUnmatched = FALSE;
+	modInfoUtf8.LineNumbers = TRUE;
+    modInfoUtf8.GlobalSymbols = 0;
+	modInfoUtf8.TypeInfo = TRUE;
+	modInfoUtf8.SourceIndexed = TRUE;
+	modInfoUtf8.Publics = TRUE;
+
     callbackInfo.modInfo = &modInfoUtf8;
     callbackInfo.DebugFileName = DebugFileName;
     callbackInfo.fdProcessInfo = fdProcessInfo;
@@ -1638,12 +1627,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName) && !GetFileNameFromModuleHandle(fdProcessInfo->hProcess, HMODULE(base), DLLDebugFileName))
         strcpy_s(DLLDebugFileName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
 
-    SafeSymLoadModuleExW(fdProcessInfo->hProcess, LoadDll->hFile, StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, (DWORD64)base, 0, 0, 0);
-    IMAGEHLP_MODULEW64 modInfo;
-    memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct = sizeof(modInfo);
-    if(SafeSymGetModuleInfoW64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        ModLoad((duint)base, modInfo.ImageSize, StringUtils::Utf16ToUtf8(modInfo.ImageName).c_str());
+	ModLoad((duint)base, 1, DLLDebugFileName);
 
     // Update memory map
     MemUpdateMapAsync();
@@ -1711,34 +1695,34 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Loaded: %p %s\n"), base, DLLDebugFileName);
 
+
     //plugin callback
     PLUG_CB_LOADDLL callbackInfo;
     callbackInfo.LoadDll = LoadDll;
     IMAGEHLP_MODULE64 modInfoUtf8;
     memset(&modInfoUtf8, 0, sizeof(modInfoUtf8));
     modInfoUtf8.SizeOfStruct = sizeof(modInfoUtf8);
-    modInfoUtf8.BaseOfImage = modInfo.BaseOfImage;
-    modInfoUtf8.ImageSize = modInfo.ImageSize;
-    modInfoUtf8.TimeDateStamp = modInfo.TimeDateStamp;
-    modInfoUtf8.CheckSum = modInfo.CheckSum;
-    modInfoUtf8.NumSyms = modInfo.NumSyms;
-    modInfoUtf8.SymType = modInfo.SymType;
-    strncpy_s(modInfoUtf8.ModuleName, StringUtils::Utf16ToUtf8(modInfo.ModuleName).c_str(), _TRUNCATE);
-    strncpy_s(modInfoUtf8.ImageName, StringUtils::Utf16ToUtf8(modInfo.ImageName).c_str(), _TRUNCATE);
-    strncpy_s(modInfoUtf8.LoadedImageName, StringUtils::Utf16ToUtf8(modInfo.LoadedImageName).c_str(), _TRUNCATE);
-    strncpy_s(modInfoUtf8.LoadedPdbName, StringUtils::Utf16ToUtf8(modInfo.LoadedPdbName).c_str(), _TRUNCATE);
-    modInfoUtf8.CVSig = modInfo.CVSig;
-    strncpy_s(modInfoUtf8.CVData, StringUtils::Utf16ToUtf8(modInfo.CVData).c_str(), _TRUNCATE);
-    modInfoUtf8.PdbSig = modInfo.PdbSig;
-    modInfoUtf8.PdbSig70 = modInfo.PdbSig70;
-    modInfoUtf8.PdbAge = modInfo.PdbAge;
-    modInfoUtf8.PdbUnmatched = modInfo.PdbUnmatched;
-    modInfoUtf8.DbgUnmatched = modInfo.DbgUnmatched;
-    modInfoUtf8.LineNumbers = modInfo.LineNumbers;
-    modInfoUtf8.GlobalSymbols = modInfo.GlobalSymbols;
-    modInfoUtf8.TypeInfo = modInfo.TypeInfo;
-    modInfoUtf8.SourceIndexed = modInfo.SourceIndexed;
-    modInfoUtf8.Publics = modInfo.Publics;
+    modInfoUtf8.BaseOfImage = (DWORD64)base;
+    modInfoUtf8.ImageSize = 0;
+    modInfoUtf8.TimeDateStamp = 0;
+    modInfoUtf8.CheckSum = 0;
+    modInfoUtf8.NumSyms = 0;
+    modInfoUtf8.SymType = SymDia;
+    strncpy_s(modInfoUtf8.ModuleName, DLLDebugFileName, _TRUNCATE);
+	strncpy_s(modInfoUtf8.ImageName, DLLDebugFileName, _TRUNCATE);
+    strncpy_s(modInfoUtf8.LoadedImageName, "", _TRUNCATE);
+    strncpy_s(modInfoUtf8.LoadedPdbName, "", _TRUNCATE);
+    modInfoUtf8.CVSig = 0;
+    strncpy_s(modInfoUtf8.CVData, "", _TRUNCATE);
+    modInfoUtf8.PdbSig = 0;
+    modInfoUtf8.PdbAge = 0;
+    modInfoUtf8.PdbUnmatched = FALSE;
+	modInfoUtf8.DbgUnmatched = FALSE;
+    modInfoUtf8.LineNumbers = 0;
+	modInfoUtf8.GlobalSymbols = TRUE;
+	modInfoUtf8.TypeInfo = TRUE;
+	modInfoUtf8.SourceIndexed = TRUE;
+	modInfoUtf8.Publics = TRUE;
     callbackInfo.modInfo = &modInfoUtf8;
     callbackInfo.modname = modname;
     plugincbcall(CB_LOADDLL, &callbackInfo);

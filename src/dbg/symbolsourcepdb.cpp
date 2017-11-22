@@ -30,7 +30,7 @@ bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo& symInfo)
 	auto it = _symbols.find(rva);
 	if (it != _symbols.end())
 	{
-		symInfo = it->second;
+		symInfo = (*it).second;
 		return true;
 	}
 
@@ -44,7 +44,7 @@ bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo& symInfo)
 		symInfo.undecoratedName = sym.undecoratedName;
 		symInfo.valid = true;
 
-		_symbols.insert(std::make_pair(rva, symInfo));
+		_symbols.insert(rva, symInfo);
 
 		return true;
 	}
@@ -61,9 +61,9 @@ typename A::iterator findExactOrLower(A& ctr, const B key)
 
 	auto itr = ctr.lower_bound(key);
 
-	if (itr == ctr.begin() && itr->first != key)
+	if (itr == ctr.begin() && (*itr).first != key)
 		return ctr.end();
-	else if (itr == ctr.end() || itr->first != key)
+	else if (itr == ctr.end() || (*itr).first != key)
 		return --itr;
 
 	return itr;
@@ -74,8 +74,8 @@ bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo& symInfo)
 	auto it = findExactOrLower(_symbols, rva);
 	if (it != _symbols.end())
 	{
-		symInfo = it->second;
-		symInfo.disp = rva - symInfo.addr;
+		symInfo = (*it).second;
+		symInfo.disp = (int32_t)(rva - symInfo.addr);
 		return true;
 	}
 

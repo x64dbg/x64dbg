@@ -33,7 +33,7 @@ public:
 		std::fill(_symbolBitmap.begin(), _symbolBitmap.end(), false);
 	}
 
-	void markAdressInvalid(uint32_t rva)
+	void markAdressInvalid(duint rva)
 	{
 		if (_symbolBitmap.empty())
 			return;
@@ -41,7 +41,7 @@ public:
 		_symbolBitmap[rva] = true;
 	}
 
-	bool isAddressInvalid(uint32_t rva) const
+	bool isAddressInvalid(duint rva) const
 	{
 		if (_symbolBitmap.empty())
 			return false;

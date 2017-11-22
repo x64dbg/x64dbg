@@ -57,7 +57,6 @@ private:
 
 	std::string getSymbolNameString(IDiaSymbol *sym);
 	std::string getSymbolUndecoratedNameString(IDiaSymbol *sym);
-	// Container::String toString(BSTR str);
 
 	bool enumerateCompilandScope(IDiaSymbol *compiland, std::function<void(DiaSymbol_t&)>& callback, std::unordered_set<uint32_t>& visited, const bool collectUndecoratedNames);
 	bool processFunctionSymbol(IDiaSymbol *profilerFunction, std::function<void(DiaSymbol_t&)>& callback, std::unordered_set<uint32_t>& visited, const bool collectUndecoratedNames);

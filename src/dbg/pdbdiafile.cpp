@@ -1244,7 +1244,6 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol *symbol, DiaSymbol_t& symbolInfo, 
 
 	if (symbolInfo.virtualAddress == symbolInfo.offset)
 	{
-		// Bogus address, observed this at 32 bit COA.
 		return false;
 	}
 

@@ -222,7 +222,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     // Copy information to struct
     strcpy_s(info.name, file);
     info.base = Base;
-    info.size = Size;
+	info.size = Size;
     info.fileHandle = nullptr;
     info.loadedSize = 0;
     info.fileMap = nullptr;
@@ -254,6 +254,11 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
         if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &info.fileHandle, &info.loadedSize, &info.fileMap, &info.fileMapVA))
         {
             GetModuleInfo(info, info.fileMapVA);
+
+			Size = GetPE32DataFromMappedFile(info.fileMapVA, 0, UE_SIZEOFIMAGE);
+			info.size = Size;
+
+			dprintf("Module Size: %08X\n", info.size);
         }
         else
         {
@@ -281,7 +286,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
 		SymbolSourcePDB::isLibraryAvailable())
 	{
 		SymbolSourcePDB *symSource = new SymbolSourcePDB();
-		if (symSource->loadPDB(info.path, info.base))
+		if (symSource->loadPDB(info.path, Base))
 		{
 			symSource->resizeSymbolBitmap(info.size);
 
@@ -300,7 +305,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
 	{
 	}
 
-	if (info.symbols->isLoaded())
+	if (info.symbols->isLoaded() == false)
 	{
 		std::string msg = StringUtils::sprintf("No symbols loaded for: %s\n", info.path);
 		GuiAddLogMessage(msg.c_str());

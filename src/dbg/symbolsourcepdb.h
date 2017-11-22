@@ -3,12 +3,13 @@
 
 #include "pdbdiafile.h"
 #include "symbolsourcebase.h"
+#include "sortedlru.h"
 
 class SymbolSourcePDB : public SymbolSourceBase
 {
 private:
 	PDBDiaFile _pdb;
-	std::map<duint, SymbolInfo> _symbols;
+	SortedLRU<duint, SymbolInfo> _symbols;
 
 public:
 	static bool isLibraryAvailable()

@@ -46,6 +46,17 @@ public:
 			std::advance(_it, 1);
 			return *this;
 		}
+		iterator operator--()
+		{
+			auto temp = *this;
+			std::prev(_it, 1);
+			return temp;
+		}
+		iterator operator--(int)
+		{
+			std::prev(_it, 1);
+			return *this;
+		}
 		ref_type operator*()
 		{
 			return reinterpret_cast<ref_type>(*_it);
@@ -65,6 +76,11 @@ public:
 	};
 
 public:
+	bool empty() const
+	{
+		return _map.empty();
+	}
+
 	void insert(const _K& key, const _V& val)
 	{
 		// Do we require room?
@@ -97,9 +113,22 @@ public:
 			return end();
 		}
 
-		const EntryElem_t& elem = itr->second;
-
 		return iterator(itr);
+	}
+
+	iterator lower_bound(const _K& key)
+	{
+		auto itr = _map.lower_bound(key);
+		if (itr == _map.end())
+		{
+			return end();
+		}
+		return iterator(itr);
+	}
+
+	iterator begin()
+	{
+		return iterator(_map.begin());
 	}
 
 	iterator end()
