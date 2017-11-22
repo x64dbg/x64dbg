@@ -2,14 +2,7 @@
 
 #include "_global.h"
 
-struct SymbolInfo
-{
-    duint addr;
-    duint size;
-    String decoratedName;
-    String undecoratedName;
-	bool valid;
-};
+#include "symbolsourcebase.h"
 
 struct LineInfo
 {
@@ -19,7 +12,8 @@ struct LineInfo
     String sourceFile;
 };
 
-bool SymbolFromAddrCached(HANDLE hProcess, duint address, SymbolInfo& symInfo);
+bool SymbolFromAddressExact(duint address, SymbolInfo& symInfo);
+bool SymbolFromAddressExactOrLower(duint address, SymbolInfo& symInfo);
 
 bool SymbolFromAddr(duint addr, SymbolInfo & symbol);
 bool SymbolFromName(const char* name, SymbolInfo & symbol);

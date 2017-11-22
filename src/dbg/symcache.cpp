@@ -12,7 +12,7 @@ static std::unordered_map<duint, duint> symbolName;
 
 static SortedLRU<duint, SymbolInfo> symbolCache;
 
-bool SymbolFromAddrCached(HANDLE hProcess, duint address, SymbolInfo& symInfo)
+bool SymbolFromAddressExact(duint address, SymbolInfo& symInfo)
 {
 	if (address == 0)
 		return false;
@@ -20,78 +20,32 @@ bool SymbolFromAddrCached(HANDLE hProcess, duint address, SymbolInfo& symInfo)
 	MODINFO* modInfo = ModInfoFromAddr(address);
 	if (modInfo)
 	{
-		uint64_t rva = address - modInfo->base;
-		if (modInfo->invalidSymbols[rva] == true)
+		if (modInfo->symbols->isLoaded() == false)
 			return false;
 
-		auto it = symbolCache.find(address);
-		if (symbolCache.acquire(it))
-		{
-			symInfo = (*it).second;
-			return symInfo.valid;
-		}
-
-		if (modInfo->pdb.isOpen())
-		{
-			DiaSymbol_t diaSym;
-			diaSym.disp = 0;
-
-			if (modInfo->pdb.findSymbolExactRVA(rva, diaSym) && diaSym.disp == 0)
-			{
-				symInfo.addr = diaSym.virtualAddress;
-				symInfo.decoratedName = diaSym.name;
-				symInfo.undecoratedName = diaSym.name;
-				symInfo.size = diaSym.size;
-				symInfo.valid = true;
-
-				symbolCache.insert(address, symInfo);
-
-				return symInfo.valid;
-			}
-			else
-			{
-				// Flag as invalid.
-				modInfo->invalidSymbols[rva] = true;
-
-				return false;
-			}
-		}
+		duint rva = address - modInfo->base;
+		return modInfo->symbols->findSymbolExact(rva, symInfo);
 	}
 
 	return false;
+}
 
-	// Non-Module?
-	auto it = symbolCache.find(address);
-	if (symbolCache.acquire(it))
+bool SymbolFromAddressExactOrLower(duint address, SymbolInfo& symInfo)
+{
+	if (address == 0)
+		return false;
+
+	MODINFO* modInfo = ModInfoFromAddr(address);
+	if (modInfo)
 	{
-		symInfo = (*it).second;
-		return symInfo.valid;
+		if (modInfo->symbols->isLoaded() == false)
+			return false;
+
+		duint rva = address - modInfo->base;
+		return modInfo->symbols->findSymbolExactOrLower(rva, symInfo);
 	}
 
-	DWORD64 disp = 0;
-
-	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
-	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-
-	// For performance reasons we map invalid symbols as invalid, for now.
-	if (SafeSymFromAddr(hProcess, address, &disp, pSymbol) == TRUE && disp == 0)
-	{
-		symInfo.addr = pSymbol->Address;
-		symInfo.decoratedName = pSymbol->Name;
-		symInfo.undecoratedName = pSymbol->Name;
-		symInfo.size = pSymbol->Size;
-		symInfo.valid = true;
-	}
-	else
-	{
-		symInfo.valid = false;
-	}
-
-	symbolCache.insert(address, symInfo);
-
-	return symInfo.valid;
+	return false;
 }
 
 bool SymbolFromAddr(duint addr, SymbolInfo & symbol)

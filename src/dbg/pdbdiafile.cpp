@@ -49,16 +49,16 @@ bool PDBDiaFile::shutdownLibrary()
 	return true;
 }
 
-bool PDBDiaFile::open(const char *file, DiaValidationData_t *validationData)
+bool PDBDiaFile::open(const char *file, uint64_t loadAddress, DiaValidationData_t *validationData)
 {
 	wchar_t buf[1024];
 
 	mbstowcs_s(nullptr, buf, file, 1024);
 
-	return open(buf, validationData);
+	return open(buf, loadAddress, validationData);
 }
 
-bool PDBDiaFile::open(const wchar_t *file, DiaValidationData_t *validationData)
+bool PDBDiaFile::open(const wchar_t *file, uint64_t loadAddress, DiaValidationData_t *validationData)
 {
 	wchar_t fileExt[MAX_PATH] = { 0 };
 	wchar_t fileDir[MAX_PATH] = { 0 };
@@ -127,6 +127,11 @@ bool PDBDiaFile::open(const wchar_t *file, DiaValidationData_t *validationData)
 	{
 		printf("Unable to create new PDBDia Session - %08X\n", hr);
 		return false;
+	}
+
+	if (loadAddress != 0)
+	{
+		m_session->put_loadAddress(loadAddress);
 	}
 
 	return true;
@@ -801,7 +806,7 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<void(DiaSymbol_t&)> cal
 	return true;
 }
 
-bool PDBDiaFile::findSymbolExactRVA(uint64_t address, DiaSymbol_t& sym, DiaSymbolType symType /*= DiaSymbolType::ANY*/)
+bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t& sym, DiaSymbolType symType /*= DiaSymbolType::ANY*/)
 {
 	if (m_session == nullptr || m_dataSource == nullptr)
 		return false;

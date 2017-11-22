@@ -3,7 +3,8 @@
 
 #include "_global.h"
 #include <functional>
-#include "pdbdiafile.h"
+
+#include "symbolsourcebase.h"
 
 struct MODSECTIONINFO
 {
@@ -44,7 +45,7 @@ struct MODINFO
     std::vector<MODRELOCATIONINFO> relocations;
     std::vector<duint> tlsCallbacks;
 	std::vector<bool> invalidSymbols;
-	PDBDiaFile pdb;
+	SymbolSourceBase *symbols;
 
     HANDLE fileHandle = nullptr;
     DWORD loadedSize = 0;

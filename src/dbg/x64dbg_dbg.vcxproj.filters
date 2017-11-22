@@ -434,6 +434,9 @@
     <ClCompile Include="pdbdiafile.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="symbolsourcepdb.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
     <ClCompile Include="msdia\diacreate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -962,6 +965,12 @@
       <Filter>Header Files\Information</Filter>
     </ClInclude>
     <ClInclude Include="pdbdiafile.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="symbolsourcebase.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="symbolsourcepdb.h">
       <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>

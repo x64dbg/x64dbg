@@ -187,17 +187,18 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
 	else //no user labels
 	{
 		DWORD64 displacement = 0;
-
-//         char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
-//         PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-//         pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-//         pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-// 		if (SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) &&
-// 			(!displacement || (!noFuncOffset && pSymbol->Flags != SYMFLAG_EXPORT))) //without PDB, SYMFLAG_EXPORT is reported with garbage displacements
-
 		SymbolInfo symInfo;
-		if (SymbolFromAddrCached(fdProcessInfo->hProcess, addr, symInfo))
+
+		bool res;
+		if (noFuncOffset)
+			res = SymbolFromAddressExact(addr, symInfo);
+		else
+			res = SymbolFromAddressExactOrLower(addr, symInfo);
+
+		if (res)
 		{
+			displacement = (DWORD64)symInfo.disp;
+
 			//auto name = demanglePE32ExternCFunc(symInfo.decoratedName.c_str());
 			if (!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(symInfo.decoratedName.c_str(), label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
 			{
@@ -220,9 +221,13 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
 				duint val = 0;
 				if (MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
 				{
-// 					if (SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) &&
-// 						(!displacement || (!noFuncOffset && pSymbol->Flags != SYMFLAG_EXPORT))) //without PDB, SYMFLAG_EXPORT is reported with garbage displacements
-					if (SymbolFromAddrCached(fdProcessInfo->hProcess, addr, symInfo))
+					bool res;
+					if (noFuncOffset)
+						res = SymbolFromAddressExact(addr, symInfo);
+					else
+						res = SymbolFromAddressExactOrLower(addr, symInfo);
+
+					if (res)
 					{
 						//pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
 

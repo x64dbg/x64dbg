@@ -31,9 +31,9 @@ public:
 
 	static bool shutdownLibrary();
 
-	bool open(const char *file, DiaValidationData_t *validationData = nullptr);
+	bool open(const char *file, uint64_t loadAddress = 0, DiaValidationData_t *validationData = nullptr);
 
-	bool open(const wchar_t *file, DiaValidationData_t *validationData = nullptr);
+	bool open(const wchar_t *file, uint64_t loadAddress = 0, DiaValidationData_t *validationData = nullptr);
 
 	bool isOpen() const;
 
@@ -47,7 +47,7 @@ public:
 
 	bool enumerateLexicalHierarchy(std::function<void(DiaSymbol_t&)> callback, const bool collectUndecoratedNames);
 
-	bool findSymbolExactRVA(uint64_t address, DiaSymbol_t& sym, DiaSymbolType symType = DiaSymbolType::ANY);
+	bool findSymbolRVA(uint64_t address, DiaSymbol_t& sym, DiaSymbolType symType = DiaSymbolType::ANY);
 
 private:
 	bool testError(HRESULT hr);

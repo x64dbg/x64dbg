@@ -100,6 +100,7 @@
     <ClCompile Include="stringformat.cpp" />
     <ClCompile Include="stringutils.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
+    <ClCompile Include="symbolsourcepdb.cpp" />
     <ClCompile Include="symcache.cpp" />
     <ClCompile Include="tcpconnections.cpp" />
     <ClCompile Include="thread.cpp" />
@@ -234,6 +235,8 @@
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />
     <ClInclude Include="sortedlru.h" />
+    <ClInclude Include="symbolsourcebase.h" />
+    <ClInclude Include="symbolsourcepdb.h" />
     <ClInclude Include="symcache.h" />
     <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />

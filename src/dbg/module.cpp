@@ -3,6 +3,7 @@
 #include "threading.h"
 #include "symbolinfo.h"
 #include "murmurhash.h"
+#include "symbolsourcepdb.h"
 #include "memory.h"
 #include "label.h"
 #include <algorithm>
@@ -272,19 +273,37 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
         GetModuleInfo(info, (ULONG_PTR)data());
     }
 
-	// Load PDB if available.
-	if (PDBDiaFile::initLibrary())
+	// Load Symbols.
+	info.symbols = &EmptySymbolSource; // Set to empty as default one.
+
+	// Try DIA
+	if (info.symbols == &EmptySymbolSource &&
+		SymbolSourcePDB::isLibraryAvailable())
 	{
-		if (!info.pdb.open(info.path))
+		SymbolSourcePDB *symSource = new SymbolSourcePDB();
+		if (symSource->loadPDB(info.path, info.base))
 		{
-			std::string msg = StringUtils::sprintf("Unable to load (MSDIA) PDB: %s\n", info.path);
+			symSource->resizeSymbolBitmap(info.size);
+
+			info.symbols = symSource;
+
+			std::string msg = StringUtils::sprintf("Loaded (MSDIA) PDB: %s\n", info.path);
 			GuiAddLogMessage(msg.c_str());
 		}
 		else
 		{
-			std::string msg = StringUtils::sprintf("Loaded (MSDIA) PDB: %s\n", info.path);
-			GuiAddLogMessage(msg.c_str());
+			delete symSource;
 		}
+	}
+	if (info.symbols == &EmptySymbolSource &&
+		true /* TODO */)
+	{
+	}
+
+	if (info.symbols->isLoaded())
+	{
+		std::string msg = StringUtils::sprintf("No symbols loaded for: %s\n", info.path);
+		GuiAddLogMessage(msg.c_str());
 	}
 
     // Add module to list
@@ -303,8 +322,6 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
             LabelSet(addr, name, false);
         });
     }
-
-
 
     SymUpdateModuleList();
     return true;
