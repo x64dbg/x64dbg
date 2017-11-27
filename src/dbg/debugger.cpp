@@ -1990,7 +1990,6 @@ static void cbAttachDebugger()
         cmddirectexec(StringUtils::sprintf("resumethread %p", tidToResume).c_str());
         tidToResume = 0;
     }
-    varset("$hp", (duint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
 }
 
@@ -2662,7 +2661,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         }
 
         //set script variables
-        varset("$hp", (duint)fdProcessInfo->hProcess, true);
         varset("$pid", fdProcessInfo->dwProcessId, true);
 
         if(!OpenProcessToken(fdProcessInfo->hProcess, TOKEN_ALL_ACCESS, &hProcessToken))
