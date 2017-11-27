@@ -1457,6 +1457,8 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     _dbg_animatestop(); // Stop animating
     //unload main module
     SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
+    //cleanup dbghelp
+    SafeSymCleanup(fdProcessInfo->hProcess);
     //history
     dbgcleartracestate();
     dbgClearRtuBreakpoints();
@@ -2734,10 +2736,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
 
-    //cleanup dbghelp
-    if(fdProcessInfo->hProcess != nullptr)
-        SafeSymCleanup(fdProcessInfo->hProcess);
-
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     {
@@ -2757,6 +2755,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Debugging stopped!"));
+    fdProcessInfo->hProcess = fdProcessInfo->hThread = nullptr;
     varset("$hp", (duint)0, true);
     varset("$pid", (duint)0, true);
     if(hProcessToken)
