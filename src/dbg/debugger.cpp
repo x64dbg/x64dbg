@@ -1315,6 +1315,10 @@ void cbTraceOverIntoTraceRecordStep()
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
+    fdProcessInfo->hProcess = CreateProcessInfo->hProcess;
+    fdProcessInfo->hThread = CreateProcessInfo->hThread;
+    varset("$hp", (duint)fdProcessInfo->hProcess, true);
+
     void* base = CreateProcessInfo->lpBaseOfImage;
 
     char DebugFileName[deflen] = "";
@@ -2720,6 +2724,10 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     }
     else
     {
+        //close the process and thread handles we got back from CreateProcess, to prevent duplicating the ones we will receive in cbCreateProcess
+        CloseHandle(fdProcessInfo->hProcess);
+        CloseHandle(fdProcessInfo->hThread);
+        fdProcessInfo->hProcess = fdProcessInfo->hThread = nullptr;
         DebugLoop();
     }
 
