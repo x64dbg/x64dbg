@@ -56,7 +56,6 @@ static bool bFreezeStack = false;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static HANDLE hEvent = 0;
 static duint tidToResume = 0;
-static HANDLE hProcess = 0;
 static HANDLE hMemMapThread = 0;
 static bool bStopMemMapThread = false;
 static HANDLE hTimeWastedCounterThread = 0;
@@ -1987,7 +1986,6 @@ static void cbAttachDebugger()
         cmddirectexec(StringUtils::sprintf("resumethread %p", tidToResume).c_str());
         tidToResume = 0;
     }
-    hProcess = fdProcessInfo->hProcess;
     varset("$hp", (duint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
 }
@@ -2722,7 +2720,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     }
     else
     {
-        hProcess = fdProcessInfo->hProcess;
         DebugLoop();
     }
 
@@ -2732,7 +2729,8 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     plugincbcall(CB_STOPDEBUG, &stopInfo);
 
     //cleanup dbghelp
-    SafeSymCleanup(hProcess);
+    if(fdProcessInfo->hProcess != nullptr)
+        SafeSymCleanup(fdProcessInfo->hProcess);
 
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
