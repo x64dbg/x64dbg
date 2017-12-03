@@ -29,7 +29,7 @@ static FORMATRESULT formatErrorMsg(HMODULE DLL, const String & errName, DWORD co
 
     if((Entry->Flags & MESSAGE_RESOURCE_UNICODE) != 0)
     {
-        String UTF8Description = StringUtils::Utf16ToUtf8((const wchar_t*)Entry->Text);
+        String UTF8Description = StringUtils::TrimRight(StringUtils::Utf16ToUtf8((const wchar_t*)Entry->Text));
         if(UTF8Description.size() + 3 + errName.size() > destCount)
             return FORMAT_BUFFER_TOO_SMALL;
         else
@@ -40,8 +40,7 @@ static FORMATRESULT formatErrorMsg(HMODULE DLL, const String & errName, DWORD co
     }
     else
     {
-        0;//printf("%s\n", (const char*)Entry->Text);
-        String UTF8Description = StringUtils::LocalCpToUtf8((const char*)Entry->Text);
+        String UTF8Description = StringUtils::TrimRight(StringUtils::LocalCpToUtf8((const char*)Entry->Text));
         if(UTF8Description.size() + 3 + errName.size() > destCount)
             return FORMAT_BUFFER_TOO_SMALL;
         else
