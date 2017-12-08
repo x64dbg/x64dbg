@@ -1,97 +1,194 @@
 #include "symbolsourcepdb.h"
+#include "console.h"
+#include "debugger.h"
+
+class ScopedCriticalSection
+{
+private:
+    CRITICAL_SECTION* _cs;
+public:
+    ScopedCriticalSection(CRITICAL_SECTION* cs) : _cs(cs) { EnterCriticalSection(cs); }
+    ~ScopedCriticalSection() { LeaveCriticalSection(_cs); }
+};
+
+SymbolSourcePDB::SymbolSourcePDB()
+    : _isLoading(false),
+      _requiresShutdown(false)
+{
+    InitializeCriticalSection(&_cs);
+}
 
 SymbolSourcePDB::~SymbolSourcePDB()
 {
-	if (_pdb.isOpen())
-	{
-		_pdb.close();
-	}
+    if(_isLoading)
+    {
+        _requiresShutdown = true;
+        if(_loadThread.joinable())
+            _loadThread.join();
+    }
+
+    if(_pdb.isOpen())
+    {
+        _pdb.close();
+    }
+
+    DeleteCriticalSection(&_cs);
 }
 
-bool SymbolSourcePDB::loadPDB(const std::string& path, duint imageBase)
+bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase)
 {
-	if (!PDBDiaFile::initLibrary())
-	{
-		return false;
-	}
-	return _pdb.open(path.c_str());
+    if(!PDBDiaFile::initLibrary())
+    {
+        return false;
+    }
+
+#if 1
+    bool res = _pdb.open(path.c_str());
+    if(res)
+    {
+        _isLoading = true;
+        _requiresShutdown = false;
+        _loadStart = GetTickCount64();
+        _loadThread = std::thread(&SymbolSourcePDB::loadPDBAsync, this);
+    }
+    return res;
+#else
+    return _pdb.open(path.c_str());
+#endif
 }
 
-bool SymbolSourcePDB::isLoaded() const
+bool SymbolSourcePDB::isOpen() const
 {
-	return _pdb.isOpen();
+    return _pdb.isOpen();
 }
 
-bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo& symInfo)
+bool SymbolSourcePDB::isLoading() const
 {
-	if (SymbolSourceBase::isAddressInvalid(rva))
-		return false;
+    return _isLoading;
+}
 
-	auto it = _symbols.find(rva);
-	if (it != _symbols.end())
-	{
-		symInfo = (*it).second;
-		return true;
-	}
+void SymbolSourcePDB::loadPDBAsync()
+{
+    _pdb.enumerateLexicalHierarchy([&](DiaSymbol_t & sym)->void
+    {
+        // FIXME: This won't do us any good atm.
+        if(_requiresShutdown)
+            return;
 
-	DiaSymbol_t sym;
-	if (_pdb.findSymbolRVA(rva, sym) && sym.disp == 0)
-	{
-		symInfo.addr = rva;
-		symInfo.disp = 0;
-		symInfo.size = sym.size;
-		symInfo.decoratedName = sym.undecoratedName;
-		symInfo.undecoratedName = sym.undecoratedName;
-		symInfo.valid = true;
+        if(sym.type == DiaSymbolType::FUNCTION ||
+        sym.type == DiaSymbolType::LABEL ||
+        sym.type == DiaSymbolType::DATA)
+        {
+            SymbolInfo symInfo;
+            symInfo.decoratedName = sym.name;
+            symInfo.undecoratedName = sym.undecoratedName;
+            symInfo.size = sym.size;
+            symInfo.disp = sym.disp;
+            symInfo.addr = sym.virtualAddress;
 
-		_symbols.insert(rva, symInfo);
+            EnterCriticalSection(&_cs);
+            _sym.insert(std::make_pair(symInfo.addr, symInfo));
 
-		return true;
-	}
+            if(_sym.size() % 1000 == 0)
+            {
+                GuiUpdateAllViews();
+            }
+            LeaveCriticalSection(&_cs);
+        }
 
-	markAdressInvalid(rva);
-	return false;
+    }, true);
+
+    DWORD64 ms = GetTickCount64() - _loadStart;
+    double secs = (double)ms / 1000.0;
+
+    dprintf("Loaded %d symbols in %.03f\n", _sym.size(), secs);
+
+    GuiUpdateAllViews();
+
+    _isLoading = false;
+}
+
+bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo & symInfo)
+{
+    ScopedCriticalSection lock(&_cs);
+
+    if(SymbolSourceBase::isAddressInvalid(rva))
+        return false;
+
+    auto it = _sym.find(rva);
+    if(it != _sym.end())
+    {
+        symInfo = (*it).second;
+        return true;
+    }
+    /*
+    DiaSymbol_t sym;
+
+    if (_pdb.findSymbolRVA(rva, sym) && sym.disp == 0)
+    {
+        symInfo.addr = rva;
+        symInfo.disp = 0;
+        symInfo.size = sym.size;
+        symInfo.decoratedName = sym.undecoratedName;
+        symInfo.undecoratedName = sym.undecoratedName;
+        symInfo.valid = true;
+
+        _symbols.insert(rva, symInfo);
+
+        return true;
+    }
+    */
+#if 1
+    if(_isLoading == false)
+        markAdressInvalid(rva);
+#endif
+
+    return false;
 }
 
 template <typename A, typename B>
-typename A::iterator findExactOrLower(A& ctr, const B key)
+typename A::iterator findExactOrLower(A & ctr, const B key)
 {
-	if (ctr.empty())
-		return ctr.end();
+    if(ctr.empty())
+        return ctr.end();
 
-	auto itr = ctr.lower_bound(key);
+    auto itr = ctr.lower_bound(key);
 
-	if (itr == ctr.begin() && (*itr).first != key)
-		return ctr.end();
-	else if (itr == ctr.end() || (*itr).first != key)
-		return --itr;
+    if(itr == ctr.begin() && (*itr).first != key)
+        return ctr.end();
+    else if(itr == ctr.end() || (*itr).first != key)
+        return --itr;
 
-	return itr;
+    return itr;
 }
 
-bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo& symInfo)
+bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
 {
-	auto it = findExactOrLower(_symbols, rva);
-	if (it != _symbols.end())
-	{
-		symInfo = (*it).second;
-		symInfo.disp = (int32_t)(rva - symInfo.addr);
-		return true;
-	}
+    ScopedCriticalSection lock(&_cs);
 
-	DiaSymbol_t sym;
-	if (_pdb.findSymbolRVA(rva, sym))
-	{
-		symInfo.addr = rva;
-		symInfo.disp = sym.disp;
-		symInfo.size = sym.size;
-		symInfo.decoratedName = sym.undecoratedName;
-		symInfo.undecoratedName = sym.undecoratedName;
-		symInfo.valid = true;
+    auto it = findExactOrLower(_sym, rva);
+    if(it != _sym.end())
+    {
+        symInfo = (*it).second;
+        symInfo.disp = (int32_t)(rva - symInfo.addr);
+        return true;
+    }
 
-		return true;
-	}
+    /*
+    DiaSymbol_t sym;
+    if (_pdb.findSymbolRVA(rva, sym))
+    {
+        symInfo.addr = rva;
+        symInfo.disp = sym.disp;
+        symInfo.size = sym.size;
+        symInfo.decoratedName = sym.undecoratedName;
+        symInfo.undecoratedName = sym.undecoratedName;
+        symInfo.valid = true;
 
-	return nullptr;
+        return true;
+    }
+    */
+
+    return nullptr;
 }
 

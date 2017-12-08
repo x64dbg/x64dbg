@@ -12,40 +12,40 @@ static std::unordered_map<duint, duint> symbolName;
 
 static SortedLRU<duint, SymbolInfo> symbolCache;
 
-bool SymbolFromAddressExact(duint address, SymbolInfo& symInfo)
+bool SymbolFromAddressExact(duint address, SymbolInfo & symInfo)
 {
-	if (address == 0)
-		return false;
+    if(address == 0)
+        return false;
 
-	MODINFO* modInfo = ModInfoFromAddr(address);
-	if (modInfo)
-	{
-		if (modInfo->symbols->isLoaded() == false)
-			return false;
+    MODINFO* modInfo = ModInfoFromAddr(address);
+    if(modInfo)
+    {
+        if(modInfo->symbols->isOpen() == false)
+            return false;
 
-		duint rva = address - modInfo->base;
-		return modInfo->symbols->findSymbolExact(rva, symInfo);
-	}
+        duint rva = address - modInfo->base;
+        return modInfo->symbols->findSymbolExact(rva, symInfo);
+    }
 
-	return false;
+    return false;
 }
 
-bool SymbolFromAddressExactOrLower(duint address, SymbolInfo& symInfo)
+bool SymbolFromAddressExactOrLower(duint address, SymbolInfo & symInfo)
 {
-	if (address == 0)
-		return false;
+    if(address == 0)
+        return false;
 
-	MODINFO* modInfo = ModInfoFromAddr(address);
-	if (modInfo)
-	{
-		if (modInfo->symbols->isLoaded() == false)
-			return false;
+    MODINFO* modInfo = ModInfoFromAddr(address);
+    if(modInfo)
+    {
+        if(modInfo->symbols->isOpen() == false)
+            return false;
 
-		duint rva = address - modInfo->base;
-		return modInfo->symbols->findSymbolExactOrLower(rva, symInfo);
-	}
+        duint rva = address - modInfo->base;
+        return modInfo->symbols->findSymbolExactOrLower(rva, symInfo);
+    }
 
-	return false;
+    return false;
 }
 
 bool SymbolFromAddr(duint addr, SymbolInfo & symbol)

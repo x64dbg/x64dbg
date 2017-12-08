@@ -222,12 +222,12 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     // Copy information to struct
     strcpy_s(info.name, file);
     info.base = Base;
-	info.size = Size;
+    info.size = Size;
     info.fileHandle = nullptr;
     info.loadedSize = 0;
     info.fileMap = nullptr;
     info.fileMapVA = 0;
-	info.invalidSymbols.resize(Size);
+    info.invalidSymbols.resize(Size);
 
     // Determine whether the module is located in system
     wchar_t sysdir[MAX_PATH];
@@ -255,10 +255,10 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
         {
             GetModuleInfo(info, info.fileMapVA);
 
-			Size = GetPE32DataFromMappedFile(info.fileMapVA, 0, UE_SIZEOFIMAGE);
-			info.size = Size;
+            Size = GetPE32DataFromMappedFile(info.fileMapVA, 0, UE_SIZEOFIMAGE);
+            info.size = Size;
 
-			dprintf("Module Size: %08X\n", info.size);
+            dprintf("Module Size: %08X\n", info.size);
         }
         else
         {
@@ -278,38 +278,43 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
         GetModuleInfo(info, (ULONG_PTR)data());
     }
 
-	// Load Symbols.
-	info.symbols = &EmptySymbolSource; // Set to empty as default one.
+    // Load Symbols.
+    info.symbols = &EmptySymbolSource; // Set to empty as default one.
 
-	// Try DIA
-	if (info.symbols == &EmptySymbolSource &&
-		SymbolSourcePDB::isLibraryAvailable())
-	{
-		SymbolSourcePDB *symSource = new SymbolSourcePDB();
-		if (symSource->loadPDB(info.path, Base))
-		{
-			symSource->resizeSymbolBitmap(info.size);
+    // Try DIA
+    if(info.symbols == &EmptySymbolSource &&
+            SymbolSourcePDB::isLibraryAvailable())
+    {
+        SymbolSourcePDB* symSource = new SymbolSourcePDB();
+        if(symSource->loadPDB(info.path, Base))
+        {
+            symSource->resizeSymbolBitmap(info.size);
 
-			info.symbols = symSource;
+            info.symbols = symSource;
 
-			std::string msg = StringUtils::sprintf("Loaded (MSDIA) PDB: %s\n", info.path);
-			GuiAddLogMessage(msg.c_str());
-		}
-		else
-		{
-			delete symSource;
-		}
-	}
-	if (info.symbols == &EmptySymbolSource &&
-		true /* TODO */)
-	{
-	}
+            std::string msg;
+            if(symSource->isLoading())
+                msg = StringUtils::sprintf("Loading async (MSDIA) PDB: %s\n", info.path);
+            else
+                msg = StringUtils::sprintf("Loaded (MSDIA) PDB: %s\n", info.path);
 
-	if (info.symbols->isLoaded() == false)
-	{
-		std::string msg = StringUtils::sprintf("No symbols loaded for: %s\n", info.path);
-		GuiAddLogMessage(msg.c_str());
-	}
+            GuiAddLogMessage(msg.c_str());
+        }
+        else
+        {
+            delete symSource;
+        }
+    }
+    if(info.symbols == &EmptySymbolSource &&
+            true /* TODO */)
+    {
+    }
+
+    if(info.symbols->isOpen() == false)
+    {
+        std::string msg = StringUtils::sprintf("No symbols loaded for: %s\n", info.path);
+        GuiAddLogMessage(msg.c_str());
+    }
 
     // Add module to list
     EXCLUSIVE_ACQUIRE(LockModules);
