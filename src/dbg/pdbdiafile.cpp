@@ -1199,7 +1199,6 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
 {
     HRESULT hr;
     DWORD symTagType;
-    BOOL tempBool;
 
     // Default all values.
     symbolInfo.reachable = DiaReachableType::UNKNOWN;
@@ -1258,49 +1257,20 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
     switch(symTagType)
     {
     case SymTagPublicSymbol:
-        symbolInfo.type = DiaSymbolType::DATA;
-        symbolInfo.publicSymbol = true;
-    case SymTagFunction:
-    {
-        if(symTagType == SymTagFunction)
-            symbolInfo.type = DiaSymbolType::FUNCTION;
-
-        hr = symbol->get_function(&tempBool);
-        if(hr == S_OK && tempBool == TRUE)
-            symbolInfo.type = DiaSymbolType::FUNCTION;
-
-        hr = symbol->get_code(&tempBool);
-        if(hr == S_OK && tempBool == TRUE && symbolInfo.type != DiaSymbolType::FUNCTION)
-            symbolInfo.type = DiaSymbolType::CODE;
-
-        hr = symbol->get_noReturn(&tempBool);
-        if(hr == S_OK && tempBool == TRUE)
-            symbolInfo.returnable = DiaReturnableType::NOTRETURNABLE;
-        else if(hr == S_OK && tempBool == FALSE)
-            symbolInfo.returnable = DiaReturnableType::RETURNABLE;
-
-        hr = symbol->get_notReached(&tempBool);
-        if(hr == S_OK && tempBool == TRUE)
-            symbolInfo.reachable = DiaReachableType::NOTREACHABLE;
-        else if(hr == S_OK && tempBool == FALSE)
-            symbolInfo.reachable = DiaReachableType::REACHABLE;
-    }
-    break;
-    case SymTagData:
-    {
-        symbolInfo.type = DiaSymbolType::DATA;
-    }
-    break;
-    case SymTagLabel:
-    {
         symbolInfo.type = DiaSymbolType::LABEL;
-    }
-    break;
+        break;
+    case SymTagFunction:
+        symbolInfo.type = DiaSymbolType::FUNCTION;
+        break;
+    case SymTagData:
+        symbolInfo.type = DiaSymbolType::DATA;
+        break;
+    case SymTagLabel:
+        symbolInfo.type = DiaSymbolType::LABEL;
+        break;
     case SymTagBlock:
-    {
         symbolInfo.type = DiaSymbolType::BLOCK;
-    }
-    break;
+        break;
     }
 
     return true;
