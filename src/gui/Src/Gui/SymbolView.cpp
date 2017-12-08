@@ -100,6 +100,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int, SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int, SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(symbolRefreshCurrent()), this, SLOT(symbolRefreshCurrent()));
+    connect(Bridge::getBridge(), SIGNAL(symbolSelectModule(duint)), this, SLOT(symbolSelectModule(duint)));
     connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(symbolContextMenu(QMenu*)));
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(enterPressedSlot()));
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
@@ -361,6 +362,7 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         mModuleBaseList.insert(modName, modules[i].base);
         int party = DbgFunctions()->ModGetParty(modules[i].base);
         mModuleList->mList->setCellContent(i, 0, ToPtrString(modules[i].base));
+        mModuleList->mList->setCellUserdata(i, 0, modules[i].base);
         mModuleList->mList->setCellContent(i, 1, modName);
         switch(party)
         {
@@ -427,6 +429,20 @@ void SymbolView::symbolFollowImport()
     {
         DbgCmdExecDirect(QString("dump %1").arg(ToPtrString(addr)).toUtf8().constData());
         emit Bridge::getBridge()->getDumpAttention();
+    }
+}
+
+void SymbolView::symbolSelectModule(duint base)
+{
+    for(dsint i = 0; i < mModuleList->mList->getRowCount(); i++)
+    {
+        if(mModuleList->mList->getCellUserdata(i, 0) == base)
+        {
+            mModuleList->mList->setSingleSelection(i);
+            mModuleList->mSearchList->hide(); //This could be described as a hack, but you could also say it's like wiping sandpaper over your new white Tesla.
+            mModuleList->mSearchBox->clear();
+            break;
+        }
     }
 }
 

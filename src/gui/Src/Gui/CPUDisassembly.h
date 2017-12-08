@@ -35,6 +35,7 @@ signals:
     void displaySnowmanWidget();
     void displayLogWidget();
     void displayGraphWidget();
+    void displaySymbolsWidget();
 
 public slots:
     void setNewOriginHereActionSlot();
@@ -64,6 +65,7 @@ public slots:
     void findCallsSlot();
     void findPatternSlot();
     void findGUIDSlot();
+    void findNamesSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
     void selectionSetSlot(const SELECTIONDATA* selection);
     void selectionUpdatedSlot();
@@ -142,6 +144,7 @@ private:
     QAction* mFindCallsModule;
     QAction* mFindPatternModule;
     QAction* mFindGUIDModule;
+    QAction* mFindNamesModule;
 
     QAction* mFindCommandFunction;
     QAction* mFindConstantFunction;

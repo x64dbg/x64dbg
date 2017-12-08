@@ -33,6 +33,7 @@ private slots:
     void symbolFollow();
     void symbolFollowDump();
     void symbolFollowImport();
+    void symbolSelectModule(duint base);
     void enterPressedSlot();
     void symbolContextMenu(QMenu* wMenu);
     void symbolRefreshCurrent();

@@ -156,6 +156,7 @@ signals:
     void getDumpAttention();
     void openTraceFile(const QString & fileName);
     void updateTraceBrowser();
+    void symbolSelectModule(duint base);
 
 private:
     CRITICAL_SECTION csBridge;

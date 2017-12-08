@@ -594,12 +594,14 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindCallsModule = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternModule = makeShortcutAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPatternInModule");
     mFindGUIDModule = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
+    mFindNamesModule = makeShortcutAction(DIcon("names.png"), tr("&Names"), SLOT(findNamesSlot()), "ActionFindNamesInModule");
     mSearchModuleMenu->addAction(mFindCommandModule);
     mSearchModuleMenu->addAction(mFindConstantModule);
     mSearchModuleMenu->addAction(mFindStringsModule);
     mSearchModuleMenu->addAction(mFindCallsModule);
     mSearchModuleMenu->addAction(mFindPatternModule);
     mSearchModuleMenu->addAction(mFindGUIDModule);
+    mSearchModuleMenu->addAction(mFindNamesModule);
 
     // Search in Current Function menu
     mFindCommandFunction = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
@@ -1258,6 +1260,18 @@ void CPUDisassembly::findGUIDSlot()
             DbgCmdExec(QString("findguid %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)).toUtf8().constData());
     }
     emit displayReferencesWidget();
+}
+
+void CPUDisassembly::findNamesSlot()
+{
+    if(sender() == mFindNamesModule)
+    {
+        auto base = DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection()));
+        if(!base)
+            return;
+        Bridge::getBridge()->symbolSelectModule(base);
+        emit displaySymbolsWidget();
+    }
 }
 
 void CPUDisassembly::selectionGetSlot(SELECTIONDATA* selection)
