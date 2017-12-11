@@ -116,7 +116,7 @@ bool cbInstrGraph(int argc, char* argv[])
         auto modbase = ModBaseFromAddr(base);
         if(modbase)
             base = modbase, size = ModSizeFromAddr(modbase);
-        RecursiveAnalysis analysis(base, size, entry, 0, true);
+        RecursiveAnalysis analysis(base, size, entry, true);
         analysis.Analyse();
         auto graph = analysis.GetFunctionGraph(entry);
         if(!graph)

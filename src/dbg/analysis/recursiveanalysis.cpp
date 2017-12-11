@@ -6,10 +6,9 @@
 #include "xrefs.h"
 #include "plugin_loader.h"
 
-RecursiveAnalysis::RecursiveAnalysis(duint base, duint size, duint entryPoint, duint maxDepth, bool usePlugins, bool dump)
+RecursiveAnalysis::RecursiveAnalysis(duint base, duint size, duint entryPoint, bool usePlugins, bool dump)
     : Analysis(base, size),
       mEntryPoint(entryPoint),
-      mMaxDepth(maxDepth),
       mUsePlugins(usePlugins),
       mDump(dump)
 {
