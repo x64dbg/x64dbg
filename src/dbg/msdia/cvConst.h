@@ -12,7 +12,8 @@
 //      Enumeration for function call type
 
 
-typedef enum CV_call_e {
+typedef enum CV_call_e
+{
     CV_CALL_NEAR_C      = 0x00, // near right to left push, caller pops stack
     CV_CALL_FAR_C       = 0x01, // far right to left push, caller pops stack
     CV_CALL_NEAR_PASCAL = 0x02, // near left to right push, callee pops stack
@@ -40,36 +41,39 @@ typedef enum CV_call_e {
     CV_CALL_NEAR_VECTOR = 0x18, // near left to right push with regs, callee pops stack
     CV_CALL_RESERVED    = 0x19  // first unused call enumeration
 
-    // Do NOT add any more machine specific conventions.  This is to be used for
-    // calling conventions in the source only (e.g. __cdecl, __stdcall).
+                          // Do NOT add any more machine specific conventions.  This is to be used for
+                          // calling conventions in the source only (e.g. __cdecl, __stdcall).
 } CV_call_e;
 
 
 //      Values for the access protection of class attributes
 
 
-typedef enum CV_access_e {
+typedef enum CV_access_e
+{
     CV_private   = 1,
     CV_protected = 2,
     CV_public    = 3
 } CV_access_e;
 
-typedef enum THUNK_ORDINAL {
+typedef enum THUNK_ORDINAL
+{
     THUNK_ORDINAL_NOTYPE,       // standard thunk
     THUNK_ORDINAL_ADJUSTOR,     // "this" adjustor thunk
     THUNK_ORDINAL_VCALL,        // virtual call thunk
     THUNK_ORDINAL_PCODE,        // pcode thunk
     THUNK_ORDINAL_LOAD,         // thunk which loads the address to jump to
-                                //  via unknown means...
+    //  via unknown means...
 
- // trampoline thunk ordinals   - only for use in Trampoline thunk symbols
+    // trampoline thunk ordinals   - only for use in Trampoline thunk symbols
     THUNK_ORDINAL_TRAMP_INCREMENTAL,
     THUNK_ORDINAL_TRAMP_BRANCHISLAND,
 
 } THUNK_ORDINAL;
 
 
-enum CV_SourceChksum_t {
+enum CV_SourceChksum_t
+{
     CHKSUM_TYPE_NONE = 0,        // indicates no checksum is available
     CHKSUM_TYPE_MD5,
     CHKSUM_TYPE_SHA1
@@ -186,7 +190,8 @@ enum BasicType
 
 //      enumeration for type modifier values
 
-typedef enum CV_modifier_e {
+typedef enum CV_modifier_e
+{
     // 0x0000 - 0x01ff - Reserved.
 
     CV_MOD_INVALID                      = 0x0000,
@@ -196,7 +201,7 @@ typedef enum CV_modifier_e {
     CV_MOD_CONST                        = 0x0001,
     CV_MOD_VOLATILE                     = 0x0002,
     CV_MOD_UNALIGNED                    = 0x0003,
-    
+
     // 0x0200 - 0x03ff - HLSL modifiers.
 
     CV_MOD_HLSL_UNIFORM                 = 0x0200,
@@ -216,18 +221,19 @@ typedef enum CV_modifier_e {
     CV_MOD_HLSL_UAV_GLOBALLY_COHERENT   = 0x020e,
 
     // 0x0400 - 0xffff - Unused.
-    
+
 } CV_modifier_e;
 
 
 //      built-in type kinds
 
 
-typedef enum CV_builtin_e {
+typedef enum CV_builtin_e
+{
 
     // 0x0000 - 0x01ff - Reserved.
     CV_BI_INVALID                       = 0x0000,
-    
+
     // 0x0200 - 0x03ff - HLSL types.
 
     CV_BI_HLSL_INTERFACE_POINTER        = 0x0200,
@@ -259,7 +265,7 @@ typedef enum CV_builtin_e {
     CV_BI_HLSL_STRUCTURED_BUFFER        = 0x021a,
     CV_BI_HLSL_RWSTRUCTURED_BUFFER      = 0x021b,
     CV_BI_HLSL_APPEND_STRUCTURED_BUFFER = 0x021c,
-    CV_BI_HLSL_CONSUME_STRUCTURED_BUFFER= 0x021d,
+    CV_BI_HLSL_CONSUME_STRUCTURED_BUFFER = 0x021d,
     CV_BI_HLSL_MIN8FLOAT                = 0x021e,
     CV_BI_HLSL_MIN10FLOAT               = 0x021f,
     CV_BI_HLSL_MIN16FLOAT               = 0x0220,
@@ -268,14 +274,15 @@ typedef enum CV_builtin_e {
     CV_BI_HLSL_MIN16UINT                = 0x0223,
 
     // 0x0400 - 0xffff - Unused.
-    
+
 } CV_builtin_e;
 
 
 //  enum describing the compile flag source language
 
 
-typedef enum CV_CFL_LANG {
+typedef enum CV_CFL_LANG
+{
     CV_CFL_C        = 0x00,
     CV_CFL_CXX      = 0x01,
     CV_CFL_FORTRAN  = 0x02,
@@ -299,7 +306,8 @@ typedef enum CV_CFL_LANG {
 //  enum describing target processor
 
 
-typedef enum CV_CPU_TYPE_e {
+typedef enum CV_CPU_TYPE_e
+{
     CV_CFL_8080         = 0x00,
     CV_CFL_8086         = 0x01,
     CV_CFL_80286        = 0x02,
@@ -367,7 +375,8 @@ typedef enum CV_CPU_TYPE_e {
     CV_CFL_D3D11_SHADER = 0x100,
 } CV_CPU_TYPE_e;
 
-typedef enum CV_HREG_e {
+typedef enum CV_HREG_e
+{
     // Register subset shared by all processor types,
     // must not overlap with any of the ranges below, hence the high values
 
@@ -377,10 +386,10 @@ typedef enum CV_HREG_e {
     CV_ALLREG_EFAD1 =   30003,
     CV_ALLREG_EFAD2 =   30004,
     CV_ALLREG_EFAD3 =   30005,
-    CV_ALLREG_VFRAME=   30006,
-    CV_ALLREG_HANDLE=   30007,
-    CV_ALLREG_PARAMS=   30008,
-    CV_ALLREG_LOCALS=   30009,
+    CV_ALLREG_VFRAME =   30006,
+    CV_ALLREG_HANDLE =   30007,
+    CV_ALLREG_PARAMS =   30008,
+    CV_ALLREG_LOCALS =   30009,
     CV_ALLREG_TID   =   30010,
     CV_ALLREG_ENV   =   30011,
     CV_ALLREG_CMDLN =   30012,
@@ -640,7 +649,7 @@ typedef enum CV_HREG_e {
     CV_REG_YMM7I1     =    297,
     CV_REG_YMM7I2     =    298,
     CV_REG_YMM7I3     =    299,
-        
+
     CV_REG_YMM0F0    =  300,     // AVX floating-point single precise registers
     CV_REG_YMM0F1    =  301,
     CV_REG_YMM0F2    =  302,
@@ -705,7 +714,7 @@ typedef enum CV_HREG_e {
     CV_REG_YMM7F5    =  361,
     CV_REG_YMM7F6    =  362,
     CV_REG_YMM7F7    =  363,
-    
+
     CV_REG_YMM0D0     =    364,    // AVX floating-point double precise registers
     CV_REG_YMM0D1     =    365,
     CV_REG_YMM0D2     =    366,
@@ -820,7 +829,7 @@ typedef enum CV_HREG_e {
     CV_R68_BAC6     =   78,
     CV_R68_BAC7     =   79,
 
-     // Register set for the MIPS 4000
+    // Register set for the MIPS 4000
 
     CV_M4_NOREG     =   CV_REG_NONE,
 
@@ -1313,10 +1322,10 @@ typedef enum CV_HREG_e {
     //
     // Registers for ARM VFP10 support
     //
-    
+
     CV_ARM_FPSCR    =   40,
     CV_ARM_FPEXC    =   41,
-    
+
     CV_ARM_FS0      =   50,
     CV_ARM_FS1      =   51,
     CV_ARM_FS2      =   52,
@@ -1353,7 +1362,7 @@ typedef enum CV_HREG_e {
     //
     // ARM VFP Floating Point Extra control registers
     //
-    
+
     CV_ARM_FPEXTRA0 =   90,
     CV_ARM_FPEXTRA1 =   91,
     CV_ARM_FPEXTRA2 =   92,
@@ -1364,23 +1373,23 @@ typedef enum CV_HREG_e {
     CV_ARM_FPEXTRA7 =   97,
 
     // XSCALE Concan co-processor registers
-    CV_ARM_WR0      =   128, 
-    CV_ARM_WR1      =   129, 
-    CV_ARM_WR2      =   130, 
-    CV_ARM_WR3      =   131, 
-    CV_ARM_WR4      =   132, 
-    CV_ARM_WR5      =   133, 
-    CV_ARM_WR6      =   134, 
-    CV_ARM_WR7      =   135, 
-    CV_ARM_WR8      =   136, 
-    CV_ARM_WR9      =   137, 
-    CV_ARM_WR10     =   138, 
-    CV_ARM_WR11     =   139, 
-    CV_ARM_WR12     =   140, 
-    CV_ARM_WR13     =   141, 
-    CV_ARM_WR14     =   142, 
-    CV_ARM_WR15     =   143, 
-    
+    CV_ARM_WR0      =   128,
+    CV_ARM_WR1      =   129,
+    CV_ARM_WR2      =   130,
+    CV_ARM_WR3      =   131,
+    CV_ARM_WR4      =   132,
+    CV_ARM_WR5      =   133,
+    CV_ARM_WR6      =   134,
+    CV_ARM_WR7      =   135,
+    CV_ARM_WR8      =   136,
+    CV_ARM_WR9      =   137,
+    CV_ARM_WR10     =   138,
+    CV_ARM_WR11     =   139,
+    CV_ARM_WR12     =   140,
+    CV_ARM_WR13     =   141,
+    CV_ARM_WR14     =   142,
+    CV_ARM_WR15     =   143,
+
     // XSCALE Concan co-processor control registers
     CV_ARM_WCID     =   144,
     CV_ARM_WCON     =   145,
@@ -1402,7 +1411,7 @@ typedef enum CV_HREG_e {
     //
     // ARM VFPv3/Neon extended floating Point
     //
-    
+
     CV_ARM_FS32     =   200,
     CV_ARM_FS33     =   201,
     CV_ARM_FS34     =   202,
@@ -1438,57 +1447,57 @@ typedef enum CV_HREG_e {
 
     // ARM double-precision floating point
 
-    CV_ARM_ND0 = 300, 
-    CV_ARM_ND1 = 301, 
-    CV_ARM_ND2 = 302, 
-    CV_ARM_ND3 = 303, 
-    CV_ARM_ND4 = 304, 
+    CV_ARM_ND0 = 300,
+    CV_ARM_ND1 = 301,
+    CV_ARM_ND2 = 302,
+    CV_ARM_ND3 = 303,
+    CV_ARM_ND4 = 304,
     CV_ARM_ND5 = 305,
-    CV_ARM_ND6 = 306, 
-    CV_ARM_ND7 = 307, 
-    CV_ARM_ND8 = 308, 
-    CV_ARM_ND9 = 309, 
-    CV_ARM_ND10 = 310, 
+    CV_ARM_ND6 = 306,
+    CV_ARM_ND7 = 307,
+    CV_ARM_ND8 = 308,
+    CV_ARM_ND9 = 309,
+    CV_ARM_ND10 = 310,
     CV_ARM_ND11 = 311,
-    CV_ARM_ND12 = 312, 
-    CV_ARM_ND13 = 313, 
-    CV_ARM_ND14 = 314, 
-    CV_ARM_ND15 = 315, 
+    CV_ARM_ND12 = 312,
+    CV_ARM_ND13 = 313,
+    CV_ARM_ND14 = 314,
+    CV_ARM_ND15 = 315,
     CV_ARM_ND16 = 316,
-    CV_ARM_ND17 = 317, 
-    CV_ARM_ND18 = 318, 
-    CV_ARM_ND19 = 319, 
-    CV_ARM_ND20 = 320, 
+    CV_ARM_ND17 = 317,
+    CV_ARM_ND18 = 318,
+    CV_ARM_ND19 = 319,
+    CV_ARM_ND20 = 320,
     CV_ARM_ND21 = 321,
-    CV_ARM_ND22 = 322, 
-    CV_ARM_ND23 = 323, 
-    CV_ARM_ND24 = 324, 
-    CV_ARM_ND25 = 325, 
+    CV_ARM_ND22 = 322,
+    CV_ARM_ND23 = 323,
+    CV_ARM_ND24 = 324,
+    CV_ARM_ND25 = 325,
     CV_ARM_ND26 = 326,
-    CV_ARM_ND27 = 327, 
-    CV_ARM_ND28 = 328, 
-    CV_ARM_ND29 = 329, 
-    CV_ARM_ND30 = 330, 
+    CV_ARM_ND27 = 327,
+    CV_ARM_ND28 = 328,
+    CV_ARM_ND29 = 329,
+    CV_ARM_ND30 = 330,
     CV_ARM_ND31 = 331,
 
     // ARM extended precision floating point
 
-    CV_ARM_NQ0 = 400, 
-    CV_ARM_NQ1 = 401, 
-    CV_ARM_NQ2 = 402, 
-    CV_ARM_NQ3 = 403, 
-    CV_ARM_NQ4 = 404, 
+    CV_ARM_NQ0 = 400,
+    CV_ARM_NQ1 = 401,
+    CV_ARM_NQ2 = 402,
+    CV_ARM_NQ3 = 403,
+    CV_ARM_NQ4 = 404,
     CV_ARM_NQ5 = 405,
-    CV_ARM_NQ6 = 406, 
-    CV_ARM_NQ7 = 407, 
-    CV_ARM_NQ8 = 408, 
-    CV_ARM_NQ9 = 409, 
-    CV_ARM_NQ10 = 410, 
+    CV_ARM_NQ6 = 406,
+    CV_ARM_NQ7 = 407,
+    CV_ARM_NQ8 = 408,
+    CV_ARM_NQ9 = 409,
+    CV_ARM_NQ10 = 410,
     CV_ARM_NQ11 = 411,
-    CV_ARM_NQ12 = 412, 
-    CV_ARM_NQ13 = 413, 
-    CV_ARM_NQ14 = 414, 
-    CV_ARM_NQ15 = 415, 
+    CV_ARM_NQ12 = 412,
+    CV_ARM_NQ13 = 413,
+    CV_ARM_NQ14 = 414,
+    CV_ARM_NQ15 = 415,
 
     //
     // Register set for ARM64
@@ -1679,7 +1688,7 @@ typedef enum CV_HREG_e {
     // Floating point status register
 
     CV_ARM64_FPSR   =  220,
-    
+
     //
     // Register set for Intel IA64
     //
@@ -2742,7 +2751,7 @@ typedef enum CV_HREG_e {
     CV_SHMEDIA_R61     =   71,
     CV_SHMEDIA_R62     =   72,
     CV_SHMEDIA_R63     =   73,
-    
+
     // Target Registers - 32 bit
     CV_SHMEDIA_TR0     =   74,
     CV_SHMEDIA_TR1     =   75,
@@ -3304,7 +3313,7 @@ typedef enum CV_HREG_e {
     CV_AMD64_YMM5     =  373,
     CV_AMD64_YMM6     =  374,
     CV_AMD64_YMM7     =  375,
-    CV_AMD64_YMM8     =  376, 
+    CV_AMD64_YMM8     =  376,
     CV_AMD64_YMM9     =  377,
     CV_AMD64_YMM10    =  378,
     CV_AMD64_YMM11    =  379,
@@ -3322,7 +3331,7 @@ typedef enum CV_HREG_e {
     CV_AMD64_YMM5H    =  389,
     CV_AMD64_YMM6H    =  390,
     CV_AMD64_YMM7H    =  391,
-    CV_AMD64_YMM8H    =  392, 
+    CV_AMD64_YMM8H    =  392,
     CV_AMD64_YMM9H    =  393,
     CV_AMD64_YMM10H   =  394,
     CV_AMD64_YMM11H   =  395,
@@ -3561,7 +3570,7 @@ typedef enum CV_HREG_e {
     CV_AMD64_YMM15F5    =  621,
     CV_AMD64_YMM15F6    =  622,
     CV_AMD64_YMM15F7    =  623,
-    
+
     CV_AMD64_YMM0D0    =  624,        // AVX floating-point double precise registers
     CV_AMD64_YMM0D1    =  625,
     CV_AMD64_YMM0D2    =  626,
@@ -3628,53 +3637,54 @@ typedef enum CV_HREG_e {
     CV_AMD64_YMM15D3    =  687
 
 
-    // Note:  Next set of platform registers need to go into a new enum...
-    // this one is above 44K now.
+                           // Note:  Next set of platform registers need to go into a new enum...
+                           // this one is above 44K now.
 
 } CV_HREG_e;
 
-typedef enum CV_HLSLREG_e {
-    CV_HLSLREG_TEMP                                = 0,  
-    CV_HLSLREG_INPUT                               = 1,  
-    CV_HLSLREG_OUTPUT                              = 2,  
-    CV_HLSLREG_INDEXABLE_TEMP                      = 3,  
-    CV_HLSLREG_IMMEDIATE32                         = 4,  
-    CV_HLSLREG_IMMEDIATE64                         = 5,  
-    CV_HLSLREG_SAMPLER                             = 6,  
-    CV_HLSLREG_RESOURCE                            = 7,  
-    CV_HLSLREG_CONSTANT_BUFFER                     = 8,  
-    CV_HLSLREG_IMMEDIATE_CONSTANT_BUFFER           = 9,  
-    CV_HLSLREG_LABEL                               = 10, 
-    CV_HLSLREG_INPUT_PRIMITIVEID                   = 11, 
-    CV_HLSLREG_OUTPUT_DEPTH                        = 12, 
-    CV_HLSLREG_NULL                                = 13, 
-    CV_HLSLREG_RASTERIZER                          = 14, 
-    CV_HLSLREG_OUTPUT_COVERAGE_MASK                = 15, 
-    CV_HLSLREG_STREAM                              = 16, 
-    CV_HLSLREG_FUNCTION_BODY                       = 17, 
-    CV_HLSLREG_FUNCTION_TABLE                      = 18, 
-    CV_HLSLREG_INTERFACE                           = 19, 
-    CV_HLSLREG_FUNCTION_INPUT                      = 20, 
-    CV_HLSLREG_FUNCTION_OUTPUT                     = 21, 
-    CV_HLSLREG_OUTPUT_CONTROL_POINT_ID             = 22, 
-    CV_HLSLREG_INPUT_FORK_INSTANCE_ID              = 23, 
-    CV_HLSLREG_INPUT_JOIN_INSTANCE_ID              = 24, 
-    CV_HLSLREG_INPUT_CONTROL_POINT                 = 25, 
-    CV_HLSLREG_OUTPUT_CONTROL_POINT                = 26, 
-    CV_HLSLREG_INPUT_PATCH_CONSTANT                = 27, 
-    CV_HLSLREG_INPUT_DOMAIN_POINT                  = 28, 
-    CV_HLSLREG_THIS_POINTER                        = 29, 
-    CV_HLSLREG_UNORDERED_ACCESS_VIEW               = 30, 
-    CV_HLSLREG_THREAD_GROUP_SHARED_MEMORY          = 31, 
-    CV_HLSLREG_INPUT_THREAD_ID                     = 32, 
-    CV_HLSLREG_INPUT_THREAD_GROUP_ID               = 33, 
-    CV_HLSLREG_INPUT_THREAD_ID_IN_GROUP            = 34, 
-    CV_HLSLREG_INPUT_COVERAGE_MASK                 = 35, 
+typedef enum CV_HLSLREG_e
+{
+    CV_HLSLREG_TEMP                                = 0,
+    CV_HLSLREG_INPUT                               = 1,
+    CV_HLSLREG_OUTPUT                              = 2,
+    CV_HLSLREG_INDEXABLE_TEMP                      = 3,
+    CV_HLSLREG_IMMEDIATE32                         = 4,
+    CV_HLSLREG_IMMEDIATE64                         = 5,
+    CV_HLSLREG_SAMPLER                             = 6,
+    CV_HLSLREG_RESOURCE                            = 7,
+    CV_HLSLREG_CONSTANT_BUFFER                     = 8,
+    CV_HLSLREG_IMMEDIATE_CONSTANT_BUFFER           = 9,
+    CV_HLSLREG_LABEL                               = 10,
+    CV_HLSLREG_INPUT_PRIMITIVEID                   = 11,
+    CV_HLSLREG_OUTPUT_DEPTH                        = 12,
+    CV_HLSLREG_NULL                                = 13,
+    CV_HLSLREG_RASTERIZER                          = 14,
+    CV_HLSLREG_OUTPUT_COVERAGE_MASK                = 15,
+    CV_HLSLREG_STREAM                              = 16,
+    CV_HLSLREG_FUNCTION_BODY                       = 17,
+    CV_HLSLREG_FUNCTION_TABLE                      = 18,
+    CV_HLSLREG_INTERFACE                           = 19,
+    CV_HLSLREG_FUNCTION_INPUT                      = 20,
+    CV_HLSLREG_FUNCTION_OUTPUT                     = 21,
+    CV_HLSLREG_OUTPUT_CONTROL_POINT_ID             = 22,
+    CV_HLSLREG_INPUT_FORK_INSTANCE_ID              = 23,
+    CV_HLSLREG_INPUT_JOIN_INSTANCE_ID              = 24,
+    CV_HLSLREG_INPUT_CONTROL_POINT                 = 25,
+    CV_HLSLREG_OUTPUT_CONTROL_POINT                = 26,
+    CV_HLSLREG_INPUT_PATCH_CONSTANT                = 27,
+    CV_HLSLREG_INPUT_DOMAIN_POINT                  = 28,
+    CV_HLSLREG_THIS_POINTER                        = 29,
+    CV_HLSLREG_UNORDERED_ACCESS_VIEW               = 30,
+    CV_HLSLREG_THREAD_GROUP_SHARED_MEMORY          = 31,
+    CV_HLSLREG_INPUT_THREAD_ID                     = 32,
+    CV_HLSLREG_INPUT_THREAD_GROUP_ID               = 33,
+    CV_HLSLREG_INPUT_THREAD_ID_IN_GROUP            = 34,
+    CV_HLSLREG_INPUT_COVERAGE_MASK                 = 35,
     CV_HLSLREG_INPUT_THREAD_ID_IN_GROUP_FLATTENED  = 36,
-    CV_HLSLREG_INPUT_GS_INSTANCE_ID                = 37, 
-    CV_HLSLREG_OUTPUT_DEPTH_GREATER_EQUAL          = 38, 
-    CV_HLSLREG_OUTPUT_DEPTH_LESS_EQUAL             = 39, 
-    CV_HLSLREG_CYCLE_COUNTER                       = 40, 
+    CV_HLSLREG_INPUT_GS_INSTANCE_ID                = 37,
+    CV_HLSLREG_OUTPUT_DEPTH_GREATER_EQUAL          = 38,
+    CV_HLSLREG_OUTPUT_DEPTH_LESS_EQUAL             = 39,
+    CV_HLSLREG_CYCLE_COUNTER                       = 40,
 } CV_HLSLREG_e;
 
 enum StackFrameTypeEnum

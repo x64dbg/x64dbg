@@ -44,8 +44,8 @@ struct MODINFO
     std::vector<MODIMPORTINFO> imports;
     std::vector<MODRELOCATIONINFO> relocations;
     std::vector<duint> tlsCallbacks;
-	std::vector<bool> invalidSymbols;
-	SymbolSourceBase *symbols;
+    std::vector<bool> invalidSymbols;
+    SymbolSourceBase* symbols;
 
     HANDLE fileHandle = nullptr;
     DWORD loadedSize = 0;
