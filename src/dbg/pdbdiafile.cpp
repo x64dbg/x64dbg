@@ -722,7 +722,7 @@ uint32_t getSymbolId(IDiaSymbol* sym)
     return id;
 }
 
-bool PDBDiaFile::enumerateLexicalHierarchy(std::function<void(DiaSymbol_t &)> callback, const bool collectUndecoratedNames)
+bool PDBDiaFile::enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> callback, const bool collectUndecoratedNames)
 {
     IDiaEnumSymbols* enumSymbols = nullptr;
     IDiaSymbol* globalScope = nullptr;
@@ -730,6 +730,7 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<void(DiaSymbol_t &)> ca
     ULONG celt = 0;
     HRESULT hr;
     DiaSymbol_t symbolInfo;
+    bool res = true;
 
     hr = m_session->get_globalScope(&globalScope);
     if(hr != S_OK)
@@ -744,57 +745,68 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<void(DiaSymbol_t &)> ca
     hr = globalScope->findChildren(SymTagCompiland, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
     {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
         {
             if(!enumerateCompilandScope(symbol, callback, visited, collectUndecoratedNames))
             {
-
+                res = false;
             }
 
             symbol->Release();
         }
         enumSymbols->Release();
     }
+    if(!res)
+        return res;
 
     // Enumerate publics.
     hr = globalScope->findChildren(SymTagPublicSymbol, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
     {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
         {
             if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
             {
-                callback(symbolInfo);
+                if(!callback(symbolInfo))
+                    res = false;
             }
             symbol->Release();
         }
         enumSymbols->Release();
     }
+
+    if(!res)
+        return res;
 
     // Enumerate global functions.
     hr = globalScope->findChildren(SymTagFunction, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
     {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
         {
             if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
             {
-                callback(symbolInfo);
+                if(!callback(symbolInfo))
+                    res = false;
             }
             symbol->Release();
         }
         enumSymbols->Release();
     }
 
+    if(!res)
+        return res;
+
     // Enumerate global data.
     hr = globalScope->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
     {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
         {
             if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
             {
-                callback(symbolInfo);
+                if(!callback(symbolInfo))
+                    res = false;
             }
             symbol->Release();
         }
@@ -803,7 +815,7 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<void(DiaSymbol_t &)> ca
 
     globalScope->Release();
 
-    return true;
+    return res;
 }
 
 bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolType symType /*= DiaSymbolType::ANY*/)
@@ -853,10 +865,11 @@ bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolTyp
     return res;
 }
 
-bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<void(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames)
+bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<bool(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames)
 {
     IDiaEnumSymbols* enumSymbols = nullptr;
     IDiaSymbol* symbol = nullptr;
+    bool res = true;
     ULONG celt = 0;
     HRESULT hr;
     DWORD symTagType;
@@ -868,7 +881,7 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<vo
     hr = compiland->findChildren(SymTagFunction, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
     {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
         {
             hr = symbol->get_symTag(&symTagType);
 
@@ -876,7 +889,7 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<vo
             {
                 if(!processFunctionSymbol(symbol, callback, visited, collectUndecoratedNames))
                 {
-                    //Sleep(0);
+                    res = false;
                 }
             }
 
@@ -884,11 +897,13 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<vo
         }
         enumSymbols->Release();
     }
+    if(!res)
+        return res;
 
     hr = compiland->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
     {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
         {
             hr = symbol->get_symTag(&symTagType);
 
@@ -896,7 +911,8 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<vo
             {
                 if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
                 {
-                    callback(symbolInfo);
+                    if(!callback(symbolInfo))
+                        res = false;
                 }
             }
 
@@ -904,6 +920,8 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<vo
         }
         enumSymbols->Release();
     }
+    if(!res)
+        return res;
 
     hr = compiland->findChildren(SymTagBlock, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
@@ -916,7 +934,8 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<vo
             {
                 if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
                 {
-                    callback(symbolInfo);
+                    if(!callback(symbolInfo))
+                        res = false;
                 }
             }
 
@@ -924,6 +943,8 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<vo
         }
         enumSymbols->Release();
     }
+    if(!res)
+        return res;
 
     hr = compiland->findChildren(SymTagLabel, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
@@ -936,7 +957,8 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<vo
             {
                 if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
                 {
-                    callback(symbolInfo);
+                    if(!callback(symbolInfo))
+                        res = false;
                 }
             }
 
@@ -945,76 +967,19 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<vo
         enumSymbols->Release();
     }
 
-    /*
-    hr = compiland->findChildren(SymTagNull, nullptr, nsNone, &enumSymbols);
-    if (hr == S_OK)
-    {
-        while ((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
-        {
-            hr = symbol->get_symTag(&symTagType);
-
-            if (hr == S_OK)
-            {
-                switch (symTagType)
-                {
-                // <-- !DEBUG PURPOSE! -->
-                case SymTagNull:
-                case SymTagExe:
-                case SymTagCompiland:
-                case SymTagCompilandDetails:
-                case SymTagCompilandEnv:
-                case SymTagUDT:
-                case SymTagEnum:
-                case SymTagTypedef:
-                case SymTagThunk:
-                    break;
-                // <-- !DEBUG PURPOSE! -->
-                case SymTagFunction:
-                    if (!processFunctionSymbol(symbol, callback, visited))
-                    {
-                        //Sleep(0);
-                    }
-                    break;
-                case SymTagData:
-                    if (convertSymbolInfo(symbol, symbolInfo))
-                    {
-                        //callback(symbolInfo);
-                    }
-                    break;
-                case SymTagBlock:
-                    if (convertSymbolInfo(symbol, symbolInfo))
-                    {
-                        //callback(symbolInfo);
-                    }
-                    break;
-                case SymTagLabel:
-                    if (convertSymbolInfo(symbol, symbolInfo))
-                    {
-                        //callback(symbolInfo);
-                    }
-                    break;
-                }
-            }
-
-            symbol->Release();
-        }
-        enumSymbols->Release();
-    }
-    */
-
-
-    return true;
+    return res;
 }
 
-bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* profilerFunction, std::function<void(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames /*= false*/)
+bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, std::function<bool(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames /*= false*/)
 {
     IDiaEnumSymbols* enumSymbols = nullptr;
     IDiaSymbol* symbol = nullptr;
     ULONG celt = 0;
     HRESULT hr;
     DWORD symTagType;
+    bool res = true;
 
-    uint32_t symId = getSymbolId(profilerFunction);
+    uint32_t symId = getSymbolId(functionSym);
     if(visited.find(symId) != visited.end())
     {
         printf("Dupe\n");
@@ -1024,15 +989,16 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* profilerFunction, std::functi
     visited.insert(symId);
 
     DiaSymbol_t symbolInfo;
-    if(convertSymbolInfo(profilerFunction, symbolInfo, collectUndecoratedNames))
+    if(convertSymbolInfo(functionSym, symbolInfo, collectUndecoratedNames))
     {
-        callback(symbolInfo);
+        if(!callback(symbolInfo))
+            return false;
     }
 
-    hr = profilerFunction->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
+    hr = functionSym->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
     {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
         {
             hr = symbol->get_symTag(&symTagType);
 
@@ -1043,7 +1009,8 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* profilerFunction, std::functi
             {
                 if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
                 {
-                    callback(symbolInfo);
+                    if(!callback(symbolInfo))
+                        res = false;
                 }
             }
 
@@ -1051,11 +1018,13 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* profilerFunction, std::functi
         }
         enumSymbols->Release();
     }
+    if(!res)
+        return res;
 
-    hr = profilerFunction->findChildren(SymTagBlock, nullptr, nsNone, &enumSymbols);
+    hr = functionSym->findChildren(SymTagBlock, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
     {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
         {
             hr = symbol->get_symTag(&symTagType);
 
@@ -1063,7 +1032,8 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* profilerFunction, std::functi
             {
                 if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
                 {
-                    callback(symbolInfo);
+                    if(!callback(symbolInfo))
+                        res = false;
                 }
             }
 
@@ -1072,10 +1042,10 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* profilerFunction, std::functi
         enumSymbols->Release();
     }
 
-    hr = profilerFunction->findChildren(SymTagLabel, nullptr, nsNone, &enumSymbols);
+    hr = functionSym->findChildren(SymTagLabel, nullptr, nsNone, &enumSymbols);
     if(hr == S_OK)
     {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
         {
             hr = symbol->get_symTag(&symTagType);
 
@@ -1083,7 +1053,8 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* profilerFunction, std::functi
             {
                 if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
                 {
-                    callback(symbolInfo);
+                    if(!callback(symbolInfo))
+                        res = false;
                 }
             }
 
@@ -1092,7 +1063,7 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* profilerFunction, std::functi
         enumSymbols->Release();
     }
 
-    return true;
+    return res;
 }
 
 bool PDBDiaFile::resolveSymbolSize(IDiaSymbol* symbol, uint64_t & size, uint32_t symTag)

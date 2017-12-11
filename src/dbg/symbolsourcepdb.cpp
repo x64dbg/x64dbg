@@ -69,11 +69,10 @@ bool SymbolSourcePDB::isLoading() const
 
 void SymbolSourcePDB::loadPDBAsync()
 {
-    _pdb.enumerateLexicalHierarchy([&](DiaSymbol_t & sym)->void
+    bool res = _pdb.enumerateLexicalHierarchy([&](DiaSymbol_t & sym)->bool
     {
-        // FIXME: This won't do us any good atm.
         if(_requiresShutdown)
-            return;
+            return false;
 
         if(sym.type == DiaSymbolType::FUNCTION ||
         sym.type == DiaSymbolType::LABEL ||
@@ -96,7 +95,13 @@ void SymbolSourcePDB::loadPDBAsync()
             LeaveCriticalSection(&_cs);
         }
 
+        return true;
     }, true);
+
+    _isLoading = false;
+
+    if(!res)
+        return;
 
     DWORD64 ms = GetTickCount64() - _loadStart;
     double secs = (double)ms / 1000.0;
@@ -104,8 +109,6 @@ void SymbolSourcePDB::loadPDBAsync()
     dprintf("Loaded %d symbols in %.03f\n", _sym.size(), secs);
 
     GuiUpdateAllViews();
-
-    _isLoading = false;
 }
 
 bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo & symInfo)
