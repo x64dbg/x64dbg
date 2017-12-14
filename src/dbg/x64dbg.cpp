@@ -272,6 +272,7 @@ static void registercommands()
     dbgcmdnew("reffind,findref,ref", cbInstrRefFind, true); //find references to a value
     dbgcmdnew("reffindrange,findrefrange,refrange", cbInstrRefFindRange, true);
     dbgcmdnew("refstr,strref", cbInstrRefStr, true); //find string references
+    dbgcmdnew("reffunctionpointer", cbInstrRefFuncionPointer, true); //find function pointers
     dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
