@@ -19,54 +19,19 @@ struct SYMBOLCBDATA
     std::vector<char> undecoratedSymbol;
 };
 
-BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserContext)
-{
-    SYMBOLCBDATA* cbData = (SYMBOLCBDATA*)UserContext;
-    cbData->decoratedSymbol[0] = '\0';
-    cbData->undecoratedSymbol[0] = '\0';
-
-    SYMBOLINFO curSymbol;
-    memset(&curSymbol, 0, sizeof(SYMBOLINFO));
-
-    curSymbol.addr = (duint)SymInfo->Address;
-    curSymbol.decoratedSymbol = cbData->decoratedSymbol.data();
-    curSymbol.undecoratedSymbol = cbData->undecoratedSymbol.data();
-    strncpy_s(curSymbol.decoratedSymbol, MAX_SYM_NAME, SymInfo->Name, _TRUNCATE);
-
-    // Skip bad ordinals
-    if(strstr(SymInfo->Name, "Ordinal"))
-    {
-        // Does the symbol point to the module base?
-        if(SymInfo->Address == SymInfo->ModBase)
-            return TRUE;
-    }
-
-    // Convert a mangled/decorated C++ name to a readable format
-    if(!SafeUnDecorateSymbolName(SymInfo->Name, curSymbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
-        curSymbol.undecoratedSymbol = nullptr;
-    else if(!strcmp(curSymbol.decoratedSymbol, curSymbol.undecoratedSymbol))
-        curSymbol.undecoratedSymbol = nullptr;
-
-    // Mark IAT entries as Imports
-    curSymbol.isImported = strncmp(curSymbol.decoratedSymbol, "__imp_", 6) == 0;
-
-    cbData->cbSymbolEnum(&curSymbol, cbData->user);
-    return TRUE;
-}
-
-void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, SYMBOLCBDATA* cbData)
+static void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, SYMBOLCBDATA & cbData)
 {
     SYMBOLINFO symbol;
     memset(&symbol, 0, sizeof(SYMBOLINFO));
     symbol.isImported = true;
     apienumimports(Base, [&](duint base, duint addr, char* name, char* moduleName)
     {
-        cbData->decoratedSymbol[0] = '\0';
-        cbData->undecoratedSymbol[0] = '\0';
+        cbData.decoratedSymbol[0] = '\0';
+        cbData.undecoratedSymbol[0] = '\0';
 
         symbol.addr = addr;
-        symbol.decoratedSymbol = cbData->decoratedSymbol.data();
-        symbol.undecoratedSymbol = cbData->undecoratedSymbol.data();
+        symbol.decoratedSymbol = cbData.decoratedSymbol.data();
+        symbol.undecoratedSymbol = cbData.undecoratedSymbol.data();
         strncpy_s(symbol.decoratedSymbol, MAX_SYM_NAME, name, _TRUNCATE);
 
         // Convert a mangled/decorated C++ name to a readable format
@@ -75,21 +40,58 @@ void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, SYMBOLCBDATA* cbData)
         else if(!strcmp(symbol.decoratedSymbol, symbol.undecoratedSymbol))
             symbol.undecoratedSymbol = nullptr;
 
-        EnumCallback(&symbol, cbData->user);
+        EnumCallback(&symbol, cbData.user);
     });
 }
 
 void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 {
-    SYMBOLCBDATA symbolCbData;
-    symbolCbData.cbSymbolEnum = EnumCallback;
-    symbolCbData.user = UserData;
-    symbolCbData.decoratedSymbol.resize(MAX_SYM_NAME + 1);
-    symbolCbData.undecoratedSymbol.resize(MAX_SYM_NAME + 1);
+    SYMBOLCBDATA cbData;
+    cbData.cbSymbolEnum = EnumCallback;
+    cbData.user = UserData;
+    cbData.decoratedSymbol.resize(MAX_SYM_NAME + 1);
+    cbData.undecoratedSymbol.resize(MAX_SYM_NAME + 1);
 
-    // Enumerate every single symbol for the module in 'base'
-    if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymEnumSymbols failed!"));
+    {
+        SHARED_ACQUIRE(LockModules);
+        MODINFO* modInfo = ModInfoFromAddr(Base);
+        if(modInfo && modInfo->symbols->isOpen())
+        {
+            modInfo->symbols->enumSymbols([&cbData, Base](const SymbolInfo & info)
+            {
+                cbData.decoratedSymbol[0] = '\0';
+                cbData.undecoratedSymbol[0] = '\0';
+
+                SYMBOLINFO curSymbol;
+                memset(&curSymbol, 0, sizeof(SYMBOLINFO));
+
+                curSymbol.addr = Base + info.addr;
+                curSymbol.decoratedSymbol = cbData.decoratedSymbol.data();
+                curSymbol.undecoratedSymbol = cbData.undecoratedSymbol.data();
+                strncpy_s(curSymbol.decoratedSymbol, MAX_SYM_NAME, info.decoratedName.c_str(), _TRUNCATE);
+
+                // Skip bad ordinals
+                if(strstr(curSymbol.decoratedSymbol, "Ordinal"))
+                {
+                    // Does the symbol point to the module base?
+                    if(curSymbol.addr == Base)
+                        return true;
+                }
+
+                // Convert a mangled/decorated C++ name to a readable format
+                if(info.decoratedName != info.undecoratedName)
+                    strncpy_s(curSymbol.decoratedSymbol, MAX_SYM_NAME, info.undecoratedName.c_str(), _TRUNCATE);
+                else
+                    curSymbol.undecoratedSymbol = nullptr;
+
+                // Mark IAT entries as Imports
+                curSymbol.isImported = strncmp(curSymbol.decoratedSymbol, "__imp_", 6) == 0;
+
+                cbData.cbSymbolEnum(&curSymbol, cbData.user);
+                return true;
+            });
+        }
+    }
 
     // Emit pseudo entry point symbol
     SYMBOLINFO symbol;
@@ -99,7 +101,7 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
     if(symbol.addr)
         EnumCallback(&symbol, UserData);
 
-    SymEnumImports(Base, EnumCallback, &symbolCbData);
+    SymEnumImports(Base, EnumCallback, cbData);
 }
 
 void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)

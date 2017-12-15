@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <functional>
 
 struct SymbolInfo
 {
@@ -15,6 +16,8 @@ struct SymbolInfo
     String undecoratedName;
     bool valid;
 };
+
+using CbEnumSymbol = std::function<bool(const SymbolInfo &)>;
 
 class SymbolSourceBase
 {
@@ -70,6 +73,11 @@ public:
     virtual bool findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
     {
         return false; // Stub
+    }
+
+    virtual void enumSymbols(const CbEnumSymbol & cbEnum)
+    {
+        // Stub
     }
 };
 

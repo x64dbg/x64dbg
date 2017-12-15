@@ -195,3 +195,11 @@ bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
     return nullptr;
 }
 
+void SymbolSourcePDB::enumSymbols(const CbEnumSymbol & cbEnum)
+{
+    ScopedCriticalSection lock(&_cs);
+    for(auto & it : _sym)
+        if(!cbEnum(it.second))
+            break;
+}
+

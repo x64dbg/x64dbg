@@ -31,15 +31,17 @@ public:
 public:
     SymbolSourcePDB();
 
-    virtual ~SymbolSourcePDB();
+    virtual ~SymbolSourcePDB() override;
 
-    virtual bool isOpen() const;
+    virtual bool isOpen() const override;
 
-    virtual bool isLoading() const;
+    virtual bool isLoading() const override;
 
-    virtual bool findSymbolExact(duint rva, SymbolInfo & symInfo);
+    virtual bool findSymbolExact(duint rva, SymbolInfo & symInfo) override;
 
-    virtual bool findSymbolExactOrLower(duint rva, SymbolInfo & symInfo);
+    virtual bool findSymbolExactOrLower(duint rva, SymbolInfo & symInfo) override;
+
+    virtual void enumSymbols(const CbEnumSymbol & cbEnum) override;
 
 public:
     bool loadPDB(const std::string & path, duint imageBase);
