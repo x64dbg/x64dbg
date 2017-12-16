@@ -854,7 +854,8 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
     switch(symTagType)
     {
     case SymTagPublicSymbol:
-        symbolInfo.type = DiaSymbolType::LABEL;
+        symbolInfo.type = DiaSymbolType::PUBLIC;
+        symbolInfo.publicSymbol = true;
         break;
     case SymTagFunction:
         symbolInfo.type = DiaSymbolType::FUNCTION;

@@ -76,7 +76,8 @@ void SymbolSourcePDB::loadPDBAsync()
         if(_requiresShutdown)
             return false;
 
-        if(sym.type == DiaSymbolType::FUNCTION ||
+        if(sym.type == DiaSymbolType::PUBLIC ||
+        sym.type == DiaSymbolType::FUNCTION ||
         sym.type == DiaSymbolType::LABEL ||
         sym.type == DiaSymbolType::DATA)
         {
