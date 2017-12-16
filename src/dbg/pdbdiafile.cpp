@@ -13,6 +13,35 @@
 
 volatile LONG PDBDiaFile::m_sbInitialized = 0;
 
+template<typename T>
+class ScopedDiaType
+{
+private:
+    T* _sym;
+public:
+    ScopedDiaType() : _sym(nullptr) {}
+    ScopedDiaType(T* sym) : _sym(sym) {}
+    ~ScopedDiaType()
+    {
+        if(_sym != nullptr)
+        {
+            _sym->Release();
+        }
+    }
+    T** ref() { return &_sym; }
+    T* operator->()
+    {
+        return _sym;
+    }
+    operator T* ()
+    {
+        return _sym;
+    }
+};
+
+typedef ScopedDiaType<IDiaSymbol> ScopedDiaSymbol;
+typedef ScopedDiaType<IDiaEnumSymbols> ScopedDiaEnumSymbols;
+
 PDBDiaFile::PDBDiaFile() :
     m_dataSource(nullptr),
     m_session(nullptr)
@@ -296,15 +325,14 @@ uint32_t getSymbolId(IDiaSymbol* sym)
 
 bool PDBDiaFile::enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> callback, const bool collectUndecoratedNames)
 {
-    IDiaEnumSymbols* enumSymbols = nullptr;
-    IDiaSymbol* globalScope = nullptr;
+    ScopedDiaSymbol globalScope;
     IDiaSymbol* symbol = nullptr;
     ULONG celt = 0;
     HRESULT hr;
     DiaSymbol_t symbolInfo;
     bool res = true;
 
-    hr = m_session->get_globalScope(&globalScope);
+    hr = m_session->get_globalScope(globalScope.ref());
     if(hr != S_OK)
         return false;
 
@@ -314,80 +342,87 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> ca
     visited.insert(scopeId);
 
     // Enumerate compilands.
-    hr = globalScope->findChildren(SymTagCompiland, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
     {
-        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
-        {
-            if(!enumerateCompilandScope(symbol, callback, visited, collectUndecoratedNames))
-            {
-                res = false;
-            }
+        ScopedDiaEnumSymbols enumSymbols;
 
-            symbol->Release();
+        hr = globalScope->findChildren(SymTagCompiland, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
+        {
+            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            {
+                ScopedDiaSymbol sym(symbol);
+                if(!enumerateCompilandScope(sym, callback, visited, collectUndecoratedNames))
+                {
+                    return false;
+                }
+            }
         }
-        enumSymbols->Release();
     }
-    if(!res)
-        return res;
 
     // Enumerate publics.
-    hr = globalScope->findChildren(SymTagPublicSymbol, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
     {
-        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
-        {
-            if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
-            {
-                if(!callback(symbolInfo))
-                    res = false;
-            }
-            symbol->Release();
-        }
-        enumSymbols->Release();
-    }
+        ScopedDiaEnumSymbols enumSymbols;
 
-    if(!res)
-        return res;
+        hr = globalScope->findChildren(SymTagPublicSymbol, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
+        {
+            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            {
+                if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
+                {
+                    ScopedDiaSymbol sym(symbol);
+                    if(!callback(symbolInfo))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
 
     // Enumerate global functions.
-    hr = globalScope->findChildren(SymTagFunction, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
     {
-        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
-        {
-            if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
-            {
-                if(!callback(symbolInfo))
-                    res = false;
-            }
-            symbol->Release();
-        }
-        enumSymbols->Release();
-    }
+        ScopedDiaEnumSymbols enumSymbols;
 
-    if(!res)
-        return res;
+        hr = globalScope->findChildren(SymTagFunction, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
+        {
+            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            {
+                ScopedDiaSymbol sym(symbol);
+                if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                {
+                    if(!callback(symbolInfo))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
 
     // Enumerate global data.
-    hr = globalScope->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
     {
-        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        ScopedDiaEnumSymbols enumSymbols;
+
+        hr = globalScope->findChildren(SymTagData, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
         {
-            if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
+            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                if(!callback(symbolInfo))
-                    res = false;
+                ScopedDiaSymbol sym(symbol);
+                if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                {
+                    if(!callback(symbolInfo))
+                    {
+                        return false;
+                    }
+                }
             }
-            symbol->Release();
         }
-        enumSymbols->Release();
     }
 
-    globalScope->Release();
-
-    return res;
+    return true;
 }
 
 bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolType symType /*= DiaSymbolType::ANY*/)
@@ -396,7 +431,6 @@ bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolTyp
         return false;
 
     IDiaEnumSymbols* enumSymbols = nullptr;
-    IDiaSymbol* globalScope = nullptr;
     IDiaSymbol* symbol = nullptr;
     ULONG celt = 0;
     HRESULT hr;
@@ -424,14 +458,14 @@ bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolTyp
     hr = m_session->findSymbolByRVAEx(address, tag, &symbol, &disp);
     if(hr == S_OK)
     {
+        ScopedDiaSymbol scopedSym(symbol);
+
         sym.disp = disp;
 
-        if(!convertSymbolInfo(symbol, sym, true))
+        if(!convertSymbolInfo(scopedSym, sym, true))
             res = false;
         else
             res = true;
-
-        symbol->Release();
     }
 
     return res;
@@ -439,7 +473,6 @@ bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolTyp
 
 bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<bool(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames)
 {
-    IDiaEnumSymbols* enumSymbols = nullptr;
     IDiaSymbol* symbol = nullptr;
     bool res = true;
     ULONG celt = 0;
@@ -450,101 +483,113 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<bo
 
     uint32_t symId = getSymbolId(compiland);
 
-    hr = compiland->findChildren(SymTagFunction, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
     {
-        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        ScopedDiaEnumSymbols enumSymbols;
+
+        hr = compiland->findChildren(SymTagFunction, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
         {
-            hr = symbol->get_symTag(&symTagType);
-
-            if(hr == S_OK)
+            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                if(!processFunctionSymbol(symbol, callback, visited, collectUndecoratedNames))
+                ScopedDiaSymbol sym(symbol);
+
+                hr = sym->get_symTag(&symTagType);
+
+                if(hr == S_OK)
                 {
-                    res = false;
+                    if(!processFunctionSymbol(sym, callback, visited, collectUndecoratedNames))
+                    {
+                        return false;
+                    }
                 }
+
             }
-
-            symbol->Release();
         }
-        enumSymbols->Release();
-    }
-    if(!res)
-        return res;
-
-    hr = compiland->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
-    {
-        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
-        {
-            hr = symbol->get_symTag(&symTagType);
-
-            if(hr == S_OK)
-            {
-                if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
-                {
-                    if(!callback(symbolInfo))
-                        res = false;
-                }
-            }
-
-            symbol->Release();
-        }
-        enumSymbols->Release();
-    }
-    if(!res)
-        return res;
-
-    hr = compiland->findChildren(SymTagBlock, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
-    {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
-        {
-            hr = symbol->get_symTag(&symTagType);
-
-            if(hr == S_OK)
-            {
-                if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
-                {
-                    if(!callback(symbolInfo))
-                        res = false;
-                }
-            }
-
-            symbol->Release();
-        }
-        enumSymbols->Release();
-    }
-    if(!res)
-        return res;
-
-    hr = compiland->findChildren(SymTagLabel, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
-    {
-        while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
-        {
-            hr = symbol->get_symTag(&symTagType);
-
-            if(hr == S_OK)
-            {
-                if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
-                {
-                    if(!callback(symbolInfo))
-                        res = false;
-                }
-            }
-
-            symbol->Release();
-        }
-        enumSymbols->Release();
     }
 
-    return res;
+    {
+        ScopedDiaEnumSymbols enumSymbols;
+
+        hr = compiland->findChildren(SymTagData, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
+        {
+            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            {
+                ScopedDiaSymbol sym(symbol);
+
+                hr = sym->get_symTag(&symTagType);
+
+                if(hr == S_OK)
+                {
+                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    {
+                        if(!callback(symbolInfo))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    {
+        ScopedDiaEnumSymbols enumSymbols;
+
+        hr = compiland->findChildren(SymTagBlock, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
+        {
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            {
+                ScopedDiaSymbol sym(symbol);
+
+                hr = sym->get_symTag(&symTagType);
+
+                if(hr == S_OK)
+                {
+                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    {
+                        if(!callback(symbolInfo))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    {
+        ScopedDiaEnumSymbols enumSymbols;
+
+        hr = compiland->findChildren(SymTagLabel, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
+        {
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            {
+                ScopedDiaSymbol sym(symbol);
+
+                hr = sym->get_symTag(&symTagType);
+
+                if(hr == S_OK)
+                {
+                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    {
+                        if(!callback(symbolInfo))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, std::function<bool(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames /*= false*/)
 {
-    IDiaEnumSymbols* enumSymbols = nullptr;
     IDiaSymbol* symbol = nullptr;
     ULONG celt = 0;
     HRESULT hr;
@@ -567,88 +612,99 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, std::function<bo
             return false;
     }
 
-    hr = functionSym->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
     {
-        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        ScopedDiaEnumSymbols enumSymbols;
+        hr = functionSym->findChildren(SymTagData, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
         {
-            hr = symbol->get_symTag(&symTagType);
-
-            LocationType locType;
-            symbol->get_locationType((DWORD*)&locType);
-
-            if(hr == S_OK && locType == LocIsStatic)
+            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
+                ScopedDiaSymbol sym(symbol);
+
+                hr = sym->get_symTag(&symTagType);
+
+                LocationType locType;
+                sym->get_locationType((DWORD*)&locType);
+
+                if(hr == S_OK && locType == LocIsStatic)
                 {
-                    if(!callback(symbolInfo))
-                        res = false;
+                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    {
+                        if(!callback(symbolInfo))
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
-
-            symbol->Release();
         }
-        enumSymbols->Release();
     }
-    if(!res)
-        return res;
 
-    hr = functionSym->findChildren(SymTagBlock, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
     {
-        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        ScopedDiaEnumSymbols enumSymbols;
+        hr = functionSym->findChildren(SymTagBlock, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
         {
-            hr = symbol->get_symTag(&symTagType);
-
-            if(hr == S_OK)
+            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
+                ScopedDiaSymbol sym(symbol);
+
+                hr = sym->get_symTag(&symTagType);
+
+                if(hr == S_OK)
                 {
-                    if(!callback(symbolInfo))
-                        res = false;
+                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    {
+                        if(!callback(symbolInfo))
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
-
-            symbol->Release();
         }
-        enumSymbols->Release();
     }
 
-    hr = functionSym->findChildren(SymTagLabel, nullptr, nsNone, &enumSymbols);
-    if(hr == S_OK)
     {
-        while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+        ScopedDiaEnumSymbols enumSymbols;
+        hr = functionSym->findChildren(SymTagLabel, nullptr, nsNone, enumSymbols.ref());
+        if(hr == S_OK)
         {
-            hr = symbol->get_symTag(&symTagType);
-
-            if(hr == S_OK)
+            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
+                ScopedDiaSymbol sym(symbol);
+
+                hr = sym->get_symTag(&symTagType);
+
+                if(hr == S_OK)
                 {
-                    if(!callback(symbolInfo))
-                        res = false;
+                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    {
+                        if(!callback(symbolInfo))
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
-
-            symbol->Release();
         }
-        enumSymbols->Release();
     }
 
-    return res;
+    return true;
 }
 
 bool PDBDiaFile::resolveSymbolSize(IDiaSymbol* symbol, uint64_t & size, uint32_t symTag)
 {
     bool res = true;
 
-    IDiaSymbol* symType = nullptr;
     HRESULT hr;
     uint64_t tempSize = -1;
 
     if(symTag == SymTagData)
     {
-        hr = symbol->get_type(&symType);
+        ScopedDiaSymbol symType;
+        hr = symbol->get_type(symType.ref());
+
         if(hr == S_OK && symType != nullptr)
         {
             DWORD symTagType = 0;
@@ -706,8 +762,6 @@ bool PDBDiaFile::resolveSymbolSize(IDiaSymbol* symbol, uint64_t & size, uint32_t
             }
             break;
             }
-
-            symType->Release();
         }
 
         // One last attempt.
