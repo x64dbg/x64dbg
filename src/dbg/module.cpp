@@ -352,6 +352,17 @@ bool ModUnload(duint Base)
     if(info.fileMapVA)
         StaticFileUnloadW(StringUtils::Utf8ToUtf16(info.path).c_str(), false, info.fileHandle, info.loadedSize, info.fileMap, info.fileMapVA);
 
+    if(info.symbols != nullptr &&
+            info.symbols != &EmptySymbolSource)
+    {
+        if(info.symbols->isLoading())
+        {
+            info.symbols->cancelLoading();
+        }
+
+        delete info.symbols;
+    }
+
     // Remove it from the list
     modinfo.erase(found);
     EXCLUSIVE_RELEASE();
@@ -373,6 +384,17 @@ void ModClear()
             const auto & info = mod.second;
             if(info.fileMapVA)
                 StaticFileUnloadW(StringUtils::Utf8ToUtf16(info.path).c_str(), false, info.fileHandle, info.loadedSize, info.fileMap, info.fileMapVA);
+
+            if(info.symbols != nullptr &&
+                    info.symbols != &EmptySymbolSource)
+            {
+                if(info.symbols->isLoading())
+                {
+                    info.symbols->cancelLoading();
+                }
+
+                delete info.symbols;
+            }
         }
 
         modinfo.clear();

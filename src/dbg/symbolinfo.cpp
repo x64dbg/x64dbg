@@ -70,6 +70,8 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
                 curSymbol.undecoratedSymbol = cbData.undecoratedSymbol.data();
                 strncpy_s(curSymbol.decoratedSymbol, MAX_SYM_NAME, info.decoratedName.c_str(), _TRUNCATE);
 
+                strncpy_s(curSymbol.undecoratedSymbol, MAX_SYM_NAME, info.undecoratedName.c_str(), _TRUNCATE);
+
                 // Skip bad ordinals
                 if(strstr(curSymbol.decoratedSymbol, "Ordinal"))
                 {
@@ -78,11 +80,11 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
                         return true;
                 }
 
-                // Convert a mangled/decorated C++ name to a readable format
-                if(info.decoratedName != info.undecoratedName)
-                    strncpy_s(curSymbol.decoratedSymbol, MAX_SYM_NAME, info.undecoratedName.c_str(), _TRUNCATE);
-                else
-                    curSymbol.undecoratedSymbol = nullptr;
+                //                 // Convert a mangled/decorated C++ name to a readable format
+                //                 if(info.decoratedName != info.undecoratedName)
+                //                     strncpy_s(curSymbol.decoratedSymbol, MAX_SYM_NAME, info.undecoratedName.c_str(), _TRUNCATE);
+                //                 else
+                //                     curSymbol.undecoratedSymbol = nullptr;
 
                 // Mark IAT entries as Imports
                 curSymbol.isImported = strncmp(curSymbol.decoratedSymbol, "__imp_", 6) == 0;

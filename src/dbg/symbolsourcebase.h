@@ -14,6 +14,7 @@ struct SymbolInfo
     int32 disp;
     String decoratedName;
     String undecoratedName;
+    bool publicSymbol;
     bool valid;
 };
 
@@ -61,6 +62,11 @@ public:
     virtual bool isLoading() const
     {
         return false; // Stub
+    }
+
+    virtual bool cancelLoading()
+    {
+        return false;
     }
 
     // Get the symbol at the specified address, will return false if not found.

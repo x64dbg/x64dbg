@@ -37,6 +37,8 @@ public:
 
     virtual bool isLoading() const override;
 
+    virtual bool cancelLoading() override;
+
     virtual bool findSymbolExact(duint rva, SymbolInfo & symInfo) override;
 
     virtual bool findSymbolExactOrLower(duint rva, SymbolInfo & symInfo) override;

@@ -22,9 +22,7 @@ SymbolSourcePDB::~SymbolSourcePDB()
 {
     if(_isLoading)
     {
-        _requiresShutdown = true;
-        if(_loadThread.joinable())
-            _loadThread.join();
+        cancelLoading();
     }
 
     if(_pdb.isOpen())
@@ -67,6 +65,22 @@ bool SymbolSourcePDB::isLoading() const
     return _isLoading;
 }
 
+bool SymbolSourcePDB::cancelLoading()
+{
+    if(!_isLoading)
+        return false;
+    if(_loadThread.joinable())
+    {
+        _requiresShutdown.store(true);
+        _loadThread.join();
+    }
+    else
+    {
+        return false;
+    }
+    return true;
+}
+
 void SymbolSourcePDB::loadPDBAsync()
 {
     bool res = _pdb.enumerateLexicalHierarchy([&](DiaSymbol_t & sym)->bool
@@ -84,9 +98,24 @@ void SymbolSourcePDB::loadPDBAsync()
             symInfo.size = sym.size;
             symInfo.disp = sym.disp;
             symInfo.addr = sym.virtualAddress;
+            symInfo.publicSymbol = sym.publicSymbol;
 
             EnterCriticalSection(&_cs);
-            _sym.insert(std::make_pair(symInfo.addr, symInfo));
+
+            // Check if we already have it inside, private symbols have priority over public symbols.
+            auto it = _sym.find(symInfo.addr);
+            if(it != _sym.end())
+            {
+                if(it->second.publicSymbol == true && symInfo.publicSymbol == false)
+                {
+                    // Replace.
+                    it->second = symInfo;
+                }
+            }
+            else
+            {
+                _sym.insert(std::make_pair(symInfo.addr, symInfo));
+            }
 
             if(_sym.size() % 1000 == 0)
             {
