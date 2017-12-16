@@ -9,6 +9,32 @@
 #include <atomic>
 #include <mutex>
 
+class SpinLock
+{
+private:
+    std::atomic_flag _locked;
+
+public:
+    SpinLock() { _locked.clear(); }
+    void lock()
+    {
+        while(_locked.test_and_set(std::memory_order_acquire)) { ; }
+    }
+    void unlock()
+    {
+        _locked.clear(std::memory_order_release);
+    }
+};
+
+class ScopedSpinLock
+{
+private:
+    SpinLock & _lock;
+public:
+    ScopedSpinLock(SpinLock & lock) : _lock(lock) { _lock.lock(); }
+    ~ScopedSpinLock() { _lock.unlock(); }
+};
+
 class SymbolSourcePDB : public SymbolSourceBase
 {
 private:
@@ -19,8 +45,9 @@ private:
     std::atomic<bool> _isLoading;
     std::atomic<bool> _requiresShutdown;
     std::atomic_flag _isWriting;
-    CRITICAL_SECTION _cs;
+    SpinLock _lock;
     DWORD64 _loadStart;
+    std::atomic_flag _locked;
 
 public:
     static bool isLibraryAvailable()

@@ -2,25 +2,15 @@
 #include "console.h"
 #include "debugger.h"
 
-class ScopedCriticalSection
-{
-private:
-    CRITICAL_SECTION* _cs;
-public:
-    ScopedCriticalSection(CRITICAL_SECTION* cs) : _cs(cs) { EnterCriticalSection(cs); }
-    ~ScopedCriticalSection() { LeaveCriticalSection(_cs); }
-};
-
 SymbolSourcePDB::SymbolSourcePDB()
     : _isLoading(false),
       _requiresShutdown(false)
 {
-    InitializeCriticalSection(&_cs);
 }
 
 SymbolSourcePDB::~SymbolSourcePDB()
 {
-    if(_isLoading)
+    if(_isLoading || _loadThread.joinable())
     {
         cancelLoading();
     }
@@ -29,8 +19,6 @@ SymbolSourcePDB::~SymbolSourcePDB()
     {
         _pdb.close();
     }
-
-    DeleteCriticalSection(&_cs);
 }
 
 bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase)
@@ -67,9 +55,7 @@ bool SymbolSourcePDB::isLoading() const
 
 bool SymbolSourcePDB::cancelLoading()
 {
-    if(!_isLoading)
-        return false;
-    if(_loadThread.joinable())
+    if(_isLoading || _loadThread.joinable())
     {
         _requiresShutdown.store(true);
         _loadThread.join();
@@ -83,6 +69,8 @@ bool SymbolSourcePDB::cancelLoading()
 
 void SymbolSourcePDB::loadPDBAsync()
 {
+    DWORD lastUpdate = 0;
+
     bool res = _pdb.enumerateLexicalHierarchy([&](DiaSymbol_t & sym)->bool
     {
         if(_requiresShutdown)
@@ -100,7 +88,7 @@ void SymbolSourcePDB::loadPDBAsync()
             symInfo.addr = sym.virtualAddress;
             symInfo.publicSymbol = sym.publicSymbol;
 
-            EnterCriticalSection(&_cs);
+            _lock.lock();
 
             // Check if we already have it inside, private symbols have priority over public symbols.
             auto it = _sym.find(symInfo.addr);
@@ -117,11 +105,14 @@ void SymbolSourcePDB::loadPDBAsync()
                 _sym.insert(std::make_pair(symInfo.addr, symInfo));
             }
 
-            if(_sym.size() % 1000 == 0)
+            _lock.unlock();
+
+            DWORD curTick = GetTickCount();
+            if(curTick - lastUpdate > 500)
             {
                 GuiUpdateAllViews();
+                lastUpdate = curTick;
             }
-            LeaveCriticalSection(&_cs);
         }
 
         return true;
@@ -142,7 +133,7 @@ void SymbolSourcePDB::loadPDBAsync()
 
 bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo & symInfo)
 {
-    ScopedCriticalSection lock(&_cs);
+    ScopedSpinLock lock(_lock);
 
     if(SymbolSourceBase::isAddressInvalid(rva))
         return false;
@@ -196,7 +187,7 @@ typename A::iterator findExactOrLower(A & ctr, const B key)
 
 bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
 {
-    ScopedCriticalSection lock(&_cs);
+    ScopedSpinLock lock(_lock);
 
     auto it = findExactOrLower(_sym, rva);
     if(it != _sym.end())
@@ -226,9 +217,15 @@ bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
 
 void SymbolSourcePDB::enumSymbols(const CbEnumSymbol & cbEnum)
 {
-    ScopedCriticalSection lock(&_cs);
+    ScopedSpinLock lock(_lock);
+
     for(auto & it : _sym)
-        if(!cbEnum(it.second))
+    {
+        const SymbolInfo & sym = it.second;
+        if(!cbEnum(sym))
+        {
             break;
+        }
+    }
 }
 
