@@ -21,7 +21,6 @@ private:
 private:
     IDiaDataSource* m_dataSource;
     IDiaSession* m_session;
-    std::vector<DiaSymbol_t> m_symbols;
 
 public:
     PDBDiaFile();
@@ -39,10 +38,6 @@ public:
 
     bool close();
 
-    bool collectSymbols();
-
-    const std::vector<DiaSymbol_t> & getSymbols();
-
     bool getFunctionLineNumbers(DWORD sectionIndex, DWORD offset, ULONGLONG size, uint64_t imageBase, std::map<uint64_t, LineInfo_t> & lines);
 
     bool enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> callback, const bool collectUndecoratedNames);
@@ -51,9 +46,6 @@ public:
 
 private:
     bool testError(HRESULT hr);
-    bool collectSymbols(IDiaSymbol* scope, std::deque<IDiaSymbol*>* scopes);
-    bool collectSymbolsByTag(IDiaSymbol* scope, enum SymTagEnum symTag, std::deque<IDiaSymbol*>* scopes);
-    bool collectSectionContribs();
 
     std::string getSymbolNameString(IDiaSymbol* sym);
     std::string getSymbolUndecoratedNameString(IDiaSymbol* sym);
