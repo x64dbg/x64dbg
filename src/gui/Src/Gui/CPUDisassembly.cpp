@@ -358,7 +358,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addAction(togglePreview, [this, togglePreview](QMenu*)
     {
         togglePreview->setText(mPopupEnabled ? tr("Disable Branch Destination Preview") : tr("Enable Branch Destination Preview"));
-        return true;
+        return false; //hide this menu from the user, but keep the shortcut working
     });
 
     MenuBuilder* labelMenu = new MenuBuilder(this);
@@ -504,11 +504,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("analysis.png"), tr("Analysis")), analysisMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("pdb.png"), tr("Download Symbols for This Module"), SLOT(downloadCurrentSymbolsSlot()), "ActionDownloadSymbol"), [this](QMenu*)
     {
-        char module[MAX_MODULE_SIZE] = "";
-        return DbgGetModuleAt(rvaToVa(getInitialSelection()), module);
+        //only show this action in system modules (generally user modules don't have downloadable symbols)
+        return DbgFunctions()->ModGetParty(rvaToVa(getInitialSelection())) == 1;
     });
     mMenuBuilder->addSeparator();
-
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("compile.png"), tr("Assemble"), SLOT(assembleSlot()), "ActionAssemble"));
     removeAction(mMenuBuilder->addAction(makeShortcutAction(DIcon("patch.png"), tr("Patches"), SLOT(showPatchesSlot()), "ViewPatches"))); //prevent conflicting shortcut with the MainWindow
