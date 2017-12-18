@@ -3,15 +3,15 @@
 #include "debugger.h"
 
 SymbolSourcePDB::SymbolSourcePDB()
-    : _isLoading(false),
-      _requiresShutdown(false),
-      _imageBase(0)
+    : _requiresShutdown(false),
+      _imageBase(0),
+      _loadCounter(0)
 {
 }
 
 SymbolSourcePDB::~SymbolSourcePDB()
 {
-    if(_isLoading || _loadThread.joinable())
+    if(isLoading() || _symbolsThread.joinable() || _sourceLinesThread.joinable())
     {
         cancelLoading();
     }
@@ -22,7 +22,7 @@ SymbolSourcePDB::~SymbolSourcePDB()
     }
 }
 
-bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase)
+bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase, duint imageSize)
 {
     if(!PDBDiaFile::initLibrary())
     {
@@ -33,11 +33,12 @@ bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase)
 #if 1 // Async loading.
     if(res)
     {
+        _imageSize = imageSize;
         _imageBase = imageBase;
-        _isLoading = true;
         _requiresShutdown = false;
-        _loadStart = GetTickCount64();
-        _loadThread = std::thread(&SymbolSourcePDB::loadPDBAsync, this);
+        _loadCounter.store(2);
+        _symbolsThread = std::thread(&SymbolSourcePDB::loadSymbolsAsync, this, path);
+        _sourceLinesThread = std::thread(&SymbolSourcePDB::loadSourceLinesAsync, this, path);
     }
 #endif
     return res;
@@ -50,26 +51,43 @@ bool SymbolSourcePDB::isOpen() const
 
 bool SymbolSourcePDB::isLoading() const
 {
-    return _isLoading;
+    return _loadCounter > 0;
 }
 
 bool SymbolSourcePDB::cancelLoading()
 {
-    if(_isLoading || _loadThread.joinable())
+    _requiresShutdown.store(true);
+    while(_loadCounter > 0)
     {
-        _requiresShutdown.store(true);
-        _loadThread.join();
+        Sleep(1);
     }
-    else
-    {
-        return false;
-    }
+
+    if(_symbolsThread.joinable())
+        _symbolsThread.join();
+
+    if(_sourceLinesThread.joinable())
+        _sourceLinesThread.join();
+
     return true;
 }
 
 void SymbolSourcePDB::loadPDBAsync()
 {
+}
+
+bool SymbolSourcePDB::loadSymbolsAsync(String path)
+{
+    ScopedDecrement ref(_loadCounter);
+
+    PDBDiaFile pdb;
+
+    if(!pdb.open(path.c_str()))
+    {
+        return false;
+    }
+
     DWORD lastUpdate = 0;
+    DWORD loadStart = GetTickCount64();
 
     bool res = _pdb.enumerateLexicalHierarchy([&](DiaSymbol_t & sym)->bool
     {
@@ -89,7 +107,7 @@ void SymbolSourcePDB::loadPDBAsync()
             symInfo.addr = sym.virtualAddress;
             symInfo.publicSymbol = sym.publicSymbol;
 
-            _lock.lock();
+            _lockSymbols.lock();
 
             // Check if we already have it inside, private symbols have priority over public symbols.
             auto it = _sym.find(symInfo.addr);
@@ -106,7 +124,7 @@ void SymbolSourcePDB::loadPDBAsync()
                 _sym.insert(std::make_pair(symInfo.addr, symInfo));
             }
 
-            _lock.unlock();
+            _lockSymbols.unlock();
 
             DWORD curTick = GetTickCount();
             if(curTick - lastUpdate > 500)
@@ -119,22 +137,89 @@ void SymbolSourcePDB::loadPDBAsync()
         return true;
     }, true);
 
-    _isLoading = false;
-
     if(!res)
-        return;
+    {
+        return false;
+    }
 
-    DWORD64 ms = GetTickCount64() - _loadStart;
+    DWORD64 ms = GetTickCount64() - loadStart;
     double secs = (double)ms / 1000.0;
 
     dprintf("Loaded %d symbols in %.03f\n", _sym.size(), secs);
 
     GuiUpdateAllViews();
+
+    return true;
 }
+
+
+bool SymbolSourcePDB::loadSourceLinesAsync(String path)
+{
+    ScopedDecrement ref(_loadCounter);
+
+    PDBDiaFile pdb;
+
+    if(!pdb.open(path.c_str()))
+    {
+        return false;
+    }
+
+    dprintf("Loading Source lines...\n");
+
+    DWORD64 lineLoadStart = GetTickCount64();
+
+    const size_t rangeSize = 1024 * 1024;
+
+    for(duint rva = 0; rva < _imageSize; rva += rangeSize)
+    {
+        if(_requiresShutdown)
+            return false;
+
+        std::map<uint64_t, DiaLineInfo_t> lines;
+
+        bool res = _pdb.getFunctionLineNumbers(rva, rangeSize, _imageBase, lines);
+        for(const auto & line : lines)
+        {
+            if(_requiresShutdown)
+                return false;
+
+            const auto & info = line.second;
+            auto it = _lines.find(info.virtualAddress);
+            if(it != _lines.end())
+                continue;
+
+            LineInfo lineInfo;
+            lineInfo.addr = info.virtualAddress;
+            lineInfo.disp = 0;
+            lineInfo.lineNumber = info.lineNumber;
+            lineInfo.sourceFile = info.fileName;
+
+            _lockLines.lock();
+
+            _lines.insert(std::make_pair(lineInfo.addr, lineInfo));
+
+            _lockLines.unlock();
+        }
+
+    }
+
+    if(_requiresShutdown)
+        return false;
+
+    DWORD64 ms = GetTickCount64() - lineLoadStart;
+    double secs = (double)ms / 1000.0;
+
+    dprintf("Loaded %d line infos in %.03f\n", _lines.size(), secs);
+
+    GuiUpdateAllViews();
+
+    return true;
+}
+
 
 bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo & symInfo)
 {
-    ScopedSpinLock lock(_lock);
+    ScopedSpinLock lock(_lockSymbols);
 
     if(SymbolSourceBase::isAddressInvalid(rva))
         return false;
@@ -145,25 +230,9 @@ bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo & symInfo)
         symInfo = (*it).second;
         return true;
     }
-    /*
-    DiaSymbol_t sym;
 
-    if (_pdb.findSymbolRVA(rva, sym) && sym.disp == 0)
-    {
-        symInfo.addr = rva;
-        symInfo.disp = 0;
-        symInfo.size = sym.size;
-        symInfo.decoratedName = sym.undecoratedName;
-        symInfo.undecoratedName = sym.undecoratedName;
-        symInfo.valid = true;
-
-        _symbols.insert(rva, symInfo);
-
-        return true;
-    }
-    */
 #if 1
-    if(_isLoading == false)
+    if(isLoading() == false)
         markAdressInvalid(rva);
 #endif
 
@@ -188,7 +257,7 @@ typename A::iterator findExactOrLower(A & ctr, const B key)
 
 bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
 {
-    ScopedSpinLock lock(_lock);
+    ScopedSpinLock lock(_lockSymbols);
 
     auto it = findExactOrLower(_sym, rva);
     if(it != _sym.end())
@@ -198,27 +267,12 @@ bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
         return true;
     }
 
-    /*
-    DiaSymbol_t sym;
-    if (_pdb.findSymbolRVA(rva, sym))
-    {
-        symInfo.addr = rva;
-        symInfo.disp = sym.disp;
-        symInfo.size = sym.size;
-        symInfo.decoratedName = sym.undecoratedName;
-        symInfo.undecoratedName = sym.undecoratedName;
-        symInfo.valid = true;
-
-        return true;
-    }
-    */
-
     return nullptr;
 }
 
 void SymbolSourcePDB::enumSymbols(const CbEnumSymbol & cbEnum)
 {
-    ScopedSpinLock lock(_lock);
+    ScopedSpinLock lock(_lockSymbols);
 
     for(auto & it : _sym)
     {
@@ -235,36 +289,12 @@ bool SymbolSourcePDB::findSourceLineInfo(duint rva, LineInfo & lineInfo)
     if(isOpen() == false)
         return false;
 
-    std::map<uint64_t, DiaLineInfo_t> lines;
+    ScopedSpinLock lock(_lockLines);
 
-    bool res = false;
-
-    bool requiresLock = isLoading();
-    if(requiresLock)
-        _lock.lock();
-
-    res = _pdb.getFunctionLineNumbers(rva, 1, 0, lines);
-
-    if(requiresLock)
-        _lock.unlock();
-
-    if(!res)
-        return res;
-
-    if(lines.empty())
+    auto it = _lines.find(rva);
+    if(it == _lines.end())
         return false;
 
-    // Unhandled case, requires refactoring to query ranges instead of single lines.
-    if(lines.size() > 1)
-    {
-        return false;
-    }
-
-    const auto & info = (*lines.begin()).second;
-    lineInfo.addr = info.virtualAddress;
-    lineInfo.sourceFile = info.fileName;
-    lineInfo.lineNumber = info.lineNumber;
-    lineInfo.disp = rva - info.virtualAddress;
-
+    lineInfo = it->second;
     return true;
 }

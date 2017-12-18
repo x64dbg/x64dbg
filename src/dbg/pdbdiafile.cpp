@@ -50,6 +50,8 @@ PDBDiaFile::PDBDiaFile() :
 
 PDBDiaFile::~PDBDiaFile()
 {
+    if(isOpen())
+        close();
 }
 
 bool PDBDiaFile::initLibrary()

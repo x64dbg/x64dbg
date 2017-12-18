@@ -37,18 +37,27 @@ public:
 
 class SymbolSourcePDB : public SymbolSourceBase
 {
+    struct ScopedDecrement
+    {
+    private:
+        std::atomic<duint> & _counter;
+    public:
+        ScopedDecrement(std::atomic<duint> & counter) : _counter(counter) {}
+        ~ScopedDecrement() { _counter--; }
+    };
+
 private:
     PDBDiaFile _pdb;
-    SortedLRU<duint, SymbolInfo> _symbols;
     std::map<duint, SymbolInfo> _sym;
-    std::thread _loadThread;
-    std::atomic<bool> _isLoading;
+    std::map<duint, LineInfo> _lines;
+    std::thread _symbolsThread;
+    std::thread _sourceLinesThread;
     std::atomic<bool> _requiresShutdown;
-    std::atomic_flag _isWriting;
+    std::atomic<duint> _loadCounter;
     duint _imageBase;
-    SpinLock _lock;
-    DWORD64 _loadStart;
-    std::atomic_flag _locked;
+    duint _imageSize;
+    SpinLock _lockSymbols;
+    SpinLock _lockLines;
 
 public:
     static bool isLibraryAvailable()
@@ -76,10 +85,12 @@ public:
     virtual bool findSourceLineInfo(duint rva, LineInfo & lineInfo) override;
 
 public:
-    bool loadPDB(const std::string & path, duint imageBase);
+    bool loadPDB(const std::string & path, duint imageBase, duint imageSize);
 
 private:
     void loadPDBAsync();
+    bool loadSymbolsAsync(String path);
+    bool loadSourceLinesAsync(String path);
 };
 
 #endif // _SYMBOLSOURCEPDB_H_

@@ -286,7 +286,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
             SymbolSourcePDB::isLibraryAvailable())
     {
         SymbolSourcePDB* symSource = new SymbolSourcePDB();
-        if(symSource->loadPDB(info.path, Base))
+        if(symSource->loadPDB(info.path, Base, info.size))
         {
             symSource->resizeSymbolBitmap(info.size);
 
