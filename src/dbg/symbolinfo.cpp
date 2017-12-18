@@ -321,7 +321,7 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* disp)
         return false;
 
     if(disp)
-        *disp = 0;
+        *disp = lineInfo.disp;
 
     if(Line)
         *Line = lineInfo.lineNumber;

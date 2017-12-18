@@ -247,9 +247,10 @@ bool SymbolSourcePDB::findSourceLineInfo(duint rva, LineInfo & lineInfo)
     }
 
     const auto & info = (*lines.begin()).second;
-    lineInfo.addr = rva;
+    lineInfo.addr = info.virtualAddress;
     lineInfo.sourceFile = info.fileName;
     lineInfo.lineNumber = info.lineNumber;
+    lineInfo.disp = rva - info.virtualAddress;
 
     return true;
 }

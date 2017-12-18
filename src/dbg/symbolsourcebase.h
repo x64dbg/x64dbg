@@ -22,6 +22,7 @@ struct LineInfo
 {
     duint addr;
     duint size;
+    duint disp;
     int lineNumber;
     String sourceFile;
 };
