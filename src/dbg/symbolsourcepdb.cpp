@@ -232,10 +232,24 @@ void SymbolSourcePDB::enumSymbols(const CbEnumSymbol & cbEnum)
 
 bool SymbolSourcePDB::findSourceLineInfo(duint rva, LineInfo & lineInfo)
 {
+    if(isOpen() == false)
+        return false;
+
     std::map<uint64_t, DiaLineInfo_t> lines;
 
-    if(!_pdb.getFunctionLineNumbers(rva, 1, 0, lines))
-        return false;
+    bool res = false;
+
+    bool requiresLock = isLoading();
+    if(requiresLock)
+        _lock.lock();
+
+    res = _pdb.getFunctionLineNumbers(rva, 1, 0, lines);
+
+    if(requiresLock)
+        _lock.unlock();
+
+    if(!res)
+        return res;
 
     if(lines.empty())
         return false;
