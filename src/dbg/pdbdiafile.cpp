@@ -255,22 +255,27 @@ bool PDBDiaFile::getFunctionLineNumbers(DWORD rva, ULONGLONG size, uint64_t imag
     DWORD relativeVirtualAddress = 0;
     DWORD lineNumberEnd = 0;
 
-    ScopedDiaType<IDiaEnumLineNumbers> lineNumbers;
-    hr = m_session->findLinesByRVA(rva, static_cast<DWORD>(size), lineNumbers.ref());
+    ScopedDiaType<IDiaEnumLineNumbers> lineNumbersEnum;
+    hr = m_session->findLinesByRVA(rva, static_cast<DWORD>(size), lineNumbersEnum.ref());
     if(!SUCCEEDED(hr))
         return false;
 
     LONG lineCount = 0;
-    hr = lineNumbers->get_Count(&lineCount);
+    hr = lineNumbersEnum->get_Count(&lineCount);
     if(!SUCCEEDED(hr))
         return false;
 
-    for(LONG n = 0; n < lineCount; n++)
+    if(lineCount == 0)
+        return true;
+
+    std::vector<IDiaLineNumber*> lineNumbers;
+    lineNumbers.resize(lineCount);
+
+    ULONG fetched = 0;
+    hr = lineNumbersEnum->Next(lineCount, lineNumbers.data(), &fetched);
+    for(LONG n = 0; n < fetched; n++)
     {
-        ScopedDiaType<IDiaLineNumber> lineNumberInfo;
-        hr = lineNumbers->Item(n, lineNumberInfo.ref());
-        if(!SUCCEEDED(hr))
-            continue;
+        ScopedDiaType<IDiaLineNumber> lineNumberInfo(lineNumbers[n]);
 
         ScopedDiaType<IDiaSourceFile> sourceFile;
         hr = lineNumberInfo->get_sourceFile(sourceFile.ref());
