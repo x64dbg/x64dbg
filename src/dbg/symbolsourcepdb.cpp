@@ -152,7 +152,6 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
     return true;
 }
 
-
 bool SymbolSourcePDB::loadSourceLinesAsync(String path)
 {
     ScopedDecrement ref(_loadCounter);
@@ -188,15 +187,36 @@ bool SymbolSourcePDB::loadSourceLinesAsync(String path)
             if(it != _lines.end())
                 continue;
 
-            LineInfo lineInfo;
-            lineInfo.addr = info.virtualAddress;
-            lineInfo.disp = 0;
+            CachedLineInfo lineInfo;
+            lineInfo.rva = info.virtualAddress;
             lineInfo.lineNumber = info.lineNumber;
-            lineInfo.sourceFile = info.fileName;
+
+            uint32_t idx = -1;
+            for(uint32_t n = 0; n < _sourceFiles.size(); n++)
+            {
+                const String & str = _sourceFiles[n];
+                size_t size = str.size();
+                if(size != info.fileName.size())
+                    continue;
+                if(str[0] != info.fileName[0])
+                    continue;
+                if(str[size - 1] != info.fileName[size - 1])
+                    continue;
+                if(str != info.fileName)
+                    continue;
+                idx = n;
+                break;
+            }
+            if(idx == -1)
+            {
+                idx = _sourceFiles.size();
+                _sourceFiles.push_back(info.fileName);
+            }
+            lineInfo.sourceFileIdx = idx;
 
             _lockLines.lock();
 
-            _lines.insert(std::make_pair(lineInfo.addr, lineInfo));
+            _lines.insert(std::make_pair(lineInfo.rva, lineInfo));
 
             _lockLines.unlock();
         }
@@ -215,7 +235,6 @@ bool SymbolSourcePDB::loadSourceLinesAsync(String path)
 
     return true;
 }
-
 
 bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo & symInfo)
 {
@@ -292,9 +311,15 @@ bool SymbolSourcePDB::findSourceLineInfo(duint rva, LineInfo & lineInfo)
     ScopedSpinLock lock(_lockLines);
 
     auto it = _lines.find(rva);
-    if(it == _lines.end())
-        return false;
+    if(it != _lines.end())
+    {
+        const CachedLineInfo & cached = it->second;
+        lineInfo.lineNumber = cached.lineNumber;
+        lineInfo.disp = 0;
+        lineInfo.size = 0;
+        lineInfo.sourceFile = _sourceFiles[cached.sourceFileIdx];
+        return true;
+    }
 
-    lineInfo = it->second;
-    return true;
+    return false;
 }

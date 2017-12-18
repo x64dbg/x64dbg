@@ -37,6 +37,13 @@ public:
 
 class SymbolSourcePDB : public SymbolSourceBase
 {
+    struct CachedLineInfo
+    {
+        uint32 rva;
+        uint32 lineNumber;
+        uint32 sourceFileIdx;
+    };
+
     struct ScopedDecrement
     {
     private:
@@ -49,11 +56,12 @@ class SymbolSourcePDB : public SymbolSourceBase
 private:
     PDBDiaFile _pdb;
     std::map<duint, SymbolInfo> _sym;
-    std::map<duint, LineInfo> _lines;
+    std::map<duint, CachedLineInfo> _lines;
     std::thread _symbolsThread;
     std::thread _sourceLinesThread;
     std::atomic<bool> _requiresShutdown;
     std::atomic<duint> _loadCounter;
+    std::vector<String> _sourceFiles;
     duint _imageBase;
     duint _imageSize;
     SpinLock _lockSymbols;
