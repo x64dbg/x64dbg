@@ -73,7 +73,7 @@ struct DiaSymbol_t
     std::string undecoratedName;
 };
 
-struct LineInfo_t
+struct DiaLineInfo_t
 {
     std::string fileName;
     DWORD lineNumber;

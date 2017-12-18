@@ -248,69 +248,72 @@ std::string PDBDiaFile::getSymbolUndecoratedNameString(IDiaSymbol* sym)
     return result;
 }
 
-bool PDBDiaFile::getFunctionLineNumbers(DWORD segment, DWORD offset, ULONGLONG size, uint64_t imageBase, std::map<uint64_t, LineInfo_t> & lines)
+bool PDBDiaFile::getFunctionLineNumbers(DWORD rva, ULONGLONG size, uint64_t imageBase, std::map<uint64_t, DiaLineInfo_t> & lines)
 {
     HRESULT hr;
-    IDiaEnumLineNumbers* lineNumbers = nullptr;
-    IDiaLineNumber* lineNumberInfo = nullptr;
-    IDiaSourceFile* sourceFile = nullptr;
-    ULONG fetched = 0;
     DWORD lineNumber = 0;
     DWORD relativeVirtualAddress = 0;
     DWORD lineNumberEnd = 0;
 
-    if(segment != 0 && offset != 0 && size > 0)
+    ScopedDiaType<IDiaEnumLineNumbers> lineNumbers;
+    hr = m_session->findLinesByRVA(rva, static_cast<DWORD>(size), lineNumbers.ref());
+    if(!SUCCEEDED(hr))
+        return false;
+
+    LONG lineCount = 0;
+    hr = lineNumbers->get_Count(&lineCount);
+    if(!SUCCEEDED(hr))
+        return false;
+
+    for(LONG n = 0; n < lineCount; n++)
     {
-        hr = m_session->findLinesByAddr(segment, offset, static_cast<DWORD>(size), &lineNumbers);
+        ScopedDiaType<IDiaLineNumber> lineNumberInfo;
+        hr = lineNumbers->Item(n, lineNumberInfo.ref());
         if(!SUCCEEDED(hr))
-            return false;
+            continue;
 
-        LONG lineCount = 0;
-        hr = lineNumbers->get_Count(&lineCount);
+        ScopedDiaType<IDiaSourceFile> sourceFile;
+        hr = lineNumberInfo->get_sourceFile(sourceFile.ref());
         if(!SUCCEEDED(hr))
-            return false;
+            continue;
 
-        for(LONG n = 0; n < lineCount; n++)
-        {
-            hr = lineNumbers->Item(n, &lineNumberInfo);
-            if(!SUCCEEDED(hr))
-                continue;
+        hr = lineNumberInfo->get_lineNumber(&lineNumber);
+        if(!SUCCEEDED(hr))
+            continue;
 
-            hr = lineNumberInfo->get_sourceFile(&sourceFile);
-            if(!SUCCEEDED(hr))
-                continue;
+        hr = lineNumberInfo->get_relativeVirtualAddress(&relativeVirtualAddress);
+        if(!SUCCEEDED(hr))
+            continue;
 
-            hr = lineNumberInfo->get_lineNumber(&lineNumber);
-            if(!SUCCEEDED(hr))
-                continue;
+        hr = lineNumberInfo->get_lineNumberEnd(&lineNumberEnd);
+        if(!SUCCEEDED(hr))
+            continue;
 
-            hr = lineNumberInfo->get_relativeVirtualAddress(&relativeVirtualAddress);
-            if(!SUCCEEDED(hr))
-                continue;
+        DWORD segment = -1;
+        hr = lineNumberInfo->get_addressSection(&segment);
+        if(!SUCCEEDED(hr))
+            continue;
 
-            hr = lineNumberInfo->get_lineNumberEnd(&lineNumberEnd);
-            if(!SUCCEEDED(hr))
-                continue;
+        DWORD offset = -1;
+        hr = lineNumberInfo->get_addressOffset(&offset);
+        if(!SUCCEEDED(hr))
+            continue;
 
-            BSTR fileName = nullptr;
-            hr = sourceFile->get_fileName(&fileName);
-            if(!SUCCEEDED(hr))
-                continue;
+        BSTR fileName = nullptr;
+        hr = sourceFile->get_fileName(&fileName);
+        if(!SUCCEEDED(hr))
+            continue;
 
-            LineInfo_t lineInfo;
-            lineInfo.fileName = StringUtils::Utf16ToUtf8(fileName);
-            lineInfo.lineNumber = lineNumber;
-            lineInfo.offset = 0;
-            lineInfo.segment = segment;
-            lineInfo.virtualAddress = imageBase + relativeVirtualAddress;
+        DiaLineInfo_t lineInfo;
+        lineInfo.fileName = StringUtils::Utf16ToUtf8(fileName);
+        lineInfo.lineNumber = lineNumber;
+        lineInfo.offset = offset;
+        lineInfo.segment = segment;
+        lineInfo.virtualAddress = relativeVirtualAddress;
 
-            lines.emplace(lineInfo.virtualAddress, lineInfo);
+        lines.emplace(lineInfo.virtualAddress, lineInfo);
 
-            sourceFile->Release();
-            lineNumberInfo->Release();
-        }
-
-        lineNumbers->Release();
+        SysFreeString(fileName);
     }
 
     return true;

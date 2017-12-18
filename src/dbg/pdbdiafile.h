@@ -38,7 +38,7 @@ public:
 
     bool close();
 
-    bool getFunctionLineNumbers(DWORD sectionIndex, DWORD offset, ULONGLONG size, uint64_t imageBase, std::map<uint64_t, LineInfo_t> & lines);
+    bool getFunctionLineNumbers(DWORD rva, ULONGLONG size, uint64_t imageBase, std::map<uint64_t, DiaLineInfo_t> & lines);
 
     bool enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> callback, const bool collectUndecoratedNames);
 
