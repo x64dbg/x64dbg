@@ -41,6 +41,7 @@ public:
     ReferenceManager* referenceManager = nullptr;
     QWidget* snowmanView = nullptr;
     bool mIsRunning = false;
+    duint mLastCip = 0;
 
 signals:
     void disassembleAt(dsint va, dsint eip);

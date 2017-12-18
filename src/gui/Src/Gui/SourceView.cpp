@@ -23,9 +23,6 @@ SourceView::SourceView(QString path, int line, QWidget* parent)
 
     loadFile();
     setSelection(line);
-    auto cip = DbgValFromString("cip");
-    mList->disassembleAtSlot(0, cip);
-    mSearchList->disassembleAtSlot(0, cip);
 
     mMenuBuilder = new MenuBuilder(this);
     mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open source file"), SLOT(openSourceFileSlot())));
