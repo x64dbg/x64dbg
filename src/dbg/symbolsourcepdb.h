@@ -45,6 +45,7 @@ private:
     std::atomic<bool> _isLoading;
     std::atomic<bool> _requiresShutdown;
     std::atomic_flag _isWriting;
+    duint _imageBase;
     SpinLock _lock;
     DWORD64 _loadStart;
     std::atomic_flag _locked;
@@ -71,6 +72,8 @@ public:
     virtual bool findSymbolExactOrLower(duint rva, SymbolInfo & symInfo) override;
 
     virtual void enumSymbols(const CbEnumSymbol & cbEnum) override;
+
+    virtual bool findSourceLineInfo(duint rva, LineInfo & lineInfo) override;
 
 public:
     bool loadPDB(const std::string & path, duint imageBase);

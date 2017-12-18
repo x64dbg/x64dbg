@@ -4,7 +4,8 @@
 
 SymbolSourcePDB::SymbolSourcePDB()
     : _isLoading(false),
-      _requiresShutdown(false)
+      _requiresShutdown(false),
+      _imageBase(0)
 {
 }
 
@@ -28,19 +29,18 @@ bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase)
         return false;
     }
 
-#if 1
     bool res = _pdb.open(path.c_str());
+#if 1 // Async loading.
     if(res)
     {
+        _imageBase = imageBase;
         _isLoading = true;
         _requiresShutdown = false;
         _loadStart = GetTickCount64();
         _loadThread = std::thread(&SymbolSourcePDB::loadPDBAsync, this);
     }
-    return res;
-#else
-    return _pdb.open(path.c_str());
 #endif
+    return res;
 }
 
 bool SymbolSourcePDB::isOpen() const
@@ -230,3 +230,26 @@ void SymbolSourcePDB::enumSymbols(const CbEnumSymbol & cbEnum)
     }
 }
 
+bool SymbolSourcePDB::findSourceLineInfo(duint rva, LineInfo & lineInfo)
+{
+    std::map<uint64_t, DiaLineInfo_t> lines;
+
+    if(!_pdb.getFunctionLineNumbers(rva, 1, 0, lines))
+        return false;
+
+    if(lines.empty())
+        return false;
+
+    // Unhandled case, requires refactoring to query ranges instead of single lines.
+    if(lines.size() > 1)
+    {
+        return false;
+    }
+
+    const auto & info = (*lines.begin()).second;
+    lineInfo.addr = rva;
+    lineInfo.sourceFile = info.fileName;
+    lineInfo.lineNumber = info.lineNumber;
+
+    return true;
+}

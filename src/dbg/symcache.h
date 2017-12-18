@@ -4,14 +4,6 @@
 
 #include "symbolsourcebase.h"
 
-struct LineInfo
-{
-    duint addr;
-    duint size;
-    int lineNumber;
-    String sourceFile;
-};
-
 bool SymbolFromAddressExact(duint address, SymbolInfo & symInfo);
 bool SymbolFromAddressExactOrLower(duint address, SymbolInfo & symInfo);
 

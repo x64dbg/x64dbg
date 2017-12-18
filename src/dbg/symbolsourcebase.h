@@ -18,6 +18,14 @@ struct SymbolInfo
     bool valid;
 };
 
+struct LineInfo
+{
+    duint addr;
+    duint size;
+    int lineNumber;
+    String sourceFile;
+};
+
 using CbEnumSymbol = std::function<bool(const SymbolInfo &)>;
 
 class SymbolSourceBase
@@ -84,6 +92,11 @@ public:
     virtual void enumSymbols(const CbEnumSymbol & cbEnum)
     {
         // Stub
+    }
+
+    virtual bool findSourceLineInfo(duint rva, LineInfo & lineInfo)
+    {
+        return false; // Stub
     }
 };
 
