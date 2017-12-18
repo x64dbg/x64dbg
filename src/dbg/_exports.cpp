@@ -329,18 +329,17 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
         {
             String comment;
             DWORD dwDisplacement;
-            IMAGEHLP_LINEW64 line;
-            line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-            if(!bNoSourceLineAutoComments && SafeSymGetLineFromAddrW64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) && !dwDisplacement)
+            char fileName[MAX_STRING_SIZE] = {};
+            int lineNumber = 0;
+            if(!bNoSourceLineAutoComments && SymGetSourceLine(addr, fileName, &lineNumber, &dwDisplacement) && !dwDisplacement)
             {
-                wchar_t filename[deflen] = L"";
-                wcsncpy_s(filename, line.FileName, _TRUNCATE);
-                auto len = wcslen(filename);
-                while(filename[len] != L'\\' && len != 0)
-                    len--;
-                if(len)
-                    len++;
-                comment = StringUtils::sprintf("%s:%u", StringUtils::Utf16ToUtf8(filename + len).c_str(), line.LineNumber);
+
+                char* actualName = fileName;
+                char* l = strrchr(fileName, '\\');
+                if(l)
+                    actualName = l + 1;
+
+                comment = StringUtils::sprintf("%s:%u", actualName, lineNumber);
                 retval = true;
             }
 
