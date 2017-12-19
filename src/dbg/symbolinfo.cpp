@@ -79,10 +79,9 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
                         return true;
                 }
 
-                // Convert a mangled/decorated C++ name to a readable format
-                if(info.decoratedName == info.undecoratedName)
+                // Don't show duplicated decorated/undecorated names
+                if(info.undecoratedName.empty() || info.decoratedName == info.undecoratedName)
                 {
-                    curSymbol.decoratedSymbol = curSymbol.undecoratedSymbol;
                     curSymbol.undecoratedSymbol = nullptr;
                 }
 

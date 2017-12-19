@@ -305,9 +305,17 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
     {
         symbolList->setCellContent(index, 2, symbol->decoratedSymbol);
     }
+    else
+    {
+        symbolList->setCellContent(index, 2, QString());
+    }
     if(symbol->undecoratedSymbol)
     {
         symbolList->setCellContent(index, 3, symbol->undecoratedSymbol);
+    }
+    else
+    {
+        symbolList->setCellContent(index, 3, QString());
     }
 
     if(symbol->isImported)
