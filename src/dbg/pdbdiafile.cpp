@@ -363,7 +363,7 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
         hr = globalScope->findChildren(SymTagCompiland, nullptr, nsNone, enumSymbols.ref());
         if(hr == S_OK)
         {
-            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
                 if(!enumerateCompilandScope(sym, context))
@@ -381,7 +381,7 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
         hr = globalScope->findChildren(SymTagPublicSymbol, nullptr, nsNone, enumSymbols.ref());
         if(hr == S_OK)
         {
-            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 if(convertSymbolInfo(symbol, symbolInfo, context))
                 {
@@ -402,7 +402,7 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
         hr = globalScope->findChildren(SymTagFunction, nullptr, nsNone, enumSymbols.ref());
         if(hr == S_OK)
         {
-            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
                 if(convertSymbolInfo(sym, symbolInfo, context))
@@ -423,7 +423,7 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
         hr = globalScope->findChildren(SymTagData, nullptr, nsNone, enumSymbols.ref());
         if(hr == S_OK)
         {
-            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
                 if(convertSymbolInfo(sym, symbolInfo, context))
@@ -467,33 +467,28 @@ bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolTyp
         break;
     }
 
-    bool res = false;
-
     long disp = 0;
     hr = m_session->findSymbolByRVAEx(address, tag, &symbol, &disp);
-    if(hr == S_OK)
-    {
-        ScopedDiaSymbol scopedSym(symbol);
+    if(hr != S_OK)
+        return false;
 
-        sym.disp = disp;
+    ScopedDiaSymbol scopedSym(symbol);
 
-        InternalQueryContext_t context;
-        context.collectSize = true;
-        context.collectUndecoratedNames = true;
+    sym.disp = disp;
 
-        if(!convertSymbolInfo(scopedSym, sym, context))
-            res = false;
-        else
-            res = true;
-    }
+    InternalQueryContext_t context;
+    context.collectSize = true;
+    context.collectUndecoratedNames = true;
 
-    return res;
+    if(!convertSymbolInfo(scopedSym, sym, context))
+        return false;
+
+    return true;
 }
 
 bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, InternalQueryContext_t & context)
 {
     IDiaSymbol* symbol = nullptr;
-    bool res = true;
     ULONG celt = 0;
     HRESULT hr;
     DWORD symTagType;
@@ -508,7 +503,7 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, InternalQueryCon
         hr = compiland->findChildren(SymTagFunction, nullptr, nsNone, enumSymbols.ref());
         if(hr == S_OK)
         {
-            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
 
@@ -532,7 +527,7 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, InternalQueryCon
         hr = compiland->findChildren(SymTagData, nullptr, nsNone, enumSymbols.ref());
         if(hr == S_OK)
         {
-            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
 
@@ -613,7 +608,6 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryCon
     ULONG celt = 0;
     HRESULT hr;
     DWORD symTagType;
-    bool res = true;
 
     uint32_t symId = getSymbolId(functionSym);
     if(context.visited.find(symId) != context.visited.end())
@@ -636,7 +630,7 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryCon
         hr = functionSym->findChildren(SymTagData, nullptr, nsNone, enumSymbols.ref());
         if(hr == S_OK)
         {
-            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
 
@@ -664,7 +658,7 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryCon
         hr = functionSym->findChildren(SymTagBlock, nullptr, nsNone, enumSymbols.ref());
         if(hr == S_OK)
         {
-            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
 
@@ -689,7 +683,7 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryCon
         hr = functionSym->findChildren(SymTagLabel, nullptr, nsNone, enumSymbols.ref());
         if(hr == S_OK)
         {
-            while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
 
@@ -797,8 +791,7 @@ bool PDBDiaFile::resolveSymbolSize(IDiaSymbol* symbol, uint64_t & size, uint32_t
         }
 
     }
-    else if(symTag == SymTagPublicSymbol ||
-            symTag == SymTagFunction ||
+    else if(symTag == SymTagFunction ||
             symTag == SymTagBlock)
     {
         hr = symbol->get_length(&tempSize);
