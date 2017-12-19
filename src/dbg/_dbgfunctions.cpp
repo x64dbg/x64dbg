@@ -290,8 +290,8 @@ static bool _gethandlename(duint handle, char* name, size_t nameSize, char* type
     String typeNameS;
     if(!HandlesGetName(fdProcessInfo->hProcess, HANDLE(handle), nameS, typeNameS))
         return false;
-    strcpy_s(name, nameSize, nameS.c_str());
-    strcpy_s(typeName, typeNameSize, typeNameS.c_str());
+    strncpy_s(name, nameSize, nameS.c_str(), _TRUNCATE);
+    strncpy_s(typeName, typeNameSize, typeNameS.c_str(), _TRUNCATE);
     return true;
 }
 

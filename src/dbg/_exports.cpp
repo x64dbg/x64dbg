@@ -202,7 +202,7 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
             //auto name = demanglePE32ExternCFunc(symInfo.decoratedName.c_str());
             if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(symInfo.decoratedName.c_str(), label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
             {
-                strcpy_s(label, MAX_LABEL_SIZE, symInfo.decoratedName.c_str());
+                strncpy_s(label, MAX_LABEL_SIZE, symInfo.decoratedName.c_str(), _TRUNCATE);
             }
             retval = !shouldFilterSymbol(label);
             if(retval && displacement)

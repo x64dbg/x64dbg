@@ -327,7 +327,7 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* disp)
         *Line = lineInfo.lineNumber;
 
     if(FileName)
-        strcpy_s(FileName, MAX_STRING_SIZE, lineInfo.sourceFile.c_str());
+        strncpy_s(FileName, MAX_STRING_SIZE, lineInfo.sourceFile.c_str(), _TRUNCATE);
 
     return true;
 }
