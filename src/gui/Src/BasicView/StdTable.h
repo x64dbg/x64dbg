@@ -11,11 +11,11 @@ public:
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void reloadData();
 
-    void mouseMoveEvent(QMouseEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
-    void keyPressEvent(QKeyEvent* event);
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
     void enableMultiSelection(bool enabled);
     void enableColumnSorting(bool enabled);
@@ -37,10 +37,19 @@ public:
     bool isSelected(int base, int offset);
     bool scrollSelect(int offset);
 
+    // Sorting
+    struct SortBy
+    {
+        typedef std::function<bool(const QString &, const QString &)> t;
+        static bool AsText(const QString & a, const QString & b);
+        static bool AsInt(const QString & a, const QString & b);
+        static bool AsHex(const QString & a, const QString & b);
+    };
+
     // Data Management
     void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "", SortBy::t sortFn = SortBy::AsText);
-    void setRowCount(int count);
-    void deleteAllColumns();
+    void deleteAllColumns() override;
+    void setRowCount(dsint count) override;
     void setCellContent(int r, int c, QString s);
     QString getCellContent(int r, int c);
     void setCellUserdata(int r, int c, duint userdata);
@@ -120,6 +129,7 @@ protected:
     bool mIsColumnSortingAllowed;
 
     std::vector<std::vector<CellData>> mData; //listof(row) where row = (listof(col) where col = string)
+    std::vector<SortBy::t> mColumnSortFunctions;
     std::vector<QString> mCopyTitles;
     QPair<int, bool> mSort;
 };

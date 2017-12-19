@@ -412,11 +412,42 @@ bool StdTable::scrollSelect(int offset)
 }
 
 /************************************************************************************
+                                   Sorting
+************************************************************************************/
+bool StdTable::SortBy::AsText(const QString & a, const QString & b)
+{
+    auto i = QString::compare(a, b);
+    if(i < 0)
+        return true;
+    if(i > 0)
+        return false;
+    return duint(&a) < duint(&b);
+}
+
+bool StdTable::SortBy::AsInt(const QString & a, const QString & b)
+{
+    if(a.toLongLong() < b.toLongLong())
+        return true;
+    if(a.toLongLong() > b.toLongLong())
+        return false;
+    return duint(&a) < duint(&b);
+}
+
+bool StdTable::SortBy::AsHex(const QString & a, const QString & b)
+{
+    if(a.toLongLong(0, 16) < b.toLongLong(0, 16))
+        return true;
+    if(a.toLongLong(0, 16) > b.toLongLong(0, 16))
+        return false;
+    return duint(&a) < duint(&b);
+}
+
+/************************************************************************************
                                 Data Management
 ************************************************************************************/
 void StdTable::addColumnAt(int width, QString title, bool isClickable, QString copyTitle, SortBy::t sortFn)
 {
-    AbstractTableView::addColumnAt(width, title, isClickable, sortFn);
+    AbstractTableView::addColumnAt(width, title, isClickable);
 
     //append empty column to list of rows
     for(size_t i = 0; i < mData.size(); i++)
@@ -427,9 +458,20 @@ void StdTable::addColumnAt(int width, QString title, bool isClickable, QString c
         mCopyTitles.push_back(title);
     else
         mCopyTitles.push_back(copyTitle);
+
+    //append column sort function
+    mColumnSortFunctions.push_back(sortFn);
 }
 
-void StdTable::setRowCount(int count)
+void StdTable::deleteAllColumns()
+{
+    setRowCount(0);
+    AbstractTableView::deleteAllColumns();
+    mCopyTitles.clear();
+    mColumnSortFunctions.clear();
+}
+
+void StdTable::setRowCount(dsint count)
 {
     int wRowToAddOrRemove = count - int(mData.size());
     for(int i = 0; i < qAbs(wRowToAddOrRemove); i++)
@@ -444,13 +486,6 @@ void StdTable::setRowCount(int count)
             mData.pop_back();
     }
     AbstractTableView::setRowCount(count);
-}
-
-void StdTable::deleteAllColumns()
-{
-    setRowCount(0);
-    AbstractTableView::deleteAllColumns();
-    mCopyTitles.clear();
 }
 
 void StdTable::setCellContent(int r, int c, QString s)
@@ -776,7 +811,7 @@ void StdTable::reloadData()
 {
     if(mSort.first != -1) //re-sort if the user wants to sort
     {
-        auto sortFn = getColumnSortBy(mSort.first);
+        auto sortFn = mColumnSortFunctions.at(mSort.first);
         std::stable_sort(mData.begin(), mData.end(), [this, &sortFn](const std::vector<CellData> & a, const std::vector<CellData> & b)
         {
             auto less = sortFn(a.at(mSort.first).text, b.at(mSort.first).text);

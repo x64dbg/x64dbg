@@ -1009,10 +1009,9 @@ int AbstractTableView::getLineToPrintcount()
  *
  * @param[in]   width           Width of the column in pixel
  * @param[in]   isClickable     Boolean that tells whether the header is clickable or not
- * @param[in]   sortFn          The sort function to use for this column. Defaults to case insensitve text search
  * @return      Nothing.
  */
-void AbstractTableView::addColumnAt(int width, const QString & title, bool isClickable, SortBy::t sortFn)
+void AbstractTableView::addColumnAt(int width, const QString & title, bool isClickable)
 {
     HeaderButton_t wHeaderButton;
     Column_t wColumn;
@@ -1030,7 +1029,6 @@ void AbstractTableView::addColumnAt(int width, const QString & title, bool isCli
     wColumn.width = width;
     wColumn.hidden = false;
     wColumn.title = title;
-    wColumn.sortFunction = sortFn;
     wCurrentCount = mColumnList.length();
     mColumnList.append(wColumn);
     mColumnOrder.append(wCurrentCount);
@@ -1102,13 +1100,6 @@ bool AbstractTableView::getColumnHidden(int col)
         return mColumnList[col].hidden;
     else
         return true;
-}
-
-AbstractTableView::SortBy::t AbstractTableView::getColumnSortBy(int col) const
-{
-    if(col < getColumnCount() && col >= 0)
-        return mColumnList[col].sortFunction;
-    return SortBy::AsText;
 }
 
 void AbstractTableView::setColumnHidden(int col, bool hidden)
@@ -1253,32 +1244,4 @@ void AbstractTableView::prepareData()
     int wViewableRowsCount = getViewableRowsCount();
     dsint wRemainingRowsCount = getRowCount() - mTableOffset;
     mNbrOfLineToPrint = (dsint)wRemainingRowsCount > (dsint)wViewableRowsCount ? (int)wViewableRowsCount : (int)wRemainingRowsCount;
-}
-
-bool AbstractTableView::SortBy::AsText(const QString & a, const QString & b)
-{
-    auto i = QString::compare(a, b);
-    if(i < 0)
-        return true;
-    if(i > 0)
-        return false;
-    return duint(&a) < duint(&b);
-}
-
-bool AbstractTableView::SortBy::AsInt(const QString & a, const QString & b)
-{
-    if(a.toLongLong() < b.toLongLong())
-        return true;
-    if(a.toLongLong() > b.toLongLong())
-        return false;
-    return duint(&a) < duint(&b);
-}
-
-bool AbstractTableView::SortBy::AsHex(const QString & a, const QString & b)
-{
-    if(a.toLongLong(0, 16) < b.toLongLong(0, 16))
-        return true;
-    if(a.toLongLong(0, 16) > b.toLongLong(0, 16))
-        return false;
-    return duint(&a) < duint(&b);
 }
