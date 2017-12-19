@@ -257,8 +257,6 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
 
             Size = GetPE32DataFromMappedFile(info.fileMapVA, 0, UE_SIZEOFIMAGE);
             info.size = Size;
-
-            dprintf("Module Size: %08X\n", info.size);
         }
         else
         {
