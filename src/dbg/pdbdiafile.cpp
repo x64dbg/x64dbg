@@ -708,7 +708,7 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryCon
 
 bool PDBDiaFile::resolveSymbolSize(IDiaSymbol* symbol, uint64_t & size, uint32_t symTag)
 {
-    bool res = true;
+    bool res = false;
 
     HRESULT hr;
     uint64_t tempSize = -1;
