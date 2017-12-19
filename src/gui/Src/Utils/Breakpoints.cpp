@@ -1,5 +1,6 @@
 #include "Breakpoints.h"
 #include "EditBreakpointDialog.h"
+#include "StringUtil.h"
 
 Breakpoints::Breakpoints(QObject* parent) : QObject(parent)
 {

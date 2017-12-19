@@ -2,6 +2,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QThread>
+#include "MiscUtil.h"
+#include "StringUtil.h"
 
 TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
 {

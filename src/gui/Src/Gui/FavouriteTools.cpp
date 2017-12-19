@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include "MiscUtil.h"
+#include "Configuration.h"
 #include <QTableWidget>
 
 FavouriteTools::FavouriteTools(QWidget* parent) :

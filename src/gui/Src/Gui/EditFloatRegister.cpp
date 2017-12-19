@@ -2,6 +2,8 @@
 #include "ui_EditFloatRegister.h"
 #include "Bridge.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
+#include "Configuration.h"
 
 /**
  * @brief       Initialize EditFloatRegister dialog

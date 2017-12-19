@@ -1,5 +1,6 @@
 #include <QTextCodec>
 #include <QCryptographicHash>
+#include "Configuration.h"
 #include "HexEditDialog.h"
 #include "QHexEdit/QHexEdit.h"
 #include "ui_HexEditDialog.h"

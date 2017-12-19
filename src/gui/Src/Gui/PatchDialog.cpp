@@ -5,6 +5,8 @@
 #include <QFileDialog>
 #include <QTextStream>
 #include "MiscUtil.h"
+#include "StringUtil.h"
+#include "Configuration.h"
 
 PatchDialog::PatchDialog(QWidget* parent) :
     QDialog(parent),

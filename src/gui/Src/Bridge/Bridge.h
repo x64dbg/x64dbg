@@ -5,9 +5,12 @@
 #include <QObject>
 #include <QWidget>
 #include <QMutex>
+#include <QMenu>
 #include "Imports.h"
-#include "ReferenceManager.h"
 #include "BridgeResult.h"
+
+class ReferenceManager;
+class SymbolView;
 
 class Bridge : public QObject
 {
@@ -42,6 +45,7 @@ public:
     QWidget* snowmanView = nullptr;
     bool mIsRunning = false;
     duint mLastCip = 0;
+    SymbolView* symbolView = nullptr;
 
 signals:
     void disassembleAt(dsint va, dsint eip);

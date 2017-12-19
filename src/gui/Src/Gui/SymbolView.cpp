@@ -6,6 +6,7 @@
 #include "YaraRuleSelectionDialog.h"
 #include "EntropyDialog.h"
 #include "BrowseDialog.h"
+#include "SearchListView.h"
 #include <QVBoxLayout>
 #include <QProcess>
 #include <QFileDialog>
