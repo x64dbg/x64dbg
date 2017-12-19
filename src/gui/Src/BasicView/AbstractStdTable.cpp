@@ -707,6 +707,7 @@ void AbstractStdTable::headerButtonPressedSlot(int col)
 
 void AbstractStdTable::reloadData()
 {
+    //TODO: do this on request, not every time reloadData is called...
     if(mSort.column != -1) //re-sort if the user wants to sort
     {
         sortRows(mSort.column, mSort.ascending);

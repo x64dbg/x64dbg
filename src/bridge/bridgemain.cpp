@@ -1075,6 +1075,11 @@ BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu)
     _dbg_sendmessage(DBG_MENU_PREPARE, (void*)hMenu, nullptr);
 }
 
+BRIDGE_IMPEXP void DbgGetSymbolInfo(void* symbol, SYMBOLINFO* info)
+{
+    _dbg_sendmessage(DBG_GET_SYMBOL_INFO, symbol, info);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);
@@ -1688,6 +1693,11 @@ BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName)
 {
     CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_OPEN_TRACE_FILE, (void*)fileName, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiSetModuleSymbols(duint base, ListOf(void*) symbols)
+{
+    _gui_sendmessage(GUI_SET_MODULE_SYMBOLS, (void*)base, symbols);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

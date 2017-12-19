@@ -308,7 +308,8 @@ typedef enum
     DBG_GET_PEB_ADDRESS,            // param1=DWORD ProcessId,           param2=unused
     DBG_GET_TEB_ADDRESS,            // param1=DWORD ThreadId,            param2=unused
     DBG_ANALYZE_FUNCTION,           // param1=BridgeCFGraphList* graph,  param2=duint entry
-    DBG_MENU_PREPARE               // param1=int hMenu,                 param2=unused
+    DBG_MENU_PREPARE,               // param1=int hMenu,                 param2=unused
+    DBG_GET_SYMBOL_INFO,            // param1=void* symbol,              param2=SYMBOLINFO* info
 } DBGMSG;
 
 typedef enum
@@ -1012,6 +1013,7 @@ BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId);
 BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph);
 BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* success = 0);
 BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu);
+BRIDGE_IMPEXP void DbgGetSymbolInfo(void* symbol, SYMBOLINFO* info);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
@@ -1139,7 +1141,8 @@ typedef enum
     GUI_MENU_REMOVE,                // param1=int hEntryMenu,       param2=unused
     GUI_REF_ADDCOMMAND,             // param1=const char* title,    param2=const char* command
     GUI_OPEN_TRACE_FILE,            // param1=const char* file name,param2=unused
-    GUI_UPDATE_TRACE_BROWSER        // param1=unused,               param2=unused
+    GUI_UPDATE_TRACE_BROWSER,       // param1=unused,               param2=unused
+    GUI_SET_MODULE_SYMBOLS,         // param1=duint base,           param2=ListOf(void*) symbols
 } GUIMSG;
 
 //GUI Typedefs
@@ -1316,6 +1319,7 @@ BRIDGE_IMPEXP void GuiFlushLog();
 BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command);
 BRIDGE_IMPEXP void GuiUpdateTraceBrowser();
 BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName);
+BRIDGE_IMPEXP void GuiSetModuleSymbols(duint base, ListOf(void*) symbols);
 
 #ifdef __cplusplus
 }

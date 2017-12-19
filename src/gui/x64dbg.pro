@@ -186,7 +186,8 @@ SOURCES += \
     Src/Tracer/TraceFileReader.cpp \
     Src/Tracer/TraceFileSearch.cpp \
     Src/Gui/MultiItemsSelectWindow.cpp \
-    Src/BasicView/AbstractStdTable.cpp
+    Src/BasicView/AbstractStdTable.cpp \
+    Src/Gui/ZehSymbolTable.cpp
 
 
 HEADERS += \
@@ -308,7 +309,8 @@ HEADERS += \
     Src/Tracer/TraceFileReaderInternal.h \
     Src/Tracer/TraceFileSearch.h \
     Src/Gui/MultiItemsSelectWindow.h \
-    Src/BasicView/AbstractStdTable.h
+    Src/BasicView/AbstractStdTable.h \
+    Src/Gui/ZehSymbolTable.h
     
 
 FORMS += \

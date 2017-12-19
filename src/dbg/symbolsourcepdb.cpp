@@ -166,6 +166,17 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
 
     dprintf("Loaded %d symbols in %.03f\n", _sym.size(), secs);
 
+    ListInfo blub;
+    blub.count = _sym.size();
+    blub.size = blub.count * sizeof(void*);
+    std::vector<SymbolInfo*> fuck;
+    fuck.resize(_sym.size());
+    size_t i = 0;
+    for(auto it = _sym.begin(); it != _sym.end(); ++it)
+        fuck[i++] = &it->second;
+    blub.data = fuck.data();
+    GuiSetModuleSymbols(_imageBase, &blub);
+
     GuiUpdateAllViews();
 
     return true;

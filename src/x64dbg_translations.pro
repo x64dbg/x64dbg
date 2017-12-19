@@ -225,7 +225,8 @@ SOURCES += \
     gui/Src/Tracer/TraceFileReader.cpp \
     gui/Src/Tracer/TraceFileSearch.cpp \
     gui/Src/Gui/MultiItemsSelectWindow.cpp \
-    gui/Src/BasicView/AbstractStdTable.cpp
+    gui/Src/BasicView/AbstractStdTable.cpp \
+    gui/Src/Gui/ZehSymbolTable.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -462,7 +463,8 @@ HEADERS += \
     gui/Src/Tracer/TraceFileReaderInternal.h \
     gui/Src/Tracer/TraceFileSearch.h \
     gui/Src/Gui/MultiItemsSelectWindow.h \
-    gui/Src/BasicView/AbstractStdTable.h
+    gui/Src/BasicView/AbstractStdTable.h \
+    gui/Src/Gui/ZehSymbolTable.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \

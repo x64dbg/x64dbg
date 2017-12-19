@@ -22,9 +22,13 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mMainLayout->addWidget(ui->mainSplitter);
     setLayout(mMainLayout);
 
+    // Create symbol table
+    mSymbolTable = new ZehSymbolTable(this);
+
     // Create reference view
     mSearchListView = new SearchListView(true, this, true);
     mSearchListView->mSearchStartCol = 1;
+    mSearchListView->setVisible(false);
 
     // Create module list
     mModuleList = new SearchListView(true, this);
@@ -62,7 +66,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
 
     // Setup list splitter
     ui->listSplitter->addWidget(mModuleList);
-    ui->listSplitter->addWidget(mSearchListView);
+    ui->listSplitter->addWidget(mSymbolTable);
 #ifdef _WIN64
     // mModuleList : mSymbolList = 40 : 100
     ui->listSplitter->setStretchFactor(0, 40);
@@ -138,6 +142,13 @@ void SymbolView::loadWindowSettings()
 {
     loadSymbolsSplitter(ui->listSplitter, "mVSymbolsSplitter");
     loadSymbolsSplitter(ui->mainSplitter, "mHSymbolsLogSplitter");
+}
+
+void SymbolView::setModuleSymbols(duint base, const std::vector<void*> & symbols)
+{
+    //TODO: reload actual symbol list, race conditions
+    GuiAddLogMessage(QString("base: %1, count: %2\n").arg(ToPtrString(base)).arg(symbols.size()).toUtf8().constData());
+    mModuleSymbolMap[base] = symbols;
 }
 
 void SymbolView::setupContextMenu()
@@ -334,7 +345,7 @@ void SymbolView::moduleSelectionChanged(int index)
     Q_UNUSED(index);
     setUpdatesEnabled(false);
 
-    mSearchListView->mList->setRowCount(0);
+    /*mSearchListView->mList->setRowCount(0);
     for(auto index : mModuleList->mCurList->getSelection())
     {
         QString mod = mModuleList->mCurList->getCellContent(index, 1);
@@ -348,7 +359,15 @@ void SymbolView::moduleSelectionChanged(int index)
     if(!mSearchListView->isSearchBoxLocked())
         mSearchListView->mSearchBox->setText("");
     else
-        mSearchListView->refreshSearchList();
+        mSearchListView->refreshSearchList();*/
+
+    QString modBase = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0);
+    duint wVA;
+    if(!DbgFunctions()->ValFromString(modBase.toUtf8().constData(), &wVA))
+        return;
+    mSymbolTable->mData = mModuleSymbolMap[wVA];
+    mSymbolTable->setRowCount(mSymbolTable->mData.size());
+    mSymbolTable->reloadData();
 
     setUpdatesEnabled(true);
 }
