@@ -22,6 +22,18 @@ SymbolSourcePDB::~SymbolSourcePDB()
     }
 }
 
+static void SetThreadDescription(std::thread & thread, WString name)
+{
+    typedef HRESULT(WINAPI * fnSetThreadDescription)(HANDLE hThread, PCWSTR lpThreadDescription);
+
+    fnSetThreadDescription fp = (fnSetThreadDescription)GetProcAddress(GetModuleHandleA("kernel32.dll"), "SetThreadDescription");
+    if(!fp)
+        return; // Only available on windows 10.
+
+    HANDLE handle = static_cast<HANDLE>(thread.native_handle());
+    fp(handle, name.c_str());
+}
+
 bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase, duint imageSize)
 {
     if(!PDBDiaFile::initLibrary())
@@ -38,7 +50,9 @@ bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase, duint i
         _requiresShutdown = false;
         _loadCounter.store(2);
         _symbolsThread = std::thread(&SymbolSourcePDB::loadSymbolsAsync, this, path);
+        SetThreadDescription(_symbolsThread, L"SymbolsThread");
         _sourceLinesThread = std::thread(&SymbolSourcePDB::loadSourceLinesAsync, this, path);
+        SetThreadDescription(_symbolsThread, L"SourceLinesThread");
     }
 #endif
     return res;
@@ -89,7 +103,10 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
     DWORD lastUpdate = 0;
     DWORD loadStart = GetTickCount64();
 
-    bool res = _pdb.enumerateLexicalHierarchy([&](DiaSymbol_t & sym)->bool
+    PDBDiaFile::Query_t query;
+    query.collectSize = true;
+    query.collectUndecoratedNames = true;
+    query.callback = [&](DiaSymbol_t & sym)->bool
     {
         if(_requiresShutdown)
             return false;
@@ -107,24 +124,24 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
             symInfo.addr = sym.virtualAddress;
             symInfo.publicSymbol = sym.publicSymbol;
 
-            _lockSymbols.lock();
-
             // Check if we already have it inside, private symbols have priority over public symbols.
-            auto it = _sym.find(symInfo.addr);
-            if(it != _sym.end())
             {
-                if(it->second.publicSymbol == true && symInfo.publicSymbol == false)
+                ScopedSpinLock lock(_lockSymbols);
+
+                auto it = _sym.find(symInfo.addr);
+                if(it != _sym.end())
                 {
-                    // Replace.
-                    it->second = symInfo;
+                    if(it->second.publicSymbol == true && symInfo.publicSymbol == false)
+                    {
+                        // Replace.
+                        it->second = symInfo;
+                    }
+                }
+                else
+                {
+                    _sym.insert(std::make_pair(symInfo.addr, symInfo));
                 }
             }
-            else
-            {
-                _sym.insert(std::make_pair(symInfo.addr, symInfo));
-            }
-
-            _lockSymbols.unlock();
 
             DWORD curTick = GetTickCount();
             if(curTick - lastUpdate > 500)
@@ -135,7 +152,9 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
         }
 
         return true;
-    }, true);
+    };
+
+    bool res = _pdb.enumerateLexicalHierarchy(query);
 
     if(!res)
     {

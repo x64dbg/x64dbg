@@ -335,7 +335,7 @@ uint32_t getSymbolId(IDiaSymbol* sym)
     return id;
 }
 
-bool PDBDiaFile::enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> callback, const bool collectUndecoratedNames)
+bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
 {
     ScopedDiaSymbol globalScope;
     IDiaSymbol* symbol = nullptr;
@@ -348,10 +348,13 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> ca
     if(hr != S_OK)
         return false;
 
-    std::unordered_set<uint32_t> visited;
+    InternalQueryContext_t context;
+    context.callback = query.callback;
+    context.collectSize = query.collectSize;
+    context.collectUndecoratedNames = query.collectUndecoratedNames;
 
     uint32_t scopeId = getSymbolId(globalScope);
-    visited.insert(scopeId);
+    context.visited.insert(scopeId);
 
     // Enumerate compilands.
     {
@@ -363,7 +366,7 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> ca
             while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
-                if(!enumerateCompilandScope(sym, callback, visited, collectUndecoratedNames))
+                if(!enumerateCompilandScope(sym, context))
                 {
                     return false;
                 }
@@ -380,10 +383,10 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> ca
         {
             while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                if(convertSymbolInfo(symbol, symbolInfo, collectUndecoratedNames))
+                if(convertSymbolInfo(symbol, symbolInfo, context))
                 {
                     ScopedDiaSymbol sym(symbol);
-                    if(!callback(symbolInfo))
+                    if(!context.callback(symbolInfo))
                     {
                         return false;
                     }
@@ -402,9 +405,9 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> ca
             while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
-                if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                if(convertSymbolInfo(sym, symbolInfo, context))
                 {
-                    if(!callback(symbolInfo))
+                    if(!context.callback(symbolInfo))
                     {
                         return false;
                     }
@@ -423,9 +426,9 @@ bool PDBDiaFile::enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> ca
             while(res == true && (hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
                 ScopedDiaSymbol sym(symbol);
-                if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                if(convertSymbolInfo(sym, symbolInfo, context))
                 {
-                    if(!callback(symbolInfo))
+                    if(!context.callback(symbolInfo))
                     {
                         return false;
                     }
@@ -474,7 +477,11 @@ bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolTyp
 
         sym.disp = disp;
 
-        if(!convertSymbolInfo(scopedSym, sym, true))
+        InternalQueryContext_t context;
+        context.collectSize = true;
+        context.collectUndecoratedNames = true;
+
+        if(!convertSymbolInfo(scopedSym, sym, context))
             res = false;
         else
             res = true;
@@ -483,7 +490,7 @@ bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolTyp
     return res;
 }
 
-bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<bool(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames)
+bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, InternalQueryContext_t & context)
 {
     IDiaSymbol* symbol = nullptr;
     bool res = true;
@@ -509,7 +516,7 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<bo
 
                 if(hr == S_OK)
                 {
-                    if(!processFunctionSymbol(sym, callback, visited, collectUndecoratedNames))
+                    if(!processFunctionSymbol(sym, context))
                     {
                         return false;
                     }
@@ -533,9 +540,9 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<bo
 
                 if(hr == S_OK)
                 {
-                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    if(convertSymbolInfo(sym, symbolInfo, context))
                     {
-                        if(!callback(symbolInfo))
+                        if(!context.callback(symbolInfo))
                         {
                             return false;
                         }
@@ -559,9 +566,9 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<bo
 
                 if(hr == S_OK)
                 {
-                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    if(convertSymbolInfo(sym, symbolInfo, context))
                     {
-                        if(!callback(symbolInfo))
+                        if(!context.callback(symbolInfo))
                         {
                             return false;
                         }
@@ -585,9 +592,9 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<bo
 
                 if(hr == S_OK)
                 {
-                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    if(convertSymbolInfo(sym, symbolInfo, context))
                     {
-                        if(!callback(symbolInfo))
+                        if(!context.callback(symbolInfo))
                         {
                             return false;
                         }
@@ -600,7 +607,7 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, std::function<bo
     return true;
 }
 
-bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, std::function<bool(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames /*= false*/)
+bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryContext_t & context)
 {
     IDiaSymbol* symbol = nullptr;
     ULONG celt = 0;
@@ -609,18 +616,18 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, std::function<bo
     bool res = true;
 
     uint32_t symId = getSymbolId(functionSym);
-    if(visited.find(symId) != visited.end())
+    if(context.visited.find(symId) != context.visited.end())
     {
         printf("Dupe\n");
         return true;
     }
 
-    visited.insert(symId);
+    context.visited.insert(symId);
 
     DiaSymbol_t symbolInfo;
-    if(convertSymbolInfo(functionSym, symbolInfo, collectUndecoratedNames))
+    if(convertSymbolInfo(functionSym, symbolInfo, context))
     {
-        if(!callback(symbolInfo))
+        if(!context.callback(symbolInfo))
             return false;
     }
 
@@ -640,9 +647,9 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, std::function<bo
 
                 if(hr == S_OK && locType == LocIsStatic)
                 {
-                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    if(convertSymbolInfo(sym, symbolInfo, context))
                     {
-                        if(!callback(symbolInfo))
+                        if(!context.callback(symbolInfo))
                         {
                             return false;
                         }
@@ -665,9 +672,9 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, std::function<bo
 
                 if(hr == S_OK)
                 {
-                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    if(convertSymbolInfo(sym, symbolInfo, context))
                     {
-                        if(!callback(symbolInfo))
+                        if(!context.callback(symbolInfo))
                         {
                             return false;
                         }
@@ -690,9 +697,9 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, std::function<bo
 
                 if(hr == S_OK)
                 {
-                    if(convertSymbolInfo(sym, symbolInfo, collectUndecoratedNames))
+                    if(convertSymbolInfo(sym, symbolInfo, context))
                     {
-                        if(!callback(symbolInfo))
+                        if(!context.callback(symbolInfo))
                         {
                             return false;
                         }
@@ -790,7 +797,9 @@ bool PDBDiaFile::resolveSymbolSize(IDiaSymbol* symbol, uint64_t & size, uint32_t
         }
 
     }
-    else
+    else if(symTag == SymTagPublicSymbol ||
+            symTag == SymTagFunction ||
+            symTag == SymTagBlock)
     {
         hr = symbol->get_length(&tempSize);
         if(hr == S_OK)
@@ -848,7 +857,7 @@ extern "C" pchar_t __cdecl __unDNameEx(_Out_opt_z_cap_(maxStringLength) pchar_t 
                                        unsigned long disableFlags
                                       );
 
-bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo, const bool collectUndecoratedNames)
+bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo, InternalQueryContext_t & context)
 {
     HRESULT hr;
     DWORD symTagType;
@@ -871,7 +880,7 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
 
     symbolInfo.name = getSymbolNameString(symbol);
 
-    if(collectUndecoratedNames && !symbolInfo.name.empty() && symbolInfo.name.at(0) == '?')
+    if(context.collectUndecoratedNames && !symbolInfo.name.empty() && symbolInfo.name.at(0) == '?')
     {
         //TODO: undocumented hack to have some kind of performance while undecorating names
         auto mymalloc = [](size_t size) { return emalloc(size, "convertSymbolInfo::undecoratedName"); };
@@ -929,11 +938,13 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
         return false;
     }
 
-    symbolInfo.size = 0;
-
-    if(!resolveSymbolSize(symbol, symbolInfo.size, symTagType) || symbolInfo.size == 0)
+    symbolInfo.size = -1;
+    if(context.collectSize)
     {
-        symbolInfo.size = -1;
+        if(!resolveSymbolSize(symbol, symbolInfo.size, symTagType) || symbolInfo.size == 0)
+        {
+            symbolInfo.size = -1;
+        }
     }
 
     switch(symTagType)

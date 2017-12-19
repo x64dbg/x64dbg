@@ -15,6 +15,20 @@ struct IDiaSymbol;
 
 class PDBDiaFile
 {
+public:
+    struct Query_t
+    {
+        std::function<bool(DiaSymbol_t &)> callback;
+        bool collectUndecoratedNames;
+        bool collectSize;
+    };
+
+private:
+    struct InternalQueryContext_t : public Query_t
+    {
+        std::unordered_set<uint32_t> visited;
+    };
+
 private:
     static volatile long m_sbInitialized;
 
@@ -40,7 +54,7 @@ public:
 
     bool getFunctionLineNumbers(DWORD rva, ULONGLONG size, uint64_t imageBase, std::map<uint64_t, DiaLineInfo_t> & lines);
 
-    bool enumerateLexicalHierarchy(std::function<bool(DiaSymbol_t &)> callback, const bool collectUndecoratedNames);
+    bool enumerateLexicalHierarchy(const Query_t & query);
 
     bool findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolType symType = DiaSymbolType::ANY);
 
@@ -50,10 +64,10 @@ private:
     std::string getSymbolNameString(IDiaSymbol* sym);
     std::string getSymbolUndecoratedNameString(IDiaSymbol* sym);
 
-    bool enumerateCompilandScope(IDiaSymbol* compiland, std::function<bool(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames);
-    bool processFunctionSymbol(IDiaSymbol* profilerFunction, std::function<bool(DiaSymbol_t &)> & callback, std::unordered_set<uint32_t> & visited, const bool collectUndecoratedNames);
+    bool enumerateCompilandScope(IDiaSymbol* compiland, InternalQueryContext_t & context);
+    bool processFunctionSymbol(IDiaSymbol* profilerFunction, InternalQueryContext_t & context);
 
     bool resolveSymbolSize(IDiaSymbol* symbol, uint64_t & size, uint32_t symTag);
-    bool convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo, const bool collectUndecoratedNames);
+    bool convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo, InternalQueryContext_t & context);
 };
 
