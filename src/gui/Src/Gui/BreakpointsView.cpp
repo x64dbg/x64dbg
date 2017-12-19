@@ -124,32 +124,26 @@ void BreakpointsView::updateColors()
     updateBreakpointsSlot();
 }
 
-void BreakpointsView::reloadData()
+void BreakpointsView::sortRows(int column, bool ascending)
 {
-    if(mSort.first != -1) //re-sort if the user wants to sort
+    std::stable_sort(mData.begin(), mData.end(), [this, column, ascending](const std::vector<CellData> & a, const std::vector<CellData> & b)
     {
-        auto col = mSort.first;
-        auto greater = mSort.second;
-        std::stable_sort(mData.begin(), mData.end(), [this, col, greater](const std::vector<CellData> & a, const std::vector<CellData> & b)
+        //this function sorts on header type first and then on column content
+        auto aBp = &mBps.at(a.at(ColAddr).userdata), bBp = &mBps.at(b.at(ColAddr).userdata);
+        auto aType = aBp->type, bType = bBp->type;
+        auto aHeader = aBp->addr || aBp->active, bHeader = bBp->addr || bBp->active;
+        struct Hax
         {
-            //this function sorts on header type first and then on column content
-            auto aBp = &mBps.at(a.at(ColAddr).userdata), bBp = &mBps.at(b.at(ColAddr).userdata);
-            auto aType = aBp->type, bType = bBp->type;
-            auto aHeader = aBp->addr || aBp->active, bHeader = bBp->addr || bBp->active;
-            struct Hax
+            const bool & greater;
+            const QString & s;
+            Hax(const bool & greater, const QString & s) : greater(greater), s(s) { }
+            bool operator<(const Hax & b)
             {
-                const bool & greater;
-                const QString & s;
-                Hax(const bool & greater, const QString & s) : greater(greater), s(s) { }
-                bool operator<(const Hax & b)
-                {
-                    return greater ? s > b.s : s < b.s;
-                }
-            } aHax(greater, a.at(col).text), bHax(greater, b.at(col).text);
-            return std::tie(aType, aHeader, aHax) < std::tie(bType, bHeader, bHax);
-        });
-    }
-    AbstractTableView::reloadData();
+                return greater ? s > b.s : s < b.s;
+            }
+        } aHax(!ascending, a.at(column).text), bHax(!ascending, b.at(column).text);
+        return std::tie(aType, aHeader, aHax) < std::tie(bType, bHeader, bHax);
+    });
 }
 
 QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
