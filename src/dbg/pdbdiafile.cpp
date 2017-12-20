@@ -13,6 +13,79 @@
 #include "stringutils.h"
 #include "console.h"
 
+class DiaLoadCallback : public IDiaLoadCallback2
+{
+    virtual HRESULT STDMETHODCALLTYPE NotifyDebugDir(
+        /* [in] */ BOOL fExecutable,
+        /* [in] */ DWORD cbData,
+        /* [size_is][in] */ BYTE* pbData) override
+    {
+        dprintf("[DIA] NotifyDebugDir: %s\n", StringUtils::ToHex(pbData, cbData).c_str());
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE NotifyOpenDBG(
+        /* [in] */ LPCOLESTR dbgPath,
+        /* [in] */ HRESULT resultCode) override
+    {
+        dprintf("[DIA] NotifyOpenDBG: %s, %08X\n", StringUtils::Utf16ToUtf8(dbgPath).c_str(), resultCode);
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE NotifyOpenPDB(
+        /* [in] */ LPCOLESTR pdbPath,
+        /* [in] */ HRESULT resultCode) override
+    {
+        dprintf("[DIA] NotifyOpenPDB: %s, %08X\n", StringUtils::Utf16ToUtf8(pdbPath).c_str(), resultCode);
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE RestrictRegistryAccess(void) override { return S_OK; }
+
+    virtual HRESULT STDMETHODCALLTYPE RestrictSymbolServerAccess(void) override { return S_OK; }
+
+    virtual HRESULT STDMETHODCALLTYPE RestrictDBGAccess(void) override { return S_OK; }
+
+    virtual HRESULT STDMETHODCALLTYPE RestrictOriginalPathAccess(void) override { return S_OK; }
+
+    virtual HRESULT STDMETHODCALLTYPE RestrictReferencePathAccess(void) override { return S_OK; }
+
+    virtual HRESULT STDMETHODCALLTYPE RestrictSystemRootAccess(void) override { return S_OK; }
+
+    //TODO: properly implement IUnknown (https://msdn.microsoft.com/en-us/library/office/cc839627.aspx)
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID rid, _Outptr_ void** ppUnk) override
+    {
+        if(ppUnk == NULL)
+        {
+            return E_INVALIDARG;
+        }
+        if(rid == __uuidof(IDiaLoadCallback2))
+            *ppUnk = (IDiaLoadCallback2*)this;
+        else if(rid == __uuidof(IDiaLoadCallback))
+            *ppUnk = (IDiaLoadCallback*)this;
+        else if(rid == __uuidof(IUnknown))
+            *ppUnk = (IUnknown*)this;
+        else
+            *ppUnk = NULL;
+        if(*ppUnk != NULL)
+        {
+            AddRef();
+            return S_OK;
+        }
+        return E_NOINTERFACE;
+    }
+
+    ULONG STDMETHODCALLTYPE AddRef() override
+    {
+        return 1;
+    }
+
+    ULONG STDMETHODCALLTYPE Release() override
+    {
+        return 1;
+    }
+};
+
 volatile LONG PDBDiaFile::m_sbInitialized = 0;
 
 template<typename T>
@@ -146,7 +219,8 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
     }
     else
     {
-        hr = m_dataSource->loadDataForExe(file, fileDir, NULL);
+        DiaLoadCallback callback;
+        hr = m_dataSource->loadDataForExe(file, fileDir, &callback);
     }
 
     if(testError(hr))
