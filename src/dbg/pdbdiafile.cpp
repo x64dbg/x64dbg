@@ -151,7 +151,10 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
 
     if(testError(hr))
     {
-        printf("Unable to open PDB file - %08X\n", hr);
+        if(hr != E_PDB_NOT_FOUND)
+        {
+            printf("Unable to open PDB file - %08X\n", hr);
+        }
         return false;
     }
 
