@@ -4,7 +4,6 @@
 #include "MiscUtil.h"
 #include "ldconvert.h"
 
-
 QString ToLongDoubleString(void* buffer)
 {
     char str[32];

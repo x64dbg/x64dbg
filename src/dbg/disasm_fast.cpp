@@ -8,22 +8,6 @@
 #include "memory.h"
 #include "datainst_helper.h"
 
-static MEMORY_SIZE argsize2memsize(int argsize)
-{
-    switch(argsize)
-    {
-    case 8:
-        return size_byte;
-    case 16:
-        return size_word;
-    case 32:
-        return size_dword;
-    case 64:
-        return size_qword;
-    }
-    return size_byte;
-}
-
 void fillbasicinfo(Zydis* cp, BASIC_INSTRUCTION_INFO* basicinfo, bool instrText)
 {
     //zero basicinfo

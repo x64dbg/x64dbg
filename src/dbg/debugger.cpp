@@ -56,7 +56,6 @@ static bool bFreezeStack = false;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static HANDLE hEvent = 0;
 static duint tidToResume = 0;
-static HANDLE hProcess = 0;
 static HANDLE hMemMapThread = 0;
 static bool bStopMemMapThread = false;
 static HANDLE hTimeWastedCounterThread = 0;
@@ -1316,6 +1315,10 @@ void cbTraceOverIntoTraceRecordStep()
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
+    fdProcessInfo->hProcess = CreateProcessInfo->hProcess;
+    fdProcessInfo->hThread = CreateProcessInfo->hThread;
+    varset("$hp", (duint)fdProcessInfo->hProcess, true);
+
     void* base = CreateProcessInfo->lpBaseOfImage;
 
     char DebugFileName[deflen] = "";
@@ -1454,6 +1457,8 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     _dbg_animatestop(); // Stop animating
     //unload main module
     SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
+    //cleanup dbghelp
+    SafeSymCleanup(fdProcessInfo->hProcess);
     //history
     dbgcleartracestate();
     dbgClearRtuBreakpoints();
@@ -1987,8 +1992,6 @@ static void cbAttachDebugger()
         cmddirectexec(StringUtils::sprintf("resumethread %p", tidToResume).c_str());
         tidToResume = 0;
     }
-    hProcess = fdProcessInfo->hProcess;
-    varset("$hp", (duint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
 }
 
@@ -2660,7 +2663,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         }
 
         //set script variables
-        varset("$hp", (duint)fdProcessInfo->hProcess, true);
         varset("$pid", fdProcessInfo->dwProcessId, true);
 
         if(!OpenProcessToken(fdProcessInfo->hProcess, TOKEN_ALL_ACCESS, &hProcessToken))
@@ -2722,7 +2724,10 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     }
     else
     {
-        hProcess = fdProcessInfo->hProcess;
+        //close the process and thread handles we got back from CreateProcess, to prevent duplicating the ones we will receive in cbCreateProcess
+        CloseHandle(fdProcessInfo->hProcess);
+        CloseHandle(fdProcessInfo->hThread);
+        fdProcessInfo->hProcess = fdProcessInfo->hThread = nullptr;
         DebugLoop();
     }
 
@@ -2730,9 +2735,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     PLUG_CB_STOPDEBUG stopInfo;
     stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
-
-    //cleanup dbghelp
-    SafeSymCleanup(hProcess);
 
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
@@ -2753,6 +2755,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Debugging stopped!"));
+    fdProcessInfo->hProcess = fdProcessInfo->hThread = nullptr;
     varset("$hp", (duint)0, true);
     varset("$pid", (duint)0, true);
     if(hProcessToken)

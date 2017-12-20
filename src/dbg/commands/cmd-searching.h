@@ -9,6 +9,7 @@ bool cbInstrFindAsm(int argc, char* argv[]);
 bool cbInstrRefFind(int argc, char* argv[]);
 bool cbInstrRefFindRange(int argc, char* argv[]);
 bool cbInstrRefStr(int argc, char* argv[]);
+bool cbInstrRefFuncionPointer(int argc, char* argv[]);
 bool cbInstrModCallFind(int argc, char* argv[]);
 bool cbInstrGUIDFind(int argc, char* argv[]);
 bool cbInstrYara(int argc, char* argv[]);

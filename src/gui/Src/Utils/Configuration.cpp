@@ -495,6 +495,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionFindReferencesToSelectedAddress", Shortcut({tr("Actions"), tr("Find References to Selected Address")}, "Ctrl+R"));
     defaultShortcuts.insert("ActionFindPattern", Shortcut({tr("Actions"), tr("Find Pattern")}, "Ctrl+B"));
     defaultShortcuts.insert("ActionFindPatternInModule", Shortcut({tr("Actions"), tr("Find Pattern in Current Module")}, "Ctrl+Shift+B"));
+    defaultShortcuts.insert("ActionFindNamesInModule", Shortcut({tr("Actions"), tr("Find Names in Current Module")}, "Ctrl+N"));
     defaultShortcuts.insert("ActionFindReferences", Shortcut({tr("Actions"), tr("Find References")}, "Ctrl+R"));
     defaultShortcuts.insert("ActionXrefs", Shortcut({tr("Actions"), tr("xrefs...")}, "X"));
     defaultShortcuts.insert("ActionAnalyzeSingleFunction", Shortcut({tr("Actions"), tr("Analyze Single Function")}, "A"));

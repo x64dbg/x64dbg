@@ -498,6 +498,55 @@ static bool cbRefStr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* 
     return false;
 }
 
+static bool cbRefFuncPtr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!disasm || !basicinfo) //initialize
+    {
+        GuiReferenceInitialize(refinfo->name);
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Function pointer")));
+        GuiReferenceAddColumn(500, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
+        GuiReferenceSetSearchStartCol(2); //only search the function pointers
+        GuiReferenceSetRowCount(0);
+        GuiReferenceReloadData();
+        return true;
+    }
+    bool found = false;
+    if(basicinfo->branch) //we doesn't look for function pointers in jmp & calls
+        return false;
+    auto addRef = [&](duint pointer)
+    {
+        char addrText[20] = "";
+        sprintf_s(addrText, "%p", disasm->Address());
+        GuiReferenceSetRowCount(refinfo->refcount + 1);
+        GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+        char disassembly[4096] = "";
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+        else
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
+        char label[MAX_LABEL_SIZE];
+        sprintf_s(addrText, "%p", pointer);
+        memset(label, 0, sizeof(label));
+        DbgGetLabelAt(pointer, SEG_DEFAULT, label);
+        GuiReferenceSetCellContent(refinfo->refcount, 2, addrText);
+        GuiReferenceSetCellContent(refinfo->refcount, 3, label);
+        refinfo->refcount++;
+    };
+    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
+    {
+        if(MemIsCodePage(basicinfo->value.value, false))
+            addRef(basicinfo->value.value);
+    }
+    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
+    {
+        if(MemIsCodePage(basicinfo->memory.value, false))
+            addRef(basicinfo->memory.value);
+    }
+    return false;
+}
+
 bool cbInstrRefStr(int argc, char* argv[])
 {
     duint ticks = GetTickCount();
@@ -520,6 +569,32 @@ bool cbInstrRefStr(int argc, char* argv[])
     TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Strings"));
     int found = RefFind(addr, size, cbRefStr, 0, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%u string(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    varset("$result", found, false);
+    return true;
+}
+
+bool cbInstrRefFuncionPointer(int argc, char* argv[])
+{
+    duint ticks = GetTickCount();
+    duint addr;
+    duint size = 0;
+    String TranslatedString;
+
+    // If not specified, assume CURRENT_REGION by default
+    if(argc < 2 || !valfromstring(argv[1], &addr, true))
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    if(argc >= 3)
+        if(!valfromstring(argv[2], &size, true))
+            size = 0;
+
+    duint refFindType = CURRENT_REGION;
+    if(argc >= 4 && valfromstring(argv[3], &refFindType, true))
+        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Function pointers"));
+    int found = RefFind(addr, size, cbRefFuncPtr, 0, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u function pointer(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
     return true;
 }

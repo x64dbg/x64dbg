@@ -5,7 +5,7 @@
 class RecursiveAnalysis : public Analysis
 {
 public:
-    explicit RecursiveAnalysis(duint base, duint size, duint entryPoint, duint maxDepth, bool usePlugins, bool dump = false);
+    explicit RecursiveAnalysis(duint base, duint size, duint entryPoint, bool usePlugins, bool dump = false);
     void Analyse() override;
     void SetMarkers() override;
 
@@ -82,7 +82,6 @@ protected:
     std::vector<CFGraph> mFunctions;
 
 private:
-    duint mMaxDepth;
     bool mUsePlugins;
     bool mDump;
 

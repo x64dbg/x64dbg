@@ -134,23 +134,25 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 valText = valTextSym;
             argMnemonic = !ok ? QString("%1]=[%2").arg(argMnemonic).arg(valText) : valText;
             QString sizeName = "";
-            int memsize = basicinfo.memory.size;
-            switch(memsize)
+            bool knownsize = true;
+            switch(basicinfo.memory.size)
             {
             case size_byte:
-                sizeName = "byte ptr";
+                sizeName = "byte ptr ";
                 break;
             case size_word:
-                sizeName = "word ptr";
+                sizeName = "word ptr ";
                 break;
             case size_dword:
-                sizeName = "dword ptr";
+                sizeName = "dword ptr ";
                 break;
             case size_qword:
-                sizeName = "qword ptr";
+                sizeName = "qword ptr ";
+                break;
+            default:
+                knownsize = false;
                 break;
             }
-            sizeName.append(' ');
 
             sizeName += [](SEGMENTREG seg)
             {
@@ -177,12 +179,38 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 sizeName = sizeName.toUpper();
 
             if(!DbgMemIsValidReadPtr(arg.value))
+            {
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=???");
-            else
+            }
+            else if(knownsize)
             {
                 QString addrText = getSymbolicNameStr(arg.memvalue);
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + addrText);
             }
+            else
+            {
+                //TODO: properly support XMM constants
+                QVector<unsigned char> data;
+                data.resize(basicinfo.memory.size);
+                memset(data.data(), 0, data.size());
+                if(DbgMemRead(arg.value, data.data(), data.size()))
+                {
+                    QString hex;
+                    hex.reserve(data.size() * 3);
+                    for(int k = 0; k < data.size(); k++)
+                    {
+                        if(k)
+                            hex.append(' ');
+                        hex.append(ToByteString(data[k]));
+                    }
+                    setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + hex);
+                }
+                else
+                {
+                    setInfoLine(j, sizeName + "[" + argMnemonic + "]=???");
+                }
+            }
+
             j++;
         }
         else

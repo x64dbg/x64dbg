@@ -1621,21 +1621,25 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case MxCsr_RC:
         return tr("Bits 13 and 14 of the MXCSR register (the rounding control [RC] field) control how the results of SIMD floating-point instructions are rounded.");
     case LastError:
+    {
         char dat[1024];
         LASTERROR* error;
         error = (LASTERROR*)registerValue(&wRegDumpStruct, LastError);
-        if(DbgFunctions()->StringFormatInline(QString().sprintf("{winerror@%X}", error->code).toUtf8().constData(), sizeof(dat), dat) == 1) //FORMAT_SUCCESS
+        if(DbgFunctions()->StringFormatInline(QString().sprintf("{winerror@%X}", error->code).toUtf8().constData(), sizeof(dat), dat))
             return dat;
         else
             return tr("The value of GetLastError(). This value is stored in the TEB.");
+    }
     case LastStatus:
-        char dat1[1024];
-        LASTSTATUS* error1;
-        error1 = (LASTSTATUS*)registerValue(&wRegDumpStruct, LastStatus);
-        if(DbgFunctions()->StringFormatInline(QString().sprintf("{ntstatus@%X}", error1->code).toUtf8().constData(), sizeof(dat1), dat1) == 1) //FORMAT_SUCCESS
-            return dat1;
+    {
+        char dat[1024];
+        LASTSTATUS* error;
+        error = (LASTSTATUS*)registerValue(&wRegDumpStruct, LastStatus);
+        if(DbgFunctions()->StringFormatInline(QString().sprintf("{ntstatus@%X}", error->code).toUtf8().constData(), sizeof(dat), dat))
+            return dat;
         else
             return tr("The NTSTATUS in the LastStatusValue field of the TEB.");
+    }
 #ifdef _WIN64
     case GS:
         return tr("The TEB of the current thread can be accessed as an offset of segment register GS (x64).\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");

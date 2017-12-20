@@ -94,7 +94,7 @@ bool cbInstrAnalrecur(int argc, char* argv[])
     auto base = MemFindBaseAddr(entry, &size);
     if(!base)
         return false;
-    RecursiveAnalysis analysis(base, size, entry, 0, true);
+    RecursiveAnalysis analysis(base, size, entry, true);
     analysis.Analyse();
     analysis.SetMarkers();
     return true;
