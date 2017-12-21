@@ -1,11 +1,13 @@
 #ifndef CPUSTACK_H
 #define CPUSTACK_H
 
+#include <QPointer>
 #include "HexDump.h"
 
 //forward declaration
 class CPUMultiDump;
 class GotoDialog;
+class FollowInDataProxy;
 
 class CPUStack : public HexDump
 {
@@ -97,6 +99,7 @@ private:
     };
 
     MenuBuilder* mMenuBuilder;
+    QPointer<FollowInDataProxy> mFollowInDataProxy;
 
     std::vector<CPUCallStack> mCallstack;
     static int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint wVA);

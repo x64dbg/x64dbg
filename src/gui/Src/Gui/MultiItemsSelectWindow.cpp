@@ -7,13 +7,15 @@
 #include <QVBoxLayout>
 #include <QScrollBar>
 #include <QApplication>
+#include <QAction>
+#include "Configuration.h"
 
 enum class Role
 {
     ItemData = Qt::UserRole
 };
 
-MultiItemsSelectWindow::MultiItemsSelectWindow(MultiItemsDataProvider* hp, QWidget* parent, bool showIcon) :
+MultiItemsSelectWindow::MultiItemsSelectWindow(MultiItemsDataProvider* hp, QWidget* parent, bool showIcon, std::function<void(MultiItemsSelectWindow*)> init_cb) :
     QFrame(parent, Qt::Popup),
     mDataProvider(hp),
     mShowIcon(showIcon),
@@ -37,10 +39,13 @@ MultiItemsSelectWindow::MultiItemsSelectWindow(MultiItemsDataProvider* hp, QWidg
     connect(mEditorList, &QTreeWidget::itemClicked,
             this, &MultiItemsSelectWindow::editorClicked);
 
+    if(init_cb)
+        init_cb(this);
+
     setVisible(false);
 }
 
-void MultiItemsSelectWindow::gotoNextItem()
+void MultiItemsSelectWindow::gotoNextItem(bool autoNextWhenInit)
 {
     if(isVisible())
     {
@@ -49,7 +54,8 @@ void MultiItemsSelectWindow::gotoNextItem()
     else
     {
         addItems();
-        selectPreviousEditor();
+        if(autoNextWhenInit)
+            selectPreviousEditor();
         showPopupOrSelectDocument();
     }
 }
@@ -202,7 +208,7 @@ void MultiItemsSelectWindow::selectNextEditor()
 void MultiItemsSelectWindow::addItems()
 {
     mEditorList->clear();
-    auto & history = mDataProvider->MIDP_getItems();
+    auto history = mDataProvider->MIDP_getItems();
     for(auto & i : history)
     {
         addItem(i);
@@ -242,4 +248,88 @@ void MultiItemsSelectWindow::addItem(MIDPKey index)
 
     if(mEditorList->topLevelItemCount() == 1)
         mEditorList->setCurrentItem(item);
+}
+
+
+FollowInDataProxy::FollowInDataProxy(QWidget* parent, DataCallback cb)
+    : QObject(), mDataCallback(cb)
+{
+    // Because the shortcut are not global, we need register shortcut in MultiItemsSelectWindow to continue select
+    mFollowInPopupWindow = new MultiItemsSelectWindow(this, parent, false, [](MultiItemsSelectWindow * mw)
+    {
+        {
+            auto actionNext = new QAction(tr("Popup Window to Follow in Disassembler"), mw);
+            actionNext->setShortcut(ConfigShortcut("ActionFollowDisasmPopup"));
+            mw->connect(actionNext, &QAction::triggered, [mw](bool)
+            {
+                mw->gotoNextItem();
+            });
+            mw->addAction(actionNext);
+        }
+        {
+            auto actionNext = new QAction(tr("Popup Window to Follow in Dump"), mw);
+            actionNext->setShortcut(ConfigShortcut("ActionFollowDumpPopup"));
+            mw->connect(actionNext, &QAction::triggered, [mw](bool)
+            {
+                mw->gotoNextItem();
+            });
+            mw->addAction(actionNext);
+        }
+    });
+
+    // register shortcut in parent
+    {
+        auto actionNext = new QAction(tr("Popup Window to Follow in Disassembler"), parent);
+        actionNext->setShortcut(ConfigShortcut("ActionFollowDisasmPopup"));
+        actionNext->setShortcutContext(Qt::WidgetShortcut); // make not global
+        parent->connect(actionNext, &QAction::triggered, [this](bool)
+        {
+            mFollowInTarget = GUI_DISASSEMBLY;
+            mFollowInPopupWindow->gotoNextItem(false);
+        });
+        parent->addAction(actionNext);
+    }
+    {
+        auto actionNext = new QAction(tr("Popup Window to Follow in Dump"), parent);
+        actionNext->setShortcut(ConfigShortcut("ActionFollowDumpPopup"));
+        actionNext->setShortcutContext(Qt::WidgetShortcut);
+        parent->connect(actionNext, &QAction::triggered, [this](bool)
+        {
+            mFollowInTarget = GUI_DUMP;
+            mFollowInPopupWindow->gotoNextItem(false);
+        });
+        parent->addAction(actionNext);
+    }
+}
+QList<MIDPKey> FollowInDataProxy::MIDP_getItems()
+{
+    mFollowToData.clear();
+    mDataCallback(mFollowInTarget, mFollowToData);
+    QList<MIDPKey> ret;
+    for(auto i = 0; i < mFollowToData.size(); ++i)
+    {
+        ret.push_back((MIDPKey)i);
+    }
+    return ret;
+}
+
+QString FollowInDataProxy::MIDP_getItemName(MIDPKey index)
+{
+    if((int)index >= mFollowToData.size())
+        return "";
+    else
+        return mFollowToData[(int)index].first;
+}
+
+void FollowInDataProxy::MIDP_selected(MIDPKey index)
+{
+    if((int)index >= mFollowToData.size())
+        return ;
+
+    DbgCmdExec(mFollowToData[(int)index].second.toUtf8().constData());
+}
+
+QIcon FollowInDataProxy::MIDP_getIcon(MIDPKey index)
+{
+    return QIcon();
 }

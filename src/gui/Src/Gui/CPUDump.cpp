@@ -13,6 +13,7 @@
 #include "WordEditDialog.h"
 #include "CodepageSelectionDialog.h"
 #include "MiscUtil.h"
+#include "MultiItemsSelectWindow.h"
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
@@ -279,6 +280,43 @@ void CPUDump::setupContextMenu()
         menu->addActions(mPluginMenu->actions());
         return true;
     }));
+
+    mFollowInDataProxy = new FollowInDataProxy(this, [this](int followWay, QVector<QPair<QString, QString>> & followData)
+    {
+        if(!DbgIsDebugging())
+            return;
+
+        auto wIsValidReadPtrCallback = [this]()
+        {
+            duint ptr = 0;
+            DbgMemRead(rvaToVa(getSelectionStart()), (unsigned char*)&ptr, sizeof(duint));
+            return DbgMemIsValidReadPtr(ptr);
+        };
+
+        if(followWay == GUI_DISASSEMBLY)
+        {
+            followData.push_back(QPair<QString, QString>(tr("Follow in Disassembler"), QString("disasm " + ToPtrString(rvaToVa(getSelectionStart())))));
+            if(wIsValidReadPtrCallback())
+                followData.push_back(QPair<QString, QString>(ArchValue(tr("Follow DWORD in Disassembler"), tr("Follow QWORD in Disassembler"))
+                                     , QString("disasm \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart())))));
+        }
+        else if(followWay == GUI_DUMP)
+        {
+            if(wIsValidReadPtrCallback())
+            {
+                followData.push_back(QPair<QString, QString>(ArchValue(tr("Follow DWORD in Current Dump"), tr("Follow QWORD in Current Dump"))
+                                     , QString("dump \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart())))));
+
+                QList<QString> tabNames;
+                mMultiDump->getTabNames(tabNames);
+                for(int i = 0; i < tabNames.length(); i++)
+                {
+                    followData.push_back(QPair<QString, QString>(ArchValue(tr("Follow DWORD in "), tr("Follow QWORD in ")) + tabNames[i]
+                                         , QString("dump \"[%1]\", \"%2\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i + 1)));
+                }
+            }
+        }
+    });
 
     mMenuBuilder->loadFromConfig();
     updateShortcuts();
