@@ -128,6 +128,126 @@ static void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
     });
 }
 
+//Useful information: http://www.debuginfo.com/articles/debuginfomatch.html
+void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
+{
+    //TODO: proper error handling and proper bounds checking
+    auto pnth = PIMAGE_NT_HEADERS(FileMapVA + GetPE32DataFromMappedFile(FileMapVA, 0, UE_PE_OFFSET));
+    auto & debugDataDir = pnth->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
+
+    if(!debugDataDir.VirtualAddress || !debugDataDir.Size)
+        return;
+
+    auto debugDirOffset = (duint)ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, debugDataDir.VirtualAddress, true, false);
+    if(!debugDirOffset || debugDirOffset + debugDataDir.Size > Info.loadedSize)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid debug directory for module %s%s...\n"), Info.name, Info.extension);
+        return;
+    }
+
+    IMAGE_DEBUG_DIRECTORY debugDir = { 0 };
+    memcpy(&debugDir, (char*)FileMapVA + debugDirOffset, sizeof(debugDir));
+
+    auto typeName = [](DWORD type)
+    {
+        switch(type)
+        {
+        case IMAGE_DEBUG_TYPE_UNKNOWN:
+            return "IMAGE_DEBUG_TYPE_UNKNOWN";
+        case IMAGE_DEBUG_TYPE_COFF:
+            return "IMAGE_DEBUG_TYPE_COFF";
+        case IMAGE_DEBUG_TYPE_CODEVIEW:
+            return "IMAGE_DEBUG_TYPE_CODEVIEW";
+        case IMAGE_DEBUG_TYPE_FPO:
+            return "IMAGE_DEBUG_TYPE_FPO";
+        case IMAGE_DEBUG_TYPE_MISC:
+            return "IMAGE_DEBUG_TYPE_MISC";
+        case IMAGE_DEBUG_TYPE_EXCEPTION:
+            return "IMAGE_DEBUG_TYPE_EXCEPTION";
+        case IMAGE_DEBUG_TYPE_FIXUP:
+            return "IMAGE_DEBUG_TYPE_FIXUP";
+        case IMAGE_DEBUG_TYPE_OMAP_TO_SRC:
+            return "IMAGE_DEBUG_TYPE_OMAP_TO_SRC";
+        case IMAGE_DEBUG_TYPE_OMAP_FROM_SRC:
+            return "IMAGE_DEBUG_TYPE_OMAP_FROM_SRC";
+        case IMAGE_DEBUG_TYPE_BORLAND:
+            return "IMAGE_DEBUG_TYPE_BORLAND";
+        case IMAGE_DEBUG_TYPE_RESERVED10:
+            return "IMAGE_DEBUG_TYPE_RESERVED10";
+        case IMAGE_DEBUG_TYPE_CLSID:
+            return "IMAGE_DEBUG_TYPE_CLSID";
+        default:
+            return "unknown";
+        }
+    }(debugDir.Type);
+
+    dprintf("IMAGE_DEBUG_DIRECTORY:\nCharacteristics: %08X\nTimeDateStamp: %08X\nMajorVersion: %04X\nMinorVersion: %04X\nType: %s\nSizeOfData: %08X\nAddressOfRawData: %08X\nPointerToRawData: %08X\n",
+            debugDir.Characteristics, debugDir.TimeDateStamp, debugDir.MajorVersion, debugDir.MinorVersion, typeName, debugDir.SizeOfData, debugDir.AddressOfRawData, debugDir.PointerToRawData);
+
+    if(debugDir.Type != IMAGE_DEBUG_TYPE_CODEVIEW) //TODO: support other types (DBG)?
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Unsupported debug type %s in module %s%s...\n"), typeName, Info.name, Info.extension);
+        return;
+    }
+
+    struct CV_HEADER
+    {
+        DWORD Signature;
+        DWORD Offset;
+    };
+
+    struct CV_INFO_PDB20
+    {
+        CV_HEADER CvHeader; //CvHeader.Signature = "NB10"
+        DWORD Signature;
+        DWORD Age;
+        BYTE PdbFileName[1];
+    };
+
+    struct CV_INFO_PDB70
+    {
+        DWORD CvSignature; //"RSDS"
+        GUID Signature;
+        DWORD Age;
+        BYTE PdbFileName[1];
+    };
+
+    auto codeViewOffset = (duint)ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, debugDir.AddressOfRawData, true, false);;
+    if(!codeViewOffset)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid debug directory for module %s%s...\n"), Info.name, Info.extension);
+        return;
+    }
+
+    //TODO: bounds checking with debugDir.SizeOfData
+
+    auto signature = *(DWORD*)(FileMapVA + codeViewOffset);
+    if(signature == '01BN')
+    {
+        auto cv = (CV_INFO_PDB20*)(FileMapVA + codeViewOffset);
+        //TODO: check how this is actually printed
+        Info.pdbSignature = StringUtils::sprintf("%x%x", cv->Signature, cv->Age);
+        Info.pdbFile = String((const char*)cv->PdbFileName);
+    }
+    else if(signature == 'SDSR')
+    {
+        auto cv = (CV_INFO_PDB70*)(FileMapVA + codeViewOffset);
+        //TODO: verify how to actually print 'Age' (symsrv.dll)
+        Info.pdbSignature = StringUtils::sprintf("%08X%04X%04X%s%x",
+                            cv->Signature.Data1, cv->Signature.Data2, cv->Signature.Data3,
+                            StringUtils::ToHex(cv->Signature.Data4, 8).c_str(),
+                            cv->Age);
+        Info.pdbFile = String((const char*)cv->PdbFileName);
+    }
+    else
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Unknown debug directory signature %08X for module %s%s...\n"), signature, Info.name, Info.extension);
+        return;
+    }
+
+    dprintf("%s%s pdbSignature: %s, pdbFile: \"%s\"\n", Info.name, Info.extension, Info.pdbSignature.c_str(), Info.pdbFile.c_str());
+}
+
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Get the entry point
@@ -171,6 +291,7 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 
     ReadTlsCallbacks(Info, FileMapVA);
     ReadBaseRelocationTable(Info, FileMapVA);
+    ReadDebugDirectory(Info, FileMapVA);
 }
 
 bool ModLoad(duint Base, duint Size, const char* FullPath)
@@ -227,7 +348,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     info.loadedSize = 0;
     info.fileMap = nullptr;
     info.fileMapVA = 0;
-    info.invalidSymbols.resize(Size);
+    //info.invalidSymbols.resize(Size);
 
     // Determine whether the module is located in system
     wchar_t sysdir[MAX_PATH];
@@ -273,6 +394,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
         MemRead(Base, data(), data.size());
 
         // Get information from the local buffer
+        // TODO: this does not properly work for file offset -> rva conversions (since virtual modules are SEC_IMAGE)
         GetModuleInfo(info, (ULONG_PTR)data());
     }
 
