@@ -4,11 +4,13 @@
 #include <QScrollArea>
 #include <QSet>
 #include <QMap>
+#include <QPointer>
 #include "Bridge.h"
 
 class CPUWidget;
 class CPUMultiDump;
 class QPushButton;
+class FollowInDataProxy;
 
 typedef struct
 {
@@ -326,6 +328,7 @@ private:
     QAction* SIMDHQWord;
     dsint mCip;
     std::vector<std::pair<const char*, uint8_t>> mHighlightRegs;
+    QPointer<FollowInDataProxy> mFollowInDataProxy;
 };
 
 #endif // REGISTERSVIEW_H
