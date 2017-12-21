@@ -318,6 +318,42 @@ void CPUStack::setupContextMenu()
         return true;
     }));
 
+    mFollowInDataProxy = new FollowInDataProxy(this, [this](int followWay, QVector<QPair<QString, QString>> & followData)
+    {
+        if(!DbgIsDebugging())
+            return;
+
+        auto wIsValidReadPtrCallback = [this]()
+        {
+            duint ptr;
+            return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
+        };
+
+        if(followWay == GUI_DISASSEMBLY)
+        {
+            if(wIsValidReadPtrCallback())
+                followData.push_back(QPair<QString, QString>(ArchValue(tr("Follow DWORD in Disassembler"), tr("Follow QWORD in Disassembler"))
+                                     , QString("disasm \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart())))));
+        }
+        else if(followWay == GUI_DUMP)
+        {
+            followData.push_back(QPair<QString, QString>(tr("Follow in Dump"), QString("dump " + ToHexString(rvaToVa(getInitialSelection())))));
+            if(wIsValidReadPtrCallback())
+            {
+                followData.push_back(QPair<QString, QString>(ArchValue(tr("Follow DWORD in Dump"), tr("Follow QWORD in Dump"))
+                                     , QString("dump \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart())))));
+
+                QList<QString> tabNames;
+                mMultiDump->getTabNames(tabNames);
+                for(int i = 0; i < tabNames.length(); i++)
+                {
+                    followData.push_back(QPair<QString, QString>(ArchValue(tr("Follow DWORD in "), tr("Follow QWORD in ")) + tabNames[i]
+                                         , QString("dump \"[%1]\", \"%2\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i + 1)));
+                }
+            }
+        }
+    });
+
     mMenuBuilder->loadFromConfig();
 }
 

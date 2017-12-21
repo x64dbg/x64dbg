@@ -1,12 +1,14 @@
 #ifndef CPUDUMP_H
 #define CPUDUMP_H
 
+#include <QPointer>
 #include "HexDump.h"
 
 //forward declaration
 class CPUMultiDump;
 class CPUDisassembly;
 class GotoDialog;
+class FollowInDataProxy;
 
 class CPUDump : public HexDump
 {
@@ -124,6 +126,8 @@ private:
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
     int mAsciiSeparator = 0;
+
+    QPointer<FollowInDataProxy> mFollowInDataProxy;
 
     enum ViewEnum_t
     {

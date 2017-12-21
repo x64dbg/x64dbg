@@ -671,7 +671,89 @@ void CPUDisassembly::setupRightClickContextMenu()
         return text != mHighlightToken.text;
     });
 
+    mFollowInDataProxy = new FollowInDataProxy(this, [this](int followWay, QVector<QPair<QString, QString>> & followData)
+    {
+        if(!DbgIsDebugging())
+            return;
+        if(followWay == GUI_DISASSEMBLY)
+        {
+            setupFollowInPopupData(true, followData);
+        }
+        else if(followWay == GUI_DUMP)
+        {
+            setupFollowInPopupData(false, followData);
+        }
+    });
     mMenuBuilder->loadFromConfig();
+}
+
+void CPUDisassembly::addFollowInPopupDataItem(QString name, dsint value, bool isFollowInCPU, QVector<QPair<QString, QString>> & followData)
+{
+    if(isFollowInCPU)
+        followData.push_back(QPair<QString, QString>(name, QString("disasm ") + ToPtrString(value)));
+    else
+        followData.push_back(QPair<QString, QString>(name, QString().sprintf("dump \"%s\"", ToPtrString(value).toUtf8().constData())));
+}
+
+void CPUDisassembly::setupFollowInPopupData(bool isFollowInCPU, QVector<QPair<QString, QString>> & followData)
+{
+    auto wVA = rvaToVa(getInitialSelection());
+    if(!isFollowInCPU)
+        addFollowInPopupDataItem(tr("Selected Address"), wVA, isFollowInCPU, followData);
+    DISASM_INSTR instr;
+    DbgDisasmAt(wVA, &instr);
+    for(int i = 0; i < instr.argcount; i++)
+    {
+        const DISASM_ARG & arg = instr.arg[i];
+        if(arg.type == arg_memory)
+        {
+            QString segment = "";
+#ifdef _WIN64
+            if(arg.segment == SEG_GS)
+                segment = "gs:";
+#else //x32
+            if(arg.segment == SEG_FS)
+                segment = "fs:";
+#endif //_WIN64
+            if(arg.value != arg.constant)
+            {
+                if(DbgMemIsValidReadPtr(arg.value))
+                {
+                    addFollowInPopupDataItem(tr("Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, isFollowInCPU, followData);
+                }
+            }
+            QString constant = ToHexString(arg.constant);
+            if(DbgMemIsValidReadPtr(arg.constant))
+                addFollowInPopupDataItem(tr("Constant: ") + constant, arg.constant, isFollowInCPU, followData);
+            if(DbgMemIsValidReadPtr(arg.memvalue))
+            {
+                addFollowInPopupDataItem(tr("Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue, isFollowInCPU, followData);
+                //Check for switch statement
+                if(memcmp(instr.instruction, "jmp ", 4) == 0 && DbgMemIsValidReadPtr(arg.constant)) //todo: extend check for exact form "jmp [reg*4+disp]"
+                {
+                    duint* switchTable = new duint[512];
+                    memset(switchTable, 0, 512 * sizeof(duint));
+                    if(DbgMemRead(arg.constant, switchTable, 512 * sizeof(duint)))
+                    {
+                        int index;
+                        for(index = 0; index < 512; index++)
+                            if(!DbgFunctions()->MemIsCodePage(switchTable[index], false))
+                                break;
+                        if(index >= 2 && index < 512)
+                            for(int index2 = 0; index2 < index; index2++)
+                                addFollowInPopupDataItem(tr("Jump table%1: ").arg(index2) + ToHexString(switchTable[index2]), switchTable[index2], isFollowInCPU, followData);
+                    }
+                    delete[] switchTable;
+                }
+            }
+
+        }
+        else //arg_normal
+        {
+            if(DbgMemIsValidReadPtr(arg.value))
+                addFollowInPopupDataItem(QString(arg.mnemonic).trimmed(), arg.value, isFollowInCPU, followData);
+        }
+    }
 }
 
 void CPUDisassembly::gotoOriginSlot()
@@ -680,8 +762,6 @@ void CPUDisassembly::gotoOriginSlot()
         return;
     DbgCmdExec("disasm cip");
 }
-
-
 
 
 void CPUDisassembly::setNewOriginHereActionSlot()

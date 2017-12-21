@@ -7,6 +7,9 @@
 #include <QIcon>
 #include <QList>
 #include <QTreeWidget>
+#include <functional>
+#include <QVector>
+#include <QPair>
 
 QT_BEGIN_NAMESPACE
 class QTreeWidgetItem;
@@ -18,7 +21,7 @@ typedef void* MIDPKey;
 class MultiItemsDataProvider
 {
 public:
-    virtual const QList<MIDPKey> & MIDP_getItems() const = 0;
+    virtual QList<MIDPKey> MIDP_getItems() = 0;
     virtual QString MIDP_getItemName(MIDPKey index) = 0;
     virtual QIcon MIDP_getIcon(MIDPKey index) = 0;
     virtual void MIDP_selected(MIDPKey index) = 0;
@@ -28,9 +31,9 @@ class MultiItemsSelectWindow : public QFrame
 {
     Q_OBJECT
 public:
-    MultiItemsSelectWindow(MultiItemsDataProvider* hp, QWidget* parent, bool showIcon);
+    MultiItemsSelectWindow(MultiItemsDataProvider* hp, QWidget* parent, bool showIcon, std::function<void(MultiItemsSelectWindow*)> = nullptr);
 
-    void gotoNextItem();
+    void gotoNextItem(bool autoNextWhenInit = true);
     void gotoPreviousItem();
 
 private slots:
@@ -66,6 +69,26 @@ private:
     OpenViewsTreeWidget* mEditorList;
     MultiItemsDataProvider* mDataProvider = nullptr;
     bool mShowIcon;
+};
+
+class FollowInDataProxy : public QObject, public MultiItemsDataProvider
+{
+    Q_OBJECT
+public:
+    typedef std::function<void(int, QVector<QPair<QString, QString>>&)> DataCallback;
+    FollowInDataProxy(QWidget* parent, DataCallback cb);
+
+protected:
+    QList<MIDPKey> MIDP_getItems() override;
+    QString MIDP_getItemName(MIDPKey index) override;
+    void MIDP_selected(MIDPKey index) override;
+    QIcon MIDP_getIcon(MIDPKey index) override;
+
+private:
+    DataCallback mDataCallback;
+    MultiItemsSelectWindow* mFollowInPopupWindow = nullptr;
+    int mFollowInTarget = 0; // 0: GUI_DISASSEMBLY, 1: GUI_DUMP
+    QVector<QPair<QString, QString>> mFollowToData; // QPair<show name, command>
 };
 
 #endif

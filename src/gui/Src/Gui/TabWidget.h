@@ -51,7 +51,7 @@ public slots:
 
 protected:
     MHTabBar* tabBar() const;
-    const QList<MIDPKey> & MIDP_getItems() const override;
+    QList<MIDPKey> MIDP_getItems() override;
     QString MIDP_getItemName(MIDPKey index) override;
     void MIDP_selected(MIDPKey index) override;
     QIcon MIDP_getIcon(MIDPKey index) override;
