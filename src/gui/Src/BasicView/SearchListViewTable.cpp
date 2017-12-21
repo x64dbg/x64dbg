@@ -5,12 +5,10 @@
 
 SearchListViewTable::SearchListViewTable(StdTable* parent)
     : StdTable(parent),
-      bCipBase(false),
-      mCip(0)
+      bCipBase(false)
 {
     highlightText = "";
     updateColors();
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
 }
 
 void SearchListViewTable::updateColors()
@@ -87,7 +85,15 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         BPXTYPE bpxtype = DbgGetBpxTypeAt(wVA);
         bool isbookmark = DbgGetBookmarkAt(wVA);
 
-        if(wVA == mCip) //cip + not running
+        duint cip = Bridge::getBridge()->mLastCip;
+        if(bCipBase)
+        {
+            duint base = DbgFunctions()->ModBaseFromAddr(cip);
+            if(base)
+                cip = base;
+        }
+
+        if(DbgIsDebugging() && wVA == cip) //cip + not running
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
             if(!isbookmark) //no bookmark
@@ -296,15 +302,4 @@ QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int 
         text = "";
     }
     return text;
-}
-
-void SearchListViewTable::disassembleAtSlot(dsint va, dsint cip)
-{
-    Q_UNUSED(va);
-    mCip = cip;
-    if(!bCipBase)
-        return;
-    duint base = DbgFunctions()->ModBaseFromAddr(mCip);
-    if(base)
-        mCip = base;
 }

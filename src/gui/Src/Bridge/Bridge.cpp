@@ -91,6 +91,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     switch(type)
     {
     case GUI_DISASSEMBLE_AT:
+        mLastCip = (duint)param2;
         emit disassembleAt((dsint)param1, (dsint)param2);
         break;
 
