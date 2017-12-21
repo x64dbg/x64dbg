@@ -14,6 +14,7 @@
 #include "SelectFields.h"
 #include "MiscUtil.h"
 #include "ldconvert.h"
+#include "MultiItemsSelectWindow.h"
 
 int RegistersView::getEstimateHeight()
 {
@@ -1360,6 +1361,51 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+
+    mFollowInDataProxy = new FollowInDataProxy(this, [this](int followWay, QVector<QPair<QString, QString>> & followData)
+    {
+        if(!DbgIsDebugging())
+            return;
+
+        auto wIsValidReadPtrCallback = [this]()
+        {
+            if(mCANSTOREADDRESS.contains(mSelected))
+            {
+                duint addr = (* ((duint*) registerValue(&wRegDumpStruct, mSelected)));
+                if(DbgMemIsValidReadPtr(addr))
+                {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        QString addr;
+        if(wIsValidReadPtrCallback())
+            addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+
+        if(followWay == GUI_DISASSEMBLY)
+        {
+            if(wIsValidReadPtrCallback())
+                followData.push_back(QPair<QString, QString>(tr("Follow in Disassembler")
+                                     , QString("disasm \"%1\"").arg(addr)));
+        }
+        else if(followWay == GUI_DUMP)
+        {
+            if(wIsValidReadPtrCallback())
+            {
+                followData.push_back(QPair<QString, QString>(tr("Follow in Dump"), QString("dump \"%1\"").arg(addr)));
+
+                QList<QString> tabNames;
+                mParent->getDumpWidget()->getTabNames(tabNames);
+                for(int i = 0; i < tabNames.length(); i++)
+                {
+                    followData.push_back(QPair<QString, QString>(tr("Follow in ") + tabNames[i]
+                                         , QString("dump \"%1\", \"%2\"").arg(addr).arg(i + 1)));
+                }
+            }
+        }
+    });
 }
 
 void RegistersView::refreshShortcutsSlot()
