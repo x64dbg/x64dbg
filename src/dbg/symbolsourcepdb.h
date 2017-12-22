@@ -55,7 +55,13 @@ class SymbolSourcePDB : public SymbolSourceBase
 
 private:
     PDBDiaFile _pdb;
-    std::map<duint, SymbolInfo> _sym;
+
+    //All the symbol data, sorted by name
+    std::vector<SymbolInfo> _symNames;
+    //Symbol addresses to index in _symNames (TODO: refactor to std::vector)
+    std::map<duint, size_t> _symAddrs;
+
+    //std::map<duint, SymbolInfo> _sym;
     std::map<duint, CachedLineInfo> _lines;
     std::thread _symbolsThread;
     std::thread _sourceLinesThread;
@@ -91,6 +97,10 @@ public:
     virtual void enumSymbols(const CbEnumSymbol & cbEnum) override;
 
     virtual bool findSourceLineInfo(duint rva, LineInfo & lineInfo) override;
+
+    virtual bool findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive) override;
+
+    virtual bool findSymbolsByPrefix(const std::string & prefix, std::vector<SymbolInfo> & symbols, bool caseSensitive) override;
 
 public:
     bool loadPDB(const std::string & path, duint imageBase, duint imageSize);

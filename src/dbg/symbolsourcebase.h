@@ -99,6 +99,16 @@ public:
     {
         return false; // Stub
     }
+
+    virtual bool findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive)
+    {
+        return false; // Stub
+    }
+
+    virtual bool findSymbolsByPrefix(const std::string & prefix, std::vector<SymbolInfo> & symbols, bool caseSensitive)
+    {
+        return false; // Stub
+    }
 };
 
 static SymbolSourceBase EmptySymbolSource;

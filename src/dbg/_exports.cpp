@@ -1475,13 +1475,13 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_SYMBOL_INFO:
     {
-        //hack^2
+        //TODO: hack^2
         auto real = (SymbolInfo*)param1;
         auto fake = (SYMBOLINFO*)param2;
         fake->addr = real->addr;
         fake->decoratedSymbol = (char*)real->decoratedName.c_str();
         fake->undecoratedSymbol = (char*)real->undecoratedName.c_str();
-        fake->isImported = strncmp(fake->decoratedSymbol, "__imp_", 6) == 0;
+        fake->isImported = strncmp(fake->decoratedSymbol, "__imp_", 6) == 0; //TODO: properly handle this
     }
     break;
     }
