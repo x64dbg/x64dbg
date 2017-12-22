@@ -90,37 +90,6 @@ void SymbolSourcePDB::loadPDBAsync()
 {
 }
 
-inline int mystricmp(const char* s1, const char* s2)
-{
-    unsigned char c1, c2;
-    while((c1 = tolower(*s1++)) == (c2 = tolower(*s2++)))
-        if(c1 == '\0')
-            return 0;
-    return c1 - c2;
-}
-
-inline int hackicmp(const char* s1, const char* s2)
-{
-    unsigned char c1, c2;
-    while((c1 = *s1++) == (c2 = *s2++))
-        if(c1 == '\0')
-            return 0;
-    return mystricmp(s1 - 1, s2 - 1);
-}
-
-struct HackCmp
-{
-    bool operator()(const SymbolInfo & a, const SymbolInfo & b)
-    {
-        return cmp(a, b, false) < 0;
-    }
-
-    int cmp(const SymbolInfo & a, const SymbolInfo & b, bool caseSensitive)
-    {
-        return (caseSensitive ? strcmp : hackicmp)(a.decoratedName.c_str(), b.decoratedName.c_str());
-    }
-};
-
 bool SymbolSourcePDB::loadSymbolsAsync(String path)
 {
     ScopedDecrement ref(_loadCounter);
@@ -155,24 +124,25 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
             symInfo.disp = sym.disp;
             symInfo.addr = sym.virtualAddress;
             symInfo.publicSymbol = sym.publicSymbol;
-            _symNames.push_back(symInfo);
+            _symData.push_back(symInfo);
 
             // Check if we already have it inside, private symbols have priority over public symbols.
+            // TODO: only use this map during initialization phase
             {
                 ScopedSpinLock lock(_lockSymbols);
 
                 auto it = _symAddrs.find(symInfo.addr);
                 if(it != _symAddrs.end())
                 {
-                    if(_symNames[it->second].publicSymbol == true && symInfo.publicSymbol == false)
+                    if(_symData[it->second].publicSymbol == true && symInfo.publicSymbol == false)
                     {
                         // Replace.
-                        it->second = _symNames.size() - 1;
+                        it->second = _symData.size() - 1;
                     }
                 }
                 else
                 {
-                    _symAddrs.insert({ symInfo.addr, _symNames.size() - 1 });
+                    _symAddrs.insert({ symInfo.addr, _symData.size() - 1 });
                 }
             }
 
@@ -199,29 +169,27 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
     {
         ScopedSpinLock lock(_lockSymbols);
 
-        //handle symbol sorting
-        std::sort(_symNames.begin(), _symNames.end(), HackCmp());
-
-        _symAddrs.clear();
-        for(size_t i = 0; i < _symNames.size(); i++)
+        //TODO: actually do something with this map
+        _symAddrMap.reserve(_symAddrs.size());
+        for(auto & it : _symAddrs)
         {
-            auto & symInfo = _symNames.at(i);
-
-            // Check if we already have it inside, private symbols have priority over public symbols.
-            auto it = _symAddrs.find(symInfo.addr);
-            if(it != _symAddrs.end())
-            {
-                if(_symNames[it->second].publicSymbol == true && symInfo.publicSymbol == false)
-                {
-                    // Replace.
-                    it->second = i;
-                }
-            }
-            else
-            {
-                _symAddrs.insert({ symInfo.addr, i });
-            }
+            AddrIndex addrIndex;
+            addrIndex.addr = it.first;
+            addrIndex.index = it.second;
+            _symAddrMap.push_back(addrIndex);
         }
+        std::sort(_symAddrMap.begin(), _symAddrMap.end());
+
+        //handle symbol name sorting
+        _symNameMap.resize(_symData.size());
+        for(size_t i = 0; i < _symData.size(); i++)
+        {
+            NameIndex nameIndex;
+            nameIndex.index = i;
+            nameIndex.name = _symData.at(i).decoratedName.c_str(); //NOTE: DO NOT MODIFY decoratedName is any way!
+            _symNameMap[i] = nameIndex;
+        }
+        std::sort(_symNameMap.begin(), _symNameMap.end());
     }
 
     DWORD64 ms = GetTickCount64() - loadStart;
@@ -237,7 +205,7 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
     fuck.resize(_symAddrs.size());
     size_t i = 0;
     for(auto it = _symAddrs.begin(); it != _symAddrs.end(); ++it)
-        fuck[i++] = &_symNames[it->second];
+        fuck[i++] = &_symData[it->second];
     blub.data = fuck.data();
     GuiSetModuleSymbols(_imageBase, &blub);
 
@@ -340,7 +308,7 @@ bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo & symInfo)
     auto it = _symAddrs.find(rva);
     if(it != _symAddrs.end())
     {
-        symInfo = _symNames[(*it).second];
+        symInfo = _symData[it->second];
         return true;
     }
 
@@ -375,7 +343,7 @@ bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
     auto it = findExactOrLower(_symAddrs, rva);
     if(it != _symAddrs.end())
     {
-        symInfo = _symNames[(*it).second];
+        symInfo = _symData[it->second];
         symInfo.disp = (int32_t)(rva - symInfo.addr);
         return true;
     }
@@ -389,7 +357,7 @@ void SymbolSourcePDB::enumSymbols(const CbEnumSymbol & cbEnum)
 
     for(auto & it : _symAddrs)
     {
-        const SymbolInfo & sym = _symNames[it.second];
+        const SymbolInfo & sym = _symData[it.second];
         if(!cbEnum(sym))
         {
             break;
@@ -432,25 +400,23 @@ ForwardIt binary_find(ForwardIt first, ForwardIt last, const T & value, Compare 
 
 bool SymbolSourcePDB::findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive)
 {
-    HackCmp hackCmp;
-
     ScopedSpinLock lock(_lockSymbols);
 
-    SymbolInfo find;
-    find.decoratedName = name;
-    auto found = binary_find(_symNames.begin(), _symNames.end(), find, hackCmp);
-    if(found != _symNames.end())
+    NameIndex find;
+    find.name = name.c_str();
+    auto found = binary_find(_symNameMap.begin(), _symNameMap.end(), find);
+    if(found != _symNameMap.end())
     {
         do
         {
-            if(hackCmp.cmp(*found, find, caseSensitive) == 0)
+            if(find.cmp(*found, find, caseSensitive) == 0)
             {
-                symInfo = *found;
+                symInfo = _symData.at(found->index);
                 return true;
             }
             ++found;
         }
-        while(found != _symNames.end() && hackCmp.cmp(find, *found, false) == 0);
+        while(found != _symNameMap.end() && find.cmp(find, *found, false) == 0);
     }
     return false;
 }
@@ -461,14 +427,14 @@ bool SymbolSourcePDB::findSymbolsByPrefix(const std::string & prefix, std::vecto
     {
         PrefixCmp(size_t n) : n(n) { }
 
-        bool operator()(const SymbolInfo & a, const SymbolInfo & b)
+        bool operator()(const NameIndex & a, const NameIndex & b)
         {
             return cmp(a, b, false) < 0;
         }
 
-        int cmp(const SymbolInfo & a, const SymbolInfo & b, bool caseSensitive)
+        int cmp(const NameIndex & a, const NameIndex & b, bool caseSensitive)
         {
-            return (caseSensitive ? strncmp : _strnicmp)(a.decoratedName.c_str(), b.decoratedName.c_str(), n);
+            return (caseSensitive ? strncmp : _strnicmp)(a.name, b.name, n);
         }
 
     private:
@@ -477,18 +443,18 @@ bool SymbolSourcePDB::findSymbolsByPrefix(const std::string & prefix, std::vecto
 
     ScopedSpinLock lock(_lockSymbols);
 
-    SymbolInfo find;
-    find.decoratedName = prefix;
-    auto found = binary_find(_symNames.begin(), _symNames.end(), find, prefixCmp);
-    if(found == _symNames.end())
+    NameIndex find;
+    find.name = prefix.c_str();
+    auto found = binary_find(_symNameMap.begin(), _symNameMap.end(), find, prefixCmp);
+    if(found == _symNameMap.end())
         return false;
 
     bool result = false;
-    for(; found != _symNames.end() && prefixCmp.cmp(find, *found, false); ++found)
+    for(; found != _symNameMap.end() && prefixCmp.cmp(find, *found, false); ++found)
     {
         if(!caseSensitive || prefixCmp.cmp(find, *found, true))
         {
-            symbols.push_back(*found);
+            symbols.push_back(_symData.at(found->index));
             result = true;
         }
     }

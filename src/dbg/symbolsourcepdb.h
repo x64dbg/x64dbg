@@ -56,8 +56,37 @@ class SymbolSourcePDB : public SymbolSourceBase
 private:
     PDBDiaFile _pdb;
 
-    //All the symbol data, sorted by name
-    std::vector<SymbolInfo> _symNames;
+    std::vector<SymbolInfo> _symData;
+
+    struct AddrIndex
+    {
+        duint addr;
+        size_t index;
+
+        bool operator<(const AddrIndex & b) const
+        {
+            return addr < b.addr;
+        }
+    };
+    std::vector<AddrIndex> _symAddrMap; //rva -> data index (sorted on rva)
+
+    struct NameIndex
+    {
+        const char* name;
+        size_t index;
+
+        bool operator<(const NameIndex & b) const
+        {
+            return cmp(*this, b, false) < 0;
+        }
+
+        static int cmp(const NameIndex & a, const NameIndex & b, bool caseSensitive)
+        {
+            return (caseSensitive ? strcmp : hackicmp)(a.name, b.name);
+        }
+    };
+    std::vector<NameIndex> _symNameMap; //name -> data index (sorted on name)
+
     //Symbol addresses to index in _symNames (TODO: refactor to std::vector)
     std::map<duint, size_t> _symAddrs;
 
@@ -72,6 +101,20 @@ private:
     duint _imageSize;
     SpinLock _lockSymbols;
     SpinLock _lockLines;
+
+private:
+    static int hackicmp(const char* s1, const char* s2)
+    {
+        unsigned char c1, c2;
+        while((c1 = *s1++) == (c2 = *s2++))
+            if(c1 == '\0')
+                return 0;
+        s1--, s2--;
+        while((c1 = tolower(*s1++)) == (c2 = tolower(*s2++)))
+            if(c1 == '\0')
+                return 0;
+        return c1 - c2;
+    }
 
 public:
     static bool isLibraryAvailable()
