@@ -424,6 +424,8 @@ duint ModBaseFromName(const char* Module)
     ASSERT_TRUE(len < MAX_MODULE_SIZE);
     SHARED_ACQUIRE(LockModules);
 
+    //TODO: refactor this to query from a map
+    duint candidate = 0;
     for(const auto & i : modinfo)
     {
         const auto & currentModule = i.second;
@@ -431,12 +433,16 @@ duint ModBaseFromName(const char* Module)
         strcpy_s(currentModuleName, currentModule.name);
         strcat_s(currentModuleName, currentModule.extension);
 
-        // Test with and without extension
-        if(!_stricmp(currentModuleName, Module) || !_stricmp(currentModule.name, Module))
+        // Compare with extension (perfect match)
+        if(!_stricmp(currentModuleName, Module))
             return currentModule.base;
+
+        // Compare without extension, possible candidate (thanks to chessgod101 for finding this)
+        if(!candidate && !_stricmp(currentModule.name, Module))
+            candidate = currentModule.base;
     }
 
-    return 0;
+    return candidate;
 }
 
 duint ModSizeFromAddr(duint Address)
