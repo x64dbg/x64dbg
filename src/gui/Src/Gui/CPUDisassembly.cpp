@@ -688,6 +688,12 @@ void CPUDisassembly::setupRightClickContextMenu()
 
 void CPUDisassembly::addFollowInPopupDataItem(QString name, dsint value, bool isFollowInCPU, QVector<QPair<QString, QString>> & followData)
 {
+    for(int i = 0; i < followData.size(); ++i)  //check for duplicate
+    {
+        if(followData.at(i).first == name)
+            return;
+    }
+
     if(isFollowInCPU)
         followData.push_back(QPair<QString, QString>(name, QString("disasm ") + ToPtrString(value)));
     else
