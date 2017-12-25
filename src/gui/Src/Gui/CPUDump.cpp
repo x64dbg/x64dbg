@@ -296,26 +296,29 @@ void CPUDump::setupContextMenu()
             return DbgMemIsValidReadPtr(ptr);
         };
 
+        auto valueText = ToHexString(rvaToVa(getSelectionStart()));
+        auto valueAddrText = QString("[%1]").arg(valueText);
         if(followWay == GUI_DISASSEMBLY)
         {
-            followData.push_back(QPair<QString, QString>(tr("Follow in Disassembler"), QString("disasm " + ToPtrString(rvaToVa(getSelectionStart())))));
+            followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueText).arg(tr("Disassembler"))
+                                 , QString("disasm " + valueText)));
             if(wIsValidReadPtrCallback())
-                followData.push_back(QPair<QString, QString>(ArchValue(tr("Follow DWORD in Disassembler"), tr("Follow QWORD in Disassembler"))
-                                     , QString("disasm \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart())))));
+                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueAddrText).arg(tr("Disassembler"))
+                                     , QString("disasm \"[%1]\"").arg(valueText)));
         }
         else if(followWay == GUI_DUMP)
         {
             if(wIsValidReadPtrCallback())
             {
-                followData.push_back(QPair<QString, QString>(ArchValue(tr("Follow DWORD in Current Dump"), tr("Follow QWORD in Current Dump"))
-                                     , QString("dump \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart())))));
+                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueAddrText).arg(tr("Dump"))
+                                     , QString("dump \"[%1]\"").arg(valueText)));
 
                 QList<QString> tabNames;
                 mMultiDump->getTabNames(tabNames);
                 for(int i = 0; i < tabNames.length(); i++)
                 {
-                    followData.push_back(QPair<QString, QString>(ArchValue(tr("Follow DWORD in "), tr("Follow QWORD in ")) + tabNames[i]
-                                         , QString("dump \"[%1]\", \"%2\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i + 1)));
+                    followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueAddrText).arg(tabNames[i])
+                                         , QString("dump \"[%1]\", \"%2\"").arg(valueText).arg(i + 1)));
                 }
             }
         }

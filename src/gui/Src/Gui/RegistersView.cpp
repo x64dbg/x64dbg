@@ -1387,20 +1387,21 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
         if(followWay == GUI_DISASSEMBLY)
         {
             if(wIsValidReadPtrCallback())
-                followData.push_back(QPair<QString, QString>(tr("Follow in Disassembler")
+                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(addr).arg(tr("Disassembler"))
                                      , QString("disasm \"%1\"").arg(addr)));
         }
         else if(followWay == GUI_DUMP)
         {
             if(wIsValidReadPtrCallback())
             {
-                followData.push_back(QPair<QString, QString>(tr("Follow in Dump"), QString("dump \"%1\"").arg(addr)));
+                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(addr).arg(tr("Dump"))
+                                     , QString("dump \"%1\"").arg(addr)));
 
                 QList<QString> tabNames;
                 mParent->getDumpWidget()->getTabNames(tabNames);
                 for(int i = 0; i < tabNames.length(); i++)
                 {
-                    followData.push_back(QPair<QString, QString>(tr("Follow in ") + tabNames[i]
+                    followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(addr).arg(tabNames[i])
                                          , QString("dump \"%1\", \"%2\"").arg(addr).arg(i + 1)));
                 }
             }
