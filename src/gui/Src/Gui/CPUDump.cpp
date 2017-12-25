@@ -310,7 +310,7 @@ void CPUDump::setupContextMenu()
         {
             if(wIsValidReadPtrCallback())
             {
-                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueAddrText).arg(tr("Dump"))
+                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueAddrText).arg(tr("Current Dump"))
                                      , QString("dump \"[%1]\"").arg(valueText)));
 
                 QList<QString> tabNames;

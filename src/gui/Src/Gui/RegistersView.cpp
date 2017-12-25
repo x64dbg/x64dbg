@@ -1394,7 +1394,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
         {
             if(wIsValidReadPtrCallback())
             {
-                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(addr).arg(tr("Dump"))
+                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(addr).arg(tr("Current Dump"))
                                      , QString("dump \"%1\"").arg(addr)));
 
                 QList<QString> tabNames;
