@@ -75,12 +75,18 @@ bool Zydis::Disassemble(size_t addr, const unsigned char* data, int size)
         // we should probably refrain from hacking the Zydis data structure and perform
         // such transformations in the getters instead.
         if(op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && op.imm.isRelative)
+        {
             ZydisCalcAbsoluteAddress(&mInstr, &op, &op.imm.value.u);
+            op.imm.isRelative = false; //hack to prevent OperandText from returning bogus values
+        }
         else if(op.type == ZYDIS_OPERAND_TYPE_MEMORY &&
                 op.mem.base == ZYDIS_REGISTER_NONE &&
                 op.mem.index == ZYDIS_REGISTER_NONE &&
                 op.mem.disp.value != 0)
+        {
+            //TODO: what is this used for?
             ZydisCalcAbsoluteAddress(&mInstr, &op, (uint64_t*)&op.mem.disp.value);
+        }
 
         if(op.visibility == ZYDIS_OPERAND_VISIBILITY_HIDDEN)
             break;
