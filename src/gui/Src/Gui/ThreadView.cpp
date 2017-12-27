@@ -382,6 +382,9 @@ void ThreadView::doubleClickedSlot()
 {
     QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("switchthread " + threadId).toUtf8().constData());
+
+    QString addr_text = getCellContent(getInitialSelection(), 4);
+    DbgCmdExecDirect(QString("disasm " + addr_text).toUtf8().constData());
 }
 
 void ThreadView::SetNameSlot()
