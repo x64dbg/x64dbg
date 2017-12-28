@@ -82,6 +82,7 @@ void varinit()
     varnew("$breakpointcounter", 0, VAR_READONLY);
     varnew("$breakpointcondition", 0, VAR_SYSTEM);
     varnew("$breakpointlogcondition", 0, VAR_READONLY);
+    varnew("$breakpointexceptionaddress", 0, VAR_READONLY);
 
     // Tracing variables
     varnew("$tracecounter", 0, VAR_READONLY);

@@ -791,26 +791,33 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     BREAKPOINT* bpPtr = nullptr;
     //NOTE: this locking is very tricky, make sure you understand it before modifying anything
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
+    duint breakpointExceptionAddress = 0;
     switch(bptype)
     {
     case BPNORMAL:
         bpPtr = BpInfoFromAddr(BPNORMAL, CIP);
+        breakpointExceptionAddress = CIP;
         break;
     case BPHARDWARE:
         bpPtr = BpInfoFromAddr(BPHARDWARE, duint(ExceptionAddress));
+        breakpointExceptionAddress = duint(ExceptionAddress);
         break;
     case BPMEMORY:
         bpPtr = BpInfoFromAddr(BPMEMORY, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
+        breakpointExceptionAddress = duint(ExceptionAddress);
         break;
     case BPDLL:
         bpPtr = BpInfoFromAddr(BPDLL, BpGetDLLBpAddr(reinterpret_cast<const char*>(ExceptionAddress)));
+        breakpointExceptionAddress = 0; //makes no sense
         break;
     case BPEXCEPTION:
         bpPtr = BpInfoFromAddr(BPEXCEPTION, ((EXCEPTION_DEBUG_INFO*)ExceptionAddress)->ExceptionRecord.ExceptionCode);
+        breakpointExceptionAddress = (duint)((EXCEPTION_DEBUG_INFO*)ExceptionAddress)->ExceptionRecord.ExceptionAddress;
         break;
     default:
         break;
     }
+    varset("$breakpointexceptionaddress", breakpointExceptionAddress, true);
     if(!(bpPtr && bpPtr->enabled)) //invalid / disabled breakpoint hit (most likely a bug)
     {
         if(bptype != BPDLL || !BpUpdateDllPath(reinterpret_cast<const char*>(ExceptionAddress), &bpPtr))
