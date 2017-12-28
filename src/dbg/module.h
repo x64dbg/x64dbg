@@ -41,6 +41,7 @@ struct MODINFO
     std::vector<MODSECTIONINFO> sections;
     std::vector<MODIMPORTINFO> imports;
     std::vector<MODRELOCATIONINFO> relocations;
+    std::vector<duint> tlsCallbacks;
 
     HANDLE fileHandle = nullptr;
     DWORD loadedSize = 0;
