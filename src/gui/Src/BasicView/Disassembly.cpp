@@ -474,7 +474,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             DBGPATCHINFO patchInfo;
             if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
             {
-                if(mInstBuffer.at(rowOffset).dump.at(i) == patchInfo.newbyte)
+                if((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)) == patchInfo.newbyte)
                 {
                     curByte1.textColor = mModifiedBytesColor;
                     curByte1.textBackground = mModifiedBytesBackgroundColor;

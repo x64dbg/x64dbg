@@ -332,11 +332,12 @@ void QBeaEngine::UpdateConfig()
 void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list)
 {
     RichTextPainter::CustomRichText_t curByte;
+    size_t size = inst.dump.size();
     assert(list.empty()); //List must be empty before use
     curByte.highlightWidth = 1;
     curByte.flags = RichTextPainter::FlagAll;
     curByte.highlight = false;
-    for(int i = 0; i < inst.dump.size(); i++)
+    for(int i = 0; i < size; i++)
     {
         curByte.text = ToByteString(inst.dump.at(i));
         list.push_back(curByte);
@@ -348,11 +349,13 @@ void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list
     list.at(inst.opcodeSize + inst.prefixSize - 1).text.append(' ');
     if(inst.group1Size > 0)
     {
-        list.at(inst.opcodeSize + inst.prefixSize + inst.group1Size - 1).text.append(' ');
+        if(inst.opcodeSize + inst.prefixSize + inst.group1Size < size)
+            list.at(inst.opcodeSize + inst.prefixSize + inst.group1Size - 1).text.append(' ');
     }
     if(inst.group2Size > 0)
     {
-        list.at(inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size - 1).text.append(' ');
+        if(inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size < size)
+            list.at(inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size - 1).text.append(' ');
     }
     /*if(inst.group3Size > 0)
     {
