@@ -72,6 +72,6 @@ private:
     uint8_t flaginfo[ZYDIS_CPUFLAG_MAX_VALUE + 1];
 };
 
-QString formatOpcodeString(const Instruction_t & inst);
+void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list);
 
 #endif // QBEAENGINE_H
