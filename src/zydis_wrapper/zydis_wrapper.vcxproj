@@ -140,12 +140,12 @@
   <ItemGroup>
     <ClCompile Include="zydis\src\Decoder.c" />
     <ClCompile Include="zydis\src\DecoderData.c" />
-    <ClCompile Include="zydis\src\FormatHelper.c" />
     <ClCompile Include="zydis\src\Formatter.c" />
     <ClCompile Include="zydis\src\MetaInfo.c" />
     <ClCompile Include="zydis\src\Mnemonic.c" />
     <ClCompile Include="zydis\src\Register.c" />
     <ClCompile Include="zydis\src\SharedData.c" />
+    <ClCompile Include="zydis\src\String.c" />
     <ClCompile Include="zydis\src\Utils.c" />
     <ClCompile Include="zydis\src\Zydis.c" />
     <ClCompile Include="zydis_wrapper.cpp" />
@@ -161,6 +161,7 @@
     <ClInclude Include="zydis\include\Zydis\Register.h" />
     <ClInclude Include="zydis\include\Zydis\SharedTypes.h" />
     <ClInclude Include="zydis\include\Zydis\Status.h" />
+    <ClInclude Include="zydis\include\Zydis\String.h" />
     <ClInclude Include="zydis\include\Zydis\Utils.h" />
     <ClInclude Include="zydis\include\Zydis\Zydis.h" />
     <ClInclude Include="zydis\src\DecoderData.h" />

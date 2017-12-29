@@ -1,5 +1,5 @@
 #include "zydis_wrapper.h"
-#include <Zydis/src/FormatHelper.h>
+#include <Zydis/Formatter.h>
 #include <windows.h>
 
 bool Zydis::mInitialized = false;
@@ -170,17 +170,19 @@ std::string Zydis::OperandText(int opindex) const
     }
 
     //Get the operand format function.
-    ZydisFormatterFormatOperandFunc fmtFunc = nullptr;
+    ZydisFormatterOperandFunc fmtFunc = nullptr;
     if(!ZYDIS_SUCCESS(ZydisFormatterSetHook(&mFormatter, type, (const void**)&fmtFunc)))
         return "";
 
     //Format the operand.
     char buf[200] = "";
-    auto bufPtr = buf;
+    ZydisString zyStr;
+    zyStr.buffer = buf;
+    zyStr.length = 0;
+    zyStr.capacity = sizeof(buf) - 1;
     fmtFunc(
         &mFormatter,
-        &bufPtr,
-        sizeof(buf),
+        &zyStr,
         &mInstr,
         &op,
         nullptr
