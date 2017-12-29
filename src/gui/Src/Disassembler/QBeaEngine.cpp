@@ -329,27 +329,31 @@ void QBeaEngine::UpdateConfig()
     _tokenizer.UpdateConfig();
 }
 
-QString formatOpcodeString(const Instruction_t & inst)
+void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list)
 {
-    QString output;
-    unsigned char offset = 0;
-    output = QString(inst.dump.toHex()).toUpper();
+    RichTextPainter::CustomRichText_t curByte;
+    assert(list.empty()); //List must be empty before use
+    curByte.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
+    curByte.highlightWidth = 1;
+    curByte.flags = RichTextPainter::FlagAll;
+    curByte.highlight = false;
+    for(int i = 0; i < inst.dump.size(); i++)
+    {
+        curByte.text = ToByteString(inst.dump.at(i));
+        list.push_back(curByte);
+    }
     if(inst.prefixSize > 0)
     {
-        output.insert(inst.prefixSize * 2, ':');
-        offset++;
+        list.at(inst.prefixSize - 1).text.append(':');
     }
-    output.insert((inst.opcodeSize + inst.prefixSize) * 2 + offset, ' ');
-    offset++;
+    list.at(inst.opcodeSize + inst.prefixSize - 1).text.append(' ');
     if(inst.group1Size > 0)
     {
-        output.insert((inst.opcodeSize + inst.prefixSize + inst.group1Size) * 2 + offset, ' ');
-        offset++;
+        list.at(inst.opcodeSize + inst.prefixSize + inst.group1Size - 1).text.append(' ');
     }
     if(inst.group2Size > 0)
     {
-        output.insert((inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size) * 2 + offset, ' ');
-        offset++;
+        list.at(inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size - 1).text.append(' ');
     }
     /*if(inst.group3Size > 0)
     {
@@ -357,5 +361,4 @@ QString formatOpcodeString(const Instruction_t & inst)
     }
     output += QString("|%1.%2.%3.%4").arg(inst.opcodeSize).arg(inst.group1Size).arg(inst.group2Size).arg(inst.group3Size);
     */
-    return output;
 }

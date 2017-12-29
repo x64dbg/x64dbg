@@ -459,14 +459,29 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         space.flags = RichTextPainter::FlagNone;
         space.text = " ";
         RichTextPainter::CustomRichText_t curByte;
+        curByte.textColor = mBytesColor;
+        curByte.textBackground = mBytesBackgroundColor;
         curByte.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
         curByte.highlightWidth = 1;
         curByte.flags = RichTextPainter::FlagAll;
-        curByte.text = formatOpcodeString(mInstBuffer.at(rowOffset));
-        curByte.textColor = mBytesColor;
-        curByte.textBackground = mBytesBackgroundColor;
         curByte.highlight = false;
-        richBytes.push_back(curByte);
+        formatOpcodeString(mInstBuffer.at(rowOffset), richBytes);
+        for(int i = 0; i < richBytes.size(); i++)
+        {
+            RichTextPainter::CustomRichText_t & curByte1 = richBytes.at(i);
+            if(!DbgFunctions()->PatchGet(cur_addr + i))
+            {
+                curByte1.textColor = mBytesColor;
+                curByte1.textBackground = mBytesBackgroundColor;
+            }
+            else
+            {
+                curByte1.textColor = mModifiedBytesColor;
+                curByte1.textBackground = mModifiedBytesBackgroundColor;
+            }
+            curByte1.highlight = DbgFunctions()->ModRelocationAtAddr(cur_addr + i, nullptr);
+        }
+
         if(mCodeFoldingManager && mCodeFoldingManager->isFolded(cur_addr))
         {
             curByte.textColor = mBytesColor;

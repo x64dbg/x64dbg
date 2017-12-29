@@ -1495,9 +1495,12 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         duint cur_addr = rvaToVa(inst.rva);
         QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
+        QString bytesHtml;
         if(copyBytes)
         {
-            bytes += formatOpcodeString(inst);
+            RichTextPainter::List richText;
+            formatOpcodeString(inst, richText);
+            RichTextPainter::htmlRichText(richText, bytesHtml, bytes);
         }
         QString disassembly;
         QString htmlDisassembly;
