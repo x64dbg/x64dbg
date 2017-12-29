@@ -1909,14 +1909,12 @@ void CPUDisassembly::mnemonicBriefSlot()
 
 void CPUDisassembly::mnemonicHelpSlot()
 {
-    BASIC_INSTRUCTION_INFO disasm;
-    DbgDisasmFastAt(rvaToVa(getInitialSelection()), &disasm);
-    if(!*disasm.instruction)
-        return;
-    char* space = strstr(disasm.instruction, " ");
-    if(space)
-        *space = '\0';
-    DbgCmdExecDirect(QString("mnemonichelp %1").arg(disasm.instruction).toUtf8().constData());
+    unsigned char data[16] = { 0xCC };
+    auto addr = rvaToVa(getInitialSelection());
+    DbgMemRead(addr, data, sizeof(data));
+    Zydis zydis;
+    zydis.Disassemble(addr, data);
+    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()).toUtf8().constData());
     emit displayLogWidget();
 }
 

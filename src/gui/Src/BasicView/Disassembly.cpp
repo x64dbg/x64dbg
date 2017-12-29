@@ -664,7 +664,18 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         if(mShowMnemonicBrief)
         {
             char brief[MAX_STRING_SIZE] = "";
-            QString mnem = mInstBuffer.at(rowOffset).instStr;
+            QString mnem;
+            for(const CapstoneTokenizer::SingleToken & token : mInstBuffer.at(rowOffset).tokens.tokens)
+            {
+                if(token.type != CapstoneTokenizer::TokenType::Space && token.type != CapstoneTokenizer::TokenType::Prefix)
+                {
+                    mnem = token.text;
+                    break;
+                }
+            }
+            if(mnem.isEmpty())
+                mnem = mInstBuffer.at(rowOffset).instStr;
+
             int index = mnem.indexOf(' ');
             if(index != -1)
                 mnem.truncate(index);

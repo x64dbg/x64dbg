@@ -367,6 +367,7 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
 
 bool CapstoneTokenizer::tokenizePrefix()
 {
+    //TODO: what happens with multiple prefixes?
     bool hasPrefix = true;
     QStringList prefixText;
 
