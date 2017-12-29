@@ -155,6 +155,7 @@ protected:
     // Configuration
     QColor mInstructionHighlightColor;
     QColor mSelectionColor;
+    QColor mDisassemblyRelocationUnderlineColor;
 
     QColor mCipBackgroundColor;
     QColor mCipColor;
