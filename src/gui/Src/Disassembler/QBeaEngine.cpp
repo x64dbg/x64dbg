@@ -333,7 +333,6 @@ void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list
 {
     RichTextPainter::CustomRichText_t curByte;
     assert(list.empty()); //List must be empty before use
-    curByte.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
     curByte.highlightWidth = 1;
     curByte.flags = RichTextPainter::FlagAll;
     curByte.highlight = false;

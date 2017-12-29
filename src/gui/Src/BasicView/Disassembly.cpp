@@ -83,6 +83,7 @@ void Disassembly::updateColors()
     backgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mInstructionHighlightColor = ConfigColor("InstructionHighlightColor");
+    mDisassemblyRelocationUnderlineColor = ConfigColor("DisassemblyRelocationUnderlineColor");
     mSelectionColor = ConfigColor("DisassemblySelectionColor");
     mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
     mCipColor = ConfigColor("DisassemblyCipColor");
@@ -452,38 +453,54 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
         //draw bytes
         RichTextPainter::List richBytes;
-        RichTextPainter::CustomRichText_t space;
-        space.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
-        space.highlightWidth = 1;
-        space.highlightConnectPrev = true;
-        space.flags = RichTextPainter::FlagNone;
-        space.text = " ";
-        RichTextPainter::CustomRichText_t curByte;
-        curByte.textColor = mBytesColor;
-        curByte.textBackground = mBytesBackgroundColor;
-        curByte.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
-        curByte.highlightWidth = 1;
-        curByte.flags = RichTextPainter::FlagAll;
-        curByte.highlight = false;
         formatOpcodeString(mInstBuffer.at(rowOffset), richBytes);
         for(int i = 0; i < richBytes.size(); i++)
         {
             RichTextPainter::CustomRichText_t & curByte1 = richBytes.at(i);
-            if(!DbgFunctions()->PatchGet(cur_addr + i))
+            DBGRELOCATIONINFO relocInfo;
+            curByte1.highlightColor = mDisassemblyRelocationUnderlineColor;
+            if(DbgFunctions()->ModRelocationAtAddr(cur_addr + i, &relocInfo))
+            {
+                bool prevInSameReloc = relocInfo.rva < cur_addr + i - DbgFunctions()->ModBaseFromAddr(cur_addr + i);
+                curByte1.highlight = true;
+                curByte1.highlightConnectPrev = prevInSameReloc;
+            }
+            else
+            {
+                curByte1.highlight = false;
+                curByte1.highlightConnectPrev = false;
+            }
+
+            DBGPATCHINFO patchInfo;
+            if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
+            {
+                if(mInstBuffer.at(rowOffset).dump.at(i) == patchInfo.newbyte)
+                {
+                    curByte1.textColor = mModifiedBytesColor;
+                    curByte1.textBackground = mModifiedBytesBackgroundColor;
+                }
+                else
+                {
+                    curByte1.textColor = mRestoredBytesColor;
+                    curByte1.textBackground = mRestoredBytesBackgroundColor;
+                }
+            }
+            else
             {
                 curByte1.textColor = mBytesColor;
                 curByte1.textBackground = mBytesBackgroundColor;
             }
-            else
-            {
-                curByte1.textColor = mModifiedBytesColor;
-                curByte1.textBackground = mModifiedBytesBackgroundColor;
-            }
-            curByte1.highlight = DbgFunctions()->ModRelocationAtAddr(cur_addr + i, nullptr);
         }
 
         if(mCodeFoldingManager && mCodeFoldingManager->isFolded(cur_addr))
         {
+            RichTextPainter::CustomRichText_t curByte;
+            curByte.textColor = mBytesColor;
+            curByte.textBackground = mBytesBackgroundColor;
+            curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
+            curByte.highlightWidth = 1;
+            curByte.flags = RichTextPainter::FlagAll;
+            curByte.highlight = false;
             curByte.textColor = mBytesColor;
             curByte.textBackground = mBytesBackgroundColor;
             curByte.text = "...";
