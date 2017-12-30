@@ -301,13 +301,13 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
     mBreakpointMenu->build(mMenuBuilder);
 
-    mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), tr("&Follow in Dump\t%1").arg(ConfigShortcut("ActionFollowDumpPopup").toString())), [this](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), tr("&Follow in Dump").append("\t").append(ConfigShortcut("ActionFollowDumpPopup").toString())), [this](QMenu * menu)
     {
         setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false, false);
         return true;
     });
 
-    mMenuBuilder->addMenu(makeMenu(DIcon("processor-cpu.png"), tr("&Follow in Disassembler\t%1").arg(ConfigShortcut("ActionFollowDisasmPopup").toString())), [this](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(DIcon("processor-cpu.png"), tr("&Follow in Disassembler").append("\t").append(ConfigShortcut("ActionFollowDisasmPopup").toString())), [this](QMenu * menu)
     {
         setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false, true);
         return menu->actions().length() != 0; //only add this menu if there is something to follow

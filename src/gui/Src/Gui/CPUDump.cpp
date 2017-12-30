@@ -83,7 +83,7 @@ void CPUDump::setupContextMenu()
         return (DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0));
     });
     mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembler\t%1").arg(ConfigShortcut("ActionFollowDisasmPopup").toString()), SLOT(followInDisasmSlot()), "ActionFollowDisasm"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembler").append("\t").append(ConfigShortcut("ActionFollowDisasmPopup").toString()), SLOT(followInDisasmSlot()), "ActionFollowDisasm"));
     auto wIsValidReadPtrCallback = [this](QMenu*)
     {
         duint ptr = 0;
@@ -91,8 +91,8 @@ void CPUDump::setupContextMenu()
         return DbgMemIsValidReadPtr(ptr);
     };
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("processor32.png"), ArchValue(tr("&Follow DWORD in Disassembler\t%1"), tr("&Follow QWORD in Disassembler\t%1")).arg(ConfigShortcut("ActionFollowDisasmPopup").toString()), SLOT(followDataSlot()), "ActionFollowDwordQwordDisasm"), wIsValidReadPtrCallback);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Current Dump\t%1"), tr("&Follow QWORD in Current Dump\t%1")).arg(ConfigShortcut("ActionFollowDumpPopup").toString()), SLOT(followDataDumpSlot()), "ActionFollowDwordQwordDump"), wIsValidReadPtrCallback);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("processor32.png"), ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")).append("\t").append(ConfigShortcut("ActionFollowDisasmPopup").toString()), SLOT(followDataSlot()), "ActionFollowDwordQwordDisasm"), wIsValidReadPtrCallback);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Current Dump"), tr("&Follow QWORD in Current Dump")).append("\t").append(ConfigShortcut("ActionFollowDumpPopup").toString()), SLOT(followDataDumpSlot()), "ActionFollowDwordQwordDump"), wIsValidReadPtrCallback);
 
     MenuBuilder* wFollowInDumpMenu = new MenuBuilder(this, [wIsValidReadPtrCallback, this](QMenu * menu)
     {
@@ -111,7 +111,7 @@ void CPUDump::setupContextMenu()
         wFollowInDumpMenu->addAction(action);
         mFollowInDumpActions.push_back(action);
     }
-    mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Dump\t%1"), tr("&Follow QWORD in Dump\t%1")).arg(ConfigShortcut("ActionFollowDumpPopup").toString())), wFollowInDumpMenu);
+    mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Dump"), tr("&Follow QWORD in Dump")).append("\t").append(ConfigShortcut("ActionFollowDumpPopup").toString())), wFollowInDumpMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("Set &Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("modify.png"), tr("&Modify Value"), SLOT(modifyValueSlot()), "ActionModifyValue"), [this](QMenu*)
     {
