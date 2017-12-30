@@ -3332,7 +3332,6 @@ void RegistersView::setRegister(REGISTER_NAME reg, duint value)
         if(mFlags.contains(reg))
             wRegName = "_" + wRegName;
 
-
         // we change the value (so highlight it)
         mRegisterUpdates.insert(reg);
         // tell everything the compiler

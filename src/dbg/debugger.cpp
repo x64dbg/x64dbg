@@ -791,26 +791,33 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     BREAKPOINT* bpPtr = nullptr;
     //NOTE: this locking is very tricky, make sure you understand it before modifying anything
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
+    duint breakpointExceptionAddress = 0;
     switch(bptype)
     {
     case BPNORMAL:
         bpPtr = BpInfoFromAddr(BPNORMAL, CIP);
+        breakpointExceptionAddress = CIP;
         break;
     case BPHARDWARE:
         bpPtr = BpInfoFromAddr(BPHARDWARE, duint(ExceptionAddress));
+        breakpointExceptionAddress = duint(ExceptionAddress);
         break;
     case BPMEMORY:
         bpPtr = BpInfoFromAddr(BPMEMORY, MemFindBaseAddr(duint(ExceptionAddress), nullptr, true));
+        breakpointExceptionAddress = duint(ExceptionAddress);
         break;
     case BPDLL:
         bpPtr = BpInfoFromAddr(BPDLL, BpGetDLLBpAddr(reinterpret_cast<const char*>(ExceptionAddress)));
+        breakpointExceptionAddress = 0; //makes no sense
         break;
     case BPEXCEPTION:
         bpPtr = BpInfoFromAddr(BPEXCEPTION, ((EXCEPTION_DEBUG_INFO*)ExceptionAddress)->ExceptionRecord.ExceptionCode);
+        breakpointExceptionAddress = (duint)((EXCEPTION_DEBUG_INFO*)ExceptionAddress)->ExceptionRecord.ExceptionAddress;
         break;
     default:
         break;
     }
+    varset("$breakpointexceptionaddress", breakpointExceptionAddress, true);
     if(!(bpPtr && bpPtr->enabled)) //invalid / disabled breakpoint hit (most likely a bug)
     {
         if(bptype != BPDLL || !BpUpdateDllPath(reinterpret_cast<const char*>(ExceptionAddress), &bpPtr))
@@ -1364,34 +1371,23 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
         if(settingboolget("Events", "TlsCallbacks"))
         {
-            DWORD NumberOfCallBacks = 0;
-            TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, &NumberOfCallBacks);
-            if(NumberOfCallBacks)
+            SHARED_ACQUIRE(LockModules);
+            auto modInfo = ModInfoFromAddr(duint(base));
+            int invalidCount = 0;
+            for(size_t i = 0; i < modInfo->tlsCallbacks.size(); i++)
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "TLS Callbacks: %d\n"), int(NumberOfCallBacks));
-                Memory<duint*> TLSCallBacks(NumberOfCallBacks * sizeof(duint), "cbCreateProcess:TLSCallBacks");
-                if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), TLSCallBacks(), &NumberOfCallBacks))
-                    dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get TLS callback addresses!"));
-                else
+                auto callbackVA = modInfo->tlsCallbacks.at(i);
+                if(MemIsValidReadPtr(callbackVA))
                 {
-                    duint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, UE_IMAGEBASE);
-                    int invalidCount = 0;
-                    for(unsigned int i = 0; i < NumberOfCallBacks; i++)
-                    {
-                        duint callbackVA = TLSCallBacks()[i] - ImageBase + pDebuggedBase;
-                        if(MemIsValidReadPtr(callbackVA))
-                        {
-                            String breakpointname = StringUtils::sprintf(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback %d")), i + 1);
-                            sprintf_s(command, "bp %p,\"%s\",ss", callbackVA, breakpointname.c_str());
-                            cmddirectexec(command);
-                        }
-                        else
-                            invalidCount++;
-                    }
-                    if(invalidCount)
-                        dprintf(QT_TRANSLATE_NOOP("DBG", "%d invalid TLS callback addresses...\n"), invalidCount);
+                    String breakpointname = StringUtils::sprintf(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback %d")), i + 1);
+                    sprintf_s(command, "bp %p,\"%s\",ss", callbackVA, breakpointname.c_str());
+                    cmddirectexec(command);
                 }
+                else
+                    invalidCount++;
             }
+            if(invalidCount)
+                dprintf(QT_TRANSLATE_NOOP("DBG", "%d invalid TLS callback addresses...\n"), invalidCount);
         }
 
         if(settingboolget("Events", "EntryBreakpoint"))
@@ -1673,36 +1669,25 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     if(settingboolget("Events", "TlsCallbacks"))
     {
-        DWORD NumberOfCallBacks = 0;
-        TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, &NumberOfCallBacks);
-        if(NumberOfCallBacks)
+        SHARED_ACQUIRE(LockModules);
+        auto modInfo = ModInfoFromAddr(duint(base));
+        int invalidCount = 0;
+        for(size_t i = 0; i < modInfo->tlsCallbacks.size(); i++)
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "TLS Callbacks: %d\n"), int(NumberOfCallBacks));
-            Memory<duint*> TLSCallBacks(NumberOfCallBacks * sizeof(duint), "cbLoadDll:TLSCallBacks");
-            if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), TLSCallBacks(), &NumberOfCallBacks))
-                dputs(QT_TRANSLATE_NOOP("DBG", "Failed to get TLS callback addresses!"));
-            else
+            auto callbackVA = modInfo->tlsCallbacks.at(i);
+            if(MemIsValidReadPtr(callbackVA))
             {
-                duint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, UE_IMAGEBASE);
-                int invalidCount = 0;
-                for(unsigned int i = 0; i < NumberOfCallBacks; i++)
-                {
-                    duint callbackVA = TLSCallBacks()[i] - ImageBase + (duint)base;
-                    if(MemIsValidReadPtr(callbackVA))
-                    {
-                        if(bIsDebuggingThis)
-                            sprintf_s(command, "bp %p,\"%s %u\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1);
-                        else
-                            sprintf_s(command, "bp %p,\"%s %u (%s)\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1, modname);
-                        cmddirectexec(command);
-                    }
-                    else
-                        invalidCount++;
-                }
-                if(invalidCount)
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "%d invalid TLS callback addresses...\n"), invalidCount);
+                if(bIsDebuggingThis)
+                    sprintf_s(command, "bp %p,\"%s %u\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1);
+                else
+                    sprintf_s(command, "bp %p,\"%s %u (%s)\",ss", callbackVA, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TLS Callback")), i + 1, modname);
+                cmddirectexec(command);
             }
+            else
+                invalidCount++;
         }
+        if(invalidCount)
+            dprintf(QT_TRANSLATE_NOOP("DBG", "%d invalid TLS callback addresses...\n"), invalidCount);
     }
 
     auto breakOnDll = dbghandledllbreakpoint(modname, true);
