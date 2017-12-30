@@ -268,7 +268,7 @@ void CPUStack::setupContextMenu()
 
     //Follow in Disassembler
     auto disasmIcon = DIcon(ArchValue("processor32.png", "processor64.png"));
-    mFollowDisasm = makeAction(disasmIcon, ArchValue(tr("&Follow DWORD in Disassembler\t%1"), tr("&Follow QWORD in Disassembler\t%1")).arg(ConfigShortcut("ActionFollowDisasmPopup").toString()), SLOT(followDisasmSlot()));
+    mFollowDisasm = makeAction(disasmIcon, ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")).append("\t").append(ConfigShortcut("ActionFollowDisasmPopup").toString()), SLOT(followDisasmSlot()));
     mFollowDisasm->setShortcutContext(Qt::WidgetShortcut);
     mFollowDisasm->setShortcut(QKeySequence("enter"));
     mMenuBuilder->addAction(mFollowDisasm, [this](QMenu*)
@@ -278,10 +278,10 @@ void CPUStack::setupContextMenu()
     });
 
     //Follow in Dump
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("Follow in Dump\t%1").arg(ConfigShortcut("ActionFollowDumpPopup").toString()), SLOT(followInDumpSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("Follow in Dump").append("\t").append(ConfigShortcut("ActionFollowDumpPopup").toString()), SLOT(followInDumpSlot())));
 
     //Follow PTR in Dump
-    auto followDumpName = ArchValue(tr("Follow DWORD in &Dump\t%1"), tr("Follow QWORD in &Dump\t%1")).arg(ConfigShortcut("ActionFollowDumpPopup").toString());
+    auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump")).append("\t").append(ConfigShortcut("ActionFollowDumpPopup").toString());
     mMenuBuilder->addAction(makeAction(DIcon("dump.png"), followDumpName, SLOT(followDumpPtrSlot())), [this](QMenu*)
     {
         duint ptr;
