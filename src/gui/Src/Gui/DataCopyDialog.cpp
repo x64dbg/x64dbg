@@ -22,6 +22,8 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     mTypes[DataCShellcodeString] = FormatType { tr("C-Style Shellcode String"), 1 };
     mTypes[DataString] = FormatType { tr("String"), 1 };
     mTypes[DataUnicodeString] = FormatType { tr("Unicode String"), 1 };
+    mTypes[DataUTF8String] = FormatType { tr("UTF8 String"), 1 };
+    mTypes[DataUCS4String] = FormatType { tr("UCS4 String"), 1 };
     mTypes[DataPascalByte] = FormatType { tr("Pascal BYTE (Hex)"), 42 };
     mTypes[DataPascalWord] = FormatType { tr("Pascal WORD (Hex)"), 21 };
     mTypes[DataPascalDword] = FormatType { tr("Pascal DWORD (Hex)"), 10 };
@@ -224,13 +226,25 @@ void DataCopyDialog::printData(DataType type)
 
     case DataString:
     {
-        data = QTextCodec::codecForLocale()->makeDecoder()->toUnicode((const char*)(mData->data()), mData->size());
+        data = QTextCodec::codecForName("System")->makeDecoder()->toUnicode((const char*)(mData->data()), mData->size());
     }
     break;
 
     case DataUnicodeString:
     {
-        data = QString::fromUtf16((const ushort*)(mData->data()), mData->size() / sizeof(ushort));
+        data = QString::fromUtf16((const ushort*)(mData->data()), mData->size() / 2);
+    }
+    break;
+
+    case DataUTF8String:
+    {
+        data = QString::fromUtf8((const char*)mData->data(), mData->size());
+    }
+    break;
+
+    case DataUCS4String:
+    {
+        data = QString::fromUcs4((const uint*)(mData->data()), mData->size() / 4);
     }
     break;
 
