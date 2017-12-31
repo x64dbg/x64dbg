@@ -39,6 +39,8 @@ private:
         DataCShellcodeString,
         DataString,
         DataUnicodeString,
+        DataUTF8String,
+        DataUCS4String,
         DataPascalByte,
         DataPascalWord,
         DataPascalDword,
