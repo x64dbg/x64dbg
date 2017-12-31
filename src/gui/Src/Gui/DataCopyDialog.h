@@ -37,6 +37,8 @@ private:
         DataCString,
         DataCUnicodeString,
         DataCShellcodeString,
+        DataString,
+        DataUnicodeString,
         DataPascalByte,
         DataPascalWord,
         DataPascalDword,
