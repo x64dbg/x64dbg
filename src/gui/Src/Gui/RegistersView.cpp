@@ -505,8 +505,8 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     wCM_CopyToClipboard = setupAction(DIcon("copy.png"), tr("Copy value to clipboard"), this);
     wCM_CopySymbolToClipboard = setupAction(DIcon("pdb.png"), tr("Copy Symbol Value to Clipboard"), this);
     wCM_CopyAll = setupAction(DIcon("copy-alt.png"), tr("Copy all registers"), this);
-    wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler\t%1").arg(ConfigShortcut("ActionFollowDisasmPopup").toString()), this);
-    wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump\t%1").arg(ConfigShortcut("ActionFollowDumpPopup").toString()), this);
+    wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler").append("\t").append(ConfigShortcut("ActionFollowDisasmPopup").toString()), this);
+    wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump").append("\t").append(ConfigShortcut("ActionFollowDumpPopup").toString()), this);
     wCM_FollowInStack = new QAction(DIcon("stack.png"), tr("Follow in Stack"), this);
     wCM_FollowInMemoryMap = new QAction(DIcon("memmap_find_address_page"), tr("Follow in Memory Map"), this);
     wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
@@ -3234,7 +3234,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             if(DbgMemIsValidReadPtr(addr))
             {
                 wMenu.addAction(wCM_FollowInDump);
-                followInDumpNMenu = new QMenu(tr("Follow in &Dump\t%1").arg(ConfigShortcut("ActionFollowDumpPopup").toString()), &wMenu);
+                followInDumpNMenu = new QMenu(tr("Follow in &Dump").append("\t").append(ConfigShortcut("ActionFollowDumpPopup").toString()), &wMenu);
                 CreateDumpNMenu(followInDumpNMenu);
                 wMenu.addMenu(followInDumpNMenu);
                 wMenu.addAction(wCM_FollowInDisassembly);
