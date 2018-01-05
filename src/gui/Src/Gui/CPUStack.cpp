@@ -339,13 +339,15 @@ void CPUStack::setupContextMenu()
         }
         else if(followWay == GUI_DUMP)
         {
-            followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueText).arg(tr("Current Dump"))
-                                 , QString("dump " + ToHexString(rvaToVa(getInitialSelection())))));
-            if(wIsValidReadPtrCallback())
-            {
+            auto isValidReadPtr = wIsValidReadPtrCallback();
+            if(isValidReadPtr)
                 followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueAddrText).arg(tr("Current Dump"))
                                      , QString("dump \"[%1]\"").arg(valueText)));
 
+            followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueText).arg(tr("Current Dump"))
+                                 , QString("dump " + ToHexString(rvaToVa(getInitialSelection())))));
+            if(isValidReadPtr)
+            {
                 QList<QString> tabNames;
                 mMultiDump->getTabNames(tabNames);
                 for(int i = 0; i < tabNames.length(); i++)
