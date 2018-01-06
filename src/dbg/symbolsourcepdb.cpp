@@ -421,7 +421,7 @@ bool SymbolSourcePDB::findSymbolByName(const std::string & name, SymbolInfo & sy
     return false;
 }
 
-bool SymbolSourcePDB::findSymbolsByPrefix(const std::string & prefix, std::vector<SymbolInfo> & symbols, bool caseSensitive)
+bool SymbolSourcePDB::findSymbolsByPrefix(const std::string & prefix, const std::function<bool(const SymbolInfo &)> & cbSymbol, bool caseSensitive)
 {
     struct PrefixCmp
     {
@@ -454,8 +454,9 @@ bool SymbolSourcePDB::findSymbolsByPrefix(const std::string & prefix, std::vecto
     {
         if(!caseSensitive || prefixCmp.cmp(find, *found, true))
         {
-            symbols.push_back(_symData.at(found->index));
             result = true;
+            if(!cbSymbol(_symData.at(found->index)))
+                break;
         }
     }
 

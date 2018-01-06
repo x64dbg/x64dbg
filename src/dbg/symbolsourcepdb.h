@@ -143,7 +143,7 @@ public:
 
     virtual bool findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive) override;
 
-    virtual bool findSymbolsByPrefix(const std::string & prefix, std::vector<SymbolInfo> & symbols, bool caseSensitive) override;
+    virtual bool findSymbolsByPrefix(const std::string & prefix, const std::function<bool(const SymbolInfo &)> & cbSymbol, bool caseSensitive) override;
 
 public:
     bool loadPDB(const std::string & path, duint imageBase, duint imageSize);

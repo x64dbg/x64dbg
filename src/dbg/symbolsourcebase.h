@@ -105,7 +105,7 @@ public:
         return false; // Stub
     }
 
-    virtual bool findSymbolsByPrefix(const std::string & prefix, std::vector<SymbolInfo> & symbols, bool caseSensitive)
+    virtual bool findSymbolsByPrefix(const std::string & prefix, const std::function<bool(const SymbolInfo &)> & cbSymbol, bool caseSensitive)
     {
         return false; // Stub
     }
