@@ -124,7 +124,6 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
             symInfo.disp = sym.disp;
             symInfo.addr = sym.virtualAddress;
             symInfo.publicSymbol = sym.publicSymbol;
-            _symData.push_back(symInfo);
 
             // Check if we already have it inside, private symbols have priority over public symbols.
             // TODO: only use this map during initialization phase
@@ -137,11 +136,12 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
                     if(_symData[it->second].publicSymbol == true && symInfo.publicSymbol == false)
                     {
                         // Replace.
-                        it->second = _symData.size() - 1;
+                        _symData[it->second] = symInfo;
                     }
                 }
                 else
                 {
+                    _symData.push_back(symInfo);
                     _symAddrs.insert({ symInfo.addr, _symData.size() - 1 });
                 }
             }
@@ -450,9 +450,9 @@ bool SymbolSourcePDB::findSymbolsByPrefix(const std::string & prefix, const std:
         return false;
 
     bool result = false;
-    for(; found != _symNameMap.end() && prefixCmp.cmp(find, *found, false); ++found)
+    for(; found != _symNameMap.end() && prefixCmp.cmp(find, *found, false) == 0; ++found)
     {
-        if(!caseSensitive || prefixCmp.cmp(find, *found, true))
+        if(!caseSensitive || prefixCmp.cmp(find, *found, true) == 0)
         {
             result = true;
             if(!cbSymbol(_symData.at(found->index)))

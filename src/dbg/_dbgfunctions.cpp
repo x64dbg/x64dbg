@@ -372,38 +372,31 @@ static bool _modrelocationsinrange(duint addr, duint size, ListOf(DBGRELOCATIONI
     return true;
 }
 
-typedef struct _SYMAUTOCOMPLETECALLBACKPARAM
-{
-    char** Buffer;
-    int* count;
-    int MaxSymbols;
-} SYMAUTOCOMPLETECALLBACKPARAM;
-
-static BOOL CALLBACK SymAutoCompleteCallback(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
-{
-    SYMAUTOCOMPLETECALLBACKPARAM* param = reinterpret_cast<SYMAUTOCOMPLETECALLBACKPARAM*>(UserContext);
-    if(param->Buffer)
-    {
-        param->Buffer[*param->count] = (char*)BridgeAlloc(pSymInfo->NameLen + 1);
-        memcpy(param->Buffer[*param->count], pSymInfo->Name, pSymInfo->NameLen + 1);
-        param->Buffer[*param->count][pSymInfo->NameLen] = 0;
-    }
-    if(++*param->count >= param->MaxSymbols)
-        return FALSE;
-    else
-        return TRUE;
-}
-
 static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
 {
-    //debug
     int count = 0;
-    SYMAUTOCOMPLETECALLBACKPARAM param;
-    param.Buffer = Buffer;
-    param.count = &count;
-    param.MaxSymbols = MaxSymbols;
-    if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, 0, Search, SymAutoCompleteCallback, &param))
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymEnumSymbols failed!"));
+    //TODO: refactor this in a function because this pattern will become common
+    std::vector<duint> mods;
+    ModEnum([&mods](const MODINFO & info)
+    {
+        mods.push_back(info.base);
+    });
+    std::string prefix(Search);
+    for(duint base : mods)
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto modInfo = ModInfoFromAddr(base);
+        if(modInfo && modInfo->symbols->isOpen())
+        {
+            modInfo->symbols->findSymbolsByPrefix(prefix, [Buffer, MaxSymbols, &count](const SymbolInfo & symInfo)
+            {
+                Buffer[count] = (char*)BridgeAlloc(symInfo.decoratedName.size() + 1);
+                memcpy(Buffer[count], symInfo.decoratedName.c_str(), symInfo.decoratedName.size() + 1);
+                Buffer[count][symInfo.decoratedName.size()] = 0; //TODO: not needed?
+                return ++count < MaxSymbols;
+            }, true); //TODO: support case insensitive in the GUI
+        }
+    }
     return count;
 }
 

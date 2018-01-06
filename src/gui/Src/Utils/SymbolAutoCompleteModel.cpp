@@ -71,7 +71,7 @@ QVariant SymbolAutoCompleteModel::data(const QModelIndex & index, int role) cons
 
 void SymbolAutoCompleteModel::update() const
 {
-    QString text = "*!" + mGetTextProc() + "*";
+    QString text = mGetTextProc();
     if(text == lastAutocompleteText)
         return;
     char* data[MAXAUTOCOMPLETEENTRY];

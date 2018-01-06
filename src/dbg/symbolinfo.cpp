@@ -266,6 +266,7 @@ bool SymAddrFromName(const char* Name, duint* Address)
     if(!_strnicmp(Name, "Ordinal", 7))
         return false;
 
+    //TODO: refactor this in a function because this pattern will become common
     std::vector<duint> mods;
     ModEnum([&mods](const MODINFO & info)
     {
