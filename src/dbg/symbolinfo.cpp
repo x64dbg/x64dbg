@@ -266,19 +266,27 @@ bool SymAddrFromName(const char* Name, duint* Address)
     if(!_strnicmp(Name, "Ordinal", 7))
         return false;
 
-    // According to MSDN:
-    // Note that the total size of the data is the SizeOfStruct + (MaxNameLen - 1) * sizeof(TCHAR)
-    char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
-
-    PSYMBOL_INFO symbol = (PSYMBOL_INFO)&buffer;
-    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-    symbol->MaxNameLen = MAX_LABEL_SIZE;
-
-    if(!SafeSymFromName(fdProcessInfo->hProcess, Name, symbol))
-        return false;
-
-    *Address = (duint)symbol->Address;
-    return true;
+    std::vector<duint> mods;
+    ModEnum([&mods](const MODINFO & info)
+    {
+        mods.push_back(info.base);
+    });
+    std::string name(Name);
+    for(duint base : mods)
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto modInfo = ModInfoFromAddr(base);
+        if(modInfo && modInfo->symbols->isOpen())
+        {
+            SymbolInfo symInfo;
+            if(modInfo->symbols->findSymbolByName(name, symInfo, true))
+            {
+                *Address = base + symInfo.addr;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 String SymGetSymbolicName(duint Address)
