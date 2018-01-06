@@ -225,15 +225,13 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     if(signature == '01BN')
     {
         auto cv = (CV_INFO_PDB20*)(FileMapVA + codeViewOffset);
-        //TODO: check how this is actually printed
-        Info.pdbSignature = StringUtils::sprintf("%x%x", cv->Signature, cv->Age);
+        Info.pdbSignature = StringUtils::sprintf("%X%X", cv->Signature, cv->Age);
         Info.pdbFile = String((const char*)cv->PdbFileName);
     }
     else if(signature == 'SDSR')
     {
         auto cv = (CV_INFO_PDB70*)(FileMapVA + codeViewOffset);
-        //TODO: verify how to actually print 'Age' (symsrv.dll)
-        Info.pdbSignature = StringUtils::sprintf("%08X%04X%04X%s%x",
+        Info.pdbSignature = StringUtils::sprintf("%08X%04X%04X%s%X",
                             cv->Signature.Data1, cv->Signature.Data2, cv->Signature.Data3,
                             StringUtils::ToHex(cv->Signature.Data4, 8).c_str(),
                             cv->Age);
