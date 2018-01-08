@@ -36,30 +36,7 @@ protected:
         duint userdata = 0;
     };
 
-    class ColumnCompare
-    {
-    public:
-        ColumnCompare(int col, bool greater, SortBy::t fn)
-        {
-            mCol = col;
-            mGreater = greater;
-            mSortFn = fn;
-        }
-
-        inline bool operator()(const std::vector<CellData> & a, const std::vector<CellData> & b) const
-        {
-            bool less = mSortFn(a.at(mCol).text, b.at(mCol).text);
-            if(mGreater)
-                return !less;
-            return less;
-        }
-    private:
-        int mCol;
-        int mGreater;
-        SortBy::t mSortFn;
-    };
-
-    std::vector<std::vector<CellData>> mData; //listof(row) where row = (listof(col) where col = string)
+    std::vector<std::vector<CellData>> mData; //listof(row) where row = (listof(col) where col = CellData)
     std::vector<SortBy::t> mColumnSortFunctions;
 };
 
