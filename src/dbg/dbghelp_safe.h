@@ -34,18 +34,18 @@ SafeSymSetOptions(
 DWORD
 SafeSymGetOptions(
 );
-BOOL
+/*BOOL
 SafeSymInitializeW(
     __in HANDLE hProcess,
     __in_opt PCWSTR UserSearchPath,
     __in BOOL fInvadeProcess
-);
-BOOL
+);*/
+/*BOOL
 SafeSymRegisterCallbackW64(
     __in HANDLE hProcess,
     __in PSYMBOL_REGISTERED_CALLBACK64 CallbackFunction,
     __in ULONG64 UserContext
-);
+);*/
 DWORD64
 SafeSymLoadModuleExW(
     __in HANDLE hProcess,
@@ -69,38 +69,38 @@ SafeSymGetSearchPathW(
     __out_ecount(SearchPathLength) PWSTR SearchPath,
     __in DWORD SearchPathLength
 );
-BOOL
+/*BOOL
 SafeSymEnumSymbols(
     __in HANDLE hProcess,
     __in ULONG64 BaseOfDll,
     __in_opt PCSTR Mask,
     __in PSYM_ENUMERATESYMBOLS_CALLBACK EnumSymbolsCallback,
     __in_opt PVOID UserContext
-);
-BOOL
+);*/
+/*BOOL
 SafeSymGetLineFromAddrW64(
     __in HANDLE hProcess,
     __in DWORD64 qwAddr,
     __out PDWORD pdwDisplacement,
     __out PIMAGEHLP_LINEW64 Line64
-);
-BOOL
+);*/
+/*BOOL
 SafeSymFromName(
     __in HANDLE hProcess,
     __in PCSTR Name,
     __inout PSYMBOL_INFO Symbol
-);
-BOOL
+);*/
+/*BOOL
 SafeSymFromAddr(
     __in HANDLE hProcess,
     __in DWORD64 Address,
     __out_opt PDWORD64 Displacement,
     __inout PSYMBOL_INFO Symbol
-);
-BOOL
+);*/
+/*BOOL
 SafeSymCleanup(
     __in HANDLE hProcess
-);
+);*/
 BOOL
 SafeStackWalk64(
     __in DWORD MachineType,

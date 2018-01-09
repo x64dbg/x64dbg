@@ -1443,10 +1443,6 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
     _dbg_animatestop(); // Stop animating
-    //unload main module
-    SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
-    //cleanup dbghelp
-    SafeSymCleanup(fdProcessInfo->hProcess);
     //history
     dbgcleartracestate();
     dbgClearRtuBreakpoints();
@@ -1757,7 +1753,6 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     if(ModNameFromAddr((duint)base, modname, true))
         BpEnumAll(cbRemoveModuleBreakpoints, modname, duint(base));
     DebugUpdateBreakpointsViewAsync();
-    SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Unloaded: %p %s\n"), base, modname);
 
     if(dbghandledllbreakpoint(modname, false))
