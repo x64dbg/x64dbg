@@ -3,7 +3,7 @@
 #include "threading.h"
 #include "symbolinfo.h"
 #include "murmurhash.h"
-#include "symbolsourcepdb.h"
+#include "symbolsourcedia.h"
 #include "memory.h"
 #include "label.h"
 #include <algorithm>
@@ -401,9 +401,9 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
 
     // Try DIA
     if(info.symbols == &EmptySymbolSource &&
-            SymbolSourcePDB::isLibraryAvailable())
+            SymbolSourceDIA::isLibraryAvailable())
     {
-        SymbolSourcePDB* symSource = new SymbolSourcePDB();
+        SymbolSourceDIA* symSource = new SymbolSourceDIA();
         if(symSource->loadPDB(info.path, Base, info.size))
         {
             symSource->resizeSymbolBitmap(info.size);

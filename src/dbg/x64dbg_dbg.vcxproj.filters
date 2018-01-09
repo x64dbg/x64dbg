@@ -434,9 +434,6 @@
     <ClCompile Include="symcache.cpp">
       <Filter>Source Files\Symbols</Filter>
     </ClCompile>
-    <ClCompile Include="symbolsourcepdb.cpp">
-      <Filter>Source Files\Symbols</Filter>
-    </ClCompile>
     <ClCompile Include="symbolinfo.cpp">
       <Filter>Source Files\Symbols</Filter>
     </ClCompile>
@@ -445,6 +442,9 @@
     </ClCompile>
     <ClCompile Include="msdia\diacreate.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="symbolsourcedia.cpp">
+      <Filter>Source Files\Symbols</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -958,9 +958,6 @@
     <ClInclude Include="msdia\diaCreate.h">
       <Filter>Header Files\Third Party\msdia</Filter>
     </ClInclude>
-    <ClInclude Include="symbolsourcepdb.h">
-      <Filter>Header Files\Symbols</Filter>
-    </ClInclude>
     <ClInclude Include="symbolsourcebase.h">
       <Filter>Header Files\Symbols</Filter>
     </ClInclude>
@@ -977,6 +974,9 @@
       <Filter>Header Files\Symbols</Filter>
     </ClInclude>
     <ClInclude Include="sortedlru.h">
+      <Filter>Header Files\Symbols</Filter>
+    </ClInclude>
+    <ClInclude Include="symbolsourcedia.h">
       <Filter>Header Files\Symbols</Filter>
     </ClInclude>
   </ItemGroup>

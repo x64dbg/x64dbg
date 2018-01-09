@@ -1,16 +1,16 @@
-#include "symbolsourcepdb.h"
+#include "symbolsourcedia.h"
 #include "console.h"
 #include "debugger.h"
 #include <algorithm>
 
-SymbolSourcePDB::SymbolSourcePDB()
+SymbolSourceDIA::SymbolSourceDIA()
     : _requiresShutdown(false),
       _imageBase(0),
       _loadCounter(0)
 {
 }
 
-SymbolSourcePDB::~SymbolSourcePDB()
+SymbolSourceDIA::~SymbolSourceDIA()
 {
     if(isLoading() || _symbolsThread.joinable() || _sourceLinesThread.joinable())
     {
@@ -35,7 +35,7 @@ static void SetThreadDescription(std::thread & thread, WString name)
     fp(handle, name.c_str());
 }
 
-bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase, duint imageSize)
+bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint imageSize)
 {
     if(!PDBDiaFile::initLibrary())
     {
@@ -50,26 +50,26 @@ bool SymbolSourcePDB::loadPDB(const std::string & path, duint imageBase, duint i
         _imageBase = imageBase;
         _requiresShutdown = false;
         _loadCounter.store(2);
-        _symbolsThread = std::thread(&SymbolSourcePDB::loadSymbolsAsync, this, path);
+        _symbolsThread = std::thread(&SymbolSourceDIA::loadSymbolsAsync, this, path);
         SetThreadDescription(_symbolsThread, L"SymbolsThread");
-        _sourceLinesThread = std::thread(&SymbolSourcePDB::loadSourceLinesAsync, this, path);
+        _sourceLinesThread = std::thread(&SymbolSourceDIA::loadSourceLinesAsync, this, path);
         SetThreadDescription(_symbolsThread, L"SourceLinesThread");
     }
 #endif
     return res;
 }
 
-bool SymbolSourcePDB::isOpen() const
+bool SymbolSourceDIA::isOpen() const
 {
     return _pdb.isOpen();
 }
 
-bool SymbolSourcePDB::isLoading() const
+bool SymbolSourceDIA::isLoading() const
 {
     return _loadCounter > 0;
 }
 
-bool SymbolSourcePDB::cancelLoading()
+bool SymbolSourceDIA::cancelLoading()
 {
     _requiresShutdown.store(true);
     while(_loadCounter > 0)
@@ -86,11 +86,11 @@ bool SymbolSourcePDB::cancelLoading()
     return true;
 }
 
-void SymbolSourcePDB::loadPDBAsync()
+void SymbolSourceDIA::loadPDBAsync()
 {
 }
 
-bool SymbolSourcePDB::loadSymbolsAsync(String path)
+bool SymbolSourceDIA::loadSymbolsAsync(String path)
 {
     ScopedDecrement ref(_loadCounter);
 
@@ -214,7 +214,7 @@ bool SymbolSourcePDB::loadSymbolsAsync(String path)
     return true;
 }
 
-bool SymbolSourcePDB::loadSourceLinesAsync(String path)
+bool SymbolSourceDIA::loadSourceLinesAsync(String path)
 {
     ScopedDecrement ref(_loadCounter);
 
@@ -298,7 +298,7 @@ bool SymbolSourcePDB::loadSourceLinesAsync(String path)
     return true;
 }
 
-bool SymbolSourcePDB::findSymbolExact(duint rva, SymbolInfo & symInfo)
+bool SymbolSourceDIA::findSymbolExact(duint rva, SymbolInfo & symInfo)
 {
     ScopedSpinLock lock(_lockSymbols);
 
@@ -336,7 +336,7 @@ typename A::iterator findExactOrLower(A & ctr, const B key)
     return itr;
 }
 
-bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
+bool SymbolSourceDIA::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
 {
     ScopedSpinLock lock(_lockSymbols);
 
@@ -351,7 +351,7 @@ bool SymbolSourcePDB::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
     return nullptr;
 }
 
-void SymbolSourcePDB::enumSymbols(const CbEnumSymbol & cbEnum)
+void SymbolSourceDIA::enumSymbols(const CbEnumSymbol & cbEnum)
 {
     ScopedSpinLock lock(_lockSymbols);
 
@@ -365,7 +365,7 @@ void SymbolSourcePDB::enumSymbols(const CbEnumSymbol & cbEnum)
     }
 }
 
-bool SymbolSourcePDB::findSourceLineInfo(duint rva, LineInfo & lineInfo)
+bool SymbolSourceDIA::findSourceLineInfo(duint rva, LineInfo & lineInfo)
 {
     if(isOpen() == false)
         return false;
@@ -398,7 +398,7 @@ ForwardIt binary_find(ForwardIt first, ForwardIt last, const T & value, Compare 
     return first != last && !comp(value, *first) ? first : last;
 }
 
-bool SymbolSourcePDB::findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive)
+bool SymbolSourceDIA::findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive)
 {
     ScopedSpinLock lock(_lockSymbols);
 
@@ -421,7 +421,7 @@ bool SymbolSourcePDB::findSymbolByName(const std::string & name, SymbolInfo & sy
     return false;
 }
 
-bool SymbolSourcePDB::findSymbolsByPrefix(const std::string & prefix, const std::function<bool(const SymbolInfo &)> & cbSymbol, bool caseSensitive)
+bool SymbolSourceDIA::findSymbolsByPrefix(const std::string & prefix, const std::function<bool(const SymbolInfo &)> & cbSymbol, bool caseSensitive)
 {
     struct PrefixCmp
     {

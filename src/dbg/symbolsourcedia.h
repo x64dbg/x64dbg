@@ -1,5 +1,5 @@
-#ifndef _SYMBOLSOURCEPDB_H_
-#define _SYMBOLSOURCEPDB_H_
+#ifndef _SYMBOLSOURCEDIA_H_
+#define _SYMBOLSOURCEDIA_H_
 
 #include "pdbdiafile.h"
 #include "symbolsourcebase.h"
@@ -35,7 +35,7 @@ public:
     ~ScopedSpinLock() { _lock.unlock(); }
 };
 
-class SymbolSourcePDB : public SymbolSourceBase
+class SymbolSourceDIA : public SymbolSourceBase
 {
     struct CachedLineInfo
     {
@@ -123,9 +123,9 @@ public:
     }
 
 public:
-    SymbolSourcePDB();
+    SymbolSourceDIA();
 
-    virtual ~SymbolSourcePDB() override;
+    virtual ~SymbolSourceDIA() override;
 
     virtual bool isOpen() const override;
 
