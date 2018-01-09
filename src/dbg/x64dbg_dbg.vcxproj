@@ -111,6 +111,7 @@
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="watch.cpp" />
+    <ClCompile Include="WinInet-Downloader\downslib.c" />
     <ClCompile Include="x64dbg.cpp" />
     <ClCompile Include="xrefs.cpp" />
     <ClCompile Include="_exports.cpp" />
@@ -243,6 +244,7 @@
     <ClInclude Include="TraceRecord.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="watch.h" />
+    <ClInclude Include="WinInet-Downloader\downslib.h" />
     <ClInclude Include="xrefs.h" />
     <ClInclude Include="yara\yara\integers.h" />
     <ClInclude Include="yara\yara\stream.h" />
