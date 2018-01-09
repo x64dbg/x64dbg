@@ -48,7 +48,7 @@ bool SymbolFromAddressExactOrLower(duint address, SymbolInfo & symInfo)
     return false;
 }
 
-bool SymbolFromAddr(duint addr, SymbolInfo & symbol)
+/*bool SymbolFromAddr(duint addr, SymbolInfo & symbol)
 {
     SHARED_ACQUIRE(LockSymbolCache);
     auto foundR = symbolRange.find(Range(addr, addr));
@@ -172,3 +172,4 @@ bool LineDelRange(duint addr)
     lineRange.erase(foundR);
     return true;
 }
+*/

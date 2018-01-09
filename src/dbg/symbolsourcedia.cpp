@@ -122,7 +122,7 @@ bool SymbolSourceDIA::loadSymbolsAsync(String path)
             symInfo.undecoratedName = sym.undecoratedName;
             symInfo.size = sym.size;
             symInfo.disp = sym.disp;
-            symInfo.addr = sym.virtualAddress;
+            symInfo.va = _imageBase + sym.virtualAddress;
             symInfo.publicSymbol = sym.publicSymbol;
 
             // Check if we already have it inside, private symbols have priority over public symbols.
@@ -130,7 +130,7 @@ bool SymbolSourceDIA::loadSymbolsAsync(String path)
             {
                 ScopedSpinLock lock(_lockSymbols);
 
-                auto it = _symAddrs.find(symInfo.addr);
+                auto it = _symAddrs.find(sym.virtualAddress);
                 if(it != _symAddrs.end())
                 {
                     if(_symData[it->second].publicSymbol == true && symInfo.publicSymbol == false)
@@ -142,7 +142,7 @@ bool SymbolSourceDIA::loadSymbolsAsync(String path)
                 else
                 {
                     _symData.push_back(symInfo);
-                    _symAddrs.insert({ symInfo.addr, _symData.size() - 1 });
+                    _symAddrs.insert({ sym.virtualAddress, _symData.size() - 1 });
                 }
             }
 
@@ -344,7 +344,7 @@ bool SymbolSourceDIA::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
     if(it != _symAddrs.end())
     {
         symInfo = _symData[it->second];
-        symInfo.disp = (int32_t)(rva - symInfo.addr);
+        symInfo.disp = (int32_t)(rva - (symInfo.va - _imageBase));
         return true;
     }
 

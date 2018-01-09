@@ -9,7 +9,7 @@
 
 struct SymbolInfo
 {
-    duint addr;
+    duint va;
     duint size;
     int32 disp;
     String decoratedName;

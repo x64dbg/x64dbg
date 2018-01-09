@@ -65,7 +65,7 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
                 SYMBOLINFO curSymbol;
                 memset(&curSymbol, 0, sizeof(SYMBOLINFO));
 
-                curSymbol.addr = Base + info.addr;
+                curSymbol.addr = info.va;
                 curSymbol.decoratedSymbol = cbData.decoratedSymbol.data();
                 curSymbol.undecoratedSymbol = cbData.undecoratedSymbol.data();
                 strncpy_s(curSymbol.decoratedSymbol, MAX_SYM_NAME, info.decoratedName.c_str(), _TRUNCATE);
@@ -282,7 +282,7 @@ bool SymAddrFromName(const char* Name, duint* Address)
             SymbolInfo symInfo;
             if(modInfo->symbols->findSymbolByName(name, symInfo, true))
             {
-                *Address = base + symInfo.addr;
+                *Address = symInfo.va;
                 return true;
             }
         }
