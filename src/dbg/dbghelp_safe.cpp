@@ -46,7 +46,7 @@ SafeUnDecorateSymbolName(
     __in DWORD flags
 )
 {
-    WEAK_ACQUIRE();
+    STRONG_ACQUIRE();
     return UnDecorateSymbolName(name, outputString, maxStringLength, flags);
 }
 BOOL
@@ -157,7 +157,7 @@ SafeSymGetLineFromAddrW64(
     __out PIMAGEHLP_LINEW64 Line64
 )
 {
-    WEAK_ACQUIRE();
+    STRONG_ACQUIRE();
     return SymGetLineFromAddrW64(hProcess, qwAddr, pdwDisplacement, Line64);
 }
 BOOL
@@ -167,7 +167,7 @@ SafeSymFromName(
     __inout PSYMBOL_INFO Symbol
 )
 {
-    WEAK_ACQUIRE();
+    STRONG_ACQUIRE();
     return SymFromName(hProcess, Name, Symbol);
 }
 BOOL
@@ -178,7 +178,7 @@ SafeSymFromAddr(
     __inout PSYMBOL_INFO Symbol
 )
 {
-    WEAK_ACQUIRE();
+    STRONG_ACQUIRE();
     return SymFromAddr(hProcess, Address, Displacement, Symbol);
 }
 BOOL
