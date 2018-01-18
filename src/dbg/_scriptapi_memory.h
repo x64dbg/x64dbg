@@ -12,6 +12,9 @@ namespace Script
         SCRIPT_EXPORT bool IsValidPtr(duint addr);
         SCRIPT_EXPORT duint RemoteAlloc(duint addr, duint size);
         SCRIPT_EXPORT bool RemoteFree(duint addr);
+        SCRIPT_EXPORT unsigned int GetProtect(duint addr, bool reserved = false, bool cache = true);
+        SCRIPT_EXPORT duint GetBase(duint addr, bool reserved = false, bool cache = true);
+        SCRIPT_EXPORT duint GetSize(duint addr, bool reserved = false, bool cache = true);
 
         SCRIPT_EXPORT unsigned char ReadByte(duint addr);
         SCRIPT_EXPORT bool WriteByte(duint addr, unsigned char data);

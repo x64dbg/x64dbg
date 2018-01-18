@@ -35,7 +35,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+    Zydis cp;
 
     // Check if the pointer is not null
     if(data == NULL)
@@ -131,7 +131,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Capstone cp;
+    Zydis cp;
 
     if(data == NULL)
         return 0;
@@ -181,13 +181,14 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
  *
  * @return      Return the disassembled instruction
  */
-
-Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA)
+Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA, bool datainstr)
 {
-    ENCODETYPE type = mEncodeMap->getDataType(origBase + origInstRVA);
-
-    if(type != enc_unknown && type != enc_code && type != enc_middle)
-        return DecodeDataAt(data, size, origBase, origInstRVA, type);
+    if(datainstr)
+    {
+        ENCODETYPE type = mEncodeMap->getDataType(origBase + origInstRVA);
+        if(!mEncodeMap->isCode(type))
+            return DecodeDataAt(data, size, origBase, origInstRVA, type);
+    }
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
     _tokenizer.Tokenize(origBase + origInstRVA, data, size, cap);
@@ -199,23 +200,15 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     auto branchType = Instruction_t::None;
     Instruction_t wInst;
-    if(success && (cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_CALL) || cp.InGroup(CS_GRP_RET)))
+    if(success && cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTRet | Zydis::BTLoop))
     {
         wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
-        switch(cp.GetId())
-        {
-        case X86_INS_JMP:
-        case X86_INS_LJMP:
+        if(cp.IsBranchType(Zydis::BTUncondJmp))
             branchType = Instruction_t::Unconditional;
-            break;
-        case X86_INS_CALL:
-        case X86_INS_LCALL:
+        else if(cp.IsBranchType(Zydis::BTCall))
             branchType = Instruction_t::Call;
-            break;
-        default:
-            branchType = cp.InGroup(CS_GRP_RET) ? Instruction_t::None : Instruction_t::Conditional;
-            break;
-        }
+        else if(cp.IsBranchType(Zydis::BTCondJmp))
+            branchType = Instruction_t::Conditional;
     }
     else
         wInst.branchDestination = 0;
@@ -230,19 +223,57 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     wInst.branchType = branchType;
     wInst.tokens = cap;
 
+    if(!success)
+        return wInst;
+
+    auto instr = cp.GetInstr();
+    cp.RegInfo(reginfo);
+
+    for(ZydisCPUFlag i = 0; i <= ZYDIS_CPUFLAG_MAX_VALUE; ++i)
+    {
+        auto flagAction = instr->accessedFlags[i].action;
+        if(flagAction == ZYDIS_CPUFLAG_ACTION_NONE)
+            continue;
+
+        Zydis::RegAccessInfo rai;
+        switch(flagAction)
+        {
+        case ZYDIS_CPUFLAG_ACTION_MODIFIED:
+        case ZYDIS_CPUFLAG_ACTION_SET_0:
+        case ZYDIS_CPUFLAG_ACTION_SET_1:
+            rai = Zydis::RAIWrite;
+            break;
+        case ZYDIS_CPUFLAG_ACTION_TESTED:
+            rai = Zydis::RAIRead;
+            break;
+        default:
+            rai = Zydis::RAINone;
+            break;
+        }
+
+        reginfo[ZYDIS_REGISTER_RFLAGS] = Zydis::RAINone;
+        reginfo[ZYDIS_REGISTER_EFLAGS] = Zydis::RAINone;
+        reginfo[ZYDIS_REGISTER_FLAGS]  = Zydis::RAINone;
+
+        wInst.regsReferenced.emplace_back(cp.FlagName(i), rai);
+    }
+
+    reginfo[ArchValue(ZYDIS_REGISTER_EIP, ZYDIS_REGISTER_RIP)] = Zydis::RAINone;
+    for(ZydisRegister i = ZYDIS_REGISTER_NONE; i <= ZYDIS_REGISTER_MAX_VALUE; ++i)
+        if(reginfo[i])
+            wInst.regsReferenced.emplace_back(cp.RegName(ZydisRegister(i)), reginfo[i]);
+
     return wInst;
 }
-
 
 Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type)
 {
     //tokenize
     CapstoneTokenizer::InstructionToken cap;
 
-    auto & infoIter = dataInstMap.find(type);
+    auto infoIter = dataInstMap.find(type);
     if(infoIter == dataInstMap.end())
         infoIter = dataInstMap.find(enc_byte);
-
 
     int len = mEncodeMap->getDataSize(origBase + origInstRVA, 1);
 
@@ -284,10 +315,7 @@ void QBeaEngine::UpdateDataInstructionMap()
     dataInstMap.insert(enc_real10, {"real10", "real10", "long double"});
     dataInstMap.insert(enc_ascii, {"ascii", "ascii", "string"});
     dataInstMap.insert(enc_unicode, {"unicode", "unicode", "wstring"});
-
 }
-
-
 
 void QBeaEngine::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)
 {

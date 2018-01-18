@@ -3,70 +3,6 @@ set RELEASEDIR=.\release
 rmdir /S /Q %RELEASEDIR%
 mkdir %RELEASEDIR%
 
-echo qt_base
-
-mkdir %RELEASEDIR%\qt_base
-mkdir %RELEASEDIR%\qt_base\x32
-mkdir %RELEASEDIR%\qt_base\x32\platforms
-mkdir %RELEASEDIR%\qt_base\x64
-mkdir %RELEASEDIR%\qt_base\x64\platforms
-
-copy bin\x32\Qt5Core.dll %RELEASEDIR%\qt_base\x32\
-copy bin\x32\Qt5Gui.dll %RELEASEDIR%\qt_base\x32\
-copy bin\x32\Qt5Widgets.dll %RELEASEDIR%\qt_base\x32\
-copy bin\x32\Qt5Network.dll %RELEASEDIR%\qt_base\x32\
-copy bin\x32\libeay32.dll %RELEASEDIR%\qt_base\x32\
-copy bin\x32\platforms\qwindows.dll %RELEASEDIR%\qt_base\x32\platforms\
-copy bin\x64\Qt5Core.dll %RELEASEDIR%\qt_base\x64\
-copy bin\x64\Qt5Gui.dll %RELEASEDIR%\qt_base\x64\
-copy bin\x64\Qt5Widgets.dll %RELEASEDIR%\qt_base\x64\
-copy bin\x64\Qt5Network.dll %RELEASEDIR%\qt_base\x64\
-copy bin\x64\libeay32.dll %RELEASEDIR%\qt_base\x64\
-copy bin\x64\platforms\qwindows.dll %RELEASEDIR%\qt_base\x64\platforms\
-
-echo bin_base
-
-mkdir %RELEASEDIR%\bin_base
-mkdir %RELEASEDIR%\bin_base\x32
-mkdir %RELEASEDIR%\bin_base\x64
-
-copy bin\x32\x32_bridge.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\x32_dbg.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\capstone.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\dbghelp.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\symsrv.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\DeviceNameResolver.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\Scylla.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\jansson.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\lz4.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\TitanEngine.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\XEDParse.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\asmjit.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\yara.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\snowman.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x32\keystone.dll %RELEASEDIR%\bin_base\x32\
-copy bin\x64\x64_bridge.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\x64_dbg.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\capstone.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\dbghelp.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\symsrv.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\DeviceNameResolver.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\Scylla.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\jansson.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\lz4.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\TitanEngine.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\XEDParse.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\asmjit.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\yara.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\snowman.dll %RELEASEDIR%\bin_base\x64\
-copy bin\x64\keystone.dll %RELEASEDIR%\bin_base\x64\
-
-echo help
-
-mkdir %RELEASEDIR%\help
-
-copy help\x64dbg.chm %RELEASEDIR%\help
-
 echo pluginsdk
 
 mkdir %RELEASEDIR%\pluginsdk
@@ -126,11 +62,16 @@ mkdir %RELEASEDIR%\release\translations
 mkdir %RELEASEDIR%\release\x32
 mkdir %RELEASEDIR%\release\x64
 
+xcopy deps\x32 %RELEASEDIR%\release\x32 /S /Y
+xcopy deps\x64 %RELEASEDIR%\release\x64 /S /Y
+
+copy help\x64dbg.chm %RELEASEDIR%\release\
 copy bin\x96dbg.exe %RELEASEDIR%\release\
 copy bin\mnemdb.json %RELEASEDIR%\release\
 copy bin\errordb.txt %RELEASEDIR%\release\
 copy bin\exceptiondb.txt %RELEASEDIR%\release\
 copy bin\ntstatusdb.txt %RELEASEDIR%\release\
+copy bin\winconstants.txt %RELEASEDIR%\release\
 xcopy src\gui\Translations\*.qm %RELEASEDIR%\release\translations /S /Y
 copy bin\x32\x32bridge.dll %RELEASEDIR%\release\x32\
 copy bin\x32\x32dbg.dll %RELEASEDIR%\release\x32\
@@ -141,8 +82,7 @@ copy bin\x64\x64dbg.dll %RELEASEDIR%\release\x64\
 copy bin\x64\x64dbg.exe %RELEASEDIR%\release\x64\
 copy bin\x64\x64gui.dll %RELEASEDIR%\release\x64\
 
-xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\release /S /Y
-xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\release /S /Y
-xcopy %RELEASEDIR%\help %RELEASEDIR%\release /S /Y
+echo "creating commithash.txt"
+git rev-parse HEAD > %RELEASEDIR%\commithash.txt
 
 exit 0

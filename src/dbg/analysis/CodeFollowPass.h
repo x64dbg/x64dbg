@@ -2,7 +2,7 @@
 
 #include "AnalysisPass.h"
 #include "BasicBlock.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 
 class CodeFollowPass : public AnalysisPass
 {
@@ -14,6 +14,6 @@ public:
     virtual bool Analyse() override;
 
 private:
-    duint GetReferenceOperand(const cs_x86 & Context);
-    duint GetMemoryOperand(Capstone & Disasm, const cs_x86 & Context, bool* Indirect);
+    duint GetReferenceOperand(const ZydisDecodedInstruction & Context);
+    duint GetMemoryOperand(Zydis & Disasm, const ZydisDecodedInstruction & Context, bool* Indirect);
 };

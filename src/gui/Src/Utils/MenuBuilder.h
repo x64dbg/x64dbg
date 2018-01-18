@@ -6,7 +6,7 @@
 #include <functional>
 
 /**
- * @brief The MenuBuilder class implements the dynamical context menu system for many views.
+ * @brief The MenuBuilder class implements the dynamic context menu system for many views.
  */
 class MenuBuilder : public QObject
 {
@@ -16,7 +16,6 @@ public:
 
     inline MenuBuilder(QObject* parent, BuildCallback callback = nullptr)
         : QObject(parent),
-          id(0),
           _callback(callback)
     {
     }
@@ -58,7 +57,7 @@ public:
 
     QString getText(size_t id) const;
 
-    const char* getId() const
+    QString getId() const
     {
         return id;
     }
@@ -109,13 +108,13 @@ private:
         union
         {
             QAction* action;
-            QMenu* menu ;
+            QMenu* menu;
             MenuBuilder* builder;
         };
     };
 
     BuildCallback _callback;
-    const char* id;
+    QString id;
     std::vector<Container> _containers;
 };
 

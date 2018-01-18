@@ -6,7 +6,7 @@ SEHChainView::SEHChainView(StdTable* parent) : StdTable(parent)
     int charWidth = getCharWidth();
 
     addColumnAt(8 + charWidth * sizeof(dsint) * 2, tr("Address"), true); //address in the stack
-    addColumnAt(8 + charWidth * sizeof(dsint) * 2, tr("Handler"), true); // Exception Handler
+    addColumnAt(8 + charWidth * sizeof(dsint) * 2, tr("Handler"), false); // Exception Handler
     addColumnAt(8 + charWidth * 50, tr("Module/Label"), false);
     addColumnAt(charWidth * 10, tr("Comment"), false);
     connect(Bridge::getBridge(), SIGNAL(updateSEHChain()), this, SLOT(updateSEHChain()));
@@ -63,7 +63,7 @@ void SEHChainView::updateSEHChain()
 
 void SEHChainView::contextMenuSlot(const QPoint pos)
 {
-    if(!DbgIsDebugging())
+    if(!DbgIsDebugging() || this->getRowCount() == 0)
         return;
     QMenu wMenu(this); //create context menu
     wMenu.addAction(mFollowAddress);

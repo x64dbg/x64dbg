@@ -17,6 +17,7 @@ SourceViewerManager::SourceViewerManager(QWidget* parent) : QTabWidget(parent)
 
     connect(this, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
     connect(Bridge::getBridge(), SIGNAL(loadSourceFile(QString, int, int)), this, SLOT(loadSourceFile(QString, int, int)));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
 }
 
 void SourceViewerManager::loadSourceFile(QString path, int line, int selection)
@@ -28,8 +29,11 @@ void SourceViewerManager::loadSourceFile(QString path, int line, int selection)
         SourceView* curView = (SourceView*)this->widget(i);
         if(curView->getSourcePath().compare(path, Qt::CaseInsensitive) == 0) //file already loaded
         {
+            QWidget* now = QApplication::focusWidget();
             curView->setSelection(line);
             setCurrentIndex(i); //show that loaded tab
+            if(now)
+                now->setFocus();
             return;
         }
     }
@@ -57,4 +61,10 @@ void SourceViewerManager::closeTab(int index)
 void SourceViewerManager::closeAllTabs()
 {
     clear();
+}
+
+void SourceViewerManager::dbgStateChanged(DBGSTATE state)
+{
+    if(state == stopped)
+        closeAllTabs();
 }

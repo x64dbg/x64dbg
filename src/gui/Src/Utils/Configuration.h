@@ -14,10 +14,13 @@
 #define ConfigUint(x,y) (Config()->getUint(x,y))
 #define ConfigFont(x) (Config()->getFont(x))
 #define ConfigShortcut(x) (Config()->getShortcut(x).Hotkey)
-#define ConfigHScrollBarStyle() "QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}"
-#define ConfigVScrollBarStyle() "QScrollBar:vertical{border:1px solid grey;background:#f1f1f1;width:10px}QScrollBar::handle:vertical{background:#aaa;min-height:20px;margin:1px}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{width:0;height:0}"
+#define ConfigHScrollBarStyle() "QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaaaaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}"
+#define ConfigVScrollBarStyle() "QScrollBar:vertical{border:1px solid grey;background:#f1f1f1;width:10px}QScrollBar::handle:vertical{background:#aaaaaa;min-height:20px;margin:1px}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{width:0;height:0}"
+
+
 
 class MenuBuilder;
+class QAction;
 
 class Configuration : public QObject
 {
@@ -30,9 +33,11 @@ public:
         QKeySequence Hotkey;
         bool GlobalShortcut;
 
-        inline Shortcut(QString n = QString(), QString h = QString(), bool g = false) : Name(n), Hotkey(h), GlobalShortcut(g)
-        {
-        }
+        Shortcut(QString name = QString(), QString hotkey = QString(), bool global = false)
+            : Name(name), Hotkey(hotkey), GlobalShortcut(global) { }
+
+        Shortcut(std::initializer_list<QString> names, QString hotkey = QString(), bool global = false)
+            : Shortcut(QStringList(names).join(" -> "), hotkey, global) { }
     };
 
     //Functions
@@ -44,6 +49,7 @@ public:
     void writeColors();
     void emitColorsUpdated();
     void emitTokenizerConfigUpdated();
+    void emitDisableAutoCompleteUpdated();
     void readBools();
     void writeBools();
     void readUints();
@@ -55,6 +61,7 @@ public:
     void writeShortcuts();
     void emitShortcutsUpdated();
     void registerMenuBuilder(MenuBuilder* menu, size_t count);
+    void registerMainMenuStringList(QList<QAction*>* menu);
 
     const QColor getColor(const QString id) const;
     const bool getBool(const QString category, const QString id) const;
@@ -64,6 +71,9 @@ public:
     const QFont getFont(const QString id) const;
     const Shortcut getShortcut(const QString key_id) const;
     void setShortcut(const QString key_id, const QKeySequence key_sequence);
+    void setPluginShortcut(const QString key_id, QString description, QString defaultShortcut, bool global);
+    void setupWindowPos(QWidget* window);
+    void saveWindowPos(QWidget* window);
 
     //default setting maps
     QMap<QString, QColor> defaultColors;
@@ -80,7 +90,24 @@ public:
     QMap<QString, Shortcut> Shortcuts;
 
     //custom menu maps
-    QList<std::pair<MenuBuilder*, size_t>> NamedMenuBuilders;
+    struct MenuMap
+    {
+        union
+        {
+            QList<QAction*>* mainMenuList;
+            MenuBuilder* builder;
+        };
+        int type;
+        size_t count;
+
+        MenuMap() { }
+        MenuMap(QList<QAction*>* mainMenuList, size_t count)
+            : mainMenuList(mainMenuList), type(1), count(count) { }
+        MenuMap(MenuBuilder* builder, size_t count)
+            : builder(builder), type(0), count(count) { }
+    };
+
+    QList<MenuMap> NamedMenuBuilders;
 
     static Configuration* mPtr;
 
@@ -89,6 +116,7 @@ signals:
     void fontsUpdated();
     void shortcutsUpdated();
     void tokenizerConfigUpdated();
+    void disableAutoCompleteUpdated();
 
 private:
     QColor colorFromConfig(const QString id);

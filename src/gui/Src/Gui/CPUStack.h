@@ -30,13 +30,10 @@ signals:
 public slots:
     void pushSlot();
     void popSlot();
-    void refreshShortcutsSlot();
     void stackDumpAt(duint addr, duint csp);
-    void gotoSpSlot();
-    void gotoBpSlot();
+    void gotoCspSlot();
+    void gotoCbpSlot();
     void gotoExpressionSlot();
-    void gotoPreviousSlot();
-    void gotoNextSlot();
     void gotoPreviousFrameSlot();
     void gotoNextFrameSlot();
     void gotoFrameBaseSlot();
@@ -75,64 +72,17 @@ public slots:
     void dbgStateChangedSlot(DBGSTATE state);
     void followInMemoryMapSlot();
     void followInDumpSlot();
+    void updateSlot();
 
 private:
     duint mCsp;
     bool bStackFrozen;
 
-    QMenu* mBinaryMenu;
-    QAction* mBinaryEditAction;
-    QAction* mBinaryFillAction;
-    QAction* mBinaryCopyAction;
-    QAction* mBinaryPasteAction;
-    QAction* mBinaryPasteIgnoreSizeAction;
-    QMenu* mBreakpointMenu;
-    QMenu* mBreakpointHardwareAccessMenu;
-    QAction* mBreakpointHardwareAccess1;
-    QAction* mBreakpointHardwareAccess2;
-    QAction* mBreakpointHardwareAccess4;
-#ifdef _WIN64
-    QAction* mBreakpointHardwareAccess8;
-#endif //_WIN64
-    QMenu* mBreakpointHardwareWriteMenu;
-    QAction* mBreakpointHardwareWrite1;
-    QAction* mBreakpointHardwareWrite2;
-    QAction* mBreakpointHardwareWrite4;
-#ifdef _WIN64
-    QAction* mBreakpointHardwareWrite8;
-#endif //_WIN64
-    QAction* mBreakpointHardwareRemove;
-    QMenu* mBreakpointMemoryAccessMenu;
-    QMenu* mBreakpointMemoryWriteMenu;
-    QAction* mBreakpointMemoryAccessSingleshoot;
-    QAction* mBreakpointMemoryAccessRestore;
-    QAction* mBreakpointMemoryWriteSingleShoot;
-    QAction* mBreakpointMemoryWriteRestore;
-    QAction* mBreakpointMemoryRemove;
-    QAction* mModifyAction;
-    QAction* mUndoSelection;
-    QAction* mGotoSp;
-    QAction* mGotoBp;
     QAction* mFreezeStack;
-    QAction* mGotoExpression;
-    QAction* mGotoPrevious;
-    QAction* mGotoNextFrame;
-    QAction* mGotoPrevFrame;
-    QAction* mGotoFrameBase;
-    QAction* mGotoNext;
-    QAction* mFindPatternAction;
-    QAction* mFollowDisasm;
-    QAction* mFollowPtrDump;
-    QAction* mFollowInDump;
-    QAction* mFollowInMemoryMap;
     QAction* mFollowStack;
-    QAction* mWatchData;
-    QMenu* mPluginMenu;
-    QMenu* mFollowInDumpMenu;
-    QAction* mPushAction;
-    QAction* mPopAction;
-    QAction* mRealignAction;
+    QAction* mFollowDisasm;
     QList<QAction*> mFollowInDumpActions;
+    QMenu* mPluginMenu;
 
     GotoDialog* mGoto;
     CPUMultiDump* mMultiDump;
@@ -145,6 +95,8 @@ private:
         duint addr;
         int party;
     };
+
+    MenuBuilder* mMenuBuilder;
 
     std::vector<CPUCallStack> mCallstack;
     static int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint wVA);

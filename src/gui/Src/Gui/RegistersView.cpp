@@ -13,6 +13,7 @@
 #include "EditFloatRegister.h"
 #include "SelectFields.h"
 #include "MiscUtil.h"
+#include "ldconvert.h"
 
 int RegistersView::getEstimateHeight()
 {
@@ -57,9 +58,9 @@ void RegistersView::InitMappings()
     offset++;
 
     mRegisterMapping.insert(R8, "R8");
-    mRegisterPlaces.insert(R8 , Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterPlaces.insert(R8, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R9, "R9");
-    mRegisterPlaces.insert(R9 , Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterPlaces.insert(R9, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R10, "R10");
     mRegisterPlaces.insert(R10, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R11, "R11");
@@ -135,7 +136,11 @@ void RegistersView::InitMappings()
     offset++;
 
     mRegisterMapping.insert(LastError, "LastError");
-    mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 10, 20));
+    mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 11, 20));
+    mMODIFYDISPLAY.insert(LastError);
+    mRegisterMapping.insert(LastStatus, "LastStatus");
+    mRegisterPlaces.insert(LastStatus, Register_Position(offset++, 0, 11, 20));
+    mMODIFYDISPLAY.insert(LastStatus);
 
     offset++;
 
@@ -226,8 +231,8 @@ void RegistersView::InitMappings()
         mRegisterPlaces.insert(x87SW_C1, Register_Position(offset, 0, 9, 1));
         mRegisterMapping.insert(x87SW_C0, "x87SW_C0");
         mRegisterPlaces.insert(x87SW_C0, Register_Position(offset, 12, 10, 1));
-        mRegisterMapping.insert(x87SW_IR, "x87SW_IR");
-        mRegisterPlaces.insert(x87SW_IR, Register_Position(offset++, 25, 10, 1));
+        mRegisterMapping.insert(x87SW_ES, "x87SW_ES");
+        mRegisterPlaces.insert(x87SW_ES, Register_Position(offset++, 25, 10, 1));
 
         mRegisterMapping.insert(x87SW_SF, "x87SW_SF");
         mRegisterPlaces.insert(x87SW_SF, Register_Position(offset, 0, 9, 1));
@@ -255,8 +260,8 @@ void RegistersView::InitMappings()
 
         mRegisterMapping.insert(x87CW_IC, "x87CW_IC");
         mRegisterPlaces.insert(x87CW_IC, Register_Position(offset, 0, 9, 1));
-        mRegisterMapping.insert(x87CW_IEM, "x87CW_IEM");
-        mRegisterPlaces.insert(x87CW_IEM, Register_Position(offset, 12, 10, 1));
+        mRegisterMapping.insert(x87CW_ZM, "x87CW_ZM");
+        mRegisterPlaces.insert(x87CW_ZM, Register_Position(offset, 12, 10, 1));
         mRegisterMapping.insert(x87CW_PM, "x87CW_PM");
         mRegisterPlaces.insert(x87CW_PM, Register_Position(offset++, 25, 10, 1));
 
@@ -264,8 +269,8 @@ void RegistersView::InitMappings()
         mRegisterPlaces.insert(x87CW_UM, Register_Position(offset, 0, 9, 1));
         mRegisterMapping.insert(x87CW_OM, "x87CW_OM");
         mRegisterPlaces.insert(x87CW_OM, Register_Position(offset, 12, 10, 1));
-        mRegisterMapping.insert(x87CW_ZM, "x87CW_ZM");
-        mRegisterPlaces.insert(x87CW_ZM, Register_Position(offset++, 25, 10, 1));
+        mRegisterMapping.insert(x87CW_PC, "x87CW_PC");
+        mRegisterPlaces.insert(x87CW_PC, Register_Position(offset++, 25, 10, 14));
 
         mRegisterMapping.insert(x87CW_DM, "x87CW_DM");
         mRegisterPlaces.insert(x87CW_DM, Register_Position(offset, 0, 9, 1));
@@ -273,9 +278,6 @@ void RegistersView::InitMappings()
         mRegisterPlaces.insert(x87CW_IM, Register_Position(offset, 12, 10, 1));
         mRegisterMapping.insert(x87CW_RC, "x87CW_RC");
         mRegisterPlaces.insert(x87CW_RC, Register_Position(offset++, 25, 10, 14));
-
-        mRegisterMapping.insert(x87CW_PC, "x87CW_PC");
-        mRegisterPlaces.insert(x87CW_PC, Register_Position(offset++, 0, 9, 14));
 
         offset++;
 
@@ -445,7 +447,7 @@ static QAction* setupAction(const QString & text, RegistersView* this_object)
     return action;
 }
 
-RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
+RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollOffset(0), mParent(parent)
 {
     setWindowTitle("Registers");
     mChangeViewButton = NULL;
@@ -515,6 +517,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     wCM_Pop = setupAction(DIcon("arrow-small-up.png"), tr("Pop"), this);
     wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"), this);
     mSwitchSIMDDispMode = new QMenu(tr("Change SIMD Register Display Mode"), this);
+    mSwitchSIMDDispMode->setIcon(DIcon("simdmode.png"));
     SIMDHex = new QAction(tr("Hexadecimal"), mSwitchSIMDDispMode);
     SIMDFloat = new QAction(tr("Float"), mSwitchSIMDDispMode);
     SIMDDouble = new QAction(tr("Double"), mSwitchSIMDDispMode);
@@ -575,7 +578,6 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mSwitchSIMDDispMode->addAction(SIMDHWord);
     mSwitchSIMDDispMode->addAction(SIMDHDWord);
     mSwitchSIMDDispMode->addAction(SIMDHQWord);
-    mFollowInDumpMenu = CreateDumpNMenu(multiDump);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -872,10 +874,10 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mBOOLDISPLAY.insert(x87SW_C0);
     mFPU.insert(x87SW_C0);
 
-    mSETONEZEROTOGGLE.insert(x87SW_IR);
-    mFPUx87.insert(x87SW_IR);
-    mBOOLDISPLAY.insert(x87SW_IR);
-    mFPU.insert(x87SW_IR);
+    mSETONEZEROTOGGLE.insert(x87SW_ES);
+    mFPUx87.insert(x87SW_ES);
+    mBOOLDISPLAY.insert(x87SW_ES);
+    mFPU.insert(x87SW_ES);
 
     mSETONEZEROTOGGLE.insert(x87SW_SF);
     mFPUx87.insert(x87SW_SF);
@@ -984,11 +986,6 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mFPU.insert(x87CW_PC);
     mMODIFYDISPLAY.insert(x87CW_PC);
     mUNDODISPLAY.insert(x87CW_PC);
-
-    mSETONEZEROTOGGLE.insert(x87CW_IEM);
-    mFPUx87.insert(x87CW_IEM);
-    mBOOLDISPLAY.insert(x87CW_IEM);
-    mFPU.insert(x87CW_IEM);
 
     mSETONEZEROTOGGLE.insert(x87CW_PM);
     mFPUx87.insert(x87CW_PM);
@@ -1250,6 +1247,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
 #endif
     //registers that should not be changed
     mNoChange.insert(LastError);
+    mNoChange.insert(LastStatus);
 
     mNoChange.insert(GS);
     mUSHORTDISPLAY.insert(GS);
@@ -1299,16 +1297,10 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     mCANSTOREADDRESS.insert(DR3);
 
     mNoChange.insert(DR6);
-    mLABELDISPLAY.insert(DR6);
-    mONLYMODULEANDLABELDISPLAY.insert(DR6);
     mUINTDISPLAY.insert(DR6);
-    mCANSTOREADDRESS.insert(DR6);
 
     mNoChange.insert(DR7);
     mUINTDISPLAY.insert(DR7);
-    mONLYMODULEANDLABELDISPLAY.insert(DR7);
-    mCANSTOREADDRESS.insert(DR7);
-    mLABELDISPLAY.insert(DR7);
 
     mNoChange.insert(CIP);
     mUINTDISPLAY.insert(CIP);
@@ -1339,6 +1331,7 @@ RegistersView::RegistersView(CPUWidget* parent, CPUMultiDump* multiDump) : QScro
     connect(Bridge::getBridge(), SIGNAL(updateRegisters()), this, SLOT(updateRegistersSlot()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
+    connect(parent->getDisasmWidget(), SIGNAL(selectionChanged(dsint)), this, SLOT(disasmSelectionChangedSlot(dsint)));
     // self communication for repainting (maybe some other widgets needs this information, too)
     connect(this, SIGNAL(refresh()), this, SLOT(reload()));
     // context menu actions
@@ -1512,25 +1505,25 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     {
     //We don't display help messages for general purpose registers as they are very well-known.
     case CF:
-        return tr("CF (bit 0) : Carry flag - Set if an arithmetic operation generates a carry or a borrow out of the mostsignificant bit of the result; cleared otherwise.\r\n"
+        return tr("CF (bit 0) : Carry flag - Set if an arithmetic operation generates a carry or a borrow out of the mostsignificant bit of the result; cleared otherwise.\n"
                   "This flag indicates an overflow condition for unsigned-integer arithmetic. It is also used in multiple-precision arithmetic.");
     case PF:
         return tr("PF (bit 2) : Parity flag - Set if the least-significant byte of the result contains an even number of 1 bits; cleared otherwise.");
     case AF:
-        return tr("AF (bit 4) : Auxiliary Carry flag - Set if an arithmetic operation generates a carry or a borrow out of bit\r\n"
+        return tr("AF (bit 4) : Auxiliary Carry flag - Set if an arithmetic operation generates a carry or a borrow out of bit\n"
                   "3 of the result; cleared otherwise. This flag is used in binary-coded decimal (BCD) arithmetic.");
     case ZF:
         return tr("ZF (bit 6) : Zero flag - Set if the result is zero; cleared otherwise.");
     case SF:
-        return tr("SF (bit 7) : Sign flag - Set equal to the most-significant bit of the result, which is the sign bit of a signed\r\n"
+        return tr("SF (bit 7) : Sign flag - Set equal to the most-significant bit of the result, which is the sign bit of a signed\n"
                   "integer. (0 indicates a positive value and 1 indicates a negative value.)");
     case OF:
-        return tr("OF (bit 11) : Overflow flag - Set if the integer result is too large a positive number or too small a negative\r\n"
-                  "number (excluding the sign-bit) to fit in the destination operand; cleared otherwise. This flag indicates an overflow\r\n"
+        return tr("OF (bit 11) : Overflow flag - Set if the integer result is too large a positive number or too small a negative\n"
+                  "number (excluding the sign-bit) to fit in the destination operand; cleared otherwise. This flag indicates an overflow\n"
                   "condition for signed-integer (two’s complement) arithmetic.");
     case DF:
-        return tr("DF (bit 10) : The direction flag controls string instructions (MOVS, CMPS, SCAS, LODS, and STOS). Setting the DF flag causes the string instructions\r\n"
-                  "to auto-decrement (to process strings from high addresses to low addresses). Clearing the DF flag causes the string instructions to auto-increment\r\n"
+        return tr("DF (bit 10) : The direction flag controls string instructions (MOVS, CMPS, SCAS, LODS, and STOS). Setting the DF flag causes the string instructions\n"
+                  "to auto-decrement (to process strings from high addresses to low addresses). Clearing the DF flag causes the string instructions to auto-increment\n"
                   "(process strings from low addresses to high addresses).");
     case TF:
         return tr("TF (bit 8) : Trap flag - Set to enable single-step mode for debugging; clear to disable single-step mode.");
@@ -1542,18 +1535,58 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
         return tr("The 16-bit x87 FPU status register indicates the current state of the x87 FPU.");
     case x87TagWord:
         return tr("The 16-bit tag word indicates the contents of each the 8 registers in the x87 FPU data-register stack (one 2-bit tag per register).");
+
     case x87CW_PC:
         return tr("The precision-control (PC) field (bits 8 and 9 of the x87 FPU control word) determines the precision (64, 53, or 24 bits) of floating-point calculations made by the x87 FPU");
     case x87CW_RC:
         return tr("The rounding-control (RC) field of the x87 FPU control register (bits 10 and 11) controls how the results of x87 FPU floating-point instructions are rounded.");
     case x87CW_IC:
-        return tr("The infinity control flag (bit 12 of the x87 FPU control word) is provided for compatibility with the Intel 287 Math Coprocessor;\r\n"
+        return tr("The infinity control flag (bit 12 of the x87 FPU control word) is provided for compatibility with the Intel 287 Math Coprocessor;\n"
                   "it is not meaningful for later version x87 FPU coprocessors or IA-32 processors.");
+    case x87CW_IM:
+        return tr("The invalid operation exception mask (bit 0). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_DM:
+        return tr("The denormal-operand exception mask (bit 2). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_ZM:
+        return tr("The floating-point divide-by-zero exception mask (bit 3). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_OM:
+        return tr("The floating-point numeric overflow exception mask (bit 4). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_UM:
+        return tr("The potential floating-point numeric underflow condition mask (bit 5). When the mask bit is set, its corresponding exception is blocked from being generated.");
+    case x87CW_PM:
+        return tr("The inexact-result/precision exception mask (bit 6). When the mask bit is set, its corresponding exception is blocked from being generated.");
+
+    case x87SW_B:
+        return tr("The busy flag (bit 15) indicates if the FPU is busy (B=1) while executing an instruction, or is idle (B=0).\n"
+                  "The B-bit (bit 15) is included for 8087 compatibility only. It reflects the contents of the ES flag.");
+    case x87SW_C0:
+        return tr("The C%1 condition code flag (bit %2) is used to indicate the results of floating-point comparison and arithmetic operations.").arg(0).arg(8);
+    case x87SW_C1:
+        return tr("The C%1 condition code flag (bit %2) is used to indicate the results of floating-point comparison and arithmetic operations.").arg(1).arg(9);
+    case x87SW_C2:
+        return tr("The C%1 condition code flag (bit %2) is used to indicate the results of floating-point comparison and arithmetic operations.").arg(2).arg(10);
+    case x87SW_C3:
+        return tr("The C%1 condition code flag (bit %2) is used to indicate the results of floating-point comparison and arithmetic operations.").arg(3).arg(14);
+    case x87SW_ES:
+        return tr("The error/exception summary status flag (bit 7) is set when any of the unmasked exception flags are set.");
     case x87SW_SF:
-        return tr("The stack fault flag (bit 6 of the x87 FPU status word) indicates that stack overflow or stack underflow has occurred with data\r\nin the x87 FPU data register stack.");
+        return tr("The stack fault flag (bit 6 of the x87 FPU status word) indicates that stack overflow or stack underflow has occurred with data\nin the x87 FPU data register stack.");
     case x87SW_TOP:
-        return tr("A pointer to the x87 FPU data register that is currently at the top of the x87 FPU register stack is contained in bits 11 through 13\r\n"
+        return tr("A pointer to the x87 FPU data register that is currently at the top of the x87 FPU register stack is contained in bits 11 through 13\n"
                   "of the x87 FPU status word. This pointer, which is commonly referred to as TOP (for top-of-stack), is a binary value from 0 to 7.");
+    case x87SW_I:
+        return tr("The processor reports an invalid operation exception (bit 0) in response to one or more invalid arithmetic operands.");
+    case x87SW_D:
+        return tr("The processor reports the denormal-operand exception (bit 2) if an arithmetic instruction attempts to operate on a denormal operand.");
+    case x87SW_Z:
+        return tr("The processor reports the floating-point divide-by-zero exception (bit 3) whenever an instruction attempts to divide a finite non-zero operand by 0.");
+    case x87SW_O:
+        return tr("The processor reports a floating-point numeric overflow exception (bit 4) whenever the rounded result of an instruction exceeds the largest allowable finite value that will fit into the destination operand.");
+    case x87SW_U:
+        return tr("The processor detects a potential floating-point numeric underflow condition (bit 5) whenever the result of rounding with unbounded exponent is non-zero and tiny.");
+    case x87SW_P:
+        return tr("The inexact-result/precision exception (bit 6) occurs if the result of an operation is not exactly representable in the destination format.");
+
     case MxCsr:
         return tr("The 32-bit MXCSR register contains control and status information for SIMD floating-point operations.");
     case MxCsr_IE:
@@ -1569,45 +1602,70 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case MxCsr_PE:
         return tr("Bit 5 (PE) : Precision Flag; indicate whether a SIMD floating-point exception has been detected.");
     case MxCsr_IM:
-        return tr("Bit 7 (IM) : Invalid Operation Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 7 (IM) : Invalid Operation Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_DM:
-        return tr("Bit 8 (DM) : Denormal Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 8 (DM) : Denormal Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_ZM:
-        return tr("Bit 9 (ZM) : Divide-by-Zero Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 9 (ZM) : Divide-by-Zero Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_OM:
-        return tr("Bit 10 (OM) : Overflow Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 10 (OM) : Overflow Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_UM:
-        return tr("Bit 11 (UM) : Underflow Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 11 (UM) : Underflow Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_PM:
-        return tr("Bit 12 (PM) : Precision Mask. An exception type is masked if the corresponding mask bit is set, and it is unmasked if the bit is clear.");
+        return tr("Bit 12 (PM) : Precision Mask. When the mask bit is set, its corresponding exception is blocked from being generated.");
     case MxCsr_FZ:
         return tr("Bit 15 (FZ) of the MXCSR register enables the flush-to-zero mode, which controls the masked response to a SIMD floating-point underflow condition.");
     case MxCsr_DAZ:
-        return tr("Bit 6 (DAZ) of the MXCSR register enables the denormals-are-zeros mode, which controls the processor’s response to a SIMD floating-point\r\n"
+        return tr("Bit 6 (DAZ) of the MXCSR register enables the denormals-are-zeros mode, which controls the processor’s response to a SIMD floating-point\n"
                   "denormal operand condition.");
     case MxCsr_RC:
         return tr("Bits 13 and 14 of the MXCSR register (the rounding control [RC] field) control how the results of SIMD floating-point instructions are rounded.");
     case LastError:
-        //TODO: display help message of the specific error instead of this very generic message.
-        return tr("The value of GetLastError(). This value is stored in the TEB.");
+    {
+        char dat[1024];
+        LASTERROR* error;
+        error = (LASTERROR*)registerValue(&wRegDumpStruct, LastError);
+        if(DbgFunctions()->StringFormatInline(QString().sprintf("{winerror@%X}", error->code).toUtf8().constData(), sizeof(dat), dat))
+            return dat;
+        else
+            return tr("The value of GetLastError(). This value is stored in the TEB.");
+    }
+    case LastStatus:
+    {
+        char dat[1024];
+        LASTSTATUS* error;
+        error = (LASTSTATUS*)registerValue(&wRegDumpStruct, LastStatus);
+        if(DbgFunctions()->StringFormatInline(QString().sprintf("{ntstatus@%X}", error->code).toUtf8().constData(), sizeof(dat), dat))
+            return dat;
+        else
+            return tr("The NTSTATUS in the LastStatusValue field of the TEB.");
+    }
+#ifdef _WIN64
+    case GS:
+        return tr("The TEB of the current thread can be accessed as an offset of segment register GS (x64).\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
+#else //x86
+    case FS:
+        return tr("The TEB of the current thread can be accessed as an offset of segment register FS (x86).\nThe TEB can be used to get a lot of information on the process without calling Win32 API.");
+#endif //_WIN64
     default:
-        return "";
+        return QString();
     }
 }
 
-QMenu* RegistersView::CreateDumpNMenu(CPUMultiDump* multiDump)
+void RegistersView::CreateDumpNMenu(QMenu* dumpMenu)
 {
-    QMenu* dumpMenu = new QMenu(tr("Follow in &Dump"), this);
+    QList<QString> names;
+    CPUMultiDump* multiDump = mParent->getDumpWidget();
     dumpMenu->setIcon(DIcon("dump.png"));
     int maxDumps = multiDump->getMaxCPUTabs();
+    multiDump->getTabNames(names);
     for(int i = 0; i < maxDumps; i++)
     {
-        QAction* action = new QAction(tr("Dump %1").arg(i + 1), this);
+        QAction* action = new QAction(names.at(i), this);
         connect(action, SIGNAL(triggered()), this, SLOT(onFollowInDumpN()));
         dumpMenu->addAction(action);
         action->setData(i + 1);
     }
-    return dumpMenu;
 }
 
 void RegistersView::mousePressEvent(QMouseEvent* event)
@@ -1640,6 +1698,8 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
                     CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(r).value()));
                 else if(mFPUYMM.contains(r))
                     CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(r).value()));
+                else if(mSEGMENTREGISTER.contains(r))
+                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(r).value()));
                 else
                     mSelected = r;
             }
@@ -1655,17 +1715,27 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 void RegistersView::mouseMoveEvent(QMouseEvent* event)
 {
     if(!DbgIsDebugging())
+    {
+        QScrollArea::mouseMoveEvent(event);
+        setCursor(QCursor(Qt::ArrowCursor));
         return;
+    }
 
     REGISTER_NAME r = REGISTER_NAME::UNKNOWN;
     QString registerHelpInformation;
     // do we find a corresponding register?
-    if(identifyRegister((event->y() - yTopSpacing) / (double)mRowHeight, event->x() / (double)mCharWidth, &r))\
-        registerHelpInformation = helpRegister(r);
+    if(identifyRegister((event->y() - yTopSpacing) / (double)mRowHeight, event->x() / (double)mCharWidth, &r))
+    {
+        registerHelpInformation = helpRegister(r).replace(" : ", ": ");
+        setCursor(QCursor(Qt::PointingHandCursor));
+    }
     else
+    {
         registerHelpInformation = "";
+        setCursor(QCursor(Qt::ArrowCursor));
+    }
     if(!registerHelpInformation.isEmpty())
-        QToolTip::showText(event->globalPos(), registerHelpInformation, this);
+        QToolTip::showText(event->globalPos(), registerHelpInformation);
     else
         QToolTip::hideText();
     QScrollArea::mouseMoveEvent(event);
@@ -1687,8 +1757,10 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     // is current register general purposes register or FPU register?
     else if(mMODIFYDISPLAY.contains(mSelected))
         wCM_Modify->trigger();
-    else if(mBOOLDISPLAY.contains(mSelected))  // is flag ?
+    else if(mBOOLDISPLAY.contains(mSelected)) // is flag ?
         wCM_ToggleValue->trigger();
+    else if(mCANSTOREADDRESS.contains(mSelected))
+        wCM_FollowInDisassembly->trigger();
 }
 
 void RegistersView::paintEvent(QPaintEvent* event)
@@ -1729,7 +1801,7 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
 QSize RegistersView::sizeHint() const
 {
     // 32 character width
-    return QSize(32 * mCharWidth , this->viewport()->height());
+    return QSize(32 * mCharWidth, this->viewport()->height());
 }
 
 void* RegistersView::operator new(size_t size)
@@ -1779,23 +1851,20 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     }
     else if(!mONLYMODULEANDLABELDISPLAY.contains(register_selected))
     {
-        bool isCharacter = false;
         if(register_value == (register_value & 0xFF))
         {
             QChar c = QChar((char)register_value);
             if(c.isPrint())
             {
                 newText = QString("'%1'").arg((char)register_value);
-                isCharacter = IsCharacterRegister(register_selected);
             }
         }
-        else if(register_value == (register_value & 0xFFF))  //UNICODE?
+        else if(register_value == (register_value & 0xFFF)) //UNICODE?
         {
             QChar c = QChar((wchar_t)register_value);
             if(c.isPrint())
             {
                 newText = "L'" + QString(c) + "'";
-                isCharacter = IsCharacterRegister(register_selected);
             }
         }
     }
@@ -1994,6 +2063,15 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, const char*
         else
             valueText = QString().sprintf("%08X", data->code);
         mRegisterPlaces[LastError].valuesize = valueText.length();
+    }
+    else if(reg == LastStatus)
+    {
+        LASTSTATUS* data = (LASTSTATUS*)value;
+        if(*data->name)
+            valueText = QString().sprintf("%08X (%s)", data->code, data->name);
+        else
+            valueText = QString().sprintf("%08X", data->code);
+        mRegisterPlaces[LastStatus].valuesize = valueText.length();
     }
     else
     {
@@ -2266,6 +2344,10 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         case CDX: //arg2
         case R8: //arg3
         case R9: //arg4
+        case XMM0:
+        case XMM1:
+        case XMM2:
+        case XMM3:
             p->setPen(ConfigColor("RegistersArgumentLabelColor"));
             break;
         default:
@@ -2276,7 +2358,44 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         }
 #endif //_WIN64
 
-        p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, mRegisterMapping[reg]);
+        //draw the register name
+        auto regName = mRegisterMapping[reg];
+        p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, regName);
+
+        //highlight the register based on access
+        uint8_t highlight = 0;
+        for(const auto & reg : mHighlightRegs)
+        {
+            if(!CapstoneTokenizer::tokenTextPoolEquals(regName, reg.first))
+                continue;
+            highlight = reg.second;
+            break;
+        }
+        if(highlight)
+        {
+            const char* name = "";
+            switch(highlight & ~(Zydis::RAIImplicit | Zydis::RAIExplicit))
+            {
+            case Zydis::RAIRead:
+                name = "RegistersHighlightReadColor";
+                break;
+            case Zydis::RAIWrite:
+                name = "RegistersHighlightWriteColor";
+                break;
+            case Zydis::RAIRead | Zydis::RAIWrite:
+                name = "RegistersHighlightReadWriteColor";
+                break;
+            }
+            auto highlightColor = ConfigColor(name);
+            if(highlightColor.alpha())
+            {
+                QPen highlightPen(highlightColor);
+                highlightPen.setWidth(2);
+                p->setPen(highlightPen);
+                p->drawLine(x + 1, y + mRowHeight - 1, x + mCharWidth * regName.length() - 1, y + mRowHeight - 1);
+            }
+        }
+
         x += (mRegisterPlaces[reg].labelwidth) * mCharWidth;
         //p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1),mRegisterMapping[reg]);
 
@@ -2290,14 +2409,14 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         QString valueText = GetRegStringValueFromValue(reg, value);
 
         //selection
+        width = fontMetrics.width(valueText);
         if(mSelected == reg)
         {
-            p->fillRect(x, y, mRegisterPlaces[reg].valuesize * mCharWidth, mRowHeight, QBrush(ConfigColor("RegistersSelectionColor")));
+            p->fillRect(x, y, width, mRowHeight, QBrush(ConfigColor("RegistersSelectionColor")));
             //p->fillRect(QRect(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
 
         // draw value
-        width = fontMetrics.width(valueText);
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
 
@@ -2396,8 +2515,7 @@ void RegistersView::updateRegistersSlot()
 {
     // read registers
     REGDUMP z;
-    memset(&z, 0, sizeof(REGDUMP));
-    DbgGetRegDump(&z);
+    DbgGetRegDumpEx(&z, sizeof(REGDUMP));
     // update gui
     setRegisters(&z);
 }
@@ -2498,7 +2616,10 @@ void RegistersView::displayEditDialog()
             mLineEdit.setWindowTitle(tr("Edit FPU register"));
             mLineEdit.setWindowIcon(DIcon("log.png"));
             mLineEdit.setCursorPosition(0);
-            mLineEdit.ForceSize(GetSizeRegister(mSelected) * 2);
+            auto sizeRegister = int(GetSizeRegister(mSelected));
+            if(sizeRegister == 10)
+                mLineEdit.setFpuMode();
+            mLineEdit.ForceSize(sizeRegister * 2);
             do
             {
                 errorinput = false;
@@ -2515,37 +2636,55 @@ void RegistersView::displayEditDialog()
                         fpuvalue = (duint) mLineEdit.editText.toUShort(&ok, 16);
                     else if(mDWORDDISPLAY.contains(mSelected))
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
-                    else if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+                    else if(mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
-                        QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
-                        if(pArray.size() == GetSizeRegister(mSelected) * 2)
+                        if(sizeRegister == 10 && mLineEdit.editText.contains(QChar('.')))
                         {
-                            char* pData = (char*) calloc(1, sizeof(char) * GetSizeRegister(mSelected));
+                            char number[10];
+                            str2ld(mLineEdit.editText.toUtf8().constData(), number);
+                            setRegister(mSelected, reinterpret_cast<duint>(number));
+                            return;
+                        }
+                        else
+                        {
+                            QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
 
-                            if(pData != NULL)
+                            if(pArray.size() == sizeRegister * 2)
                             {
-                                ok = true;
-                                char actual_char[3];
-                                unsigned int i;
-                                for(i = 0; i < GetSizeRegister(mSelected); i++)
+                                char* pData = (char*) calloc(1, sizeof(char) * sizeRegister);
+
+                                if(pData != NULL)
                                 {
-                                    memset(actual_char, 0, sizeof(actual_char));
-                                    memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
-                                    if(! isxdigit(actual_char[0]) || ! isxdigit(actual_char[1]))
+                                    ok = true;
+                                    char actual_char[3];
+                                    for(int i = 0; i < sizeRegister; i++)
                                     {
-                                        ok = false;
-                                        break;
+                                        memset(actual_char, 0, sizeof(actual_char));
+                                        memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
+                                        if(! isxdigit(actual_char[0]) || ! isxdigit(actual_char[1]))
+                                        {
+                                            ok = false;
+                                            break;
+                                        }
+                                        pData[i] = (char)strtol(actual_char, NULL, 16);
                                     }
-                                    pData[i] = (char)strtol(actual_char, NULL, 16);
+
+                                    if(ok)
+                                    {
+                                        if(!ConfigBool("Gui", "FpuRegistersLittleEndian")) // reverse byte order if it is big-endian
+                                        {
+                                            pArray = ByteReverse(QByteArray(pData, sizeRegister));
+                                            setRegister(mSelected, reinterpret_cast<duint>(pArray.constData()));
+                                        }
+                                        else
+                                            setRegister(mSelected, reinterpret_cast<duint>(pData));
+                                    }
+
+                                    free(pData);
+
+                                    if(ok)
+                                        return;
                                 }
-
-                                if(ok)
-                                    setRegister(mSelected, (duint) pData);
-
-                                free(pData);
-
-                                if(ok)
-                                    return;
                             }
                         }
                     }
@@ -2558,10 +2697,51 @@ void RegistersView::displayEditDialog()
                     else
                         setRegister(mSelected, fpuvalue);
                 }
-
             }
             while(errorinput);
         }
+    }
+    else if(mSelected == LastError)
+    {
+        bool errorinput = false;
+        LineEditDialog mLineEdit(this);
+        LASTERROR* error = (LASTERROR*)registerValue(&wRegDumpStruct, LastError);
+        mLineEdit.setText(QString::number(error->code, 16));
+        mLineEdit.setWindowTitle(tr("Set Last Error"));
+        mLineEdit.setCursorPosition(0);
+        do
+        {
+            errorinput = true;
+            mLineEdit.show();
+            mLineEdit.selectAllText();
+            if(mLineEdit.exec() != QDialog::Accepted)
+                return;
+            if(DbgIsValidExpression(mLineEdit.editText.toUtf8().constData()))
+                errorinput = false;
+        }
+        while(errorinput);
+        setRegister(LastError, DbgValFromString(mLineEdit.editText.toUtf8().constData()));
+    }
+    else if(mSelected == LastStatus)
+    {
+        bool statusinput = false;
+        LineEditDialog mLineEdit(this);
+        LASTSTATUS* status = (LASTSTATUS*)registerValue(&wRegDumpStruct, LastStatus);
+        mLineEdit.setText(QString::number(status->code, 16));
+        mLineEdit.setWindowTitle(tr("Set Last Status"));
+        mLineEdit.setCursorPosition(0);
+        do
+        {
+            statusinput = true;
+            mLineEdit.show();
+            mLineEdit.selectAllText();
+            if(mLineEdit.exec() != QDialog::Accepted)
+                return;
+            if(DbgIsValidExpression(mLineEdit.editText.toUtf8().constData()))
+                statusinput = false;
+        }
+        while(statusinput);
+        setRegister(LastStatus, DbgValFromString(mLineEdit.editText.toUtf8().constData()));
     }
     else
     {
@@ -2612,12 +2792,9 @@ void RegistersView::onPushAction()
 {
     duint csp = (* ((duint*) registerValue(&wRegDumpStruct, CSP))) - sizeof(void*);
     duint regVal = 0;
-    if(mSEGMENTREGISTER.contains(mSelected))
-        regVal = * ((unsigned short*) registerValue(&wRegDumpStruct, mSelected));
-    else
-        regVal = * ((duint*) registerValue(&wRegDumpStruct, mSelected));
+    regVal = * ((duint*) registerValue(&wRegDumpStruct, mSelected));
     setRegister(CSP, csp);
-    DbgMemWrite(csp, (const unsigned char*)&regVal , sizeof(void*));
+    DbgMemWrite(csp, (const unsigned char*)&regVal, sizeof(void*));
 }
 
 void RegistersView::onPopAction()
@@ -2626,8 +2803,6 @@ void RegistersView::onPopAction()
     duint newVal;
     DbgMemRead(csp, (unsigned char*)&newVal, sizeof(void*));
     setRegister(CSP, csp + sizeof(void*));
-    if(mSEGMENTREGISTER.contains(mSelected))
-        newVal &= 0xFFFF;
     setRegister(mSelected, newVal);
 }
 
@@ -2651,24 +2826,10 @@ void RegistersView::onModifyAction()
 
 void RegistersView::onToggleValueAction()
 {
-    if(mSETONEZEROTOGGLE.contains(mSelected))
+    if(mBOOLDISPLAY.contains(mSelected))
     {
-        if(mBOOLDISPLAY.contains(mSelected))
-        {
-            int value = (int)(* (bool*) registerValue(&wRegDumpStruct, mSelected));
-            setRegister(mSelected, value ^ 1);
-        }
-        else
-        {
-            bool ok = false;
-            dsint val = GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)).toInt(&ok, 16);
-            if(ok)
-            {
-                val++;
-                val *= -1;
-                setRegister(mSelected, val);
-            }
-        }
+        int value = (int)(* (bool*) registerValue(&wRegDumpStruct, mSelected));
+        setRegister(mSelected, value ^ 1);
     }
 }
 
@@ -2705,12 +2866,15 @@ void RegistersView::onHighlightSlot()
     Disassembly* CPUDisassemblyView = mParent->getDisasmWidget();
     if(mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS)
         CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mSEGMENTREGISTER.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUMMX.contains(mSelected))
         CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUXMM.contains(mSelected))
         CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUYMM.contains(mSelected))
         CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(mSelected).value()));
+    CPUDisassemblyView->reloadData();
 }
 
 void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32)
@@ -2736,16 +2900,14 @@ void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char
 void RegistersView::onCopyAllAction()
 {
     QString text;
-    QClipboard* clipboard;
-    // Auto generated code
     appendRegister(text, REGISTER_NAME::CAX, "RAX : ", "EAX : ");
+    appendRegister(text, REGISTER_NAME::CBX, "RBX : ", "EBX : ");
     appendRegister(text, REGISTER_NAME::CCX, "RCX : ", "ECX : ");
     appendRegister(text, REGISTER_NAME::CDX, "RDX : ", "EDX : ");
-    appendRegister(text, REGISTER_NAME::CBX, "RBX : ", "EBX : ");
-    appendRegister(text, REGISTER_NAME::CDI, "RDI : ", "EDI : ");
     appendRegister(text, REGISTER_NAME::CBP, "RBP : ", "EBP : ");
-    appendRegister(text, REGISTER_NAME::CSI, "RSI : ", "ESI : ");
     appendRegister(text, REGISTER_NAME::CSP, "RSP : ", "ESP : ");
+    appendRegister(text, REGISTER_NAME::CSI, "RSI : ", "ESI : ");
+    appendRegister(text, REGISTER_NAME::CDI, "RDI : ", "EDI : ");
 #ifdef _WIN64
     appendRegister(text, REGISTER_NAME::R8, "R8  : ", "R8  : ");
     appendRegister(text, REGISTER_NAME::R9, "R9  : ", "R9  : ");
@@ -2758,131 +2920,136 @@ void RegistersView::onCopyAllAction()
 #endif
     appendRegister(text, REGISTER_NAME::CIP, "RIP : ", "EIP : ");
     appendRegister(text, REGISTER_NAME::EFLAGS, "RFLAGS : ", "EFLAGS : ");
+    appendRegister(text, REGISTER_NAME::ZF, "ZF : ", "ZF : ");
+    appendRegister(text, REGISTER_NAME::OF, "OF : ", "OF : ");
     appendRegister(text, REGISTER_NAME::CF, "CF : ", "CF : ");
     appendRegister(text, REGISTER_NAME::PF, "PF : ", "PF : ");
-    appendRegister(text, REGISTER_NAME::AF, "AF : ", "AF : ");
-    appendRegister(text, REGISTER_NAME::ZF, "ZF : ", "ZF : ");
     appendRegister(text, REGISTER_NAME::SF, "SF : ", "SF : ");
     appendRegister(text, REGISTER_NAME::TF, "TF : ", "TF : ");
-    appendRegister(text, REGISTER_NAME::IF, "IF : ", "IF : ");
+    appendRegister(text, REGISTER_NAME::AF, "AF : ", "AF : ");
     appendRegister(text, REGISTER_NAME::DF, "DF : ", "DF : ");
-    appendRegister(text, REGISTER_NAME::OF, "OF : ", "OF : ");
-    appendRegister(text, REGISTER_NAME::GS, "GS : ", "GS : ");
-    appendRegister(text, REGISTER_NAME::FS, "FS : ", "FS : ");
-    appendRegister(text, REGISTER_NAME::ES, "ES : ", "ES : ");
-    appendRegister(text, REGISTER_NAME::DS, "DS : ", "DS : ");
-    appendRegister(text, REGISTER_NAME::CS, "CS : ", "CS : ");
-    appendRegister(text, REGISTER_NAME::SS, "SS : ", "SS : ");
+    appendRegister(text, REGISTER_NAME::IF, "IF : ", "IF : ");
     appendRegister(text, REGISTER_NAME::LastError, "LastError : ", "LastError : ");
+    appendRegister(text, REGISTER_NAME::LastStatus, "LastStatus : ", "LastStatus : ");
+    appendRegister(text, REGISTER_NAME::GS, "GS : ", "GS : ");
+    appendRegister(text, REGISTER_NAME::ES, "ES : ", "ES : ");
+    appendRegister(text, REGISTER_NAME::CS, "CS : ", "CS : ");
+    appendRegister(text, REGISTER_NAME::FS, "FS : ", "FS : ");
+    appendRegister(text, REGISTER_NAME::DS, "DS : ", "DS : ");
+    appendRegister(text, REGISTER_NAME::SS, "SS : ", "SS : ");
+    if(mShowFpu)
+    {
+        appendRegister(text, REGISTER_NAME::x87r0, "x87r0 : ", "x87r0 : ");
+        appendRegister(text, REGISTER_NAME::x87r1, "x87r1 : ", "x87r1 : ");
+        appendRegister(text, REGISTER_NAME::x87r2, "x87r2 : ", "x87r2 : ");
+        appendRegister(text, REGISTER_NAME::x87r3, "x87r3 : ", "x87r3 : ");
+        appendRegister(text, REGISTER_NAME::x87r4, "x87r4 : ", "x87r4 : ");
+        appendRegister(text, REGISTER_NAME::x87r5, "x87r5 : ", "x87r5 : ");
+        appendRegister(text, REGISTER_NAME::x87r6, "x87r6 : ", "x87r6 : ");
+        appendRegister(text, REGISTER_NAME::x87r7, "x87r7 : ", "x87r7 : ");
+        appendRegister(text, REGISTER_NAME::x87TagWord, "x87TagWord : ", "x87TagWord : ");
+        appendRegister(text, REGISTER_NAME::x87ControlWord, "x87ControlWord : ", "x87ControlWord : ");
+        appendRegister(text, REGISTER_NAME::x87StatusWord, "x87StatusWord : ", "x87StatusWord : ");
+        appendRegister(text, REGISTER_NAME::x87TW_0, "x87TW_0 : ", "x87TW_0 : ");
+        appendRegister(text, REGISTER_NAME::x87TW_1, "x87TW_1 : ", "x87TW_1 : ");
+        appendRegister(text, REGISTER_NAME::x87TW_2, "x87TW_2 : ", "x87TW_2 : ");
+        appendRegister(text, REGISTER_NAME::x87TW_3, "x87TW_3 : ", "x87TW_3 : ");
+        appendRegister(text, REGISTER_NAME::x87TW_4, "x87TW_4 : ", "x87TW_4 : ");
+        appendRegister(text, REGISTER_NAME::x87TW_5, "x87TW_5 : ", "x87TW_5 : ");
+        appendRegister(text, REGISTER_NAME::x87TW_6, "x87TW_6 : ", "x87TW_6 : ");
+        appendRegister(text, REGISTER_NAME::x87TW_7, "x87TW_7 : ", "x87TW_7 : ");
+        appendRegister(text, REGISTER_NAME::x87SW_B, "x87SW_B : ", "x87SW_B : ");
+        appendRegister(text, REGISTER_NAME::x87SW_C3, "x87SW_C3 : ", "x87SW_C3 : ");
+        appendRegister(text, REGISTER_NAME::x87SW_TOP, "x87SW_TOP : ", "x87SW_TOP : ");
+        appendRegister(text, REGISTER_NAME::x87SW_C2, "x87SW_C2 : ", "x87SW_C2 : ");
+        appendRegister(text, REGISTER_NAME::x87SW_C1, "x87SW_C1 : ", "x87SW_C1 : ");
+        appendRegister(text, REGISTER_NAME::x87SW_O, "x87SW_O : ", "x87SW_O : ");
+        appendRegister(text, REGISTER_NAME::x87SW_ES, "x87SW_ES : ", "x87SW_ES : ");
+        appendRegister(text, REGISTER_NAME::x87SW_SF, "x87SW_SF : ", "x87SW_SF : ");
+        appendRegister(text, REGISTER_NAME::x87SW_P, "x87SW_P : ", "x87SW_P : ");
+        appendRegister(text, REGISTER_NAME::x87SW_U, "x87SW_U : ", "x87SW_U : ");
+        appendRegister(text, REGISTER_NAME::x87SW_Z, "x87SW_Z : ", "x87SW_Z : ");
+        appendRegister(text, REGISTER_NAME::x87SW_D, "x87SW_D : ", "x87SW_D : ");
+        appendRegister(text, REGISTER_NAME::x87SW_I, "x87SW_I : ", "x87SW_I : ");
+        appendRegister(text, REGISTER_NAME::x87SW_C0, "x87SW_C0 : ", "x87SW_C0 : ");
+        appendRegister(text, REGISTER_NAME::x87CW_IC, "x87CW_IC : ", "x87CW_IC : ");
+        appendRegister(text, REGISTER_NAME::x87CW_RC, "x87CW_RC : ", "x87CW_RC : ");
+        appendRegister(text, REGISTER_NAME::x87CW_PC, "x87CW_PC : ", "x87CW_PC : ");
+        appendRegister(text, REGISTER_NAME::x87CW_PM, "x87CW_PM : ", "x87CW_PM : ");
+        appendRegister(text, REGISTER_NAME::x87CW_UM, "x87CW_UM : ", "x87CW_UM : ");
+        appendRegister(text, REGISTER_NAME::x87CW_OM, "x87CW_OM : ", "x87CW_OM : ");
+        appendRegister(text, REGISTER_NAME::x87CW_ZM, "x87CW_ZM : ", "x87CW_ZM : ");
+        appendRegister(text, REGISTER_NAME::x87CW_DM, "x87CW_DM : ", "x87CW_DM : ");
+        appendRegister(text, REGISTER_NAME::x87CW_IM, "x87CW_IM : ", "x87CW_IM : ");
+        appendRegister(text, REGISTER_NAME::MxCsr, "MxCsr : ", "MxCsr : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_FZ, "MxCsr_FZ : ", "MxCsr_FZ : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_PM, "MxCsr_PM : ", "MxCsr_PM : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_UM, "MxCsr_UM : ", "MxCsr_UM : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_OM, "MxCsr_OM : ", "MxCsr_OM : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_ZM, "MxCsr_ZM : ", "MxCsr_ZM : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_IM, "MxCsr_IM : ", "MxCsr_IM : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_DM, "MxCsr_DM : ", "MxCsr_DM : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_DAZ, "MxCsr_DAZ : ", "MxCsr_DAZ : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_PE, "MxCsr_PE : ", "MxCsr_PE : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_UE, "MxCsr_UE : ", "MxCsr_UE : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_OE, "MxCsr_OE : ", "MxCsr_OE : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_ZE, "MxCsr_ZE : ", "MxCsr_ZE : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_DE, "MxCsr_DE : ", "MxCsr_DE : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_IE, "MxCsr_IE : ", "MxCsr_IE : ");
+        appendRegister(text, REGISTER_NAME::MxCsr_RC, "MxCsr_RC : ", "MxCsr_RC : ");
+        appendRegister(text, REGISTER_NAME::MM0, "MM0 : ", "MM0 : ");
+        appendRegister(text, REGISTER_NAME::MM1, "MM1 : ", "MM1 : ");
+        appendRegister(text, REGISTER_NAME::MM2, "MM2 : ", "MM2 : ");
+        appendRegister(text, REGISTER_NAME::MM3, "MM3 : ", "MM3 : ");
+        appendRegister(text, REGISTER_NAME::MM4, "MM4 : ", "MM4 : ");
+        appendRegister(text, REGISTER_NAME::MM5, "MM5 : ", "MM5 : ");
+        appendRegister(text, REGISTER_NAME::MM6, "MM6 : ", "MM6 : ");
+        appendRegister(text, REGISTER_NAME::MM7, "MM7 : ", "MM7 : ");
+        appendRegister(text, REGISTER_NAME::XMM0, "XMM0  : ", "XMM0  : ");
+        appendRegister(text, REGISTER_NAME::XMM1, "XMM1  : ", "XMM1  : ");
+        appendRegister(text, REGISTER_NAME::XMM2, "XMM2  : ", "XMM2  : ");
+        appendRegister(text, REGISTER_NAME::XMM3, "XMM3  : ", "XMM3  : ");
+        appendRegister(text, REGISTER_NAME::XMM4, "XMM4  : ", "XMM4  : ");
+        appendRegister(text, REGISTER_NAME::XMM5, "XMM5  : ", "XMM5  : ");
+        appendRegister(text, REGISTER_NAME::XMM6, "XMM6  : ", "XMM6  : ");
+        appendRegister(text, REGISTER_NAME::XMM7, "XMM7  : ", "XMM7  : ");
+#ifdef _WIN64
+        appendRegister(text, REGISTER_NAME::XMM8, "XMM8  : ", "XMM8  : ");
+        appendRegister(text, REGISTER_NAME::XMM9, "XMM9  : ", "XMM9  : ");
+        appendRegister(text, REGISTER_NAME::XMM10, "XMM10 : ", "XMM10 : ");
+        appendRegister(text, REGISTER_NAME::XMM11, "XMM11 : ", "XMM11 : ");
+        appendRegister(text, REGISTER_NAME::XMM12, "XMM12 : ", "XMM12 : ");
+        appendRegister(text, REGISTER_NAME::XMM13, "XMM13 : ", "XMM13 : ");
+        appendRegister(text, REGISTER_NAME::XMM14, "XMM14 : ", "XMM14 : ");
+        appendRegister(text, REGISTER_NAME::XMM15, "XMM15 : ", "XMM15 : ");
+#endif
+        appendRegister(text, REGISTER_NAME::YMM0, "YMM0  : ", "YMM0  : ");
+        appendRegister(text, REGISTER_NAME::YMM1, "YMM1  : ", "YMM1  : ");
+        appendRegister(text, REGISTER_NAME::YMM2, "YMM2  : ", "YMM2  : ");
+        appendRegister(text, REGISTER_NAME::YMM3, "YMM3  : ", "YMM3  : ");
+        appendRegister(text, REGISTER_NAME::YMM4, "YMM4  : ", "YMM4  : ");
+        appendRegister(text, REGISTER_NAME::YMM5, "YMM5  : ", "YMM5  : ");
+        appendRegister(text, REGISTER_NAME::YMM6, "YMM6  : ", "YMM6  : ");
+        appendRegister(text, REGISTER_NAME::YMM7, "YMM7  : ", "YMM7  : ");
+#ifdef _WIN64
+        appendRegister(text, REGISTER_NAME::YMM8, "YMM8  : ", "YMM8  : ");
+        appendRegister(text, REGISTER_NAME::YMM9, "YMM9  : ", "YMM9  : ");
+        appendRegister(text, REGISTER_NAME::YMM10, "YMM10 : ", "YMM10 : ");
+        appendRegister(text, REGISTER_NAME::YMM11, "YMM11 : ", "YMM11 : ");
+        appendRegister(text, REGISTER_NAME::YMM12, "YMM12 : ", "YMM12 : ");
+        appendRegister(text, REGISTER_NAME::YMM13, "YMM13 : ", "YMM13 : ");
+        appendRegister(text, REGISTER_NAME::YMM14, "YMM14 : ", "YMM14 : ");
+        appendRegister(text, REGISTER_NAME::YMM15, "YMM15 : ", "YMM15 : ");
+#endif
+    }
     appendRegister(text, REGISTER_NAME::DR0, "DR0 : ", "DR0 : ");
     appendRegister(text, REGISTER_NAME::DR1, "DR1 : ", "DR1 : ");
     appendRegister(text, REGISTER_NAME::DR2, "DR2 : ", "DR2 : ");
     appendRegister(text, REGISTER_NAME::DR3, "DR3 : ", "DR3 : ");
     appendRegister(text, REGISTER_NAME::DR6, "DR6 : ", "DR6 : ");
     appendRegister(text, REGISTER_NAME::DR7, "DR7 : ", "DR7 : ");
-    appendRegister(text, REGISTER_NAME::x87r0, "x87r0 : ", "x87r0 : ");
-    appendRegister(text, REGISTER_NAME::x87r1, "x87r1 : ", "x87r1 : ");
-    appendRegister(text, REGISTER_NAME::x87r2, "x87r2 : ", "x87r2 : ");
-    appendRegister(text, REGISTER_NAME::x87r3, "x87r3 : ", "x87r3 : ");
-    appendRegister(text, REGISTER_NAME::x87r4, "x87r4 : ", "x87r4 : ");
-    appendRegister(text, REGISTER_NAME::x87r5, "x87r5 : ", "x87r5 : ");
-    appendRegister(text, REGISTER_NAME::x87r6, "x87r6 : ", "x87r6 : ");
-    appendRegister(text, REGISTER_NAME::x87r7, "x87r7 : ", "x87r7 : ");
-    appendRegister(text, REGISTER_NAME::x87TagWord, "x87TagWord : ", "x87TagWord : ");
-    appendRegister(text, REGISTER_NAME::x87ControlWord, "x87ControlWord : ", "x87ControlWord : ");
-    appendRegister(text, REGISTER_NAME::x87StatusWord, "x87StatusWord : ", "x87StatusWord : ");
-    appendRegister(text, REGISTER_NAME::x87TW_0, "x87TW_0 : ", "x87TW_0 : ");
-    appendRegister(text, REGISTER_NAME::x87TW_1, "x87TW_1 : ", "x87TW_1 : ");
-    appendRegister(text, REGISTER_NAME::x87TW_2, "x87TW_2 : ", "x87TW_2 : ");
-    appendRegister(text, REGISTER_NAME::x87TW_3, "x87TW_3 : ", "x87TW_3 : ");
-    appendRegister(text, REGISTER_NAME::x87TW_4, "x87TW_4 : ", "x87TW_4 : ");
-    appendRegister(text, REGISTER_NAME::x87TW_5, "x87TW_5 : ", "x87TW_5 : ");
-    appendRegister(text, REGISTER_NAME::x87TW_6, "x87TW_6 : ", "x87TW_6 : ");
-    appendRegister(text, REGISTER_NAME::x87TW_7, "x87TW_7 : ", "x87TW_7 : ");
-    appendRegister(text, REGISTER_NAME::x87SW_B, "x87SW_B : ", "x87SW_B : ");
-    appendRegister(text, REGISTER_NAME::x87SW_C3, "x87SW_C3 : ", "x87SW_C3 : ");
-    appendRegister(text, REGISTER_NAME::x87SW_TOP, "x87SW_TOP : ", "x87SW_TOP : ");
-    appendRegister(text, REGISTER_NAME::x87SW_C2, "x87SW_C2 : ", "x87SW_C2 : ");
-    appendRegister(text, REGISTER_NAME::x87SW_C1, "x87SW_C1 : ", "x87SW_C1 : ");
-    appendRegister(text, REGISTER_NAME::x87SW_O, "x87SW_O : ", "x87SW_O : ");
-    appendRegister(text, REGISTER_NAME::x87SW_IR, "x87SW_IR : ", "x87SW_IR : ");
-    appendRegister(text, REGISTER_NAME::x87SW_SF, "x87SW_SF : ", "x87SW_SF : ");
-    appendRegister(text, REGISTER_NAME::x87SW_P, "x87SW_P : ", "x87SW_P : ");
-    appendRegister(text, REGISTER_NAME::x87SW_U, "x87SW_U : ", "x87SW_U : ");
-    appendRegister(text, REGISTER_NAME::x87SW_Z, "x87SW_Z : ", "x87SW_Z : ");
-    appendRegister(text, REGISTER_NAME::x87SW_D, "x87SW_D : ", "x87SW_D : ");
-    appendRegister(text, REGISTER_NAME::x87SW_I, "x87SW_I : ", "x87SW_I : ");
-    appendRegister(text, REGISTER_NAME::x87SW_C0, "x87SW_C0 : ", "x87SW_C0 : ");
-    appendRegister(text, REGISTER_NAME::x87CW_IC, "x87CW_IC : ", "x87CW_IC : ");
-    appendRegister(text, REGISTER_NAME::x87CW_RC, "x87CW_RC : ", "x87CW_RC : ");
-    appendRegister(text, REGISTER_NAME::x87CW_PC, "x87CW_PC : ", "x87CW_PC : ");
-    appendRegister(text, REGISTER_NAME::x87CW_IEM, "x87CW_IEM : ", "x87CW_IEM : ");
-    appendRegister(text, REGISTER_NAME::x87CW_PM, "x87CW_PM : ", "x87CW_PM : ");
-    appendRegister(text, REGISTER_NAME::x87CW_UM, "x87CW_UM : ", "x87CW_UM : ");
-    appendRegister(text, REGISTER_NAME::x87CW_OM, "x87CW_OM : ", "x87CW_OM : ");
-    appendRegister(text, REGISTER_NAME::x87CW_ZM, "x87CW_ZM : ", "x87CW_ZM : ");
-    appendRegister(text, REGISTER_NAME::x87CW_DM, "x87CW_DM : ", "x87CW_DM : ");
-    appendRegister(text, REGISTER_NAME::x87CW_IM, "x87CW_IM : ", "x87CW_IM : ");
-    appendRegister(text, REGISTER_NAME::MxCsr, "MxCsr : ", "MxCsr : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_FZ, "MxCsr_FZ : ", "MxCsr_FZ : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_PM, "MxCsr_PM : ", "MxCsr_PM : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_UM, "MxCsr_UM : ", "MxCsr_UM : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_OM, "MxCsr_OM : ", "MxCsr_OM : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_ZM, "MxCsr_ZM : ", "MxCsr_ZM : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_IM, "MxCsr_IM : ", "MxCsr_IM : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_DM, "MxCsr_DM : ", "MxCsr_DM : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_DAZ, "MxCsr_DAZ : ", "MxCsr_DAZ : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_PE, "MxCsr_PE : ", "MxCsr_PE : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_UE, "MxCsr_UE : ", "MxCsr_UE : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_OE, "MxCsr_OE : ", "MxCsr_OE : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_ZE, "MxCsr_ZE : ", "MxCsr_ZE : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_DE, "MxCsr_DE : ", "MxCsr_DE : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_IE, "MxCsr_IE : ", "MxCsr_IE : ");
-    appendRegister(text, REGISTER_NAME::MxCsr_RC, "MxCsr_RC : ", "MxCsr_RC : ");
-    appendRegister(text, REGISTER_NAME::MM0, "MM0 : ", "MM0 : ");
-    appendRegister(text, REGISTER_NAME::MM1, "MM1 : ", "MM1 : ");
-    appendRegister(text, REGISTER_NAME::MM2, "MM2 : ", "MM2 : ");
-    appendRegister(text, REGISTER_NAME::MM3, "MM3 : ", "MM3 : ");
-    appendRegister(text, REGISTER_NAME::MM4, "MM4 : ", "MM4 : ");
-    appendRegister(text, REGISTER_NAME::MM5, "MM5 : ", "MM5 : ");
-    appendRegister(text, REGISTER_NAME::MM6, "MM6 : ", "MM6 : ");
-    appendRegister(text, REGISTER_NAME::MM7, "MM7 : ", "MM7 : ");
-    appendRegister(text, REGISTER_NAME::XMM0, "XMM0  : ", "XMM0  : ");
-    appendRegister(text, REGISTER_NAME::XMM1, "XMM1  : ", "XMM1  : ");
-    appendRegister(text, REGISTER_NAME::XMM2, "XMM2  : ", "XMM2  : ");
-    appendRegister(text, REGISTER_NAME::XMM3, "XMM3  : ", "XMM3  : ");
-    appendRegister(text, REGISTER_NAME::XMM4, "XMM4  : ", "XMM4  : ");
-    appendRegister(text, REGISTER_NAME::XMM5, "XMM5  : ", "XMM5  : ");
-    appendRegister(text, REGISTER_NAME::XMM6, "XMM6  : ", "XMM6  : ");
-    appendRegister(text, REGISTER_NAME::XMM7, "XMM7  : ", "XMM7  : ");
-#ifdef _WIN64
-    appendRegister(text, REGISTER_NAME::XMM8, "XMM8  : ", "XMM8  : ");
-    appendRegister(text, REGISTER_NAME::XMM9, "XMM9  : ", "XMM9  : ");
-    appendRegister(text, REGISTER_NAME::XMM10, "XMM10 : ", "XMM10 : ");
-    appendRegister(text, REGISTER_NAME::XMM11, "XMM11 : ", "XMM11 : ");
-    appendRegister(text, REGISTER_NAME::XMM12, "XMM12 : ", "XMM12 : ");
-    appendRegister(text, REGISTER_NAME::XMM13, "XMM13 : ", "XMM13 : ");
-    appendRegister(text, REGISTER_NAME::XMM14, "XMM14 : ", "XMM14 : ");
-    appendRegister(text, REGISTER_NAME::XMM15, "XMM15 : ", "XMM15 : ");
-    appendRegister(text, REGISTER_NAME::YMM0, "YMM0  : ", "YMM0  : ");
-    appendRegister(text, REGISTER_NAME::YMM1, "YMM1  : ", "YMM1  : ");
-    appendRegister(text, REGISTER_NAME::YMM2, "YMM2  : ", "YMM2  : ");
-    appendRegister(text, REGISTER_NAME::YMM3, "YMM3  : ", "YMM3  : ");
-    appendRegister(text, REGISTER_NAME::YMM4, "YMM4  : ", "YMM4  : ");
-    appendRegister(text, REGISTER_NAME::YMM5, "YMM5  : ", "YMM5  : ");
-    appendRegister(text, REGISTER_NAME::YMM6, "YMM6  : ", "YMM6  : ");
-    appendRegister(text, REGISTER_NAME::YMM7, "YMM7  : ", "YMM7  : ");
-    appendRegister(text, REGISTER_NAME::YMM8, "YMM8  : ", "YMM8  : ");
-    appendRegister(text, REGISTER_NAME::YMM9, "YMM9  : ", "YMM9  : ");
-    appendRegister(text, REGISTER_NAME::YMM10, "YMM10 : ", "YMM10 : ");
-    appendRegister(text, REGISTER_NAME::YMM11, "YMM11 : ", "YMM11 : ");
-    appendRegister(text, REGISTER_NAME::YMM12, "YMM12 : ", "YMM12 : ");
-    appendRegister(text, REGISTER_NAME::YMM13, "YMM13 : ", "YMM13 : ");
-    appendRegister(text, REGISTER_NAME::YMM14, "YMM14 : ", "YMM14 : ");
-    appendRegister(text, REGISTER_NAME::YMM15, "YMM15 : ", "YMM15 : ");
-#endif
-    // Auto generated code end
-    clipboard = QApplication::clipboard();
+
+    auto clipboard = QApplication::clipboard();
     clipboard->setText(text);
 }
 
@@ -2953,7 +3120,8 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     if(!DbgIsDebugging())
         return;
     QMenu wMenu(this);
-    const QAction* selectedAction;
+    QMenu* followInDumpNMenu = nullptr;
+    const QAction* selectedAction = nullptr;
     switch(wSIMDRegDispMode)
     {
     case SIMD_REG_DISP_HEX:
@@ -3019,7 +3187,9 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             if(DbgMemIsValidReadPtr(addr))
             {
                 wMenu.addAction(wCM_FollowInDump);
-                wMenu.addMenu(mFollowInDumpMenu);
+                followInDumpNMenu = new QMenu(tr("Follow in &Dump"), &wMenu);
+                CreateDumpNMenu(followInDumpNMenu);
+                wMenu.addMenu(followInDumpNMenu);
                 wMenu.addAction(wCM_FollowInDisassembly);
                 wMenu.addAction(wCM_FollowInMemoryMap);
                 duint size = 0;
@@ -3038,7 +3208,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
                 wMenu.addAction(wCM_CopySymbolToClipboard);
         }
 
-        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
             wMenu.addAction(wCM_Highlight);
         }
@@ -3054,6 +3224,10 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
                 wMenu.addAction(wCM_Zero);
             if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) == 0)
                 wMenu.addAction(wCM_SetToOne);
+        }
+
+        if(mBOOLDISPLAY.contains(mSelected))
+        {
             wMenu.addAction(wCM_ToggleValue);
         }
 
@@ -3071,7 +3245,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             wMenu.addAction(wCM_DecrementPtrSize);
         }
 
-        if(mGPR.contains(mSelected) || mSEGMENTREGISTER.contains(mSelected) || mSelected == CIP)
+        if(mGPR.contains(mSelected) || mSelected == CIP)
         {
             wMenu.addAction(wCM_Push);
             wMenu.addAction(wCM_Pop);
@@ -3110,7 +3284,6 @@ void RegistersView::setRegister(REGISTER_NAME reg, duint value)
         // flags need to '_' infront
         if(mFlags.contains(reg))
             wRegName = "_" + wRegName;
-
 
         // we change the value (so highlight it)
         mRegisterUpdates.insert(reg);
@@ -3159,7 +3332,9 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
     else if(mFPUYMM.contains(reg_name))
         size = 32;
     else if(reg_name == LastError)
-        return sizeof(DWORD);
+        size = sizeof(DWORD);
+    else if(reg_name == LastStatus)
+        size = sizeof(NTSTATUS);
     else
         size = 0;
 
@@ -3261,6 +3436,8 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
 
     case LastError:
         return (char*) &regd->lastError;
+    case LastStatus:
+        return (char*) &regd->lastStatus;
 
     case DR0:
         return (char*) &regd->regcontext.dr0;
@@ -3334,8 +3511,6 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
 
     case x87CW_IC:
         return (char*) &regd->x87ControlWordFields.IC;
-    case x87CW_IEM:
-        return (char*) &regd->x87ControlWordFields.IEM;
     case x87CW_PM:
         return (char*) &regd->x87ControlWordFields.PM;
     case x87CW_UM:
@@ -3366,8 +3541,8 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
         return (char*) &regd->x87StatusWordFields.C1;
     case x87SW_O:
         return (char*) &regd->x87StatusWordFields.O;
-    case x87SW_IR:
-        return (char*) &regd->x87StatusWordFields.IR;
+    case x87SW_ES:
+        return (char*) &regd->x87StatusWordFields.ES;
     case x87SW_SF:
         return (char*) &regd->x87StatusWordFields.SF;
     case x87SW_P:
@@ -3583,5 +3758,11 @@ void RegistersView::onSIMDUQWord()
 void RegistersView::onSIMDHQWord()
 {
     wSIMDRegDispMode = SIMD_REG_DISP_QWORD_HEX;
+    emit refresh();
+}
+
+void RegistersView::disasmSelectionChangedSlot(dsint va)
+{
+    mHighlightRegs = mParent->getDisasmWidget()->DisassembleAt(va - mParent->getDisasmWidget()->getBase()).regsReferenced;
     emit refresh();
 }

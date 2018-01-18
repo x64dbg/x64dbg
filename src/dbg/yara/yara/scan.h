@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Bitmasks for flags.
 #define SCAN_FLAGS_FAST_MODE         1
 #define SCAN_FLAGS_PROCESS_MEMORY    2
+#define SCAN_FLAGS_NO_TRYCATCH       4
 
 
 int yr_scan_verify_match(

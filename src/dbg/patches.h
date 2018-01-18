@@ -3,6 +3,7 @@
 
 #include "_global.h"
 
+//casted to bridgemain.h:DBGPATCHINFO in _dbgfunctions.cpp
 struct PATCHINFO
 {
     char mod[MAX_MODULE_SIZE];

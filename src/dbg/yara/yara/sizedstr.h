@@ -63,4 +63,8 @@ int sized_string_cmp(
     SIZED_STRING* s1,
     SIZED_STRING* s2);
 
+
+SIZED_STRING* sized_string_dup(
+    SIZED_STRING* s);
+
 #endif

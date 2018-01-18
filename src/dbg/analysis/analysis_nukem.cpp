@@ -13,11 +13,11 @@ void Analyse_nukem(duint base, duint size)
 
     BBlockArray blocks;
 
-    LinearPass* pass1 = new LinearPass(base, end, blocks);
-    pass1->Analyse();
+    LinearPass pass1(base, end, blocks);
+    pass1.Analyse();
 
-    FunctionPass* pass2 = new FunctionPass(base, end, blocks);
-    pass2->Analyse();
+    FunctionPass pass2(base, end, blocks);
+    pass2.Analyse();
 
     dprintf("Analysis finished in %ums!\n", GetTickCount() - ticks);
 }

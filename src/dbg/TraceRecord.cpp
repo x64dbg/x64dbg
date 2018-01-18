@@ -3,6 +3,13 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
+#include "thread.h"
+#include "disasm_helper.h"
+#include "disasm_fast.h"
+#include "plugin_loader.h"
+#include "value.h"
+
+#define MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP 512
 
 TraceRecordManager TraceRecord;
 
@@ -192,6 +199,230 @@ void TraceRecordManager::TraceExecute(duint address, duint size)
     }
 }
 
+
+static void HandleCapstoneOperand(const Capstone & cp, int opindex, DISASM_ARGTYPE* argType, duint* value, unsigned char* memoryContent, unsigned char* memorySize)
+{
+    *value = cp.ResolveOpValue(opindex, [&cp](x86_reg reg)
+    {
+        auto regName = cp.RegName(reg);
+        return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
+    });
+    const auto & op = cp[opindex];
+    switch(op.type)
+    {
+    case X86_OP_REG:
+        *argType = arg_normal;
+        break;
+
+    case X86_OP_IMM:
+        *argType = arg_normal;
+        break;
+
+    case X86_OP_MEM:
+    {
+        *argType = arg_memory;
+        const x86_op_mem & mem = op.mem;
+#ifdef _WIN64
+        if(mem.segment == X86_REG_GS)
+#else //x86
+        if(mem.segment == X86_REG_FS)
+#endif
+        {
+            *value += ThreadGetLocalBase(ThreadGetId(hActiveThread));
+        }
+        *memorySize = op.size;
+        if(DbgMemIsValidReadPtr(*value))
+        {
+            MemRead(*value, memoryContent, max(op.size, sizeof(duint)));
+        }
+    }
+    break;
+
+    default:
+        __debugbreak();
+    }
+}
+
+void TraceRecordManager::TraceExecuteRecord(const Capstone & newInstruction)
+{
+    if(!isRunTraceEnabled())
+        return;
+    unsigned char WriteBuffer[3072];
+    unsigned char* WriteBufferPtr = WriteBuffer;
+    //Get current data
+    REGDUMPWORD newContext;
+    //DISASM_INSTR newInstruction;
+    DWORD newThreadId;
+    duint newMemory[32];
+    duint newMemoryAddress[32];
+    duint oldMemory[32];
+    unsigned char newMemoryArrayCount = 0;
+    DbgGetRegDumpEx(&newContext.registers, sizeof(REGDUMP));
+    newThreadId = ThreadGetId(hActiveThread);
+    // Don't try to resolve memory values for lea and nop instructions
+    if(!(newInstruction.IsNop() || newInstruction.GetId() == X86_INS_LEA))
+    {
+        DISASM_ARGTYPE argType;
+        duint value;
+        unsigned char memoryContent[128];
+        unsigned char memorySize;
+        for(int i = 0; i < newInstruction.OpCount(); i++)
+        {
+            memset(memoryContent, 0, sizeof(memoryContent));
+            HandleCapstoneOperand(newInstruction, i, &argType, &value, memoryContent, &memorySize);
+            // TODO: Implicit memory access by push and pop instructions
+            // TODO: Support memory value of ??? for invalid memory access
+            if(argType == arg_memory)
+            {
+                if(memorySize <= sizeof(duint))
+                {
+                    memcpy(&newMemory[newMemoryArrayCount], memoryContent, sizeof(duint));
+                    newMemoryAddress[newMemoryArrayCount] = value;
+                    newMemoryArrayCount++;
+                }
+                else
+                    for(unsigned char index = 0; index < memorySize / sizeof(duint) + ((memorySize % sizeof(duint)) > 0 ? 1 : 0); index++)
+                    {
+                        memcpy(&newMemory[newMemoryArrayCount], memoryContent + sizeof(duint) * index, sizeof(duint));
+                        newMemoryAddress[newMemoryArrayCount] = value + sizeof(duint) * index;
+                        newMemoryArrayCount++;
+                    }
+            }
+        }
+        if(newInstruction.GetId() == X86_INS_PUSH || newInstruction.GetId() == X86_INS_PUSHF || newInstruction.GetId() == X86_INS_PUSHFD
+                || newInstruction.GetId() == X86_INS_PUSHFQ || newInstruction.GetId() == X86_INS_CALL //TODO: far call accesses 2 stack entries
+          )
+        {
+            MemRead(newContext.registers.regcontext.csp - sizeof(duint), &newMemory[newMemoryArrayCount], sizeof(duint));
+            newMemoryAddress[newMemoryArrayCount] = newContext.registers.regcontext.csp - sizeof(duint);
+            newMemoryArrayCount++;
+        }
+        else if(newInstruction.GetId() == X86_INS_POP || newInstruction.GetId() == X86_INS_POPF || newInstruction.GetId() == X86_INS_POPFD
+                || newInstruction.GetId() == X86_INS_POPFQ || newInstruction.GetId() == X86_INS_RET)
+        {
+            MemRead(newContext.registers.regcontext.csp, &newMemory[newMemoryArrayCount], sizeof(duint));
+            newMemoryAddress[newMemoryArrayCount] = newContext.registers.regcontext.csp;
+            newMemoryArrayCount++;
+        }
+        //TODO: PUSHAD/POPAD
+        assert(newMemoryArrayCount < 32);
+    }
+    if(rtPrevInstAvailable)
+    {
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++)
+        {
+            MemRead(rtOldMemoryAddress[i], oldMemory + i, sizeof(duint));
+        }
+        //Delta compress registers
+        //Data layout is Structure of Arrays to gather the same type of data in continuous memory to improve RLE compression performance.
+        //1byte:block type,1byte:reg changed count,1byte:memory accessed count,1byte:flags,4byte/none:threadid,string:opcode,1byte[]:position,ptrbyte[]:regvalue,1byte[]:flags,ptrbyte[]:address,ptrbyte[]:oldmem,ptrbyte[]:newmem
+
+        //Always record state of LAST INSTRUCTION! (NOT current instruction)
+        unsigned char changed = 0;
+        for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++)
+        {
+            //rtRecordedInstructions - 1 hack: always record full registers dump at first instruction (recorded at 2nd instruction execution time)
+            //prints ASCII table in run trace at first instruction :)
+            if(rtOldContext.regword[i] != newContext.regword[i] || rtOldContextChanged[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
+                changed++;
+        }
+        unsigned char blockFlags = 0;
+        if(newThreadId != rtOldThreadId || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
+            blockFlags = 0x80;
+        blockFlags |= rtOldOpcodeSize;
+
+        WriteBufferPtr[0] = 0; //1byte: block type
+        WriteBufferPtr[1] = changed; //1byte: registers changed
+        WriteBufferPtr[2] = rtOldMemoryArrayCount; //1byte: memory accesses count
+        WriteBufferPtr[3] = blockFlags; //1byte: flags and opcode size
+        WriteBufferPtr += 4;
+        if(newThreadId != rtOldThreadId || rtNeedThreadId || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
+        {
+            memcpy(WriteBufferPtr, &rtOldThreadId, sizeof(rtOldThreadId));
+            WriteBufferPtr += sizeof(rtOldThreadId);
+            rtNeedThreadId = (newThreadId != rtOldThreadId);
+        }
+        memcpy(WriteBufferPtr, rtOldOpcode, rtOldOpcodeSize);
+        WriteBufferPtr += rtOldOpcodeSize;
+        int lastChangedPosition = -1; //-1
+        for(int i = 0; i < _countof(rtOldContext.regword); i++) //1byte: position
+        {
+            if(rtOldContext.regword[i] != newContext.regword[i] || rtOldContextChanged[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
+            {
+                WriteBufferPtr[0] = (unsigned char)(i - lastChangedPosition - 1);
+                WriteBufferPtr++;
+                lastChangedPosition = i;
+            }
+        }
+        for(unsigned char i = 0; i < _countof(rtOldContext.regword); i++) //ptrbyte: newvalue
+        {
+            if(rtOldContext.regword[i] != newContext.regword[i] || rtOldContextChanged[i] || ((rtRecordedInstructions - 1) % MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP == 0))
+            {
+                memcpy(WriteBufferPtr, &rtOldContext.regword[i], sizeof(duint));
+                WriteBufferPtr += sizeof(duint);
+            }
+            rtOldContextChanged[i] = (rtOldContext.regword[i] != newContext.regword[i]);
+        }
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //1byte: flags
+        {
+            unsigned char memoryOperandFlags = 0;
+            if(rtOldMemory[i] == oldMemory[i]) //bit 0: memory is unchanged, no new memory is saved
+                memoryOperandFlags |= 1;
+            //proposed flags: is memory valid, is memory zero
+            WriteBufferPtr[0] = memoryOperandFlags;
+            WriteBufferPtr += 1;
+        }
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: address
+        {
+            memcpy(WriteBufferPtr, &rtOldMemoryAddress[i], sizeof(duint));
+            WriteBufferPtr += sizeof(duint);
+        }
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: old content
+        {
+            memcpy(WriteBufferPtr, &rtOldMemory[i], sizeof(duint));
+            WriteBufferPtr += sizeof(duint);
+        }
+        for(unsigned char i = 0; i < rtOldMemoryArrayCount; i++) //ptrbyte: new content
+        {
+            if(rtOldMemory[i] != oldMemory[i])
+            {
+                memcpy(WriteBufferPtr, &oldMemory[i], sizeof(duint));
+                WriteBufferPtr += sizeof(duint);
+            }
+        }
+    }
+    //Switch context buffers
+    rtOldThreadId = newThreadId;
+    rtOldContext = newContext;
+    rtOldMemoryArrayCount = newMemoryArrayCount;
+    memcpy(rtOldMemory, newMemory, sizeof(newMemory));
+    memcpy(rtOldMemoryAddress, newMemoryAddress, sizeof(newMemoryAddress));
+    memset(rtOldOpcode, 0, 16);
+    rtOldOpcodeSize = newInstruction.Size() & 0x0F;
+    MemRead(newContext.registers.regcontext.cip, rtOldOpcode, rtOldOpcodeSize);
+    //Write to file
+    if(rtPrevInstAvailable)
+    {
+        if(WriteBufferPtr - WriteBuffer <= sizeof(WriteBuffer))
+        {
+            DWORD written;
+            WriteFile(rtFile, WriteBuffer, WriteBufferPtr - WriteBuffer, &written, NULL);
+            if(written < DWORD(WriteBufferPtr - WriteBuffer)) //Disk full?
+            {
+                CloseHandle(rtFile);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace has stopped unexpectedly because WriteFile() failed. GetLastError()= %X .\r\n"), GetLastError());
+                rtEnabled = false;
+            }
+        }
+        else
+            __debugbreak(); // Buffer overrun?
+    }
+    rtPrevInstAvailable = true;
+    rtRecordedInstructions++;
+
+    dbgtracebrowserneedsupdate();
+}
+
 unsigned int TraceRecordManager::getHitCount(duint address)
 {
     SHARED_ACQUIRE(LockTraceRecord);
@@ -243,7 +474,101 @@ TraceRecordManager::TraceRecordByteType TraceRecordManager::getByteType(duint ad
 
 void TraceRecordManager::increaseInstructionCounter()
 {
-    InterlockedIncrement(&instructionCounter);
+    InterlockedIncrement((volatile long*)&instructionCounter);
+}
+
+bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
+{
+    if(!DbgIsDebugging())
+        return false;
+    if(enabled)
+    {
+        if(rtEnabled)
+            enableRunTrace(false, NULL); //re-enable run trace
+        rtFile = CreateFileW(StringUtils::Utf8ToUtf16(fileName).c_str(), FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+        if(rtFile != INVALID_HANDLE_VALUE)
+        {
+            LARGE_INTEGER size;
+            if(GetFileSizeEx(rtFile, &size))
+            {
+                if(size.QuadPart != 0)
+                {
+                    SetFilePointer(rtFile, 0, 0, FILE_END);
+                }
+                else //file is empty, write some file header
+                {
+                    //TRAC, SIZE, JSON header
+                    json_t* root = json_object();
+                    json_object_set_new(root, "ver", json_integer(1));
+                    json_object_set_new(root, "arch", json_string(ArchValue("x86", "x64")));
+                    json_object_set_new(root, "hashAlgorithm", json_string("murmurhash"));
+                    json_object_set_new(root, "hash", json_hex(dbgfunctionsget()->DbGetHash()));
+                    json_object_set_new(root, "compression", json_string(""));
+                    char path[MAX_PATH];
+                    ModPathFromAddr(dbgdebuggedbase(), path, MAX_PATH);
+                    json_object_set_new(root, "path", json_string(path));
+                    char* headerinfo;
+                    headerinfo = json_dumps(root, JSON_COMPACT);
+                    size_t headerinfosize = strlen(headerinfo);
+                    LARGE_INTEGER header;
+                    DWORD written;
+                    header.LowPart = MAKEFOURCC('T', 'R', 'A', 'C');
+                    header.HighPart = headerinfosize;
+                    WriteFile(rtFile, &header, 8, &written, nullptr);
+                    if(written < 8) //read-only?
+                    {
+                        CloseHandle(rtFile);
+                        json_free(headerinfo);
+                        json_decref(root);
+                        dputs(QT_TRANSLATE_NOOP("DBG", "Run trace failed to start because file header cannot be written."));
+                        return false;
+                    }
+                    WriteFile(rtFile, headerinfo, headerinfosize, &written, nullptr);
+                    json_free(headerinfo);
+                    json_decref(root);
+                    if(written < headerinfosize) //disk-full?
+                    {
+                        CloseHandle(rtFile);
+                        dputs(QT_TRANSLATE_NOOP("DBG", "Run trace failed to start because file header cannot be written."));
+                        return false;
+                    }
+                }
+            }
+            rtPrevInstAvailable = false;
+            rtEnabled = true;
+            rtRecordedInstructions = 0;
+            rtNeedThreadId = true;
+            for(size_t i = 0; i < _countof(rtOldContextChanged); i++)
+                rtOldContextChanged[i] = true;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace started. File: %s\r\n"), fileName);
+            Capstone cp;
+            unsigned char instr[MAX_DISASM_BUFFER];
+            auto cip = GetContextDataEx(hActiveThread, UE_CIP);
+            if(MemRead(cip, instr, MAX_DISASM_BUFFER))
+            {
+                cp.DisassembleSafe(cip, instr, MAX_DISASM_BUFFER);
+                TraceExecuteRecord(cp);
+            }
+            GuiOpenTraceFile(fileName);
+            return true;
+        }
+        else
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot create run trace file. GetLastError()= %X .\r\n"), GetLastError());
+            return false;
+        }
+    }
+    else
+    {
+        if(rtEnabled)
+        {
+            CloseHandle(rtFile);
+            rtPrevInstAvailable = false;
+            rtEnabled = false;
+            dputs(QT_TRANSLATE_NOOP("DBG", "Run trace stopped."));
+        }
+        return true;
+    }
 }
 
 void TraceRecordManager::saveToDb(JSON root)
@@ -294,7 +619,6 @@ void TraceRecordManager::saveToDb(JSON root)
 
 void TraceRecordManager::loadFromDb(JSON root)
 {
-    clear();
     EXCLUSIVE_ACQUIRE(LockTraceRecord);
     // get the root object
     const JSON tracerecord = json_object_get(root, "tracerecord");
@@ -366,25 +690,45 @@ unsigned int TraceRecordManager::getModuleIndex(const String & moduleName)
     }
 }
 
+bool TraceRecordManager::isRunTraceEnabled()
+{
+    return rtEnabled;
+}
+
 void _dbg_dbgtraceexecute(duint CIP)
 {
     if(TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordType::TraceRecordNone)
     {
-        unsigned char buffer[MAX_DISASM_BUFFER];
-        if(MemRead(CIP, buffer, MAX_DISASM_BUFFER))
+        Capstone instruction;
+        unsigned char data[MAX_DISASM_BUFFER];
+        if(MemRead(CIP, data, MAX_DISASM_BUFFER))
         {
-            TraceRecord.increaseInstructionCounter();
-            Capstone instruction;
-            instruction.Disassemble(CIP, buffer, MAX_DISASM_BUFFER);
-            TraceRecord.TraceExecute(CIP, instruction.Size());
-        }
-        else
-        {
-            // if we reaches here, then the executable had executed an invalid address. Don't trace it.
+            instruction.DisassembleSafe(CIP, data, MAX_DISASM_BUFFER);
+            if(TraceRecord.isRunTraceEnabled())
+            {
+                TraceRecord.TraceExecute(CIP, instruction.Size());
+                TraceRecord.TraceExecuteRecord(instruction);
+            }
+            else
+            {
+                TraceRecord.TraceExecute(CIP, instruction.Size());
+            }
         }
     }
     else
-        TraceRecord.increaseInstructionCounter();
+    {
+        if(TraceRecord.isRunTraceEnabled())
+        {
+            Capstone instruction;
+            unsigned char data[MAX_DISASM_BUFFER];
+            if(MemRead(CIP, data, MAX_DISASM_BUFFER))
+            {
+                instruction.DisassembleSafe(CIP, data, MAX_DISASM_BUFFER);
+                TraceRecord.TraceExecuteRecord(instruction);
+            }
+        }
+    }
+    TraceRecord.increaseInstructionCounter();
 }
 
 unsigned int _dbg_dbggetTraceRecordHitCount(duint address)
@@ -405,4 +749,15 @@ bool _dbg_dbgsetTraceRecordType(duint pageAddress, TRACERECORDTYPE type)
 TRACERECORDTYPE _dbg_dbggetTraceRecordType(duint pageAddress)
 {
     return (TRACERECORDTYPE)TraceRecord.getTraceRecordType(pageAddress);
+}
+
+// When disabled, file name is not relevant and can be NULL
+bool _dbg_dbgenableRunTrace(bool enabled, const char* fileName)
+{
+    return TraceRecord.enableRunTrace(enabled, fileName);
+}
+
+bool _dbg_dbgisRunTraceEnabled()
+{
+    return TraceRecord.isRunTraceEnabled();
 }

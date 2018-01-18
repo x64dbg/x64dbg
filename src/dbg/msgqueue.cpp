@@ -27,7 +27,7 @@ void MsgFreeStack(MESSAGE_STACK* Stack)
     }
 
     // Delete allocated structure
-    delete Stack;
+    //delete Stack;
 }
 
 // Add a message to the stack

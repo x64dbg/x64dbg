@@ -33,32 +33,43 @@ static DWORD WINAPI scyllaThread(void* lpParam)
     return 0;
 }
 
-CMDRESULT cbDebugStartScylla(int argc, char* argv[])
+bool cbDebugStartScylla(int argc, char* argv[])
 {
     if(bScyllaLoaded)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Scylla is already loaded"));
-        return STATUS_ERROR;
+        return false;
     }
     bScyllaLoaded = true;
     CloseHandle(CreateThread(0, 0, scyllaThread, 0, 0, 0));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrPluginLoad(int argc, char* argv[])
+bool cbInstrPluginLoad(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
-    if(pluginload(argv[1]))
-        return STATUS_CONTINUE;
-    return STATUS_ERROR;
+        return false;
+    return pluginload(argv[1]);
 }
 
-CMDRESULT cbInstrPluginUnload(int argc, char* argv[])
+bool cbInstrPluginUnload(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
-    if(pluginunload(argv[1]))
-        return STATUS_CONTINUE;
-    return STATUS_ERROR;
+        return false;
+    return pluginunload(argv[1]);
+}
+
+bool cbInstrPluginReload(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    if(!pluginunload(argv[1]))
+        return false;
+    if(argc <= 2)
+    {
+        auto text = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Press OK to reload the plugin...")));
+        auto title = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Reload")));
+        MessageBoxW(GuiGetWindowHandle(), text.c_str(), title.c_str(), 0);
+    }
+    return pluginload(argv[1]);
 }

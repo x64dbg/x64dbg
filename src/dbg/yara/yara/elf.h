@@ -52,7 +52,7 @@ typedef uint64_t elf64_xword_t;
 
 #define ELF_ET_NONE     0x0000  // no type
 #define ELF_ET_REL      0x0001  // relocatable
-#define ELF_ET_EXEC     0x0002  // executeable
+#define ELF_ET_EXEC     0x0002  // executable
 #define ELF_ET_DYN      0x0003  // Shared-Object-File
 #define ELF_ET_CORE     0x0004  // Corefile
 #define ELF_ET_LOPROC   0xFF00  // Processor-specific
@@ -112,6 +112,51 @@ typedef uint64_t elf64_xword_t;
 #define ELF_PT_TLS           7     // Thread-Local Storage
 #define ELF_PT_GNU_EH_FRAME  0x6474e550
 #define ELF_PT_GNU_STACK     0x6474e551
+
+#define ELF_DT_NULL          0     // End of the dynamic entries
+#define ELF_DT_NEEDED        1     // Name of needed library
+#define ELF_DT_PLTRELSZ      2     // Size in bytes of PLT relocs
+#define ELF_DT_PLTGOT        3     // Processor defined value */
+#define ELF_DT_HASH          4     // Address of symbol hash table
+#define ELF_DT_STRTAB        5     // Address of string table
+#define ELF_DT_SYMTAB        6     // Address of symbol table
+#define ELF_DT_RELA          7     // Address of Rela relocs
+#define ELF_DT_RELASZ        8     // Total size of Rela relocs
+#define ELF_DT_RELAENT       9     // Size of one Rela reloc
+#define ELF_DT_STRSZ         10    // Size of string table
+#define ELF_DT_SYMENT        11    // Size of one symbol table entry
+#define ELF_DT_INIT          12    // Address of init function
+#define ELF_DT_FINI          13    // Address of termination function
+#define ELF_DT_SONAME        14    // Name of shared object
+#define ELF_DT_RPATH         15    // Library search path (deprecated)
+#define ELF_DT_SYMBOLIC      16    // Start symbol search here
+#define ELF_DT_REL           17    // Address of Rel relocs
+#define ELF_DT_RELSZ         18    // Total size of Rel relocs
+#define ELF_DT_RELENT        19    // Size of one Rel reloc
+#define ELF_DT_PLTREL        20    // Type of reloc in PLT
+#define ELF_DT_DEBUG         21    // For debugging; unspecified
+#define ELF_DT_TEXTREL       22    // Reloc might modify .text
+#define ELF_DT_JMPREL        23    // Address of PLT relocs
+#define ELF_DT_BIND_NOW      24    // Process relocations of object
+#define ELF_DT_INIT_ARRAY    25    // Array with addresses of init fct
+#define ELF_DT_FINI_ARRAY    26    // Array with addresses of fini fct
+#define ELF_DT_INIT_ARRAYSZ  27    // Size in bytes of DT_INIT_ARRAY
+#define ELF_DT_FINI_ARRAYSZ  28    // Size in bytes of DT_FINI_ARRAY
+#define ELF_DT_RUNPATH       29    // Library search path
+#define ELF_DT_FLAGS         30    // Flags for the object being loaded
+#define ELF_DT_ENCODING      32    // Start of encoded range
+
+#define ELF_STT_NOTYPE       0     // Symbol type is unspecified
+#define ELF_STT_OBJECT       1     // Symbol is a data object
+#define ELF_STT_FUNC         2     // Symbol is a code object
+#define ELF_STT_SECTION      3     // Symbol associated with a section
+#define ELF_STT_FILE         4     // Symbol's name is file name
+#define ELF_STT_COMMON       5     // Symbol is a common data object
+#define ELF_STT_TLS          6     // Symbol is thread-local data object
+
+#define ELF_STB_LOCAL        0     // Local symbol
+#define ELF_STB_GLOBAL       1     // Global symbol
+#define ELF_STB_WEAK         2     // Weak symbol
 
 #define ELF_PF_X             0x1   // Segment is executable
 #define ELF_PF_W             0x2   // Segment is writable
@@ -231,6 +276,46 @@ typedef struct
     elf64_xword_t   entry_size;
 
 } elf64_section_header_t;
+
+
+typedef struct
+{
+    elf32_word_t    tag;
+    elf32_word_t    val;
+
+} elf32_dyn_t;
+
+
+typedef struct
+{
+    elf64_xword_t   tag;
+    elf64_xword_t   val;
+
+} elf64_dyn_t;
+
+
+typedef struct
+{
+    elf32_word_t    name;
+    elf32_addr_t    value;
+    elf32_word_t    size;
+    unsigned char   info;
+    unsigned char   other;
+    elf32_half_t    shndx;
+
+} elf32_sym_t;
+
+
+typedef struct
+{
+    elf32_word_t    name;
+    unsigned char   info;
+    unsigned char   other;
+    elf32_half_t    shndx;
+    elf64_addr_t    value;
+    elf64_xword_t   size;
+
+} elf64_sym_t;
 
 
 #pragma pack(pop)

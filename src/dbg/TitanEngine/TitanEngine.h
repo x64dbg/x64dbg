@@ -1013,6 +1013,7 @@ __declspec(dllexport) long TITCALL GetActiveProcessId(const char* szImageName);
 __declspec(dllexport) long TITCALL GetActiveProcessIdW(const wchar_t* szImageName);
 __declspec(dllexport) void TITCALL EnumProcessesWithLibrary(const char* szLibraryName, void* EnumFunction);
 __declspec(dllexport) HANDLE TITCALL TitanOpenProcess(DWORD dwDesiredAccess, bool bInheritHandle, DWORD dwProcessId);
+__declspec(dllexport) HANDLE TITCALL TitanOpenThread(DWORD dwDesiredAccess, bool bInheritHandle, DWORD dwThreadId);
 // TitanEngine.TLSFixer.functions:
 __declspec(dllexport) bool TITCALL TLSBreakOnCallBack(LPVOID ArrayOfCallBacks, DWORD NumberOfCallBacks, LPVOID bpxCallBack);
 __declspec(dllexport) bool TITCALL TLSGrabCallBackData(const char* szFileName, LPVOID ArrayOfCallBacks, LPDWORD NumberOfCallBacks);

@@ -151,15 +151,15 @@ bool patternsnr(unsigned char* data, size_t datasize, const char* searchpattern,
 size_t patternfind(const unsigned char* data, size_t datasize, const std::vector<PatternByte> & pattern)
 {
     size_t searchpatternsize = pattern.size();
-    for(size_t i = 0, pos = 0; i < datasize; i++)  //search for the pattern
+    for(size_t i = 0, pos = 0; i < datasize; i++) //search for the pattern
     {
-        if(patternmatchbyte(data[i], pattern.at(pos)))  //check if our pattern matches the current byte
+        if(patternmatchbyte(data[i], pattern.at(pos))) //check if our pattern matches the current byte
         {
             pos++;
-            if(pos == searchpatternsize)  //everything matched
+            if(pos == searchpatternsize) //everything matched
                 return i - searchpatternsize + 1;
         }
-        else if(pos > 0)  //fix by Computer_Angel
+        else if(pos > 0) //fix by Computer_Angel
         {
             i -= pos;
             pos = 0; //reset current pattern position

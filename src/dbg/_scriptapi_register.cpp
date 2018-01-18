@@ -1,5 +1,7 @@
 #include "_scriptapi_register.h"
 #include "value.h"
+#include "debugger.h"
+#include "TraceRecord.h"
 
 static const char* regTable[] =
 {
@@ -84,13 +86,16 @@ static const char* regTable[] =
     "R15",
 #endif //_WIN64
 
-#ifdef _WIN64
-    "RIP",
-    "RSP"
-#else //x32
-    "EIP",
-    "ESP"
-#endif //_WIN64
+    ArchValue("EIP", "RIP"),
+    ArchValue("ESP", "RSP"),
+    ArchValue("EAX", "RAX"),
+    ArchValue("EBX", "RBX"),
+    ArchValue("ECX", "RCX"),
+    ArchValue("EDX", "RDX"),
+    ArchValue("EDI", "RDI"),
+    ArchValue("ESI", "RSI"),
+    ArchValue("EBP", "RBP"),
+    ArchValue("EFLAGS", "RFLAGS")
 };
 
 SCRIPT_EXPORT duint Script::Register::Get(Script::Register::RegisterEnum reg)
@@ -100,7 +105,21 @@ SCRIPT_EXPORT duint Script::Register::Get(Script::Register::RegisterEnum reg)
 
 SCRIPT_EXPORT bool Script::Register::Set(Script::Register::RegisterEnum reg, duint value)
 {
-    return setregister(regTable[reg], value);
+    auto result = setregister(regTable[reg], value);
+
+    if(reg == ArchValue(EIP, RIP) || reg == CIP)
+    {
+        auto cip = GetContextDataEx(hActiveThread, UE_CIP);
+        _dbg_dbgtraceexecute(cip);
+        DebugUpdateGuiAsync(cip, false); //update disassembly + register view
+    }
+    else if(reg == ArchValue(ESP, RSP) || reg == SP || reg == CSP) //update stack
+    {
+        duint csp = GetContextDataEx(hActiveThread, UE_CSP);
+        DebugUpdateStack(csp, csp);
+    }
+
+    return result;
 }
 
 SCRIPT_EXPORT int Script::Register::Size()
@@ -870,14 +889,74 @@ SCRIPT_EXPORT bool Script::Register::SetR15B(unsigned char value)
 }
 #endif //_WIN64
 
-SCRIPT_EXPORT duint Script::Register::GetCIP()
+SCRIPT_EXPORT duint Script::Register::GetCAX()
 {
-    return Get(CIP);
+    return Get(CAX);
 }
 
-SCRIPT_EXPORT bool Script::Register::SetCIP(duint value)
+SCRIPT_EXPORT bool Script::Register::SetCAX(duint value)
 {
-    return Set(CIP, value);
+    return Set(CAX, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCBX()
+{
+    return Get(CBX);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCBX(duint value)
+{
+    return Set(CBX, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCCX()
+{
+    return Get(CCX);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCCX(duint value)
+{
+    return Set(CCX, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCDX()
+{
+    return Get(CDX);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCDX(duint value)
+{
+    return Set(CDX, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCDI()
+{
+    return Get(CDI);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCDI(duint value)
+{
+    return Set(CDI, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCSI()
+{
+    return Get(CSI);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCSI(duint value)
+{
+    return Set(CSI, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCBP()
+{
+    return Get(CBP);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCBP(duint value)
+{
+    return Set(CBP, value);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetCSP()
@@ -888,4 +967,24 @@ SCRIPT_EXPORT duint Script::Register::GetCSP()
 SCRIPT_EXPORT bool Script::Register::SetCSP(duint value)
 {
     return Set(CSP, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCIP()
+{
+    return Get(CIP);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCIP(duint value)
+{
+    return Set(CIP, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCFLAGS()
+{
+    return Get(CFLAGS);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCFLAGS(duint value)
+{
+    return Set(CFLAGS, value);
 }

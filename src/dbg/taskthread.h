@@ -39,19 +39,20 @@ public:
 template <typename F>
 class StringConcatTaskThread_ : public TaskThread_<F, std::string>
 {
-    virtual std::tuple<std::string> CompressArguments(std::string && msg)
+    virtual std::tuple<std::string> CompressArguments(std::string && msg) override
     {
-        std::get<0>(args) += msg;
-        return args;
+        std::get<0>(this->args) += msg;
+        return this->args;
     }
 
     // Reset called after we latch in a value
     void ResetArgs() override
     {
-        std::get<0>(args).resize(0);
+        std::get<0>(this->args).resize(0);
     }
 public:
-    explicit StringConcatTaskThread_(F fn, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME) : TaskThread_(fn, minSleepTimeMs) {}
+    explicit StringConcatTaskThread_(F fn, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME)
+        : TaskThread_<F, std::string>(fn, minSleepTimeMs) {}
 };
 
 // using aliases for cleaner syntax
@@ -63,7 +64,7 @@ template<class S1, class S2> struct concat;
 
 template<unsigned... I1, unsigned... I2>
 struct concat<seq<I1...>, seq<I2...>>
-: seq < I1..., (sizeof...(I1) + I2)... > {};
+                                   : seq < I1..., (sizeof...(I1) + I2)... > {};
 
 template<class S1, class S2> using Concat = Invoke<concat<S1, S2>>;
 
@@ -78,7 +79,7 @@ template<> struct gen_seq<1> : seq<0> {};
 
 #define DECLTYPE_AND_RETURN( eval ) -> decltype ( eval ) { return eval; }
 
-template<typename F, typename Tuple, size_t ...S>
+template<typename F, typename Tuple, unsigned ...S>
 auto apply_tuple_impl(F && fn, Tuple && t, const seq<S...> &)
 DECLTYPE_AND_RETURN(std::forward<F>(fn)(std::get<S>(std::forward<Tuple>(t))...));
 
@@ -97,31 +98,31 @@ std::tuple<Args...> TaskThread_<F, Args...>::CompressArguments(Args && ... _args
 
 template <typename F, typename... Args> void TaskThread_<F, Args...>::WakeUp(Args... _args)
 {
-    wakeups++;
-    EnterCriticalSection(&access);
-    args = CompressArguments(std::forward<Args>(_args)...);
-    LeaveCriticalSection(&access);
+    ++this->wakeups;
+    EnterCriticalSection(&this->access);
+    this->args = CompressArguments(std::forward<Args>(_args)...);
+    LeaveCriticalSection(&this->access);
     // This will fail silently if it's redundant, which is what we want.
-    ReleaseSemaphore(wakeupSemaphore, 1, nullptr);
+    ReleaseSemaphore(this->wakeupSemaphore, 1, nullptr);
 }
 
 template <typename F, typename... Args> void TaskThread_<F, Args...>::Loop()
 {
     std::tuple<Args...> argLatch;
-    while(active)
+    while(this->active)
     {
-        WaitForSingleObject(wakeupSemaphore, INFINITE);
+        WaitForSingleObject(this->wakeupSemaphore, INFINITE);
 
-        EnterCriticalSection(&access);
-        argLatch = args;
-        ResetArgs();
-        LeaveCriticalSection(&access);
+        EnterCriticalSection(&this->access);
+        argLatch = this->args;
+        this->ResetArgs();
+        LeaveCriticalSection(&this->access);
 
-        if(active)
+        if(this->active)
         {
-            apply_from_tuple(fn, argLatch);
-            std::this_thread::sleep_for(std::chrono::milliseconds(minSleepTimeMs));
-            execs++;
+            apply_from_tuple(this->fn, argLatch);
+            std::this_thread::sleep_for(std::chrono::milliseconds(this->minSleepTimeMs));
+            ++this->execs;
         }
     }
 }
@@ -130,27 +131,27 @@ template <typename F, typename... Args>
 TaskThread_<F, Args...>::TaskThread_(F fn,
                                      size_t minSleepTimeMs) : fn(fn), minSleepTimeMs(minSleepTimeMs)
 {
-    wakeupSemaphore = CreateSemaphoreW(nullptr, 0, 1, nullptr);
-    InitializeCriticalSection(&access);
+    this->wakeupSemaphore = CreateSemaphoreW(nullptr, 0, 1, nullptr);
+    InitializeCriticalSection(&this->access);
 
-    thread = std::thread([this]
+    this->thread = std::thread([this]
     {
-        Loop();
+        this->Loop();
     });
 }
 
 template <typename F, typename... Args>
 TaskThread_<F, Args...>::~TaskThread_()
 {
-    EnterCriticalSection(&access);
-    active = false;
-    LeaveCriticalSection(&access);
-    ReleaseSemaphore(wakeupSemaphore, 1, nullptr);
+    EnterCriticalSection(&this->access);
+    this->active = false;
+    LeaveCriticalSection(&this->access);
+    ReleaseSemaphore(this->wakeupSemaphore, 1, nullptr);
 
-    thread.join();
+    this->thread.join(); //TODO: Microsoft C++ exception: std::system_error on exit
 
-    DeleteCriticalSection(&access);
-    CloseHandle(wakeupSemaphore);
+    DeleteCriticalSection(&this->access);
+    CloseHandle(this->wakeupSemaphore);
 }
 
 #endif // _TASKTHREAD_H

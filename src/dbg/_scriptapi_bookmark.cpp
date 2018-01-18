@@ -29,7 +29,7 @@ SCRIPT_EXPORT bool Script::Bookmark::GetInfo(duint addr, BookmarkInfo* info)
         return false;
     if(info)
     {
-        strcpy_s(info->mod, comment.mod);
+        strcpy_s(info->mod, comment.mod().c_str());
         info->rva = comment.addr;
         info->manual = comment.manual;
     }
@@ -60,7 +60,7 @@ SCRIPT_EXPORT bool Script::Bookmark::GetList(ListOf(BookmarkInfo) list)
     for(const auto & bookmark : bookmarkList)
     {
         BookmarkInfo scriptComment;
-        strcpy_s(scriptComment.mod, bookmark.mod);
+        strcpy_s(scriptComment.mod, bookmark.mod().c_str());
         scriptComment.rva = bookmark.addr;
         scriptComment.manual = bookmark.manual;
         bookmarkScriptList.push_back(scriptComment);

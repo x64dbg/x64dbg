@@ -14,9 +14,12 @@
 #include "threading.h"
 #include "exhandlerinfo.h"
 #include "symbolinfo.h"
+#include "debugger.h"
+#include "dbghelp_safe.h"
 
 using SehMap = std::unordered_map<duint, STACK_COMMENT>;
 static SehMap SehCache;
+bool ShowSuspectedCallStack;
 
 void stackupdateseh()
 {
@@ -38,6 +41,24 @@ void stackupdateseh()
     }
     EXCLUSIVE_ACQUIRE(LockSehCache);
     SehCache = std::move(newcache);
+}
+
+template<size_t _Count>
+static void getSymAddrName(duint addr, char(& str)[_Count])
+{
+    BRIDGE_ADDRINFO addrinfo;
+    if(addr == 0)
+    {
+        memcpy(str, "???", 4);
+        return;
+    }
+    addrinfo.flags = flaglabel | flagmodule;
+    _dbg_addrinfoget(addr, SEG_DEFAULT, &addrinfo);
+    if(addrinfo.module[0] != '\0')
+        _snprintf_s(str, _TRUNCATE, "%s.", addrinfo.module);
+    if(addrinfo.label[0] == '\0')
+        _snprintf_s(addrinfo.label, _TRUNCATE, "%p", addr);
+    strncat_s(str, addrinfo.label, _TRUNCATE);
 }
 
 bool stackcommentget(duint addr, STACK_COMMENT* comment)
@@ -71,39 +92,13 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
     bool valid = disasmfast(disasmData + prev, previousInstr, &basicinfo);
     if(valid && basicinfo.call) //call
     {
-        char label[MAX_LABEL_SIZE] = "";
-        ADDRINFO addrinfo;
-        addrinfo.flags = flaglabel;
-        if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-            strcpy_s(label, addrinfo.label);
-        char module[MAX_MODULE_SIZE] = "";
-        ModNameFromAddr(data, module, false);
-        char returnToAddr[MAX_COMMENT_SIZE] = "";
-        if(*module)
-            sprintf(returnToAddr, "%s.", module);
-        if(!*label)
-            sprintf_s(label, "%p", data);
-        strcat(returnToAddr, label);
+        char returnToAddr[MAX_LABEL_SIZE] = "";
+        getSymAddrName(data, returnToAddr);
 
         data = basicinfo.addr;
-        if(data)
-        {
-            *label = 0;
-            addrinfo.flags = flaglabel;
-            if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-                strcpy_s(label, addrinfo.label);
-            *module = 0;
-            ModNameFromAddr(data, module, false);
-            char returnFromAddr[MAX_COMMENT_SIZE] = "";
-            if(*module)
-                sprintf_s(returnFromAddr, "%s.", module);
-            if(!*label)
-                sprintf_s(label, "%p", data);
-            strcat_s(returnFromAddr, label);
-            sprintf_s(comment->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
-        }
-        else
-            sprintf_s(comment->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from ???")), returnToAddr);
+        char returnFromAddr[MAX_LABEL_SIZE] = "";
+        getSymAddrName(data, returnFromAddr);
+        _snprintf_s(comment->comment, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
         strcpy_s(comment->color, "!rtnclr"); // Special token for return address color;
         return true;
     }
@@ -118,7 +113,7 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
 
     //label
     char label[MAX_LABEL_SIZE] = "";
-    ADDRINFO addrinfo;
+    BRIDGE_ADDRINFO addrinfo;
     addrinfo.flags = flaglabel;
     if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
         strcpy_s(label, addrinfo.label);
@@ -142,7 +137,7 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
     return false;
 }
 
-BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
+static BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
 {
     // Fix for 64-bit sizes
     SIZE_T bytesRead = 0;
@@ -158,12 +153,12 @@ BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddres
     return false;
 }
 
-DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
+static DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
 {
     return (DWORD64)ModBaseFromAddr((duint)Address);
 }
 
-DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LPADDRESS64 lpaddr)
+static DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LPADDRESS64 lpaddr)
 {
     ASSERT_ALWAYS("This function should never be called");
     return 0;
@@ -175,21 +170,15 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint
     Entry->from = From;
     Entry->to = To;
 
-    auto getSymAddrName = [](duint addr)
-    {
-        auto symname = SymGetSymbolicName(addr);
-        if(!symname.length())
-            symname = StringUtils::sprintf("%p", addr);
-        return symname;
-    };
+    /* https://github.com/x64dbg/x64dbg/pull/1478
+    char returnToAddr[MAX_LABEL_SIZE] = "";
+    getSymAddrName(To, returnToAddr);
+    char returnFromAddr[MAX_LABEL_SIZE] = "";
+    getSymAddrName(From, returnFromAddr);
+    _snprintf_s(Entry->comment, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+    */
 
-    char returnToAddr[MAX_COMMENT_SIZE] = "";
-    strncpy_s(returnToAddr, getSymAddrName(Entry->to).c_str(), _TRUNCATE);
-
-    if(Entry->from)
-        sprintf_s(Entry->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, getSymAddrName(Entry->from).c_str());
-    else
-        sprintf_s(Entry->comment, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from ???")), returnToAddr);
+    getSymAddrName(From, Entry->comment);
 }
 
 #define MAX_CALLSTACK_CACHE 20
@@ -200,6 +189,49 @@ void stackupdatecallstack(duint csp)
 {
     std::vector<CALLSTACKENTRY> callstack;
     stackgetcallstack(csp, callstack, false);
+}
+
+static void stackgetsuspectedcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector)
+{
+    duint size;
+    duint base = MemFindBaseAddr(csp, &size);
+    duint end = base + size;
+    size = end - csp;
+    Memory<duint*> stackdata(size);
+    MemRead(csp, stackdata(), size);
+    for(duint i = csp; i < end; i += sizeof(duint))
+    {
+        duint data = stackdata()[(i - csp) / sizeof(duint)];
+        duint size = 0;
+        duint base = MemFindBaseAddr(data, &size);
+        duint readStart = data - 16 * 4;
+        if(readStart < base)
+            readStart = base;
+        unsigned char disasmData[256];
+        if(base != 0 && size != 0 && MemRead(readStart, disasmData, sizeof(disasmData)))
+        {
+            duint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
+            duint previousInstr = readStart + prev;
+
+            BASIC_INSTRUCTION_INFO basicinfo;
+            bool valid = disasmfast(disasmData + prev, previousInstr, &basicinfo);
+            if(valid && basicinfo.call)
+            {
+                CALLSTACKENTRY stackframe;
+                stackframe.addr = i;
+                stackframe.to = data;
+                char returnToAddr[MAX_LABEL_SIZE] = "";
+                getSymAddrName(data, returnToAddr);
+
+                data = basicinfo.addr;
+                char returnFromAddr[MAX_LABEL_SIZE] = "";
+                getSymAddrName(data, returnFromAddr);
+                _snprintf_s(stackframe.comment, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "return to %s from %s")), returnToAddr, returnFromAddr);
+                stackframe.from = data;
+                callstackVector.push_back(stackframe);
+            }
+        }
+    }
 }
 
 void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector, bool cache)
@@ -213,6 +245,8 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
             callstackVector = found->second;
             return;
         }
+        callstackVector.clear();
+        return;
     }
 
     // Gather context data
@@ -230,62 +264,70 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
     if(ResumeThread(hActiveThread) == -1)
         return;
 
-    // Set up all frame data
-    STACKFRAME64 frame;
-    ZeroMemory(&frame, sizeof(STACKFRAME64));
+    if(ShowSuspectedCallStack)
+    {
+        stackgetsuspectedcallstack(csp, callstackVector);
+    }
+    else
+    {
+        // Set up all frame data
+        STACKFRAME64 frame;
+        ZeroMemory(&frame, sizeof(STACKFRAME64));
 
 #ifdef _M_IX86
-    DWORD machineType = IMAGE_FILE_MACHINE_I386;
-    frame.AddrPC.Offset = context.Eip;
-    frame.AddrPC.Mode = AddrModeFlat;
-    frame.AddrFrame.Offset = context.Ebp;
-    frame.AddrFrame.Mode = AddrModeFlat;
-    frame.AddrStack.Offset = csp;
-    frame.AddrStack.Mode = AddrModeFlat;
+        DWORD machineType = IMAGE_FILE_MACHINE_I386;
+        frame.AddrPC.Offset = context.Eip;
+        frame.AddrPC.Mode = AddrModeFlat;
+        frame.AddrFrame.Offset = context.Ebp;
+        frame.AddrFrame.Mode = AddrModeFlat;
+        frame.AddrStack.Offset = csp;
+        frame.AddrStack.Mode = AddrModeFlat;
 #elif _M_X64
-    DWORD machineType = IMAGE_FILE_MACHINE_AMD64;
-    frame.AddrPC.Offset = context.Rip;
-    frame.AddrPC.Mode = AddrModeFlat;
-    frame.AddrFrame.Offset = context.Rsp;
-    frame.AddrFrame.Mode = AddrModeFlat;
-    frame.AddrStack.Offset = csp;
-    frame.AddrStack.Mode = AddrModeFlat;
+        DWORD machineType = IMAGE_FILE_MACHINE_AMD64;
+        frame.AddrPC.Offset = context.Rip;
+        frame.AddrPC.Mode = AddrModeFlat;
+        frame.AddrFrame.Offset = context.Rsp;
+        frame.AddrFrame.Mode = AddrModeFlat;
+        frame.AddrStack.Offset = csp;
+        frame.AddrStack.Mode = AddrModeFlat;
 #endif
 
-    // Container for each callstack entry (20 pre-allocated entries)
-    callstackVector.clear();
-    callstackVector.reserve(20);
+        const int MaxWalks = 50;
+        // Container for each callstack entry (50 pre-allocated entries)
+        callstackVector.clear();
+        callstackVector.reserve(MaxWalks);
 
-    while(true)
-    {
-        if(!StackWalk64(
-                    machineType,
-                    fdProcessInfo->hProcess,
-                    hActiveThread,
-                    &frame,
-                    &context,
-                    StackReadProcessMemoryProc64,
-                    SymFunctionTableAccess64,
-                    StackGetModuleBaseProc64,
-                    StackTranslateAddressProc64))
+        for(auto i = 0; i < MaxWalks; i++)
         {
-            // Maybe it failed, maybe we have finished walking the stack
-            break;
-        }
+            if(!SafeStackWalk64(
+                        machineType,
+                        fdProcessInfo->hProcess,
+                        hActiveThread,
+                        &frame,
+                        &context,
+                        StackReadProcessMemoryProc64,
+                        SymFunctionTableAccess64,
+                        StackGetModuleBaseProc64,
+                        StackTranslateAddressProc64))
+            {
+                // Maybe it failed, maybe we have finished walking the stack
+                break;
+            }
 
-        if(frame.AddrPC.Offset != 0)
-        {
-            // Valid frame
-            CALLSTACKENTRY entry;
-            memset(&entry, 0, sizeof(CALLSTACKENTRY));
+            if(frame.AddrPC.Offset != 0)
+            {
+                // Valid frame
+                CALLSTACKENTRY entry;
+                memset(&entry, 0, sizeof(CALLSTACKENTRY));
 
-            StackEntryFromFrame(&entry, (duint)frame.AddrFrame.Offset + sizeof(duint), (duint)frame.AddrPC.Offset, (duint)frame.AddrReturn.Offset);
-            callstackVector.push_back(entry);
-        }
-        else
-        {
-            // Base reached
-            break;
+                StackEntryFromFrame(&entry, (duint)frame.AddrFrame.Offset + sizeof(duint), (duint)frame.AddrPC.Offset, (duint)frame.AddrReturn.Offset);
+                callstackVector.push_back(entry);
+            }
+            else
+            {
+                // Base reached
+                break;
+            }
         }
     }
 
@@ -310,4 +352,11 @@ void stackgetcallstack(duint csp, CALLSTACK* callstack)
         // Copy data directly from the vector
         memcpy(callstack->entries, callstackVector.data(), callstack->total * sizeof(CALLSTACKENTRY));
     }
+}
+
+void stackupdatesettings()
+{
+    ShowSuspectedCallStack = settingboolget("Engine", "ShowSuspectedCallStack");
+    std::vector<CALLSTACKENTRY> dummy;
+    stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), dummy, false);
 }

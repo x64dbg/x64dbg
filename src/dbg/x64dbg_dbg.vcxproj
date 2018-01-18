@@ -37,6 +37,8 @@
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
+    <ClCompile Include="btparser\btparser\lexer.cpp" />
+    <ClCompile Include="btparser\btparser\parser.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="commandline.cpp" />
     <ClCompile Include="commandparser.cpp" />
@@ -70,6 +72,7 @@
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="expressionfunctions.cpp" />
     <ClCompile Include="exprfunc.cpp" />
+    <ClCompile Include="formatfunctions.cpp" />
     <ClCompile Include="handles.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exhandlerinfo.cpp" />
@@ -101,6 +104,7 @@
     <ClCompile Include="threading.cpp" />
     <ClCompile Include="TraceRecord.cpp" />
     <ClCompile Include="types.cpp" />
+    <ClCompile Include="typesparser.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="watch.cpp" />
@@ -147,6 +151,12 @@
     <ClInclude Include="assemble.h" />
     <ClInclude Include="bookmark.h" />
     <ClInclude Include="breakpoint.h" />
+    <ClInclude Include="btparser\btparser\ast.h" />
+    <ClInclude Include="btparser\btparser\helpers.h" />
+    <ClInclude Include="btparser\btparser\keywords.h" />
+    <ClInclude Include="btparser\btparser\lexer.h" />
+    <ClInclude Include="btparser\btparser\operators.h" />
+    <ClInclude Include="btparser\btparser\parser.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="commandline.h" />
     <ClInclude Include="commandparser.h" />
@@ -177,6 +187,8 @@
     <ClInclude Include="dbghelp\dbghelp.h" />
     <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />
+    <ClInclude Include="debugger_cookie.h" />
+    <ClInclude Include="debugger_tracing.h" />
     <ClInclude Include="encodemap.h" />
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h" />
     <ClInclude Include="disasm_fast.h" />
@@ -184,6 +196,9 @@
     <ClInclude Include="dynamicmem.h" />
     <ClInclude Include="expressionfunctions.h" />
     <ClInclude Include="exprfunc.h" />
+    <ClInclude Include="filemap.h" />
+    <ClInclude Include="formatfunctions.h" />
+    <ClInclude Include="GetPeArch.h" />
     <ClInclude Include="handles.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="exhandlerinfo.h" />
@@ -239,7 +254,7 @@
     <ClInclude Include="thread.h" />
     <ClInclude Include="threading.h" />
     <ClInclude Include="TitanEngine\TitanEngine.h" />
-    <ClInclude Include="undocumented.h" />
+    <ClInclude Include="ntdll\ntdll.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="variable.h" />
     <ClInclude Include="x64dbg.h" />
@@ -361,30 +376,30 @@
     <OutDir>$(ProjectDir)..\..\bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x32d\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64d\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir)..\capstone_wrapper;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;BUILD_DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -404,12 +419,12 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>keystone\keystone_x86.lib;$(ProjectDir)..\capstone_wrapper\bin\x32\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x86.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ntdll\ntdll_x86.lib;keystone\keystone_x86.lib;$(ProjectDir)..\zydis_wrapper\bin\x32\zydis_wrapper.lib;$(ProjectDir)..\capstone_wrapper\bin\x32\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x86.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BUILD_DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -425,12 +440,12 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
-      <AdditionalDependencies>keystone\keystone_x86.lib;$(ProjectDir)..\capstone_wrapper\bin\x32d\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x86.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32d\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ntdll\ntdll_x86.lib;keystone\keystone_x86.lib;$(ProjectDir)..\zydis_wrapper\bin\x32d\zydis_wrapper.lib;$(ProjectDir)..\capstone_wrapper\bin\x32d\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x86.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32d\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;BUILD_DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -452,12 +467,12 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>keystone\keystone_x64.lib;$(ProjectDir)..\capstone_wrapper\bin\x64\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\zydis_wrapper\bin\x64\zydis_wrapper.lib;$(ProjectDir)..\capstone_wrapper\bin\x64\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x64.lib;ntdll\ntdll_x64.lib;keystone\keystone_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BUILD_DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -476,7 +491,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
-      <AdditionalDependencies>keystone\keystone_x64.lib;$(ProjectDir)..\capstone_wrapper\bin\x64d\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64d\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\zydis_wrapper\bin\x64d\zydis_wrapper.lib;$(ProjectDir)..\capstone_wrapper\bin\x64d\capstone_wrapper.lib;$(ProjectDir)..\capstone_wrapper\capstone\capstone_x64.lib;ntdll\ntdll_x64.lib;keystone\keystone_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64d\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

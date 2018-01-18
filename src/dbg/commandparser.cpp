@@ -107,9 +107,6 @@ void Command::dataAppend(const char ch)
 
 void Command::dataFinish()
 {
-    if(_data.length())
-    {
-        _tokens.push_back(_data);
-        _data.clear();
-    }
+    _tokens.push_back(_data);
+    _data.clear();
 }

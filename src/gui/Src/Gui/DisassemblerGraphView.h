@@ -12,15 +12,19 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
-#include <algorithm>
 #include <QMutex>
 #include "Bridge.h"
 #include "RichTextPainter.h"
+#include "QBeaEngine.h"
+#include "ActionHelpers.h"
+#include "VaHistory.h"
 
 class MenuBuilder;
 class CachedFontMetrics;
+class GotoDialog;
+class XrefBrowseDialog;
 
-class DisassemblerGraphView : public QAbstractScrollArea
+class DisassemblerGraphView : public QAbstractScrollArea, public ActionHelper<DisassemblerGraphView>
 {
     Q_OBJECT
 public:
@@ -45,10 +49,7 @@ public:
 
         void addPoint(int row, int col, int index = 0)
         {
-            Point point;
-            point.row = row;
-            point.col = col;
-            point.index = 0;
+            Point point = {row, col, 0};
             this->points.push_back(point);
             if(int(this->points.size()) > 1)
                 this->points[this->points.size() - 2].index = index;
@@ -94,14 +95,15 @@ public:
 
         Text() {}
 
-        Text(const QString & text, QColor color)
+        Text(const QString & text, QColor color, QColor background)
         {
             RichTextPainter::List richText;
             RichTextPainter::CustomRichText_t rt;
             rt.highlight = false;
-            rt.flags = RichTextPainter::FlagColor;
             rt.text = text;
             rt.textColor = color;
+            rt.textBackground = background;
+            rt.flags = rt.textBackground.alpha() ? RichTextPainter::FlagAll : RichTextPainter::FlagColor;
             richText.push_back(rt);
             lines.push_back(richText);
         }
@@ -141,16 +143,7 @@ public:
         duint true_path = 0;
         duint false_path = 0;
         bool terminal = false;
-
-        void print() const
-        {
-            puts("----BLOCK---");
-            printf("header_text: %s\n", header_text.ToQString().toUtf8().constData());
-            puts("exits:");
-            for(auto exit : exits)
-                printf("%X ", exit);
-            puts("\n--ENDBLOCK--");
-        }
+        bool indirectcall = false;
     };
 
     struct DisassemblerBlock
@@ -158,11 +151,6 @@ public:
         DisassemblerBlock() {}
         explicit DisassemblerBlock(Block & block)
             : block(block) {}
-
-        void print() const
-        {
-            block.print();
-        }
 
         Block block;
         std::vector<DisassemblerEdge> edges;
@@ -183,7 +171,6 @@ public:
     {
         bool ready;
         duint entry;
-        duint update_id;
         std::vector<Block> blocks;
     };
 
@@ -192,7 +179,6 @@ public:
         duint entry = 0;
         std::unordered_map<duint, Function> functions;
         bool ready = false;
-        duint update_id = 0;
         QString status = "Analyzing...";
 
         bool find_instr(duint addr, duint & func, duint & instr)
@@ -205,6 +191,13 @@ public:
         }
 
         //dummy class
+    };
+
+    enum class LayoutType
+    {
+        Wide,
+        Medium,
+        Narrow,
     };
 
     DisassemblerGraphView(QWidget* parent = nullptr);
@@ -234,22 +227,28 @@ public:
     void adjustGraphLayout(DisassemblerBlock & block, int col, int row);
     void computeGraphLayout(DisassemblerBlock & block);
     void setupContextMenu();
+    void keyPressEvent(QKeyEvent* event);
 
     template<typename T>
     using Matrix = std::vector<std::vector<T>>;
     using EdgesVector = Matrix<std::vector<bool>>;
     bool isEdgeMarked(EdgesVector & edges, int row, int col, int index);
-    void markEdge(EdgesVector & edges, int row, int col, int index);
+    void markEdge(EdgesVector & edges, int row, int col, int index, bool used = true);
     int findHorizEdgeIndex(EdgesVector & edges, int row, int min_col, int max_col);
     int findVertEdgeIndex(EdgesVector & edges, int col, int min_row, int max_row);
     DisassemblerEdge routeEdge(EdgesVector & horiz_edges, EdgesVector & vert_edges, Matrix<bool> & edge_valid, DisassemblerBlock & start, DisassemblerBlock & end, QColor color);
     void renderFunction(Function & func);
-    void show_cur_instr();
+    void show_cur_instr(bool force = false);
     bool navigate(duint addr);
     void fontChanged();
+    void setGraphLayout(LayoutType layout);
+
+    VaHistory mHistory;
+
+signals:
+    void displaySnowmanWidget();
 
 public slots:
-    void updateTimerEvent();
     void loadGraphSlot(BridgeCFGraphList* graph, duint addr);
     void graphAtSlot(duint addr);
     void updateGraphSlot();
@@ -258,7 +257,23 @@ public slots:
     void fontsUpdatedSlot();
     void shortcutsUpdatedSlot();
     void toggleOverviewSlot();
+    void toggleSummarySlot();
     void selectionGetSlot(SELECTIONDATA* selection);
+    void tokenizerConfigUpdatedSlot();
+    void loadCurrentGraph();
+    void disassembleAtSlot(dsint va, dsint cip);
+    void gotoExpressionSlot();
+    void gotoOriginSlot();
+    void gotoPreviousSlot();
+    void gotoNextSlot();
+    void toggleSyncOriginSlot();
+    void followActionSlot();
+    void refreshSlot();
+    void saveImageSlot();
+    void setCommentSlot();
+    void setLabelSlot();
+    void xrefSlot();
+    void decompileSlot();
 
 private:
     QString status;
@@ -278,7 +293,6 @@ private:
     duint cur_instr;
     int scroll_base_x;
     int scroll_base_y;
-    duint update_id;
     bool scroll_mode;
     bool ready;
     int* desired_pos;
@@ -289,10 +303,20 @@ private:
     CachedFontMetrics* mFontMetrics;
     MenuBuilder* mMenuBuilder;
     bool drawOverview;
-    QAction* mToggleOverviewAction;
+    bool onlySummary;
+    bool syncOrigin;
     int overviewXOfs;
     int overviewYOfs;
     qreal overviewScale;
+    duint mCip;
+    bool forceCenter;
+    bool saveGraph;
+    bool mHistoryLock; //Don't add a history while going to previous/next
+    LayoutType layoutType;
+
+    QAction* mToggleOverview;
+    QAction* mToggleSummary;
+    QAction* mToggleSyncOrigin;
 
     QColor disassemblyBackgroundColor;
     QColor disassemblySelectionColor;
@@ -302,9 +326,28 @@ private:
     QColor brtrueColor;
     QColor brfalseColor;
     QColor retShadowColor;
+    QColor indirectcallShadowColor;
     QColor backgroundColor;
-protected:
-#include "ActionHelpers.h"
+    QColor mAutoCommentColor;
+    QColor mAutoCommentBackgroundColor;
+    QColor mCommentColor;
+    QColor mCommentBackgroundColor;
+    QColor mLabelColor;
+    QColor mLabelBackgroundColor;
+    QColor graphNodeColor;
+    QColor mAddressColor;
+    QColor mAddressBackgroundColor;
+    QColor mCipColor;
+    QColor mBreakpointColor;
+    QColor mDisabledBreakpointColor;
+
+    BridgeCFGraph currentGraph;
+    std::unordered_map<duint, duint> currentBlockMap;
+    QBeaEngine disasm;
+    GotoDialog* mGoto;
+    XrefBrowseDialog* mXrefDlg;
+
+    void addReferenceAction(QMenu* menu, duint addr);
 };
 
 #endif // DISASSEMBLERGRAPHVIEW_H

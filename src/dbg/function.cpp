@@ -7,7 +7,7 @@ struct FunctionSerializer : JSONWrapper<FUNCTIONSINFO>
 {
     bool Save(const FUNCTIONSINFO & value) override
     {
-        setString("module", value.mod);
+        setString("module", value.mod());
         setHex("start", value.start);
         setHex("end", value.end);
         setHex("icount", value.instructioncount);
@@ -20,8 +20,11 @@ struct FunctionSerializer : JSONWrapper<FUNCTIONSINFO>
         //legacy support
         value.manual = true;
         getBool("manual", value.manual);
-        return getString("module", value.mod) &&
-               getHex("start", value.start) &&
+        std::string mod;
+        if(!getString("module", mod))
+            return false;
+        value.modhash = ModHashFromName(mod.c_str());
+        return getHex("start", value.start) &&
                getHex("end", value.end) &&
                getHex("icount", value.instructioncount) &&
                value.end >= value.start;
@@ -32,7 +35,7 @@ struct Functions : SerializableModuleRangeMap<LockFunctions, FUNCTIONSINFO, Func
 {
     void AdjustValue(FUNCTIONSINFO & value) const override
     {
-        auto base = ModBaseFromName(value.mod);
+        auto base = ModBaseFromName(value.mod().c_str());
         value.start += base;
         value.end += base;
     }
@@ -45,7 +48,7 @@ protected:
 
     ModuleRange makeKey(const FUNCTIONSINFO & value) const override
     {
-        return ModuleRange(ModHashFromName(value.mod), Range(value.start, value.end));
+        return ModuleRange(value.modhash, Range(value.start, value.end));
     }
 };
 
@@ -68,8 +71,7 @@ bool FunctionAdd(duint Start, duint End, bool Manual, duint InstructionCount)
         return false;
 
     FUNCTIONSINFO function;
-    if(!ModNameFromAddr(Start, function.mod, true))
-        *function.mod = '\0';
+    function.modhash = ModHashFromAddr(moduleBase);
     function.start = Start - moduleBase;
     function.end = End - moduleBase;
     function.manual = Manual;
@@ -143,7 +145,7 @@ void FunctionCacheSave(JSON Root)
 void FunctionCacheLoad(JSON Root)
 {
     functions.CacheLoad(Root);
-    functions.CacheLoad(Root, false, "auto"); //legacy support
+    functions.CacheLoad(Root, "auto"); //legacy support
 }
 
 bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size)

@@ -30,6 +30,9 @@
     <Filter Include="Header Files\Third Party">
       <UniqueIdentifier>{d2362bf7-ff20-493d-be01-0fb7e6dca8c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Third Party\ntdll">
+      <UniqueIdentifier>{aea02a5a-fad2-4cf4-a932-80c0d43f621e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\Third Party\TitanEngine">
       <UniqueIdentifier>{23226861-3b20-42db-8dd6-c5d276ba7a83}</UniqueIdentifier>
     </Filter>
@@ -86,6 +89,12 @@
     </Filter>
     <Filter Include="Source Files\Commands">
       <UniqueIdentifier>{c42aba29-6104-475b-9838-ffa2034485aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\btparser">
+      <UniqueIdentifier>{3e5a02e2-62ad-4251-a53a-ab3f34fd7dd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\btparser">
+      <UniqueIdentifier>{d20554d2-b3de-4e73-ac55-217da06783ba}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -410,6 +419,18 @@
     <ClCompile Include="types.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
+    <ClCompile Include="btparser\btparser\lexer.cpp">
+      <Filter>Source Files\btparser</Filter>
+    </ClCompile>
+    <ClCompile Include="btparser\btparser\parser.cpp">
+      <Filter>Source Files\btparser</Filter>
+    </ClCompile>
+    <ClCompile Include="typesparser.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="formatfunctions.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dbghelp\dbghelp.h">
@@ -417,6 +438,9 @@
     </ClInclude>
     <ClInclude Include="XEDParse\XEDParse.h">
       <Filter>Header Files\Third Party\XEDParse</Filter>
+    </ClInclude>
+    <ClInclude Include="ntdll\ntdll.h">
+      <Filter>Header Files\Third Party\ntdll</Filter>
     </ClInclude>
     <ClInclude Include="TitanEngine\TitanEngine.h">
       <Filter>Header Files\Third Party\TitanEngine</Filter>
@@ -507,9 +531,6 @@
     </ClInclude>
     <ClInclude Include="handle.h">
       <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="undocumented.h">
-      <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
     <ClInclude Include="stringutils.h">
       <Filter>Header Files\Utilities</Filter>
@@ -912,6 +933,39 @@
     </ClInclude>
     <ClInclude Include="types.h">
       <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\ast.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\keywords.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\lexer.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\operators.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\parser.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="btparser\btparser\helpers.h">
+      <Filter>Header Files\btparser</Filter>
+    </ClInclude>
+    <ClInclude Include="filemap.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="formatfunctions.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GetPeArch.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="debugger_cookie.h">
+      <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
+    <ClInclude Include="debugger_tracing.h">
+      <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

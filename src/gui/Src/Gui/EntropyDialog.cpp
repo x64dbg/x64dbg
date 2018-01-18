@@ -1,5 +1,6 @@
 #include "EntropyDialog.h"
 #include "ui_EntropyDialog.h"
+#include <Configuration.h>
 
 EntropyDialog::EntropyDialog(QWidget* parent) :
     QDialog(parent),
@@ -11,10 +12,12 @@ EntropyDialog::EntropyDialog(QWidget* parent) :
     mBlockSize = 128;
     mPointCount = 300;
     mInitialized = false;
+    Config()->setupWindowPos(this);
 }
 
 EntropyDialog::~EntropyDialog()
 {
+    Config()->saveWindowPos(this);
     delete ui;
 }
 

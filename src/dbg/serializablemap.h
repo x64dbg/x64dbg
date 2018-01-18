@@ -1,7 +1,11 @@
+#ifndef _SERIALIZABLEMAP_H
+#define _SERIALIZABLEMAP_H
+
 #include "_global.h"
 #include "threading.h"
 #include "module.h"
 #include "memory.h"
+#include "jansson/jansson_x64dbg.h"
 
 template<class TValue>
 class JSONWrapper
@@ -20,24 +24,21 @@ public:
     virtual bool Load(TValue & value) = 0;
 
 protected:
-    void setString(const char* key, const char* value)
+    void setString(const char* key, const std::string & value)
     {
-        set(key, json_string(value));
+        set(key, json_string(value.c_str()));
     }
 
-    template<size_t TSize>
-    bool getString(const char* key, char(&_Dest)[TSize]) const
+    bool getString(const char* key, std::string & dest) const
     {
         auto jsonValue = get(key);
         if(!jsonValue)
             return false;
         auto str = json_string_value(jsonValue);
-        if(str && strlen(str) < TSize)
-        {
-            strcpy_s(_Dest, str);
-            return true;
-        }
-        return false;
+        if(!str)
+            return false;
+        dest = str;
+        return true;
     }
 
     void setHex(const char* key, duint value)
@@ -162,7 +163,8 @@ public:
     void Clear()
     {
         EXCLUSIVE_ACQUIRE(TLock);
-        mMap.clear();
+        TMap empty;
+        std::swap(mMap, empty);
     }
 
     void CacheSave(JSON root) const
@@ -175,19 +177,16 @@ public:
             auto jsonValue = json_object();
             serializer.SetJson(jsonValue);
             if(serializer.Save(itr.second))
-                json_array_append_new(jsonValues, jsonValue);
-            else
-                json_decref(jsonValue);
+                json_array_append(jsonValues, jsonValue);
+            json_decref(jsonValue);
         }
         if(json_array_size(jsonValues))
             json_object_set(root, jsonKey(), jsonValues);
         json_decref(jsonValues);
     }
 
-    void CacheLoad(JSON root, bool clear = true, const char* keyprefix = nullptr)
+    void CacheLoad(JSON root, const char* keyprefix = nullptr)
     {
-        if(clear)
-            Clear();
         EXCLUSIVE_ACQUIRE(TLock);
         auto jsonValues = json_object_get(root, keyprefix ? (keyprefix + String(jsonKey())).c_str() : jsonKey());
         if(!jsonValues)
@@ -302,13 +301,13 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
         return ModHashFromAddr(addr);
     }
 
-    void DeleteRangeWhere(duint start, duint end, std::function<bool(duint start, duint end, const TValue & value)> inRange)
+    void DeleteRangeWhere(duint start, duint end, std::function<bool(duint, duint, const TValue &)> inRange)
     {
         // Are all comments going to be deleted?
         // 0x00000000 - 0xFFFFFFFF
         if(start == 0 && end == ~0)
         {
-            Clear();
+            this->Clear();
         }
         else
         {
@@ -322,7 +321,7 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
             start -= moduleBase;
             end -= moduleBase;
 
-            DeleteWhere([start, end, inRange](const TValue & value)
+            this->DeleteWhere([start, end, inRange](const TValue & value)
             {
                 return inRange(start, end, value);
             });
@@ -332,9 +331,14 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
 
 struct AddrInfo
 {
-    char mod[MAX_MODULE_SIZE];
+    duint modhash;
     duint addr;
     bool manual;
+
+    std::string mod() const
+    {
+        return ModNameFromHash(modhash);
+    }
 };
 
 template<class TValue>
@@ -344,18 +348,21 @@ struct AddrInfoSerializer : JSONWrapper<TValue>
 
     bool Save(const TValue & value) override
     {
-        setString("module", value.mod);
-        setHex("address", value.addr);
-        setBool("manual", value.manual);
+        this->setString("module", value.mod());
+        this->setHex("address", value.addr);
+        this->setBool("manual", value.manual);
         return true;
     }
 
     bool Load(TValue & value) override
     {
         value.manual = true; //legacy support
-        getBool("manual", value.manual);
-        return getString("module", value.mod) &&
-               getHex("address", value.addr);
+        this->getBool("manual", value.manual);
+        std::string mod;
+        if(!this->getString("module", mod))
+            return false;
+        value.modhash = ModHashFromName(mod.c_str());
+        return this->getHex("address", value.addr);
     }
 };
 
@@ -367,25 +374,25 @@ struct AddrInfoHashMap : SerializableModuleHashMap<TLock, TValue, TSerializer>
 
     void AdjustValue(TValue & value) const override
     {
-        value.addr += ModBaseFromName(value.mod);
+        value.addr += ModBaseFromName(value.mod().c_str());
     }
 
     bool PrepareValue(TValue & value, duint addr, bool manual)
     {
         if(!MemIsValidReadPtr(addr))
             return false;
-        if(!ModNameFromAddr(addr, value.mod, true))
-            *value.mod = '\0';
+        auto base = ModBaseFromAddr(addr);
+        value.modhash = ModHashFromAddr(base);
         value.manual = manual;
-        value.addr = addr - ModBaseFromAddr(addr);
+        value.addr = addr - base;
         return true;
     }
 
     void DeleteRange(duint start, duint end, bool manual)
     {
-        DeleteRangeWhere(start, end, [manual](duint start, duint end, const TValue & value)
+        this->DeleteRangeWhere(start, end, [manual](duint start, duint end, const TValue & value)
         {
-            if(manual ? !value.manual : value.manual)   //ignore non-matching entries
+            if(manual ? !value.manual : value.manual) //ignore non-matching entries
                 return false;
             return value.addr >= start && value.addr < end;
         });
@@ -394,6 +401,8 @@ struct AddrInfoHashMap : SerializableModuleHashMap<TLock, TValue, TSerializer>
 protected:
     duint makeKey(const TValue & value) const override
     {
-        return ModHashFromName(value.mod) + value.addr;
+        return value.modhash + value.addr;
     }
 };
+
+#endif // _SERIALIZABLEMAP_H

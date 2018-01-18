@@ -11,13 +11,14 @@
 #include "value.h"
 #include "debugger.h"
 #include "exception.h"
+#include <algorithm>
 
 typedef std::pair<BP_TYPE, duint> BreakpointKey;
 std::map<BreakpointKey, BREAKPOINT> breakpoints;
 
 static void setBpActive(BREAKPOINT & bp)
 {
-    if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
+    if(bp.type == BPHARDWARE) //TODO: properly implement this (check debug registers)
         bp.active = true;
     else if(bp.type == BPDLL || bp.type == BPEXCEPTION)
         bp.active = true;
@@ -61,12 +62,16 @@ int BpGetList(std::vector<BREAKPOINT>* List)
 
             List->push_back(currentBp);
         }
+        std::sort(List->begin(), List->end(), [](const BREAKPOINT & a, const BREAKPOINT & b)
+        {
+            return std::make_pair(a.type, a.addr) < std::make_pair(b.type, b.addr);
+        });
     }
 
     return (int)breakpoints.size();
 }
 
-bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name)
+bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name, duint memsize)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -104,6 +109,7 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     bp.singleshoot = Singleshot;
     bp.titantype = TitanType;
     bp.type = Type;
+    bp.memsize = memsize;
 
     // Insert new entry to the global list
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
@@ -362,6 +368,9 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log)
         return false;
 
     strncpy_s(bpInfo->logText, Log, _TRUNCATE);
+
+    // Make log breakpoints silent (meaning they don't output the default log).
+    bpInfo->silent = *Log != '\0';
     return true;
 }
 
@@ -478,7 +487,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
         BREAKPOINT bpInfo = j->second;
         if(bpInfo.type != BPDLL && bpInfo.type != BPEXCEPTION)
         {
-            if(base)  //workaround for some Windows bullshit with compatibility mode
+            if(base) //workaround for some Windows bullshit with compatibility mode
                 bpInfo.addr += base;
             else
                 bpInfo.addr += ModBaseFromName(bpInfo.mod);
@@ -601,6 +610,33 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
             BridgeBp->slot = 3;
             break;
         }
+        switch(TITANGETSIZE(Bp->titantype))
+        {
+        case UE_HARDWARE_SIZE_1:
+            BridgeBp->hwSize = hw_byte;
+            break;
+        case UE_HARDWARE_SIZE_2:
+            BridgeBp->hwSize = hw_word;
+            break;
+        case UE_HARDWARE_SIZE_4:
+            BridgeBp->hwSize = hw_dword;
+            break;
+        case UE_HARDWARE_SIZE_8:
+            BridgeBp->hwSize = hw_qword;
+            break;
+        }
+        switch(TITANGETTYPE(Bp->titantype))
+        {
+        case UE_HARDWARE_READWRITE:
+            BridgeBp->typeEx = hw_access;
+            break;
+        case UE_HARDWARE_WRITE:
+            BridgeBp->typeEx = hw_write;
+            break;
+        case UE_HARDWARE_EXECUTE:
+            BridgeBp->typeEx = hw_execute;
+            break;
+        }
         break;
     case BPMEMORY:
         BridgeBp->type = bp_memory;
@@ -610,19 +646,32 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         switch(Bp->titantype)
         {
         case UE_ON_LIB_LOAD:
-            BridgeBp->slot = 0;
+            BridgeBp->typeEx = dll_load;
             break;
         case UE_ON_LIB_UNLOAD:
-            BridgeBp->slot = 1;
+            BridgeBp->typeEx = dll_unload;
             break;
         case UE_ON_LIB_ALL:
-            BridgeBp->slot = 2;
+            BridgeBp->typeEx = dll_all;
             break;
         }
         break;
     case BPEXCEPTION:
         BridgeBp->type = bp_exception;
-        BridgeBp->slot = (unsigned short)Bp->titantype; //1:First-chance, 2:Second-chance, 3:Both
+        switch(Bp->titantype) //1:First-chance, 2:Second-chance, 3:Both
+        {
+        case 1:
+            BridgeBp->typeEx = ex_firstchance;
+            break;
+        case 2:
+            BridgeBp->typeEx = ex_secondchance;
+            break;
+        case 3:
+            BridgeBp->typeEx = ex_all;
+            break;
+        default:
+            __debugbreak();
+        }
         break;
     default:
         BridgeBp->type = bp_none;
@@ -650,9 +699,10 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "address", json_hex(breakpoint.addr));
         json_object_set_new(jsonObj, "enabled", json_boolean(breakpoint.enabled));
 
-        // "Normal" breakpoints save the old data
-        if(breakpoint.type == BPNORMAL)
+        if(breakpoint.type == BPNORMAL) // "Normal" breakpoints save the old data
             json_object_set_new(jsonObj, "oldbytes", json_hex(breakpoint.oldbytes));
+        else if(breakpoint.type == BPMEMORY) // Memory breakpoints save the memory size
+            json_object_set_new(jsonObj, "memsize", json_hex(breakpoint.memsize));
 
         json_object_set_new(jsonObj, "type", json_integer(breakpoint.type));
         json_object_set_new(jsonObj, "titantype", json_hex(breakpoint.titantype));
@@ -688,9 +738,6 @@ void BpCacheLoad(JSON Root)
 {
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    // Remove all existing elements
-    breakpoints.clear();
-
     // Get a handle to the root object -> breakpoints subtree
     const JSON jsonBreakpoints = json_object_get(Root, "breakpoints");
 
@@ -708,6 +755,8 @@ void BpCacheLoad(JSON Root)
         breakpoint.type = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
         if(breakpoint.type == BPNORMAL)
             breakpoint.oldbytes = (unsigned short)(json_hex_value(json_object_get(value, "oldbytes")) & 0xFFFF);
+        else if(breakpoint.type == BPMEMORY)
+            breakpoint.memsize = (duint)json_hex_value(json_object_get(value, "memsize"));
         breakpoint.addr = (duint)json_hex_value(json_object_get(value, "address"));
         breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
         breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
@@ -736,7 +785,7 @@ void BpCacheLoad(JSON Root)
         {
             key = BpGetDLLBpAddr(breakpoint.mod);
         }
-        breakpoints.insert(std::make_pair(BreakpointKey(breakpoint.type, key), breakpoint));
+        breakpoints[BreakpointKey(breakpoint.type, key)] = breakpoint;
     }
 }
 

@@ -1,0 +1,7 @@
+bin/
+Release/
+Debug/
+*.sdf
+*.opensdf
+*.suo
+.DS_Store

@@ -3,6 +3,9 @@
 
 #include "StdTable.h"
 
+class WordEditDialog;
+class XrefBrowseDialog;
+
 class CPUInfoBox : public StdTable
 {
     Q_OBJECT
@@ -11,6 +14,8 @@ public:
     int getHeight();
     void addFollowMenuItem(QMenu* menu, QString name, duint value);
     void setupFollowMenu(QMenu* menu, duint wVA);
+    void addModifyValueMenuItem(QMenu* menu, QString name, duint value);
+    void setupModifyValueMenu(QMenu* menu, duint wVA);
     void addWatchMenuItem(QMenu* menu, QString name, duint value);
     void setupWatchMenu(QMenu* menu, duint wVA);
     int followInDump(dsint wVA);
@@ -20,20 +25,24 @@ public slots:
     void dbgStateChanged(DBGSTATE state);
     void contextMenuSlot(QPoint pos);
     void followActionSlot();
+    void modifySlot();
+    void findXReferencesSlot();
     void copyAddress();
     void copyRva();
     void copyOffset();
     void doubleClickedSlot();
+    void addInfoLine(const QString & infoLine);
 
 private:
     dsint curAddr;
     dsint curRva;
     dsint curOffset;
-    QString getSymbolicName(dsint addr);
     void setInfoLine(int line, QString text);
     QString getInfoLine(int line);
     void clear();
     void setupContextMenu();
+
+    XrefBrowseDialog* mXrefDlg = nullptr;
 
     QAction* mCopyAddressAction;
     QAction* mCopyRvaAction;

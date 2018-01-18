@@ -1,17 +1,18 @@
 #include "animate.h"
 #include "x64dbg.h"
+#include "command.h"
 
-static char animate_command[deflen];
+char animate_command[deflen];
 static unsigned int animate_interval = 50;
 HANDLE hAnimateThread = nullptr;
 
 static DWORD WINAPI animateThread(void* arg1)
 {
+    auto ignoreError = settingboolget("Misc", "AnimateIgnoreError");
     while(animate_command[0] != 0)
     {
         auto beforeTime = GetTickCount();
-        if(!DbgCmdExecDirect(animate_command))
-            // An error occurs
+        if(!cmddirectexec(animate_command) && !ignoreError)
             break;
         auto currentTime = GetTickCount();
         if(currentTime < (beforeTime + animate_interval))

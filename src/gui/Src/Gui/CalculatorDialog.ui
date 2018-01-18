@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>502</width>
-    <height>254</height>
+    <height>270</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -27,8 +27,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>220</y>
-     <width>121</width>
+     <y>240</y>
+     <width>141</width>
      <height>23</height>
     </rect>
    </property>
@@ -42,7 +42,7 @@
      <x>11</x>
      <y>8</y>
      <width>481</width>
-     <height>211</height>
+     <height>225</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -54,7 +54,10 @@
        </font>
       </property>
       <property name="inputMask">
-       <string>XXXX</string>
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>1</number>
       </property>
       <property name="readOnly">
        <bool>false</bool>
@@ -172,7 +175,10 @@
        </font>
       </property>
       <property name="inputMask">
-       <string>XXX</string>
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>1</number>
       </property>
       <property name="readOnly">
        <bool>false</bool>
@@ -211,7 +217,7 @@
    <property name="geometry">
     <rect>
      <x>417</x>
-     <y>220</y>
+     <y>240</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -223,8 +229,8 @@
   <widget class="QPushButton" name="btnGotoDump">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>220</y>
+     <x>160</x>
+     <y>240</y>
      <width>141</width>
      <height>23</height>
     </rect>

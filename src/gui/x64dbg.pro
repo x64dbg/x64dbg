@@ -66,8 +66,10 @@ INCLUDEPATH += \
     Src/Global \
     Src/Utils \
     Src/ThirdPartyLibs/snowman \
-    Src/ThirdPartyLibs/float128 \
-    ../capstone_wrapper
+    Src/ThirdPartyLibs/ldconvert \
+    ../capstone_wrapper \
+    ../zydis_wrapper \
+    ../zydis_wrapper/zydis/include
 
 # Resources, sources, headers, and forms
 RESOURCES += \
@@ -82,7 +84,9 @@ SOURCES += \
     Src/BasicView/HexDump.cpp \
     Src/BasicView/AbstractTableView.cpp \
     Src/Disassembler/QBeaEngine.cpp \
+    Src/Disassembler/CsQBeaEngine.cpp \
     Src/Disassembler/capstone_gui.cpp \
+    Src/Disassembler/cs_capstone_gui.cpp \
     Src/Memory/MemoryPage.cpp \
     Src/Bridge/Bridge.cpp \
     Src/BasicView/StdTable.cpp \
@@ -147,7 +151,6 @@ SOURCES += \
     Src/Gui/NotepadView.cpp \
     Src/Gui/CPUMultiDump.cpp \
     Src/Gui/AssembleDialog.cpp \
-    Src/ThirdPartyLibs/float128/float128.cpp \
     Src/Utils/StringUtil.cpp \
     Src/Gui/SEHChainView.cpp \
     Src/Gui/EditBreakpointDialog.cpp \
@@ -173,7 +176,20 @@ SOURCES += \
     Src/Gui/LogStatusLabel.cpp \
     Src/Gui/DebugStatusLabel.cpp \
     Src/Utils/MenuBuilder.cpp \
-    Src/Gui/CustomizeMenuDialog.cpp
+    Src/Gui/StructWidget.cpp \
+    Src/Gui/CustomizeMenuDialog.cpp \
+    Src/Gui/SimpleTraceDialog.cpp \
+    Src/Utils/MRUList.cpp \
+    Src/Gui/LocalVarsView.cpp \
+    Src/Gui/MessagesBreakpoints.cpp \
+    Src/Gui/AboutDialog.cpp \
+    Src/Gui/BreakpointMenu.cpp \
+    Src/Gui/ComboBoxDialog.cpp \
+    Src/Utils/SymbolAutoCompleteModel.cpp \
+    Src/Tracer/TraceBrowser.cpp \
+    Src/Tracer/TraceFileReader.cpp \
+    Src/Tracer/TraceFileSearch.cpp \
+    Src/Gui/MultiItemsSelectWindow.cpp
 
 
 HEADERS += \
@@ -185,7 +201,9 @@ HEADERS += \
     Src/BasicView/HexDump.h \
     Src/BasicView/AbstractTableView.h \
     Src/Disassembler/QBeaEngine.h \
+    Src/Disassembler/CsQBeaEngine.h \
     Src/Disassembler/capstone_gui.h \
+    Src/Disassembler/cs_capstone_gui.h \
     Src/Memory/MemoryPage.h \
     Src/Bridge/Bridge.h \
     Src/Exports.h \
@@ -253,10 +271,8 @@ HEADERS += \
     Src/Gui/NotesManager.h \
     Src/Gui/NotepadView.h \
     Src/Utils/MenuBuilder.h \
-    Src/Utils/QActionLambda.h \
     Src/Gui/CPUMultiDump.h \
     Src/Gui/AssembleDialog.h \
-    Src/ThirdPartyLibs/float128/float128.h \
     Src/Gui/SEHChainView.h \
     Src/Gui/EditBreakpointDialog.h \
     Src/Gui/CPUArgumentWidget.h \
@@ -282,7 +298,22 @@ HEADERS += \
     Src/BasicView/LabeledSplitterDetachedWindow.h \
     Src/Gui/LogStatusLabel.h \
     Src/Gui/DebugStatusLabel.h \
-    Src/Gui/CustomizeMenuDialog.h
+    Src/Gui/CustomizeMenuDialog.h \
+    Src/Gui/StructWidget.h \
+    Src/Gui/SimpleTraceDialog.h \
+    Src/Utils/MRUList.h \
+    Src/Gui/LocalVarsView.h \
+    Src/Gui/MessagesBreakpoints.h \
+    Src/Gui/AboutDialog.h \
+    Src/Gui/BreakpointMenu.h \
+    Src/Gui/ComboBoxDialog.h \
+    Src/Utils/VaHistory.h \
+    Src/Utils/SymbolAutoCompleteModel.h \
+    Src/Tracer/TraceBrowser.h \
+    Src/Tracer/TraceFileReader.h \
+    Src/Tracer/TraceFileReaderInternal.h \
+    Src/Tracer/TraceFileSearch.h \
+    Src/Gui/MultiItemsSelectWindow.h
     
 
 FORMS += \
@@ -319,23 +350,32 @@ FORMS += \
     Src/Gui/FavouriteTools.ui \
     Src/Gui/BrowseDialog.ui \
     Src/Gui/VirtualModDialog.ui \
-    Src/Gui/CustomizeMenuDialog.ui
+    Src/Gui/CustomizeMenuDialog.ui \
+    Src/Gui/StructWidget.ui \
+    Src/Gui/SimpleTraceDialog.ui \
+    Src/Gui/MessagesBreakpoints.ui \
+    Src/Gui/AboutDialog.ui \
+    Src/Gui/ComboBoxDialog.ui
 
 ##
 ## Libraries
 ##
-LIBS += -luser32 -ladvapi32
+LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
 
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
+    LIBS += -L"$$PWD/../zydis_wrapper/bin/x32$${DIR_SUFFIX}" -lzydis_wrapper
     LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x86
     LIBS += -L"$$PWD/../capstone_wrapper/bin/x32$${DIR_SUFFIX}" -lcapstone_wrapper
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x86
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x86
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
     # Windows x64 (64bit) specific build
+    LIBS += -L"$$PWD/../zydis_wrapper/bin/x64$${DIR_SUFFIX}" -lzydis_wrapper
     LIBS += -L"$$PWD/../capstone_wrapper/capstone" -lcapstone_x64
     LIBS += -L"$$PWD/../capstone_wrapper/bin/x64$${DIR_SUFFIX}" -lcapstone_wrapper
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x64
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x64
     LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
 }

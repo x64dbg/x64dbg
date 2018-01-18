@@ -38,7 +38,7 @@ void CalculatorDialog::validateExpression(QString expression)
 void CalculatorDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
-    mValidateThread->start(ui->txtExpression->text());
+    mValidateThread->start();
 }
 
 void CalculatorDialog::hideEvent(QHideEvent* event)
@@ -78,22 +78,23 @@ void CalculatorDialog::expressionChanged(bool validExpression, bool validPointer
         ui->txtBin->setText(inFormat(value, N_BIN));
         ui->txtBin->setCursorPosition(cursorpos);
         ui->txtOct->setText(inFormat(value, N_OCT));
-        if((value == (value & 0xFF)))
+        if(value == (value & 0xFF))
         {
-            QChar c = QChar::fromLatin1((char)value);
+            QChar c((ushort)value);
             if(c.isPrint())
-                ui->txtAscii->setText("'" + QString(c) + "'");
+                ui->txtAscii->setText(QString(c));
             else
                 ui->txtAscii->setText("???");
         }
         else
             ui->txtAscii->setText("???");
-        ui->txtAscii->setCursorPosition(1);
-        if((value == (value & 0xFFF)))  //UNICODE?
+        ui->txtAscii->setCursorPosition(0);
+        ui->txtAscii->selectAll();
+        if((value == (value & 0xFFFF))) //UNICODE?
         {
             QChar c = QChar((ushort)value);
             if(c.isPrint())
-                ui->txtUnicode->setText("L'" + QString(c) + "'");
+                ui->txtUnicode->setText(QString(c));
             else
                 ui->txtUnicode->setText("????");
         }
@@ -101,7 +102,8 @@ void CalculatorDialog::expressionChanged(bool validExpression, bool validPointer
         {
             ui->txtUnicode->setText("????");
         }
-        ui->txtUnicode->setCursorPosition(2);
+        ui->txtUnicode->setCursorPosition(0);
+        ui->txtUnicode->selectAll();
         emit validAddress(validPointer);
     }
 }
@@ -145,7 +147,7 @@ QString CalculatorDialog::inFormat(const duint val, CalculatorDialog::NUMBERFORM
     case N_OCT:
         return QString("%1").arg(val, 1, 8, QChar('0')).toUpper();
     case N_ASCII:
-        return QString("'%1'").arg((char)val);
+        return QString("%1").arg(QChar((ushort)val));
     }
 }
 
@@ -224,29 +226,29 @@ void CalculatorDialog::on_txtBin_textEdited(const QString & arg1)
 void CalculatorDialog::on_txtAscii_textEdited(const QString & arg1)
 {
     QString text = arg1;
-    text = text.replace("'", "");
-    if(text.length() > 1)
-    {
-        ui->txtAscii->setStyleSheet("border: 2px solid red");
-        return;
-    }
     ui->txtAscii->setStyleSheet("");
     ui->txtExpression->setText(QString().sprintf("%X", text[0].unicode()));
-    ui->txtAscii->setCursorPosition(1);
+    ui->txtAscii->setCursorPosition(0);
+    ui->txtAscii->selectAll();
 }
 
 void CalculatorDialog::on_txtUnicode_textEdited(const QString & arg1)
 {
     QString text = arg1;
-    text = text.replace("L'", "").replace("'", "");
-    if(text.length() > 1)
-    {
-        ui->txtUnicode->setStyleSheet("border: 2px solid red");
-        return;
-    }
     ui->txtUnicode->setStyleSheet("");
     ui->txtExpression->setText(QString().sprintf("%X", text[0].unicode()));
-    ui->txtUnicode->setCursorPosition(2);
+    ui->txtUnicode->setCursorPosition(0);
+    ui->txtUnicode->selectAll();
+}
+
+void CalculatorDialog::on_txtAscii_clicked()
+{
+    ui->txtAscii->selectAll();
+}
+
+void CalculatorDialog::on_txtUnicode_clicked()
+{
+    ui->txtUnicode->selectAll();
 }
 
 void CalculatorDialog::on_btnGotoDump_clicked()

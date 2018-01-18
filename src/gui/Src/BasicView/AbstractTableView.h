@@ -11,8 +11,8 @@
 #include "StringUtil.h"
 #include "Configuration.h"
 #include "MenuBuilder.h"
-#include "QActionLambda.h"
 #include "MiscUtil.h"
+#include "ActionHelpers.h"
 
 class CachedFontMetrics;
 
@@ -26,7 +26,8 @@ public:
     void leaveEvent(QEvent* event);
 };
 
-class AbstractTableView : public QAbstractScrollArea
+class AbstractTableView;
+class AbstractTableView : public QAbstractScrollArea, public ActionHelper<AbstractTableView>
 {
     Q_OBJECT
 
@@ -41,7 +42,6 @@ public:
     virtual void Initialize();
     virtual void updateColors();
     virtual void updateFonts();
-    virtual void updateShortcuts();
 
     // Pure Virtual Methods
     virtual QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) = 0;
@@ -94,8 +94,10 @@ public:
     int getRowHeight();
     int getColumnWidth(int index);
     void setColumnWidth(int index, int width);
+    void setColumnOrder(int pos, int index);
+    int getColumnOrder(int index);
     int getHeaderHeight();
-    int getTableHeigth();
+    int getTableHeight();
     int getGuiState();
     int getNbrOfLineToPrint();
     void setNbrOfLineToPrint(int parNbrOfLineToPrint);
@@ -224,10 +226,6 @@ protected:
     // Font metrics
     CachedFontMetrics* mFontMetrics;
     void invalidateCachedFont();
-
-    //action helpers
-protected:
-#include "ActionHelpers.h"
 };
 
 #endif // ABSTRACTTABLEVIEW_H

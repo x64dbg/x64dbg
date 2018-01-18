@@ -2,7 +2,8 @@
 #include "encodemap.h"
 #include "stringutils.h"
 #include "value.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
+#include <algorithm>
 
 std::unordered_map<ENCODETYPE, std::string> disasmMap;
 std::unordered_map<std::string, ENCODETYPE> assembleMap;
@@ -149,7 +150,7 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
     if(!parsedatainstruction(instruction, di))
     {
         if(di.operand.empty())
-            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "missing operand")));
+            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Missing operand")));
         return false;
     }
 
@@ -167,14 +168,14 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
         unsigned long long result = 0;
         if(!convertLongLongNumber(di.operand.c_str(), result, 16))
         {
-            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "failed to convert operand")));
+            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed to convert operand")));
             return false;
         }
         auto buf = (char*)&result;
         for(auto i = retsize; i < sizeof(result); i++)
             if(buf[i])
             {
-                strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "operand value too big")));
+                strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Operand value too big")));
                 return false;
             }
         buffer = String(buf, retsize);
@@ -187,15 +188,15 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
         std::vector<unsigned char> data;
         if(!StringUtils::FromHex(StringUtils::PadLeft(di.operand, retsize * 2, '0'), data, true))
         {
-            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid operand (FromHex failed)")));
+            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid operand (FromHex failed)")));
             return false;
         }
         if(data.size() != retsize)
         {
 #ifdef _WIN64
-            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid size (expected %llu, got %llu)")), retsize, data.size());
+            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid size (expected %llu, got %llu)")), retsize, data.size());
 #else //x86
-            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid size (expected %u, got %u)")), retsize, data.size());
+            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid size (expected %u, got %u)")), retsize, data.size());
 #endif //_WIN64
             return false;
         }
@@ -210,15 +211,15 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
         std::vector<unsigned char> data;
         if(!StringUtils::FromHex(StringUtils::PadLeft(di.operand, retsize * 2, '0'), data, false))
         {
-            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid operand (FromHex failed)")));
+            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid operand (FromHex failed)")));
             return false;
         }
         if(data.size() != retsize)
         {
 #ifdef _WIN64
-            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid size (expected %llu, got %llu)")), retsize, data.size());
+            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid size (expected %llu, got %llu)")), retsize, data.size());
 #else //x86
-            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid size (expected %u, got %u)")), retsize, data.size());
+            sprintf_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid size (expected %u, got %u)")), retsize, data.size());
 #endif //_WIN64
             return false;
         }
@@ -251,12 +252,12 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
         String unescaped;
         if(!StringUtils::Unescape(di.operand, unescaped))
         {
-            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid string literal")));
+            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid string literal")));
             return false;
         }
         if(unescaped.size() > size_t(destsize))
         {
-            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "string too long")));
+            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String too long")));
             if(size)
             {
                 *size = int(unescaped.size());  //return correct size
@@ -274,14 +275,14 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
         String unescaped;
         if(!StringUtils::Unescape(di.operand, unescaped))
         {
-            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid string literal")));
+            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid string literal")));
             return false;
         }
         WString unicode = StringUtils::Utf8ToUtf16(unescaped);
 
         if(unicode.size()*sizeof(wchar_t) > size_t(destsize))
         {
-            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "string too long")));
+            strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String too long")));
             if(size)
             {
                 retsize = unicode.size() * 2; //return correct size
@@ -301,7 +302,7 @@ bool tryassembledata(duint addr, unsigned char* dest, int destsize, int* size, c
 
     if(retsize > size_t(destsize))
     {
-        strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "dest buffer too small")));
+        strcpy_s(error, MAX_ERROR_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Dest buffer too small")));
         return false;
     }
 

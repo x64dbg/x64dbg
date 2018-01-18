@@ -19,9 +19,6 @@ public:
 protected:
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
 
-public slots:
-    void disassembleAtSlot(dsint va, dsint cip);
-
 private:
     QColor mCipBackgroundColor;
     QColor mCipColor;
@@ -37,7 +34,8 @@ private:
     QColor mSelectedAddressColor;
     QColor mAddressBackgroundColor;
     QColor mAddressColor;
-    duint mCip;
+    QColor mTracedBackgroundColor;
+    QColor mTracedSelectedAddressBackgroundColor;
     bool bCipBase;
 };
 

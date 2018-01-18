@@ -3,15 +3,15 @@
 
 static const char* flagTable[] =
 {
-    "ZF",
-    "OF",
-    "CF",
-    "PF",
-    "SF",
-    "TF",
-    "AF",
-    "DF",
-    "IF"
+    "_ZF",
+    "_OF",
+    "_CF",
+    "_PF",
+    "_SF",
+    "_TF",
+    "_AF",
+    "_DF",
+    "_IF"
 };
 
 SCRIPT_EXPORT bool Script::Flag::Get(FlagEnum flag)

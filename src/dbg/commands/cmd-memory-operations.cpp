@@ -5,16 +5,18 @@
 #include "variable.h"
 #include "filehelper.h"
 #include "value.h"
+#include "stringformat.h"
+#include "comment.h"
 
-CMDRESULT cbDebugAlloc(int argc, char* argv[])
+bool cbDebugAlloc(int argc, char* argv[])
 {
     duint size = 0x1000, addr = 0;
     if(argc > 1)
         if(!valfromstring(argv[1], &size, false))
-            return STATUS_ERROR;
+            return false;
     if(argc > 2)
         if(!valfromstring(argv[2], &addr, false))
-            return STATUS_ERROR;
+            return false;
     duint mem = (duint)MemAllocRemote(addr, size);
     if(!mem)
         dputs(QT_TRANSLATE_NOOP("DBG", "VirtualAllocEx failed"));
@@ -22,15 +24,17 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
         dprintf("%p\n", mem);
     if(mem)
         varset("$lastalloc", mem, true);
+    if(mem)
+        CommentSet(mem, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "User-allocated memory")), true);
     //update memory map
     MemUpdateMap();
     GuiUpdateMemoryView();
 
     varset("$res", mem, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugFree(int argc, char* argv[])
+bool cbDebugFree(int argc, char* argv[])
 {
     duint lastalloc;
     varget("$lastalloc", &lastalloc, 0, 0);
@@ -38,12 +42,12 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
     if(argc > 1)
     {
         if(!valfromstring(argv[1], &addr, false))
-            return STATUS_ERROR;
+            return false;
     }
     else if(!lastalloc)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "$lastalloc is zero, provide a page address"));
-        return STATUS_ERROR;
+        return false;
     }
     if(addr == lastalloc)
         varset("$lastalloc", (duint)0, true);
@@ -55,25 +59,22 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
     GuiUpdateMemoryView();
 
     varset("$res", ok, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugMemset(int argc, char* argv[])
+bool cbDebugMemset(int argc, char* argv[])
 {
     duint addr;
     duint value;
     duint size;
-    if(argc < 3)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments"));
-        return STATUS_ERROR;
-    }
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
     if(!valfromstring(argv[1], &addr, false) || !valfromstring(argv[2], &value, false))
-        return STATUS_ERROR;
+        return false;
     if(argc > 3)
     {
         if(!valfromstring(argv[3], &size, false))
-            return STATUS_ERROR;
+            return false;
     }
     else
     {
@@ -81,7 +82,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
         if(!base)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Invalid address specified"));
-            return STATUS_ERROR;
+            return false;
         }
         duint diff = addr - base;
         addr = base + diff;
@@ -92,10 +93,10 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Memset failed"));
     else
         dprintf(QT_TRANSLATE_NOOP("DBG", "Memory %p (size: %.8X) set to %.2X\n"), addr, DWORD(size & 0xFFFFFFFF), BYTE(value & 0xFF));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
+bool cbDebugGetPageRights(int argc, char* argv[])
 {
     duint addr = 0;
     char rights[RIGHTS_STRING_SIZE];
@@ -103,21 +104,21 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
     if(argc != 2 || !valfromstring(argv[1], &addr))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error: using an address as arg1\n"));
-        return STATUS_ERROR;
+        return false;
     }
 
     if(!MemGetPageRights(addr, rights))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting rights of page: %s\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "Page: %p, Rights: %s\n"), addr, rights);
 
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
+bool cbDebugSetPageRights(int argc, char* argv[])
 {
     duint addr = 0;
     char rights[RIGHTS_STRING_SIZE];
@@ -125,19 +126,19 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
     if(argc < 3 || !valfromstring(argv[1], &addr))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error: Using an address as arg1 and as arg2: Execute, ExecuteRead, ExecuteReadWrite, ExecuteWriteCopy, NoAccess, ReadOnly, ReadWrite, WriteCopy. You can add a G at first for add PAGE GUARD, example: GReadOnly\n"));
-        return STATUS_ERROR;
+        return false;
     }
 
     if(!MemSetPageRights(addr, argv[2]))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error: Set rights of %p with Rights: %s\n"), addr, argv[2]);
-        return STATUS_ERROR;
+        return false;
     }
 
     if(!MemGetPageRights(addr, rights))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting rights of page: %s\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
 
     //update the memory map
@@ -146,38 +147,38 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "New rights of %p: %s\n"), addr, rights);
 
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrSavedata(int argc, char* argv[])
+bool cbInstrSavedata(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 4))
-        return STATUS_ERROR;
+        return false;
     duint addr, size;
     if(!valfromstring(argv[2], &addr, false) || !valfromstring(argv[3], &size, false))
-        return STATUS_ERROR;
+        return false;
 
     Memory<unsigned char*> data(size);
     if(!MemRead(addr, data(), data.size()))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read memory..."));
-        return STATUS_ERROR;
+        return false;
     }
 
-    String name = argv[1];
+    String name = stringformatinline(argv[1]);
     if(name == ":memdump:")
         name = StringUtils::sprintf("%s\\memdumps\\memdump_%X_%p_%x.bin", szProgramDir, fdProcessInfo->dwProcessId, addr, size);
 
     if(!FileHelper::WriteAllData(name, data(), data.size()))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to write file..."));
-        return STATUS_ERROR;
+        return false;
     }
 #ifdef _WIN64
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% llX] written to \"%s\" !\n"), addr, size, name.c_str());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[%llX] written to \"%s\" !\n"), addr, size, name.c_str());
 #else //x86
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[% X] written to \"%s\" !\n"), addr, size, name.c_str());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%p[%X] written to \"%s\" !\n"), addr, size, name.c_str());
 #endif
 
-    return STATUS_CONTINUE;
+    return true;
 }

@@ -15,6 +15,9 @@
 #include "expressionparser.h"
 #include "function.h"
 #include "threading.h"
+#include "TraceRecord.h"
+#include "plugin_loader.h"
+#include "exception.h"
 
 static bool dosignedcalc = false;
 
@@ -173,11 +176,30 @@ static bool isregister(const char* string)
     if(scmp(string, "dr7") || scmp(string, "dr5"))
         return true;
 
+    if(scmp(string, "cax"))
+        return true;
+    if(scmp(string, "cbx"))
+        return true;
+    if(scmp(string, "ccx"))
+        return true;
+    if(scmp(string, "cdx"))
+        return true;
+    if(scmp(string, "csi"))
+        return true;
+    if(scmp(string, "cdi"))
+        return true;
     if(scmp(string, "cip"))
         return true;
     if(scmp(string, "csp"))
         return true;
+    if(scmp(string, "cbp"))
+        return true;
     if(scmp(string, "cflags"))
+        return true;
+
+    if(scmp(string, "lasterror"))
+        return true;
+    if(scmp(string, "laststatus"))
         return true;
 
     if(scmp(string, "gs"))
@@ -363,7 +385,7 @@ bool valmxcsrflagfromstring(duint mxcsrflags, const char* string)
 #define x87STATUSWORD_FLAG_U 0x10
 #define x87STATUSWORD_FLAG_P 0x20
 #define x87STATUSWORD_FLAG_SF 0x40
-#define x87STATUSWORD_FLAG_IR 0x80
+#define x87STATUSWORD_FLAG_ES 0x80
 #define x87STATUSWORD_FLAG_C0 0x100
 #define x87STATUSWORD_FLAG_C1 0x200
 #define x87STATUSWORD_FLAG_C2 0x400
@@ -388,7 +410,7 @@ static unsigned int getx87statuswordflagfromstring(const char* string)
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(U),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(P),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(SF),
-        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(IR),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(ES),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C0),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C1),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C2),
@@ -684,6 +706,20 @@ duint getregister(int* size, const char* string)
         return GetContextDataEx(hActiveThread, UE_SEG_SS);
     }
 
+    if(scmp(string, "lasterror"))
+    {
+        duint error = 0;
+        MemReadUnsafe((duint)GetTEBLocation(hActiveThread) + ArchValue(0x34, 0x68), &error, 4);
+        return error;
+    }
+
+    if(scmp(string, "laststatus"))
+    {
+        duint status = 0;
+        MemReadUnsafe((duint)GetTEBLocation(hActiveThread) + ArchValue(0xBF4, 0x1250), &status, 4);
+        return status;
+    }
+
     if(size)
         *size = 2;
     if(scmp(string, "ax"))
@@ -852,6 +888,54 @@ duint getregister(int* size, const char* string)
         return GetContextDataEx(hActiveThread, UE_DR7);
     }
 
+    if(scmp(string, "cax"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RAX);
+#else
+        return GetContextDataEx(hActiveThread, UE_EAX);
+#endif //_WIN64
+    }
+    if(scmp(string, "cbx"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RBX);
+#else
+        return GetContextDataEx(hActiveThread, UE_EBX);
+#endif //_WIN64
+    }
+    if(scmp(string, "ccx"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RCX);
+#else
+        return GetContextDataEx(hActiveThread, UE_ECX);
+#endif //_WIN64
+    }
+    if(scmp(string, "cdx"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RDX);
+#else
+        return GetContextDataEx(hActiveThread, UE_EDX);
+#endif //_WIN64
+    }
+    if(scmp(string, "csi"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RSI);
+#else
+        return GetContextDataEx(hActiveThread, UE_ESI);
+#endif //_WIN64
+    }
+    if(scmp(string, "cdi"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RDI);
+#else
+        return GetContextDataEx(hActiveThread, UE_EDI);
+#endif //_WIN64
+    }
     if(scmp(string, "cip"))
     {
         return GetContextDataEx(hActiveThread, UE_CIP);
@@ -859,6 +943,14 @@ duint getregister(int* size, const char* string)
     if(scmp(string, "csp"))
     {
         return GetContextDataEx(hActiveThread, UE_CSP);
+    }
+    if(scmp(string, "cbp"))
+    {
+#ifdef _WIN64
+        return GetContextDataEx(hActiveThread, UE_RBP);
+#else
+        return GetContextDataEx(hActiveThread, UE_EBP);
+#endif //_WIN64
     }
     if(scmp(string, "cflags"))
     {
@@ -1081,6 +1173,11 @@ bool setregister(const char* string, duint value)
     if(scmp(string, "eflags"))
         return SetContextDataEx(hActiveThread, UE_EFLAGS, value & 0xFFFFFFFF);
 
+    if(scmp(string, "lasterror"))
+        return MemWrite((duint)GetTEBLocation(hActiveThread) + ArchValue(0x34, 0x68), &value, 4);
+    if(scmp(string, "laststatus"))
+        return MemWrite((duint)GetTEBLocation(hActiveThread) + ArchValue(0xBF4, 0x1250), &value, 4);
+
     if(scmp(string, "gs"))
         return SetContextDataEx(hActiveThread, UE_SEG_GS, value & 0xFFFF);
     if(scmp(string, "fs"))
@@ -1163,10 +1260,52 @@ bool setregister(const char* string, duint value)
     if(scmp(string, "dr7") || scmp(string, "dr5"))
         return SetContextDataEx(hActiveThread, UE_DR7, value);
 
+    if(scmp(string, "cax"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RAX, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_EAX, value);
+#endif //_WIN64
+    if(scmp(string, "cbx"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RBX, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_EBX, value);
+#endif //_WIN64
+    if(scmp(string, "ccx"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RCX, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_ECX, value);
+#endif //_WIN64
+    if(scmp(string, "cdx"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RDX, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_EDX, value);
+#endif //_WIN64
+    if(scmp(string, "csi"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RSI, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_ESI, value);
+#endif //_WIN64
+    if(scmp(string, "cdi"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RDI, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_EDI, value);
+#endif //_WIN64
     if(scmp(string, "cip"))
         return SetContextDataEx(hActiveThread, UE_CIP, value);
     if(scmp(string, "csp"))
         return SetContextDataEx(hActiveThread, UE_CSP, value);
+    if(scmp(string, "cbp"))
+#ifdef _WIN64
+        return SetContextDataEx(hActiveThread, UE_RBP, value);
+#else
+        return SetContextDataEx(hActiveThread, UE_EBP, value);
+#endif //_WIN64
     if(scmp(string, "cflags"))
         return SetContextDataEx(hActiveThread, UE_CFLAGS, value);
 
@@ -1262,6 +1401,18 @@ bool setregister(const char* string, duint value)
     return false;
 }
 
+duint SafeGetProcAddress(HMODULE hModule, const char* lpProcName)
+{
+    __try
+    {
+        return duint(GetProcAddress(hModule, lpProcName));
+    }
+    __except(EXCEPTION_EXECUTE_HANDLER)
+    {
+        return 0;
+    }
+}
+
 /**
 \brief Gets the address of an API from a name.
 \param name The name of the API, see the command help for more information about valid constructions.
@@ -1277,7 +1428,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
     if(!value || !DbgIsDebugging())
         return false;
     //explicit API handling
-    const char* apiname = strchr(name, ':'); //the ':' character cannot be in a path: http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#naming_conventions
+    const char* apiname = strchr(name, ':'); //the ':' character cannot be in a path: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#naming_conventions
     bool noexports = false;
     if(!apiname) //not found
     {
@@ -1308,23 +1459,23 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         if(!strlen(apiname))
             return false;
         duint modbase = ModBaseFromName(modname);
-        wchar_t szModName[MAX_PATH] = L"";
-        if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
+        char szModPath[MAX_PATH];
+        if(!ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         {
             if(!silent)
-                dprintf(QT_TRANSLATE_NOOP("DBG", "could not get filename of module %p\n"), modbase);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get filename of module %p\n"), modbase);
         }
         else
         {
-            HMODULE mod = LoadLibraryExW(szModName, 0, DONT_RESOLVE_DLL_REFERENCES);
+            HMODULE mod = LoadLibraryExW(StringUtils::Utf8ToUtf16(szModPath).c_str(), 0, DONT_RESOLVE_DLL_REFERENCES);
             if(!mod)
             {
                 if(!silent)
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "unable to load library %s\n"), StringUtils::Utf16ToUtf8(szModName).c_str());
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to load library %s\n"), szModPath);
             }
             else
             {
-                duint addr = noexports ? 0 : (duint)GetProcAddress(mod, apiname);
+                duint addr = noexports ? 0 : SafeGetProcAddress(mod, apiname);
                 if(addr) //found exported function
                     addr = modbase + (addr - (duint)mod); //correct for loaded base
                 else //not found
@@ -1349,7 +1500,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                     {
                         if(noexports) //get the exported functions with the '?' delimiter
                         {
-                            addr = (duint)GetProcAddress(mod, apiname);
+                            addr = SafeGetProcAddress(mod, apiname);
                             if(addr) //found exported function
                                 addr = modbase + (addr - (duint)mod); //correct for loaded base
                         }
@@ -1361,7 +1512,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                                 radix = 10, apiname++;
                             if(convertNumber(apiname, ordinal, radix) && ordinal <= 0xFFFF)
                             {
-                                addr = duint(GetProcAddress(mod, LPCSTR(ordinal)));
+                                addr = SafeGetProcAddress(mod, LPCSTR(ordinal));
                                 if(addr) //found exported function
                                     addr = modbase + (addr - (duint)mod); //correct for loaded base
                                 else if(!ordinal) //support for getting the image base using <modname>:0
@@ -1406,7 +1557,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
                         HMODULE hModule = LoadLibraryExW(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES);
                         if(hModule)
                         {
-                            ULONG_PTR funcAddress = (ULONG_PTR)GetProcAddress(hModule, name);
+                            duint funcAddress = SafeGetProcAddress(hModule, name);
                             if(funcAddress)
                             {
                                 if(!_wcsicmp(szBaseName, L"kernel32.dll"))
@@ -1554,21 +1705,20 @@ static bool isdigitduint(char digit)
 */
 bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
-    if(!value || !string)
+    if(!value || !string || !*string)
         return false;
-    if(!*string)
-    {
-        *value = 0;
-        return true;
-    }
-    else if(string[0] == '['
+
+    if(string[0] == '['
             || (isdigitduint(string[0]) && string[1] == ':' && string[2] == '[')
-            || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[')) //memory location
+            || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[') //memory location
+            || strstr(string, "byte:[")
+            || strstr(string, "word:[")
+      )
     {
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging"));
             *value = 0;
             if(value_size)
                 *value_size = 0;
@@ -1581,7 +1731,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         int read_size = sizeof(duint);
         int prefix_size = 1;
         size_t seg_offset = 0;
-        if(string[1] == ':')   //n:[ (number of bytes to read)
+        if(string[1] == ':') //n:[ (number of bytes to read)
         {
             prefix_size = 3;
             int new_size = string[0] - '0';
@@ -1591,7 +1741,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         else if(string[1] == 's' && string[2] == ':')
         {
             prefix_size = 4;
-            if(string[0] == 'f')  // fs:[...]
+            if(string[0] == 'f') // fs:[...]
             {
                 // TODO: get real segment offset instead of assuming them
 #ifdef _WIN64
@@ -1600,7 +1750,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
                 seg_offset = (size_t)GetTEBLocation(hActiveThread);
 #endif //_WIN64
             }
-            else if(string[0] == 'g')  // gs:[...]
+            else if(string[0] == 'g') // gs:[...]
             {
 #ifdef _WIN64
                 seg_offset = (size_t)GetTEBLocation(hActiveThread);
@@ -1609,6 +1759,58 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
 #endif //_WIN64
             }
         }
+        else if(string[0] == 'b'
+                && string[1] == 'y'
+                && string[2] == 't'
+                && string[3] == 'e'
+                && string[4] == ':'
+               ) // byte:[...]
+        {
+            prefix_size = 6;
+            int new_size = 1;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+        else if(string[0] == 'w'
+                && string[1] == 'o'
+                && string[2] == 'r'
+                && string[3] == 'd'
+                && string[4] == ':'
+               ) // word:[...]
+        {
+            prefix_size = 6;
+            int new_size = 2;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+        else if(string[0] == 'd'
+                && string[1] == 'w'
+                && string[2] == 'o'
+                && string[3] == 'r'
+                && string[4] == 'd'
+                && string[5] == ':'
+               ) // dword:[...]
+        {
+            prefix_size = 7;
+            int new_size = 4;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+#ifdef _WIN64
+        else if(string[0] == 'q'
+                && string[1] == 'w'
+                && string[2] == 'o'
+                && string[3] == 'r'
+                && string[4] == 'd'
+                && string[5] == ':'
+               ) // qword:[...]
+        {
+            prefix_size = 7;
+            int new_size = 8;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+#endif //_WIN64
 
         String ptrstring;
         for(auto i = prefix_size, depth = 1; i < len; i++)
@@ -1624,10 +1826,10 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             ptrstring += string[i];
         }
 
-        if(!valfromstring(ptrstring.c_str(), value, silent, baseonly))
+        if(!valfromstring(ptrstring.c_str(), value, silent))
         {
             if(!silent)
-                dprintf(QT_TRANSLATE_NOOP("DBG", "noexpr failed on %s\n"), ptrstring.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "valfromstring_noexpr failed on %s\n"), ptrstring.c_str());
             return false;
         }
         duint addr = *value;
@@ -1635,7 +1837,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         if(!MemRead(addr + seg_offset, value, read_size))
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "failed to read memory"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read memory"));
             return false;
         }
         if(value_size)
@@ -1644,18 +1846,18 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(varget(string, value, value_size, 0))    //then come variables
+    else if(varget(string, value, value_size, 0)) //then come variables
     {
         if(isvar)
             *isvar = true;
         return true;
     }
-    else if(isregister(string))  //register
+    else if(isregister(string)) //register
     {
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging!"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
             *value = 0;
             if(value_size)
                 *value_size = 0;
@@ -1668,12 +1870,12 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(*string == '_' && isflag(string + 1))  //flag
+    else if(*string == '_' && isflag(string + 1)) //flag
     {
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging"));
             *value = 0;
             if(value_size)
                 *value_size = 0;
@@ -1692,7 +1894,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if(isdecnumber(string))  //decimal numbers come 'first'
+    else if(isdecnumber(string)) //decimal numbers come 'first'
     {
         if(value_size)
             *value_size = 0;
@@ -1700,7 +1902,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = false;
         return convertNumber(string + 1, *value, 10);
     }
-    else if(ishexnumber(string))  //then hex numbers
+    else if(ishexnumber(string)) //then hex numbers
     {
         if(value_size)
             *value_size = 0;
@@ -1712,28 +1914,53 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             inc = 1;
         return convertNumber(string + inc, *value, 16);
     }
-    if(baseonly)
-        return false;
+
     if(isvar)
         *isvar = false;
-    if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
+    if(hexonly)
+        *hexonly = true;
+    if(value_size)
+        *value_size = sizeof(duint);
+
+    if(ConstantFromName(string, *value))
         return true;
-    else if(LabelFromString(string, value))  //then come labels
+
+    PLUG_CB_VALFROMSTRING info;
+    info.string = string;
+    info.value = 0;
+    info.value_size = value_size;
+    info.isvar = isvar;
+    info.hexonly = hexonly;
+    info.retval = false;
+    plugincbcall(CB_VALFROMSTRING, &info);
+    if(info.retval)
+    {
+        *value = info.value;
         return true;
-    else if(SymAddrFromName(string, value))  //then come symbols
+    }
+
+    if(baseonly)
+        return false;
+
+    if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
         return true;
-    else if(strstr(string, "sub_") == string)  //then come sub_ functions
+    else if(LabelFromString(string, value)) //then come labels
+        return true;
+    else if(SymAddrFromName(string, value)) //then come symbols
+        return true;
+    else if(strstr(string, "sub_") == string) //then come sub_ functions
     {
 #ifdef _WIN64
-        bool result = sscanf(string, "sub_%llX", value) == 1;
+        bool result = sscanf_s(string, "sub_%llX", value) == 1;
 #else //x86
-        bool result = sscanf(string, "sub_%X", value) == 1;
+        bool result = sscanf_s(string, "sub_%X", value) == 1;
 #endif //_WIN64
         duint start;
         return result && FunctionGet(*value, &start, nullptr) && *value == start;
     }
+
     if(!silent)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid value: \"%s\"!\n"), string);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid value: \"%s\"!\n"), string);
     return false; //nothing was OK
 }
 
@@ -1774,7 +2001,7 @@ bool valfromstring(const char* string, duint* value, bool silent, bool baseonly,
 static bool longEnough(const char* str, size_t min_length)
 {
     size_t length = 0;
-    while(str[length] && length < min_length)
+    while(length < min_length && str[length])
         length++;
     if(length == min_length)
         return true;
@@ -1790,7 +2017,7 @@ static bool longEnough(const char* str, size_t min_length)
 static bool startsWith(const char* pre, const char* str)
 {
     size_t lenpre = strlen(pre);
-    return longEnough(str, lenpre) ? StrNCmpI(str, pre, (int) lenpre) == 0 : false;
+    return longEnough(str, lenpre) ? _strnicmp(str, pre, (int) lenpre) == 0 : false;
 }
 
 #define MxCsr_PRE_FIELD_STRING "MxCsr_"
@@ -2200,54 +2427,127 @@ bool valtostring(const char* string, duint value, bool silent)
 {
     if(!*string)
         return false;
-    else if(*string == '@' || strstr(string, "[")) //memory location
+    if(string[0] == '['
+            || (isdigitduint(string[0]) && string[1] == ':' && string[2] == '[')
+            || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[') //memory location
+            || strstr(string, "byte:[")
+            || strstr(string, "word:[")
+      )
     {
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging"));
             return false;
         }
         int len = (int)strlen(string);
-        Memory<char*> newstring(len * 2, "valfromstring:newstring");
-        if(strstr(string, "[")) //memory brackets: []
-        {
-            for(int i = 0, j = 0; i < len; i++)
-            {
-                if(string[i] == ']')
-                    j += sprintf(newstring() + j, ")");
-                else if(isdigit(string[i]) && string[i + 1] == ':' && string[i + 2] == '[') //n:[
-                {
-                    j += sprintf(newstring() + j, "@%c:(", string[i]);
-                    i += 2;
-                }
-                else if(string[i] == '[')
-                    j += sprintf(newstring() + j, "@(");
-                else
-                    j += sprintf(newstring() + j, "%c", string[i]);
-            }
-        }
-        else
-            strcpy_s(newstring(), len * 2, string);
+
         int read_size = sizeof(duint);
-        int add = 1;
-        if(newstring()[2] == ':' && isdigit((newstring()[1])))
+        int prefix_size = 1;
+        size_t seg_offset = 0;
+        if(string[1] == ':') //n:[ (number of bytes to read)
         {
-            add += 2;
-            int new_size = newstring()[1] - 0x30;
+            prefix_size = 3;
+            int new_size = string[0] - '0';
             if(new_size < read_size)
                 read_size = new_size;
         }
-        duint temp;
-        if(!valfromstring(newstring() + add, &temp, silent, false))
+        else if(string[1] == 's' && string[2] == ':')
         {
-            return false;
+            prefix_size = 4;
+            if(string[0] == 'f') // fs:[...]
+            {
+                // TODO: get real segment offset instead of assuming them
+#ifdef _WIN64
+                seg_offset = 0;
+#else //x86
+                seg_offset = (size_t)GetTEBLocation(hActiveThread);
+#endif //_WIN64
+            }
+            else if(string[0] == 'g') // gs:[...]
+            {
+#ifdef _WIN64
+                seg_offset = (size_t)GetTEBLocation(hActiveThread);
+#else //x86
+                seg_offset = 0;
+#endif //_WIN64
+            }
         }
+        else if(string[0] == 'b'
+                && string[1] == 'y'
+                && string[2] == 't'
+                && string[3] == 'e'
+                && string[4] == ':'
+               ) // byte:[...]
+        {
+            prefix_size = 6;
+            int new_size = 1;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+        else if(string[0] == 'w'
+                && string[1] == 'o'
+                && string[2] == 'r'
+                && string[3] == 'd'
+                && string[4] == ':'
+               ) // word:[...]
+        {
+            prefix_size = 6;
+            int new_size = 2;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+        else if(string[0] == 'd'
+                && string[1] == 'w'
+                && string[2] == 'o'
+                && string[3] == 'r'
+                && string[4] == 'd'
+                && string[5] == ':'
+               ) // dword:[...]
+        {
+            prefix_size = 7;
+            int new_size = 4;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+#ifdef _WIN64
+        else if(string[0] == 'q'
+                && string[1] == 'w'
+                && string[2] == 'o'
+                && string[3] == 'r'
+                && string[4] == 'd'
+                && string[5] == ':'
+               ) // qword:[...]
+        {
+            prefix_size = 7;
+            int new_size = 8;
+            if(new_size < read_size)
+                read_size = new_size;
+        }
+#endif //_WIN64
+
+        String ptrstring;
+        for(auto i = prefix_size, depth = 1; i < len; i++)
+        {
+            if(string[i] == '[')
+                depth++;
+            else if(string[i] == ']')
+            {
+                depth--;
+                if(!depth)
+                    break;
+            }
+            ptrstring += string[i];
+        }
+
+        duint temp;
+        if(!valfromstring(ptrstring.c_str(), &temp, silent))
+            return false;
         duint value_ = value;
-        if(!MemPatch(temp, &value_, read_size))
+        if(!MemPatch(temp + seg_offset, &value_, read_size))
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "failed to write memory"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Failed to write memory"));
             return false;
         }
         GuiUpdateAllViews(); //repaint gui
@@ -2259,16 +2559,20 @@ bool valtostring(const char* string, duint value, bool silent)
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging!"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
             return false;
         }
         bool ok = setregister(string, value);
         int len = (int)strlen(string);
         Memory<char*> regName(len + 1, "valtostring:regname");
         strcpy_s(regName(), len + 1, string);
-        _strlwr(regName());
+        _strlwr_s(regName(), regName.size());
         if(strstr(regName(), "ip"))
-            DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), false); //update disassembly + register view
+        {
+            auto cip = GetContextDataEx(hActiveThread, UE_CIP);
+            _dbg_dbgtraceexecute(cip);
+            DebugUpdateGuiAsync(cip, false); //update disassembly + register view
+        }
         else if(strstr(regName(), "sp")) //update stack
         {
             duint csp = GetContextDataEx(hActiveThread, UE_CSP);
@@ -2279,12 +2583,12 @@ bool valtostring(const char* string, duint value, bool silent)
             GuiUpdateAllViews(); //repaint gui
         return ok;
     }
-    else if(*string == '_' && isflag(string + 1))  //flag
+    else if(*string == '_' && isflag(string + 1)) //flag
     {
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging"));
             return false;
         }
         bool set = false;
@@ -2299,13 +2603,22 @@ bool valtostring(const char* string, duint value, bool silent)
         if(!DbgIsDebugging())
         {
             if(!silent)
-                dputs(QT_TRANSLATE_NOOP("DBG", "not debugging!"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
             return false;
         }
         setfpuvalue(string + 1, value);
         GuiUpdateAllViews(); //repaint gui
         return true;
     }
+
+    PLUG_CB_VALTOSTRING info;
+    info.string = string;
+    info.value = value;
+    info.retval = false;
+    plugincbcall(CB_VALTOSTRING, &info);
+    if(info.retval)
+        return true;
+
     return varset(string, value, false); //variable
 }
 

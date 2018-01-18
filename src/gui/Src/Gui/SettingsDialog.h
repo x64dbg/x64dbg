@@ -53,16 +53,28 @@ private slots:
     void on_chkSkipInt3Stepping_toggled(bool checked);
     void on_chkNoScriptTimeout_stateChanged(int arg1);
     void on_chkIgnoreInconsistentBreakpoints_toggled(bool checked);
+    void on_chkHardcoreThreadSwitchWarning_toggled(bool checked);
+    void on_chkVerboseExceptionLogging_toggled(bool checked);
+    void on_chkNoWow64SingleStepWorkaround_toggled(bool checked);
+    void on_spinMaxTraceCount_valueChanged(int arg1);
     //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
     void on_btnAddLast_clicked();
     //Disasm tab
     void on_chkArgumentSpaces_stateChanged(int arg1);
+    void on_chkHidePointerSizes_stateChanged(int arg1);
+    void on_chkHideNormalSegments_stateChanged(int arg1);
     void on_chkMemorySpaces_stateChanged(int arg1);
     void on_chkUppercase_stateChanged(int arg1);
     void on_chkOnlyCipAutoComments_stateChanged(int arg1);
     void on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1);
+    void on_chkNoHighlightOperands_toggled(bool checked);
+    void on_chkNoCurrentModuleText_toggled(bool checked);
+    void on_chkPermanentHighlightingMode_toggled(bool checked);
+    void on_chk0xPrefixValues_toggled(bool checked);
+    void on_chkNoSourceLinesAutoComments_toggled(bool checked);
+    void on_spinMaximumModuleNameSize_valueChanged(int arg1);
     //Gui Tab
     void on_chkFpuRegistersLittleEndian_stateChanged(int arg1);
     void on_chkSaveColumnOrder_stateChanged(int arg1);
@@ -71,11 +83,18 @@ private slots:
     void on_chkPidInHex_clicked(bool checked);
     void on_chkSidebarWatchLabels_stateChanged(int arg1);
     void on_chkNoForegroundWindow_toggled(bool checked);
+    void on_chkShowExitConfirmation_toggled(bool checked);
+    void on_chkDisableAutoComplete_toggled(bool checked);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
+    void on_chkUtf16LogRedirect_toggled(bool checked);
+    void on_chkShowGraphRva_toggled(bool checked);
+    void on_chkUseLocalHelpFile_toggled(bool checked);
+    void on_chkQueryProcessCookie_toggled(bool checked);
+    void on_chkQueryWorkingSet_toggled(bool checked);
 
 private:
     //enums
@@ -133,14 +152,26 @@ private:
         bool engineSkipInt3Stepping;
         bool engineNoScriptTimeout;
         bool engineIgnoreInconsistentBreakpoints;
+        bool engineHardcoreThreadSwitchWarning;
+        bool engineVerboseExceptionLogging;
+        bool engineNoWow64SingleStepWorkaround;
+        int engineMaxTraceCount;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
         //Disasm Tab
         bool disasmArgumentSpaces;
         bool disasmMemorySpaces;
+        bool disasmHidePointerSizes;
+        bool disasmHideNormalSegments;
         bool disasmUppercase;
         bool disasmOnlyCipAutoComments;
         bool disasmTabBetweenMnemonicAndArguments;
+        bool disasmNoHighlightOperands;
+        bool disasmNoCurrentModuleText;
+        bool disasmPermanentHighlightingMode;
+        bool disasm0xPrefixValues;
+        bool disasmNoSourceLineAutoComments;
+        int disasmMaxModuleSize;
         //Gui Tab
         bool guiFpuRegistersLittleEndian;
         bool guiSaveColumnOrder;
@@ -148,12 +179,19 @@ private:
         bool guiPidInHex;
         bool guiSidebarWatchLabels;
         bool guiNoForegroundWindow;
+        bool guiLoadSaveTabOrder;
+        bool guiShowGraphRva;
+        bool guiShowExitConfirmation;
+        bool guiDisableAutoComplete;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;
         bool miscSymbolStore;
         bool miscSymbolCache;
-        bool miscLoadSaveTabOrder;
+        bool miscUtf16LogRedirect;
+        bool miscUseLocalHelpFile;
+        bool miscQueryProcessCookie;
+        bool miscQueryWorkingSet;
     };
 
     //variables
@@ -163,6 +201,7 @@ private:
     bool bJitOld;
     bool bJitAutoOld;
     bool bTokenizerConfigUpdated;
+    bool bDisableAutoCompleteUpdated;
 
     //functions
     void GetSettingBool(const char* section, const char* name, bool* set);

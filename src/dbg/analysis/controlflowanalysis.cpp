@@ -150,25 +150,25 @@ void ControlFlowAnalysis::BasicBlockStarts()
                     mBlockStarts.insert(addr);
                 }
             }
-            else if(mCp.InGroup(CS_GRP_RET)) //RET breaks control flow
+            else if(mCp.IsRet()) //RET breaks control flow
             {
                 bSkipFilling = true; //skip INT3/NOP/whatever filling bytes (those are not part of the control flow)
             }
-            else if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())   //branches
+            else if(mCp.IsJump() || mCp.IsLoop()) //branches
             {
                 auto dest1 = getReferenceOperand();
                 duint dest2 = 0;
-                if(mCp.GetId() != X86_INS_JMP)    //conditional jump
+                if(mCp.GetId() != ZYDIS_MNEMONIC_JMP) //conditional jump
                     dest2 = addr + mCp.Size();
 
-                if(!dest1 && !dest2)  //TODO: better code for this (make sure absolutely no filling is inserted)
+                if(!dest1 && !dest2) //TODO: better code for this (make sure absolutely no filling is inserted)
                     bSkipFilling = true;
                 if(dest1)
                     mBlockStarts.insert(dest1);
                 if(dest2)
                     mBlockStarts.insert(dest2);
             }
-            else if(mCp.InGroup(CS_GRP_CALL))
+            else if(mCp.IsCall())
             {
                 auto dest1 = getReferenceOperand();
                 if(dest1)
@@ -206,15 +206,15 @@ void ControlFlowAnalysis::BasicBlocks()
             prevaddr = addr;
             if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
             {
-                if(mCp.InGroup(CS_GRP_RET))
+                if(mCp.IsRet())
                 {
                     insertBlock(BasicBlock(start, addr, 0, 0)); //leaf block
                     break;
                 }
-                else if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())
+                else if(mCp.IsJump() || mCp.IsLoop())
                 {
                     auto dest1 = getReferenceOperand();
-                    auto dest2 = mCp.GetId() != X86_INS_JMP ? addr + mCp.Size() : 0;
+                    auto dest2 = mCp.GetId() != ZYDIS_MNEMONIC_JMP ? addr + mCp.Size() : 0;
                     insertBlock(BasicBlock(start, addr, dest1, dest2));
                     insertParent(dest1, start);
                     insertParent(dest2, start);
@@ -224,7 +224,7 @@ void ControlFlowAnalysis::BasicBlocks()
             }
             else
                 addr++;
-            if(addr == nextStart)   //special case handling overlapping blocks
+            if(addr == nextStart) //special case handling overlapping blocks
             {
                 insertBlock(BasicBlock(start, prevaddr, 0, nextStart));
                 insertParent(nextStart, start);
@@ -263,7 +263,7 @@ void ControlFlowAnalysis::Functions()
         auto parents = findParents(block->start);
         if(!block->function)
         {
-            if(!parents || mFunctionStarts.count(block->start))  //no parents = function start
+            if(!parents || mFunctionStarts.count(block->start)) //no parents = function start
             {
                 auto functionStart = block->start;
                 block->function = functionStart;
@@ -274,7 +274,7 @@ void ControlFlowAnalysis::Functions()
             else //in function
             {
                 auto function = findFunctionStart(block, parents);
-                if(!function)  //this happens with loops / unreferenced blocks sometimes
+                if(!function) //this happens with loops / unreferenced blocks sometimes
                     delayedBlocks.push_back(DelayedBlock(block, parents));
                 else
                     block->function = function;
@@ -315,7 +315,7 @@ void ControlFlowAnalysis::Functions()
     for(const auto & block : mBlocks)
     {
         auto found = mFunctions.find(block.second.function);
-        if(found == mFunctions.end())  //unreferenced block
+        if(found == mFunctions.end()) //unreferenced block
         {
             unreferencedCount++;
             continue;
@@ -415,17 +415,17 @@ duint ControlFlowAnalysis::getReferenceOperand() const
 {
     for(auto i = 0; i < mCp.OpCount(); i++)
     {
-        const auto & op = mCp.x86().operands[i];
-        if(op.type == X86_OP_IMM)
+        const auto & op = mCp[i];
+        if(op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
         {
-            auto dest = duint(op.imm);
+            auto dest = duint(op.imm.value.u);
             if(inRange(dest))
                 return dest;
         }
-        else if(op.type == X86_OP_MEM)
+        else if(op.type == ZYDIS_OPERAND_TYPE_MEMORY)
         {
-            auto dest = duint(op.mem.disp);
-            if(op.mem.base == X86_REG_RIP)  //rip-relative
+            auto dest = duint(op.mem.disp.value);
+            if(op.mem.base == ZYDIS_REGISTER_RIP) //rip-relative
                 dest += mCp.Address() + mCp.Size();
             if(inRange(dest))
                 return dest;

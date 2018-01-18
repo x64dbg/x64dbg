@@ -8,37 +8,43 @@
 #include "filehelper.h"
 #include "label.h"
 #include "yara/yara.h"
+#include "stringformat.h"
+#include "disasm_helper.h"
+#include "symbolinfo.h"
 
 static int maxFindResults = 5000;
 
-CMDRESULT cbInstrFind(int argc, char* argv[])
+bool cbInstrFind(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
+
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
+
     char pattern[deflen] = "";
     //remove # from the start and end of the pattern (ODBGScript support)
     if(argv[2][0] == '#')
         strcpy_s(pattern, argv[2] + 1);
     else
         strcpy_s(pattern, argv[2]);
-    int len = (int)strlen(pattern);
+    size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
+
     duint size = 0;
     duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid memory address %p!\n"), addr);
-        return STATUS_ERROR;
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid memory address %p!\n"), addr);
+        return false;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
     if(!MemRead(base, data(), size))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to read memory!"));
-        return STATUS_ERROR;
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read memory!"));
+        return false;
     }
     duint start = addr - base;
     duint find_size = 0;
@@ -51,21 +57,23 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     }
     else
         find_size = size - start;
+
     duint foundoffset = patternfind(data() + start, find_size, pattern);
     duint result = 0;
     if(foundoffset != -1)
         result = addr + foundoffset;
     varset("$result", result, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrFindAll(int argc, char* argv[])
+bool cbInstrFindAll(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
+
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
 
     char pattern[deflen] = "";
     //remove # from the start and end of the pattern (ODBGScript support)
@@ -73,27 +81,22 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         strcpy_s(pattern, argv[2] + 1);
     else
         strcpy_s(pattern, argv[2]);
-    int len = (int)strlen(pattern);
+    size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
+
     duint size = 0;
     duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid memory address %p!\n"), addr);
-        return STATUS_ERROR;
-    }
-    if(argc >= 4)
-    {
-        duint usersize;
-        if(valfromstring(argv[3], &usersize))
-            size = usersize;
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid memory address %p!\n"), addr);
+        return false;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
     if(!MemRead(base, data(), size))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to read memory!"));
-        return STATUS_ERROR;
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read memory!"));
+        return false;
     }
     duint start = addr - base;
     duint find_size = 0;
@@ -105,11 +108,15 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
             find_size = size - start;
             findData = true;
         }
-        else
+        else if(!valfromstring(argv[3], &find_size))
+            find_size = size - start;
+
+        if(find_size > (size - start))
             find_size = size - start;
     }
     else
         find_size = size - start;
+
     //setup reference view
     char patternshort[256] = "";
     strncpy_s(patternshort, pattern, min(16, len));
@@ -132,8 +139,8 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     std::vector<PatternByte> searchpattern;
     if(!patterntransform(pattern, searchpattern))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to transform pattern!"));
-        return STATUS_ERROR;
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
+        return false;
     }
     while(refCount < maxFindResults)
     {
@@ -153,8 +160,8 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
             for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
-                    k += sprintf(msg + k, " ");
-                k += sprintf(msg + k, "%.2X", printData()[j]);
+                    k += sprintf_s(msg + k, sizeof(msg) - k, " ");
+                k += sprintf_s(msg + k, sizeof(msg) - k, "%.2X", printData()[j]);
             }
         }
         else
@@ -169,16 +176,16 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     GuiReferenceReloadData();
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, GetTickCount() - ticks);
     varset("$result", refCount, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrFindAllMem(int argc, char* argv[])
+bool cbInstrFindAllMem(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
 
     char pattern[deflen] = "";
     //remove # from the start and end of the pattern (ODBGScript support)
@@ -186,23 +193,23 @@ CMDRESULT cbInstrFindAllMem(int argc, char* argv[])
         strcpy_s(pattern, argv[2] + 1);
     else
         strcpy_s(pattern, argv[2]);
-    int len = (int)strlen(pattern);
+    size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
     std::vector<PatternByte> searchpattern;
     if(!patterntransform(pattern, searchpattern))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "failed to transform pattern!"));
-        return STATUS_ERROR;
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
+        return false;
     }
 
-    duint endAddr = -1;
+    duint find_size = -1;
     bool findData = false;
     if(argc >= 4)
     {
         if(!_stricmp(argv[3], "&data&"))
             findData = true;
-        else if(!valfromstring(argv[3], &endAddr))
+        else if(!valfromstring(argv[3], &find_size))
             findData = false;
     }
 
@@ -213,7 +220,7 @@ CMDRESULT cbInstrFindAllMem(int argc, char* argv[])
         if(itr.second.mbi.State != MEM_COMMIT)
             continue;
         SimplePage page(duint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
-        if(page.address >= addr && page.address + page.size <= endAddr)
+        if(page.address >= addr && (find_size == -1 || page.address + page.size <= addr + find_size))
             searchPages.push_back(page);
     }
     SHARED_RELEASE();
@@ -224,7 +231,7 @@ CMDRESULT cbInstrFindAllMem(int argc, char* argv[])
     if(!MemFindInMap(searchPages, searchpattern, results, maxFindResults))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "MemFindInMap failed!"));
-        return STATUS_ERROR;
+        return false;
     }
 
     //setup reference view
@@ -257,8 +264,8 @@ CMDRESULT cbInstrFindAllMem(int argc, char* argv[])
             for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
-                    k += sprintf(msg + k, " ");
-                k += sprintf(msg + k, "%.2X", printData()[j]);
+                    k += sprintf_s(msg + k, sizeof(msg) - k, " ");
+                k += sprintf_s(msg + k, sizeof(msg) - k, "%.2X", printData()[j]);
             }
         }
         else
@@ -274,12 +281,12 @@ CMDRESULT cbInstrFindAllMem(int argc, char* argv[])
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, GetTickCount() - ticks);
     varset("$result", refCount, false);
 
-    return STATUS_CONTINUE;
+    return true;
 }
 
-static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbFindAsm(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm || !basicinfo)   //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
@@ -305,10 +312,10 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     return found;
 }
 
-CMDRESULT cbInstrFindAsm(int argc, char* argv[])
+bool cbInstrFindAsm(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
 
     duint addr = 0;
     if(argc < 3 || !valfromstring(argv[2], &addr))
@@ -326,10 +333,11 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     unsigned char dest[16];
     int asmsize = 0;
     char error[MAX_ERROR_SIZE] = "";
-    if(!assemble(addr + size / 2, dest, &asmsize, argv[1], error))
+    auto asmFormat = stringformatinline(argv[1]);
+    if(!assemble(addr + size / 2, dest, &asmsize, asmFormat.c_str(), error))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to assemble \"%s\" (%s)!\n"), argv[1], error);
-        return STATUS_ERROR;
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to assemble \"%s\" (%s)!\n"), asmFormat.c_str(), error);
+        return false;
     }
     BASIC_INSTRUCTION_INFO basicinfo;
     memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
@@ -341,13 +349,13 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title, (REFFINDTYPE)refFindType, true);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%u result(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrRefFind(int argc, char* argv[])
+bool cbInstrRefFind(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     std::string newCommand = std::string("reffindrange ") + argv[1] + std::string(",") + argv[1];
     if(argc > 2)
         newCommand += std::string(",") + argv[2];
@@ -364,13 +372,13 @@ struct VALUERANGE
     duint end;
 };
 
-static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbRefFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm || !basicinfo)   //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(sizeof(duint) * 2, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
@@ -412,13 +420,13 @@ static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     return found;
 }
 
-CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
+bool cbInstrRefFindRange(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     VALUERANGE range;
     if(!valfromstring(argv[1], &range.start, false))
-        return STATUS_ERROR;
+        return false;
     if(argc < 3 || !valfromstring(argv[2], &range.end, false))
         range.end = range.start;
     duint addr = 0;
@@ -443,16 +451,16 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
     int found = RefFind(addr, size, cbRefFind, &range, false, title, (REFFINDTYPE)refFindType, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%u reference(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbRefStr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm || !basicinfo)   //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(500, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String")));
         GuiReferenceSetSearchStartCol(2); //only search the strings
         GuiReferenceSetRowCount(0);
@@ -461,19 +469,9 @@ static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINF
     }
     bool found = false;
     char string[MAX_STRING_SIZE] = "";
-    if(basicinfo->branch)   //branches have no strings (jmp dword [401000])
+    if(basicinfo->branch) //branches have no strings (jmp dword [401000])
         return false;
-    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
-    {
-        if(DbgGetStringAt(basicinfo->value.value, string))
-            found = true;
-    }
-    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
-    {
-        if(DbgGetStringAt(basicinfo->memory.value, string))
-            found = true;
-    }
-    if(found)
+    auto addRef = [&]()
     {
         char addrText[20] = "";
         sprintf_s(addrText, "%p", disasm->Address());
@@ -485,11 +483,71 @@ static bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINF
         else
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
         GuiReferenceSetCellContent(refinfo->refcount, 2, string);
+        refinfo->refcount++;
+    };
+    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
+    {
+        if(DbgGetStringAt(basicinfo->value.value, string))
+            addRef();
     }
-    return found;
+    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
+    {
+        if(DbgGetStringAt(basicinfo->memory.value, string))
+            addRef();
+    }
+    return false;
 }
 
-CMDRESULT cbInstrRefStr(int argc, char* argv[])
+static bool cbRefFuncPtr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!disasm || !basicinfo) //initialize
+    {
+        GuiReferenceInitialize(refinfo->name);
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Function pointer")));
+        GuiReferenceAddColumn(500, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
+        GuiReferenceSetSearchStartCol(2); //only search the function pointers
+        GuiReferenceSetRowCount(0);
+        GuiReferenceReloadData();
+        return true;
+    }
+    bool found = false;
+    if(basicinfo->branch) //we doesn't look for function pointers in jmp & calls
+        return false;
+    auto addRef = [&](duint pointer)
+    {
+        char addrText[20] = "";
+        sprintf_s(addrText, "%p", disasm->Address());
+        GuiReferenceSetRowCount(refinfo->refcount + 1);
+        GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+        char disassembly[4096] = "";
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+        else
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
+        char label[MAX_LABEL_SIZE];
+        sprintf_s(addrText, "%p", pointer);
+        memset(label, 0, sizeof(label));
+        DbgGetLabelAt(pointer, SEG_DEFAULT, label);
+        GuiReferenceSetCellContent(refinfo->refcount, 2, addrText);
+        GuiReferenceSetCellContent(refinfo->refcount, 3, label);
+        refinfo->refcount++;
+    };
+    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
+    {
+        if(MemIsCodePage(basicinfo->value.value, false))
+            addRef(basicinfo->value.value);
+    }
+    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
+    {
+        if(MemIsCodePage(basicinfo->memory.value, false))
+            addRef(basicinfo->memory.value);
+    }
+    return false;
+}
+
+bool cbInstrRefStr(int argc, char* argv[])
 {
     duint ticks = GetTickCount();
     duint addr;
@@ -512,53 +570,119 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
     int found = RefFind(addr, size, cbRefStr, 0, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%u string(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+bool cbInstrRefFuncionPointer(int argc, char* argv[])
 {
-    if(!disasm || !basicinfo)   //initialize
+    duint ticks = GetTickCount();
+    duint addr;
+    duint size = 0;
+    String TranslatedString;
+
+    // If not specified, assume CURRENT_REGION by default
+    if(argc < 2 || !valfromstring(argv[1], &addr, true))
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    if(argc >= 3)
+        if(!valfromstring(argv[2], &size, true))
+            size = 0;
+
+    duint refFindType = CURRENT_REGION;
+    if(argc >= 4 && valfromstring(argv[3], &refFindType, true))
+        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Function pointers"));
+    int found = RefFind(addr, size, cbRefFuncPtr, 0, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u function pointer(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    varset("$result", found, false);
+    return true;
+}
+
+static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(MAX_LABEL_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Destination")));
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
     }
-    bool found = false;
+    duint foundaddr = 0;
     char label[MAX_LABEL_SIZE] = "";
     char module[MAX_MODULE_SIZE] = "";
-    if(basicinfo->call)   //we are looking for calls
+    duint base = ModBaseFromAddr(disasm->Address()), size = 0;
+    if(!base)
+        base = MemFindBaseAddr(disasm->Address(), &size);
+    else
+        size = ModSizeFromAddr(base);
+    if(!base || !size)
+        return false; //__debugbreak
+    if(basicinfo->call) //we are looking for calls
     {
-        duint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
-        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label) && !strstr(label, "sub_") && DbgGetModuleAt(ptr, module); //a non-user label
+        if(basicinfo->addr && MemIsValidReadPtr(basicinfo->addr, true))
+        {
+            if(basicinfo->addr < base || basicinfo->addr >= base + size) //call api
+                foundaddr = basicinfo->addr;
+            else //call [jmp.api]
+            {
+                BASIC_INSTRUCTION_INFO info;
+                memset(&info, 0, sizeof(BASIC_INSTRUCTION_INFO));
+                if(disasmfast(basicinfo->addr, &info, true) && info.branch && !info.call && info.memory.value) //jmp [addr]
+                {
+                    duint memaddr;
+                    if(MemRead(info.memory.value, &memaddr, sizeof(memaddr), nullptr, true))
+                    {
+                        if((memaddr < base || memaddr >= base + size) && MemIsValidReadPtr(memaddr, true))
+                            foundaddr = memaddr;
+                    }
+                }
+            }
+        }
     }
-    if(found)
+    switch(disasm->GetId())
     {
+    case ZYDIS_MNEMONIC_CALL: //call dword ptr: [&api]
+    case ZYDIS_MNEMONIC_MOV: //mov reg, dword ptr:[&api]
+        if(!foundaddr && basicinfo->memory.value)
+        {
+            duint memaddr;
+            if(MemRead(basicinfo->memory.value, &memaddr, sizeof(memaddr), nullptr, true))
+            {
+                if((memaddr < base || memaddr >= base + size) && ModBaseFromAddr(memaddr))
+                    foundaddr = memaddr;
+            }
+        }
+        break;
+    }
+    if(foundaddr)
+    {
+        auto symbolic = SymGetSymbolicName(foundaddr);
+        if(!symbolic.length())
+            symbolic = StringUtils::sprintf("%p", foundaddr);
         char addrText[20] = "";
-        char moduleTargetText[256] = "";
         sprintf_s(addrText, "%p", disasm->Address());
-        sprintf(moduleTargetText, "%s.%s", module, label);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
         {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
-            GuiReferenceSetCellContent(refinfo->refcount, 2, moduleTargetText);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, symbolic.c_str());
         }
         else
         {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
-            GuiReferenceSetCellContent(refinfo->refcount, 2, moduleTargetText);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, symbolic.c_str());
         }
     }
-    return found;
+    return foundaddr != 0;
 }
 
-CMDRESULT cbInstrModCallFind(int argc, char* argv[])
+bool cbInstrModCallFind(int argc, char* argv[])
 {
     duint addr;
     if(argc < 2 || !valfromstring(argv[1], &addr, true))
@@ -578,7 +702,249 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
     int found = RefFind(addr, size, cbModCallFind, 0, false, Calls.c_str(), (REFFINDTYPE)refFindType, false);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%u call(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
-    return STATUS_CONTINUE;
+    return true;
+}
+
+struct GUIDHashObject
+{
+    inline size_t operator()(const GUID & ref) const
+    {
+        size_t* p = (size_t*)&ref;
+#ifdef _WIN64
+        static_assert(sizeof(size_t) == 8, "The system is not 64-bit!");
+        return p[0] + p[1];
+#else //x86
+        static_assert(sizeof(size_t) == 4, "The system is not 32-bit!");
+        return p[0] + p[1] + p[2] + p[3];
+#endif //_WIN64
+    };
+};
+
+struct GUIDEqualObject
+{
+    inline bool operator()(const GUID & a, const GUID & b) const
+    {
+        return memcmp(&a, &b, sizeof(GUID)) == 0;
+    };
+};
+
+class GUIDInfo
+{
+public:
+    String ProgId;
+    String Description;
+    String Path;
+    GUIDInfo(const GUID & ref, HKEY CLSID)
+    {
+        wchar_t subkey[40];
+        HKEY hKey;
+        StringFromGUID2(ref, subkey, 40);
+        if(RegOpenKeyExW(CLSID, subkey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+        {
+            Description = ReadValue(nullptr, hKey);
+            HKEY hProgIdKey;
+            if(RegOpenKeyExW(hKey, L"ProgId", 0, KEY_READ, &hProgIdKey) == ERROR_SUCCESS)
+            {
+                ProgId = ReadValue(nullptr, hProgIdKey);
+                RegCloseKey(hProgIdKey);
+            }
+            else
+            {
+                ProgId = "";
+            }
+            HKEY hPathKey;
+            if(RegOpenKeyExW(hKey, L"InprocServer32", 0, KEY_READ, &hPathKey) == ERROR_SUCCESS)
+            {
+                Path = ReadValue(nullptr, hPathKey);
+                RegCloseKey(hPathKey);
+            }
+            else
+            {
+                Path = "";
+            }
+            RegCloseKey(hKey);
+        }
+    }
+private:
+    String ReadValue(const wchar_t* name, HKEY hKey)
+    {
+        DWORD regType = 0;
+        DWORD cbData = 0;
+        if(RegQueryValueExW(hKey, name, nullptr, &regType, nullptr, &cbData))
+            return "";
+        if(regType != REG_SZ)
+            return "";
+        Memory<wchar_t*> buffer(cbData + 2, "GUIDInfo::ReadValue");
+        buffer()[cbData / 2] = 0; //ensure the buffer is null-terminated
+        if(RegQueryValueExW(hKey, name, nullptr, nullptr, reinterpret_cast<LPBYTE>(buffer()), &cbData))
+            return "";
+        return StringUtils::Utf16ToUtf8(buffer());
+    }
+};
+
+struct GUIDRefInfo
+{
+    std::unordered_map<GUID, size_t, GUIDHashObject, GUIDEqualObject>* allRegisteredGUIDs;
+    std::vector<GUIDInfo>* allQueriedGUIDs;
+    HKEY CLSID;
+};
+
+static bool cbGUIDFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!disasm || !basicinfo) //initialize
+    {
+        GuiReferenceInitialize(refinfo->name);
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GUID")));
+        GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "ProgId")));
+        GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Path")));
+        GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Description")));
+        GuiReferenceSetRowCount(0);
+        GuiReferenceReloadData();
+        return true;
+    }
+    duint value = 0;
+    if(basicinfo->branch) //cannot branch to a GUID
+        return false;
+    GUIDRefInfo* refInfo = reinterpret_cast<GUIDRefInfo*>(refinfo->userinfo);
+    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
+        value = basicinfo->value.value;
+    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
+        value = basicinfo->memory.value;
+    if((basicinfo->type & TYPE_ADDR) == TYPE_ADDR)
+        value = basicinfo->addr;
+    GUID guid;
+    unsigned char membuffer[38 * 2];
+    bool found = false;
+    memset(&membuffer, 0, sizeof(membuffer));
+    if(MemRead(value, &membuffer, sizeof(membuffer), nullptr, true))
+    {
+        std::unordered_map<GUID, size_t, GUIDHashObject, GUIDEqualObject>::iterator iterator;
+        if(membuffer[0] == '{' && membuffer[37] == '}' && membuffer[24] == '-' && membuffer[9] == '-' && membuffer[14] == '-' && membuffer[19] == '-')
+        {
+            //very likely a ASCII string representation of GUID
+            wchar_t wideguid[39];
+            for(size_t i = 0; i < 38; i++)
+                wideguid[i] = membuffer[i];
+            wideguid[38] = 0;
+            if(CLSIDFromString(wideguid, &guid) == S_OK)
+            {
+                iterator = refInfo->allRegisteredGUIDs->find(guid);
+                if(iterator != refInfo->allRegisteredGUIDs->end())
+                    found = true;
+            }
+        }
+        if(!found)
+        {
+            wchar_t* wideguid = reinterpret_cast<wchar_t*>(membuffer);
+            if(wideguid[0] == L'{' && wideguid[37] == L'}' && wideguid[24] == L'-' && wideguid[9] == L'-' && wideguid[14] == L'-' && wideguid[19] == L'-')
+            {
+                //very likely a Unicode string representation of GUID
+                if(CLSIDFromString(wideguid, &guid) == S_OK)
+                {
+                    iterator = refInfo->allRegisteredGUIDs->find(guid);
+                    if(iterator != refInfo->allRegisteredGUIDs->end())
+                        found = true;
+                }
+            }
+        }
+        if(!found)
+        {
+            memcpy(&guid, membuffer, sizeof(guid));
+            iterator = refInfo->allRegisteredGUIDs->find(guid);
+            if(iterator != refInfo->allRegisteredGUIDs->end())
+                found = true;
+        }
+        if(found)
+        {
+            char addrText[20] = "";
+            sprintf_s(addrText, "%p", disasm->Address());
+            GuiReferenceSetRowCount(refinfo->refcount + 1);
+            GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+            char disassembly[4096] = "";
+            if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
+                GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+            else
+                GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
+            wchar_t guidText[40];
+            StringFromGUID2(guid, guidText, 40);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, StringUtils::Utf16ToUtf8(guidText).c_str());
+            size_t infoIndex = iterator->second;
+            if(infoIndex == 0)
+            {
+                refInfo->allQueriedGUIDs->push_back(GUIDInfo(guid, refInfo->CLSID));
+                infoIndex = refInfo->allQueriedGUIDs->size();
+                refInfo->allRegisteredGUIDs->at(guid) = infoIndex;
+            }
+            infoIndex--;
+            GuiReferenceSetCellContent(refinfo->refcount, 3, refInfo->allQueriedGUIDs->at(infoIndex).ProgId.c_str());
+            GuiReferenceSetCellContent(refinfo->refcount, 4, refInfo->allQueriedGUIDs->at(infoIndex).Path.c_str());
+            GuiReferenceSetCellContent(refinfo->refcount, 5, refInfo->allQueriedGUIDs->at(infoIndex).Description.c_str());
+        }
+    }
+    return found;
+}
+
+bool cbInstrGUIDFind(int argc, char* argv[])
+{
+    duint ticks = GetTickCount();
+    duint addr;
+    duint size = 0;
+    String TranslatedString;
+    std::unordered_map<GUID, size_t, GUIDHashObject, GUIDEqualObject> allRegisteredGUIDs;
+    std::vector<GUIDInfo> allQueriedGUIDs;
+    GUIDRefInfo refInfo;
+
+    // If not specified, assume CURRENT_REGION by default
+    if(argc < 2 || !valfromstring(argv[1], &addr, true))
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    if(argc >= 3)
+        if(!valfromstring(argv[2], &size, true))
+            size = 0;
+
+    duint refFindType = CURRENT_REGION;
+    if(argc >= 4 && valfromstring(argv[3], &refFindType, true))
+        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
+    HKEY CLSID;
+    if(RegOpenKeyExW(HKEY_CLASSES_ROOT, L"CLSID", 0, KEY_READ, &CLSID))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "RegOpenKeyExW() failed. Cannot enumerate GUIDs."));
+        return false;
+    }
+
+    wchar_t subkeyName[40];
+    subkeyName[39] = 0;
+    DWORD i = 0;
+    DWORD subkeyNameLen = 40;
+    LONG result;
+    while(result = RegEnumKeyExW(CLSID, i++, subkeyName, &subkeyNameLen, nullptr, nullptr, nullptr, nullptr), result == ERROR_SUCCESS || result == ERROR_MORE_DATA)
+    {
+        if(subkeyNameLen == 38 && result != ERROR_MORE_DATA)
+        {
+            if(subkeyName[0] == '{' && subkeyName[37] == '}' && subkeyName[24] == '-' && subkeyName[9] == '-' && subkeyName[14] == '-' && subkeyName[19] == '-')
+            {
+                //very likely a GUID
+                GUID temp;
+                if(CLSIDFromString(subkeyName, &temp) == S_OK)
+                    allRegisteredGUIDs.insert(std::make_pair(temp, 0));
+            }
+        }
+        subkeyNameLen = 40;
+        subkeyName[39] = 0;
+    }
+    refInfo.allQueriedGUIDs = &allQueriedGUIDs;
+    refInfo.allRegisteredGUIDs = &allRegisteredGUIDs;
+    refInfo.CLSID = CLSID;
+
+    TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GUID"));
+    int found = RefFind(addr, size, cbGUIDFind, &refInfo, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u GUID(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    varset("$result", found, false);
+    RegCloseKey(CLSID);
+    return true;
 }
 
 static void yaraCompilerCallback(int error_level, const char* file_name, int line_number, const char* message, void* user_data)
@@ -693,7 +1059,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                         pattern = yara_print_string(match->data, match->match_length);
                     auto offset = duint(match->base + match->offset);
                     duint addr;
-                    if(scanInfo->rawFile)   //convert raw offset to virtual offset
+                    if(scanInfo->rawFile) //convert raw offset to virtual offset
                         addr = valfileoffsettova(scanInfo->modname, offset);
                     else
                         addr = base + offset;
@@ -734,10 +1100,10 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
     return ERROR_SUCCESS; //nicely undocumented what this should be
 }
 
-CMDRESULT cbInstrYara(int argc, char* argv[])
+bool cbInstrYara(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     SELECTIONDATA sel;
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
@@ -757,8 +1123,8 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     {
         if(!valfromstring(argv[2], &addr))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "invalid value \"%s\"!\n"), argv[2]);
-            return STATUS_ERROR;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid value \"%s\"!\n"), argv[2]);
+            return false;
         }
 
         size = 0;
@@ -770,35 +1136,35 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         base = addr;
     }
     std::vector<unsigned char> rawFileData;
-    if(rawFile)   //read the file from disk
+    if(rawFile) //read the file from disk
     {
         char modPath[MAX_PATH] = "";
         if(!ModPathFromAddr(base, modPath, MAX_PATH))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "failed to get module path for %p!\n"), base);
-            return STATUS_ERROR;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to get module path for %p!\n"), base);
+            return false;
         }
         if(!FileHelper::ReadAllData(modPath, rawFileData))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "failed to read file \"%s\"!\n"), modPath);
-            return STATUS_ERROR;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to read file \"%s\"!\n"), modPath);
+            return false;
         }
         size = rawFileData.size();
     }
     Memory<uint8_t*> data(size);
     if(rawFile)
         memcpy(data(), rawFileData.data(), size);
-    else if(!MemRead(base, data(), size))
+    else
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failed to read memory page %p[%X]!\n"), base, DWORD(size));
-        return STATUS_ERROR;
+        memset(data(), 0xCC, data.size());
+        MemReadDumb(base, data(), size);
     }
 
     String rulesContent;
     if(!FileHelper::ReadAllText(argv[1], rulesContent))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to read the rules file \"%s\"\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
 
     bool bSuccess = false;
@@ -806,7 +1172,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     if(yr_compiler_create(&yrCompiler) == ERROR_SUCCESS)
     {
         yr_compiler_set_callback(yrCompiler, yaraCompilerCallback, 0);
-        if(yr_compiler_add_string(yrCompiler, rulesContent.c_str(), nullptr) == 0)    //no errors found
+        if(yr_compiler_add_string(yrCompiler, rulesContent.c_str(), nullptr) == 0) //no errors found
         {
             YR_RULES* yrRules;
             if(yr_compiler_get_rules(yrCompiler, &yrRules) == ERROR_SUCCESS)
@@ -842,48 +1208,48 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                     bSuccess = true;
                     break;
                 case ERROR_TOO_MANY_MATCHES:
-                    dputs(QT_TRANSLATE_NOOP("DBG", "too many matches!"));
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Too many matches!"));
                     break;
                 default:
-                    dputs(QT_TRANSLATE_NOOP("DBG", "error while scanning memory!"));
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Error while scanning memory!"));
                     break;
                 }
                 yr_rules_destroy(yrRules);
             }
             else
-                dputs(QT_TRANSLATE_NOOP("DBG", "error while getting the rules!"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Error while getting the rules!"));
         }
         else
-            dputs(QT_TRANSLATE_NOOP("DBG", "errors in the rules file!"));
+            dputs(QT_TRANSLATE_NOOP("DBG", "Errors in the rules file!"));
         yr_compiler_destroy(yrCompiler);
     }
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "yr_compiler_create failed!"));
-    return bSuccess ? STATUS_CONTINUE : STATUS_ERROR;
+    return bSuccess;
 }
 
-CMDRESULT cbInstrYaramod(int argc, char* argv[])
+bool cbInstrYaramod(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     if(!ModBaseFromName(argv[2]))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "invalid module \"%s\"!\n"), argv[2]);
-        return STATUS_ERROR;
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid module \"%s\"!\n"), argv[2]);
+        return false;
     }
     return cmddirectexec(StringUtils::sprintf("yara \"%s\",\"%s\",%s", argv[1], argv[2], argc > 3 && *argv[3] == '1' ? "1" : "0").c_str());
 }
 
-CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
+bool cbInstrSetMaxFindResult(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint num;
     if(!valfromstring(argv[1], &num))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression: \"%s\""), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     maxFindResults = int(num & 0x7FFFFFFF);
-    return STATUS_CONTINUE;
+    return true;
 }

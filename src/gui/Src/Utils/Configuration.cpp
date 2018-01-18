@@ -3,6 +3,8 @@
 #include <QFontInfo>
 #include <QMessageBox>
 #include <QIcon>
+#include <QScreen>
+#include <QGuiApplication>
 #include "AbstractTableView.h"
 
 Configuration* Configuration::mPtr = nullptr;
@@ -11,6 +13,13 @@ inline void insertMenuBuilderBools(QMap<QString, bool>* config, const char* id, 
 {
     for(size_t i = 0; i < count; i++)
         config->insert(QString("Menu%1Hidden%2").arg(id).arg(i), false);
+}
+
+inline static void addWindowPosConfig(QMap<QString, duint> & guiUint, const char* windowName)
+{
+    QString n(windowName);
+    guiUint.insert(n + "X", 0);
+    guiUint.insert(n + "Y", 0);
 }
 
 Configuration::Configuration() : QObject(), noMoreMsgbox(false)
@@ -45,11 +54,23 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyConditionalJumpLineFalseColor", QColor("#808080"));
     defaultColors.insert("DisassemblyUnconditionalJumpLineColor", QColor("#FF0000"));
     defaultColors.insert("DisassemblyBytesColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyBytesBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyModifiedBytesColor", QColor("#FF0000"));
-    defaultColors.insert("DisassemblyRestoredBytesColor", QColor("#008000"));
+    defaultColors.insert("DisassemblyModifiedBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyRestoredBytesColor", QColor("#808080"));
+    defaultColors.insert("DisassemblyRestoredBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyByte00Color", QColor("#008000"));
+    defaultColors.insert("DisassemblyByte00BackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyByte7FColor", QColor("#808000"));
+    defaultColors.insert("DisassemblyByte7FBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyByteFFColor", QColor("#800000"));
+    defaultColors.insert("DisassemblyByteFFBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyByteIsPrintColor", QColor("#800080"));
+    defaultColors.insert("DisassemblyByteIsPrintBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyRelocationUnderlineColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
-    defaultColors.insert("DisassemblyAutoCommentColor", QColor("#008000"));
+    defaultColors.insert("DisassemblyAutoCommentColor", QColor("#AA5500"));
     defaultColors.insert("DisassemblyAutoCommentBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyMnemonicBriefColor", QColor("#717171"));
     defaultColors.insert("DisassemblyMnemonicBriefBackgroundColor", Qt::transparent);
@@ -77,6 +98,9 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("RegistersLabelColor", QColor("#000000"));
     defaultColors.insert("RegistersArgumentLabelColor", Qt::darkGreen);
     defaultColors.insert("RegistersExtraInfoColor", QColor("#000000"));
+    defaultColors.insert("RegistersHighlightReadColor", QColor("#00A000"));
+    defaultColors.insert("RegistersHighlightWriteColor", QColor("#B00000"));
+    defaultColors.insert("RegistersHighlightReadWriteColor", QColor("#808000"));
 
     defaultColors.insert("InstructionHighlightColor", QColor("#FF0000"));
     defaultColors.insert("InstructionCommaColor", QColor("#000000"));
@@ -140,12 +164,29 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     defaultColors.insert("HexDumpTextColor", QColor("#000000"));
     defaultColors.insert("HexDumpModifiedBytesColor", QColor("#FF0000"));
+    defaultColors.insert("HexDumpModifiedBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpRestoredBytesColor", QColor("#808080"));
+    defaultColors.insert("HexDumpRestoredBytesBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByte00Color", QColor("#008000"));
+    defaultColors.insert("HexDumpByte00BackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByte7FColor", QColor("#808000"));
+    defaultColors.insert("HexDumpByte7FBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByteFFColor", QColor("#800000"));
+    defaultColors.insert("HexDumpByteFFBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpByteIsPrintColor", QColor("#800080"));
+    defaultColors.insert("HexDumpByteIsPrintBackgroundColor", Qt::transparent);
     defaultColors.insert("HexDumpBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("HexDumpSelectionColor", QColor("#C0C0C0"));
     defaultColors.insert("HexDumpAddressColor", QColor("#000000"));
     defaultColors.insert("HexDumpAddressBackgroundColor", Qt::transparent);
     defaultColors.insert("HexDumpLabelColor", QColor("#FF0000"));
     defaultColors.insert("HexDumpLabelBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpUserModuleCodePointerHighlightColor", QColor("#00FF00"));
+    defaultColors.insert("HexDumpUserModuleDataPointerHighlightColor", QColor("#008000"));
+    defaultColors.insert("HexDumpSystemModuleCodePointerHighlightColor", QColor("#FF0000"));
+    defaultColors.insert("HexDumpSystemModuleDataPointerHighlightColor", QColor("#800000"));
+    defaultColors.insert("HexDumpUnknownCodePointerHighlightColor", QColor("#0000FF"));
+    defaultColors.insert("HexDumpUnknownDataPointerHighlightColor", QColor("#000080"));
 
     defaultColors.insert("StackTextColor", QColor("#000000"));
     defaultColors.insert("StackInactiveTextColor", QColor("#808080"));
@@ -173,7 +214,13 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("GraphBrtrueColor", QColor("#387804"));
     defaultColors.insert("GraphBrfalseColor", QColor("#ED4630"));
     defaultColors.insert("GraphRetShadowColor", QColor("#900000"));
+    defaultColors.insert("GraphIndirectcallShadowColor", QColor("#008080"));
     defaultColors.insert("GraphBackgroundColor", Qt::transparent);
+    defaultColors.insert("GraphNodeColor", QColor("#000000"));
+    defaultColors.insert("GraphNodeBackgroundColor", Qt::transparent);
+    defaultColors.insert("GraphCipColor", QColor("#000000"));
+    defaultColors.insert("GraphBreakpointColor", QColor("#FF0000"));
+    defaultColors.insert("GraphDisabledBreakpointColor", QColor("#00AA00"));
 
     defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
     defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
@@ -185,10 +232,21 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("MemoryMapCipBackgroundColor", QColor("#000000"));
     defaultColors.insert("MemoryMapSectionTextColor", QColor("#8B671F"));
     defaultColors.insert("SearchListViewHighlightColor", QColor("#FF0000"));
+    defaultColors.insert("StructBackgroundColor", QColor("#FFF8F0"));
+    defaultColors.insert("StructAlternateBackgroundColor", QColor("#DCD9CF"));
+    defaultColors.insert("LogLinkColor", QColor("#00CC00"));
+    defaultColors.insert("LogLinkBackgroundColor", Qt::transparent);
+    defaultColors.insert("BreakpointSummaryParenColor", Qt::red);
+    defaultColors.insert("BreakpointSummaryKeywordColor", QColor("#8B671F"));
+    defaultColors.insert("BreakpointSummaryStringColor", QColor("#008000"));
+
+    defaultColors.insert("PatchRelocatedByteHighlightColor", QColor("#0000DD"));
 
     //bool settings
     QMap<QString, bool> disassemblyBool;
     disassemblyBool.insert("ArgumentSpaces", false);
+    disassemblyBool.insert("HidePointerSizes", false);
+    disassemblyBool.insert("HideNormalSegments", false);
     disassemblyBool.insert("MemorySpaces", false);
     disassemblyBool.insert("KeepSize", false);
     disassemblyBool.insert("FillNOPs", false);
@@ -197,15 +255,16 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disassemblyBool.insert("OnlyCipAutoComments", false);
     disassemblyBool.insert("TabbedMnemonic", false);
     disassemblyBool.insert("LongDataInstruction", false);
+    disassemblyBool.insert("NoHighlightOperands", false);
+    disassemblyBool.insert("PermanentHighlightingMode", false);
+    disassemblyBool.insert("0xPrefixValues", false);
+    disassemblyBool.insert("NoCurrentModuleText", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     QMap<QString, bool> engineBool;
     engineBool.insert("ListAllPages", false);
+    engineBool.insert("ShowSuspectedCallStack", false);
     defaultBools.insert("Engine", engineBool);
-
-    QMap<QString, bool> miscellaneousBool;
-    miscellaneousBool.insert("LoadSaveTabOrder", false);
-    defaultBools.insert("Miscellaneous", miscellaneousBool);
 
     QMap<QString, bool> guiBool;
     guiBool.insert("FpuRegistersLittleEndian", false);
@@ -213,12 +272,27 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("NoCloseDialog", false);
     guiBool.insert("PidInHex", true);
     guiBool.insert("SidebarWatchLabels", true);
+    guiBool.insert("LoadSaveTabOrder", false);
+    guiBool.insert("ShowGraphRva", false);
+    guiBool.insert("ShowExitConfirmation", true);
+    guiBool.insert("DisableAutoComplete", false);
     //Named menu settings
-    insertMenuBuilderBools(&guiBool, "CPUDisassembly", 35); //CPUDisassembly
-    insertMenuBuilderBools(&guiBool, "CPUDump", 30); //CPUDump
-    insertMenuBuilderBools(&guiBool, "WatchView", 7); //Watch
-    insertMenuBuilderBools(&guiBool, "CallStackView", 5); //CallStackView
-    insertMenuBuilderBools(&guiBool, "ThreadView", 12); //Thread
+    insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
+    insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
+    insertMenuBuilderBools(&guiBool, "WatchView", 50); //Watch
+    insertMenuBuilderBools(&guiBool, "CallStackView", 50); //CallStackView
+    insertMenuBuilderBools(&guiBool, "ThreadView", 50); //Thread
+    insertMenuBuilderBools(&guiBool, "CPUStack", 50); //Stack
+    insertMenuBuilderBools(&guiBool, "SourceView", 10); //Source
+    insertMenuBuilderBools(&guiBool, "DisassemblerGraphView", 50); //Graph
+    insertMenuBuilderBools(&guiBool, "XrefBrowseDialog", 10); //XrefBrowseDialog
+    insertMenuBuilderBools(&guiBool, "StructWidget", 8); //StructWidget
+    insertMenuBuilderBools(&guiBool, "File", 50); //Main Menu : File
+    insertMenuBuilderBools(&guiBool, "Debug", 50); //Main Menu : Debug
+    insertMenuBuilderBools(&guiBool, "Option", 50); //Main Menu : Option
+    //"Favourites" menu cannot be customized for item hiding.
+    insertMenuBuilderBools(&guiBool, "Help", 50); //Main Menu : Help
+    insertMenuBuilderBools(&guiBool, "View", 50); //Main Menu : View
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
@@ -227,20 +301,30 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     for(int i = 1; i <= 5; i++)
         AbstractTableView::setupColumnConfigDefaultValue(guiUint, QString("CPUDump%1").arg(i), 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Watch1", 6);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SoftwareBreakpoint", 10);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "HardwareBreakpoint", 10);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryBreakpoint", 10);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "DLLBreakpoint", 8);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "ExceptionBreakpoint", 8);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 7);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "BreakpointsView", 7);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 8);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 6);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Script", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Thread", 14);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Handle", 5);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Window", 10);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "TcpConnection", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Privilege", 2);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "LocalVarsView", 3);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Module", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Symbol", 4);
     guiUint.insert("SIMDRegistersDisplayMode", 0);
+    addWindowPosConfig(guiUint, "AssembleDialog");
+    addWindowPosConfig(guiUint, "AttachDialog");
+    addWindowPosConfig(guiUint, "GotoDialog");
+    addWindowPosConfig(guiUint, "EditBreakpointDialog");
+    addWindowPosConfig(guiUint, "BrowseDialog");
+    addWindowPosConfig(guiUint, "FavouriteTools");
+    addWindowPosConfig(guiUint, "EntropyDialog");
+    addWindowPosConfig(guiUint, "HexEditDialog");
+    addWindowPosConfig(guiUint, "WordEditDialog");
+    addWindowPosConfig(guiUint, "DataCopyDialog");
     defaultUints.insert("Gui", guiUint);
 
     //uint settings
@@ -269,6 +353,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     tabOrderUint.insert("ThreadsTab", curTab++);
     tabOrderUint.insert("SnowmanTab", curTab++);
     tabOrderUint.insert("HandlesTab", curTab++);
+    tabOrderUint.insert("TraceTab", curTab++);
     defaultUints.insert("TabOrder", tabOrderUint);
 
     //font settings
@@ -280,211 +365,269 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultFonts.insert("Registers", font);
     defaultFonts.insert("HexEdit", font);
     defaultFonts.insert("Application", QApplication::font());
-    defaultFonts.insert("Log", QFont("Courier", 8, QFont::Normal, false));
+    defaultFonts.insert("Log", QFont("Courier New", 8, QFont::Normal, false));
 
     // hotkeys settings
-    defaultShortcuts.insert("FileOpen", Shortcut(tr("File -> Open"), "F3", true));
-    defaultShortcuts.insert("FileAttach", Shortcut(tr("File -> Attach"), "Alt+A", true));
-    defaultShortcuts.insert("FileDetach", Shortcut(tr("File -> Detach"), "Ctrl+Alt+F2", true));
-    defaultShortcuts.insert("FileExit", Shortcut(tr("File -> Exit"), "Alt+X", true));
+    defaultShortcuts.insert("FileOpen", Shortcut({tr("File"), tr("Open")}, "F3", true));
+    defaultShortcuts.insert("FileAttach", Shortcut({tr("File"), tr("Attach")}, "Alt+A", true));
+    defaultShortcuts.insert("FileDetach", Shortcut({tr("File"), tr("Detach")}, "Ctrl+Alt+F2", true));
+    defaultShortcuts.insert("FileImportDatabase", Shortcut({tr("File"), tr("Import database")}, "", true));
+    defaultShortcuts.insert("FileExportDatabase", Shortcut({tr("File"), tr("Export database")}, "", true));
+    defaultShortcuts.insert("FileRestartAdmin", Shortcut({tr("File"), tr("Restart as Admin")}, "", true));
+    defaultShortcuts.insert("FileExit", Shortcut({tr("File"), tr("Exit")}, "Alt+X", true));
 
-    defaultShortcuts.insert("ViewCpu", Shortcut(tr("View -> CPU"), "Alt+C", true));
-    defaultShortcuts.insert("ViewLog", Shortcut(tr("View -> Log"), "Alt+L", true));
-    defaultShortcuts.insert("ViewBreakpoints", Shortcut(tr("View -> Breakpoints"), "Alt+B", true));
-    defaultShortcuts.insert("ViewMemoryMap", Shortcut(tr("View -> Memory Map"), "Alt+M", true));
-    defaultShortcuts.insert("ViewCallStack", Shortcut(tr("View -> Call Stack"), "Alt+K", true));
-    defaultShortcuts.insert("ViewNotes", Shortcut(tr("View -> Notes"), "Alt+N", true));
-    defaultShortcuts.insert("ViewSEHChain", Shortcut(tr("View -> SEH"), "", true));
-    defaultShortcuts.insert("ViewScript", Shortcut(tr("View -> Script"), "Alt+S", true));
-    defaultShortcuts.insert("ViewSymbolInfo", Shortcut(tr("View -> Symbol Info"), "Ctrl+Alt+S", true));
-    defaultShortcuts.insert("ViewSource", Shortcut(tr("View -> Source"), "Ctrl+Shift+S", true));
-    defaultShortcuts.insert("ViewReferences", Shortcut(tr("View -> References"), "Alt+R", true));
-    defaultShortcuts.insert("ViewThreads", Shortcut(tr("View -> Threads"), "Alt+T", true));
-    defaultShortcuts.insert("ViewPatches", Shortcut(tr("View -> Patches"), "Ctrl+P", true));
-    defaultShortcuts.insert("ViewComments", Shortcut(tr("View -> Comments"), "Ctrl+Alt+C", true));
-    defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L", true));
-    defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B", true));
-    defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Ctrl+Alt+F", true));
-    defaultShortcuts.insert("ViewSnowman", Shortcut(tr("View -> Snowman"), "", true));
-    defaultShortcuts.insert("ViewHandles", Shortcut(tr("View -> Handles"), "", true));
-    defaultShortcuts.insert("ViewGraph", Shortcut(tr("View -> Graph"), "Alt+G", true));
+    defaultShortcuts.insert("ViewCpu", Shortcut({tr("View"), tr("CPU")}, "Alt+C", true));
+    defaultShortcuts.insert("ViewLog", Shortcut({tr("View"), tr("Log")}, "Alt+L", true));
+    defaultShortcuts.insert("ViewBreakpoints", Shortcut({tr("View"), tr("Breakpoints")}, "Alt+B", true));
+    defaultShortcuts.insert("ViewMemoryMap", Shortcut({tr("View"), tr("Memory Map")}, "Alt+M", true));
+    defaultShortcuts.insert("ViewCallStack", Shortcut({tr("View"), tr("Call Stack")}, "Alt+K", true));
+    defaultShortcuts.insert("ViewNotes", Shortcut({tr("View"), tr("Notes")}, "Alt+N", true));
+    defaultShortcuts.insert("ViewSEHChain", Shortcut({tr("View"), tr("SEH")}, "", true));
+    defaultShortcuts.insert("ViewScript", Shortcut({tr("View"), tr("Script")}, "Alt+S", true));
+    defaultShortcuts.insert("ViewSymbolInfo", Shortcut({tr("View"), tr("Symbol Info")}, "Ctrl+Alt+S", true));
+    defaultShortcuts.insert("ViewModules", Shortcut({tr("View"), tr("Modules")}, "Alt+E", true));
+    defaultShortcuts.insert("ViewSource", Shortcut({tr("View"), tr("Source")}, "Ctrl+Shift+S", true));
+    defaultShortcuts.insert("ViewReferences", Shortcut({tr("View"), tr("References")}, "Alt+R", true));
+    defaultShortcuts.insert("ViewThreads", Shortcut({tr("View"), tr("Threads")}, "Alt+T", true));
+    defaultShortcuts.insert("ViewPatches", Shortcut({tr("View"), tr("Patches")}, "Ctrl+P", true));
+    defaultShortcuts.insert("ViewComments", Shortcut({tr("View"), tr("Comments")}, "Ctrl+Alt+C", true));
+    defaultShortcuts.insert("ViewLabels", Shortcut({tr("View"), tr("Labels")}, "Ctrl+Alt+L", true));
+    defaultShortcuts.insert("ViewBookmarks", Shortcut({tr("View"), tr("Bookmarks")}, "Ctrl+Alt+B", true));
+    defaultShortcuts.insert("ViewFunctions", Shortcut({tr("View"), tr("Functions")}, "Ctrl+Alt+F", true));
+    defaultShortcuts.insert("ViewVariables", Shortcut({tr("View"), tr("Variables")}, "", true));
+    defaultShortcuts.insert("ViewSnowman", Shortcut({tr("View"), tr("Snowman")}, "", true));
+    defaultShortcuts.insert("ViewHandles", Shortcut({tr("View"), tr("Handles")}, "", true));
+    defaultShortcuts.insert("ViewGraph", Shortcut({tr("View"), tr("Graph")}, "Alt+G", true));
+    defaultShortcuts.insert("ViewPreviousTab", Shortcut({tr("View"), tr("Previous Tab")}, "Alt+Left"));
+    defaultShortcuts.insert("ViewNextTab", Shortcut({tr("View"), tr("Next Tab")}, "Alt+Right"));
+    defaultShortcuts.insert("ViewPreviousHistory", Shortcut({tr("View"), tr("Previous View")}, "Ctrl+Shift+Tab"));
+    defaultShortcuts.insert("ViewNextHistory", Shortcut({tr("View"), tr("Next View")}, "Ctrl+Tab"));
+    defaultShortcuts.insert("ViewHideTab", Shortcut({tr("View"), tr("Hide Tab")}, "Ctrl+W"));
 
-    defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9", true));
-    defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (pass exceptions)"), "Shift+F9", true));
-    defaultShortcuts.insert("DebugseRun", Shortcut(tr("Debug -> Run (swallow exception)"), "Ctrl+Alt+Shift+F9", true));
-    defaultShortcuts.insert("DebugRunSelection", Shortcut(tr("Debug -> Run until selection"), "F4", true));
-    defaultShortcuts.insert("DebugRunExpression", Shortcut(tr("Debug -> Run until expression"), "Shift+F4", true));
-    defaultShortcuts.insert("DebugPause", Shortcut(tr("Debug -> Pause"), "F12", true));
-    defaultShortcuts.insert("DebugRestart", Shortcut(tr("Debug -> Restart"), "Ctrl+F2", true));
-    defaultShortcuts.insert("DebugClose", Shortcut(tr("Debug -> Close"), "Alt+F2", true));
-    defaultShortcuts.insert("DebugStepInto", Shortcut(tr("Debug -> Step into"), "F7", true));
-    defaultShortcuts.insert("DebugeStepInto", Shortcut(tr("Debug -> Step into (pass execptions)"), "Shift+F7", true));
-    defaultShortcuts.insert("DebugseStepInto", Shortcut(tr("Debug -> Step into (swallow exception)"), "Ctrl+Alt+Shift+F7", true));
-    defaultShortcuts.insert("DebugStepIntoSource", Shortcut(tr("Debug -> Step into (source)"), "F11", true));
-    defaultShortcuts.insert("DebugStepOver", Shortcut(tr("Debug -> Step over"), "F8", true));
-    defaultShortcuts.insert("DebugeStepOver", Shortcut(tr("Debug -> Step over (pass execptions)"), "Shift+F8", true));
-    defaultShortcuts.insert("DebugseStepOver", Shortcut(tr("Debug -> Step over (swallow exception)"), "Ctrl+Alt+Shift+F8", true));
-    defaultShortcuts.insert("DebugStepOverSource", Shortcut(tr("Debug -> Step over (source)"), "F10", true));
-    defaultShortcuts.insert("DebugRtr", Shortcut(tr("Debug -> Execute till return"), "Ctrl+F9", true));
-    defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> Execute till return (pass exceptions)"), "Ctrl+Shift+F9", true));
-    defaultShortcuts.insert("DebugRtu", Shortcut(tr("Debug -> Run to user code"), "Alt+F9", true));
-    defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut(tr("Debug -> Skip next instruction"), "", true));
-    defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return", true));
-    defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut(tr("Debug -> Trace Into Conditional"), "", true));
-    defaultShortcuts.insert("DebugTraceOverConditional", Shortcut(tr("Debug -> Trace Over Conditional"), "", true));
-    defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut(tr("Debug -> Trace Record -> Bit"), "", true));
-    defaultShortcuts.insert("DebugTraceRecordNone", Shortcut(tr("Debug -> Trace Record -> None"), "", true));
-    defaultShortcuts.insert("DebugInstrUndo", Shortcut(tr("Debug -> Undo instruction"), "Alt+U", true));
-    defaultShortcuts.insert("DebugAnimateInto", Shortcut(tr("Debug -> Animate into"), "Ctrl+F7", true));
-    defaultShortcuts.insert("DebugAnimateOver", Shortcut(tr("Debug -> Animate over"), "Ctrl+F8", true));
-    defaultShortcuts.insert("DebugAnimateCommand", Shortcut(tr("Debug -> Animate command"), "", true));
+    defaultShortcuts.insert("DebugRun", Shortcut({tr("Debug"), tr("Run")}, "F9", true));
+    defaultShortcuts.insert("DebugeRun", Shortcut({tr("Debug"), tr("Run (pass exception)")}, "Shift+F9", true));
+    defaultShortcuts.insert("DebugseRun", Shortcut({tr("Debug"), tr("Run (swallow exception)")}, "Ctrl+Alt+Shift+F9", true));
+    defaultShortcuts.insert("DebugRunSelection", Shortcut({tr("Debug"), tr("Run until selection")}, "F4", true));
+    defaultShortcuts.insert("DebugRunExpression", Shortcut({tr("Debug"), tr("Run until expression")}, "Shift+F4", true));
+    defaultShortcuts.insert("DebugPause", Shortcut({tr("Debug"), tr("Pause")}, "F12", true));
+    defaultShortcuts.insert("DebugRestart", Shortcut({tr("Debug"), tr("Restart")}, "Ctrl+F2", true));
+    defaultShortcuts.insert("DebugClose", Shortcut({tr("Debug"), tr("Close")}, "Alt+F2", true));
+    defaultShortcuts.insert("DebugStepInto", Shortcut({tr("Debug"), tr("Step into")}, "F7", true));
+    defaultShortcuts.insert("DebugeStepInto", Shortcut({tr("Debug"), tr("Step into (pass exception)")}, "Shift+F7", true));
+    defaultShortcuts.insert("DebugseStepInto", Shortcut({tr("Debug"), tr("Step into (swallow exception)")}, "Ctrl+Alt+Shift+F7", true));
+    defaultShortcuts.insert("DebugStepIntoSource", Shortcut({tr("Debug"), tr("Step into (source)")}, "F11", true));
+    defaultShortcuts.insert("DebugStepOver", Shortcut({tr("Debug"), tr("Step over")}, "F8", true));
+    defaultShortcuts.insert("DebugeStepOver", Shortcut({tr("Debug"), tr("Step over (pass exception)")}, "Shift+F8", true));
+    defaultShortcuts.insert("DebugseStepOver", Shortcut({tr("Debug"), tr("Step over (swallow exception)")}, "Ctrl+Alt+Shift+F8", true));
+    defaultShortcuts.insert("DebugStepOverSource", Shortcut({tr("Debug"), tr("Step over (source)")}, "F10", true));
+    defaultShortcuts.insert("DebugRtr", Shortcut({tr("Debug"), tr("Execute till return")}, "Ctrl+F9", true));
+    defaultShortcuts.insert("DebugeRtr", Shortcut({tr("Debug"), tr("Execute till return (pass exception)")}, "Ctrl+Shift+F9", true));
+    defaultShortcuts.insert("DebugRtu", Shortcut({tr("Debug"), tr("Run to user code")}, "Alt+F9", true));
+    defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut({tr("Debug"), tr("Skip next instruction")}, "", true));
+    defaultShortcuts.insert("DebugCommand", Shortcut({tr("Debug"), tr("Command")}, "Ctrl+Return", true));
+    defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut({tr("Debug"), tr("Trace into...")}, "Ctrl+Alt+F7", true));
+    defaultShortcuts.insert("DebugTraceOverConditional", Shortcut({tr("Debug"), tr("Trace over...")}, "Ctrl+Alt+F8", true));
+    defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut({tr("Debug"), tr("Trace Record"), tr("Bit")}, "", true));
+    defaultShortcuts.insert("DebugTraceRecordNone", Shortcut({tr("Debug"), tr("Trace Record"), tr("None")}, "", true));
+    defaultShortcuts.insert("DebugInstrUndo", Shortcut({tr("Debug"), tr("Undo instruction")}, "Alt+U", true));
+    defaultShortcuts.insert("DebugAnimateInto", Shortcut({tr("Debug"), tr("Animate into")}, "Ctrl+F7", true));
+    defaultShortcuts.insert("DebugAnimateOver", Shortcut({tr("Debug"), tr("Animate over")}, "Ctrl+F8", true));
+    defaultShortcuts.insert("DebugAnimateCommand", Shortcut({tr("Debug"), tr("Animate command")}, "", true));
+    defaultShortcuts.insert("DebugTraceIntoIntoTracerecord", Shortcut({tr("Debug"), tr("Trace into into trace record")}, "", true));
+    defaultShortcuts.insert("DebugTraceOverIntoTracerecord", Shortcut({tr("Debug"), tr("Trace over into trace record")}, "", true));
+    defaultShortcuts.insert("DebugTraceIntoBeyondTracerecord", Shortcut({tr("Debug"), tr("Trace into beyond trace record")}, "", true));
+    defaultShortcuts.insert("DebugTraceOverBeyondTracerecord", Shortcut({tr("Debug"), tr("Trace over beyond trace record")}, "", true));
 
-    defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
+    defaultShortcuts.insert("PluginsScylla", Shortcut({tr("Plugins"), tr("Scylla")}, "Ctrl+I", true));
 
-    defaultShortcuts.insert("FavouritesManage", Shortcut(tr("Favourites -> Manage Favourite Tools"), "", true));
+    defaultShortcuts.insert("FavouritesManage", Shortcut({tr("Favourites"), tr("Manage Favourite Tools")}, "", true));
 
-    defaultShortcuts.insert("OptionsPreferences", Shortcut(tr("Options -> Preferences"), "", true));
-    defaultShortcuts.insert("OptionsAppearance", Shortcut(tr("Options -> Appearance"), "", true));
-    defaultShortcuts.insert("OptionsShortcuts", Shortcut(tr("Options -> Shortcuts"), "", true));
-    defaultShortcuts.insert("OptionsTopmost", Shortcut(tr("Options -> Topmost"), "Ctrl+F5", true));
-    defaultShortcuts.insert("OptionsReloadStylesheet", Shortcut(tr("Options -> Reload style.css") , "", true));
+    defaultShortcuts.insert("OptionsPreferences", Shortcut({tr("Options"), tr("Preferences")}, "", true));
+    defaultShortcuts.insert("OptionsAppearance", Shortcut({tr("Options"), tr("Appearance")}, "", true));
+    defaultShortcuts.insert("OptionsShortcuts", Shortcut({tr("Options"), tr("Shortcuts")}, "", true));
+    defaultShortcuts.insert("OptionsTopmost", Shortcut({tr("Options"), tr("Topmost")}, "Ctrl+F5", true));
+    defaultShortcuts.insert("OptionsReloadStylesheet", Shortcut({tr("Options"), tr("Reload style.css")}, "", true));
 
-    defaultShortcuts.insert("HelpAbout", Shortcut(tr("Help -> About"), "", true));
-    defaultShortcuts.insert("HelpBlog", Shortcut(tr("Help -> Blog"), "", true));
-    defaultShortcuts.insert("HelpDonate", Shortcut(tr("Help -> Donate"), "", true));
-    defaultShortcuts.insert("HelpCheckForUpdates", Shortcut(tr("Help -> Check for Updates"), "", true));
-    defaultShortcuts.insert("HelpCalculator", Shortcut(tr("Help -> Calculator"), "?"));
-    defaultShortcuts.insert("HelpReportBug", Shortcut(tr("Help -> Report Bug"), "", true));
-    defaultShortcuts.insert("HelpManual", Shortcut(tr("Help -> Manual"), "F1", true));
-    defaultShortcuts.insert("HelpCrashDump", Shortcut(tr("Help -> Generate Crash Dump"), "", true));
+    defaultShortcuts.insert("HelpAbout", Shortcut({tr("Help"), tr("About")}, "", true));
+    defaultShortcuts.insert("HelpBlog", Shortcut({tr("Help"), tr("Blog")}, "", true));
+    defaultShortcuts.insert("HelpDonate", Shortcut({tr("Help"), tr("Donate")}, "", true));
+    defaultShortcuts.insert("HelpCalculator", Shortcut({tr("Help"), tr("Calculator")}, "?"));
+    defaultShortcuts.insert("HelpReportBug", Shortcut({tr("Help"), tr("Report Bug")}, "", true));
+    defaultShortcuts.insert("HelpManual", Shortcut({tr("Help"), tr("Manual")}, "F1", true));
+    defaultShortcuts.insert("HelpCrashDump", Shortcut({tr("Help"), tr("Generate Crash Dump")}, "", true));
 
-    defaultShortcuts.insert("ActionFindStrings", Shortcut(tr("Actions -> Find Strings"), "", true));
-    defaultShortcuts.insert("ActionFindIntermodularCalls", Shortcut(tr("Actions -> Find Intermodular Calls"), "", true));
-    defaultShortcuts.insert("ActionToggleBreakpoint", Shortcut(tr("Actions -> Toggle Breakpoint"), "F2"));
-    defaultShortcuts.insert("ActionToggleBookmark", Shortcut(tr("Actions -> Toggle Bookmark"), "Ctrl+D"));
-    defaultShortcuts.insert("ActionDeleteBreakpoint", Shortcut(tr("Actions -> Delete Breakpoint"), "Delete"));
-    defaultShortcuts.insert("ActionEnableDisableBreakpoint", Shortcut(tr("Actions -> Enable/Disable Breakpoint"), "Space"));
+    defaultShortcuts.insert("ActionFindStrings", Shortcut({tr("Actions"), tr("Find Strings")}, "", true));
+    defaultShortcuts.insert("ActionFindIntermodularCalls", Shortcut({tr("Actions"), tr("Find Intermodular Calls")}, "", true));
+    defaultShortcuts.insert("ActionToggleBreakpoint", Shortcut({tr("Actions"), tr("Toggle Breakpoint")}, "F2"));
+    defaultShortcuts.insert("ActionToggleBookmark", Shortcut({tr("Actions"), tr("Toggle Bookmark")}, "Ctrl+D"));
+    defaultShortcuts.insert("ActionDeleteBreakpoint", Shortcut({tr("Actions"), tr("Delete Breakpoint")}, "Delete"));
+    defaultShortcuts.insert("ActionEnableDisableBreakpoint", Shortcut({tr("Actions"), tr("Enable/Disable Breakpoint")}, "Space"));
+    defaultShortcuts.insert("ActionResetHitCountBreakpoint", Shortcut({tr("Actions"), tr("Reset breakpoint hit count")}));
+    defaultShortcuts.insert("ActionEnableAllBreakpoints", Shortcut({tr("Actions"), tr("Enable all breakpoints")}));
+    defaultShortcuts.insert("ActionDisableAllBreakpoints", Shortcut({tr("Actions"), tr("Disable all breakpoints")}));
+    defaultShortcuts.insert("ActionRemoveAllBreakpoints", Shortcut({tr("Actions"), tr("Remove all breakpoints")}));
 
-    defaultShortcuts.insert("ActionBinaryEdit", Shortcut(tr("Actions -> Binary Edit"), "Ctrl+E"));
-    defaultShortcuts.insert("ActionBinaryFill", Shortcut(tr("Actions -> Binary Fill"), "F"));
-    defaultShortcuts.insert("ActionBinaryFillNops", Shortcut(tr("Actions -> Binary Fill NOPs"), "Ctrl+9"));
-    defaultShortcuts.insert("ActionBinaryCopy", Shortcut(tr("Actions -> Binary Copy"), "Shift+C"));
-    defaultShortcuts.insert("ActionBinaryPaste", Shortcut(tr("Actions -> Binary Paste"), "Shift+V"));
-    defaultShortcuts.insert("ActionBinaryPasteIgnoreSize", Shortcut(tr("Actions -> Binary Paste (Ignore Size)"), "Ctrl+Shift+V"));
-    defaultShortcuts.insert("ActionUndoSelection", Shortcut(tr("Actions -> Undo Selection"), "Ctrl+Backspace"));
-    defaultShortcuts.insert("ActionSetLabel", Shortcut(tr("Actions -> Set Label"), ":"));
-    defaultShortcuts.insert("ActionSetComment", Shortcut(tr("Actions -> Set Comment"), ";"));
-    defaultShortcuts.insert("ActionToggleFunction", Shortcut(tr("Actions -> Toggle Function"), "Shift+F"));
-    defaultShortcuts.insert("ActionToggleArgument", Shortcut(tr("Actions -> Toggle Argument"), "Shift+A"));
-    defaultShortcuts.insert("ActionAssemble", Shortcut(tr("Actions -> Assemble"), "Space"));
-    defaultShortcuts.insert("ActionYara", Shortcut(tr("Actions -> Yara"), "Ctrl+Y"));
-    defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut(tr("Actions -> Set New Origin Here"), "Ctrl+*"));
-    defaultShortcuts.insert("ActionGotoOrigin", Shortcut(tr("Actions -> Goto Origin"), "*"));
-    defaultShortcuts.insert("ActionGotoPrevious", Shortcut(tr("Actions -> Goto Previous"), "-"));
-    defaultShortcuts.insert("ActionGotoNext", Shortcut(tr("Actions -> Goto Next"), "+"));
-    defaultShortcuts.insert("ActionGotoExpression", Shortcut(tr("Actions -> Goto Expression"), "Ctrl+G"));
-    defaultShortcuts.insert("ActionGotoStart", Shortcut(tr("Actions -> Goto Start of Page"), "Home"));
-    defaultShortcuts.insert("ActionGotoEnd", Shortcut(tr("Actions -> Goto End of Page"), "End"));
-    defaultShortcuts.insert("ActionGotoFunctionStart", Shortcut(tr("Actions -> Goto Start of Function"), "Ctrl+Home"));
-    defaultShortcuts.insert("ActionGotoFunctionEnd", Shortcut(tr("Actions -> Goto End of Function"), "Ctrl+End"));
-    defaultShortcuts.insert("ActionGotoFileOffset", Shortcut(tr("Actions -> Goto File Offset"), "Ctrl+Shift+G"));
-    defaultShortcuts.insert("ActionFindReferencesToSelectedAddress", Shortcut(tr("Actions -> Find References to Selected Address"), "Ctrl+R"));
-    defaultShortcuts.insert("ActionFindPattern", Shortcut(tr("Actions -> Find Pattern"), "Ctrl+B"));
-    defaultShortcuts.insert("ActionFindReferences", Shortcut(tr("Actions -> Find References"), "Ctrl+R"));
-    defaultShortcuts.insert("ActionXrefs", Shortcut(tr("Actions -> xrefs..."), "X"));
-    defaultShortcuts.insert("ActionAnalyzeSingleFunction", Shortcut(tr("Actions -> Analyze Single Function"), "A"));
-    defaultShortcuts.insert("ActionAnalyzeModule", Shortcut(tr("Actions -> Analyze Module"), "Ctrl+A"));
-    defaultShortcuts.insert("ActionHelpOnMnemonic", Shortcut(tr("Actions -> Help on Mnemonic"), "Ctrl+F1"));
-    defaultShortcuts.insert("ActionToggleMnemonicBrief", Shortcut(tr("Actions -> Toggle Mnemonic Brief"), "Ctrl+Shift+F1"));
-    defaultShortcuts.insert("ActionHighlightingMode", Shortcut(tr("Actions -> Highlighting Mode"), "H"));
-    defaultShortcuts.insert("ActionToggleDestinationPreview", Shortcut(tr("Actions -> Enable/Disable Branch Destination Preview"), "P"));
-    defaultShortcuts.insert("ActionFind", Shortcut(tr("Actions -> Find"), "Ctrl+F"));
-    defaultShortcuts.insert("ActionDecompileFunction", Shortcut(tr("Actions -> Decompile Function"), "F5"));
-    defaultShortcuts.insert("ActionDecompileSelection", Shortcut(tr("Actions -> Decompile Selection"), "Shift+F5"));
-    defaultShortcuts.insert("ActionEditBreakpoint", Shortcut(tr("Actions -> Edit breakpoint"), ""));
-    defaultShortcuts.insert("ActionToggleLogging", Shortcut(tr("Actions -> Enable/Disable Logging"), ""));
-    defaultShortcuts.insert("ActionAllocateMemory", Shortcut(tr("Actions -> Allocate Memory"), ""));
-    defaultShortcuts.insert("ActionFreeMemory", Shortcut(tr("Actions -> Free Memory"), ""));
-    defaultShortcuts.insert("ActionSyncWithExpression", Shortcut(tr("Actions -> Sync With Expression"), ""));
-    defaultShortcuts.insert("ActionEntropy", Shortcut(tr("Actions -> Entropy"), ""));
-    defaultShortcuts.insert("ActionCopyAllRegisters", Shortcut(tr("Actions -> Copy All Registers"), ""));
-    defaultShortcuts.insert("ActionMarkAsUser", Shortcut(tr("Actions -> Mark As User Module"), ""));
-    defaultShortcuts.insert("ActionMarkAsSystem", Shortcut(tr("Actions -> Mark As System Module"), ""));
-    defaultShortcuts.insert("ActionMarkAsParty", Shortcut(tr("Actions -> Mark As Party"), ""));
-    defaultShortcuts.insert("ActionSetHwBpE", Shortcut(tr("Actions -> Set Hardware Breakpoint (Execute)"), ""));
-    defaultShortcuts.insert("ActionRemoveHwBp", Shortcut(tr("Actions -> Remove Hardware Breakpoint"), ""));
-    defaultShortcuts.insert("ActionRemoveTypeAnalysisFromModule", Shortcut(tr("Actions -> Remove Type Analysis From Module"), "Ctrl+Shift+U"));
-    defaultShortcuts.insert("ActionRemoveTypeAnalysisFromSelection", Shortcut(tr("Actions -> Remove Type Analysis From Selection"), "U"));
-    defaultShortcuts.insert("ActionTreatSelectionAsCode", Shortcut(tr("Actions -> Treat Selection As Code"), "C"));
-    defaultShortcuts.insert("ActionTreatSelectionAsByte", Shortcut(tr("Actions -> Treat Selection As Byte"), "B"));
-    defaultShortcuts.insert("ActionTreatSelectionAsWord", Shortcut(tr("Actions -> Treat Selection As Word"), "W"));
-    defaultShortcuts.insert("ActionTreatSelectionAsDword", Shortcut(tr("Actions -> Treat Selection As Dword"), "D"));
-    defaultShortcuts.insert("ActionTreatSelectionAsFword", Shortcut(tr("Actions -> Treat Selection As Fword"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsQword", Shortcut(tr("Actions -> Treat Selection As Qword"), "Q"));
-    defaultShortcuts.insert("ActionTreatSelectionAsTbyte", Shortcut(tr("Actions -> Treat Selection As Tbyte"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsOword", Shortcut(tr("Actions -> Treat Selection As Oword"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsFloat", Shortcut(tr("Actions -> Treat Selection As Float"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsDouble", Shortcut(tr("Actions -> Treat Selection As Double"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsLongDouble", Shortcut(tr("Actions -> Treat Selection As LongDouble"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsASCII", Shortcut(tr("Actions -> Treat Selection As ASCII"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsUNICODE", Shortcut(tr("Actions -> Treat Selection As UNICODE"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsMMWord", Shortcut(tr("Actions -> Treat Selection As MMWord"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsXMMWord", Shortcut(tr("Actions -> Treat Selection As XMMWord"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsYMMWord", Shortcut(tr("Actions -> Treat Selection As YMMWord"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsCode", Shortcut(tr("Actions -> Treat Selection Head As Code"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsByte", Shortcut(tr("Actions -> Treat Selection Head As Byte"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsWord", Shortcut(tr("Actions -> Treat Selection Head As Word"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsDword", Shortcut(tr("Actions -> Treat Selection Head As Dword"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsFword", Shortcut(tr("Actions -> Treat Selection Head As Fword"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsQword", Shortcut(tr("Actions -> Treat Selection Head As Qword"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsTbyte", Shortcut(tr("Actions -> Treat Selection Head As Tbyte"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsOword", Shortcut(tr("Actions -> Treat Selection Head As Oword"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsFloat", Shortcut(tr("Actions -> Treat Selection Head As Float"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsDouble", Shortcut(tr("Actions -> Treat Selection Head As Double"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsLongDouble", Shortcut(tr("Actions -> Treat Selection Head As LongDouble"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsASCII", Shortcut(tr("Actions -> Treat Selection Head As ASCII"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsUNICODE", Shortcut(tr("Actions -> Treat Selection Head As UNICODE"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsMMWord", Shortcut(tr("Actions -> Treat Selection Head As MMWord"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsXMMWord", Shortcut(tr("Actions -> Treat Selection Head As XMMWord"), ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsYMMWord", Shortcut(tr("Actions -> Treat Selection Head As YMMWord"), ""));
-    defaultShortcuts.insert("ActionIncreaseRegister", Shortcut(tr("Actions -> Increase Register"), "+"));
-    defaultShortcuts.insert("ActionDecreaseRegister", Shortcut(tr("Actions -> Decrease Register"), "-"));
-    defaultShortcuts.insert("ActionIncreaseRegisterPtrSize", Shortcut(tr("Actions -> Increase Register by") + ArchValue(QString(" 4"), QString(" 8"))));
-    defaultShortcuts.insert("ActionDecreaseRegisterPtrSize", Shortcut(tr("Actions -> Decrease Register by") + ArchValue(QString(" 4"), QString(" 8"))));
-    defaultShortcuts.insert("ActionZeroRegister", Shortcut(tr("Actions -> Zero Register"), "0"));
-    defaultShortcuts.insert("ActionSetOneRegister", Shortcut(tr("Actions -> Set Register to One"), "1"));
-    defaultShortcuts.insert("ActionToggleRegisterValue", Shortcut(tr("Actions -> Toggle Register Value"), "Space"));
-    defaultShortcuts.insert("ActionCopy", Shortcut(tr("Actions -> Copy"), "Ctrl+C"));
-    defaultShortcuts.insert("ActionCopyAddress", Shortcut(tr("Actions -> Copy Address"), "Alt+INS"));
-    defaultShortcuts.insert("ActionCopySymbol", Shortcut(tr("Actions -> Copy Symbol"), "Ctrl+S"));
-    defaultShortcuts.insert("ActionLoadScript", Shortcut(tr("Actions -> Load Script"), "Ctrl+O"));
-    defaultShortcuts.insert("ActionReloadScript", Shortcut(tr("Actions -> Reload Script"), "Ctrl+R"));
-    defaultShortcuts.insert("ActionUnloadScript", Shortcut(tr("Actions -> Unload Script"), "Ctrl+U"));
-    defaultShortcuts.insert("ActionRunScript", Shortcut(tr("Actions -> Run Script"), "Space"));
-    defaultShortcuts.insert("ActionToggleBreakpointScript", Shortcut(tr("Actions -> Toggle Script Breakpoint"), "F2"));
-    defaultShortcuts.insert("ActionRunToCursorScript", Shortcut(tr("Actions -> Run Script to Cursor"), "Shift+F4"));
-    defaultShortcuts.insert("ActionStepScript", Shortcut(tr("Actions -> Step Script"), "Tab"));
-    defaultShortcuts.insert("ActionAbortScript", Shortcut(tr("Actions -> Abort Script"), "Esc"));
-    defaultShortcuts.insert("ActionExecuteCommandScript", Shortcut(tr("Actions -> Execute Script Command"), "X"));
-    defaultShortcuts.insert("ActionRefresh", Shortcut(tr("Actions -> Refresh"), "F5"));
-    defaultShortcuts.insert("ActionGraph", Shortcut(tr("Actions -> Graph"), "G"));
-    defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut(tr("Actions -> Graph -> Toggle overview"), "O"));
-    defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut(tr("Actions -> Increment x87 Stack")));
-    defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut(tr("Actions -> Decrement x87 Stack")));
-    defaultShortcuts.insert("ActionPush", Shortcut(tr("Actions -> Push")));
-    defaultShortcuts.insert("ActionPop", Shortcut(tr("Actions -> Pop")));
-    defaultShortcuts.insert("ActionRedirectLog", Shortcut(tr("Actions -> Redirect Log")));
-    defaultShortcuts.insert("ActionBrowseInExplorer", Shortcut(tr("Actions -> Browse in Explorer")));
-    defaultShortcuts.insert("ActionDownloadSymbol", Shortcut(tr("Actions -> Download Symbols for This Module")));
-    defaultShortcuts.insert("ActionDownloadAllSymbol", Shortcut(tr("Actions -> Download Symbols for All Modules")));
-    defaultShortcuts.insert("ActionCreateNewThreadHere", Shortcut(tr("Actions -> Create New Thread Here")));
+    defaultShortcuts.insert("ActionBinaryEdit", Shortcut({tr("Actions"), tr("Binary Edit")}, "Ctrl+E"));
+    defaultShortcuts.insert("ActionBinaryFill", Shortcut({tr("Actions"), tr("Binary Fill")}, "F"));
+    defaultShortcuts.insert("ActionBinaryFillNops", Shortcut({tr("Actions"), tr("Binary Fill NOPs")}, "Ctrl+9"));
+    defaultShortcuts.insert("ActionBinaryCopy", Shortcut({tr("Actions"), tr("Binary Copy")}, "Shift+C"));
+    defaultShortcuts.insert("ActionBinaryPaste", Shortcut({tr("Actions"), tr("Binary Paste")}, "Shift+V"));
+    defaultShortcuts.insert("ActionBinaryPasteIgnoreSize", Shortcut({tr("Actions"), tr("Binary Paste (Ignore Size)")}, "Ctrl+Shift+V"));
+    defaultShortcuts.insert("ActionBinarySave", Shortcut({tr("Actions"), tr("Binary Save")}));
+    defaultShortcuts.insert("ActionUndoSelection", Shortcut({tr("Actions"), tr("Undo Selection")}, "Ctrl+Backspace"));
+    defaultShortcuts.insert("ActionSetLabel", Shortcut({tr("Actions"), tr("Set Label")}, ":"));
+    defaultShortcuts.insert("ActionSetLabelOperand", Shortcut({tr("Actions"), tr("Set Label for the Operand")}, "Alt+;"));
+    defaultShortcuts.insert("ActionSetComment", Shortcut({tr("Actions"), tr("Set Comment")}, ";"));
+    defaultShortcuts.insert("ActionToggleFunction", Shortcut({tr("Actions"), tr("Toggle Function")}, "Shift+F"));
+    defaultShortcuts.insert("ActionToggleArgument", Shortcut({tr("Actions"), tr("Toggle Argument")}, "Shift+A"));
+    defaultShortcuts.insert("ActionAssemble", Shortcut({tr("Actions"), tr("Assemble")}, "Space"));
+    defaultShortcuts.insert("ActionYara", Shortcut({tr("Actions"), tr("Yara")}, "Ctrl+Y"));
+    defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut({tr("Actions"), tr("Set New Origin Here")}, "Ctrl+*"));
+    defaultShortcuts.insert("ActionGotoOrigin", Shortcut({tr("Actions"), tr("Goto Origin")}, "*"));
+    defaultShortcuts.insert("ActionGotoPrevious", Shortcut({tr("Actions"), tr("Goto Previous")}, "-"));
+    defaultShortcuts.insert("ActionGotoNext", Shortcut({tr("Actions"), tr("Goto Next")}, "+"));
+    defaultShortcuts.insert("ActionGotoExpression", Shortcut({tr("Actions"), tr("Goto Expression")}, "Ctrl+G"));
+    defaultShortcuts.insert("ActionGotoStart", Shortcut({tr("Actions"), tr("Goto Start of Page")}, "Home"));
+    defaultShortcuts.insert("ActionGotoEnd", Shortcut({tr("Actions"), tr("Goto End of Page")}, "End"));
+    defaultShortcuts.insert("ActionGotoFunctionStart", Shortcut({tr("Actions"), tr("Goto Start of Function")}, "Ctrl+Home"));
+    defaultShortcuts.insert("ActionGotoFunctionEnd", Shortcut({tr("Actions"), tr("Goto End of Function")}, "Ctrl+End"));
+    defaultShortcuts.insert("ActionGotoFileOffset", Shortcut({tr("Actions"), tr("Goto File Offset")}, "Ctrl+Shift+G"));
+    defaultShortcuts.insert("ActionFindReferencesToSelectedAddress", Shortcut({tr("Actions"), tr("Find References to Selected Address")}, "Ctrl+R"));
+    defaultShortcuts.insert("ActionFindPattern", Shortcut({tr("Actions"), tr("Find Pattern")}, "Ctrl+B"));
+    defaultShortcuts.insert("ActionFindPatternInModule", Shortcut({tr("Actions"), tr("Find Pattern in Current Module")}, "Ctrl+Shift+B"));
+    defaultShortcuts.insert("ActionFindNamesInModule", Shortcut({tr("Actions"), tr("Find Names in Current Module")}, "Ctrl+N"));
+    defaultShortcuts.insert("ActionFindReferences", Shortcut({tr("Actions"), tr("Find References")}, "Ctrl+R"));
+    defaultShortcuts.insert("ActionXrefs", Shortcut({tr("Actions"), tr("xrefs...")}, "X"));
+    defaultShortcuts.insert("ActionAnalyzeSingleFunction", Shortcut({tr("Actions"), tr("Analyze Single Function")}, "A"));
+    defaultShortcuts.insert("ActionAnalyzeModule", Shortcut({tr("Actions"), tr("Analyze Module")}, "Ctrl+A"));
+    defaultShortcuts.insert("ActionHelpOnMnemonic", Shortcut({tr("Actions"), tr("Help on Mnemonic")}, "Ctrl+F1"));
+    defaultShortcuts.insert("ActionToggleMnemonicBrief", Shortcut({tr("Actions"), tr("Toggle Mnemonic Brief")}, "Ctrl+Shift+F1"));
+    defaultShortcuts.insert("ActionHighlightingMode", Shortcut({tr("Actions"), tr("Highlighting Mode")}, "H"));
+    defaultShortcuts.insert("ActionToggleDestinationPreview", Shortcut({tr("Actions"), tr("Enable/Disable Branch Destination Preview")}, "P"));
+    defaultShortcuts.insert("ActionFind", Shortcut({tr("Actions"), tr("Find")}, "Ctrl+F"));
+    defaultShortcuts.insert("ActionFindInModule", Shortcut({tr("Actions"), tr("Find in Current Module")}, "Ctrl+Shift+F"));
+    defaultShortcuts.insert("ActionDecompileFunction", Shortcut({tr("Actions"), tr("Decompile Function")}, "F5"));
+    defaultShortcuts.insert("ActionDecompileSelection", Shortcut({tr("Actions"), tr("Decompile Selection")}, "Shift+F5"));
+    defaultShortcuts.insert("ActionEditBreakpoint", Shortcut({tr("Actions"), tr("Edit breakpoint")}, ""));
+    defaultShortcuts.insert("ActionToggleLogging", Shortcut({tr("Actions"), tr("Enable/Disable Logging")}, ""));
+    defaultShortcuts.insert("ActionAllocateMemory", Shortcut({tr("Actions"), tr("Allocate Memory")}, ""));
+    defaultShortcuts.insert("ActionFreeMemory", Shortcut({tr("Actions"), tr("Free Memory")}, ""));
+    defaultShortcuts.insert("ActionSyncWithExpression", Shortcut({tr("Actions"), tr("Sync With Expression")}, ""));
+    defaultShortcuts.insert("ActionEntropy", Shortcut({tr("Actions"), tr("Entropy")}, ""));
+    defaultShortcuts.insert("ActionCopyAllRegisters", Shortcut({tr("Actions"), tr("Copy All Registers")}, ""));
+    defaultShortcuts.insert("ActionMarkAsUser", Shortcut({tr("Actions"), tr("Mark As User Module")}, ""));
+    defaultShortcuts.insert("ActionMarkAsSystem", Shortcut({tr("Actions"), tr("Mark As System Module")}, ""));
+    defaultShortcuts.insert("ActionMarkAsParty", Shortcut({tr("Actions"), tr("Mark As Party")}, ""));
+    defaultShortcuts.insert("ActionSetHwBpE", Shortcut({tr("Actions"), tr("Set Hardware Breakpoint (Execute)")}, ""));
+    defaultShortcuts.insert("ActionRemoveHwBp", Shortcut({tr("Actions"), tr("Remove Hardware Breakpoint")}, ""));
+    defaultShortcuts.insert("ActionRemoveTypeAnalysisFromModule", Shortcut({tr("Actions"), tr("Remove Type Analysis From Module")}, "Ctrl+Shift+U"));
+    defaultShortcuts.insert("ActionRemoveTypeAnalysisFromSelection", Shortcut({tr("Actions"), tr("Remove Type Analysis From Selection")}, "U"));
+    defaultShortcuts.insert("ActionTreatSelectionAsCode", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Code")}, "C"));
+    defaultShortcuts.insert("ActionTreatSelectionAsByte", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Byte")}, "B"));
+    defaultShortcuts.insert("ActionTreatSelectionAsWord", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Word")}, "W"));
+    defaultShortcuts.insert("ActionTreatSelectionAsDword", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Dword")}, "D"));
+    defaultShortcuts.insert("ActionTreatSelectionAsFword", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Fword")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsQword", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Qword")}, "Q"));
+    defaultShortcuts.insert("ActionTreatSelectionAsTbyte", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Tbyte")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsOword", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Oword")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsFloat", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Float")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsDouble", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("Double")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsLongDouble", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("LongDouble")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsASCII", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("ASCII")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsUNICODE", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("UNICODE")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsMMWord", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("MMWord")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsXMMWord", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("XMMWord")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionAsYMMWord", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("YMMWord")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsCode", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Code")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsByte", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Byte")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Word")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsDword", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Dword")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsFword", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Fword")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsQword", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Qword")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsTbyte", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Tbyte")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsOword", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Oword")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsFloat", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Float")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsDouble", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Double")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsLongDouble", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("LongDouble")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsASCII", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("ASCII")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsUNICODE", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("UNICODE")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("MMWord")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsXMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("XMMWord")}, ""));
+    defaultShortcuts.insert("ActionTreatSelectionHeadAsYMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("YMMWord")}, ""));
+    defaultShortcuts.insert("ActionIncreaseRegister", Shortcut({tr("Actions"), tr("Increase Register")}, "+"));
+    defaultShortcuts.insert("ActionDecreaseRegister", Shortcut({tr("Actions"), tr("Decrease Register")}, "-"));
+    defaultShortcuts.insert("ActionIncreaseRegisterPtrSize", Shortcut({tr("Actions"), tr("Increase Register by") + ArchValue(QString(" 4"), QString(" 8"))}));
+    defaultShortcuts.insert("ActionDecreaseRegisterPtrSize", Shortcut({tr("Actions"), tr("Decrease Register by") + ArchValue(QString(" 4"), QString(" 8"))}));
+    defaultShortcuts.insert("ActionZeroRegister", Shortcut({tr("Actions"), tr("Zero Register")}, "0"));
+    defaultShortcuts.insert("ActionSetOneRegister", Shortcut({tr("Actions"), tr("Set Register to One")}, "1"));
+    defaultShortcuts.insert("ActionToggleRegisterValue", Shortcut({tr("Actions"), tr("Toggle Register Value")}, "Space"));
+    defaultShortcuts.insert("ActionCopy", Shortcut({tr("Actions"), tr("Copy")}, "Ctrl+C"));
+    defaultShortcuts.insert("ActionCopyAddress", Shortcut({tr("Actions"), tr("Copy Address")}, "Alt+INS"));
+    defaultShortcuts.insert("ActionCopyRva", Shortcut({tr("Actions"), tr("Copy RVA")}, ""));
+    defaultShortcuts.insert("ActionCopySymbol", Shortcut({tr("Actions"), tr("Copy Symbol")}, "Ctrl+S"));
+    defaultShortcuts.insert("ActionLoadScript", Shortcut({tr("Actions"), tr("Load Script")}, "Ctrl+O"));
+    defaultShortcuts.insert("ActionReloadScript", Shortcut({tr("Actions"), tr("Reload Script")}, "Ctrl+R"));
+    defaultShortcuts.insert("ActionUnloadScript", Shortcut({tr("Actions"), tr("Unload Script")}, "Ctrl+U"));
+    defaultShortcuts.insert("ActionEditScript", Shortcut({tr("Actions"), tr("Edit Script")}, ""));
+    defaultShortcuts.insert("ActionRunScript", Shortcut({tr("Actions"), tr("Run Script")}, "Space"));
+    defaultShortcuts.insert("ActionToggleBreakpointScript", Shortcut({tr("Actions"), tr("Toggle Script Breakpoint")}, "F2"));
+    defaultShortcuts.insert("ActionRunToCursorScript", Shortcut({tr("Actions"), tr("Run Script to Cursor")}, "Shift+F4"));
+    defaultShortcuts.insert("ActionStepScript", Shortcut({tr("Actions"), tr("Step Script")}, "Tab"));
+    defaultShortcuts.insert("ActionAbortScript", Shortcut({tr("Actions"), tr("Abort Script")}, "Esc"));
+    defaultShortcuts.insert("ActionExecuteCommandScript", Shortcut({tr("Actions"), tr("Execute Script Command")}, "X"));
+    defaultShortcuts.insert("ActionRefresh", Shortcut({tr("Actions"), tr("Refresh")}, "F5"));
+    defaultShortcuts.insert("ActionGraph", Shortcut({tr("Actions"), tr("Graph")}, "G"));
+    defaultShortcuts.insert("ActionGraphFollowDisassembler", Shortcut({tr("Actions"), tr("Graph"), tr("Follow in disassembler")}, "Shift+Return"));
+    defaultShortcuts.insert("ActionGraphSaveImage", Shortcut({tr("Actions"), tr("Graph"), tr("Save as image")}, "I"));
+    defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle overview")}, "O"));
+    defaultShortcuts.insert("ActionGraphToggleSummary", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle summary")}, "U"));
+    defaultShortcuts.insert("ActionGraphSyncOrigin", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle sync with origin")}, "S"));
+    defaultShortcuts.insert("ActionGraphDecompile", Shortcut({tr("Actions"), tr("Graph"), tr("Decompile")}, "Tab"));
+    defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut({tr("Actions"), tr("Increment x87 Stack")}));
+    defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut({tr("Actions"), tr("Decrement x87 Stack")}));
+    defaultShortcuts.insert("ActionPush", Shortcut({tr("Actions"), tr("Push")}));
+    defaultShortcuts.insert("ActionPop", Shortcut({tr("Actions"), tr("Pop")}));
+    defaultShortcuts.insert("ActionRedirectLog", Shortcut({tr("Actions"), tr("Redirect Log")}));
+    defaultShortcuts.insert("ActionBrowseInExplorer", Shortcut({tr("Actions"), tr("Browse in Explorer")}));
+    defaultShortcuts.insert("ActionDownloadSymbol", Shortcut({tr("Actions"), tr("Download Symbols for This Module")}));
+    defaultShortcuts.insert("ActionDownloadAllSymbol", Shortcut({tr("Actions"), tr("Download Symbols for All Modules")}));
+    defaultShortcuts.insert("ActionCreateNewThreadHere", Shortcut({tr("Actions"), tr("Create New Thread Here")}));
+    defaultShortcuts.insert("ActionOpenSourceFile", Shortcut({tr("Actions"), tr("Open Source File")}));
+    defaultShortcuts.insert("ActionFollowMemMap", Shortcut({tr("Actions"), tr("Follow in Memory Map")}));
+    defaultShortcuts.insert("ActionFollowStack", Shortcut({tr("Actions"), tr("Follow in Stack")}));
+    defaultShortcuts.insert("ActionFollowDisasm", Shortcut({tr("Actions"), tr("Follow in Disassembler")}));
+    defaultShortcuts.insert("ActionFollowDwordQwordDisasm", Shortcut({tr("Actions"), tr("Follow DWORD/QWORD in Disassembler")}));
+    defaultShortcuts.insert("ActionFollowDwordQwordDump", Shortcut({tr("Actions"), tr("Follow DWORD/QWORD in Dump")}));
+    defaultShortcuts.insert("ActionFreezeStack", Shortcut({tr("Actions"), tr("Freeze the stack")}));
+    defaultShortcuts.insert("ActionGotoBaseOfStackFrame", Shortcut({tr("Actions"), tr("Go to Base of Stack Frame")}));
+    defaultShortcuts.insert("ActionGotoPrevStackFrame", Shortcut({tr("Actions"), tr("Go to Previous Stack Frame")}));
+    defaultShortcuts.insert("ActionGotoNextStackFrame", Shortcut({tr("Actions"), tr("Go to Next Stack Frame")}));
+    defaultShortcuts.insert("ActionGotoPreviousReference", Shortcut({tr("Actions"), tr("Go to Previous Reference")}, "Ctrl+K"));
+    defaultShortcuts.insert("ActionGotoNextReference", Shortcut({tr("Actions"), tr("Go to Next Reference")}, "Ctrl+L"));
+    defaultShortcuts.insert("ActionModifyValue", Shortcut({tr("Actions"), tr("Modify value")}, "Space"));
+    defaultShortcuts.insert("ActionWatchDwordQword", Shortcut({tr("Actions"), tr("Watch DWORD/QWORD")}));
+    defaultShortcuts.insert("ActionDataCopy", Shortcut({tr("Actions"), tr("Data Copy")}));
+    defaultShortcuts.insert("ActionCopyFileOffset", Shortcut({tr("Actions"), tr("Copy File Offset")}));
+    defaultShortcuts.insert("ActionToggleRunTrace", Shortcut({tr("Actions"), tr("Start or Stop Run Trace")}));
 
     Shortcuts = defaultShortcuts;
 
     load();
+
+    //because we changed the default this needs special handling for old configurations
+    if(Shortcuts["ViewPreviousTab"].Hotkey.toString() == Shortcuts["ViewPreviousHistory"].Hotkey.toString())
+    {
+        Shortcuts["ViewPreviousTab"].Hotkey = defaultShortcuts["ViewPreviousTab"].Hotkey;
+        save();
+    }
+    if(Shortcuts["ViewNextTab"].Hotkey.toString() == Shortcuts["ViewNextHistory"].Hotkey.toString())
+    {
+        Shortcuts["ViewNextTab"].Hotkey = defaultShortcuts["ViewNextTab"].Hotkey;
+        save();
+    }
 }
 
-Configuration* Config()
+Configuration* Configuration::instance()
 {
     return mPtr;
 }
@@ -539,6 +682,11 @@ void Configuration::emitTokenizerConfigUpdated()
     emit tokenizerConfigUpdated();
 }
 
+void Configuration::emitDisableAutoCompleteUpdated()
+{
+    emit disableAutoCompleteUpdated();
+}
+
 void Configuration::readBools()
 {
     Bools = defaultBools;
@@ -589,7 +737,7 @@ void Configuration::readUints()
 void Configuration::writeUints()
 {
     duint setting;
-    bool bSaveLoadTabOrder = ConfigBool("Miscellaneous", "LoadSaveTabOrder");
+    bool bSaveLoadTabOrder = ConfigBool("Gui", "LoadSaveTabOrder");
 
     //write config
     for(int i = 0; i < Uints.size(); i++)
@@ -846,6 +994,12 @@ void Configuration::setShortcut(const QString key_id, const QKeySequence key_seq
         noMoreMsgbox = true;
 }
 
+void Configuration::setPluginShortcut(const QString key_id, QString description, QString defaultShortcut, bool global)
+{
+    defaultShortcuts[key_id] = Shortcut(description, defaultShortcut, global);
+    readShortcuts();
+}
+
 QColor Configuration::colorFromConfig(const QString id)
 {
     char setting[MAX_SETTING_SIZE] = "";
@@ -975,7 +1129,7 @@ QString Configuration::shortcutFromConfig(const QString id)
     {
         return QString(setting);
     }
-    return "";
+    return QString();
 }
 
 bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortcut)
@@ -991,11 +1145,48 @@ bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortc
 
 void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
-    bool exists = false;
-    const char* id = menu->getId();
+    QString id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
-        if(strcmp(i.first->getId() , id) == 0)
-            exists = true;
-    if(!exists)
-        NamedMenuBuilders.push_back(std::make_pair(menu, count));
+        if(i.type == 0 && i.builder->getId() == id)
+            return; //already exists
+    NamedMenuBuilders.append(MenuMap(menu, count));
+}
+
+void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
+{
+    NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
+}
+
+static bool IsPointVisible(QPoint pos)
+{
+    for(const auto & i : QGuiApplication::screens())
+    {
+        QRect rt = i->geometry();
+        if(rt.left() <= pos.x() && rt.right() >= pos.x() && rt.top() <= pos.y() && rt.bottom() >= pos.y())
+            return true;
+    }
+    return false;
+}
+
+/**
+ * @brief Configuration::setupWindowPos Moves the dialog to the saved position
+ * @param window this
+ */
+void Configuration::setupWindowPos(QWidget* window)
+{
+    QPoint pos;
+    pos.setX(getUint("Gui", QString(window->metaObject()->className()) + "X"));
+    pos.setY(getUint("Gui", QString(window->metaObject()->className()) + "Y"));
+    if(pos.x() != 0 && pos.y() != 0 && IsPointVisible(pos))
+        window->move(pos);
+}
+
+/**
+ * @brief Configuration::saveWindowPos Saves the position of a dialog.
+ * @param window this
+ */
+void Configuration::saveWindowPos(QWidget* window)
+{
+    setUint("Gui",  QString(window->metaObject()->className()) + "X", window->pos().x());
+    setUint("Gui",  QString(window->metaObject()->className()) + "Y", window->pos().y());
 }

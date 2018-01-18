@@ -3,6 +3,8 @@
 
 #include "StdTable.h"
 
+class GotoDialog;
+
 class MemoryMapView : public StdTable
 {
     Q_OBJECT
@@ -21,16 +23,9 @@ public slots:
     void followDisassemblerSlot();
     void doubleClickedSlot();
     void yaraSlot();
-    void memoryAccessSingleshootSlot();
-    void memoryAccessRestoreSlot();
-    void memoryWriteSingleshootSlot();
-    void memoryWriteRestoreSlot();
-    void memoryExecuteSingleshootSlot();
-    void memoryExecuteRestoreSlot();
-    void memoryRemoveSlot();
     void memoryExecuteSingleshootToggleSlot();
     void memoryAllocateSlot();
-    void memoryFreeSlot();
+    void ExecCommand();
     void contextMenuSlot(const QPoint & pos);
     void switchView();
     void pageMemoryRights();
@@ -38,6 +33,7 @@ public slots:
     void entropy();
     void findPatternSlot();
     void dumpMemory();
+    void commentSlot();
     void selectAddress(duint va);
     void gotoOriginSlot();
     void gotoExpressionSlot();
@@ -47,6 +43,9 @@ public slots:
 
 private:
     QString getProtectionString(DWORD Protect);
+    QAction* makeCommandAction(QAction* action, const QString & command);
+
+    GotoDialog* mGoto = nullptr;
 
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
@@ -59,6 +58,9 @@ private:
     QMenu* mMemoryAccessMenu;
     QAction* mMemoryAccessSingleshoot;
     QAction* mMemoryAccessRestore;
+    QMenu* mMemoryReadMenu;
+    QAction* mMemoryReadSingleshoot;
+    QAction* mMemoryReadRestore;
     QMenu* mMemoryWriteMenu;
     QAction* mMemoryWriteSingleshoot;
     QAction* mMemoryWriteRestore;
@@ -75,6 +77,7 @@ private:
     QAction* mMemoryAllocate;
     QAction* mMemoryFree;
     QAction* mAddVirtualMod;
+    QAction* mComment;
 
     duint mCipBase;
 };

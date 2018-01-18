@@ -46,6 +46,7 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent, bool EnableLoc
 
             // Regex parsing checkbox
             mRegexCheckbox = new QCheckBox(tr("Regex"));
+            mRegexCheckbox->setTristate(true);
 
             // Lock checkbox
             mLockCheckbox = new QCheckBox(tr("Lock"));
@@ -106,7 +107,7 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent, bool EnableLoc
     connect(mSearchList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(mSearchList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(mSearchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
-    connect(mRegexCheckbox, SIGNAL(toggled(bool)), this, SLOT(on_checkBoxRegex_toggled(bool)));
+    connect(mRegexCheckbox, SIGNAL(stateChanged(int)), this, SLOT(on_checkBoxRegex_stateChanged(int)));
     connect(mLockCheckbox, SIGNAL(toggled(bool)), this, SLOT(on_checkBoxLock_toggled(bool)));
 
     // List input should always be forwarded to the filter edit
@@ -133,9 +134,10 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
     {
         for(int i = startcol; i < count; i++)
         {
-            if(mRegexCheckbox->checkState() == Qt::Checked)
+            auto state = mRegexCheckbox->checkState();
+            if(state != Qt::Unchecked)
             {
-                if(list->getCellContent(row, i).contains(QRegExp(text)))
+                if(list->getCellContent(row, i).contains(QRegExp(text, state == Qt::PartiallyChecked ? Qt::CaseInsensitive : Qt::CaseSensitive)))
                     return true;
             }
             else
@@ -150,6 +152,27 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
 
 void SearchListView::searchTextChanged(const QString & arg1)
 {
+    SearchListViewTable* mPrevList = NULL;
+
+    if(mSearchList->isHidden())
+    {
+        auto selList = mList->getSelection();
+        if(!selList.empty() && mList->isValidIndex(selList[0], 0))
+            mLastFirstColValue = mList->getCellContent(selList[0], 0);
+    }
+    else
+    {
+        auto selList = mSearchList->getSelection();
+        if(!selList.empty() && mSearchList->isValidIndex(selList[0], 0))
+            mLastFirstColValue = mSearchList->getCellContent(selList[0], 0);
+    }
+
+    // get the correct previous list instance
+    if(mList->isVisible())
+        mPrevList = mList;
+    else
+        mPrevList = mSearchList;
+
     if(arg1.length())
     {
         mList->hide();
@@ -162,7 +185,7 @@ void SearchListView::searchTextChanged(const QString & arg1)
         mList->show();
         mCurList = mList;
     }
-    mCurList->setSingleSelection(0);
+
     mSearchList->setRowCount(0);
     int rows = mList->getRowCount();
     int columns = mList->getColumnCount();
@@ -176,34 +199,45 @@ void SearchListView::searchTextChanged(const QString & arg1)
             j++;
         }
     }
-    rows = mSearchList->getRowCount();
-    mSearchList->setTableOffset(0);
-    for(int i = 0; i < rows; i++)
+
+    mSearchList->reloadData();
+
+    bool hasSetSingleSelection = false;
+    if(!mLastFirstColValue.isEmpty())
     {
-        if(findTextInList(mSearchList, arg1, i, mSearchStartCol, true))
+        rows = mCurList->getRowCount();
+        mCurList->setTableOffset(0);
+        for(int i = 0; i < rows; i++)
         {
-            if(rows > mSearchList->getViewableRowsCount())
+            if(mCurList->getCellContent(i, 0) == mLastFirstColValue)
             {
-                int cur = i - mSearchList->getViewableRowsCount() / 2;
-                if(!mSearchList->isValidIndex(cur, 0))
-                    cur = i;
-                mSearchList->setTableOffset(cur);
+                if(rows > mCurList->getViewableRowsCount())
+                {
+                    int cur = i - mCurList->getViewableRowsCount() / 2;
+                    if(!mCurList->isValidIndex(cur, 0))
+                        cur = i;
+                    mCurList->setTableOffset(cur);
+                }
+                mCurList->setSingleSelection(i);
+                hasSetSingleSelection = true;
+                break;
             }
-            mSearchList->setSingleSelection(i);
-            break;
         }
     }
+    if(!hasSetSingleSelection)
+        mCurList->setSingleSelection(0);
 
     if(rows == 0)
         emit emptySearchResult();
 
     // Do not highlight with regex
-    if(mRegexCheckbox->checkState() != Qt::Checked)
+    if(mRegexCheckbox->checkState() == Qt::Unchecked)
         mSearchList->highlightText = arg1;
     else
         mSearchList->highlightText = "";
 
-    mSearchList->reloadData();
+    // setup the same layout of the prev list control
+    LoadPrevListLayout(mPrevList);
 }
 
 void SearchListView::refreshSearchList()
@@ -230,9 +264,9 @@ void SearchListView::doubleClickedSlot()
     emit enterPressedSignal();
 }
 
-void SearchListView::on_checkBoxRegex_toggled(bool checked)
+void SearchListView::on_checkBoxRegex_stateChanged(int state)
 {
-    Q_UNUSED(checked);
+    Q_UNUSED(state);
     refreshSearchList();
 }
 
@@ -302,4 +336,18 @@ void SearchListView::searchSlot()
     FlickerThread* thread = new FlickerThread(mSearchBox, this);
     connect(thread, SIGNAL(setStyleSheet(QString)), mSearchBox, SLOT(setStyleSheet(QString)));
     thread->start();
+}
+
+void SearchListView::LoadPrevListLayout(SearchListViewTable* mPrevList)
+{
+    if(mPrevList == NULL || mPrevList == mCurList)
+        return;
+
+    int cols = mPrevList->getColumnCount();
+    for(int i = 0; i < cols; i++)
+    {
+        mCurList->setColumnOrder(i, mPrevList->getColumnOrder(i));
+        mCurList->setColumnHidden(i, mPrevList->getColumnHidden(i));
+        mCurList->setColumnWidth(i, mPrevList->getColumnWidth(i));
+    }
 }

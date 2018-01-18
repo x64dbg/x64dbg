@@ -33,12 +33,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "utils.h"
 
 #define YR_MAJOR_VERSION   3
-#define YR_MINOR_VERSION   5
+#define YR_MINOR_VERSION   6
 #define YR_MICRO_VERSION   0
 
-// Version as a string
-#define YR_VERSION         "3.5.0"
+#define version_str(s) _version_str(s)
+#define _version_str(s) #s
 
+// Version as a string
+#define YR_VERSION version_str(YR_MAJOR_VERSION) \
+    "." version_str(YR_MINOR_VERSION) \
+    "." version_str(YR_MICRO_VERSION)
 
 // Version as a single 4-byte hex number, e.g. 0x030401 == 3.4.1.
 #define YR_VERSION_HEX ((YR_MAJOR_VERSION << 16) | \

@@ -2,13 +2,15 @@
 
 #include "command.h"
 
-CMDRESULT cbBadCmd(int argc, char* argv[]);
-CMDRESULT cbDebugBenchmark(int argc, char* argv[]);
-CMDRESULT cbInstrSetstr(int argc, char* argv[]);
-CMDRESULT cbInstrGetstr(int argc, char* argv[]);
-CMDRESULT cbInstrCopystr(int argc, char* argv[]);
-CMDRESULT cbInstrLoopList(int argc, char* argv[]);
-CMDRESULT cbInstrCapstone(int argc, char* argv[]);
-CMDRESULT cbInstrVisualize(int argc, char* argv[]);
-CMDRESULT cbInstrMeminfo(int argc, char* argv[]);
-CMDRESULT cbInstrBriefcheck(int argc, char* argv[]);
+bool cbBadCmd(int argc, char* argv[]);
+bool cbDebugBenchmark(int argc, char* argv[]);
+bool cbInstrSetstr(int argc, char* argv[]);
+bool cbInstrGetstr(int argc, char* argv[]);
+bool cbInstrCopystr(int argc, char* argv[]);
+bool cbInstrZydis(int argc, char* argv[]);
+bool cbInstrVisualize(int argc, char* argv[]);
+bool cbInstrMeminfo(int argc, char* argv[]);
+bool cbInstrBriefcheck(int argc, char* argv[]);
+bool cbInstrFocusinfo(int argc, char* argv[]);
+bool cbInstrFlushlog(int argc, char* argv[]);
+bool cbInstrAnimateWait(int argc, char* argv[]);

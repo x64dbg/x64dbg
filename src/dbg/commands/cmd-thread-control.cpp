@@ -8,29 +8,31 @@
 #include "historycontext.h"
 #include "thread.h"
 
-CMDRESULT cbDebugCreatethread(int argc, char* argv[])
+bool cbDebugCreatethread(int argc, char* argv[])
 {
     if(argc < 2)
-        return STATUS_ERROR;
+        return false;
     duint Entry = 0;
     duint Argument = 0;
     if(!valfromstring(argv[1], &Entry))
-        return STATUS_ERROR;
+        return false;
     if(!MemIsCodePage(Entry, false))
-        return STATUS_ERROR;
+        return false;
     if(argc > 2)
     {
         if(!valfromstring(argv[2], &Argument))
-            return STATUS_ERROR;
+            return false;
     }
     DWORD ThreadId = 0;
-    if(ThreaderCreateRemoteThread(Entry, true, reinterpret_cast<LPVOID>(Argument), &ThreadId) != 0)
+    auto hThread = CreateRemoteThread(fdProcessInfo->hProcess, nullptr, 0, LPTHREAD_START_ROUTINE(Entry), LPVOID(Argument), 0, &ThreadId);
+    if(!hThread)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Create thread failed!"));
-        return STATUS_ERROR;
+        return false;
     }
     else
     {
+        CloseHandle(hThread);
         char label[MAX_LABEL_SIZE];
         if(!LabelGet(Entry, label))
             label[0] = 0;
@@ -40,20 +42,20 @@ CMDRESULT cbDebugCreatethread(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X created at %s %p(Argument=%X)\n"), ThreadId, label, Entry, Argument);
 #endif
         varset("$result", ThreadId, false);
-        return STATUS_CONTINUE;
+        return true;
     }
 }
 
-CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
+bool cbDebugSwitchthread(int argc, char* argv[])
 {
     duint threadid = fdProcessInfo->dwThreadId; //main thread
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
-            return STATUS_ERROR;
-    if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
+            return false;
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
-        return STATUS_ERROR;
+        return false;
     }
     //switch thread
     if(ThreadGetId(hActiveThread) != threadid)
@@ -63,105 +65,102 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
         DebugUpdateGuiAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
         dputs(QT_TRANSLATE_NOOP("DBG", "Thread switched!"));
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
+bool cbDebugSuspendthread(int argc, char* argv[])
 {
     duint threadid = fdProcessInfo->dwThreadId;
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
-            return STATUS_ERROR;
-    if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
+            return false;
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
-        return STATUS_ERROR;
+        return false;
     }
     //suspend thread
     if(SuspendThread(ThreadGetHandle((DWORD)threadid)) == -1)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error suspending thread"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Thread suspended"));
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugResumethread(int argc, char* argv[])
+bool cbDebugResumethread(int argc, char* argv[])
 {
     duint threadid = fdProcessInfo->dwThreadId;
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
-            return STATUS_ERROR;
-    if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
+            return false;
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
-        return STATUS_ERROR;
+        return false;
     }
     //resume thread
     if(ResumeThread(ThreadGetHandle((DWORD)threadid)) == -1)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Thread resumed!"));
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugKillthread(int argc, char* argv[])
+bool cbDebugKillthread(int argc, char* argv[])
 {
     duint threadid = fdProcessInfo->dwThreadId;
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
-            return STATUS_ERROR;
+            return false;
     duint exitcode = 0;
     if(argc > 2)
         if(!valfromstring(argv[2], &exitcode, false))
-            return STATUS_ERROR;
-    if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
+            return false;
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
-        return STATUS_ERROR;
+        return false;
     }
     //terminate thread
     if(TerminateThread(ThreadGetHandle((DWORD)threadid), (DWORD)exitcode) != 0)
     {
         GuiUpdateAllViews();
         dputs(QT_TRANSLATE_NOOP("DBG", "Thread terminated"));
-        return STATUS_CONTINUE;
+        return true;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Error terminating thread!"));
-    return STATUS_ERROR;
+    return false;
 }
 
-CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[])
+bool cbDebugSuspendAllThreads(int argc, char* argv[])
 {
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d/%d thread(s) suspended\n"), ThreadSuspendAll(), ThreadGetCount());
 
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugResumeAllThreads(int argc, char* argv[])
+bool cbDebugResumeAllThreads(int argc, char* argv[])
 {
     dprintf(QT_TRANSLATE_NOOP("DBG", "%d/%d thread(s) resumed\n"), ThreadResumeAll(), ThreadGetCount());
 
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugSetPriority(int argc, char* argv[])
+bool cbDebugSetPriority(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
-        return STATUS_ERROR;
-    }
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
     duint threadid;
     if(!valfromstring(argv[1], &threadid, false))
-        return STATUS_ERROR;
+        return false;
     duint priority;
     if(!valfromstring(argv[2], &priority))
     {
@@ -182,12 +181,12 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
         else
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Unknown priority value, read the help!"));
-            return STATUS_ERROR;
+            return false;
         }
     }
     else
     {
-        switch(priority)  //check if the priority value is valid
+        switch((int)priority) //check if the priority value is valid
         {
         case THREAD_PRIORITY_NORMAL:
         case THREAD_PRIORITY_ABOVE_NORMAL:
@@ -199,51 +198,48 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
             break;
         default:
             dputs(QT_TRANSLATE_NOOP("DBG", "Unknown priority value, read the help!"));
-            return STATUS_ERROR;
+            return false;
         }
     }
-    if(!ThreadIsValid((DWORD)threadid))  //check if the thread is valid
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
-        return STATUS_ERROR;
+        return false;
     }
     //set thread priority
     if(SetThreadPriority(ThreadGetHandle((DWORD)threadid), (int)priority) == 0)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting thread priority"));
-        return STATUS_ERROR;
+        return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Thread priority changed!"));
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugSetthreadname(int argc, char* argv[])
+bool cbDebugSetthreadname(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
-        return STATUS_ERROR;
-    }
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
     duint threadid;
     if(!valfromstring(argv[1], &threadid, false))
-        return STATUS_ERROR;
+        return false;
     THREADINFO info;
     if(!ThreadGetInfo(DWORD(threadid), info))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %X\n"), DWORD(threadid));
-        return STATUS_ERROR;
+        return false;
     }
     auto newname = argc > 2 ? argv[2] : "";
     if(!ThreadSetName(DWORD(threadid), newname))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to change the name for thread %X\n"), DWORD(threadid));
-        return STATUS_ERROR;
+        return false;
     }
     if(!*info.threadName)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Thread name set to \"%s\"!\n"), newname);
     else
         dprintf(QT_TRANSLATE_NOOP("DBG", "Thread name changed from \"%s\" to \"%s\"!\n"), info.threadName, newname);
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }

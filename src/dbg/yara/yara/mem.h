@@ -32,8 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 
-#include "config.h"
-
 #ifdef DMALLOC
 
 #define yr_malloc malloc

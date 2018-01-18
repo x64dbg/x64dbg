@@ -2,6 +2,10 @@
 #define TRACERECORD_H
 #include "_global.h"
 #include "_dbgfunctions.h"
+#include "debugger.h"
+#include "jansson/jansson_x64dbg.h"
+
+class Capstone;
 
 class TraceRecordManager
 {
@@ -51,10 +55,14 @@ public:
 
     void TraceExecute(duint address, duint size);
     //void TraceAccess(duint address, unsigned char size, TraceRecordByteType accessType);
+    void TraceExecuteRecord(const Capstone & newInstruction);
 
     unsigned int getHitCount(duint address);
     TraceRecordByteType getByteType(duint address);
     void increaseInstructionCounter();
+
+    bool isRunTraceEnabled();
+    bool enableRunTrace(bool enabled, const char* fileName);
 
     void saveToDb(JSON root);
     void loadFromDb(JSON root);
@@ -75,11 +83,34 @@ private:
         unsigned int moduleIndex;
     };
 
+    typedef union _REGDUMPWORD
+    {
+        REGDUMP registers;
+        // 172 qwords on x64, 216 dwords on x86. Almost no space left for AVX512
+        // strip off lastStatus and 128 bytes of lastError.name member.
+        duint regword[(FIELD_OFFSET(REGDUMP, lastError) + sizeof(DWORD)) / sizeof(duint)];
+    } REGDUMPWORD;
+
     //Key := page base, value := trace record raw data
     std::unordered_map<duint, TraceRecordPage> TraceRecord;
     std::vector<std::string> ModuleNames;
     unsigned int getModuleIndex(const String & moduleName);
     unsigned int instructionCounter;
+
+    bool rtEnabled;
+    bool rtPrevInstAvailable;
+    HANDLE rtFile;
+
+    REGDUMPWORD rtOldContext;
+    bool rtOldContextChanged[(FIELD_OFFSET(REGDUMP, lastError) + sizeof(DWORD)) / sizeof(duint)];
+    DWORD rtOldThreadId;
+    bool rtNeedThreadId;
+    duint rtOldMemory[32];
+    duint rtOldMemoryAddress[32];
+    char rtOldOpcode[16];
+    unsigned int rtRecordedInstructions;
+    unsigned char rtOldOpcodeSize;
+    unsigned char rtOldMemoryArrayCount;
 };
 
 extern TraceRecordManager TraceRecord;
@@ -90,5 +121,7 @@ unsigned int _dbg_dbggetTraceRecordHitCount(duint address);
 TRACERECORDBYTETYPE _dbg_dbggetTraceRecordByteType(duint address);
 bool _dbg_dbgsetTraceRecordType(duint pageAddress, TRACERECORDTYPE type);
 TRACERECORDTYPE _dbg_dbggetTraceRecordType(duint pageAddress);
+bool _dbg_dbgenableRunTrace(bool enabled, const char* fileName);
+bool _dbg_dbgisRunTraceEnabled();
 
 #endif // TRACERECORD_H

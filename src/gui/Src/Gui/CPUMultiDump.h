@@ -2,11 +2,14 @@
 #define CPUMULTIDUMP_H
 
 #include <QWidget>
-#include "CPUDump.h"
 #include "TabWidget.h"
-#include "WatchView.h"
+#include "Bridge.h"
 
 class CPUDump;
+class WatchView;
+class StructWidget;
+class CPUDisassembly;
+class LocalVarsView;
 
 class CPUMultiDump : public MHTabWidget
 {
@@ -16,6 +19,7 @@ public:
     CPUDump* getCurrentCPUDump();
     void getTabNames(QList<QString> & names);
     int getMaxCPUTabs();
+    QMenu* mDumpPluginMenu;
 
 signals:
     void displayReferencesWidget();
@@ -30,6 +34,7 @@ public slots:
     void openChangeTabTitleDialogSlot(int tabIndex);
     void displayReferencesWidgetSlot();
     void focusCurrentDumpSlot();
+    void getDumpAttention();
 
 private:
     CPUDump* mCurrentCPUDump;
@@ -37,6 +42,8 @@ private:
     uint mMaxCPUDumpTabs;
 
     WatchView* mWatch;
+    LocalVarsView* mLocalVars;
+    StructWidget* mStructWidget;
 
     int GetDumpWindowIndex(int dump);
     int GetWatchWindowIndex();

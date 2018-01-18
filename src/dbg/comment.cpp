@@ -41,7 +41,7 @@ bool CommentSet(duint Address, const char* Text, bool Manual)
     COMMENTSINFO comment;
     if(!comments.PrepareValue(comment, Address, Manual))
         return false;
-    strcpy_s(comment.text, Text);
+    comment.text = Text;
     return comments.Add(comment);
 }
 
@@ -51,9 +51,9 @@ bool CommentGet(duint Address, char* Text)
     if(!comments.Get(Comments::VaKey(Address), comment))
         return false;
     if(comment.manual)
-        strcpy_s(Text, MAX_COMMENT_SIZE, comment.text);
+        strcpy_s(Text, MAX_COMMENT_SIZE, comment.text.c_str());
     else
-        sprintf_s(Text, MAX_COMMENT_SIZE, "\1%s", comment.text);
+        sprintf_s(Text, MAX_COMMENT_SIZE, "\1%s", comment.text.c_str());
     return true;
 }
 
@@ -75,7 +75,7 @@ void CommentCacheSave(JSON Root)
 void CommentCacheLoad(JSON Root)
 {
     comments.CacheLoad(Root);
-    comments.CacheLoad(Root, false, "auto"); //legacy support
+    comments.CacheLoad(Root, "auto"); //legacy support
 }
 
 bool CommentEnum(COMMENTSINFO* List, size_t* Size)

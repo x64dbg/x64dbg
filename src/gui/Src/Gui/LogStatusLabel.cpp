@@ -8,7 +8,7 @@ LogStatusLabel::LogStatusLabel(QStatusBar* parent) : QLabel(parent)
 
     this->setTextFormat(Qt::PlainText);
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(logUpdate(QString)));
+    connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QByteArray)), this, SLOT(logUpdateUtf8(QByteArray)));
     connect(Bridge::getBridge(), SIGNAL(addMsgToStatusBar(QString)), this, SLOT(logUpdate(QString)));
     connect(Bridge::getBridge(), SIGNAL(getActiveView(ACTIVEVIEW*)), this, SLOT(getActiveView(ACTIVEVIEW*)));
     connect(QApplication::instance(), SIGNAL(focusChanged(QWidget*, QWidget*)), this, SLOT(focusChanged(QWidget*, QWidget*)));
@@ -16,6 +16,7 @@ LogStatusLabel::LogStatusLabel(QStatusBar* parent) : QLabel(parent)
 
 void LogStatusLabel::logUpdate(QString message)
 {
+    //TODO: This subroutine can be optimized
     if(!message.length())
         return;
     labelText += message.replace("\r\n", "\n");
@@ -32,6 +33,11 @@ void LogStatusLabel::logUpdate(QString message)
         }
     }
     setText(finalLabel);
+}
+
+void LogStatusLabel::logUpdateUtf8(QByteArray message)
+{
+    logUpdate(QString::fromUtf8(message));
 }
 
 void LogStatusLabel::focusChanged(QWidget* old, QWidget* now)

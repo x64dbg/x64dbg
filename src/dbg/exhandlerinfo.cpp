@@ -8,6 +8,18 @@
 #include "memory.h"
 #include "thread.h"
 #include "value.h"
+#include "debugger.h"
+
+bool IsVistaOrLater()
+{
+    static bool vistaOrLater = []()
+    {
+        OSVERSIONINFOEXW osvi = { 0 };
+        osvi.dwOSVersionInfoSize = sizeof(osvi);
+        return GetVersionExW((LPOSVERSIONINFOW)&osvi) && osvi.dwMajorVersion > 5;
+    }();
+    return vistaOrLater;
+}
 
 bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, std::vector<duint> & Entries)
 {
@@ -64,7 +76,7 @@ bool ExHandlerGetSEH(std::vector<duint> & Entries)
         while(addr_ExRegRecord != 0xFFFFFFFF && MAX_DEPTH)
         {
             Entries.push_back(addr_ExRegRecord);
-            if(!MemRead(addr_ExRegRecord , &sehr, sizeof(EXCEPTION_REGISTRATION_RECORD)))
+            if(!MemRead(addr_ExRegRecord, &sehr, sizeof(EXCEPTION_REGISTRATION_RECORD)))
                 break;
             addr_ExRegRecord = (duint)sehr.Next;
             MAX_DEPTH--;
@@ -109,7 +121,7 @@ bool ExHandlerGetVEH(std::vector<duint> & Entries)
             if(!MemRead(cur_entry, &entry, sizeof(entry)))
                 return false;
             auto handler = entry.VectoredHandler;
-            MemDecodePointer(&handler, false); //TODO: Windows XP doesn't allow a remote process to query this value
+            MemDecodePointer(&handler, false);
             Entries.push_back(handler);
             if(!MemRead(cur_entry, &cur_entry, sizeof(cur_entry)))
                 return false;
@@ -173,14 +185,9 @@ bool ExHandlerGetVCH(std::vector<duint> & Entries, bool GetVEH)
 
 bool ExHandlerGetUnhandled(std::vector<duint> & Entries)
 {
-    // Try the address for Windows Vista+
     static duint addr_BasepCurrentTopLevelFilter = 0;
 
-#ifdef _WIN64
-    auto symbol = "BasepCurrentTopLevelFilter";
-#else
-    auto symbol = "_BasepCurrentTopLevelFilter";
-#endif
+    auto symbol = ArchValue("_BasepCurrentTopLevelFilter", "BasepCurrentTopLevelFilter");
     if(addr_BasepCurrentTopLevelFilter || valfromstring(symbol, &addr_BasepCurrentTopLevelFilter))
     {
         // Read external pointer
@@ -190,7 +197,7 @@ bool ExHandlerGetUnhandled(std::vector<duint> & Entries)
             return false;
 
         // Decode with remote process cookie
-        if(!MemDecodePointer(&handlerValue, true))
+        if(!MemDecodePointer(&handlerValue, IsVistaOrLater()))
             return false;
 
         Entries.push_back(handlerValue);

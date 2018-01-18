@@ -2,25 +2,23 @@
 
 #include "command.h"
 
-CMDRESULT cbDebugRunInternal(int argc, char* argv[]);
-CMDRESULT cbDebugInit(int argc, char* argv[]);
-CMDRESULT cbDebugStop(int argc, char* argv[]);
-CMDRESULT cbDebugAttach(int argc, char* argv[]);
-CMDRESULT cbDebugDetach(int argc, char* argv[]);
-CMDRESULT cbDebugRun(int argc, char* argv[]);
-CMDRESULT cbDebugErun(int argc, char* argv[]);
-CMDRESULT cbDebugSerun(int argc, char* argv[]);
-CMDRESULT cbDebugPause(int argc, char* argv[]);
-CMDRESULT cbDebugContinue(int argc, char* argv[]);
-CMDRESULT cbDebugStepInto(int argc, char* argv[]);
-CMDRESULT cbDebugeStepInto(int argc, char* argv[]);
-CMDRESULT cbDebugseStepInto(int argc, char* argv[]);
-CMDRESULT cbDebugStepOver(int argc, char* argv[]);
-CMDRESULT cbDebugeStepOver(int argc, char* argv[]);
-CMDRESULT cbDebugseStepOver(int argc, char* argv[]);
-CMDRESULT cbDebugSingleStep(int argc, char* argv[]);
-CMDRESULT cbDebugeSingleStep(int argc, char* argv[]);
-CMDRESULT cbDebugStepOut(int argc, char* argv[]);
-CMDRESULT cbDebugeStepOut(int argc, char* argv[]);
-CMDRESULT cbDebugSkip(int argc, char* argv[]);
-CMDRESULT cbInstrInstrUndo(int argc, char* argv[]);
+bool cbDebugRunInternal(int argc, char* argv[]);
+bool cbDebugInit(int argc, char* argv[]);
+bool cbDebugStop(int argc, char* argv[]);
+bool cbDebugAttach(int argc, char* argv[]);
+bool cbDebugDetach(int argc, char* argv[]);
+bool cbDebugRun(int argc, char* argv[]);
+bool cbDebugErun(int argc, char* argv[]);
+bool cbDebugSerun(int argc, char* argv[]);
+bool cbDebugPause(int argc, char* argv[]);
+bool cbDebugContinue(int argc, char* argv[]);
+bool cbDebugStepInto(int argc, char* argv[]);
+bool cbDebugeStepInto(int argc, char* argv[]);
+bool cbDebugseStepInto(int argc, char* argv[]);
+bool cbDebugStepOver(int argc, char* argv[]);
+bool cbDebugeStepOver(int argc, char* argv[]);
+bool cbDebugseStepOver(int argc, char* argv[]);
+bool cbDebugStepOut(int argc, char* argv[]);
+bool cbDebugeStepOut(int argc, char* argv[]);
+bool cbDebugSkip(int argc, char* argv[]);
+bool cbInstrInstrUndo(int argc, char* argv[]);

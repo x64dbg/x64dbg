@@ -1,7 +1,9 @@
 #pragma once
 
 #include "_global.h"
+#include "jansson/jansson_x64dbg.h"
 #include "expressionparser.h"
+#include <map>
 
 class WatchExpr
 {

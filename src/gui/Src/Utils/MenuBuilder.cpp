@@ -5,7 +5,6 @@
 /**
  * @brief MenuBuilder::loadFromConfig Set the menu builder to be customizable
  * @param id The id of menu builder. It should be the same on every same menu.
- * See CustomizeMenuDialog for a list of defined identifiers.
  */
 void MenuBuilder::loadFromConfig()
 {
@@ -52,10 +51,10 @@ QString MenuBuilder::getText(size_t id) const
         if(container.builder->_containers.size() == 1)
             return container.builder->getText(0); // recursively get the text inside the menu builder
         else
-            return "";
+            return QString();
     }
     default: // separator
-        return "";
+        return QString();
     }
 }
 

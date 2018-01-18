@@ -5,6 +5,8 @@
 #include <QLabel>
 #include "SearchListView.h"
 
+class QTabWidget;
+
 class ReferenceView : public SearchListView
 {
     Q_OBJECT
@@ -15,10 +17,11 @@ public:
     void connectBridge();
     void disconnectBridge();
 
-protected slots:
+public slots:
     void addColumnAt(int width, QString title);
     void setRowCount(dsint count);
     void setCellContent(int r, int c, QString s);
+    void addCommand(QString title, QString command);
     void reloadData();
     void setSingleSelection(int index, bool scroll);
     void setSearchStartCol(int col);
@@ -36,9 +39,13 @@ protected slots:
     void refreshShortcutsSlot();
     void referenceSetProgressSlot(int progress);
     void referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle);
+    void searchSelectionChanged(int index);
 
 signals:
     void showCpu();
+
+private slots:
+    void referenceExecCommand();
 
 private:
     QProgressBar* mSearchTotalProgress;
@@ -53,6 +60,9 @@ private:
     QAction* mSetBreakpointOnAllApiCalls;
     QAction* mRemoveBreakpointOnAllApiCalls;
     QLabel* mCountTotalLabel;
+    QVector<QString> mCommnadTitles;
+    QVector<QString> mCommands;
+    QTabWidget* mParent;
 
     enum BPSetAction
     {
@@ -64,6 +74,8 @@ private:
 
     void setBreakpointAt(int row, BPSetAction action);
     dsint apiAddressFromString(const QString & s);
+
+    void mouseReleaseEvent(QMouseEvent* event);
 };
 
 #endif // REFERENCEVIEW_H

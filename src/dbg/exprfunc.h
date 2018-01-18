@@ -8,6 +8,9 @@ namespace Exprfunc
     duint srcdisp(duint addr);
 
     duint modparty(duint addr);
+    duint modsystem(duint addr);
+    duint moduser(duint addr);
+    duint modrva(duint addr);
 
     duint disasmsel();
     duint dumpsel();
@@ -24,27 +27,46 @@ namespace Exprfunc
     duint membase(duint addr);
     duint memsize(duint addr);
     duint memiscode(duint addr);
+    duint memisstring(duint addr);
     duint memdecodepointer(duint ptr);
 
     duint dislen(duint addr);
     duint disiscond(duint addr);
     duint disisbranch(duint addr);
     duint disisret(duint addr);
+    duint disiscall(duint addr);
     duint disismem(duint addr);
+    duint disisnop(duint addr);
+    duint disisunusual(duint addr);
     duint disbranchdest(duint addr);
     duint disbranchexec(duint addr);
     duint disimm(duint addr);
     duint disbrtrue(duint addr);
     duint disbrfalse(duint addr);
+    duint disnext(duint addr);
+    duint disprev(duint addr);
 
     duint trenabled(duint addr);
     duint trhitcount(duint addr);
+    duint trisruntraceenabled();
     duint gettickcount();
-    duint sleep(duint ms);
 
     duint readbyte(duint addr);
     duint readword(duint addr);
     duint readdword(duint addr);
     duint readqword(duint addr);
     duint readptr(duint addr);
+
+    duint funcstart(duint addr);
+    duint funcend(duint addr);
+
+    duint refcount();
+    duint refaddr(duint row);
+    duint refsearchcount();
+    duint refsearchaddr(duint row);
+
+    duint argget(duint index);
+    duint argset(duint index, duint value);
+
+    duint bpgoto(duint cip);
 }

@@ -5,6 +5,8 @@
 #include <QRegularExpression>
 #include <QDesktopServices>
 #include <QClipboard>
+#include <QMimeData>
+#include <QTimer>
 
 /**
  * @brief LogView::LogView The constructor constructs a rich text browser
@@ -20,12 +22,22 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     this->setLoggingEnabled(true);
     autoScroll = true;
 
+    flushTimer = new QTimer(this);
+    flushTimer->setInterval(500);
+    connect(flushTimer, SIGNAL(timeout()), this, SLOT(flushTimerSlot()));
+    connect(Bridge::getBridge(), SIGNAL(close()), flushTimer, SLOT(stop()));
+
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
-    connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(addMsgToLogSlot(QString)));
+    connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QByteArray)), this, SLOT(addMsgToLogSlot(QByteArray)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
+    connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushLogSlot()));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
+
+    duint setting;
+    if(BridgeSettingGetUint("Misc", "Utf16LogRedirect", &setting))
+        utf16Redirect = !!setting;
 
     setupContextMenu();
 }
@@ -44,6 +56,9 @@ void LogView::updateStyle()
 {
     setFont(ConfigFont("Log"));
     setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
+    QColor LogLinkBackgroundColor = ConfigColor("LogLinkBackgroundColor");
+
+    this->document()->setDefaultStyleSheet(QString("a {color: %1; background-color: %2 }").arg(ConfigColor("LogLinkColor").name(), LogLinkBackgroundColor == Qt::transparent ? "transparent" : LogLinkBackgroundColor.name()));
 }
 
 template<class T> static QAction* setupAction(const QIcon & icon, const QString & text, LogView* this_object, T slot)
@@ -101,7 +116,8 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(actionClear);
     wMenu.addAction(actionSelectAll);
     wMenu.addAction(actionCopy);
-    wMenu.addAction(actionPaste);
+    if(QApplication::clipboard()->mimeData()->hasText())
+        wMenu.addAction(actionPaste);
     wMenu.addAction(actionSave);
     if(getLoggingEnabled())
         actionToggleLogging->setText(tr("Disable &Logging"));
@@ -119,6 +135,19 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(actionRedirectLog);
 
     wMenu.exec(event->globalPos());
+}
+
+void LogView::showEvent(QShowEvent* event)
+{
+    flushTimerSlot();
+    flushTimer->start();
+    QTextBrowser::showEvent(event);
+}
+
+void LogView::hideEvent(QHideEvent* event)
+{
+    flushTimer->stop();
+    QTextBrowser::hideEvent(event);
 }
 
 /**
@@ -146,37 +175,95 @@ static void linkify(QString & msg)
  * @brief LogView::addMsgToLogSlot Adds a message to the log view. This function is a slot for Bridge::addMsgToLog.
  * @param msg The log message
  */
-void LogView::addMsgToLogSlot(QString msg)
+void LogView::addMsgToLogSlot(QByteArray msg)
 {
+    /*
+     * This supports the 'UTF-8 Everywhere' manifesto.
+     * - UTF-8 (http://utf8everywhere.org);
+     * - No BOM (http://utf8everywhere.org/#faq.boms);
+     * - No carriage return (http://utf8everywhere.org/#faq.crlf).
+     */
+
     // fix Unix-style line endings.
-    msg.replace(QString("\r\n"), QString("\n"));
-    msg.replace(QChar('\n'), QString("\r\n"));
     // redirect the log
+    QString msgUtf16;
+    bool redirectError = false;
     if(logRedirection != NULL)
     {
-        if(!fwrite(msg.data_ptr()->data(), msg.size() * 2, 1, logRedirection))
+        if(utf16Redirect)
         {
-            fclose(logRedirection);
-            logRedirection = NULL;
-            msg += tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\r\n").arg(GetLastError());
+            msgUtf16 = QString::fromUtf8(msg);
+            msgUtf16.replace("\n", "\r\n");
+            if(!fwrite(msgUtf16.utf16(), msgUtf16.length(), 2, logRedirection))
+            {
+                fclose(logRedirection);
+                logRedirection = NULL;
+                redirectError = true;
+            }
+        }
+        else
+        {
+            const char* data;
+            std::string temp;
+            size_t offset = 0;
+            size_t buffersize = 0;
+            if(strstr(msg.constData(), "\r\n") != nullptr) // Don't replace "\r\n" to "\n" if there is none
+            {
+                temp = msg.constData();
+                while(true)
+                {
+                    size_t index = temp.find("\r\n", offset);
+                    if(index == std::string::npos)
+                        break;
+                    temp.erase(index);
+                    offset = index;
+                }
+                data = temp.c_str();
+                buffersize = temp.size();
+            }
+            else
+            {
+                data = msg.constData();
+                buffersize = strlen(msg);
+            }
+            if(!fwrite(data, buffersize, 1, logRedirection))
+            {
+                fclose(logRedirection);
+                logRedirection = NULL;
+                redirectError = true;
+            }
+            if(loggingEnabled)
+                msgUtf16 = QString::fromUtf8(data, int(buffersize));
         }
     }
+    else
+        msgUtf16 = QString::fromUtf8(msg);
     if(!loggingEnabled)
         return;
-    if(this->document()->characterCount() > 10000 * 100) //limit the log to ~100mb
-        this->clear();
-    // This sets the cursor to the end for the next insert
-    QTextCursor cursor = this->textCursor();
-    cursor.movePosition(QTextCursor::End);
-    if(autoScroll)
-        this->moveCursor(QTextCursor::End);
-    msg.replace(QChar('&'), QString("&amp;"));
-    msg.replace(QChar('<'), QString("&lt;"));
-    msg.replace(QChar('>'), QString("&gt;"));
-    msg.replace(QString("\r\n"), QString("<br/>\r\n"));
-    msg.replace(QChar(' '), QString("&nbsp;"));
-    linkify(msg);
-    cursor.insertHtml(msg);
+    msgUtf16 = msgUtf16.toHtmlEscaped();
+    msgUtf16.replace(QChar(' '), QString("&nbsp;"));
+    if(logRedirection)
+    {
+        if(utf16Redirect)
+            msgUtf16.replace(QString("\r\n"), QString("<br/>\n"));
+        else
+            msgUtf16.replace(QChar('\n'), QString("<br/>\n"));
+    }
+    else
+    {
+        msgUtf16.replace(QChar('\n'), QString("<br/>\n"));
+        msgUtf16.replace(QString("\r\n"), QString("<br/>\n"));
+    }
+    linkify(msgUtf16);
+    if(redirectError)
+        msgUtf16.append(tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError()));
+
+    logBuffer.append(msgUtf16);
+    if(flushLog)
+    {
+        flushTimerSlot();
+        flushLog = false;
+    }
 }
 
 /**
@@ -187,34 +274,24 @@ void LogView::onAnchorClicked(const QUrl & link)
 {
     if(link.scheme() == "x64dbg")
     {
-        if(link.path() == "/address64")
+        if(link.path() == "/address32" || link.path() == "/address64")
         {
             if(DbgIsDebugging())
             {
                 bool ok = false;
-                duint address = link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16);
+                auto address = duint(link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16));
                 if(ok && DbgMemIsValidReadPtr(address))
                 {
                     if(DbgFunctions()->MemIsCodePage(address, true))
                         DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
                     else
-                        DbgCmdExec(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+                    {
+                        DbgCmdExecDirect(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+                        emit Bridge::getBridge()->getDumpAttention();
+                    }
                 }
-            }
-        }
-        else if(link.path() == "/address32")
-        {
-            if(DbgIsDebugging())
-            {
-                bool ok = false;
-                duint address = link.fragment(QUrl::DecodeReserved).toULong(&ok);
-                if(ok)
-                {
-                    if(DbgFunctions()->MemIsCodePage(address, true))
-                        DbgCmdExec(QString("disasm %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
-                    else if(DbgMemIsValidReadPtr(address))
-                        DbgCmdExec(QString("dump %1").arg(link.fragment(QUrl::DecodeReserved)).toUtf8().constData());
-                }
+                else
+                    SimpleErrorBox(this, tr("Invalid address!"), tr("The address %1 is not a valid memory location...").arg(ToPtrString(address)));
             }
         }
         else
@@ -238,7 +315,7 @@ void LogView::redirectLogSlot()
     }
     else
     {
-        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files(*.txt);;All files(*.*)"), QCoreApplication::applicationDirPath(), true);
+        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files (*.txt);;All files (*.*)"), QCoreApplication::applicationDirPath(), true);
         if(browse.exec() == QDialog::Accepted)
         {
             logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
@@ -246,7 +323,7 @@ void LogView::redirectLogSlot()
                 GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
             else
             {
-                if(ftell(logRedirection) == 0)
+                if(utf16Redirect && ftell(logRedirection) == 0)
                 {
                     unsigned short BOM = 0xfeff;
                     fwrite(&BOM, 2, 1, logRedirection);
@@ -334,5 +411,33 @@ void LogView::pasteSlot()
         return;
     if(!clipboardText.endsWith('\n'))
         clipboardText.append('\n');
-    addMsgToLogSlot(clipboardText);
+    addMsgToLogSlot(clipboardText.toUtf8());
+}
+
+void LogView::flushTimerSlot()
+{
+    if(logBuffer.isEmpty())
+        return;
+    setUpdatesEnabled(false);
+    static unsigned char counter = 100;
+    counter--;
+    if(counter == 0)
+    {
+        if(document()->characterCount() > 1024 * 1024 * 100) //limit the log to ~100mb
+            clear();
+        counter = 100;
+    }
+    QTextCursor cursor = textCursor();
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertHtml(logBuffer);
+    if(autoScroll)
+        moveCursor(QTextCursor::End);
+    setUpdatesEnabled(true);
+    logBuffer.clear();
+}
+
+void LogView::flushLogSlot()
+{
+    flushLog = true;
+    flushTimerSlot();
 }

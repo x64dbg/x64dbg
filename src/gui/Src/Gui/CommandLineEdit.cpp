@@ -188,13 +188,13 @@ void CommandLineEdit::autoCompleteUpdate(const QString text)
 
 void CommandLineEdit::autoCompleteAddCmd(const QString cmd)
 {
-    mDefaultCompletions << cmd.split(QChar('\1'), QString::SkipEmptyParts);
+    mDefaultCompletions << cmd.split(QChar(','), QString::SkipEmptyParts);
     mDefaultCompletions.removeDuplicates();
 }
 
 void CommandLineEdit::autoCompleteDelCmd(const QString cmd)
 {
-    QStringList deleteList = cmd.split(QChar('\1'), QString::SkipEmptyParts);
+    QStringList deleteList = cmd.split(QChar(','), QString::SkipEmptyParts);
 
     for(int i = 0; i < deleteList.size(); i++)
         mDefaultCompletions.removeAll(deleteList.at(i));

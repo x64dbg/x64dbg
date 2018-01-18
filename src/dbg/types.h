@@ -8,6 +8,7 @@ namespace Types
 {
     enum Primitive
     {
+        Void,
         Int8,
         Uint8,
         Int16,
@@ -39,6 +40,7 @@ namespace Types
         std::string name; //Member identifier
         std::string type; //Type.name
         int arrsize = 0; //Number of elements if Member is an array
+        int offset = -1; //Member offset (only stored for reference)
     };
 
     struct StructUnion
@@ -118,6 +120,13 @@ namespace Types
         bool addType(const Type & t);
         bool visitMember(const Member & root, Visitor & visitor) const;
     };
+
+    struct Model
+    {
+        std::vector<Member> types;
+        std::vector<StructUnion> structUnions;
+        std::vector<Function> functions;
+    };
 };
 
 bool AddType(const std::string & owner, const std::string & type, const std::string & name);
@@ -133,3 +142,6 @@ bool VisitType(const std::string & type, const std::string & name, Types::TypeMa
 void ClearTypes(const std::string & owner = "");
 bool RemoveType(const std::string & type);
 void EnumTypes(std::vector<Types::TypeManager::Summary> & typeList);
+bool LoadTypesJson(const std::string & json, const std::string & owner);
+bool LoadTypesFile(const std::string & path, const std::string & owner);
+bool ParseTypes(const std::string & parse, const std::string & owner);

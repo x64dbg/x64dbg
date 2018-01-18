@@ -22,13 +22,17 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
     mDisas = disas;
     mMultiDump = multiDump;
 
+    duint setting;
+    if(BridgeSettingGetUint("Gui", "AsciiSeparator", &setting))
+        mAsciiSeparator = setting & 0xF;
+
     setView((ViewEnum_t)ConfigUint("HexDump", "DefaultView"));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
-    setupContextMenu();
+    mPluginMenu = multiDump->mDumpPluginMenu;
 
-    mGoto = 0;
+    setupContextMenu();
 }
 
 void CPUDump::setupContextMenu()
@@ -43,9 +47,15 @@ void CPUDump::setupContextMenu()
     wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_fill.png"), tr("&Fill..."), SLOT(binaryFillSlot()), "ActionBinaryFill"));
     wBinaryMenu->addSeparator();
     wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_copy.png"), tr("&Copy"), SLOT(binaryCopySlot()), "ActionBinaryCopy"));
-    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
-    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"));
-    wBinaryMenu->addAction(makeAction(DIcon("binary_save.png"), tr("Save To a File"), SLOT(binarySaveToFileSlot())));
+    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"), [](QMenu*)
+    {
+        return QApplication::clipboard()->mimeData()->hasText();
+    });
+    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"), [](QMenu*)
+    {
+        return QApplication::clipboard()->mimeData()->hasText();
+    });
+    wBinaryMenu->addAction(makeShortcutAction(DIcon("binary_save.png"), tr("Save To a File"), SLOT(binarySaveToFileSlot()), "ActionBinarySave"));
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("B&inary")), wBinaryMenu);
 
     MenuBuilder* wCopyMenu = new MenuBuilder(this);
@@ -55,19 +65,24 @@ void CPUDump::setupContextMenu()
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
     });
+    wCopyMenu->addAction(makeShortcutAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot()), "ActionCopyFileOffset"), [this](QMenu*)
+    {
+        return DbgFunctions()->VaToFileOffset(rvaToVa(getInitialSelection())) != 0;
+    });
+
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), wCopyMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
     {
         return DbgFunctions()->PatchInRange(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()));
     });
-    mMenuBuilder->addAction(makeAction(DIcon("stack.png"), tr("Follow in Stack"), SLOT(followStackSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("stack.png"), tr("Follow in Stack"), SLOT(followStackSlot()), "ActionFollowStack"), [this](QMenu*)
     {
         auto start = rvaToVa(getSelectionStart());
         return (DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0));
     });
-    mMenuBuilder->addAction(makeAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembler"), SLOT(followInDisasmSlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembler"), SLOT(followInDisasmSlot()), "ActionFollowDisasm"));
     auto wIsValidReadPtrCallback = [this](QMenu*)
     {
         duint ptr = 0;
@@ -75,8 +90,8 @@ void CPUDump::setupContextMenu()
         return DbgMemIsValidReadPtr(ptr);
     };
 
-    mMenuBuilder->addAction(makeAction(DIcon("processor32.png"), ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")), SLOT(followDataSlot())), wIsValidReadPtrCallback);
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Current Dump"), tr("&Follow QWORD in Current Dump")), SLOT(followDataDumpSlot())), wIsValidReadPtrCallback);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("processor32.png"), ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")), SLOT(followDataSlot()), "ActionFollowDwordQwordDisasm"), wIsValidReadPtrCallback);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Current Dump"), tr("&Follow QWORD in Current Dump")), SLOT(followDataDumpSlot()), "ActionFollowDwordQwordDump"), wIsValidReadPtrCallback);
 
     MenuBuilder* wFollowInDumpMenu = new MenuBuilder(this, [wIsValidReadPtrCallback, this](QMenu * menu)
     {
@@ -97,7 +112,7 @@ void CPUDump::setupContextMenu()
     }
     mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Dump"), tr("&Follow QWORD in Dump"))), wFollowInDumpMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("Set &Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
-    mMenuBuilder->addAction(makeAction(DIcon("modify.png"), tr("&Modify Value"), SLOT(modifyValueSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("modify.png"), tr("&Modify Value"), SLOT(modifyValueSlot()), "ActionModifyValue"), [this](QMenu*)
     {
         return getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint);
     });
@@ -112,6 +127,10 @@ void CPUDump::setupContextMenu()
         return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
     });
     MenuBuilder* wMemoryAccessMenu = new MenuBuilder(this, [this](QMenu*)
+    {
+        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
+    });
+    MenuBuilder* wMemoryReadMenu = new MenuBuilder(this, [this](QMenu*)
     {
         return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
     });
@@ -148,11 +167,14 @@ void CPUDump::setupContextMenu()
     wBreakpointMenu->addSeparator();
     wMemoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryAccessSingleshootSlot())));
     wMemoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryAccessRestoreSlot())));
+    wMemoryReadMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryReadSingleshootSlot())));
+    wMemoryReadMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryReadRestoreSlot())));
     wMemoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryWriteSingleshootSlot())));
     wMemoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryWriteRestoreSlot())));
     wMemoryExecuteMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryExecuteSingleshootSlot())));
     wMemoryExecuteMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryExecuteRestoreSlot())));
     wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_access.png"), tr("Memory, Access")), wMemoryAccessMenu);
+    wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_read.png"), tr("Memory, Read")), wMemoryReadMenu);
     wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_write.png"), tr("Memory, Write")), wMemoryWriteMenu);
     wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_execute.png"), tr("Memory, Execute")), wMemoryExecuteMenu);
     wBreakpointMenu->addAction(makeAction(DIcon("breakpoint_remove.png"), tr("Remove &Memory"), SLOT(memoryRemoveSlot())), [this](QMenu*)
@@ -164,12 +186,12 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for.png"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("find.png"), tr("Find &References"), SLOT(findReferencesSlot()), "ActionFindReferences"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("yara.png"), tr("&Yara..."), SLOT(yaraSlot()), "ActionYara"));
-    mMenuBuilder->addAction(makeAction(DIcon("data-copy.png"), tr("Data co&py..."), SLOT(dataCopySlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("data-copy.png"), tr("Data co&py..."), SLOT(dataCopySlot()), "ActionDataCopy"));
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
-    mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), ArchValue(tr("Watch DWORD"), tr("Watch QWORD")), SLOT(watchSlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("animal-dog.png"), ArchValue(tr("Watch DWORD"), tr("Watch QWORD")), SLOT(watchSlot()), "ActionWatchDwordQword"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("entropy.png"), tr("Entrop&y..."), SLOT(entropySlot()), "ActionEntropy"));
-    mMenuBuilder->addAction(makeAction(tr("Allocate Memory"), SLOT(allocMemorySlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_alloc_memory.png"), tr("Allocate Memory"), SLOT(allocMemorySlot()), "ActionAllocateMemory"));
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
     wGotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("&Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
@@ -179,13 +201,21 @@ void CPUDump::setupContextMenu()
         return getSelectionStart() != 0;
     });
     wGotoMenu->addAction(makeShortcutAction(DIcon("bottom.png"), tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
-    wGotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPrevSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    wGotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
-        return historyHasPrev();
+        return mHistory.historyHasPrev();
     });
     wGotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
     {
-        return historyHasNext();
+        return mHistory.historyHasNext();
+    });
+    wGotoMenu->addAction(makeShortcutAction(DIcon("prevref.png"), tr("Previous Reference"), SLOT(gotoPreviousReferenceSlot()), "ActionGotoPreviousReference"), [](QMenu*)
+    {
+        return !!DbgEval("refsearch.count() && ($__dump_refindex > 0 || dump.sel() != refsearch.addr($__dump_refindex))");
+    });
+    wGotoMenu->addAction(makeShortcutAction(DIcon("nextref.png"), tr("Next Reference"), SLOT(gotoNextReferenceSlot()), "ActionGotoNextReference"), [](QMenu*)
+    {
+        return !!DbgEval("refsearch.count() && ($__dump_refindex < refsearch.count() || dump.sel() != refsearch.addr($__dump_refindex))");
     });
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("&Go to")), wGotoMenu);
     mMenuBuilder->addSeparator();
@@ -245,12 +275,10 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeAction(DIcon("address.png"), tr("&Address"), SLOT(addressSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("&Disassembly"), SLOT(disassemblySlot())))->setEnabled(false);
 
-    mPluginMenu = new QMenu(this);
-    mPluginMenu->setIcon(DIcon("plugin.png"));
-    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
+        DbgMenuPrepare(GUI_DUMP_MENU);
         menu->addActions(mPluginMenu->actions());
         return true;
     }));
@@ -327,8 +355,8 @@ QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
         }
         if(background.alpha())
             painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background color
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(cur_addr));
-        return "";
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(cur_addr));
+        return QString();
     }
     return HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }
@@ -376,43 +404,113 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
+static QString getTooltipForVa(duint va, int depth)
+{
+    duint ptr = 0;
+    if(!DbgMemRead(va, &ptr, sizeof(duint)))
+        return QString();
+
+    QString tooltip;
+    /* TODO: if this is enabled, make sure the context menu items also work
+    // If the VA is not a valid pointer, try to align it
+    if(!DbgMemIsValidReadPtr(ptr))
+    {
+     va -= va % sizeof(duint);
+     DbgMemRead(va, &ptr, sizeof(duint));
+    }*/
+
+    // Check if its a pointer
+    switch(DbgGetEncodeTypeAt(va, 1))
+    {
+    // Get information about the pointer type
+    case enc_unknown:
+    default:
+        if(DbgMemIsValidReadPtr(ptr) && depth >= 0)
+        {
+            tooltip = QString("[%1] = %2").arg(ToPtrString(ptr), getTooltipForVa(ptr, depth - 1));
+        }
+        // If not a pointer, hide tooltips
+        else
+        {
+            bool isCodePage;
+            isCodePage = DbgFunctions()->MemIsCodePage(va, false);
+            char disassembly[GUI_MAX_DISASSEMBLY_SIZE];
+            if(isCodePage)
+            {
+                if(GuiGetDisassembly(va, disassembly))
+                    tooltip = QString::fromUtf8(disassembly);
+                else
+                    tooltip = "";
+            }
+            else
+                tooltip = QString("[%1] = %2").arg(ToPtrString(va)).arg(ToPtrString(ptr));
+            if(DbgFunctions()->ModGetParty(va) == 1)
+                tooltip += " (" + (isCodePage ? CPUDump::tr("System Code") : CPUDump::tr("System Data")) + ")";
+            else
+                tooltip += " (" + (isCodePage ? CPUDump::tr("User Code") : CPUDump::tr("User Data")) + ")";
+        }
+        break;
+    case enc_code:
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE];
+        if(GuiGetDisassembly(va, disassembly))
+            tooltip = QString::fromUtf8(disassembly);
+        else
+            tooltip = "";
+        if(DbgFunctions()->ModGetParty(va) == 1)
+            tooltip += " (" + CPUDump::tr("System Code") + ")";
+        else
+            tooltip += " (" + CPUDump::tr("User Code") + ")";
+        break;
+    case enc_real4:
+        tooltip = ToFloatString(&va) + CPUDump::tr(" (Real4)");
+        break;
+    case enc_real8:
+        double numd;
+        DbgMemRead(va, &numd, sizeof(double));
+        tooltip = ToDoubleString(&numd) + CPUDump::tr(" (Real8)");
+        break;
+    case enc_byte:
+        tooltip = ToByteString(va) + CPUDump::tr(" (BYTE)");
+        break;
+    case enc_word:
+        tooltip = ToWordString(va) + CPUDump::tr(" (WORD)");
+        break;
+    case enc_dword:
+        tooltip = QString("%1").arg((unsigned int)va, 8, 16, QChar('0')).toUpper() + CPUDump::tr(" (DWORD)");
+        break;
+    case enc_qword:
+#ifdef _WIN64
+        tooltip = QString("%1").arg((unsigned long long)va, 16, 16, QChar('0')).toUpper() + CPUDump::tr(" (QWORD)");
+#else //x86
+        unsigned long long qword;
+        qword = 0;
+        DbgMemRead(va, &qword, 8);
+        tooltip = QString("%1").arg((unsigned long long)qword, 16, 16, QChar('0')).toUpper() + CPUDump::tr(" (QWORD)");
+#endif //_WIN64
+        break;
+    case enc_ascii:
+    case enc_unicode:
+        char str[MAX_STRING_SIZE];
+        if(DbgGetStringAt(va, str))
+            tooltip = QString::fromUtf8(str) + CPUDump::tr(" (String)");
+        else
+            tooltip = CPUDump::tr("(Unknown String)");
+        break;
+    }
+    return tooltip;
+}
+
 void CPUDump::mouseMoveEvent(QMouseEvent* event)
 {
-    dsint ptr = 0, ptrValue = 0;
-
     // Get mouse pointer relative position
     int x = event->x();
     int y = event->y();
 
     // Get HexDump own RVA address, then VA in memory
-    int rva = getItemStartingAddress(x, y);
-    int va = rvaToVa(rva);
+    auto va = rvaToVa(getItemStartingAddress(x, y));
 
     // Read VA
-    DbgMemRead(va, (unsigned char*)&ptr, sizeof(dsint));
-
-    // Check if its a pointer
-    if(DbgMemIsValidReadPtr(ptr))
-    {
-        // Get the value at the address pointed by the ptr
-        DbgMemRead(ptr, (unsigned char*)&ptrValue, sizeof(dsint));
-
-        // Format text like this : [ptr] = ptrValue
-        QString strPtrValue;
-#ifdef _WIN64
-        strPtrValue.sprintf("[0x%016X] = 0x%016X", ptr, ptrValue);
-#else
-        strPtrValue.sprintf("[0x%08X] = 0x%08X", ptr, ptrValue);
-#endif
-
-        // Show tooltip
-        QToolTip::showText(event->globalPos(), strPtrValue);
-    }
-    // If not a pointer, hide tooltips
-    else
-    {
-        QToolTip::hideText();
-    }
+    QToolTip::showText(event->globalPos(), getTooltipForVa(va, 4));
 
     HexDump::mouseMoveEvent(event);
 }
@@ -424,14 +522,28 @@ void CPUDump::setLabelSlot()
 
     duint wVA = rvaToVa(getSelectionStart());
     LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
     QString addr_text = ToPtrString(wVA);
-    char label_text[MAX_COMMENT_SIZE] = "";
+    char label_text[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    QByteArray utf8data = mLineEdit.editText.toUtf8();
+    if(!utf8data.isEmpty() && DbgIsValidExpression(utf8data.constData()) && DbgValFromString(utf8data.constData()) != wVA)
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("The label may be in use"),
+                        tr("The label \"%1\" may be an existing label or a valid expression. Using such label might have undesired effects. Do you still want to continue?").arg(mLineEdit.editText),
+                        QMessageBox::Yes | QMessageBox::No, this);
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            goto restart;
+    }
+    if(!DbgSetLabelAt(wVA, utf8data.constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
     GuiUpdateAllViews();
 }
@@ -458,6 +570,7 @@ void CPUDump::gotoExpressionSlot()
     if(!mGoto)
         mGoto = new GotoDialog(this);
     mGoto->setWindowTitle(tr("Enter expression to follow in Dump..."));
+    mGoto->setInitialExpression(ToPtrString(rvaToVa(getInitialSelection())));
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
@@ -475,13 +588,18 @@ void CPUDump::gotoFileOffsetSlot()
         SimpleErrorBox(this, tr("Error!"), tr("Not inside a module..."));
         return;
     }
-    GotoDialog mGotoDialog(this);
-    mGotoDialog.fileOffset = true;
-    mGotoDialog.modName = QString(modname);
-    mGotoDialog.setWindowTitle(tr("Goto File Offset in %1").arg(QString(modname)));
-    if(mGotoDialog.exec() != QDialog::Accepted)
+    if(!mGotoOffset)
+        mGotoOffset = new GotoDialog(this);
+    mGotoOffset->fileOffset = true;
+    mGotoOffset->modName = QString(modname);
+    mGotoOffset->setWindowTitle(tr("Goto File Offset in %1").arg(QString(modname)));
+    duint addr = rvaToVa(getInitialSelection());
+    duint offset = DbgFunctions()->VaToFileOffset(addr);
+    if(offset)
+        mGotoOffset->setInitialExpression(ToHexString(offset));
+    if(mGotoOffset->exec() != QDialog::Accepted)
         return;
-    duint value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
+    duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
     DbgCmdExec(QString().sprintf("dump \"%p\"", value).toUtf8().constData());
 }
@@ -498,6 +616,28 @@ void CPUDump::gotoEndSlot()
     DbgCmdExec(QString().sprintf("dump \"%p\"", dest).toUtf8().constData());
 }
 
+void CPUDump::gotoPreviousReferenceSlot()
+{
+    auto count = DbgEval("refsearch.count()"), index = DbgEval("$__dump_refindex"), addr = DbgEval("refsearch.addr($__dump_refindex)");
+    if(count)
+    {
+        if(index > 0 && addr == rvaToVa(getInitialSelection()))
+            DbgValToString("$__dump_refindex", index - 1);
+        DbgCmdExec("dump refsearch.addr($__dump_refindex)");
+    }
+}
+
+void CPUDump::gotoNextReferenceSlot()
+{
+    auto count = DbgEval("refsearch.count()"), index = DbgEval("$__dump_refindex"), addr = DbgEval("refsearch.addr($__dump_refindex)");
+    if(count)
+    {
+        if(index + 1 < count && addr == rvaToVa(getInitialSelection()))
+            DbgValToString("$__dump_refindex", index + 1);
+        DbgCmdExec("dump refsearch.addr($__dump_refindex)");
+    }
+}
+
 void CPUDump::hexAsciiSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewHexAscii);
@@ -507,7 +647,7 @@ void CPUDump::hexAsciiSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -541,7 +681,7 @@ void CPUDump::hexUnicodeSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -579,7 +719,7 @@ void CPUDump::hexCodepageSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -609,7 +749,7 @@ void CPUDump::hexLastCodepageSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
-    wColDesc.separator = 4;
+    wColDesc.separator = mAsciiSeparator ? mAsciiSeparator : 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -1143,6 +1283,18 @@ void CPUDump::memoryAccessRestoreSlot()
     DbgCmdExec(QString("bpm " + addr_text + ", 1, a").toUtf8().constData());
 }
 
+void CPUDump::memoryReadSingleshootSlot()
+{
+    QString addr_text = ToPtrString(rvaToVa(getSelectionStart()));
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, r").toUtf8().constData());
+}
+
+void CPUDump::memoryReadRestoreSlot()
+{
+    QString addr_text = ToPtrString(rvaToVa(getSelectionStart()));
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, r").toUtf8().constData());
+}
+
 void CPUDump::memoryWriteSingleshootSlot()
 {
     QString addr_text = ToPtrString(rvaToVa(getSelectionStart()));
@@ -1298,6 +1450,8 @@ void CPUDump::binaryCopySlot()
 
 void CPUDump::binaryPasteSlot()
 {
+    if(!QApplication::clipboard()->mimeData()->hasText())
+        return;
     HexEditDialog hexEdit(this);
     dsint selStart = getSelectionStart();
     dsint selSize = getSelectionEnd() - selStart + 1;
@@ -1315,6 +1469,8 @@ void CPUDump::binaryPasteSlot()
 
 void CPUDump::binaryPasteIgnoreSizeSlot()
 {
+    if(!QApplication::clipboard()->mimeData()->hasText())
+        return;
     HexEditDialog hexEdit(this);
     dsint selStart = getSelectionStart();
     dsint selSize = getSelectionEnd() - selStart + 1;
@@ -1359,6 +1515,19 @@ void CPUDump::findPattern()
     QString addrText = ToPtrString(addr);
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&").toUtf8().constData());
     emit displayReferencesWidget();
+}
+
+void CPUDump::copyFileOffsetSlot()
+{
+    duint addr = rvaToVa(getInitialSelection());
+    duint offset = DbgFunctions()->VaToFileOffset(addr);
+    if(offset)
+    {
+        QString addrText = ToHexString(offset);
+        Bridge::CopyToClipboard(addrText);
+    }
+    else
+        QMessageBox::warning(this, tr("Error!"), tr("Selection not in a file..."));
 }
 
 void CPUDump::undoSelectionSlot()
@@ -1493,16 +1662,6 @@ void CPUDump::allocMemorySlot()
             return;
         }
     }
-}
-
-void CPUDump::gotoNextSlot()
-{
-    historyNext();
-}
-
-void CPUDump::gotoPrevSlot()
-{
-    historyPrev();
 }
 
 void CPUDump::setView(ViewEnum_t view)

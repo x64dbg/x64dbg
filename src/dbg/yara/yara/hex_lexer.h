@@ -59,7 +59,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef void* yyscan_t;
 #endif
 
-#define YY_EXTRA_TYPE RE*
+#define YY_EXTRA_TYPE RE_AST*
 #define YY_USE_CONST
 
 
@@ -106,6 +106,5 @@ void yyfatal(
 
 int yr_parse_hex_string(
     const char* hex_string,
-    int flags,
-    RE** re,
+    RE_AST** re_ast,
     RE_ERROR* error);

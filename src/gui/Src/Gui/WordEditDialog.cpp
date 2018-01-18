@@ -2,6 +2,7 @@
 #include "ui_WordEditDialog.h"
 #include "ValidateExpressionThread.h"
 #include "StringUtil.h"
+#include <Configuration.h>
 
 WordEditDialog::WordEditDialog(QWidget* parent)
     : QDialog(parent),
@@ -24,6 +25,7 @@ WordEditDialog::WordEditDialog(QWidget* parent)
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->expressionLineEdit, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
     mWord = 0;
+    Config()->setupWindowPos(this);
 }
 
 void WordEditDialog::validateExpression(QString expression)
@@ -36,6 +38,7 @@ void WordEditDialog::validateExpression(QString expression)
 
 WordEditDialog::~WordEditDialog()
 {
+    Config()->saveWindowPos(this);
     mValidateThread->stop();
     mValidateThread->wait();
     delete ui;
@@ -44,7 +47,7 @@ WordEditDialog::~WordEditDialog()
 void WordEditDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
-    mValidateThread->start(ui->expressionLineEdit->text());
+    mValidateThread->start();
 }
 
 void WordEditDialog::hideEvent(QHideEvent* event)

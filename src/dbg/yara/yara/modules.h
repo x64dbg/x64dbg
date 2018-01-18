@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "utils.h"
 #include "limits.h"
+#include "error.h"
 #include "exec.h"
 #include "types.h"
 #include "object.h"
@@ -44,15 +45,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Concatenation that macro-expands its arguments.
 
-#define CONCAT(arg1, arg2) YARA_CONCAT(arg1, arg2) // expands the arguments.
-#define YARA_CONCAT(arg1, arg2) arg1 ## arg2       // do the actual concatenation.
+#define YR_CONCAT(arg1, arg2) _YR_CONCAT(arg1, arg2) // expands the arguments.
+#define _YR_CONCAT(arg1, arg2) arg1 ## arg2  // do the actual concatenation.
 
 
-#define module_declarations CONCAT(MODULE_NAME, __declarations)
-#define module_load CONCAT(MODULE_NAME, __load)
-#define module_unload CONCAT(MODULE_NAME, __unload)
-#define module_initialize CONCAT(MODULE_NAME, __initialize)
-#define module_finalize CONCAT(MODULE_NAME, __finalize)
+#define module_declarations YR_CONCAT(MODULE_NAME, __declarations)
+#define module_load YR_CONCAT(MODULE_NAME, __load)
+#define module_unload YR_CONCAT(MODULE_NAME, __unload)
+#define module_initialize YR_CONCAT(MODULE_NAME, __initialize)
+#define module_finalize YR_CONCAT(MODULE_NAME, __finalize)
 
 #define begin_declarations \
     int module_declarations(YR_OBJECT* module) { \
@@ -265,25 +266,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define define_function(func) \
     int func ( \
-        void* __args, \
+        YR_VALUE* __args, \
         YR_SCAN_CONTEXT* __context, \
         YR_OBJECT_FUNCTION* __function_obj)
 
 
 #define sized_string_argument(n) \
-    ((SIZED_STRING*)(size_t)((int64_t*) __args)[n-1])
+    (__args[n-1].ss)
 
 #define string_argument(n) \
     (sized_string_argument(n)->c_string)
 
 #define integer_argument(n) \
-    (((int64_t*) __args)[n-1])
+    (__args[n-1].i)
 
 #define float_argument(n) \
-    (((double*) __args)[n-1])
+    (__args[n-1].d)
 
 #define regexp_argument(n) \
-    ((RE_CODE)((int64_t*) __args)[n-1])
+    ((RE*)(__args[n-1].re))
 
 
 #define module()        yr_object_get_root((YR_OBJECT*) __function_obj)
@@ -295,7 +296,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   for (block = iterator->first(iterator); \
        block != NULL; \
        block = iterator->next(iterator)) \
- 
+
 
 #define first_memory_block(context) \
       (context)->iterator->first((context)->iterator)

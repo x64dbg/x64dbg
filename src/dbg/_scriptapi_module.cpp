@@ -130,7 +130,7 @@ SCRIPT_EXPORT bool Script::Module::GetMainModuleInfo(ModuleInfo* info)
 
 SCRIPT_EXPORT duint Script::Module::GetMainModuleBase()
 {
-    return dbggetdebuggedbase();
+    return dbgdebuggedbase();
 }
 
 SCRIPT_EXPORT duint Script::Module::GetMainModuleSize()
@@ -165,11 +165,8 @@ SCRIPT_EXPORT bool Script::Module::GetMainModuleSectionList(ListOf(ModuleSection
 
 SCRIPT_EXPORT bool Script::Module::GetList(ListOf(ModuleInfo) list)
 {
-    std::vector<MODINFO> modList;
-    ModGetList(modList);
     std::vector<ModuleInfo> modScriptList;
-    modScriptList.reserve(modList.size());
-    for(const auto & mod : modList)
+    ModEnum([&modScriptList](const MODINFO & mod)
     {
         ModuleInfo scriptMod;
         scriptMod.base = mod.base;
@@ -180,6 +177,6 @@ SCRIPT_EXPORT bool Script::Module::GetList(ListOf(ModuleInfo) list)
         strcat_s(scriptMod.name, mod.extension);
         strcpy_s(scriptMod.path, mod.path);
         modScriptList.push_back(scriptMod);
-    }
+    });
     return BridgeList<ModuleInfo>::CopyData(list, modScriptList);
 }

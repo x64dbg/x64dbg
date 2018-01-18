@@ -1,4 +1,5 @@
 #include "cmd-debug-control.h"
+#include "ntdll/ntdll.h"
 #include "console.h"
 #include "debugger.h"
 #include "animate.h"
@@ -8,69 +9,98 @@
 #include "disasm_fast.h"
 #include "plugin_loader.h"
 #include "value.h"
+#include "TraceRecord.h"
+#include "handle.h"
+#include "thread.h"
+#include "GetPeArch.h"
 
-CMDRESULT cbDebugRunInternal(int argc, char* argv[])
+static bool skipInt3Stepping(int argc, char* argv[])
 {
+    if(!bSkipInt3Stepping || dbgisrunning())
+        return false;
+    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    unsigned char ch;
+    MemRead(cip, &ch, sizeof(ch));
+    if(ch == 0xCC && getLastExceptionInfo().ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
+    {
+        //Don't allow skipping of multiple consecutive INT3 instructions
+        getLastExceptionInfo().ExceptionRecord.ExceptionCode = 0;
+        dputs(QT_TRANSLATE_NOOP("DBG", "Skipped INT3!"));
+        cbDebugSkip(1, argv);
+        return true;
+    }
+    return false;
+}
+
+bool cbDebugRunInternal(int argc, char* argv[])
+{
+    if(argc >= 2 && !DbgCmdExecDirect(StringUtils::sprintf("bp \"%s\", ss", argv[1]).c_str()))
+        return false;
     // Don't "run" twice if the program is already running
     if(dbgisrunning())
-        return STATUS_ERROR;
+        return false;
     dbgsetispausedbyuser(false);
     GuiSetDebugStateAsync(running);
     unlock(WAITID_RUN);
     PLUG_CB_RESUMEDEBUG callbackInfo;
     callbackInfo.reserved = 0;
     plugincbcall(CB_RESUMEDEBUG, &callbackInfo);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugInit(int argc, char* argv[])
+bool cbDebugInit(int argc, char* argv[])
 {
     cbDebugStop(argc, argv);
 
     static char arg1[deflen] = "";
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "not enough arguments!"));
-        return STATUS_ERROR;
-    }
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
     strcpy_s(arg1, argv[1]);
-    char szResolvedPath[MAX_PATH] = "";
+    wchar_t szResolvedPath[MAX_PATH] = L"";
     if(ResolveShortcut(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(arg1).c_str(), szResolvedPath, _countof(szResolvedPath)))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved shortcut \"%s\"->\"%s\"\n"), arg1, szResolvedPath);
-        strcpy_s(arg1, szResolvedPath);
+        auto resolvedPathUtf8 = StringUtils::Utf16ToUtf8(szResolvedPath);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved shortcut \"%s\"->\"%s\"\n"), arg1, resolvedPathUtf8.c_str());
+        strcpy_s(arg1, resolvedPathUtf8.c_str());
     }
     if(!FileExists(arg1))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "File does not exist!"));
-        return STATUS_ERROR;
+        return false;
     }
-    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    auto arg1w = StringUtils::Utf8ToUtf16(arg1);
+    Handle hFile = CreateFileW(arg1w.c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Could not open file!"));
-        return STATUS_ERROR;
+        return false;
     }
     GetFileNameFromHandle(hFile, arg1); //get full path of the file
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Debugging: %s\n"), arg1);
     hFile.Close();
 
+    auto arch = GetPeArch(arg1w.c_str());
+    if(arch == PeArch::DotnetAnyCpu)
+        arch = IsWow64() ? PeArch::Dotnet64 : PeArch::Dotnet86;
+
     //do some basic checks
-    switch(GetFileArchitecture(arg1))
+    switch(GetPeArch(arg1w.c_str()))
     {
-    case invalid:
+    case PeArch::Invalid:
         dputs(QT_TRANSLATE_NOOP("DBG", "Invalid PE file!"));
-        return STATUS_ERROR;
+        return false;
 #ifdef _WIN64
-    case x32:
+    case PeArch::Native86:
+    case PeArch::Dotnet86:
+    case PeArch::DotnetAnyCpuPrefer32:
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x32dbg to debug this file!"));
 #else //x86
-    case x64:
+    case PeArch::Native64:
+    case PeArch::Dotnet64:
+    case PeArch::DotnetAnyCpu:
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this file!"));
 #endif //_WIN64
-        return STATUS_ERROR;
-    case dotnet:
-        dputs(QT_TRANSLATE_NOOP("DBG", "This file is a dotNET application."));
-        break;
+        return false;
     default:
         break;
     }
@@ -103,10 +133,10 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     if(*currentfolder)
         init.currentfolder = currentfolder;
     CloseHandle(CreateThread(0, 0, threadDebugLoop, &init, 0, 0));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugStop(int argc, char* argv[])
+bool cbDebugStop(int argc, char* argv[])
 {
     // HACK: TODO: Don't kill script on debugger ending a process
     //scriptreset(); //reset the currently-loaded script
@@ -115,7 +145,7 @@ CMDRESULT cbDebugStop(int argc, char* argv[])
     //history
     HistoryClear();
     DWORD BeginTick = GetTickCount();
-    while(waitislocked(WAITID_STOP))   //custom waiting
+    while(waitislocked(WAITID_STOP)) //custom waiting
     {
         unlock(WAITID_RUN);
         Sleep(100);
@@ -123,44 +153,34 @@ CMDRESULT cbDebugStop(int argc, char* argv[])
         if(CurrentTick - BeginTick > 10000)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "The debuggee does not stop after 10 seconds. The debugger state may be corrupted."));
-            return STATUS_ERROR;
+            return false;
         }
         if(CurrentTick - BeginTick >= 300)
             TerminateProcess(fdProcessInfo->hProcess, -1);
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugAttach(int argc, char* argv[])
+bool cbDebugAttach(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
-        return STATUS_ERROR;
-    }
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
     duint pid = 0;
     if(!valfromstring(argv[1], &pid, false))
-        return STATUS_ERROR;
-    if(argc > 2)
-    {
-        duint eventHandle = 0;
-        if(!valfromstring(argv[2], &eventHandle, false))
-            return STATUS_ERROR;
-        dbgsetattachevent((HANDLE)eventHandle);
-    }
+        return false;
     if(DbgIsDebugging())
         DbgCmdExecDirect("stop");
     Handle hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
     if(!hProcess)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not open process %X!\n"), DWORD(pid));
-        return STATUS_ERROR;
+        return false;
     }
     BOOL wow64 = false, mewow64 = false;
     if(!IsWow64Process(hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "IsWow64Process failed!"));
-        return STATUS_ERROR;
+        return false;
     }
     if((mewow64 && !wow64) || (!mewow64 && wow64))
     {
@@ -169,35 +189,50 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
 #else
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this process!"));
 #endif // _WIN64
-        return STATUS_ERROR;
+        return false;
     }
-    wchar_t wszFileName[MAX_PATH] = L"";
-    if(!GetModuleFileNameExW(hProcess, 0, wszFileName, MAX_PATH))
+    if(!GetFileNameFromProcessHandle(hProcess, szFileName))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), DWORD(pid));
-        return STATUS_ERROR;
+        return false;
     }
-    strcpy_s(szFileName, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+    if(argc > 2) //event handle (JIT)
+    {
+        duint eventHandle = 0;
+        if(!valfromstring(argv[2], &eventHandle, false))
+            return false;
+        if(eventHandle)
+            dbgsetattachevent((HANDLE)eventHandle);
+    }
+    if(argc > 3) //thread id to resume (PLMDebug)
+    {
+        duint tid = 0;
+        if(!valfromstring(argv[3], &tid, false))
+            return false;
+        if(tid)
+            dbgsetresumetid(tid);
+    }
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugDetach(int argc, char* argv[])
+bool cbDebugDetach(int argc, char* argv[])
 {
     unlock(WAITID_RUN); //run
     dbgsetisdetachedbyuser(true); //detach when paused
     StepInto((void*)cbDetach);
     DebugBreakProcess(fdProcessInfo->hProcess);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugRun(int argc, char* argv[])
+bool cbDebugRun(int argc, char* argv[])
 {
     HistoryClear();
+    skipInt3Stepping(1, argv);
     return cbDebugRunInternal(argc, argv);
 }
 
-CMDRESULT cbDebugErun(int argc, char* argv[])
+bool cbDebugErun(int argc, char* argv[])
 {
     HistoryClear();
     if(!dbgisrunning())
@@ -205,38 +240,43 @@ CMDRESULT cbDebugErun(int argc, char* argv[])
     else
     {
         dbgsetskipexceptions(false);
-        return STATUS_CONTINUE;
+        return true;
     }
     return cbDebugRunInternal(argc, argv);
 }
 
-CMDRESULT cbDebugSerun(int argc, char* argv[])
+bool cbDebugSerun(int argc, char* argv[])
 {
     cbDebugContinue(argc, argv);
     return cbDebugRunInternal(argc, argv);
 }
 
-CMDRESULT cbDebugPause(int argc, char* argv[])
+bool cbDebugPause(int argc, char* argv[])
 {
     if(_dbg_isanimating())
     {
         _dbg_animatestop(); // pause when animating
-        return STATUS_CONTINUE;
+        return true;
+    }
+    if(dbgtraceactive())
+    {
+        dbgforcebreaktrace(); // pause when tracing
+        return true;
     }
     if(!DbgIsDebugging())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
-        return STATUS_ERROR;
+        return false;
     }
     if(!dbgisrunning())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Program is not running"));
-        return STATUS_ERROR;
+        return false;
     }
     if(SuspendThread(hActiveThread) == -1)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error suspending thread"));
-        return STATUS_ERROR;
+        return false;
     }
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
     if(!SetBPX(CIP, UE_BREAKPOINT, (void*)cbPauseBreakpoint))
@@ -245,20 +285,23 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
         if(ResumeThread(hActiveThread) == -1)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
-            return STATUS_ERROR;
+            return false;
         }
-        return STATUS_ERROR;
+        return false;
     }
-    dbgsetispausedbyuser(true);
+    //WORKAROUND: If a program is stuck in NtUserGetMessage (GetMessage was called), this
+    //will send a WM_NULL to stop the waiting. This only works if the message is not filtered.
+    //OllyDbg also does this in a similar way.
+    PostThreadMessageA(ThreadGetId(hActiveThread), WM_NULL, 0, 0);
     if(ResumeThread(hActiveThread) == -1)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
-        return STATUS_ERROR;
+        return false;
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugContinue(int argc, char* argv[])
+bool cbDebugContinue(int argc, char* argv[])
 {
     if(argc < 2)
     {
@@ -270,118 +313,107 @@ CMDRESULT cbDebugContinue(int argc, char* argv[])
         SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
         dputs(QT_TRANSLATE_NOOP("DBG", "Exception will be thrown in the program"));
     }
-    return STATUS_CONTINUE;
+    return true;
 }
 
-static bool skipInt3Stepping(int argc, char* argv[])
+bool cbDebugStepInto(int argc, char* argv[])
 {
-    if(!bSkipInt3Stepping || dbgisrunning())
+    duint steprepeat = 1;
+    if(argc > 1 && !valfromstring(argv[1], &steprepeat, false))
         return false;
-    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    unsigned char ch;
-    MemRead(cip, &ch, sizeof(ch));
-    if(ch == 0xCC && getLastExceptionInfo().ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Skipped INT3!"));
-        cbDebugSkip(argc, argv);
+    if(!steprepeat) //nothing to be done
         return true;
-    }
-    return false;
-}
-
-CMDRESULT cbDebugStepInto(int argc, char* argv[])
-{
-    if(skipInt3Stepping(argc, argv))
-        return STATUS_CONTINUE;
-    StepInto((void*)cbStep);
+    if(skipInt3Stepping(1, argv) && !--steprepeat)
+        return true;
+    StepIntoWow64((void*)cbStep);
     // History
     HistoryAdd();
-    dbgsetstepping(true);
-    return cbDebugRunInternal(argc, argv);
+    dbgsetsteprepeat(true, steprepeat);
+    return cbDebugRunInternal(1, argv);
 }
 
-CMDRESULT cbDebugeStepInto(int argc, char* argv[])
+bool cbDebugeStepInto(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
     return cbDebugStepInto(argc, argv);
 }
 
-CMDRESULT cbDebugseStepInto(int argc, char* argv[])
+bool cbDebugseStepInto(int argc, char* argv[])
 {
     cbDebugContinue(argc, argv);
     return cbDebugStepInto(argc, argv);
 }
 
-CMDRESULT cbDebugStepOver(int argc, char* argv[])
+bool cbDebugStepOver(int argc, char* argv[])
 {
-    if(skipInt3Stepping(argc, argv))
-        return STATUS_CONTINUE;
+    duint steprepeat = 1;
+    if(argc > 1 && !valfromstring(argv[1], &steprepeat, false))
+        return false;
+    if(!steprepeat) //nothing to be done
+        return true;
+    if(skipInt3Stepping(1, argv) && !--steprepeat)
+        return true;
     StepOver((void*)cbStep);
     // History
     HistoryClear();
-    dbgsetstepping(true);
-    return cbDebugRunInternal(argc, argv);
+    dbgsetsteprepeat(false, steprepeat);
+    return cbDebugRunInternal(1, argv);
 }
 
-CMDRESULT cbDebugeStepOver(int argc, char* argv[])
+bool cbDebugeStepOver(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
-    return cbDebugStepOver(argc, argv);
+    return cbDebugStepOver(1, argv);
 }
 
-CMDRESULT cbDebugseStepOver(int argc, char* argv[])
+bool cbDebugseStepOver(int argc, char* argv[])
 {
     cbDebugContinue(argc, argv);
     return cbDebugStepOver(argc, argv);
 }
 
-CMDRESULT cbDebugSingleStep(int argc, char* argv[])
+bool cbDebugStepOut(int argc, char* argv[])
 {
-    duint stepcount = 1;
-    if(argc > 1)
-        if(!valfromstring(argv[1], &stepcount))
-            stepcount = 1;
-    SingleStep((DWORD)stepcount, (void*)cbStep);
+    duint steprepeat = 1;
+    if(argc > 1 && !valfromstring(argv[1], &steprepeat, false))
+        return false;
+    if(!steprepeat) //nothing to be done
+        return true;
     HistoryClear();
-    dbgsetstepping(true);
-    return cbDebugRunInternal(argc, argv);
-}
-
-CMDRESULT cbDebugeSingleStep(int argc, char* argv[])
-{
-    dbgsetskipexceptions(true);
-    return cbDebugSingleStep(argc, argv);
-}
-
-CMDRESULT cbDebugStepOut(int argc, char* argv[])
-{
-    HistoryClear();
+    mRtrPreviousCSP = GetContextDataEx(hActiveThread, UE_CSP);
     StepOver((void*)cbRtrStep);
-    return cbDebugRunInternal(argc, argv);
+    dbgsetsteprepeat(false, steprepeat);
+    return cbDebugRunInternal(1, argv);
 }
 
-CMDRESULT cbDebugeStepOut(int argc, char* argv[])
+bool cbDebugeStepOut(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
     return cbDebugStepOut(argc, argv);
 }
 
-CMDRESULT cbDebugSkip(int argc, char* argv[])
+bool cbDebugSkip(int argc, char* argv[])
 {
+    duint skiprepeat = 1;
+    if(argc > 1 && !valfromstring(argv[1], &skiprepeat, false))
+        return false;
     SetNextDbgContinueStatus(DBG_CONTINUE); //swallow the exception
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     BASIC_INSTRUCTION_INFO basicinfo;
-    memset(&basicinfo, 0, sizeof(basicinfo));
-    disasmfast(cip, &basicinfo);
-    cip += basicinfo.size;
+    while(skiprepeat--)
+    {
+        disasmfast(cip, &basicinfo);
+        cip += basicinfo.size;
+        _dbg_dbgtraceexecute(cip);
+    }
     SetContextDataEx(hActiveThread, UE_CIP, cip);
     DebugUpdateGuiAsync(cip, false); //update GUI
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrInstrUndo(int argc, char* argv[])
+bool cbInstrInstrUndo(int argc, char* argv[])
 {
     HistoryRestore();
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    return true;
 }

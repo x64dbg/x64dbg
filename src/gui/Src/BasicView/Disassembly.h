@@ -6,6 +6,7 @@
 
 class CodeFoldingHelper;
 class QBeaEngine;
+class CsQBeaEngine;
 class MemoryPage;
 
 class Disassembly : public AbstractTableView
@@ -96,9 +97,9 @@ public:
     const dsint baseAddress() const;
     const dsint currentEIP() const;
 
-    QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE]);
+    QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel = true);
     void prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction_t>* instBuffer);
-    void prepareDataRange(dsint startRva, dsint endRva, QList<Instruction_t>* instBuffer);
+    void prepareDataRange(dsint startRva, dsint endRva, const std::function<bool(int, const Instruction_t &)> & disassembled);
 
     //misc
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
@@ -109,6 +110,7 @@ public:
 
 signals:
     void selectionChanged(dsint parVA);
+    void selectionExpanded();
     void disassembledAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
     void updateWindowTitle(QString title);
 
@@ -133,7 +135,6 @@ private:
     SelectionData_t mSelection;
 
     bool mIsLastInstDisplayed;
-    bool mIsRunning;
 
     GuiState_t mGuiState;
 
@@ -179,8 +180,19 @@ protected:
     QColor mTracedSelectedAddressBackgroundColor;
 
     QColor mBytesColor;
+    QColor mBytesBackgroundColor;
     QColor mModifiedBytesColor;
+    QColor mModifiedBytesBackgroundColor;
     QColor mRestoredBytesColor;
+    QColor mRestoredBytesBackgroundColor;
+    QColor mByte00Color;
+    QColor mByte00BackgroundColor;
+    QColor mByte7FColor;
+    QColor mByte7FBackgroundColor;
+    QColor mByteFFColor;
+    QColor mByteFFBackgroundColor;
+    QColor mByteIsPrintColor;
+    QColor mByteIsPrintBackgroundColor;
 
     QColor mAutoCommentColor;
     QColor mAutoCommentBackgroundColor;
@@ -212,11 +224,13 @@ protected:
     bool mPopupEnabled;
     MemoryPage* mMemPage;
     QBeaEngine* mDisasm;
+    CsQBeaEngine* mCsDisasm;
     bool mShowMnemonicBrief;
     XREF_INFO mXrefInfo;
     CodeFoldingHelper* mCodeFoldingManager;
     DisassemblyPopup mDisassemblyPopup;
     CapstoneTokenizer::SingleToken mHighlightToken;
+    bool mPermanentHighlightingMode;
 };
 
 #endif // DISASSEMBLY_H

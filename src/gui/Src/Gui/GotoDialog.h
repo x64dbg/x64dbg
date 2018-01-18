@@ -5,6 +5,7 @@
 #include "Imports.h"
 
 class ValidateExpressionThread;
+class QCompleter;
 
 namespace Ui
 {
@@ -32,14 +33,18 @@ public:
 
 private slots:
     void expressionChanged(bool validExpression, bool validPointer, dsint value);
+    void disableAutoCompleteUpdated();
     void on_buttonOk_clicked();
     void finishedSlot(int result);
+    void textEditedSlot(QString text);
 
 private:
     Ui::GotoDialog* ui;
     ValidateExpressionThread* mValidateThread;
+    QCompleter* completer;
     bool IsValidMemoryRange(duint addr);
     void setOkEnabled(bool enabled);
+    QString mCompletionText;
 };
 
 #endif // GOTODIALOG_H

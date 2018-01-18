@@ -1,7 +1,9 @@
 #pragma once
-#include "_global.h"
 
-void* EncodeMapGetBuffer(duint addr, bool create = false);
+#include "_global.h"
+#include "jansson/jansson_x64dbg.h"
+
+void* EncodeMapGetBuffer(duint addr, duint* size, bool create = false);
 void EncodeMapReleaseBuffer(void* buffer);
 ENCODETYPE EncodeMapGetType(duint addr, duint codesize);
 duint EncodeMapGetSize(duint addr, duint codesize);

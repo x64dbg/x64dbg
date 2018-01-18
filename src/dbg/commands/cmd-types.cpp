@@ -5,194 +5,196 @@
 #include "types.h"
 #include "memory.h"
 #include "variable.h"
+#include "filehelper.h"
+#include "label.h"
 
 using namespace Types;
 
-static CMDRESULT cbInstrDataGeneric(ENCODETYPE type, int argc, char* argv[])
+static bool cbInstrDataGeneric(ENCODETYPE type, int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     duint addr;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     duint size = 1;
     if(argc >= 3)
         if(!valfromstring(argv[2], &size, false))
-            return STATUS_ERROR;
+            return false;
     bool created;
     if(!EncodeMapSetType(addr, size, type, &created))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "EncodeMapSetType failed..."));
-        return STATUS_ERROR;
+        return false;
     }
     if(created)
         DbgCmdExec("disasm dis.sel()");
     else
         GuiUpdateDisassemblyView();
-    return STATUS_ERROR;
+    return false;
 }
 
-CMDRESULT cbInstrDataUnknown(int argc, char* argv[])
+bool cbInstrDataUnknown(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_unknown, argc, argv);
 }
 
-CMDRESULT cbInstrDataByte(int argc, char* argv[])
+bool cbInstrDataByte(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_byte, argc, argv);
 }
 
-CMDRESULT cbInstrDataWord(int argc, char* argv[])
+bool cbInstrDataWord(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_word, argc, argv);
 }
 
-CMDRESULT cbInstrDataDword(int argc, char* argv[])
+bool cbInstrDataDword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_dword, argc, argv);
 }
 
-CMDRESULT cbInstrDataFword(int argc, char* argv[])
+bool cbInstrDataFword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_fword, argc, argv);
 }
 
-CMDRESULT cbInstrDataQword(int argc, char* argv[])
+bool cbInstrDataQword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_qword, argc, argv);
 }
 
-CMDRESULT cbInstrDataTbyte(int argc, char* argv[])
+bool cbInstrDataTbyte(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_tbyte, argc, argv);
 }
 
-CMDRESULT cbInstrDataOword(int argc, char* argv[])
+bool cbInstrDataOword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_oword, argc, argv);
 }
 
-CMDRESULT cbInstrDataMmword(int argc, char* argv[])
+bool cbInstrDataMmword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_mmword, argc, argv);
 }
 
-CMDRESULT cbInstrDataXmmword(int argc, char* argv[])
+bool cbInstrDataXmmword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_xmmword, argc, argv);
 }
 
-CMDRESULT cbInstrDataYmmword(int argc, char* argv[])
+bool cbInstrDataYmmword(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_ymmword, argc, argv);
 }
 
-CMDRESULT cbInstrDataFloat(int argc, char* argv[])
+bool cbInstrDataFloat(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_real4, argc, argv);
 }
 
-CMDRESULT cbInstrDataDouble(int argc, char* argv[])
+bool cbInstrDataDouble(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_real8, argc, argv);
 }
 
-CMDRESULT cbInstrDataLongdouble(int argc, char* argv[])
+bool cbInstrDataLongdouble(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_real10, argc, argv);
 }
 
-CMDRESULT cbInstrDataAscii(int argc, char* argv[])
+bool cbInstrDataAscii(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_ascii, argc, argv);
 }
 
-CMDRESULT cbInstrDataUnicode(int argc, char* argv[])
+bool cbInstrDataUnicode(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_unicode, argc, argv);
 }
 
-CMDRESULT cbInstrDataCode(int argc, char* argv[])
+bool cbInstrDataCode(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_code, argc, argv);
 }
 
-CMDRESULT cbInstrDataJunk(int argc, char* argv[])
+bool cbInstrDataJunk(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_junk, argc, argv);
 }
 
-CMDRESULT cbInstrDataMiddle(int argc, char* argv[])
+bool cbInstrDataMiddle(int argc, char* argv[])
 {
     return cbInstrDataGeneric(enc_middle, argc, argv);
 }
 
 #define towner "cmd"
 
-CMDRESULT cbInstrAddType(int argc, char* argv[])
+bool cbInstrAddType(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     if(!AddType(towner, argv[1], argv[2]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddType failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("typedef %s %s;\n", argv[2], argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddStruct(int argc, char* argv[])
+bool cbInstrAddStruct(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     if(!AddStruct(towner, argv[1]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddStruct failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("struct %s;\n", argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddUnion(int argc, char* argv[])
+bool cbInstrAddUnion(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     if(!AddUnion(towner, argv[1]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddUnion failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("union %s;\n", argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddMember(int argc, char* argv[])
+bool cbInstrAddMember(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 4))
-        return STATUS_ERROR;
+        return false;
     auto parent = argv[1];
     auto type = argv[2];
     auto name = argv[3];
     int arrsize = 0, offset = -1;
-    if(argc > 3)
+    if(argc > 4)
     {
         duint value;
         if(!valfromstring(argv[4], &value, false))
-            return STATUS_ERROR;
+            return false;
         arrsize = int(value);
-        if(argc > 4)
+        if(argc > 5)
         {
             if(!valfromstring(argv[5], &value, false))
-                return STATUS_ERROR;
+                return false;
             offset = int(value);
         }
     }
     if(!AddMember(parent, type, name, arrsize, offset))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddMember failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s: %s %s", parent, type, name);
     if(arrsize > 0)
@@ -200,13 +202,13 @@ CMDRESULT cbInstrAddMember(int argc, char* argv[])
     if(offset >= 0)
         dprintf_untranslated(" (offset: %d)", offset);
     dputs_untranslated(";");
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAppendMember(int argc, char* argv[])
+bool cbInstrAppendMember(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     auto type = argv[1];
     auto name = argv[2];
     int arrsize = 0, offset = -1;
@@ -214,19 +216,19 @@ CMDRESULT cbInstrAppendMember(int argc, char* argv[])
     {
         duint value;
         if(!valfromstring(argv[3], &value, false))
-            return STATUS_ERROR;
+            return false;
         arrsize = int(value);
         if(argc > 4)
         {
             if(!valfromstring(argv[4], &value, false))
-                return STATUS_ERROR;
+                return false;
             offset = int(value);
         }
     }
     if(!AppendMember(type, name, arrsize, offset))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AppendMember failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s %s", type, name);
     if(arrsize > 0)
@@ -234,13 +236,13 @@ CMDRESULT cbInstrAppendMember(int argc, char* argv[])
     if(offset >= 0)
         dprintf_untranslated(" (offset: %d)", offset);
     dputs_untranslated(";");
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddFunction(int argc, char* argv[])
+bool cbInstrAddFunction(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     auto name = argv[1];
     auto rettype = argv[2];
     auto callconv = Cdecl;
@@ -258,65 +260,65 @@ CMDRESULT cbInstrAddFunction(int argc, char* argv[])
         else
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Unknown calling convention \"%s\"\n"), argv[3]);
-            return STATUS_ERROR;
+            return false;
         }
         if(argc > 4)
         {
             duint value;
             if(!valfromstring(argv[4], &value, false))
-                return STATUS_ERROR;
+                return false;
             noreturn = value != 0;
         }
     }
     if(!AddFunction(towner, name, rettype, callconv, noreturn))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddFunction failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s %s();\n", rettype, name);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddArg(int argc, char* argv[])
+bool cbInstrAddArg(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 4))
-        return STATUS_ERROR;
+        return false;
     if(!AddArg(argv[1], argv[2], argv[3]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddArg failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s: %s %s;\n", argv[1], argv[2], argv[3]);
-    return STATUS_CONTINUE;
+    return true;
 
 }
 
-CMDRESULT cbInstrAppendArg(int argc, char* argv[])
+bool cbInstrAppendArg(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     if(!AppendArg(argv[1], argv[2]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AppendArg failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("%s %s;\n", argv[1], argv[2]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrSizeofType(int argc, char* argv[])
+bool cbInstrSizeofType(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     auto size = SizeofType(argv[1]);
     if(!size)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "SizeofType failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf_untranslated("sizeof(%s) = %d\n", argv[1], size);
     varset("$result", size, false);
-    return STATUS_CONTINUE;
+    return true;
 }
 
 struct PrintVisitor : TypeManager::Visitor
@@ -330,108 +332,154 @@ struct PrintVisitor : TypeManager::Visitor
         return StringUtils::sprintf(format, *(T*)data);
     }
 
+    template<typename T, typename U>
+    static String basicPrint(void* data, const char* format)
+    {
+        return StringUtils::sprintf(format, *(T*)data, *(U*)data);
+    }
+
+    static bool cbPrintPrimitive(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
+    {
+        if(!type->addr)
+        {
+            *dest = '\0';
+            return true;
+        }
+        String valueStr;
+        Memory<unsigned char*> data(type->size);
+        if(MemRead(type->addr + type->offset, data(), data.size()))
+        {
+            if(type->reverse)
+                std::reverse(data(), data() + data.size());
+            switch(Primitive(type->id))
+            {
+            case Void:
+                valueStr.clear();
+                break;
+            case Int8:
+                valueStr += StringUtils::sprintf("0x%02X, '%s'", *(unsigned char*)data(), StringUtils::Escape(*(char*)data()).c_str());
+                break;
+            case Uint8:
+                valueStr += basicPrint<unsigned char, unsigned char>(data(), "0x%02X, %d");
+                break;
+            case Int16:
+                valueStr += basicPrint<unsigned short, short>(data(), "0x%04X, %d");
+                break;
+            case Uint16:
+                valueStr += basicPrint<unsigned short, unsigned short>(data(), "0x%04X, %u");
+                break;
+            case Int32:
+                valueStr += basicPrint<unsigned int, int>(data(), "0x%08X, %d");
+                break;
+            case Uint32:
+                valueStr += basicPrint<unsigned int, unsigned int>(data(), "0x%08X, %u");
+                break;
+            case Int64:
+                valueStr += basicPrint<unsigned long long, long long>(data(), "0x%016llX, %lld");
+                break;
+            case Uint64:
+                valueStr += basicPrint<unsigned long long, unsigned long long>(data(), "0x%016llX, %llu");
+                break;
+            case Dsint:
+#ifdef _WIN64
+                valueStr += basicPrint<duint, dsint>(data(), "0x%016llX, %lld");
+#else
+                valueStr += basicPrint<duint, dsint>(data(), "0x%08X, %d");
+#endif //_WIN64
+                break;
+            case Duint:
+#ifdef _WIN64
+                valueStr += basicPrint<duint, duint>(data(), "0x%016llX, %llu");
+#else
+                valueStr += basicPrint<duint, duint>(data(), "0x%08X, %u");
+#endif //_WIN64
+                break;
+            case Float:
+                valueStr += basicPrint<float>(data(), "%f");
+                break;
+            case Double:
+                valueStr += basicPrint<double>(data(), "%f");
+                break;
+            case Pointer:
+                valueStr += basicPrint<void*>(data(), "0x%p");
+                break;
+            case PtrString:
+            {
+                valueStr += basicPrint<char*>(data(), "0x%p ");
+                Memory<char*> strdata(MAX_STRING_SIZE + 1);
+                if(MemRead(*(duint*)data(), strdata(), strdata.size() - 1))
+                {
+                    valueStr += "\"";
+                    valueStr += StringUtils::Escape(strdata());
+                    valueStr.push_back('\"');
+                }
+                else
+                    valueStr += "???";
+            }
+            break;
+
+            case PtrWString:
+            {
+                valueStr += basicPrint<wchar_t*>(data(), "0x%p ");
+                Memory<wchar_t*> strdata(MAX_STRING_SIZE * 2 + 2);
+                if(MemRead(*(duint*)data(), strdata(), strdata.size() - 2))
+                {
+                    valueStr += "L\"";
+                    valueStr += StringUtils::Utf16ToUtf8(strdata());
+                    valueStr.push_back('\"');
+                }
+                else
+                    valueStr += "???";
+            }
+            break;
+
+            default:
+                return false;
+            }
+        }
+        else
+            valueStr = "???";
+        if(*destCount <= valueStr.size())
+        {
+            *destCount = valueStr.size() + 1;
+            return false;
+        }
+        strcpy_s(dest, *destCount, valueStr.c_str());
+        return true;
+    }
+
     bool visitType(const Member & member, const Type & type) override
     {
-        String valueStr;
-        Memory<unsigned char*> data(type.size);
-        if(mAddr)
-        {
-            if(MemRead(mAddr + mOffset, data(), data.size()))
-            {
-                valueStr.assign(" = ");
-                switch(type.primitive)
-                {
-                case Int8:
-                    valueStr += basicPrint<char>(data(), "%c");
-                    break;
-                case Uint8:
-                    valueStr += basicPrint<unsigned char>(data(), "0x%02X");
-                    break;
-                case Int16:
-                    valueStr += basicPrint<short>(data(), "%d");
-                    break;
-                case Uint16:
-                    valueStr += basicPrint<short>(data(), "%u");
-                    break;
-                case Int32:
-                    valueStr += basicPrint<int>(data(), "%d");
-                    break;
-                case Uint32:
-                    valueStr += basicPrint<unsigned int>(data(), "%u");
-                    break;
-                case Int64:
-                    valueStr += basicPrint<long long>(data(), "%lld");
-                    break;
-                case Uint64:
-                    valueStr += basicPrint<unsigned long long>(data(), "%llu");
-                    break;
-                case Dsint:
-#ifdef _WIN64
-                    valueStr += basicPrint<dsint>(data(), "%lld");
-#else
-                    valueStr += basicPrint<dsint>(data(), "%d");
-#endif //_WIN64
-                    break;
-                case Duint:
-#ifdef _WIN64
-                    valueStr += basicPrint<duint>(data(), "%llu");
-#else
-                    valueStr += basicPrint<duint>(data(), "%u");
-#endif //_WIN64
-                    break;
-                case Float:
-                    valueStr += basicPrint<float>(data(), "%f");
-                    break;
-                case Double:
-                    valueStr += basicPrint<double>(data(), "%f");
-                    break;
-                case Pointer:
-                    valueStr += basicPrint<void*>(data(), "0x%p");
-                    break;
-                case PtrString:
-                {
-                    valueStr += basicPrint<char*>(data(), "0x%p");
-                    Memory<char*> strdata(MAX_STRING_SIZE + 1);
-                    if(MemRead(*(duint*)data(), strdata(), strdata.size() - 1))
-                    {
-                        valueStr += " \"";
-                        valueStr += strdata();
-                        valueStr.push_back('\"');
-                    }
-                    else
-                        valueStr += " ???";
-                }
-                break;
-
-                case PtrWString:
-                {
-                    valueStr += basicPrint<wchar_t*>(data(), "0x%p");
-                    Memory<wchar_t*> strdata(MAX_STRING_SIZE * 2 + 2);
-                    if(MemRead(*(duint*)data(), strdata(), strdata.size() - 2))
-                    {
-                        valueStr += " L\"";
-                        valueStr += StringUtils::Utf16ToUtf8(strdata());
-                        valueStr.push_back('\"');
-                    }
-                    else
-                        valueStr += " ???";
-                }
-                break;
-
-                default:
-                    return false;
-                }
-            }
-            else
-                valueStr = " ???";
-        }
-        indent();
+        String tname;
         auto ptype = mParents.empty() ? Parent::Struct : parent().type;
         if(ptype == Parent::Array)
-            dprintf_untranslated("%s[%u]%s;", member.name.c_str(), parent().index++, valueStr.c_str());
+            tname = StringUtils::sprintf("%s[%u]", member.name.c_str(), parent().index++);
         else
-            dprintf_untranslated("%s %s%s;", type.name.c_str(), member.name.c_str(), valueStr.c_str());
-        dputs_untranslated(type.pointto.empty() || mPtrDepth >= mMaxPtrDepth ? "" : " {");
+            tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
+
+        std::string path;
+        for(size_t i = 0; i < mPath.size(); i++)
+        {
+            if(ptype == Parent::Array && i + 1 == mPath.size())
+                break;
+            path.append(mPath[i]);
+        }
+        path.append(member.name);
+        if(!LabelGet(mAddr + mOffset, nullptr) && (parent().index == 1 || ptype != Parent::Array))
+            LabelSet(mAddr + mOffset, path.c_str(), false, true);
+
+        TYPEDESCRIPTOR td;
+        td.expanded = false;
+        td.reverse = false;
+        td.name = tname.c_str();
+        td.addr = mAddr;
+        td.offset = mOffset;
+        td.id = type.primitive;
+        td.size = type.size;
+        td.callback = cbPrintPrimitive;
+        td.userdata = nullptr;
+        mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
+
         if(ptype != Parent::Union)
             mOffset += type.size;
         return true;
@@ -439,17 +487,45 @@ struct PrintVisitor : TypeManager::Visitor
 
     bool visitStructUnion(const Member & member, const StructUnion & type) override
     {
-        indent();
-        dprintf_untranslated("%s %s {\n", type.isunion ? "union" : "struct", type.name.c_str());
+        String tname = StringUtils::sprintf("%s %s %s", type.isunion ? "union" : "struct", type.name.c_str(), member.name.c_str());
+
+        TYPEDESCRIPTOR td;
+        td.expanded = true;
+        td.reverse = false;
+        td.name = tname.c_str();
+        td.addr = mAddr;
+        td.offset = mOffset;
+        td.id = Void;
+        td.size = type.size;
+        td.callback = nullptr;
+        td.userdata = nullptr;
+        auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
+
+        mPath.push_back((member.name == "visit" ? type.name : member.name) + ".");
         mParents.push_back(Parent(type.isunion ? Parent::Union : Parent::Struct));
+        parent().node = node;
         return true;
     }
 
     bool visitArray(const Member & member) override
     {
-        indent();
-        dprintf_untranslated("%s %s[%d] {\n", member.type.c_str(), member.name.c_str(), member.arrsize);
+        String tname = StringUtils::sprintf("%s %s[%d]", member.type.c_str(), member.name.c_str(), member.arrsize);
+
+        TYPEDESCRIPTOR td;
+        td.expanded = member.arrsize <= 5;
+        td.reverse = false;
+        td.name = tname.c_str();
+        td.addr = mAddr;
+        td.offset = mOffset;
+        td.id = Void;
+        td.size = member.arrsize * SizeofType(member.type);
+        td.callback = nullptr;
+        td.userdata = nullptr;
+        auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
+
+        mPath.push_back(member.name + ".");
         mParents.push_back(Parent(Parent::Array));
+        parent().node = node;
         return true;
     }
 
@@ -459,12 +535,16 @@ struct PrintVisitor : TypeManager::Visitor
         auto res = visitType(member, type); //print the pointer value
         if(mPtrDepth >= mMaxPtrDepth)
             return false;
+
         duint value = 0;
         if(!mAddr || !MemRead(mAddr + offset, &value, sizeof(value)))
             return false;
+
+        mPath.push_back(member.name + "->");
         mParents.push_back(Parent(Parent::Pointer));
         parent().offset = mOffset;
         parent().addr = mAddr;
+        parent().node = mNode;
         mOffset = 0;
         mAddr = value;
         mPtrDepth++;
@@ -480,11 +560,7 @@ struct PrintVisitor : TypeManager::Visitor
             mPtrDepth--;
         }
         mParents.pop_back();
-        indent();
-        if(parent().type == Parent::Array)
-            dprintf_untranslated("};\n");
-        else
-            dprintf_untranslated("} %s;\n", member.name.c_str());
+        mPath.pop_back();
         return true;
     }
 
@@ -503,6 +579,7 @@ private:
         unsigned int index = 0;
         duint addr = 0;
         duint offset = 0;
+        void* node = nullptr;
 
         explicit Parent(Type type)
             : type(type) { }
@@ -513,25 +590,19 @@ private:
         return mParents[mParents.size() - 1];
     }
 
-    void indent() const
-    {
-        if(mAddr)
-            dprintf_untranslated("%p ", mAddr + mOffset);
-        for(auto i = 0; i < int(mParents.size()) * 2; i++)
-            dprintf_untranslated(" ");
-    }
-
     std::vector<Parent> mParents;
     duint mOffset = 0;
     duint mAddr = 0;
     int mPtrDepth = 0;
     int mMaxPtrDepth = 0;
+    void* mNode = nullptr;
+    std::vector<String> mPath;
 };
 
-CMDRESULT cbInstrVisitType(int argc, char* argv[])
+bool cbInstrVisitType(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     auto type = argv[1];
     auto name = "visit";
     duint addr = 0;
@@ -539,12 +610,12 @@ CMDRESULT cbInstrVisitType(int argc, char* argv[])
     if(argc > 2)
     {
         if(!valfromstring(argv[2], &addr, false))
-            return STATUS_ERROR;
+            return false;
         if(argc > 3)
         {
             duint value;
             if(!valfromstring(argv[3], &value, false))
-                return STATUS_ERROR;
+                return false;
             maxPtrDepth = int(value);
             if(argc > 4)
                 name = argv[4];
@@ -554,34 +625,36 @@ CMDRESULT cbInstrVisitType(int argc, char* argv[])
     if(!VisitType(type, name, visitor))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "VisitType failed"));
-        return STATUS_ERROR;
+        return false;
     }
-    return STATUS_CONTINUE;
+    GuiUpdateTypeWidget();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Done!"));
+    return true;
 }
 
-CMDRESULT cbInstrClearTypes(int argc, char* argv[])
+bool cbInstrClearTypes(int argc, char* argv[])
 {
     auto owner = towner;
     if(argc > 1)
         owner = argv[1];
     ClearTypes(owner);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrRemoveType(int argc, char* argv[])
+bool cbInstrRemoveType(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
     if(!RemoveType(argv[1]))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "RemoveType failed"));
-        return STATUS_ERROR;
+        return false;
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Type %s removed\n"), argv[1]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrEnumTypes(int argc, char* argv[])
+bool cbInstrEnumTypes(int argc, char* argv[])
 {
     std::vector<TypeManager::Summary> typeList;
     EnumTypes(typeList);
@@ -591,5 +664,38 @@ CMDRESULT cbInstrEnumTypes(int argc, char* argv[])
             type.owner.assign("x64dbg");
         dprintf_untranslated("%s: %s %s, sizeof(%s) = %d\n", type.owner.c_str(), type.kind.c_str(), type.name.c_str(), type.name.c_str(), type.size);
     }
-    return STATUS_CONTINUE;
+    return true;
+}
+
+bool cbInstrLoadTypes(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    auto owner = FileHelper::GetFileName(argv[1]);
+    ClearTypes(owner);
+    if(!LoadTypesFile(argv[1], owner))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "LoadTypes failed"));
+        return false;
+    }
+    dputs(QT_TRANSLATE_NOOP("DBG", "Types loaded"));
+    return true;
+}
+
+bool cbInstrParseTypes(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    auto owner = FileHelper::GetFileName(argv[1]);
+    ClearTypes(owner);
+    std::string data;
+    if(!FileHelper::ReadAllText(argv[1], data))
+    {
+        dputs("failed to read file!");
+        return false;
+    }
+    if(!ParseTypes(data, owner))
+        return false;
+    dputs("Types parsed");
+    return true;
 }

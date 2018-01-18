@@ -1,7 +1,7 @@
 #include "encodemap.h"
 #include <unordered_map>
 #include "addrinfo.h"
-#include <capstone_wrapper.h>
+#include <zydis_wrapper.h>
 
 struct ENCODEMAP : AddrInfo
 {
@@ -48,7 +48,7 @@ struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
     bool Save(const ENCODEMAP & value) override
     {
         AddrInfoSerializer::Save(value);
-        setString("data", StringUtils::ToCompressedHex(value.data, value.size).c_str());
+        setString("data", StringUtils::ToCompressedHex(value.data, value.size));
         return true;
     }
 
@@ -110,22 +110,24 @@ static bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map, bool* created = nu
     return true;
 }
 
-void* EncodeMapGetBuffer(duint addr, bool create)
+void* EncodeMapGetBuffer(duint addr, duint* size, bool create)
 {
-    duint size;
-    auto base = MemFindBaseAddr(addr, &size);
+    auto base = MemFindBaseAddr(addr);
 
     ENCODEMAP map;
-    auto result = create ? EncodeMapGetorCreate(addr, map) : encmaps.Get(EncodeMap::VaKey(base), map);
-    if(result)
+    if(create ? EncodeMapGetorCreate(addr, map) : encmaps.Get(EncodeMap::VaKey(base), map))
     {
         auto offset = addr - base;
         if(offset < map.size)
         {
             IncreaseReferenceCount(map.data);
+            if(size)
+                *size = map.size;
             return map.data;
         }
     }
+    if(size)
+        *size = 0;
     return nullptr;
 }
 
@@ -246,7 +248,7 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
         memset(map.data + offset, (byte)enc_middle, size);
         if(IsCodeType(type) && size > 1)
         {
-            Capstone cp;
+            Zydis cp;
             Memory<unsigned char*> buffer(size);
             if(!MemRead(addr, buffer(), size))
                 return false;

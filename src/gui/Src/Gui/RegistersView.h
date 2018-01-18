@@ -6,8 +6,6 @@
 #include <QMap>
 #include "Bridge.h"
 
-#define IsCharacterRegister(x) ((x>=CAX && x<CIP))
-
 class CPUWidget;
 class CPUMultiDump;
 
@@ -37,7 +35,7 @@ public:
         CIP,
         EFLAGS, CF, PF, AF, ZF, SF, TF, IF, DF, OF,
         GS, FS, ES, DS, CS, SS,
-        LastError,
+        LastError, LastStatus,
         DR0, DR1, DR2, DR3, DR6, DR7,
         // x87 stuff
         x87r0, x87r1, x87r2, x87r3, x87r4, x87r5, x87r6, x87r7,
@@ -47,10 +45,10 @@ public:
         x87TW_6, x87TW_7,
         // x87 Status Word fields
         x87SW_B, x87SW_C3, x87SW_TOP, x87SW_C2, x87SW_C1, x87SW_O,
-        x87SW_IR, x87SW_SF, x87SW_P, x87SW_U, x87SW_Z,
+        x87SW_ES, x87SW_SF, x87SW_P, x87SW_U, x87SW_Z,
         x87SW_D, x87SW_I, x87SW_C0,
         // x87 Control Word fields
-        x87CW_IC, x87CW_RC, x87CW_PC, x87CW_IEM, x87CW_PM,
+        x87CW_IC, x87CW_RC, x87CW_PC, x87CW_PM,
         x87CW_UM, x87CW_OM, x87CW_ZM, x87CW_DM, x87CW_IM,
         //MxCsr
         MxCsr, MxCsr_FZ, MxCsr_PM, MxCsr_UM, MxCsr_OM, MxCsr_ZM,
@@ -108,7 +106,7 @@ public:
     };
 
 
-    explicit RegistersView(CPUWidget* parent, CPUMultiDump* multiDump);
+    explicit RegistersView(CPUWidget* parent);
     ~RegistersView();
 
     QSize sizeHint() const;
@@ -145,7 +143,7 @@ protected:
     char* registerValue(const REGDUMP* regd, const REGISTER_NAME reg);
     bool identifyRegister(const int y, const int x, REGISTER_NAME* clickedReg);
     QString helpRegister(REGISTER_NAME reg);
-    QMenu* CreateDumpNMenu(CPUMultiDump* multiDump);
+    void CreateDumpNMenu(QMenu* dumpMenu);
 
     void displayEditDialog();
 
@@ -191,7 +189,7 @@ protected slots:
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
-    QString GetRegStringValueFromValue(REGISTER_NAME reg , const char* value);
+    QString GetRegStringValueFromValue(REGISTER_NAME reg, const char* value);
     QString GetTagWordStateString(unsigned short);
     //unsigned int GetTagWordValueFromString(const char* string);
     QString GetControlWordPCStateString(unsigned short);
@@ -204,6 +202,7 @@ protected slots:
     //unsigned int GetStatusWordTOPValueFromString(const char* string);
     QString GetStatusWordTOPStateString(unsigned short state);
     void appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32);
+    void disasmSelectionChangedSlot(dsint va);
 private:
     QPushButton* mChangeViewButton;
     CPUWidget* mParent;
@@ -255,7 +254,6 @@ private:
     // SIMD registers display mode
     SIMD_REG_DISP_MODE wSIMDRegDispMode;
     // context menu actions
-    QMenu* mFollowInDumpMenu;
     QMenu* mSwitchSIMDDispMode;
     QAction* mFollowInDump;
     QAction* wCM_Increment;
@@ -293,6 +291,7 @@ private:
     QAction* SIMDUQWord;
     QAction* SIMDHQWord;
     dsint mCip;
+    std::vector<std::pair<const char*, uint8_t>> mHighlightRegs;
 };
 
 #endif // REGISTERSVIEW_H

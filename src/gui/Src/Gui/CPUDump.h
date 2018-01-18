@@ -26,6 +26,8 @@ signals:
 public slots:
     void memoryAccessSingleshootSlot();
     void memoryAccessRestoreSlot();
+    void memoryReadSingleshootSlot();
+    void memoryReadRestoreSlot();
     void memoryWriteSingleshootSlot();
     void memoryWriteRestoreSlot();
     void memoryExecuteSingleshootSlot();
@@ -48,6 +50,8 @@ public slots:
     void gotoFileOffsetSlot();
     void gotoStartSlot();
     void gotoEndSlot();
+    void gotoPreviousReferenceSlot();
+    void gotoNextReferenceSlot();
 
     void hexAsciiSlot();
     void hexUnicodeSlot();
@@ -88,6 +92,7 @@ public slots:
     void binaryPasteIgnoreSizeSlot();
     void binarySaveToFileSlot();
     void findPattern();
+    void copyFileOffsetSlot();
     void undoSelectionSlot();
     void followStackSlot();
     void findReferencesSlot();
@@ -105,8 +110,6 @@ public slots:
     void followInDumpNSlot();
     void allocMemorySlot();
 
-    void gotoNextSlot();
-    void gotoPrevSlot();
     void followInMemoryMapSlot();
 
 private:
@@ -116,9 +119,11 @@ private:
     QMenu* mFollowInDumpMenu;
     QList<QAction*> mFollowInDumpActions;
 
-    GotoDialog* mGoto;
+    GotoDialog* mGoto = nullptr;
+    GotoDialog* mGotoOffset = nullptr;
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
+    int mAsciiSeparator = 0;
 
     enum ViewEnum_t
     {

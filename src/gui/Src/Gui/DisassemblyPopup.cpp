@@ -1,29 +1,25 @@
 #include "DisassemblyPopup.h"
-#include "Disassembly.h"
 #include "CachedFontMetrics.h"
 #include "Configuration.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 #include <QPainter>
 
-DisassemblyPopup::DisassemblyPopup(Disassembly* parent) :
+DisassemblyPopup::DisassemblyPopup(QWidget* parent) :
     QFrame(parent, Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus),
-    parent(parent),
-    mFontMetrics(nullptr)
+    mFontMetrics(nullptr),
+    mDisasm(ConfigUint("Disassembler", "MaxModuleSize"))
 {
     addr = 0;
     addrText = nullptr;
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateFont()));
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateColors()));
+    connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdated()));
     updateFont();
     updateColors();
     setFrameStyle(QFrame::Panel);
     setLineWidth(2);
     mMaxInstructions = 20;
-}
-
-DisassemblyPopup::~DisassemblyPopup()
-{
-
 }
 
 void DisassemblyPopup::updateColors()
@@ -39,6 +35,11 @@ void DisassemblyPopup::updateColors()
     QPalette palette;
     palette.setColor(QPalette::Foreground, ConfigColor("AbstractTableViewSeparatorColor"));
     setPalette(palette);
+}
+
+void DisassemblyPopup::tokenizerConfigUpdated()
+{
+    mDisasm.UpdateConfig();
 }
 
 void DisassemblyPopup::updateFont()
@@ -89,41 +90,57 @@ void DisassemblyPopup::paintEvent(QPaintEvent* event)
 void DisassemblyPopup::setAddress(duint Address)
 {
     addr = Address;
-    QList<Instruction_t> mInstBuffer;
+    QList<Instruction_t> instBuffer;
     mDisassemblyToken.clear();
     if(addr != 0)
     {
         mWidth = 1;
         // Get RVA
-        duint base = parent->getBase();
-        dsint rva = Address - base;
+        auto addr = Address;
+        duint size;
+        duint base = DbgMemFindBaseAddr(addr, &size);
         // Prepare RVA of every instruction
         unsigned int i = 0;
-        mInstBuffer.clear();
-        QList<dsint> rvaList;
-        dsint nextRva = rva;
+        instBuffer.clear();
+        auto nextAddr = addr;
         bool hadBranch = false;
+        duint bestBranch = 0;
+        byte data[64];
         do
         {
-            rvaList.append(nextRva);
-            Instruction_t instruction = parent->DisassembleAt(nextRva);
-            if(!hadBranch && instruction.tokens.tokens[0].text.toLower() == "ret")
+            if(nextAddr >= base + size)
                 break;
-            if(instruction.branchDestination)
+            if(!DbgMemRead(nextAddr, data, sizeof(data)))
+                break;
+            auto instruction = mDisasm.DisassembleAt(data, sizeof(data), 0, nextAddr);
+            if(!instruction.length)
+                break;
+            instBuffer.append(std::move(instruction));
+            if(!hadBranch || bestBranch <= nextAddr)
+            {
+                if(instruction.instStr.contains("ret"))
+                    break;
+                if(instruction.instStr.contains("jmp") && instruction.instStr.contains("["))
+                    break;
+            }
+            if(instruction.branchDestination && !instruction.instStr.contains("call") && !instruction.instStr.contains("ret"))
+            {
                 hadBranch = true;
-            auto nextRva2 = nextRva + instruction.length;
-            if(nextRva2 == nextRva)
+                if(instruction.branchDestination > bestBranch)
+                    bestBranch = instruction.branchDestination;
+            }
+            auto nextAddr2 = nextAddr + instruction.length;
+            if(nextAddr2 == nextAddr)
                 break;
             else
-                nextRva = nextRva2;
-            if(DbgGetFunctionTypeAt(nextRva + base - 1) == FUNC_END)
+                nextAddr = nextAddr2;
+            if(DbgGetFunctionTypeAt(nextAddr - 1) == FUNC_END)
                 break;
             i++;
         }
         while(i < mMaxInstructions);
         // Disassemble
-        parent->prepareDataCount(rvaList, &mInstBuffer);
-        for(auto & instruction : mInstBuffer)
+        for(auto & instruction : instBuffer)
         {
             RichTextPainter::List richText;
             CapstoneTokenizer::TokenToRichText(instruction.tokens, richText, nullptr);
@@ -132,10 +149,10 @@ void DisassemblyPopup::setAddress(duint Address)
             for(auto & token : richText)
                 currentInstructionWidth += mFontMetrics->width(token.text);
             mWidth = std::max(mWidth, currentInstructionWidth);
-            mDisassemblyToken.push_back(std::make_pair(std::move(richText), DbgFunctions()->GetTraceRecordHitCount(instruction.rva + base) != 0));
+            mDisassemblyToken.push_back(std::make_pair(std::move(richText), DbgFunctions()->GetTraceRecordHitCount(instruction.rva) != 0));
         }
         // Address
-        addrText = parent->getAddrText(addr, nullptr);
+        addrText = getSymbolicName(addr);
         // Comments
         GetCommentFormat(addr, addrComment, &addrCommentAuto);
         if(addrComment.length())

@@ -2,14 +2,16 @@
 
 #include "command.h"
 
-CMDRESULT cbInstrFind(int argc, char* argv[]);
-CMDRESULT cbInstrFindAll(int argc, char* argv[]);
-CMDRESULT cbInstrFindAllMem(int argc, char* argv[]);
-CMDRESULT cbInstrFindAsm(int argc, char* argv[]);
-CMDRESULT cbInstrRefFind(int argc, char* argv[]);
-CMDRESULT cbInstrRefFindRange(int argc, char* argv[]);
-CMDRESULT cbInstrRefStr(int argc, char* argv[]);
-CMDRESULT cbInstrModCallFind(int argc, char* argv[]);
-CMDRESULT cbInstrYara(int argc, char* argv[]);
-CMDRESULT cbInstrYaramod(int argc, char* argv[]);
-CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[]);
+bool cbInstrFind(int argc, char* argv[]);
+bool cbInstrFindAll(int argc, char* argv[]);
+bool cbInstrFindAllMem(int argc, char* argv[]);
+bool cbInstrFindAsm(int argc, char* argv[]);
+bool cbInstrRefFind(int argc, char* argv[]);
+bool cbInstrRefFindRange(int argc, char* argv[]);
+bool cbInstrRefStr(int argc, char* argv[]);
+bool cbInstrRefFuncionPointer(int argc, char* argv[]);
+bool cbInstrModCallFind(int argc, char* argv[]);
+bool cbInstrGUIDFind(int argc, char* argv[]);
+bool cbInstrYara(int argc, char* argv[]);
+bool cbInstrYaramod(int argc, char* argv[]);
+bool cbInstrSetMaxFindResult(int argc, char* argv[]);

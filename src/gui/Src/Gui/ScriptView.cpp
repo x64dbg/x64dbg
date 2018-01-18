@@ -1,10 +1,14 @@
 #include "ScriptView.h"
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QDesktopServices>
+#include <QClipboard>
+#include <QMimeData>
 #include "Configuration.h"
 #include "Bridge.h"
 #include "RichTextPainter.h"
 #include "LineEditDialog.h"
+#include "MRUList.h"
 
 ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
 {
@@ -24,6 +28,17 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
 
     setupContextMenu();
 
+    //message box
+    msg = new QMessageBox(this);
+    msg->setWindowFlags(msg->windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    msg->setModal(false);
+    connect(msg, SIGNAL(finished(int)), this, SLOT(messageResult(int)));
+
+    // recent script
+    mMRUList = new MRUList(this, "Recent Scripts");
+    connect(mMRUList, SIGNAL(openFile(QString)), this, SLOT(openRecentFile(QString)));
+    mMRUList->load();
+
     // Slots
     connect(Bridge::getBridge(), SIGNAL(scriptAdd(int, const char**)), this, SLOT(add(int, const char**)));
     connect(Bridge::getBridge(), SIGNAL(scriptClear()), this, SLOT(clear()));
@@ -34,6 +49,7 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(scriptMessage(QString)), this, SLOT(message(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptQuestion(QString)), this, SLOT(question(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptEnableHighlighting(bool)), this, SLOT(enableHighlighting(bool)));
+    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeSlot()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     Initialize();
@@ -95,7 +111,7 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
             if(background.alpha())
                 painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
         }
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
         returnString = "";
     }
     break;
@@ -113,38 +129,63 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
             QString command = getCellContent(rowBase + rowOffset, col);
 
             //handle comments
-            int comment_idx = command.indexOf("//"); //find the index of the space
+            int comment_idx = command.indexOf("\1"); //find the index of the comment
             QString comment = "";
             if(comment_idx != -1 && command.at(0) != QChar('/')) //there is a comment
             {
-                comment = command.right(command.length() - comment_idx);
+                comment = command.right(command.length() - comment_idx - 1);
                 if(command.at(comment_idx - 1) == QChar(' '))
                     command.truncate(comment_idx - 1);
                 else
                     command.truncate(comment_idx);
             }
 
+            QString mnemonic, argument;
+
             //setup the richText list
             switch(linetype)
             {
             case linecommand:
             {
-                if(isScriptCommand(command, "ret"))
+                if(isScriptCommand(command, "ret", mnemonic, argument))
                 {
                     newRichText.flags = RichTextPainter::FlagAll;
                     newRichText.textColor = ConfigColor("InstructionRetColor");
                     newRichText.textBackground = ConfigColor("InstructionRetBackgroundColor");
-                    newRichText.text = "ret";
+                    newRichText.text = mnemonic;
                     richText.push_back(newRichText);
-                    QString remainder = command.right(command.length() - 3);
-                    if(remainder.length())
+                    if(argument.length())
                     {
                         newRichText.flags = RichTextPainter::FlagAll;
                         newRichText.textColor = ConfigColor("InstructionUncategorizedColor");
                         newRichText.textBackground = ConfigColor("InstructionUncategorizedBackgroundColor");
-                        newRichText.text = remainder;
+                        newRichText.text = argument;
                         richText.push_back(newRichText);
                     }
+                }
+                else if(isScriptCommand(command, "invalid", mnemonic, argument) || isScriptCommand(command, "error", mnemonic, argument))
+                {
+                    newRichText.flags = RichTextPainter::FlagAll;
+                    newRichText.textColor = ConfigColor("InstructionUnusualColor");
+                    newRichText.textBackground = ConfigColor("InstructionUnusualBackgroundColor");
+                    newRichText.text = mnemonic;
+                    richText.push_back(newRichText);
+                    if(argument.length())
+                    {
+                        newRichText.flags = RichTextPainter::FlagAll;
+                        newRichText.textColor = ConfigColor("InstructionUncategorizedColor");
+                        newRichText.textBackground = ConfigColor("InstructionUncategorizedBackgroundColor");
+                        newRichText.text = argument;
+                        richText.push_back(newRichText);
+                    }
+                }
+                else if(isScriptCommand(command, "nop", mnemonic, argument))
+                {
+                    newRichText.flags = RichTextPainter::FlagAll;
+                    newRichText.textColor = ConfigColor("InstructionNopColor");
+                    newRichText.textBackground = ConfigColor("InstructionNopBackgroundColor");
+                    newRichText.text = mnemonic;
+                    richText.push_back(newRichText);
                 }
                 else
                 {
@@ -335,16 +376,26 @@ void ScriptView::keyPressEvent(QKeyEvent* event)
 void ScriptView::setupContextMenu()
 {
     mMenu = new MenuBuilder(this);
-    MenuBuilder* mLoadMenu = new MenuBuilder(this);
-    mLoadMenu->addAction(makeShortcutAction(DIcon("folder-horizontal-open.png"), tr("&Open..."), SLOT(openFile()), "ActionLoadScript"));
-    mLoadMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(paste()), "ActionBinaryPaste"));
-    mMenu->addMenu(makeMenu(tr("Load Script")), mLoadMenu);
+    MenuBuilder* loadMenu = new MenuBuilder(this);
+    loadMenu->addAction(makeShortcutAction(DIcon("folder-horizontal-open.png"), tr("&Open..."), SLOT(openFile()), "ActionLoadScript"));
+    loadMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(paste()), "ActionBinaryPaste"), [](QMenu*)
+    {
+        return QApplication::clipboard()->mimeData()->hasText();
+    });
+    loadMenu->addSeparator();
+    loadMenu->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
+    {
+        mMRUList->appendMenu(menu);
+        return true;
+    }));
+    mMenu->addMenu(makeMenu(DIcon("load-script.png"), tr("Load Script")), loadMenu);
     auto isempty = [this](QMenu*)
     {
         return getRowCount() != 0;
     };
     mMenu->addAction(makeShortcutAction(DIcon("arrow-restart.png"), tr("Re&load Script"), SLOT(reload()), "ActionReloadScript"), isempty);
     mMenu->addAction(makeShortcutAction(DIcon("control-exit.png"), tr("&Unload Script"), SLOT(unload()), "ActionUnloadScript"), isempty);
+    mMenu->addAction(makeShortcutAction(DIcon("edit-script.png"), tr("&Edit Script"), SLOT(edit()), "ActionEditScript"), isempty);
     mMenu->addSeparator();
     mMenu->addAction(makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle &BP"), SLOT(bpToggle()), "ActionToggleBreakpointScript"), isempty);
     mMenu->addAction(makeShortcutAction(DIcon("arrow-run-cursor.png"), tr("Ru&n until selection"), SLOT(runCursor()), "ActionRunToCursorScript"), isempty);
@@ -353,11 +404,13 @@ void ScriptView::setupContextMenu()
     mMenu->addAction(makeShortcutAction(DIcon("control-stop.png"), tr("&Abort"), SLOT(abort()), "ActionAbortScript"), isempty);
     mMenu->addAction(makeAction(DIcon("neworigin.png"), tr("&Continue here..."), SLOT(newIp())), isempty);
     mMenu->addSeparator();
-    mMenu->addAction(makeShortcutAction(DIcon("terminal-command.png"), tr("&Execute Command..."), SLOT(cmdExec()), "ActionExecuteCommandScript"));
+    mMenu->addAction(makeShortcutAction(DIcon("terminal-command.png"), tr("E&xecute Command..."), SLOT(cmdExec()), "ActionExecuteCommandScript"));
 }
 
-bool ScriptView::isScriptCommand(QString text, QString cmd)
+bool ScriptView::isScriptCommand(QString text, QString cmd, QString & mnemonic, QString & argument)
 {
+    mnemonic = cmd;
+    argument.clear();
     int len = text.length();
     int cmdlen = cmd.length();
     if(cmdlen > len)
@@ -365,7 +418,10 @@ bool ScriptView::isScriptCommand(QString text, QString cmd)
     else if(cmdlen == len)
         return (text.compare(cmd, Qt::CaseInsensitive) == 0);
     else if(text.at(cmdlen) == ' ')
+    {
+        argument = text.mid(cmdlen);
         return (text.left(cmdlen).compare(cmd, Qt::CaseInsensitive) == 0);
+    }
     return false;
 }
 
@@ -406,12 +462,11 @@ void ScriptView::error(int line, QString message)
         title = tr("Error on line") + title.sprintf(" %.4d!", line);
     else
         title = tr("Script Error!");
-    QMessageBox msg(QMessageBox::Critical, title, message);
-    msg.setWindowIcon(DIcon("script-error.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
-    Bridge::getBridge()->setResult();
+    msg->setIcon(QMessageBox::Critical);
+    msg->setWindowTitle(title);
+    msg->setText(message);
+    msg->setWindowIcon(DIcon("script-error.png"));
+    msg->show();
 }
 
 void ScriptView::setTitle(QString title)
@@ -425,33 +480,46 @@ void ScriptView::setInfoLine(int line, QString info)
     reloadData(); //repaint
 }
 
+void ScriptView::openRecentFile(QString file)
+{
+    filename = file;
+    DbgScriptUnload();
+    DbgScriptLoad(filename.toUtf8().constData());
+    mMRUList->addEntry(filename);
+    mMRUList->save();
+}
+
 void ScriptView::openFile()
 {
     filename = QFileDialog::getOpenFileName(this, tr("Select script"), 0, tr("Script files (*.txt *.scr);;All files (*.*)"));
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
-    DbgScriptUnload();
-    DbgScriptLoad(filename.toUtf8().constData());
+    openRecentFile(filename);
 }
 
 void ScriptView::paste()
 {
+    filename.clear();
     DbgScriptUnload();
     DbgScriptLoad("x64dbg://localhost/clipboard");
 }
 
 void ScriptView::reload()
 {
-    if(!filename.length())
-        return;
-    DbgScriptUnload();
-    DbgScriptLoad(filename.toUtf8().constData());
+    openRecentFile(filename);
 }
 
 void ScriptView::unload()
 {
+    filename.clear();
     DbgScriptUnload();
+}
+
+void ScriptView::edit()
+{
+    if(!filename.isEmpty())
+        QDesktopServices::openUrl(QUrl(QDir::fromNativeSeparators(filename)));
 }
 
 void ScriptView::run()
@@ -505,12 +573,12 @@ void ScriptView::cmdExec()
 
 void ScriptView::message(QString message)
 {
-    QMessageBox msg(QMessageBox::Information, tr("Message"), message);
-    msg.setWindowIcon(DIcon("information.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    msg.exec();
-    Bridge::getBridge()->setResult();
+    msg->setIcon(QMessageBox::Information);
+    msg->setWindowTitle(tr("Message"));
+    msg->setText(message);
+    msg->setStandardButtons(QMessageBox::Ok);
+    msg->setWindowIcon(DIcon("information.png"));
+    msg->show();
 }
 
 void ScriptView::newIp()
@@ -524,17 +592,26 @@ void ScriptView::newIp()
 
 void ScriptView::question(QString message)
 {
-    QMessageBox msg(QMessageBox::Question, tr("Question"), message, QMessageBox::Yes | QMessageBox::No);
-    msg.setWindowIcon(DIcon("question.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    if(msg.exec() == QMessageBox::Yes)
-        Bridge::getBridge()->setResult(1);
-    else
-        Bridge::getBridge()->setResult(0);
+    msg->setIcon(QMessageBox::Question);
+    msg->setWindowTitle(tr("Question"));
+    msg->setText(message);
+    msg->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msg->setWindowIcon(DIcon("question.png"));
+    msg->show();
 }
 
 void ScriptView::enableHighlighting(bool enable)
 {
     mEnableSyntaxHighlighting = enable;
+}
+
+void ScriptView::messageResult(int result)
+{
+    Bridge::getBridge()->setResult(result == QMessageBox::Yes);
+}
+
+void ScriptView::closeSlot()
+{
+    msg->close();
+    unload();
 }

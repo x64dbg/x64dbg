@@ -1,7 +1,10 @@
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QFile>
 #include <QDesktopServices>
 #include <QClipboard>
 #include "CPUDisassembly.h"
+#include "main.h"
 #include "CPUSideBar.h"
 #include "CPUWidget.h"
 #include "EncodeMap.h"
@@ -21,13 +24,16 @@
 #include "SourceViewerManager.h"
 #include "MiscUtil.h"
 #include "DataCopyDialog.h"
+#include "SnowmanView.h"
+#include "MemoryPage.h"
+#include "BreakpointMenu.h"
+#include "BrowseDialog.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
     setWindowTitle("Disassembly");
 
     // Set specific widget handles
-    mGoto = nullptr;
     mParentCPUWindow = parent;
 
     // Create the action list for the right click context menu
@@ -35,9 +41,9 @@ CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 
     // Connect bridge<->disasm calls
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAt(dsint, dsint)));
-    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
+    connect(this, SIGNAL(selectionExpanded()), this, SLOT(selectionUpdatedSlot()));
     connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setFocus()));
 
@@ -51,7 +57,10 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
         if(!DbgIsDebugging())
             return;
         MessageBeep(MB_OK);
-        copyAddressSlot();
+        if(event->modifiers() & Qt::ShiftModifier)
+            copyRvaSlot();
+        else
+            copyAddressSlot();
     }
     else
     {
@@ -89,7 +98,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
     // (Opcodes) Set INT3 breakpoint
     case 1:
-        toggleInt3BPActionSlot();
+        mBreakpointMenu->toggleInt3BPActionSlot();
         break;
 
     // (Disassembly) Assemble dialog
@@ -111,9 +120,9 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPUDisassembly::addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences, bool isFollowInCPU)
 {
-    foreach(QAction * action, menu->actions()) //check for duplicate action
-    if(action->text() == name)
-        return;
+    foreach(QAction* action, menu->actions()) //check for duplicate action
+        if(action->text() == name)
+            return;
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
@@ -149,7 +158,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
     {
         for(int i = 0; i < instr.argcount; i++)
         {
-            const DISASM_ARG arg = instr.arg[i];
+            const DISASM_ARG & arg = instr.arg[i];
             if(arg.type == arg_memory)
             {
                 QString segment = "";
@@ -160,21 +169,41 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
                 if(arg.segment == SEG_FS)
                     segment = "fs:";
 #endif //_WIN64
-                if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem(tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
                 if(arg.value != arg.constant)
                 {
-                    QString constant = ToHexString(arg.constant);
-                    if(DbgMemIsValidReadPtr(arg.constant))
-                        addFollowReferenceMenuItem(tr("&Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
+                    if(DbgMemIsValidReadPtr(arg.value))
+                        addFollowReferenceMenuItem(tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
                 }
+                QString constant = ToHexString(arg.constant);
+                if(DbgMemIsValidReadPtr(arg.constant))
+                    addFollowReferenceMenuItem(tr("&Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
                 if(DbgMemIsValidReadPtr(arg.memvalue))
+                {
                     addFollowReferenceMenuItem(tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
+                    //Check for switch statement
+                    if(memcmp(instr.instruction, "jmp ", 4) == 0 && DbgMemIsValidReadPtr(arg.constant)) //todo: extend check for exact form "jmp [reg*4+disp]"
+                    {
+                        duint* switchTable = new duint[512];
+                        memset(switchTable, 0, 512 * sizeof(duint));
+                        if(DbgMemRead(arg.constant, switchTable, 512 * sizeof(duint)))
+                        {
+                            int index;
+                            for(index = 0; index < 512; index++)
+                                if(!DbgFunctions()->MemIsCodePage(switchTable[index], false))
+                                    break;
+                            if(index >= 2 && index < 512)
+                                for(int index2 = 0; index2 < index; index2++)
+                                    addFollowReferenceMenuItem(tr("Jump table%1: ").arg(index2) + ToHexString(switchTable[index2]), switchTable[index2], menu, isReferences, isFollowInCPU);
+                        }
+                        delete[] switchTable;
+                    }
+                }
+
             }
             else //arg_normal
             {
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem(QString(arg.mnemonic).trimmed(), arg.value, menu, isReferences, isFollowInCPU);
             }
         }
     }
@@ -230,17 +259,36 @@ void CPUDisassembly::setupRightClickContextMenu()
     binaryMenu->addAction(makeShortcutAction(DIcon("binary_fill_nop.png"), tr("Fill with &NOPs"), SLOT(binaryFillNopsSlot()), "ActionBinaryFillNops"));
     binaryMenu->addSeparator();
     binaryMenu->addAction(makeShortcutAction(DIcon("binary_copy.png"), tr("&Copy"), SLOT(binaryCopySlot()), "ActionBinaryCopy"));
-    binaryMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
-    binaryMenu->addAction(makeShortcutAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"));
+    binaryMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"), [](QMenu*)
+    {
+        return QApplication::clipboard()->mimeData()->hasText();
+    });
+    binaryMenu->addAction(makeShortcutAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"), [](QMenu*)
+    {
+        return QApplication::clipboard()->mimeData()->hasText();
+    });
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("&Binary")), binaryMenu);
 
     MenuBuilder* copyMenu = new MenuBuilder(this);
     copyMenu->addAction(makeShortcutAction(DIcon("copy_selection.png"), tr("&Selection"), SLOT(copySelectionSlot()), "ActionCopy"));
+    copyMenu->addAction(makeAction(DIcon("copy_selection.png"), tr("Selection to &File"), SLOT(copySelectionToFileSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection (&No Bytes)"), SLOT(copySelectionNoBytesSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection to File (No Bytes)"), SLOT(copySelectionToFileNoBytesSlot())));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&Address"), SLOT(copyAddressSlot()), "ActionCopyAddress"));
-    copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot())));
+    copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot()), "ActionCopyRva"));
+    copyMenu->addAction(makeAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
     copyMenu->addAction(makeAction(DIcon("data-copy.png"), tr("&Data..."), SLOT(copyDataSlot())));
+
+    copyMenu->addMenu(makeMenu(DIcon("copy_selection.png"), tr("Symbolic Name")), [this](QMenu * menu)
+    {
+        QSet<QString> labels;
+        if(!getLabelsFromInstruction(rvaToVa(getInitialSelection()), labels))
+            return false;
+        for(auto label : labels)
+            menu->addAction(makeAction(label, SLOT(labelCopySlot())));
+        return true;
+    });
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
@@ -250,73 +298,11 @@ void CPUDisassembly::setupRightClickContextMenu()
         return DbgFunctions()->PatchInRange(start, end); //something patched in selected range
     });
 
-    QAction* toggleBreakpointAction = makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle"), SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
-    QAction* editSoftwareBreakpointAction = makeShortcutAction(DIcon("breakpoint_edit.png"), tr("Edit"), SLOT(editSoftBpActionSlot()), "ActionEditBreakpoint");
-    QAction* setHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"), SLOT(toggleHwBpActionSlot()), "ActionSetHwBpE");
-    QAction* removeHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_remove.png"), tr("Remove Hardware"), SLOT(toggleHwBpActionSlot()), "ActionRemoveHwBp");
-
-    QMenu* replaceSlotMenu = makeMenu(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"));
-    QAction* replaceSlot0Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot1.png"), tr("Replace Slot 0 (Free)"), SLOT(setHwBpOnSlot0ActionSlot()));
-    QAction* replaceSlot1Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot2.png"), tr("Replace Slot 1 (Free)"), SLOT(setHwBpOnSlot1ActionSlot()));
-    QAction* replaceSlot2Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot3.png"), tr("Replace Slot 2 (Free)"), SLOT(setHwBpOnSlot2ActionSlot()));
-    QAction* replaceSlot3Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot4.png"), tr("Replace Slot 3 (Free)"), SLOT(setHwBpOnSlot3ActionSlot()));
-
-    mMenuBuilder->addMenu(makeMenu(DIcon("breakpoint.png"), tr("Breakpoint")), [ = ](QMenu * menu)
+    mBreakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
     {
-        BPXTYPE bpType = DbgGetBpxTypeAt(rvaToVa(getInitialSelection()));
-        if((bpType & bp_normal) == bp_normal)
-            menu->addAction(editSoftwareBreakpointAction);
-
-        menu->addAction(toggleBreakpointAction);
-
-        if((bpType & bp_hardware) == bp_hardware)
-        {
-            menu->addAction(removeHwBreakpointAction);
-        }
-        else
-        {
-            BPMAP bpList;
-            DbgGetBpList(bp_hardware, &bpList);
-
-            //get enabled hwbp count
-            int enabledCount = bpList.count;
-            for(int i = 0; i < bpList.count; i++)
-                if(!bpList.bp[i].enabled)
-                    enabledCount--;
-
-            if(enabledCount < 4)
-            {
-                menu->addAction(setHwBreakpointAction);
-            }
-            else
-            {
-                for(int i = 0; i < 4; i++)
-                {
-                    switch(bpList.bp[i].slot)
-                    {
-                    case 0:
-                        replaceSlot0Action->setText(tr("Replace Slot %1 (0x%2)").arg(1).arg(ToPtrString(bpList.bp[i].addr)));
-                        break;
-                    case 1:
-                        replaceSlot1Action->setText(tr("Replace Slot %1 (0x%2)").arg(2).arg(ToPtrString(bpList.bp[i].addr)));
-                        break;
-                    case 2:
-                        replaceSlot2Action->setText(tr("Replace Slot %1 (0x%2)").arg(3).arg(ToPtrString(bpList.bp[i].addr)));
-                        break;
-                    case 3:
-                        replaceSlot3Action->setText(tr("Replace Slot %1 (0x%2)").arg(4).arg(ToPtrString(bpList.bp[i].addr)));
-                        break;
-                    default:
-                        break;
-                    }
-                }
-                menu->addMenu(replaceSlotMenu);
-            }
-            if(bpList.count)
-                BridgeFree(bpList.bp);
-        }
-        return true;
+        return rvaToVa(getInitialSelection());
     });
+    mBreakpointMenu->build(mMenuBuilder);
 
     mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), tr("&Follow in Dump")), [this](QMenu * menu)
     {
@@ -330,9 +316,9 @@ void CPUDisassembly::setupRightClickContextMenu()
         return menu->actions().length() != 0; //only add this menu if there is something to follow
     });
 
-    mMenuBuilder->addAction(makeAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
 
-    mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open Source File"), SLOT(openSourceSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("source.png"), tr("Open Source File"), SLOT(openSourceSlot()), "ActionOpenSourceFile"), [this](QMenu*)
     {
         return DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), 0, 0);
     });
@@ -368,16 +354,16 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
-    QAction* togglePreview = makeShortcutAction(tr("Disable Branch Destination Preview"), SLOT(togglePreviewSlot()), "ActionToggleDestinationPreview");
+    QAction* togglePreview = makeShortcutAction(DIcon("branchpreview.png"), tr("Disable Branch Destination Preview"), SLOT(togglePreviewSlot()), "ActionToggleDestinationPreview");
     mMenuBuilder->addAction(togglePreview, [this, togglePreview](QMenu*)
     {
         togglePreview->setText(mPopupEnabled ? tr("Disable Branch Destination Preview") : tr("Enable Branch Destination Preview"));
-        return true;
+        return false; //hide this menu from the user, but keep the shortcut working
     });
 
     MenuBuilder* labelMenu = new MenuBuilder(this);
     labelMenu->addAction(makeShortcutAction(tr("Label Current Address"), SLOT(setLabelSlot()), "ActionSetLabel"));
-    QAction* labelAddress = makeAction(tr("Label"), SLOT(setLabelAddressSlot()));
+    QAction* labelAddress = makeShortcutAction(tr("Label"), SLOT(setLabelAddressSlot()), "ActionSetLabelOperand");
 
     labelMenu->addAction(labelAddress, [this, labelAddress](QMenu*)
     {
@@ -387,8 +373,10 @@ void CPUDisassembly::setupRightClickContextMenu()
         duint addr;
         if(instr_info.type & TYPE_MEMORY)
             addr = instr_info.memory.value;
-        else if(instr_info.type & TYPE_VALUE || instr_info.type & TYPE_ADDR)
+        else if(instr_info.type & TYPE_ADDR)
             addr = instr_info.addr;
+        else if(instr_info.type & TYPE_VALUE)
+            addr = instr_info.value.value;
         else
             return false;
 
@@ -402,6 +390,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     QAction* traceRecordEnableBit = makeAction(DIcon("bit.png"), tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
     QAction* traceRecordEnableByte = makeAction(DIcon("byte.png"), tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
     QAction* traceRecordEnableWord = makeAction(DIcon("word.png"), tr("Word"), SLOT(ActionTraceRecordWordSlot()));
+    QAction* traceRecordToggleRunTrace = makeShortcutAction(tr("Start Run Trace"), SLOT(ActionTraceRecordToggleRunTraceSlot()), "ActionToggleRunTrace");
     mMenuBuilder->addMenu(makeMenu(DIcon("trace.png"), tr("Trace record")), [ = ](QMenu * menu)
     {
         if(DbgFunctions()->GetTraceRecordType(rvaToVa(getInitialSelection())) == TRACERECORDTYPE::TraceRecordNone)
@@ -412,6 +401,12 @@ void CPUDisassembly::setupRightClickContextMenu()
         }
         else
             menu->addAction(traceRecordDisable);
+        menu->addSeparator();
+        if(DbgValFromString("tr.runtraceenabled()") == 1)
+            traceRecordToggleRunTrace->setText(tr("Stop Run Trace"));
+        else
+            traceRecordToggleRunTrace->setText(tr("Start Run Trace"));
+        menu->addAction(traceRecordToggleRunTrace);
         return true;
     });
 
@@ -421,7 +416,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     MenuBuilder* analysisMenu = new MenuBuilder(this);
     QAction* toggleFunctionAction = makeShortcutAction(DIcon("functions.png"), tr("Function"), SLOT(toggleFunctionSlot()), "ActionToggleFunction");
-    analysisMenu->addAction(makeShortcutAction(tr("Analyze module"), SLOT(analyzeModuleSlot()), "ActionAnalyzeModule"));
+    analysisMenu->addAction(makeShortcutAction(DIcon("analyzemodule.png"), tr("Analyze module"), SLOT(analyzeModuleSlot()), "ActionAnalyzeModule"));
     analysisMenu->addAction(toggleFunctionAction, [this, toggleFunctionAction](QMenu*)
     {
         if(!DbgFunctionOverlaps(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd())))
@@ -468,7 +463,7 @@ void CPUDisassembly::setupRightClickContextMenu()
                               };
 
     ENCODETYPE enctypeTable[] = {enc_code, enc_byte, enc_word, enc_dword, enc_fword, enc_qword, enc_tbyte, enc_oword, enc_middle,
-                                 enc_real4, enc_real8, enc_real10 , enc_middle,
+                                 enc_real4, enc_real8, enc_real10, enc_middle,
                                  enc_ascii, enc_unicode, enc_middle,
                                  enc_mmword, enc_xmmword, enc_ymmword
                                 };
@@ -507,8 +502,12 @@ void CPUDisassembly::setupRightClickContextMenu()
     analysisMenu->addMenu(encodeTypeMenu);
 
     mMenuBuilder->addMenu(makeMenu(DIcon("analysis.png"), tr("Analysis")), analysisMenu);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("pdb.png"), tr("Download Symbols for This Module"), SLOT(downloadCurrentSymbolsSlot()), "ActionDownloadSymbol"), [this](QMenu*)
+    {
+        //only show this action in system modules (generally user modules don't have downloadable symbols)
+        return DbgFunctions()->ModGetParty(rvaToVa(getInitialSelection())) == 1;
+    });
     mMenuBuilder->addSeparator();
-
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("compile.png"), tr("Assemble"), SLOT(assembleSlot()), "ActionAssemble"));
     removeAction(mMenuBuilder->addAction(makeShortcutAction(DIcon("patch.png"), tr("Patches"), SLOT(showPatchesSlot()), "ViewPatches"))); //prevent conflicting shortcut with the MainWindow
@@ -516,7 +515,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addSeparator();
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("neworigin.png"), tr("Set New Origin Here"), SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere"));
-    mMenuBuilder->addAction(makeShortcutAction(tr("Create New Thread Here"), SLOT(createThreadSlot()), "ActionCreateNewThreadHere"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("createthread.png"), tr("Create New Thread Here"), SLOT(createThreadSlot()), "ActionCreateNewThreadHere"));
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
@@ -544,6 +543,15 @@ void CPUDisassembly::setupRightClickContextMenu()
     {
         return DbgFunctionGet(rvaToVa(getInitialSelection()), nullptr, nullptr);
     });
+    gotoMenu->addAction(makeShortcutAction(DIcon("prevref.png"), tr("Previous Reference"), SLOT(gotoPreviousReferenceSlot()), "ActionGotoPreviousReference"), [](QMenu*)
+    {
+        return !!DbgEval("refsearch.count() && ($__disasm_refindex > 0 || dis.sel() != refsearch.addr($__disasm_refindex))");
+    });
+    gotoMenu->addAction(makeShortcutAction(DIcon("nextref.png"), tr("Next Reference"), SLOT(gotoNextReferenceSlot()), "ActionGotoNextReference"), [](QMenu*)
+    {
+        return !!DbgEval("refsearch.count() && ($__disasm_refindex < refsearch.count()|| dis.sel() != refsearch.addr($__disasm_refindex))");
+    });
+
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
     mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("xrefs..."), SLOT(gotoXrefSlot()), "ActionXrefs"), [this](QMenu*)
@@ -557,6 +565,11 @@ void CPUDisassembly::setupRightClickContextMenu()
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
     });
+    MenuBuilder* mSearchFunctionMenu = new MenuBuilder(this, [this](QMenu*)
+    {
+        duint start, end;
+        return DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end);
+    });
     MenuBuilder* mSearchAllMenu = new MenuBuilder(this);
 
     // Search in Current Region menu
@@ -565,36 +578,62 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindStringsRegion = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsRegion = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternRegion = makeShortcutAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPattern");
+    mFindGUIDRegion = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchRegionMenu->addAction(mFindCommandRegion);
     mSearchRegionMenu->addAction(mFindConstantRegion);
     mSearchRegionMenu->addAction(mFindStringsRegion);
     mSearchRegionMenu->addAction(mFindCallsRegion);
     mSearchRegionMenu->addAction(mFindPatternRegion);
+    mSearchRegionMenu->addAction(mFindGUIDRegion);
 
     // Search in Current Module menu
-    mFindCommandModule = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindCommandModule = makeShortcutAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()), "ActionFindInModule");
     mFindConstantModule = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsModule = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsModule = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
-    mFindPatternModule = makeAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()));
+    mFindPatternModule = makeShortcutAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPatternInModule");
+    mFindGUIDModule = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
+    mFindNamesModule = makeShortcutAction(DIcon("names.png"), tr("&Names"), SLOT(findNamesSlot()), "ActionFindNamesInModule");
     mSearchModuleMenu->addAction(mFindCommandModule);
     mSearchModuleMenu->addAction(mFindConstantModule);
     mSearchModuleMenu->addAction(mFindStringsModule);
     mSearchModuleMenu->addAction(mFindCallsModule);
     mSearchModuleMenu->addAction(mFindPatternModule);
+    mSearchModuleMenu->addAction(mFindGUIDModule);
+    mSearchModuleMenu->addAction(mFindNamesModule);
+
+    // Search in Current Function menu
+    mFindCommandFunction = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindConstantFunction = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
+    mFindStringsFunction = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
+    mFindCallsFunction = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindPatternFunction = makeAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()));
+    mFindGUIDFunction = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
+    mSearchFunctionMenu->addAction(mFindCommandFunction);
+    mSearchFunctionMenu->addAction(mFindConstantFunction);
+    mSearchFunctionMenu->addAction(mFindStringsFunction);
+    mSearchFunctionMenu->addAction(mFindCallsFunction);
+    mSearchFunctionMenu->addAction(mFindPatternFunction);
+    mSearchFunctionMenu->addAction(mFindGUIDFunction);
 
     // Search in All Modules menu
     mFindCommandAll = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
     mFindConstantAll = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsAll = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsAll = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindPatternAll = makeAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()));
+    mFindGUIDAll = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchAllMenu->addAction(mFindCommandAll);
     mSearchAllMenu->addAction(mFindConstantAll);
     mSearchAllMenu->addAction(mFindStringsAll);
     mSearchAllMenu->addAction(mFindCallsAll);
+    mSearchAllMenu->addAction(mFindPatternAll);
+    mSearchAllMenu->addAction(mFindGUIDAll);
 
     searchMenu->addMenu(makeMenu(DIcon("search_current_region.png"), tr("Current Region")), mSearchRegionMenu);
     searchMenu->addMenu(makeMenu(DIcon("search_current_module.png"), tr("Current Module")), mSearchModuleMenu);
+    QMenu* searchFunctionMenu = makeMenu(tr("Current Function"));
+    searchMenu->addMenu(searchFunctionMenu, mSearchFunctionMenu);
     searchMenu->addMenu(makeMenu(DIcon("search_all_modules.png"), tr("All Modules")), mSearchAllMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("search-for.png"), tr("&Search for")), searchMenu);
 
@@ -614,6 +653,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
+        DbgMenuPrepare(GUI_DISASM_MENU);
         menu->addActions(mPluginMenu->actions());
         return true;
     }));
@@ -641,121 +681,14 @@ void CPUDisassembly::gotoOriginSlot()
 }
 
 
-void CPUDisassembly::toggleInt3BPActionSlot()
-{
-    if(!DbgIsDebugging())
-        return;
-    duint wVA = rvaToVa(getInitialSelection());
-    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-    QString wCmd;
 
-    if((wBpType & bp_normal) == bp_normal)
-    {
-        wCmd = "bc " + ToPtrString(wVA);
-    }
-    else
-    {
-        if(!DbgFunctions()->MemIsCodePage(wVA, false))
-        {
-            QMessageBox msgyn(QMessageBox::Warning, tr("Current address is not executable"),
-                              tr("Setting software breakpoint here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
-            msgyn.setWindowIcon(DIcon("compile-warning.png"));
-            msgyn.setParent(this, Qt::Dialog);
-            msgyn.setWindowFlags(msgyn.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-            if(msgyn.exec() == QMessageBox::No)
-                return;
-        }
-        wCmd = "bp " + ToPtrString(wVA);
-    }
-
-    DbgCmdExec(wCmd.toUtf8().constData());
-    //emit Disassembly::repainted();
-}
-
-
-void CPUDisassembly::toggleHwBpActionSlot()
-{
-    duint wVA = rvaToVa(getInitialSelection());
-    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-    QString wCmd;
-
-    if((wBpType & bp_hardware) == bp_hardware)
-    {
-        wCmd = "bphwc " + ToPtrString(wVA);
-    }
-    else
-    {
-        wCmd = "bphws " + ToPtrString(wVA);
-    }
-
-    DbgCmdExec(wCmd.toUtf8().constData());
-}
-
-
-void CPUDisassembly::setHwBpOnSlot0ActionSlot()
-{
-    setHwBpAt(rvaToVa(getInitialSelection()), 0);
-}
-
-void CPUDisassembly::setHwBpOnSlot1ActionSlot()
-{
-    setHwBpAt(rvaToVa(getInitialSelection()), 1);
-}
-
-void CPUDisassembly::setHwBpOnSlot2ActionSlot()
-{
-    setHwBpAt(rvaToVa(getInitialSelection()), 2);
-}
-
-void CPUDisassembly::setHwBpOnSlot3ActionSlot()
-{
-    setHwBpAt(rvaToVa(getInitialSelection()), 3);
-}
-
-void CPUDisassembly::setHwBpAt(duint va, int slot)
-{
-    int wI = 0;
-    int wSlotIndex = -1;
-    BPMAP wBPList;
-    QString wCmd = "";
-
-    DbgGetBpList(bp_hardware, &wBPList);
-
-    // Find index of slot slot in the list
-    for(wI = 0; wI < wBPList.count; wI++)
-    {
-        if(wBPList.bp[wI].slot == (unsigned short)slot)
-        {
-            wSlotIndex = wI;
-            break;
-        }
-    }
-
-    if(wSlotIndex < 0) // Slot not used
-    {
-        wCmd = "bphws " + ToPtrString(va);
-        DbgCmdExec(wCmd.toUtf8().constData());
-    }
-    else // Slot used
-    {
-        wCmd = "bphwc " + ToPtrString((duint)(wBPList.bp[wSlotIndex].addr));
-        DbgCmdExec(wCmd.toUtf8().constData());
-
-        Sleep(200);
-
-        wCmd = "bphws " + ToPtrString(va);
-        DbgCmdExec(wCmd.toUtf8().constData());
-    }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
-}
 
 void CPUDisassembly::setNewOriginHereActionSlot()
 {
     if(!DbgIsDebugging())
         return;
     duint wVA = rvaToVa(getInitialSelection());
-    if(!DbgFunctions()->MemIsCodePage(wVA, false))
+    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
     {
         QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
                         tr("Setting new origin here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
@@ -775,14 +708,28 @@ void CPUDisassembly::setLabelSlot()
         return;
     duint wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
     QString addr_text = ToPtrString(wVA);
     char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    QByteArray utf8data = mLineEdit.editText.toUtf8();
+    if(!utf8data.isEmpty() && DbgIsValidExpression(utf8data.constData()) && DbgValFromString(utf8data.constData()) != wVA)
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("The label may be in use"),
+                        tr("The label \"%1\" may be an existing label or a valid expression. Using such label might have undesired effects. Do you still want to continue?").arg(mLineEdit.editText),
+                        QMessageBox::Yes | QMessageBox::No, this);
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            goto restart;
+    }
+    if(!DbgSetLabelAt(wVA, utf8data.constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
 
     GuiUpdateAllViews();
@@ -798,21 +745,39 @@ void CPUDisassembly::setLabelAddressSlot()
     duint addr;
     if(instr_info.type & TYPE_MEMORY)
         addr = instr_info.memory.value;
-    else if(instr_info.type & TYPE_VALUE || instr_info.type & TYPE_ADDR)
+    else if(instr_info.type & TYPE_ADDR)
         addr = instr_info.addr;
+    else if(instr_info.type & TYPE_VALUE)
+        addr = instr_info.value.value;
     else
         return;
-
+    if(!DbgMemIsValidReadPtr(addr))
+        return;
     LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
     QString addr_text = ToPtrString(addr);
-    char label_text[MAX_COMMENT_SIZE] = "";
+    char label_text[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt(addr, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetLabelAt(addr, mLineEdit.editText.toUtf8().constData()))
+    QByteArray utf8data = mLineEdit.editText.toUtf8();
+    if(!utf8data.isEmpty() && DbgIsValidExpression(utf8data.constData()) && DbgValFromString(utf8data.constData()) != addr)
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("The label may be in use"),
+                        tr("The label \"%1\" may be an existing label or a valid expression. Using such label might have undesired effects. Do you still want to continue?").arg(mLineEdit.editText),
+                        QMessageBox::Yes | QMessageBox::No, this);
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            goto restart;
+    }
+    if(!DbgSetLabelAt(addr, utf8data.constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
+
 
     GuiUpdateAllViews();
 }
@@ -823,6 +788,7 @@ void CPUDisassembly::setCommentSlot()
         return;
     duint wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
+    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
     QString addr_text = ToPtrString(wVA);
     char comment_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetCommentAt((duint)wVA, comment_text))
@@ -835,8 +801,20 @@ void CPUDisassembly::setCommentSlot()
     mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
+    QString comment = mLineEdit.editText.replace('\r', "").replace('\n', "");
+    if(!DbgSetCommentAt(wVA, comment.toUtf8().constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
+
+    static bool easter = isEaster();
+    if(easter && comment.toLower() == "oep")
+    {
+        QFile file(":/icons/images/egg.wav");
+        if(file.open(QIODevice::ReadOnly))
+        {
+            QByteArray egg = file.readAll();
+            PlaySoundA(egg.data(), 0, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+        }
+    }
 
     GuiUpdateAllViews();
 }
@@ -936,23 +914,6 @@ void CPUDisassembly::assembleSlot()
 
         QString actual_inst = instr.instStr;
 
-        //replace [rip +/- 0x?] with the actual address
-        bool ripPlus = true;
-        auto found = actual_inst.indexOf("[rip + ");
-        if(found == -1)
-        {
-            ripPlus = false;
-            found = actual_inst.indexOf("[rip - ");
-        }
-        if(found != -1)
-        {
-            auto end = actual_inst.indexOf("]", found);
-            auto ripStr = actual_inst.mid(found + 1, end - found - 1);
-            auto offset = ripStr.mid(ripStr.lastIndexOf(' ') + 1).toULongLong(nullptr, 16);
-            auto dest = ripPlus ? (wVA + offset + instr.length) : (wVA - offset + instr.length);
-            actual_inst.replace(ripStr, "0x" + ToHexString(dest).toLower());
-        }
-
         bool assembly_error;
         do
         {
@@ -1021,6 +982,7 @@ void CPUDisassembly::gotoExpressionSlot()
         return;
     if(!mGoto)
         mGoto = new GotoDialog(this);
+    mGoto->setInitialExpression(ToPtrString(rvaToVa(getInitialSelection())));
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
@@ -1038,13 +1000,25 @@ void CPUDisassembly::gotoFileOffsetSlot()
         QMessageBox::critical(this, tr("Error!"), tr("Not inside a module..."));
         return;
     }
-    GotoDialog mGotoDialog(this);
-    mGotoDialog.fileOffset = true;
-    mGotoDialog.modName = QString(modname);
-    mGotoDialog.setWindowTitle(tr("Goto File Offset in ") + QString(modname));
-    if(mGotoDialog.exec() != QDialog::Accepted)
+    if(!mGotoOffset)
+        mGotoOffset = new GotoDialog(this);
+    mGotoOffset->fileOffset = true;
+    mGotoOffset->modName = QString(modname);
+    mGotoOffset->setWindowTitle(tr("Goto File Offset in ") + QString(modname));
+    QString offsetOfSelected;
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int, const Instruction_t & inst)
+    {
+        duint addr = rvaToVa(inst.rva);
+        duint offset = DbgFunctions()->VaToFileOffset(addr);
+        if(offset)
+            offsetOfSelected = ToHexString(offset);
+        return false;
+    });
+    if(!offsetOfSelected.isEmpty())
+        mGotoOffset->setInitialExpression(offsetOfSelected);
+    if(mGotoOffset->exec() != QDialog::Accepted)
         return;
-    duint value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
+    duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
     DbgCmdExec(QString().sprintf("disasm \"%p\"", value).toUtf8().constData());
 }
@@ -1077,12 +1051,36 @@ void CPUDisassembly::gotoFunctionEndSlot()
     DbgCmdExec(QString("disasm \"%1\"").arg(ToHexString(end)).toUtf8().constData());
 }
 
+void CPUDisassembly::gotoPreviousReferenceSlot()
+{
+    auto count = DbgEval("refsearch.count()"), index = DbgEval("$__disasm_refindex"), addr = DbgEval("refsearch.addr($__disasm_refindex)");
+    if(count)
+    {
+        if(index > 0 && addr == rvaToVa(getInitialSelection()))
+            DbgValToString("$__disasm_refindex", index - 1);
+        DbgCmdExec("disasm refsearch.addr($__disasm_refindex)");
+    }
+}
+
+void CPUDisassembly::gotoNextReferenceSlot()
+{
+    auto count = DbgEval("refsearch.count()"), index = DbgEval("$__disasm_refindex"), addr = DbgEval("refsearch.addr($__disasm_refindex)");
+    if(count)
+    {
+        if(index + 1 < count && addr == rvaToVa(getInitialSelection()))
+            DbgValToString("$__disasm_refindex", index + 1);
+        DbgCmdExec("disasm refsearch.addr($__disasm_refindex)");
+    }
+}
+
 void CPUDisassembly::gotoXrefSlot()
 {
     if(!DbgIsDebugging() || !mXrefInfo.refcount)
         return;
-    XrefBrowseDialog xrefDlg(this, getSelectedVa());
-    xrefDlg.exec();
+    if(!mXrefDlg)
+        mXrefDlg = new XrefBrowseDialog(this);
+    mXrefDlg->setup(getSelectedVa());
+    mXrefDlg->showNormal();
 }
 
 void CPUDisassembly::followActionSlot()
@@ -1134,6 +1132,8 @@ void CPUDisassembly::findConstantSlot()
         refFindType = 1;
     else if(sender() == mFindConstantAll)
         refFindType = 2;
+    else if(sender() == mFindConstantFunction)
+        refFindType = -1;
 
     WordEditDialog wordEdit(this);
     wordEdit.setup(tr("Enter Constant"), 0, sizeof(dsint));
@@ -1142,7 +1142,14 @@ void CPUDisassembly::findConstantSlot()
 
     auto addrText = ToHexString(rvaToVa(getInitialSelection()));
     auto constText = ToHexString(wordEdit.getVal());
-    DbgCmdExec(QString("findref %1, %2, 0, %3").arg(constText).arg(addrText).arg(refFindType).toUtf8().constData());
+    if(refFindType != -1)
+        DbgCmdExec(QString("findref %1, %2, 0, %3").arg(constText).arg(addrText).arg(refFindType).toUtf8().constData());
+    else
+    {
+        duint start, end;
+        if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
+            DbgCmdExec(QString("findref %1, %2, %3, 0").arg(constText).arg(ToPtrString(start)).arg(ToPtrString(end - start)).toUtf8().constData());
+    }
     emit displayReferencesWidget();
 }
 
@@ -1155,6 +1162,13 @@ void CPUDisassembly::findStringsSlot()
         refFindType = 1;
     else if(sender() == mFindStringsAll)
         refFindType = 2;
+    else if(sender() == mFindStringsFunction)
+    {
+        duint start, end;
+        if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
+            DbgCmdExec(QString("strref %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)).toUtf8().constData());
+        return;
+    }
 
     auto addrText = ToHexString(rvaToVa(getInitialSelection()));
     DbgCmdExec(QString("strref %1, 0, %2").arg(addrText).arg(refFindType).toUtf8().constData());
@@ -1171,9 +1185,18 @@ void CPUDisassembly::findCallsSlot()
         refFindType = 1;
     else if(sender() == mFindCallsAll)
         refFindType = 2;
+    else if(sender() == mFindCallsFunction)
+        refFindType = -1;
 
     auto addrText = ToHexString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("modcallfind %1, 0, %2").arg(addrText).arg(refFindType).toUtf8().constData());
+    if(refFindType != -1)
+        DbgCmdExec(QString("modcallfind %1, 0, %2").arg(addrText).arg(refFindType).toUtf8().constData());
+    else
+    {
+        duint start, end;
+        if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
+            DbgCmdExec(QString("modcallfind %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)).toUtf8().constData());
+    }
     emit displayReferencesWidget();
 }
 
@@ -1195,13 +1218,59 @@ void CPUDisassembly::findPatternSlot()
     {
         auto base = DbgFunctions()->ModBaseFromAddr(addr);
         if(base)
-            command = QString("findall %1, %2, %3").arg(ToHexString(base), hexEdit.mHexEdit->pattern(), ToHexString(DbgFunctions()->ModSizeFromAddr(base)));
+            command = QString("findallmem %1, %2, %3").arg(ToHexString(base), hexEdit.mHexEdit->pattern(), ToHexString(DbgFunctions()->ModSizeFromAddr(base)));
     }
+    if(sender() == mFindPatternFunction)
+    {
+        duint start, end;
+        if(DbgFunctionGet(addr, &start, &end))
+            command = QString("findall %1, %2, %3").arg(ToPtrString(start)).arg(hexEdit.mHexEdit->pattern()).arg(ToPtrString(end - start));
+        else
+            return;
+    }
+    if(sender() == mFindPatternAll)
+        command = QString("findallmem  %1, %2, %3").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()).arg("&data&");
     if(!command.length())
         command = QString("findall %1, %2").arg(ToHexString(addr), hexEdit.mHexEdit->pattern());
 
     DbgCmdExec(command.toUtf8().constData());
     emit displayReferencesWidget();
+}
+
+void CPUDisassembly::findGUIDSlot()
+{
+    int refFindType = 0;
+    if(sender() == mFindGUIDRegion)
+        refFindType = 0;
+    else if(sender() == mFindGUIDModule)
+        refFindType = 1;
+    else if(sender() == mFindGUIDAll)
+        refFindType = 2;
+    else if(sender() == mFindGUIDFunction)
+        refFindType = -1;
+
+    auto addrText = ToHexString(rvaToVa(getInitialSelection()));
+    if(refFindType == -1)
+        DbgCmdExec(QString("findguid %1, 0, %2").arg(addrText).arg(refFindType).toUtf8().constData());
+    else
+    {
+        duint start, end;
+        if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
+            DbgCmdExec(QString("findguid %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)).toUtf8().constData());
+    }
+    emit displayReferencesWidget();
+}
+
+void CPUDisassembly::findNamesSlot()
+{
+    if(sender() == mFindNamesModule)
+    {
+        auto base = DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection()));
+        if(!base)
+            return;
+        Bridge::getBridge()->symbolSelectModule(base);
+        emit displaySymbolsWidget();
+    }
 }
 
 void CPUDisassembly::selectionGetSlot(SELECTIONDATA* selection)
@@ -1226,6 +1295,17 @@ void CPUDisassembly::selectionSetSlot(const SELECTIONDATA* selection)
     expandSelectionUpTo(end - selMin);
     reloadData();
     Bridge::getBridge()->setResult(1);
+}
+
+void CPUDisassembly::selectionUpdatedSlot()
+{
+    QString selStart = ToPtrString(rvaToVa(getSelectionStart()));
+    QString selEnd = ToPtrString(rvaToVa(getSelectionEnd()));
+    QString info = tr("Disassembly");
+    char mod[MAX_MODULE_SIZE] = "";
+    if(DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), mod, true))
+        info = QString(mod) + "";
+    GuiAddStatusBarMessage(QString(info + ": " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
 }
 
 void CPUDisassembly::enableHighlightingModeSlot()
@@ -1313,6 +1393,8 @@ void CPUDisassembly::binaryCopySlot()
 
 void CPUDisassembly::binaryPasteSlot()
 {
+    if(!QApplication::clipboard()->mimeData()->hasText())
+        return;
     HexEditDialog hexEdit(this);
     dsint selStart = getSelectionStart();
     dsint selSize = getSelectionEnd() - selStart + 1;
@@ -1340,6 +1422,8 @@ void CPUDisassembly::undoSelectionSlot()
 
 void CPUDisassembly::binaryPasteIgnoreSizeSlot()
 {
+    if(!QApplication::clipboard()->mimeData()->hasText())
+        return;
     HexEditDialog hexEdit(this);
     dsint selStart = getSelectionStart();
     dsint selSize = getSelectionEnd() - selStart + 1;
@@ -1372,38 +1456,118 @@ void CPUDisassembly::yaraSlot()
 
 void CPUDisassembly::copySelectionSlot(bool copyBytes)
 {
-    QList<Instruction_t> instBuffer;
-    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
-    QString clipboard = "";
+    QString selectionString = "";
+    QString selectionHtmlString = "";
+    QTextStream stream(&selectionString);
+    QTextStream htmlStream(&selectionHtmlString);
+    pushSelectionInto(copyBytes, stream, &htmlStream);
+    Bridge::CopyToClipboard(selectionString, selectionHtmlString);
+}
+
+void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Open File"), "", tr("Text Files (*.txt)"));
+    if(fileName != "")
+    {
+        QFile file(fileName);
+        if(!file.open(QIODevice::WriteOnly))
+        {
+            QMessageBox::critical(this, tr("Error"), tr("Could not open file"));
+            return;
+        }
+
+        QTextStream stream(&file);
+        pushSelectionInto(copyBytes, stream);
+        file.close();
+    }
+}
+
+void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream)
+{
     const int addressLen = getColumnWidth(0) / getCharWidth() - 1;
     const int bytesLen = getColumnWidth(1) / getCharWidth() - 1;
     const int disassemblyLen = getColumnWidth(2) / getCharWidth() - 1;
-    for(int i = 0; i < instBuffer.size(); i++)
+    if(htmlStream)
+        *htmlStream << QString("<table style=\"border-width:0px;border-color:#000000;font-family:%1;font-size:%2px;\">").arg(font().family()).arg(getRowHeight());
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
-            clipboard += "\r\n";
-        dsint cur_addr = rvaToVa(instBuffer.at(i).rva);
-        QString address = getAddrText(cur_addr, 0);
+            stream << "\r\n";
+        duint cur_addr = rvaToVa(inst.rva);
+        QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
-        for(int j = 0; j < instBuffer.at(i).dump.size(); j++)
+        if(copyBytes)
         {
-            if(j)
-                bytes += " ";
-            bytes += ToByteString((unsigned char)(instBuffer.at(i).dump.at(j)));
+            for(int j = 0; j < inst.dump.size(); j++)
+            {
+                if(j)
+                    bytes += " ";
+                bytes += ToByteString((unsigned char)(inst.dump.at(j)));
+            }
         }
         QString disassembly;
-        for(const auto & token : instBuffer.at(i).tokens.tokens)
-            disassembly += token.text;
+        QString htmlDisassembly;
+        if(htmlStream)
+        {
+            RichTextPainter::List richText;
+            if(mHighlightToken.text.length())
+                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+            else
+                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, htmlDisassembly, disassembly);
+        }
+        else
+        {
+            for(const auto & token : inst.tokens.tokens)
+                disassembly += token.text;
+        }
         QString fullComment;
         QString comment;
-        if(GetCommentFormat(cur_addr, comment))
+        bool autocomment;
+        if(GetCommentFormat(cur_addr, comment, &autocomment))
             fullComment = " " + comment;
-        clipboard += address.leftJustified(addressLen, QChar(' '), true);
+        stream << address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
-            clipboard += " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
-        clipboard += " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
-    }
-    Bridge::CopyToClipboard(clipboard);
+            stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
+        stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
+        if(htmlStream)
+        {
+            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(address.toHtmlEscaped(), htmlDisassembly);
+            if(!comment.isEmpty())
+            {
+                if(autocomment)
+                {
+                    *htmlStream << QString("<span style=\"color:%1").arg(mAutoCommentColor.name());
+                    if(mAutoCommentBackgroundColor != Qt::transparent)
+                        *htmlStream << QString(";background-color:%2").arg(mAutoCommentBackgroundColor.name());
+                }
+                else
+                {
+                    *htmlStream << QString("<span style=\"color:%1").arg(mCommentColor.name());
+                    if(mCommentBackgroundColor != Qt::transparent)
+                        *htmlStream << QString(";background-color:%2").arg(mCommentBackgroundColor.name());
+                }
+                *htmlStream << "\">" << comment.toHtmlEscaped() << "</span></td></tr>";
+            }
+            else
+            {
+                char label[MAX_LABEL_SIZE];
+                if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label))
+                {
+                    comment = QString::fromUtf8(label);
+                    *htmlStream << QString("<span style=\"color:%1").arg(mLabelColor.name());
+                    if(mLabelBackgroundColor != Qt::transparent)
+                        *htmlStream << QString(";background-color:%2").arg(mLabelBackgroundColor.name());
+                    *htmlStream << "\">" << comment.toHtmlEscaped() << "</span></td></tr>";
+                }
+                else
+                    *htmlStream << "</td></tr>";
+            }
+        }
+        return true;
+    });
+    if(htmlStream)
+        *htmlStream << "</table>";
 }
 
 void CPUDisassembly::copySelectionSlot()
@@ -1411,43 +1575,97 @@ void CPUDisassembly::copySelectionSlot()
     copySelectionSlot(true);
 }
 
+void CPUDisassembly::copySelectionToFileSlot()
+{
+    copySelectionToFileSlot(true);
+}
+
 void CPUDisassembly::copySelectionNoBytesSlot()
 {
     copySelectionSlot(false);
 }
 
+void CPUDisassembly::copySelectionToFileNoBytesSlot()
+{
+    copySelectionToFileSlot(false);
+}
+
 void CPUDisassembly::copyAddressSlot()
 {
-    QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
-    Bridge::CopyToClipboard(addrText);
+    QString clipboard = "";
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
+    {
+        if(i)
+            clipboard += "\r\n";
+        clipboard += ToPtrString(rvaToVa(inst.rva));
+        return true;
+    });
+    Bridge::CopyToClipboard(clipboard);
 }
 
 void CPUDisassembly::copyRvaSlot()
 {
-    duint addr = rvaToVa(getInitialSelection());
-    duint base = DbgFunctions()->ModBaseFromAddr(addr);
-    if(base)
+    QString clipboard = "";
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
-        QString addrText = ToHexString(addr - base);
-        Bridge::CopyToClipboard(addrText);
-    }
-    else
-        SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
+        if(i)
+            clipboard += "\r\n";
+        duint addr = rvaToVa(inst.rva);
+        duint base = DbgFunctions()->ModBaseFromAddr(addr);
+        if(base)
+            clipboard += ToHexString(addr - base);
+        else
+        {
+            SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
+            return false;
+        }
+        return true;
+    });
+    Bridge::CopyToClipboard(clipboard);
+}
+
+void CPUDisassembly::copyFileOffsetSlot()
+{
+    QString clipboard = "";
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
+    {
+        if(i)
+            clipboard += "\r\n";
+        duint addr = rvaToVa(inst.rva);
+        duint offset = DbgFunctions()->VaToFileOffset(addr);
+        if(offset)
+            clipboard += ToHexString(offset);
+        else
+        {
+            SimpleErrorBox(this, tr("Error!"), tr("Selection not in a file..."));
+            return false;
+        }
+        return true;
+    });
+    Bridge::CopyToClipboard(clipboard);
 }
 
 void CPUDisassembly::copyDisassemblySlot()
 {
-    QList<Instruction_t> instBuffer;
-    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
+    QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
     QString clipboard = "";
-    for(int i = 0; i < instBuffer.size(); i++)
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
+        {
             clipboard += "\r\n";
-        for(const auto & token : instBuffer.at(i).tokens.tokens)
-            clipboard += token.text;
-    }
-    Bridge::CopyToClipboard(clipboard);
+            clipboardHtml += "<br/>";
+        }
+        RichTextPainter::List richText;
+        if(mHighlightToken.text.length())
+            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+        else
+            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+        RichTextPainter::htmlRichText(richText, clipboardHtml, clipboard);
+        return true;
+    });
+    clipboardHtml += QString("</div>");
+    Bridge::CopyToClipboard(clipboard, clipboardHtml);
 }
 
 void CPUDisassembly::copyDataSlot()
@@ -1461,6 +1679,12 @@ void CPUDisassembly::copyDataSlot()
     dataDialog.exec();
 }
 
+void CPUDisassembly::labelCopySlot()
+{
+    QString symbol = ((QAction*)sender())->text();
+    Bridge::CopyToClipboard(symbol);
+}
+
 void CPUDisassembly::findCommandSlot()
 {
     if(!DbgIsDebugging())
@@ -1471,13 +1695,15 @@ void CPUDisassembly::findCommandSlot()
         refFindType = 0;
     else if(sender() == mFindCommandModule)
         refFindType = 1;
+    else if(sender() == mFindCommandFunction)
+        refFindType = -1;
     else if(sender() == mFindCommandAll)
         refFindType = 2;
 
     LineEditDialog mLineEdit(this);
-    mLineEdit.enableCheckBox(false);
-    //    mLineEdit.setCheckBoxText(tr("Entire &Block"));
-    //    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
+    mLineEdit.enableCheckBox(refFindType == 0);
+    mLineEdit.setCheckBoxText(tr("Entire &Block"));
+    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
     mLineEdit.setWindowTitle("Find Command");
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -1487,8 +1713,10 @@ void CPUDisassembly::findCommandSlot()
     unsigned char dest[16];
     int asmsize = 0;
     duint va = rvaToVa(getInitialSelection());
+    if(mLineEdit.bChecked) // entire block
+        va = mMemPage->getBase();
 
-    if(!DbgFunctions()->Assemble(va + mMemPage->getSize() / 2, dest, &asmsize, mLineEdit.editText.toUtf8().constData(), error))
+    if(!DbgFunctions()->Assemble(mMemPage->getBase() + mMemPage->getSize() / 2, dest, &asmsize, mLineEdit.editText.toUtf8().constData(), error))
     {
         SimpleErrorBox(this, tr("Error!"), tr("Failed to assemble instruction \"") + mLineEdit.editText + "\" (" + error + ")");
         return;
@@ -1497,7 +1725,14 @@ void CPUDisassembly::findCommandSlot()
     QString addr_text = ToPtrString(va);
 
     dsint size = mMemPage->getSize();
-    DbgCmdExec(QString("findasm \"%1\", %2, .%3, %4").arg(mLineEdit.editText).arg(addr_text).arg(size).arg(refFindType).toUtf8().constData());
+    if(refFindType != -1)
+        DbgCmdExec(QString("findasm \"%1\", %2, .%3, %4").arg(mLineEdit.editText).arg(addr_text).arg(size).arg(refFindType).toUtf8().constData());
+    else
+    {
+        duint start, end;
+        if(DbgFunctionGet(va, &start, &end))
+            DbgCmdExec(QString("findasm \"%1\", %2, .%3, 0").arg(mLineEdit.editText).arg(ToPtrString(start)).arg(ToPtrString(end - start)).toUtf8().constData());
+    }
 
     emit displayReferencesWidget();
 }
@@ -1508,7 +1743,7 @@ void CPUDisassembly::openSourceSlot()
     int line = 0;
     if(!DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), szSourceFile, &line))
         return;
-    Bridge::getBridge()->emitLoadSourceFile(szSourceFile, 0, line);
+    emit Bridge::getBridge()->loadSourceFile(szSourceFile, 0, line);
     emit displaySourceManagerWidget();
 }
 
@@ -1517,7 +1752,7 @@ void CPUDisassembly::decompileSelectionSlot()
     dsint addr = rvaToVa(getSelectionStart());
     dsint size = getSelectionSize();
     emit displaySnowmanWidget();
-    emit decompileAt(addr, addr + size);
+    DecompileAt(Bridge::getBridge()->snowmanView, addr, addr + size);
 }
 
 void CPUDisassembly::decompileFunctionSlot()
@@ -1527,8 +1762,11 @@ void CPUDisassembly::decompileFunctionSlot()
     duint end;
     if(DbgFunctionGet(addr, &start, &end))
     {
+        BASIC_INSTRUCTION_INFO info;
+        DbgDisasmFastAt(end, &info);
+        end += info.size - 1;
         emit displaySnowmanWidget();
-        emit decompileAt(start, end);
+        DecompileAt(Bridge::getBridge()->snowmanView, start, end);
     }
 }
 
@@ -1594,11 +1832,6 @@ void CPUDisassembly::labelHelpSlot()
     {
         QDesktopServices::openUrl(QUrl(fullUrl));
     }
-}
-
-void CPUDisassembly::editSoftBpActionSlot()
-{
-    Breakpoints::editBP(bp_normal, ToHexString(rvaToVa(getInitialSelection())), this);
 }
 
 void CPUDisassembly::ActionTraceRecordBitSlot()
@@ -1738,8 +1971,8 @@ void CPUDisassembly::setEncodeTypeSlot()
 
 void CPUDisassembly::graphSlot()
 {
-    DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData());
-    emit displayGraphWidget();
+    if(DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData()))
+        emit displayGraphWidget();
 }
 
 void CPUDisassembly::togglePreviewSlot()
@@ -1747,18 +1980,19 @@ void CPUDisassembly::togglePreviewSlot()
     if(mPopupEnabled == true)
         ShowDisassemblyPopup(0, 0, 0);
     mPopupEnabled = !mPopupEnabled;
-    BridgeSettingSetUint("GUI", "DisableBranchDestinationPreview", !mPopupEnabled);
+    BridgeSettingSetUint("Gui", "DisableBranchDestinationPreview", !mPopupEnabled);
 }
 
 void CPUDisassembly::analyzeModuleSlot()
 {
     DbgCmdExec("cfanal");
+    DbgCmdExec("analx");
 }
 
 void CPUDisassembly::createThreadSlot()
 {
     duint addr = rvaToVa(getSelectionStart());
-    if(!DbgFunctions()->MemIsCodePage(addr, false))
+    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(addr, false))
     {
         QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
                         tr("Creating new thread here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
@@ -1801,4 +2035,40 @@ bool CPUDisassembly::getTokenValueText(QString & text)
 void CPUDisassembly::followInMemoryMapSlot()
 {
     DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))).toUtf8().constData());
+}
+
+void CPUDisassembly::downloadCurrentSymbolsSlot()
+{
+    char module[MAX_MODULE_SIZE] = "";
+    if(DbgGetModuleAt(rvaToVa(getInitialSelection()), module))
+        DbgCmdExec(QString("symdownload \"%0\"").arg(module).toUtf8().constData());
+}
+
+void CPUDisassembly::ActionTraceRecordToggleRunTraceSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    if(DbgValFromString("tr.runtraceenabled()") == 1)
+        DbgCmdExec("StopRunTrace");
+    else
+    {
+        QString defaultFileName;
+        char moduleName[MAX_MODULE_SIZE];
+        QDateTime currentTime = QDateTime::currentDateTime();
+        duint defaultModule = DbgValFromString("mod.main()");
+        if(DbgFunctions()->ModNameFromAddr(defaultModule, moduleName, false))
+        {
+            defaultFileName = QString::fromUtf8(moduleName);
+        }
+        defaultFileName += "-" + QLocale(QString(currentLocale)).toString(currentTime.date()) + " " + currentTime.time().toString("hh-mm-ss") + ArchValue(".trace32", ".trace64");
+        BrowseDialog browse(this, tr("Select stored file"), tr("Store run trace to the following file"),
+                            tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QCoreApplication::applicationDirPath() + QDir::separator() + "db" + QDir::separator() + defaultFileName, true);
+        if(browse.exec() == QDialog::Accepted)
+        {
+            if(browse.path.contains(QChar('"')) || browse.path.contains(QChar('\'')))
+                SimpleErrorBox(this, tr("Error"), tr("File name contains invalid character."));
+            else
+                DbgCmdExec(QString("StartRunTrace \"%1\"").arg(browse.path).toUtf8().constData());
+        }
+    }
 }

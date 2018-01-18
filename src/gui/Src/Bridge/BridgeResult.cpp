@@ -3,18 +3,22 @@
 
 BridgeResult::BridgeResult()
 {
-    Bridge::getBridge()->mBridgeMutex->lock();
-    Bridge::getBridge()->hasBridgeResult = false;
+    EnterCriticalSection(&Bridge::getBridge()->csBridge);
+    ResetEvent(Bridge::getBridge()->hResultEvent);
 }
 
 BridgeResult::~BridgeResult()
 {
-    Bridge::getBridge()->mBridgeMutex->unlock();
+    LeaveCriticalSection(&Bridge::getBridge()->csBridge);
 }
 
 dsint BridgeResult::Wait()
 {
-    while(!Bridge::getBridge()->hasBridgeResult) //wait for thread completion
-        Sleep(1);
+    //Don't freeze when waiting on the main thread (https://github.com/x64dbg/x64dbg/issues/1716)
+    if(GetCurrentThreadId() == Bridge::getBridge()->dwMainThreadId)
+        while(WaitForSingleObject(Bridge::getBridge()->hResultEvent, 10) == WAIT_TIMEOUT)
+            QCoreApplication::processEvents();
+    else
+        WaitForSingleObject(Bridge::getBridge()->hResultEvent, INFINITE);
     return Bridge::getBridge()->bridgeResult;
 }

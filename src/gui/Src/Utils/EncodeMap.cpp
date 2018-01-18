@@ -1,6 +1,11 @@
 #include "EncodeMap.h"
 
-EncodeMap::EncodeMap(QObject* parent) : QObject(parent), mBase(0), mSize(0), mBuffer(nullptr)
+EncodeMap::EncodeMap(QObject* parent)
+    : QObject(parent),
+      mBase(0),
+      mSize(0),
+      mBuffer(nullptr),
+      mBufferSize(0)
 {
 }
 
@@ -18,7 +23,7 @@ void EncodeMap::setMemoryRegion(duint addr)
 
     if(mBuffer)
         DbgReleaseEncodeTypeBuffer(mBuffer);
-    mBuffer = (byte*)DbgGetEncodeTypeBuffer(addr);
+    mBuffer = (byte*)DbgGetEncodeTypeBuffer(addr, &mBufferSize);
 }
 
 void EncodeMap::setDataType(duint va, ENCODETYPE type)
@@ -50,7 +55,7 @@ void EncodeMap::delSegment(duint va)
 
 ENCODETYPE EncodeMap::getDataType(duint addr)
 {
-    if(!mBuffer || !inRange(addr))
+    if(!mBuffer || !inBufferRange(addr))
         return enc_unknown;
 
     return ENCODETYPE(mBuffer[addr - mBase]);
@@ -58,12 +63,10 @@ ENCODETYPE EncodeMap::getDataType(duint addr)
 
 duint EncodeMap::getDataSize(duint addr, duint codesize)
 {
-    if(!mBuffer || !inRange(addr))
+    if(!mBuffer || !inBufferRange(addr))
         return codesize;
 
-    duint offset = addr - mBase;
-
-    auto type = ENCODETYPE(mBuffer[offset]);
+    auto type = ENCODETYPE(mBuffer[addr - mBase]);
 
     auto datasize = getEncodeTypeSize(type);
     if(isCode(type))

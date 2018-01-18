@@ -6,8 +6,9 @@
 #include "function.h"
 #include "stringformat.h"
 #include "value.h"
+#include "variable.h"
 
-CMDRESULT cbDebugDisasm(int argc, char* argv[])
+bool cbDebugDisasm(int argc, char* argv[])
 {
     duint addr = 0;
     if(argc > 1)
@@ -21,21 +22,19 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     }
     DebugUpdateGui(addr, false);
     GuiShowCpu();
-    return STATUS_CONTINUE;
+    GuiFocusView(GUI_DISASSEMBLY);
+    return true;
 }
 
-CMDRESULT cbDebugDump(int argc, char* argv[])
+bool cbDebugDump(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
-        return STATUS_ERROR;
-    }
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     if(argc > 2)
     {
@@ -43,17 +42,18 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
         if(!valfromstring(argv[2], &index))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[2]);
-            return STATUS_ERROR;
+            return false;
         }
         GuiDumpAtN(addr, int(index));
     }
     else
         GuiDumpAt(addr);
     GuiShowCpu();
-    return STATUS_CONTINUE;
+    GuiFocusView(GUI_DUMP);
+    return true;
 }
 
-CMDRESULT cbDebugStackDump(int argc, char* argv[])
+bool cbDebugStackDump(int argc, char* argv[])
 {
     duint addr = 0;
     if(argc < 2)
@@ -61,7 +61,7 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
     else if(!valfromstring(argv[1], &addr))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     duint size = 0;
@@ -71,25 +71,30 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Invalid stack address!"));
     GuiShowCpu();
-    return STATUS_CONTINUE;
+    GuiFocusView(GUI_STACK);
+    return true;
 }
 
-CMDRESULT cbDebugMemmapdump(int argc, char* argv[])
+bool cbDebugMemmapdump(int argc, char* argv[])
 {
     if(argc < 2)
-        return STATUS_ERROR;
+        return false;
     duint addr;
     if(!valfromstring(argv[1], &addr, false) || !MemIsValidReadPtr(addr, true))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     GuiSelectInMemoryMap(addr);
-    return STATUS_CONTINUE;
+    GuiFocusView(GUI_MEMMAP);
+    return true;
 }
 
-CMDRESULT cbInstrGraph(int argc, char* argv[])
+bool cbInstrGraph(int argc, char* argv[])
 {
+    auto options = argc > 2 ? argv[2] : "";
+    auto force = !!strstr(options, "force");
+    auto silent = !!strstr(options, "silent");
     duint entry;
     if(argc < 2 || !valfromstring(argv[1], &entry))
         entry = GetContextDataEx(hActiveThread, UE_CIP);
@@ -99,85 +104,88 @@ CMDRESULT cbInstrGraph(int argc, char* argv[])
     auto base = MemFindBaseAddr(entry, &size);
     if(!base || !MemIsValidReadPtr(entry))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid memory address %p!\n"), entry);
-        return STATUS_ERROR;
+        if(!silent)
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address %p!\n"), entry);
+        return false;
     }
-    if(!GuiGraphAt(sel))
+    auto curEntry = GuiGraphAt(sel);
+    if(curEntry)
+        entry = curEntry;
+    if(!curEntry || force)
     {
         auto modbase = ModBaseFromAddr(base);
         if(modbase)
             base = modbase, size = ModSizeFromAddr(modbase);
-        RecursiveAnalysis analysis(base, size, entry, 0);
+        RecursiveAnalysis analysis(base, size, entry, true);
         analysis.Analyse();
         auto graph = analysis.GetFunctionGraph(entry);
         if(!graph)
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "No graph generated..."));
-            return STATUS_ERROR;
+            if(!silent)
+                dputs(QT_TRANSLATE_NOOP("DBG", "No graph generated..."));
+            return false;
         }
         auto graphList = graph->ToGraphList();
-        GuiLoadGraph(&graphList, sel);
+        if(!GuiLoadGraph(&graphList, sel))
+            return false;
     }
     GuiUpdateAllViews();
-    return STATUS_CONTINUE;
+    GuiFocusView(GUI_GRAPH);
+    return true;
 }
 
-CMDRESULT cbInstrEnableGuiUpdate(int argc, char* argv[])
+bool cbInstrEnableGuiUpdate(int argc, char* argv[])
 {
     if(GuiIsUpdateDisabled())
         GuiUpdateEnable(false);
     duint value;
-    //default: update gui
-    if(argc > 1 && valfromstring(argv[1], &value) && value == 0)
-        return STATUS_CONTINUE;
-    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    DebugUpdateGuiAsync(cip, false);
-    return STATUS_CONTINUE;
+    //argv[1]=="1" = update GUI
+    if(argc > 1 && valfromstring(argv[1], &value) && value == 1)
+        GuiUpdateAllViews();
+    return true;
 }
 
-CMDRESULT cbInstrDisableGuiUpdate(int argc, char* argv[])
+bool cbInstrDisableGuiUpdate(int argc, char* argv[])
 {
     if(!GuiIsUpdateDisabled())
         GuiUpdateDisable();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbDebugSetfreezestack(int argc, char* argv[])
+bool cbDebugSetfreezestack(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Not enough arguments!"));
-        return STATUS_ERROR;
-    }
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
     bool freeze = *argv[1] != '0';
     dbgsetfreezestack(freeze);
     if(freeze)
-        dputs(QT_TRANSLATE_NOOP("DBG", "Stack is now freezed\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Stack is now frozen\n"));
     else
-        dputs(QT_TRANSLATE_NOOP("DBG", "Stack is now unfreezed\n"));
-    return STATUS_CONTINUE;
+        dputs(QT_TRANSLATE_NOOP("DBG", "Stack is now unfrozen\n"));
+    return true;
 }
 
 static bool bRefinit = false;
 
-CMDRESULT cbInstrRefinit(int argc, char* argv[])
+bool cbInstrRefinit(int argc, char* argv[])
 {
-    GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script")));
+    auto title = argc > 1 ? stringformatinline(argv[1]) : GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script"));
+    GuiReferenceInitialize(title.c_str());
     GuiReferenceAddColumn(sizeof(duint) * 2, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
     GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     bRefinit = true;
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrRefadd(int argc, char* argv[])
+bool cbInstrRefadd(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
+        return false;
     if(!bRefinit)
         cbInstrRefinit(argc, argv);
     int index = GuiReferenceGetRowCount();
@@ -187,74 +195,89 @@ CMDRESULT cbInstrRefadd(int argc, char* argv[])
     GuiReferenceSetCellContent(index, 0, addr_text);
     GuiReferenceSetCellContent(index, 1, stringformatinline(argv[2]).c_str());
     GuiReferenceReloadData();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrEnableLog(int argc, char* argv[])
+bool cbInstrRefGet(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    duint row;
+    if(!valfromstring(argv[1], &row, false))
+        return false;
+    auto content = GuiReferenceGetCellContent(int(row), 0);
+    duint addr = 0;
+    valfromstring(content, &addr, false);
+    varset("$result", addr, false);
+    BridgeFree(content);
+    return true;
+}
+
+bool cbInstrEnableLog(int argc, char* argv[])
 {
     GuiEnableLog();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrDisableLog(int argc, char* argv[])
+bool cbInstrDisableLog(int argc, char* argv[])
 {
     GuiDisableLog();
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddFavTool(int argc, char* argv[])
+bool cbInstrAddFavTool(int argc, char* argv[])
 {
     // filename, description
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
 
     if(argc == 2)
         GuiAddFavouriteTool(argv[1], nullptr);
     else
         GuiAddFavouriteTool(argv[1], argv[2]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrAddFavCmd(int argc, char* argv[])
+bool cbInstrAddFavCmd(int argc, char* argv[])
 {
     // command, shortcut
     if(IsArgumentsLessThan(argc, 2))
-        return STATUS_ERROR;
+        return false;
 
     if(argc == 2)
         GuiAddFavouriteCommand(argv[1], nullptr);
     else
         GuiAddFavouriteCommand(argv[1], argv[2]);
-    return STATUS_CONTINUE;
+    return true;
 }
 
-CMDRESULT cbInstrSetFavToolShortcut(int argc, char* argv[])
+bool cbInstrSetFavToolShortcut(int argc, char* argv[])
 {
     // filename, shortcut
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
 
     GuiSetFavouriteToolShortcut(argv[1], argv[2]);
-    return STATUS_CONTINUE;
+    return true;
 
 }
 
-CMDRESULT cbInstrFoldDisassembly(int argc, char* argv[])
+bool cbInstrFoldDisassembly(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
-        return STATUS_ERROR;
+        return false;
 
     duint start, length;
     if(!valfromstring(argv[1], &start))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid argument 1 : %s\n"), argv[1]);
-        return STATUS_ERROR;
+        return false;
     }
     if(!valfromstring(argv[2], &length))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid argument 2 : %s\n"), argv[2]);
-        return STATUS_ERROR;
+        return false;
     }
     GuiFoldDisassembly(start, length);
-    return STATUS_CONTINUE;
+    return true;
 }

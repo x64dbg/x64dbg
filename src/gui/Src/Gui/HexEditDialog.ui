@@ -56,6 +56,9 @@
      <property name="text">
       <string>&amp;OK</string>
      </property>
+     <property name="default">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item row="1" column="0" colspan="4">
@@ -179,6 +182,8 @@
  <tabstops>
   <tabstop>lineEditAscii</tabstop>
   <tabstop>lineEditUnicode</tabstop>
+  <tabstop>btnCodepage</tabstop>
+  <tabstop>lineEditCodepage</tabstop>
   <tabstop>chkKeepSize</tabstop>
   <tabstop>chkEntireBlock</tabstop>
   <tabstop>btnOk</tabstop>

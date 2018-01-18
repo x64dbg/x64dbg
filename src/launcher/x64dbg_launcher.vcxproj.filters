@@ -32,10 +32,16 @@
     <ClInclude Include="..\exe\icon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\exe\strings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="x64dbg_launcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\exe\manifest.xml" />
   </ItemGroup>
 </Project>

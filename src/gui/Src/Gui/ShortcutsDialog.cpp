@@ -1,6 +1,8 @@
 #include "ShortcutsDialog.h"
 #include "ui_ShortcutsDialog.h"
 
+#include <QMessageBox>
+
 ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::ShortcutsDialog)
 {
     ui->setupUi(this);
@@ -68,6 +70,24 @@ void ShortcutsDialog::updateShortcut()
                 {
                     ui->tblShortcuts->setItem(idx, 1, new QTableWidgetItem(""));
                     Config()->setShortcut(i.key(), QKeySequence());
+                }
+                else if(i.value().Hotkey == newKey)  // This shortcut already exists (both are local)
+                {
+                    // Ask user if they want to override the shortcut.
+                    QMessageBox mbox;
+                    mbox.setIcon(QMessageBox::Question);
+                    mbox.setText("This shortcut is already used by action \"" + i.value().Name + "\".\n"
+                                 "Do you want to override it?");
+                    mbox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+                    mbox.setDefaultButton(QMessageBox::Yes);
+
+                    good = mbox.exec() == QMessageBox::Yes;
+
+                    if(good)
+                    {
+                        ui->tblShortcuts->setItem(idx, 1, new QTableWidgetItem(""));
+                        Config()->setShortcut(i.key(), QKeySequence());
+                    }
                 }
             }
         }

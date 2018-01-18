@@ -6,11 +6,11 @@
 
 #include "assemble.h"
 #include "memory.h"
-#include "XEDParse\XEDParse.h"
+#include "XEDParse/XEDParse.h"
 #include "value.h"
 #include "disasm_fast.h"
 #include "disasm_helper.h"
-#include "keystone\keystone.h"
+#include "keystone/keystone.h"
 #include "datainst_helper.h"
 #include "debugger.h"
 
@@ -21,7 +21,7 @@ namespace Keystone
     static char* stristr(const char* haystack, const char* needle)
     {
         // Case insensitive strstr
-        // http://stackoverflow.com/questions/27303062/strstr-function-like-that-ignores-upper-or-lower-case
+        // https://stackoverflow.com/questions/27303062/strstr-function-like-that-ignores-upper-or-lower-case
         do
         {
             const char* h = haystack;
@@ -185,29 +185,13 @@ static bool isInstructionPointingToExMemory(duint addr, const unsigned char* des
     if(MemIsCodePage(basicinfo.addr, false))
         return true;
 
-#ifndef _WIN64
-    DWORD lpFlagsDep;
-    BOOL bPermanentDep;
-
-    // DEP is disabled if lpFlagsDep == 0
-    typedef BOOL(WINAPI * GETPROCESSDEPPOLICY)(
-        _In_  HANDLE  hProcess,
-        _Out_ LPDWORD lpFlags,
-        _Out_ PBOOL   lpPermanent
-    );
-    static auto GPDP = GETPROCESSDEPPOLICY(GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessDEPPolicy"));
-
-    // If DEP is disabled it doesn't matter where the memory points because it's executable anyway.
-    if(GPDP && GPDP(fdProcessInfo->hProcess, &lpFlagsDep, &bPermanentDep) && lpFlagsDep == 0)
-        return true;
-#endif //_WIN64
-
-    return false;
+    // Check if DEP is disabled
+    return !dbgisdepenabled();
 }
 
 bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop)
 {
-    int destSize;
+    int destSize = 0;
     Memory<unsigned char*> dest(16 * sizeof(unsigned char), "AssembleBuffer");
     unsigned char* newbuffer = nullptr;
     if(!assemble(addr, dest(), 16, &destSize, instruction, error))
@@ -216,11 +200,12 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
         {
             dest.realloc(destSize);
             if(!assemble(addr, dest(), destSize, &destSize, instruction, error))
-            {
                 return false;
-            }
         }
+        else
+            return false;
     }
+
     //calculate the number of NOPs to insert
     int origLen = disasmgetsize(addr);
     while(origLen < destSize)

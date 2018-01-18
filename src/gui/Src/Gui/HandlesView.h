@@ -5,8 +5,11 @@
 #include "Imports.h"
 
 class StdTable;
+class ReferenceView;
 class QVBoxLayout;
 class LabeledSplitter;
+class SearchListView;
+class QMenu;
 
 class HandlesView : public QWidget
 {
@@ -19,8 +22,9 @@ public slots:
     void refreshShortcuts();
     void dbgStateChanged(DBGSTATE state);
 
-    void handlesTableContextMenuSlot(const QPoint & pos);
-    void tcpConnectionsTableContextMenuSlot(const QPoint & pos);
+    void handlesTableContextMenuSlot(QMenu* wMenu);
+    void tcpConnectionsTableContextMenuSlot(QMenu* wMenu);
+    void windowsTableContextMenuSlot(QMenu*);
     void privilegesTableContextMenuSlot(const QPoint & pos);
 
     void closeHandleSlot();
@@ -28,12 +32,19 @@ public slots:
     void enablePrivilegeSlot();
     void disableAllPrivilegesSlot();
     void enableAllPrivilegesSlot();
+    void enableWindowSlot();
+    void disableWindowSlot();
+    void followInDisasmSlot();
+    void toggleBPSlot();
+    void messagesBPSlot();
 
 private:
     QVBoxLayout* mVertLayout;
     LabeledSplitter* mSplitter;
-    StdTable* mHandlesTable;
-    StdTable* mTcpConnectionsTable;
+    SearchListView* mHandlesTable;
+    SearchListView* mTcpConnectionsTable;
+    SearchListView* mWindowsTable;
+    //ReferenceView* mHeapsTable;
     StdTable* mPrivilegesTable;
 
     QAction* mActionRefresh;
@@ -42,9 +53,16 @@ private:
     QAction* mActionEnablePrivilege;
     QAction* mActionDisableAllPrivileges;
     QAction* mActionEnableAllPrivileges;
+    QAction* mActionEnableWindow;
+    QAction* mActionDisableWindow;
+    QAction* mActionFollowProc;
+    QAction* mActionToggleProcBP;
+    QAction* mActionMessageProcBP;
 
     void enumHandles();
+    void enumWindows();
     void enumTcpConnections();
+    //void enumHeaps();
     void enumPrivileges();
 
     void AppendPrivilege(int row, const char* PrivilegeString);

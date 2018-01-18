@@ -2,9 +2,9 @@
 
 #include "command.h"
 
-CMDRESULT cbAddWatch(int argc, char* argv[]);
-CMDRESULT cbDelWatch(int argc, char* argv[]);
-CMDRESULT cbSetWatchdog(int argc, char* argv[]);
-CMDRESULT cbSetWatchExpression(int argc, char* argv[]);
-CMDRESULT cbSetWatchName(int argc, char* argv[]);
-CMDRESULT cbCheckWatchdog(int argc, char* argv[]);
+bool cbAddWatch(int argc, char* argv[]);
+bool cbDelWatch(int argc, char* argv[]);
+bool cbSetWatchdog(int argc, char* argv[]);
+bool cbSetWatchExpression(int argc, char* argv[]);
+bool cbSetWatchName(int argc, char* argv[]);
+bool cbCheckWatchdog(int argc, char* argv[]);

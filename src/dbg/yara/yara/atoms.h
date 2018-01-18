@@ -80,7 +80,7 @@ typedef struct _YR_ATOM_LIST_ITEM
 
 
 int yr_atoms_extract_from_re(
-    RE* re,
+    RE_AST* re_ast,
     int flags,
     YR_ATOM_LIST_ITEM** atoms);
 

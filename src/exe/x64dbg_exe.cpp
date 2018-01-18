@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include "crashdump.h"
-#include "..\bridge\bridgemain.h"
+#include "../bridge/bridgemain.h"
 #include "LoadResourceString.h"
 
 /**

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "_global.h"
+#include <functional>
 
 class ExpressionFunctions
 {

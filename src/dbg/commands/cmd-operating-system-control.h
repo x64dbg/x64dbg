@@ -2,7 +2,9 @@
 
 #include "command.h"
 
-CMDRESULT cbGetPrivilegeState(int argc, char* argv[]);
-CMDRESULT cbEnablePrivilege(int argc, char* argv[]);
-CMDRESULT cbDisablePrivilege(int argc, char* argv[]);
-CMDRESULT cbHandleClose(int argc, char* argv[]);
+bool cbGetPrivilegeState(int argc, char* argv[]);
+bool cbEnablePrivilege(int argc, char* argv[]);
+bool cbDisablePrivilege(int argc, char* argv[]);
+bool cbHandleClose(int argc, char* argv[]);
+bool cbEnableWindow(int argc, char* argv[]);
+bool cbDisableWindow(int argc, char* argv[]);

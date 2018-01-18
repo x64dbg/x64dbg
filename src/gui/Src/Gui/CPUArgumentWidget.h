@@ -37,7 +37,7 @@ public:
     {
         if(argText.length())
             return QString("%1: %2").arg(argName).arg(argText);
-        return "";
+        return QString();
     }
 
 public slots:
@@ -87,14 +87,21 @@ private:
         QString name;
         int stackArgCount;
         QString stackLocation32;
+        duint stackOffset32;
         duint callOffset32;
         QString stackLocation64;
         duint callOffset64;
+        duint stackOffset64;
         std::vector<Argument> arguments;
 
         const QString & getStackLocation() const
         {
             return ArchValue(stackLocation32, stackLocation64);
+        }
+
+        const duint getStackOffset() const
+        {
+            return ArchValue(stackOffset32, stackOffset64);
         }
 
         const duint & getCallOffset() const
@@ -107,12 +114,21 @@ private:
             arguments.push_back(argument);
         }
 
-        explicit CallingConvention(const QString & name, int stackArgCount = 0, const QString & stackLocation32 = "esp", duint callOffset32 = sizeof(duint), const QString & stackLocation64 = "rsp", duint callOffset64 = sizeof(duint))
+        explicit CallingConvention(const QString & name,
+                                   int stackArgCount = 0,
+                                   const QString & stackLocation32 = "esp",
+                                   duint stackOffset32 = 0,
+                                   duint callOffset32 = sizeof(duint),
+                                   const QString & stackLocation64 = "rsp",
+                                   duint stackOffset64 = 0x20,
+                                   duint callOffset64 = sizeof(duint))
             : name(name),
               stackArgCount(stackArgCount),
               stackLocation32(stackLocation32),
+              stackOffset32(stackOffset32),
               callOffset32(callOffset32),
               stackLocation64(stackLocation64),
+              stackOffset64(stackOffset64),
               callOffset64(callOffset64)
         {
         }
@@ -134,6 +150,8 @@ private:
 
     void loadConfig();
     void setupTable();
+
+    void updateStackOffset(bool iscall);
 };
 
 #endif // CPUARGUMENTWIDGET_H

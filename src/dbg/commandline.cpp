@@ -3,8 +3,9 @@
 #include "memory.h"
 #include "debugger.h"
 #include "console.h"
+#include "filehelper.h"
 
-char commandLine[MAX_COMMAND_LINE_SIZE];
+char commandLine[MAX_SETTING_SIZE];
 
 void showcommandlineerror(cmdline_error_t* cmdline_error)
 {
@@ -75,24 +76,17 @@ bool isCmdLineEmpty()
 
 char* getCommandLineArgs()
 {
-    char* commandLineArguments = NULL;
-    char* extensionPtr = strchr(commandLine, '.');
-
-    if(!extensionPtr)
-        return NULL;
-
-    commandLineArguments = strchr(extensionPtr, ' ');
-
-    if(!commandLineArguments)
-        return NULL;
-
-    return (commandLineArguments + 1);
-
+    auto args = *commandLine == '\"' ? strchr(commandLine + 1, '\"') : nullptr;
+    args = strchr(args ? args : commandLine, ' ');
+    return args ? args + 1 : nullptr;
 }
 
-void CmdLineCacheSave(JSON Root)
+void CmdLineCacheSave(JSON Root, const String & cacheFile)
 {
     EXCLUSIVE_ACQUIRE(LockCmdLine);
+
+    // Write the (possibly empty) command line to a cache file
+    FileHelper::WriteAllText(cacheFile, commandLine);
 
     // return if command line is empty
     if(!strlen(commandLine))
@@ -101,10 +95,7 @@ void CmdLineCacheSave(JSON Root)
     // Create a JSON array to store each sub-object with a breakpoint
     const JSON jsonCmdLine = json_object();
     json_object_set_new(jsonCmdLine, "cmdLine", json_string(commandLine));
-    json_object_set(Root, "commandLine", jsonCmdLine);
-
-    // Notify garbage collector
-    json_decref(jsonCmdLine);
+    json_object_set_new(Root, "commandLine", jsonCmdLine);
 }
 
 void CmdLineCacheLoad(JSON Root)
@@ -112,7 +103,7 @@ void CmdLineCacheLoad(JSON Root)
     EXCLUSIVE_ACQUIRE(LockCmdLine);
 
     // Clear command line
-    memset(commandLine, 0, MAX_COMMAND_LINE_SIZE);
+    memset(commandLine, 0, sizeof(commandLine));
 
     // Get a handle to the root object -> commandLine
     const JSON jsonCmdLine = json_object_get(Root, "commandLine");
@@ -123,30 +114,30 @@ void CmdLineCacheLoad(JSON Root)
 
     const char* cmdLine = json_string_value(json_object_get(jsonCmdLine, "cmdLine"));
 
-    strcpy_s(commandLine, cmdLine);
+    copyCommandLine(cmdLine);
 
     json_decref(jsonCmdLine);
 }
 
 void copyCommandLine(const char* cmdLine)
 {
-    strcpy_s(commandLine, cmdLine);
+    strncpy_s(commandLine, cmdLine, _TRUNCATE);
 }
 
-CMDRESULT SetCommandLine()
+bool SetCommandLine()
 {
     cmdline_error_t cmdline_error = { (cmdline_error_type_t)0, 0 };
 
     if(!dbgsetcmdline(commandLine, &cmdline_error))
     {
         showcommandlineerror(&cmdline_error);
-        return STATUS_ERROR;
+        return false;
     }
 
     //update the memory map
     MemUpdateMap();
     GuiUpdateMemoryView();
 
-    return STATUS_CONTINUE;
+    return true;
 }
 

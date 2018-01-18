@@ -2,6 +2,7 @@
 #include "console.h"
 #include "memory.h"
 #include "function.h"
+#include <algorithm>
 
 LinearAnalysis::LinearAnalysis(duint base, duint size) : Analysis(base, size)
 {
@@ -62,7 +63,7 @@ void LinearAnalysis::analyseFunctions()
     for(size_t i = 0; i < mFunctions.size(); i++)
     {
         auto & function = mFunctions[i];
-        if(function.end)  //skip already-analysed functions
+        if(function.end) //skip already-analysed functions
             continue;
         auto maxaddr = mBase + mSize;
         if(i < mFunctions.size() - 1)
@@ -85,7 +86,7 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
     if(mCp.Disassemble(start, translateAddr(start), MAX_DISASM_BUFFER))
     {
         //JMP [123456] ; import
-        if(mCp.InGroup(CS_GRP_JUMP) && mCp.x86().operands[0].type == X86_OP_MEM)
+        if(mCp.IsJump() && mCp.OpCount() && mCp[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
             return 0;
     }
 
@@ -96,31 +97,30 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
     {
         if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
         {
-            if(addr + mCp.Size() > maxaddr)  //we went past the maximum allowed address
+            if(addr + mCp.Size() > maxaddr) //we went past the maximum allowed address
                 break;
 
-            const auto & op = mCp.x86().operands[0];
-            if((mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop()) && op.type == X86_OP_IMM)   //jump
+            if((mCp.IsJump() || mCp.IsLoop()) && mCp.OpCount() && mCp[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
             {
-                auto dest = duint(op.imm);
+                auto dest = duint(mCp[0].imm.value.u);
 
-                if(dest >= maxaddr)   //jump across function boundaries
+                if(dest >= maxaddr) //jump across function boundaries
                 {
                     //currently unused
                 }
-                else if(dest > addr && dest > fardest)   //save the farthest JXX destination forward
+                else if(dest > addr && dest > fardest) //save the farthest JXX destination forward
                 {
                     fardest = dest;
                 }
-                else if(end && dest < end && (mCp.GetId() == X86_INS_JMP || mCp.GetId() == X86_INS_LOOP)) //save the last JMP backwards
+                else if(end && dest < end && (mCp.GetId() == ZYDIS_MNEMONIC_JMP || mCp.GetId() == ZYDIS_MNEMONIC_LOOP)) //save the last JMP backwards
                 {
                     jumpback = addr;
                 }
             }
-            else if(mCp.InGroup(CS_GRP_RET))   //possible function end?
+            else if(mCp.IsRet()) //possible function end?
             {
                 end = addr;
-                if(fardest < addr)  //we stop if the farthest JXX destination forward is before this RET
+                if(fardest < addr) //we stop if the farthest JXX destination forward is before this RET
                     break;
             }
 
@@ -136,12 +136,12 @@ duint LinearAnalysis::getReferenceOperand() const
 {
     for(auto i = 0; i < mCp.OpCount(); i++)
     {
-        const auto & op = mCp.x86().operands[i];
-        if(mCp.InGroup(CS_GRP_JUMP) || mCp.IsLoop())  //skip jumps/loops
+        const auto & op = mCp[i];
+        if(mCp.IsJump() || mCp.IsLoop()) //skip jumps/loops
             continue;
-        if(op.type == X86_OP_IMM)  //we are looking for immediate references
+        if(op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //we are looking for immediate references
         {
-            auto dest = duint(op.imm);
+            auto dest = duint(op.imm.value.u);
             if(inRange(dest))
                 return dest;
         }

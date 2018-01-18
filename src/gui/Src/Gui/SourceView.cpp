@@ -2,6 +2,9 @@
 #include <QFile>
 #include <QTextStream>
 #include <QMessageBox>
+#include <QProcess>
+#include <QDir>
+#include <QDesktopServices>
 #include "Configuration.h"
 
 SourceView::SourceView(QString path, int line, QWidget* parent)
@@ -16,11 +19,15 @@ SourceView::SourceView(QString path, int line, QWidget* parent)
     addColumnAt(6, tr("Line"));
     addColumnAt(0, tr("Code"));
 
+    connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(sourceContextMenu(QMenu*)));
+
     loadFile();
     setSelection(line);
-    auto cip = DbgValFromString("cip");
-    mList->disassembleAtSlot(0, cip);
-    mSearchList->disassembleAtSlot(0, cip);
+
+    mMenuBuilder = new MenuBuilder(this);
+    mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open source file"), SLOT(openSourceFileSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("source_show_in_folder.png"), tr("Show source file in directory"), SLOT(showInDirectorySlot())));
+    mMenuBuilder->loadFromConfig();
 }
 
 void SourceView::setSelection(int line)
@@ -57,4 +64,23 @@ void SourceView::loadFile()
     }
     reloadData();
     file.close();
+}
+
+void SourceView::sourceContextMenu(QMenu* menu)
+{
+    menu->addSeparator();
+    mMenuBuilder->build(menu);
+}
+
+void SourceView::openSourceFileSlot()
+{
+    QDesktopServices::openUrl(QUrl::fromLocalFile(mSourcePath));
+}
+
+void SourceView::showInDirectorySlot()
+{
+    QStringList args;
+    args << "/select," << QDir::toNativeSeparators(mSourcePath);
+    auto process = new QProcess(this);
+    process->start("explorer.exe", args);
 }

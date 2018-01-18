@@ -1,4 +1,5 @@
 #include "main.h"
+#include "zydis_wrapper.h"
 #include "capstone_wrapper.h"
 #include "MainWindow.h"
 #include "Configuration.h"
@@ -67,6 +68,7 @@ static bool isValidLocale(const QString & locale)
 int main(int argc, char* argv[])
 {
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     MyApplication application(argc, argv);
     QFile f(QString("%1/style.css").arg(QCoreApplication::applicationDirPath()));
     if(f.open(QFile::ReadOnly | QFile::Text))
@@ -106,6 +108,7 @@ int main(int argc, char* argv[])
     TLS_TranslatedStringMap = new std::map<DWORD, TranslatedStringStorage>();
 
     // initialize capstone
+    Zydis::GlobalInitialize();
     Capstone::GlobalInitialize();
 
     // load config file + set config font

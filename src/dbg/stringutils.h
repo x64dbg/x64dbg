@@ -14,7 +14,7 @@ typedef std::vector<WString> WStringList;
 class StringUtils
 {
 public:
-    static StringList Split(const String & s, char delim, std::vector<String> & elems);
+    static void Split(const String & s, char delim, std::vector<String> & elems);
     static StringList Split(const String & s, char delim);
     static String Escape(unsigned char ch);
     static String Escape(const String & s);
@@ -27,12 +27,19 @@ public:
     static String Utf16ToUtf8(const wchar_t* wstr);
     static WString Utf8ToUtf16(const String & str);
     static WString Utf8ToUtf16(const char* str);
+    static String LocalCpToUtf8(const String & str);
+    static String LocalCpToUtf8(const char* str);
+    static WString LocalCpToUtf16(const String & wstr);
+    static WString LocalCpToUtf16(const char* wstr);
     static void ReplaceAll(String & s, const String & from, const String & to);
     static void ReplaceAll(WString & s, const WString & from, const WString & to);
-    static String sprintf(const char* format, ...);
-    static WString sprintf(const wchar_t* format, ...);
+    static String vsprintf(_In_z_ _Printf_format_string_ const char* format, va_list args);
+    static String sprintf(_In_z_ _Printf_format_string_ const char* format, ...);
+    static WString vsprintf(_In_z_ _Printf_format_string_ const wchar_t* format, va_list args);
+    static WString sprintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...);
     static String ToLower(const String & s);
-    static bool StartsWith(const String & h, const String & n);
+    static bool StartsWith(const String & str, const String & prefix);
+    static bool EndsWith(const String & str, const String & suffix);
     static bool FromHex(const String & text, std::vector<unsigned char> & data, bool reverse = false);
     static String ToHex(unsigned long long value);
     static String ToHex(unsigned char* buffer, size_t size, bool reverse = false);

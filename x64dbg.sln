@@ -20,6 +20,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64dbg_launcher", "src\laun
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "capstone_wrapper", "src\capstone_wrapper\capstone_wrapper.vcxproj", "{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zydis_wrapper", "src\zydis_wrapper\zydis_wrapper.vcxproj", "{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -68,6 +70,14 @@ Global
 		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Release|Win32.Build.0 = Release|Win32
 		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Release|x64.ActiveCfg = Release|x64
 		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Release|x64.Build.0 = Release|x64
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Debug|Win32.Build.0 = Debug|Win32
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Debug|x64.ActiveCfg = Debug|x64
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Debug|x64.Build.0 = Debug|x64
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Release|Win32.ActiveCfg = Release|Win32
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Release|Win32.Build.0 = Release|Win32
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Release|x64.ActiveCfg = Release|x64
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

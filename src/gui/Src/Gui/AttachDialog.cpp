@@ -2,6 +2,8 @@
 #include "ui_AttachDialog.h"
 #include "SearchListView.h"
 #include <QMenu>
+#include <QMessageBox>
+#include <QFileInfo>
 
 AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AttachDialog)
 {
@@ -31,12 +33,16 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     //setup process list
     int charwidth = mSearchListView->mList->getCharWidth();
     mSearchListView->mList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->mList->addColumnAt(150, tr("Name"), true);
+    mSearchListView->mList->addColumnAt(300, tr("Title"), true);
     mSearchListView->mList->addColumnAt(500, tr("Path"), true);
     mSearchListView->mList->addColumnAt(800, tr("Command Line Arguments"), true);
     mSearchListView->mList->setDrawDebugOnly(false);
 
     charwidth = mSearchListView->mSearchList->getCharWidth();
     mSearchListView->mSearchList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->mSearchList->addColumnAt(150, tr("Name"), true);
+    mSearchListView->mSearchList->addColumnAt(300, tr("Title"), true);
     mSearchListView->mSearchList->addColumnAt(500, tr("Path"), true);
     mSearchListView->mSearchList->addColumnAt(800, tr("Command Line Arguments"), true);
     mSearchListView->mSearchList->setDrawDebugOnly(false);
@@ -47,12 +53,15 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     // Highlight the search box
     mSearchListView->mCurList->setFocus();
 
+    Config()->setupWindowPos(this);
+
     // Populate the process list atleast once
     refresh();
 }
 
 AttachDialog::~AttachDialog()
 {
+    Config()->saveWindowPos(this);
     delete ui;
 }
 
@@ -67,9 +76,12 @@ void AttachDialog::refresh()
     mSearchListView->mList->setRowCount(count);
     for(int i = 0; i < count; i++)
     {
+        QFileInfo fi(entries[i].szExeFile);
         mSearchListView->mList->setCellContent(i, 0, QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
-        mSearchListView->mList->setCellContent(i, 1, QString(entries[i].szExeFile));
-        mSearchListView->mList->setCellContent(i, 2, QString(entries[i].szExeArgs));
+        mSearchListView->mList->setCellContent(i, 1, fi.baseName());
+        mSearchListView->mList->setCellContent(i, 2, QString(entries[i].szExeMainWindowTitle));
+        mSearchListView->mList->setCellContent(i, 3, QString(entries[i].szExeFile));
+        mSearchListView->mList->setCellContent(i, 4, QString(entries[i].szExeArgs));
     }
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->reloadData();
@@ -83,6 +95,56 @@ void AttachDialog::on_btnAttach_clicked()
         pid.sprintf("%.8X", pid.toULong());
     DbgCmdExec(QString("attach " + pid).toUtf8().constData());
     accept();
+}
+
+void AttachDialog::on_btnFindWindow_clicked()
+{
+    QString windowText;
+retryFindWindow:
+    if(!SimpleInputBox(this, tr("Find Window"), windowText, windowText, tr("Enter window title or class name here.")))
+        return;
+    HWND hWndFound = FindWindowW(NULL, reinterpret_cast<LPCWSTR>(windowText.utf16())); //Window Title first
+    if(hWndFound == NULL)
+        hWndFound = FindWindowW(reinterpret_cast<LPCWSTR>(windowText.utf16()), NULL); //Then try window class name
+    if(hWndFound == NULL)
+    {
+        QMessageBox retryDialog(QMessageBox::Critical, tr("Find Window"), tr("Cannot find window \"%1\". Retry?").arg(windowText), QMessageBox::Cancel | QMessageBox::Retry, this);
+        retryDialog.setWindowIcon(DIcon("compile-error.png"));
+        if(retryDialog.exec() == QMessageBox::Retry)
+            goto retryFindWindow;
+    }
+    else
+    {
+        DWORD pid, tid;
+        if(tid = GetWindowThreadProcessId(hWndFound, &pid))
+        {
+            refresh();
+            QString pidText = QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", pid);
+            bool found = false;
+            for(int i = 0; i < mSearchListView->mList->getRowCount(); i++)
+            {
+                if(mSearchListView->mList->getCellContent(i, 0) == pidText)
+                {
+                    mSearchListView->mList->setSingleSelection(i);
+                    found = true;
+                    break;
+                }
+            }
+            if(!found)
+            {
+                QMessageBox hiddenProcessDialog(QMessageBox::Question, tr("Find Window"),
+                                                tr("The PID of the window \"%1\" is %2, but it's hidden in the process list. Do you want to attach to it immediately?").arg(windowText).arg(pidText),
+                                                QMessageBox::Yes | QMessageBox::No, this);
+                if(hiddenProcessDialog.exec() == QMessageBox::Yes)
+                {
+                    DbgCmdExec(QString("attach %1").arg(pid, 0, 16).toUtf8().constData());
+                    accept();
+                }
+            }
+        }
+        else
+            SimpleErrorBox(this, tr("Find Window"), tr("GetWindowThreadProcessId() failed. Cannot get the PID of the window."));
+    }
 }
 
 void AttachDialog::processListContextMenu(QMenu* wMenu)

@@ -6,6 +6,8 @@
 #include "_global.h"
 #include <objbase.h>
 #include <shlobj.h>
+#include <psapi.h>
+#include "DeviceNameResolver/DeviceNameResolver.h"
 
 /**
 \brief x64dbg library instance.
@@ -21,7 +23,8 @@ static int emalloc_count = 0;
 \brief Path for debugging, used to create an allocation trace file on emalloc() or efree(). Not used.
 */
 static char alloctrace[MAX_PATH] = "";
-static std::map<void*, int> alloctracemap;
+static std::unordered_map<void*, int> alloctracemap;
+static CRITICAL_SECTION criticalSection;
 #endif
 
 /**
@@ -40,17 +43,22 @@ void* emalloc(size_t size, const char* reason)
 #endif //ENABLE_MEM_TRACE
     if(!a)
     {
-        MessageBoxW(0, L"Could not allocate memory", L"Error", MB_ICONERROR);
+        wchar_t size[25];
+        swprintf_s(size, L"%p bytes", size);
+        MessageBoxW(0, L"Could not allocate memory (minidump will be created)", size, MB_ICONERROR);
+        __debugbreak();
         ExitProcess(1);
     }
     emalloc_count++;
 #ifdef ENABLE_MEM_TRACE
+    EnterCriticalSection(&criticalSection);
     memset(a, 0, size + sizeof(void*));
     FILE* file = fopen(alloctrace, "a+");
     fprintf(file, "DBG%.5d:  alloc:%p:%p:%s:%p\n", emalloc_count, a, _ReturnAddress(), reason, size);
     fclose(file);
     alloctracemap[_ReturnAddress()]++;
     *(void**)a = _ReturnAddress();
+    LeaveCriticalSection(&criticalSection);
     return a + sizeof(void*);
 #else
     memset(a, 0, size);
@@ -85,6 +93,7 @@ void efree(void* ptr, const char* reason)
 {
     emalloc_count--;
 #ifdef ENABLE_MEM_TRACE
+    EnterCriticalSection(&criticalSection);
     char* ptr2 = (char*)ptr - sizeof(void*);
     FILE* file = fopen(alloctrace, "a+");
     fprintf(file, "DBG%.5d:   free:%p:%p:%s\n", emalloc_count, ptr, *(void**)ptr2, reason);
@@ -94,14 +103,17 @@ void efree(void* ptr, const char* reason)
         if(--alloctracemap.at(*(void**)ptr2) < 0)
         {
             String str = StringUtils::sprintf("address %p, reason %s", *(void**)ptr2, reason);
-            MessageBoxA(0, str.c_str, "Free memory more than once", MB_OK);
+            MessageBoxA(0, str.c_str(), "Freed memory more than once", MB_OK);
+            __debugbreak();
         }
     }
     else
     {
         String str = StringUtils::sprintf("address %p, reason %s", *(void**)ptr2, reason);
-        MessageBoxA(0, str.c_str(), "Trying to free a const memory", MB_OK);
+        MessageBoxA(0, str.c_str(), "Trying to free const memory", MB_OK);
+        __debugbreak();
     }
+    LeaveCriticalSection(&criticalSection);
     GlobalFree(ptr2);
 #else
     GlobalFree(ptr);
@@ -133,14 +145,20 @@ void json_free(void* ptr)
 int memleaks()
 {
 #ifdef ENABLE_MEM_TRACE
+    EnterCriticalSection(&criticalSection);
+    auto leaked = false;
     for(auto & i : alloctracemap)
     {
         if(i.second != 0)
         {
             String str = StringUtils::sprintf("memory leak at %p : count %d", i.first, i.second);
-            MessageBoxA(0, str.c_str(), "memory leaks", MB_OK);
+            MessageBoxA(0, str.c_str(), "memory leak", MB_OK);
+            leaked = true;
         }
     }
+    if(leaked)
+        __debugbreak();
+    LeaveCriticalSection(&criticalSection);
 #endif
     return emalloc_count;
 }
@@ -152,6 +170,7 @@ int memleaks()
 */
 void setalloctrace(const char* file)
 {
+    InitializeCriticalSection(&criticalSection);
     strcpy_s(alloctrace, file);
 }
 #endif //ENABLE_MEM_TRACE
@@ -164,37 +183,9 @@ void setalloctrace(const char* file)
 */
 bool scmp(const char* a, const char* b)
 {
+    if(!a || !b)
+        return false;
     return !_stricmp(a, b);
-}
-
-/**
-\brief Formats a string to hexadecimal format (removes all non-hex characters).
-\param [in,out] String to format.
-*/
-void formathex(char* string)
-{
-    int len = (int)strlen(string);
-    _strupr(string);
-    Memory<char*> new_string(len + 1, "formathex:new_string");
-    for(int i = 0, j = 0; i < len; i++)
-        if(isxdigit(string[i]))
-            j += sprintf(new_string() + j, "%c", string[i]);
-    strcpy_s(string, len + 1, new_string());
-}
-
-/**
-\brief Formats a string to decimal format (removed all non-numeric characters).
-\param [in,out] String to format.
-*/
-void formatdec(char* string)
-{
-    int len = (int)strlen(string);
-    _strupr(string);
-    Memory<char*> new_string(len + 1, "formatdec:new_string");
-    for(int i = 0, j = 0; i < len; i++)
-        if(isdigit(string[i]))
-            j += sprintf(new_string() + j, "%c", string[i]);
-    strcpy_s(string, len + 1, new_string());
 }
 
 /**
@@ -227,6 +218,8 @@ bool DirExists(const char* dir)
 */
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 {
+    if(!hFile)
+        return false;
     wchar_t wszFileName[MAX_PATH] = L"";
     if(!PathFromFileHandleW(hFile, wszFileName, _countof(wszFileName)))
         return false;
@@ -237,14 +230,39 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName)
 {
     wchar_t wszDosFileName[MAX_PATH] = L"";
-    if(!GetProcessImageFileNameW(hProcess, wszDosFileName, _countof(wszDosFileName)))
-        return false;
-
     wchar_t wszFileName[MAX_PATH] = L"";
-    if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
-        return false;
-    strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
-    return true;
+    auto result = false;
+    if(GetProcessImageFileNameW(hProcess, wszDosFileName, _countof(wszDosFileName)))
+    {
+        if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
+            result = !!GetModuleFileNameExW(hProcess, 0, wszFileName, _countof(wszFileName));
+        else
+            result = true;
+    }
+    else
+        result = !!GetModuleFileNameExW(hProcess, 0, wszFileName, _countof(wszFileName));
+    if(result)
+        strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+    return result;
+}
+
+bool GetFileNameFromModuleHandle(HANDLE hProcess, HMODULE hModule, char* szFileName)
+{
+    wchar_t wszDosFileName[MAX_PATH] = L"";
+    wchar_t wszFileName[MAX_PATH] = L"";
+    auto result = false;
+    if(GetMappedFileNameW(hProcess, hModule, wszDosFileName, _countof(wszDosFileName)))
+    {
+        if(!DevicePathToPathW(wszDosFileName, wszFileName, _countof(wszFileName)))
+            result = !!GetModuleFileNameExW(hProcess, hModule, wszFileName, _countof(wszFileName));
+        else
+            result = true;
+    }
+    else
+        result = !!GetModuleFileNameExW(hProcess, hModule, wszFileName, _countof(wszFileName));
+    if(result)
+        strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+    return result;
 }
 
 /**
@@ -264,45 +282,6 @@ bool settingboolget(const char* section, const char* name)
 }
 
 /**
-\brief Gets file architecture.
-\param szFileName UTF-8 encoded file path.
-\return The file architecture (::arch).
-*/
-arch GetFileArchitecture(const char* szFileName)
-{
-    arch retval = notfound;
-    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(szFileName).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if(hFile != INVALID_HANDLE_VALUE)
-    {
-        unsigned char data[0x1000];
-        DWORD read = 0;
-        DWORD fileSize = GetFileSize(hFile, 0);
-        DWORD readSize = sizeof(data);
-        if(readSize > fileSize)
-            readSize = fileSize;
-        if(ReadFile(hFile, data, readSize, &read, 0))
-        {
-            retval = invalid;
-            IMAGE_DOS_HEADER* pdh = (IMAGE_DOS_HEADER*)data;
-            if(pdh->e_magic == IMAGE_DOS_SIGNATURE && (size_t)pdh->e_lfanew < readSize)
-            {
-                IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)(data + pdh->e_lfanew);
-                if(pnth->Signature == IMAGE_NT_SIGNATURE)
-                {
-                    if(pnth->OptionalHeader.DataDirectory[15].VirtualAddress != 0 && pnth->OptionalHeader.DataDirectory[15].Size != 0)
-                        retval = dotnet;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386) //x32
-                        retval = x32;
-                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64) //x64
-                        retval = x64;
-                }
-            }
-        }
-    }
-    return retval;
-}
-
-/**
 \brief Query if x64dbg is running in Wow64 mode.
 \return true if running in Wow64, false otherwise.
 */
@@ -315,7 +294,8 @@ bool IsWow64()
 }
 
 //Taken from: http://www.cplusplus.com/forum/windows/64088/
-bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize)
+//And: https://codereview.stackexchange.com/a/2917
+bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, wchar_t* szResolvedPath, size_t nSize)
 {
     if(szResolvedPath == NULL)
         return SUCCEEDED(E_INVALIDARG);
@@ -325,8 +305,8 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
         return false;
 
     //Get a pointer to the IShellLink interface.
-    IShellLink* psl = NULL;
-    HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    IShellLinkW* psl = NULL;
+    HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
     if(SUCCEEDED(hres))
     {
         //Get a pointer to the IPersistFile interface.
@@ -345,12 +325,16 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
                 if(SUCCEEDED(hres))
                 {
                     //Get the path to the link target.
-                    char szGotPath[MAX_PATH] = {0};
-                    hres = psl->GetPath(szGotPath, _countof(szGotPath), NULL, SLGP_SHORTPATH);
+                    wchar_t linkTarget[MAX_PATH];
+                    hres = psl->GetPath(linkTarget, _countof(linkTarget), NULL, SLGP_RAWPATH);
 
-                    if(SUCCEEDED(hres))
+                    //Expand the environment variables.
+                    wchar_t expandedTarget[MAX_PATH];
+                    auto expandSuccess = !!ExpandEnvironmentStringsW(linkTarget, expandedTarget, _countof(expandedTarget));
+
+                    if(SUCCEEDED(hres) && expandSuccess)
                     {
-                        strcpy_s(szResolvedPath, nSize, szGotPath);
+                        wcscpy_s(szResolvedPath, nSize, expandedTarget);
                     }
                 }
             }
@@ -368,8 +352,15 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
     return SUCCEEDED(hres);
 }
 
-void WaitForThreadTermination(HANDLE hThread)
+void WaitForThreadTermination(HANDLE hThread, DWORD timeout)
 {
-    WaitForSingleObject(hThread, INFINITE);
+    WaitForSingleObject(hThread, timeout);
     CloseHandle(hThread);
+}
+
+void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout)
+{
+    WaitForMultipleObjects(count, hThread, TRUE, timeout);
+    for(int i = 0; i < count; i++)
+        CloseHandle(hThread[i]);
 }

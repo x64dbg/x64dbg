@@ -32,7 +32,7 @@
     <ClInclude Include="icon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource1.h">
+    <ClInclude Include="strings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LoadResourceString.h">
@@ -58,9 +58,6 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="manifest.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="app.manifest" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\bug32.ico">

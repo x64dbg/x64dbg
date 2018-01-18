@@ -88,14 +88,14 @@ void LabeledSplitter::detachSlot()
     // Find Widget and connect
     connect(detachedWidget, SIGNAL(OnClose(LabeledSplitterDetachedWindow*)), this, SLOT(attachSlot(LabeledSplitterDetachedWindow*)));
 
-    detachedWidget->setWindowTitle(names.at(currentIndex));
+    detachedWidget->setWindowTitle(mNames.at(currentIndex));
     detachedWidget->index = currentIndex;
     // Remove from splitter
     QWidget* tearOffWidget = widget(currentIndex);
     tearOffWidget->setParent(detachedWidget);
 
     // Add it to the windows list
-    m_Windows.append(tearOffWidget);
+    mWindows.append(tearOffWidget);
 
     // Create and show
     detachedWidget->setCentralWidget(tearOffWidget);
@@ -110,7 +110,7 @@ void LabeledSplitter::detachSlot()
     detachedWidget->showNormal();
     detachedWidget->setGeometry(x, y, w, h);
     detachedWidget->showNormal();
-    names.removeAt(currentIndex);
+    mNames.removeAt(currentIndex);
 }
 
 void LabeledSplitter::attachSlot(LabeledSplitterDetachedWindow* widget)
@@ -119,11 +119,11 @@ void LabeledSplitter::attachSlot(LabeledSplitterDetachedWindow* widget)
     QWidget* tearOffWidget = widget->centralWidget();
 
     // Remove it from the windows list
-    for(int i = 0; i < m_Windows.size(); i++)
+    for(int i = 0; i < mWindows.size(); i++)
     {
-        if(m_Windows.at(i) == tearOffWidget)
+        if(mWindows.at(i) == tearOffWidget)
         {
-            m_Windows.removeAt(i);
+            mWindows.removeAt(i);
         }
     }
 
@@ -161,7 +161,7 @@ void LabeledSplitterHandle::paintEvent(QPaintEvent* event)
         painter.drawLine(rect.left(), rect.height() - 1, rect.right(), rect.height() - 1);
     }
     QRect textRect(rect.left() + charHeight, rect.top(), rect.width() - charHeight, rect.height());
-    painter.drawText(textRect, 0, parent->names.at(index));
+    painter.drawText(textRect, 0, parent->mNames.at(index));
 }
 
 void LabeledSplitterHandle::mouseMoveEvent(QMouseEvent* event)
@@ -180,7 +180,7 @@ void LabeledSplitterHandle::mouseMoveEvent(QMouseEvent* event)
 
 void LabeledSplitterHandle::mousePressEvent(QMouseEvent* event)
 {
-    if(event->x() <= charHeight)
+    if(event->x() <= charHeight && event->button() & Qt::LeftButton)
     {
         LabeledSplitter* parent = getParent();
         auto sizes = parent->sizes();
@@ -221,7 +221,7 @@ QSplitterHandle* LabeledSplitter::createHandle()
 
 void LabeledSplitter::addWidget(QWidget* widget, const QString & name)
 {
-    names.push_back(name);
+    mNames.push_back(name);
     addWidget(widget);
 }
 
@@ -246,7 +246,7 @@ void LabeledSplitter::collapseLowerTabs()
 
 void LabeledSplitter::insertWidget(int index, QWidget* widget, const QString & name)
 {
-    names.insert(index, name);
+    mNames.insert(index, name);
     insertWidget(index, widget);
 }
 

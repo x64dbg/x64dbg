@@ -10,6 +10,7 @@
 #include "commandparser.h"
 #include "expressionparser.h"
 #include "variable.h"
+#include "cmd-undocumented.h"
 
 COMMAND* cmd_list = 0;
 
@@ -108,7 +109,7 @@ bool cmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
         cmd = (COMMAND*)emalloc(sizeof(COMMAND), "cmdnew:cmd");
     memset(cmd, 0, sizeof(COMMAND));
     cmd->names = new std::vector<String>;
-    auto split = StringUtils::Split(name, '\1');
+    auto split = StringUtils::Split(name, ',');
     for(const auto & s : split)
     {
         auto trimmed = StringUtils::Trim(s);
@@ -139,7 +140,7 @@ COMMAND* cmdget(const char* cmd)
     strcpy_s(new_cmd, deflen, cmd);
     int len = (int)strlen(new_cmd);
     int start = 0;
-    while(new_cmd[start] != ' ' && start < len)
+    while(start < len && new_cmd[start] != ' ')
         start++;
     new_cmd[start] = 0;
     COMMAND* found = cmdfind(new_cmd, 0);
@@ -202,125 +203,147 @@ bool cmddel(const char* name)
     return true;
 }
 
-/*
-command_list:         command list
-cbUnknownCommand:     function to execute when an unknown command was found
-cbCommandProvider:    function that provides commands (fgets for example), does not return until a command was found
-cbCommandFinder:      non-default command finder
-error_is_fatal:       error return of a command callback stops the command processing
-*/
+bool cbCommandProvider(char* cmd, int maxlen);
+
+void cmdsplit(const char* cmd, StringList & commands)
+{
+    commands.clear();
+    auto len = strlen(cmd);
+    auto inquote = false;
+    auto inescape = false;
+    std::string split;
+    split.reserve(len);
+    for(size_t i = 0; i < len; i++)
+    {
+        auto ch = cmd[i];
+        switch(ch) //simple state machine to determine if the ';' separator is in quotes
+        {
+        case '\"':
+            if(!inescape)
+                inquote = !inquote;
+            inescape = false;
+            break;
+        case '\\':
+            inescape = !inescape;
+            break;
+        default:
+            inescape = false;
+        }
+        if(ch == ';' && !inquote)
+        {
+            if(!split.empty())
+                commands.push_back(split);
+            split.clear();
+        }
+        else
+            split.push_back(ch);
+    }
+    if(!split.empty())
+        commands.push_back(split);
+}
+
+bool cmdexeccallback(COMMAND* cmd, const std::string & command)
+{
+    Command commandParsed(command);
+    int argcount = commandParsed.GetArgCount();
+    char** argv = (char**)emalloc((argcount + 1) * sizeof(char*), "cmdloop:argv");
+    argv[0] = (char*)command.c_str();
+    for(int i = 0; i < argcount; i++)
+    {
+        argv[i + 1] = (char*)emalloc(deflen, "cmdloop:argv[i+1]");
+        *argv[i + 1] = 0;
+        strcpy_s(argv[i + 1], deflen, commandParsed.GetArg(i).c_str());
+    }
+    auto res = cmd->cbCommand(argcount + 1, argv);
+    for(int i = 0; i < argcount; i++)
+        efree(argv[i + 1], "cmdloop:argv[i+1]");
+    efree(argv, "cmdloop:argv");
+    return res;
+}
 
 /**
-\brief Initiates a command loop. This function will not return until a command returns ::STATUS_EXIT.
-\param [in] command_list Command list to use for the command lookups.
-\param cbUnknownCommand The unknown command callback.
-\param cbCommandProvider The command provider callback.
-\param cbCommandFinder The command finder callback.
-\param error_is_fatal true if commands that return ::STATUS_ERROR terminate the command loop.
-\return A CMDRESULT, will always be ::STATUS_EXIT.
+\brief Initiates the command loop. This function will not return until a command returns ::STATUS_EXIT.
+\return A bool, will always be ::STATUS_EXIT.
 */
-CMDRESULT cmdloop(CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal)
+void cmdloop()
 {
-    if(!cbUnknownCommand || !cbCommandProvider)
-        return STATUS_ERROR;
-    char command[deflen] = "";
-    bool bLoop = true;
-    while(bLoop)
+    char command_[deflen] = "";
+    StringList commands;
+    commands.reserve(100);
+    while(true)
     {
-        if(!cbCommandProvider(command, deflen))
+        if(!cbCommandProvider(command_, deflen))
             break;
-        if(strlen(command))
+        cmdsplit(command_, commands);
+        for(auto & command : commands)
         {
-            strcpy_s(command, StringUtils::Trim(command).c_str());
-            COMMAND* cmd;
-            if(!cbCommandFinder) //'clean' command processing
-                cmd = cmdget(command);
-            else //'dirty' command processing
-                cmd = cbCommandFinder(command);
+            command = StringUtils::Trim(command);
+            if(command.empty()) //skip empty commands
+                continue;
 
-            if(!cmd || !cmd->cbCommand) //unknown command
+            COMMAND* found = cmdget(command.c_str());
+            if(!found || !found->cbCommand) //unknown command
             {
                 char* argv[1];
-                *argv = command;
-                CMDRESULT res = cbUnknownCommand(1, argv);
-                if((error_is_fatal && res == STATUS_ERROR) || res == STATUS_EXIT)
-                    bLoop = false;
+                *argv = (char*)command.c_str();
+                if(!cbBadCmd(1, argv)) //stop processing on non-value commands
+                    break;
+                continue;
             }
-            else
+
+            if(found->debugonly && !DbgIsDebugging()) //stop processing on debug-only commands
             {
-                if(cmd->debugonly && !DbgIsDebugging())
-                {
-                    dputs(QT_TRANSLATE_NOOP("DBG", "this command is debug-only"));
-                    if(error_is_fatal)
-                        bLoop = false;
-                }
-                else
-                {
-                    Command commandParsed(command);
-                    int argcount = commandParsed.GetArgCount();
-                    char** argv = (char**)emalloc((argcount + 1) * sizeof(char*), "cmdloop:argv");
-                    argv[0] = command;
-                    for(int i = 0; i < argcount; i++)
-                    {
-                        argv[i + 1] = (char*)emalloc(deflen, "cmdloop:argv[i+1]");
-                        *argv[i + 1] = 0;
-                        strcpy_s(argv[i + 1], deflen, commandParsed.GetArg(i).c_str());
-                    }
-                    CMDRESULT res = cmd->cbCommand(argcount + 1, argv);
-                    for(int i = 0; i < argcount; i++)
-                        efree(argv[i + 1], "cmdloop:argv[i+1]");
-                    efree(argv, "cmdloop:argv");
-                    if((error_is_fatal && res == STATUS_ERROR) || res == STATUS_EXIT)
-                        bLoop = false;
-                }
+                dprintf(QT_TRANSLATE_NOOP("DBG", "The command \"%s\" is debug-only\n"), command.c_str());
+                break;
             }
+
+            //execute command callback
+            if(!cmdexeccallback(found, command))
+                break;
         }
     }
-    return STATUS_EXIT;
 }
 
 /**
 \brief Directly execute a command.
 \param [in,out] cmd_list Command list.
 \param cmd The command to execute.
-\return A CMDRESULT.
+\return A bool.
 */
-CMDRESULT cmddirectexec(const char* cmd)
+bool cmddirectexec(const char* cmd)
 {
     // Don't allow anyone to send in empty strings
     if(!cmd)
-        return STATUS_ERROR;
+        return false;
 
-    char command[deflen];
-    strcpy_s(command, StringUtils::Trim(cmd).c_str());
-    if(!*command)
-        return STATUS_ERROR;
+    StringList commands;
+    cmdsplit(cmd, commands);
+    for(auto & command : commands)
+    {
+        command = StringUtils::Trim(command);
+        if(command.empty()) //skip empty commands
+            continue;
 
-    COMMAND* found = cmdget(command);
-    if(!found || !found->cbCommand)
-    {
-        ExpressionParser parser(command);
-        duint result;
-        if(!parser.Calculate(result, valuesignedcalc(), true, false))
-            return STATUS_ERROR;
-        varset("$ans", result, true);
-        return STATUS_CONTINUE;
+        COMMAND* found = cmdget(command.c_str());
+        if(!found || !found->cbCommand) //unknown command
+        {
+            ExpressionParser parser(command);
+            duint result;
+            if(!parser.Calculate(result, valuesignedcalc(), true, false)) //stop processing on non-value commands
+                return false;
+            varset("$ans", result, true);
+            continue;
+        }
+
+        if(found->debugonly && !DbgIsDebugging()) //stop processing on debug-only commands
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "The command \"%s\" is debug-only\n"), command.c_str());
+            return false;
+        }
+
+        //execute command callback
+        if(!cmdexeccallback(found, command))
+            return false;
     }
-    if(found->debugonly && !DbgIsDebugging())
-        return STATUS_ERROR;
-    Command cmdParsed(command);
-    int argcount = cmdParsed.GetArgCount();
-    char** argv = (char**)emalloc((argcount + 1) * sizeof(char*), "cmddirectexec:argv");
-    argv[0] = command;
-    for(int i = 0; i < argcount; i++)
-    {
-        argv[i + 1] = (char*)emalloc(deflen, "cmddirectexec:argv[i+1]");
-        *argv[i + 1] = 0;
-        strcpy_s(argv[i + 1], deflen, cmdParsed.GetArg(i).c_str());
-    }
-    CMDRESULT res = found->cbCommand(argcount + 1, argv);
-    for(int i = 0; i < argcount; i++)
-        efree(argv[i + 1], "cmddirectexec:argv[i+1]");
-    efree(argv, "cmddirectexec:argv");
-    return res;
+    return true;
 }

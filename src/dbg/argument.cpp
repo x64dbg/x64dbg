@@ -7,7 +7,7 @@ struct ArgumentSerializer : JSONWrapper<ARGUMENTSINFO>
 {
     bool Save(const ARGUMENTSINFO & value) override
     {
-        setString("module", value.mod);
+        setString("module", value.mod());
         setHex("start", value.start);
         setHex("end", value.end);
         setHex("icount", value.instructioncount);
@@ -17,8 +17,11 @@ struct ArgumentSerializer : JSONWrapper<ARGUMENTSINFO>
 
     bool Load(ARGUMENTSINFO & value) override
     {
-        return getString("module", value.mod) &&
-               getHex("start", value.start) &&
+        std::string mod;
+        if(!getString("module", mod))
+            return false;
+        value.modhash = ModHashFromName(mod.c_str());
+        return getHex("start", value.start) &&
                getHex("end", value.end) &&
                getBool("manual", value.manual) &&
                getHex("icount", value.instructioncount) &&
@@ -30,7 +33,7 @@ struct Arguments : SerializableModuleRangeMap<LockArguments, ARGUMENTSINFO, Argu
 {
     void AdjustValue(ARGUMENTSINFO & value) const override
     {
-        auto base = ModBaseFromName(value.mod);
+        auto base = ModBaseFromName(value.mod().c_str());
         value.start += base;
         value.end += base;
     }
@@ -43,7 +46,7 @@ protected:
 
     ModuleRange makeKey(const ARGUMENTSINFO & value) const override
     {
-        return ModuleRange(ModHashFromName(value.mod), Range(value.start, value.end));
+        return ModuleRange(value.modhash, Range(value.start, value.end));
     }
 };
 
@@ -66,8 +69,7 @@ bool ArgumentAdd(duint Start, duint End, bool Manual, duint InstructionCount)
         return false;
 
     ARGUMENTSINFO argument;
-    if(!ModNameFromAddr(Start, argument.mod, true))
-        *argument.mod = '\0';
+    argument.modhash = ModHashFromAddr(moduleBase);
     argument.start = Start - moduleBase;
     argument.end = End - moduleBase;
     argument.manual = Manual;

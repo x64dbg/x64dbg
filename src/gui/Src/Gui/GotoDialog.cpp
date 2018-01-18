@@ -2,6 +2,9 @@
 #include "ValidateExpressionThread.h"
 #include "ui_GotoDialog.h"
 #include "StringUtil.h"
+#include "Configuration.h"
+#include "QCompleter"
+#include "SymbolAutoCompleteModel.h"
 
 GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowInvalidAddress)
     : QDialog(parent),
@@ -21,21 +24,33 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowI
         ui->labelError->setText(tr("<font color='red'><b>Invalid expression...</b></font>"));
     setOkEnabled(false);
     ui->editExpression->setFocus();
+    completer = new QCompleter(this);
+    completer->setModel(new SymbolAutoCompleteModel([this]
+    {
+        return mCompletionText;
+    }, completer));
+    if(!Config()->getBool("Gui", "DisableAutoComplete"))
+        ui->editExpression->setCompleter(completer);
     validRangeStart = 0;
-    validRangeEnd = 0;
+    validRangeEnd = ~0;
     fileOffset = false;
     mValidateThread = new ValidateExpressionThread(this);
     mValidateThread->setOnExpressionChangedCallback(std::bind(&GotoDialog::validateExpression, this, std::placeholders::_1));
 
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->editExpression, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
+    connect(ui->editExpression, SIGNAL(textEdited(QString)), this, SLOT(textEditedSlot(QString)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
+    connect(Config(), SIGNAL(disableAutoCompleteUpdated()), this, SLOT(disableAutoCompleteUpdated()));
+
+    Config()->setupWindowPos(this);
 }
 
 GotoDialog::~GotoDialog()
 {
     mValidateThread->stop();
     mValidateThread->wait();
+    Config()->saveWindowPos(this);
     delete ui;
 }
 
@@ -64,7 +79,7 @@ void GotoDialog::validateExpression(QString expression)
 void GotoDialog::setInitialExpression(const QString & expression)
 {
     ui->editExpression->setText(expression);
-    validateExpression(expression);
+    emit ui->editExpression->textEdited(expression);
 }
 
 void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsint value)
@@ -148,7 +163,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
 
 bool GotoDialog::IsValidMemoryRange(duint addr)
 {
-    return ((!validRangeStart && !validRangeEnd) || (addr >= validRangeStart && addr < validRangeEnd));
+    return addr >= validRangeStart && addr < validRangeEnd;
 }
 
 void GotoDialog::setOkEnabled(bool enabled)
@@ -170,4 +185,17 @@ void GotoDialog::finishedSlot(int result)
     if(result == QDialog::Rejected)
         ui->editExpression->setText("");
     ui->editExpression->setFocus();
+}
+
+void GotoDialog::textEditedSlot(QString text)
+{
+    mCompletionText = text;
+}
+
+void GotoDialog::disableAutoCompleteUpdated()
+{
+    if(Config()->getBool("Gui", "DisableAutoComplete"))
+        ui->editExpression->setCompleter(nullptr);
+    else
+        ui->editExpression->setCompleter(completer);
 }

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MessagesBreakpoints</class>
+ <widget class="QDialog" name="MessagesBreakpoints">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>289</width>
+    <height>214</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Message Breakpoint</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../resource.qrc">
+    <normaloff>:/icons/images/breakpoint_execute.png</normaloff>:/icons/images/breakpoint_execute.png</iconset>
+  </property>
+  <property name="locale">
+   <locale language="English" country="UnitedStates"/>
+  </property>
+  <property name="modal">
+   <bool>false</bool>
+  </property>
+  <widget class="QLabel" name="lblMessages">
+   <property name="geometry">
+    <rect>
+     <x>16</x>
+     <y>16</y>
+     <width>51</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Messages:</string>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="gboxBreakpoints">
+   <property name="geometry">
+    <rect>
+     <x>14</x>
+     <y>50</y>
+     <width>261</width>
+     <height>121</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string/>
+   </property>
+   <widget class="QRadioButton" name="rbtnBreakAny">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>20</y>
+      <width>221</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Break on any window</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="rbtnBreakCurrent">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>40</y>
+      <width>221</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Break on current window only 
+(Invalid for next session)</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="chkTranslateMessage">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>90</y>
+      <width>221</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Use TranslateMessage</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="btnOk">
+   <property name="geometry">
+    <rect>
+     <x>114</x>
+     <y>180</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>OK</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="cboxMessages">
+   <property name="geometry">
+    <rect>
+     <x>74</x>
+     <y>16</y>
+     <width>201</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="editable">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnCancel">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>180</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Cancel</string>
+   </property>
+  </widget>
+  <zorder>lblMessages</zorder>
+  <zorder>cboxMessages</zorder>
+  <zorder>gboxBreakpoints</zorder>
+  <zorder>btnOk</zorder>
+  <zorder>btnCancel</zorder>
+ </widget>
+ <resources>
+  <include location="../../resource.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>btnCancel</sender>
+   <signal>clicked()</signal>
+   <receiver>MessagesBreakpoints</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>237</x>
+     <y>181</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>150</x>
+     <y>104</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnOk</sender>
+   <signal>clicked()</signal>
+   <receiver>MessagesBreakpoints</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>157</x>
+     <y>181</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>150</x>
+     <y>104</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

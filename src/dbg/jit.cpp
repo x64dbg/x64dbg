@@ -140,7 +140,7 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
                 return true;
         }
     }
-    if(!readwritejitkey(auto_on ? L"1" : L"0", &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
+    if(!readwritejitkey((wchar_t*)(auto_on ? L"1" : L"0"), &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;
@@ -171,7 +171,7 @@ bool dbggetdefjit(char* jit_entry)
     wchar_t wszPath[MAX_PATH] = L"";
     GetModuleFileNameW(GetModuleHandleW(NULL), wszPath, MAX_PATH);
     strcpy_s(&path[1], JIT_ENTRY_DEF_SIZE - 1, StringUtils::Utf16ToUtf8(wszPath).c_str());
-    strcat(path, ATTACH_CMD_LINE);
+    strcat_s(path, ATTACH_CMD_LINE);
     strcpy_s(jit_entry, JIT_ENTRY_DEF_SIZE, path);
     return true;
 }

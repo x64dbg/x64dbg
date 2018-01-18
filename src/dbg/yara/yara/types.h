@@ -44,8 +44,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <time.h>
 #endif
 
-typedef int32_t tidx_mask_t;
-
 
 #define DECLARE_REFERENCE(type, name) \
     union { type name; int64_t name##_; } YR_ALIGN(8)
@@ -61,7 +59,7 @@ typedef int32_t tidx_mask_t;
 #define STRING_GFLAGS_ASCII             0x08
 #define STRING_GFLAGS_WIDE              0x10
 #define STRING_GFLAGS_REGEXP            0x20
-#define STRING_GFLAGS_FAST_HEX_REGEXP   0x40
+#define STRING_GFLAGS_FAST_REGEXP       0x40
 #define STRING_GFLAGS_FULL_WORD         0x80
 #define STRING_GFLAGS_ANONYMOUS         0x100
 #define STRING_GFLAGS_SINGLE_MATCH      0x200
@@ -72,12 +70,16 @@ typedef int32_t tidx_mask_t;
 #define STRING_GFLAGS_CHAIN_TAIL        0x4000
 #define STRING_GFLAGS_FIXED_OFFSET      0x8000
 #define STRING_GFLAGS_GREEDY_REGEXP     0x10000
+#define STRING_GFLAGS_DOT_ALL           0x20000
 
 #define STRING_IS_HEX(x) \
     (((x)->g_flags) & STRING_GFLAGS_HEXADECIMAL)
 
 #define STRING_IS_NO_CASE(x) \
     (((x)->g_flags) & STRING_GFLAGS_NO_CASE)
+
+#define STRING_IS_DOT_ALL(x) \
+    (((x)->g_flags) & STRING_GFLAGS_DOT_ALL)
 
 #define STRING_IS_ASCII(x) \
     (((x)->g_flags) & STRING_GFLAGS_ASCII)
@@ -109,8 +111,8 @@ typedef int32_t tidx_mask_t;
 #define STRING_IS_LITERAL(x) \
     (((x)->g_flags) & STRING_GFLAGS_LITERAL)
 
-#define STRING_IS_FAST_HEX_REGEXP(x) \
-    (((x)->g_flags) & STRING_GFLAGS_FAST_HEX_REGEXP)
+#define STRING_IS_FAST_REGEXP(x) \
+    (((x)->g_flags) & STRING_GFLAGS_FAST_REGEXP)
 
 #define STRING_IS_CHAIN_PART(x) \
     (((x)->g_flags) & STRING_GFLAGS_CHAIN_PART)
@@ -292,8 +294,6 @@ typedef YR_AC_MATCH_TABLE_ENTRY*  YR_AC_MATCH_TABLE;
 
 typedef struct _YARA_RULES_FILE_HEADER
 {
-    uint32_t version;
-
     DECLARE_REFERENCE(YR_RULE*, rules_list_head);
     DECLARE_REFERENCE(YR_EXTERNAL_VARIABLE*, externals_list_head);
     DECLARE_REFERENCE(uint8_t*, code_start);
@@ -371,7 +371,7 @@ typedef struct _YR_AC_AUTOMATON
 typedef struct _YR_RULES
 {
 
-    tidx_mask_t tidx_mask;
+    unsigned char tidx_mask[YR_BITARRAY_NCHARS(MAX_THREADS)];
     uint8_t* code_start;
 
     YR_MUTEX mutex;
@@ -382,7 +382,6 @@ typedef struct _YR_RULES
     YR_AC_MATCH_TABLE match_table;
 
 } YR_RULES;
-
 
 
 struct _YR_MEMORY_BLOCK;
@@ -445,51 +444,35 @@ typedef struct _YR_SCAN_CONTEXT
 } YR_SCAN_CONTEXT;
 
 
+struct _YR_OBJECT;
+
+
+typedef union _YR_VALUE
+{
+    int64_t i;
+    double d;
+    void* p;
+    struct _YR_OBJECT* o;
+    YR_STRING* s;
+    SIZED_STRING* ss;
+    RE* re;
+
+} YR_VALUE;
+
 
 #define OBJECT_COMMON_FIELDS \
     int8_t type; \
     const char* identifier; \
-    void* data; \
-    struct _YR_OBJECT* parent;
+    struct _YR_OBJECT* parent; \
+    void* data;
 
 
 typedef struct _YR_OBJECT
 {
     OBJECT_COMMON_FIELDS
+    YR_VALUE value;
 
 } YR_OBJECT;
-
-
-typedef struct _YR_OBJECT_INTEGER
-{
-    OBJECT_COMMON_FIELDS
-    int64_t value;
-
-} YR_OBJECT_INTEGER;
-
-
-typedef struct _YR_OBJECT_DOUBLE
-{
-    OBJECT_COMMON_FIELDS
-    double value;
-
-} YR_OBJECT_DOUBLE;
-
-
-typedef struct _YR_OBJECT_STRING
-{
-    OBJECT_COMMON_FIELDS
-    SIZED_STRING* value;
-
-} YR_OBJECT_STRING;
-
-
-typedef struct _YR_OBJECT_REGEXP
-{
-    OBJECT_COMMON_FIELDS
-    RE* value;
-
-} YR_OBJECT_REGEXP;
 
 
 typedef struct _YR_OBJECT_STRUCTURE
@@ -522,7 +505,7 @@ struct _YR_OBJECT_FUNCTION;
 
 
 typedef int (*YR_MODULE_FUNC)(
-    void* args,
+    YR_VALUE* args,
     YR_SCAN_CONTEXT* context,
     struct _YR_OBJECT_FUNCTION* function_obj);
 
@@ -530,16 +513,22 @@ typedef int (*YR_MODULE_FUNC)(
 typedef struct _YR_OBJECT_FUNCTION
 {
     OBJECT_COMMON_FIELDS
-
     YR_OBJECT* return_obj;
 
     struct
     {
         const char* arguments_fmt;
         YR_MODULE_FUNC code;
+
     } prototypes[MAX_OVERLOADED_FUNCTIONS];
 
 } YR_OBJECT_FUNCTION;
+
+
+#define object_as_structure(obj)  ((YR_OBJECT_STRUCTURE*) (obj))
+#define object_as_array(obj)      ((YR_OBJECT_ARRAY*) (obj))
+#define object_as_dictionary(obj) ((YR_OBJECT_DICTIONARY*) (obj))
+#define object_as_function(obj)   ((YR_OBJECT_FUNCTION*) (obj))
 
 
 typedef struct _YR_STRUCTURE_MEMBER

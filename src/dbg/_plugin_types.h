@@ -4,6 +4,8 @@
 #ifdef BUILD_DBG
 
 #include "_global.h"
+#include "jansson/jansson.h"
+#include <dbghelp.h>
 
 #else
 

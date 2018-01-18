@@ -1,6 +1,7 @@
 #include "EditBreakpointDialog.h"
 #include "ui_EditBreakpointDialog.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 
 EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     : QDialog(parent),
@@ -15,14 +16,17 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     }
     else
     {
-        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(ToHexString(bp.addr)));
+        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(getSymbolicName(bp.addr)));
     }
     setWindowIcon(DIcon("breakpoint.png"));
     loadFromBp();
+
+    Config()->setupWindowPos(this);
 }
 
 EditBreakpointDialog::~EditBreakpointDialog()
 {
+    Config()->saveWindowPos(this);
     delete ui;
 }
 
@@ -60,6 +64,7 @@ void EditBreakpointDialog::on_editBreakCondition_textEdited(const QString & arg1
 
 void EditBreakpointDialog::on_editLogText_textEdited(const QString & arg1)
 {
+    ui->checkBoxSilent->setChecked(true);
     copyTruncate(mBp.logText, arg1);
 }
 

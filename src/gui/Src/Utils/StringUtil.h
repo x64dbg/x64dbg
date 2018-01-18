@@ -107,17 +107,11 @@ inline QDate GetCompileDate()
     return QLocale("en_US").toDate(QString(__DATE__).simplified(), "MMM d yyyy");
 }
 
-template<typename T>
-inline T & ArchValue(T & x32value, T & x64value)
-{
 #ifdef _WIN64
-    Q_UNUSED(x32value);
-    return x64value;
+#define ArchValue(x32value, x64value) x64value
 #else
-    Q_UNUSED(x64value);
-    return x32value;
+#define ArchValue(x32value, x64value) x32value
 #endif //_WIN64
-}
 
 // Format : d:hh:mm:ss.1234567
 inline QString FILETIMEToTime(const FILETIME & time)
@@ -136,5 +130,7 @@ inline QString FILETIMEToTime(const FILETIME & time)
 QString FILETIMEToDate(const FILETIME & date);
 
 bool GetCommentFormat(duint addr, QString & comment, bool* autoComment = nullptr);
+
+QString EscapeCh(QChar ch);
 
 #endif // STRINGUTIL_H

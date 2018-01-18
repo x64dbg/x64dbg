@@ -367,8 +367,9 @@ bool ExpressionParser::isUnaryOperator() const
         return false;
     if(!mTokens.size()) //no tokens before the operator means it is an unary operator
         return true;
-    auto lastToken = mTokens[mTokens.size() - 1];
-    return lastToken.isOperator(); //if the previous operator is a token, the operator is an unary operator
+    auto lastType = mTokens[mTokens.size() - 1].type();
+    //if the previous token is not data or a close bracket, this operator is a unary operator
+    return lastType != Token::Type::Data && lastType != Token::Type::CloseBracket;
 }
 
 void ExpressionParser::shuntingYard()
@@ -382,19 +383,19 @@ void ExpressionParser::shuntingYard()
     //process the tokens
     for(size_t i = 0; i < len; i++)
     {
-        const auto & token = mTokens[i];
+        const auto & token = mTokens[i]; //Read a token
         switch(token.type())
         {
-        case Token::Type::Data:
+        case Token::Type::Data: //If the token is a number, then push it to the output queue.
             queue.push_back(token);
             break;
-        case Token::Type::Function:
+        case Token::Type::Function: //If the token is a function token, then push it onto the stack.
             stack.push_back(token);
             break;
-        case Token::Type::Comma:
-            while(true)
+        case Token::Type::Comma: //If the token is a function argument separator (e.g., a comma):
+            while(true) //Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue.
             {
-                if(stack.empty())  //empty stack = problems
+                if(stack.empty()) //If no left parentheses are encountered, either the separator was misplaced or parentheses were mismatched.
                 {
                     mIsValidExpression = false;
                     return;
@@ -406,67 +407,67 @@ void ExpressionParser::shuntingYard()
                 stack.pop_back();
             }
             break;
-        case Token::Type::OpenBracket:
+        case Token::Type::OpenBracket: //If the token is a left parenthesis (i.e. "("), then push it onto the stack.
             stack.push_back(token);
             break;
-        case Token::Type::CloseBracket:
+        case Token::Type::CloseBracket: //If the token is a right parenthesis (i.e. ")"):
         {
-            while(true)
+            while(true) //Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue.
             {
-                if(stack.empty())  //empty stack = bracket mismatch
+                if(stack.empty()) //If the stack runs out without finding a left parenthesis, then there are mismatched parentheses.
                 {
                     mIsValidExpression = false;
                     return;
                 }
                 auto curToken = stack[stack.size() - 1];
-                stack.pop_back();
-                if(curToken.type() == Token::Type::OpenBracket)  //the bracket is already popped here
+                stack.pop_back(); //Pop the left parenthesis from the stack, but not onto the output queue.
+                if(curToken.type() == Token::Type::OpenBracket) //the bracket is already popped here
                     break;
                 queue.push_back(curToken);
             }
             const auto & top = stack[stack.size() - 1];
-            if(!stack.empty() && top.type() == Token::Type::Function)
+            if(!stack.empty() && top.type() == Token::Type::Function) //If the token at the top of the stack is a function token, pop it onto the output queue.
             {
                 queue.push_back(top);
                 stack.pop_back();
             }
         }
         break;
-        default: //operator
+        default: //If the token is an operator, o1, then:
             const auto & o1 = token;
-            while(!stack.empty())
+            while(!stack.empty()) //while there is an operator token o2, at the top of the operator stack and either
             {
                 const auto & o2 = stack[stack.size() - 1];
                 if(o2.isOperator() &&
-                        (o1.associativity() == Token::Associativity::LeftToRight && o1.precedence() >= o2.precedence()) ||
-                        (o1.associativity() == Token::Associativity::RightToLeft && o1.precedence() > o2.precedence()))
+                        (o1.associativity() == Token::Associativity::LeftToRight && o1.precedence() >= o2.precedence()) || //o1 is left-associative and its precedence is less than or equal to that of o2, or
+                        (o1.associativity() == Token::Associativity::RightToLeft && o1.precedence() > o2.precedence())) //o1 is right associative, and has precedence less than that of o2,
                 {
-                    queue.push_back(o2);
+                    queue.push_back(o2); //pop o2 off the operator stack, onto the output queue;
                     stack.pop_back();
                 }
                 else
                     break;
             }
-            stack.push_back(o1);
+            stack.push_back(o1); //at the end of iteration push o1 onto the operator stack.
             break;
         }
     }
-    //pop the remaining operators
-    while(!stack.empty())
+    //When there are no more tokens to read:
+    while(!stack.empty()) //While there are still operator tokens in the stack:
     {
         const auto & curToken = stack[stack.size() - 1];
-        if(curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket)  //brackets on the stack means invalid expression
+        if(curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket) //If the operator token on the top of the stack is a parenthesis, then there are mismatched parentheses.
         {
             mIsValidExpression = false;
             return;
         }
-        queue.push_back(curToken);
+        queue.push_back(curToken); //Pop the operator onto the output queue.
         stack.pop_back();
     }
     mPrefixTokens = std::move(queue);
 }
 
-#ifdef _WIN64
+#if defined(_WIN64) && (!defined(__clang__) || __clang_major__ > 3) // This produces an ICE under Clang <= 3.8; fixed in 5.0.
 #include <intrin.h>
 
 static unsigned long long umulhi(unsigned long long x, unsigned long long y)
@@ -495,7 +496,7 @@ static int mulhi(int x, int y)
 #endif //_WIN64
 
 template<typename T>
-static bool operation(const ExpressionParser::Token::Type type, const T op1, const T op2, T & result, const bool signedcalc)
+static bool operation(ExpressionParser::Token::Type type, T op1, T op2, T & result, bool signedcalc)
 {
     result = 0;
     switch(type)
@@ -656,14 +657,13 @@ static bool handleAssignment(const char* variable, duint resultv, bool silent, b
         return false;
     bool destIsVar = false;
     duint temp;
-    //TODO: implement destIsVar without retrieving the value
     valfromstring_noexpr(variable, &temp, true, true, nullptr, &destIsVar, nullptr); //there is no return check on this because the destination might not exist yet
     if(!destIsVar)
         destIsVar = vargettype(variable, nullptr);
     if(!destIsVar || !valtostring(variable, resultv, true))
     {
         duint value;
-        if(valfromstring(variable, &value))    //if the var is a value already it's an invalid destination
+        if(valfromstring(variable, &value)) //if the var is a value already it's an invalid destination
         {
             if(!silent)
                 dprintf(QT_TRANSLATE_NOOP("DBG", "invalid dest \"%s\"\n"), variable);

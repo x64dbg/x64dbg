@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>503</width>
-    <height>339</height>
+    <width>445</width>
+    <height>349</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,200 +23,195 @@
    <iconset resource="../../resource.qrc">
     <normaloff>:/icons/images/memory-map.png</normaloff>:/icons/images/memory-map.png</iconset>
   </property>
-  <widget class="QTableWidget" name="pagetableWidget">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>11</y>
-     <width>291</width>
-     <height>241</height>
-    </rect>
-   </property>
-   <property name="autoScroll">
-    <bool>true</bool>
-   </property>
-   <property name="editTriggers">
-    <set>QAbstractItemView::NoEditTriggers</set>
-   </property>
-   <attribute name="verticalHeaderVisible">
-    <bool>false</bool>
-   </attribute>
-  </widget>
-  <widget class="QWidget" name="paddingLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>330</x>
-     <y>10</y>
-     <width>161</width>
-     <height>242</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayoutGroup">
-    <item>
-     <widget class="QGroupBox" name="rightsGroup">
-      <property name="title">
-       <string>Rights</string>
-      </property>
-      <layout class="QFormLayout" name="formLayout">
-       <property name="fieldGrowthPolicy">
-        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-       </property>
-       <item row="0" column="0">
-        <widget class="QRadioButton" name="radioNoaccess">
-         <property name="text">
-          <string>NO ACCESS</string>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QTableWidget" name="pagetableWidget">
+         <property name="enabled">
+          <bool>true</bool>
          </property>
+         <property name="autoScroll">
+          <bool>true</bool>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QRadioButton" name="radioReadonly">
-         <property name="text">
-          <string>READ ONLY</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QRadioButton" name="radioReadwrite">
-         <property name="text">
-          <string>READ WRITE</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QRadioButton" name="radioExecute">
-         <property name="text">
-          <string>EXECUTE</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QRadioButton" name="radioExecuteread">
-         <property name="text">
-          <string>EXECUTE READ</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QRadioButton" name="radioFullaccess">
-         <property name="text">
-          <string>FULL ACCESS</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QRadioButton" name="radioWritecopy">
-         <property name="text">
-          <string>WRITE COPY</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QRadioButton" name="radioExecutewritecopy">
-         <property name="text">
-          <string>EXECUTE WRITE COPY</string>
-         </property>
-        </widget>
+       <item>
+        <layout class="QHBoxLayout" name="buttonsLayout">
+         <item>
+          <widget class="QPushButton" name="btnSelectall">
+           <property name="text">
+            <string>Select ALL</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnDeselectall">
+           <property name="text">
+            <string>Deselect ALL</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="btnSetrights">
-      <property name="text">
-       <string>Set Rights</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="layoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>260</y>
-     <width>230</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="buttonsLayout">
-    <item>
-     <widget class="QPushButton" name="btnSelectall">
-      <property name="text">
-       <string>Select ALL</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="btnDeselectall">
-      <property name="text">
-       <string>Deselect ALL</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>260</x>
-     <y>280</y>
-     <width>241</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Press CTRL or SHIFT key to select multiple pages</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="chkPageguard">
-   <property name="geometry">
-    <rect>
-     <x>400</x>
-     <y>260</y>
-     <width>91</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>PAGE GUARD</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>300</y>
-     <width>481</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QLineEdit" name="LnEdStatus">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="pushButton">
-      <property name="text">
-       <string>&amp;Cancel</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <zorder>paddingLayoutWidget</zorder>
-  <zorder>layoutWidget</zorder>
-  <zorder>LnEdStatus</zorder>
-  <zorder>pagetableWidget</zorder>
-  <zorder>label</zorder>
-  <zorder>chkPageguard</zorder>
-  <zorder>pushButton</zorder>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayoutGroup">
+       <item>
+        <widget class="QGroupBox" name="rightsGroup">
+         <property name="title">
+          <string>Rights</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="radioNoaccess">
+            <property name="text">
+             <string>NO ACCESS</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QRadioButton" name="radioReadonly">
+            <property name="text">
+             <string>READ ONLY</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QRadioButton" name="radioReadwrite">
+            <property name="text">
+             <string>READ WRITE</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QRadioButton" name="radioExecute">
+            <property name="text">
+             <string>EXECUTE</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QRadioButton" name="radioExecuteread">
+            <property name="text">
+             <string>EXECUTE READ</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QRadioButton" name="radioFullaccess">
+            <property name="text">
+             <string>FULL ACCESS</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QRadioButton" name="radioWritecopy">
+            <property name="text">
+             <string>WRITE COPY</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QRadioButton" name="radioExecutewritecopy">
+            <property name="text">
+             <string>EXECUTE WRITE COPY</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnSetrights">
+         <property name="text">
+          <string>Set Rights</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="chkPageguard">
+           <property name="text">
+            <string>PAGE GUARD</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Press CTRL or SHIFT key to select multiple pages</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLineEdit" name="LnEdStatus">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>&amp;Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <tabstops>
   <tabstop>pagetableWidget</tabstop>

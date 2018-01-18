@@ -54,7 +54,7 @@ public:
     */
     int Count() const
     {
-        if(_listInfo.size != _listInfo.count * sizeof(Type))  //make sure the user is using the correct type.
+        if(_listInfo.size != _listInfo.count * sizeof(Type)) //make sure the user is using the correct type.
             __debugbreak();
         return _listInfo.count;
     }
@@ -88,7 +88,7 @@ public:
     */
     Type & operator[](size_t index) const
     {
-        if(index >= size_t(Count()))  //make sure the out-of-bounds access is caught as soon as possible.
+        if(index >= size_t(Count())) //make sure the out-of-bounds access is caught as soon as possible.
             __debugbreak();
         return Data()[index];
     }
@@ -117,6 +117,14 @@ public:
         }
         else
             listInfo->data = nullptr;
+        return true;
+    }
+
+    static bool Free(const ListInfo* listInfo)
+    {
+        if(!listInfo || listInfo->size != listInfo->count * sizeof(Type) || (listInfo->count && !listInfo->data))
+            return false;
+        BridgeFree(listInfo->data);
         return true;
     }
 

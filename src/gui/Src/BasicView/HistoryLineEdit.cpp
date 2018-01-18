@@ -18,6 +18,7 @@ void HistoryLineEdit::loadSettings(QString sectionPrefix)
         mCmdHistory.append(entry);
     }
 }
+
 void HistoryLineEdit::saveSettings(QString sectionPrefix)
 {
     int i = 1;
@@ -33,14 +34,26 @@ void HistoryLineEdit::saveSettings(QString sectionPrefix)
                      QString("Line%1").arg(i).toUtf8().constData(),
                      "");
 }
+
 void HistoryLineEdit::addLineToHistory(QString parLine)
 {
-    mCmdHistory.prepend(parLine);
-
     if(mCmdHistory.size() > mCmdHistoryMaxSize)
         mCmdHistory.removeLast();
 
+    mCmdHistory.prepend(parLine);
+
     mCmdIndex = -1;
+}
+
+QString HistoryLineEdit::addHistoryClear()
+{
+    auto str = text();
+    if(str.length())
+    {
+        addLineToHistory(str);
+        clear();
+    }
+    return str;
 }
 
 void HistoryLineEdit::keyPressEvent(QKeyEvent* event)
@@ -79,6 +92,7 @@ void HistoryLineEdit::keyPressEvent(QKeyEvent* event)
         // NOTE: "Unlike textChanged(), this signal [textEdited()] is not emitted when
         // the text is changed programmatically, for example, by calling setText()."
         setText(newText);
+        emit textEdited(newText);
     }
 
     QLineEdit::keyPressEvent(event);

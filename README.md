@@ -1,6 +1,8 @@
 # x64dbg
 
-[![BountySource](https://www.bountysource.com/badge/team?team_id=18188&style=raised)](https://www.bountysource.com/teams/x64dbg?utm_source=x64dbg&utm_medium=shield&utm_campaign=raised) [![Telegram](https://i.imgur.com/merFyCf.png)](http://telegram.x64dbg.com) [![Join the chat at Gitter](https://badges.gitter.im/x64dbg/x64dbg.svg)](http://gitter.x64dbg.com) [![freenode](https://i.imgur.com/JEG5fJr.png)](http://webchat.freenode.net/?channels=x64dbg) [![coverity](https://scan.coverity.com/projects/7478/badge.svg?flat=1)](https://scan.coverity.com/projects/7478) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/x64dbg/localized.svg)](http://translate.x64dbg.com)
+[![BountySource](https://www.bountysource.com/badge/team?team_id=18188&style=raised)](https://www.bountysource.com/teams/x64dbg?utm_source=x64dbg&utm_medium=shield&utm_campaign=raised) [![Build status](https://ci.appveyor.com/api/projects/status/h1j489qa1mx67e0h?svg=true)](https://ci.appveyor.com/project/mrexodia/x64dbg) [![coverity](https://scan.coverity.com/projects/7478/badge.svg?flat=1)](https://scan.coverity.com/projects/7478) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/x64dbg/localized.svg)](http://translate.x64dbg.com)
+
+[![Telegram](https://img.shields.io/badge/chat-%20on%20Telegram-blue.svg)](http://telegram.x64dbg.com) [![Join the chat at Gitter](https://badges.gitter.im/x64dbg/x64dbg.svg)](http://gitter.x64dbg.com) [![freenode](https://img.shields.io/badge/chat-%20on%20freenode-brightgreen.svg)](http://webchat.freenode.net/?channels=x64dbg) [![Download x64dbg](https://img.shields.io/sourceforge/dm/x64dbg.svg)](https://sourceforge.net/projects/x64dbg/files/latest/download)
 
 ## Note
 
@@ -8,13 +10,11 @@ Please run `install.bat` before you start committing code, this ensures your cod
 
 ## Compiling
 
-For a complete guide on compiling *x64dbg* read [this](https://github.com/x64dbg/x64dbg/wiki/Compiling the whole project).
+For a complete guide on compiling *x64dbg* read [this](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project).
 
 ## Downloads
 
 Releases of *x64dbg* can be found [here](http://releases.x64dbg.com).
-
-~~Jenkins build server can be found [here](http://jenkins.x64dbg.com).~~
 
 ## Overview
 
@@ -117,11 +117,18 @@ Releases of *x64dbg* can be found [here](http://releases.x64dbg.com).
 - [Dither](https://github.com/Dither)
 - [zerosum0x0](https://github.com/zerosum0x0)
 - [RadicalRaccoon](https://github.com/RadicalRaccoon)
-- [fetzerms](https://github.com/RadicalRaccoon)
-- [muratsu](https://github.com/RadicalRaccoon)
-- [ForNeVeR](https://github.com/RadicalRaccoon)
+- [fetzerms](https://github.com/fetzerms)
+- [muratsu](https://github.com/muratsu)
+- [ForNeVeR](https://github.com/ForNeVeR)
 - [wynick27](https://github.com/wynick27)
 - [Atvaark](https://github.com/Atvaark)
 - [Avin](https://github.com/Avinm)
 - [mrfearless](https://github.com/mrfearless)
 - [Storm Shadow](https://github.com/techbliss)
+- [shamanas](https://github.com/shamanas)
+- [joesavage](https://github.com/joesavage)
+- [justanotheranonymoususer](https://github.com/justanotheranonymoususer)
+- [gushromp](https://github.com/gushromp)
+- [Forsari0](https://github.com/Forsari0)
+
+See [here](https://github.com/x64dbg/x64dbg/graphs/contributors) for a more up-to-date list of contributers.

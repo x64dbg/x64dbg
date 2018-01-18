@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <algorithm>
 #include "exception.h"
 #include "filehelper.h"
 #include "value.h"
@@ -7,6 +8,7 @@
 static std::unordered_map<unsigned int, String> ExceptionNames;
 static std::unordered_map<unsigned int, String> NtStatusNames;
 static std::unordered_map<unsigned int, String> ErrorNames;
+static std::unordered_map<String, unsigned int> Constants;
 
 static bool UniversalCodeInit(const String & file, std::unordered_map<unsigned int, String> & names, unsigned char radix)
 {
@@ -35,6 +37,7 @@ static bool UniversalCodeInit(const String & file, std::unordered_map<unsigned i
     }
     return result;
 }
+
 bool ErrorCodeInit(const String & errorFile)
 {
     return UniversalCodeInit(errorFile, ErrorNames, 10);
@@ -43,6 +46,42 @@ bool ErrorCodeInit(const String & errorFile)
 bool ExceptionCodeInit(const String & exceptionFile)
 {
     return UniversalCodeInit(exceptionFile, ExceptionNames, 16);
+}
+
+bool ConstantCodeInit(const String & constantFile)
+{
+    std::unordered_map<unsigned int, String> names;
+    if(!UniversalCodeInit(constantFile, names, 0))
+        return false;
+    for(auto it : names)
+        Constants.insert({ it.second, it.first });
+    return true;
+}
+
+bool ConstantFromName(const String & name, duint & value)
+{
+    auto found = Constants.find(name);
+    if(found == Constants.end())
+        return false;
+    value = found->second;
+    return true;
+}
+
+std::vector<CONSTANTINFO> ConstantList()
+{
+    std::vector<CONSTANTINFO> result;
+    for(auto it = Constants.begin(); it != Constants.end(); ++it)
+    {
+        CONSTANTINFO info;
+        info.name = it->first.c_str();
+        info.value = it->second;
+        result.push_back(info);
+    }
+    std::sort(result.begin(), result.end(), [](const CONSTANTINFO & a, const CONSTANTINFO & b)
+    {
+        return strcmp(a.name, b.name) < 0;
+    });
+    return result;
 }
 
 static bool ExceptionDatabaseNameToCode(const std::unordered_map<unsigned int, String>* db, const char* Name, unsigned int* ErrorCode)
@@ -94,6 +133,26 @@ const String & ExceptionCodeToName(unsigned int ExceptionCode)
         return name;
 }
 
+std::vector<CONSTANTINFO> ExceptionList()
+{
+    std::vector<CONSTANTINFO> result;
+    for(auto it = ExceptionNames.begin(); it != ExceptionNames.end(); ++it)
+    {
+        CONSTANTINFO info;
+        info.name = it->second.c_str();
+        info.value = it->first;
+        result.push_back(info);
+    }
+    for(auto it = NtStatusNames.begin(); it != NtStatusNames.end(); ++it)
+    {
+        CONSTANTINFO info;
+        info.name = it->second.c_str();
+        info.value = it->first;
+        result.push_back(info);
+    }
+    return result;
+}
+
 const String & NtStatusCodeToName(unsigned int NtStatusCode)
 {
     bool success;
@@ -104,4 +163,21 @@ const String & ErrorCodeToName(unsigned int ErrorCode)
 {
     bool success;
     return ExceptionDatabaseCodeToName(&ErrorNames, ErrorCode, &success);
+}
+
+std::vector<CONSTANTINFO> ErrorCodeList()
+{
+    std::vector<CONSTANTINFO> result;
+    for(auto it = ErrorNames.begin(); it != ErrorNames.end(); ++it)
+    {
+        CONSTANTINFO info;
+        info.name = it->second.c_str();
+        info.value = it->first;
+        result.push_back(info);
+    }
+    std::sort(result.begin(), result.end(), [](const CONSTANTINFO & a, const CONSTANTINFO & b)
+    {
+        return strcmp(a.name, b.name) < 0;
+    });
+    return result;
 }

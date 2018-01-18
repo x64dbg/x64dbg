@@ -1,7 +1,8 @@
 #ifndef HISTORYCONTEXT_H
 #define HISTORYCONTEXT_H
 
-#include "debugger.h"
+#include "_global.h"
+#include "TitanEngine/TitanEngine.h"
 
 /**
  * @brief The class used to hold history context.

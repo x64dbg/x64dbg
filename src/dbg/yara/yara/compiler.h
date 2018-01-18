@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "arena.h"
 #include "hash.h"
 #include "utils.h"
+#include "filemap.h"
 
 
 #define YARA_ERROR_LEVEL_ERROR   0
@@ -53,7 +54,7 @@ typedef void (*YR_COMPILER_CALLBACK_FUNC)(
 
 typedef struct _YR_FIXUP
 {
-    int64_t* address;
+    void* address;
     struct _YR_FIXUP* next;
 
 } YR_FIXUP;
@@ -62,7 +63,7 @@ typedef struct _YR_FIXUP
 typedef struct _YR_COMPILER
 {
     int               errors;
-    int               error_line;
+    int               current_line;
     int               last_error;
     int               last_error_line;
     int               last_result;
@@ -124,7 +125,7 @@ typedef struct _YR_COMPILER
         compiler->last_error_extra_info, \
         info, \
         sizeof(compiler->last_error_extra_info)); \
- 
+
 
 #define yr_compiler_set_error_extra_info_fmt(compiler, fmt, ...) \
     snprintf( \
@@ -168,6 +169,13 @@ YR_API void yr_compiler_set_callback(
 YR_API int yr_compiler_add_file(
     YR_COMPILER* compiler,
     FILE* rules_file,
+    const char* namespace_,
+    const char* file_name);
+
+
+YR_API int yr_compiler_add_fd(
+    YR_COMPILER* compiler,
+    YR_FILE_DESCRIPTOR rules_fd,
     const char* namespace_,
     const char* file_name);
 

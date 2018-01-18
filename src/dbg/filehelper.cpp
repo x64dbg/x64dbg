@@ -97,3 +97,9 @@ bool FileHelper::ReadAllLines(const String & fileName, std::vector<String> & lin
         lines.push_back(line);
     return true;
 }
+
+String FileHelper::GetFileName(const String & fileName)
+{
+    auto last = strrchr(fileName.c_str(), '\\');
+    return last ? last + 1 : fileName;
+}

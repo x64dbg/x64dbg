@@ -21,6 +21,8 @@ public:
     explicit SymbolView(QWidget* parent = 0);
     ~SymbolView();
     void setupContextMenu();
+    void saveWindowSettings();
+    void loadWindowSettings();
 
 private slots:
     void updateStyle();
@@ -30,6 +32,8 @@ private slots:
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void symbolFollow();
     void symbolFollowDump();
+    void symbolFollowImport();
+    void symbolSelectModule(duint base);
     void enterPressedSlot();
     void symbolContextMenu(QMenu* wMenu);
     void symbolRefreshCurrent();
@@ -45,12 +49,15 @@ private slots:
     void moduleSetUser();
     void moduleSetSystem();
     void moduleSetParty();
+    void moduleFollowMemMap();
     void toggleBreakpoint();
     void toggleBookmark();
     void refreshShortcutsSlot();
     void moduleEntropy();
     void emptySearchResultSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
+    void moduleLoad();
+    void moduleFree();
 
 signals:
     void showReferences();
@@ -65,6 +72,7 @@ private:
     QMap<QString, duint> mModuleBaseList;
     QAction* mFollowSymbolAction;
     QAction* mFollowSymbolDumpAction;
+    QAction* mFollowSymbolImportAction;
     QAction* mToggleBreakpoint;
     QAction* mToggleBookmark;
     QAction* mFollowModuleAction;
@@ -79,6 +87,9 @@ private:
     QAction* mModSetSystemAction;
     QAction* mModSetPartyAction;
     QAction* mBrowseInExplorer;
+    QAction* mFollowInMemMap;
+    QAction* mLoadLib;
+    QAction* mFreeLib;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

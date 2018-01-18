@@ -19,12 +19,12 @@ NotesManager::NotesManager(QWidget* parent) : QTabWidget(parent)
 
 void NotesManager::dbgStateChangedSlot(DBGSTATE state)
 {
-    if(state == DBGSTATE::initialized)
+    if(state == initialized)
     {
         mDebuggee->show();
         addTab(mDebuggee, tr("Debuggee"));
     }
-    else if(state == DBGSTATE::stopped)
+    else if(state == stopped)
     {
         mDebuggee->hide();
         removeTab(1);
