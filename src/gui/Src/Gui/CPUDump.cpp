@@ -29,6 +29,7 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
     setView((ViewEnum_t)ConfigUint("HexDump", "DefaultView"));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
+    connect(this, SIGNAL(headerButtonReleased(int)), this, SLOT(headerButtonReleasedSlot(int)));
 
     mPluginMenu = multiDump->mDumpPluginMenu;
 
@@ -1229,7 +1230,74 @@ void CPUDump::addressSlot()
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
 #endif
-    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), tr("Value"), false, wColDesc);
+
+    wColDesc.isData = true;
+    wColDesc.separator = 0;
+#ifdef _WIN64
+    wColDesc.itemCount = 8;
+#else
+    wColDesc.itemCount = 4;
+#endif
+    wColDesc.data.itemSize = Byte;
+    wColDesc.data.byteMode = AsciiByte;
+    wColDesc.columnSwitch = [this]()
+    {
+        this->setView(ViewAddressUnicode);
+    };
+    appendDescriptor(8 + charwidth * wColDesc.itemCount, tr("ASCII"), true, wColDesc);
+
+
+    wColDesc.isData = false; //comments
+    wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendDescriptor(0, tr("Comments"), false, wColDesc);
+
+    reloadData();
+}
+
+void CPUDump::addressAsciiSlot()
+{
+    addressSlot();
+}
+
+void CPUDump::addressUnicodeSlot()
+{
+    Config()->setUint("HexDump", "DefaultView", (duint)ViewAddressUnicode);
+    int charwidth = getCharWidth();
+    ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
+
+    wColDesc.isData = true; //void*
+    wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
+#ifdef _WIN64
+    wColDesc.data.itemSize = Qword;
+    wColDesc.data.qwordMode = HexQword;
+#else
+    wColDesc.data.itemSize = Dword;
+    wColDesc.data.dwordMode = HexDword;
+#endif
+    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), tr("Value"), false, wColDesc);
+
+    wColDesc.isData = true;
+    wColDesc.separator = 0;
+#ifdef _WIN64
+    wColDesc.itemCount = 4;
+#else
+    wColDesc.itemCount = 2;
+#endif
+    wColDesc.data.itemSize = Word;
+    wColDesc.data.wordMode = UnicodeWord;
+    wColDesc.columnSwitch = [this]()
+    {
+        this->setView(ViewAddressAscii);
+    };
+    appendDescriptor(8 + charwidth * wColDesc.itemCount, tr("UNICODE"), true, wColDesc);
+
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 1;
@@ -1725,6 +1793,12 @@ void CPUDump::setView(ViewEnum_t view)
     case ViewAddress:
         addressSlot();
         break;
+    case ViewAddressUnicode:
+        addressUnicodeSlot();
+        break;
+    case ViewAddressAscii:
+        addressAsciiSlot();
+        break;
     default:
         hexAsciiSlot();
         break;
@@ -1734,4 +1808,11 @@ void CPUDump::setView(ViewEnum_t view)
 void CPUDump::followInMemoryMapSlot()
 {
     DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getSelectionStart()))).toUtf8().constData());
+}
+
+void CPUDump::headerButtonReleasedSlot(int colIndex)
+{
+    auto callback = mDescriptor[colIndex].columnSwitch;
+    if(callback)
+        callback();
 }
