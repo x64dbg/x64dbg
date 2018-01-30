@@ -77,6 +77,7 @@ public:
         int separator = 0;
         QTextCodec* textCodec; //name of the text codec (leave empty if you want to keep your sanity)
         DataDescriptor_t data;
+        std::function<void()> columnSwitch;
 
         explicit ColumnDescriptor_t()
             : textCodec(nullptr)

@@ -80,6 +80,8 @@ public slots:
     void floatLongDoubleSlot();
 
     void addressSlot();
+    void addressUnicodeSlot();
+    void addressAsciiSlot();
     void disassemblySlot();
 
     void selectionGet(SELECTIONDATA* selection);
@@ -111,6 +113,7 @@ public slots:
     void allocMemorySlot();
 
     void followInMemoryMapSlot();
+    void headerButtonReleasedSlot(int colIndex);
 
 private:
     MenuBuilder* mMenuBuilder;
@@ -145,7 +148,9 @@ private:
         ViewFloatLongDouble,
         ViewAddress,
         ViewIntegerSignedByte,
-        ViewIntegerUnsignedByte
+        ViewIntegerUnsignedByte,
+        ViewAddressAscii,
+        ViewAddressUnicode
     };
 
     void setView(ViewEnum_t view);
