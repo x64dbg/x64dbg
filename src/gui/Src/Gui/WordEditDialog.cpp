@@ -9,7 +9,8 @@ WordEditDialog::WordEditDialog(QWidget* parent)
       ui(new Ui::WordEditDialog),
       mHexLineEditPos(0),
       mSignedEditPos(0),
-      mUnsignedEditPos(0)
+      mUnsignedEditPos(0),
+      mAsciiLineEditPos(0)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
@@ -87,6 +88,8 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         duint hexWord = 0;
         unsigned char* hex = (unsigned char*)&hexWord;
         unsigned char* word = (unsigned char*)&mWord;
+        // ascii
+        int asciiWidth = 0;
 #ifdef _WIN64
         hex[0] = word[7];
         hex[1] = word[6];
@@ -96,11 +99,13 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         hex[5] = word[2];
         hex[6] = word[1];
         hex[7] = word[0];
+        asciiWidth = 8;
 #else //x86
         hex[0] = word[3];
         hex[1] = word[2];
         hex[2] = word[1];
         hex[3] = word[0];
+        asciiWidth = 4;
 #endif //_WIN64
 
         // Save the original index for inputs
@@ -112,6 +117,17 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         ui->signedLineEdit->setText(QString::number((dsint)mWord));
         // Unsigned edit
         ui->unsignedLineEdit->setText(QString::number((duint)mWord));
+        // ASCII edit
+        QString asciiExp;
+        for(int i = 0; i < asciiWidth; i++)
+        {
+            // replace non-printable chars with a dot
+            if(hex[i] != NULL && QChar(hex[i]).isPrint())
+                asciiExp.append(QChar(hex[i]));
+            else
+                asciiExp.append("."); // dots padding
+        }
+        ui->asciiLineEdit->setText(asciiExp);
 
         // Use the same indices, but with different text
         restoreCursorPositions();
@@ -161,6 +177,7 @@ void WordEditDialog::saveCursorPositions()
     mHexLineEditPos = ui->hexLineEdit->cursorPosition();
     mSignedEditPos = ui->signedLineEdit->cursorPosition();
     mUnsignedEditPos = ui->unsignedLineEdit->cursorPosition();
+    mAsciiLineEditPos = ui->asciiLineEdit->cursorPosition();
 }
 
 void WordEditDialog::restoreCursorPositions()
@@ -169,4 +186,5 @@ void WordEditDialog::restoreCursorPositions()
     ui->hexLineEdit->setCursorPosition(mHexLineEditPos);
     ui->signedLineEdit->setCursorPosition(mSignedEditPos);
     ui->unsignedLineEdit->setCursorPosition(mUnsignedEditPos);
+    ui->asciiLineEdit->setCursorPosition(mAsciiLineEditPos);
 }
