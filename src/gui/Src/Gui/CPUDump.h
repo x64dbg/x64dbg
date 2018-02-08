@@ -114,6 +114,7 @@ public slots:
 
     void followInMemoryMapSlot();
     void headerButtonReleasedSlot(int colIndex);
+    void asciiAddressDumpModeUpdatedSlot();
 
 private:
     MenuBuilder* mMenuBuilder;
@@ -127,6 +128,7 @@ private:
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
     int mAsciiSeparator = 0;
+    bool mAsciiAddressDumpMode;
 
     enum ViewEnum_t
     {
@@ -150,7 +152,9 @@ private:
         ViewIntegerSignedByte,
         ViewIntegerUnsignedByte,
         ViewAddressAscii,
-        ViewAddressUnicode
+        ViewAddressUnicode,
+        ViewHexCodepage,
+        ViewTextCodepage
     };
 
     void setView(ViewEnum_t view);
