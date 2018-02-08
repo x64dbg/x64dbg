@@ -707,6 +707,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkAsciiAddressDumpMode">
+         <property name="text">
+          <string>Show ASCII/Unicode in address dump mode</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
