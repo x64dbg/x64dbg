@@ -27,9 +27,12 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
     if(BridgeSettingGetUint("Gui", "AsciiSeparator", &setting))
         mAsciiSeparator = setting & 0xF;
 
+    asciiAddressDumpModeUpdatedSlot();
     setView((ViewEnum_t)ConfigUint("HexDump", "DefaultView"));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
+    connect(this, SIGNAL(headerButtonReleased(int)), this, SLOT(headerButtonReleasedSlot(int)));
+    connect(Config(), SIGNAL(asciiAddressDumpModeUpdated()), this, SLOT(asciiAddressDumpModeUpdatedSlot()));
 
     mPluginMenu = multiDump->mDumpPluginMenu;
 
@@ -780,6 +783,8 @@ void CPUDump::hexCodepageSlot()
 
 void CPUDump::hexLastCodepageSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (duint)ViewHexCodepage);
+
     int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -810,6 +815,8 @@ void CPUDump::hexLastCodepageSlot()
 
 void CPUDump::textLastCodepageSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (duint)ViewTextCodepage);
+
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
     duint lastCodepage;
@@ -1255,6 +1262,12 @@ void CPUDump::floatLongDoubleSlot()
 
 void CPUDump::addressSlot()
 {
+    if(mAsciiAddressDumpMode)
+    {
+        addressAsciiSlot();
+        return;
+    }
+
     Config()->setUint("HexDump", "DefaultView", (duint)ViewAddress);
     int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
@@ -1270,7 +1283,109 @@ void CPUDump::addressSlot()
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
 #endif
-    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), tr("Address"), false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), tr("Value"), false, wColDesc);
+
+    wColDesc.isData = false; //comments
+    wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendDescriptor(0, tr("Comments"), false, wColDesc);
+
+    reloadData();
+}
+
+void CPUDump::addressAsciiSlot()
+{
+    if(!mAsciiAddressDumpMode)
+    {
+        addressSlot();
+        return;
+    }
+
+    Config()->setUint("HexDump", "DefaultView", (duint)ViewAddressAscii);
+    int charwidth = getCharWidth();
+    ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
+
+    wColDesc.isData = true; //void*
+    wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
+#ifdef _WIN64
+    wColDesc.data.itemSize = Qword;
+    wColDesc.data.qwordMode = HexQword;
+#else
+    wColDesc.data.itemSize = Dword;
+    wColDesc.data.dwordMode = HexDword;
+#endif
+    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), tr("Value"), false, wColDesc);
+
+    wColDesc.isData = true;
+    wColDesc.separator = 0;
+#ifdef _WIN64
+    wColDesc.itemCount = 8;
+#else
+    wColDesc.itemCount = 4;
+#endif
+    wColDesc.data.itemSize = Byte;
+    wColDesc.data.byteMode = AsciiByte;
+    wColDesc.columnSwitch = [this]()
+    {
+        this->setView(ViewAddressUnicode);
+    };
+    appendDescriptor(8 + charwidth * wColDesc.itemCount, tr("ASCII"), true, wColDesc);
+
+    wColDesc.isData = false; //comments
+    wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendDescriptor(0, tr("Comments"), false, wColDesc);
+
+    reloadData();
+}
+
+void CPUDump::addressUnicodeSlot()
+{
+    if(!mAsciiAddressDumpMode)
+    {
+        addressSlot();
+        return;
+    }
+
+    Config()->setUint("HexDump", "DefaultView", (duint)ViewAddressUnicode);
+    int charwidth = getCharWidth();
+    ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
+
+    wColDesc.isData = true; //void*
+    wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
+#ifdef _WIN64
+    wColDesc.data.itemSize = Qword;
+    wColDesc.data.qwordMode = HexQword;
+#else
+    wColDesc.data.itemSize = Dword;
+    wColDesc.data.dwordMode = HexDword;
+#endif
+    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), tr("Value"), false, wColDesc);
+
+    wColDesc.isData = true;
+    wColDesc.separator = 0;
+#ifdef _WIN64
+    wColDesc.itemCount = 4;
+#else
+    wColDesc.itemCount = 2;
+#endif
+    wColDesc.data.itemSize = Word;
+    wColDesc.data.wordMode = UnicodeWord;
+    wColDesc.columnSwitch = [this]()
+    {
+        this->setView(ViewAddressAscii);
+    };
+    appendDescriptor(8 + charwidth * wColDesc.itemCount, tr("UNICODE"), true, wColDesc);
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 1;
@@ -1766,6 +1881,18 @@ void CPUDump::setView(ViewEnum_t view)
     case ViewAddress:
         addressSlot();
         break;
+    case ViewAddressAscii:
+        addressAsciiSlot();
+        break;
+    case ViewAddressUnicode:
+        addressUnicodeSlot();
+        break;
+    case ViewHexCodepage:
+        hexLastCodepageSlot();
+        break;
+    case ViewTextCodepage:
+        textLastCodepageSlot();
+        break;
     default:
         hexAsciiSlot();
         break;
@@ -1775,4 +1902,27 @@ void CPUDump::setView(ViewEnum_t view)
 void CPUDump::followInMemoryMapSlot()
 {
     DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getSelectionStart()))).toUtf8().constData());
+}
+
+void CPUDump::headerButtonReleasedSlot(int colIndex)
+{
+    auto callback = mDescriptor[colIndex].columnSwitch;
+    if(callback)
+        callback();
+}
+
+void CPUDump::asciiAddressDumpModeUpdatedSlot()
+{
+    duint setting = 0;
+    mAsciiAddressDumpMode = BridgeSettingGetUint("Gui", "AsciiAddressDumpMode", &setting) && setting;
+    auto defaultView = (ViewEnum_t)ConfigUint("HexDump", "DefaultView");
+    printf("defaultView: %d\n", defaultView);
+    switch(defaultView)
+    {
+    case ViewAddress:
+    case ViewAddressAscii:
+    case ViewAddressUnicode:
+        setView(defaultView);
+        break;
+    }
 }

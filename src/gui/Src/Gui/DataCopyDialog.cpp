@@ -2,6 +2,7 @@
 #include "ui_DataCopyDialog.h"
 #include "Bridge.h"
 #include <QCryptographicHash>
+#include <QTextCodec>
 
 #define AF_INET6        23              // Internetwork Version 6
 typedef PCTSTR(__stdcall* INETNTOPW)(INT Family, PVOID pAddr, wchar_t* pStringBuf, size_t StringBufSize);
@@ -19,6 +20,10 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     mTypes[DataCString] = FormatType { tr("C-Style String"), 1 };
     mTypes[DataCUnicodeString] = FormatType { tr("C-Style Unicode String"), 1 };
     mTypes[DataCShellcodeString] = FormatType { tr("C-Style Shellcode String"), 1 };
+    mTypes[DataString] = FormatType { tr("String"), 1 };
+    mTypes[DataUnicodeString] = FormatType { tr("Unicode String"), 1 };
+    mTypes[DataUTF8String] = FormatType { tr("UTF8 String"), 1 };
+    mTypes[DataUCS4String] = FormatType { tr("UCS4 String"), 1 };
     mTypes[DataPascalByte] = FormatType { tr("Pascal BYTE (Hex)"), 42 };
     mTypes[DataPascalWord] = FormatType { tr("Pascal WORD (Hex)"), 21 };
     mTypes[DataPascalDword] = FormatType { tr("Pascal DWORD (Hex)"), 10 };
@@ -216,6 +221,30 @@ void DataCopyDialog::printData(DataType type)
             data += QString().sprintf("\\x%02X", ch);
         }
         data += "\"";
+    }
+    break;
+
+    case DataString:
+    {
+        data = QTextCodec::codecForName("System")->makeDecoder()->toUnicode((const char*)(mData->data()), mData->size());
+    }
+    break;
+
+    case DataUnicodeString:
+    {
+        data = QString::fromUtf16((const ushort*)(mData->data()), mData->size() / 2);
+    }
+    break;
+
+    case DataUTF8String:
+    {
+        data = QString::fromUtf8((const char*)mData->data(), mData->size());
+    }
+    break;
+
+    case DataUCS4String:
+    {
+        data = QString::fromUcs4((const uint*)(mData->data()), mData->size() / 4);
     }
     break;
 

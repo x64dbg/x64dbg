@@ -674,21 +674,6 @@ void Configuration::writeColors()
     emit colorsUpdated();
 }
 
-void Configuration::emitColorsUpdated()
-{
-    emit colorsUpdated();
-}
-
-void Configuration::emitTokenizerConfigUpdated()
-{
-    emit tokenizerConfigUpdated();
-}
-
-void Configuration::emitDisableAutoCompleteUpdated()
-{
-    emit disableAutoCompleteUpdated();
-}
-
 void Configuration::readBools()
 {
     Bools = defaultBools;
@@ -784,11 +769,6 @@ void Configuration::writeFonts()
     emit fontsUpdated();
 }
 
-void Configuration::emitFontsUpdated()
-{
-    emit fontsUpdated();
-}
-
 void Configuration::readShortcuts()
 {
     Shortcuts = defaultShortcuts;
@@ -822,11 +802,6 @@ void Configuration::writeShortcuts()
         shortcutToConfig(it.key(), it.value().Hotkey);
         it++;
     }
-    emit shortcutsUpdated();
-}
-
-void Configuration::emitShortcutsUpdated()
-{
     emit shortcutsUpdated();
 }
 

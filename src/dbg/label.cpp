@@ -30,7 +30,7 @@ static std::unordered_map<duint, std::string> tempLabels;
 bool LabelSet(duint Address, const char* Text, bool Manual, bool Temp)
 {
     // Make sure the string is supplied, within bounds, and not a special delimiter
-    if(!Text || Text[0] == '\1' || strlen(Text) >= MAX_LABEL_SIZE - 1 || strstr(Text, "&"))
+    if(!Text || Text[0] == '\1' || strlen(Text) >= MAX_LABEL_SIZE - 1)
         return false;
     // Delete the label if no text was supplied
     if(Text[0] == '\0')

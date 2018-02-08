@@ -174,6 +174,7 @@ void MemUpdateMap()
     // Get a list of threads for information about Kernel/PEB/TEB/Stack ranges
     THREADLIST threadList;
     ThreadGetList(&threadList);
+    auto pebBase = (duint)GetPEBLocation(fdProcessInfo->hProcess);
 
     for(auto & page : pageVector)
     {
@@ -184,6 +185,13 @@ void MemUpdateMap()
         if(pageBase == 0x7FFE0000)
         {
             strcpy_s(page.info, "KUSER_SHARED_DATA");
+            continue;
+        }
+
+        // Mark PEB
+        if(pageBase == pebBase)
+        {
+            strcpy_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "PEB")));
             continue;
         }
 
@@ -212,7 +220,7 @@ void MemUpdateMap()
                     sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X WoW64 TEB")), threadId);
                     break;
                 }
-#endif // ndef _WIN64
+#endif //_WIN64
             }
 
             // Mark stack
