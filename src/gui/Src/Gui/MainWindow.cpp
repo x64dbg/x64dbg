@@ -2048,10 +2048,10 @@ void MainWindow::on_actionImportSettings_triggered()
             }
             Config()->load();
             DbgSettingsUpdated();
-            Config()->emitColorsUpdated();
-            Config()->emitFontsUpdated();
-            Config()->emitShortcutsUpdated();
-            Config()->emitTokenizerConfigUpdated();
+            emit Config()->colorsUpdated();
+            emit Config()->fontsUpdated();
+            emit Config()->shortcutsUpdated();
+            emit Config()->tokenizerConfigUpdated();
             GuiUpdateAllViews();
         }
     }
