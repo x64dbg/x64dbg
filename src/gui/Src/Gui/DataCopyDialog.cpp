@@ -28,6 +28,7 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     mTypes[DataPascalWord] = FormatType { tr("Pascal WORD (Hex)"), 21 };
     mTypes[DataPascalDword] = FormatType { tr("Pascal DWORD (Hex)"), 10 };
     mTypes[DataPascalQword] = FormatType { tr("Pascal QWORD (Hex)"), 5 };
+    mTypes[DataHexStream] = FormatType { tr("Hex Stream"), 1 };
     mTypes[DataGUID] = FormatType { tr("GUID"), 1 };
     mTypes[DataIPv4] = FormatType { tr("IP Address (IPv4)"), 5 };
     mTypes[DataIPv6] = FormatType { tr("IP Address (IPv6)"), 1 };
@@ -40,11 +41,12 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     mTypes[DataSHA512_3] = FormatType { "SHA512 (SHA-3)", 1};
 
     for(int i = 0; i < DataLast; i++)
-        ui->comboType->addItem(mTypes[i].name);
+        ui->listType->addItem(mTypes[i].name);
 
-    ui->comboType->setCurrentIndex(DataCByte);
+    QModelIndex index = ui->listType->model()->index(DataCByte, 0);
+    ui->listType->setCurrentIndex(index);
 
-    printData((DataType)ui->comboType->currentIndex());
+    printData((DataType)ui->listType->currentIndex().row());
     Config()->setupWindowPos(this);
 }
 
@@ -292,6 +294,13 @@ void DataCopyDialog::printData(DataType type)
     }
     break;
 
+    case DataHexStream:
+    {
+        for(int i = 0; i < mData->size(); i++)
+            data += QString().sprintf("%02X", mData->constData()[i]);
+    }
+    break;
+
     case DataGUID:
     {
         data = formatLoop<GUID>(mData, mTypes[mIndex].itemsPerLine, [](GUID guid)
@@ -406,9 +415,9 @@ DataCopyDialog::~DataCopyDialog()
     delete ui;
 }
 
-void DataCopyDialog::on_comboType_currentIndexChanged(int index)
+void DataCopyDialog::on_listType_currentRowChanged(int currentRow)
 {
-    mIndex = index;
+    mIndex = currentRow;
     ui->spinBox->setValue(mTypes[mIndex].itemsPerLine);
     printData(DataType(mIndex));
 }
