@@ -979,6 +979,10 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
             }*/
         }
     }
+    else
+    {
+        symbolInfo.undecoratedName = "";
+    }
 
     hr = symbol->get_addressSection((DWORD*)&symbolInfo.segment);
     if(hr != S_OK)
