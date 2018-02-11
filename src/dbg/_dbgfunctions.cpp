@@ -374,16 +374,20 @@ static bool _modrelocationsinrange(duint addr, duint size, ListOf(DBGRELOCATIONI
 
 static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
 {
-    int count = 0;
     //TODO: refactor this in a function because this pattern will become common
     std::vector<duint> mods;
     ModEnum([&mods](const MODINFO & info)
     {
         mods.push_back(info.base);
     });
+
+    int count = 0;
     std::string prefix(Search);
     for(duint base : mods)
     {
+        if(count == MaxSymbols)
+            break;
+
         SHARED_ACQUIRE(LockModules);
         auto modInfo = ModInfoFromAddr(base);
         if(modInfo && modInfo->symbols->isOpen())
@@ -392,7 +396,6 @@ static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
             {
                 Buffer[count] = (char*)BridgeAlloc(symInfo.decoratedName.size() + 1);
                 memcpy(Buffer[count], symInfo.decoratedName.c_str(), symInfo.decoratedName.size() + 1);
-                Buffer[count][symInfo.decoratedName.size()] = 0; //TODO: not needed?
                 return ++count < MaxSymbols;
             }, true); //TODO: support case insensitive in the GUI
         }
