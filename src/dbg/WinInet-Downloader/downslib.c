@@ -25,6 +25,7 @@ static int _download(const char* url,
     DWORD dwError = 0;
     DWORD dwRead = 0;
     DWORD dwLen = 0;
+    DWORD dwLastError = ERROR_SUCCESS;
     BOOL bRet = FALSE;
     unsigned long long read_bytes = 0;
     unsigned long long total_bytes = 0;
@@ -124,12 +125,14 @@ static int _download(const char* url,
     }
 
 cleanup:
+    dwLastError = GetLastError();
     if(hFile != INVALID_HANDLE_VALUE)
         CloseHandle(hFile);
     if(hUrl != NULL)
         InternetCloseHandle(hUrl);
     if(hInternet != NULL)
         InternetCloseHandle(hInternet);
+    SetLastError(dwLastError);
 
     return ret;
 }

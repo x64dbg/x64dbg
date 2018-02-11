@@ -16,7 +16,6 @@
 #include "exception.h"
 #include "TraceRecord.h"
 #include "dbghelp_safe.h"
-#include "WinInet-Downloader/downslib.h"
 
 bool cbInstrAnalyse(int argc, char* argv[])
 {
@@ -155,107 +154,6 @@ bool cbInstrVirtualmod(int argc, char* argv[])
 
 bool cbDebugDownloadSymbol(int argc, char* argv[])
 {
-    if(argc < 2) //no arguments
-    {
-        dputs("not enough arguments...");
-        return false;
-    }
-    duint modbase = ModBaseFromName(argv[1]);
-    String pdbSignature, pdbFile;
-    {
-        SHARED_ACQUIRE(LockModules);
-        auto info = ModInfoFromAddr(modbase);
-        if(!info)
-        {
-            dputs("module not found...");
-            return false;
-        }
-        pdbSignature = info->pdbSignature;
-        pdbFile = info->pdbFile;
-    }
-    if(pdbSignature.empty() || pdbFile.empty()) // TODO: allow using module filename instead of pdbFile ?
-    {
-        dputs("module has no symbol information...");
-        return false;
-    }
-    auto found = strrchr(pdbFile.c_str(), '\\');
-    auto pdbBaseFile = found ? found + 1 : pdbFile.c_str();
-
-    // TODO: strict checks if this path is absolute
-    WString destinationPath(StringUtils::Utf8ToUtf16(szSymbolCachePath));
-    if(destinationPath.empty())
-    {
-        dputs("no destination symbol path specified...");
-        return false;
-    }
-    CreateDirectoryW(destinationPath.c_str(), nullptr);
-    if(destinationPath.back() != L'\\')
-        destinationPath += L'\\';
-    destinationPath += StringUtils::Utf8ToUtf16(pdbBaseFile);
-    CreateDirectoryW(destinationPath.c_str(), nullptr);
-    destinationPath += L'\\';
-    destinationPath += StringUtils::Utf8ToUtf16(pdbSignature);
-    CreateDirectoryW(destinationPath.c_str(), nullptr);
-    destinationPath += '\\';
-    destinationPath += StringUtils::Utf8ToUtf16(pdbBaseFile);
-
-    Memory<char*> szDefaultStore(MAX_SETTING_SIZE + 1);
-    const char* szSymbolStore = szDefaultStore();
-    if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore())) //get default symbol store from settings
-    {
-        strcpy_s(szDefaultStore(), MAX_SETTING_SIZE, "https://msdl.microsoft.com/download/symbols");
-        BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore());
-    }
-
-    String symbolUrl(szSymbolStore);
-    if(symbolUrl.empty())
-    {
-        dputs("no symbol store URL specified...");
-        return false;
-    }
-    if(symbolUrl.back() != '/')
-        symbolUrl += '/';
-    symbolUrl += StringUtils::sprintf("%s/%s/%s", pdbBaseFile, pdbSignature.c_str(), pdbBaseFile);
-
-    dprintf("downloading symbol \"%s\", signature: %s, destination: \"%S\", url: \"%s\"\n", pdbBaseFile, pdbSignature.c_str(), destinationPath.c_str(), symbolUrl.c_str());
-
-    auto result = downslib_download(symbolUrl.c_str(), destinationPath.c_str(), "x64dbg", 1000, [](unsigned long long read_bytes, unsigned long long total_bytes)
-    {
-        if(total_bytes)
-        {
-            auto progress = (double)read_bytes / (double)total_bytes;
-            GuiSymbolSetProgress((int)(progress * 100.0));
-        }
-        return true;
-    });
-    GuiSymbolSetProgress(0);
-    dprintf("download_download = %d\n", result);
-
-    // TODO: handle errors
-    switch(result)
-    {
-    case DOWNSLIB_ERROR_OK:
-        break;
-    case DOWNSLIB_ERROR_INETOPEN:
-        break;
-    case DOWNSLIB_ERROR_OPENURL:
-        break;
-    case DOWNSLIB_ERROR_STATUSCODE:
-        break;
-    case DOWNSLIB_ERROR_CREATEFILE:
-        break;
-    case DOWNSLIB_ERROR_CANCEL:
-        break;
-    case DOWNSLIB_ERROR_INCOMPLETE:
-        break;
-    default:
-        __debugbreak();
-    }
-
-    // TODO: actually load the symbol from the cache
-
-    return true;
-    /*
     dputs(QT_TRANSLATE_NOOP("DBG", "This may take very long, depending on your network connection and data in the debug directory..."));
     Memory<char*> szDefaultStore(MAX_SETTING_SIZE + 1);
     const char* szSymbolStore = szDefaultStore();
@@ -278,52 +176,16 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid module \"%s\"!\n"), argv[1]);
         return false;
     }
-    wchar_t wszModulePath[MAX_PATH] = L"";
-    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, wszModulePath, MAX_PATH))
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExW failed!"));
-        return false;
-    }
-    wchar_t szOldSearchPath[MAX_PATH] = L"";
-    if(!SafeSymGetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymGetSearchPath failed!"));
-        return false;
-    }
-    char szServerSearchPath[MAX_PATH * 2] = "";
     if(argc > 2)
         szSymbolStore = argv[2];
-    sprintf_s(szServerSearchPath, "SRV*%s*%s", szSymbolCachePath, szSymbolStore);
-    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(szServerSearchPath).c_str())) //set new search path
+    if(!SymDownloadSymbol(modbase, szSymbolStore))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPath (1) failed!"));
-        return false;
-    }
-    if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase)) //unload module
-    {
-        SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath);
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymUnloadModule64 failed!"));
-        return false;
-    }
-    auto symOptions = SafeSymGetOptions();
-    SafeSymSetOptions(symOptions & ~SYMOPT_IGNORE_CVREC);
-    if(!SymLoadModuleExW(fdProcessInfo->hProcess, 0, wszModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx failed!"));
-        SafeSymSetOptions(symOptions);
-        SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath);
-        return false;
-    }
-    SafeSymSetOptions(symOptions);
-    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath))
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPathW (2) failed!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Symbol download failed... See symbol log for more information"));
         return false;
     }
     GuiSymbolRefreshCurrent();
     dputs(QT_TRANSLATE_NOOP("DBG", "Done! See symbol log for more information"));
     return true;
-    */
 }
 
 bool cbInstrImageinfo(int argc, char* argv[])

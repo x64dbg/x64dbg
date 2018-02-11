@@ -10,6 +10,7 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData);
 void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData);
 bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List);
 void SymUpdateModuleList();
+bool SymDownloadSymbol(duint Base, const char* SymbolStore);
 void SymDownloadAllSymbols(const char* SymbolStore);
 bool SymAddrFromName(const char* Name, duint* Address);
 String SymGetSymbolicName(duint Address);

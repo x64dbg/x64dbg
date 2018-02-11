@@ -10,6 +10,8 @@
 #include "module.h"
 #include "addrinfo.h"
 #include "dbghelp_safe.h"
+#include "exception.h"
+#include "WinInet-Downloader/downslib.h"
 
 struct SYMBOLCBDATA
 {
@@ -145,113 +147,148 @@ void SymUpdateModuleList()
     GuiSymbolUpdateModuleList((int)moduleCount, data);
 }
 
+bool SymDownloadSymbol(duint Base, const char* SymbolStore)
+{
+#define symprintf(format, ...) GuiSymbolLogAdd(StringUtils::sprintf(GuiTranslateText(format), __VA_ARGS__).c_str())
+
+    // Default to Microsoft's symbol server
+    if(!SymbolStore)
+        SymbolStore = "https://msdl.microsoft.com/download/symbols";
+
+    String pdbSignature, pdbFile;
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto info = ModInfoFromAddr(Base);
+        if(!info)
+        {
+            symprintf(QT_TRANSLATE_NOOP("DBG", "Module not found...\n"));
+            return false;
+        }
+        pdbSignature = info->pdbSignature;
+        pdbFile = info->pdbFile;
+    }
+    if(pdbSignature.empty() || pdbFile.empty()) // TODO: allow using module filename instead of pdbFile ?
+    {
+        symprintf(QT_TRANSLATE_NOOP("DBG", "Module has no symbol information...\n"));
+        return false;
+    }
+    auto found = strrchr(pdbFile.c_str(), '\\');
+    auto pdbBaseFile = found ? found + 1 : pdbFile.c_str();
+
+    // TODO: strict checks if this path is absolute
+    WString destinationPath(StringUtils::Utf8ToUtf16(szSymbolCachePath));
+    if(destinationPath.empty())
+    {
+        symprintf(QT_TRANSLATE_NOOP("DBG", "No destination symbol path specified...\n"));
+        return false;
+    }
+    CreateDirectoryW(destinationPath.c_str(), nullptr);
+    if(destinationPath.back() != L'\\')
+        destinationPath += L'\\';
+    destinationPath += StringUtils::Utf8ToUtf16(pdbBaseFile);
+    CreateDirectoryW(destinationPath.c_str(), nullptr);
+    destinationPath += L'\\';
+    destinationPath += StringUtils::Utf8ToUtf16(pdbSignature);
+    CreateDirectoryW(destinationPath.c_str(), nullptr);
+    destinationPath += '\\';
+    destinationPath += StringUtils::Utf8ToUtf16(pdbBaseFile);
+
+    String symbolUrl(SymbolStore);
+    if(symbolUrl.empty())
+    {
+        symprintf(QT_TRANSLATE_NOOP("DBG", "No symbol store URL specified...\n"));
+        return false;
+    }
+    if(symbolUrl.back() != '/')
+        symbolUrl += '/';
+    symbolUrl += StringUtils::sprintf("%s/%s/%s", pdbBaseFile, pdbSignature.c_str(), pdbBaseFile);
+
+    symprintf(QT_TRANSLATE_NOOP("DBG", "Downloading symbol %s\n  Signature: %s\n  Destination: %s\n  URL: %s\n"), pdbBaseFile, pdbSignature.c_str(), StringUtils::Utf16ToUtf8(destinationPath).c_str(), symbolUrl.c_str());
+
+    auto result = downslib_download(symbolUrl.c_str(), destinationPath.c_str(), "x64dbg", 1000, [](unsigned long long read_bytes, unsigned long long total_bytes)
+    {
+        if(total_bytes)
+        {
+            auto progress = (double)read_bytes / (double)total_bytes;
+            GuiSymbolSetProgress((int)(progress * 100.0));
+        }
+        return true;
+    });
+    GuiSymbolSetProgress(0);
+
+    switch(result)
+    {
+    case DOWNSLIB_ERROR_OK:
+        break;
+    case DOWNSLIB_ERROR_CREATEFILE:
+        //TODO: handle ERROR_SHARING_VIOLATION (unload symbols and try again)
+        symprintf(QT_TRANSLATE_NOOP("DBG", "Failed to create destination file (%s)...\n"), ErrorCodeToName(GetLastError()).c_str());
+        return false;
+    case DOWNSLIB_ERROR_INETOPEN:
+        symprintf(QT_TRANSLATE_NOOP("DBG", "InternetOpen failed (%s)...\n"), ErrorCodeToName(GetLastError()).c_str());
+        return false;
+    case DOWNSLIB_ERROR_OPENURL:
+        symprintf(QT_TRANSLATE_NOOP("DBG", "InternetOpenUrl failed (%s)...\n"), ErrorCodeToName(GetLastError()).c_str());
+        return false;
+    case DOWNSLIB_ERROR_STATUSCODE:
+        symprintf(QT_TRANSLATE_NOOP("DBG", "Connection succeeded, but download failed (status code: %d)...\n"), GetLastError());
+        return false;
+    case DOWNSLIB_ERROR_CANCEL:
+        symprintf(QT_TRANSLATE_NOOP("DBG", "Download interrupted...\n"), ErrorCodeToName(GetLastError()).c_str());
+        return false;
+    case DOWNSLIB_ERROR_INCOMPLETE:
+        symprintf(QT_TRANSLATE_NOOP("DBG", "Download incomplete...\n"), ErrorCodeToName(GetLastError()).c_str());
+        return false;
+    default:
+        __debugbreak();
+    }
+
+    {
+        EXCLUSIVE_ACQUIRE(LockModules);
+        auto info = ModInfoFromAddr(Base);
+        if(!info)
+        {
+            // TODO: this really isn't supposed to happen, but could if the module is suddenly unloaded
+            dputs("module not found...");
+            return false;
+        }
+
+        // insert the downloaded symbol path in the beginning of the PDB load order
+        auto destPathUtf8 = StringUtils::Utf16ToUtf8(destinationPath);
+        for(auto it = info->pdbPaths.begin(); it != info->pdbPaths.end(); ++it)
+        {
+            if(*it == destPathUtf8)
+            {
+                info->pdbPaths.erase(it);
+                break;
+            }
+        }
+        info->pdbPaths.insert(info->pdbPaths.begin(), destPathUtf8);
+
+        // trigger a symbol load
+        info->loadSymbols();
+    }
+
+    return true;
+
+#undef symprintf
+}
+
 void SymDownloadAllSymbols(const char* SymbolStore)
 {
     // Default to Microsoft's symbol server
     if(!SymbolStore)
         SymbolStore = "https://msdl.microsoft.com/download/symbols";
 
-    // Build the vector of modules
-    std::vector<SYMBOLMODULEINFO> modList;
-
-    if(!SymGetModuleList(&modList))
-        return;
-
-    // Skip loading if there aren't any found modules
-    if(modList.empty())
-        return;
-
-    // Backup the current symbol search path
-    wchar_t oldSearchPath[MAX_PATH];
-
-    if(!SafeSymGetSearchPathW(fdProcessInfo->hProcess, oldSearchPath, MAX_PATH))
+    //TODO: refactor this in a function because this pattern will become common
+    std::vector<duint> mods;
+    ModEnum([&mods](const MODINFO & info)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymGetSearchPathW failed!"));
-        return;
-    }
+        mods.push_back(info.base);
+    });
 
-    // Use the custom server path and directory
-    char customSearchPath[MAX_PATH * 2];
-    sprintf_s(customSearchPath, "SRV*%s*%s", szSymbolCachePath, SymbolStore);
-
-    auto symOptions = SafeSymGetOptions();
-    SafeSymSetOptions(symOptions & ~SYMOPT_IGNORE_CVREC);
-
-    const WString search_paths[] =
-    {
-        WString(),
-        StringUtils::Utf8ToUtf16(customSearchPath)
-    };
-
-    // Reload
-    for(auto & module : modList)
-    {
-        for(unsigned k = 0; k < sizeof(search_paths) / sizeof(*search_paths); k++)
-        {
-            const WString & cur_path = search_paths[k];
-
-            if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, cur_path.c_str()))
-            {
-                dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPathW (1) failed!"));
-                continue;
-            }
-
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Downloading symbols for %s...\n"), module.name);
-
-            wchar_t modulePath[MAX_PATH];
-            if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)module.base, modulePath, MAX_PATH))
-            {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExW (%p) failed!\n"), module.base);
-                continue;
-            }
-
-            if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)module.base))
-            {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "SymUnloadModule64 (%p) failed!\n"), module.base);
-                continue;
-            }
-
-            if(!SafeSymLoadModuleExW(fdProcessInfo->hProcess, 0, modulePath, 0, (DWORD64)module.base, 0, 0, 0))
-            {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx (%p) failed!\n"), module.base);
-                continue;
-            }
-
-            // symbols are lazy-loaded so let's load them and get the real return value
-
-            IMAGEHLP_MODULEW64 info;
-            info.SizeOfStruct = sizeof(info);
-
-            if(!SafeSymGetModuleInfoW64(fdProcessInfo->hProcess, (DWORD64)module.base, &info))
-            {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "SymGetModuleInfo64 (%p) failed!\n"), module.base);
-                continue;
-            }
-
-            bool status;
-
-            switch(info.SymType)
-            {
-            // XXX there may be more enum values meaning proper load
-            case SymPdb:
-                status = 1;
-                break;
-            default:
-            case SymExport: // always treat export symbols as failure
-                status = 0;
-                break;
-            }
-
-            if(status)
-                break;
-        }
-    }
-
-    SafeSymSetOptions(symOptions);
-
-    // Restore the old search path
-    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, oldSearchPath))
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPathW (2) failed!"));
+    for(duint base : mods)
+        SymDownloadSymbol(base, SymbolStore);
 }
 
 bool SymAddrFromName(const char* Name, duint* Address)
