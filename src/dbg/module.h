@@ -53,7 +53,6 @@ struct MODINFO
     char path[MAX_PATH];                // File path (in UTF8)
 
     std::vector<MODSECTIONINFO> sections;
-    std::vector<MODIMPORTINFO> imports;
     std::vector<MODRELOCATIONINFO> relocations;
     std::vector<duint> tlsCallbacks;
 
@@ -94,7 +93,6 @@ duint ModBaseFromName(const char* Module);
 duint ModSizeFromAddr(duint Address);
 std::string ModNameFromHash(duint Hash);
 bool ModSectionsFromAddr(duint Address, std::vector<MODSECTIONINFO>* Sections);
-bool ModImportsFromAddr(duint Address, std::vector<MODIMPORTINFO>* Imports);
 duint ModEntryFromAddr(duint Address);
 int ModPathFromAddr(duint Address, char* Path, int Size);
 int ModPathFromName(const char* Module, char* Path, int Size);
@@ -108,7 +106,6 @@ void ModEnum(const std::function<void(const MODINFO &)> & cbEnum);
 
 int ModGetParty(duint Address);
 void ModSetParty(duint Address, int Party);
-bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo);
 bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO> & Relocations);
 bool ModRelocationAtAddr(duint Address, MODRELOCATIONINFO* Relocation);
 bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO> & Relocations);

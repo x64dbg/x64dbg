@@ -327,9 +327,6 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
         Info.sections.push_back(curSection);
     }
 
-    // Clear imports by default
-    Info.imports.clear();
-
     ReadTlsCallbacks(Info, FileMapVA);
     ReadBaseRelocationTable(Info, FileMapVA);
     ReadDebugDirectory(Info, FileMapVA);
@@ -691,20 +688,6 @@ bool ModSectionsFromAddr(duint Address, std::vector<MODSECTIONINFO>* Sections)
     return true;
 }
 
-bool ModImportsFromAddr(duint Address, std::vector<MODIMPORTINFO>* Imports)
-{
-    SHARED_ACQUIRE(LockModules);
-
-    auto module = ModInfoFromAddr(Address);
-
-    if(!module)
-        return false;
-
-    // Copy vector <-> vector
-    *Imports = module->imports;
-    return true;
-}
-
 duint ModEntryFromAddr(duint Address)
 {
     SHARED_ACQUIRE(LockModules);
@@ -749,35 +732,6 @@ void ModEnum(const std::function<void(const MODINFO &)> & cbEnum)
     SHARED_ACQUIRE(LockModules);
     for(const auto & mod : modinfo)
         cbEnum(mod.second);
-}
-
-bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo)
-{
-    SHARED_ACQUIRE(LockModules);
-
-    if(!Base || !importInfo.addr)
-        return false;
-
-    auto module = ModInfoFromAddr(Base);
-
-    if(!module)
-        return false;
-
-    // Search in Import Vector
-    auto pImports = &(module->imports);
-    auto it = std::find_if(pImports->begin(), pImports->end(), [&importInfo](const MODIMPORTINFO & currentImportInfo)->bool
-    {
-        return (importInfo.addr == currentImportInfo.addr);
-    });
-
-    // Import in the list already
-    if(it != pImports->end())
-        return false;
-
-    // Add import to imports vector
-    pImports->push_back(importInfo);
-
-    return true;
 }
 
 int ModGetParty(duint Address)
