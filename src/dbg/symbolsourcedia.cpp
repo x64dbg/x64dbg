@@ -35,14 +35,14 @@ static void SetThreadDescription(std::thread & thread, WString name)
     fp(handle, name.c_str());
 }
 
-bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint imageSize)
+bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint imageSize, DiaValidationData_t* validationData)
 {
     if(!PDBDiaFile::initLibrary())
     {
         return false;
     }
 
-    bool res = _pdb.open(path.c_str());
+    bool res = _pdb.open(path.c_str(), 0, validationData);
 #if 1 // Async loading.
     if(res)
     {
@@ -195,7 +195,7 @@ bool SymbolSourceDIA::loadSymbolsAsync(String path)
     DWORD64 ms = GetTickCount64() - loadStart;
     double secs = (double)ms / 1000.0;
 
-    dprintf("Loaded %d symbols in %.03f\n", _symAddrs.size(), secs);
+    GuiSymbolLogAdd(StringUtils::sprintf("Loaded %d symbols in %.03f\n", _symAddrs.size(), secs).c_str());
 
     //TODO: make beautiful
     ListInfo blub;
@@ -225,7 +225,7 @@ bool SymbolSourceDIA::loadSourceLinesAsync(String path)
         return false;
     }
 
-    dprintf("Loading Source lines...\n");
+    GuiSymbolLogAdd(StringUtils::sprintf("Loading Source lines...\n").c_str());
 
     DWORD64 lineLoadStart = GetTickCount64();
 
@@ -291,7 +291,7 @@ bool SymbolSourceDIA::loadSourceLinesAsync(String path)
     DWORD64 ms = GetTickCount64() - lineLoadStart;
     double secs = (double)ms / 1000.0;
 
-    dprintf("Loaded %d line infos in %.03f\n", _lines.size(), secs);
+    GuiSymbolLogAdd(StringUtils::sprintf("Loaded %d line infos in %.03f\n", _lines.size(), secs).c_str());
 
     GuiUpdateAllViews();
 

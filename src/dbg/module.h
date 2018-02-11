@@ -29,6 +29,18 @@ struct MODRELOCATIONINFO
     bool Contains(duint Address) const;
 };
 
+struct PdbValidationData
+{
+    GUID guid;
+    DWORD signature = 0;
+    DWORD age = 0;
+
+    PdbValidationData()
+    {
+        memset(&guid, 0, sizeof(guid));
+    }
+};
+
 struct MODINFO
 {
     duint base = 0;  // Module base
@@ -44,10 +56,12 @@ struct MODINFO
     std::vector<MODIMPORTINFO> imports;
     std::vector<MODRELOCATIONINFO> relocations;
     std::vector<duint> tlsCallbacks;
-    //std::vector<bool> invalidSymbols; //TODO: remove?
-    SymbolSourceBase* symbols;
+
+    SymbolSourceBase* symbols = nullptr;
     String pdbSignature;
     String pdbFile;
+    PdbValidationData pdbValidation;
+    std::vector<String> pdbPaths; // Possible PDB paths (tried in order)
 
     HANDLE fileHandle = nullptr;
     DWORD loadedSize = 0;
@@ -62,6 +76,9 @@ struct MODINFO
         memset(extension, 0, sizeof(extension));
         memset(path, 0, sizeof(path));
     }
+
+    bool loadSymbols();
+    void unloadSymbols();
 };
 
 bool ModLoad(duint Base, duint Size, const char* FullPath);

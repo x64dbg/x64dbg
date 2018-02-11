@@ -51,7 +51,7 @@ enum class DiaCallingConvention
 
 struct DiaValidationData_t
 {
-    uint8_t guid[16];
+    GUID guid;
     uint32_t signature;
     uint32_t age;
 };

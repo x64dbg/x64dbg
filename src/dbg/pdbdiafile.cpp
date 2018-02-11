@@ -20,7 +20,7 @@ class DiaLoadCallback : public IDiaLoadCallback2
         /* [in] */ DWORD cbData,
         /* [size_is][in] */ BYTE* pbData) override
     {
-        dprintf("[DIA] NotifyDebugDir: %s\n", StringUtils::ToHex(pbData, cbData).c_str());
+        GuiSymbolLogAdd(StringUtils::sprintf("[DIA] NotifyDebugDir: %s\n", StringUtils::ToHex(pbData, cbData).c_str()).c_str());
         return S_OK;
     }
 
@@ -28,7 +28,7 @@ class DiaLoadCallback : public IDiaLoadCallback2
         /* [in] */ LPCOLESTR dbgPath,
         /* [in] */ HRESULT resultCode) override
     {
-        dprintf("[DIA] NotifyOpenDBG: %s, %08X\n", StringUtils::Utf16ToUtf8(dbgPath).c_str(), resultCode);
+        GuiSymbolLogAdd(StringUtils::sprintf("[DIA] NotifyOpenDBG: %s, %08X\n", StringUtils::Utf16ToUtf8(dbgPath).c_str(), resultCode).c_str());
         return S_OK;
     }
 
@@ -36,7 +36,7 @@ class DiaLoadCallback : public IDiaLoadCallback2
         /* [in] */ LPCOLESTR pdbPath,
         /* [in] */ HRESULT resultCode) override
     {
-        dprintf("[DIA] NotifyOpenPDB: %s, %08X\n", StringUtils::Utf16ToUtf8(pdbPath).c_str(), resultCode);
+        GuiSymbolLogAdd(StringUtils::sprintf("[DIA] NotifyOpenPDB: %s, %08X\n", StringUtils::Utf16ToUtf8(pdbPath).c_str(), resultCode).c_str());
         return S_OK;
     }
 
@@ -157,11 +157,7 @@ bool PDBDiaFile::shutdownLibrary()
 
 bool PDBDiaFile::open(const char* file, uint64_t loadAddress, DiaValidationData_t* validationData)
 {
-    wchar_t buf[1024];
-
-    mbstowcs_s(nullptr, buf, file, 1024);
-
-    return open(buf, loadAddress, validationData);
+    return open(StringUtils::Utf8ToUtf16(file).c_str(), loadAddress, validationData);
 }
 
 bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationData_t* validationData)
@@ -189,7 +185,7 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
         }
         else
         {
-            printf("Unable to initialize PDBDia Library.\n");
+            GuiSymbolLogAdd("Unable to initialize PDBDia Library.\n");
             return false;
         }
     }
@@ -200,15 +196,15 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
     {
         if(validationData != nullptr)
         {
-            hr = m_dataSource->loadAndValidateDataFromPdb(file, (GUID*)validationData->guid, validationData->signature, validationData->age);
+            hr = m_dataSource->loadAndValidateDataFromPdb(file, &validationData->guid, validationData->signature, validationData->age);
             if((hr == E_PDB_INVALID_SIG) || (hr == E_PDB_INVALID_AGE))
             {
-                printf("PDB is not matching.\n");
+                GuiSymbolLogAdd("PDB is not matching.\n");
                 return false;
             }
             else if(hr == E_PDB_FORMAT)
             {
-                printf("PDB uses an obsolete format.\n");
+                GuiSymbolLogAdd("PDB uses an obsolete format.\n");
                 return false;
             }
         }
@@ -227,7 +223,7 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
     {
         if(hr != E_PDB_NOT_FOUND)
         {
-            printf("Unable to open PDB file - %08X\n", hr);
+            GuiSymbolLogAdd(StringUtils::sprintf("Unable to open PDB file - %08X\n", hr).c_str());
         }
         return false;
     }
@@ -235,7 +231,7 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
     hr = m_dataSource->openSession(&m_session);
     if(testError(hr) || m_session == nullptr)
     {
-        printf("Unable to create new PDBDia Session - %08X\n", hr);
+        GuiSymbolLogAdd(StringUtils::sprintf("Unable to create new PDBDia Session - %08X\n", hr).c_str());
         return false;
     }
 
@@ -689,7 +685,7 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryCon
     uint32_t symId = getSymbolId(functionSym);
     if(context.visited.find(symId) != context.visited.end())
     {
-        printf("Dupe\n");
+        GuiSymbolLogAdd("Dupe\n");
         return true;
     }
 
@@ -976,9 +972,9 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
             {
                 if(test != symbolInfo.undecoratedName)
                 {
-                    dprintf("undecoration mismatch, msvcrt: \"%s\", DIA: \"%s\"\n",
+                    GuiSymbolLogAdd(StringUtils::sprintf("undecoration mismatch, msvcrt: \"%s\", DIA: \"%s\"\n",
                         symbolInfo.undecoratedName.c_str(),
-                        test.c_str());
+                        test.c_str()).c_str());
                 }
             }*/
         }

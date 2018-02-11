@@ -7,7 +7,9 @@
 #include "memory.h"
 #include "label.h"
 #include <algorithm>
+#include <shlwapi.h>
 #include "console.h"
+#include "debugger.h"
 
 std::map<Range, MODINFO, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;
@@ -181,8 +183,8 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         }
     }(debugDir.Type);
 
-    dprintf("IMAGE_DEBUG_DIRECTORY:\nCharacteristics: %08X\nTimeDateStamp: %08X\nMajorVersion: %04X\nMinorVersion: %04X\nType: %s\nSizeOfData: %08X\nAddressOfRawData: %08X\nPointerToRawData: %08X\n",
-            debugDir.Characteristics, debugDir.TimeDateStamp, debugDir.MajorVersion, debugDir.MinorVersion, typeName, debugDir.SizeOfData, debugDir.AddressOfRawData, debugDir.PointerToRawData);
+    /*dprintf("IMAGE_DEBUG_DIRECTORY:\nCharacteristics: %08X\nTimeDateStamp: %08X\nMajorVersion: %04X\nMinorVersion: %04X\nType: %s\nSizeOfData: %08X\nAddressOfRawData: %08X\nPointerToRawData: %08X\n",
+            debugDir.Characteristics, debugDir.TimeDateStamp, debugDir.MajorVersion, debugDir.MinorVersion, typeName, debugDir.SizeOfData, debugDir.AddressOfRawData, debugDir.PointerToRawData);*/
 
     if(debugDir.Type != IMAGE_DEBUG_TYPE_CODEVIEW) //TODO: support other types (DBG)?
     {
@@ -227,6 +229,8 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         auto cv = (CV_INFO_PDB20*)(FileMapVA + codeViewOffset);
         Info.pdbSignature = StringUtils::sprintf("%X%X", cv->Signature, cv->Age);
         Info.pdbFile = String((const char*)cv->PdbFileName);
+        Info.pdbValidation.signature = cv->Signature;
+        Info.pdbValidation.age = cv->Age;
     }
     else if(signature == 'SDSR')
     {
@@ -236,6 +240,8 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                             StringUtils::ToHex(cv->Signature.Data4, 8).c_str(),
                             cv->Age);
         Info.pdbFile = String((const char*)cv->PdbFileName);
+        memcpy(&Info.pdbValidation.guid, &cv->Signature, sizeof(GUID));
+        Info.pdbValidation.age = cv->Age;
     }
     else
     {
@@ -243,7 +249,44 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         return;
     }
 
-    dprintf("%s%s pdbSignature: %s, pdbFile: \"%s\"\n", Info.name, Info.extension, Info.pdbSignature.c_str(), Info.pdbFile.c_str());
+    //dprintf("%s%s pdbSignature: %s, pdbFile: \"%s\"\n", Info.name, Info.extension, Info.pdbSignature.c_str(), Info.pdbFile.c_str());
+
+    if(!Info.pdbFile.empty())
+    {
+        // Get the directory/filename from the debug directory PDB path
+        String dir, file;
+        auto lastIdx = Info.pdbFile.rfind('\\');
+        if(lastIdx == String::npos)
+            file = Info.pdbFile;
+        else
+        {
+            dir = Info.pdbFile.substr(0, lastIdx - 1);
+            file = Info.pdbFile.substr(lastIdx + 1);
+        }
+
+        // Program directory
+        char pdbPath[MAX_PATH];
+        strcpy_s(pdbPath, Info.path);
+        auto lastBack = strrchr(pdbPath, '\\');
+        if(lastBack)
+        {
+            lastBack[1] = '\0';
+            strncat_s(pdbPath, file.c_str(), _TRUNCATE);
+            Info.pdbPaths.push_back(pdbPath);
+        }
+
+        // Debug directory full path
+        const bool bAllowUncPathsInDebugDirectory = false; // TODO: create setting for this
+        if(!dir.empty() && (bAllowUncPathsInDebugDirectory || !PathIsUNCW(StringUtils::Utf8ToUtf16(Info.pdbFile).c_str())))
+            Info.pdbPaths.push_back(Info.pdbFile);
+
+        // Symbol cache
+        auto cachePath = String(szSymbolCachePath);
+        if(cachePath.back() != '\\')
+            cachePath += '\\';
+        cachePath += StringUtils::sprintf("%s\\%s\\%s", file.c_str(), Info.pdbSignature.c_str(), file.c_str());
+        Info.pdbPaths.push_back(cachePath);
+    }
 }
 
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
@@ -346,7 +389,6 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     info.loadedSize = 0;
     info.fileMap = nullptr;
     info.fileMapVA = 0;
-    //info.invalidSymbols.resize(Size);
 
     // Determine whether the module is located in system
     wchar_t sysdir[MAX_PATH];
@@ -396,43 +438,8 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
         GetModuleInfo(info, (ULONG_PTR)data());
     }
 
-    // Load Symbols.
-    info.symbols = &EmptySymbolSource; // Set to empty as default one.
-
-    // Try DIA
-    if(info.symbols == &EmptySymbolSource &&
-            SymbolSourceDIA::isLibraryAvailable())
-    {
-        SymbolSourceDIA* symSource = new SymbolSourceDIA();
-        if(symSource->loadPDB(info.path, Base, info.size))
-        {
-            symSource->resizeSymbolBitmap(info.size);
-
-            info.symbols = symSource;
-
-            std::string msg;
-            if(symSource->isLoading())
-                msg = StringUtils::sprintf("Loading async (MSDIA) PDB: %s\n", info.path);
-            else
-                msg = StringUtils::sprintf("Loaded (MSDIA) PDB: %s\n", info.path);
-
-            GuiAddLogMessage(msg.c_str());
-        }
-        else
-        {
-            delete symSource;
-        }
-    }
-    if(info.symbols == &EmptySymbolSource &&
-            true /* TODO */)
-    {
-    }
-
-    if(info.symbols->isOpen() == false)
-    {
-        std::string msg = StringUtils::sprintf("No symbols loaded for: %s\n", info.path);
-        GuiAddLogMessage(msg.c_str());
-    }
+    // TODO: setting to auto load symbols
+    info.loadSymbols();
 
     // Add module to list
     EXCLUSIVE_ACQUIRE(LockModules);
@@ -466,20 +473,12 @@ bool ModUnload(duint Base)
         return false;
 
     // Unload the mapped file from memory
-    const auto & info = found->second;
+    auto & info = found->second;
     if(info.fileMapVA)
         StaticFileUnloadW(StringUtils::Utf8ToUtf16(info.path).c_str(), false, info.fileHandle, info.loadedSize, info.fileMap, info.fileMapVA);
 
-    if(info.symbols != nullptr &&
-            info.symbols != &EmptySymbolSource)
-    {
-        if(info.symbols->isLoading())
-        {
-            info.symbols->cancelLoading();
-        }
-
-        delete info.symbols;
-    }
+    // Unload symbols from the module
+    info.unloadSymbols();
 
     // Remove it from the list
     modinfo.erase(found);
@@ -877,4 +876,75 @@ bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONI
     }
 
     return !Relocations.empty();
+}
+
+bool MODINFO::loadSymbols()
+{
+    unloadSymbols();
+    symbols = &EmptySymbolSource; // empty symbol source per default
+
+    // Try DIA
+    if(symbols == &EmptySymbolSource && SymbolSourceDIA::isLibraryAvailable())
+    {
+        // TODO: do something with searchPaths
+        DiaValidationData_t validationData;
+        memcpy(&validationData.guid, &pdbValidation.guid, sizeof(GUID));
+        validationData.signature = pdbValidation.signature;
+        validationData.age = pdbValidation.age;
+        SymbolSourceDIA* symSource = new SymbolSourceDIA();
+        for(const auto & pdbPath : pdbPaths)
+        {
+            if(!FileExists(pdbPath.c_str()))
+            {
+                GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Skipping non-existent PDB: %s\n", pdbPath.c_str()).c_str());
+            }
+            else if(symSource->loadPDB(pdbPath, base, size, &validationData))
+            {
+                symSource->resizeSymbolBitmap(size);
+
+                symbols = symSource;
+
+                std::string msg;
+                if(symSource->isLoading())
+                    msg = StringUtils::sprintf("[DIA] Loading PDB (async): %s\n", pdbPath.c_str());
+                else
+                    msg = StringUtils::sprintf("[DIA] Loaded PDB: %s\n", pdbPath.c_str());
+                GuiSymbolLogAdd(msg.c_str());
+
+                return true;
+            }
+            else
+            {
+                // TODO: more detailled error codes?
+                GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Failed to load PDB: %s\n", pdbPath.c_str()).c_str());
+            }
+        }
+        delete symSource;
+    }
+    if(symbols == &EmptySymbolSource && true) // TODO: try loading from other sources?
+    {
+    }
+
+    if(!symbols->isOpen())
+    {
+        std::string msg = StringUtils::sprintf("No symbols loaded for: %s%s\n", name, extension);
+        GuiSymbolLogAdd(msg.c_str());
+        return false;
+    }
+
+    return true;
+}
+
+void MODINFO::unloadSymbols()
+{
+    if(symbols != nullptr && symbols != &EmptySymbolSource)
+    {
+        if(symbols->isLoading())
+        {
+            symbols->cancelLoading();
+        }
+
+        delete symbols;
+        symbols = &EmptySymbolSource;
+    }
 }

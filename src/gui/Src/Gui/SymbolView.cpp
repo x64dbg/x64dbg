@@ -147,7 +147,7 @@ void SymbolView::loadWindowSettings()
 void SymbolView::setModuleSymbols(duint base, const std::vector<void*> & symbols)
 {
     //TODO: reload actual symbol list, race conditions
-    GuiAddLogMessage(QString("base: %1, count: %2\n").arg(ToPtrString(base)).arg(symbols.size()).toUtf8().constData());
+    GuiSymbolLogAdd(QString("[SymbolView] base: %1, count: %2\n").arg(ToPtrString(base)).arg(symbols.size()).toUtf8().constData());
     mModuleSymbolMap[base] = symbols;
 }
 

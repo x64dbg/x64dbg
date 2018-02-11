@@ -32,7 +32,7 @@ using CbEnumSymbol = std::function<bool(const SymbolInfo &)>;
 class SymbolSourceBase
 {
 private:
-    std::vector<uint8_t> _symbolBitmap;
+    std::vector<uint8_t> _symbolBitmap; // TODO: what is the maximum size for this?
 
 public:
     virtual ~SymbolSourceBase() = default;
