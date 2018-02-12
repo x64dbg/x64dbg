@@ -6,7 +6,8 @@
 SymbolSourceDIA::SymbolSourceDIA()
     : _requiresShutdown(false),
       _imageBase(0),
-      _loadCounter(0)
+      _loadCounter(0),
+      _isOpen(false)
 {
 }
 
@@ -15,11 +16,6 @@ SymbolSourceDIA::~SymbolSourceDIA()
     if(isLoading() || _symbolsThread.joinable() || _sourceLinesThread.joinable())
     {
         cancelLoading();
-    }
-
-    if(_pdb.isOpen())
-    {
-        _pdb.close();
     }
 }
 
@@ -42,10 +38,12 @@ bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint i
         return false;
     }
 
-    bool res = _pdb.open(path.c_str(), 0, validationData);
+    PDBDiaFile pdb; // Instance used for validation only.
+    _isOpen = pdb.open(path.c_str(), 0, validationData);
 #if 1 // Async loading.
-    if(res)
+    if(_isOpen)
     {
+
         _imageSize = imageSize;
         _imageBase = imageBase;
         _requiresShutdown = false;
@@ -56,12 +54,12 @@ bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint i
         SetThreadDescription(_symbolsThread, L"SourceLinesThread");
     }
 #endif
-    return res;
+    return _isOpen;
 }
 
 bool SymbolSourceDIA::isOpen() const
 {
-    return _pdb.isOpen();
+    return _isOpen;
 }
 
 bool SymbolSourceDIA::isLoading() const
@@ -158,7 +156,7 @@ bool SymbolSourceDIA::loadSymbolsAsync(String path)
         return true;
     };
 
-    bool res = _pdb.enumerateLexicalHierarchy(query);
+    bool res = pdb.enumerateLexicalHierarchy(query);
 
     if(!res)
     {
@@ -238,7 +236,7 @@ bool SymbolSourceDIA::loadSourceLinesAsync(String path)
 
         std::map<uint64_t, DiaLineInfo_t> lines;
 
-        bool res = _pdb.getFunctionLineNumbers(rva, rangeSize, _imageBase, lines);
+        bool res = pdb.getFunctionLineNumbers(rva, rangeSize, _imageBase, lines);
         for(const auto & line : lines)
         {
             if(_requiresShutdown)
@@ -367,9 +365,6 @@ void SymbolSourceDIA::enumSymbols(const CbEnumSymbol & cbEnum)
 
 bool SymbolSourceDIA::findSourceLineInfo(duint rva, LineInfo & lineInfo)
 {
-    if(isOpen() == false)
-        return false;
-
     ScopedSpinLock lock(_lockLines);
 
     auto it = _lines.find(rva);

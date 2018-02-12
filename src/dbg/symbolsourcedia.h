@@ -54,8 +54,7 @@ class SymbolSourceDIA : public SymbolSourceBase
     };
 
 private:
-    PDBDiaFile _pdb;
-
+    bool _isOpen;
     std::vector<SymbolInfo> _symData;
 
     struct AddrIndex
