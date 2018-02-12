@@ -26,7 +26,7 @@ static void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, SYMBOLCBDATA &
     SYMBOLINFO symbol;
     memset(&symbol, 0, sizeof(SYMBOLINFO));
     symbol.isImported = true;
-    apienumimports(Base, [&](duint base, duint addr, char* name, char* moduleName)
+    apienumimports(Base, [&](duint base, duint addr, const char* name, const char* moduleName)
     {
         cbData.decoratedSymbol[0] = '\0';
         cbData.undecoratedSymbol[0] = '\0';

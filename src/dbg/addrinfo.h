@@ -53,7 +53,7 @@ struct DepthModuleRangeCompare
 
 //typedefs
 typedef std::function<void (duint base, const char* mod, const char* name, duint addr)> EXPORTENUMCALLBACK;
-typedef std::function<void (duint base, duint addr, char* name, char* moduleName)> IMPORTENUMCALLBACK;
+typedef std::function<void (duint base, duint addr, const char* name, const char* moduleName)> IMPORTENUMCALLBACK;
 
 bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum);
 bool apienumimports(duint base, const IMPORTENUMCALLBACK & cbEnum);
