@@ -17,6 +17,7 @@ bool SymbolFromAddressExact(duint address, SymbolInfo & symInfo)
     if(address == 0)
         return false;
 
+    SHARED_ACQUIRE(LockModules);
     MODINFO* modInfo = ModInfoFromAddr(address);
     if(modInfo)
     {
@@ -35,6 +36,7 @@ bool SymbolFromAddressExactOrLower(duint address, SymbolInfo & symInfo)
     if(address == 0)
         return false;
 
+    SHARED_ACQUIRE(LockModules);
     MODINFO* modInfo = ModInfoFromAddr(address);
     if(modInfo)
     {

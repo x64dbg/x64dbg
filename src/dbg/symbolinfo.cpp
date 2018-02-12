@@ -353,6 +353,7 @@ String SymGetSymbolicName(duint Address)
 
 bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* disp)
 {
+    SHARED_ACQUIRE(LockModules);
     MODINFO* modInfo = ModInfoFromAddr(Cip);
     if(!modInfo)
         return false;
