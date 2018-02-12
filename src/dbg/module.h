@@ -8,25 +8,21 @@
 
 struct MODSECTIONINFO
 {
-    duint addr;      // Virtual address
-    duint size;      // Virtual size
-    char name[MAX_SECTION_SIZE * 5];  // Escaped section name
-};
-
-struct MODIMPORTINFO
-{
-    duint addr;     // Virtual address
-    char name[MAX_IMPORT_SIZE];
-    char moduleName[MAX_MODULE_SIZE];
+    duint addr; // Virtual address
+    duint size; // Virtual size
+    char name[MAX_SECTION_SIZE * 5]; // Escaped section name
 };
 
 struct MODRELOCATIONINFO
 {
-    DWORD rva;     // Virtual address
-    BYTE type;      // Relocation type (IMAGE_REL_BASED_*)
+    DWORD rva; // Virtual address
+    BYTE type; // Relocation type (IMAGE_REL_BASED_*)
     WORD size;
 
-    bool Contains(duint Address) const;
+    bool Contains(duint Address) const
+    {
+        return Address >= rva && Address < rva + size;
+    }
 };
 
 struct PdbValidationData
@@ -41,20 +37,46 @@ struct PdbValidationData
     }
 };
 
+struct MODEXPORT
+{
+    DWORD ordinal = 0;
+    DWORD rva = 0;
+    bool forwarded = false;
+    String forwardName;
+    String name;
+};
+
+struct MODIMPORT
+{
+    size_t moduleIndex; //index in MODINFO.importModules
+    DWORD iatRva;
+    duint ordinal; //equal to -1 if imported by name
+    String name;
+};
+
 struct MODINFO
 {
-    duint base = 0;  // Module base
-    duint size = 0;  // Module size
-    duint hash = 0;  // Full module name hash
+    duint base = 0; // Module base
+    duint size = 0; // Module size
+    duint hash = 0; // Full module name hash
     duint entry = 0; // Entry point
 
-    char name[MAX_MODULE_SIZE];         // Module name (without extension)
-    char extension[MAX_MODULE_SIZE];    // File extension
-    char path[MAX_PATH];                // File path (in UTF8)
+    char name[MAX_MODULE_SIZE]; // Module name (without extension)
+    char extension[MAX_MODULE_SIZE]; // File extension (including the dot)
+    char path[MAX_PATH]; // File path (in UTF8)
 
     std::vector<MODSECTIONINFO> sections;
     std::vector<MODRELOCATIONINFO> relocations;
     std::vector<duint> tlsCallbacks;
+
+    std::vector<MODEXPORT> exports;
+    DWORD exportOrdinalBase = 0; //ordinal - 'exportOrdinalBase' = index in 'exports'
+    std::vector<size_t> exportsByName; //index in 'exports', sorted by export name
+    std::vector<size_t> exportsByRva; //index in 'exports', sorted by rva
+
+    std::vector<String> importModules;
+    std::vector<MODIMPORT> imports;
+    std::vector<size_t> importsByRva; //index in 'imports', sorted by rva
 
     SymbolSourceBase* symbols = nullptr;
     String pdbSignature;

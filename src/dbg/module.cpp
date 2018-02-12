@@ -14,9 +14,152 @@
 std::map<Range, MODINFO, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;
 
-bool MODRELOCATIONINFO::Contains(duint Address) const
+static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 {
-    return Address >= rva && Address < rva + size;
+    // TODO: proper bounds checking
+
+    duint exportDirRva = GetPE32DataFromMappedFile(FileMapVA, 0, UE_EXPORTTABLEADDRESS);
+    duint exportDirSize = GetPE32DataFromMappedFile(FileMapVA, 0, UE_EXPORTTABLESIZE);
+    if(!exportDirRva || !exportDirSize)
+        return;
+
+    auto rva2offset = [&Info, FileMapVA](duint rva)
+    {
+        return ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, rva, true, false);
+    };
+
+    auto exportDirOffset = rva2offset(exportDirRva);
+    if(!exportDirOffset)
+        return;
+
+    auto exportDir = PIMAGE_EXPORT_DIRECTORY(exportDirOffset + FileMapVA);
+    if(!exportDir->NumberOfFunctions)
+        return;
+
+    auto addressOfFunctionsOffset = rva2offset(exportDir->AddressOfFunctions);
+    if(!addressOfFunctionsOffset)
+        return;
+
+    auto addressOfFunctions = PDWORD(addressOfFunctionsOffset + FileMapVA);
+
+    auto addressOfNamesOffset = rva2offset(exportDir->AddressOfNames);
+    auto addressOfNames = PDWORD(addressOfNamesOffset ? addressOfNamesOffset + FileMapVA : 0);
+
+    auto addressOfNameOrdinalsOffset = rva2offset(exportDir->AddressOfNameOrdinals);
+    auto addressOfNameOrdinals = PWORD(addressOfNameOrdinalsOffset ? addressOfNameOrdinalsOffset + FileMapVA : 0);
+
+    Info.exports.reserve(exportDir->NumberOfFunctions);
+    Info.exportOrdinalBase = exportDir->Base;
+
+    for(DWORD i = 0; i < exportDir->NumberOfFunctions; i++)
+    {
+        MODEXPORT entry;
+        entry.ordinal = i + exportDir->Base;
+        entry.rva = addressOfFunctions[i];
+        if(entry.forwarded = entry.rva >= exportDirRva && entry.rva < exportDirRva + exportDirSize)
+        {
+            auto forwardNameOffset = rva2offset(entry.rva);
+            if(forwardNameOffset) // TODO: what does the Windows loader do if this fails?
+                entry.forwardName = String((const char*)(forwardNameOffset + FileMapVA));
+        }
+        Info.exports.push_back(entry);
+    }
+
+    for(DWORD i = 0; i < exportDir->NumberOfNames; i++)
+    {
+        auto index = addressOfNameOrdinals[i];
+        if(index >= 0 && index < Info.exports.size()) // TODO: what does the Windows loader do if this fails?
+        {
+            auto nameOffset = rva2offset(addressOfNames[i]);
+            if(nameOffset) // TODO: what does the Windows loader do if this fails?
+                Info.exports[index].name = String((const char*)(nameOffset + FileMapVA));
+        }
+    }
+
+    // prepare sorted vectors
+    Info.exportsByName.resize(Info.exports.size());
+    Info.exportsByRva.resize(Info.exports.size());
+    for(size_t i = 0; i < Info.exports.size(); i++)
+    {
+        Info.exportsByName[i] = i;
+        Info.exportsByRva[i] = i;
+    }
+
+    std::sort(Info.exportsByName.begin(), Info.exportsByName.end(), [&Info](size_t a, size_t b)
+    {
+        return Info.exports.at(a).name < Info.exports.at(b).name;
+    });
+
+    std::sort(Info.exportsByRva.begin(), Info.exportsByRva.end(), [&Info](size_t a, size_t b)
+    {
+        return Info.exports.at(a).rva < Info.exports.at(b).rva;
+    });
+}
+
+static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
+{
+    // TODO: proper bounds checking
+
+    duint importDirRva = GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMPORTTABLEADDRESS);
+    duint importDirSize = GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMPORTTABLESIZE);
+    if(!importDirRva || !importDirSize)
+        return;
+
+    auto rva2offset = [&Info, FileMapVA](duint rva)
+    {
+        return ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, rva, true, false);
+    };
+
+    auto importDirOffset = rva2offset(importDirRva);
+    if(!importDirOffset)
+        return;
+
+    auto importDescriptor = PIMAGE_IMPORT_DESCRIPTOR(importDirOffset + FileMapVA);
+    for(size_t moduleIndex = 0; importDescriptor->FirstThunk; importDescriptor++, moduleIndex++)
+    {
+        auto moduleNameOffset = rva2offset(importDescriptor->Name);
+        if(!moduleNameOffset) // TODO: what does the Windows loader do if this fails?
+            continue;
+
+        auto moduleName = String((const char*)(moduleNameOffset + FileMapVA));
+        Info.importModules.push_back(moduleName);
+
+        auto firstThunkOffset = rva2offset(importDescriptor->FirstThunk);
+        if(!firstThunkOffset) // TODO: what does the Windows loader do if this fails?
+            continue;
+
+        auto thunkData = PIMAGE_THUNK_DATA(firstThunkOffset + FileMapVA);
+        for(auto iatRva = importDescriptor->FirstThunk; thunkData->u1.AddressOfData; thunkData++, iatRva += sizeof(duint))
+        {
+            MODIMPORT entry;
+            entry.iatRva = iatRva;
+            entry.moduleIndex = moduleIndex;
+            if((thunkData->u1.Ordinal & IMAGE_ORDINAL_FLAG) == IMAGE_ORDINAL_FLAG)
+            {
+                entry.ordinal = thunkData->u1.Ordinal & ~IMAGE_ORDINAL_FLAG;
+            }
+            else
+            {
+                auto importByNameOffset = rva2offset(thunkData->u1.AddressOfData);
+                if(!importByNameOffset) // TODO: what does the Windows loader do if this fails?
+                    continue;
+
+                auto importByName = PIMAGE_IMPORT_BY_NAME(importByNameOffset + FileMapVA);
+                entry.name = String((const char*)importByName->Name);
+                entry.ordinal = -1;
+            }
+            Info.imports.push_back(entry);
+        }
+    }
+
+    // prepare sorted vectors
+    Info.importsByRva.resize(Info.imports.size());
+    for(size_t i = 0; i < Info.imports.size(); i++)
+        Info.importsByRva[i] = i;
+    std::sort(Info.importsByRva.begin(), Info.importsByRva.end(), [&Info](size_t a, size_t b)
+    {
+        return Info.imports[a].iatRva < Info.imports[b].iatRva;
+    });
 }
 
 static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
@@ -32,15 +175,19 @@ static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
     if(tlsDirRva == 0 || tlsDirSize == 0)
         return;
 
-    auto tlsDir = PIMAGE_TLS_DIRECTORY(ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, tlsDirRva, true, false) + FileMapVA);
-    if(!tlsDir || !tlsDir->AddressOfCallBacks)
+    auto tlsDirOffset = ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, tlsDirRva, true, false);
+    if(!tlsDirOffset)
+        return;
+    auto tlsDir = PIMAGE_TLS_DIRECTORY(tlsDirOffset + FileMapVA);
+    if(!tlsDir->AddressOfCallBacks)
         return;
 
     auto imageBase = GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMAGEBASE);
-    auto tlsArray = PULONG_PTR(ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, tlsDir->AddressOfCallBacks - imageBase, true, false) + FileMapVA);
-    if(!tlsArray)
+    auto tlsArrayOffset = ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, tlsDir->AddressOfCallBacks - imageBase, true, false);
+    if(!tlsArrayOffset)
         return;
 
+    auto tlsArray = PULONG_PTR(tlsArrayOffset + FileMapVA);
     while(*tlsArray)
         Info.tlsCallbacks.push_back(*tlsArray++ - imageBase + Info.base);
 }
@@ -327,6 +474,8 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
         Info.sections.push_back(curSection);
     }
 
+    ReadExportDirectory(Info, FileMapVA);
+    ReadImportDirectory(Info, FileMapVA);
     ReadTlsCallbacks(Info, FileMapVA);
     ReadBaseRelocationTable(Info, FileMapVA);
     ReadDebugDirectory(Info, FileMapVA);
