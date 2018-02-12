@@ -15,7 +15,6 @@ struct SymbolInfo
     String decoratedName;
     String undecoratedName;
     bool publicSymbol;
-    bool valid;
 };
 
 struct LineInfo
