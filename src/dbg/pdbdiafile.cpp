@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <thread>
 #include <atomic>
+#include <mutex>
 #include <algorithm>
 
 #include "msdia/dia2.h"
@@ -86,6 +87,116 @@ class DiaLoadCallback : public IDiaLoadCallback2
     }
 };
 
+class DiaFileStream : public IStream
+{
+private:
+    HANDLE _hFile;
+
+public:
+    DiaFileStream(HANDLE hFile)
+    {
+        _hFile = hFile;
+    }
+
+    ~DiaFileStream()
+    {
+        if(_hFile != INVALID_HANDLE_VALUE)
+        {
+            ::CloseHandle(_hFile);
+        }
+    }
+
+public:
+    HRESULT static OpenFile(LPCWSTR pName, IStream** ppStream)
+    {
+        HANDLE hFile = ::CreateFileW(pName, GENERIC_READ, FILE_SHARE_READ,
+                                     NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+        if(hFile == INVALID_HANDLE_VALUE)
+            return HRESULT_FROM_WIN32(GetLastError());
+
+        DiaFileStream* out = new DiaFileStream(hFile);
+        *ppStream = out;
+
+        if(*ppStream == NULL)
+            CloseHandle(hFile);
+
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** ppvObject)
+    {
+        if(iid == __uuidof(IUnknown)
+                || iid == __uuidof(IStream)
+                || iid == __uuidof(ISequentialStream))
+        {
+            *ppvObject = static_cast<IStream*>(this);
+            return S_OK;
+        }
+        else
+            return E_NOINTERFACE;
+    }
+
+    virtual ULONG STDMETHODCALLTYPE AddRef(void)
+    {
+        return 1;
+    }
+
+    virtual ULONG STDMETHODCALLTYPE Release(void)
+    {
+        return 1;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Read(void* pv, ULONG cb, ULONG* pcbRead)
+    {
+        BOOL rc = ReadFile(_hFile, pv, cb, pcbRead, NULL);
+        return (rc) ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Seek(LARGE_INTEGER liDistanceToMove, DWORD dwOrigin,
+                                           ULARGE_INTEGER* lpNewFilePointer)
+    {
+        DWORD dwMoveMethod;
+
+        switch(dwOrigin)
+        {
+        case STREAM_SEEK_SET:
+            dwMoveMethod = FILE_BEGIN;
+            break;
+        case STREAM_SEEK_CUR:
+            dwMoveMethod = FILE_CURRENT;
+            break;
+        case STREAM_SEEK_END:
+            dwMoveMethod = FILE_END;
+            break;
+        default:
+            return STG_E_INVALIDFUNCTION;
+            break;
+        }
+
+        if(SetFilePointerEx(_hFile, liDistanceToMove, (PLARGE_INTEGER)lpNewFilePointer,
+                            dwMoveMethod) == 0)
+            return HRESULT_FROM_WIN32(GetLastError());
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Stat(STATSTG* pStatstg, DWORD grfStatFlag)
+    {
+        if(GetFileSizeEx(_hFile, (PLARGE_INTEGER)&pStatstg->cbSize) == 0)
+            return HRESULT_FROM_WIN32(GetLastError());
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Write(void const* pv, ULONG cb, ULONG* pcbWritten) {return E_NOTIMPL;}
+    virtual HRESULT STDMETHODCALLTYPE SetSize(ULARGE_INTEGER) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE CopyTo(IStream*, ULARGE_INTEGER, ULARGE_INTEGER*, ULARGE_INTEGER*) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE Commit(DWORD) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE Revert(void) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE LockRegion(ULARGE_INTEGER, ULARGE_INTEGER, DWORD) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE UnlockRegion(ULARGE_INTEGER, ULARGE_INTEGER, DWORD) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE Clone(IStream**) { return E_NOTIMPL; }
+};
+
 volatile LONG PDBDiaFile::m_sbInitialized = 0;
 
 template<typename T>
@@ -118,6 +229,7 @@ typedef ScopedDiaType<IDiaSymbol> ScopedDiaSymbol;
 typedef ScopedDiaType<IDiaEnumSymbols> ScopedDiaEnumSymbols;
 
 PDBDiaFile::PDBDiaFile() :
+    m_stream(nullptr),
     m_dataSource(nullptr),
     m_session(nullptr)
 {
@@ -162,6 +274,14 @@ bool PDBDiaFile::open(const char* file, uint64_t loadAddress, DiaValidationData_
 
 bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationData_t* validationData)
 {
+    if(isOpen())
+    {
+#if 1 // Enable for validation purpose.
+        __debugbreak();
+#endif
+        return false;
+    }
+
     wchar_t fileExt[MAX_PATH] = { 0 };
     wchar_t fileDir[MAX_PATH] = { 0 };
 
@@ -194,15 +314,17 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
 
     if(_wcsicmp(fileExt, L".pdb") == 0)
     {
+        hr = DiaFileStream::OpenFile(file, &m_stream);
+        if(testError(hr))
+        {
+            GuiSymbolLogAdd("Unable to open PDB file.\n");
+            return false;
+        }
+
         if(validationData != nullptr)
         {
-            hr = m_dataSource->loadAndValidateDataFromPdb(file, &validationData->guid, validationData->signature, validationData->age);
-            if((hr == E_PDB_INVALID_SIG) || (hr == E_PDB_INVALID_AGE))
-            {
-                GuiSymbolLogAdd("PDB is not matching.\n");
-                return false;
-            }
-            else if(hr == E_PDB_FORMAT)
+            hr = m_dataSource->loadDataFromIStream(m_stream);
+            if(hr == E_PDB_FORMAT)
             {
                 GuiSymbolLogAdd("PDB uses an obsolete format.\n");
                 return false;
@@ -210,11 +332,12 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
         }
         else
         {
-            hr = m_dataSource->loadDataFromPdb(file);
+            hr = m_dataSource->loadDataFromIStream(m_stream);
         }
     }
     else
     {
+        // NOTE: Unsupported use with IStream.
         DiaLoadCallback callback;
         hr = m_dataSource->loadDataForExe(file, fileDir, &callback);
     }
@@ -233,6 +356,51 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
     {
         GuiSymbolLogAdd(StringUtils::sprintf("Unable to create new PDBDia Session - %08X\n", hr).c_str());
         return false;
+    }
+
+    if(validationData != nullptr)
+    {
+        ScopedDiaType<IDiaSymbol> globalSym;
+        hr = m_session->get_globalScope(globalSym.ref());
+        if(testError(hr))
+        {
+            //??
+        }
+        else
+        {
+            DWORD age = 0;
+            hr = globalSym->get_age(&age);
+            if(!testError(hr) && validationData->age != age)
+            {
+                close();
+
+                GuiSymbolLogAdd("PDB age is not matching.\n");
+                return false;
+            }
+
+            // NOTE: For some reason this never matches, commented for now.
+            /*
+            DWORD signature = 0;
+            hr = globalSym->get_signature(&signature);
+            if (!testError(hr) && validationData->signature != signature)
+            {
+                close();
+
+                GuiSymbolLogAdd("PDB is not matching.\n");
+                return false;
+            }
+            */
+
+            GUID guid = {0};
+            hr = globalSym->get_guid(&guid);
+            if(!testError(hr) && memcmp(&guid, &validationData->guid, sizeof(GUID)) != 0)
+            {
+                close();
+
+                GuiSymbolLogAdd("PDB guid is not matching.\n");
+                return false;
+            }
+        }
     }
 
     if(loadAddress != 0)
@@ -254,6 +422,12 @@ bool PDBDiaFile::close()
         return false;
     if(m_session == nullptr)
         return false;
+
+    if(m_stream != nullptr)
+    {
+        delete(DiaFileStream*)m_stream;
+        m_stream = nullptr;
+    }
 
     m_session->Release();
     m_dataSource->Release();
