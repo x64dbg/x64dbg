@@ -91,8 +91,9 @@ private:
 
     //std::map<duint, SymbolInfo> _sym;
     std::map<duint, CachedLineInfo> _lines;
-    std::thread _symbolsThread;
-    std::thread _sourceLinesThread;
+    HANDLE _symbolsThread = nullptr;
+    HANDLE _sourceLinesThread = nullptr;
+    std::string _path;
     std::atomic<bool> _requiresShutdown;
     std::atomic<duint> _loadCounter;
     std::vector<String> _sourceFiles;
@@ -149,8 +150,8 @@ public:
 
 private:
     void loadPDBAsync();
-    bool loadSymbolsAsync(String path);
-    bool loadSourceLinesAsync(String path);
+    bool loadSymbolsAsync();
+    bool loadSourceLinesAsync();
 };
 
 #endif // _SYMBOLSOURCEPDB_H_

@@ -13,13 +13,10 @@ SymbolSourceDIA::SymbolSourceDIA()
 
 SymbolSourceDIA::~SymbolSourceDIA()
 {
-    if(isLoading() || _symbolsThread.joinable() || _sourceLinesThread.joinable())
-    {
-        cancelLoading();
-    }
+    cancelLoading();
 }
 
-static void SetThreadDescription(std::thread & thread, WString name)
+static void SetThreadDescription(HANDLE hThread, WString name)
 {
     typedef HRESULT(WINAPI * fnSetThreadDescription)(HANDLE hThread, PCWSTR lpThreadDescription);
 
@@ -27,8 +24,7 @@ static void SetThreadDescription(std::thread & thread, WString name)
     if(!fp)
         return; // Only available on windows 10.
 
-    HANDLE handle = static_cast<HANDLE>(thread.native_handle());
-    fp(handle, name.c_str());
+    fp(hThread, name.c_str());
 }
 
 bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint imageSize, DiaValidationData_t* validationData)
@@ -43,15 +39,25 @@ bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint i
 #if 1 // Async loading.
     if(_isOpen)
     {
-
+        _path = path;
         _imageSize = imageSize;
         _imageBase = imageBase;
         _requiresShutdown = false;
         _loadCounter.store(2);
-        _symbolsThread = std::thread(&SymbolSourceDIA::loadSymbolsAsync, this, path);
+        _symbolsThread = CreateThread(nullptr, 0, [](LPVOID thisPtr) -> DWORD
+        {
+            ((SymbolSourceDIA*)thisPtr)->loadSymbolsAsync();
+            return 0;
+        }, this, CREATE_SUSPENDED, nullptr);
         SetThreadDescription(_symbolsThread, L"SymbolsThread");
-        _sourceLinesThread = std::thread(&SymbolSourceDIA::loadSourceLinesAsync, this, path);
-        SetThreadDescription(_symbolsThread, L"SourceLinesThread");
+        _sourceLinesThread = CreateThread(nullptr, 0, [](LPVOID thisPtr) -> DWORD
+        {
+            ((SymbolSourceDIA*)thisPtr)->loadSourceLinesAsync();
+            return 0;
+        }, this, CREATE_SUSPENDED, nullptr);
+        SetThreadDescription(_sourceLinesThread, L"SourceLinesThread");
+        ResumeThread(_symbolsThread);
+        ResumeThread(_sourceLinesThread);
     }
 #endif
     return _isOpen;
@@ -70,17 +76,16 @@ bool SymbolSourceDIA::isLoading() const
 bool SymbolSourceDIA::cancelLoading()
 {
     _requiresShutdown.store(true);
-    while(_loadCounter > 0)
+    if(_symbolsThread)
     {
-        Sleep(1);
+        WaitForSingleObject(_symbolsThread, INFINITE);
+        CloseHandle(_symbolsThread);
     }
-
-    if(_symbolsThread.joinable())
-        _symbolsThread.join();
-
-    if(_sourceLinesThread.joinable())
-        _sourceLinesThread.join();
-
+    if(_sourceLinesThread)
+    {
+        WaitForSingleObject(_sourceLinesThread, INFINITE);
+        CloseHandle(_sourceLinesThread);
+    }
     return true;
 }
 
@@ -88,13 +93,13 @@ void SymbolSourceDIA::loadPDBAsync()
 {
 }
 
-bool SymbolSourceDIA::loadSymbolsAsync(String path)
+bool SymbolSourceDIA::loadSymbolsAsync()
 {
     ScopedDecrement ref(_loadCounter);
 
     PDBDiaFile pdb;
 
-    if(!pdb.open(path.c_str()))
+    if(!pdb.open(_path.c_str()))
     {
         return false;
     }
@@ -212,13 +217,13 @@ bool SymbolSourceDIA::loadSymbolsAsync(String path)
     return true;
 }
 
-bool SymbolSourceDIA::loadSourceLinesAsync(String path)
+bool SymbolSourceDIA::loadSourceLinesAsync()
 {
     ScopedDecrement ref(_loadCounter);
 
     PDBDiaFile pdb;
 
-    if(!pdb.open(path.c_str()))
+    if(!pdb.open(_path.c_str()))
     {
         return false;
     }
