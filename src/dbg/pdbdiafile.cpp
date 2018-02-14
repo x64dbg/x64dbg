@@ -423,16 +423,16 @@ bool PDBDiaFile::close()
     if(m_session == nullptr)
         return false;
 
+    m_session->Release();
+    m_dataSource->Release();
+    m_session = nullptr;
+    m_dataSource = nullptr;
+
     if(m_stream != nullptr)
     {
         delete(DiaFileStream*)m_stream;
         m_stream = nullptr;
     }
-
-    m_session->Release();
-    m_dataSource->Release();
-    m_session = nullptr;
-    m_dataSource = nullptr;
 
     return true;
 }
