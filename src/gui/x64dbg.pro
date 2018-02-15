@@ -168,7 +168,6 @@ SOURCES += \
     Src/Gui/WatchView.cpp \
     Src/Gui/FavouriteTools.cpp \
     Src/Gui/BrowseDialog.cpp \
-    Src/Gui/DisassemblerGraphView.cpp \
     Src/Gui/DisassemblyPopup.cpp \
     Src/Gui/VirtualModDialog.cpp \
     Src/BasicView/LabeledSplitter.cpp \
@@ -189,7 +188,10 @@ SOURCES += \
     Src/Tracer/TraceBrowser.cpp \
     Src/Tracer/TraceFileReader.cpp \
     Src/Tracer/TraceFileSearch.cpp \
-    Src/Gui/MultiItemsSelectWindow.cpp
+    Src/Gui/MultiItemsSelectWindow.cpp \
+    Src/Gui/DisassemblerGraphViewOld.cpp \
+    Src/Gui/GraphView.cpp \
+    Src/Gui/DisassemblerGraphView.cpp
 
 
 HEADERS += \
@@ -290,7 +292,6 @@ HEADERS += \
     Src/Gui/WatchView.h \
     Src/Gui/FavouriteTools.h \
     Src/Gui/BrowseDialog.h \
-    Src/Gui/DisassemblerGraphView.h \
     Src/Utils/ActionHelpers.h \
     Src/Gui/DisassemblyPopup.h \
     Src/Gui/VirtualModDialog.h \
@@ -313,7 +314,10 @@ HEADERS += \
     Src/Tracer/TraceFileReader.h \
     Src/Tracer/TraceFileReaderInternal.h \
     Src/Tracer/TraceFileSearch.h \
-    Src/Gui/MultiItemsSelectWindow.h
+    Src/Gui/MultiItemsSelectWindow.h \
+    Src/Gui/DisassemblerGraphViewOld.h \
+    Src/Gui/GraphView.h \
+    Src/Gui/DisassemblerGraphView.h
     
 
 FORMS += \

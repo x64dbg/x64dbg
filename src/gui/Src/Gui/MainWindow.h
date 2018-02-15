@@ -29,7 +29,7 @@ class MainWindowCloseThread;
 class TimeWastedCounter;
 class NotesManager;
 class SettingsDialog;
-class DisassemblerGraphView;
+class DisassemblerGraphViewOld;
 class SimpleTraceDialog;
 class MRUList;
 class UpdateChecker;
@@ -179,7 +179,7 @@ private:
     QWidget* mSnowmanView;
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
-    DisassemblerGraphView* mGraphView;
+    DisassemblerGraphViewOld* mGraphView;
     TraceBrowser* mTraceBrowser;
     SimpleTraceDialog* mSimpleTraceDialog;
     UpdateChecker* mUpdateChecker;

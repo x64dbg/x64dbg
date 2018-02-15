@@ -17,6 +17,7 @@
 #include "FavouriteTools.h"
 #include "CPUDisassembly.h"
 #include "CloseDialog.h"
+#include <QVBoxLayout>
 #include "CommandLineEdit.h"
 #include "TabWidget.h"
 #include "CPUWidget.h"
@@ -40,7 +41,7 @@
 #include "TimeWastedCounter.h"
 #include "NotesManager.h"
 #include "SettingsDialog.h"
-#include "DisassemblerGraphView.h"
+#include "DisassemblerGraphViewOld.h"
 #include "CPUMultiDump.h"
 #include "CPUStack.h"
 #include "GotoDialog.h"
@@ -201,7 +202,7 @@ MainWindow::MainWindow(QWidget* parent)
     mHandlesView->setWindowIcon(DIcon("handles.png"));
 
     // Graph view
-    mGraphView = new DisassemblerGraphView(this);
+    mGraphView = new DisassemblerGraphViewOld(this);
     mGraphView->setWindowTitle(tr("Graph"));
     mGraphView->setWindowIcon(DIcon("graph.png"));
 
@@ -220,13 +221,18 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mNotesManager, "NotesTab"));
     mWidgetList.push_back(WidgetInfo(mBreakpointsView, "BreakpointsTab"));
     mWidgetList.push_back(WidgetInfo(mMemMapView, "MemoryMapTab"));
-    mWidgetList.push_back(WidgetInfo(mCallStackView, "CallStackTab"));
+    //mWidgetList.push_back(WidgetInfo(mCallStackView, "CallStackTab"));
     mWidgetList.push_back(WidgetInfo(mSEHChainView, "SEHTab"));
     mWidgetList.push_back(WidgetInfo(mScriptView, "ScriptTab"));
     mWidgetList.push_back(WidgetInfo(mSymbolView, "SymbolsTab"));
     mWidgetList.push_back(WidgetInfo(mSourceViewManager, "SourceTab"));
     mWidgetList.push_back(WidgetInfo(mReferenceManager, "ReferencesTab"));
-    mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
+    QVBoxLayout* x = new QVBoxLayout();
+    x->addWidget(mThreadView);
+    x->addWidget(mCallStackView);
+    QWidget* w = new QWidget();
+    w->setLayout(x);
+    mWidgetList.push_back(WidgetInfo(w, "ThreadsTab"));
     mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
     mWidgetList.push_back(WidgetInfo(mTraceBrowser, "TraceTab"));
