@@ -6,7 +6,6 @@ mkdir %RELEASEDIR%
 echo pluginsdk
 
 mkdir %RELEASEDIR%\pluginsdk
-mkdir %RELEASEDIR%\pluginsdk\capstone
 mkdir %RELEASEDIR%\pluginsdk\dbghelp
 mkdir %RELEASEDIR%\pluginsdk\DeviceNameResolver
 mkdir %RELEASEDIR%\pluginsdk\jansson
@@ -16,7 +15,6 @@ mkdir %RELEASEDIR%\pluginsdk\XEDParse
 mkdir %RELEASEDIR%\pluginsdk\yara
 mkdir %RELEASEDIR%\pluginsdk\yara\yara
 
-xcopy src\capstone_wrapper\capstone %RELEASEDIR%\pluginsdk\capstone /S /Y
 xcopy src\dbg\dbghelp %RELEASEDIR%\pluginsdk\dbghelp /S /Y
 xcopy src\dbg\DeviceNameResolver %RELEASEDIR%\pluginsdk\DeviceNameResolver /S /Y
 xcopy src\dbg\jansson %RELEASEDIR%\pluginsdk\jansson /S /Y

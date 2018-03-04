@@ -1,6 +1,3 @@
-[submodule "src/capstone_wrapper"]
-	path = src/capstone_wrapper
-	url = https://github.com/x64dbg/capstone_wrapper.git
 [submodule "src/gui/Translations"]
 	path = src/gui/Translations
 	url = https://github.com/x64dbg/Translations.git

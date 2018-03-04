@@ -13,12 +13,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64dbg_dbg", "src\dbg\x64dbg_dbg.vcxproj", "{E6548308-401E-3A8A-5819-905DB90522A6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{944D9923-CB1A-6F6C-BCBC-9E00A71954C1} = {944D9923-CB1A-6F6C-BCBC-9E00A71954C1}
-		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15} = {C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64dbg_launcher", "src\launcher\x64dbg_launcher.vcxproj", "{AC3F927A-4079-4C97-B8BE-8D04546802E7}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "capstone_wrapper", "src\capstone_wrapper\capstone_wrapper.vcxproj", "{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zydis_wrapper", "src\zydis_wrapper\zydis_wrapper.vcxproj", "{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}"
 EndProject
@@ -62,14 +59,6 @@ Global
 		{AC3F927A-4079-4C97-B8BE-8D04546802E7}.Release|Win32.Build.0 = Release|Win32
 		{AC3F927A-4079-4C97-B8BE-8D04546802E7}.Release|x64.ActiveCfg = Release|Win32
 		{AC3F927A-4079-4C97-B8BE-8D04546802E7}.Release|x64.Build.0 = Release|Win32
-		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Debug|Win32.Build.0 = Debug|Win32
-		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Debug|x64.ActiveCfg = Debug|x64
-		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Debug|x64.Build.0 = Debug|x64
-		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Release|Win32.ActiveCfg = Release|Win32
-		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Release|Win32.Build.0 = Release|Win32
-		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Release|x64.ActiveCfg = Release|x64
-		{C9B06E6E-3534-4E7B-9C00-C3EA33CC4E15}.Release|x64.Build.0 = Release|x64
 		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Debug|Win32.ActiveCfg = Debug|Win32
 		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Debug|Win32.Build.0 = Debug|Win32
 		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Debug|x64.ActiveCfg = Debug|x64
