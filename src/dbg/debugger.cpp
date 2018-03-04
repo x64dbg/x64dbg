@@ -91,6 +91,7 @@ duint maxSkipExceptionCount = 10000;
 HANDLE mProcHandle;
 HANDLE mForegroundHandle;
 duint mRtrPreviousCSP = 0;
+HANDLE hDebugLoopThread = nullptr;
 
 static duint dbgcleartracestate()
 {
@@ -2543,10 +2544,6 @@ void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
 
 static void debugLoopFunction(void* lpParameter, bool attach)
 {
-    //we are running
-    EXCLUSIVE_ACQUIRE(LockDebugStartStop);
-    lock(WAITID_STOP);
-
     //initialize variables
     bIsAttached = attach;
     dbgsetskipexceptions(false);
@@ -2612,7 +2609,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
                 if(answer == IDYES && dbgrestartadmin())
                 {
                     fdProcessInfo = &g_pi;
-                    unlock(WAITID_STOP);
                     GuiCloseApplication();
                     return;
                 }
@@ -2625,7 +2621,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
                 error += ", uiAccess=\"true\"";
             }
             fdProcessInfo = &g_pi;
-            unlock(WAITID_STOP);
             dprintf(QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), error.c_str());
             return;
         }
@@ -2636,7 +2631,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "IsWow64Process failed!"));
             StopDebug();
-            unlock(WAITID_STOP);
             return;
         }
         if((mewow64 && !wow64) || (!mewow64 && wow64))
@@ -2646,7 +2640,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 #else
             dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this process!"));
 #endif // _WIN64
-            unlock(WAITID_STOP);
             return;
         }
 
@@ -2750,7 +2743,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     varset("$pid", (duint)0, true);
     if(hProcessToken)
         CloseHandle(hProcessToken);
-    unlock(WAITID_STOP); //we are done
+
     pDebuggedEntry = 0;
     pDebuggedBase = 0;
     pCreateProcessBase = 0;
