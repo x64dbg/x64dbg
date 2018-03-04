@@ -14,6 +14,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
     mMemPage = new MemoryPage(0, 0);
 
     mInstBuffer.clear();
+    setDrawDebugOnly(true);
 
     historyClear();
 

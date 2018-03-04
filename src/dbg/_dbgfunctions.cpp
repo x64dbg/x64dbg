@@ -103,7 +103,8 @@ static bool _patchrestore(duint addr)
 
 static void _getcallstack(DBGCALLSTACK* callstack)
 {
-    stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), (CALLSTACK*)callstack);
+    if(hActiveThread)
+        stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), (CALLSTACK*)callstack);
 }
 
 static void _getsehchain(DBGSEHCHAIN* sehchain)

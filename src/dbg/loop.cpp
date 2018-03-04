@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "threading.h"
 #include "module.h"
+#include "debugger.h"
 
 std::map<DepthModuleRange, LOOPSINFO, DepthModuleRangeCompare> loops;
 
