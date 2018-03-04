@@ -225,10 +225,10 @@ static void HandleCapstoneOperand(const Zydis & cp, int opindex, DISASM_ARGTYPE*
         {
             *value += ThreadGetLocalBase(ThreadGetId(hActiveThread));
         }
-        *memorySize = op.size;
+        *memorySize = op.size / 8;
         if(DbgMemIsValidReadPtr(*value))
         {
-            MemRead(*value, memoryContent, max(op.size, sizeof(duint)));
+            MemRead(*value, memoryContent, max(op.size / 8, sizeof(duint)));
         }
     }
     break;
