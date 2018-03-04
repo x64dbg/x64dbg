@@ -1,6 +1,6 @@
 #include "TraceFileReader.h"
 #include "TraceFileSearch.h"
-#include "capstone_wrapper.h"
+#include "zydis_wrapper.h"
 
 static bool inRange(duint value, duint start, duint end)
 {
@@ -27,7 +27,7 @@ static QString getIndexText(TraceFileReader* file, duint index)
 int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
 {
     int count = 0;
-    Capstone cp;
+    Zydis cp;
     QString title;
     if(start == end)
         title = QCoreApplication::translate("TraceFileSearch", "Constant: %1").arg(ToPtrString(start));
@@ -91,7 +91,7 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
 int TraceFileSearchMemReference(TraceFileReader* file, duint address)
 {
     int count = 0;
-    Capstone cp;
+    Zydis cp;
     GuiReferenceInitialize(QCoreApplication::translate("TraceFileSearch", "Reference").toUtf8().constData());
     GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Address").toUtf8().constData());
     GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Index").toUtf8().constData());

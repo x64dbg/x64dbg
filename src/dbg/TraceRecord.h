@@ -4,6 +4,7 @@
 #include "_dbgfunctions.h"
 #include "debugger.h"
 #include "jansson/jansson_x64dbg.h"
+#include <zydis_wrapper.h>
 
 class Capstone;
 
@@ -55,7 +56,7 @@ public:
 
     void TraceExecute(duint address, duint size);
     //void TraceAccess(duint address, unsigned char size, TraceRecordByteType accessType);
-    void TraceExecuteRecord(const Capstone & newInstruction);
+    void TraceExecuteRecord(const Zydis & newInstruction);
 
     unsigned int getHitCount(duint address);
     TraceRecordByteType getByteType(duint address);
