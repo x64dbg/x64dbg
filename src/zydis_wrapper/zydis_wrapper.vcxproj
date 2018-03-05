@@ -164,9 +164,6 @@
     <ClInclude Include="zydis\include\Zydis\String.h" />
     <ClInclude Include="zydis\include\Zydis\Utils.h" />
     <ClInclude Include="zydis\include\Zydis\Zydis.h" />
-    <ClInclude Include="zydis\src\DecoderData.h" />
-    <ClInclude Include="zydis\src\FormatHelper.h" />
-    <ClInclude Include="zydis\src\SharedData.h" />
     <ClInclude Include="zydis_wrapper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

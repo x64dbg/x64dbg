@@ -91,15 +91,6 @@
     <ClInclude Include="zydis\include\Zydis\Zydis.h">
       <Filter>Header Files\Zydis</Filter>
     </ClInclude>
-    <ClInclude Include="zydis\src\DecoderData.h">
-      <Filter>Source Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\src\FormatHelper.h">
-      <Filter>Source Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\src\SharedData.h">
-      <Filter>Source Files\Zydis</Filter>
-    </ClInclude>
     <ClInclude Include="zydis\include\Zydis\String.h">
       <Filter>Header Files\Zydis</Filter>
     </ClInclude>
