@@ -80,6 +80,7 @@ Releases of *x64dbg* can be found [here](http://releases.x64dbg.com).
 - [Tuts4You community](http://forum.tuts4you.com)
 - [ReSharper](https://www.jetbrains.com/resharper)
 - [Coverity](http://www.coverity.com)
+- Arpit Jain
 - acidflash
 - cyberbob
 - cypher
