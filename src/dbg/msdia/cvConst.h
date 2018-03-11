@@ -39,7 +39,8 @@ typedef enum CV_call_e
     CV_CALL_CLRCALL     = 0x16, // clr call
     CV_CALL_INLINE      = 0x17, // Marker for routines always inlined and thus lacking a convention
     CV_CALL_NEAR_VECTOR = 0x18, // near left to right push with regs, callee pops stack
-    CV_CALL_RESERVED    = 0x19  // first unused call enumeration
+    CV_CALL_SWIFT       = 0x19, // Swift calling convention
+    CV_CALL_RESERVED    = 0x20  // first unused call enumeration
 
                           // Do NOT add any more machine specific conventions.  This is to be used for
                           // calling conventions in the source only (e.g. __cdecl, __stdcall).
@@ -56,6 +57,7 @@ typedef enum CV_access_e
     CV_public    = 3
 } CV_access_e;
 
+
 typedef enum THUNK_ORDINAL
 {
     THUNK_ORDINAL_NOTYPE,       // standard thunk
@@ -66,9 +68,9 @@ typedef enum THUNK_ORDINAL
     //  via unknown means...
 
     // trampoline thunk ordinals   - only for use in Trampoline thunk symbols
+
     THUNK_ORDINAL_TRAMP_INCREMENTAL,
     THUNK_ORDINAL_TRAMP_BRANCHISLAND,
-
 } THUNK_ORDINAL;
 
 
@@ -76,7 +78,8 @@ enum CV_SourceChksum_t
 {
     CHKSUM_TYPE_NONE = 0,        // indicates no checksum is available
     CHKSUM_TYPE_MD5,
-    CHKSUM_TYPE_SHA1
+    CHKSUM_TYPE_SHA1,
+    CHKSUM_TYPE_SHA_256,
 };
 
 //
@@ -124,6 +127,10 @@ enum SymTagEnum
     SymTagHLSLType,
     SymTagCaller,
     SymTagCallee,
+    SymTagExport,
+    SymTagHeapAllocationSite,
+    SymTagCoffGroup,
+    SymTagInlinee,
     SymTagMax
 };
 
@@ -140,6 +147,7 @@ enum LocationType
     LocIsIlRel,
     LocInMetaData,
     LocIsConstant,
+    LocIsRegRelAliasIndir,
     LocTypeMax
 };
 
@@ -184,7 +192,9 @@ enum BasicType
     btComplex = 28,
     btBit = 29,
     btBSTR = 30,
-    btHresult = 31
+    btHresult = 31,
+    btChar16 = 32,  // char16_t
+    btChar32 = 33,  // char32_t
 };
 
 
@@ -230,7 +240,6 @@ typedef enum CV_modifier_e
 
 typedef enum CV_builtin_e
 {
-
     // 0x0000 - 0x01ff - Reserved.
     CV_BI_INVALID                       = 0x0000,
 
@@ -272,6 +281,7 @@ typedef enum CV_builtin_e
     CV_BI_HLSL_MIN12INT                 = 0x0221,
     CV_BI_HLSL_MIN16INT                 = 0x0222,
     CV_BI_HLSL_MIN16UINT                = 0x0223,
+    CV_BI_HLSL_CONSTANT_BUFFER          = 0x0224,
 
     // 0x0400 - 0xffff - Unused.
 
@@ -300,6 +310,9 @@ typedef enum CV_CFL_LANG
     CV_CFL_JSCRIPT  = 0x0E,
     CV_CFL_MSIL     = 0x0F,  // Unknown MSIL (LTCG of .NETMODULE)
     CV_CFL_HLSL     = 0x10,  // High Level Shader Language
+    CV_CFL_OBJC     = 0x11,  // Objective-C
+    CV_CFL_OBJCXX   = 0x12,  // Objective-C++
+    CV_CFL_SWIFT    = 0x13,  // Swift
 } CV_CFL_LANG;
 
 
@@ -308,71 +321,72 @@ typedef enum CV_CFL_LANG
 
 typedef enum CV_CPU_TYPE_e
 {
-    CV_CFL_8080         = 0x00,
-    CV_CFL_8086         = 0x01,
-    CV_CFL_80286        = 0x02,
-    CV_CFL_80386        = 0x03,
-    CV_CFL_80486        = 0x04,
-    CV_CFL_PENTIUM      = 0x05,
-    CV_CFL_PENTIUMII    = 0x06,
-    CV_CFL_PENTIUMPRO   = CV_CFL_PENTIUMII,
-    CV_CFL_PENTIUMIII   = 0x07,
-    CV_CFL_MIPS         = 0x10,
-    CV_CFL_MIPSR4000    = CV_CFL_MIPS,  // don't break current code
-    CV_CFL_MIPS16       = 0x11,
-    CV_CFL_MIPS32       = 0x12,
-    CV_CFL_MIPS64       = 0x13,
-    CV_CFL_MIPSI        = 0x14,
-    CV_CFL_MIPSII       = 0x15,
-    CV_CFL_MIPSIII      = 0x16,
-    CV_CFL_MIPSIV       = 0x17,
-    CV_CFL_MIPSV        = 0x18,
-    CV_CFL_M68000       = 0x20,
-    CV_CFL_M68010       = 0x21,
-    CV_CFL_M68020       = 0x22,
-    CV_CFL_M68030       = 0x23,
-    CV_CFL_M68040       = 0x24,
-    CV_CFL_ALPHA        = 0x30,
-    CV_CFL_ALPHA_21064  = 0x30,
-    CV_CFL_ALPHA_21164  = 0x31,
-    CV_CFL_ALPHA_21164A = 0x32,
-    CV_CFL_ALPHA_21264  = 0x33,
-    CV_CFL_ALPHA_21364  = 0x34,
-    CV_CFL_PPC601       = 0x40,
-    CV_CFL_PPC603       = 0x41,
-    CV_CFL_PPC604       = 0x42,
-    CV_CFL_PPC620       = 0x43,
-    CV_CFL_PPCFP        = 0x44,
-    CV_CFL_PPCBE        = 0x45,
-    CV_CFL_SH3          = 0x50,
-    CV_CFL_SH3E         = 0x51,
-    CV_CFL_SH3DSP       = 0x52,
-    CV_CFL_SH4          = 0x53,
-    CV_CFL_SHMEDIA      = 0x54,
-    CV_CFL_ARM3         = 0x60,
-    CV_CFL_ARM4         = 0x61,
-    CV_CFL_ARM4T        = 0x62,
-    CV_CFL_ARM5         = 0x63,
-    CV_CFL_ARM5T        = 0x64,
-    CV_CFL_ARM6         = 0x65,
-    CV_CFL_ARM_XMAC     = 0x66,
-    CV_CFL_ARM_WMMX     = 0x67,
-    CV_CFL_ARM7         = 0x68,
-    CV_CFL_OMNI         = 0x70,
-    CV_CFL_IA64         = 0x80,
-    CV_CFL_IA64_1       = 0x80,
-    CV_CFL_IA64_2       = 0x81,
-    CV_CFL_CEE          = 0x90,
-    CV_CFL_AM33         = 0xA0,
-    CV_CFL_M32R         = 0xB0,
-    CV_CFL_TRICORE      = 0xC0,
-    CV_CFL_X64          = 0xD0,
-    CV_CFL_AMD64        = CV_CFL_X64,
-    CV_CFL_EBC          = 0xE0,
-    CV_CFL_THUMB        = 0xF0,
-    CV_CFL_ARMNT        = 0xF4,
-    CV_CFL_ARM64        = 0xF6,
-    CV_CFL_D3D11_SHADER = 0x100,
+    CV_CFL_8080             = 0x00,
+    CV_CFL_8086             = 0x01,
+    CV_CFL_80286            = 0x02,
+    CV_CFL_80386            = 0x03,
+    CV_CFL_80486            = 0x04,
+    CV_CFL_PENTIUM          = 0x05,
+    CV_CFL_PENTIUMII        = 0x06,
+    CV_CFL_PENTIUMPRO       = CV_CFL_PENTIUMII,
+    CV_CFL_PENTIUMIII       = 0x07,
+    CV_CFL_MIPS             = 0x10,
+    CV_CFL_MIPSR4000        = CV_CFL_MIPS,  // don't break current code
+    CV_CFL_MIPS16           = 0x11,
+    CV_CFL_MIPS32           = 0x12,
+    CV_CFL_MIPS64           = 0x13,
+    CV_CFL_MIPSI            = 0x14,
+    CV_CFL_MIPSII           = 0x15,
+    CV_CFL_MIPSIII          = 0x16,
+    CV_CFL_MIPSIV           = 0x17,
+    CV_CFL_MIPSV            = 0x18,
+    CV_CFL_M68000           = 0x20,
+    CV_CFL_M68010           = 0x21,
+    CV_CFL_M68020           = 0x22,
+    CV_CFL_M68030           = 0x23,
+    CV_CFL_M68040           = 0x24,
+    CV_CFL_ALPHA            = 0x30,
+    CV_CFL_ALPHA_21064      = 0x30,
+    CV_CFL_ALPHA_21164      = 0x31,
+    CV_CFL_ALPHA_21164A     = 0x32,
+    CV_CFL_ALPHA_21264      = 0x33,
+    CV_CFL_ALPHA_21364      = 0x34,
+    CV_CFL_PPC601           = 0x40,
+    CV_CFL_PPC603           = 0x41,
+    CV_CFL_PPC604           = 0x42,
+    CV_CFL_PPC620           = 0x43,
+    CV_CFL_PPCFP            = 0x44,
+    CV_CFL_PPCBE            = 0x45,
+    CV_CFL_SH3              = 0x50,
+    CV_CFL_SH3E             = 0x51,
+    CV_CFL_SH3DSP           = 0x52,
+    CV_CFL_SH4              = 0x53,
+    CV_CFL_SHMEDIA          = 0x54,
+    CV_CFL_ARM3             = 0x60,
+    CV_CFL_ARM4             = 0x61,
+    CV_CFL_ARM4T            = 0x62,
+    CV_CFL_ARM5             = 0x63,
+    CV_CFL_ARM5T            = 0x64,
+    CV_CFL_ARM6             = 0x65,
+    CV_CFL_ARM_XMAC         = 0x66,
+    CV_CFL_ARM_WMMX         = 0x67,
+    CV_CFL_ARM7             = 0x68,
+    CV_CFL_OMNI             = 0x70,
+    CV_CFL_IA64             = 0x80,
+    CV_CFL_IA64_1           = 0x80,
+    CV_CFL_IA64_2           = 0x81,
+    CV_CFL_CEE              = 0x90,
+    CV_CFL_AM33             = 0xA0,
+    CV_CFL_M32R             = 0xB0,
+    CV_CFL_TRICORE          = 0xC0,
+    CV_CFL_X64              = 0xD0,
+    CV_CFL_AMD64            = CV_CFL_X64,
+    CV_CFL_EBC              = 0xE0,
+    CV_CFL_THUMB            = 0xF0,
+    CV_CFL_ARMNT            = 0xF4,
+    CV_CFL_ARM64            = 0xF6,
+    CV_CFL_HYBRID_X86_ARM64 = 0xF7,
+    CV_CFL_D3D11_SHADER     = 0x100,
 } CV_CPU_TYPE_e;
 
 typedef enum CV_HREG_e
@@ -747,6 +761,40 @@ typedef enum CV_HREG_e
     CV_REG_YMM7D1     =    393,
     CV_REG_YMM7D2     =    394,
     CV_REG_YMM7D3     =    395,
+
+    CV_REG_BND0       =    396,    // x86 MPX bounds registers
+    CV_REG_BND1       =    397,
+    CV_REG_BND2       =    398,
+    CV_REG_BND3       =    399,
+    CV_REG_BNDCFGU    =    400,
+    CV_REG_BNDSTATUS  =    401,
+
+    CV_REG_ZMM0       =    402,     // AVX-512 registers
+    CV_REG_ZMM1       =    403,
+    CV_REG_ZMM2       =    404,
+    CV_REG_ZMM3       =    405,
+    CV_REG_ZMM4       =    406,
+    CV_REG_ZMM5       =    407,
+    CV_REG_ZMM6       =    408,
+    CV_REG_ZMM7       =    409,
+
+    CV_REG_ZMM0H      =    410,
+    CV_REG_ZMM1H      =    411,
+    CV_REG_ZMM2H      =    412,
+    CV_REG_ZMM3H      =    413,
+    CV_REG_ZMM4H      =    414,
+    CV_REG_ZMM5H      =    415,
+    CV_REG_ZMM6H      =    416,
+    CV_REG_ZMM7H      =    417,
+
+    CV_REG_K0         =    418,
+    CV_REG_K1         =    419,
+    CV_REG_K2         =    420,
+    CV_REG_K3         =    421,
+    CV_REG_K4         =    422,
+    CV_REG_K5         =    423,
+    CV_REG_K6         =    424,
+    CV_REG_K7        =     425,
 
     // registers for the 68K processors
 
@@ -1575,10 +1623,12 @@ typedef enum CV_HREG_e
     CV_ARM64_LR     =  80,
     CV_ARM64_SP     =  81,
     CV_ARM64_ZR     =  82,
+    CV_ARM64_PC     =  83,
 
-    // statue register
+    // status registers
 
     CV_ARM64_NZCV   =  90,
+    CV_ARM64_CPSR   =  91,
 
     // 32-bit floating point registers
 
@@ -1688,6 +1738,147 @@ typedef enum CV_HREG_e
     // Floating point status register
 
     CV_ARM64_FPSR   =  220,
+    CV_ARM64_FPCR   =  221,
+
+    // 8-bit floating point registers
+
+    CV_ARM64_B0     =  230,
+    CV_ARM64_B1     =  231,
+    CV_ARM64_B2     =  232,
+    CV_ARM64_B3     =  233,
+    CV_ARM64_B4     =  234,
+    CV_ARM64_B5     =  235,
+    CV_ARM64_B6     =  236,
+    CV_ARM64_B7     =  237,
+    CV_ARM64_B8     =  238,
+    CV_ARM64_B9     =  239,
+    CV_ARM64_B10    =  240,
+    CV_ARM64_B11    =  241,
+    CV_ARM64_B12    =  242,
+    CV_ARM64_B13    =  243,
+    CV_ARM64_B14    =  244,
+    CV_ARM64_B15    =  245,
+    CV_ARM64_B16    =  246,
+    CV_ARM64_B17    =  247,
+    CV_ARM64_B18    =  248,
+    CV_ARM64_B19    =  249,
+    CV_ARM64_B20    =  250,
+    CV_ARM64_B21    =  251,
+    CV_ARM64_B22    =  252,
+    CV_ARM64_B23    =  253,
+    CV_ARM64_B24    =  254,
+    CV_ARM64_B25    =  255,
+    CV_ARM64_B26    =  256,
+    CV_ARM64_B27    =  257,
+    CV_ARM64_B28    =  258,
+    CV_ARM64_B29    =  259,
+    CV_ARM64_B30    =  260,
+    CV_ARM64_B31    =  261,
+
+    // 16-bit floating point registers
+
+    CV_ARM64_H0     =  270,
+    CV_ARM64_H1     =  271,
+    CV_ARM64_H2     =  272,
+    CV_ARM64_H3     =  273,
+    CV_ARM64_H4     =  274,
+    CV_ARM64_H5     =  275,
+    CV_ARM64_H6     =  276,
+    CV_ARM64_H7     =  277,
+    CV_ARM64_H8     =  278,
+    CV_ARM64_H9     =  279,
+    CV_ARM64_H10    =  280,
+    CV_ARM64_H11    =  281,
+    CV_ARM64_H12    =  282,
+    CV_ARM64_H13    =  283,
+    CV_ARM64_H14    =  284,
+    CV_ARM64_H15    =  285,
+    CV_ARM64_H16    =  286,
+    CV_ARM64_H17    =  287,
+    CV_ARM64_H18    =  288,
+    CV_ARM64_H19    =  289,
+    CV_ARM64_H20    =  290,
+    CV_ARM64_H21    =  291,
+    CV_ARM64_H22    =  292,
+    CV_ARM64_H23    =  293,
+    CV_ARM64_H24    =  294,
+    CV_ARM64_H25    =  295,
+    CV_ARM64_H26    =  296,
+    CV_ARM64_H27    =  297,
+    CV_ARM64_H28    =  298,
+    CV_ARM64_H29    =  299,
+    CV_ARM64_H30    =  300,
+    CV_ARM64_H31    =  301,
+
+    // 128-bit vector registers
+
+    CV_ARM64_V0     =  310,
+    CV_ARM64_V1     =  311,
+    CV_ARM64_V2     =  312,
+    CV_ARM64_V3     =  313,
+    CV_ARM64_V4     =  314,
+    CV_ARM64_V5     =  315,
+    CV_ARM64_V6     =  316,
+    CV_ARM64_V7     =  317,
+    CV_ARM64_V8     =  318,
+    CV_ARM64_V9     =  319,
+    CV_ARM64_V10    =  320,
+    CV_ARM64_V11    =  321,
+    CV_ARM64_V12    =  322,
+    CV_ARM64_V13    =  323,
+    CV_ARM64_V14    =  324,
+    CV_ARM64_V15    =  325,
+    CV_ARM64_V16    =  326,
+    CV_ARM64_V17    =  327,
+    CV_ARM64_V18    =  328,
+    CV_ARM64_V19    =  329,
+    CV_ARM64_V20    =  330,
+    CV_ARM64_V21    =  331,
+    CV_ARM64_V22    =  332,
+    CV_ARM64_V23    =  333,
+    CV_ARM64_V24    =  334,
+    CV_ARM64_V25    =  335,
+    CV_ARM64_V26    =  336,
+    CV_ARM64_V27    =  337,
+    CV_ARM64_V28    =  338,
+    CV_ARM64_V29    =  339,
+    CV_ARM64_V30    =  340,
+    CV_ARM64_V31    =  341,
+
+    // 128-bit SIMD registers upper 64 bits
+
+    CV_ARM64_Q0H    =  350,
+    CV_ARM64_Q1H    =  351,
+    CV_ARM64_Q2H    =  352,
+    CV_ARM64_Q3H    =  353,
+    CV_ARM64_Q4H    =  354,
+    CV_ARM64_Q5H    =  355,
+    CV_ARM64_Q6H    =  356,
+    CV_ARM64_Q7H    =  357,
+    CV_ARM64_Q8H    =  358,
+    CV_ARM64_Q9H    =  359,
+    CV_ARM64_Q10H   =  360,
+    CV_ARM64_Q11H   =  361,
+    CV_ARM64_Q12H   =  362,
+    CV_ARM64_Q13H   =  363,
+    CV_ARM64_Q14H   =  364,
+    CV_ARM64_Q15H   =  365,
+    CV_ARM64_Q16H   =  366,
+    CV_ARM64_Q17H   =  367,
+    CV_ARM64_Q18H   =  368,
+    CV_ARM64_Q19H   =  369,
+    CV_ARM64_Q20H   =  370,
+    CV_ARM64_Q21H   =  371,
+    CV_ARM64_Q22H   =  372,
+    CV_ARM64_Q23H   =  373,
+    CV_ARM64_Q24H   =  374,
+    CV_ARM64_Q25H   =  375,
+    CV_ARM64_Q26H   =  376,
+    CV_ARM64_Q27H   =  377,
+    CV_ARM64_Q28H   =  378,
+    CV_ARM64_Q29H   =  379,
+    CV_ARM64_Q30H   =  380,
+    CV_ARM64_Q31H   =  381,
 
     //
     // Register set for Intel IA64
@@ -3634,11 +3825,110 @@ typedef enum CV_HREG_e
     CV_AMD64_YMM15D0    =  684,
     CV_AMD64_YMM15D1    =  685,
     CV_AMD64_YMM15D2    =  686,
-    CV_AMD64_YMM15D3    =  687
+    CV_AMD64_YMM15D3    =  687,
 
+    CV_AMD64_BND0       =  688,        // AMD64 MPX bounds registers
+    CV_AMD64_BND1       =  689,
+    CV_AMD64_BND2       =  690,
+    CV_AMD64_BND3       =  691,
+    CV_AMD64_BNDCFGU    =  692,
+    CV_AMD64_BNDSTATUS  =  693,
 
-                           // Note:  Next set of platform registers need to go into a new enum...
-                           // this one is above 44K now.
+    CV_AMD64_XMM16      =  694,     // AVX-512 registers
+    CV_AMD64_XMM17      =  695,
+    CV_AMD64_XMM18      =  696,
+    CV_AMD64_XMM19      =  697,
+    CV_AMD64_XMM20      =  698,
+    CV_AMD64_XMM21      =  699,
+    CV_AMD64_XMM22      =  700,
+    CV_AMD64_XMM23      =  701,
+    CV_AMD64_XMM24      =  702,
+    CV_AMD64_XMM25      =  703,
+    CV_AMD64_XMM26      =  704,
+    CV_AMD64_XMM27      =  705,
+    CV_AMD64_XMM28      =  706,
+    CV_AMD64_XMM29      =  707,
+    CV_AMD64_XMM30      =  708,
+    CV_AMD64_XMM31      =  709,
+
+    CV_AMD64_YMM16      =  710,
+    CV_AMD64_YMM17      =  711,
+    CV_AMD64_YMM18      =  712,
+    CV_AMD64_YMM19      =  713,
+    CV_AMD64_YMM20      =  714,
+    CV_AMD64_YMM21      =  715,
+    CV_AMD64_YMM22      =  716,
+    CV_AMD64_YMM23      =  717,
+    CV_AMD64_YMM24      =  718,
+    CV_AMD64_YMM25      =  719,
+    CV_AMD64_YMM26      =  720,
+    CV_AMD64_YMM27      =  721,
+    CV_AMD64_YMM28      =  722,
+    CV_AMD64_YMM29      =  723,
+    CV_AMD64_YMM30      =  724,
+    CV_AMD64_YMM31      =  725,
+
+    CV_AMD64_ZMM0       =  726,
+    CV_AMD64_ZMM1       =  727,
+    CV_AMD64_ZMM2       =  728,
+    CV_AMD64_ZMM3       =  729,
+    CV_AMD64_ZMM4       =  730,
+    CV_AMD64_ZMM5       =  731,
+    CV_AMD64_ZMM6       =  732,
+    CV_AMD64_ZMM7       =  733,
+    CV_AMD64_ZMM8       =  734,
+    CV_AMD64_ZMM9       =  735,
+    CV_AMD64_ZMM10      =  736,
+    CV_AMD64_ZMM11      =  737,
+    CV_AMD64_ZMM12      =  738,
+    CV_AMD64_ZMM13      =  739,
+    CV_AMD64_ZMM14      =  740,
+    CV_AMD64_ZMM15      =  741,
+    CV_AMD64_ZMM16      =  742,
+    CV_AMD64_ZMM17      =  743,
+    CV_AMD64_ZMM18      =  744,
+    CV_AMD64_ZMM19      =  745,
+    CV_AMD64_ZMM20      =  746,
+    CV_AMD64_ZMM21      =  747,
+    CV_AMD64_ZMM22      =  748,
+    CV_AMD64_ZMM23      =  749,
+    CV_AMD64_ZMM24      =  750,
+    CV_AMD64_ZMM25      =  751,
+    CV_AMD64_ZMM26      =  752,
+    CV_AMD64_ZMM27      =  753,
+    CV_AMD64_ZMM28      =  754,
+    CV_AMD64_ZMM29      =  755,
+    CV_AMD64_ZMM30      =  756,
+    CV_AMD64_ZMM31      =  757,
+
+    CV_AMD64_K0         =  758,
+    CV_AMD64_K1         =  759,
+    CV_AMD64_K2         =  760,
+    CV_AMD64_K3         =  761,
+    CV_AMD64_K4         =  762,
+    CV_AMD64_K5         =  763,
+    CV_AMD64_K6         =  764,
+    CV_AMD64_K7         =  765,
+
+    CV_AMD64_ZMM0H      =  766,     // upper 256 bits of the first 16 AMD64 AVX-512 registers
+    CV_AMD64_ZMM1H      =  767,
+    CV_AMD64_ZMM2H      =  768,
+    CV_AMD64_ZMM3H      =  769,
+    CV_AMD64_ZMM4H      =  770,
+    CV_AMD64_ZMM5H      =  771,
+    CV_AMD64_ZMM6H      =  772,
+    CV_AMD64_ZMM7H      =  773,
+    CV_AMD64_ZMM8H      =  774,
+    CV_AMD64_ZMM9H      =  775,
+    CV_AMD64_ZMM10H     =  776,
+    CV_AMD64_ZMM11H     =  777,
+    CV_AMD64_ZMM12H     =  778,
+    CV_AMD64_ZMM13H     =  779,
+    CV_AMD64_ZMM14H     =  780,
+    CV_AMD64_ZMM15H     =  781,
+
+    // Note:  Next set of platform registers need to go into a new enum...
+    // this one is above 44K now.
 
 } CV_HREG_e;
 
@@ -3719,5 +4009,16 @@ typedef enum CV_HLSLMemorySpace_e
 
     CV_HLSL_MEMSPACE_MAX          = 0x0F,
 } CV_HLSLMemorySpace_e;
+
+enum
+{
+    NAMEHASH_BUILD_START,
+    NAMEHASH_BUILD_PAUSE,
+    NAMEHASH_BUILD_RESUME,
+    NAMEHASH_BUILD_COMPLETE,
+    NAMEHASH_BUILD_ERROR,
+    NAMEHASH_BUILD_OOM = NAMEHASH_BUILD_ERROR,
+    NAMEHASH_BUILD_FAIL_TO_OPEN_MOD,
+};
 
 #endif

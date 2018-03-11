@@ -30,9 +30,6 @@ private:
     };
 
 private:
-    static volatile long m_sbInitialized;
-
-private:
     IStream* m_stream;
     IDiaDataSource* m_dataSource;
     IDiaSession* m_session;

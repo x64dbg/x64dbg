@@ -197,8 +197,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Clone(IStream**) { return E_NOTIMPL; }
 };
 
-volatile LONG PDBDiaFile::m_sbInitialized = 0;
-
 template<typename T>
 class ScopedDiaType
 {
@@ -243,26 +241,11 @@ PDBDiaFile::~PDBDiaFile()
 
 bool PDBDiaFile::initLibrary()
 {
-    if(m_sbInitialized == 1)
-        return true;
-
-    LONG isInitialized = InterlockedCompareExchange(&m_sbInitialized, 1, 0);
-    if(isInitialized != 0)
-        return false;
-
-    HRESULT hr = CoInitialize(nullptr);
-#ifdef _DEBUG
-    assert(SUCCEEDED(hr));
-#endif
-    return true;
+    return SUCCEEDED(CoInitialize(nullptr));
 }
 
 bool PDBDiaFile::shutdownLibrary()
 {
-    LONG isInitialized = InterlockedCompareExchange(&m_sbInitialized, 0, 1);
-    if(isInitialized != 1)
-        return false;
-
     CoUninitialize();
     return true;
 }
@@ -274,6 +257,9 @@ bool PDBDiaFile::open(const char* file, uint64_t loadAddress, DiaValidationData_
 
 bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationData_t* validationData)
 {
+    if(!initLibrary())
+        return false;
+
     if(isOpen())
     {
 #if 1 // Enable for validation purpose.
@@ -285,23 +271,15 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
     wchar_t fileExt[MAX_PATH] = { 0 };
     wchar_t fileDir[MAX_PATH] = { 0 };
 
-    HRESULT hr;
+    HRESULT hr = REGDB_E_CLASSNOTREG;
     hr = CoCreateInstance(__uuidof(DiaSource), NULL, CLSCTX_INPROC_SERVER, __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
     if(testError(hr) || m_dataSource == nullptr)
     {
         if(hr == REGDB_E_CLASSNOTREG)
         {
-            hr = NoRegCoCreate(L"msdia100.dll", __uuidof(DiaSource), __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
+            hr = NoRegCoCreate(L"msdia140.dll", __uuidof(DiaSource), __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
             if(testError(hr))
-            {
-                hr = NoRegCoCreate(L"msdia90.dll", __uuidof(DiaSource), __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
-                if(testError(hr))
-                {
-                    hr = NoRegCoCreate(L"msdia80.dll", __uuidof(DiaSource), __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
-                    if(testError(hr))
-                        return false;
-                }
-            }
+                return false;
         }
         else
         {

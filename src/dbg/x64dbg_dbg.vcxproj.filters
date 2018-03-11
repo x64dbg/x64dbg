@@ -111,6 +111,9 @@
     <Filter Include="Header Files\Third Party\WinInet-Downloader">
       <UniqueIdentifier>{cdf955c6-b066-4b06-87f0-7a02b9bbfc55}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Third Party\msdia">
+      <UniqueIdentifier>{dc4f0ea0-8d28-4d9e-a8ac-901dd274787d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -449,14 +452,14 @@
     <ClCompile Include="pdbdiafile.cpp">
       <Filter>Source Files\Symbols</Filter>
     </ClCompile>
-    <ClCompile Include="msdia\diacreate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="symbolsourcedia.cpp">
       <Filter>Source Files\Symbols</Filter>
     </ClCompile>
     <ClCompile Include="WinInet-Downloader\downslib.c">
       <Filter>Source Files\Third Party\WinInet-Downloader</Filter>
+    </ClCompile>
+    <ClCompile Include="msdia\diacreate.cpp">
+      <Filter>Source Files\Third Party\msdia</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -29,11 +29,6 @@ static void SetThreadDescription(HANDLE hThread, WString name)
 
 bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint imageSize, DiaValidationData_t* validationData)
 {
-    if(!PDBDiaFile::initLibrary())
-    {
-        return false;
-    }
-
     PDBDiaFile pdb; // Instance used for validation only.
     _isOpen = pdb.open(path.c_str(), 0, validationData);
 #if 1 // Async loading.
@@ -105,7 +100,7 @@ bool SymbolSourceDIA::loadSymbolsAsync()
     }
 
     DWORD lastUpdate = 0;
-    DWORD loadStart = GetTickCount64();
+    DWORD loadStart = GetTickCount();
 
     PDBDiaFile::Query_t query;
     query.collectSize = true;
@@ -195,10 +190,10 @@ bool SymbolSourceDIA::loadSymbolsAsync()
         std::sort(_symNameMap.begin(), _symNameMap.end());
     }
 
-    DWORD64 ms = GetTickCount64() - loadStart;
+    DWORD ms = GetTickCount() - loadStart;
     double secs = (double)ms / 1000.0;
 
-    GuiSymbolLogAdd(StringUtils::sprintf("Loaded %d symbols in %.03f\n", _symAddrs.size(), secs).c_str());
+    GuiSymbolLogAdd(StringUtils::sprintf("[%p] Loaded %d symbols in %.03fs\n", _imageBase, _symAddrs.size(), secs).c_str());
 
     //TODO: make beautiful
     ListInfo blub;
@@ -228,9 +223,7 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
         return false;
     }
 
-    GuiSymbolLogAdd(StringUtils::sprintf("Loading Source lines...\n").c_str());
-
-    DWORD64 lineLoadStart = GetTickCount64();
+    DWORD lineLoadStart = GetTickCount();
 
     const size_t rangeSize = 1024 * 1024;
 
@@ -291,10 +284,10 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
     if(_requiresShutdown)
         return false;
 
-    DWORD64 ms = GetTickCount64() - lineLoadStart;
+    DWORD ms = GetTickCount() - lineLoadStart;
     double secs = (double)ms / 1000.0;
 
-    GuiSymbolLogAdd(StringUtils::sprintf("Loaded %d line infos in %.03f\n", _lines.size(), secs).c_str());
+    GuiSymbolLogAdd(StringUtils::sprintf("[%p] Loaded %d line infos in %.03fs\n", _imageBase, _lines.size(), secs).c_str());
 
     GuiUpdateAllViews();
 
