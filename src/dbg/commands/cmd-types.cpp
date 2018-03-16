@@ -465,14 +465,14 @@ struct PrintVisitor : TypeManager::Visitor
             path.append(mPath[i]);
         }
         path.append(member.name);
-        if(!LabelGet(mAddr + mOffset, nullptr) && (parent().index == 1 || ptype != Parent::Array))
+        if(!LabelGet(mAddr + mOffset, nullptr) && ((mParents.empty() ? -1 : parent().index) == 1 || ptype != Parent::Array))
             LabelSet(mAddr + mOffset, path.c_str(), false, true);
 
         TYPEDESCRIPTOR td;
         td.expanded = false;
         td.reverse = false;
         td.name = tname.c_str();
-        td.addr = mAddr;
+        td.addr = mAddr; // TODO: if visitPtr is called first this should print the pointer value and not the pointed to pointer
         td.offset = mOffset;
         td.id = type.primitive;
         td.size = type.size;
@@ -537,8 +537,15 @@ struct PrintVisitor : TypeManager::Visitor
             return false;
 
         duint value = 0;
-        if(!mAddr || !MemRead(mAddr + offset, &value, sizeof(value)))
-            return false;
+        if(mParents.empty())
+        {
+            value = mAddr;
+        }
+        else
+        {
+            if(!mAddr || !MemRead(mAddr + offset, &value, sizeof(value)))
+                return false;
+        }
 
         mPath.push_back(member.name + "->");
         mParents.push_back(Parent(Parent::Pointer));

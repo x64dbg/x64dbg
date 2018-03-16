@@ -44,7 +44,7 @@ bool TypeManager::AddType(const std::string & owner, const std::string & type, c
     auto found = types.find(type);
     if(found == types.end())
         return false;
-    return addType(owner, found->second.primitive, name);
+    return addType(owner, found->second.primitive, name, found->second.pointto);
 }
 
 bool TypeManager::AddStruct(const std::string & owner, const std::string & name)
