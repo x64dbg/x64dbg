@@ -59,7 +59,7 @@ static NTSTATUS ImageNtHeaders(duint base, duint size, PIMAGE_NT_HEADERS* outHea
 }
 
 // Use only with SEC_COMMIT mappings, not SEC_IMAGE! (in that case, just do VA = base + rva...)
-static duint RvaToVa(duint base, PIMAGE_NT_HEADERS ntHeaders, ULONG_PTR rva)
+static ULONG64 RvaToVa(ULONG64 base, PIMAGE_NT_HEADERS ntHeaders, ULONG64 rva)
 {
     PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(ntHeaders);
     const WORD numSections = ntHeaders->FileHeader.NumberOfSections;
@@ -68,7 +68,8 @@ static duint RvaToVa(duint base, PIMAGE_NT_HEADERS ntHeaders, ULONG_PTR rva)
         if(section->VirtualAddress <= rva &&
                 section->VirtualAddress + section->Misc.VirtualSize > rva)
         {
-            return base + (rva - section->VirtualAddress) + section->PointerToRawData;
+            ASSERT_TRUE(rva != 0); // Following garbage in is garbage out, RVA 0 should always yield VA 0
+            return base + (rva - section->VirtualAddress + section->PointerToRawData);
         }
         section++;
     }
@@ -86,7 +87,7 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     if(exportDirSize == 0 || exportDir == nullptr || exportDir->NumberOfFunctions == 0)
         return;
 
-    auto rva2offset = [&Info](duint rva)
+    auto rva2offset = [&Info](ULONG64 rva)
     {
         return RvaToVa(0, Info.headers, rva);
     };
@@ -113,8 +114,8 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         entry.ordinal = i + exportDir->Base;
         entry.rva = addressOfFunctions[i];
         const auto entryVa = RvaToVa(FileMapVA, Info.headers, entry.rva);
-        entry.forwarded = entryVa >= (duint)exportDir;
-        if(entry.forwarded && entryVa < (duint)exportDir + exportDirSize)
+        entry.forwarded = entryVa >= (ULONG64)exportDir;
+        if(entry.forwarded && entryVa < (ULONG64)exportDir + exportDirSize)
         {
             auto forwardNameOffset = rva2offset(entry.rva);
             if(forwardNameOffset) // Silent ignore (1) by ntdll loader: invalid forward names or addresses of forward names
@@ -155,55 +156,71 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
 static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 {
-    // TODO: proper bounds checking
-
-    duint importDirRva = GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMPORTTABLEADDRESS);
-    duint importDirSize = GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMPORTTABLESIZE);
-    if(!importDirRva || !importDirSize)
+    // Get the import directory and its size
+    ULONG importDirSize;
+    auto importDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)RtlImageDirectoryEntryToData((PVOID)FileMapVA,
+                            FALSE,
+                            IMAGE_DIRECTORY_ENTRY_IMPORT,
+                            &importDirSize);
+    if(importDirSize == 0 || importDescriptor == nullptr)
         return;
 
-    auto rva2offset = [&Info, FileMapVA](duint rva)
+    const ULONG64 ordinalFlag = IMAGE64(Info.headers) ? IMAGE_ORDINAL_FLAG64 : IMAGE_ORDINAL_FLAG32;
+    auto rva2offset = [&Info](ULONG64 rva)
     {
-        return ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, rva, true, false);
+        return RvaToVa(0, Info.headers, rva);
     };
 
-    auto importDirOffset = rva2offset(importDirRva);
-    if(!importDirOffset)
-        return;
-
-    auto importDescriptor = PIMAGE_IMPORT_DESCRIPTOR(importDirOffset + FileMapVA);
-    for(size_t moduleIndex = 0; importDescriptor->FirstThunk; importDescriptor++, moduleIndex++)
+    for(size_t moduleIndex = 0; importDescriptor->Name != 0; ++importDescriptor, ++moduleIndex)
     {
         auto moduleNameOffset = rva2offset(importDescriptor->Name);
-        if(!moduleNameOffset) // TODO: what does the Windows loader do if this fails?
+        if(!moduleNameOffset) // If the module name VA is invalid, the loader crashes with an access violation. Try to avoid this
+            break;
+
+        // Prefer OFTs over FTs. If they differ, the FT is a bounded import and has a 0% chance of being correct due to ASLR
+        auto thunkOffset = rva2offset(importDescriptor->OriginalFirstThunk != 0
+                                      ? importDescriptor->OriginalFirstThunk
+                                      : importDescriptor->FirstThunk);
+
+        // If there is no FT, the loader ignores the descriptor and moves on to the next DLL instead of crashing. Wise move
+        if(importDescriptor->FirstThunk == 0)
             continue;
 
         Info.importModules.emplace_back((const char*)(moduleNameOffset + FileMapVA));
+        unsigned char* thunkData = (unsigned char*)FileMapVA + thunkOffset;
 
-        auto firstThunkOffset = rva2offset(importDescriptor->FirstThunk);
-        if(!firstThunkOffset) // TODO: what does the Windows loader do if this fails?
-            continue;
-
-        auto thunkData = PIMAGE_THUNK_DATA(firstThunkOffset + FileMapVA);
-        for(auto iatRva = importDescriptor->FirstThunk; thunkData->u1.AddressOfData; thunkData++, iatRva += sizeof(duint))
+        for(auto iatRva = importDescriptor->FirstThunk;
+                THUNK_VAL(Info.headers, thunkData, u1.AddressOfData) != 0;
+                thunkData += IMAGE64(Info.headers) ? sizeof(IMAGE_THUNK_DATA64) : sizeof(IMAGE_THUNK_DATA32), iatRva += IMAGE64(Info.headers) ? sizeof(ULONG64) : sizeof(DWORD))
         {
+            // Get AddressOfData, check whether the ordinal flag was set, and then strip it because the RVA is not valid with it set
+            ULONG64 addressOfDataValue = THUNK_VAL(Info.headers, thunkData, u1.AddressOfData);
+            const bool ordinalFlagSet = (addressOfDataValue & ordinalFlag) == ordinalFlag; // NB: both variables are ULONG64 to force this test to be 64 bit
+            addressOfDataValue &= ~ordinalFlag;
+
+            auto addressOfDataOffset = rva2offset(addressOfDataValue);
+            if(!addressOfDataOffset) // Invalid entries are ignored. Of course the app will crash if it ever calls the function, but whose fault is that?
+                continue;
+
             Info.imports.emplace_back();
             auto & entry = Info.imports.back();
             entry.iatRva = iatRva;
             entry.moduleIndex = moduleIndex;
-            if((thunkData->u1.Ordinal & IMAGE_ORDINAL_FLAG) == IMAGE_ORDINAL_FLAG)
+
+            auto importByName = PIMAGE_IMPORT_BY_NAME(addressOfDataOffset + FileMapVA);
+            if(!ordinalFlagSet && importByName->Name[0] != '\0')
             {
-                entry.ordinal = thunkData->u1.Ordinal & ~IMAGE_ORDINAL_FLAG;
+                // Import by name
+                entry.name = String((const char*)importByName->Name);
+                entry.ordinal = -1;
             }
             else
             {
-                auto importByNameOffset = rva2offset(thunkData->u1.AddressOfData);
-                if(!importByNameOffset) // TODO: what does the Windows loader do if this fails?
-                    continue;
-
-                auto importByName = PIMAGE_IMPORT_BY_NAME(importByNameOffset + FileMapVA);
-                entry.name = String((const char*)importByName->Name);
-                entry.ordinal = -1;
+                // Import by ordinal
+                entry.ordinal = THUNK_VAL(Info.headers, thunkData, u1.Ordinal) & 0xffff;
+                char buf[18];
+                sprintf_s(buf, "Ordinal%u", (ULONG)entry.ordinal);
+                entry.name = String((const char*)buf);
             }
         }
     }
@@ -382,15 +399,15 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         case IMAGE_DEBUG_TYPE_CLSID:
             return "IMAGE_DEBUG_TYPE_CLSID";
         // The following types aren't defined in older Windows SDKs, so just count up from here so we can still return the names for them
-        case (IMAGE_DEBUG_TYPE_CLSID + 1):
+        case(IMAGE_DEBUG_TYPE_CLSID + 1):
             return "IMAGE_DEBUG_TYPE_VC_FEATURE";
-        case (IMAGE_DEBUG_TYPE_CLSID + 2):
+        case(IMAGE_DEBUG_TYPE_CLSID + 2):
             return "IMAGE_DEBUG_TYPE_POGO"; // For anyone grepping this: /NOCOFFGRPINFO is the undocumented linker switch to get rid of this crap. You're welcome
-        case (IMAGE_DEBUG_TYPE_CLSID + 3):
+        case(IMAGE_DEBUG_TYPE_CLSID + 3):
             return "IMAGE_DEBUG_TYPE_ILTCG";
-        case (IMAGE_DEBUG_TYPE_CLSID + 4):
+        case(IMAGE_DEBUG_TYPE_CLSID + 4):
             return "IMAGE_DEBUG_TYPE_MPX";
-        case (IMAGE_DEBUG_TYPE_CLSID + 5):
+        case(IMAGE_DEBUG_TYPE_CLSID + 5):
             return "IMAGE_DEBUG_TYPE_REPRO";
         default:
             return "unknown";
