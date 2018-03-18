@@ -107,6 +107,11 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     Info.exports.reserve(exportDir->NumberOfFunctions);
     Info.exportOrdinalBase = exportDir->Base;
 
+    // TODO: 'invalid address' below means an RVA that is obviously invalid, like being greater than SizeOfImage.
+    // In that case rva2offset will return a VA of 0 and we can ignore it. However the ntdll loader (and this code)
+    // will still crash on corrupt or malicious inputs that are seemingly valid. Find out how common this is
+    // (i.e. does it warrant wrapping everything in try/except?) and whether there are better solutions.
+    // Note that we're loading this file because the debuggee did; that makes it at least somewhat plausible that we will also survive
     for(DWORD i = 0; i < exportDir->NumberOfFunctions; i++)
     {
         Info.exports.emplace_back();
