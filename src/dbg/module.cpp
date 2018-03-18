@@ -381,6 +381,17 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             return "IMAGE_DEBUG_TYPE_RESERVED10";
         case IMAGE_DEBUG_TYPE_CLSID:
             return "IMAGE_DEBUG_TYPE_CLSID";
+        // The following types aren't defined in older Windows SDKs, so just count up from here so we can still return the names for them
+        case (IMAGE_DEBUG_TYPE_CLSID + 1):
+            return "IMAGE_DEBUG_TYPE_VC_FEATURE";
+        case (IMAGE_DEBUG_TYPE_CLSID + 2):
+            return "IMAGE_DEBUG_TYPE_POGO"; // For anyone grepping this: /NOCOFFGRPINFO is the undocumented linker switch to get rid of this crap. You're welcome
+        case (IMAGE_DEBUG_TYPE_CLSID + 3):
+            return "IMAGE_DEBUG_TYPE_ILTCG";
+        case (IMAGE_DEBUG_TYPE_CLSID + 4):
+            return "IMAGE_DEBUG_TYPE_MPX";
+        case (IMAGE_DEBUG_TYPE_CLSID + 5):
+            return "IMAGE_DEBUG_TYPE_REPRO";
         default:
             return "unknown";
         }

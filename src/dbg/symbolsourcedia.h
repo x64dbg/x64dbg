@@ -1,6 +1,8 @@
 #ifndef _SYMBOLSOURCEDIA_H_
 #define _SYMBOLSOURCEDIA_H_
 
+#include "_global.h"
+
 #include "pdbdiafile.h"
 #include "symbolsourcebase.h"
 #include "sortedlru.h"
