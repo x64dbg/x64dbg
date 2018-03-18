@@ -1,5 +1,6 @@
 #include "module.h"
 #include "TitanEngine/TitanEngine.h"
+#include "ntdll/ntdll.h"
 #include "threading.h"
 #include "symbolinfo.h"
 #include "murmurhash.h"
@@ -15,27 +16,80 @@
 std::map<Range, std::unique_ptr<MODINFO>, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;
 
+// RtlImageNtHeaderEx is much better than the non-Ex version due to stricter validation, but isn't available on XP x86.
+// This is essentially a fallback replacement that does the same thing
+static NTSTATUS ImageNtHeaders(duint base, duint size, PIMAGE_NT_HEADERS* outHeaders)
+{
+    PIMAGE_NT_HEADERS ntHeaders;
+
+    __try
+    {
+        if(base == 0 || outHeaders == nullptr)
+            return STATUS_INVALID_PARAMETER;
+        if(size < sizeof(IMAGE_DOS_HEADER))
+            return STATUS_INVALID_IMAGE_FORMAT;
+
+        const PIMAGE_DOS_HEADER dosHeaders = (PIMAGE_DOS_HEADER)base;
+        if(dosHeaders->e_magic != IMAGE_DOS_SIGNATURE)
+            return STATUS_INVALID_IMAGE_FORMAT;
+
+        const ULONG e_lfanew = dosHeaders->e_lfanew;
+        const ULONG sizeOfPeSignature = sizeof('PE00');
+        if(e_lfanew >= size ||
+                e_lfanew >= (ULONG_MAX - sizeOfPeSignature - sizeof(IMAGE_FILE_HEADER)) ||
+                (e_lfanew + sizeOfPeSignature + sizeof(IMAGE_FILE_HEADER)) >= size)
+            return STATUS_INVALID_IMAGE_FORMAT;
+
+        ntHeaders = (PIMAGE_NT_HEADERS)((PCHAR)base + e_lfanew);
+
+        // RtlImageNtHeaderEx verifies that the range does not cross the UM <-> KM boundary here,
+        // but it would cost a syscall to query this address as it varies between OS versions // TODO: or do we already have this info somewhere?
+        if(!MemIsCanonicalAddress((duint)ntHeaders + sizeof(IMAGE_NT_HEADERS)))
+            return STATUS_INVALID_IMAGE_FORMAT;
+        if(ntHeaders->Signature != IMAGE_NT_SIGNATURE)
+            return STATUS_INVALID_IMAGE_FORMAT;
+    }
+    __except(EXCEPTION_EXECUTE_HANDLER)
+    {
+        return GetExceptionCode();
+    }
+
+    *outHeaders = ntHeaders;
+    return STATUS_SUCCESS;
+}
+
+// Use only with SEC_COMMIT mappings, not SEC_IMAGE! (in that case, just do VA = base + rva...)
+static duint RvaToVa(duint base, PIMAGE_NT_HEADERS ntHeaders, ULONG_PTR rva)
+{
+    PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(ntHeaders);
+    const WORD numSections = ntHeaders->FileHeader.NumberOfSections;
+    for(WORD i = 0; i < numSections; ++i)
+    {
+        if(section->VirtualAddress <= rva &&
+                section->VirtualAddress + section->Misc.VirtualSize > rva)
+        {
+            return base + (rva - section->VirtualAddress) + section->PointerToRawData;
+        }
+        section++;
+    }
+    return 0;
+}
+
 static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 {
-    // TODO: proper bounds checking
-
-    duint exportDirRva = GetPE32DataFromMappedFile(FileMapVA, 0, UE_EXPORTTABLEADDRESS);
-    duint exportDirSize = GetPE32DataFromMappedFile(FileMapVA, 0, UE_EXPORTTABLESIZE);
-    if(!exportDirRva || !exportDirSize)
+    // Get the export directory and its size
+    ULONG exportDirSize;
+    auto exportDir = (PIMAGE_EXPORT_DIRECTORY)RtlImageDirectoryEntryToData((PVOID)FileMapVA,
+                     FALSE,
+                     IMAGE_DIRECTORY_ENTRY_EXPORT,
+                     &exportDirSize);
+    if(exportDirSize == 0 || exportDir == nullptr || exportDir->NumberOfFunctions == 0)
         return;
 
-    auto rva2offset = [&Info, FileMapVA](duint rva)
+    auto rva2offset = [&Info](duint rva)
     {
-        return ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, rva, true, false);
+        return RvaToVa(0, Info.headers, rva);
     };
-
-    auto exportDirOffset = rva2offset(exportDirRva);
-    if(!exportDirOffset)
-        return;
-
-    auto exportDir = PIMAGE_EXPORT_DIRECTORY(exportDirOffset + FileMapVA);
-    if(!exportDir->NumberOfFunctions)
-        return;
 
     auto addressOfFunctionsOffset = rva2offset(exportDir->AddressOfFunctions);
     if(!addressOfFunctionsOffset)
@@ -58,21 +112,23 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         auto & entry = Info.exports.back();
         entry.ordinal = i + exportDir->Base;
         entry.rva = addressOfFunctions[i];
-        if(entry.forwarded = entry.rva >= exportDirRva && entry.rva < exportDirRva + exportDirSize)
+        const auto entryVa = RvaToVa(FileMapVA, Info.headers, entry.rva);
+        entry.forwarded = entryVa >= (duint)exportDir;
+        if(entry.forwarded && entryVa < (duint)exportDir + exportDirSize)
         {
             auto forwardNameOffset = rva2offset(entry.rva);
-            if(forwardNameOffset) // TODO: what does the Windows loader do if this fails?
+            if(forwardNameOffset) // Silent ignore (1) by ntdll loader: invalid forward names or addresses of forward names
                 entry.forwardName = String((const char*)(forwardNameOffset + FileMapVA));
         }
     }
 
     for(DWORD i = 0; i < exportDir->NumberOfNames; i++)
     {
-        auto index = addressOfNameOrdinals[i];
-        if(index >= 0 && index < Info.exports.size()) // TODO: what does the Windows loader do if this fails?
+        DWORD index = addressOfNameOrdinals[i];
+        if(index < Info.exports.size()) // Silent ignore (2) by ntdll loader: bogus AddressOfNameOrdinals indices
         {
             auto nameOffset = rva2offset(addressOfNames[i]);
-            if(nameOffset) // TODO: what does the Windows loader do if this fails?
+            if(nameOffset) // Silent ignore (3) by ntdll loader: invalid names or addresses of names
                 Info.exports[index].name = String((const char*)(nameOffset + FileMapVA));
         }
     }
@@ -411,6 +467,11 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             file = Info.pdbFile.substr(lastIdx + 1);
         }
 
+        // TODO: this order is exactly the wrong way around :P
+        // It should be: symbol cache (by far the most likely location, also why it exists) -> PDB path in PE -> program directory.
+        // (this is also the search order used by WinDbg/symchk/dumpbin and anything that uses symsrv)
+        // WinDbg even tries HTTP servers before the path in the PE, but that might be taking it a bit too far
+
         // Program directory
         char pdbPath[MAX_PATH];
         strcpy_s(pdbPath, Info.path);
@@ -438,8 +499,15 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 {
+    // Get the PE headers
+    if(!NT_SUCCESS(ImageNtHeaders(FileMapVA, Info.loadedSize, &Info.headers)))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Module %s%s: invalid PE file!\n"), Info.name, Info.extension);
+        return;
+    }
+
     // Get the entry point
-    duint moduleOEP = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP);
+    duint moduleOEP = HEADER_FIELD(Info.headers, AddressOfEntryPoint);
 
     // Fix a problem where the OEP is set to zero (non-existent).
     // OEP can't start at the PE header/offset 0 -- except if module is an EXE.
@@ -447,31 +515,34 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 
     if(!moduleOEP)
     {
-        WORD characteristics = (WORD)GetPE32DataFromMappedFile(FileMapVA, 0, UE_CHARACTERISTICS);
-
         // If this wasn't an exe, invalidate the entry point
-        if((characteristics & IMAGE_FILE_DLL) == IMAGE_FILE_DLL)
+        if((Info.headers->FileHeader.Characteristics & IMAGE_FILE_DLL) == IMAGE_FILE_DLL)
             Info.entry = 0;
     }
 
     // Enumerate all PE sections
     Info.sections.clear();
-    int sectionCount = (int)GetPE32DataFromMappedFile(FileMapVA, 0, UE_SECTIONNUMBER);
+    WORD sectionCount = Info.headers->FileHeader.NumberOfSections;
+    PIMAGE_SECTION_HEADER ntSection = IMAGE_FIRST_SECTION(Info.headers);
 
-    for(int i = 0; i < sectionCount; i++)
+    for(WORD i = 0; i < sectionCount; i++)
     {
         MODSECTIONINFO curSection;
         memset(&curSection, 0, sizeof(MODSECTIONINFO));
 
-        curSection.addr = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + Info.base;
-        curSection.size = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALSIZE);
-        const char* sectionName = (const char*)GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONNAME);
+        curSection.addr = ntSection->VirtualAddress + Info.base;
+        curSection.size = ntSection->Misc.VirtualSize;
+
+        // Null-terminate section name
+        char sectionName[IMAGE_SIZEOF_SHORT_NAME + 1];
+        strncpy_s(sectionName, (const char*)ntSection->Name, IMAGE_SIZEOF_SHORT_NAME);
 
         // Escape section name when needed
         strcpy_s(curSection.name, StringUtils::Escape(sectionName).c_str());
 
         // Add entry to the vector
         Info.sections.push_back(curSection);
+        ntSection++;
     }
 
     ReadExportDirectory(Info, FileMapVA);
