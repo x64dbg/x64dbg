@@ -154,6 +154,9 @@ private:
     void loadPDBAsync();
     bool loadSymbolsAsync();
     bool loadSourceLinesAsync();
+
+    static DWORD WINAPI SymbolsThread(void* parameter);
+    static DWORD WINAPI SourceLinesThread(void* parameter);
 };
 
 #endif // _SYMBOLSOURCEPDB_H_

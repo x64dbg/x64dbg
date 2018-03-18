@@ -4,27 +4,40 @@
 #include <algorithm>
 
 SymbolSourceDIA::SymbolSourceDIA()
-    : _requiresShutdown(false),
-      _imageBase(0),
+    : _isOpen(false),
+      _requiresShutdown(false),
       _loadCounter(0),
-      _isOpen(false)
+      _imageBase(0),
+      _imageSize(0)
 {
 }
 
 SymbolSourceDIA::~SymbolSourceDIA()
 {
-    cancelLoading();
+    SymbolSourceDIA::cancelLoading();
 }
 
-static void SetThreadDescription(HANDLE hThread, WString name)
+static void SetWin10ThreadDescription(HANDLE threadHandle, const WString & name)
 {
     typedef HRESULT(WINAPI * fnSetThreadDescription)(HANDLE hThread, PCWSTR lpThreadDescription);
 
-    fnSetThreadDescription fp = (fnSetThreadDescription)GetProcAddress(GetModuleHandleA("kernel32.dll"), "SetThreadDescription");
+    fnSetThreadDescription fp = (fnSetThreadDescription)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "SetThreadDescription");
     if(!fp)
         return; // Only available on windows 10.
 
-    fp(hThread, name.c_str());
+    fp(threadHandle, name.c_str());
+}
+
+DWORD WINAPI SymbolSourceDIA::SymbolsThread(void* parameter)
+{
+    ((SymbolSourceDIA*)parameter)->loadSymbolsAsync();
+    return 0;
+}
+
+DWORD WINAPI SymbolSourceDIA::SourceLinesThread(void* parameter)
+{
+    ((SymbolSourceDIA*)parameter)->loadSourceLinesAsync();
+    return 0;
 }
 
 bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint imageSize, DiaValidationData_t* validationData)
@@ -39,18 +52,10 @@ bool SymbolSourceDIA::loadPDB(const std::string & path, duint imageBase, duint i
         _imageBase = imageBase;
         _requiresShutdown = false;
         _loadCounter.store(2);
-        _symbolsThread = CreateThread(nullptr, 0, [](LPVOID thisPtr) -> DWORD
-        {
-            ((SymbolSourceDIA*)thisPtr)->loadSymbolsAsync();
-            return 0;
-        }, this, CREATE_SUSPENDED, nullptr);
-        SetThreadDescription(_symbolsThread, L"SymbolsThread");
-        _sourceLinesThread = CreateThread(nullptr, 0, [](LPVOID thisPtr) -> DWORD
-        {
-            ((SymbolSourceDIA*)thisPtr)->loadSourceLinesAsync();
-            return 0;
-        }, this, CREATE_SUSPENDED, nullptr);
-        SetThreadDescription(_sourceLinesThread, L"SourceLinesThread");
+        _symbolsThread = CreateThread(nullptr, 0, SymbolsThread, this, CREATE_SUSPENDED, nullptr);
+        SetWin10ThreadDescription(_symbolsThread, L"SymbolsThread");
+        _sourceLinesThread = CreateThread(nullptr, 0, SourceLinesThread, this, CREATE_SUSPENDED, nullptr);
+        SetWin10ThreadDescription(_sourceLinesThread, L"SourceLinesThread");
         ResumeThread(_symbolsThread);
         ResumeThread(_sourceLinesThread);
     }
