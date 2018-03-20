@@ -62,14 +62,13 @@ static NTSTATUS ImageNtHeaders(duint base, duint size, PIMAGE_NT_HEADERS* outHea
 static ULONG64 RvaToVa(ULONG64 base, PIMAGE_NT_HEADERS ntHeaders, ULONG64 rva)
 {
     PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(ntHeaders);
-    const WORD numSections = ntHeaders->FileHeader.NumberOfSections;
-    for(WORD i = 0; i < numSections; ++i)
+    for(WORD i = 0; i < ntHeaders->FileHeader.NumberOfSections; ++i)
     {
-        if(section->VirtualAddress <= rva &&
-                section->VirtualAddress + section->Misc.VirtualSize > rva)
+        if(rva >= section->VirtualAddress &&
+                rva < section->VirtualAddress + section->SizeOfRawData)
         {
             ASSERT_TRUE(rva != 0); // Following garbage in is garbage out, RVA 0 should always yield VA 0
-            return base + (rva - section->VirtualAddress + section->PointerToRawData);
+            return base + (rva - section->VirtualAddress) + section->PointerToRawData;
         }
         section++;
     }
