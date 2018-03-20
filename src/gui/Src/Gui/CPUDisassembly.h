@@ -116,7 +116,7 @@ public slots:
     void downloadCurrentSymbolsSlot();
 
 protected:
-    void paintEvent(QPaintEvent* event);
+    void paintEvent(QPaintEvent* event) override;
 
 private:
     bool getLabelsFromInstruction(duint addr, QSet<QString> & labels);

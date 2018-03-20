@@ -132,7 +132,7 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
     if(wIsSelected)
     {
-        painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
+        painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
     }
     if(index >= mTraceFile->Length())
         return "";
@@ -836,7 +836,7 @@ void TraceBrowser::updateColors()
     AbstractTableView::updateColors();
     //CapstoneTokenizer::UpdateColors(); //Already called in disassembly
     mDisasm->UpdateConfig();
-    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mInstructionHighlightColor = ConfigColor("InstructionHighlightColor");
     mSelectionColor = ConfigColor("DisassemblySelectionColor");

@@ -294,7 +294,7 @@ void CPUDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     {
         RichTextPainter::CustomRichText_t curData;
         curData.flags = RichTextPainter::FlagColor;
-        curData.textColor = textColor;
+        curData.textColor = mTextColor;
         duint data = 0;
         mMemPage->read((byte_t*)&data, rva, sizeof(duint));
 
@@ -643,8 +643,8 @@ void CPUDump::hexAsciiSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewHexAscii);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
@@ -677,8 +677,8 @@ void CPUDump::hexUnicodeSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewHexUnicode);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
@@ -715,8 +715,8 @@ void CPUDump::hexCodepageSlot()
     auto codepage = dialog.getSelectedCodepage();
 
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
@@ -743,8 +743,8 @@ void CPUDump::hexLastCodepageSlot()
     Config()->setUint("HexDump", "DefaultView", (duint)ViewHexCodepage);
 
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
     duint lastCodepage;
     auto allCodecs = QTextCodec::availableCodecs();
     if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
@@ -774,8 +774,8 @@ void CPUDump::textLastCodepageSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewTextCodepage);
 
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
     duint lastCodepage;
     auto allCodecs = QTextCodec::availableCodecs();
     if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
@@ -797,8 +797,8 @@ void CPUDump::textAsciiSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewTextAscii);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //ascii byte
     wColDesc.itemCount = 64;
@@ -823,8 +823,8 @@ void CPUDump::textUnicodeSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewTextUnicode);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //unicode short
     wColDesc.itemCount = 64;
@@ -852,8 +852,8 @@ void CPUDump::textCodepageSlot()
         return;
     auto codepage = dialog.getSelectedCodepage();
 
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //text (in code page)
     wColDesc.itemCount = 64;
@@ -871,8 +871,8 @@ void CPUDump::integerSignedByteSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerSignedByte);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //signed short
     wColDesc.itemCount = 8;
@@ -896,8 +896,8 @@ void CPUDump::integerSignedShortSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerSignedShort);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //signed short
     wColDesc.itemCount = 8;
@@ -921,8 +921,8 @@ void CPUDump::integerSignedLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerSignedLong);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //signed long
     wColDesc.itemCount = 4;
@@ -946,8 +946,8 @@ void CPUDump::integerSignedLongLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerSignedLongLong);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //signed long long
     wColDesc.itemCount = 2;
@@ -971,8 +971,8 @@ void CPUDump::integerUnsignedByteSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerUnsignedByte);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //unsigned short
     wColDesc.itemCount = 8;
@@ -996,8 +996,8 @@ void CPUDump::integerUnsignedShortSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerUnsignedShort);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //unsigned short
     wColDesc.itemCount = 8;
@@ -1021,8 +1021,8 @@ void CPUDump::integerUnsignedLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerUnsignedLong);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //unsigned long
     wColDesc.itemCount = 4;
@@ -1046,8 +1046,8 @@ void CPUDump::integerUnsignedLongLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerUnsignedLongLong);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //unsigned long long
     wColDesc.itemCount = 2;
@@ -1071,8 +1071,8 @@ void CPUDump::integerHexShortSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerHexShort);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //hex short
     wColDesc.itemCount = 8;
@@ -1096,8 +1096,8 @@ void CPUDump::integerHexLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerHexLong);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //hex long
     wColDesc.itemCount = 4;
@@ -1121,8 +1121,8 @@ void CPUDump::integerHexLongLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewIntegerHexLongLong);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //hex long long
     wColDesc.itemCount = 2;
@@ -1146,8 +1146,8 @@ void CPUDump::floatFloatSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewFloatFloat);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //float dword
     wColDesc.itemCount = 4;
@@ -1171,8 +1171,8 @@ void CPUDump::floatDoubleSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewFloatDouble);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //float qword
     wColDesc.itemCount = 2;
@@ -1196,8 +1196,8 @@ void CPUDump::floatLongDoubleSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (duint)ViewFloatLongDouble);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //float qword
     wColDesc.itemCount = 2;
@@ -1227,8 +1227,8 @@ void CPUDump::addressSlot()
 
     Config()->setUint("HexDump", "DefaultView", (duint)ViewAddress);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //void*
     wColDesc.itemCount = 1;
@@ -1263,8 +1263,8 @@ void CPUDump::addressAsciiSlot()
 
     Config()->setUint("HexDump", "DefaultView", (duint)ViewAddressAscii);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //void*
     wColDesc.itemCount = 1;
@@ -1314,8 +1314,8 @@ void CPUDump::addressUnicodeSlot()
 
     Config()->setUint("HexDump", "DefaultView", (duint)ViewAddressUnicode);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
 
     wColDesc.isData = true; //void*
     wColDesc.itemCount = 1;

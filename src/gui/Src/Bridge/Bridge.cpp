@@ -208,7 +208,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_REF_ADDCOLUMN:
         if(referenceManager->currentReferenceView())
-            referenceManager->currentReferenceView()->addColumnAt((int)param1, QString((const char*)param2));
+            referenceManager->currentReferenceView()->addColumnAtRef((int)param1, QString((const char*)param2));
         break;
 
     case GUI_REF_SETROWCOUNT:
@@ -217,7 +217,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_REF_GETROWCOUNT:
         if(referenceManager->currentReferenceView())
-            return (void*)referenceManager->currentReferenceView()->mList->getRowCount();
+            return (void*)referenceManager->currentReferenceView()->stdList()->getRowCount();
         return 0;
 
     case GUI_REF_SEARCH_GETROWCOUNT:
@@ -240,7 +240,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     {
         QString content;
         if(referenceManager->currentReferenceView())
-            content = referenceManager->currentReferenceView()->mList->getCellContent((int)param1, (int)param2);
+            content = referenceManager->currentReferenceView()->stdList()->getCellContent((int)param1, (int)param2);
         auto bytes = content.toUtf8();
         auto data = BridgeAlloc(bytes.size() + 1);
         memcpy(data, bytes.constData(), bytes.size());
@@ -840,10 +840,8 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit updateTraceBrowser();
         break;
 
-    case GUI_SET_MODULE_SYMBOLS:
-        std::vector<void*> moduleSymbols;
-        BridgeList<void*>::ToVector((const ListInfo*)param2, moduleSymbols, false);
-        symbolView->setModuleSymbols(duint(param1), moduleSymbols);
+    case GUI_INVALIDATE_SYMBOL_SOURCE:
+        symbolView->invalidateSymbolSource(duint(param1));
         break;
     }
 

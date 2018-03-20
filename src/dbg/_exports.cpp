@@ -96,6 +96,9 @@ extern "C" DLL_EXPORT bool _dbg_isdebugging()
 
 extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 {
+    if(!hActiveThread)
+        return false;
+
     unsigned char data[16];
     if(MemRead(addr, data, sizeof(data), nullptr, true))
     {
@@ -200,10 +203,10 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
             displacement = (DWORD64)symInfo.disp;
 
             //auto name = demanglePE32ExternCFunc(symInfo.decoratedName.c_str());
-            if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(symInfo.decoratedName.c_str(), label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
-            {
+            if(bUndecorateSymbolNames && !symInfo.undecoratedName.empty())
+                strncpy_s(label, MAX_LABEL_SIZE, symInfo.undecoratedName.c_str(), _TRUNCATE);
+            else
                 strncpy_s(label, MAX_LABEL_SIZE, symInfo.decoratedName.c_str(), _TRUNCATE);
-            }
             retval = !shouldFilterSymbol(label);
             if(retval && displacement)
             {
@@ -232,10 +235,10 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
                         //pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
 
                         //auto name = demanglePE32ExternCFunc(pSymbol->Name);
-                        if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(symInfo.undecoratedName.c_str(), label, MAX_LABEL_SIZE, UNDNAME_NAME_ONLY))
-                        {
-                            sprintf_s(label, MAX_LABEL_SIZE, "JMP.&%s", symInfo.undecoratedName.c_str());
-                        }
+                        if(bUndecorateSymbolNames && !symInfo.undecoratedName.empty())
+                            _snprintf_s(label, MAX_LABEL_SIZE, _TRUNCATE, "JMP.&%s", symInfo.undecoratedName.c_str());
+                        else
+                            _snprintf_s(label, MAX_LABEL_SIZE, _TRUNCATE, "JMP.&%s", symInfo.decoratedName.c_str());
                         retval = !shouldFilterSymbol(label);
                         if(retval && displacement)
                         {
@@ -1475,13 +1478,8 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_SYMBOL_INFO:
     {
-        //TODO: hack^2
-        auto real = (SymbolInfo*)param1;
-        auto fake = (SYMBOLINFO*)param2;
-        fake->addr = real->va;
-        fake->decoratedSymbol = (char*)real->decoratedName.c_str();
-        fake->undecoratedSymbol = (char*)real->undecoratedName.c_str();
-        fake->isImported = strncmp(fake->decoratedSymbol, "__imp_", 6) == 0; //TODO: properly handle this
+        auto symbolptr = (const SYMBOLPTR*)param1;
+        ((const SymbolInfoGui*)symbolptr->symbol)->convertToGuiSymbol(symbolptr->modbase, (SYMBOLINFO*)param2);
     }
     break;
     }

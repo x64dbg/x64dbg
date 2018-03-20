@@ -109,7 +109,6 @@ SOURCES += \
     Src/Utils/RichTextPainter.cpp \
     Src/Gui/TabBar.cpp \
     Src/Gui/TabWidget.cpp \
-    Src/Gui/CommandHelpView.cpp \
     Src/BasicView/HistoryLineEdit.cpp \
     Src/Utils/Configuration.cpp \
     Src/Gui/CPUSideBar.cpp \
@@ -124,7 +123,6 @@ SOURCES += \
     Src/Gui/PatchDialog.cpp \
     Src/Gui/PatchDialogGroupSelector.cpp \
     Src/Utils/UpdateChecker.cpp \
-    Src/BasicView/SearchListViewTable.cpp \
     Src/Gui/CallStackView.cpp \
     Src/Gui/ShortcutsDialog.cpp \
     Src/BasicView/ShortcutEdit.cpp \
@@ -187,7 +185,8 @@ SOURCES += \
     Src/Tracer/TraceFileSearch.cpp \
     Src/Gui/MultiItemsSelectWindow.cpp \
     Src/BasicView/AbstractStdTable.cpp \
-    Src/Gui/ZehSymbolTable.cpp
+    Src/Gui/ZehSymbolTable.cpp \
+    Src/BasicView/StdSearchListView.cpp
 
 
 HEADERS += \
@@ -227,7 +226,6 @@ HEADERS += \
     Src/Utils/RichTextPainter.h \
     Src/Gui/TabBar.h \
     Src/Gui/TabWidget.h \
-    Src/Gui/CommandHelpView.h \
     Src/BasicView/HistoryLineEdit.h \
     Src/Utils/Configuration.h \
     Src/Gui/CPUSideBar.h \
@@ -242,7 +240,6 @@ HEADERS += \
     Src/Gui/PatchDialog.h \
     Src/Gui/PatchDialogGroupSelector.h \
     Src/Utils/UpdateChecker.h \
-    Src/BasicView/SearchListViewTable.h \
     Src/Gui/CallStackView.h \
     Src/Gui/ShortcutsDialog.h \
     Src/BasicView/ShortcutEdit.h \
@@ -310,7 +307,9 @@ HEADERS += \
     Src/Tracer/TraceFileSearch.h \
     Src/Gui/MultiItemsSelectWindow.h \
     Src/BasicView/AbstractStdTable.h \
-    Src/Gui/ZehSymbolTable.h
+    Src/Gui/ZehSymbolTable.h \
+    Src/BasicView/AbstractSearchList.h \
+    Src/BasicView/StdSearchListView.h
     
 
 FORMS += \
@@ -322,7 +321,6 @@ FORMS += \
     Src/Gui/SymbolView.ui \
     Src/Gui/SettingsDialog.ui \
     Src/Gui/ExceptionRangeDialog.ui \
-    Src/Gui/CommandHelpView.ui \
     Src/Gui/AppearanceDialog.ui \
     Src/Gui/CloseDialog.ui \
     Src/Gui/HexEditDialog.ui \

@@ -7,9 +7,7 @@
 HexDump::HexDump(QWidget* parent)
     : AbstractTableView(parent)
 {
-    SelectionData_t data;
-    memset(&data, 0, sizeof(SelectionData_t));
-    mSelection = data;
+    memset(&mSelection, 0, sizeof(SelectionData));
 
     setDrawDebugOnly(true);
 
@@ -22,9 +20,9 @@ HexDump::HexDump(QWidget* parent)
 
     clearDescriptors();
 
-    backgroundColor = ConfigColor("HexDumpBackgroundColor");
-    textColor = ConfigColor("HexDumpTextColor");
-    selectionColor = ConfigColor("HexDumpSelectionColor");
+    mBackgroundColor = ConfigColor("HexDumpBackgroundColor");
+    mTextColor = ConfigColor("HexDumpTextColor");
+    mSelectionColor = ConfigColor("HexDumpSelectionColor");
 
     mRvaDisplayEnabled = false;
     mSyncAddrExpression = "";
@@ -48,9 +46,9 @@ void HexDump::updateColors()
 {
     AbstractTableView::updateColors();
 
-    backgroundColor = ConfigColor("HexDumpBackgroundColor");
-    textColor = ConfigColor("HexDumpTextColor");
-    selectionColor = ConfigColor("HexDumpSelectionColor");
+    mBackgroundColor = ConfigColor("HexDumpBackgroundColor");
+    mTextColor = ConfigColor("HexDumpTextColor");
+    mSelectionColor = ConfigColor("HexDumpSelectionColor");
 
     mModifiedBytesColor = ConfigColor("HexDumpModifiedBytesColor");
     mModifiedBytesBackgroundColor = ConfigColor("HexDumpModifiedBytesBackgroundColor");
@@ -550,7 +548,7 @@ void HexDump::printSelected(QPainter* painter, dsint rowBase, int rowOffset, int
 {
     if((col > 0) && ((col - 1) < mDescriptor.size()))
     {
-        ColumnDescriptor_t curDescriptor = mDescriptor.at(col - 1);
+        ColumnDescriptor curDescriptor = mDescriptor.at(col - 1);
         int wBytePerRowCount = getBytePerRowCount();
         dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
         int wItemPixWidth = getItemPixelWidth(curDescriptor);
@@ -565,13 +563,13 @@ void HexDump::printSelected(QPainter* painter, dsint rowBase, int rowOffset, int
             {
                 int wSelectionWidth = wItemPixWidth > w - (wSelectionX - x) ? w - (wSelectionX - x) : wItemPixWidth;
                 wSelectionWidth = wSelectionWidth < 0 ? 0 : wSelectionWidth;
-                painter->setPen(textColor);
-                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(selectionColor));
+                painter->setPen(mTextColor);
+                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(mSelectionColor));
             }
             int separator = curDescriptor.separator;
             if(i && separator && !(i % separator))
             {
-                painter->setPen(separatorColor);
+                painter->setPen(mSeparatorColor);
                 painter->drawLine(wSelectionX, y, wSelectionX, y + h);
             }
         }
@@ -637,7 +635,7 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     RichTextPainter::CustomRichText_t curData;
     curData.highlight = false;
     curData.flags = RichTextPainter::FlagAll;
-    curData.textColor = textColor;
+    curData.textColor = mTextColor;
     curData.textBackground = Qt::transparent;
     curData.highlightColor = Qt::transparent;
 
@@ -653,7 +651,7 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     }
     else if(mDescriptor.at(col - 1).isData == true)
     {
-        const ColumnDescriptor_t & desc = mDescriptor.at(col - 1);
+        const ColumnDescriptor & desc = mDescriptor.at(col - 1);
         int wI;
 
         int wByteCount = getSizeOf(desc.data.itemSize);
@@ -680,7 +678,7 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
             for(wI = 0; wI < desc.itemCount && (rva + wI) < (dsint)mMemPage->getSize(); wI++)
             {
                 curData.text.clear();
-                curData.textColor = textColor;
+                curData.textColor = mTextColor;
                 curData.textBackground = Qt::transparent;
                 curData.flags = RichTextPainter::FlagAll;
 
@@ -734,7 +732,7 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     }
 }
 
-void HexDump::toString(DataDescriptor_t desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText) //convert data to string
+void HexDump::toString(DataDescriptor desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText) //convert data to string
 {
     switch(desc.itemSize)
     {
@@ -784,7 +782,7 @@ void HexDump::toString(DataDescriptor_t desc, duint rva, byte_t* data, RichTextP
         richText.textColor = ConfigColor("HexDumpModifiedBytesColor");
 }
 
-void HexDump::byteToString(duint rva, byte_t byte, ByteViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::byteToString(duint rva, byte_t byte, ByteViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     QString wStr = "";
 
@@ -871,7 +869,7 @@ void HexDump::byteToString(duint rva, byte_t byte, ByteViewMode_e mode, RichText
     }
 }
 
-void HexDump::wordToString(duint rva, uint16 word, WordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::wordToString(duint rva, uint16 word, WordViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     Q_UNUSED(rva);
     QString wStr;
@@ -918,7 +916,7 @@ void HexDump::wordToString(duint rva, uint16 word, WordViewMode_e mode, RichText
     richText.text = wStr;
 }
 
-void HexDump::dwordToString(duint rva, uint32 dword, DwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::dwordToString(duint rva, uint32 dword, DwordViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     Q_UNUSED(rva);
     QString wStr;
@@ -959,7 +957,7 @@ void HexDump::dwordToString(duint rva, uint32 dword, DwordViewMode_e mode, RichT
     richText.text = wStr;
 }
 
-void HexDump::qwordToString(duint rva, uint64 qword, QwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::qwordToString(duint rva, uint64 qword, QwordViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     Q_UNUSED(rva);
     QString wStr;
@@ -1000,7 +998,7 @@ void HexDump::qwordToString(duint rva, uint64 qword, QwordViewMode_e mode, RichT
     richText.text = wStr;
 }
 
-void HexDump::twordToString(duint rva, void* tword, TwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::twordToString(duint rva, void* tword, TwordViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     Q_UNUSED(rva);
     QString wStr;
@@ -1023,12 +1021,12 @@ void HexDump::twordToString(duint rva, void* tword, TwordViewMode_e mode, RichTe
     richText.text = wStr;
 }
 
-int HexDump::getSizeOf(DataSize_e size)
+int HexDump::getSizeOf(DataSize size)
 {
     return int(size);
 }
 
-int HexDump::getStringMaxLength(DataDescriptor_t desc)
+int HexDump::getStringMaxLength(DataDescriptor desc)
 {
     int wLength = 0;
 
@@ -1074,7 +1072,7 @@ int HexDump::getStringMaxLength(DataDescriptor_t desc)
     return wLength;
 }
 
-int HexDump::byteStringMaxLength(ByteViewMode_e mode)
+int HexDump::byteStringMaxLength(ByteViewMode mode)
 {
     int wLength = 0;
 
@@ -1114,7 +1112,7 @@ int HexDump::byteStringMaxLength(ByteViewMode_e mode)
     return wLength;
 }
 
-int HexDump::wordStringMaxLength(WordViewMode_e mode)
+int HexDump::wordStringMaxLength(WordViewMode mode)
 {
     int wLength = 0;
 
@@ -1154,7 +1152,7 @@ int HexDump::wordStringMaxLength(WordViewMode_e mode)
     return wLength;
 }
 
-int HexDump::dwordStringMaxLength(DwordViewMode_e mode)
+int HexDump::dwordStringMaxLength(DwordViewMode mode)
 {
     int wLength = 0;
 
@@ -1194,7 +1192,7 @@ int HexDump::dwordStringMaxLength(DwordViewMode_e mode)
     return wLength;
 }
 
-int HexDump::qwordStringMaxLength(QwordViewMode_e mode)
+int HexDump::qwordStringMaxLength(QwordViewMode mode)
 {
     int wLength = 0;
 
@@ -1234,7 +1232,7 @@ int HexDump::qwordStringMaxLength(QwordViewMode_e mode)
     return wLength;
 }
 
-int HexDump::twordStringMaxLength(TwordViewMode_e mode)
+int HexDump::twordStringMaxLength(TwordViewMode mode)
 {
     int wLength = 0;
 
@@ -1304,7 +1302,7 @@ int HexDump::getBytePerRowCount()
     return mDescriptor.at(0).itemCount * getSizeOf(mDescriptor.at(0).data.itemSize);
 }
 
-int HexDump::getItemPixelWidth(ColumnDescriptor_t desc)
+int HexDump::getItemPixelWidth(ColumnDescriptor desc)
 {
     int wCharWidth = getCharWidth();
     int wItemPixWidth = getStringMaxLength(desc.data) * wCharWidth + wCharWidth;
@@ -1312,16 +1310,16 @@ int HexDump::getItemPixelWidth(ColumnDescriptor_t desc)
     return wItemPixWidth;
 }
 
-void HexDump::appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor)
+void HexDump::appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor descriptor)
 {
     addColumnAt(width, title, clickable);
     mDescriptor.append(descriptor);
 }
 
 //Clears the descriptors, append a new descriptor and fix the tableOffset (use this instead of clearDescriptors()
-void HexDump::appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor)
+void HexDump::appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor descriptor)
 {
-    mAllowPainting = false;
+    setAllowPainting(false);
     if(mDescriptor.size())
     {
         dsint wRVA = getTableOffset() * getBytePerRowCount() - mByteOffset;
@@ -1331,7 +1329,7 @@ void HexDump::appendResetDescriptor(int width, QString title, bool clickable, Co
     }
     else
         appendDescriptor(width, title, clickable, descriptor);
-    mAllowPainting = true;
+    setAllowPainting(true);
 }
 
 void HexDump::clearDescriptors()

@@ -12,12 +12,12 @@ SourceView::SourceView(QString path, int line, QWidget* parent)
       mIpLine(0)
 {
     mSourcePath = path;
-    mList->enableColumnSorting(false);
-    mSearchList->enableColumnSorting(false);
+    stdList()->enableColumnSorting(false);
+    stdSearchList()->enableColumnSorting(false);
 
-    addColumnAt(sizeof(duint) * 2, tr("Address"));
-    addColumnAt(6, tr("Line"));
-    addColumnAt(0, tr("Code"));
+    addColumnAtRef(sizeof(duint) * 2, tr("Address"));
+    addColumnAtRef(6, tr("Line"));
+    addColumnAtRef(0, tr("Code"));
 
     connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(sourceContextMenu(QMenu*)));
 

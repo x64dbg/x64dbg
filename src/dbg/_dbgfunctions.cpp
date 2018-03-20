@@ -403,6 +403,11 @@ static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
     return count;
 }
 
+static void _refreshmodulelist()
+{
+    SymRefreshModuleList(fdProcessInfo->hProcess);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -475,4 +480,5 @@ void dbgfunctionsinit()
     _dbgfunctions.ModRelocationsInRange = _modrelocationsinrange;
     _dbgfunctions.DbGetHash = DbGetHash;
     _dbgfunctions.SymAutoComplete = SymAutoComplete;
+    _dbgfunctions.RefreshModuleList = _refreshmodulelist;
 }

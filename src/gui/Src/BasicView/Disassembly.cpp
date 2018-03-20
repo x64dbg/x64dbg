@@ -17,9 +17,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     historyClear();
 
-    SelectionData_t data;
-    memset(&data, 0, sizeof(SelectionData_t));
-    mSelection = data;
+    memset(&mSelection, 0, sizeof(SelectionData));
 
     mCipRva = 0;
 
@@ -56,7 +54,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     setShowHeader(false); //hide header
 
-    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mXrefInfo.refcount = 0;
 
@@ -80,7 +78,7 @@ Disassembly::~Disassembly()
 void Disassembly::updateColors()
 {
     AbstractTableView::updateColors();
-    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mInstructionHighlightColor = ConfigColor("InstructionHighlightColor");
     mDisassemblyRelocationUnderlineColor = ConfigColor("DisassemblyRelocationUnderlineColor");
@@ -970,7 +968,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
 
     bool showXref = false;
 
-    GraphicDump_t wPict = GD_Nothing;
+    GraphicDump wPict = GD_Nothing;
 
     if(branchType != Instruction_t::None && branchType != Instruction_t::Call)
     {
@@ -1049,7 +1047,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
         }
     }
 
-    GraphicJumpDirection_t curInstDir = GJD_Nothing;
+    GraphicJumpDirection curInstDir = GJD_Nothing;
 
     if(isjmp)
     {
@@ -1848,7 +1846,7 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     dsint wRVA = parVA - wBase;
     dsint wCipRva = parCIP - wBase;
 
-    HistoryData_t newHistory;
+    HistoryData newHistory;
 
     //VA history
     if(history)

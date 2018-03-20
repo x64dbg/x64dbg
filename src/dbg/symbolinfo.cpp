@@ -21,7 +21,7 @@ struct SYMBOLCBDATA
     std::vector<char> undecoratedSymbol;
 };
 
-static void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, SYMBOLCBDATA & cbData)
+/*static void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, SYMBOLCBDATA & cbData)
 {
     SYMBOLINFO symbol;
     memset(&symbol, 0, sizeof(SYMBOLINFO));
@@ -44,7 +44,7 @@ static void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, SYMBOLCBDATA &
 
         EnumCallback(&symbol, cbData.user);
     });
-}
+}*/
 
 void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 {
@@ -57,54 +57,44 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
     {
         SHARED_ACQUIRE(LockModules);
         MODINFO* modInfo = ModInfoFromAddr(Base);
-        if(modInfo && modInfo->symbols->isOpen())
+        if(modInfo)
         {
-            modInfo->symbols->enumSymbols([&cbData, Base](const SymbolInfo & info)
+            for(size_t i = 0; i < modInfo->exports.size(); i++)
             {
-                cbData.decoratedSymbol[0] = '\0';
-                cbData.undecoratedSymbol[0] = '\0';
-
-                SYMBOLINFO curSymbol;
-                memset(&curSymbol, 0, sizeof(SYMBOLINFO));
-
-                curSymbol.addr = info.va;
-                curSymbol.decoratedSymbol = cbData.decoratedSymbol.data();
-                curSymbol.undecoratedSymbol = cbData.undecoratedSymbol.data();
-                strncpy_s(curSymbol.decoratedSymbol, MAX_SYM_NAME, info.decoratedName.c_str(), _TRUNCATE);
-                strncpy_s(curSymbol.undecoratedSymbol, MAX_SYM_NAME, info.undecoratedName.c_str(), _TRUNCATE);
-
-                // Skip bad ordinals
-                if(strstr(curSymbol.decoratedSymbol, "Ordinal"))
+                SYMBOLPTR symbolptr;
+                symbolptr.modbase = Base;
+                symbolptr.symbol = &modInfo->exports.at(i);
+                cbData.cbSymbolEnum(&symbolptr, cbData.user);
+            }
+            for(size_t i = 0; i < modInfo->imports.size(); i++)
+            {
+                SYMBOLPTR symbolptr;
+                symbolptr.modbase = Base;
+                symbolptr.symbol = &modInfo->imports.at(i);
+                cbData.cbSymbolEnum(&symbolptr, cbData.user);
+            }
+            if(modInfo->symbols->isOpen())
+            {
+                modInfo->symbols->enumSymbols([&cbData, Base](const SymbolInfo & info)
                 {
-                    // Does the symbol point to the module base?
-                    if(curSymbol.addr == Base)
-                        return true;
-                }
-
-                // Don't show duplicated decorated/undecorated names
-                if(info.undecoratedName.empty() || info.decoratedName == info.undecoratedName)
-                {
-                    curSymbol.undecoratedSymbol = nullptr;
-                }
-
-                // Mark IAT entries as Imports
-                curSymbol.isImported = strncmp(curSymbol.decoratedSymbol, "__imp_", 6) == 0;
-
-                cbData.cbSymbolEnum(&curSymbol, cbData.user);
-                return true;
-            });
+                    SYMBOLPTR symbolptr;
+                    symbolptr.modbase = Base;
+                    symbolptr.symbol = &info;
+                    return cbData.cbSymbolEnum(&symbolptr, cbData.user);
+                });
+            }
         }
     }
 
     // Emit pseudo entry point symbol
-    SYMBOLINFO symbol;
+    /*SYMBOLINFO symbol;
     memset(&symbol, 0, sizeof(SYMBOLINFO));
     symbol.decoratedSymbol = "OptionalHeader.AddressOfEntryPoint";
     symbol.addr = ModEntryFromAddr(Base);
     if(symbol.addr)
         EnumCallback(&symbol, UserData);
 
-    SymEnumImports(Base, EnumCallback, cbData);
+    SymEnumImports(Base, EnumCallback, cbData);*/
 }
 
 void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
@@ -319,7 +309,7 @@ bool SymAddrFromName(const char* Name, duint* Address)
             SymbolInfo symInfo;
             if(modInfo->symbols->findSymbolByName(name, symInfo, true))
             {
-                *Address = symInfo.va;
+                *Address = base + symInfo.rva;
                 return true;
             }
         }

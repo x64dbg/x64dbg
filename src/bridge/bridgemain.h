@@ -495,12 +495,19 @@ typedef enum
     hw_qword
 } BPHWSIZE;
 
+typedef enum
+{
+    sym_import,
+    sym_export,
+    sym_symbol
+} SYMBOLTYPE;
+
 //Debugger typedefs
 typedef MEMORY_SIZE VALUE_SIZE;
-typedef struct SYMBOLINFO_ SYMBOLINFO;
+
 typedef struct DBGFUNCTIONS_ DBGFUNCTIONS;
 
-typedef void (*CBSYMBOLENUM)(SYMBOLINFO* symbol, void* user);
+typedef bool (*CBSYMBOLENUM)(const struct SYMBOLPTR_* symbol, void* user);
 
 //Debugger structs
 typedef struct
@@ -583,13 +590,15 @@ typedef struct
     FUNCTION args;
 } BRIDGE_ADDRINFO;
 
-struct SYMBOLINFO_
+typedef struct SYMBOLINFO_
 {
     duint addr;
     char* decoratedSymbol;
     char* undecoratedSymbol;
-    bool isImported;
-};
+    SYMBOLTYPE type;
+    bool freeDecorated;
+    bool freeUndecorated;
+} SYMBOLINFO;
 
 typedef struct
 {
@@ -889,6 +898,12 @@ typedef struct
     XREF_RECORD* references;
 } XREF_INFO;
 
+typedef struct SYMBOLPTR_
+{
+    duint modbase;
+    const void* symbol;
+} SYMBOLPTR;
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP void DbgExit();
@@ -1013,7 +1028,7 @@ BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId);
 BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph);
 BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* success = 0);
 BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu);
-BRIDGE_IMPEXP void DbgGetSymbolInfo(void* symbol, SYMBOLINFO* info);
+BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
@@ -1142,7 +1157,7 @@ typedef enum
     GUI_REF_ADDCOMMAND,             // param1=const char* title,    param2=const char* command
     GUI_OPEN_TRACE_FILE,            // param1=const char* file name,param2=unused
     GUI_UPDATE_TRACE_BROWSER,       // param1=unused,               param2=unused
-    GUI_SET_MODULE_SYMBOLS,         // param1=duint base,           param2=ListOf(void*) symbols
+    GUI_INVALIDATE_SYMBOL_SOURCE,   // param1=duint base,           param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1319,7 +1334,7 @@ BRIDGE_IMPEXP void GuiFlushLog();
 BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command);
 BRIDGE_IMPEXP void GuiUpdateTraceBrowser();
 BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName);
-BRIDGE_IMPEXP void GuiSetModuleSymbols(duint base, ListOf(void*) symbols);
+BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base);
 
 #ifdef __cplusplus
 }

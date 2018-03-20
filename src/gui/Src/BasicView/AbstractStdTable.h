@@ -7,8 +7,9 @@ class AbstractStdTable : public AbstractTableView
     Q_OBJECT
 public:
     explicit AbstractStdTable(QWidget* parent = 0);
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
-    void reloadData();
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
+    void updateColors() override;
+    void reloadData() override;
 
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
@@ -49,6 +50,18 @@ public:
     void setupCopyMenu(MenuBuilder* copyMenu);
     void setCopyMenuOnly(bool bSet, bool bDebugOnly = true);
 
+    //draw helpers
+    void setHighlightText(QString highlightText)
+    {
+        mHighlightText = highlightText;
+    }
+
+    void setAddressColumn(int col, bool cipBase = false)
+    {
+        mAddressColumn = col;
+        bCipBase = cipBase;
+    }
+
 signals:
     void selectionChangedSignal(int index);
     void keyPressedSignal(QKeyEvent* event);
@@ -69,12 +82,14 @@ public slots:
 protected:
     QString copyTable(const std::vector<int> & colWidths);
 
-    struct
+    struct SelectionData
     {
         int firstSelectedIndex = 0;
         int fromIndex = 0;
         int toIndex = 0;
-    } mSelection;
+    };
+
+    SelectionData mSelection;
 
     enum
     {
@@ -94,4 +109,24 @@ protected:
         int column = -1;
         bool ascending = true;
     } mSort;
+
+    QColor mCipBackgroundColor;
+    QColor mCipColor;
+    QColor mBreakpointBackgroundColor;
+    QColor mBreakpointColor;
+    QColor mHardwareBreakpointBackgroundColor;
+    QColor mHardwareBreakpointColor;
+    QColor mBookmarkBackgroundColor;
+    QColor mBookmarkColor;
+    QColor mLabelColor;
+    QColor mLabelBackgroundColor;
+    QColor mSelectedAddressBackgroundColor;
+    QColor mSelectedAddressColor;
+    QColor mAddressBackgroundColor;
+    QColor mAddressColor;
+    QColor mTracedBackgroundColor;
+    QColor mTracedSelectedAddressBackgroundColor;
+    bool bCipBase;
+    QString mHighlightText;
+    int mAddressColumn = -1;
 };

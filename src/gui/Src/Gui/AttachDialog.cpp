@@ -1,6 +1,7 @@
 #include "AttachDialog.h"
 #include "ui_AttachDialog.h"
-#include "SearchListView.h"
+#include "StdSearchListView.h"
+#include "StdTable.h"
 #include <QMenu>
 #include <QMessageBox>
 #include <QFileInfo>
@@ -26,26 +27,18 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     connect(ui->btnRefresh, SIGNAL(clicked()), this, SLOT(refresh()));
 
     // Create search view (regex disabled)
-    mSearchListView = new SearchListView(false, this);
+    mSearchListView = new StdSearchListView(this, false, false);
     mSearchListView->mSearchStartCol = 1;
     ui->verticalLayout->insertWidget(0, mSearchListView);
 
     //setup process list
-    int charwidth = mSearchListView->mList->getCharWidth();
-    mSearchListView->mList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
-    mSearchListView->mList->addColumnAt(150, tr("Name"), true);
-    mSearchListView->mList->addColumnAt(300, tr("Title"), true);
-    mSearchListView->mList->addColumnAt(500, tr("Path"), true);
-    mSearchListView->mList->addColumnAt(800, tr("Command Line Arguments"), true);
-    mSearchListView->mList->setDrawDebugOnly(false);
-
-    charwidth = mSearchListView->mSearchList->getCharWidth();
-    mSearchListView->mSearchList->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
-    mSearchListView->mSearchList->addColumnAt(150, tr("Name"), true);
-    mSearchListView->mSearchList->addColumnAt(300, tr("Title"), true);
-    mSearchListView->mSearchList->addColumnAt(500, tr("Path"), true);
-    mSearchListView->mSearchList->addColumnAt(800, tr("Command Line Arguments"), true);
-    mSearchListView->mSearchList->setDrawDebugOnly(false);
+    int charwidth = mSearchListView->getCharWidth();
+    mSearchListView->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->addColumnAt(150, tr("Name"), true);
+    mSearchListView->addColumnAt(300, tr("Title"), true);
+    mSearchListView->addColumnAt(500, tr("Path"), true);
+    mSearchListView->addColumnAt(800, tr("Command Line Arguments"), true);
+    mSearchListView->setDrawDebugOnly(false);
 
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(on_btnAttach_clicked()));
     connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(processListContextMenu(QMenu*)));
@@ -67,24 +60,22 @@ AttachDialog::~AttachDialog()
 
 void AttachDialog::refresh()
 {
-    mSearchListView->mList->setRowCount(0);
-    mSearchListView->mList->setTableOffset(0);
+    mSearchListView->setRowCount(0);
     DBGPROCESSINFO* entries;
     int count;
     if(!DbgFunctions()->GetProcessList(&entries, &count))
         return;
-    mSearchListView->mList->setRowCount(count);
+    mSearchListView->setRowCount(count);
     for(int i = 0; i < count; i++)
     {
         QFileInfo fi(entries[i].szExeFile);
-        mSearchListView->mList->setCellContent(i, 0, QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
-        mSearchListView->mList->setCellContent(i, 1, fi.baseName());
-        mSearchListView->mList->setCellContent(i, 2, QString(entries[i].szExeMainWindowTitle));
-        mSearchListView->mList->setCellContent(i, 3, QString(entries[i].szExeFile));
-        mSearchListView->mList->setCellContent(i, 4, QString(entries[i].szExeArgs));
+        mSearchListView->setCellContent(i, 0, QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
+        mSearchListView->setCellContent(i, 1, fi.baseName());
+        mSearchListView->setCellContent(i, 2, QString(entries[i].szExeMainWindowTitle));
+        mSearchListView->setCellContent(i, 3, QString(entries[i].szExeFile));
+        mSearchListView->setCellContent(i, 4, QString(entries[i].szExeArgs));
     }
-    mSearchListView->mList->setSingleSelection(0);
-    mSearchListView->mList->reloadData();
+    mSearchListView->reloadData();
     mSearchListView->refreshSearchList();
 }
 
@@ -121,11 +112,11 @@ retryFindWindow:
             refresh();
             QString pidText = QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", pid);
             bool found = false;
-            for(int i = 0; i < mSearchListView->mList->getRowCount(); i++)
+            for(int i = 0; i < mSearchListView->mCurList->getRowCount(); i++)
             {
-                if(mSearchListView->mList->getCellContent(i, 0) == pidText)
+                if(mSearchListView->mCurList->getCellContent(i, 0) == pidText)
                 {
-                    mSearchListView->mList->setSingleSelection(i);
+                    mSearchListView->mCurList->setSingleSelection(i);
                     found = true;
                     break;
                 }

@@ -14,12 +14,12 @@ class TraceBrowser : public AbstractTableView
     Q_OBJECT
 public:
     explicit TraceBrowser(QWidget* parent = 0);
-    ~TraceBrowser();
+    ~TraceBrowser() override;
 
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
 
-    void prepareData();
-    virtual void updateColors();
+    void prepareData() override;
+    void updateColors() override;
 
     void expandSelectionUpTo(duint to);
     void setSingleSelection(duint index);
@@ -37,25 +37,25 @@ private:
     void copySelectionSlot(bool copyBytes);
     void copySelectionToFileSlot(bool copyBytes);
 
-    void contextMenuEvent(QContextMenuEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
-    void keyPressEvent(QKeyEvent* event);
+    void contextMenuEvent(QContextMenuEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
     VaHistory mHistory;
     MenuBuilder* mMenuBuilder;
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;
 
-    typedef struct _SelectionData_t
+    struct SelectionData
     {
         duint firstSelectedIndex;
         duint fromIndex;
         duint toIndex;
-    } SelectionData_t;
+    };
 
-    SelectionData_t mSelection;
+    SelectionData mSelection;
     CapstoneTokenizer::SingleToken mHighlightToken;
     bool mHighlightingMode;
     bool mPermanentHighlightingMode;
@@ -102,7 +102,6 @@ signals:
     void displayReferencesWidget();
 
 public slots:
-
     void openFileSlot();
     void openSlot(const QString & fileName);
     void toggleRunTraceSlot();

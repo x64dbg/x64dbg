@@ -7,19 +7,33 @@
 #include <vector>
 #include <functional>
 
-struct SymbolInfo
+struct SymbolInfoGui
 {
-    duint va;
+    virtual void convertToGuiSymbol(duint base, SYMBOLINFO* info) const = 0;
+};
+
+struct SymbolInfo : SymbolInfoGui
+{
+    duint rva;
     duint size;
     int32 disp;
     String decoratedName;
     String undecoratedName;
     bool publicSymbol;
+
+    void convertToGuiSymbol(duint modbase, SYMBOLINFO* info) const override
+    {
+        info->addr = modbase + this->rva;
+        info->decoratedSymbol = (char*)this->decoratedName.c_str();
+        info->undecoratedSymbol = (char*)this->undecoratedName.c_str();
+        info->type = sym_symbol;
+        info->freeDecorated = info->freeUndecorated = false;
+    }
 };
 
 struct LineInfo
 {
-    duint addr;
+    duint rva;
     duint size;
     duint disp;
     int lineNumber;
@@ -89,6 +103,7 @@ public:
         return false; // Stub
     }
 
+    // only call if isOpen && !isLoading
     virtual void enumSymbols(const CbEnumSymbol & cbEnum)
     {
         // Stub

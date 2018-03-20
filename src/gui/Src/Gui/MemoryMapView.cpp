@@ -284,7 +284,7 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
 #else //x86
         duint addr = wStr.toULong(0, 16);
 #endif //_WIN64
-        QColor color = textColor;
+        QColor color = mTextColor;
         QColor backgroundColor = Qt::transparent;
         bool isBp = (DbgGetBpxTypeAt(addr) & bp_memory) == bp_memory;
         bool isCip = addr == mCipBase;
@@ -304,7 +304,7 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
             backgroundColor = ConfigColor("MemoryMapCipBackgroundColor");
         }
         else if(isSelected(rowBase, rowOffset) == true)
-            painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
+            painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
         if(backgroundColor.alpha())
             painter->fillRect(QRect(x, y, w - 1, h), QBrush(backgroundColor));

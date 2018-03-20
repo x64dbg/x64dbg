@@ -3,11 +3,11 @@
 
 #include <QProgressBar>
 #include <QLabel>
-#include "SearchListView.h"
+#include "StdSearchListView.h"
 
 class QTabWidget;
 
-class ReferenceView : public SearchListView
+class ReferenceView : public StdSearchListView
 {
     Q_OBJECT
 
@@ -18,13 +18,12 @@ public:
     void disconnectBridge();
 
 public slots:
-    void addColumnAt(int width, QString title);
-    void setRowCount(dsint count);
-    void setCellContent(int r, int c, QString s);
-    void addCommand(QString title, QString command);
-    void reloadData();
+    void addColumnAtRef(int width, QString title);
+
+    void setRowCount(dsint count) override;
+
     void setSingleSelection(int index, bool scroll);
-    void setSearchStartCol(int col);
+    void addCommand(QString title, QString command);
     void referenceContextMenu(QMenu* wMenu);
     void followAddress();
     void followDumpAddress();
@@ -60,7 +59,7 @@ private:
     QAction* mSetBreakpointOnAllApiCalls;
     QAction* mRemoveBreakpointOnAllApiCalls;
     QLabel* mCountTotalLabel;
-    QVector<QString> mCommnadTitles;
+    QVector<QString> mCommandTitles;
     QVector<QString> mCommands;
     QTabWidget* mParent;
 

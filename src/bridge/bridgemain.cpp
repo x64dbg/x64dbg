@@ -1075,9 +1075,9 @@ BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu)
     _dbg_sendmessage(DBG_MENU_PREPARE, (void*)hMenu, nullptr);
 }
 
-BRIDGE_IMPEXP void DbgGetSymbolInfo(void* symbol, SYMBOLINFO* info)
+BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info)
 {
-    _dbg_sendmessage(DBG_GET_SYMBOL_INFO, symbol, info);
+    _dbg_sendmessage(DBG_GET_SYMBOL_INFO, (void*)symbolptr, info);
 }
 
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
@@ -1695,9 +1695,9 @@ BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName)
     _gui_sendmessage(GUI_OPEN_TRACE_FILE, (void*)fileName, nullptr);
 }
 
-BRIDGE_IMPEXP void GuiSetModuleSymbols(duint base, ListOf(void*) symbols)
+BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base)
 {
-    _gui_sendmessage(GUI_SET_MODULE_SYMBOLS, (void*)base, symbols);
+    _gui_sendmessage(GUI_INVALIDATE_SYMBOL_SOURCE, (void*)base, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

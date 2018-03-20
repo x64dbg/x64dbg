@@ -39,7 +39,7 @@ bool SymbolFromAddressExact(duint address, SymbolInfo & symInfo)
             if(found != modInfo->exportsByRva.end())
             {
                 auto & modExport = modInfo->exports.at(*found);
-                symInfo.va = modExport.rva + modInfo->base;
+                symInfo.rva = modExport.rva;
                 symInfo.size = 0;
                 symInfo.disp = 0;
                 symInfo.decoratedName = modExport.name;

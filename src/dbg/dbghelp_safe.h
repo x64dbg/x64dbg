@@ -10,13 +10,13 @@
 void SafeDbghelpInitialize();
 void SafeDbghelpDeinitialize();
 
-DWORD
+/*DWORD
 SafeUnDecorateSymbolName(
     __in PCSTR name,
     __out_ecount(maxStringLength) PSTR outputString,
     __in DWORD maxStringLength,
     __in DWORD flags
-);
+);*/
 BOOL
 SafeSymUnloadModule64(
     __in HANDLE hProcess,

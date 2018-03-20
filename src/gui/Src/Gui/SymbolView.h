@@ -3,10 +3,11 @@
 
 #include <QWidget>
 #include "Bridge.h"
-#include "ZehSymbolTable.h"
 
 class QMenu;
+class StdSearchListView;
 class SearchListView;
+class SymbolSearchList;
 class QVBoxLayout;
 
 namespace Ui
@@ -20,12 +21,12 @@ class SymbolView : public QWidget
 
 public:
     explicit SymbolView(QWidget* parent = 0);
-    ~SymbolView();
+    ~SymbolView() override;
     void setupContextMenu();
     void saveWindowSettings();
     void loadWindowSettings();
 
-    void setModuleSymbols(duint base, const std::vector<void*> & symbols);
+    void invalidateSymbolSource(duint base);
 
 private slots:
     void updateStyle();
@@ -70,9 +71,9 @@ private:
     QVBoxLayout* mMainLayout;
     QVBoxLayout* mSymbolLayout;
     QWidget* mSymbolPlaceHolder;
-    SearchListView* mSearchListView;
-    SearchListView* mModuleList;
-    ZehSymbolTable* mSymbolTable;
+    SearchListView* mSymbolList;
+    StdSearchListView* mModuleList;
+    SymbolSearchList* mSymbolSearchList;
     QMap<QString, duint> mModuleBaseList;
     QAction* mFollowSymbolAction;
     QAction* mFollowSymbolDumpAction;
@@ -94,8 +95,6 @@ private:
     QAction* mFollowInMemMap;
     QAction* mLoadLib;
     QAction* mFreeLib;
-
-    std::map<duint, std::vector<void*>> mModuleSymbolMap;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

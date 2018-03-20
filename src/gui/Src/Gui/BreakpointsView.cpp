@@ -149,7 +149,7 @@ void BreakpointsView::sortRows(int column, bool ascending)
 QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     if(isSelected(rowBase, rowOffset))
-        painter->fillRect(QRect(x, y, w, h), QBrush(col == ColDisasm ? mDisasmSelectionColor : selectionColor));
+        painter->fillRect(QRect(x, y, w, h), QBrush(col == ColDisasm ? mDisasmSelectionColor : mSelectionColor));
     else if(col == ColDisasm)
         painter->fillRect(QRect(x, y, w, h), QBrush(mDisasmBackgroundColor));
     auto index = bpIndex(rowBase + rowOffset);
@@ -304,7 +304,7 @@ void BreakpointsView::updateBreakpointsSlot()
                 RichTextPainter::CustomRichText_t token;
                 token.highlight = false;
                 token.flags = RichTextPainter::FlagColor;
-                token.textColor = this->textColor;
+                token.textColor = this->mTextColor;
                 token.text = text;
                 richSummary.push_back(token);
             };

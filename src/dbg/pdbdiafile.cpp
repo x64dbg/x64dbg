@@ -115,11 +115,7 @@ public:
         if(hFile == INVALID_HANDLE_VALUE)
             return HRESULT_FROM_WIN32(GetLastError());
 
-        DiaFileStream* out = new DiaFileStream(hFile);
-        *ppStream = out;
-
-        if(*ppStream == NULL)
-            CloseHandle(hFile);
+        *ppStream = new DiaFileStream(hFile);
 
         return S_OK;
     }
@@ -392,25 +388,21 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
 
 bool PDBDiaFile::isOpen() const
 {
-    return m_session != nullptr && m_dataSource != nullptr;
+    return m_session != nullptr || m_dataSource != nullptr;
 }
 
 bool PDBDiaFile::close()
 {
-    if(m_dataSource == nullptr)
-        return false;
-    if(m_session == nullptr)
-        return false;
-
-    m_session->Release();
-    m_dataSource->Release();
-    m_session = nullptr;
-    m_dataSource = nullptr;
-
-    if(m_stream != nullptr)
+    if(m_session)
     {
-        delete(DiaFileStream*)m_stream;
-        m_stream = nullptr;
+        m_session->Release();
+        m_session = nullptr;
+    }
+
+    if(m_dataSource)
+    {
+        m_dataSource->Release();
+        m_dataSource = nullptr;
     }
 
     return true;

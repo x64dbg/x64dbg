@@ -8,7 +8,7 @@ class StdTable;
 class ReferenceView;
 class QVBoxLayout;
 class LabeledSplitter;
-class SearchListView;
+class StdSearchListView;
 class QMenu;
 
 class HandlesView : public QWidget
@@ -41,9 +41,9 @@ public slots:
 private:
     QVBoxLayout* mVertLayout;
     LabeledSplitter* mSplitter;
-    SearchListView* mHandlesTable;
-    SearchListView* mTcpConnectionsTable;
-    SearchListView* mWindowsTable;
+    StdSearchListView* mHandlesTable;
+    StdSearchListView* mTcpConnectionsTable;
+    StdSearchListView* mWindowsTable;
     //ReferenceView* mHeapsTable;
     StdTable* mPrivilegesTable;
 

@@ -22,7 +22,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mSideBar = new CPUSideBar(mDisas);
     mArgumentWidget = new CPUArgumentWidget(this);
     connect(mDisas, SIGNAL(tableOffsetChanged(dsint)), mSideBar, SLOT(changeTopmostAddress(dsint)));
-    connect(mDisas, SIGNAL(viewableRows(int)), mSideBar, SLOT(setViewableRows(int)));
+    connect(mDisas, SIGNAL(viewableRowsChanged(int)), mSideBar, SLOT(setViewableRows(int)));
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mSideBar, SLOT(setSelection(dsint)));
     connect(mDisas, SIGNAL(disassembledAt(dsint, dsint, bool, dsint)), mArgumentWidget, SLOT(disassembledAtSlot(dsint, dsint, bool, dsint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
