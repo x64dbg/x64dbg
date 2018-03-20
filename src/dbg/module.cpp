@@ -241,29 +241,30 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
 static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
 {
-    // TODO: proper bounds checking
-
     // Clear TLS callbacks
     Info.tlsCallbacks.clear();
 
-    // Get address and size of base relocation table
-    duint tlsDirRva = GetPE32DataFromMappedFile(FileMapVA, 0, UE_TLSTABLEADDRESS);
-    duint tlsDirSize = GetPE32DataFromMappedFile(FileMapVA, 0, UE_TLSTABLESIZE);
-    if(tlsDirRva == 0 || tlsDirSize == 0)
+    // Get the TLS directory
+    ULONG tlsDirSize;
+    auto tlsDir = (PIMAGE_TLS_DIRECTORY)RtlImageDirectoryEntryToData((PVOID)FileMapVA,
+                  FALSE,
+                  IMAGE_DIRECTORY_ENTRY_TLS,
+                  &tlsDirSize);
+    if(tlsDir == nullptr /*|| tlsDirSize == 0*/) // The loader completely ignores the directory size. Setting it to 0 is an anti-debug trick
         return;
 
-    auto tlsDirOffset = ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, tlsDirRva, true, false);
-    if(!tlsDirOffset)
-        return;
-    auto tlsDir = PIMAGE_TLS_DIRECTORY(tlsDirOffset + FileMapVA);
-    if(!tlsDir->AddressOfCallBacks)
+    ULONG64 addressOfCallbacks = IMAGE64(Info.headers)
+                                 ? ((PIMAGE_TLS_DIRECTORY64)tlsDir)->AddressOfCallBacks
+                                 : (ULONG64)((PIMAGE_TLS_DIRECTORY32)tlsDir)->AddressOfCallBacks;
+    if(!addressOfCallbacks)
         return;
 
-    auto imageBase = GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMAGEBASE);
-    auto tlsArrayOffset = ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, tlsDir->AddressOfCallBacks - imageBase, true, false);
+    auto imageBase = HEADER_FIELD(Info.headers, ImageBase);
+    auto tlsArrayOffset = RvaToVa(0, Info.headers, tlsDir->AddressOfCallBacks - imageBase);
     if(!tlsArrayOffset)
         return;
 
+    // TODO: proper bounds checking
     auto tlsArray = PULONG_PTR(tlsArrayOffset + FileMapVA);
     while(*tlsArray)
         Info.tlsCallbacks.push_back(*tlsArray++ - imageBase + Info.base);
