@@ -10,8 +10,9 @@
 #include <shlwapi.h>
 #include "console.h"
 #include "debugger.h"
+#include <memory>
 
-std::map<Range, MODINFO, RangeCompare> modinfo;
+std::map<Range, std::unique_ptr<MODINFO>, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;
 
 static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
@@ -53,7 +54,8 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
     for(DWORD i = 0; i < exportDir->NumberOfFunctions; i++)
     {
-        MODEXPORT entry;
+        Info.exports.emplace_back();
+        auto & entry = Info.exports.back();
         entry.ordinal = i + exportDir->Base;
         entry.rva = addressOfFunctions[i];
         if(entry.forwarded = entry.rva >= exportDirRva && entry.rva < exportDirRva + exportDirSize)
@@ -62,7 +64,6 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             if(forwardNameOffset) // TODO: what does the Windows loader do if this fails?
                 entry.forwardName = String((const char*)(forwardNameOffset + FileMapVA));
         }
-        Info.exports.push_back(entry);
     }
 
     for(DWORD i = 0; i < exportDir->NumberOfNames; i++)
@@ -121,8 +122,7 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         if(!moduleNameOffset) // TODO: what does the Windows loader do if this fails?
             continue;
 
-        auto moduleName = String((const char*)(moduleNameOffset + FileMapVA));
-        Info.importModules.push_back(moduleName);
+        Info.importModules.emplace_back((const char*)(moduleNameOffset + FileMapVA));
 
         auto firstThunkOffset = rva2offset(importDescriptor->FirstThunk);
         if(!firstThunkOffset) // TODO: what does the Windows loader do if this fails?
@@ -131,7 +131,8 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         auto thunkData = PIMAGE_THUNK_DATA(firstThunkOffset + FileMapVA);
         for(auto iatRva = importDescriptor->FirstThunk; thunkData->u1.AddressOfData; thunkData++, iatRva += sizeof(duint))
         {
-            MODIMPORT entry;
+            Info.imports.emplace_back();
+            auto & entry = Info.imports.back();
             entry.iatRva = iatRva;
             entry.moduleIndex = moduleIndex;
             if((thunkData->u1.Ordinal & IMAGE_ORDINAL_FLAG) == IMAGE_ORDINAL_FLAG)
@@ -148,7 +149,6 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                 entry.name = String((const char*)importByName->Name);
                 entry.ordinal = -1;
             }
-            Info.imports.push_back(entry);
         }
     }
 
@@ -476,6 +476,7 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 
     ReadExportDirectory(Info, FileMapVA);
     ReadImportDirectory(Info, FileMapVA);
+    dprintf("[%s%s] read %d imports and %d exports\n", Info.name, Info.extension, Info.imports.size(), Info.exports.size());
     ReadTlsCallbacks(Info, FileMapVA);
     ReadBaseRelocationTable(Info, FileMapVA);
     ReadDebugDirectory(Info, FileMapVA);
@@ -487,8 +488,10 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     if(!Base || !Size || !FullPath)
         return false;
 
+    auto infoPtr = std::make_unique<MODINFO>();
+    auto & info = *infoPtr;
+
     // Copy the module path in the struct
-    MODINFO info;
     strcpy_s(info.path, FullPath);
 
     // Break the module path into a directory and file name
@@ -589,7 +592,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
 
     // Add module to list
     EXCLUSIVE_ACQUIRE(LockModules);
-    modinfo.insert(std::make_pair(Range(Base, Base + Size - 1), info));
+    modinfo.insert(std::make_pair(Range(Base, Base + Size - 1), std::move(infoPtr)));
     EXCLUSIVE_RELEASE();
 
     // Put labels for virtual module exports
@@ -618,14 +621,6 @@ bool ModUnload(duint Base)
     if(found == modinfo.end())
         return false;
 
-    // Unload the mapped file from memory
-    auto & info = found->second;
-    if(info.fileMapVA)
-        StaticFileUnloadW(StringUtils::Utf8ToUtf16(info.path).c_str(), false, info.fileHandle, info.loadedSize, info.fileMap, info.fileMapVA);
-
-    // Unload symbols from the module
-    info.unloadSymbols();
-
     // Remove it from the list
     modinfo.erase(found);
     EXCLUSIVE_RELEASE();
@@ -640,26 +635,6 @@ void ModClear()
     {
         // Clean up all the modules
         EXCLUSIVE_ACQUIRE(LockModules);
-
-        for(const auto & mod : modinfo)
-        {
-            // Unload the mapped file from memory
-            const auto & info = mod.second;
-            if(info.fileMapVA)
-                StaticFileUnloadW(StringUtils::Utf8ToUtf16(info.path).c_str(), false, info.fileHandle, info.loadedSize, info.fileMap, info.fileMapVA);
-
-            if(info.symbols != nullptr &&
-                    info.symbols != &EmptySymbolSource)
-            {
-                if(info.symbols->isLoading())
-                {
-                    info.symbols->cancelLoading();
-                }
-
-                delete info.symbols;
-            }
-        }
-
         modinfo.clear();
     }
 
@@ -684,7 +659,7 @@ MODINFO* ModInfoFromAddr(duint Address)
     if(found == modinfo.end())
         return nullptr;
 
-    return &found->second;
+    return found->second.get();
 }
 
 bool ModNameFromAddr(duint Address, char* Name, bool Extension)
@@ -787,16 +762,16 @@ duint ModBaseFromName(const char* Module)
     {
         const auto & currentModule = i.second;
         char currentModuleName[MAX_MODULE_SIZE];
-        strcpy_s(currentModuleName, currentModule.name);
-        strcat_s(currentModuleName, currentModule.extension);
+        strcpy_s(currentModuleName, currentModule->name);
+        strcat_s(currentModuleName, currentModule->extension);
 
         // Compare with extension (perfect match)
         if(!_stricmp(currentModuleName, Module))
-            return currentModule.base;
+            return currentModule->base;
 
         // Compare without extension, possible candidate (thanks to chessgod101 for finding this)
-        if(!candidate && !_stricmp(currentModule.name, Module))
-            candidate = currentModule.base;
+        if(!candidate && !_stricmp(currentModule->name, Module))
+            candidate = currentModule->base;
     }
 
     return candidate;
@@ -867,20 +842,11 @@ int ModPathFromName(const char* Module, char* Path, int Size)
     return ModPathFromAddr(ModBaseFromName(Module), Path, Size);
 }
 
-void ModGetList(std::vector<MODINFO> & list)
-{
-    SHARED_ACQUIRE(LockModules);
-    list.clear();
-    list.reserve(modinfo.size());
-    for(const auto & mod : modinfo)
-        list.push_back(mod.second);
-}
-
 void ModEnum(const std::function<void(const MODINFO &)> & cbEnum)
 {
     SHARED_ACQUIRE(LockModules);
     for(const auto & mod : modinfo)
-        cbEnum(mod.second);
+        cbEnum(*mod.second);
 }
 
 int ModGetParty(duint Address)
@@ -1042,12 +1008,32 @@ void MODINFO::unloadSymbols()
 {
     if(symbols != nullptr && symbols != &EmptySymbolSource)
     {
-        if(symbols->isLoading())
-        {
-            symbols->cancelLoading();
-        }
-
         delete symbols;
         symbols = &EmptySymbolSource;
     }
+}
+
+void MODINFO::unmapFile()
+{
+    // Unload the mapped file from memory
+    if(fileMapVA)
+        StaticFileUnloadW(StringUtils::Utf8ToUtf16(path).c_str(), false, fileHandle, loadedSize, fileMap, fileMapVA);
+}
+
+void MODIMPORT::convertToGuiSymbol(duint base, SYMBOLINFO* info) const
+{
+    info->addr = base + iatRva;
+    info->type = sym_import;
+    info->decoratedSymbol = (char*)name.c_str();
+    info->undecoratedSymbol = "";
+    info->freeDecorated = info->freeUndecorated = false;
+}
+
+void MODEXPORT::convertToGuiSymbol(duint base, SYMBOLINFO* info) const
+{
+    info->addr = base + rva;
+    info->type = sym_export;
+    info->decoratedSymbol = (char*)name.c_str();
+    info->undecoratedSymbol = "";
+    info->freeDecorated = info->freeUndecorated = false;
 }

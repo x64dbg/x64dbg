@@ -37,21 +37,25 @@ struct PdbValidationData
     }
 };
 
-struct MODEXPORT
+struct MODEXPORT : SymbolInfoGui
 {
     DWORD ordinal = 0;
     DWORD rva = 0;
     bool forwarded = false;
     String forwardName;
     String name;
+
+    virtual void convertToGuiSymbol(duint base, SYMBOLINFO* info) const override;
 };
 
-struct MODIMPORT
+struct MODIMPORT : SymbolInfoGui
 {
     size_t moduleIndex; //index in MODINFO.importModules
     DWORD iatRva;
     duint ordinal; //equal to -1 if imported by name
     String name;
+
+    virtual void convertToGuiSymbol(duint base, SYMBOLINFO* info) const override;
 };
 
 struct MODINFO
@@ -98,8 +102,15 @@ struct MODINFO
         memset(path, 0, sizeof(path));
     }
 
+    ~MODINFO()
+    {
+        unmapFile();
+        unloadSymbols();
+    }
+
     bool loadSymbols();
     void unloadSymbols();
+    void unmapFile();
 };
 
 bool ModLoad(duint Base, duint Size, const char* FullPath);
