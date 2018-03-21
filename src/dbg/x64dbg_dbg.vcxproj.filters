@@ -455,11 +455,11 @@
     <ClCompile Include="symbolsourcedia.cpp">
       <Filter>Source Files\Symbols</Filter>
     </ClCompile>
-    <ClCompile Include="WinInet-Downloader\downslib.c">
-      <Filter>Source Files\Third Party\WinInet-Downloader</Filter>
-    </ClCompile>
     <ClCompile Include="msdia\diacreate.cpp">
       <Filter>Source Files\Third Party\msdia</Filter>
+    </ClCompile>
+    <ClCompile Include="WinInet-Downloader\downslib.cpp">
+      <Filter>Source Files\Third Party\WinInet-Downloader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

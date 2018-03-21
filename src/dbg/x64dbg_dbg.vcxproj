@@ -111,7 +111,7 @@
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="watch.cpp" />
-    <ClCompile Include="WinInet-Downloader\downslib.c" />
+    <ClCompile Include="WinInet-Downloader\downslib.cpp" />
     <ClCompile Include="x64dbg.cpp" />
     <ClCompile Include="xrefs.cpp" />
     <ClCompile Include="_exports.cpp" />

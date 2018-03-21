@@ -218,25 +218,25 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
 
     switch(result)
     {
-    case DOWNSLIB_ERROR_OK:
+    case downslib_error::ok:
         break;
-    case DOWNSLIB_ERROR_CREATEFILE:
+    case downslib_error::createfile:
         //TODO: handle ERROR_SHARING_VIOLATION (unload symbols and try again)
         symprintf(QT_TRANSLATE_NOOP("DBG", "Failed to create destination file (%s)...\n"), ErrorCodeToName(GetLastError()).c_str());
         return false;
-    case DOWNSLIB_ERROR_INETOPEN:
+    case downslib_error::inetopen:
         symprintf(QT_TRANSLATE_NOOP("DBG", "InternetOpen failed (%s)...\n"), ErrorCodeToName(GetLastError()).c_str());
         return false;
-    case DOWNSLIB_ERROR_OPENURL:
+    case downslib_error::openurl:
         symprintf(QT_TRANSLATE_NOOP("DBG", "InternetOpenUrl failed (%s)...\n"), ErrorCodeToName(GetLastError()).c_str());
         return false;
-    case DOWNSLIB_ERROR_STATUSCODE:
+    case downslib_error::statuscode:
         symprintf(QT_TRANSLATE_NOOP("DBG", "Connection succeeded, but download failed (status code: %d)...\n"), GetLastError());
         return false;
-    case DOWNSLIB_ERROR_CANCEL:
+    case downslib_error::cancel:
         symprintf(QT_TRANSLATE_NOOP("DBG", "Download interrupted...\n"), ErrorCodeToName(GetLastError()).c_str());
         return false;
-    case DOWNSLIB_ERROR_INCOMPLETE:
+    case downslib_error::incomplete:
         symprintf(QT_TRANSLATE_NOOP("DBG", "Download incomplete...\n"), ErrorCodeToName(GetLastError()).c_str());
         return false;
     default:
