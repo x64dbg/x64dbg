@@ -153,7 +153,7 @@ void MemUpdateMap()
         {
             duint start = (duint)currentPage.mbi.BaseAddress;
             duint end = start + currentPage.mbi.RegionSize;
-            for(int j = 0, k = 0; j < SectionNumber; j++)
+            for(duint j = 0, k = 0; (j < (duint)SectionNumber) && (k + IMAGE_SIZEOF_SHORT_NAME < MAX_MODULE_SIZE); j++)
             {
                 const auto & currentSection = sections.at(j);
                 duint secStart = currentSection.addr;

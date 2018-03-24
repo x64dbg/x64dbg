@@ -575,8 +575,9 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 
     // Enumerate all PE sections
-    Info.sections.clear();
     WORD sectionCount = Info.headers->FileHeader.NumberOfSections;
+    Info.sections.clear();
+    Info.sections.reserve(sectionCount);
     PIMAGE_SECTION_HEADER ntSection = IMAGE_FIRST_SECTION(Info.headers);
 
     for(WORD i = 0; i < sectionCount; i++)
