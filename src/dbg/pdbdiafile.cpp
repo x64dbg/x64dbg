@@ -357,6 +357,7 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
             }
 
             // NOTE: For some reason this never matches, commented for now.
+            // ^ 99% sure this should only be used for PDB v2.0 ('NB10' ones). v7.0 PDBs should be checked using (age+guid) only
             /*
             DWORD signature = 0;
             hr = globalSym->get_signature(&signature);
