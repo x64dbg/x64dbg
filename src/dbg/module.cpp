@@ -270,83 +270,82 @@ static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
         Info.tlsCallbacks.push_back(*tlsArray++ - imageBase + Info.base);
 }
 
+#ifndef IMAGE_REL_BASED_RESERVED
+#define IMAGE_REL_BASED_RESERVED 6
+#endif // IMAGE_REL_BASED_RESERVED
+
+#ifndef IMAGE_REL_BASED_MACHINE_SPECIFIC_7
+#define IMAGE_REL_BASED_MACHINE_SPECIFIC_7 7
+#endif // IMAGE_REL_BASED_MACHINE_SPECIFIC_7
+
 static void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Clear relocations
     Info.relocations.clear();
 
-    // Parse base relocation table
-    duint characteristics = GetPE32DataFromMappedFile(FileMapVA, 0, UE_CHARACTERISTICS);
-    if((characteristics & IMAGE_FILE_RELOCS_STRIPPED) == IMAGE_FILE_RELOCS_STRIPPED)
+    // Ignore files with relocation info stripped
+    if((Info.headers->FileHeader.Characteristics & IMAGE_FILE_RELOCS_STRIPPED) == IMAGE_FILE_RELOCS_STRIPPED)
         return;
 
     // Get address and size of base relocation table
-    duint relocDirRva = GetPE32DataFromMappedFile(FileMapVA, 0, UE_RELOCATIONTABLEADDRESS);
-    duint relocDirSize = GetPE32DataFromMappedFile(FileMapVA, 0, UE_RELOCATIONTABLESIZE);
-    if(relocDirRva == 0 || relocDirSize == 0)
+    ULONG totalBytes;
+    auto baseRelocBlock = (PIMAGE_BASE_RELOCATION)RtlImageDirectoryEntryToData((PVOID)FileMapVA,
+                          FALSE,
+                          IMAGE_DIRECTORY_ENTRY_BASERELOC,
+                          &totalBytes);
+    if(baseRelocBlock == nullptr || totalBytes == 0 || (ULONG_PTR)baseRelocBlock + totalBytes > FileMapVA + Info.loadedSize)
         return;
 
-    auto relocDirOffset = (duint)ConvertVAtoFileOffsetEx(FileMapVA, Info.loadedSize, 0, relocDirRva, true, false);
-    if(!relocDirOffset || relocDirOffset + relocDirSize > Info.loadedSize)
+    // Until we reach the end of the relocation table
+    while(totalBytes > 0)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation directory for module %s%s...\n"), Info.name, Info.extension);
-        return;
-    }
-
-    auto read = [&](duint offset, void* dest, size_t size)
-    {
-        if(offset + size > Info.loadedSize)
-            return false;
-        memcpy(dest, (char*)FileMapVA + offset, size);
-        return true;
-    };
-
-    duint curPos = relocDirOffset;
-    // Until we reach the end of base relocation table
-    while(curPos < relocDirOffset + relocDirSize)
-    {
-        // Read base relocation block header
-        IMAGE_BASE_RELOCATION baseRelocBlock;
-        if(!read(curPos, &baseRelocBlock, sizeof(baseRelocBlock)))
+        ULONG blockSize = baseRelocBlock->SizeOfBlock;
+        if(blockSize == 0 || blockSize > totalBytes) // The loader allows incorrect relocation dir sizes/block counts, but it won't relocate the image
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation block for module %s%s...\n"), Info.name, Info.extension);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation block for module %s%s!\n"), Info.name, Info.extension);
             return;
         }
 
-        // For every entry in base relocation block
-        duint count = (baseRelocBlock.SizeOfBlock - 8) / 2;
-        for(duint i = 0; i < count; i++)
+        // Process the relocation block
+        totalBytes -= blockSize;
+        blockSize = (blockSize - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(USHORT);
+        PUSHORT nextOffset = (PUSHORT)((PCHAR)baseRelocBlock + sizeof(IMAGE_BASE_RELOCATION));
+
+        while(blockSize--)
         {
-            uint16 data = 0;
-            if(!read(curPos + 8 + 2 * i, &data, sizeof(uint16)))
+            const auto type = (UCHAR)((*nextOffset) >> 12);
+            const auto offset = (USHORT)(*nextOffset & 0xfff);
+
+            if(baseRelocBlock->VirtualAddress + offset > FileMapVA + HEADER_FIELD(Info.headers, SizeOfImage))
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation entry for module %s%s...\n"), Info.name, Info.extension);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation entry for module %s%s!\n"), Info.name, Info.extension);
                 return;
             }
-
-            auto type = (data & 0xF000) >> 12;
-            auto offset = data & 0x0FFF;
 
             switch(type)
             {
             case IMAGE_REL_BASED_HIGHLOW:
-                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, (BYTE)type, 4 });
+                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock->VirtualAddress + offset, type, sizeof(ULONG) });
                 break;
             case IMAGE_REL_BASED_DIR64:
-                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, (BYTE)type, 8 });
+                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock->VirtualAddress + offset, type, sizeof(ULONG64) });
                 break;
             case IMAGE_REL_BASED_HIGH:
             case IMAGE_REL_BASED_LOW:
             case IMAGE_REL_BASED_HIGHADJ:
-                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock.VirtualAddress + offset, (BYTE)type, 2 });
+                Info.relocations.push_back(MODRELOCATIONINFO{ baseRelocBlock->VirtualAddress + offset, type, sizeof(USHORT) });
                 break;
             case IMAGE_REL_BASED_ABSOLUTE:
-            default:
+            case IMAGE_REL_BASED_RESERVED: // IMAGE_REL_BASED_SECTION; ignored by loader
+            case IMAGE_REL_BASED_MACHINE_SPECIFIC_7: // IMAGE_REL_BASED_REL32; ignored by loader
                 break;
+            default:
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Illegal relocation type 0x%02X for module %s%s!\n"), type, Info.name, Info.extension);
+                return;
             }
+            ++nextOffset;
         }
-
-        curPos += baseRelocBlock.SizeOfBlock;
+        baseRelocBlock = (PIMAGE_BASE_RELOCATION)nextOffset;
     }
 
     std::sort(Info.relocations.begin(), Info.relocations.end(), [](MODRELOCATIONINFO const & a, MODRELOCATIONINFO const & b)
