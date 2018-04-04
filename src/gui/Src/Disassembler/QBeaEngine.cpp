@@ -229,7 +229,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     auto instr = cp.GetInstr();
     cp.RegInfo(reginfo);
 
-    for(ZydisCPUFlag i = 0; i <= ZYDIS_CPUFLAG_MAX_VALUE; ++i)
+    for(size_t i = 0; i < _countof(instr->accessedFlags); ++i)
     {
         auto flagAction = instr->accessedFlags[i].action;
         if(flagAction == ZYDIS_CPUFLAG_ACTION_NONE)
@@ -255,11 +255,11 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
         reginfo[ZYDIS_REGISTER_EFLAGS] = Zydis::RAINone;
         reginfo[ZYDIS_REGISTER_FLAGS]  = Zydis::RAINone;
 
-        wInst.regsReferenced.emplace_back(cp.FlagName(i), rai);
+        wInst.regsReferenced.emplace_back(cp.FlagName(ZydisCPUFlag(i)), rai);
     }
 
     reginfo[ArchValue(ZYDIS_REGISTER_EIP, ZYDIS_REGISTER_RIP)] = Zydis::RAINone;
-    for(ZydisRegister i = ZYDIS_REGISTER_NONE; i <= ZYDIS_REGISTER_MAX_VALUE; ++i)
+    for(int i = ZYDIS_REGISTER_NONE; i <= ZYDIS_REGISTER_MAX_VALUE; ++i)
         if(reginfo[i])
             wInst.regsReferenced.emplace_back(cp.RegName(ZydisRegister(i)), reginfo[i]);
 

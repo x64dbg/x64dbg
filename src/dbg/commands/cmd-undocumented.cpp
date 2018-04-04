@@ -445,7 +445,7 @@ bool cbInstrBriefcheck(int argc, char* argv[])
             continue;
         }
         i += cp.Size();
-        auto mnem = StringUtils::ToLower(cp.MnemonicId());
+        auto mnem = StringUtils::ToLower(cp.Mnemonic());
         auto brief = MnemonicHelp::getBriefDescription(mnem.c_str());
         if(brief.length() || reported.count(mnem))
             continue;
