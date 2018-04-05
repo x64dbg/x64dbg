@@ -25,6 +25,7 @@
 #include "exception.h"
 #include "expressionfunctions.h"
 #include "formatfunctions.h"
+#include "stringformat.h"
 #include "yara/yara.h"
 #include "dbghelp_safe.h"
 
@@ -504,7 +505,10 @@ static DWORD WINAPI DbgScriptDllExecThread(void* a)
     if(FreeLibrary(hScriptDll))
         dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%08X)...\n"), GetLastError());
+    {
+        String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%s)...\n"), error.c_str());
+    }
 
     return 0;
 }
@@ -538,17 +542,26 @@ static bool DbgScriptDllExec(const char* dll)
                 dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] \"Start\" returned!\n"));
             }
             else
-                dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%s)!\n"), ErrorCodeToName(GetLastError()).c_str());
+            {
+                String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%s)!\n"), error.c_str());
+            }
 
             dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Calling FreeLibrary..."));
             if(FreeLibrary(hScriptDll))
                 dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
             else
-                dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%s)...\n"), ErrorCodeToName(GetLastError()).c_str());
+            {
+                String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+                dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%s)...\n"), error.c_str());
+            }
         }
     }
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] LoadLibary failed (%s)!\n"), ErrorCodeToName(GetLastError()).c_str());
+    {
+        String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] LoadLibary failed (%s)!\n"), error.c_str());
+    }
 
     return true;
 }

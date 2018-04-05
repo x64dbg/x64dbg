@@ -3,6 +3,7 @@
 #include "debugger.h"
 #include "exception.h"
 #include "value.h"
+#include "stringformat.h"
 
 bool cbGetPrivilegeState(int argc, char* argv[])
 {
@@ -85,7 +86,8 @@ bool cbHandleClose(int argc, char* argv[])
         return false;
     if(!handle || !DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), NULL, NULL, 0, FALSE, DUPLICATE_CLOSE_SOURCE))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "DuplicateHandle failed: %s\n"), ErrorCodeToName(GetLastError()).c_str());
+        String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DuplicateHandle failed: %s\n"), error.c_str());
         return false;
     }
 #ifdef _WIN64

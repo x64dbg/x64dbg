@@ -2597,9 +2597,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         {
             auto lastError = GetLastError();
             auto isElevated = IsProcessElevated();
-            auto error = ErrorCodeToName(lastError);
-            if(error.empty())
-                error = StringUtils::sprintf("%d (0x%X)", lastError);
+            String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", lastError));
             if(lastError == ERROR_ELEVATION_REQUIRED && !isElevated)
             {
                 auto msg = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "The executable you are trying to debug requires elevation. Restart as admin?")));
@@ -2699,8 +2697,8 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     {
         if(AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger) == false)
         {
-            unsigned int errorCode = GetLastError();
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %d (%s)\n"), int(errorCode), ErrorCodeToName(errorCode).c_str());
+            String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %s\n"), error.c_str());
         }
     }
     else
