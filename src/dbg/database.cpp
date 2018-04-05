@@ -136,7 +136,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
 
         if(!dumpSuccess)
         {
-            String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+            String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
             dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file!(GetLastError() = %s)\n"), error.c_str());
             json_decref(root);
             return;
@@ -199,7 +199,7 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
     FileMap<char> dbMap;
     if(!dbMap.Map(databasePathW.c_str()))
     {
-        String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+        String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
         dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file!(GetLastError() = %s)\n"), error.c_str());
         return;
     }
@@ -329,7 +329,7 @@ void DbSetPath(const char* Directory, const char* ModulePath)
         {
             if(GetLastError() != ERROR_ALREADY_EXISTS)
             {
-                String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+                String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Warning: Failed to create database folder '%s'. GetLastError() = %s\n"), Directory, error.c_str());
             }
         }
@@ -374,7 +374,7 @@ void DbSetPath(const char* Directory, const char* ModulePath)
             auto hFile = CreateFileW(testfile.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
             if(hFile == INVALID_HANDLE_VALUE)
             {
-                String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+                String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot write to the program directory(GetLastError() = %s), try running x64dbg as admin...\n"), error.c_str());
                 return false;
             }

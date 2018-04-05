@@ -406,7 +406,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
             if(written < DWORD(WriteBufferPtr - WriteBuffer)) //Disk full?
             {
                 CloseHandle(rtFile);
-                String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+                String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace has stopped unexpectedly because WriteFile() failed. GetLastError()= %s .\r\n"), error.c_str());
                 rtEnabled = false;
             }
@@ -551,7 +551,7 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
         }
         else
         {
-            String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+            String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
             dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot create run trace file. GetLastError()= %s .\r\n"), error.c_str());
             return false;
         }
