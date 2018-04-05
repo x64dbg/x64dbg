@@ -6,6 +6,7 @@
 #include "disasm_helper.h"
 #include "disasm_fast.h"
 #include "plugin_loader.h"
+#include "stringformat.h"
 #include "value.h"
 
 #define MAX_INSTRUCTIONS_TRACED_FULL_REG_DUMP 512
@@ -405,7 +406,8 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
             if(written < DWORD(WriteBufferPtr - WriteBuffer)) //Disk full?
             {
                 CloseHandle(rtFile);
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace has stopped unexpectedly because WriteFile() failed. GetLastError()= %X .\r\n"), GetLastError());
+                String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Run trace has stopped unexpectedly because WriteFile() failed. GetLastError()= %s .\r\n"), error.c_str());
                 rtEnabled = false;
             }
         }
@@ -549,7 +551,8 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
         }
         else
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot create run trace file. GetLastError()= %X .\r\n"), GetLastError());
+            String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot create run trace file. GetLastError()= %s .\r\n"), error.c_str());
             return false;
         }
     }
