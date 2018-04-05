@@ -2697,7 +2697,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     {
         if(AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger) == false)
         {
-            String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+            String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
             dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %s\n"), error.c_str());
         }
     }

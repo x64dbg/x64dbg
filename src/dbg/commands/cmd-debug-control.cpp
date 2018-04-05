@@ -187,7 +187,7 @@ bool cbDebugStop(int argc, char* argv[])
         break;
 
         case WAIT_FAILED:
-            String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+            String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
             dprintf_untranslated("WAIT_FAILED, GetLastError() = %s\n", error.c_str());
             return false;
         }

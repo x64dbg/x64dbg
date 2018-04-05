@@ -506,7 +506,7 @@ static DWORD WINAPI DbgScriptDllExecThread(void* a)
         dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
     else
     {
-        String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+        String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
         dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%s)...\n"), error.c_str());
     }
 
@@ -543,7 +543,7 @@ static bool DbgScriptDllExec(const char* dll)
             }
             else
             {
-                String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+                String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
                 dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%s)!\n"), error.c_str());
             }
 
@@ -552,14 +552,14 @@ static bool DbgScriptDllExec(const char* dll)
                 dputs(QT_TRANSLATE_NOOP("DBG", "success!\n"));
             else
             {
-                String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+                String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
                 dprintf(QT_TRANSLATE_NOOP("DBG", "failure (%s)...\n"), error.c_str());
             }
         }
     }
     else
     {
-        String error = stringformatinline(StringUtils::sprintf("{wineerror@%d}", GetLastError()));
+        String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
         dprintf(QT_TRANSLATE_NOOP("DBG", "[Script DLL] LoadLibary failed (%s)!\n"), error.c_str());
     }
 
